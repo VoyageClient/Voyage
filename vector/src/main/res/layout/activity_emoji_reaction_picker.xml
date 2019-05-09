@@ -4,44 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EmojiReactionPickerActivity">
-
+    tools:context="im.vector.riotredesign.features.reactions.EmojiReactionPickerActivity">
 
     <fragment
         android:id="@+id/fragment"
-        android:name="im.vector.reactions.EmojiChooserFragment"
+        android:name="im.vector.riotredesign.features.reactions.EmojiChooserFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:layout="@layout/emoji_chooser_fragment" />
-    <!--<androidx.core.widget.NestedScrollView-->
-    <!--android:id="@+id/nestedScrollView"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--android:fillViewport="true"-->
-    <!--android:fitsSystemWindows="true"-->
-    <!--app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
-
-    <!--<fragment-->
-    <!--android:id="@+id/fragment"-->
-    <!--android:name="im.vector.reactions.EmojiChooserFragment"-->
-    <!--android:layout_width="match_parent"-->
-    <!--android:layout_height="match_parent"-->
-    <!--tools:layout="@layout/emoji_chooser_fragment" />-->
-
-    <!--</androidx.core.widget.NestedScrollView>-->
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-
-        <!--<com.google.android.material.appbar.CollapsingToolbarLayout-->
-        <!--android:id="@+id/collapsingToolbarLayout"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--app:contentScrim="?attr/colorPrimary"-->
-        <!--app:expandedTitleGravity="top"-->
-        <!--app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">-->
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -61,7 +36,6 @@
             android:background="?attr/colorPrimary"
             android:elevation="4dp" />
 
-        <!--</com.google.android.material.appbar.CollapsingToolbarLayout>-->
     </com.google.android.material.appbar.AppBarLayout>
 
 

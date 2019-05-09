@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package im.vector.reactions
+package im.vector.riotredesign.features.reactions
 
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
@@ -27,6 +27,7 @@ class EmojiChooserViewModel : ViewModel() {
     val currentSection: MutableLiveData<Int> = MutableLiveData()
 
     fun initWithContect(context: Context) {
+        //TODO load async
         val emojiDataSource = EmojiDataSource(context)
         emojiSourceLiveData.value = emojiDataSource
         adapter = EmojiRecyclerAdapter(emojiDataSource)

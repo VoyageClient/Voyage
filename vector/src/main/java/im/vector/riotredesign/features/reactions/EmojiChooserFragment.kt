@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package im.vector.reactions
+package im.vector.riotredesign.features.reactions
 
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -22,8 +22,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import im.vector.riotredesign.R
 
 
 class EmojiChooserFragment : Fragment() {
@@ -50,9 +50,7 @@ class EmojiChooserFragment : Fragment() {
             it.adapter?.notifyDataSetChanged()
         }
 
-        val ds = EmojiDataSource(this.context!!)
-
-        Log.d("YO","trtrt")
+//        val ds = EmojiDataSource(this.context!!)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

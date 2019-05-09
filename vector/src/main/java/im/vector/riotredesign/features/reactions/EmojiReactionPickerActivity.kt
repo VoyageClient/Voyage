@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package im.vector.reactions
+package im.vector.riotredesign.features.reactions
 
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
-import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.TypedValue
@@ -26,28 +25,36 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.SearchView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.provider.FontRequest
 import androidx.core.provider.FontsContractCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.tabs.TabLayout
+import im.vector.riotredesign.R
+import im.vector.riotredesign.core.platform.VectorBaseActivity
 import timber.log.Timber
-
 
 /**
  *
  * TODO: Loading indicator while getting emoji data source?
  * TODO: migrate to maverick
+ * TODO: Finish Refactor to vector base activity
+ * TODO: Move font request to app
  */
-class EmojiReactionPickerActivity : AppCompatActivity() {
+class EmojiReactionPickerActivity : VectorBaseActivity() {
 
     private lateinit var tabLayout: TabLayout
 
     lateinit var viewModel: EmojiChooserViewModel
 
     private var mHandler: Handler? = null
+
+    override fun getMenuRes(): Int = R.menu.menu_emoji_reaction_picker
+
+    override fun getLayoutRes(): Int = R.layout.activity_emoji_reaction_picker
+
+    override fun getTitleRes(): Int = R.string.title_activity_emoji_reaction_picker
 
     private var tabLayoutSelectionListener = object : TabLayout.BaseOnTabSelectedListener<TabLayout.Tab> {
         override fun onTabReselected(p0: TabLayout.Tab) {
@@ -71,18 +78,13 @@ class EmojiReactionPickerActivity : AppCompatActivity() {
         return mHandler!!
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun initUiAndData() {
+
+        configureToolbar()
 
         requestEmojivUnicode10CompatibleFont()
 
-
-        setContentView(R.layout.activity_emoji_reaction_picker)
-        setSupportActionBar(findViewById(R.id.toolbar))
-
         tabLayout = findViewById(R.id.tabs)
-
-
 
         viewModel = ViewModelProviders.of(this).get(EmojiChooserViewModel::class.java)
 
@@ -104,7 +106,6 @@ class EmojiReactionPickerActivity : AppCompatActivity() {
                 tabLayout.addOnTabSelectedListener(tabLayoutSelectionListener)
             }
         })
-        supportActionBar?.title = getString(R.string.title_activity_emoji_reaction_picker)
     }
 
     private fun requestEmojivUnicode10CompatibleFont() {
@@ -132,7 +133,7 @@ class EmojiReactionPickerActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.menu_emoji_reaction_picker, menu)
+        inflater.inflate(getMenuRes(), menu)
 
         val searchItem = menu.findItem(R.id.search)
         (searchItem.actionView as? SearchView)?.let {

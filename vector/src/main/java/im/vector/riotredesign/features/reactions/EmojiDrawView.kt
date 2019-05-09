@@ -1,15 +1,13 @@
-package im.vector.reactions
+package im.vector.riotredesign.features.reactions
 
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
-import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
-import java.lang.Exception
 import kotlin.math.abs
 
 

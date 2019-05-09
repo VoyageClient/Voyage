@@ -13,35 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package im.vector.reactions
+package im.vector.riotredesign.features.reactions
 
 import android.content.Context
-import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+import com.squareup.moshi.Moshi
+import im.vector.riotredesign.R
 import java.io.InputStreamReader
+import com.squareup.moshi.JsonAdapter
+
+
 
 class EmojiDataSource(val context: Context) {
 
     var rawData: EmojiData? = null
 
     init {
-        context.resources.openRawResource(R.raw.emoji_picker_datasource).use {
-            var gson = Gson()
-            this.rawData = gson.fromJson(InputStreamReader(it), EmojiData::class.java)
+        context.resources.openRawResource(R.raw.emoji_picker_datasource).use { input ->
+            val moshi = Moshi.Builder().build()
+            val jsonAdapter = moshi.adapter(EmojiData::class.java)
+            val inputAsString = input.bufferedReader().use { it.readText() }
+            this.rawData = jsonAdapter.fromJson(inputAsString)
+           // this.rawData = mb.fr(InputStreamReader(it), EmojiData::class.java)
         }
     }
+    @JsonClass(generateAdapter = true)
+    data class EmojiData(val categories: List<EmojiCategory>,
+                         val emojis: Map<String, EmojiItem>,
+                         val aliases: Map<String, String>)
 
-    data class EmojiData(val categories: ArrayList<EmojiCategory>,
-                         val name: String,
-                         val emojis: HashMap<String, EmojiItem>,
-                         val aliases: HashMap<String, String>)
+    @JsonClass(generateAdapter = true)
+    data class EmojiCategory(val id: String, val name: String, val emojis: List<String>)
 
-    data class EmojiCategory(val id: String, val name: String, val emojis: ArrayList<String>)
+    @JsonClass(generateAdapter = true)
     data class EmojiItem(
-            @SerializedName("a") val name: String,
-            @SerializedName("b") val unicode: String,
-            @SerializedName("j") val keywords: ArrayList<String>?,
-            val k: ArrayList<String>?) {
+            @Json(name = "a") val name: String,
+            @Json(name = "b") val unicode: String,
+            @Json(name = "j") val keywords: List<String>?,
+            val k: List<String>?) {
 
         var _emojiText: String? = null
 
