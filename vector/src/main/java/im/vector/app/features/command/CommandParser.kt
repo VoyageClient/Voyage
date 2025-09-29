@@ -55,6 +55,14 @@ class CommandParser @Inject constructor(
             }
 
             when {
+                Command.GREENTEXT.matches(slashCommand) -> {
+                    if (message.isNotEmpty()) {
+                        ParsedCommand.SendGreentext(message = message)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.GREENTEXT)
+                    }
+                }
+
                 Command.PLAIN.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
                         if (formattedMessage != null) {

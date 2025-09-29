@@ -302,6 +302,24 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
                             popDraft(room)
                         }
+                        is ParsedCommand.SendGreentext -> {
+                            // Send the greentext message to the room
+                            if (state.rootThreadEventId != null) {
+                                room.relationService().replyInThread(
+                                        rootThreadEventId = state.rootThreadEventId,
+                                        replyInThreadText = ">" + parsedCommand.message.toString(),
+                                        formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>",
+                                        autoMarkdown = false
+                                )
+                            } else {
+                                room.sendService().sendFormattedTextMessage(
+                                        text = ">" + parsedCommand.message.toString(),
+                                        formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>"
+                                )
+                            }
+                            _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                            popDraft(room)
+                        }
                         is ParsedCommand.ChangeRoomName -> {
                             handleChangeRoomNameSlashCommand(room, parsedCommand)
                         }

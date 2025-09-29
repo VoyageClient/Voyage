@@ -12,6 +12,8 @@
 
     <string name="command_description_crash_application" translatable="false">Crash the application.</string>
 
+    <string name="command_description_greentext" translatable="false">Send a message as greentext.</string>
+
     <!--  WIP -->
     <string name="location_map_view_copyright" translatable="false">© MapTiler © OpenStreetMap contributors</string>
 </resources>
