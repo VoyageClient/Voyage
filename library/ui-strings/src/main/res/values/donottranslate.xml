@@ -14,9 +14,6 @@
 
     <string name="command_description_greentext" translatable="false">Send a message as greentext.</string>
 
-    <string name="settings_send_read_receipts">Send read receipts</string>
-    <string name="settings_send_read_receipts_summary">Let other users know that you are reading messages.</string>
-
     <!--  WIP -->
     <string name="location_map_view_copyright" translatable="false">© MapTiler © OpenStreetMap contributors</string>
 </resources>

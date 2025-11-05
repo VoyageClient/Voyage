@@ -98,7 +98,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_INTERFACE_TEXT_SIZE_KEY = "SETTINGS_INTERFACE_TEXT_SIZE_KEY"
         const val SETTINGS_INTERFACE_BUBBLE_KEY = "SETTINGS_INTERFACE_BUBBLE_KEY"
         const val SETTINGS_SHOW_URL_PREVIEW_KEY = "SETTINGS_SHOW_URL_PREVIEW_KEY"
-        private const val SETTINGS_SEND_READ_RECEIPT_KEY = "SETTINGS_SEND_READ_RECEIPT_KEY"
         private const val SETTINGS_SEND_TYPING_NOTIF_KEY = "SETTINGS_SEND_TYPING_NOTIF_KEY"
         private const val SETTINGS_ENABLE_MARKDOWN_KEY = "SETTINGS_ENABLE_MARKDOWN_KEY"
         private const val SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY = "SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY"
@@ -256,7 +255,6 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_DEFAULT_MEDIA_SOURCE_KEY,
                 SETTINGS_PLAY_SHUTTER_SOUND_KEY,
 
-                SETTINGS_SEND_READ_RECEIPT_KEY,
                 SETTINGS_SEND_TYPING_NOTIF_KEY,
                 SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY,
                 SETTINGS_12_24_TIMESTAMPS_KEY,
@@ -824,15 +822,6 @@ class VectorPreferences @Inject constructor(
      */
     fun autoplayAnimatedImages(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, false)
-    }
-
-    /**
-     * Tells if read receipts should be sent.
-     *
-     * @return true to send the read receipts
-     */
-    fun sendReadReceipts(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SEND_READ_RECEIPT_KEY, true)
     }
 
     /**

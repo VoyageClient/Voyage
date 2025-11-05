@@ -14,7 +14,7 @@
             app:fragment="im.vector.app.features.settings.locale.LocalePickerFragment" />
 
         <im.vector.app.core.preference.VectorListPreference
-            android:defaultValue="dark"
+            android:defaultValue="system"
             android:entries="@array/theme_entries"
             android:entryValues="@array/theme_values"
             android:key="APPLICATION_THEME_KEY"
@@ -49,12 +49,6 @@
             android:key="SETTINGS_ENABLE_MARKDOWN_KEY"
             android:summary="@string/settings_send_markdown_summary"
             android:title="@string/settings_send_markdown" />
-
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="true"
-            android:key="SETTINGS_SEND_READ_RECEIPT_KEY"
-            android:summary="@string/settings_send_read_receipts_summary"
-            android:title="@string/settings_send_read_receipts" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
