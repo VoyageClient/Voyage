@@ -55,7 +55,7 @@ internal interface SetReadMarkersTask : Task<SetReadMarkersTask.Params, Unit> {
 }
 
 private const val READ_MARKER = "m.fully_read"
-private const val READ_RECEIPT = "m.read"
+private const val READ_RECEIPT = "m.read.private"
 
 internal class DefaultSetReadMarkersTask @Inject constructor(
         private val roomAPI: RoomAPI,
