@@ -10,6 +10,7 @@ package im.vector.app.features.roomprofile.permissions
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
+import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import javax.inject.Inject
 
 class RoleFormatter @Inject constructor(
@@ -23,5 +24,23 @@ class RoleFormatter @Inject constructor(
             Role.Creator -> stringProvider.getString(CommonStrings.power_level_owner)
             Role.SuperAdmin -> stringProvider.getString(CommonStrings.power_level_owner)
         }
+    }
+
+    /**
+     * Format a [UserPowerLevel] preserving the numeric value when it does not match a
+     * preset (so a user with PL=45 is shown as "Custom (45)" rather than collapsing to "Default").
+     */
+    fun format(powerLevel: UserPowerLevel): String {
+        if (powerLevel is UserPowerLevel.Value) {
+            when (powerLevel.value) {
+                UserPowerLevel.User.value -> return stringProvider.getString(CommonStrings.power_level_default)
+                UserPowerLevel.Moderator.value -> return stringProvider.getString(CommonStrings.power_level_moderator)
+                UserPowerLevel.Admin.value -> return stringProvider.getString(CommonStrings.power_level_admin)
+                UserPowerLevel.SuperAdmin.value -> return stringProvider.getString(CommonStrings.power_level_owner)
+                else -> return stringProvider.getString(CommonStrings.power_level_custom, powerLevel.value)
+            }
+        }
+        // Infinite => Creator/Owner
+        return stringProvider.getString(CommonStrings.power_level_owner)
     }
 }

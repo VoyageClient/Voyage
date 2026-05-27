@@ -78,14 +78,13 @@ object MatrixPatterns {
     val ORDER_STRING_REGEX = "[ -~]+".toRegex()
 
     // list of patterns to find some matrix item.
+    // Note: only patterns that include a domain are used here, otherwise any text starting with
+    // `!` or `$` would be turned into a clickable link.
     val MATRIX_PATTERNS = listOf(
             PATTERN_CONTAIN_MATRIX_USER_IDENTIFIER,
             PATTERN_CONTAIN_MATRIX_ALIAS,
             PATTERN_CONTAIN_MATRIX_ROOM_IDENTIFIER,
-            PATTERN_CONTAIN_MATRIX_ROOM_IDENTIFIER_DOMAINLESS,
             PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER,
-            PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER_V3,
-            PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER_V4,
             PATTERN_CONTAIN_MATRIX_GROUP_IDENTIFIER
     )
 

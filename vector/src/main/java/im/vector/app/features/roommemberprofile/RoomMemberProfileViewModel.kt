@@ -45,6 +45,7 @@ import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
+import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.api.util.toOptional
@@ -387,12 +388,27 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
         roomSummaryLive.combine(powerLevelsFlow) { roomSummary, roomPowerLevels ->
             val roomName = roomSummary.toMatrixItem().getBestName()
-            when (roomPowerLevels.getSuggestedRole(initialState.userId)) {
-                Role.SuperAdmin,
-                Role.Creator -> stringProvider.getString(CommonStrings.room_member_power_level_owner_in, roomName)
-                Role.Admin -> stringProvider.getString(CommonStrings.room_member_power_level_admin_in, roomName)
-                Role.Moderator -> stringProvider.getString(CommonStrings.room_member_power_level_moderator_in, roomName)
-                Role.User -> stringProvider.getString(CommonStrings.room_member_power_level_default_in, roomName)
+            val userPowerLevel = roomPowerLevels.getUserPowerLevel(initialState.userId)
+            val role = roomPowerLevels.getSuggestedRole(initialState.userId)
+            // Preserve the numeric value when it doesn't match a preset, otherwise a user with
+            // e.g. PL 45 would be shown as "Default in <room>" rather than "Custom (45) in <room>".
+            val matchesPreset = userPowerLevel is UserPowerLevel.Value && when (role) {
+                Role.Creator -> true
+                Role.SuperAdmin -> userPowerLevel.value == UserPowerLevel.SuperAdmin.value
+                Role.Admin -> userPowerLevel.value == UserPowerLevel.Admin.value
+                Role.Moderator -> userPowerLevel.value == UserPowerLevel.Moderator.value
+                Role.User -> userPowerLevel.value == UserPowerLevel.User.value
+            } || userPowerLevel == UserPowerLevel.Infinite
+            if (!matchesPreset && userPowerLevel is UserPowerLevel.Value) {
+                stringProvider.getString(CommonStrings.room_member_power_level_custom_in, userPowerLevel.value, roomName)
+            } else {
+                when (role) {
+                    Role.SuperAdmin,
+                    Role.Creator -> stringProvider.getString(CommonStrings.room_member_power_level_owner_in, roomName)
+                    Role.Admin -> stringProvider.getString(CommonStrings.room_member_power_level_admin_in, roomName)
+                    Role.Moderator -> stringProvider.getString(CommonStrings.room_member_power_level_moderator_in, roomName)
+                    Role.User -> stringProvider.getString(CommonStrings.room_member_power_level_default_in, roomName)
+                }
             }
         }.execute {
             copy(userPowerLevelString = it)

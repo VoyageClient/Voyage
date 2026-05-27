@@ -34,12 +34,24 @@ object EditPowerLevelDialogs {
         val dialogLayout = activity.layoutInflater.inflate(R.layout.dialog_edit_power_level, null)
         val views = DialogEditPowerLevelBinding.bind(dialogLayout)
         val currentRole = Role.getSuggestedRole(currentPowerLevel)
-        when (currentRole) {
+        views.powerLevelRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            views.powerLevelCustomEditLayout.isVisible = checkedId == R.id.powerLevelCustomRadio
+        }
+        views.powerLevelCustomEdit.setText("${currentPowerLevel.value}")
+
+        val matchesPreset = when (currentRole) {
             Role.Creator,
-            Role.SuperAdmin -> views.powerLevelOwnerRadio.isChecked = true
-            Role.Admin -> views.powerLevelAdminRadio.isChecked = true
-            Role.Moderator -> views.powerLevelModeratorRadio.isChecked = true
-            Role.User -> views.powerLevelDefaultRadio.isChecked = true
+            Role.SuperAdmin -> currentPowerLevel.value == UserPowerLevel.SuperAdmin.value
+            Role.Admin -> currentPowerLevel.value == UserPowerLevel.Admin.value
+            Role.Moderator -> currentPowerLevel.value == UserPowerLevel.Moderator.value
+            Role.User -> currentPowerLevel.value == UserPowerLevel.User.value
+        }
+        when {
+            !matchesPreset -> views.powerLevelCustomRadio.isChecked = true
+            currentRole == Role.Creator || currentRole == Role.SuperAdmin -> views.powerLevelOwnerRadio.isChecked = true
+            currentRole == Role.Admin -> views.powerLevelAdminRadio.isChecked = true
+            currentRole == Role.Moderator -> views.powerLevelModeratorRadio.isChecked = true
+            currentRole == Role.User -> views.powerLevelDefaultRadio.isChecked = true
         }
         views.powerLevelOwnerRadio.isVisible = currentRole.isOwner()
         MaterialAlertDialogBuilder(activity)
@@ -51,6 +63,10 @@ object EditPowerLevelDialogs {
                         R.id.powerLevelAdminRadio -> UserPowerLevel.Admin
                         R.id.powerLevelModeratorRadio -> UserPowerLevel.Moderator
                         R.id.powerLevelDefaultRadio -> UserPowerLevel.User
+                        R.id.powerLevelCustomRadio -> {
+                            val custom = views.powerLevelCustomEdit.text?.toString()?.toIntOrNull()
+                            if (custom != null) UserPowerLevel.Value(custom) else null
+                        }
                         else -> null
                     }
                     if (newValue != null) {

@@ -22,7 +22,6 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomThirdPartyInviteContent
-import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
@@ -115,8 +114,7 @@ class RoomMemberListController @Inject constructor(
             host: RoomMemberListController,
             data: RoomMemberListViewState
     ) {
-        val role = Role.getSuggestedRole(roomMember.powerLevel)
-        val powerLabel = roleFormatter.format(role)
+        val powerLabel = roleFormatter.format(roomMember.powerLevel)
 
         profileMatrixItemWithPowerLevelWithPresence {
             id(roomMember.summary.userId)

@@ -122,8 +122,8 @@ class NoticeEventFormatter @Inject constructor(
         userIds.addAll(previousPowerLevelsContent.users.orEmpty().keys)
         val diffs = ArrayList<String>()
         userIds.forEach { userId ->
-            val from = RoomPowerLevels(previousPowerLevelsContent, null).getSuggestedRole(userId)
-            val to = RoomPowerLevels(powerLevelsContent, null).getSuggestedRole(userId)
+            val from = RoomPowerLevels(previousPowerLevelsContent, null).getUserPowerLevel(userId)
+            val to = RoomPowerLevels(powerLevelsContent, null).getUserPowerLevel(userId)
             if (from != to) {
                 val fromStr = roleFormatter.format(from)
                 val toStr = roleFormatter.format(to)
