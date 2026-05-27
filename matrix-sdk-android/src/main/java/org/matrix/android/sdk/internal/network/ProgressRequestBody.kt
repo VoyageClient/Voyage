@@ -56,13 +56,28 @@ internal class ProgressRequestBody(
     private inner class CountingSink(delegate: Sink) : ForwardingSink(delegate) {
 
         private var bytesWritten: Long = 0
+        private var lastNotifiedAtMs: Long = 0L
 
         @Throws(IOException::class)
         override fun write(source: Buffer, byteCount: Long) {
             super.write(source, byteCount)
             bytesWritten += byteCount
-            listener.onProgress(bytesWritten, contentLength())
+            // On fast networks (e.g. LAN) writes happen so frequently that posting a progress
+            // update for every 8KB segment floods the main thread and freezes the UI until the
+            // upload completes. Throttle to at most one update per PROGRESS_UPDATE_THROTTLE_MS,
+            // and always emit the final "done" update so the UI doesn't stall just shy of 100%.
+            val total = contentLength()
+            val now = System.currentTimeMillis()
+            val isFinal = total in 1..bytesWritten
+            if (isFinal || now - lastNotifiedAtMs >= PROGRESS_UPDATE_THROTTLE_MS) {
+                lastNotifiedAtMs = now
+                listener.onProgress(bytesWritten, total)
+            }
         }
+    }
+
+    companion object {
+        private const val PROGRESS_UPDATE_THROTTLE_MS = 100L
     }
 
     interface Listener {
