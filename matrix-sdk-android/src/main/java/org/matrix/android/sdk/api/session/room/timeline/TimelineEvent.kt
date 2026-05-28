@@ -43,7 +43,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.ContentUtils
-import org.matrix.android.sdk.api.util.ContentUtils.ensureCorrectFormattedBodyInTextReply
 import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromReply
 
 /**
@@ -165,18 +164,18 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
             // Modern reply edits carry only the new text in new_content — no m.in_reply_to,
             // no <mx-reply>. Re-attach the original event's relatesTo (which still carries
             // m.in_reply_to.event_id) so the renderer continues to treat the edited event as
-            // a reply. Legacy edits with embedded mx-reply still go through the existing
-            // ensureCorrectFormattedBodyInTextReply path so received-from-legacy clients keep
-            // rendering correctly.
+            // a reply; the mx-reply header is then synthesised dynamically by
+            // ProcessBodyOfReplyToEventUseCase. We intentionally do NOT call
+            // ensureCorrectFormattedBodyInTextReply here: that legacy helper grafts the
+            // original event's <mx-reply> block onto the new content using
+            // `messageTextContent.body` (plain markdown source) as the replacement payload,
+            // which overwrites the HTML formattedBody and makes links / formatting render as
+            // raw text. Legacy edits with mx-reply still embedded render fine because
+            // ProcessBodyOfReplyToEventUseCase.stripExistingMxReply strips and re-synthesises
+            // the header from cached state.
             val originalRelatesTo = root.getClearContent().toModel<MessageContent>()?.relatesTo
-            val originalFormattedBody = root.getClearContent().toModel<MessageTextContent>()?.formattedBody
             val lastMessageContent = lastContent.toModel<MessageTextContent>()
-            val withReplyContext = if (lastMessageContent != null && originalFormattedBody?.isNotEmpty() == true) {
-                ensureCorrectFormattedBodyInTextReply(lastMessageContent, originalFormattedBody)
-            } else {
-                lastMessageContent
-            }
-            withReplyContext?.copy(relatesTo = withReplyContext.relatesTo ?: originalRelatesTo)?.toContent()
+            lastMessageContent?.copy(relatesTo = lastMessageContent.relatesTo ?: originalRelatesTo)?.toContent()
                     ?: lastContent
         }
         else -> lastContent

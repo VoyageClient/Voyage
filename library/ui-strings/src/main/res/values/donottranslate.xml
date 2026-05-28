@@ -17,7 +17,7 @@
     <string name="command_description_jump_to_start" translatable="false">Jump to the first event in this room.</string>
     <string name="command_description_jump_to" translatable="false">Jump to the event with the given ID.</string>
     <string name="command_jump_to_event_not_found" translatable="false">Could not locate event %1$s in this room.</string>
-    <string name="command_jump_to_start_unavailable" translatable="false">Could not locate the room's first event.</string>
+    <string name="command_jump_to_start_unavailable" translatable="false">Could not locate the room\'s first event.</string>
 
     <string name="settings_send_read_receipts">Send public read receipts</string>
     <string name="settings_send_read_receipts_summary">Let other users see which messages you have read.</string>
