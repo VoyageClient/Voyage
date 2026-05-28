@@ -51,6 +51,12 @@
             android:title="@string/settings_send_markdown" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SEND_READ_RECEIPT_KEY"
+            android:summary="@string/settings_send_read_receipts_summary"
+            android:title="@string/settings_send_read_receipts" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
             android:key="SETTINGS_SEND_TYPING_NOTIF_KEY"
             android:summary="@string/settings_send_typing_notifs_summary"

@@ -51,11 +51,16 @@ internal interface SetReadMarkersTask : Task<SetReadMarkersTask.Params, Unit> {
             val readReceiptThreadId: String? = null,
             val forceReadReceipt: Boolean = false,
             val forceReadMarker: Boolean = false,
+            /**
+             * When true, the read receipt is sent as the public `m.read` (other users see it).
+             * When false (default), it's sent as `m.read.private` — server still tracks the
+             * read state so unread counts and cross-device sync work, but peers don't see it.
+             */
+            val publicReadReceipt: Boolean = false,
     )
 }
 
 private const val READ_MARKER = "m.fully_read"
-private const val READ_RECEIPT = "m.read.private"
 
 internal class DefaultSetReadMarkersTask @Inject constructor(
         private val roomAPI: RoomAPI,
@@ -84,6 +89,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
         } else {
             params.readReceiptEventId
         }
+        val readReceiptType = if (params.publicReadReceipt) "m.read" else "m.read.private"
 
         if (fullyReadEventId != null && !isReadMarkerMoreRecent(monarchy.realmConfiguration, params.roomId, fullyReadEventId)) {
             if (LocalEcho.isLocalEchoId(fullyReadEventId)) {
@@ -101,13 +107,13 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
             if (LocalEcho.isLocalEchoId(readReceiptEventId)) {
                 Timber.w("Can't set read receipt for local event $readReceiptEventId")
             } else {
-                markers[READ_RECEIPT] = readReceiptEventId
+                markers[readReceiptType] = readReceiptEventId
             }
         }
 
         val shouldUpdateRoomSummary = readReceiptEventId != null && readReceiptEventId == latestSyncedEventId
         if (markers.isNotEmpty() || shouldUpdateRoomSummary) {
-            updateDatabase(params.roomId, readReceiptThreadId, markers, shouldUpdateRoomSummary)
+            updateDatabase(params.roomId, readReceiptThreadId, markers, shouldUpdateRoomSummary, readReceiptType)
         }
         if (markers.isNotEmpty()) {
             executeRequest(
@@ -117,7 +123,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
                 if (markers[READ_MARKER] == null) {
                     if (readReceiptEventId != null) {
                         val readBody = ReadBody(threadId = params.readReceiptThreadId)
-                        roomAPI.sendReceipt(params.roomId, READ_RECEIPT, readReceiptEventId, readBody)
+                        roomAPI.sendReceipt(params.roomId, readReceiptType, readReceiptEventId, readBody)
                     }
                 } else {
                     // "m.fully_read" value is mandatory to make this call
@@ -132,10 +138,16 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
                 TimelineEventEntity.latestEvent(realm, roomId = roomId, includesSending = false)?.eventId
             }
 
-    private suspend fun updateDatabase(roomId: String, readReceiptThreadId: String?, markers: Map<String, String>, shouldUpdateRoomSummary: Boolean) {
+    private suspend fun updateDatabase(
+            roomId: String,
+            readReceiptThreadId: String?,
+            markers: Map<String, String>,
+            shouldUpdateRoomSummary: Boolean,
+            readReceiptType: String,
+    ) {
         monarchy.awaitTransaction { realm ->
             val readMarkerId = markers[READ_MARKER]
-            val readReceiptId = markers[READ_RECEIPT]
+            val readReceiptId = markers[readReceiptType]
             if (readMarkerId != null) {
                 roomFullyReadHandler.handle(realm, roomId, FullyReadContent(readMarkerId))
             }

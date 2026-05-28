@@ -16,6 +16,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
 import im.vector.app.features.analytics.plan.JoinedRoom
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.session.coroutineScope
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
@@ -40,6 +41,7 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
     @Inject lateinit var analyticsTracker: AnalyticsTracker
     @Inject lateinit var clock: Clock
     @Inject lateinit var actionIds: NotificationActionIds
+    @Inject lateinit var vectorPreferences: VectorPreferences
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent == null || context == null) return
@@ -100,7 +102,13 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
             val room = session.getRoom(roomId)
             if (room != null) {
                 session.coroutineScope.launch {
-                    tryOrNull { room.readService().markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT, mainTimeLineOnly = false) }
+                    tryOrNull {
+                        room.readService().markAsRead(
+                                params = ReadService.MarkAsReadParams.READ_RECEIPT,
+                                mainTimeLineOnly = false,
+                                public = vectorPreferences.sendReadReceipts(),
+                        )
+                    }
                 }
             }
         }

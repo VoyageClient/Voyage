@@ -54,7 +54,7 @@ internal class DefaultReadService @AssistedInject constructor(
         fun create(roomId: String): DefaultReadService
     }
 
-    override suspend fun markAsRead(params: ReadService.MarkAsReadParams, mainTimeLineOnly: Boolean) {
+    override suspend fun markAsRead(params: ReadService.MarkAsReadParams, mainTimeLineOnly: Boolean, public: Boolean) {
         val readReceiptThreadId = if (homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true) {
             if (mainTimeLineOnly) ReadService.THREAD_ID_MAIN else null
         } else {
@@ -64,18 +64,25 @@ internal class DefaultReadService @AssistedInject constructor(
                 roomId = roomId,
                 forceReadMarker = params.forceReadMarker(),
                 forceReadReceipt = params.forceReadReceipt(),
-                readReceiptThreadId = readReceiptThreadId
+                readReceiptThreadId = readReceiptThreadId,
+                publicReadReceipt = public,
         )
         setReadMarkersTask.execute(taskParams)
     }
 
-    override suspend fun setReadReceipt(eventId: String, threadId: String) = withContext(matrixCoroutineDispatchers.io) {
+    override suspend fun setReadReceipt(eventId: String, threadId: String, public: Boolean) = withContext(matrixCoroutineDispatchers.io) {
         val readReceiptThreadId = if (homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true) {
             threadId
         } else {
             null
         }
-        val params = SetReadMarkersTask.Params(roomId, fullyReadEventId = null, readReceiptEventId = eventId, readReceiptThreadId = readReceiptThreadId)
+        val params = SetReadMarkersTask.Params(
+                roomId = roomId,
+                fullyReadEventId = null,
+                readReceiptEventId = eventId,
+                readReceiptThreadId = readReceiptThreadId,
+                publicReadReceipt = public,
+        )
         setReadMarkersTask.execute(params)
     }
 

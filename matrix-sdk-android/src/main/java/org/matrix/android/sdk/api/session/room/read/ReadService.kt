@@ -33,15 +33,19 @@ interface ReadService {
 
     /**
      * Force the read marker to be set on the latest event.
+     * @param public when true, send the public `m.read` receipt (peers see it). When false,
+     *               send `m.read.private` — the server still tracks it (so unread counts
+     *               and cross-device sync work) but other users don't see it.
      */
-    suspend fun markAsRead(params: MarkAsReadParams = MarkAsReadParams.BOTH, mainTimeLineOnly: Boolean = true)
+    suspend fun markAsRead(params: MarkAsReadParams = MarkAsReadParams.BOTH, mainTimeLineOnly: Boolean = true, public: Boolean = false)
 
     /**
      * Set the read receipt on the event with provided eventId.
      * @param eventId the id of the event where read receipt will be set
      * @param threadId the id of the thread in which read receipt will be set. For main thread use [ReadService.THREAD_ID_MAIN] constant
+     * @param public when true, send the public `m.read` receipt; otherwise `m.read.private`.
      */
-    suspend fun setReadReceipt(eventId: String, threadId: String)
+    suspend fun setReadReceipt(eventId: String, threadId: String, public: Boolean = false)
 
     /**
      * Set the read marker on the event with provided eventId.

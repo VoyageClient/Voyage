@@ -215,7 +215,13 @@ class TimelineViewModel @AssistedInject constructor(
         observePowerLevel()
         setupPreviewUrlObservers()
         viewModelScope.launch(Dispatchers.IO) {
-            tryOrNull { room.readService().markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT, mainTimeLineOnly = true) }
+            tryOrNull {
+                room.readService().markAsRead(
+                        params = ReadService.MarkAsReadParams.READ_RECEIPT,
+                        mainTimeLineOnly = true,
+                        public = vectorPreferences.sendReadReceipts(),
+                )
+            }
         }
         // Inform the SDK that the room is displayed
         viewModelScope.launch(Dispatchers.IO) {
@@ -1117,7 +1123,13 @@ class TimelineViewModel @AssistedInject constructor(
                     bufferedMostRecentDisplayedEvent.root.eventId?.let { eventId ->
                         session.coroutineScope.launch {
                             val threadId = initialState.rootThreadEventId ?: ReadService.THREAD_ID_MAIN
-                            tryOrNull { room.readService().setReadReceipt(eventId, threadId = threadId) }
+                            tryOrNull {
+                                room.readService().setReadReceipt(
+                                        eventId = eventId,
+                                        threadId = threadId,
+                                        public = vectorPreferences.sendReadReceipts(),
+                                )
+                            }
                         }
                     }
                 }
@@ -1135,7 +1147,13 @@ class TimelineViewModel @AssistedInject constructor(
         if (room == null) return
         setState { copy(unreadState = UnreadState.HasNoUnread) }
         viewModelScope.launch {
-            tryOrNull { room.readService().markAsRead(ReadService.MarkAsReadParams.BOTH, mainTimeLineOnly = true) }
+            tryOrNull {
+                room.readService().markAsRead(
+                        params = ReadService.MarkAsReadParams.BOTH,
+                        mainTimeLineOnly = true,
+                        public = vectorPreferences.sendReadReceipts(),
+                )
+            }
         }
     }
 
