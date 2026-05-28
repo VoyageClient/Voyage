@@ -42,6 +42,14 @@ class EventTextRenderer @AssistedInject constructor(
         fun create(roomId: String?): EventTextRenderer
     }
 
+    // Cached at instance scope — `render()` runs per timeline text event and Patterns.WEB_URL
+    // is a global constant. Allocating a fresh Regex / String[] per call was a measurable
+    // hotspot when scrolling chatty rooms.
+    private val webUrlRegex by lazy { Patterns.WEB_URL.toRegex() }
+    private val supportedPermalinkHosts: Array<String> by lazy {
+        context.resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
+    }
+
     /**
      * @param text the text to be rendered
      */
@@ -88,10 +96,9 @@ class EventTextRenderer @AssistedInject constructor(
     }
 
     private fun addPermalinksSpans(text: Spannable) {
-        for (match in Patterns.WEB_URL.toRegex().findAll(text)) {
+        for (match in webUrlRegex.findAll(text)) {
             val url = text.substring(match.range)
-            val supportedHosts = context.resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
-            val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedHosts, url).orFalse()
+            val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedPermalinkHosts, url).orFalse()
             val matrixItem = if (isPermalinkSupported) {
                 when (val permalinkData = PermalinkParser.parse(url)) {
                     is PermalinkData.UserLink -> permalinkData.toMatrixItem()

@@ -74,12 +74,36 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     init {
+        // Seed the room power levels and the user-power-level label synchronously, so the
+        // controller can render the admin section / "Role" subtitle on the very first frame
+        // instead of waiting 1-2s for liveRoomPowerLevels' LiveData to round-trip through
+        // the main thread. The live observers below still update these as state changes.
+        val initialRoomPowerLevels = room?.stateService()?.getRoomPowerLevels()
+        val initialRoomSummary = room?.roomSummary()
+        val initialUserPowerLevelString = if (initialRoomPowerLevels != null && initialRoomSummary != null) {
+            computeUserPowerLevelString(initialRoomPowerLevels, initialRoomSummary)
+        } else {
+            null
+        }
+        val initialPermissions = if (initialRoomPowerLevels != null) {
+            ActionPermissions(
+                    canKick = initialRoomPowerLevels.isUserAbleToKick(session.myUserId),
+                    canBan = initialRoomPowerLevels.isUserAbleToBan(session.myUserId),
+                    canInvite = initialRoomPowerLevels.isUserAbleToInvite(session.myUserId),
+                    canEditPowerLevel = initialRoomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_POWER_LEVELS),
+            )
+        } else {
+            ActionPermissions()
+        }
         setState {
             copy(
                     isMine = session.myUserId == this.userId,
                     userMatrixItem = room?.membershipService()?.getRoomMember(initialState.userId)?.toMatrixItem()?.let { Success(it) } ?: Uninitialized,
                     hasReadReceipt = room?.readService()?.getUserReadReceipt(initialState.userId) != null,
-                    isSpace = room?.roomSummary()?.roomType == RoomType.SPACE
+                    isSpace = initialRoomSummary?.roomType == RoomType.SPACE,
+                    roomPowerLevels = initialRoomPowerLevels,
+                    actionPermissions = initialPermissions,
+                    userPowerLevelString = initialUserPowerLevelString?.let { Success(it) } ?: Uninitialized,
             )
         }
         observeIgnoredState()
@@ -387,31 +411,38 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             }
         }
         roomSummaryLive.combine(powerLevelsFlow) { roomSummary, roomPowerLevels ->
-            val roomName = roomSummary.toMatrixItem().getBestName()
-            val userPowerLevel = roomPowerLevels.getUserPowerLevel(initialState.userId)
-            val role = roomPowerLevels.getSuggestedRole(initialState.userId)
-            // Preserve the numeric value when it doesn't match a preset, otherwise a user with
-            // e.g. PL 45 would be shown as "Default in <room>" rather than "Custom (45) in <room>".
-            val matchesPreset = userPowerLevel is UserPowerLevel.Value && when (role) {
-                Role.Creator -> true
-                Role.SuperAdmin -> userPowerLevel.value == UserPowerLevel.SuperAdmin.value
-                Role.Admin -> userPowerLevel.value == UserPowerLevel.Admin.value
-                Role.Moderator -> userPowerLevel.value == UserPowerLevel.Moderator.value
-                Role.User -> userPowerLevel.value == UserPowerLevel.User.value
-            } || userPowerLevel == UserPowerLevel.Infinite
-            if (!matchesPreset && userPowerLevel is UserPowerLevel.Value) {
-                stringProvider.getString(CommonStrings.room_member_power_level_custom_in, userPowerLevel.value, roomName)
-            } else {
-                when (role) {
-                    Role.SuperAdmin,
-                    Role.Creator -> stringProvider.getString(CommonStrings.room_member_power_level_owner_in, roomName)
-                    Role.Admin -> stringProvider.getString(CommonStrings.room_member_power_level_admin_in, roomName)
-                    Role.Moderator -> stringProvider.getString(CommonStrings.room_member_power_level_moderator_in, roomName)
-                    Role.User -> stringProvider.getString(CommonStrings.room_member_power_level_default_in, roomName)
-                }
-            }
+            computeUserPowerLevelString(roomPowerLevels, roomSummary)
         }.execute {
             copy(userPowerLevelString = it)
+        }
+    }
+
+    private fun computeUserPowerLevelString(
+            roomPowerLevels: org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels,
+            roomSummary: org.matrix.android.sdk.api.session.room.model.RoomSummary,
+    ): String {
+        val roomName = roomSummary.toMatrixItem().getBestName()
+        val userPowerLevel = roomPowerLevels.getUserPowerLevel(initialState.userId)
+        val role = roomPowerLevels.getSuggestedRole(initialState.userId)
+        // Preserve the numeric value when it doesn't match a preset, otherwise a user with
+        // e.g. PL 45 would be shown as "Default in <room>" rather than "Custom (45) in <room>".
+        val matchesPreset = userPowerLevel is UserPowerLevel.Value && when (role) {
+            Role.Creator -> true
+            Role.SuperAdmin -> userPowerLevel.value == UserPowerLevel.SuperAdmin.value
+            Role.Admin -> userPowerLevel.value == UserPowerLevel.Admin.value
+            Role.Moderator -> userPowerLevel.value == UserPowerLevel.Moderator.value
+            Role.User -> userPowerLevel.value == UserPowerLevel.User.value
+        } || userPowerLevel == UserPowerLevel.Infinite
+        return if (!matchesPreset && userPowerLevel is UserPowerLevel.Value) {
+            stringProvider.getString(CommonStrings.room_member_power_level_custom_in, userPowerLevel.value, roomName)
+        } else {
+            when (role) {
+                Role.SuperAdmin,
+                Role.Creator -> stringProvider.getString(CommonStrings.room_member_power_level_owner_in, roomName)
+                Role.Admin -> stringProvider.getString(CommonStrings.room_member_power_level_admin_in, roomName)
+                Role.Moderator -> stringProvider.getString(CommonStrings.room_member_power_level_moderator_in, roomName)
+                Role.User -> stringProvider.getString(CommonStrings.room_member_power_level_default_in, roomName)
+            }
         }
     }
 

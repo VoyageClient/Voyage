@@ -14,9 +14,12 @@ import im.vector.app.features.autocomplete.RecyclerViewPresenter
 import im.vector.app.features.reactions.data.EmojiDataSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AutocompleteEmojiPresenter @Inject constructor(
@@ -26,7 +29,8 @@ class AutocompleteEmojiPresenter @Inject constructor(
 ) :
         RecyclerViewPresenter<String>(context), AutocompleteClickListener<String> {
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var queryJob: Job? = null
 
     init {
         controller.listener = this
@@ -46,14 +50,25 @@ class AutocompleteEmojiPresenter @Inject constructor(
     }
 
     override fun onQuery(query: CharSequence?) {
-        coroutineScope.launch {
-            val data = if (query.isNullOrBlank()) {
-                // Return common emojis
+        // Filtering ~3700 emojis twice (name + keywords) per keystroke on the main thread
+        // used to freeze typing — run it off the main thread and debounce briefly to absorb
+        // fast typing.
+        val queryString = query?.toString()
+        queryJob?.cancel()
+        queryJob = coroutineScope.launch {
+            delay(QUERY_DEBOUNCE_MS)
+            val data = if (queryString.isNullOrBlank()) {
                 emojiDataSource.getQuickReactions()
             } else {
-                emojiDataSource.filterWith(query.toString())
+                withContext(Dispatchers.Default) {
+                    emojiDataSource.filterWith(queryString)
+                }
             }
             controller.setData(data)
         }
+    }
+
+    companion object {
+        private const val QUERY_DEBOUNCE_MS = 80L
     }
 }

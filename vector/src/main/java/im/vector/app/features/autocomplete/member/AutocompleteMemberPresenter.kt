@@ -15,6 +15,13 @@ import dagger.assisted.AssistedInject
 import im.vector.app.features.autocomplete.AutocompleteClickListener
 import im.vector.app.features.autocomplete.RecyclerViewPresenter
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -40,6 +47,10 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
 
     private val room by lazy { session.getRoom(roomId)!! }
 
+    // Use a SupervisorJob so a failed query doesn't kill the scope.
+    private val queryScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var queryJob: Job? = null
+
     /* ==========================================================================================
      * Init
      * ========================================================================================== */
@@ -54,6 +65,8 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
 
     fun clear() {
         controller.listener = null
+        queryJob?.cancel()
+        queryScope.coroutineContext[Job]?.cancel()
     }
 
     @AssistedFactory
@@ -74,28 +87,32 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
     }
 
     override fun onQuery(query: CharSequence?) {
-        val queryParams = createQueryParams(query)
-        val membersHeader = createMembersHeader()
-        val members = createMemberItems(queryParams)
-        val everyone = createEveryoneItem(query)
-        // add headers only when user can notify everyone
-        val canAddHeaders = canNotifyEveryone()
-
-        val items = mutableListOf<AutocompleteMemberItem>().apply {
-            if (members.isNotEmpty()) {
-                if (canAddHeaders) {
-                    add(membersHeader)
+        // Each keystroke triggers a fresh Realm query + sort + disambiguation; on the main
+        // thread in big rooms that was visibly stalling typing. Debounce briefly and run
+        // the work on a background dispatcher, swapping the result in on the main thread.
+        queryJob?.cancel()
+        queryJob = queryScope.launch {
+            delay(QUERY_DEBOUNCE_MS)
+            val queryString = query?.toString()
+            val items = withContext(Dispatchers.Default) {
+                val queryParams = createQueryParams(queryString)
+                val members = createMemberItems(queryParams)
+                val everyone = createEveryoneItem(queryString)
+                // Headers are only shown when the user can notify everyone.
+                val canAddHeaders = canNotifyEveryone()
+                buildList {
+                    if (members.isNotEmpty()) {
+                        if (canAddHeaders) add(createMembersHeader())
+                        addAll(members)
+                    }
+                    everyone?.let {
+                        add(createEveryoneHeader())
+                        add(it)
+                    }
                 }
-                addAll(members)
             }
-            everyone?.let {
-                val everyoneHeader = createEveryoneHeader()
-                add(everyoneHeader)
-                add(it)
-            }
+            controller.setData(items)
         }
-
-        controller.setData(items)
     }
 
     /* ==========================================================================================
@@ -161,6 +178,7 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
     companion object {
         private const val ID_HEADER_MEMBERS = "ID_HEADER_MEMBERS"
         private const val ID_HEADER_EVERYONE = "ID_HEADER_EVERYONE"
+        private const val QUERY_DEBOUNCE_MS = 100L
         private val SUGGEST_ROOM_KEYWORDS = setOf(MatrixItem.NOTIFY_EVERYONE, "@channel", "@everyone", "@here")
     }
 }

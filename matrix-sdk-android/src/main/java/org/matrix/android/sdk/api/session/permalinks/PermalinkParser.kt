@@ -30,12 +30,29 @@ import java.net.URLDecoder
  */
 object PermalinkParser {
 
+    // The rich-text editor calls parse() for every mention-shaped token in the composer on every
+    // keystroke. Parsing is non-trivial (Uri.parse + URLDecoder + UrlQuerySanitizer), and the same
+    // small set of strings is parsed repeatedly while the user is typing. A tiny LRU cache absorbs
+    // that without keeping references to anything large. Strings here are short URLs or mxids;
+    // ~256 entries is plenty for any realistic composer state and bounded for memory.
+    private const val CACHE_CAPACITY = 256
+    private val parseCache: MutableMap<String, PermalinkData> = object : LinkedHashMap<String, PermalinkData>(CACHE_CAPACITY, 0.75f, true) {
+        override fun removeEldestEntry(eldest: Map.Entry<String, PermalinkData>): Boolean = size > CACHE_CAPACITY
+    }
+
     /**
      * Turns a uri string to a [PermalinkData].
      */
     fun parse(uriString: String): PermalinkData {
+        synchronized(parseCache) {
+            parseCache[uriString]?.let { return it }
+        }
         val uri = Uri.parse(uriString)
-        return parse(uri)
+        val result = parse(uri)
+        synchronized(parseCache) {
+            parseCache[uriString] = result
+        }
+        return result
     }
 
     /**

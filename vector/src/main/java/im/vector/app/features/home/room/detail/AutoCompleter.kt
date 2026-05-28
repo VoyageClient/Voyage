@@ -183,7 +183,9 @@ class AutoCompleter @AssistedInject constructor(
         if (editText is EditorEditText) return
 
         autocompletes += Autocomplete.on<String>(editText)
-                .with(CharPolicy(TRIGGER_AUTO_COMPLETE_EMOJIS, false))
+                // needSpaceBefore = true: only trigger when `:` starts a word, so things like
+                // `https://`, `host:port`, `12:30` don't pop the emoji picker per keystroke.
+                .with(CharPolicy(TRIGGER_AUTO_COMPLETE_EMOJIS, true))
                 .with(autocompleteEmojiPresenter)
                 .with(ELEVATION_DP)
                 .with(backgroundDrawable)
