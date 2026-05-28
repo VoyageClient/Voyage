@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.getPollQuestion
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isAudioMessage
+import org.matrix.android.sdk.api.session.events.model.isReply
 import org.matrix.android.sdk.api.session.events.model.isFileMessage
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isLiveLocation
@@ -36,6 +37,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
+import org.matrix.android.sdk.api.util.ContentUtils
 import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -165,7 +167,10 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
                     ?: stringProvider.getString(CommonStrings.message_reply_to_sender_ended_poll)
             isPollStart() -> getPollQuestion()
                     ?: stringProvider.getString(CommonStrings.message_reply_to_sender_created_poll)
-            else -> getClearContent().toModel<MessageContent>()?.body?.let { body ->
+            else -> getClearContent().toModel<MessageContent>()?.body?.let { rawBody ->
+                // Strip legacy "> <@user:server> previewline\n\n" reply prefix so the inline
+                // preview of a replied-to text reply doesn't include the quoted ancestor body.
+                val body = if (isReply()) ContentUtils.extractUsefulTextFromReply(rawBody) else rawBody
                 if (body.length > MAX_PREVIEW_LENGTH) body.substring(0, MAX_PREVIEW_LENGTH) + "…" else body
             }
         }

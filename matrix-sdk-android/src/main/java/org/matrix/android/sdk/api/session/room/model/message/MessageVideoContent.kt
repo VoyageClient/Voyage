@@ -50,8 +50,28 @@ data class MessageVideoContent(
         /**
          * Required if the file is encrypted. Information on the encrypted file, as specified in End-to-end encryption.
          */
-        @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null
-) : MessageWithAttachmentContent {
+        @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null,
+
+        /**
+         * Optional original filename (MSC2530). When set, `body` is treated as a caption.
+         */
+        @Json(name = "filename") override val filename: String? = null,
+
+        /**
+         * Optional caption format (`org.matrix.custom.html`). Mirrors text messages.
+         */
+        @Json(name = "format") override val format: String? = null,
+
+        /**
+         * Optional rich caption — only meaningful when `filename` is also set.
+         */
+        @Json(name = "formatted_body") override val formattedBody: String? = null,
+
+        /**
+         * Optional MSC3952 mentions block.
+         */
+        @Json(name = "m.mentions") val mentions: Mentions? = null,
+) : MessageWithAttachmentContent, MessageContentWithFormattedBody {
     override val mimeType: String?
         get() = videoInfo?.mimeType
 }

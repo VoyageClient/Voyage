@@ -70,8 +70,10 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.AudioWaveformView
+import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
 import im.vector.app.features.voicebroadcast.isVoiceBroadcast
 import im.vector.app.features.voicebroadcast.model.MessageVoiceBroadcastInfoContent
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
@@ -99,8 +101,13 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.asMessageAudioEvent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
+import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
+import org.matrix.android.sdk.api.session.room.model.message.getMentionHint
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
@@ -197,7 +204,7 @@ class MessageItemFactory @Inject constructor(
             is MessageImageInfoContent -> buildImageMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageNoticeContent -> buildNoticeMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageVideoContent -> buildVideoMessageItem(messageContent, informationData, highlight, callback, attributes)
-            is MessageFileContent -> buildFileMessageItem(messageContent, highlight, attributes)
+            is MessageFileContent -> buildFileMessageItem(messageContent, informationData, callback, highlight, attributes)
             is MessageAudioContent -> buildAudioContent(params, messageContent, informationData, highlight, attributes)
             is MessageVerificationRequestContent -> buildVerificationRequestMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessagePollContent -> buildPollItem(messageContent, informationData, highlight, callback, attributes, isEnded = false)
@@ -328,10 +335,22 @@ class MessageItemFactory @Inject constructor(
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
         val duration = messageContent.audioInfo?.duration ?: 0
+        val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
+        val (captionEpoxy, captionBindingOptions) = renderCaption(
+                body = messageContent.getCaption(isReply).orEmpty(),
+                formattedBody = messageContent.getFormattedCaption(isReply),
+                informationData = informationData,
+                callback = params.callback,
+        ) ?: (null to null)
+        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
+                replyToContent = messageContent.relatesTo?.inReplyTo,
+                mentionHint = messageContent.getMentionHint(),
+                callback = params.callback,
+        ) ?: (null to null)
 
         return MessageAudioItem_()
                 .attributes(attributes)
-                .filename(messageContent.body)
+                .filename(messageContent.getFileName())
                 .duration(messageContent.audioInfo?.duration ?: 0)
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
@@ -343,6 +362,11 @@ class MessageItemFactory @Inject constructor(
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
                 .highlighted(highlight)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
+                .caption(captionEpoxy)
+                .captionBindingOptions(captionBindingOptions)
+                .captionMovementMethod(createLinkMovementMethod(params.callback))
+                .replyHeader(replyHeaderEpoxy)
+                .replyHeaderBindingOptions(replyHeaderBindingOptions)
     }
 
     private fun getAudioFileUrl(
@@ -380,6 +404,18 @@ class MessageItemFactory @Inject constructor(
 
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
+        val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
+        val (captionEpoxy, captionBindingOptions) = renderCaption(
+                body = messageContent.getCaption(isReply).orEmpty(),
+                formattedBody = messageContent.getFormattedCaption(isReply),
+                informationData = informationData,
+                callback = params.callback,
+        ) ?: (null to null)
+        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
+                replyToContent = messageContent.relatesTo?.inReplyTo,
+                mentionHint = messageContent.getMentionHint(),
+                callback = params.callback,
+        ) ?: (null to null)
 
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
             override fun onWaveformTouchedUp(percentage: Float) {
@@ -406,6 +442,11 @@ class MessageItemFactory @Inject constructor(
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
                 .highlighted(highlight)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
+                .caption(captionEpoxy)
+                .captionBindingOptions(captionBindingOptions)
+                .captionMovementMethod(createLinkMovementMethod(params.callback))
+                .replyHeader(replyHeaderEpoxy)
+                .replyHeaderBindingOptions(replyHeaderBindingOptions)
     }
 
     private fun buildVerificationRequestMessageItem(
@@ -453,10 +494,24 @@ class MessageItemFactory @Inject constructor(
 
     private fun buildFileMessageItem(
             messageContent: MessageFileContent,
+            informationData: MessageInformationData,
+            callback: TimelineEventController.Callback?,
             highlight: Boolean,
             attributes: AbsMessageItem.Attributes,
     ): MessageFileItem {
         val mxcUrl = messageContent.getFileUrl() ?: ""
+        val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
+        val (captionEpoxy, captionBindingOptions) = renderCaption(
+                body = messageContent.getCaption(isReply).orEmpty(),
+                formattedBody = messageContent.getFormattedCaption(isReply),
+                informationData = informationData,
+                callback = callback,
+        ) ?: (null to null)
+        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
+                replyToContent = messageContent.relatesTo?.inReplyTo,
+                mentionHint = messageContent.getMentionHint(),
+                callback = callback,
+        ) ?: (null to null)
         return MessageFileItem_()
                 .attributes(attributes)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -466,8 +521,13 @@ class MessageItemFactory @Inject constructor(
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
                 .highlighted(highlight)
-                .filename(messageContent.body)
+                .filename(messageContent.getFileName())
                 .iconRes(R.drawable.ic_paperclip)
+                .caption(captionEpoxy)
+                .captionBindingOptions(captionBindingOptions)
+                .captionMovementMethod(createLinkMovementMethod(callback))
+                .replyHeader(replyHeaderEpoxy)
+                .replyHeaderBindingOptions(replyHeaderBindingOptions)
     }
 
     private fun buildAudioContent(
@@ -502,16 +562,19 @@ class MessageItemFactory @Inject constructor(
 
     private fun buildImageMessageItem(
             messageContent: MessageImageInfoContent,
-            @Suppress("UNUSED_PARAMETER")
             informationData: MessageInformationData,
             highlight: Boolean,
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): MessageImageVideoItem? {
         val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
+        // MSC2530: `filename` is the real on-disk name; `body` becomes the user-typed caption.
+        // Use it for download/save filename and render `body` (+ `formatted_body`) as a caption
+        // below the image. Use it for the renderer cache key too so identical avatars share.
+        val mediaFilename = (messageContent as? MessageWithAttachmentContent)?.getFileName() ?: messageContent.body
         val data = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
-                filename = messageContent.body,
+                filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),
                 elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt(),
@@ -526,6 +589,22 @@ class MessageItemFactory @Inject constructor(
         // don't show play button because detecting animated webp isn't possible via mimetype
         val playableIfAutoplay = playable || messageContent.mimeType == MimeTypes.Webp
 
+        val attachmentContent = messageContent as? MessageWithAttachmentContent
+        val isReply = attachmentContent?.relatesTo?.inReplyTo?.eventId != null
+        val (captionEpoxy, captionBindingOptions) = attachmentContent?.let { mc ->
+            renderCaption(
+                    body = mc.getCaption(isReply).orEmpty(),
+                    formattedBody = mc.getFormattedCaption(isReply),
+                    informationData = informationData,
+                    callback = callback,
+            )
+        } ?: (null to null)
+        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
+                replyToContent = attachmentContent?.relatesTo?.inReplyTo,
+                mentionHint = attachmentContent?.getMentionHint(),
+                callback = callback,
+        ) ?: (null to null)
+
         return MessageImageVideoItem_()
                 .attributes(attributes)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -534,6 +613,11 @@ class MessageItemFactory @Inject constructor(
                 .playable(playable)
                 .highlighted(highlight)
                 .mediaData(data)
+                .caption(captionEpoxy)
+                .captionBindingOptions(captionBindingOptions)
+                .captionMovementMethod(createLinkMovementMethod(callback))
+                .replyHeader(replyHeaderEpoxy)
+                .replyHeaderBindingOptions(replyHeaderBindingOptions)
                 .apply {
                     if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {
                         mode(ImageContentRenderer.Mode.STICKER)
@@ -560,9 +644,10 @@ class MessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes,
     ): MessageImageVideoItem? {
         val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
+        val mediaFilename = messageContent.getFileName()
         val thumbnailData = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
-                filename = messageContent.body,
+                filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.videoInfo?.getThumbnailUrl(),
                 elementToDecrypt = messageContent.videoInfo?.thumbnailFile?.toElementToDecrypt(),
@@ -575,12 +660,25 @@ class MessageItemFactory @Inject constructor(
 
         val videoData = VideoContentRenderer.Data(
                 eventId = informationData.eventId,
-                filename = messageContent.body,
+                filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),
                 elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt(),
                 thumbnailMediaData = thumbnailData
         )
+
+        val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
+        val (captionEpoxy, captionBindingOptions) = renderCaption(
+                body = messageContent.getCaption(isReply).orEmpty(),
+                formattedBody = messageContent.getFormattedCaption(isReply),
+                informationData = informationData,
+                callback = callback,
+        ) ?: (null to null)
+        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
+                replyToContent = messageContent.relatesTo?.inReplyTo,
+                mentionHint = messageContent.getMentionHint(),
+                callback = callback,
+        ) ?: (null to null)
 
         return MessageImageVideoItem_()
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -590,6 +688,11 @@ class MessageItemFactory @Inject constructor(
                 .playable(true)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)
+                .caption(captionEpoxy)
+                .captionBindingOptions(captionBindingOptions)
+                .captionMovementMethod(createLinkMovementMethod(callback))
+                .replyHeader(replyHeaderEpoxy)
+                .replyHeaderBindingOptions(replyHeaderBindingOptions)
                 .clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
     }
 
@@ -645,6 +748,62 @@ class MessageItemFactory @Inject constructor(
                 callback,
                 attributes,
         )
+    }
+
+    /**
+     * Renders an optional user-typed caption attached to a media event (MSC2530). Returns
+     * `(epoxyCharSequence, bindingOptions)` ready to feed to the media Epoxy item's
+     * `caption(...)` / `captionBindingOptions(...)` attributes — or `null` when there's no
+     * caption to render.
+     *
+     * Uses the same Markwon HTML / textRenderer / linkify / annotateWithEdited pipeline as
+     * regular text messages so pills, links, edits and emoji all work identically.
+     */
+    private fun renderCaption(
+            body: String,
+            formattedBody: String?,
+            informationData: MessageInformationData,
+            callback: TimelineEventController.Callback?,
+    ): Pair<EpoxyCharSequence, BindingOptions>? {
+        if (body.isEmpty()) return null
+        val initialBody: CharSequence = if (formattedBody != null) {
+            val compressed = htmlCompressor.compress(formattedBody)
+            htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned ?: body
+        } else {
+            body
+        }
+        val rendered = textRenderer.render(initialBody)
+        val bindingOptions = spanUtils.getBindingOptions(rendered)
+        val linkified = rendered.linkify(callback)
+        val final = if (informationData.hasBeenEdited) {
+            annotateWithEdited(linkified, callback, informationData)
+        } else {
+            linkified
+        }
+        return final.toEpoxyCharSequence() to bindingOptions
+    }
+
+    /**
+     * Renders just the `<mx-reply>` block (sender + preview of replied-to event) for a media
+     * event that's a modern reply. Shown above the media. Returns null if there's no reply.
+     */
+    private fun renderReplyHeader(
+            replyToContent: ReplyToContent?,
+            mentionHint: String?,
+            callback: TimelineEventController.Callback?,
+    ): Pair<EpoxyCharSequence, BindingOptions>? {
+        if (replyToContent?.eventId == null) return null
+        val html = processBodyOfReplyToEventUseCase.execute(roomId, "", replyToContent, mentionHint)
+        if (html.isEmpty()) return null
+        val compressed = htmlCompressor.compress(html)
+        val rendered = (htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned) ?: return null
+        // Markwon's blockquote handling leaves trailing newlines after the mx-reply block;
+        // trim them so there's no big gap between the reply header and the media below.
+        val trimmed = rendered.trimEnd('\n', ' ')
+        val processed = textRenderer.render(trimmed)
+        val bindingOptions = spanUtils.getBindingOptions(processed)
+        val linkified = processed.linkify(callback)
+        return linkified.toEpoxyCharSequence() to bindingOptions
     }
 
     private fun buildMessageTextItem(

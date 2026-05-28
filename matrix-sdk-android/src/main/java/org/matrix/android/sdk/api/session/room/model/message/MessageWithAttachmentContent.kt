@@ -33,6 +33,12 @@ interface MessageWithAttachmentContent : MessageContent {
     val encryptedFileInfo: EncryptedFileInfo?
 
     val mimeType: String?
+
+    /**
+     * Optional original filename of the uploaded file (matrix MSC2530). When present, `body`
+     * is treated as a user-typed caption; otherwise `body` is the filename/description.
+     */
+    val filename: String?
 }
 
 /**
@@ -40,4 +46,51 @@ interface MessageWithAttachmentContent : MessageContent {
  */
 fun MessageWithAttachmentContent.getFileUrl() = encryptedFileInfo?.url ?: url
 
-fun MessageWithAttachmentContent.getFileName() = (this as? MessageFileContent)?.getFileName() ?: body
+/**
+ * Returns the canonical filename — the explicit `filename` field if set (MSC2530), otherwise
+ * the legacy `body` field which historically doubled as the filename.
+ */
+fun MessageWithAttachmentContent.getFileName(): String = filename ?: body
+
+/**
+ * Returns the user-typed plain-text caption when one is present (MSC2530 style: `filename`
+ * is set, so `body` is no longer the filename and is instead the caption). Null otherwise.
+ */
+fun MessageWithAttachmentContent.getCaption(isReply: Boolean = false): String? {
+    val name = filename ?: return null
+    if (body.isEmpty() || body == name) return null
+    // Legacy reply-fallback bodies are shaped like:
+    //   > <@user:server> previewline
+    //   > another preview line
+    //
+    //   actualFileName.png
+    // After stripping that prefix the only remaining content is the filename — not a real
+    // caption. Suppress it for replies when the last non-blank line equals the filename.
+    if (isReply) {
+        val lastLine = body.lineSequence()
+                .map { it.trim() }
+                .lastOrNull { it.isNotEmpty() }
+        if (lastLine == name) return null
+    }
+    return body
+}
+
+/**
+ * Returns the user-typed HTML caption when present. Null otherwise.
+ */
+fun MessageWithAttachmentContent.getFormattedCaption(isReply: Boolean = false): String? =
+        if (getCaption(isReply) != null) (this as? MessageContentWithFormattedBody)?.matrixFormattedBody else null
+
+/**
+ * Returns the first MSC3952 mention (typically the sender of the replied-to event) when the
+ * media event carries one. Used as a fallback "In reply to @user" hint while the target event
+ * is still being fetched.
+ */
+fun MessageWithAttachmentContent.getMentionHint(): String? = when (this) {
+    is MessageImageContent -> mentions?.userIds?.firstOrNull()
+    is MessageVideoContent -> mentions?.userIds?.firstOrNull()
+    is MessageAudioContent -> mentions?.userIds?.firstOrNull()
+    is MessageFileContent -> mentions?.userIds?.firstOrNull()
+    is MessageStickerContent -> mentions?.userIds?.firstOrNull()
+    else -> null
+}

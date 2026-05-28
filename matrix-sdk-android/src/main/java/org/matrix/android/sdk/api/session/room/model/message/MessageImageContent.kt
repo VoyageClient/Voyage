@@ -51,8 +51,29 @@ data class MessageImageContent(
         /**
          * Required if the file is encrypted. Information on the encrypted file, as specified in End-to-end encryption.
          */
-        @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null
-) : MessageImageInfoContent {
+        @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null,
+
+        /**
+         * Optional original filename (MSC2530). When set, `body` is treated as a caption.
+         */
+        @Json(name = "filename") override val filename: String? = null,
+
+        /**
+         * Optional caption format (`org.matrix.custom.html`). Mirrors text messages.
+         */
+        @Json(name = "format") override val format: String? = null,
+
+        /**
+         * Optional rich caption — only meaningful when `filename` is also set.
+         */
+        @Json(name = "formatted_body") override val formattedBody: String? = null,
+
+        /**
+         * Optional MSC3952 mentions block. On a reply, `user_ids[0]` is the sender of the
+         * replied-to event — used as a hint when the target event isn't loaded yet.
+         */
+        @Json(name = "m.mentions") val mentions: Mentions? = null,
+) : MessageImageInfoContent, MessageContentWithFormattedBody {
     override val mimeType: String?
         get() = info?.mimeType
 }

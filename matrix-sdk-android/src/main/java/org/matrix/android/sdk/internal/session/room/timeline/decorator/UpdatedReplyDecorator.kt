@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.room.timeline.decorator
 import io.realm.Realm
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -40,7 +41,11 @@ internal class UpdatedReplyDecorator(
 ) : TimelineEventDecorator {
 
     override fun decorate(timelineEvent: TimelineEvent): TimelineEvent {
-        return if (timelineEvent.isReply() && !timelineEvent.root.isThread()) {
+        return if (timelineEvent.isReply() && !timelineEvent.root.isThread() && !timelineEvent.root.isAttachmentMessage()) {
+            // Skip media replies — their content (image/video/audio/file/sticker) must reach
+            // the timeline factory intact so the media itself renders. The mx-reply header is
+            // injected by the UI side via the caption pipeline rather than by rewriting the
+            // event content to a "sent an image." text stub.
             val newRepliedEvent = createNewRepliedEvent(timelineEvent) ?: return timelineEvent
             timelineEvent.copy(root = newRepliedEvent)
         } else {

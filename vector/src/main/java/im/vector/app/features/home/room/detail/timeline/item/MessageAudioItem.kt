@@ -11,10 +11,12 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.text.format.DateUtils
+import android.text.method.MovementMethod
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -27,6 +29,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadSt
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
@@ -62,6 +65,21 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute
     lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
 
+    @EpoxyAttribute
+    var caption: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var captionBindingOptions: BindingOptions? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMovementMethod: MovementMethod? = null
+
+    @EpoxyAttribute
+    var replyHeader: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var replyHeaderBindingOptions: BindingOptions? = null
+
     private var isUserSeeking = false
 
     override fun bind(holder: Holder) {
@@ -73,6 +91,22 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         bindSeekBar(holder)
         holder.audioPlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
         renderStateBasedOnAudioPlayback(holder)
+        MediaCaptionBinder.bind(
+                view = holder.replyHeaderView,
+                caption = replyHeader,
+                bindingOptions = replyHeaderBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
+        MediaCaptionBinder.bind(
+                view = holder.captionView,
+                caption = caption,
+                bindingOptions = captionBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
     }
 
     private fun bindUploadState(holder: Holder) {
@@ -197,6 +231,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val fileSize by bind<TextView>(R.id.fileSize)
         val audioPlaybackDuration by bind<TextView>(R.id.audioPlaybackDuration)
         val audioSeekBar by bind<SeekBar>(R.id.audioSeekBar)
+        val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {

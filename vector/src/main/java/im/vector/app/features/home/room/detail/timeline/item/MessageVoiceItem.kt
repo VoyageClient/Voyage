@@ -10,11 +10,13 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.text.format.DateUtils
+import android.text.method.MovementMethod
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -27,6 +29,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
@@ -64,6 +67,21 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     @EpoxyAttribute
     lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
 
+    @EpoxyAttribute
+    var caption: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var captionBindingOptions: BindingOptions? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMovementMethod: MovementMethod? = null
+
+    @EpoxyAttribute
+    var replyHeader: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var replyHeaderBindingOptions: BindingOptions? = null
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.voiceLayout, null)
@@ -85,6 +103,23 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
         }
         holder.voicePlaybackLayout.backgroundTintList = ColorStateList.valueOf(backgroundTint)
+
+        MediaCaptionBinder.bind(
+                view = holder.replyHeaderView,
+                caption = replyHeader,
+                bindingOptions = replyHeaderBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
+        MediaCaptionBinder.bind(
+                view = holder.captionView,
+                caption = caption,
+                bindingOptions = captionBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
     }
 
     private fun onWaveformViewReady(holder: Holder) {
@@ -166,6 +201,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         val voicePlaybackTime by bind<TextView>(R.id.voicePlaybackTime)
         val voicePlaybackWaveform by bind<AudioWaveformView>(R.id.voicePlaybackWaveform)
         val progressLayout by bind<ViewGroup>(R.id.messageFileUploadProgressLayout)
+        val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {

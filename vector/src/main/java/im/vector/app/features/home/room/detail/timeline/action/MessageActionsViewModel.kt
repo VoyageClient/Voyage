@@ -48,11 +48,13 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
@@ -221,6 +223,8 @@ class MessageActionsViewModel @AssistedInject constructor(
                             eventHtmlRenderer.get().render(html, pillsPostProcessor)
                         } else if (messageContent is MessageVerificationRequestContent) {
                             stringProvider.getString(CommonStrings.verification_request)
+                        } else if (messageContent is MessageWithAttachmentContent) {
+                            messageContent.getFileName()
                         } else {
                             messageContent?.body
                         }
@@ -327,7 +331,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         if (canEdit(timelineEvent, session.myUserId, actionPermissions)) {
             add(EventSharedAction.Edit(eventId, timelineEvent.root.getClearType()))
         }
-        if (canCopy(msgType)) {
+        if (canCopy(msgType, messageContent)) {
             // TODO copy images? html? see ClipBoard
             add(EventSharedAction.Copy(messageContent!!.body))
         }
@@ -383,7 +387,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 add(EventSharedAction.Edit(eventId, timelineEvent.root.getClearType()))
             }
 
-            if (canCopy(msgType)) {
+            if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard
                 add(EventSharedAction.Copy(messageContent!!.body))
             }
@@ -580,14 +584,16 @@ class MessageActionsViewModel @AssistedInject constructor(
                 )
     }
 
-    private fun canCopy(msgType: String?): Boolean {
-        return when (msgType) {
+    private fun canCopy(msgType: String?, messageContent: MessageContent? = null): Boolean {
+        // Text-shaped messages: always copyable (body is the user-typed text).
+        when (msgType) {
             MessageType.MSGTYPE_TEXT,
             MessageType.MSGTYPE_NOTICE,
             MessageType.MSGTYPE_EMOTE,
-            MessageType.MSGTYPE_LOCATION -> true
-            else -> false
+            MessageType.MSGTYPE_LOCATION -> return true
         }
+        // Media with an MSC2530 caption: body is the caption — copyable.
+        return (messageContent as? MessageWithAttachmentContent)?.getCaption() != null
     }
 
     private fun canShare(msgType: String?): Boolean {

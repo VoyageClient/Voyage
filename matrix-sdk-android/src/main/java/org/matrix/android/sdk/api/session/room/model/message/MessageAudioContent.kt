@@ -61,8 +61,28 @@ data class MessageAudioContent(
         /**
          * Indicates that is a voice message.
          */
-        @Json(name = "org.matrix.msc3245.voice") val voiceMessageIndicator: JsonDict? = null
-) : MessageWithAttachmentContent {
+        @Json(name = "org.matrix.msc3245.voice") val voiceMessageIndicator: JsonDict? = null,
+
+        /**
+         * Optional original filename (MSC2530). When set, `body` is treated as a caption.
+         */
+        @Json(name = "filename") override val filename: String? = null,
+
+        /**
+         * Optional caption format (`org.matrix.custom.html`). Mirrors text messages.
+         */
+        @Json(name = "format") override val format: String? = null,
+
+        /**
+         * Optional rich caption — only meaningful when `filename` is also set.
+         */
+        @Json(name = "formatted_body") override val formattedBody: String? = null,
+
+        /**
+         * Optional MSC3952 mentions block.
+         */
+        @Json(name = "m.mentions") val mentions: Mentions? = null,
+) : MessageWithAttachmentContent, MessageContentWithFormattedBody {
 
     override val mimeType: String?
         get() = audioInfo?.mimeType

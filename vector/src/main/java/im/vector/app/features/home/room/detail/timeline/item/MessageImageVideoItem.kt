@@ -7,9 +7,11 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -25,6 +27,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 
 @EpoxyModelClass
@@ -47,6 +50,21 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute
     lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
+
+    @EpoxyAttribute
+    var caption: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var captionBindingOptions: BindingOptions? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMovementMethod: MovementMethod? = null
+
+    @EpoxyAttribute
+    var replyHeader: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var replyHeaderBindingOptions: BindingOptions? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -83,6 +101,23 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         } else {
             View.GONE
         }
+
+        MediaCaptionBinder.bind(
+                view = holder.replyHeaderView,
+                caption = replyHeader,
+                bindingOptions = replyHeaderBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
+        MediaCaptionBinder.bind(
+                view = holder.captionView,
+                caption = caption,
+                bindingOptions = captionBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
     }
 
     override fun unbind(holder: Holder) {
@@ -101,6 +136,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val imageView by bind<ImageView>(R.id.messageThumbnailView)
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
+        val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {

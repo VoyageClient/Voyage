@@ -200,6 +200,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -1759,7 +1760,7 @@ class TimelineFragment :
                 saveMedia(
                         context = requireContext(),
                         file = it,
-                        title = action.messageContent.body,
+                        title = action.messageContent.getFileName(),
                         mediaMimeType = action.messageContent.mimeType ?: getMimeTypeFromUri(requireContext(), it.toUri()),
                         notificationUtils = notificationUtils,
                         currentTimeMillis = clock.epochMillis()

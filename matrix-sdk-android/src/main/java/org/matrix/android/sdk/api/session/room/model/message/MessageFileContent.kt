@@ -36,9 +36,10 @@ data class MessageFileContent(
         @Json(name = "body") override val body: String,
 
         /**
-         * The original filename of the uploaded file.
+         * The original filename of the uploaded file (MSC2530). When set, `body` is treated
+         * as a user-typed caption.
          */
-        @Json(name = "filename") val filename: String? = null,
+        @Json(name = "filename") override val filename: String? = null,
 
         /**
          * Information about the file referred to in url.
@@ -56,16 +57,27 @@ data class MessageFileContent(
         /**
          * Required if the file is encrypted. Information on the encrypted file, as specified in End-to-end encryption.
          */
-        @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null
-) : MessageWithAttachmentContent {
+        @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null,
+
+        /**
+         * Optional caption format (`org.matrix.custom.html`). Mirrors text messages.
+         */
+        @Json(name = "format") override val format: String? = null,
+
+        /**
+         * Optional rich caption — only meaningful when `filename` is also set.
+         */
+        @Json(name = "formatted_body") override val formattedBody: String? = null,
+
+        /**
+         * Optional MSC3952 mentions block.
+         */
+        @Json(name = "m.mentions") val mentions: Mentions? = null,
+) : MessageWithAttachmentContent, MessageContentWithFormattedBody {
 
     override val mimeType: String?
         get() = info?.mimeType
                 ?: MimeTypeMap.getFileExtensionFromUrl(filename ?: body)?.let { extension ->
                     MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
                 }
-
-    fun getFileName(): String {
-        return filename ?: body
-    }
 }

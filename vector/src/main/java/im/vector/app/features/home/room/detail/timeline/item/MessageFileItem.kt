@@ -10,11 +10,13 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Paint
+import android.text.method.MovementMethod
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.DrawableRes
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -24,6 +26,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadSt
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 
 @EpoxyModelClass
 abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
@@ -49,6 +52,21 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
 
     @EpoxyAttribute
     lateinit var contentDownloadStateTrackerBinder: ContentDownloadStateTrackerBinder
+
+    @EpoxyAttribute
+    var caption: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var captionBindingOptions: BindingOptions? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMovementMethod: MovementMethod? = null
+
+    @EpoxyAttribute
+    var replyHeader: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var replyHeaderBindingOptions: BindingOptions? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -86,6 +104,23 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         holder.fileImageWrapper.onClick(attributes.itemClickListener)
         holder.fileImageWrapper.setOnLongClickListener(attributes.itemLongClickListener)
         holder.filenameView.paintFlags = (holder.filenameView.paintFlags or Paint.UNDERLINE_TEXT_FLAG)
+
+        MediaCaptionBinder.bind(
+                view = holder.replyHeaderView,
+                caption = replyHeader,
+                bindingOptions = replyHeaderBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
+        MediaCaptionBinder.bind(
+                view = holder.captionView,
+                caption = caption,
+                bindingOptions = captionBindingOptions,
+                movementMethod = captionMovementMethod,
+                itemClickListener = attributes.itemClickListener,
+                itemLongClickListener = attributes.itemLongClickListener,
+        )
     }
 
     override fun unbind(holder: Holder) {
@@ -104,6 +139,8 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         val fileImageWrapper by bind<ViewGroup>(R.id.messageFileImageView)
         val fileDownloadProgress by bind<ProgressBar>(R.id.messageFileProgressbar)
         val filenameView by bind<TextView>(R.id.messageFilenameView)
+        val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
+        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {
