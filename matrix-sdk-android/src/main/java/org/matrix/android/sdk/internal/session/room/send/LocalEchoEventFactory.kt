@@ -44,6 +44,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.Mentions
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
@@ -311,6 +312,7 @@ internal class LocalEchoEventFactory @Inject constructor(
     fun createReplaceTextOfReply(
             roomId: String,
             eventReplaced: TimelineEvent,
+            @Suppress("UNUSED_PARAMETER")
             originalEvent: TimelineEvent,
             replyText: CharSequence,
             replyTextFormatted: String?,
@@ -319,26 +321,15 @@ internal class LocalEchoEventFactory @Inject constructor(
             compatibilityText: String,
             additionalContent: Content? = null,
     ): Event {
-        val permalink = permalinkFactory.createPermalink(roomId, originalEvent.root.eventId ?: "", false)
-        val userLink = originalEvent.root.senderId?.let { permalinkFactory.createPermalink(it, false) } ?: ""
-
-        val bodyOfRepliedEvent = bodyForReply(timelineEvent = originalEvent)
-        // As we always supply formatted body for replies we should force the MarkdownParser to produce html.
-        val newBodyFormatted = replyTextFormatted ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).takeFormatted()
-        // Body of the original message may not have formatted version, so may also have to convert to html.
-        val formattedBodyOfRepliedEvent =
-                bodyOfRepliedEvent.formattedText ?: markdownParser.parse(text = bodyOfRepliedEvent.text, force = true, advanced = autoMarkdown).takeFormatted()
-        val replyFormatted = buildFormattedReply(
-                permalink,
-                userLink,
-                originalEvent.senderInfo.disambiguatedDisplayName,
-                formattedBodyOfRepliedEvent,
-                newBodyFormatted
-        )
-        //
-        // > <@alice:example.org> This is the original body
-        //
-        val replyFallback = buildReplyFallback(bodyOfRepliedEvent, originalEvent.root.senderId ?: "", replyText.toString())
+        // Modern reply edit: the new_content carries only the user-typed reply text. No
+        // legacy "> <@user:server>" quote prefix in body, no <mx-reply> block in
+        // formatted_body. The outer m.relates_to (m.replace) still targets the edited event;
+        // the original event keeps its own m.in_reply_to relation so clients render the
+        // reply header from cached state rather than from a duplicated embedded snapshot.
+        val plainBody = replyText.toString()
+        val htmlBody = replyTextFormatted
+                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).takeFormatted()
+        val isFormatted = htmlBody != plainBody
 
         return createMessageEvent(
                 roomId,
@@ -348,9 +339,9 @@ internal class LocalEchoEventFactory @Inject constructor(
                         relatesTo = RelationDefaultContent(RelationType.REPLACE, eventReplaced.root.eventId),
                         newContent = MessageTextContent(
                                 msgType = msgType,
-                                format = MessageFormat.FORMAT_MATRIX_HTML,
-                                body = replyFallback,
-                                formattedBody = replyFormatted
+                                format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
+                                body = plainBody,
+                                formattedBody = if (isFormatted) htmlBody else null,
                         )
                                 .toContent()
                 ),
@@ -608,43 +599,34 @@ internal class LocalEchoEventFactory @Inject constructor(
             autoMarkdown: Boolean,
             rootThreadEventId: String? = null,
             showInThread: Boolean,
+            @Suppress("UNUSED_PARAMETER")
             isRedactedEvent: Boolean = false
     ): MessageContent? {
-        // Fallbacks and event representation
-        // TODO Add error/warning logs when any of this is null
-        val permalink = permalinkFactory.createPermalink(eventReplied.root, false) ?: return null
-        val userId = eventReplied.root.senderId ?: return null
-        val userLink = permalinkFactory.createPermalink(userId, false) ?: return null
-
-        val body = bodyForReply(timelineEvent = eventReplied, isRedactedEvent = isRedactedEvent)
-
-        // As we always supply formatted body for replies we should force the MarkdownParser to produce html.
-        val finalReplyTextFormatted = replyTextFormatted?.toString() ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).takeFormatted()
-        // Body of the original message may not have formatted version, so may also have to convert to html.
-        val bodyFormatted = body.formattedText ?: markdownParser.parse(body.text, force = true, advanced = autoMarkdown).takeFormatted()
-        val replyFormatted = buildFormattedReply(
-                permalink,
-                userLink,
-                userId,
-                bodyFormatted,
-                finalReplyTextFormatted
-        )
-        //
-        // > <@alice:example.org> This is the original body
-        //
-        val replyFallback = buildReplyFallback(body, userId, replyText.toString())
-
         val eventId = eventReplied.root.eventId ?: return null
+        val repliedSenderId = eventReplied.root.senderId
+
+        // Modern reply format: body / formatted_body contain only the user-typed reply text.
+        // The receiving client renders the "in reply to" header dynamically from the cached
+        // replied-to event via m.relates_to.m.in_reply_to. No legacy "> <@user:server>" quote
+        // prefix in body, no <mx-reply> block in formatted_body — these duplicate the preview
+        // and cause inconsistencies on edit. MSC3952 m.mentions carries the replied-to sender
+        // as a hint for clients that haven't fetched the target yet.
+        val plainBody = replyText.toString()
+        val htmlBody = replyTextFormatted?.toString()
+                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).takeFormatted()
+        val isFormatted = htmlBody != plainBody
+
         return MessageTextContent(
                 msgType = MessageType.MSGTYPE_TEXT,
-                format = MessageFormat.FORMAT_MATRIX_HTML,
-                body = replyFallback,
-                formattedBody = replyFormatted,
+                format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
+                body = plainBody,
+                formattedBody = if (isFormatted) htmlBody else null,
                 relatesTo = generateReplyRelationContent(
                         eventId = eventId,
                         rootThreadEventId = rootThreadEventId,
                         showInThread = showInThread
-                )
+                ),
+                mentions = repliedSenderId?.let { Mentions(userIds = listOf(it)) },
         )
     }
 
@@ -697,36 +679,6 @@ internal class LocalEchoEventFactory @Inject constructor(
                         inReplyTo = ReplyToContent(eventId = eventId)
                 )
             } ?: RelationDefaultContent(null, null, ReplyToContent(eventId = eventId))
-
-    private fun buildFormattedReply(permalink: String, userLink: String, userId: String, bodyFormatted: String, newBodyFormatted: String): String {
-        return REPLY_PATTERN.format(
-                permalink,
-                userLink,
-                userId,
-                // Remove inner mx_reply tags if any
-                bodyFormatted.replace(MX_REPLY_REGEX, ""),
-                newBodyFormatted
-        )
-    }
-
-    private fun buildReplyFallback(body: TextContent, originalSenderId: String?, newBodyText: String): String {
-        return buildString {
-            append("> <")
-            append(originalSenderId)
-            append(">")
-
-            val lines = body.text.split("\n")
-            lines.forEachIndexed { index, s ->
-                if (index == 0) {
-                    append(" $s")
-                } else {
-                    append("\n> $s")
-                }
-            }
-            append("\n\n")
-            append(newBodyText)
-        }
-    }
 
     private fun bodyForReply(timelineEvent: TimelineEvent, isRedactedEvent: Boolean = false): TextContent {
         val content = when (timelineEvent.root.getClearType()) {
@@ -928,8 +880,5 @@ internal class LocalEchoEventFactory @Inject constructor(
         // No whitespace because currently breaks temporary formatted text to Span
         const val REPLY_PATTERN = """<mx-reply><blockquote><a href="%s">In reply to</a> <a href="%s">%s</a><br />%s</blockquote></mx-reply>%s"""
         const val QUOTE_PATTERN = """<blockquote><p>%s</p></blockquote><p>%s</p>"""
-
-        // This is used to replace inner mx-reply tags
-        val MX_REPLY_REGEX = "<mx-reply>.*</mx-reply>".toRegex()
     }
 }

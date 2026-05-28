@@ -162,13 +162,22 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
     val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
     return when {
         isReply() -> {
+            // Modern reply edits carry only the new text in new_content — no m.in_reply_to,
+            // no <mx-reply>. Re-attach the original event's relatesTo (which still carries
+            // m.in_reply_to.event_id) so the renderer continues to treat the edited event as
+            // a reply. Legacy edits with embedded mx-reply still go through the existing
+            // ensureCorrectFormattedBodyInTextReply path so received-from-legacy clients keep
+            // rendering correctly.
+            val originalRelatesTo = root.getClearContent().toModel<MessageContent>()?.relatesTo
             val originalFormattedBody = root.getClearContent().toModel<MessageTextContent>()?.formattedBody
             val lastMessageContent = lastContent.toModel<MessageTextContent>()
-            if (lastMessageContent != null && originalFormattedBody?.isNotEmpty() == true) {
-                ensureCorrectFormattedBodyInTextReply(lastMessageContent, originalFormattedBody).toContent()
+            val withReplyContext = if (lastMessageContent != null && originalFormattedBody?.isNotEmpty() == true) {
+                ensureCorrectFormattedBodyInTextReply(lastMessageContent, originalFormattedBody)
             } else {
-                lastContent
+                lastMessageContent
             }
+            withReplyContext?.copy(relatesTo = withReplyContext.relatesTo ?: originalRelatesTo)?.toContent()
+                    ?: lastContent
         }
         else -> lastContent
     }
