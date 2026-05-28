@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
@@ -83,9 +84,14 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         // Look in the timeline DB first (decorated, full TimelineEventEntity); fall back to
         // the general event cache (populated by ensureEventCached across app restarts); fall
         // back to anything fetched in this session that hasn't landed in Realm yet.
-        val repliedToEvent = getEvent(eventId, roomId)
+        // Prefer the full TimelineEvent so we can resolve the latest edited content for the
+        // preview. Falls back to the bare Event from the cross-room event cache, then to any
+        // on-demand fetch result.
+        val timelineEvent = getTimelineEvent(eventId, roomId)
+        val repliedToEvent = timelineEvent?.root
                 ?: activeSessionHolder.getSafeActiveSession()?.eventService()?.getEventFromCache(roomId, eventId)
                 ?: fetchedEvents[eventId]
+        val latestContent = timelineEvent?.getLastMessageContent()
 
         if (repliedToEvent == null && !failedFetches.contains(eventId)) {
             triggerFetch(roomId, eventId)
@@ -97,10 +103,15 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         // the next render produces fresh HTML (with real sender + preview) and the UI updates
         // without needing to back out of the room.
         val bodyWithoutReply = stripExistingMxReply(matrixFormattedBody)
-        return buildSyntheticReplyBlock(roomId, eventId, repliedToEvent, mentionedUserHint) + bodyWithoutReply
+        return buildSyntheticReplyBlock(roomId, eventId, repliedToEvent, latestContent, mentionedUserHint) + bodyWithoutReply
     }
 
-    private fun stripExistingMxReply(body: String): String {
+    /**
+     * Strip any embedded `<mx-reply>...</mx-reply>` block from a formatted body so the caller
+     * can render the bare body without legacy reply fallback markup. Modern replies sent by
+     * this client no longer embed mx-reply, but messages from legacy senders still do.
+     */
+    fun stripExistingMxReply(body: String): String {
         val start = body.indexOf(MX_REPLY_OPEN, ignoreCase = true)
         if (start == -1) return body
         val endTag = "</mx-reply>"
@@ -113,6 +124,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             roomId: String,
             eventId: String,
             repliedToEvent: Event?,
+            latestContent: MessageContent?,
             mentionedUserHint: String?,
     ): String {
         // matrix.to expects raw mxid / event id (`!room:server` / `$event:server`) — those
@@ -124,7 +136,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             // Loaded — full matrix-spec format with the actual sender + preview.
             val senderId = repliedToEvent.senderId
             val senderPermalink = senderId?.let { "https://matrix.to/#/$it" }
-            val preview = escapeHtml(repliedToEvent.shortPreview().orEmpty())
+            val preview = repliedToEvent.shortPreviewHtml(latestContent).orEmpty()
             val senderAnchor = if (senderId != null && senderPermalink != null) {
                 " <a href=\"$senderPermalink\">${escapeHtml(senderId)}</a>"
             } else {
@@ -152,28 +164,52 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         }
     }
 
-    private fun Event.shortPreview(): String? {
-        // Mirror the per-message-type strings the old code used so the inline preview reads
-        // the same as before for media / polls / live location replies.
+    /**
+     * Returns the inline preview as ready-to-embed HTML. For text messages we prefer
+     * `formatted_body` (with any embedded `<mx-reply>` stripped) so the preview shows the
+     * sender's actual formatting — links, inline code, bold, etc. — instead of the raw
+     * markdown source. For media / polls / live location we emit a localized stub.
+     */
+    private fun Event.shortPreviewHtml(latestContent: MessageContent?): String? {
         return when {
-            isFileMessage() -> stringProvider.getString(CommonStrings.message_reply_to_sender_sent_file)
-            isVoiceMessage() -> stringProvider.getString(CommonStrings.message_reply_to_sender_sent_voice_message)
-            isAudioMessage() -> stringProvider.getString(CommonStrings.message_reply_to_sender_sent_audio_file)
-            isImageMessage() -> stringProvider.getString(CommonStrings.message_reply_to_sender_sent_image)
-            isVideoMessage() -> stringProvider.getString(CommonStrings.message_reply_to_sender_sent_video)
-            isSticker() -> stringProvider.getString(CommonStrings.message_reply_to_sender_sent_sticker)
-            isLiveLocation() -> stringProvider.getString(CommonStrings.live_location_description)
-            isPollEnd() -> getPollQuestionFromPollEnd(this)
-                    ?: stringProvider.getString(CommonStrings.message_reply_to_sender_ended_poll)
-            isPollStart() -> getPollQuestion()
-                    ?: stringProvider.getString(CommonStrings.message_reply_to_sender_created_poll)
-            else -> getClearContent().toModel<MessageContent>()?.body?.let { rawBody ->
-                // Strip legacy "> <@user:server> previewline\n\n" reply prefix so the inline
-                // preview of a replied-to text reply doesn't include the quoted ancestor body.
-                val body = if (isReply()) ContentUtils.extractUsefulTextFromReply(rawBody) else rawBody
-                if (body.length > MAX_PREVIEW_LENGTH) body.substring(0, MAX_PREVIEW_LENGTH) + "…" else body
+            isFileMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_file))
+            isVoiceMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_voice_message))
+            isAudioMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_audio_file))
+            isImageMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_image))
+            isVideoMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_video))
+            isSticker() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_sticker))
+            isLiveLocation() -> escapeHtml(stringProvider.getString(CommonStrings.live_location_description))
+            isPollEnd() -> escapeHtml(
+                    getPollQuestionFromPollEnd(this) ?: stringProvider.getString(CommonStrings.message_reply_to_sender_ended_poll)
+            )
+            isPollStart() -> escapeHtml(
+                    getPollQuestion() ?: stringProvider.getString(CommonStrings.message_reply_to_sender_created_poll)
+            )
+            else -> {
+                // Prefer the latest edited content so the preview reflects the current state
+                // of the replied-to message rather than its original form.
+                val content = latestContent ?: getClearContent().toModel<MessageContent>() ?: return null
+                val formatted = (content as? MessageContentWithFormattedBody)?.matrixFormattedBody
+                if (!formatted.isNullOrBlank()) {
+                    // Strip any embedded mx-reply (parent is itself a reply) so the preview
+                    // doesn't include the grandparent's quoted header.
+                    truncateHtml(stripExistingMxReply(formatted))
+                } else {
+                    val rawBody = content.body
+                    // Strip legacy "> <@user:server> previewline\n\n" reply prefix so the
+                    // inline preview of a replied-to text reply doesn't include the quoted
+                    // ancestor body.
+                    val body = if (isReply()) ContentUtils.extractUsefulTextFromReply(rawBody) else rawBody
+                    val clipped = if (body.length > MAX_PREVIEW_LENGTH) body.substring(0, MAX_PREVIEW_LENGTH) + "…" else body
+                    escapeHtml(clipped)
+                }
             }
         }
+    }
+
+    private fun truncateHtml(html: String): String {
+        // Don't risk truncating inside a tag; just cap by source length as a rough guard.
+        return if (html.length > MAX_PREVIEW_LENGTH * 4) html.substring(0, MAX_PREVIEW_LENGTH * 4) + "…" else html
     }
 
     private fun escapeHtml(text: String): String = text

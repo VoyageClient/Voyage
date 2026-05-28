@@ -735,13 +735,35 @@ class MessageItemFactory @Inject constructor(
             replyToContent: ReplyToContent?,
             mentionHint: String? = null,
     ): MessageTextItem? {
-        val processedBody = replyToContent
-                ?.let { processBodyOfReplyToEventUseCase.execute(roomId, matrixFormattedBody, it, mentionHint) }
-                ?: matrixFormattedBody
-        val compressed = htmlCompressor.compress(processedBody)
-        val renderedFormattedBody = htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned
+        // Render the actual body with any embedded legacy `<mx-reply>` stripped — the synthetic
+        // reply header (if any) is rendered in a second Markwon pass and prepended below. This
+        // avoids MxReplyTagHandler's positional surgery on the SpannableBuilder, which mangled
+        // span positions of links / inline code that followed the mx-reply block in a single
+        // combined pass (resulting in literal HTML being shown in the timeline).
+        val bareBody = processBodyOfReplyToEventUseCase.stripExistingMxReply(matrixFormattedBody)
+        val compressed = htmlCompressor.compress(bareBody)
+        val renderedRaw = htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned
+        // Markwon's HTML block handling adds leading/trailing whitespace around the outermost
+        // block (e.g. a `\n` before and after `<p>` content), producing visible empty bands
+        // at the top and bottom of every paragraph-wrapped message. Trim those edges; spans
+        // are preserved via subSequence.
+        val renderedBody = renderedRaw.trimSpannableEnds()
+
+        val finalBody: CharSequence = if (replyToContent?.eventId != null) {
+            val header = renderReplyHeader(replyToContent, mentionHint, callback)?.first?.charSequence
+            if (header != null) {
+                SpannableStringBuilder()
+                        .append(header)
+                        .append("\n\n")
+                        .append(renderedBody)
+            } else {
+                renderedBody
+            }
+        } else {
+            renderedBody
+        }
         return buildMessageTextItem(
-                renderedFormattedBody,
+                finalBody,
                 true,
                 informationData,
                 highlight,
@@ -749,6 +771,9 @@ class MessageItemFactory @Inject constructor(
                 attributes,
         )
     }
+
+    // Kotlin's CharSequence.trim delegates to subSequence, which preserves spans on Spanned.
+    private fun CharSequence.trimSpannableEnds(): CharSequence = trim { it == '\n' || it == ' ' || it == '\t' }
 
     /**
      * Renders an optional user-typed caption attached to a media event (MSC2530). Returns
@@ -768,7 +793,8 @@ class MessageItemFactory @Inject constructor(
         if (body.isEmpty()) return null
         val initialBody: CharSequence = if (formattedBody != null) {
             val compressed = htmlCompressor.compress(formattedBody)
-            htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned ?: body
+            val raw = htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned
+            raw?.trimSpannableEnds() ?: body
         } else {
             body
         }

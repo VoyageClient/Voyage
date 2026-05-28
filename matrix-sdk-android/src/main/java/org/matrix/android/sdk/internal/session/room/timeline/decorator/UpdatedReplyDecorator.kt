@@ -63,13 +63,16 @@ internal class UpdatedReplyDecorator(
 
         val isRedactedEvent = timelineEventEntity.root?.asDomain()?.isRedacted() ?: false
 
-        val replyText = localEchoEventFactory
-                .bodyForReply(currentTimelineEvent.getLastMessageContent(), true).takeFormatted()
+        // Pass the plain body and the formatted body separately. Using `takeFormatted()` as
+        // the plain body (and null as the formatted) puts HTML markup like `<code>x</code>`
+        // into `body`, then leaves `formatted_body` null — which makes the renderer fall into
+        // its escape-and-display path and show the HTML as literal text.
+        val replyTextContent = localEchoEventFactory.bodyForReply(currentTimelineEvent.getLastMessageContent(), true)
 
         val newContent = localEchoEventFactory.createReplyTextContent(
                 timelineEventMapper.map(timelineEventEntity),
-                replyText,
-                null,
+                replyTextContent.text,
+                replyTextContent.formattedText,
                 false,
                 showInThread = false,
                 isRedactedEvent = isRedactedEvent
