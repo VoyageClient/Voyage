@@ -117,6 +117,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         private const val SETTINGS_ENABLE_DIRECT_SHARE = "SETTINGS_ENABLE_DIRECT_SHARE"
         private const val SETTINGS_ENABLE_APP_SHORTCUTS = "SETTINGS_ENABLE_APP_SHORTCUTS"
+        private const val SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE = "SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE"
 
         // Room directory
         private const val SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS = "SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS"
@@ -1015,6 +1016,10 @@ class VectorPreferences @Inject constructor(
 
     fun appShortcutsEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ENABLE_APP_SHORTCUTS, true)
+    }
+
+    fun isEmojiAutocompleteEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE, true)
     }
 
     /**

@@ -30,6 +30,7 @@ import im.vector.app.features.command.Command
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import io.element.android.wysiwyg.EditorEditText
 import org.matrix.android.sdk.api.session.Session
@@ -51,6 +52,7 @@ class AutoCompleter @AssistedInject constructor(
         private val autocompleteMemberPresenterFactory: AutocompleteMemberPresenter.Factory,
         private val autocompleteRoomPresenter: AutocompleteRoomPresenter,
         private val autocompleteEmojiPresenter: AutocompleteEmojiPresenter,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     private val permalinkService: PermalinkService
@@ -181,6 +183,7 @@ class AutoCompleter @AssistedInject constructor(
     private fun setupEmojis(backgroundDrawable: Drawable, editText: EditText) {
         // Rich text editor is not yet supported
         if (editText is EditorEditText) return
+        if (!vectorPreferences.isEmojiAutocompleteEnabled()) return
 
         autocompletes += Autocomplete.on<String>(editText)
                 // needSpaceBefore = true: only trigger when `:` starts a word, so things like
