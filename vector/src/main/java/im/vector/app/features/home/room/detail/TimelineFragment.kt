@@ -151,6 +151,7 @@ import im.vector.app.features.home.room.detail.views.RoomDetailLazyLoadedViews
 import im.vector.app.features.home.room.detail.widget.RoomWidgetsBottomSheet
 import im.vector.app.features.home.room.threads.ThreadsManager
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
+import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.invite.VectorInviteView
 import im.vector.app.features.location.LocationSharingMode
@@ -227,6 +228,7 @@ class TimelineFragment :
     @Inject lateinit var permalinkHandler: PermalinkHandler
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var eventHtmlRenderer: EventHtmlRenderer
+    @Inject lateinit var processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var threadsManager: ThreadsManager
     @Inject lateinit var colorProvider: ColorProvider
@@ -343,6 +345,13 @@ class TimelineFragment :
                 .onEach {
                     handleActions(it)
                 }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // When an on-demand reply-target fetch completes (success or failure), drop any
+        // cached model referencing it and rebuild so the synthetic block in the timeline
+        // settles on either the real preview or the unresolved-event explanation.
+        processBodyOfReplyToEventUseCase.resolvedReplyTargets
+                .onEach { eventId -> timelineEventController.invalidateEventCache(eventId) }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         knownCallsViewModel

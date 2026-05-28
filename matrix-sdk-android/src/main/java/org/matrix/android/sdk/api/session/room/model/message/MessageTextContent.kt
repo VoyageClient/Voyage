@@ -44,5 +44,12 @@ data class MessageTextContent(
         @Json(name = "formatted_body") override val formattedBody: String? = null,
 
         @Json(name = "m.relates_to") override val relatesTo: RelationDefaultContent? = null,
-        @Json(name = "m.new_content") override val newContent: Content? = null
+        @Json(name = "m.new_content") override val newContent: Content? = null,
+
+        /**
+         * Intentional Mentions (matrix MSC3952). For replies, modern clients put the user
+         * being replied to in user_ids[0] so the receiver can identify the reply target even
+         * before fetching the referenced event.
+         */
+        @Json(name = "m.mentions") val mentions: Mentions? = null,
 ) : MessageContentWithFormattedBody

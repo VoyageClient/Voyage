@@ -536,6 +536,13 @@ internal class TimelineChunk(
                 val correctedIndex = range.startIndex + index
                 builtEvents.add(correctedIndex, timelineEvent)
                 builtEventsIndexes[timelineEvent.eventId] = correctedIndex
+                // When an event becomes available that other already-built events were
+                // replying to (e.g. fetched on-demand for an unresolved m.in_reply_to), the
+                // reply events need to be re-decorated so their inline reply preview reflects
+                // the now-cached target. The modifications branch below handles this for
+                // *updates*; insertions need the same treatment when a previously-missing
+                // reply target appears.
+                rebuildRepliesOf(timelineEvent.eventId, results)
             }
         }
         val modifications = changeSet.changeRanges
@@ -564,6 +571,25 @@ internal class TimelineChunk(
         val deletions = changeSet.deletions
         if (deletions.isNotEmpty()) {
             onEventsDeleted()
+        }
+    }
+
+    /**
+     * Re-decorate any already-built events that reply to [targetEventId]. Used when a
+     * previously-missing reply target becomes available so the inline reply preview can
+     * reflect the actual referenced message instead of the placeholder fallback.
+     */
+    private fun rebuildRepliesOf(targetEventId: String, results: RealmResults<TimelineEventEntity>) {
+        val replyIds = repliedEventsMap[targetEventId] ?: return
+        if (replyIds.isEmpty()) return
+        replyIds.forEach { replyEventId ->
+            val builtEventIndex = builtEventsIndexes[replyEventId] ?: return@forEach
+            val entity = results.where().equalTo(TimelineEventEntityFields.EVENT_ID, replyEventId).findFirst() ?: return@forEach
+            try {
+                builtEvents[builtEventIndex] = entity.buildAndDecryptIfNeeded()
+            } catch (failure: Throwable) {
+                Timber.v(failure, "Fail to rebuild reply event $replyEventId after target $targetEventId became available")
+            }
         }
     }
 

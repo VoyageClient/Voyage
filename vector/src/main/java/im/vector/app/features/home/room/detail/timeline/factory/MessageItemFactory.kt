@@ -601,9 +601,23 @@ class MessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes,
     ): VectorEpoxyModel<*>? {
         val matrixFormattedBody = messageContent.matrixFormattedBody
+        val replyToContent = messageContent.relatesTo?.inReplyTo
+        // MSC3952: modern clients put the user being replied to in m.mentions.user_ids[0].
+        // Use it as a hint for the sender link when the referenced event isn't loaded yet.
+        val mentionHint = messageContent.mentions?.userIds?.firstOrNull()
         return if (matrixFormattedBody != null) {
-            val replyToContent = messageContent.relatesTo?.inReplyTo
-            buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes, replyToContent)
+            buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint)
+        } else if (replyToContent?.eventId != null) {
+            // Newer clients may send only m.in_reply_to without a formatted_body + legacy
+            // fallback. Route through the formatted path with an HTML-escaped copy of the
+            // plain body so the use case can inject a synthetic <mx-reply> block (or a
+            // "Loading…" placeholder) and the user still sees a clickable reply indicator.
+            val escapedBody = messageContent.body
+                    .replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\n", "<br />")
+            buildFormattedTextItem(escapedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint)
         } else {
             buildMessageTextItem(messageContent.body, false, informationData, highlight, callback, attributes)
         }
@@ -616,9 +630,10 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
             replyToContent: ReplyToContent?,
+            mentionHint: String? = null,
     ): MessageTextItem? {
         val processedBody = replyToContent
-                ?.let { processBodyOfReplyToEventUseCase.execute(roomId, matrixFormattedBody, it) }
+                ?.let { processBodyOfReplyToEventUseCase.execute(roomId, matrixFormattedBody, it, mentionHint) }
                 ?: matrixFormattedBody
         val compressed = htmlCompressor.compress(processedBody)
         val renderedFormattedBody = htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned

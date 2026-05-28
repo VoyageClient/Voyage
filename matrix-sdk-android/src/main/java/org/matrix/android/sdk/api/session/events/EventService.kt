@@ -36,4 +36,17 @@ interface EventService {
             roomId: String,
             eventId: String
     ): Event?
+
+    /**
+     * Return the event from cache if present, otherwise fetch it from the homeserver and
+     * persist it to the local event cache so subsequent calls to [getEventFromCache] return it.
+     *
+     * Use this for ancillary lookups (e.g. resolving the target of an `m.in_reply_to` whose
+     * referenced event isn't in the timeline DB) where you want the event to survive across
+     * app restarts. Returns null on fetch failure.
+     */
+    suspend fun ensureEventCached(
+            roomId: String,
+            eventId: String
+    ): Event?
 }

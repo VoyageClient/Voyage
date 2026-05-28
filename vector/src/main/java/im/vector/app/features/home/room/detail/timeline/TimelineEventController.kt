@@ -59,6 +59,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
@@ -292,6 +293,27 @@ class TimelineEventController @Inject constructor(
 
     override fun intercept(models: MutableList<EpoxyModel<*>>) = synchronized(modelCache) {
         interceptorHelper.intercept(models, partialState.unreadState, timeline, callback)
+    }
+
+    /**
+     * Drop any cached model that references [eventId], either as the event itself or as a
+     * reply target. Used to force a fresh build (e.g. after on-demand fetching the target of
+     * an unresolved reply). Cheap to call — touches at most a handful of cache slots and only
+     * triggers a model rebuild when something actually changed.
+     */
+    fun invalidateEventCache(eventId: String) {
+        var dirty = false
+        synchronized(modelCache) {
+            currentSnapshot.forEachIndexed { index, event ->
+                if (index >= modelCache.size) return@forEachIndexed
+                if (modelCache[index] == null) return@forEachIndexed
+                if (event.eventId == eventId || event.root.getRelationContent()?.inReplyTo?.eventId == eventId) {
+                    modelCache[index] = null
+                    dirty = true
+                }
+            }
+        }
+        if (dirty) requestModelBuild()
     }
 
     fun update(viewState: RoomDetailViewState) = PerfTrace.time("timeline.controller.update") {
