@@ -445,8 +445,11 @@ internal class LocalEchoEventFactory @Inject constructor(
         val mediaDataRetriever = MediaMetadataRetriever()
         mediaDataRetriever.setDataSource(context, attachment.queryUri)
 
-        // Use frame to calculate height and width as we are sure to get the right ones
-        val firstFrame: Bitmap? = mediaDataRetriever.frameAtTime
+        // Use frame to calculate height and width as we are sure to get the right ones.
+        // Mirror ThumbnailExtractor (see 462722ec2a): pull the closest sync frame at t=0
+        // rather than relying on `frameAtTime` which defaults to picking a representative
+        // frame somewhere in the middle of the video.
+        val firstFrame: Bitmap? = mediaDataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
         val height = firstFrame?.height ?: 0
         val width = firstFrame?.width ?: 0
         mediaDataRetriever.release()
