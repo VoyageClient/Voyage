@@ -20,6 +20,7 @@ import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
+import okhttp3.ConnectionPool
 import okhttp3.ConnectionSpec
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
@@ -77,9 +78,18 @@ internal object NetworkModule {
         val dispatcher = Dispatcher().apply {
             maxRequestsPerHost = 20
         }
+        // Keep many idle HTTPS connections warm for 5 minutes. The default of 5 means a
+        // burst of avatar/media fetches reopens TCP+TLS on every request after a brief
+        // pause — extremely visible on launch and after the screen wakes from sleep.
+        val connectionPool = ConnectionPool(maxIdleConnections = 16, keepAliveDuration = 5, timeUnit = TimeUnit.MINUTES)
         return OkHttpClient.Builder()
-                // workaround for #4669
-                .protocols(listOf(Protocol.HTTP_1_1))
+                // Allow ALPN to negotiate HTTP/2 (fall back to HTTP/1.1). The blanket force to
+                // HTTP/1.1 dates from #4669 (early 2022) which was an OkHttp client bug long
+                // since fixed in the 4.x line. HTTP/2 multiplexes many parallel requests on a
+                // single TLS connection — without it every avatar pays a cold TLS handshake
+                // serially, which is what makes them "line up with sync" on launch.
+                .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+                .connectionPool(connectionPool)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(60, TimeUnit.SECONDS)

@@ -23,6 +23,7 @@ import com.squareup.moshi.JsonEncodingException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
@@ -77,6 +78,14 @@ internal class SyncThread @Inject constructor(
     private var retryNoNetworkTask: TimerTask? = null
     private var previousSyncResponseHasToDevice = false
 
+    // Reference to the currently-running sync coroutine so we can cancel it from
+    // foreground/connectivity callbacks. Without this, a long-poll request on a
+    // silently-dead TCP socket (Wi-Fi sleep, NAT timeout after hours backgrounded)
+    // blocks the run loop in `runBlocking { sync.join() }` until OkHttp's read timeout
+    // fires — observed as "sync doesn't resume until I force-close and reopen".
+    @Volatile
+    private var inflightSyncJob: Job? = null
+
     private val activeCallListObserver = Observer<MutableList<MxCall>> { activeCalls ->
         if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground) {
             pause()
@@ -103,6 +112,11 @@ internal class SyncThread @Inject constructor(
             isTokenValid = true
             lock.notify()
         }
+        // Kick the in-flight sync. If the request is still healthy it will be re-issued
+        // immediately using the saved since-token (no data loss, sync is idempotent on the
+        // same token). If the underlying socket was wedged, this unblocks the loop right
+        // now instead of after the OkHttp read timeout.
+        cancelInflightSync("restart")
     }
 
     fun pause() = synchronized(lock) {
@@ -137,6 +151,19 @@ internal class SyncThread @Inject constructor(
         synchronized(lock) {
             canReachServer = true
             lock.notify()
+        }
+        // Connectivity just changed — any in-flight sync was probably bound to the previous
+        // network state and will hang until its read timeout. Cancel so the next iteration
+        // opens a fresh request on the new connection.
+        cancelInflightSync("connectivity-changed")
+    }
+
+    private fun cancelInflightSync(reason: String) {
+        inflightSyncJob?.let { job ->
+            if (job.isActive) {
+                Timber.tag(loggerTag.value).d("Cancelling in-flight sync ($reason)")
+                job.cancel(CancellationException("Sync cancelled: $reason"))
+            }
         }
     }
 
@@ -190,9 +217,11 @@ internal class SyncThread @Inject constructor(
                 val sync = syncScope.launch {
                     previousSyncResponseHasToDevice = doSync(params)
                 }
+                inflightSyncJob = sync
                 runBlocking {
                     sync.join()
                 }
+                inflightSyncJob = null
                 Timber.tag(loggerTag.value).d("...Continue")
             }
         }
