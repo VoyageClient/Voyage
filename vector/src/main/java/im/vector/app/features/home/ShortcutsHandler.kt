@@ -64,11 +64,17 @@ class ShortcutsHandler @Inject constructor(
 
     // Signature of the last set of shortcuts that was pushed to the system. The room summaries
     // flow emits very frequently (every read receipt, new message, etc.) but the visible
-    // shortcuts only change when the room list ordering, avatars or names change. Re-pushing
-    // identical shortcuts on every emission causes Android to write a fresh bitmap file under
-    // /data/system_ce/0/shortcut_service/bitmaps/<pkg>/ each time, eventually consuming
-    // gigabytes of device storage. Skip the push when nothing visible has changed.
-    private var lastShortcutsSignature: List<String>? = null
+    // shortcuts only change when the SET of top-N rooms changes (or one of their avatars /
+    // names changes). Re-pushing identical shortcuts on every emission causes Android to
+    // write a fresh bitmap file under /data/system_ce/0/shortcut_service/bitmaps/<pkg>/
+    // each time, eventually consuming gigabytes of device storage.
+    //
+    // We compare as a Set, so when room *order* changes within the top-N (e.g. an incoming
+    // message bumps an already-pinned room up) we skip the re-push entirely. Pushing 5
+    // shortcuts goes through Glide bitmap rasterization per shortcut, which can take hundreds
+    // of ms and occasionally seconds (cold avatar cache). Avoiding it when nothing visible
+    // changed is a big win.
+    private var lastShortcutsSignature: Set<String>? = null
 
     fun observeRoomsAndBuildShortcuts(coroutineScope: CoroutineScope): Job {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) {
@@ -142,21 +148,22 @@ class ShortcutsHandler @Inject constructor(
     private fun createShortcuts(rooms: List<RoomSummary>) = im.vector.app.core.utils.PerfTrace.time("shortcuts.create") {
         // No shortcut in this case (privacy, or user opted out).
         if (hasPinCode.get() || !vectorPreferences.appShortcutsEnabled()) {
-            if (lastShortcutsSignature != emptyList<String>()) {
+            if (lastShortcutsSignature != emptySet<String>()) {
                 ShortcutManagerCompat.removeAllDynamicShortcuts(context)
-                lastShortcutsSignature = emptyList()
+                lastShortcutsSignature = emptySet()
             }
             return
         }
 
         val visibleRooms = rooms.take(maxShortcutCountPerActivity)
-        val signature = visibleRooms.map { room ->
-            // Anything that would change the rendered shortcut (icon or label) must be part of
-            // this signature, otherwise stale shortcuts will be shown.
+        // Set-based, order-insensitive: only re-push when the top-N membership / avatars /
+        // names change. Reorders within the top-N (the common case as messages arrive) are
+        // ignored — the launcher's long-press menu doesn't visibly rely on stable ordering
+        // here and the cost of pushing is dominated by bitmap rasterization.
+        val signature = visibleRooms.mapTo(HashSet(visibleRooms.size)) { room ->
             "${room.roomId}|${room.avatarUrl}|${room.displayName}"
         }
         if (signature == lastShortcutsSignature) {
-            // Nothing visible changed; do not re-push identical shortcuts.
             return
         }
         lastShortcutsSignature = signature
@@ -180,7 +187,7 @@ class ShortcutsHandler @Inject constructor(
     fun removeAllDynamicShortcuts() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return
         ShortcutManagerCompat.removeAllDynamicShortcuts(context)
-        lastShortcutsSignature = emptyList()
+        lastShortcutsSignature = emptySet()
     }
 
     fun clearShortcuts() {
@@ -219,7 +226,7 @@ class ShortcutsHandler @Inject constructor(
         if (isConfigured) {
             // Remove shortcuts immediately
             ShortcutManagerCompat.removeAllDynamicShortcuts(context)
-            lastShortcutsSignature = emptyList()
+            lastShortcutsSignature = emptySet()
         } else {
             // Force a refresh on the next room summaries emission.
             lastShortcutsSignature = null

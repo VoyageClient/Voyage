@@ -25,6 +25,7 @@ import im.vector.app.SpaceStateHandler
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.extensions.isVoiceBroadcast
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.mvrx.runCatchingToAsync
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.BuildMeta
@@ -199,7 +200,7 @@ class TimelineViewModel @AssistedInject constructor(
         }
     }
 
-    private fun initSafe(room: Room, timeline: Timeline) {
+    private fun initSafe(room: Room, timeline: Timeline) = PerfTrace.time("timeline.vm.initSafe") {
         timeline.start(initialState.rootThreadEventId)
         timeline.addListener(this)
         observeMembershipChanges()

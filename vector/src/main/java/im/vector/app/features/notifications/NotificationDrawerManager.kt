@@ -14,6 +14,7 @@ import im.vector.app.ActiveSessionDataSource
 import im.vector.app.R
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.FirstThrottler
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
@@ -185,7 +186,7 @@ class NotificationDrawerManager @Inject constructor(
     }
 
     @WorkerThread
-    private fun refreshNotificationDrawerBg() {
+    private fun refreshNotificationDrawerBg() = PerfTrace.time("notif.drawer.refresh") {
         Timber.v("refreshNotificationDrawerBg()")
         val eventsToRender = notificationState.updateQueuedEvents(this) { queuedEvents, renderedEvents ->
             notifiableEventProcessor.process(queuedEvents.rawEvents(), currentRoomId, currentThreadId, renderedEvents).also {

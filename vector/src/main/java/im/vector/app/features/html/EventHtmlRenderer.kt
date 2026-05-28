@@ -210,8 +210,8 @@ class EventHtmlRenderer @Inject constructor(
      * @param text the text you want to render
      * @param postProcessors an optional array of post processor to add any span if needed
      */
-    fun render(text: String, vararg postProcessors: PostProcessor): CharSequence {
-        return try {
+    fun render(text: String, vararg postProcessors: PostProcessor): CharSequence = im.vector.app.core.utils.PerfTrace.time("html.render") {
+        try {
             val parsed = markwon.parse(text)
             renderAndProcess(parsed, postProcessors)
         } catch (failure: Throwable) {
@@ -224,12 +224,12 @@ class EventHtmlRenderer @Inject constructor(
      * @param node the node you want to render
      * @param postProcessors an optional array of post processor to add any span if needed
      */
-    fun render(node: Node, vararg postProcessors: PostProcessor): CharSequence? {
-        return try {
+    fun render(node: Node, vararg postProcessors: PostProcessor): CharSequence? = im.vector.app.core.utils.PerfTrace.time("html.renderNode") {
+        try {
             renderAndProcess(node, postProcessors)
         } catch (failure: Throwable) {
             Timber.v("Fail to render $node to html")
-            return null
+            null
         }
     }
 

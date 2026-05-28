@@ -24,6 +24,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.endKeepScreenOn
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.keepScreenOn
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityRoomDetailBinding
@@ -91,7 +92,11 @@ class RoomDetailActivity :
     // Simple filter
     var currentRoomId: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) = PerfTrace.time("room.activity.onCreate") {
+        onCreateBody(savedInstanceState)
+    }
+
+    private fun onCreateBody(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // For dealing with insets and status bar background color

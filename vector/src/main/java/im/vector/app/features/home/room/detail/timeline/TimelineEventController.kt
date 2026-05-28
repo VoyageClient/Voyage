@@ -21,6 +21,7 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.LoadingItem_
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.core.extensions.nextOrNull
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.extensions.prevOrNull
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.JitsiState
@@ -293,7 +294,7 @@ class TimelineEventController @Inject constructor(
         interceptorHelper.intercept(models, partialState.unreadState, timeline, callback)
     }
 
-    fun update(viewState: RoomDetailViewState) {
+    fun update(viewState: RoomDetailViewState) = PerfTrace.time("timeline.controller.update") {
         val newPartialState = PartialState(viewState)
         if (newPartialState != partialState) {
             partialState = newPartialState
@@ -318,6 +319,10 @@ class TimelineEventController @Inject constructor(
     }
 
     override fun buildModels() {
+        PerfTrace.time("timeline.buildModels") { buildModelsInner() }
+    }
+
+    private fun buildModelsInner() {
         // Don't build anything if membership is not joined
         if (partialState.roomSummary?.membership != Membership.JOIN) {
             return

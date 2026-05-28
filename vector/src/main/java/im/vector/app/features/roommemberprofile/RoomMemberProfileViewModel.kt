@@ -20,6 +20,7 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.mvrx.runCatchingToAsync
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
@@ -74,6 +75,12 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     init {
+        PerfTrace.time("member.profile.vm.init") {
+            initInner()
+        }
+    }
+
+    private fun initInner() {
         // Seed the room power levels and the user-power-level label synchronously, so the
         // controller can render the admin section / "Role" subtitle on the very first frame
         // instead of waiting 1-2s for liveRoomPowerLevels' LiveData to round-trip through

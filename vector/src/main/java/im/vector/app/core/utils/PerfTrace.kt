@@ -30,9 +30,23 @@ object PerfTrace {
     private const val LOG_THRESHOLD_MS = 5L
 
     /**
+     * Master switch. Set from the settings toggle at app startup and on preference change.
+     * Off by default — when off, [time] / [timeSuspending] / [mark] all short-circuit so
+     * instrumentation is essentially free in release-style usage.
+     *
+     * Volatile so flips from the settings thread are immediately visible to other threads.
+     */
+    @Volatile
+    @JvmField
+    var isEnabled: Boolean = false
+
+    private val NOOP_MARKER = Marker("", 0L, sample = false)
+
+    /**
      * Measure a synchronous block. Returns the block's result so it can be used inline.
      */
     inline fun <T> time(name: String, block: () -> T): T {
+        if (!isEnabled) return block()
         beginSection(name)
         val start = SystemClock.elapsedRealtime()
         try {
@@ -48,6 +62,7 @@ object PerfTrace {
      * (e.g. an IO call, a `withContext` switch).
      */
     suspend inline fun <T> timeSuspending(name: String, block: () -> T): T {
+        if (!isEnabled) return block()
         beginSection(name)
         val start = SystemClock.elapsedRealtime()
         try {
@@ -62,12 +77,19 @@ object PerfTrace {
      * Manual begin/end. Prefer [time] when possible; this exists for cases where the start
      * and end happen across different callbacks (e.g. user input → async result).
      */
-    fun mark(name: String): Marker = Marker(name, SystemClock.elapsedRealtime()).also {
+    fun mark(name: String): Marker {
+        if (!isEnabled) return NOOP_MARKER
         beginSection(name)
+        return Marker(name, SystemClock.elapsedRealtime(), sample = true)
     }
 
-    class Marker internal constructor(private val name: String, private val startMs: Long) {
+    class Marker internal constructor(
+            private val name: String,
+            private val startMs: Long,
+            private val sample: Boolean,
+    ) {
         fun end() {
+            if (!sample) return
             val elapsed = SystemClock.elapsedRealtime() - startMs
             endSection(elapsed, name)
         }

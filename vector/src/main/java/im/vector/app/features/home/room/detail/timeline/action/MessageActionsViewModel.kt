@@ -27,11 +27,13 @@ import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
@@ -92,20 +94,26 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     init {
         PerfTrace.time("longpress.vm.init") {
-            // Seed action permissions synchronously so reactions / edit / etc. appear in the
-            // long-press sheet on the first frame. Without this, the LiveData-backed
-            // liveRoomPowerLevels has to round-trip through the main thread before permissions
-            // are populated; meanwhile redact for your own messages already short-circuits on
-            // senderId == myUserId in CheckIfCanRedactEventUseCase, so the user sees redact pop
-            // in instantly while other actions appear a beat later.
+            // Seed action permissions so reactions / edit / etc. appear in the long-press sheet
+            // without waiting for the LiveData-backed liveRoomPowerLevels to round-trip through
+            // the main thread (which causes redact to appear first via the own-sender short
+            // circuit while other actions pop in a beat later).
+            //
+            // The seed reads from Realm and can take 50-150ms on first access. Running it on
+            // Dispatchers.IO instead of the constructor thread lets the sheet appear instantly
+            // — permissions arrive a frame or two later via setState. In practice the seed
+            // usually completes before the first model build observation, so users still see
+            // the full action set on the first visible frame.
             if (room != null) {
-                val initial = room.stateService().getRoomPowerLevels()
-                val permissions = ActionPermissions(
-                        canSendMessage = initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
-                        canReact = initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
-                        canRedact = initial.isUserAbleToRedact(session.myUserId),
-                )
-                setState { copy(actionPermissions = permissions) }
+                viewModelScope.launch(Dispatchers.IO) {
+                    val initial = room.stateService().getRoomPowerLevels()
+                    val permissions = ActionPermissions(
+                            canSendMessage = initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
+                            canReact = initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
+                            canRedact = initial.isUserAbleToRedact(session.myUserId),
+                    )
+                    setState { copy(actionPermissions = permissions) }
+                }
             }
 
             observeEvent()

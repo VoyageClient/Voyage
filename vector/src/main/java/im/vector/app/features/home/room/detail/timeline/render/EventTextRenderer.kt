@@ -17,6 +17,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.html.PillImageSpan
 import im.vector.lib.strings.CommonStrings
@@ -53,9 +54,9 @@ class EventTextRenderer @AssistedInject constructor(
     /**
      * @param text the text to be rendered
      */
-    fun render(text: CharSequence): CharSequence {
+    fun render(text: CharSequence): CharSequence = PerfTrace.time("text.render") {
         val formattedText = renderPermalinks(text)
-        return renderNotifyEveryone(formattedText)
+        renderNotifyEveryone(formattedText)
     }
 
     private fun renderNotifyEveryone(text: CharSequence): CharSequence {

@@ -120,6 +120,10 @@ class VectorApplication :
     override fun onCreate() {
         enableStrictModeIfNeeded()
         super.onCreate()
+        // Hilt has injected vectorPreferences by now. Seed perf flag immediately so we can
+        // time the rest of onCreate.
+        im.vector.app.core.utils.PerfTrace.isEnabled = vectorPreferences.isPerfLoggingEnabled()
+        val perfMarker = im.vector.app.core.utils.PerfTrace.mark("app.onCreate")
         appContext = this
         flipperProxy.init(matrix)
         vectorAnalytics.init()
@@ -226,6 +230,7 @@ class VectorApplication :
         Mapbox.getInstance(this)
 
         initMemoryLeakAnalysis()
+        perfMarker.end()
     }
 
     private fun configureEpoxy() {

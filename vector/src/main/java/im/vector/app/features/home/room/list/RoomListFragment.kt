@@ -30,6 +30,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.platform.OnBackPressed
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.resources.UserPreferencesProvider
@@ -111,11 +112,20 @@ class RoomListFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val perfMarker = PerfTrace.mark("roomlist.onViewCreated")
+        try {
+            onViewCreatedBody(view, savedInstanceState)
+        } finally {
+            perfMarker.end()
+        }
+    }
+
+    private fun onViewCreatedBody(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         views.stateView.contentView = views.roomListView
         views.stateView.state = StateView.State.Loading
         setupCreateRoomButton()
-        setupRecyclerView()
+        PerfTrace.time("roomlist.setupRecyclerView") { setupRecyclerView() }
         sharedActionViewModel = activityViewModelProvider.get(RoomListQuickActionsSharedActionViewModel::class.java)
         roomListViewModel.observeViewEvents {
             when (it) {

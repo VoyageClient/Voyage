@@ -37,6 +37,7 @@ import im.vector.app.core.extensions.validateBackPressed
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.pushers.UnifiedPushHelper
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.ActivityHomeBinding
@@ -198,6 +199,7 @@ class HomeActivity :
     override fun getBinding() = ActivityHomeBinding.inflate(layoutInflater)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val perfMarker = PerfTrace.mark("home.activity.onCreate")
         super.onCreate(savedInstanceState)
         isNewAppLayoutEnabled = vectorPreferences.isNewAppLayoutEnabled()
         analyticsScreenName = MobileScreen.ScreenName.Home
@@ -270,6 +272,7 @@ class HomeActivity :
             handleIntent(intent)
         }
         homeActivityViewModel.handle(HomeActivityViewActions.ViewStarted)
+        perfMarker.end()
     }
 
     private fun askUserToSelectPushDistributor() {

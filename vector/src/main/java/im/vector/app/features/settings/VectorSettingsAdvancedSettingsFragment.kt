@@ -16,6 +16,7 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.NightlyProxy
@@ -31,6 +32,7 @@ class VectorSettingsAdvancedSettingsFragment :
     override val preferenceXmlRes = R.xml.vector_settings_advanced_settings
 
     @Inject lateinit var nightlyProxy: NightlyProxy
+    @Inject lateinit var vectorPreferences: VectorPreferences
 
     private var rageshake: RageShake? = null
 
@@ -58,6 +60,19 @@ class VectorSettingsAdvancedSettingsFragment :
         setupRageShakeSection()
         setupNightlySection()
         setupDevToolsSection()
+        setupPerfLoggingToggle()
+    }
+
+    private fun setupPerfLoggingToggle() {
+        // Re-sync now in case Developer Mode was toggled elsewhere; push immediate updates
+        // when this toggle flips. (Toggling Developer Mode off here doesn't actively flip
+        // PerfTrace.isEnabled — the next app start re-seeds via VectorApplication.onCreate,
+        // and the XML `dependency` already disables this row visually when dev mode is off.)
+        PerfTrace.isEnabled = vectorPreferences.isPerfLoggingEnabled()
+        findPreference<VectorSwitchPreference>("SETTINGS_PERF_LOGGING_ENABLED")?.setOnPreferenceChangeListener { _, newValue ->
+            PerfTrace.isEnabled = (newValue as? Boolean == true) && vectorPreferences.developerMode()
+            true
+        }
     }
 
     private fun setupDevToolsSection() {

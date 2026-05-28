@@ -1059,6 +1059,8 @@
     <string name="settings_enable_app_shortcuts_summary">Show recent chats in the launcher long-press menu and share sheet. Disable to stop the system from caching shortcut icons.</string>
     <string name="settings_enable_emoji_autocomplete_title">Suggest emoji when typing</string>
     <string name="settings_enable_emoji_autocomplete_summary">Show the emoji picker when typing a :shortcode:</string>
+    <string name="settings_perf_logging_title">Log performance traces</string>
+    <string name="settings_perf_logging_summary">Emit timings for slow operations (room open, send, autocomplete, etc.) to logcat under the VectorPerf tag. Off by default — turn on when debugging slowness.</string>
     <string name="settings_show_join_leave_messages">Show join and leave events</string>
     <string name="settings_show_join_leave_messages_summary">Invites, removes, and bans are unaffected.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Show account events</string>

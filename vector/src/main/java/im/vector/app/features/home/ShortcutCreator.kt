@@ -49,6 +49,16 @@ class ShortcutCreator @Inject constructor(
     }
     @Inject lateinit var vectorPreferences: VectorPreferences
 
+    // Cache rendered shortcut bitmaps keyed on (roomId, avatarUrl). Without this, every
+    // re-push of the dynamic shortcuts re-runs the Glide pipeline + canvas drawing for
+    // each room, even when the avatar hasn't changed. Cold-path renders can be hundreds
+    // of ms each (occasionally seconds when Glide has to disk-decode), so caching a small
+    // ring is a big win. Sized a bit larger than maxShortcutCountPerActivity so we have
+    // headroom when membership churns by one or two.
+    private val bitmapCache: MutableMap<String, Bitmap> = object : LinkedHashMap<String, Bitmap>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Bitmap>): Boolean = size > BITMAP_CACHE_CAPACITY
+    }
+
     fun canCreateShortcut(): Boolean {
         return ShortcutManagerCompat.isRequestPinShortcutSupported(context)
     }
@@ -56,12 +66,15 @@ class ShortcutCreator @Inject constructor(
     @WorkerThread
     fun create(roomSummary: RoomSummary, rank: Int = 1): ShortcutInfoCompat {
         val intent = MainActivity.shortcutIntent(context, roomSummary.roomId)
-        val bitmap = try {
+        val cacheKey = "${roomSummary.roomId}|${roomSummary.avatarUrl.orEmpty()}"
+        val bitmap = synchronized(bitmapCache) { bitmapCache[cacheKey] } ?: try {
             val glideRequests = GlideApp.with(context)
             val matrixItem = roomSummary.toMatrixItem()
             when (useAdaptiveIcon) {
                 true -> avatarRenderer.adaptiveShortcutDrawable(glideRequests, matrixItem, iconSize, adaptiveIconSize, adaptiveIconOuterSides.toFloat())
                 false -> avatarRenderer.shortcutDrawable(glideRequests, matrixItem, iconSize)
+            }.also { rendered ->
+                synchronized(bitmapCache) { bitmapCache[cacheKey] = rendered }
             }
         } catch (failure: Throwable) {
             null
@@ -90,5 +103,9 @@ class ShortcutCreator @Inject constructor(
         } else {
             IconCompat.createWithBitmap(this)
         }
+    }
+
+    companion object {
+        private const val BITMAP_CACHE_CAPACITY = 16
     }
 }
