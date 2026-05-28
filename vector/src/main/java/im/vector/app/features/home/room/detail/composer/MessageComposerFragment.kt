@@ -647,6 +647,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun handleJumpToEvent(event: MessageComposerViewEvents.JumpToEvent) {
+        // JumpToEvent isn't a SendMessageResult, so renderSendMessageResult's unlock never
+        // runs for /jumpto* commands. Without this, a failed jump leaves the send button
+        // permanently locked.
+        lockSendButton = false
         val eventId = event.eventId
         if (eventId == null) {
             event.notFoundMessage?.let { showSnackWithMessage(it) }

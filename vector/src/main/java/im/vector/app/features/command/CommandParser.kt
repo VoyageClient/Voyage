@@ -410,10 +410,19 @@ class CommandParser @Inject constructor(
                     ParsedCommand.JumpToStart
                 }
                 Command.JUMP_TO.matches(slashCommand) -> {
-                    if (message.isNotEmpty()) {
-                        ParsedCommand.JumpToEvent(eventId = message.toString().trim())
+                    val candidate = message.toString().trim()
+                    if (candidate.isNotEmpty() && MatrixPatterns.isEventId(candidate)) {
+                        ParsedCommand.JumpToEvent(eventId = candidate)
                     } else {
                         ParsedCommand.ErrorSyntax(Command.JUMP_TO)
+                    }
+                }
+                Command.JUMP_TO_DATE.matches(slashCommand) -> {
+                    val raw = message.toString().trim()
+                    if (raw.matches(Regex("""\d{4}-\d{1,2}-\d{1,2}"""))) {
+                        ParsedCommand.JumpToDate(date = raw)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.JUMP_TO_DATE)
                     }
                 }
                 Command.CRASH_APP.matches(slashCommand) && vectorPreferences.developerMode() -> {

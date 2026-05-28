@@ -25,6 +25,7 @@ import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
 import im.vector.app.features.analytics.plan.JoinedRoom
 import im.vector.app.features.attachments.toContentAttachmentData
 import im.vector.app.features.command.CommandParser
+import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.room.detail.ChatEffect
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
@@ -612,6 +613,30 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)
                         }
+                        is ParsedCommand.JumpToDate -> {
+                            val timestamp = parseJumpToDate(parsedCommand.date)
+                            if (timestamp == null) {
+                                _viewEvents.post(MessageComposerViewEvents.SlashCommandError(Command.JUMP_TO_DATE))
+                                popDraft(room)
+                            } else {
+                                viewModelScope.launch(Dispatchers.IO) {
+                                    val eventId = room.timelineService().fetchEventIdForTimestamp(timestamp, forward = true)
+                                    if (eventId != null) {
+                                        _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = eventId))
+                                        _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                                    } else {
+                                        _viewEvents.post(
+                                                MessageComposerViewEvents.JumpToEvent(
+                                                        eventId = null,
+                                                        notFoundMessage = stringProvider.getString(CommonStrings.command_jump_to_date_no_event, parsedCommand.date),
+                                                )
+                                        )
+                                    }
+                                    popDraft(room)
+                                }
+                            }
+                            Unit
+                        }
                     }
                 }
                 is SendMode.Edit -> {
@@ -1107,6 +1132,31 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun onRoomError() = setState {
         copy(isRoomError = true)
+    }
+
+    /**
+     * Parse `YYYY-M[M]-D[D]` into midnight-local-time epoch millis. 1970 floor matches the
+     * unix epoch — `origin_server_ts` can't address anything earlier.
+     */
+    private fun parseJumpToDate(raw: String): Long? {
+        val parts = raw.split('-')
+        if (parts.size != 3) return null
+        val year = parts[0].toIntOrNull() ?: return null
+        val month = parts[1].toIntOrNull() ?: return null
+        val day = parts[2].toIntOrNull() ?: return null
+        if (year < 1970 || year > 9999) return null
+        if (month !in 1..12) return null
+        if (day !in 1..31) return null
+        val cal = java.util.Calendar.getInstance()
+        cal.isLenient = false
+        return try {
+            cal.clear()
+            cal.set(year, month - 1, day, 0, 0, 0)
+            cal.set(java.util.Calendar.MILLISECOND, 0)
+            cal.timeInMillis.takeIf { it >= 0 }
+        } catch (_: IllegalArgumentException) {
+            null
+        }
     }
 
     @AssistedFactory

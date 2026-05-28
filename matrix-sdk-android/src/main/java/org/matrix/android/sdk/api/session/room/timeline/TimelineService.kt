@@ -44,6 +44,14 @@ interface TimelineService {
     fun getTimelineEvent(eventId: String): TimelineEvent?
 
     /**
+     * MSC3030: ask the homeserver for the event closest to [timestampMs]. [forward] picks
+     * search direction (true = at-or-after the timestamp, false = at-or-before). Returns
+     * the event id, or null if the server has no event in that direction or doesn't
+     * implement the endpoint.
+     */
+    suspend fun fetchEventIdForTimestamp(timestampMs: Long, forward: Boolean = true): String?
+
+    /**
      * Creates a LiveData of Optional TimelineEvent event with eventId.
      * If the eventId is a local echo eventId, it will make the LiveData be updated with the synced TimelineEvent when coming through the sync.
      * In this case, makes sure to use the new synced eventId from the TimelineEvent class if you want to interact, as the local echo is removed from the SDK.

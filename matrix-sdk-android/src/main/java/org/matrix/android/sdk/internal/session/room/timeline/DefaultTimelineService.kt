@@ -30,6 +30,9 @@ import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
+import org.matrix.android.sdk.internal.network.executeRequest
+import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
@@ -56,7 +59,9 @@ internal class DefaultTimelineService @AssistedInject constructor(
         private val timelineEventDataSource: TimelineEventDataSource,
         private val clock: Clock,
         private val stateEventDataSource: StateEventDataSource,
-        private val localEchoEventFactory: LocalEchoEventFactory
+        private val localEchoEventFactory: LocalEchoEventFactory,
+        private val roomAPI: RoomAPI,
+        private val globalErrorReceiver: GlobalErrorReceiver,
 ) : TimelineService {
 
     @AssistedFactory
@@ -90,6 +95,19 @@ internal class DefaultTimelineService @AssistedInject constructor(
 
     override fun getTimelineEvent(eventId: String): TimelineEvent? {
         return timelineEventDataSource.getTimelineEvent(roomId, eventId)
+    }
+
+    override suspend fun fetchEventIdForTimestamp(timestampMs: Long, forward: Boolean): String? {
+        val dir = if (forward) "f" else "b"
+        // Server may not implement MSC3030, may 404 when no event exists in that direction,
+        // or the network call might fail; all collapse to null.
+        return try {
+            executeRequest(globalErrorReceiver) {
+                roomAPI.getEventForTimestamp(roomId, timestampMs, dir)
+            }.eventId
+        } catch (failure: Throwable) {
+            null
+        }
     }
 
     override fun getTimelineEventLive(eventId: String): LiveData<Optional<TimelineEvent>> {

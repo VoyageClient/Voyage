@@ -42,6 +42,7 @@ import org.matrix.android.sdk.internal.session.room.send.model.EventRedactBody
 import org.matrix.android.sdk.internal.session.room.tags.TagBody
 import org.matrix.android.sdk.internal.session.room.timeline.EventContextResponse
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationResponse
+import org.matrix.android.sdk.internal.session.room.timeline.TimestampToEventResponse
 import org.matrix.android.sdk.internal.session.room.typing.TypingBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -486,4 +487,14 @@ internal interface RoomAPI {
             @Query("from") from: String? = null,
             @Query("limit") limit: Int? = null,
     ): ThreadSummariesResponse
+
+    /**
+     * MSC3030: resolve the event closest to a given origin_server_ts.
+     */
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "rooms/{roomId}/timestamp_to_event")
+    suspend fun getEventForTimestamp(
+            @Path("roomId") roomId: String,
+            @Query("ts") ts: Long,
+            @Query("dir") dir: String,
+    ): TimestampToEventResponse
 }
