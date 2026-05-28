@@ -140,7 +140,9 @@ class ImageContentRenderer @Inject constructor(
     }
 
     /**
-     * Used by Attachment Viewer.
+     * Used by Attachment Viewer. Decodes at the source's native resolution rather than the
+     * target view's bounds — the viewer supports pinch-to-zoom, so a screen-sized bitmap
+     * gets visibly blurry once magnified.
      */
     fun render(data: Data, contextView: View, target: CustomViewTarget<*, Drawable>) {
         val req = if (data.elementToDecrypt != null) {
@@ -158,6 +160,7 @@ class ImageContentRenderer @Inject constructor(
         }
 
         req
+                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                 .optionalFitCenter()
                 .into(target)
     }

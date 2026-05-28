@@ -87,11 +87,11 @@ class AttachmentsAdapter : RecyclerView.Adapter<BaseViewHolder>() {
     }
 
     fun isScaled(position: Int): Boolean {
-        val holder = recyclerView?.findViewHolderForAdapterPosition(position)
-        if (holder is ZoomableImageViewHolder) {
-            return holder.views.touchImageView.attacher.scale > 1f
+        return when (val holder = recyclerView?.findViewHolderForAdapterPosition(position)) {
+            is ZoomableImageViewHolder -> holder.views.touchImageView.attacher.scale > 1f
+            is VideoViewHolder -> holder.isScaled()
+            else -> false
         }
-        return false
     }
 
     fun onPause(position: Int) {
