@@ -7,6 +7,7 @@
 package im.vector.app.features.home.room.detail.timeline.action
 
 import com.airbnb.mvrx.MavericksViewModelFactory
+import com.airbnb.mvrx.Success
 import dagger.Lazy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -44,6 +45,7 @@ import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
@@ -94,16 +96,22 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     init {
         PerfTrace.time("longpress.vm.init") {
-            // Seed action permissions so reactions / edit / etc. appear in the long-press sheet
-            // without waiting for the LiveData-backed liveRoomPowerLevels to round-trip through
-            // the main thread (which causes redact to appear first via the own-sender short
-            // circuit while other actions pop in a beat later).
-            //
-            // The seed reads from Realm and can take 50-150ms on first access. Running it on
-            // Dispatchers.IO instead of the constructor thread lets the sheet appear instantly
-            // — permissions arrive a frame or two later via setState. In practice the seed
-            // usually completes before the first model build observation, so users still see
-            // the full action set on the first visible frame.
+            // Seed the timeline event synchronously so the sheet opens with the full action
+            // set on the first frame. Without this seed, the sheet starts with an empty
+            // actions list (defaults to emptyList()) and the sender preview can briefly show
+            // "-" until liveTimelineEvent's LiveData round-trips through the main thread.
+            if (room != null) {
+                room.getTimelineEvent(initialState.eventId)?.let { event ->
+                    setState { copy(timelineEvent = Success(event)) }
+                }
+            }
+
+            // Seed action permissions so reactions / edit / etc. appear without waiting for
+            // the LiveData-backed liveRoomPowerLevels to round-trip through the main thread
+            // (otherwise redact for your own messages appears immediately via the own-sender
+            // short circuit while reactions / edit pop in a beat later). Reading power levels
+            // can take 50-150ms on first access; running it on Dispatchers.IO lets the sheet
+            // open instantly with permissions arriving a frame or two later via setState.
             if (room != null) {
                 viewModelScope.launch(Dispatchers.IO) {
                     val initial = room.stateService().getRoomPowerLevels()
