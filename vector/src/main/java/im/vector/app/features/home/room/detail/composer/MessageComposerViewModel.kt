@@ -138,6 +138,16 @@ class MessageComposerViewModel @AssistedInject constructor(
         copy(voiceRecordingUiState = action.uiState)
     }
 
+    /**
+     * Run a fire-and-forget send/relation call on a background dispatcher so the UI thread
+     * isn't blocked by markdown parsing, the synchronous Realm read inside `createLocalEcho`,
+     * and the local-echo listener fanout. The local echo still appears at the same wall-clock
+     * time as before — we just stop freezing the composer while it's being prepared.
+     */
+    private inline fun offloadSend(crossinline block: () -> Unit) {
+        viewModelScope.launch(Dispatchers.Default) { block() }
+    }
+
     private fun handleOnTextChanged(action: MessageComposerAction.OnTextChanged) {
         val needsSendButtonVisibilityUpdate = currentComposerText.isBlank() != action.text.isBlank()
         currentComposerText = SpannableString(action.text)
@@ -239,19 +249,25 @@ class MessageComposerViewModel @AssistedInject constructor(
                             isInThreadTimeline = state.isInThreadTimeline()
                     )) {
                         is ParsedCommand.ErrorNotACommand -> {
-                            // Send the text message to the room
-                            if (state.rootThreadEventId != null) {
-                                room.relationService().replyInThread(
-                                        rootThreadEventId = state.rootThreadEventId,
-                                        replyInThreadText = action.text,
-                                        formattedText = action.formattedText,
-                                        autoMarkdown = action.autoMarkdown
-                                )
-                            } else {
-                                if (action.formattedText != null) {
-                                    room.sendService().sendFormattedTextMessage(action.text.toString(), action.formattedText)
+                            // The send path runs markdown parsing, a Realm read for the local echo,
+                            // and the synchronous local-echo listener notification — all on the main
+                            // thread by default. Offload to background so the composer feels
+                            // instant; the local echo / timeline update still happens just as fast,
+                            // we just don't block the UI thread while it's being prepared.
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = action.text,
+                                            formattedText = action.formattedText,
+                                            autoMarkdown = action.autoMarkdown
+                                    )
                                 } else {
-                                    room.sendService().sendTextMessage(action.text, autoMarkdown = action.autoMarkdown)
+                                    if (action.formattedText != null) {
+                                        room.sendService().sendFormattedTextMessage(action.text.toString(), action.formattedText)
+                                    } else {
+                                        room.sendService().sendTextMessage(action.text, autoMarkdown = action.autoMarkdown)
+                                    }
                                 }
                             }
 
@@ -271,51 +287,54 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandNotSupportedInThreads(parsedCommand.command))
                         }
                         is ParsedCommand.SendPlainText -> {
-                            // Send the text message to the room, without markdown
-                            if (state.rootThreadEventId != null) {
-                                room.relationService().replyInThread(
-                                        rootThreadEventId = state.rootThreadEventId,
-                                        replyInThreadText = parsedCommand.message,
-                                        autoMarkdown = false
-                                )
-                            } else {
-                                room.sendService().sendTextMessage(parsedCommand.message, autoMarkdown = false)
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = parsedCommand.message,
+                                            autoMarkdown = false
+                                    )
+                                } else {
+                                    room.sendService().sendTextMessage(parsedCommand.message, autoMarkdown = false)
+                                }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
                             popDraft(room)
                         }
                         is ParsedCommand.SendFormattedText -> {
-                            // Send the text message to the room, without markdown
-                            if (state.rootThreadEventId != null) {
-                                room.relationService().replyInThread(
-                                        rootThreadEventId = state.rootThreadEventId,
-                                        replyInThreadText = parsedCommand.message,
-                                        formattedText = parsedCommand.formattedMessage,
-                                        autoMarkdown = false
-                                )
-                            } else {
-                                room.sendService().sendFormattedTextMessage(
-                                        text = parsedCommand.message.toString(),
-                                        formattedText = parsedCommand.formattedMessage
-                                )
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = parsedCommand.message,
+                                            formattedText = parsedCommand.formattedMessage,
+                                            autoMarkdown = false
+                                    )
+                                } else {
+                                    room.sendService().sendFormattedTextMessage(
+                                            text = parsedCommand.message.toString(),
+                                            formattedText = parsedCommand.formattedMessage
+                                    )
+                                }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
                             popDraft(room)
                         }
                         is ParsedCommand.SendGreentext -> {
-                            // Send the greentext message to the room
-                            if (state.rootThreadEventId != null) {
-                                room.relationService().replyInThread(
-                                        rootThreadEventId = state.rootThreadEventId,
-                                        replyInThreadText = ">" + parsedCommand.message.toString(),
-                                        formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>",
-                                        autoMarkdown = false
-                                )
-                            } else {
-                                room.sendService().sendFormattedTextMessage(
-                                        text = ">" + parsedCommand.message.toString(),
-                                        formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>"
-                                )
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = ">" + parsedCommand.message.toString(),
+                                            formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>",
+                                            autoMarkdown = false
+                                    )
+                                } else {
+                                    room.sendService().sendFormattedTextMessage(
+                                            text = ">" + parsedCommand.message.toString(),
+                                            formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>"
+                                    )
+                                }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
                             popDraft(room)
@@ -368,33 +387,37 @@ class MessageComposerViewModel @AssistedInject constructor(
                             handlePartSlashCommand(room, parsedCommand)
                         }
                         is ParsedCommand.SendEmote -> {
-                            if (state.rootThreadEventId != null) {
-                                room.relationService().replyInThread(
-                                        rootThreadEventId = state.rootThreadEventId,
-                                        replyInThreadText = parsedCommand.message,
-                                        msgType = MessageType.MSGTYPE_EMOTE,
-                                        autoMarkdown = action.autoMarkdown
-                                )
-                            } else {
-                                room.sendService().sendTextMessage(
-                                        text = parsedCommand.message,
-                                        msgType = MessageType.MSGTYPE_EMOTE,
-                                        autoMarkdown = action.autoMarkdown
-                                )
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = parsedCommand.message,
+                                            msgType = MessageType.MSGTYPE_EMOTE,
+                                            autoMarkdown = action.autoMarkdown
+                                    )
+                                } else {
+                                    room.sendService().sendTextMessage(
+                                            text = parsedCommand.message,
+                                            msgType = MessageType.MSGTYPE_EMOTE,
+                                            autoMarkdown = action.autoMarkdown
+                                    )
+                                }
                             }
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)
                         }
                         is ParsedCommand.SendRainbow -> {
                             val message = parsedCommand.message.toString()
-                            if (state.rootThreadEventId != null) {
-                                room.relationService().replyInThread(
-                                        rootThreadEventId = state.rootThreadEventId,
-                                        replyInThreadText = parsedCommand.message,
-                                        formattedText = rainbowGenerator.generate(message)
-                                )
-                            } else {
-                                room.sendService().sendFormattedTextMessage(message, rainbowGenerator.generate(message))
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = parsedCommand.message,
+                                            formattedText = rainbowGenerator.generate(message)
+                                    )
+                                } else {
+                                    room.sendService().sendFormattedTextMessage(message, rainbowGenerator.generate(message))
+                                }
                             }
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)

@@ -344,10 +344,15 @@ class HomeDetailFragment :
         val fragmentTag = tab.toFragmentTag()
         val fragmentToShow = childFragmentManager.findFragmentByTag(fragmentTag)
         childFragmentManager.commitTransaction {
+            // Hide other fragments rather than detaching them. Detach destroys the view, which
+            // forces a full re-inflate of the RoomListFragment (RecyclerView + ConcatAdapter +
+            // EpoxyController + re-subscribe to all Realm-paged room sections) every time the
+            // user comes back to a tab — visibly stalling the UI for ~1s. Hide just toggles
+            // visibility, so flipping back is instant and existing observers stay live.
             childFragmentManager.fragments
                     .filter { it != fragmentToShow }
                     .forEach {
-                        detach(it)
+                        hide(it)
                     }
             if (fragmentToShow == null) {
                 when (tab) {
@@ -363,7 +368,7 @@ class HomeDetailFragment :
                 if (tab is HomeTab.DialPad) {
                     (fragmentToShow as? DialPadFragment)?.applyCallback()
                 }
-                attach(fragmentToShow)
+                show(fragmentToShow)
             }
         }
     }

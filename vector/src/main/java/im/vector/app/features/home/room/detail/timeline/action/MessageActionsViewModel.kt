@@ -90,6 +90,22 @@ class MessageActionsViewModel @AssistedInject constructor(
     companion object : MavericksViewModelFactory<MessageActionsViewModel, MessageActionState> by hiltMavericksViewModelFactory()
 
     init {
+        // Seed action permissions synchronously so reactions / edit / etc. appear in the long-press
+        // sheet on the first frame. Without this, the LiveData-backed liveRoomPowerLevels has to
+        // round-trip through the main thread before permissions are populated; meanwhile redact
+        // for your own messages already short-circuits on senderId == myUserId in
+        // CheckIfCanRedactEventUseCase, so the user sees redact pop in instantly while other
+        // actions appear a beat later.
+        if (room != null) {
+            val initial = room.stateService().getRoomPowerLevels()
+            val permissions = ActionPermissions(
+                    canSendMessage = initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
+                    canReact = initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
+                    canRedact = initial.isUserAbleToRedact(session.myUserId),
+            )
+            setState { copy(actionPermissions = permissions) }
+        }
+
         observeEvent()
         observeReactions()
         observePowerLevel()
