@@ -60,6 +60,14 @@ class ShortcutsHandler @Inject constructor(
     // Value will be set correctly if necessary
     private var hasPinCode = AtomicBoolean(true)
 
+    // Signature of the last set of shortcuts that was pushed to the system. The room summaries
+    // flow emits very frequently (every read receipt, new message, etc.) but the visible
+    // shortcuts only change when the room list ordering, avatars or names change. Re-pushing
+    // identical shortcuts on every emission causes Android to write a fresh bitmap file under
+    // /data/system_ce/0/shortcut_service/bitmaps/<pkg>/ each time, eventually consuming
+    // gigabytes of device storage. Skip the push when nothing visible has changed.
+    private var lastShortcutsSignature: List<String>? = null
+
     fun observeRoomsAndBuildShortcuts(coroutineScope: CoroutineScope): Job {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) {
             // No op
@@ -130,16 +138,30 @@ class ShortcutsHandler @Inject constructor(
     }
 
     private fun createShortcuts(rooms: List<RoomSummary>) {
+        // No shortcut in this case (privacy)
+        if (hasPinCode.get()) {
+            ShortcutManagerCompat.removeAllDynamicShortcuts(context)
+            lastShortcutsSignature = emptyList()
+            return
+        }
+
+        val visibleRooms = rooms.take(maxShortcutCountPerActivity)
+        val signature = visibleRooms.map { room ->
+            // Anything that would change the rendered shortcut (icon or label) must be part of
+            // this signature, otherwise stale shortcuts will be shown.
+            "${room.roomId}|${room.avatarUrl}|${room.displayName}"
+        }
+        if (signature == lastShortcutsSignature) {
+            // Nothing visible changed; do not re-push identical shortcuts.
+            return
+        }
+        lastShortcutsSignature = signature
+
         ShortcutManagerCompat.removeAllDynamicShortcuts(context)
 
-        // No shortcut in this case (privacy)
-        if (hasPinCode.get()) return
-
-        val shortcuts = rooms
-                .take(maxShortcutCountPerActivity)
-                .mapIndexed { index, room ->
-                    shortcutCreator.create(room, index)
-                }
+        val shortcuts = visibleRooms.mapIndexed { index, room ->
+            shortcutCreator.create(room, index)
+        }
 
         shortcuts.forEach { shortcut ->
             ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
@@ -157,6 +179,7 @@ class ShortcutsHandler @Inject constructor(
         // getDynamicShortcuts: returns all dynamic shortcuts from the app.
         val shortcuts = ShortcutManagerCompat.getDynamicShortcuts(context).map { it.id }
         ShortcutManagerCompat.removeLongLivedShortcuts(context, shortcuts)
+        lastShortcutsSignature = null
 
         // We can only disabled pinned shortcuts with the API, but at least it will prevent the crash
         if (isRequestPinShortcutSupported) {
@@ -181,6 +204,10 @@ class ShortcutsHandler @Inject constructor(
         if (isConfigured) {
             // Remove shortcuts immediately
             ShortcutManagerCompat.removeAllDynamicShortcuts(context)
+            lastShortcutsSignature = emptyList()
+        } else {
+            // Force a refresh on the next room summaries emission.
+            lastShortcutsSignature = null
         }
         // Else shortcut will be created next time any room summary is updated, or
         // next time the app is started which is acceptable
