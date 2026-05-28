@@ -443,16 +443,18 @@ internal class LocalEchoEventFactory @Inject constructor(
             additionalContent: Content?,
     ): Event {
         val mediaDataRetriever = MediaMetadataRetriever()
-        mediaDataRetriever.setDataSource(context, attachment.queryUri)
-
-        // Use frame to calculate height and width as we are sure to get the right ones.
-        // Mirror ThumbnailExtractor (see 462722ec2a): pull the closest sync frame at t=0
-        // rather than relying on `frameAtTime` which defaults to picking a representative
-        // frame somewhere in the middle of the video.
-        val firstFrame: Bitmap? = mediaDataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-        val height = firstFrame?.height ?: 0
-        val width = firstFrame?.width ?: 0
-        mediaDataRetriever.release()
+        val (width, height) = try {
+            mediaDataRetriever.setDataSource(context, attachment.queryUri)
+            // Use frame to calculate height and width as we are sure to get the right ones.
+            // Mirror ThumbnailExtractor (see 462722ec2a): pull the closest sync frame at t=0
+            // rather than a representative middle frame.
+            val firstFrame: Bitmap? = mediaDataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+            (firstFrame?.width ?: 0) to (firstFrame?.height ?: 0)
+        } finally {
+            // Always release the native handle, even if setDataSource or frame extraction
+            // throws — otherwise we leak the underlying decoder.
+            mediaDataRetriever.release()
+        }
 
         val thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment)?.let {
             ThumbnailInfo(

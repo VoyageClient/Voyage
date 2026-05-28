@@ -38,27 +38,79 @@ internal class ImageCompressor @Inject constructor(
             desiredQuality: Int = 80
     ): File {
         return withContext(coroutineDispatchers.io) {
-            val compressedBitmap = BitmapFactory.Options().run {
-                inJustDecodeBounds = true
-                decodeBitmap(imageFile, this)
-                inSampleSize = calculateInSampleSize(outWidth, outHeight, desiredWidth, desiredHeight)
+            // Probe dimensions without decoding the pixel data.
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            decodeBitmap(imageFile, bounds)
+            val srcWidth = bounds.outWidth
+            val srcHeight = bounds.outHeight
+            if (srcWidth <= 0 || srcHeight <= 0) {
+                // Couldn't decode bounds — fall back to returning the original file rather
+                // than re-encoding garbage.
+                return@withContext imageFile
+            }
+
+            // Short-circuit when the source is already within the requested envelope AND
+            // small enough on disk that re-encoding would waste quality without saving
+            // bytes. Pure pass-through preserves the original encoding (incl. PNG alpha).
+            val fitsBounds = srcWidth <= desiredWidth && srcHeight <= desiredHeight
+            val alreadySmallEnough = imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES
+            val needsExifRotation = readExifRotation(imageFile) != ExifInterface.ORIENTATION_NORMAL
+            if (fitsBounds && alreadySmallEnough && !needsExifRotation) {
+                return@withContext imageFile
+            }
+
+            val downsampleOptions = BitmapFactory.Options().apply {
+                inSampleSize = calculateInSampleSize(srcWidth, srcHeight, desiredWidth, desiredHeight)
                 inJustDecodeBounds = false
-                decodeBitmap(imageFile, this)?.let {
-                    rotateBitmap(imageFile, it)
-                }
+            }
+            val downsampled = decodeBitmap(imageFile, downsampleOptions)?.let {
+                rotateBitmap(imageFile, it)
             } ?: return@withContext imageFile
 
-            val destinationFile = temporaryFileCreator.create()
+            // inSampleSize only produces power-of-2 reductions, so the decoded bitmap may
+            // still be significantly larger than the requested bounds. Scale it down to fit
+            // the desired box while preserving aspect ratio so the uploaded file is not
+            // unexpectedly huge.
+            val compressedBitmap = scaleBitmapToFit(downsampled, desiredWidth, desiredHeight)
 
+            // Preserve alpha by encoding to PNG when the source had transparency. JPEG would
+            // silently flatten it onto a black background.
+            val format = if (compressedBitmap.hasAlpha()) {
+                Bitmap.CompressFormat.PNG
+            } else {
+                Bitmap.CompressFormat.JPEG
+            }
+
+            val destinationFile = temporaryFileCreator.create()
             runCatching {
                 destinationFile.outputStream().use {
-                    compressedBitmap.compress(Bitmap.CompressFormat.JPEG, desiredQuality, it)
+                    compressedBitmap.compress(format, desiredQuality, it)
                 }
             }.onFailure {
                 return@withContext imageFile
             }
 
             destinationFile
+        }
+    }
+
+    private fun readExifRotation(file: File): Int {
+        return try {
+            file.inputStream().use { input ->
+                ExifInterface(input).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            }
+        } catch (e: Exception) {
+            ExifInterface.ORIENTATION_NORMAL
+        }
+    }
+
+    private fun scaleBitmapToFit(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+        if (bitmap.width <= maxWidth && bitmap.height <= maxHeight) return bitmap
+        val scale = minOf(maxWidth.toFloat() / bitmap.width, maxHeight.toFloat() / bitmap.height)
+        val newWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
+        val newHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
+        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true).also {
+            if (it !== bitmap) bitmap.recycle()
         }
     }
 
@@ -120,5 +172,12 @@ internal class ImageCompressor @Inject constructor(
             Timber.e(e, "Cannot decode Bitmap")
             null
         }
+    }
+
+    companion object {
+        // Pass an image through untouched when it both fits the requested dimensions and is
+        // small enough that re-encoding would waste quality without meaningfully reducing
+        // bytes. 256 KB matches what other Matrix clients use for the same shortcut.
+        private const val SMALL_FILE_PASSTHROUGH_BYTES = 256 * 1024L
     }
 }

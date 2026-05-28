@@ -16,9 +16,12 @@
 
 package org.matrix.android.sdk.internal.session.content
 
+import android.media.MediaMetadataRetriever
 import com.otaliastudios.transcoder.Transcoder
 import com.otaliastudios.transcoder.TranscoderListener
+import com.otaliastudios.transcoder.resize.AtMostResizer
 import com.otaliastudios.transcoder.source.FilePathDataSource
+import com.otaliastudios.transcoder.strategy.DefaultVideoStrategy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -36,6 +39,14 @@ internal class VideoCompressor @Inject constructor(
             videoFile: File,
             progressListener: ProgressListener?
     ): VideoCompressionResult {
+        // Cheap pre-check: if the source already fits the target envelope on resolution and
+        // size, skip transcoding altogether. Transcoding is expensive, can take many seconds
+        // and burns battery, so avoid running it on clips that are already chat-sized.
+        if (isAlreadyWithinTargets(videoFile)) {
+            Timber.d("Compressing: source already within targets, skipping transcode")
+            return VideoCompressionResult.CompressionNotNeeded
+        }
+
         val destinationFile = temporaryFileCreator.create()
 
         val job = Job()
@@ -43,9 +54,21 @@ internal class VideoCompressor @Inject constructor(
         Timber.d("Compressing: start")
         progressListener?.onProgress(0, 100)
 
+        // Explicit strategy: cap the longest side at 720 px so portrait + landscape sources
+        // are both downsized while keeping their original aspect ratio. Without this, the
+        // Transcoder default strategy can pick up an aspect resizer that produces square
+        // output for portrait input. 2 Mbps + 30 fps is a reasonable trade-off for chat.
+        val videoStrategy = DefaultVideoStrategy.Builder()
+                .addResizer(AtMostResizer(720))
+                .frameRate(30)
+                .keyFrameInterval(3f)
+                .bitRate(2_000_000L)
+                .build()
+
         var result: Int = -1
         var failure: Throwable? = null
         Transcoder.into(destinationFile.path)
+                .setVideoTrackStrategy(videoStrategy)
                 .addDataSource(object : FilePathDataSource(videoFile.path) {
                     // https://github.com/natario1/Transcoder/issues/154
                     @Suppress("SENSELESS_COMPARISON") // Source is annotated as @NonNull, but can actually be null...
@@ -127,5 +150,36 @@ internal class VideoCompressor @Inject constructor(
         withContext(Dispatchers.IO) {
             file.delete()
         }
+    }
+
+    private fun isAlreadyWithinTargets(videoFile: File): Boolean {
+        // Bytes-based fast path: anything under the threshold is small enough that
+        // transcoding it almost never saves meaningful bandwidth.
+        if (videoFile.length() <= SKIP_TRANSCODE_BYTES) return true
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(videoFile.absolutePath)
+            val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: return false
+            val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: return false
+            // Skip if both dimensions are within our cap AND the file is reasonably small
+            // for the duration. The Transcoder strategy targets ~2 Mbps so anything already
+            // below that with a small longest-side is a waste of CPU to re-encode.
+            val longestSide = maxOf(width, height)
+            val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            val estimatedBitrate = if (durationMs > 0) (videoFile.length() * 8_000 / durationMs) else Long.MAX_VALUE
+            longestSide <= TARGET_LONGEST_SIDE && estimatedBitrate <= TARGET_BITRATE
+        } catch (e: Exception) {
+            Timber.w(e, "Compressing: failed to inspect source, will transcode")
+            false
+        } finally {
+            retriever.release()
+        }
+    }
+
+    companion object {
+        private const val TARGET_LONGEST_SIDE = 720
+        private const val TARGET_BITRATE = 2_000_000L
+        // 2 MB under-threshold pass-through. Below this, transcoding rarely pays for itself.
+        private const val SKIP_TRANSCODE_BYTES = 2L * 1024 * 1024
     }
 }
