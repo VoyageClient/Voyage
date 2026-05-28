@@ -40,4 +40,10 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
     data class VoicePlaybackOrRecordingFailure(val throwable: Throwable) : MessageComposerViewEvents()
 
     data class InsertUserDisplayName(val userId: String) : MessageComposerViewEvents()
+
+    /**
+     * Result of a /jumpto or /jumptostart command. [eventId] is the resolved target — null
+     * when the command failed to resolve (e.g. unknown event id, no room-create event found).
+     */
+    data class JumpToEvent(val eventId: String?, val notFoundMessage: String? = null) : MessageComposerViewEvents()
 }

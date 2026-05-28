@@ -406,6 +406,16 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.UPGRADE_ROOM)
                     }
                 }
+                Command.JUMP_TO_START.matches(slashCommand) -> {
+                    ParsedCommand.JumpToStart
+                }
+                Command.JUMP_TO.matches(slashCommand) -> {
+                    if (message.isNotEmpty()) {
+                        ParsedCommand.JumpToEvent(eventId = message.toString().trim())
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.JUMP_TO)
+                    }
+                }
                 Command.CRASH_APP.matches(slashCommand) && vectorPreferences.developerMode() -> {
                     throw RuntimeException("Application crashed from user demand")
                 }

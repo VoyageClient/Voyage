@@ -193,6 +193,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     showErrorInSnackbar(it.throwable)
                 }
                 is MessageComposerViewEvents.InsertUserDisplayName -> insertUserDisplayNameInTextEditor(it.userId)
+                is MessageComposerViewEvents.JumpToEvent -> handleJumpToEvent(it)
             }
         }
 
@@ -643,6 +644,15 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun openRoomMemberProfile(userId: String) {
         navigator.openRoomMemberProfile(userId = userId, roomId = roomId, context = requireActivity())
+    }
+
+    private fun handleJumpToEvent(event: MessageComposerViewEvents.JumpToEvent) {
+        val eventId = event.eventId
+        if (eventId == null) {
+            event.notFoundMessage?.let { showSnackWithMessage(it) }
+            return
+        }
+        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
     }
 
     private val contentAttachmentActivityResultLauncher = registerStartForActivityResult { activityResult ->

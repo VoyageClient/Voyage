@@ -589,6 +589,29 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)
                         }
+                        is ParsedCommand.JumpToStart -> {
+                            val createEventId = room.stateService()
+                                    .getStateEvent(EventType.STATE_ROOM_CREATE, QueryStringValue.IsEmpty)
+                                    ?.eventId
+                            if (createEventId != null) {
+                                _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = createEventId))
+                                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                                popDraft(room)
+                            } else {
+                                _viewEvents.post(
+                                        MessageComposerViewEvents.JumpToEvent(
+                                                eventId = null,
+                                                notFoundMessage = stringProvider.getString(CommonStrings.command_jump_to_start_unavailable),
+                                        )
+                                )
+                            }
+                            Unit
+                        }
+                        is ParsedCommand.JumpToEvent -> {
+                            _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = parsedCommand.eventId))
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                            popDraft(room)
+                        }
                     }
                 }
                 is SendMode.Edit -> {
