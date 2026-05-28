@@ -14,7 +14,7 @@
             app:fragment="im.vector.app.features.settings.locale.LocalePickerFragment" />
 
         <im.vector.app.core.preference.VectorListPreference
-            android:defaultValue="system"
+            android:defaultValue="dark"
             android:entries="@array/theme_entries"
             android:entryValues="@array/theme_values"
             android:key="APPLICATION_THEME_KEY"
@@ -152,6 +152,12 @@
             android:key="SETTINGS_ENABLE_DIRECT_SHARE"
             android:summary="@string/settings_enable_direct_share_summary"
             android:title="@string/settings_enable_direct_share_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ENABLE_APP_SHORTCUTS"
+            android:summary="@string/settings_enable_app_shortcuts_summary"
+            android:title="@string/settings_enable_app_shortcuts_title" />
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 

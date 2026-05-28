@@ -23,6 +23,7 @@ import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
+import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.settings.font.FontScaleSettingActivity
 import im.vector.app.features.themes.ThemeUtils
@@ -39,6 +40,7 @@ class VectorSettingsPreferencesFragment :
     @Inject lateinit var fontScalePreferences: FontScalePreferences
     @Inject lateinit var vectorFeatures: VectorFeatures
     @Inject lateinit var vectorLocale: VectorLocale
+    @Inject lateinit var shortcutsHandler: ShortcutsHandler
 
     override var titleRes = CommonStrings.settings_preferences
     override val preferenceXmlRes = R.xml.vector_settings_preferences
@@ -92,6 +94,16 @@ class VectorSettingsPreferencesFragment :
                 MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = false))
                 true
             }
+        }
+
+        findPreference<VectorSwitchPreference>("SETTINGS_ENABLE_APP_SHORTCUTS")?.setOnPreferenceChangeListener { _, newValue ->
+            if (newValue == false) {
+                // Drop current dynamic shortcuts immediately; otherwise they'd hang around
+                // until the next room summaries emission.
+                shortcutsHandler.removeAllDynamicShortcuts()
+            }
+            // When re-enabled, the next emission of the room summaries flow will repopulate.
+            true
         }
 
         findPreference<Preference>(VectorPreferences.SETTINGS_PREF_SPACE_CATEGORY)!!.let { pref ->

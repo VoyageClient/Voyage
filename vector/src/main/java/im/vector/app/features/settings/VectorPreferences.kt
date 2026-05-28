@@ -116,6 +116,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         private const val SETTINGS_ENABLE_DIRECT_SHARE = "SETTINGS_ENABLE_DIRECT_SHARE"
+        private const val SETTINGS_ENABLE_APP_SHORTCUTS = "SETTINGS_ENABLE_APP_SHORTCUTS"
 
         // Room directory
         private const val SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS = "SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS"
@@ -1010,6 +1011,10 @@ class VectorPreferences @Inject constructor(
 
     fun directShareEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ENABLE_DIRECT_SHARE, true)
+    }
+
+    fun appShortcutsEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_ENABLE_APP_SHORTCUTS, true)
     }
 
     /**

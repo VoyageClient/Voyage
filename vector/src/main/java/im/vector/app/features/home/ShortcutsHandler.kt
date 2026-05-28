@@ -24,6 +24,7 @@ import im.vector.app.features.MainActivity
 import im.vector.app.features.home.room.detail.RoomDetailActivity
 import im.vector.app.features.pin.PinCodeStore
 import im.vector.app.features.pin.PinCodeStoreListener
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -50,6 +51,7 @@ class ShortcutsHandler @Inject constructor(
         private val shortcutCreator: ShortcutCreator,
         private val activeSessionHolder: ActiveSessionHolder,
         private val pinCodeStore: PinCodeStore,
+        private val vectorPreferences: VectorPreferences,
         @DefaultPreferences
         private val sharedPreferences: SharedPreferences,
 ) : PinCodeStoreListener {
@@ -138,10 +140,12 @@ class ShortcutsHandler @Inject constructor(
     }
 
     private fun createShortcuts(rooms: List<RoomSummary>) {
-        // No shortcut in this case (privacy)
-        if (hasPinCode.get()) {
-            ShortcutManagerCompat.removeAllDynamicShortcuts(context)
-            lastShortcutsSignature = emptyList()
+        // No shortcut in this case (privacy, or user opted out).
+        if (hasPinCode.get() || !vectorPreferences.appShortcutsEnabled()) {
+            if (lastShortcutsSignature != emptyList<String>()) {
+                ShortcutManagerCompat.removeAllDynamicShortcuts(context)
+                lastShortcutsSignature = emptyList()
+            }
             return
         }
 
@@ -166,6 +170,17 @@ class ShortcutsHandler @Inject constructor(
         shortcuts.forEach { shortcut ->
             ShortcutManagerCompat.pushDynamicShortcut(context, shortcut)
         }
+    }
+
+    /**
+     * Drop all current dynamic shortcuts immediately. Used when the user disables the
+     * "Enable app shortcuts" preference so they vanish without waiting for the next room
+     * summaries emission. Pinned shortcuts are left alone.
+     */
+    fun removeAllDynamicShortcuts() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return
+        ShortcutManagerCompat.removeAllDynamicShortcuts(context)
+        lastShortcutsSignature = emptyList()
     }
 
     fun clearShortcuts() {
