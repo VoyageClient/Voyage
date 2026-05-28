@@ -124,8 +124,6 @@
     <string name="power_level_admin">Admin</string>
     <string name="power_level_moderator">Moderator</string>
     <string name="power_level_default">Default</string>
-    <string name="power_level_custom">Custom (%1$d)</string>
-    <string name="power_level_custom_no_value">Custom</string>
 
     <!-- parameter will be a comma separated list of values of notice_power_level_diff -->
     <string name="notice_power_level_changed_by_you">You changed the power level of %1$s.</string>
@@ -1055,13 +1053,6 @@
     <string name="settings_autoplay_animated_images_summary">Play animated images in the timeline as soon as they are visible</string>
     <string name="settings_enable_direct_share_title">Enable direct share</string>
     <string name="settings_enable_direct_share_summary">Show recent chats in the system share menu</string>
-    <string name="settings_enable_app_shortcuts_title">Enable app shortcuts</string>
-    <string name="settings_enable_app_shortcuts_summary">Show recent chats in the launcher long-press menu and share sheet. Disable to stop the system from caching shortcut icons.</string>
-    <string name="settings_enable_emoji_autocomplete_title">Suggest emoji when typing</string>
-    <string name="settings_enable_emoji_autocomplete_summary">Show the emoji picker when typing a :shortcode:</string>
-    <string name="settings_perf_logging_title">Log performance traces</string>
-    <string name="settings_perf_logging_summary">Emit timings for slow operations (room open, send, autocomplete, etc.) to logcat under the VectorPerf tag. Off by default — turn on when debugging slowness.</string>
-    <string name="message_reply_to_unresolved">Unable to load event that was replied to, it either does not exist or you do not have permission to view it.</string>
     <string name="settings_show_join_leave_messages">Show join and leave events</string>
     <string name="settings_show_join_leave_messages_summary">Invites, removes, and bans are unaffected.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Show account events</string>
@@ -2395,7 +2386,6 @@
     <string name="room_member_power_level_admin_in">Admin in %1$s</string>
     <string name="room_member_power_level_moderator_in">Moderator in %1$s</string>
     <string name="room_member_power_level_default_in">Default in %1$s</string>
-    <string name="room_member_power_level_custom_in">Custom (%1$d) in %2$s</string>
 
     <string name="room_member_open_or_create_dm">Direct message</string>
     <string name="room_member_jump_to_read_receipt">Jump to read receipt</string>
