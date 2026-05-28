@@ -95,19 +95,21 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
             delay(QUERY_DEBOUNCE_MS)
             val queryString = query?.toString()
             val items = withContext(Dispatchers.Default) {
-                val queryParams = createQueryParams(queryString)
-                val members = createMemberItems(queryParams)
-                val everyone = createEveryoneItem(queryString)
-                // Headers are only shown when the user can notify everyone.
-                val canAddHeaders = canNotifyEveryone()
-                buildList {
-                    if (members.isNotEmpty()) {
-                        if (canAddHeaders) add(createMembersHeader())
-                        addAll(members)
-                    }
-                    everyone?.let {
-                        add(createEveryoneHeader())
-                        add(it)
+                im.vector.app.core.utils.PerfTrace.time("autocomplete.members.query") {
+                    val queryParams = createQueryParams(queryString)
+                    val members = createMemberItems(queryParams)
+                    val everyone = createEveryoneItem(queryString)
+                    // Headers are only shown when the user can notify everyone.
+                    val canAddHeaders = canNotifyEveryone()
+                    buildList {
+                        if (members.isNotEmpty()) {
+                            if (canAddHeaders) add(createMembersHeader())
+                            addAll(members)
+                        }
+                        everyone?.let {
+                            add(createEveryoneHeader())
+                            add(it)
+                        }
                     }
                 }
             }

@@ -858,18 +858,20 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     private fun handleRedactEvent(action: RoomDetailAction.RedactAction) {
-        val event = room?.getTimelineEvent(action.targetEventId) ?: return
-        when {
-            event.isLiveLocation() -> {
-                viewModelScope.launch {
-                    redactLiveLocationShareEventUseCase.execute(event.root, room, action.reason)
+        im.vector.app.core.utils.PerfTrace.time("redact.dispatch") {
+            val event = room?.getTimelineEvent(action.targetEventId) ?: return@time
+            when {
+                event.isLiveLocation() -> {
+                    viewModelScope.launch {
+                        redactLiveLocationShareEventUseCase.execute(event.root, room, action.reason)
+                    }
                 }
-            }
-            event.isVoiceBroadcast() -> {
-                room.sendService().redactEvent(event.root, action.reason, listOf(RelationType.REFERENCE))
-            }
-            else -> {
-                room.sendService().redactEvent(event.root, action.reason)
+                event.isVoiceBroadcast() -> {
+                    room.sendService().redactEvent(event.root, action.reason, listOf(RelationType.REFERENCE))
+                }
+                else -> {
+                    room.sendService().redactEvent(event.root, action.reason)
+                }
             }
         }
     }

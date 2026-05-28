@@ -25,6 +25,7 @@ import im.vector.app.SpaceStateHandler
 import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.extensions.toMvRxBundle
 import im.vector.app.core.platform.OnBackPressed
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
@@ -340,7 +341,7 @@ class HomeDetailFragment :
 
     private fun HomeTab.toFragmentTag() = "FRAGMENT_TAG_$this"
 
-    private fun updateSelectedFragment(tab: HomeTab) {
+    private fun updateSelectedFragment(tab: HomeTab) = PerfTrace.time("home.tab.switch") {
         val fragmentTag = tab.toFragmentTag()
         val fragmentToShow = childFragmentManager.findFragmentByTag(fragmentTag)
         childFragmentManager.commitTransaction {

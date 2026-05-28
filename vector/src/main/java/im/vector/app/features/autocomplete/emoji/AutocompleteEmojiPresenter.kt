@@ -61,7 +61,9 @@ class AutocompleteEmojiPresenter @Inject constructor(
                 emojiDataSource.getQuickReactions()
             } else {
                 withContext(Dispatchers.Default) {
-                    emojiDataSource.filterWith(queryString)
+                    im.vector.app.core.utils.PerfTrace.time("autocomplete.emoji.filter") {
+                        emojiDataSource.filterWith(queryString)
+                    }
                 }
             }
             controller.setData(data)

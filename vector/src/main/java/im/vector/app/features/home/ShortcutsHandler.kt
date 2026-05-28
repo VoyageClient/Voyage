@@ -139,7 +139,7 @@ class ShortcutsHandler @Inject constructor(
         }
     }
 
-    private fun createShortcuts(rooms: List<RoomSummary>) {
+    private fun createShortcuts(rooms: List<RoomSummary>) = im.vector.app.core.utils.PerfTrace.time("shortcuts.create") {
         // No shortcut in this case (privacy, or user opted out).
         if (hasPinCode.get() || !vectorPreferences.appShortcutsEnabled()) {
             if (lastShortcutsSignature != emptyList<String>()) {

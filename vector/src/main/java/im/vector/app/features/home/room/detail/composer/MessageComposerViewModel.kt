@@ -145,7 +145,9 @@ class MessageComposerViewModel @AssistedInject constructor(
      * time as before — we just stop freezing the composer while it's being prepared.
      */
     private inline fun offloadSend(crossinline block: () -> Unit) {
-        viewModelScope.launch(Dispatchers.Default) { block() }
+        viewModelScope.launch(Dispatchers.Default) {
+            im.vector.app.core.utils.PerfTrace.time("send.dispatch") { block() }
+        }
     }
 
     private fun handleOnTextChanged(action: MessageComposerAction.OnTextChanged) {

@@ -84,6 +84,7 @@ import im.vector.app.core.ui.views.NotificationAreaView
 import im.vector.app.core.utils.Debouncer
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.KeyboardStateUtils
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.PERMISSIONS_FOR_WRITING_FILES
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.colorizeMatchingText
@@ -304,7 +305,7 @@ class TimelineFragment :
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) = PerfTrace.time("timeline.onViewCreated") {
         lifecycle.addObserver(ConferenceEventObserver(vectorBaseActivity, this::onBroadcastJitsiEvent))
         super.onViewCreated(view, savedInstanceState)
         sharedActionViewModel = activityViewModelProvider.get(MessageSharedActionViewModel::class.java)
@@ -324,7 +325,7 @@ class TimelineFragment :
         lazyLoadedViews.bind(views)
         setupToolbar(views.roomToolbar)
                 .allowBack()
-        setupRecyclerView()
+        PerfTrace.time("timeline.setupRecyclerView") { setupRecyclerView() }
         setupNotificationView()
         setupJumpToReadMarkerView()
         setupActiveCallView()
@@ -1044,7 +1045,16 @@ class TimelineFragment :
         views.timelineRecyclerView.layoutManager = layoutManager
         views.timelineRecyclerView.itemAnimator = null
         views.timelineRecyclerView.setHasFixedSize(true)
+        // Time-to-first-models: how long after onViewCreated until Epoxy delivers the first
+        // built model list. This is what the user sees as the "blank timeline" period on
+        // room open / rotation.
+        val firstModelsMarker = PerfTrace.mark("timeline.firstModels")
+        var firstModelsReported = false
         modelBuildListener = OnModelBuildFinishedListener {
+            if (!firstModelsReported) {
+                firstModelsReported = true
+                firstModelsMarker.end()
+            }
             it.dispatchTo(stateRestorer)
             it.dispatchTo(scrollOnNewMessageCallback)
             it.dispatchTo(scrollOnHighlightedEventCallback)
