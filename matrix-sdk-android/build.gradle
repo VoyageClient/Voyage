@@ -213,8 +213,11 @@ dependencies {
     implementation libs.jakewharton.timber
     implementation 'com.facebook.stetho:stetho-okhttp3:1.6.0'
 
-    // Video compression
-    implementation 'com.otaliastudios:transcoder:0.10.5'
+    // Video compression — Media3 Transformer (replaces the unmaintained otaliastudios transcoder
+    // which hung indefinitely on some MediaCodec edge cases).
+    implementation 'androidx.media3:media3-transformer:1.5.1'
+    implementation 'androidx.media3:media3-effect:1.5.1'
+    implementation 'androidx.media3:media3-common:1.5.1'
 
     // Exif data handling
     implementation libs.apache.commonsImaging

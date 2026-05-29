@@ -23,6 +23,7 @@ import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
 
 internal class ThumbnailExtractor @Inject constructor(
@@ -39,34 +40,34 @@ internal class ThumbnailExtractor @Inject constructor(
 
     fun extractThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
         return if (attachment.type == ContentAttachmentData.Type.VIDEO) {
-            extractVideoThumbnail(attachment)
+            extractVideoThumbnail { setDataSource(context, attachment.queryUri) }
         } else {
             null
         }
     }
 
-    private fun extractVideoThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
+    fun extractVideoThumbnailFromFile(file: File): ThumbnailData? =
+            extractVideoThumbnail { setDataSource(file.absolutePath) }
+
+    private fun extractVideoThumbnail(setSource: MediaMetadataRetriever.() -> Unit): ThumbnailData? {
         var thumbnailData: ThumbnailData? = null
         val mediaMetadataRetriever = MediaMetadataRetriever()
         try {
-            mediaMetadataRetriever.setDataSource(context, attachment.queryUri)
+            mediaMetadataRetriever.setSource()
             mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { thumbnail ->
                 val outputStream = ByteArrayOutputStream()
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-                val thumbnailWidth = thumbnail.width
-                val thumbnailHeight = thumbnail.height
-                val thumbnailSize = outputStream.size()
                 thumbnailData = ThumbnailData(
-                        width = thumbnailWidth,
-                        height = thumbnailHeight,
-                        size = thumbnailSize.toLong(),
+                        width = thumbnail.width,
+                        height = thumbnail.height,
+                        size = outputStream.size().toLong(),
                         bytes = outputStream.toByteArray(),
                         mimeType = MimeTypes.Jpeg
                 )
                 thumbnail.recycle()
                 outputStream.reset()
             } ?: run {
-                Timber.e("Cannot extract video thumbnail at ${attachment.queryUri}")
+                Timber.e("Cannot extract video thumbnail")
             }
         } catch (e: Exception) {
             Timber.e(e, "Cannot extract video thumbnail")

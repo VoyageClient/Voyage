@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.content
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.os.Build
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -31,13 +32,20 @@ internal class ImageCompressor @Inject constructor(
         private val temporaryFileCreator: TemporaryFileCreator,
         private val coroutineDispatchers: MatrixCoroutineDispatchers
 ) {
+    data class CompressedImage(val file: File, val mimeType: String?)
+
     suspend fun compress(
             imageFile: File,
             desiredWidth: Int,
             desiredHeight: Int,
-            desiredQuality: Int = 80
-    ): File {
+            desiredQuality: Int = 80,
+    ): CompressedImage {
         return withContext(coroutineDispatchers.io) {
+            // Skip compression entirely on small files — re-encoding rarely pays for itself.
+            if (imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES) {
+                return@withContext CompressedImage(imageFile, mimeType = null)
+            }
+
             // Probe dimensions without decoding the pixel data.
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             decodeBitmap(imageFile, bounds)
@@ -46,17 +54,7 @@ internal class ImageCompressor @Inject constructor(
             if (srcWidth <= 0 || srcHeight <= 0) {
                 // Couldn't decode bounds — fall back to returning the original file rather
                 // than re-encoding garbage.
-                return@withContext imageFile
-            }
-
-            // Short-circuit when the source is already within the requested envelope AND
-            // small enough on disk that re-encoding would waste quality without saving
-            // bytes. Pure pass-through preserves the original encoding (incl. PNG alpha).
-            val fitsBounds = srcWidth <= desiredWidth && srcHeight <= desiredHeight
-            val alreadySmallEnough = imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES
-            val needsExifRotation = readExifRotation(imageFile) != ExifInterface.ORIENTATION_NORMAL
-            if (fitsBounds && alreadySmallEnough && !needsExifRotation) {
-                return@withContext imageFile
+                return@withContext CompressedImage(imageFile, mimeType = null)
             }
 
             val downsampleOptions = BitmapFactory.Options().apply {
@@ -65,7 +63,7 @@ internal class ImageCompressor @Inject constructor(
             }
             val downsampled = decodeBitmap(imageFile, downsampleOptions)?.let {
                 rotateBitmap(imageFile, it)
-            } ?: return@withContext imageFile
+            } ?: return@withContext CompressedImage(imageFile, mimeType = null)
 
             // inSampleSize only produces power-of-2 reductions, so the decoded bitmap may
             // still be significantly larger than the requested bounds. Scale it down to fit
@@ -73,12 +71,14 @@ internal class ImageCompressor @Inject constructor(
             // unexpectedly huge.
             val compressedBitmap = scaleBitmapToFit(downsampled, desiredWidth, desiredHeight)
 
-            // Preserve alpha by encoding to PNG when the source had transparency. JPEG would
-            // silently flatten it onto a black background.
-            val format = if (compressedBitmap.hasAlpha()) {
-                Bitmap.CompressFormat.PNG
+            // WebP gives ~30% smaller files than JPEG at equal quality and preserves alpha.
+            // WEBP_LOSSY (API 30+) handles transparency directly; on older devices fall back to
+            // the deprecated WEBP constant which is also lossy.
+            val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Bitmap.CompressFormat.WEBP_LOSSY
             } else {
-                Bitmap.CompressFormat.JPEG
+                @Suppress("DEPRECATION")
+                Bitmap.CompressFormat.WEBP
             }
 
             val destinationFile = temporaryFileCreator.create()
@@ -87,20 +87,10 @@ internal class ImageCompressor @Inject constructor(
                     compressedBitmap.compress(format, desiredQuality, it)
                 }
             }.onFailure {
-                return@withContext imageFile
+                return@withContext CompressedImage(imageFile, mimeType = null)
             }
 
-            destinationFile
-        }
-    }
-
-    private fun readExifRotation(file: File): Int {
-        return try {
-            file.inputStream().use { input ->
-                ExifInterface(input).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-            }
-        } catch (e: Exception) {
-            ExifInterface.ORIENTATION_NORMAL
+            CompressedImage(destinationFile, mimeType = "image/webp")
         }
     }
 
@@ -175,9 +165,6 @@ internal class ImageCompressor @Inject constructor(
     }
 
     companion object {
-        // Pass an image through untouched when it both fits the requested dimensions and is
-        // small enough that re-encoding would waste quality without meaningfully reducing
-        // bytes. 256 KB matches what other Matrix clients use for the same shortcut.
-        private const val SMALL_FILE_PASSTHROUGH_BYTES = 256 * 1024L
+        private const val SMALL_FILE_PASSTHROUGH_BYTES = 512 * 1024L
     }
 }

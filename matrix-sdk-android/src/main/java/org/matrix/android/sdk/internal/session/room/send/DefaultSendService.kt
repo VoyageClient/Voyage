@@ -243,6 +243,9 @@ internal class DefaultSendService @AssistedInject constructor(
         cancelSendTracker.markLocalEchoForCancel(eventId, roomId)
         // This is maybe the current task, so cancel it too
         eventSenderProcessor.cancel(eventId, roomId)
+        // CancelSendTracker is in-memory only; the WorkManager chain is persistent, so without
+        // this cancel a stuck upload would survive restarts and block every subsequent send.
+        workManagerProvider.workManager.cancelAllWorkByTag(uploadWorkTag(eventId))
         taskExecutor.executorScope.launch {
             localEchoRepository.deleteFailedEcho(roomId, eventId)
         }
@@ -401,6 +404,8 @@ internal class DefaultSendService @AssistedInject constructor(
         return "${roomId}_$identifier"
     }
 
+    private fun uploadWorkTag(eventId: String): String = "upload_${eventId}"
+
     private fun createUploadMediaWork(
             allLocalEchos: List<Event>,
             attachment: ContentAttachmentData,
@@ -418,6 +423,7 @@ internal class DefaultSendService @AssistedInject constructor(
                 .startChain(true)
                 .setInputData(uploadWorkData)
                 .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
+                .apply { localEchoIds.forEach { addTag(uploadWorkTag(it.eventId)) } }
                 .build()
     }
 

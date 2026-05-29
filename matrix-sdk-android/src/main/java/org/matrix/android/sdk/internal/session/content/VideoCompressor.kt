@@ -16,14 +16,33 @@
 
 package org.matrix.android.sdk.internal.session.content
 
+import android.content.Context
+import android.media.MediaCodecInfo.CodecProfileLevel
 import android.media.MediaMetadataRetriever
-import com.otaliastudios.transcoder.Transcoder
-import com.otaliastudios.transcoder.TranscoderListener
-import com.otaliastudios.transcoder.resize.AtMostResizer
-import com.otaliastudios.transcoder.source.FilePathDataSource
-import com.otaliastudios.transcoder.strategy.DefaultVideoStrategy
+import android.net.Uri
+import android.os.SystemClock
+import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.effect.Presentation
+import androidx.media3.effect.ScaleAndRotateTransformation
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.DefaultEncoderFactory
+import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.Effects
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.ProgressHolder
+import androidx.media3.transformer.Transformer
+import androidx.media3.transformer.VideoEncoderSettings
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
@@ -31,118 +50,155 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
+@OptIn(UnstableApi::class)
 internal class VideoCompressor @Inject constructor(
-        private val temporaryFileCreator: TemporaryFileCreator
+        private val context: Context,
+        private val temporaryFileCreator: TemporaryFileCreator,
 ) {
 
     suspend fun compress(
-            videoFile: File,
-            progressListener: ProgressListener?
-    ): VideoCompressionResult {
-        // Cheap pre-check: if the source already fits the target envelope on resolution and
-        // size, skip transcoding altogether. Transcoding is expensive, can take many seconds
-        // and burns battery, so avoid running it on clips that are already chat-sized.
-        if (isAlreadyWithinTargets(videoFile)) {
+            sourceUri: Uri,
+            sourceSize: Long,
+            progressListener: ProgressListener?,
+    ): VideoCompressionResult = coroutineScope {
+        if (isAlreadyWithinTargets(sourceUri, sourceSize)) {
             Timber.d("Compressing: source already within targets, skipping transcode")
-            return VideoCompressionResult.CompressionNotNeeded
+            return@coroutineScope VideoCompressionResult.CompressionNotNeeded
         }
 
         val destinationFile = temporaryFileCreator.create()
-
-        val job = Job()
-
-        Timber.d("Compressing: start")
         progressListener?.onProgress(0, 100)
 
-        // Explicit strategy: cap the longest side at 720 px so portrait + landscape sources
-        // are both downsized while keeping their original aspect ratio. Without this, the
-        // Transcoder default strategy can pick up an aspect resizer that produces square
-        // output for portrait input. 2 Mbps + 30 fps is a reasonable trade-off for chat.
-        val videoStrategy = DefaultVideoStrategy.Builder()
-                .addResizer(AtMostResizer(720))
-                .frameRate(30)
-                .keyFrameInterval(3f)
-                .bitRate(2_000_000L)
-                .build()
-
-        var result: Int = -1
+        var stalled = false
         var failure: Throwable? = null
-        Transcoder.into(destinationFile.path)
-                .setVideoTrackStrategy(videoStrategy)
-                .addDataSource(object : FilePathDataSource(videoFile.path) {
-                    // https://github.com/natario1/Transcoder/issues/154
-                    @Suppress("SENSELESS_COMPARISON") // Source is annotated as @NonNull, but can actually be null...
-                    override fun isInitialized(): Boolean {
-                        if (source == null) {
-                            return false
+
+        try {
+            // Transformer must be created and driven from a thread with a Looper. The actual
+            // encode/decode happens on its own internal pool, so this doesn't burn the UI thread.
+            withContext(Dispatchers.Main) {
+                val done = CompletableDeferred<Unit>()
+                val transformer = Transformer.Builder(context)
+                        .setVideoMimeType(MimeTypes.VIDEO_H264)
+                        .setAudioMimeType(MimeTypes.AUDIO_AAC)
+                        .setEncoderFactory(
+                                DefaultEncoderFactory.Builder(context)
+                                        .setRequestedVideoEncoderSettings(
+                                                VideoEncoderSettings.Builder()
+                                                        .setBitrate(TARGET_BITRATE.toInt())
+                                                        // Main profile, level 3.1 fits 720p@30 and compresses better
+                                                        // than baseline. High would be smaller still but is much
+                                                        // slower to encode on mid-range hardware.
+                                                        .setEncodingProfileLevel(
+                                                                CodecProfileLevel.AVCProfileMain,
+                                                                CodecProfileLevel.AVCLevel31,
+                                                        )
+                                                        .build()
+                                        )
+                                        .setEnableFallback(true)
+                                        .build()
+                        )
+                        .addListener(object : Transformer.Listener {
+                            override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                                done.complete(Unit)
+                            }
+
+                            override fun onError(composition: Composition, exportResult: ExportResult, exportException: ExportException) {
+                                failure = exportException
+                                done.completeExceptionally(exportException)
+                            }
+                        })
+                        .build()
+
+                val videoEffects = buildList {
+                    val (srcW, srcH) = readVideoDimensions(sourceUri)
+                    if (srcW > 0 && srcH > 0) {
+                        // Scale proportionally so longest side <= TARGET_LONGEST_SIDE. Capped at 1
+                        // so we never upscale a smaller source.
+                        val scale = minOf(TARGET_LONGEST_SIDE.toFloat() / srcW, TARGET_LONGEST_SIDE.toFloat() / srcH, 1f)
+                        if (scale < 1f) {
+                            add(ScaleAndRotateTransformation.Builder().setScale(scale, scale).build())
                         }
-                        return super.isInitialized()
+                    } else {
+                        // Couldn't read dimensions; fall back to bounded canvas which letterboxes
+                        // but is at least correct.
+                        add(Presentation.createForWidthAndHeight(TARGET_LONGEST_SIDE, TARGET_LONGEST_SIDE, Presentation.LAYOUT_SCALE_TO_FIT))
                     }
-                })
-                .setListener(object : TranscoderListener {
-                    override fun onTranscodeProgress(progress: Double) {
-                        Timber.d("Compressing: $progress%")
-                        progressListener?.onProgress((progress * 100).toInt(), 100)
+                }
+                val editedMediaItem = EditedMediaItem.Builder(MediaItem.fromUri(sourceUri))
+                        .setEffects(Effects(emptyList(), videoEffects))
+                        .build()
+
+                transformer.start(editedMediaItem, destinationFile.absolutePath)
+
+                // Watchdog: poll progress and bail if it doesn't advance. Media3 reports real
+                // numeric progress (PROGRESS_STATE_AVAILABLE) once the codec is producing
+                // output; if it stays not-started past the timeout we treat the codec as hung
+                // and abandon so the worker can fall back to uploading the original.
+                val watchdog = launch {
+                    val holder = ProgressHolder()
+                    var lastProgress = -1
+                    var lastAdvanceAt = SystemClock.elapsedRealtime()
+                    while (isActive && !done.isCompleted) {
+                        delay(WATCHDOG_INTERVAL_MS)
+                        val state = transformer.getProgress(holder)
+                        val current = if (state == Transformer.PROGRESS_STATE_AVAILABLE) holder.progress else -1
+                        if (current >= 0 && current != lastProgress) {
+                            lastProgress = current
+                            lastAdvanceAt = SystemClock.elapsedRealtime()
+                            progressListener?.onProgress(current, 100)
+                        } else if (SystemClock.elapsedRealtime() - lastAdvanceAt > STALL_TIMEOUT_MS) {
+                            Timber.w("Compressing: stalled for >${STALL_TIMEOUT_MS}ms, abandoning transcode")
+                            stalled = true
+                            runCatching { transformer.cancel() }
+                            done.completeExceptionally(IllegalStateException("Transformer stalled"))
+                            break
+                        }
                     }
+                }
 
-                    override fun onTranscodeCompleted(successCode: Int) {
-                        Timber.d("Compressing: success: $successCode")
-                        result = successCode
-                        job.complete()
-                    }
-
-                    override fun onTranscodeCanceled() {
-                        Timber.d("Compressing: cancel")
-                        job.cancel()
-                    }
-
-                    override fun onTranscodeFailed(exception: Throwable) {
-                        Timber.w(exception, "Compressing: failure")
-                        failure = exception
-                        job.completeExceptionally(exception)
-                    }
-                })
-                .transcode()
-
-        job.join()
-
-        // Note: job is also cancelled if completeExceptionally() was called
-        if (job.isCancelled) {
-            // Delete now the temporary file
+                try {
+                    done.await()
+                } finally {
+                    watchdog.cancel()
+                    if (!done.isCompleted) runCatching { transformer.cancel() }
+                }
+            }
+        } catch (t: Throwable) {
             deleteFile(destinationFile)
-            return when (val finalFailure = failure) {
-                null -> {
-                    // We do not throw a CancellationException, because it's not critical, we will try to send the original file
-                    // Anyway this should never occurs, since we never cancel the return value of transcode()
-                    Timber.w("Compressing: A failure occurred")
-                    VideoCompressionResult.CompressionCancelled
-                }
-                else -> {
-                    // Compression failure can also be considered as not critical, but let the caller decide
-                    Timber.w("Compressing: Job cancelled")
-                    VideoCompressionResult.CompressionFailed(finalFailure)
-                }
+            // Re-raise real parent-coroutine cancellation; only swallow CancellationException
+            // when it came from our own watchdog/transformer error path.
+            if (t is CancellationException && !stalled && failure == null && isActive) throw t
+            return@coroutineScope when {
+                stalled -> VideoCompressionResult.CompressionFailed(failure ?: IllegalStateException("Transformer stalled"))
+                failure != null -> VideoCompressionResult.CompressionFailed(failure!!)
+                else -> VideoCompressionResult.CompressionCancelled
             }
         }
 
         progressListener?.onProgress(100, 100)
+        // Safety net: encoder + container overhead can make the result larger than the source
+        // (already-efficient inputs, audio re-encode, etc.). If that happens, discard the
+        // re-encode and tell the caller to keep the original.
+        if (sourceSize > 0 && destinationFile.length() >= sourceSize) {
+            Timber.d("Compressing: result ${destinationFile.length()} >= source $sourceSize, keeping original")
+            deleteFile(destinationFile)
+            return@coroutineScope VideoCompressionResult.CompressionNotNeeded
+        }
+        VideoCompressionResult.Success(destinationFile)
+    }
 
-        return when (result) {
-            Transcoder.SUCCESS_TRANSCODED -> {
-                VideoCompressionResult.Success(destinationFile)
-            }
-            Transcoder.SUCCESS_NOT_NEEDED -> {
-                // Delete now the temporary file
-                deleteFile(destinationFile)
-                VideoCompressionResult.CompressionNotNeeded
-            }
-            else -> {
-                // Should not happen...
-                // Delete now the temporary file
-                deleteFile(destinationFile)
-                Timber.w("Unknown result: $result")
-                VideoCompressionResult.CompressionFailed(IllegalStateException("Unknown result: $result"))
-            }
+    private fun readVideoDimensions(sourceUri: Uri): Pair<Int, Int> {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, sourceUri)
+            val w = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 0
+            val h = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 0
+            val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+            if (rotation == 90 || rotation == 270) h to w else w to h
+        } catch (e: Exception) {
+            0 to 0
+        } finally {
+            retriever.release()
         }
     }
 
@@ -152,21 +208,16 @@ internal class VideoCompressor @Inject constructor(
         }
     }
 
-    private fun isAlreadyWithinTargets(videoFile: File): Boolean {
-        // Bytes-based fast path: anything under the threshold is small enough that
-        // transcoding it almost never saves meaningful bandwidth.
-        if (videoFile.length() <= SKIP_TRANSCODE_BYTES) return true
+    private fun isAlreadyWithinTargets(sourceUri: Uri, sourceSize: Long): Boolean {
+        if (sourceSize in 1..SKIP_TRANSCODE_BYTES) return true
         val retriever = MediaMetadataRetriever()
         return try {
-            retriever.setDataSource(videoFile.absolutePath)
+            retriever.setDataSource(context, sourceUri)
             val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: return false
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: return false
-            // Skip if both dimensions are within our cap AND the file is reasonably small
-            // for the duration. The Transcoder strategy targets ~2 Mbps so anything already
-            // below that with a small longest-side is a waste of CPU to re-encode.
             val longestSide = maxOf(width, height)
             val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-            val estimatedBitrate = if (durationMs > 0) (videoFile.length() * 8_000 / durationMs) else Long.MAX_VALUE
+            val estimatedBitrate = if (durationMs > 0 && sourceSize > 0) (sourceSize * 8_000 / durationMs) else Long.MAX_VALUE
             longestSide <= TARGET_LONGEST_SIDE && estimatedBitrate <= TARGET_BITRATE
         } catch (e: Exception) {
             Timber.w(e, "Compressing: failed to inspect source, will transcode")
@@ -179,7 +230,8 @@ internal class VideoCompressor @Inject constructor(
     companion object {
         private const val TARGET_LONGEST_SIDE = 720
         private const val TARGET_BITRATE = 2_000_000L
-        // 2 MB under-threshold pass-through. Below this, transcoding rarely pays for itself.
-        private const val SKIP_TRANSCODE_BYTES = 2L * 1024 * 1024
+        private const val SKIP_TRANSCODE_BYTES = 4L * 1024 * 1024
+        private const val WATCHDOG_INTERVAL_MS = 500L
+        private const val STALL_TIMEOUT_MS = 15_000L
     }
 }

@@ -21,7 +21,6 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.os.Build
-import androidx.core.net.toUri
 import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -56,12 +55,14 @@ import org.matrix.android.sdk.internal.worker.SessionWorkerParams
 import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 private data class NewAttachmentAttributes(
         val newWidth: Int? = null,
         val newHeight: Int? = null,
-        val newFileSize: Long
+        val newFileSize: Long,
+        val newMimeType: String? = null,
 )
 
 /**
@@ -112,42 +113,36 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         return params.copy(lastFailureMessage = params.lastFailureMessage ?: message)
     }
 
-    private suspend fun internalDoWork(params: Params): Result {
-        val allCancelled = params.localEchoIds.all { cancelSendTracker.isCancelRequestedFor(it.eventId, it.roomId) }
-        if (allCancelled) {
-            // there is no point in uploading the image!
-            return Result.success(inputData)
-                    .also {
-                        Timber.e("## Send: Work cancelled by user")
+    private fun isCancelled(params: Params): Boolean =
+            isStopped || params.localEchoIds.all { cancelSendTracker.isCancelRequestedFor(it.eventId, it.roomId) }
 
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            context.revokeUriPermission(context.packageName, params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        } else {
-                            context.revokeUriPermission(params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                        }
-                    }
+    private suspend fun internalDoWork(params: Params): Result {
+        if (isCancelled(params)) {
+            Timber.e("## Send: Work cancelled by user")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.revokeUriPermission(context.packageName, params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            } else {
+                context.revokeUriPermission(params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            return Result.failure()
         }
 
         val attachment = params.attachment
         val filesToDelete = hashSetOf<File>()
 
         return try {
-            val inputStream = context.contentResolver.openInputStream(attachment.queryUri)
-                    ?: return Result.success(
-                            WorkerParamsFactory.toData(
-                                    params.copy(
-                                            lastFailureMessage = "Cannot openInputStream for file: " + attachment.queryUri.toString()
-                                    )
-                            )
-                    )
-
-            // always use a temporary file, it guaranties that we could report progress on upload and simplifies the flows
-            val workingFile = temporaryFileCreator.create()
-                    .also { filesToDelete.add(it) }
-            workingFile.outputStream().use { outputStream ->
-                inputStream.use { inputStream ->
-                    inputStream.copyTo(outputStream)
-                }
+            // Materialize the source to a local temp file. Deferred until first access so the
+            // video+compress happy path (which feeds the source URI straight into Media3) never
+            // pays the cost of copying a multi-hundred-MB file.
+            var cachedWorkingFile: File? = null
+            suspend fun workingFile(): File {
+                cachedWorkingFile?.let { return it }
+                val f = temporaryFileCreator.create().also { filesToDelete.add(it) }
+                val input = context.contentResolver.openInputStream(attachment.queryUri)
+                        ?: throw IOException("Cannot openInputStream for file: ${attachment.queryUri}")
+                input.use { inStream -> f.outputStream().use { inStream.copyTo(it) } }
+                cachedWorkingFile = f
+                return f
             }
 
             val progressListener = object : ProgressRequestBody.Listener {
@@ -166,6 +161,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
             try {
                 val fileToUpload: File
+                var transcodedVideoFile: File? = null
                 var newAttachmentAttributes = NewAttachmentAttributes(
                         params.attachment.width?.toInt(),
                         params.attachment.height?.toInt(),
@@ -178,75 +174,45 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         params.compressBeforeSending) {
                     notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
 
-                    fileToUpload = imageCompressor.compress(workingFile, MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
-                            .also { compressedFile ->
-                                // Get new Bitmap size
-                                compressedFile.inputStream().use {
-                                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                                    BitmapFactory.decodeStream(it, null, options)
-                                    newAttachmentAttributes = NewAttachmentAttributes(
-                                            newWidth = options.outWidth,
-                                            newHeight = options.outHeight,
-                                            newFileSize = compressedFile.length()
-                                    )
-                                }
-                            }
-                            .also { filesToDelete.add(it) }
+                    val compressed = imageCompressor.compress(workingFile(), MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
+                    fileToUpload = compressed.file.also { compressedFile ->
+                        compressedFile.inputStream().use {
+                            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                            BitmapFactory.decodeStream(it, null, options)
+                            newAttachmentAttributes = NewAttachmentAttributes(
+                                    newWidth = options.outWidth,
+                                    newHeight = options.outHeight,
+                                    newFileSize = compressedFile.length(),
+                                    newMimeType = compressed.mimeType,
+                            )
+                        }
+                    }.also { filesToDelete.add(it) }
                 } else if (attachment.type == ContentAttachmentData.Type.VIDEO &&
                         // Do not compress gif
                         attachment.mimeType != MimeTypes.Gif &&
                         params.compressBeforeSending) {
-                    fileToUpload = videoCompressor.compress(workingFile, object : ProgressListener {
-                        override fun onProgress(progress: Int, total: Int) {
-                            notifyTracker(params) { contentUploadStateTracker.setCompressingVideo(it, progress.toFloat()) }
-                        }
-                    })
-                            .let { videoCompressionResult ->
-                                when (videoCompressionResult) {
-                                    is VideoCompressionResult.Success -> {
-                                        val compressedFile = videoCompressionResult.compressedFile
-                                        var compressedWidth: Int? = null
-                                        var compressedHeight: Int? = null
-
-                                        tryOrNull {
-                                            context.contentResolver.openFileDescriptor(compressedFile.toUri(), "r")?.use { pfd ->
-                                                MediaMetadataRetriever().let {
-                                                    it.setDataSource(pfd.fileDescriptor)
-                                                    compressedWidth = it.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt()
-                                                    compressedHeight = it.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt()
-                                                }
-                                            }
-                                        }
-
-                                        // Get new Video file size and dimensions
-                                        newAttachmentAttributes = newAttachmentAttributes.copy(
-                                                newFileSize = compressedFile.length(),
-                                                newWidth = compressedWidth ?: newAttachmentAttributes.newWidth,
-                                                newHeight = compressedHeight ?: newAttachmentAttributes.newHeight
-                                        )
-                                        compressedFile
-                                                .also { filesToDelete.add(it) }
-                                    }
-                                    VideoCompressionResult.CompressionNotNeeded,
-                                    VideoCompressionResult.CompressionCancelled -> {
-                                        workingFile
-                                    }
-                                    is VideoCompressionResult.CompressionFailed -> {
-                                        Timber.e(videoCompressionResult.failure, "Video compression failed")
-                                        workingFile
-                                    }
-                                }
-                            }
+                    val outcome = compressVideo(params, newAttachmentAttributes, filesToDelete, ::workingFile)
+                    fileToUpload = outcome.fileToUpload
+                    newAttachmentAttributes = outcome.attributes
+                    transcodedVideoFile = outcome.transcodedFile
                 } else if (attachment.type == ContentAttachmentData.Type.IMAGE && !params.compressBeforeSending) {
-                    fileToUpload = imageExitTagRemover.removeSensitiveJpegExifTags(workingFile)
+                    fileToUpload = imageExitTagRemover.removeSensitiveJpegExifTags(workingFile())
                             .also { filesToDelete.add(it) }
                     newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
                 } else {
-                    fileToUpload = workingFile
+                    fileToUpload = workingFile()
                     // Fix: OpenableColumns.SIZE may return -1 or 0
                     if (params.attachment.size <= 0) {
                         newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
                     }
+                }
+
+                // Compression can take a long time; re-check cancellation here so a cancel that
+                // arrived mid-compress short-circuits the chain (failure stops the dispatcher
+                // from then trying to send the half-baked event with a local file:// URL).
+                if (isCancelled(params)) {
+                    notifyTracker(params) { contentUploadStateTracker.setFailure(it, Throwable("Cancelled")) }
+                    return Result.failure()
                 }
 
                 val encryptedFile: File?
@@ -273,8 +239,8 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     encryptedFile = null
                     fileUploader.uploadFile(
                             file = fileToUpload,
-                            filename = attachment.name,
-                            mimeType = attachment.getSafeMimeType(),
+                            filename = renameForMime(attachment.name, newAttachmentAttributes.newMimeType),
+                            mimeType = newAttachmentAttributes.newMimeType ?: attachment.getSafeMimeType(),
                             progressListener = progressListener
                     )
                 }
@@ -283,9 +249,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 try {
                     fileService.storeDataFor(
                             mxcUrl = contentUploadResponse.contentUri,
-                            filename = params.attachment.name,
-                            mimeType = params.attachment.getSafeMimeType(),
-                            originalFile = workingFile,
+                            filename = renameForMime(params.attachment.name, newAttachmentAttributes.newMimeType),
+                            mimeType = newAttachmentAttributes.newMimeType ?: params.attachment.getSafeMimeType(),
+                            // Cache the bytes we actually uploaded, not the original — otherwise the
+                            // sender's timeline serves the pre-compression file from cache while
+                            // remote clients download the compressed one.
+                            originalFile = fileToUpload,
                             encryptedFile = encryptedFile
                     )
                     Timber.v("## cache storage updated")
@@ -298,14 +267,13 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     context.contentResolver.delete(params.attachment.queryUri, null, null)
                 }
 
-                val uploadThumbnailResult = dealWithThumbnail(params)
+                val uploadThumbnailResult = dealWithThumbnail(params, transcodedVideoFile)
 
                 handleSuccess(
                         params,
                         contentUploadResponse.contentUri,
                         uploadedFileEncryptedFileInfo,
-                        uploadThumbnailResult?.uploadedThumbnailUrl,
-                        uploadThumbnailResult?.uploadedThumbnailEncryptedFileInfo,
+                        uploadThumbnailResult,
                         newAttachmentAttributes
                 )
             } catch (t: Throwable) {
@@ -323,55 +291,125 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         }
     }
 
+    private data class VideoCompressOutcome(
+            val fileToUpload: File,
+            val attributes: NewAttachmentAttributes,
+            val transcodedFile: File?,
+    )
+
+    private suspend fun compressVideo(
+            params: Params,
+            initialAttributes: NewAttachmentAttributes,
+            filesToDelete: HashSet<File>,
+            fallbackToWorkingFile: suspend () -> File,
+    ): VideoCompressOutcome {
+        val progressListener = object : ProgressListener {
+            override fun onProgress(progress: Int, total: Int) {
+                notifyTracker(params) { contentUploadStateTracker.setCompressingVideo(it, progress.toFloat()) }
+            }
+        }
+        return when (val result = videoCompressor.compress(params.attachment.queryUri, params.attachment.size, progressListener)) {
+            is VideoCompressionResult.Success -> {
+                val compressedFile = result.compressedFile.also { filesToDelete.add(it) }
+                val (w, h) = readCompressedVideoDimensions(compressedFile)
+                VideoCompressOutcome(
+                        fileToUpload = compressedFile,
+                        attributes = initialAttributes.copy(
+                                newFileSize = compressedFile.length(),
+                                newWidth = w ?: initialAttributes.newWidth,
+                                newHeight = h ?: initialAttributes.newHeight,
+                        ),
+                        transcodedFile = compressedFile,
+                )
+            }
+            VideoCompressionResult.CompressionNotNeeded,
+            VideoCompressionResult.CompressionCancelled ->
+                VideoCompressOutcome(fallbackToWorkingFile(), initialAttributes, transcodedFile = null)
+            is VideoCompressionResult.CompressionFailed -> {
+                Timber.e(result.failure, "Video compression failed")
+                VideoCompressOutcome(fallbackToWorkingFile(), initialAttributes, transcodedFile = null)
+            }
+        }
+    }
+
+    private fun readCompressedVideoDimensions(file: File): Pair<Int?, Int?> {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(file.absolutePath)
+            val rawW = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt()
+            val rawH = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt()
+            val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+            // METADATA_KEY_VIDEO_WIDTH/HEIGHT return raw track dims; swap when rotation is
+            // sideways so layout uses display orientation.
+            val swap = rotation == 90 || rotation == 270
+            (if (swap) rawH else rawW) to (if (swap) rawW else rawH)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to read compressed video dimensions")
+            null to null
+        } finally {
+            retriever.release()
+        }
+    }
+
     private data class UploadThumbnailResult(
             val uploadedThumbnailUrl: String,
-            val uploadedThumbnailEncryptedFileInfo: EncryptedFileInfo?
+            val uploadedThumbnailEncryptedFileInfo: EncryptedFileInfo?,
+            val width: Int,
+            val height: Int,
+            val size: Long,
     )
 
     /**
      * If appropriate, it will create and upload a thumbnail.
      */
-    private suspend fun dealWithThumbnail(params: Params): UploadThumbnailResult? {
-        return thumbnailExtractor.extractThumbnail(params.attachment)
-                ?.let { thumbnailData ->
-                    val thumbnailProgressListener = object : ProgressRequestBody.Listener {
-                        override fun onProgress(current: Long, total: Long) {
-                            notifyTracker(params) { contentUploadStateTracker.setProgressThumbnail(it, current, total) }
-                        }
-                    }
-
-                    try {
-                        if (params.isEncrypted) {
-                            Timber.v("Encrypt thumbnail")
-                            notifyTracker(params) { contentUploadStateTracker.setEncryptingThumbnail(it) }
-                            val encryptionResult = MXEncryptedAttachments.encryptAttachment(thumbnailData.bytes.inputStream(), clock)
-                            val contentUploadResponse = fileUploader.uploadByteArray(
-                                    byteArray = encryptionResult.encryptedByteArray,
-                                    filename = null,
-                                    mimeType = MimeTypes.OctetStream,
-                                    progressListener = thumbnailProgressListener
-                            )
-                            UploadThumbnailResult(
-                                    contentUploadResponse.contentUri,
-                                    encryptionResult.encryptedFileInfo
-                            )
-                        } else {
-                            val contentUploadResponse = fileUploader.uploadByteArray(
-                                    byteArray = thumbnailData.bytes,
-                                    filename = "thumb_${params.attachment.name}",
-                                    mimeType = thumbnailData.mimeType,
-                                    progressListener = thumbnailProgressListener
-                            )
-                            UploadThumbnailResult(
-                                    contentUploadResponse.contentUri,
-                                    null
-                            )
-                        }
-                    } catch (t: Throwable) {
-                        Timber.e(t, "Thumbnail upload failed")
-                        null
-                    }
-                }
+    private suspend fun dealWithThumbnail(params: Params, transcodedVideo: File?): UploadThumbnailResult? {
+        // Prefer the post-transcode file so the thumbnail aspect ratio matches what the player
+        // will actually show; otherwise the bubble placeholder ends up the wrong shape.
+        val thumbnailData = transcodedVideo?.let { thumbnailExtractor.extractVideoThumbnailFromFile(it) }
+                ?: thumbnailExtractor.extractThumbnail(params.attachment)
+                ?: return null
+        val thumbnailProgressListener = object : ProgressRequestBody.Listener {
+            override fun onProgress(current: Long, total: Long) {
+                notifyTracker(params) { contentUploadStateTracker.setProgressThumbnail(it, current, total) }
+            }
+        }
+        return try {
+            if (params.isEncrypted) {
+                Timber.v("Encrypt thumbnail")
+                notifyTracker(params) { contentUploadStateTracker.setEncryptingThumbnail(it) }
+                val encryptionResult = MXEncryptedAttachments.encryptAttachment(thumbnailData.bytes.inputStream(), clock)
+                val contentUploadResponse = fileUploader.uploadByteArray(
+                        byteArray = encryptionResult.encryptedByteArray,
+                        filename = null,
+                        mimeType = MimeTypes.OctetStream,
+                        progressListener = thumbnailProgressListener
+                )
+                UploadThumbnailResult(
+                        uploadedThumbnailUrl = contentUploadResponse.contentUri,
+                        uploadedThumbnailEncryptedFileInfo = encryptionResult.encryptedFileInfo,
+                        width = thumbnailData.width,
+                        height = thumbnailData.height,
+                        size = thumbnailData.size,
+                )
+            } else {
+                val contentUploadResponse = fileUploader.uploadByteArray(
+                        byteArray = thumbnailData.bytes,
+                        filename = "thumb_${params.attachment.name}",
+                        mimeType = thumbnailData.mimeType,
+                        progressListener = thumbnailProgressListener
+                )
+                UploadThumbnailResult(
+                        uploadedThumbnailUrl = contentUploadResponse.contentUri,
+                        uploadedThumbnailEncryptedFileInfo = null,
+                        width = thumbnailData.width,
+                        height = thumbnailData.height,
+                        size = thumbnailData.size,
+                )
+            }
+        } catch (t: Throwable) {
+            Timber.e(t, "Thumbnail upload failed")
+            null
+        }
     }
 
     private fun handleFailure(params: Params, failure: Throwable): Result {
@@ -390,13 +428,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             params: Params,
             attachmentUrl: String,
             encryptedFileInfo: EncryptedFileInfo?,
-            thumbnailUrl: String?,
-            thumbnailEncryptedFileInfo: EncryptedFileInfo?,
+            thumbnail: UploadThumbnailResult?,
             newAttachmentAttributes: NewAttachmentAttributes
     ): Result {
         notifyTracker(params) { contentUploadStateTracker.setSuccess(it) }
         params.localEchoIds.forEach {
-            updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnailUrl, thumbnailEncryptedFileInfo, newAttachmentAttributes)
+            updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, newAttachmentAttributes)
         }
 
         val sendParams = MultipleEventSendingDispatcherWorker.Params(
@@ -419,8 +456,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             eventId: String,
             url: String,
             encryptedFileInfo: EncryptedFileInfo?,
-            thumbnailUrl: String? = null,
-            thumbnailEncryptedFileInfo: EncryptedFileInfo?,
+            thumbnail: UploadThumbnailResult?,
             newAttachmentAttributes: NewAttachmentAttributes
     ) {
         localEchoRepository.updateEcho(eventId) { _, event ->
@@ -430,7 +466,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             val additionalContent = content.orEmpty() - messageContent?.toContent().orEmpty().keys
             val updatedContent = when (messageContent) {
                 is MessageImageContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes)
-                is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnailUrl, thumbnailEncryptedFileInfo, newAttachmentAttributes)
+                is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnail, newAttachmentAttributes)
                 is MessageFileContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
                 is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
                 else -> messageContent
@@ -448,24 +484,48 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             encryptedFileInfo: EncryptedFileInfo?,
             newAttachmentAttributes: NewAttachmentAttributes?
     ): MessageImageContent {
+        val newMime = newAttachmentAttributes?.newMimeType
+        // When the mime changed (e.g. JPEG -> WebP after compression), swap the extension on
+        // whichever field holds the user-visible filename. If `filename` is set, body is the
+        // caption and shouldn't be rewritten.
+        val rewriteBody = newMime != null && filename == null
+        val rewriteFilename = newMime != null && filename != null
         return copy(
                 url = if (encryptedFileInfo == null) url else null,
                 encryptedFileInfo = encryptedFileInfo?.copy(url = url),
+                body = if (rewriteBody) renameForMime(body, newMime) ?: body else body,
+                filename = if (rewriteFilename) renameForMime(filename, newMime) else filename,
                 info = info?.copy(
                         width = newAttachmentAttributes?.newWidth ?: info.width,
                         height = newAttachmentAttributes?.newHeight ?: info.height,
-                        size = newAttachmentAttributes?.newFileSize ?: info.size
+                        size = newAttachmentAttributes?.newFileSize ?: info.size,
+                        mimeType = newMime ?: info.mimeType,
                 )
         )
+    }
+
+    private fun renameForMime(name: String?, mimeType: String?): String? {
+        if (name == null) return null
+        val ext = when (mimeType) {
+            "image/webp" -> "webp"
+            "image/jpeg" -> "jpg"
+            "image/png" -> "png"
+            "image/gif" -> "gif"
+            else -> return name
+        }
+        val dot = name.lastIndexOf('.')
+        val base = if (dot > 0) name.substring(0, dot) else name
+        return "$base.$ext"
     }
 
     private fun MessageVideoContent.update(
             url: String,
             encryptedFileInfo: EncryptedFileInfo?,
-            thumbnailUrl: String?,
-            thumbnailEncryptedFileInfo: EncryptedFileInfo?,
+            thumbnail: UploadThumbnailResult?,
             newAttachmentAttributes: NewAttachmentAttributes?
     ): MessageVideoContent {
+        val thumbnailUrl = thumbnail?.uploadedThumbnailUrl
+        val thumbnailEncryptedFileInfo = thumbnail?.uploadedThumbnailEncryptedFileInfo
         return copy(
                 url = if (encryptedFileInfo == null) url else null,
                 encryptedFileInfo = encryptedFileInfo?.copy(url = url),
@@ -474,7 +534,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         thumbnailFile = thumbnailEncryptedFileInfo?.copy(url = thumbnailUrl),
                         width = newAttachmentAttributes?.newWidth ?: videoInfo.width,
                         height = newAttachmentAttributes?.newHeight ?: videoInfo.height,
-                        size = newAttachmentAttributes?.newFileSize ?: videoInfo.size
+                        size = newAttachmentAttributes?.newFileSize ?: videoInfo.size,
+                        thumbnailInfo = videoInfo.thumbnailInfo?.copy(
+                                width = thumbnail?.width ?: videoInfo.thumbnailInfo.width,
+                                height = thumbnail?.height ?: videoInfo.thumbnailInfo.height,
+                                size = thumbnail?.size ?: videoInfo.thumbnailInfo.size,
+                        ),
                 )
         )
     }
