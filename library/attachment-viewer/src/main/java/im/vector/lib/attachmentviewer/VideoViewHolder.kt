@@ -13,7 +13,6 @@ import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.media.MediaPlayer
 import android.util.Log
-import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.Surface
@@ -166,19 +165,6 @@ class VideoViewHolder constructor(itemView: View) :
             isQuickScaleEnabled = true
         }
 
-        val gestureDetector = GestureDetector(view.context, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onDoubleTap(e: MotionEvent): Boolean {
-                val target = if (userScale() > 1.05f) 1f else 2.5f
-                userMatrix.reset()
-                if (target > 1f) {
-                    userMatrix.postScale(target, target, e.x, e.y)
-                }
-                clampUserTranslation()
-                applyDrawMatrix()
-                return true
-            }
-        })
-
         var lastX = 0f
         var lastY = 0f
         var panActive = false
@@ -222,7 +208,6 @@ class VideoViewHolder constructor(itemView: View) :
                 }
             }
             scaleDetector.onTouchEvent(event)
-            gestureDetector.onTouchEvent(event)
             // Consume only when we're handling the gesture; otherwise pass through so the pager
             // sees swipes.
             zoomed || pinchActive || event.pointerCount > 1 || event.actionMasked == MotionEvent.ACTION_DOWN
