@@ -27,6 +27,7 @@ object MimeTypes {
     const val Images = "image/*"
 
     const val Png = "image/png"
+    const val Apng = "image/apng"
     const val BadJpg = "image/jpg"
     const val Jpeg = "image/jpeg"
     const val Gif = "image/gif"

@@ -62,7 +62,7 @@ class RoomEventsAttachmentProvider(
                         allowNonMxcUrls = it.root.sendState.isSending()
 
                 )
-                if (content.mimeType == MimeTypes.Gif || content.mimeType == MimeTypes.Webp) {
+                if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
                             uid = it.eventId,
                             url = content.url ?: "",
@@ -89,7 +89,7 @@ class RoomEventsAttachmentProvider(
                         allowNonMxcUrls = false
 
                 )
-                if (content.mimeType == MimeTypes.Gif) {
+                if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
                             uid = it.eventId,
                             url = content.url ?: "",
@@ -164,5 +164,16 @@ class RoomEventsAttachmentProvider(
                         )
                     }
                 }
+    }
+
+    companion object {
+        // PNG is included because APNGs are frequently labelled image/png; the APNG decoder
+        // inspects the stream and falls through to the default PNG path for non-animated files.
+        private val ANIMATED_IMAGE_MIME_TYPES = setOf(
+                MimeTypes.Gif,
+                MimeTypes.Webp,
+                MimeTypes.Apng,
+                MimeTypes.Png,
+        )
     }
 }
