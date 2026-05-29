@@ -87,7 +87,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         // the main thread. The live observers below still update these as state changes.
         val initialRoomPowerLevels = room?.stateService()?.getRoomPowerLevels()
         val initialRoomSummary = room?.roomSummary()
-        val initialUserPowerLevelString = if (initialRoomPowerLevels != null && initialRoomSummary != null) {
+        val initialRoomMember = room?.membershipService()?.getRoomMember(initialState.userId)
+        val initialUserPowerLevelString = if (initialRoomPowerLevels != null && initialRoomSummary != null && initialRoomMember != null) {
             computeUserPowerLevelString(initialRoomPowerLevels, initialRoomSummary)
         } else {
             null
