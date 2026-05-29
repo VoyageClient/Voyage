@@ -23,26 +23,25 @@ class ParagraphHandler(private val dimensionConverter: DimensionConverter) : Tag
         if (tag.isBlock) {
             visitChildren(visitor, renderer, tag.asBlock)
         }
-        // <p> in formatted_body is overwhelmingly just a markdown→HTML paragraph wrap, even
-        // for single-line messages. Adding 4dp top + 4dp bottom to every paragraph leaves
-        // visible empty bands above and below the text inside the bubble. Pad only between
-        // sibling paragraphs: top padding when there's already non-whitespace content above
-        // this <p> in the builder, bottom padding when there's non-whitespace content after.
-        // First/last paragraph in the message gets the matching side zeroed out so the
-        // bubble hugs the text on its outer edges.
-        val builder = visitor.builder()
-        val start = tag.start()
-        val end = tag.end().coerceAtMost(builder.length)
-        if (start >= end) return
+        if (isLoneWrappingParagraph(tag)) return
         val pad = dimensionConverter.dpToPx(4)
-        val topPad = if ((0 until start).any { !builder[it].isWhitespace() }) pad else 0
-        val bottomPad = if ((end until builder.length).any { !builder[it].isWhitespace() }) pad else 0
-        if (topPad == 0 && bottomPad == 0) return
         SpannableBuilder.setSpans(
-                builder,
-                VerticalPaddingSpan(topPad, bottomPad),
-                start,
-                end,
+                visitor.builder(),
+                VerticalPaddingSpan(pad, pad),
+                tag.start(),
+                tag.end(),
         )
+    }
+
+    // True when this `<p>` is the sole child of HtmlRootTagPlugin's `<div data-root>` —
+    // i.e. the wrapping `<p>` is a pure markdown→HTML artifact and shouldn't add padding.
+    private fun isLoneWrappingParagraph(tag: HtmlTag): Boolean {
+        if (!tag.isBlock) return false
+        val parent = tag.asBlock.parent() ?: return false
+        val parentIsRoot = parent.isRoot ||
+                (parent.name() == HtmlRootTagPlugin.ROOT_TAG_NAME &&
+                        parent.attributes().containsKey(HtmlRootTagPlugin.ROOT_ATTRIBUTE))
+        if (!parentIsRoot) return false
+        return parent.children().size == 1
     }
 }

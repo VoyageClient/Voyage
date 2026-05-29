@@ -14,6 +14,8 @@ import android.text.TextPaint
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
+import android.text.style.LeadingMarginSpan
+import android.text.style.LineHeightSpan
 import android.view.View
 import dagger.Lazy
 import im.vector.app.R
@@ -742,12 +744,7 @@ class MessageItemFactory @Inject constructor(
         // combined pass (resulting in literal HTML being shown in the timeline).
         val bareBody = processBodyOfReplyToEventUseCase.stripExistingMxReply(matrixFormattedBody)
         val compressed = htmlCompressor.compress(bareBody)
-        val renderedRaw = htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned
-        // Markwon's HTML block handling adds leading/trailing whitespace around the outermost
-        // block (e.g. a `\n` before and after `<p>` content), producing visible empty bands
-        // at the top and bottom of every paragraph-wrapped message. Trim those edges; spans
-        // are preserved via subSequence.
-        val renderedBody = renderedRaw.trimSpannableEnds()
+        val renderedBody = (htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned).trimUncoveredWhitespace()
 
         val finalBody: CharSequence = if (replyToContent?.eventId != null) {
             val header = renderReplyHeader(replyToContent, mentionHint, callback)?.first?.charSequence
@@ -772,8 +769,20 @@ class MessageItemFactory @Inject constructor(
         )
     }
 
-    // Kotlin's CharSequence.trim delegates to subSequence, which preserves spans on Spanned.
-    private fun CharSequence.trimSpannableEnds(): CharSequence = trim { it == '\n' || it == ' ' || it == '\t' }
+    // Trim outer whitespace, but not whitespace covered by a block span — those spans rely
+    // on it for line-height / leading-margin math.
+    private fun Spanned.trimUncoveredWhitespace(): CharSequence {
+        fun Char.isTrimable() = this == '\n' || this == ' ' || this == '\t'
+        val coveredRanges =
+                getSpans(0, length, LeadingMarginSpan::class.java).map { getSpanStart(it) to getSpanEnd(it) } +
+                        getSpans(0, length, LineHeightSpan::class.java).map { getSpanStart(it) to getSpanEnd(it) }
+        fun covered(at: Int) = coveredRanges.any { (s, e) -> at in s until e }
+        var start = 0
+        while (start < length && this[start].isTrimable() && !covered(start)) start++
+        var end = length
+        while (end > start && this[end - 1].isTrimable() && !covered(end - 1)) end--
+        return if (start == 0 && end == length) this else subSequence(start, end)
+    }
 
     /**
      * Renders an optional user-typed caption attached to a media event (MSC2530). Returns
@@ -794,7 +803,7 @@ class MessageItemFactory @Inject constructor(
         val initialBody: CharSequence = if (formattedBody != null) {
             val compressed = htmlCompressor.compress(formattedBody)
             val raw = htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned
-            raw?.trimSpannableEnds() ?: body
+            raw?.trimUncoveredWhitespace() ?: body
         } else {
             body
         }
