@@ -32,7 +32,9 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
+import org.matrix.android.sdk.api.session.room.model.message.Mentions
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
@@ -42,6 +44,7 @@ import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
+import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.send.SendService
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -273,13 +276,22 @@ internal class DefaultSendService @AssistedInject constructor(
             roomIds: Set<String>,
             rootThreadEventId: String?,
             additionalContent: Content?,
+            replyToEvent: TimelineEvent?,
+            captionText: CharSequence?,
+            captionFormattedText: String?,
+            autoMarkdown: Boolean,
     ): Cancelable {
-        return attachments.mapTo(CancelableBag()) {
+        return attachments.mapIndexedTo(CancelableBag()) { index, attachment ->
             sendMedia(
-                    attachment = it,
+                    attachment = attachment,
                     compressBeforeSending = compressBeforeSending,
                     roomIds = roomIds,
-                    rootThreadEventId = rootThreadEventId
+                    rootThreadEventId = rootThreadEventId,
+                    // Reply target + caption attach only to the first event; subsequent ones are standalone.
+                    replyToEvent = if (index == 0) replyToEvent else null,
+                    captionText = if (index == 0) captionText else null,
+                    captionFormattedText = if (index == 0) captionFormattedText else null,
+                    autoMarkdown = autoMarkdown,
             )
         }
     }
@@ -291,6 +303,10 @@ internal class DefaultSendService @AssistedInject constructor(
             rootThreadEventId: String?,
             relatesTo: RelationDefaultContent?,
             additionalContent: Content?,
+            replyToEvent: TimelineEvent?,
+            captionText: CharSequence?,
+            captionFormattedText: String?,
+            autoMarkdown: Boolean,
     ): Cancelable {
         // Ensure that the event will not be send in a thread if we are a different flow.
         // Like sending files to multiple rooms
@@ -300,14 +316,36 @@ internal class DefaultSendService @AssistedInject constructor(
         // Ensure current roomId is included in the set
         val allRoomIds = (roomIds + roomId).toList()
 
+        val replyToEventId = replyToEvent?.root?.eventId
+        val effectiveRelatesTo = when {
+            relatesTo != null -> relatesTo
+            replyToEventId != null -> if (rootThreadId != null) {
+                RelationDefaultContent(
+                        type = RelationType.THREAD,
+                        eventId = rootThreadId,
+                        isFallingBack = false,
+                        inReplyTo = ReplyToContent(eventId = replyToEventId),
+                )
+            } else {
+                RelationDefaultContent(null, null, ReplyToContent(eventId = replyToEventId))
+            }
+            else -> null
+        }
+        val rootThreadForFactory = if (effectiveRelatesTo != null) null else rootThreadId
+        val mentions = replyToEvent?.root?.senderId?.let { Mentions(userIds = listOf(it)) }
+
         // Create local echo for each room
         val allLocalEchoes = allRoomIds.map {
             localEchoEventFactory.createMediaEvent(
                     roomId = it,
                     attachment = attachment,
-                    rootThreadEventId = rootThreadId,
-                    relatesTo,
-                    additionalContent,
+                    rootThreadEventId = rootThreadForFactory,
+                    relatesTo = effectiveRelatesTo,
+                    additionalContent = additionalContent,
+                    captionText = captionText,
+                    captionFormattedText = captionFormattedText,
+                    autoMarkdown = autoMarkdown,
+                    mentions = mentions,
             ).also { event ->
                 createLocalEcho(event)
             }

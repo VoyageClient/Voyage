@@ -908,10 +908,14 @@ class TimelineViewModel @AssistedInject constructor(
     private fun handleSendMedia(action: RoomDetailAction.SendMedia) {
         if (room == null) return
         room.sendService().sendMedias(
-                action.attachments,
-                action.compressBeforeSending,
-                emptySet(),
-                initialState.rootThreadEventId
+                attachments = action.attachments,
+                compressBeforeSending = action.compressBeforeSending,
+                roomIds = emptySet(),
+                rootThreadEventId = initialState.rootThreadEventId,
+                replyToEvent = action.replyToEvent,
+                captionText = action.captionText,
+                captionFormattedText = action.captionFormattedText,
+                autoMarkdown = action.autoMarkdown,
         )
     }
 

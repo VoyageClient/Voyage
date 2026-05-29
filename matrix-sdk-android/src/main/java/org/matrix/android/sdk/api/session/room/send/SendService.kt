@@ -107,6 +107,10 @@ interface SendService {
             rootThreadEventId: String? = null,
             relatesTo: RelationDefaultContent? = null,
             additionalContent: Content? = null,
+            replyToEvent: TimelineEvent? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
     ): Cancelable
 
     /**
@@ -125,6 +129,10 @@ interface SendService {
             roomIds: Set<String>,
             rootThreadEventId: String? = null,
             additionalContent: Content? = null,
+            replyToEvent: TimelineEvent? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
     ): Cancelable
 
     /**

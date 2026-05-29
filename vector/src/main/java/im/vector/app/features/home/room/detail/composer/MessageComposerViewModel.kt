@@ -132,7 +132,13 @@ class MessageComposerViewModel @AssistedInject constructor(
             is MessageComposerAction.SlashCommandConfirmed -> handleSlashCommandConfirmed(room, action)
             is MessageComposerAction.InsertUserDisplayName -> handleInsertUserDisplayName(action)
             is MessageComposerAction.SetFullScreen -> handleSetFullScreen(action)
+            MessageComposerAction.OnAttachmentsSent -> handleOnAttachmentsSent(room)
         }
+    }
+
+    private fun handleOnAttachmentsSent(room: Room) {
+        currentComposerText = ""
+        popDraft(room)
     }
 
     private fun handleOnVoiceRecordingUiStateChanged(action: MessageComposerAction.OnVoiceRecordingUiStateChanged) = setState {

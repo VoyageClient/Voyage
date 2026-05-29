@@ -664,7 +664,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (activityResult.resultCode == Activity.RESULT_OK) {
             val sendData = AttachmentsPreviewActivity.getOutput(data)
             val keepOriginalSize = AttachmentsPreviewActivity.getKeepOriginalSize(data)
-            timelineViewModel.handle(RoomDetailAction.SendMedia(sendData, !keepOriginalSize))
+            dispatchSendMedia(sendData, !keepOriginalSize)
         }
     }
 
@@ -673,11 +673,35 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val grouped = attachments.toGroupedContentAttachmentData()
         if (grouped.notPreviewables.isNotEmpty()) {
             // Send the not previewable attachments right now (?)
-            timelineViewModel.handle(RoomDetailAction.SendMedia(grouped.notPreviewables, false))
+            dispatchSendMedia(grouped.notPreviewables, false)
         }
         if (grouped.previewables.isNotEmpty()) {
             val intent = AttachmentsPreviewActivity.newIntent(requireContext(), AttachmentsPreviewArgs(grouped.previewables))
             contentAttachmentActivityResultLauncher.launch(intent)
+        }
+    }
+
+    private fun dispatchSendMedia(attachments: List<ContentAttachmentData>, compressBeforeSending: Boolean) = withState(messageComposerViewModel) { state ->
+        val replyToEvent = (state.sendMode as? SendMode.Reply)?.timelineEvent
+        val plain = composer.text?.toString().orEmpty()
+        val captionText = plain.takeIf { it.isNotBlank() }
+        val richHtml = composer.formattedText
+        val captionFormattedText = richHtml?.takeIf { captionText != null }
+        val autoMarkdown = captionText != null && captionFormattedText == null && vectorPreferences.isMarkdownEnabled()
+        timelineViewModel.handle(
+                RoomDetailAction.SendMedia(
+                        attachments = attachments,
+                        compressBeforeSending = compressBeforeSending,
+                        replyToEvent = replyToEvent,
+                        captionText = captionText,
+                        captionFormattedText = captionFormattedText,
+                        autoMarkdown = autoMarkdown,
+                )
+        )
+        if (replyToEvent != null || captionText != null) {
+            composer.setTextIfDifferent("")
+            composer.renderComposerMode(MessageComposerMode.Normal(""))
+            messageComposerViewModel.handle(MessageComposerAction.OnAttachmentsSent)
         }
     }
 

@@ -355,17 +355,24 @@ internal class LocalEchoEventFactory @Inject constructor(
             rootThreadEventId: String?,
             relatesTo: RelationDefaultContent?,
             additionalContent: Content? = null,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
     ): Event {
         return when (attachment.type) {
-            ContentAttachmentData.Type.IMAGE -> createImageEvent(roomId, attachment, rootThreadEventId, relatesTo, additionalContent)
-            ContentAttachmentData.Type.VIDEO -> createVideoEvent(roomId, attachment, rootThreadEventId, relatesTo, additionalContent)
+            ContentAttachmentData.Type.IMAGE -> createImageEvent(
+                    roomId, attachment, rootThreadEventId, relatesTo, additionalContent, captionText, captionFormattedText, autoMarkdown, mentions)
+            ContentAttachmentData.Type.VIDEO -> createVideoEvent(
+                    roomId, attachment, rootThreadEventId, relatesTo, additionalContent, captionText, captionFormattedText, autoMarkdown, mentions)
             ContentAttachmentData.Type.AUDIO -> createAudioEvent(
                     roomId,
                     attachment,
                     isVoiceMessage = false,
                     rootThreadEventId = rootThreadEventId,
                     relatesTo,
-                    additionalContent
+                    additionalContent,
+                    captionText, captionFormattedText, autoMarkdown, mentions,
             )
             ContentAttachmentData.Type.VOICE_MESSAGE -> createAudioEvent(
                     roomId,
@@ -374,9 +381,29 @@ internal class LocalEchoEventFactory @Inject constructor(
                     rootThreadEventId = rootThreadEventId,
                     relatesTo,
                     additionalContent,
+                    captionText, captionFormattedText, autoMarkdown, mentions,
             )
-            ContentAttachmentData.Type.FILE -> createFileEvent(roomId, attachment, rootThreadEventId, relatesTo, additionalContent)
+            ContentAttachmentData.Type.FILE -> createFileEvent(
+                    roomId, attachment, rootThreadEventId, relatesTo, additionalContent, captionText, captionFormattedText, autoMarkdown, mentions)
         }
+    }
+
+    private data class MediaBodyParts(val body: String, val filename: String?, val format: String?, val formattedBody: String?)
+
+    private fun buildMediaBody(attachment: ContentAttachmentData, fallback: String, captionText: CharSequence?, captionFormattedText: String?, autoMarkdown: Boolean): MediaBodyParts {
+        val name = attachment.name ?: fallback
+        val plain = captionText?.toString()
+        if (plain.isNullOrEmpty()) {
+            return MediaBodyParts(body = name, filename = null, format = null, formattedBody = null)
+        }
+        val html = captionFormattedText ?: markdownParser.parse(plain, force = true, advanced = autoMarkdown).takeFormatted()
+        val isFormatted = html != plain
+        return MediaBodyParts(
+                body = plain,
+                filename = name,
+                format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
+                formattedBody = if (isFormatted) html else null,
+        )
     }
 
     fun createReactionEvent(roomId: String, targetEventId: String, reaction: String, additionalContent: Content? = null): Event {
@@ -405,6 +432,10 @@ internal class LocalEchoEventFactory @Inject constructor(
             rootThreadEventId: String?,
             relatesTo: RelationDefaultContent?,
             additionalContent: Content?,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
     ): Event {
         var width = attachment.width
         var height = attachment.height
@@ -420,9 +451,13 @@ internal class LocalEchoEventFactory @Inject constructor(
             }
         }
 
+        val body = buildMediaBody(attachment, "image", captionText, captionFormattedText, autoMarkdown)
         val content = MessageImageContent(
                 msgType = MessageType.MSGTYPE_IMAGE,
-                body = attachment.name ?: "image",
+                body = body.body,
+                filename = body.filename,
+                format = body.format,
+                formattedBody = body.formattedBody,
                 info = ImageInfo(
                         mimeType = attachment.getSafeMimeType(),
                         width = width?.toInt() ?: 0,
@@ -430,7 +465,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                         size = attachment.size
                 ),
                 url = attachment.queryUri.toString(),
-                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }
+                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
+                mentions = mentions,
         )
         return createMessageEvent(roomId, content, additionalContent)
     }
@@ -441,6 +477,10 @@ internal class LocalEchoEventFactory @Inject constructor(
             rootThreadEventId: String?,
             relatesTo: RelationDefaultContent?,
             additionalContent: Content?,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
     ): Event {
         val mediaDataRetriever = MediaMetadataRetriever()
         val (width, height) = try {
@@ -464,9 +504,13 @@ internal class LocalEchoEventFactory @Inject constructor(
                     mimeType = it.mimeType
             )
         }
+        val body = buildMediaBody(attachment, "video", captionText, captionFormattedText, autoMarkdown)
         val content = MessageVideoContent(
                 msgType = MessageType.MSGTYPE_VIDEO,
-                body = attachment.name ?: "video",
+                body = body.body,
+                filename = body.filename,
+                format = body.format,
+                formattedBody = body.formattedBody,
                 videoInfo = VideoInfo(
                         mimeType = attachment.getSafeMimeType(),
                         width = width,
@@ -478,7 +522,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                         thumbnailInfo = thumbnailInfo
                 ),
                 url = attachment.queryUri.toString(),
-                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }
+                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
+                mentions = mentions,
         )
         return createMessageEvent(roomId, content, additionalContent)
     }
@@ -489,11 +534,19 @@ internal class LocalEchoEventFactory @Inject constructor(
             isVoiceMessage: Boolean,
             rootThreadEventId: String?,
             relatesTo: RelationDefaultContent?,
-            additionalContent: Content?
+            additionalContent: Content?,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
     ): Event {
+        val body = buildMediaBody(attachment, "audio", captionText, captionFormattedText, autoMarkdown)
         val content = MessageAudioContent(
                 msgType = MessageType.MSGTYPE_AUDIO,
-                body = attachment.name ?: "audio",
+                body = body.body,
+                filename = body.filename,
+                format = body.format,
+                formattedBody = body.formattedBody,
                 audioInfo = AudioInfo(
                         duration = attachment.duration?.toInt(),
                         mimeType = attachment.getSafeMimeType()?.takeIf { it.isNotBlank() },
@@ -505,7 +558,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                         waveform = waveformSanitizer.sanitize(attachment.waveform)
                 ),
                 voiceMessageIndicator = if (!isVoiceMessage) null else emptyMap(),
-                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }
+                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
+                mentions = mentions,
         )
         return createMessageEvent(roomId, content, additionalContent)
     }
@@ -515,17 +569,26 @@ internal class LocalEchoEventFactory @Inject constructor(
             attachment: ContentAttachmentData,
             rootThreadEventId: String?,
             relatesTo: RelationDefaultContent?,
-            additionalContent: Content?
+            additionalContent: Content?,
+            captionText: CharSequence? = null,
+            captionFormattedText: String? = null,
+            autoMarkdown: Boolean = false,
+            mentions: Mentions? = null,
     ): Event {
+        val body = buildMediaBody(attachment, "file", captionText, captionFormattedText, autoMarkdown)
         val content = MessageFileContent(
                 msgType = MessageType.MSGTYPE_FILE,
-                body = attachment.name ?: "file",
+                body = body.body,
+                filename = body.filename,
+                format = body.format,
+                formattedBody = body.formattedBody,
                 info = FileInfo(
                         mimeType = attachment.getSafeMimeType()?.takeIf { it.isNotBlank() },
                         size = attachment.size
                 ),
                 url = attachment.queryUri.toString(),
-                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }
+                relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
+                mentions = mentions,
         )
         return createMessageEvent(roomId, content, additionalContent)
     }
