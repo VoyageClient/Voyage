@@ -168,10 +168,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         params.attachment.size
                 )
 
-                if (attachment.type == ContentAttachmentData.Type.IMAGE &&
-                        // Do not compress gif
-                        attachment.mimeType != MimeTypes.Gif &&
-                        params.compressBeforeSending) {
+                if (attachment.type == ContentAttachmentData.Type.IMAGE && params.compressBeforeSending) {
                     notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
 
                     val compressed = imageCompressor.compress(workingFile(), MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
@@ -187,10 +184,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                             )
                         }
                     }.also { filesToDelete.add(it) }
-                } else if (attachment.type == ContentAttachmentData.Type.VIDEO &&
-                        // Do not compress gif
-                        attachment.mimeType != MimeTypes.Gif &&
-                        params.compressBeforeSending) {
+                } else if (attachment.type == ContentAttachmentData.Type.VIDEO && params.compressBeforeSending) {
                     val outcome = compressVideo(params, newAttachmentAttributes, filesToDelete, ::workingFile)
                     fileToUpload = outcome.fileToUpload
                     newAttachmentAttributes = outcome.attributes

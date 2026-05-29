@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
+import org.matrix.android.sdk.api.util.MimeTypes
 import javax.inject.Inject
 import kotlin.math.min
 
@@ -123,11 +124,24 @@ class ImageContentRenderer @Inject constructor(
 
         createGlideRequest(data, mode, imageView, size)
                 .let {
-                    if (mode == Mode.ANIMATED_THUMBNAIL) it
-                    else it.dontAnimate()
+                    // Skip the memory drawable cache only for commonly-animated mimes: Glide
+                    // otherwise hands back the same drawable instance across binds with its
+                    // animation in a stopped state, freezing the thumbnail on the first frame.
+                    // Disk cache is untouched, so re-decode is cheap. PNG isn't in this set —
+                    // most PNGs are static and we don't want to re-decode them on every scroll;
+                    // the small risk is an APNG mis-labelled as image/png freezing intermittently.
+                    when {
+                        mode == Mode.ANIMATED_THUMBNAIL && data.mimeType in CACHE_SKIP_ANIMATED_MIMES -> it.skipMemoryCache(true)
+                        mode != Mode.ANIMATED_THUMBNAIL -> it.dontAnimate()
+                        else -> it
+                    }
                 }
                 .optionalTransform(cornerTransformation)
                 .into(imageView)
+    }
+
+    companion object {
+        private val CACHE_SKIP_ANIMATED_MIMES = setOf(MimeTypes.Gif, MimeTypes.Webp, MimeTypes.Apng)
     }
 
     fun clear(imageView: ImageView) {
@@ -214,8 +228,13 @@ class ImageContentRenderer @Inject constructor(
     }
 
     fun createGlideRequest(data: Data, mode: Mode, glideRequests: GlideRequests, size: Size = processSize(data, mode)): GlideRequest<Drawable> {
-        return if (data.elementToDecrypt != null) {
-            // Encrypted image
+        val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
+        return if (data.elementToDecrypt != null || isLocalContentUri) {
+            // Encrypted image, or local-echo content URI — go through our custom data loader so
+            // Glide always sees an InputStream. The default content-URI loader otherwise prefers a
+            // ParcelFileDescriptor, which routes to Downsampler (still bitmap) and skips the
+            // animated decoder chain — so APNG/animated WebP previews freeze on the first frame
+            // until the upload completes and we switch to an HTTP URL.
             glideRequests
                     .load(data)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)

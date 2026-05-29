@@ -41,56 +41,149 @@ internal class ImageCompressor @Inject constructor(
             desiredQuality: Int = 80,
     ): CompressedImage {
         return withContext(coroutineDispatchers.io) {
-            // Skip compression entirely on small files — re-encoding rarely pays for itself.
             if (imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES) {
                 return@withContext CompressedImage(imageFile, mimeType = null)
             }
 
-            // Probe dimensions without decoding the pixel data.
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            decodeBitmap(imageFile, bounds)
-            val srcWidth = bounds.outWidth
-            val srcHeight = bounds.outHeight
-            if (srcWidth <= 0 || srcHeight <= 0) {
-                // Couldn't decode bounds — fall back to returning the original file rather
-                // than re-encoding garbage.
-                return@withContext CompressedImage(imageFile, mimeType = null)
+            val format = sniffFormat(imageFile)
+            when (format) {
+                SourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                SourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                SourceFormat.XPM -> compressXpm(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                SourceFormat.OTHER -> compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality)
             }
+        }
+    }
 
-            val downsampleOptions = BitmapFactory.Options().apply {
-                inSampleSize = calculateInSampleSize(srcWidth, srcHeight, desiredWidth, desiredHeight)
-                inJustDecodeBounds = false
+    private suspend fun compressBitmap(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        decodeBitmap(imageFile, bounds)
+        val srcWidth = bounds.outWidth
+        val srcHeight = bounds.outHeight
+        if (srcWidth <= 0 || srcHeight <= 0) {
+            return CompressedImage(imageFile, mimeType = null)
+        }
+        val downsampleOptions = BitmapFactory.Options().apply {
+            inSampleSize = calculateInSampleSize(srcWidth, srcHeight, desiredWidth, desiredHeight)
+            inJustDecodeBounds = false
+        }
+        val downsampled = decodeBitmap(imageFile, downsampleOptions)?.let {
+            rotateBitmap(imageFile, it)
+        } ?: return CompressedImage(imageFile, mimeType = null)
+        return encodeBitmapToWebp(imageFile, downsampled, desiredWidth, desiredHeight, desiredQuality)
+    }
+
+    private suspend fun compressXpm(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+        val decoded = XpmBitmapReader.decode(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
+        return encodeBitmapToWebp(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
+    }
+
+    private suspend fun encodeBitmapToWebp(originalFile: File, sourceBitmap: Bitmap, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+        val compressedBitmap = scaleBitmapToFit(sourceBitmap, desiredWidth, desiredHeight)
+        val format = webpLossyFormat()
+        val destinationFile = temporaryFileCreator.create()
+        runCatching {
+            destinationFile.outputStream().use {
+                compressedBitmap.compress(format, desiredQuality, it)
             }
-            val downsampled = decodeBitmap(imageFile, downsampleOptions)?.let {
-                rotateBitmap(imageFile, it)
-            } ?: return@withContext CompressedImage(imageFile, mimeType = null)
+        }.onFailure {
+            return CompressedImage(originalFile, mimeType = null)
+        }
+        return CompressedImage(destinationFile, mimeType = "image/webp")
+    }
 
-            // inSampleSize only produces power-of-2 reductions, so the decoded bitmap may
-            // still be significantly larger than the requested bounds. Scale it down to fit
-            // the desired box while preserving aspect ratio so the uploaded file is not
-            // unexpectedly huge.
-            val compressedBitmap = scaleBitmapToFit(downsampled, desiredWidth, desiredHeight)
+    private suspend fun compressGif(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+        val frames = GifFrameReader.readFrames(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
+        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality)
+    }
 
-            // WebP gives ~30% smaller files than JPEG at equal quality and preserves alpha.
-            // WEBP_LOSSY (API 30+) handles transparency directly; on older devices fall back to
-            // the deprecated WEBP constant which is also lossy.
-            val format = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+    private suspend fun compressApng(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+        val frames = ApngFrameReader.readFrames(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
+        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality)
+    }
+
+    private suspend fun encodeFramesToAnimatedWebp(
+            originalFile: File,
+            frames: List<AnimatedFrame>,
+            desiredWidth: Int,
+            desiredHeight: Int,
+            desiredQuality: Int,
+    ): CompressedImage {
+        if (frames.isEmpty()) return CompressedImage(originalFile, mimeType = null)
+        // ANMF requires uniform canvas dims; scale every frame to fit the same bounds.
+        val scaled = frames.map { frame ->
+            val out = scaleBitmapToFit(frame.bitmap, desiredWidth, desiredHeight)
+            if (out !== frame.bitmap) frame.bitmap.recycle()
+            AnimatedFrame(out, frame.durationMs)
+        }
+        val destinationFile = temporaryFileCreator.create()
+        val ok = runCatching {
+            destinationFile.outputStream().use { os ->
+                AnimatedWebpEncoder.encode(scaled, desiredQuality, os)
+            }
+        }.getOrDefault(false)
+        scaled.forEach { it.bitmap.recycle() }
+        if (!ok) return CompressedImage(originalFile, mimeType = null)
+        // Safety net: if re-encoding made the file bigger (rare with already-efficient sources),
+        // throw the result away and keep the original.
+        if (destinationFile.length() >= originalFile.length()) {
+            destinationFile.delete()
+            return CompressedImage(originalFile, mimeType = null)
+        }
+        return CompressedImage(destinationFile, mimeType = "image/webp")
+    }
+
+    private fun webpLossyFormat(): Bitmap.CompressFormat =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 Bitmap.CompressFormat.WEBP_LOSSY
             } else {
                 @Suppress("DEPRECATION")
                 Bitmap.CompressFormat.WEBP
             }
 
-            val destinationFile = temporaryFileCreator.create()
-            runCatching {
-                destinationFile.outputStream().use {
-                    compressedBitmap.compress(format, desiredQuality, it)
-                }
-            }.onFailure {
-                return@withContext CompressedImage(imageFile, mimeType = null)
-            }
+    private enum class SourceFormat { GIF, APNG, XPM, OTHER }
 
-            CompressedImage(destinationFile, mimeType = "image/webp")
+    private fun sniffFormat(file: File): SourceFormat {
+        val head = ByteArray(64)
+        val read = try {
+            file.inputStream().use { it.read(head) }
+        } catch (t: Throwable) {
+            return SourceFormat.OTHER
+        }
+        if (read < 8) return SourceFormat.OTHER
+        // GIF: "GIF87a" or "GIF89a"
+        if (head[0] == 'G'.code.toByte() && head[1] == 'I'.code.toByte() && head[2] == 'F'.code.toByte()) return SourceFormat.GIF
+        // PNG signature; differentiate APNG by presence of the acTL chunk in the first ~64 bytes.
+        if (read >= 8 &&
+                head[0] == 0x89.toByte() && head[1] == 0x50.toByte() && head[2] == 0x4E.toByte() && head[3] == 0x47.toByte()) {
+            // acTL must appear before IDAT — scan the whole file's first ~4 KB to detect.
+            return if (containsApngMarker(file)) SourceFormat.APNG else SourceFormat.OTHER
+        }
+        if (read >= 9 && String(head, 0, 9, Charsets.US_ASCII).startsWith("/* XPM */")) return SourceFormat.XPM
+        return SourceFormat.OTHER
+    }
+
+    private fun containsApngMarker(file: File): Boolean {
+        // acTL chunk is required for APNG and must come before the first IDAT.
+        val buf = ByteArray(4096)
+        return try {
+            file.inputStream().use {
+                val n = it.read(buf)
+                if (n <= 0) return@use false
+                val needle = "acTL".toByteArray(Charsets.US_ASCII)
+                var i = 0
+                while (i <= n - needle.size) {
+                    var match = true
+                    for (k in needle.indices) {
+                        if (buf[i + k] != needle[k]) { match = false; break }
+                    }
+                    if (match) return@use true
+                    i++
+                }
+                false
+            }
+        } catch (t: Throwable) {
+            false
         }
     }
 

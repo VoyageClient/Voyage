@@ -27,15 +27,29 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
 
     override fun bind(holder: H) {
         super.bind(holder)
-        if (attachment.type == ContentAttachmentData.Type.VIDEO || attachment.type == ContentAttachmentData.Type.IMAGE) {
-            Glide.with(holder.view.context)
-                    .asBitmap()
-                    .load(attachment.queryUri)
-                    .apply(RequestOptions().frame(0))
-                    .into(holder.imageView)
-        } else {
-            holder.imageView.setImageResource(R.drawable.filetype_attachment)
-            holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+        when (attachment.type) {
+            ContentAttachmentData.Type.VIDEO -> {
+                // .frame(0) only does anything for video sources; .asBitmap() is required to
+                // hand Glide that hint.
+                Glide.with(holder.view.context)
+                        .asBitmap()
+                        .load(attachment.queryUri)
+                        .apply(RequestOptions().frame(0))
+                        .into(holder.imageView)
+            }
+            ContentAttachmentData.Type.IMAGE -> {
+                // Plain URI load — our registered Uri -> ByteBuffer loader (see MyAppGlideModule)
+                // feeds penfeizhou's animation decoder on Glide's background executor, so APNGs
+                // and animated WebPs preview correctly without us reading the file on the main
+                // thread.
+                Glide.with(holder.view.context)
+                        .load(attachment.queryUri)
+                        .into(holder.imageView)
+            }
+            else -> {
+                holder.imageView.setImageResource(R.drawable.filetype_attachment)
+                holder.imageView.scaleType = ImageView.ScaleType.FIT_CENTER
+            }
         }
     }
 

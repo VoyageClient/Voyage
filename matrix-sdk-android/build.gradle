@@ -218,6 +218,8 @@ dependencies {
     implementation 'androidx.media3:media3-transformer:1.5.1'
     implementation 'androidx.media3:media3-effect:1.5.1'
     implementation 'androidx.media3:media3-common:1.5.1'
+    // Frame-level GIF decoding for the animated GIF -> animated WebP recompress path.
+    implementation 'com.github.bumptech.glide:gifdecoder:4.16.0'
 
     // Exif data handling
     implementation libs.apache.commonsImaging

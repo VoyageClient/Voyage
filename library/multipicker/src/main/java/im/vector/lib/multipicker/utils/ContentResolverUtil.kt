@@ -37,7 +37,7 @@ internal fun Uri.toMultiPickerImageType(context: Context): MultiPickerImageType?
             val name = cursor.getStringOrNull(nameColumn)
             val size = cursor.getLongOrNull(sizeColumn) ?: 0
 
-            val bitmap = ImageUtils.getBitmap(context, this)
+            val dims = ImageUtils.getImageSize(context, this)
             val orientation = ImageUtils.getOrientation(context, this)
 
             MultiPickerImageType(
@@ -45,8 +45,8 @@ internal fun Uri.toMultiPickerImageType(context: Context): MultiPickerImageType?
                     size,
                     context.contentResolver.getType(this),
                     this,
-                    bitmap?.width ?: 0,
-                    bitmap?.height ?: 0,
+                    dims?.width ?: 0,
+                    dims?.height ?: 0,
                     orientation
             )
         } else {

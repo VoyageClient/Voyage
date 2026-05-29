@@ -13,7 +13,10 @@ import org.matrix.android.sdk.api.util.MimeTypes
 private val listOfPreviewableMimeTypes = listOf(
         MimeTypes.Jpeg,
         MimeTypes.Png,
-        MimeTypes.Gif
+        MimeTypes.Gif,
+        MimeTypes.Webp,
+        MimeTypes.Apng,
+        MimeTypes.Xpm,
 )
 
 fun ContentAttachmentData.isPreviewable(): Boolean {

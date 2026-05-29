@@ -10,14 +10,17 @@ package im.vector.app.core.glide
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.util.Log
 import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.module.AppGlideModule
+import com.github.penfeizhou.animation.decode.FrameSeqDecoder
 import im.vector.app.features.media.ImageContentRenderer
 import java.io.InputStream
+import java.nio.ByteBuffer
 
 @GlideModule
 class MyAppGlideModule : AppGlideModule() {
@@ -42,5 +45,14 @@ class MyAppGlideModule : AppGlideModule() {
         // a vector all the way to the ImageView so pinch-zoom keeps it crisp.
         registry.prepend(InputStream::class.java, Bitmap::class.java, XpmDecoder(glide.bitmapPool))
         registry.prepend(InputStream::class.java, Drawable::class.java, SvgDecoder())
+        // Override penfeizhou's bundled StreamAnimationDecoder: it runs the WebP/APNG/GIF probes
+        // back-to-back without resetting the InputStream between them, so any source whose first
+        // probe is non-WebP silently mis-detects and falls through to the still-bitmap path.
+        // This replacement re-reads from offset 0 for every probe.
+        registry.prepend(InputStream::class.java, FrameSeqDecoder::class.java, AnimatedStreamDecoder())
+        // Give Glide a Uri -> ByteBuffer path so attachment-preview loads can hand bytes straight
+        // to penfeizhou's ByteBufferAnimationDecoder without us blocking the main thread to read
+        // them ourselves. The fetcher runs on Glide's source executor.
+        registry.prepend(Uri::class.java, ByteBuffer::class.java, UriByteBufferLoaderFactory(context))
     }
 }

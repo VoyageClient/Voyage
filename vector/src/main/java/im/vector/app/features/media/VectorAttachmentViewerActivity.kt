@@ -95,19 +95,17 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 // Postpone transaction a bit until thumbnail is loaded
                 val mediaData: Parcelable? = intent.getParcelableExtraCompat(EXTRA_IMAGE_DATA)
                 if (mediaData is ImageContentRenderer.Data) {
-                    // will be shown at end of transition
                     pager2.isInvisible = true
                     supportPostponeEnterTransition()
+                    schedulePostponedTransitionTimeout(imageTransitionView)
                     imageContentRenderer.renderForSharedElementTransition(mediaData, imageTransitionView) {
-                        // Proceed with transaction
                         scheduleStartPostponedTransition(imageTransitionView)
                     }
                 } else if (mediaData is VideoContentRenderer.Data) {
-                    // will be shown at end of transition
                     pager2.isInvisible = true
                     supportPostponeEnterTransition()
+                    schedulePostponedTransitionTimeout(imageTransitionView)
                     imageContentRenderer.renderForSharedElementTransition(mediaData.thumbnailMediaData, imageTransitionView) {
-                        // Proceed with transaction
                         scheduleStartPostponedTransition(imageTransitionView)
                     }
                 }
@@ -232,6 +230,16 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 })
     }
 
+    /**
+     * Cap the postpone-enter-transition wait so the previous activity (timeline) doesn't sit
+     * frozen while the full-size image downloads. The transition starts when whichever fires
+     * first: the Glide load completes, or this timeout expires.
+     * [supportStartPostponedEnterTransition] is a no-op after the first call so this is safe.
+     */
+    private fun schedulePostponedTransitionTimeout(sharedElement: View) {
+        sharedElement.postDelayed({ scheduleStartPostponedTransition(sharedElement) }, POSTPONED_TRANSITION_TIMEOUT_MS)
+    }
+
     private fun observeViewEvents() {
         val tag = this::class.simpleName.toString()
         lifecycleScope.launch {
@@ -303,6 +311,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         private const val EXTRA_ARGS = "EXTRA_ARGS"
         private const val EXTRA_IMAGE_DATA = "EXTRA_IMAGE_DATA"
         private const val EXTRA_IN_MEMORY_DATA = "EXTRA_IN_MEMORY_DATA"
+        private const val POSTPONED_TRANSITION_TIMEOUT_MS = 150L
 
         fun newIntent(
                 context: Context,

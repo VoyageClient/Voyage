@@ -8,8 +8,11 @@
 package im.vector.app.features.home
 
 import android.graphics.Bitmap
+import android.graphics.Outline
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import androidx.annotation.AnyThread
 import androidx.annotation.ColorInt
@@ -63,6 +66,7 @@ class AvatarRenderer @Inject constructor(
     @UiThread
     fun render(matrixItem: MatrixItem, imageView: ImageView) {
         imageView.setContentDescription(matrixItem)
+        imageView.applyAvatarOutline(matrixItem)
         render(
                 GlideApp.with(imageView),
                 matrixItem,
@@ -92,11 +96,15 @@ class AvatarRenderer @Inject constructor(
     fun clear(imageView: ImageView) {
         // It can be called after recycler view is destroyed, just silently catch
         tryOrNull { GlideApp.with(imageView).clear(imageView) }
+        // Drop the outline mask in case this ImageView is recycled for a non-avatar use later.
+        imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
+        imageView.clipToOutline = false
     }
 
     @UiThread
     fun render(matrixItem: MatrixItem, imageView: ImageView, glideRequests: GlideRequests) {
         imageView.setContentDescription(matrixItem)
+        imageView.applyAvatarOutline(matrixItem)
         render(
                 glideRequests,
                 matrixItem,
@@ -107,6 +115,7 @@ class AvatarRenderer @Inject constructor(
     @UiThread
     fun render(matrixItem: MatrixItem, localUri: Uri?, imageView: ImageView) {
         imageView.setContentDescription(matrixItem)
+        imageView.applyAvatarOutline(matrixItem)
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(localUri?.let { File(localUri.path!!) })
@@ -125,6 +134,7 @@ class AvatarRenderer @Inject constructor(
         )
 
         val placeholder = getPlaceholderDrawable(matrixItem)
+        imageView.applyAvatarOutline(matrixItem)
         GlideApp.with(imageView)
                 .load(mappedContact.photoURI)
                 .apply(RequestOptions.circleCropTransform())
@@ -142,6 +152,7 @@ class AvatarRenderer @Inject constructor(
         )
 
         val placeholder = getPlaceholderDrawable(matrixItem)
+        imageView.applyAvatarOutline(matrixItem)
         GlideApp.with(imageView)
                 .load(profileInfo.fullAvatarUrl)
                 .apply(RequestOptions.circleCropTransform())
@@ -292,6 +303,25 @@ class AvatarRenderer @Inject constructor(
     private fun resolvedUrl(avatarUrl: String?): String? {
         return activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
                 ?.resolveThumbnail(avatarUrl, THUMBNAIL_SIZE, THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE)
+    }
+
+    /**
+     * Mask the ImageView to the avatar shape via outline clipping. Works for any drawable
+     * (animated WebP / APNG included), unlike Glide's CircleCrop which is a Bitmap-only
+     * transformation and is silently skipped for animated drawables.
+     */
+    private fun ImageView.applyAvatarOutline(matrixItem: MatrixItem) {
+        val cornerPx = if (matrixItem is MatrixItem.SpaceItem) dimensionConverter.dpToPx(8) else -1
+        outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                if (cornerPx >= 0) {
+                    outline.setRoundRect(0, 0, view.width, view.height, cornerPx.toFloat())
+                } else {
+                    outline.setOval(0, 0, view.width, view.height)
+                }
+            }
+        }
+        clipToOutline = true
     }
 
     /**

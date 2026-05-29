@@ -7,9 +7,11 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.graphics.Outline
 import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
@@ -70,10 +72,27 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
         val dimensionConverter = DimensionConverter(holder.view.resources)
-        val imageCornerTransformation = if (messageLayout is TimelineMessageLayout.Bubble) {
-            messageLayout.cornersRadius.granularRoundedCorners()
+        val isBubble = messageLayout is TimelineMessageLayout.Bubble
+        val imageCornerTransformation = if (isBubble) {
+            (messageLayout as TimelineMessageLayout.Bubble).cornersRadius.granularRoundedCorners()
         } else {
             RoundedCorners(dimensionConverter.dpToPx(8))
+        }
+        // Bubble layout already clips at the MessageBubbleView level. For non-bubble we apply a
+        // view-level outline clip too, so animated drawables (FrameAnimationDrawable / animated
+        // WebP / APNG) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
+        // Transformation and is silently skipped for those.
+        if (!isBubble) {
+            val r = dimensionConverter.dpToPx(8).toFloat()
+            holder.imageView.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, r)
+                }
+            }
+            holder.imageView.clipToOutline = true
+        } else {
+            holder.imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
+            holder.imageView.clipToOutline = false
         }
         imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
         if (!attributes.informationData.sendState.hasFailed()) {

@@ -588,8 +588,11 @@ class MessageItemFactory @Inject constructor(
         )
 
         val playable = messageContent.mimeType == MimeTypes.Gif
-        // don't show play button because detecting animated webp isn't possible via mimetype
-        val playableIfAutoplay = playable || messageContent.mimeType == MimeTypes.Webp
+        // don't show play button because detecting animated webp/apng isn't possible via mimetype
+        val playableIfAutoplay = playable ||
+                messageContent.mimeType == MimeTypes.Webp ||
+                messageContent.mimeType == MimeTypes.Apng ||
+                messageContent.mimeType == MimeTypes.Png
 
         val attachmentContent = messageContent as? MessageWithAttachmentContent
         val isReply = attachmentContent?.relatesTo?.inReplyTo?.eventId != null
