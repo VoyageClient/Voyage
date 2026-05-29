@@ -110,7 +110,6 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
                 caption = replyHeader,
                 bindingOptions = replyHeaderBindingOptions,
                 movementMethod = captionMovementMethod,
-                itemClickListener = attributes.itemClickListener,
                 itemLongClickListener = attributes.itemLongClickListener,
         )
         MediaCaptionBinder.bind(
@@ -118,7 +117,6 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
                 caption = caption,
                 bindingOptions = captionBindingOptions,
                 movementMethod = captionMovementMethod,
-                itemClickListener = attributes.itemClickListener,
                 itemLongClickListener = attributes.itemLongClickListener,
         )
     }

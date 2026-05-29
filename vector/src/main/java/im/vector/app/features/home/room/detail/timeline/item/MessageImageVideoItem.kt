@@ -107,7 +107,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 caption = replyHeader,
                 bindingOptions = replyHeaderBindingOptions,
                 movementMethod = captionMovementMethod,
-                itemClickListener = attributes.itemClickListener,
                 itemLongClickListener = attributes.itemLongClickListener,
         )
         MediaCaptionBinder.bind(
@@ -115,7 +114,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 caption = caption,
                 bindingOptions = captionBindingOptions,
                 movementMethod = captionMovementMethod,
-                itemClickListener = attributes.itemClickListener,
                 itemLongClickListener = attributes.itemLongClickListener,
         )
     }
