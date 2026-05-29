@@ -8,6 +8,7 @@
 package im.vector.app.core.glide
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.util.Log
 import com.bumptech.glide.Glide
@@ -36,5 +37,10 @@ class MyAppGlideModule : AppGlideModule() {
                 Drawable::class.java,
                 AvatarPlaceholderModelLoaderFactory(context)
         )
+        // Prepend so text-based formats (XPM, SVG) are caught before Glide falls through to
+        // the default BitmapFactory decoder which would error on non-binary inputs. SVG stays
+        // a vector all the way to the ImageView so pinch-zoom keeps it crisp.
+        registry.prepend(InputStream::class.java, Bitmap::class.java, XpmDecoder(glide.bitmapPool))
+        registry.prepend(InputStream::class.java, Drawable::class.java, SvgDecoder())
     }
 }

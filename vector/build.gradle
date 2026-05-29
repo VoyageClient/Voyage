@@ -233,6 +233,8 @@ dependencies {
     // APNG decoding for Glide (animated PNGs often labelled image/png).
     implementation 'com.github.penfeizhou.android.animation:apng:3.0.5'
     implementation 'com.github.penfeizhou.android.animation:glide-plugin:3.0.5'
+    // SVG rendering
+    implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'com.github.yalantis:ucrop:2.2.8'
 
     // Chat effects
