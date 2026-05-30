@@ -1112,9 +1112,8 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handlePlayOrPauseVoicePlayback(action: MessageComposerAction.PlayOrPauseVoicePlayback) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Download can fail
-                val audioFile = session.fileService().downloadFile(action.messageAudioContent)
-                // Play can fail
+                val audioFile = audioMessageHelper.resolveLocalFile(action.messageAudioContent.url)
+                        ?: session.fileService().downloadFile(action.messageAudioContent)
                 audioMessageHelper.startOrPausePlayback(action.eventId, audioFile)
             } catch (failure: Throwable) {
                 _viewEvents.post(MessageComposerViewEvents.VoicePlaybackOrRecordingFailure(failure))

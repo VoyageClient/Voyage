@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.composer
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.net.Uri
 import androidx.core.content.FileProvider
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -250,6 +251,20 @@ class AudioMessageHelper @Inject constructor(
     }
 
     fun getCurrentVoiceFile(): File? = voiceRecorder.getVoiceMessageFile()
+
+    // Lets the in-flight local-echo of an audio/voice message be played before its mxc:// URL
+    // arrives — by streaming the picker's content:// (or local file://) URI into a cache file.
+    fun resolveLocalFile(url: String?): File? {
+        val safeUrl = url?.takeIf { it.startsWith("content://") || it.startsWith("file://") } ?: return null
+        return tryOrNull {
+            val uri = Uri.parse(safeUrl)
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                File.createTempFile("local_audio_", null, context.cacheDir).also { tmp ->
+                    tmp.outputStream().use { input.copyTo(it) }
+                }
+            }
+        }
+    }
 
     fun stopAllVoiceActions(deleteRecord: Boolean = true): MultiPickerAudioType? {
         val audioType = stopRecording()
