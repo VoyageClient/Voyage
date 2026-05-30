@@ -3335,7 +3335,6 @@
     <string name="attachment_type_selector_poll">Polls</string>
     <string name="attachment_type_selector_location">Location</string>
     <string name="attachment_type_selector_camera">Camera</string>
-    <string name="attachment_type_selector_contact">Contact</string>
     <string name="attachment_type_selector_text_formatting">Text formatting</string>
 
     <string name="message_reaction_show_less">Show less</string>

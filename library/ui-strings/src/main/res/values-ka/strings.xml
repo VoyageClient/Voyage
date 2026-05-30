@@ -2527,7 +2527,6 @@
     <string name="attachment_type_selector_poll">გამოკითხვები</string>
     <string name="attachment_type_selector_location">ადგილმდებარეობა</string>
     <string name="attachment_type_selector_camera">კამერა</string>
-    <string name="attachment_type_selector_contact">კონტაქტი</string>
     <string name="message_reaction_show_less">აჩვენე ნაკლები</string>
     <string name="room_message_notify_everyone">შეატყობინეთ მთელი ოთახი</string>
     <string name="room_message_autocomplete_users">მომხმარებლები</string>

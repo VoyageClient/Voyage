@@ -2802,7 +2802,6 @@
     <string name="device_manager_session_last_activity">Laatste activiteit %1$s</string>
     <string name="device_manager_verification_status_detail_other_session_unknown">Verifieer je huidige sessie om de verificatiestatus van deze sessie weer te geven.</string>
     <string name="device_manager_verification_status_detail_other_session_unverified">Verifieer of meld je af bij deze sessie voor de beste beveiliging en betrouwbaarheid.</string>
-    <string name="attachment_type_selector_contact">Contact</string>
     <string name="attachment_type_selector_camera">Camera</string>
     <string name="attachment_type_selector_location">Locatie</string>
     <string name="attachment_type_selector_poll">Peilingen</string>

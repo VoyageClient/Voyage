@@ -60,7 +60,6 @@ import im.vector.app.features.attachments.AttachmentTypeSelectorSharedActionView
 import im.vector.app.features.attachments.AttachmentTypeSelectorView
 import im.vector.app.features.attachments.AttachmentTypeSelectorViewModel
 import im.vector.app.features.attachments.AttachmentsHelper
-import im.vector.app.features.attachments.ContactAttachment
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
@@ -92,6 +91,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
@@ -170,6 +170,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         setupBottomSheet()
         setupComposer()
         setupEmojiButton()
+
+        // Avoid a one-frame flash before renderRegularMode runs.
+        if (!vectorPreferences.isVoiceMessageButtonEnabled()) {
+            composer.sendButton.visibility = View.GONE
+        }
 
         views.composerLayout.isGone = vectorPreferences.isRichTextEditorEnabled()
         views.richTextComposerLayout.isVisible = vectorPreferences.isRichTextEditorEnabled()
@@ -269,7 +274,13 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (mainState.tombstoneEvent != null) return@withState
 
         (composer as? View)?.isVisible = messageComposerState.isComposerVisible
-        composer.sendButton.isInvisible = !messageComposerState.isSendButtonVisible
+        val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() &&
+                messageComposerState.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Locked
+        composer.sendButton.visibility = when {
+            messageComposerState.isSendButtonVisible -> View.VISIBLE
+            recorderClaimsSlot -> View.INVISIBLE
+            else -> View.GONE
+        }
         (composer as? RichTextComposerLayout)?.also {
             val isTextFormattingEnabled = attachmentState.isTextFormattingEnabled
             it.isTextFormattingEnabled = isTextFormattingEnabled
@@ -381,10 +392,15 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             }
 
             override fun onSendMessage(text: CharSequence) = withState(messageComposerViewModel) { state ->
-                sendTextMessage(text, composer.formattedText)
-
-                if (state.isFullScreen) {
-                    messageComposerViewModel.handle(MessageComposerAction.SetFullScreen(false))
+                if (state.isVoiceRecording) {
+                    messageComposerViewModel.handle(
+                            MessageComposerAction.EndRecordingVoiceMessage(isCancelled = false, rootThreadEventId = state.rootThreadEventId)
+                    )
+                } else {
+                    sendTextMessage(text, composer.formattedText)
+                    if (state.isFullScreen) {
+                        messageComposerViewModel.handle(MessageComposerAction.SetFullScreen(false))
+                    }
                 }
             }
 
@@ -494,7 +510,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             composer.sendButton.isVisible = true
             composer.sendButton.animate().alpha(1f).setDuration(150).start()
         } else {
-            composer.sendButton.isInvisible = true
+            val isLocked = withState(messageComposerViewModel) {
+                it.voiceRecordingUiState is VoiceMessageRecorderView.RecordingUiState.Locked
+            }
+            val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() && !isLocked
+            composer.sendButton.visibility = if (recorderClaimsSlot) View.INVISIBLE else View.GONE
         }
     }
 
@@ -705,11 +725,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
     }
 
-    override fun onContactAttachmentReady(contactAttachment: ContactAttachment) {
-        val formattedContact = contactAttachment.toHumanReadable()
-        messageComposerViewModel.handle(MessageComposerAction.SendMessage(formattedContact, null, false))
-    }
-
     override fun onAttachmentError(throwable: Throwable) {
         showFailure(throwable)
     }
@@ -740,7 +755,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             )
             AttachmentType.FILE -> attachmentsHelper.selectFile(attachmentFileActivityResultLauncher)
             AttachmentType.GALLERY -> attachmentsHelper.selectGallery(attachmentMediaActivityResultLauncher)
-            AttachmentType.CONTACT -> attachmentsHelper.selectContact(attachmentContactActivityResultLauncher)
+            AttachmentType.VOICE_FILE -> attachmentsHelper.selectVoiceFile(attachmentVoiceFileActivityResultLauncher)
             AttachmentType.STICKER -> timelineViewModel.handle(RoomDetailAction.SelectStickerAttachment)
             AttachmentType.POLL -> navigator.openCreatePoll(requireContext(), roomId, null, PollMode.CREATE)
             AttachmentType.LOCATION -> {
@@ -771,9 +786,33 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
     }
 
-    private val attachmentContactActivityResultLauncher = registerStartForActivityResult {
-        if (it.resultCode == Activity.RESULT_OK) {
-            attachmentsHelper.onContactResult(it.data)
+    private val attachmentVoiceFileActivityResultLauncher = registerStartForActivityResult { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@registerStartForActivityResult
+        val data = result.data ?: return@registerStartForActivityResult
+
+        val pendingReplyToEvent = withState(messageComposerViewModel) { (it.sendMode as? SendMode.Reply)?.timelineEvent }
+        val pendingCaption = composer.text?.toString().orEmpty().takeIf { it.isNotBlank() }
+        val pendingFormatted = composer.formattedText?.takeIf { pendingCaption != null }
+        val pendingAutoMarkdown = pendingCaption != null && pendingFormatted == null && vectorPreferences.isMarkdownEnabled()
+        if (pendingReplyToEvent != null || pendingCaption != null) {
+            composer.setTextIfDifferent("")
+            composer.renderComposerMode(MessageComposerMode.Normal(""))
+            messageComposerViewModel.handle(MessageComposerAction.OnAttachmentsSent)
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val attachments = attachmentsHelper.processVoiceFileResult(data)
+            if (attachments.isEmpty()) return@launch
+            timelineViewModel.handle(
+                    RoomDetailAction.SendMedia(
+                            attachments = attachments,
+                            compressBeforeSending = false,
+                            replyToEvent = pendingReplyToEvent,
+                            captionText = pendingCaption,
+                            captionFormattedText = pendingFormatted,
+                            autoMarkdown = pendingAutoMarkdown,
+                    )
+            )
         }
     }
 

@@ -2624,7 +2624,6 @@
     <string name="unifiedpush_getdistributors_dialog_title">Zgjidhni si të merren njoftime</string>
     <string name="screen_sharing_notification_description">Tregimi i ekranit është në punë e sipër</string>
     <string name="screen_sharing_notification_title">Tregim Ekrani ${app_name}</string>
-    <string name="attachment_type_selector_contact">Kontakt</string>
     <string name="attachment_type_selector_camera">Kamerë</string>
     <string name="attachment_type_selector_location">Vendndodhje</string>
     <string name="attachment_type_selector_poll">Pyetësorë</string>

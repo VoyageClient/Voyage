@@ -2757,7 +2757,6 @@
     <string name="push_gateway_item_enabled">已启用：</string>
     <string name="push_gateway_item_device_id">会话ID：</string>
     <string name="error_check_network">出了点差错。请检查你的网络连接并重试。</string>
-    <string name="attachment_type_selector_contact">联系人</string>
     <string name="rich_text_editor_full_screen_toggle">切换全屏模式</string>
     <string name="device_manager_other_sessions_select">选择会话</string>
     <string name="attachment_type_selector_text_formatting">文本格式</string>

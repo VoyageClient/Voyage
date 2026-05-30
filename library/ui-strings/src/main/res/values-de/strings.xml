@@ -2812,7 +2812,6 @@
     <string name="voice_broadcast_live">Live</string>
     <string name="attachment_type_selector_sticker">Sticker</string>
     <string name="device_manager_other_sessions_select">Sitzungen auswählen</string>
-    <string name="attachment_type_selector_contact">Kontakt</string>
     <string name="attachment_type_selector_camera">Kamera</string>
     <string name="attachment_type_selector_location">Standort</string>
     <string name="attachment_type_selector_poll">Umfragen</string>

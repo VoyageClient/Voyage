@@ -135,13 +135,10 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
                 dragState = DraggingState.Ready
             }
             is RecordingUiState.Locked -> {
-                if (lastKnownState == null) {
+                if (lastKnownState !is RecordingUiState.Recording) {
                     startRecordingTicker(startFromLocked = true, startAt = recordingState.recordingStartTimestamp)
                 }
-                voiceMessageViews.renderLocked()
-                postDelayed({
-                    voiceMessageViews.showRecordingLockedViews(recordingState)
-                }, 500)
+                voiceMessageViews.showRecordingLockedViews(recordingState)
             }
             RecordingUiState.Draft -> {
                 stopRecordingTicker()

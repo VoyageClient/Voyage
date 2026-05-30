@@ -61,7 +61,7 @@ class AttachmentTypeSelectorBottomSheet : VectorBaseBottomSheetDialogFragment<Bo
         views.poll.debouncedClicks { onAttachmentSelected(AttachmentType.POLL) }
         views.location.debouncedClicks { onAttachmentSelected(AttachmentType.LOCATION) }
         views.camera.debouncedClicks { onAttachmentSelected(AttachmentType.CAMERA) }
-        views.contact.debouncedClicks { onAttachmentSelected(AttachmentType.CONTACT) }
+        views.voiceFile.debouncedClicks { onAttachmentSelected(AttachmentType.VOICE_FILE) }
         views.textFormatting.setOnCheckedChangeListener { _, isChecked -> onTextFormattingToggled(isChecked) }
     }
 

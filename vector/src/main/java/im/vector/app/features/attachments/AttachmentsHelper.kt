@@ -20,8 +20,9 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import im.vector.lib.core.utils.compat.getSerializableCompat
 import im.vector.lib.multipicker.MultiPicker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import timber.log.Timber
 
 private const val CAPTURE_PATH_KEY = "CAPTURE_PATH_KEY"
 private const val PENDING_TYPE_KEY = "PENDING_TYPE_KEY"
@@ -36,7 +37,6 @@ class AttachmentsHelper(
 ) : Restorable {
 
     interface Callback {
-        fun onContactAttachmentReady(contactAttachment: ContactAttachment)
         fun onContentAttachmentsReady(attachments: List<ContentAttachmentData>)
         fun onAttachmentError(throwable: Throwable)
     }
@@ -107,10 +107,10 @@ class AttachmentsHelper(
     }
 
     /**
-     * Starts the process for handling contact picking.
+     * Starts the process for picking an audio file to upload as a fake voice message.
      */
-    fun selectContact(activityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
-        MultiPicker.get(MultiPicker.CONTACT).startWith(activityResultLauncher)
+    fun selectVoiceFile(activityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
+        MultiPicker.get(MultiPicker.AUDIO).startWith(activityResultLauncher)
     }
 
     private fun doSafe(function: () -> Unit) {
@@ -140,17 +140,16 @@ class AttachmentsHelper(
         )
     }
 
-    fun onContactResult(data: Intent?) {
-        MultiPicker.get(MultiPicker.CONTACT)
-                .getSelectedFiles(context, data)
-                .firstOrNull()
-                ?.toContactAttachment()
-                ?.let {
-                    if (buildMeta.lowPrivacyLoggingEnabled) {
-                        Timber.v("On contact attachment ready: $it")
-                    }
-                    callback.onContactAttachmentReady(it)
-                }
+    suspend fun processVoiceFileResult(data: Intent?): List<ContentAttachmentData> = withContext(Dispatchers.IO) {
+        MultiPicker.get(MultiPicker.AUDIO).getSelectedFiles(context, data).map { audio ->
+            audio.waveform = AudioWaveformExtractor.extract(context, audio.contentUri)
+            val ext = audio.displayName
+                    ?.substringAfterLast('.', missingDelimiterValue = "")
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { if (it.equals("opus", ignoreCase = true)) "ogg" else it }
+            val voiceName = if (ext != null) "Voice message.$ext" else "Voice message"
+            audio.toContentAttachmentData(isVoiceMessage = true).copy(name = voiceName)
+        }
     }
 
     fun onMediaResult(data: Intent?) {

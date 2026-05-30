@@ -2,6 +2,12 @@
 <resources>
 
     <string name="ellipsis" translatable="false">…</string>
+
+    <string name="attachment_type_selector_voice_file" translatable="false">Voice file</string>
+    <string name="attachment_type_voice_file" translatable="false">Voice file</string>
+    <string name="tooltip_attachment_voice_file" translatable="false">Send audio as voice message</string>
+    <string name="settings_enable_voice_message_button_title" translatable="false">Show voice message button</string>
+    <string name="settings_enable_voice_message_button_summary" translatable="false">Show the microphone next to the message box.</string>
     <string name="no_value_placeholder" translatable="false">–</string>
 
     <!-- Temporary string -->

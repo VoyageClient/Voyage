@@ -80,8 +80,8 @@ data class MessageComposerViewState(
 
     val isVoiceMessageIdle = !isVoiceRecording
 
-    val isComposerVisible = canSendMessage.boolean() && !isVoiceRecording && !isRoomError
-    val isVoiceMessageRecorderVisible = canSendMessage.boolean() && !isSendButtonVisible && !isRoomError
+    val isComposerVisible = canSendMessage.boolean() && !isRoomError
+    val isVoiceMessageRecorderVisible = canSendMessage.boolean() && !isRoomError && (isVoiceRecording || !isSendButtonVisible)
 
     constructor(args: TimelineArgs) : this(
             roomId = args.roomId,

@@ -171,6 +171,12 @@
             android:summary="@string/settings_enable_emoji_autocomplete_summary"
             android:title="@string/settings_enable_emoji_autocomplete_title" />
 
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON"
+            android:summary="@string/settings_enable_voice_message_button_summary"
+            android:title="@string/settings_enable_voice_message_button_title" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory

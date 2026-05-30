@@ -14,6 +14,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.airbnb.mvrx.parentFragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.hardware.vibrate
 import im.vector.app.core.platform.VectorBaseFragment
@@ -48,6 +49,8 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             // In this case, let the user start again the gesture
         } else if (deniedPermanently) {
             vectorBaseActivity.onPermissionDeniedSnackbar(CommonStrings.denied_permission_voice_message)
+        } else {
+            Snackbar.make(requireView(), CommonStrings.denied_permission_voice_message, Snackbar.LENGTH_SHORT).show()
         }
     }
 
@@ -92,13 +95,16 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         if (mainState.tombstoneEvent != null) return@withState
 
         val hasVoiceDraft = messageComposerState.voiceRecordingUiState is VoiceMessageRecorderView.RecordingUiState.Draft
+        val shouldBeVisible = messageComposerState.isVoiceMessageRecorderVisible || hasVoiceDraft
         with(views.root) {
-            isVisible = messageComposerState.isVoiceMessageRecorderVisible || hasVoiceDraft
-            render(messageComposerState.voiceRecordingUiState)
+            isVisible = shouldBeVisible
+            if (shouldBeVisible) render(messageComposerState.voiceRecordingUiState)
         }
     }
 
     private fun handleSendButtonVisibilityChanged(isSendButtonVisible: Boolean) {
+        // Voice states stack the recorder above the composer; only idle-typing swaps them.
+        if (withState(messageComposerViewModel) { it.isVoiceRecording }) return
         if (isSendButtonVisible) {
             views.root.isVisible = false
         } else {

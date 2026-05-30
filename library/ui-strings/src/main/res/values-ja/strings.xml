@@ -2612,7 +2612,6 @@
     <string name="screen_sharing_notification_description">画面を共有しています</string>
     <string name="screen_sharing_notification_title">${app_name}の画面共有</string>
     <string name="attachment_type_selector_text_formatting">テキストの装飾</string>
-    <string name="attachment_type_selector_contact">連絡先</string>
     <string name="attachment_type_selector_camera">カメラ</string>
     <string name="attachment_type_selector_location">位置情報</string>
     <string name="attachment_type_selector_poll">アンケート</string>

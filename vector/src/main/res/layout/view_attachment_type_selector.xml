@@ -103,15 +103,14 @@
                 android:src="@drawable/ic_attachment_camera"
                 app:tint="?colorPrimary" />
 
-            <!-- TODO. Request for new icon -->
             <ImageButton
-                android:id="@+id/attachmentContactButton"
+                android:id="@+id/attachmentVoiceFileButton"
                 android:layout_width="@dimen/layout_touch_size"
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:contentDescription="@string/attachment_type_contact"
-                android:src="@drawable/ic_attachment_contact_white_24dp"
+                android:contentDescription="@string/attachment_type_voice_file"
+                android:src="@drawable/ic_attachment_voice_file"
                 app:tint="?colorPrimary" />
 
         </LinearLayout>

@@ -473,7 +473,7 @@ internal class RichTextComposerLayout @JvmOverloads constructor(
                 if (isTextFormattingEnabled) {
                     replaceFormattedContent(text)
                 } else {
-                    views.plainTextComposerEditText.setText(text)
+                    views.plainTextComposerEditText.setTextIfDifferent(text)
                 }
             }
             hasRelatedMessage = false

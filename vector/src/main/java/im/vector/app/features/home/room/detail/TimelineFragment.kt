@@ -125,6 +125,7 @@ import im.vector.app.features.home.room.detail.composer.CanSendStatus
 import im.vector.app.features.home.room.detail.composer.MessageComposerAction
 import im.vector.app.features.home.room.detail.composer.MessageComposerFragment
 import im.vector.app.features.home.room.detail.composer.MessageComposerViewModel
+import im.vector.app.features.home.room.detail.composer.MessageComposerViewState
 import im.vector.app.features.home.room.detail.composer.boolean
 import im.vector.app.features.home.room.detail.composer.voice.VoiceRecorderFragment
 import im.vector.app.features.home.room.detail.error.RoomNotFound
@@ -336,6 +337,12 @@ class TimelineFragment :
         setupRemoveJitsiWidgetView()
         setupLiveLocationIndicator()
         setupBackPressHandling()
+        setupVoiceRecorderStacking()
+
+        // Avoid a one-frame flash before invalidate runs.
+        if (!vectorPreferences.isVoiceMessageButtonEnabled()) {
+            views.voiceMessageRecorderContainer.isVisible = false
+        }
 
         views.includeRoomToolbar.roomToolbarContentView.debouncedClicks {
             navigator.openRoomProfile(requireActivity(), timelineArgs.roomId)
@@ -417,6 +424,34 @@ class TimelineFragment :
                 RoomDetailViewEvents.DisplayPromptToStopVoiceBroadcast -> displayPromptToStopVoiceBroadcast()
                 is RoomDetailViewEvents.RevokeFilePermission -> revokeFilePermission(it)
             }
+        }
+    }
+
+    private fun setupVoiceRecorderStacking() {
+        views.composerContainer.viewTreeObserver.addOnGlobalLayoutListener {
+            withState(messageComposerViewModel, ::syncVoiceRecorderStackMargin)
+        }
+    }
+
+    private fun syncVoiceRecorderStackMargin(state: MessageComposerViewState) {
+        val recorder = views.voiceMessageRecorderContainer
+        val recorderParams = recorder.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        val composerHeight = childFragmentManager.findFragmentById(R.id.composerContainer)?.view?.height
+                ?.takeIf { it > 0 }
+                ?: resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
+        val recorderTarget = if (state.isVoiceRecording) composerHeight else 0
+        if (recorderParams.bottomMargin != recorderTarget) {
+            recorderParams.bottomMargin = recorderTarget
+            recorder.layoutParams = recorderParams
+        }
+
+        val jumpParams = views.jumpToBottomView.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        val baseMargin = (16f * resources.displayMetrics.density).toInt()
+        val recorderVisible = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
+        val jumpTarget = baseMargin + if (state.isVoiceRecording) recorderVisible else 0
+        if (jumpParams.bottomMargin != jumpTarget) {
+            jumpParams.bottomMargin = jumpTarget
+            views.jumpToBottomView.layoutParams = jumpParams
         }
     }
 
@@ -1171,7 +1206,9 @@ class TimelineFragment :
 
             if (mainState.tombstoneEvent == null) {
                 views.composerContainer.isInvisible = !messageComposerState.isComposerVisible
-                views.voiceMessageRecorderContainer.isVisible = messageComposerState.isVoiceMessageRecorderVisible
+                views.voiceMessageRecorderContainer.isVisible =
+                        messageComposerState.isVoiceMessageRecorderVisible && vectorPreferences.isVoiceMessageButtonEnabled()
+                syncVoiceRecorderStackMargin(messageComposerState)
                 when (messageComposerState.canSendMessage) {
                     CanSendStatus.Allowed -> {
                         NotificationAreaView.State.Hidden

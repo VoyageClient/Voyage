@@ -2758,7 +2758,6 @@
     <string name="a11y_resume_voice_broadcast_record">繼續錄製語音廣播</string>
     <string name="voice_broadcast_live">直播</string>
     <string name="device_manager_other_sessions_select">選取工作階段</string>
-    <string name="attachment_type_selector_contact">聯絡人</string>
     <string name="attachment_type_selector_camera">相機</string>
     <string name="attachment_type_selector_location">位置</string>
     <string name="attachment_type_selector_poll">投票</string>

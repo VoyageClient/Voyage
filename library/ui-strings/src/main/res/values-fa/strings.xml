@@ -2770,7 +2770,6 @@
     <string name="device_manager_session_details_device_operating_system">سیستم‌عامل</string>
     <string name="device_manager_push_notifications_title">آگاهی‌های ارسالی</string>
     <string name="push_gateway_item_device_id">شناسهٔ نشست:</string>
-    <string name="attachment_type_selector_contact">آشنا</string>
     <string name="attachment_type_selector_camera">دوربین</string>
     <string name="attachment_type_selector_location">مکان</string>
     <string name="attachment_type_selector_poll">نظرسنجی‌ها</string>

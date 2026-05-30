@@ -119,6 +119,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_ENABLE_DIRECT_SHARE = "SETTINGS_ENABLE_DIRECT_SHARE"
         private const val SETTINGS_ENABLE_APP_SHORTCUTS = "SETTINGS_ENABLE_APP_SHORTCUTS"
         private const val SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE = "SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE"
+        private const val SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON = "SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON"
         private const val SETTINGS_PERF_LOGGING_ENABLED = "SETTINGS_PERF_LOGGING_ENABLED"
 
         // Room directory
@@ -1032,6 +1033,10 @@ class VectorPreferences @Inject constructor(
 
     fun isEmojiAutocompleteEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE, true)
+    }
+
+    fun isVoiceMessageButtonEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON, true)
     }
 
     fun isPerfLoggingEnabled(): Boolean {

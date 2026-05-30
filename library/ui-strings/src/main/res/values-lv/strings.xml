@@ -2851,7 +2851,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="a11y_device_manager_filter">Atlasīt</string>
     <string name="tooltip_attachment_location">Kopīgot atrašanās vietu</string>
     <string name="tooltip_attachment_voice_broadcast">Uzsākt balss apraidi</string>
-    <string name="attachment_type_selector_contact">Kontakts</string>
     <string name="room_message_notify_everyone">Paziņot visai istabai</string>
     <string name="room_message_autocomplete_users">Lietotāji</string>
     <string name="unifiedpush_distributor_background_sync">Sinhronizēšana fonā</string>

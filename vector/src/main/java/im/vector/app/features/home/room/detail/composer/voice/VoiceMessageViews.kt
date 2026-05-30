@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.composer.voice
 
-import android.annotation.SuppressLint
 import android.content.res.Resources
 import android.text.format.DateUtils
 import android.view.MotionEvent
@@ -77,26 +76,9 @@ class VoiceMessageViews(
 
     private fun getTouchedPositionPercentage(motionEvent: MotionEvent, view: View) = (motionEvent.x / view.width).coerceIn(0f, 1f)
 
-    @SuppressLint("ClickableViewAccessibility")
     private fun observeMicButton(actions: Actions) {
-        val draggableStateProcessor = DraggableStateProcessor(resources, dimensionConverter)
-        views.voiceMessageMicButton.setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    draggableStateProcessor.initialize(event)
-                    actions.onRequestRecording()
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    actions.onMicButtonReleased()
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    actions.onMicButtonDrag { currentState -> draggableStateProcessor.process(event, currentState) }
-                    true
-                }
-                else -> false
-            }
+        views.voiceMessageMicButton.setOnClickListener {
+            actions.onRequestRecording()
         }
     }
 
@@ -274,7 +256,7 @@ class VoiceMessageViews(
         hideRecordingViews(RecordingUiState.Idle)
         views.voiceMessageBackgroundView.isVisible = true
         views.voiceMessageMicButton.isVisible = false
-        views.voiceMessageSendButton.isVisible = true
+        views.voiceMessageSendButton.isVisible = false
         views.voiceMessagePlaybackLayout.isVisible = true
         views.voiceMessagePlaybackTimerIndicator.isVisible = false
         views.voicePlaybackControlButton.isVisible = true
@@ -283,11 +265,14 @@ class VoiceMessageViews(
 
     fun showRecordingLockedViews(recordingState: RecordingUiState) {
         hideRecordingViews(recordingState)
+        views.voiceMessageMicButton.isVisible = false
+        views.voiceMessageLockImage.isVisible = false
+        views.voiceMessageLockBackground.isVisible = false
         views.voiceMessageBackgroundView.isVisible = true
         views.voiceMessagePlaybackLayout.isVisible = true
         views.voiceMessagePlaybackTimerIndicator.isVisible = true
         views.voicePlaybackControlButton.isVisible = false
-        views.voiceMessageSendButton.isVisible = true
+        views.voiceMessageSendButton.isVisible = false
         views.voicePlaybackWaveform.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
         renderToast(resources.getString(CommonStrings.voice_message_tap_to_stop_toast))
     }

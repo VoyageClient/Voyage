@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -141,8 +142,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         popDraft(room)
     }
 
-    private fun handleOnVoiceRecordingUiStateChanged(action: MessageComposerAction.OnVoiceRecordingUiStateChanged) = setState {
-        copy(voiceRecordingUiState = action.uiState)
+    private fun handleOnVoiceRecordingUiStateChanged(action: MessageComposerAction.OnVoiceRecordingUiStateChanged) {
+        setState { copy(voiceRecordingUiState = action.uiState) }
+        updateIsSendButtonVisibility(triggerAnimation = true)
     }
 
     /**
@@ -172,7 +174,12 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun updateIsSendButtonVisibility(triggerAnimation: Boolean) = setState {
-        val isSendButtonVisible = isComposerVisible && (sendMode !is SendMode.Regular || currentComposerText.isNotBlank())
+        val isSendButtonVisible = isComposerVisible && (
+                isVoiceRecording ||
+                        currentComposerText.isNotBlank() ||
+                        sendMode is SendMode.Edit ||
+                        sendMode is SendMode.Quote
+                )
         if (this.isSendButtonVisible != isSendButtonVisible && triggerAnimation) {
             _viewEvents.post(MessageComposerViewEvents.AnimateSendButtonVisibility(isSendButtonVisible))
         }
@@ -750,9 +757,14 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun loadDraftIfAny(room: Room) {
         val currentDraft = room.draftService().getDraft()
+        // Drop a stale voice draft before render so the recorder doesn't flicker through Draft state.
+        if (currentDraft is UserDraft.Voice && !voiceDraftFileExists(room, currentDraft.content)) {
+            viewModelScope.launch { room.draftService().deleteDraft() }
+            setState { copy(sendMode = SendMode.Regular("", fromSharing = false)) }
+            return
+        }
         setState {
             copy(
-                    // Create a sendMode from a draft and retrieve the TimelineEvent
                     sendMode = when (currentDraft) {
                         is UserDraft.Regular -> SendMode.Regular(currentDraft.content, false)
                         is UserDraft.Quote -> {
@@ -775,6 +787,13 @@ class MessageComposerViewModel @AssistedInject constructor(
                     } ?: SendMode.Regular("", fromSharing = false)
             )
         }
+    }
+
+    private fun voiceDraftFileExists(room: Room, content: String): Boolean {
+        val attachmentData = tryOrNull { ContentAttachmentData.fromJsonString(content) } ?: return false
+        audioMessageHelper.initializeRecorder(room.roomId, attachmentData)
+        val file = audioMessageHelper.getCurrentVoiceFile()
+        return file != null && file.exists() && file.length() > 0L
     }
 
     private fun handleUserIsTyping(room: Room, action: MessageComposerAction.UserIsTyping) {
@@ -1023,32 +1042,71 @@ class MessageComposerViewModel @AssistedInject constructor(
         } else {
             try {
                 audioMessageHelper.startRecording(room.roomId)
-                setState { copy(voiceRecordingUiState = VoiceMessageRecorderView.RecordingUiState.Recording(clock.epochMillis())) }
+                setState {
+                    copy(
+                            voiceRecordingUiState = VoiceMessageRecorderView.RecordingUiState.Locked(clock.epochMillis()),
+                            sendMode = sendMode.withSyncedText(currentComposerText),
+                    )
+                }
             } catch (failure: Throwable) {
                 _viewEvents.post(MessageComposerViewEvents.VoicePlaybackOrRecordingFailure(failure))
             }
         }
     }
 
+    private fun SendMode.withSyncedText(text: CharSequence): SendMode = when (this) {
+        is SendMode.Regular -> copy(text = text)
+        is SendMode.Reply -> copy(text = text)
+        is SendMode.Quote -> copy(text = text)
+        is SendMode.Edit -> copy(text = text)
+        is SendMode.Voice -> this
+    }
+
     private fun handleEndRecordingVoiceMessage(room: Room, isCancelled: Boolean, rootThreadEventId: String? = null) {
         audioMessageHelper.stopPlayback()
         if (isCancelled) {
             audioMessageHelper.deleteRecording()
-        } else {
-            audioMessageHelper.stopRecording()?.let { audioType ->
-                if (audioType.duration > 1000) {
-                    room.sendService().sendMedia(
-                            attachment = audioType.toContentAttachmentData(isVoiceMessage = true),
-                            compressBeforeSending = false,
-                            roomIds = emptySet(),
-                            rootThreadEventId = rootThreadEventId
-                    )
-                } else {
-                    audioMessageHelper.deleteRecording()
-                }
+            finishVoiceDraft(room, resetSendMode = false)
+            return
+        }
+        val audioType = audioMessageHelper.stopRecording()
+        if (audioType == null || audioType.duration <= 1000) {
+            audioMessageHelper.deleteRecording()
+            finishVoiceDraft(room, resetSendMode = false)
+            return
+        }
+        val replyTo = withState(this) { (it.sendMode as? SendMode.Reply)?.timelineEvent }
+        val caption = currentComposerText.toString().takeIf { it.isNotBlank() }
+        room.sendService().sendMedia(
+                attachment = audioType.toContentAttachmentData(isVoiceMessage = true),
+                compressBeforeSending = false,
+                roomIds = emptySet(),
+                rootThreadEventId = rootThreadEventId,
+                replyToEvent = replyTo,
+                captionText = caption,
+        )
+        currentComposerText = ""
+        finishVoiceDraft(room, resetSendMode = true)
+    }
+
+    private fun finishVoiceDraft(room: Room, resetSendMode: Boolean) {
+        setState {
+            val nextSendMode = when {
+                resetSendMode -> SendMode.Regular("", false)
+                sendMode is SendMode.Voice -> SendMode.Regular(currentComposerText, false)
+                else -> sendMode.withSyncedText(currentComposerText)
+            }
+            copy(
+                    voiceRecordingUiState = VoiceMessageRecorderView.RecordingUiState.Idle,
+                    sendMode = nextSendMode,
+            )
+        }
+        updateIsSendButtonVisibility(triggerAnimation = false)
+        viewModelScope.launch {
+            if (room.draftService().getDraft() is UserDraft.Voice) {
+                room.draftService().deleteDraft()
             }
         }
-        handleEnterRegularMode(MessageComposerAction.EnterRegularMode(fromSharing = false))
     }
 
     private fun handlePlayOrPauseVoicePlayback(action: MessageComposerAction.PlayOrPauseVoicePlayback) {
@@ -1079,6 +1137,11 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleInitializeVoiceRecorder(room: Room, attachmentData: ContentAttachmentData) {
         audioMessageHelper.initializeRecorder(room.roomId, attachmentData)
+        val file = audioMessageHelper.getCurrentVoiceFile()
+        if (file == null || !file.exists() || file.length() == 0L) {
+            finishVoiceDraft(room, resetSendMode = true)
+            return
+        }
         setState { copy(voiceRecordingUiState = VoiceMessageRecorderView.RecordingUiState.Draft) }
     }
 

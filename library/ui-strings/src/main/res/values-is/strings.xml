@@ -2321,7 +2321,6 @@
     <string name="device_manager_header_section_security_recommendations_title">Ráðleggingar varðandi öryggi</string>
     <string name="live_location_labs_promotion_title">Deiling staðsetningar í rauntíma</string>
     <string name="attachment_type_selector_text_formatting">Sníðing texta</string>
-    <string name="attachment_type_selector_contact">Tengiliður</string>
     <string name="attachment_type_selector_camera">Myndavél</string>
     <string name="attachment_type_selector_location">Staðsetning</string>
     <string name="attachment_type_selector_poll">Kannanir</string>

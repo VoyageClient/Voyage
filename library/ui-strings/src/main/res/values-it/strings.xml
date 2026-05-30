@@ -2803,7 +2803,6 @@
     <string name="a11y_resume_voice_broadcast_record">Riprendi registrazione trasmissione vocale</string>
     <string name="voice_broadcast_live">In diretta</string>
     <string name="device_manager_other_sessions_select">Seleziona sessioni</string>
-    <string name="attachment_type_selector_contact">Contatto</string>
     <string name="attachment_type_selector_camera">Fotocamera</string>
     <string name="attachment_type_selector_location">Posizione</string>
     <string name="attachment_type_selector_poll">Sondaggi</string>

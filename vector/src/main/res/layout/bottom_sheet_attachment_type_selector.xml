@@ -75,11 +75,11 @@
             app:titleTextColor="?vctr_content_primary" />
 
         <im.vector.app.core.ui.views.BottomSheetActionButton
-            android:id="@+id/contact"
+            android:id="@+id/voiceFile"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:actionTitle="@string/attachment_type_selector_contact"
-            app:leftIcon="@drawable/ic_attachment_contact_white_24dp"
+            app:actionTitle="@string/attachment_type_selector_voice_file"
+            app:leftIcon="@drawable/ic_attachment_voice_file"
             app:tint="?colorPrimary"
             app:titleTextColor="?vctr_content_primary" />
 

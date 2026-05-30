@@ -257,9 +257,11 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     Timber.e(failure, "## Failed to update file cache")
                 }
 
-                // Delete the temporary voice message file
+                // Picked audio uses a MediaStore URI we don't own — let the delete fail quietly.
                 if (params.attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE) {
-                    context.contentResolver.delete(params.attachment.queryUri, null, null)
+                    tryOrNull("Failed to delete voice message source") {
+                        context.contentResolver.delete(params.attachment.queryUri, null, null)
+                    }
                 }
 
                 val uploadThumbnailResult = dealWithThumbnail(params, transcodedVideoFile)

@@ -2794,7 +2794,6 @@
     <string name="device_manager_inactive_sessions_title">Sesje nieaktywne</string>
     <string name="device_manager_verification_status_detail_other_session_verified">Sesja jest gotowa do wysyłania bezpiecznych wiadomości.</string>
     <string name="device_manager_verification_status_detail_current_session_verified">Twoja bieżąca sesja jest gotowa do wysyłania bezpiecznych wiadomości.</string>
-    <string name="attachment_type_selector_contact">Kontakt</string>
     <string name="attachment_type_selector_location">Lokalizacja</string>
     <string name="attachment_type_selector_camera">Aparat</string>
     <string name="attachment_type_selector_voice_broadcast">Transmisja głosowa</string>

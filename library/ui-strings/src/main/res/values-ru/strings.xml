@@ -2797,7 +2797,6 @@
     <string name="attachment_type_selector_poll">Опрос</string>
     <string name="attachment_type_selector_location">Местоположение</string>
     <string name="attachment_type_selector_camera">Камера</string>
-    <string name="attachment_type_selector_contact">Контакт</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} нуждается в разрешении для отображения оповещений.
 \nПожалуйста, дайте разрешение.</string>
     <plurals name="search_space_multiple_parents">

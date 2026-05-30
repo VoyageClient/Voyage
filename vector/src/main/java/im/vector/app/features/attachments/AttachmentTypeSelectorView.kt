@@ -59,7 +59,7 @@ class AttachmentTypeSelectorView(
         views.attachmentCameraButton.configure(AttachmentType.CAMERA)
         views.attachmentFileButton.configure(AttachmentType.FILE)
         views.attachmentStickersButton.configure(AttachmentType.STICKER)
-        views.attachmentContactButton.configure(AttachmentType.CONTACT)
+        views.attachmentVoiceFileButton.configure(AttachmentType.VOICE_FILE)
         views.attachmentPollButton.configure(AttachmentType.POLL)
         views.attachmentLocationButton.configure(AttachmentType.LOCATION)
         views.attachmentVoiceBroadcast.configure(AttachmentType.VOICE_BROADCAST)
@@ -119,7 +119,7 @@ class AttachmentTypeSelectorView(
             AttachmentType.GALLERY -> views.attachmentGalleryButton
             AttachmentType.FILE -> views.attachmentFileButton
             AttachmentType.STICKER -> views.attachmentStickersButton
-            AttachmentType.CONTACT -> views.attachmentContactButton
+            AttachmentType.VOICE_FILE -> views.attachmentVoiceFileButton
             AttachmentType.POLL -> views.attachmentPollButton
             AttachmentType.LOCATION -> views.attachmentLocationButton
             AttachmentType.VOICE_BROADCAST -> views.attachmentVoiceBroadcast
@@ -210,7 +210,7 @@ class AttachmentTypeSelectorView(
                 AttachmentType.GALLERY -> CommonStrings.tooltip_attachment_gallery
                 AttachmentType.FILE -> CommonStrings.tooltip_attachment_file
                 AttachmentType.STICKER -> CommonStrings.tooltip_attachment_sticker
-                AttachmentType.CONTACT -> CommonStrings.tooltip_attachment_contact
+                AttachmentType.VOICE_FILE -> CommonStrings.tooltip_attachment_voice_file
                 AttachmentType.POLL -> CommonStrings.tooltip_attachment_poll
                 AttachmentType.LOCATION -> CommonStrings.tooltip_attachment_location
                 AttachmentType.VOICE_BROADCAST -> CommonStrings.tooltip_attachment_voice_broadcast

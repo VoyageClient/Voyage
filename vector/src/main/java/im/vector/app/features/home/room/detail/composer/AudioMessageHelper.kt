@@ -249,6 +249,8 @@ class AudioMessageHelper @Inject constructor(
         playbackTracker.unregisterListeners()
     }
 
+    fun getCurrentVoiceFile(): File? = voiceRecorder.getVoiceMessageFile()
+
     fun stopAllVoiceActions(deleteRecord: Boolean = true): MultiPickerAudioType? {
         val audioType = stopRecording()
         stopPlayback()
