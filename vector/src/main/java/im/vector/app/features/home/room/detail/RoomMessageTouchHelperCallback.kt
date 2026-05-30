@@ -120,8 +120,7 @@ class RoomMessageTouchHelperCallback(
             actionState: Int,
             isCurrentlyActive: Boolean
     ) {
-        // TODO can this interfere with other interactions? should i remove it
-        recyclerView.setOnTouchListener { _, event ->
+        recyclerView.setOnTouchListener { rv, event ->
             swipeBack = event.action == MotionEvent.ACTION_CANCEL || event.action == MotionEvent.ACTION_UP
             if (swipeBack) {
                 if (abs(dX) >= triggerDistance) {
@@ -131,6 +130,8 @@ class RoomMessageTouchHelperCallback(
                         Timber.e(e)
                     }
                 }
+                // Without detach, captured dX re-fires quick-reply on later scroll ACTION_UPs.
+                rv.setOnTouchListener(null)
             }
             false
         }

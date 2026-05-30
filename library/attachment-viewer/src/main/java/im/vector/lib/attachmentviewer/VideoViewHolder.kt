@@ -342,25 +342,7 @@ class VideoViewHolder constructor(itemView: View) :
                 setOnPreparedListener { mp ->
                     isPrepared = true
                     applyAspectMatrix()
-                    stopTimer()
-                    countUpTimer = CountUpTimer(intervalInMs = 100).also {
-                        it.tickListener = CountUpTimer.TickListener {
-                            // Tick can fire after we've released the player (page swap,
-                            // surface destroyed). Read through the live field and guard
-                            // against IllegalStateException from the MediaPlayer state
-                            // machine — a single dropped tick is preferable to a crash.
-                            val active = mediaPlayer ?: return@TickListener
-                            try {
-                                val duration = active.duration
-                                val pos = active.currentPosition
-                                val isPlaying = active.isPlaying
-                                eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(isPlaying, pos, duration))
-                            } catch (_: IllegalStateException) {
-                                stopTimer()
-                            }
-                        }
-                        it.start()
-                    }
+                    ensureTickTimer()
                     if (progress > 0) {
                         mp.seekTo(progress)
                     }
@@ -401,13 +383,34 @@ class VideoViewHolder constructor(itemView: View) :
         countUpTimer = null
     }
 
+    private fun ensureTickTimer() {
+        if (countUpTimer != null) return
+        countUpTimer = CountUpTimer(intervalInMs = 100).also {
+            it.tickListener = CountUpTimer.TickListener {
+                val active = mediaPlayer ?: return@TickListener
+                try {
+                    val duration = active.duration
+                    val pos = active.currentPosition
+                    val isPlaying = active.isPlaying
+                    eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(isPlaying, pos, duration))
+                } catch (_: IllegalStateException) {
+                    stopTimer()
+                }
+            }
+            it.start()
+        }
+    }
+
     override fun handleCommand(commands: AttachmentCommands) {
         if (!isSelected) return
         val player = mediaPlayer ?: return
         when (commands) {
             AttachmentCommands.StartVideo -> {
                 wasPaused = false
-                if (isPrepared) player.start()
+                if (isPrepared) {
+                    player.start()
+                    ensureTickTimer()
+                }
             }
             AttachmentCommands.PauseVideo -> {
                 wasPaused = true
