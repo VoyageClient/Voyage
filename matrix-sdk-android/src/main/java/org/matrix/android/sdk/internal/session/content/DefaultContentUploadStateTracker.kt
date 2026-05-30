@@ -88,6 +88,10 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
         updateState(key, progressData)
     }
 
+    internal fun setProcessingAudio(key: String) {
+        updateState(key, ContentUploadStateTracker.State.ProcessingAudio)
+    }
+
     internal fun setProgress(key: String, current: Long, total: Long) {
         val progressData = ContentUploadStateTracker.State.Uploading(current, total)
         updateState(key, progressData)

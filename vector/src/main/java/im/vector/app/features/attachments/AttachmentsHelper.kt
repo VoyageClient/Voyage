@@ -20,8 +20,6 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import im.vector.lib.core.utils.compat.getSerializableCompat
 import im.vector.lib.multipicker.MultiPicker
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 
 private const val CAPTURE_PATH_KEY = "CAPTURE_PATH_KEY"
@@ -140,14 +138,15 @@ class AttachmentsHelper(
         )
     }
 
-    suspend fun processVoiceFileResult(data: Intent?): List<ContentAttachmentData> = withContext(Dispatchers.IO) {
-        MultiPicker.get(MultiPicker.AUDIO).getSelectedFiles(context, data).map { audio ->
-            audio.waveform = AudioWaveformExtractor.extract(context, audio.contentUri)
+    fun processVoiceFileResult(data: Intent?): List<ContentAttachmentData> {
+        return MultiPicker.get(MultiPicker.AUDIO).getSelectedFiles(context, data).map { audio ->
             val ext = audio.displayName
                     ?.substringAfterLast('.', missingDelimiterValue = "")
                     ?.takeIf { it.isNotEmpty() }
                     ?.let { if (it.equals("opus", ignoreCase = true)) "ogg" else it }
             val voiceName = if (ext != null) "Voice message.$ext" else "Voice message"
+            // Flat placeholder so the local-echo bubble renders dots; replaced by the upload worker.
+            audio.waveform = List(50) { 0 }
             audio.toContentAttachmentData(isVoiceMessage = true).copy(name = voiceName)
         }
     }

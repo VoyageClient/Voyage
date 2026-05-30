@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.message.AudioWaveformInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
@@ -163,6 +164,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             try {
                 val fileToUpload: File
                 var transcodedVideoFile: File? = null
+                var audioWaveform: List<Int>? = null
                 var newAttachmentAttributes = NewAttachmentAttributes(
                         params.attachment.width?.toInt(),
                         params.attachment.height?.toInt(),
@@ -196,6 +198,13 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
                 } else {
                     fileToUpload = workingFile()
+                    val storedWaveform = attachment.waveform
+                    val needsWaveform = attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE &&
+                            (storedWaveform.isNullOrEmpty() || storedWaveform.all { it == 0 })
+                    if (needsWaveform) {
+                        notifyTracker(params) { contentUploadStateTracker.setProcessingAudio(it) }
+                        audioWaveform = AudioWaveformExtractor.extract(fileToUpload).takeIf { it.isNotEmpty() }
+                    }
                     // Fix: OpenableColumns.SIZE may return -1 or 0
                     if (params.attachment.size <= 0) {
                         newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
@@ -277,6 +286,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         uploadedFileEncryptedFileInfo,
                         uploadThumbnailResult,
                         imageBlurHash,
+                        audioWaveform,
                         newAttachmentAttributes
                 )
             } catch (t: Throwable) {
@@ -436,11 +446,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             encryptedFileInfo: EncryptedFileInfo?,
             thumbnail: UploadThumbnailResult?,
             imageBlurHash: String?,
+            audioWaveform: List<Int>?,
             newAttachmentAttributes: NewAttachmentAttributes
     ): Result {
         notifyTracker(params) { contentUploadStateTracker.setSuccess(it) }
         params.localEchoIds.forEach {
-            updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, newAttachmentAttributes)
+            updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
         }
 
         val sendParams = MultipleEventSendingDispatcherWorker.Params(
@@ -465,6 +476,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             encryptedFileInfo: EncryptedFileInfo?,
             thumbnail: UploadThumbnailResult?,
             imageBlurHash: String?,
+            audioWaveform: List<Int>?,
             newAttachmentAttributes: NewAttachmentAttributes
     ) {
         localEchoRepository.updateEcho(eventId) { _, event ->
@@ -476,7 +488,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 is MessageImageContent -> messageContent.update(url, encryptedFileInfo, imageBlurHash, newAttachmentAttributes)
                 is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnail, newAttachmentAttributes)
                 is MessageFileContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
-                is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
+                is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize, audioWaveform)
                 else -> messageContent
             }
             event.content = ContentMapper.map(updatedContent.toContent().plus(additionalContent))
@@ -570,13 +582,25 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     private fun MessageAudioContent.update(
             url: String,
             encryptedFileInfo: EncryptedFileInfo?,
-            size: Long
+            size: Long,
+            waveform: List<Int>?,
     ): MessageAudioContent {
+        val updatedWaveformInfo = waveform?.let { scaleWaveformToSpec(it) }?.let {
+            (audioWaveformInfo ?: AudioWaveformInfo()).copy(waveform = it)
+        } ?: audioWaveformInfo
         return copy(
                 url = if (encryptedFileInfo == null) url else null,
                 encryptedFileInfo = encryptedFileInfo?.copy(url = url),
-                audioInfo = audioInfo?.copy(size = size)
+                audioInfo = audioInfo?.copy(size = size),
+                audioWaveformInfo = updatedWaveformInfo,
         )
+    }
+
+    // Matrix MSC2516 caps waveform values at 1024; the extractor returns raw 16-bit PCM peaks.
+    private fun scaleWaveformToSpec(raw: List<Int>): List<Int> {
+        val max = raw.maxOrNull() ?: return raw
+        if (max <= 0) return raw
+        return raw.map { (it.toLong() * 1024L / max).toInt().coerceIn(0, 1024) }
     }
 
     private fun encodeBlurHashFromImage(file: File): String? {

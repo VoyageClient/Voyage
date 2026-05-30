@@ -91,7 +91,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
@@ -800,20 +799,18 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             messageComposerViewModel.handle(MessageComposerAction.OnAttachmentsSent)
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            val attachments = attachmentsHelper.processVoiceFileResult(data)
-            if (attachments.isEmpty()) return@launch
-            timelineViewModel.handle(
-                    RoomDetailAction.SendMedia(
-                            attachments = attachments,
-                            compressBeforeSending = false,
-                            replyToEvent = pendingReplyToEvent,
-                            captionText = pendingCaption,
-                            captionFormattedText = pendingFormatted,
-                            autoMarkdown = pendingAutoMarkdown,
-                    )
-            )
-        }
+        val attachments = attachmentsHelper.processVoiceFileResult(data)
+        if (attachments.isEmpty()) return@registerStartForActivityResult
+        timelineViewModel.handle(
+                RoomDetailAction.SendMedia(
+                        attachments = attachments,
+                        compressBeforeSending = false,
+                        replyToEvent = pendingReplyToEvent,
+                        captionText = pendingCaption,
+                        captionFormattedText = pendingFormatted,
+                        autoMarkdown = pendingAutoMarkdown,
+                )
+        )
     }
 
     private val attachmentMediaActivityResultLauncher = registerStartForActivityResult {

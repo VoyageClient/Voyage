@@ -83,7 +83,17 @@ private class ContentMediaProgressUpdater(
             is ContentUploadStateTracker.State.Success -> handleSuccess()
             is ContentUploadStateTracker.State.CompressingImage -> handleCompressingImage()
             is ContentUploadStateTracker.State.CompressingVideo -> handleCompressingVideo(state)
+            is ContentUploadStateTracker.State.ProcessingAudio -> handleProcessingAudio()
         }
+    }
+
+    private fun handleProcessingAudio() {
+        progressLayout.visibility = View.VISIBLE
+        progressBar.isVisible = true
+        progressBar.isIndeterminate = true
+        progressTextView.isVisible = true
+        progressTextView.text = progressLayout.context.getString(CommonStrings.send_file_step_processing_audio)
+        progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
 
     private fun handleIdle() {

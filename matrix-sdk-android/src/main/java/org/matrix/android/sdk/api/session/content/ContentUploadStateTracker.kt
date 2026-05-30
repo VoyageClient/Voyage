@@ -33,6 +33,7 @@ interface ContentUploadStateTracker {
         object EncryptingThumbnail : State()
         object CompressingImage : State()
         data class CompressingVideo(val percent: Float) : State()
+        object ProcessingAudio : State()
         data class UploadingThumbnail(val current: Long, val total: Long) : State()
         data class Encrypting(val current: Long, val total: Long) : State()
         data class Uploading(val current: Long, val total: Long) : State()
