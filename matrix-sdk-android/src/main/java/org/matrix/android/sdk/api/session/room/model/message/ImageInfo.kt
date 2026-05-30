@@ -55,7 +55,8 @@ data class ImageInfo(
         /**
          * Information on the encrypted thumbnail file, as specified in End-to-end encryption. Only present if the thumbnail is encrypted.
          */
-        @Json(name = "thumbnail_file") val thumbnailFile: EncryptedFileInfo? = null
+        @Json(name = "thumbnail_file") val thumbnailFile: EncryptedFileInfo? = null,
+        @Json(name = "xyz.amorgan.blurhash") val blurHash: String? = null
 )
 
 /**

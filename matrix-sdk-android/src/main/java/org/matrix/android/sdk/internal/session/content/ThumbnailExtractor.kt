@@ -19,6 +19,8 @@ package org.matrix.android.sdk.internal.session.content
 import android.content.Context
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import com.vanniktech.blurhash.BlurHash
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
@@ -35,7 +37,8 @@ internal class ThumbnailExtractor @Inject constructor(
             val height: Int,
             val size: Long,
             val bytes: ByteArray,
-            val mimeType: String
+            val mimeType: String,
+            val blurHash: String?,
     )
 
     fun extractThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
@@ -57,12 +60,15 @@ internal class ThumbnailExtractor @Inject constructor(
             mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { thumbnail ->
                 val outputStream = ByteArrayOutputStream()
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+                val (xc, yc) = blurHashComponents(thumbnail.width, thumbnail.height)
+                val blurHash = tryOrNull { BlurHash.encode(thumbnail, xc, yc) }
                 thumbnailData = ThumbnailData(
                         width = thumbnail.width,
                         height = thumbnail.height,
                         size = outputStream.size().toLong(),
                         bytes = outputStream.toByteArray(),
-                        mimeType = MimeTypes.Jpeg
+                        mimeType = MimeTypes.Jpeg,
+                        blurHash = blurHash,
                 )
                 thumbnail.recycle()
                 outputStream.reset()
@@ -76,4 +82,10 @@ internal class ThumbnailExtractor @Inject constructor(
         }
         return thumbnailData
     }
+}
+
+internal fun blurHashComponents(width: Int, height: Int): Pair<Int, Int> = when {
+    width > height -> 4 to 3
+    height > width -> 3 to 4
+    else -> 4 to 4
 }

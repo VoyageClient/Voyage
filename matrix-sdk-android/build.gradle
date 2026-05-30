@@ -193,6 +193,7 @@ dependencies {
 
     // Image
     implementation libs.androidx.exifinterface
+    implementation libs.vanniktech.blurhash
 
     // Database
     implementation 'com.github.Zhuinden:realm-monarchy:0.7.1'

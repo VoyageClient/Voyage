@@ -59,8 +59,8 @@ class RoomEventsAttachmentProvider(
                         maxWidth = -1,
                         width = null,
                         height = null,
-                        allowNonMxcUrls = it.root.sendState.isSending()
-
+                        allowNonMxcUrls = it.root.sendState.isSending(),
+                        blurHash = content.info?.blurHash,
                 )
                 if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
@@ -86,8 +86,8 @@ class RoomEventsAttachmentProvider(
                         maxWidth = -1,
                         width = null,
                         height = null,
-                        allowNonMxcUrls = false
-
+                        allowNonMxcUrls = false,
+                        blurHash = content.info?.blurHash,
                 )
                 if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
@@ -113,7 +113,8 @@ class RoomEventsAttachmentProvider(
                         maxHeight = -1,
                         width = content.videoInfo?.width,
                         maxWidth = -1,
-                        allowNonMxcUrls = it.root.sendState.isSending()
+                        allowNonMxcUrls = it.root.sendState.isSending(),
+                        blurHash = content.videoInfo?.blurHash,
                 )
                 val data = VideoContentRenderer.Data(
                         eventId = it.eventId,

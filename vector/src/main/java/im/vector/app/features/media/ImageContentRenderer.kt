@@ -18,6 +18,7 @@ import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.target.Target
@@ -70,7 +71,8 @@ class ImageContentRenderer @Inject constructor(
             val width: Int?,
             val maxWidth: Int,
             // If true will load non mxc url, be careful to set it only for images sent by you
-            override val allowNonMxcUrls: Boolean = false
+            override val allowNonMxcUrls: Boolean = false,
+            val blurHash: String? = null,
     ) : AttachmentData
 
     enum class Mode {
@@ -142,6 +144,8 @@ class ImageContentRenderer @Inject constructor(
 
     companion object {
         private val CACHE_SKIP_ANIMATED_MIMES = setOf(MimeTypes.Gif, MimeTypes.Webp, MimeTypes.Apng)
+        private const val BLURHASH_CROSSFADE_MS = 200L
+        private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS)
     }
 
     fun clear(imageView: ImageView) {
@@ -229,7 +233,7 @@ class ImageContentRenderer @Inject constructor(
 
     fun createGlideRequest(data: Data, mode: Mode, glideRequests: GlideRequests, size: Size = processSize(data, mode)): GlideRequest<Drawable> {
         val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
-        return if (data.elementToDecrypt != null || isLocalContentUri) {
+        val request = if (data.elementToDecrypt != null || isLocalContentUri) {
             // Encrypted image, or local-echo content URI — go through our custom data loader so
             // Glide always sees an InputStream. The default content-URI loader otherwise prefers a
             // ParcelFileDescriptor, which routes to Downsampler (still bitmap) and skips the
@@ -255,11 +259,18 @@ class ImageContentRenderer @Inject constructor(
                     .apply {
                         if (mode == Mode.THUMBNAIL) {
                             error(
-                                    glideRequests.load(resolveUrl(data))
+                                    decorateWithBlurHash(glideRequests.load(resolveUrl(data)), data)
                             )
                         }
                     }
         }
+        return decorateWithBlurHash(request, data)
+    }
+
+    private fun decorateWithBlurHash(request: GlideRequest<Drawable>, data: Data): GlideRequest<Drawable> {
+        val placeholder = data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height) } ?: return request
+        return request.placeholder(placeholder)
+                .transition(DrawableTransitionOptions.with(BLURHASH_FADE_FACTORY))
     }
 
     private fun resolveUrl(data: Data) =

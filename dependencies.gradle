@@ -160,7 +160,8 @@ ext.libs = [
         ],
         vanniktech  : [
                 'emojiMaterial'          : "com.vanniktech:emoji-material:$vanniktechEmoji",
-                'emojiGoogle'            : "com.vanniktech:emoji-google:$vanniktechEmoji"
+                'emojiGoogle'            : "com.vanniktech:emoji-google:$vanniktechEmoji",
+                'blurhash'               : "com.vanniktech:blurhash:0.3.0"
         ],
         apache      : [
                 'commonsImaging'         : "org.apache.commons:commons-imaging:1.0-alpha3"

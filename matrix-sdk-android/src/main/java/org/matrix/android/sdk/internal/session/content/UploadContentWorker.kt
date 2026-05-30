@@ -23,6 +23,7 @@ import android.media.MediaMetadataRetriever
 import android.os.Build
 import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonClass
+import com.vanniktech.blurhash.BlurHash
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -262,12 +263,18 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 }
 
                 val uploadThumbnailResult = dealWithThumbnail(params, transcodedVideoFile)
+                val imageBlurHash = if (attachment.type == ContentAttachmentData.Type.IMAGE) {
+                    encodeBlurHashFromImage(fileToUpload)
+                } else {
+                    null
+                }
 
                 handleSuccess(
                         params,
                         contentUploadResponse.contentUri,
                         uploadedFileEncryptedFileInfo,
                         uploadThumbnailResult,
+                        imageBlurHash,
                         newAttachmentAttributes
                 )
             } catch (t: Throwable) {
@@ -351,6 +358,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             val width: Int,
             val height: Int,
             val size: Long,
+            val blurHash: String?,
     )
 
     /**
@@ -384,6 +392,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         width = thumbnailData.width,
                         height = thumbnailData.height,
                         size = thumbnailData.size,
+                        blurHash = thumbnailData.blurHash,
                 )
             } else {
                 val contentUploadResponse = fileUploader.uploadByteArray(
@@ -398,6 +407,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         width = thumbnailData.width,
                         height = thumbnailData.height,
                         size = thumbnailData.size,
+                        blurHash = thumbnailData.blurHash,
                 )
             }
         } catch (t: Throwable) {
@@ -423,11 +433,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             attachmentUrl: String,
             encryptedFileInfo: EncryptedFileInfo?,
             thumbnail: UploadThumbnailResult?,
+            imageBlurHash: String?,
             newAttachmentAttributes: NewAttachmentAttributes
     ): Result {
         notifyTracker(params) { contentUploadStateTracker.setSuccess(it) }
         params.localEchoIds.forEach {
-            updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, newAttachmentAttributes)
+            updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, newAttachmentAttributes)
         }
 
         val sendParams = MultipleEventSendingDispatcherWorker.Params(
@@ -451,6 +462,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             url: String,
             encryptedFileInfo: EncryptedFileInfo?,
             thumbnail: UploadThumbnailResult?,
+            imageBlurHash: String?,
             newAttachmentAttributes: NewAttachmentAttributes
     ) {
         localEchoRepository.updateEcho(eventId) { _, event ->
@@ -459,7 +471,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             // Retrieve potential additional content from the original event
             val additionalContent = content.orEmpty() - messageContent?.toContent().orEmpty().keys
             val updatedContent = when (messageContent) {
-                is MessageImageContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes)
+                is MessageImageContent -> messageContent.update(url, encryptedFileInfo, imageBlurHash, newAttachmentAttributes)
                 is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnail, newAttachmentAttributes)
                 is MessageFileContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
                 is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
@@ -476,6 +488,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     private fun MessageImageContent.update(
             url: String,
             encryptedFileInfo: EncryptedFileInfo?,
+            blurHash: String?,
             newAttachmentAttributes: NewAttachmentAttributes?
     ): MessageImageContent {
         val newMime = newAttachmentAttributes?.newMimeType
@@ -494,6 +507,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         height = newAttachmentAttributes?.newHeight ?: info.height,
                         size = newAttachmentAttributes?.newFileSize ?: info.size,
                         mimeType = newMime ?: info.mimeType,
+                        blurHash = blurHash ?: info.blurHash,
                 )
         )
     }
@@ -529,6 +543,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         width = newAttachmentAttributes?.newWidth ?: videoInfo.width,
                         height = newAttachmentAttributes?.newHeight ?: videoInfo.height,
                         size = newAttachmentAttributes?.newFileSize ?: videoInfo.size,
+                        blurHash = thumbnail?.blurHash ?: videoInfo.blurHash,
                         thumbnailInfo = videoInfo.thumbnailInfo?.copy(
                                 width = thumbnail?.width ?: videoInfo.thumbnailInfo.width,
                                 height = thumbnail?.height ?: videoInfo.thumbnailInfo.height,
@@ -562,7 +577,29 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         )
     }
 
+    private fun encodeBlurHashFromImage(file: File): String? {
+        return try {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            file.inputStream().use { BitmapFactory.decodeStream(it, null, bounds) }
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+            val sample = generateSequence(1) { it * 2 }
+                    .first { it * BLURHASH_DECODE_MAX >= maxOf(bounds.outWidth, bounds.outHeight) }
+            val options = BitmapFactory.Options().apply { inSampleSize = sample }
+            val bitmap = file.inputStream().use { BitmapFactory.decodeStream(it, null, options) } ?: return null
+            try {
+                val (xc, yc) = blurHashComponents(bitmap.width, bitmap.height)
+                BlurHash.encode(bitmap, xc, yc)
+            } finally {
+                bitmap.recycle()
+            }
+        } catch (t: Throwable) {
+            Timber.w(t, "Failed to encode blurhash")
+            null
+        }
+    }
+
     companion object {
         private const val MAX_IMAGE_SIZE = 640
+        private const val BLURHASH_DECODE_MAX = 128
     }
 }

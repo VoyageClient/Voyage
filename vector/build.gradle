@@ -230,6 +230,7 @@ dependencies {
 
     implementation libs.github.glide
     kapt libs.github.glideCompiler
+    implementation libs.vanniktech.blurhash
     // APNG decoding for Glide (animated PNGs often labelled image/png).
     implementation 'com.github.penfeizhou.android.animation:apng:3.0.5'
     implementation 'com.github.penfeizhou.android.animation:glide-plugin:3.0.5'

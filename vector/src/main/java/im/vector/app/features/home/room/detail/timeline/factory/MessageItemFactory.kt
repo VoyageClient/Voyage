@@ -584,7 +584,8 @@ class MessageItemFactory @Inject constructor(
                 maxHeight = maxHeight,
                 width = messageContent.info?.width,
                 maxWidth = maxWidth,
-                allowNonMxcUrls = informationData.sendState.isSending()
+                allowNonMxcUrls = informationData.sendState.isSending(),
+                blurHash = messageContent.info?.blurHash,
         )
 
         val playable = messageContent.mimeType == MimeTypes.Gif
@@ -660,7 +661,8 @@ class MessageItemFactory @Inject constructor(
                 maxHeight = maxHeight,
                 width = messageContent.videoInfo?.width,
                 maxWidth = maxWidth,
-                allowNonMxcUrls = informationData.sendState.isSending()
+                allowNonMxcUrls = informationData.sendState.isSending(),
+                blurHash = messageContent.videoInfo?.blurHash,
         )
 
         val videoData = VideoContentRenderer.Data(
