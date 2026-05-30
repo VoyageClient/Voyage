@@ -420,8 +420,14 @@ class VideoViewHolder constructor(itemView: View) :
                 if (!isPrepared) return
                 val duration = player.duration
                 if (duration > 0) {
-                    val seekDuration = duration * (commands.percentProgress / 100f)
-                    player.seekTo(seekDuration.toInt())
+                    val seekMs = (duration * (commands.percentProgress / 100f)).toLong()
+                    // SEEK_CLOSEST is frame-accurate; the int overload defaults to
+                    // SEEK_PREVIOUS_SYNC which snaps to the previous keyframe (often 5–10s apart).
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        player.seekTo(seekMs, android.media.MediaPlayer.SEEK_CLOSEST)
+                    } else {
+                        player.seekTo(seekMs.toInt())
+                    }
                 }
             }
         }

@@ -45,17 +45,14 @@ class AttachmentOverlayView @JvmOverloads constructor(
         }
 
         views.overlaySeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if (fromUser) {
-                    interactionListener?.videoSeekTo(progress)
-                }
-            }
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) = Unit
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
                 suspendSeekBarUpdate = true
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                seekBar?.let { interactionListener?.videoSeekTo(it.progress) }
                 suspendSeekBarUpdate = false
             }
         })

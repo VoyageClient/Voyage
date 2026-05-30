@@ -178,7 +178,12 @@ class AudioMessageHelper @Inject constructor(
         playbackTracker.pauseAllPlaybacks()
 
         if (currentPlayingId == id) {
-            mediaPlayer?.seekTo(toMillisecond)
+            // SEEK_CLOSEST is frame-accurate; default int overload snaps to the previous keyframe.
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                mediaPlayer?.seekTo(toMillisecond.toLong(), android.media.MediaPlayer.SEEK_CLOSEST)
+            } else {
+                mediaPlayer?.seekTo(toMillisecond)
+            }
             playbackTracker.updatePlayingAtPlaybackTime(id, toMillisecond, percentage)
         } else {
             mediaPlayer?.pause()
