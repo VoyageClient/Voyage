@@ -8,6 +8,7 @@
 package im.vector.app.features.media
 
 import im.vector.app.core.date.VectorDateFormatter
+import im.vector.app.core.extensions.stableEventId
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.attachmentviewer.AttachmentInfo
 import kotlinx.coroutines.CoroutineScope
@@ -50,7 +51,7 @@ class RoomEventsAttachmentProvider(
                             as? MessageWithAttachmentContent
             if (content is MessageImageContent) {
                 val data = ImageContentRenderer.Data(
-                        eventId = it.eventId,
+                        eventId = it.stableEventId,
                         filename = content.body,
                         mimeType = content.mimeType,
                         url = content.getFileUrl(),
@@ -64,20 +65,20 @@ class RoomEventsAttachmentProvider(
                 )
                 if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
-                            uid = it.eventId,
+                            uid = it.stableEventId,
                             url = content.url ?: "",
                             data = data
                     )
                 } else {
                     AttachmentInfo.Image(
-                            uid = it.eventId,
+                            uid = it.stableEventId,
                             url = content.url ?: "",
                             data = data
                     )
                 }
             } else if (content is MessageStickerContent) {
                 val data = ImageContentRenderer.Data(
-                        eventId = it.eventId,
+                        eventId = it.stableEventId,
                         filename = content.body,
                         mimeType = content.mimeType,
                         url = content.getFileUrl(),
@@ -91,20 +92,20 @@ class RoomEventsAttachmentProvider(
                 )
                 if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
-                            uid = it.eventId,
+                            uid = it.stableEventId,
                             url = content.url ?: "",
                             data = data
                     )
                 } else {
                     AttachmentInfo.Image(
-                            uid = it.eventId,
+                            uid = it.stableEventId,
                             url = content.url ?: "",
                             data = data
                     )
                 }
             } else if (content is MessageVideoContent) {
                 val thumbnailData = ImageContentRenderer.Data(
-                        eventId = it.eventId,
+                        eventId = it.stableEventId,
                         filename = content.body,
                         mimeType = content.mimeType,
                         url = content.videoInfo?.getThumbnailUrl(),
@@ -117,7 +118,7 @@ class RoomEventsAttachmentProvider(
                         blurHash = content.videoInfo?.blurHash,
                 )
                 val data = VideoContentRenderer.Data(
-                        eventId = it.eventId,
+                        eventId = it.stableEventId,
                         filename = content.body,
                         mimeType = content.mimeType,
                         url = content.getFileUrl(),
@@ -126,11 +127,11 @@ class RoomEventsAttachmentProvider(
                         allowNonMxcUrls = it.root.sendState.isSending()
                 )
                 AttachmentInfo.Video(
-                        uid = it.eventId,
+                        uid = it.stableEventId,
                         url = content.getFileUrl() ?: "",
                         data = data,
                         thumbnail = AttachmentInfo.Image(
-                                uid = it.eventId,
+                                uid = it.stableEventId,
                                 url = content.videoInfo?.getThumbnailUrl() ?: "",
                                 data = thumbnailData
 
@@ -138,7 +139,7 @@ class RoomEventsAttachmentProvider(
                 )
             } else {
                 AttachmentInfo.Image(
-                        uid = it.eventId,
+                        uid = it.stableEventId,
                         url = "",
                         data = null
                 )

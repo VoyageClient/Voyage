@@ -164,7 +164,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderStateBasedOnAudioPlayback(holder: Holder) {
-        audioMessagePlaybackTracker.track(attributes.informationData.eventId) { state ->
+        audioMessagePlaybackTracker.track(attributes.informationData.stableEventId) { state ->
             when (state) {
                 is AudioMessagePlaybackTracker.Listener.State.Error,
                 is AudioMessagePlaybackTracker.Listener.State.Idle -> renderIdleState(holder)
@@ -214,7 +214,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
-        audioMessagePlaybackTracker.untrack(attributes.informationData.eventId)
+        audioMessagePlaybackTracker.untrack(attributes.informationData.stableEventId)
     }
 
     override fun getViewStubId() = STUB_ID

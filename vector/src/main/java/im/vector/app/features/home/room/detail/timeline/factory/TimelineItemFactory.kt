@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.factory
 import im.vector.app.core.epoxy.TimelineEmptyItem
 import im.vector.app.core.epoxy.TimelineEmptyItem_
 import im.vector.app.core.epoxy.VectorEpoxyModel
+import im.vector.app.core.extensions.stableEventId
 import im.vector.app.features.analytics.DecryptionFailureTracker
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
 import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
@@ -184,7 +185,7 @@ class TimelineItemFactory @Inject constructor(
                 rootThreadEventId = rootThreadEventId
         )
         return TimelineEmptyItem_()
-                .id(timelineEvent.localId)
+                .id(timelineEvent.stableEventId)
                 .eventId(timelineEvent.eventId)
                 .notBlank(isNotBlank)
     }

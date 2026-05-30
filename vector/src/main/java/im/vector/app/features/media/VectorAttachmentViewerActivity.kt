@@ -28,6 +28,7 @@ import com.airbnb.mvrx.viewModel
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.singletonEntryPoint
+import im.vector.app.core.extensions.stableEventId
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.utils.PERMISSIONS_FOR_WRITING_FILES
@@ -47,6 +48,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -121,8 +123,15 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             initialIndex = inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
             dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope)
         } else {
-            val events = room?.timelineService()?.getAttachmentMessages().orEmpty()
-            initialIndex = events.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
+            val confirmed = room?.timelineService()?.getAttachmentMessages().orEmpty()
+            // getAttachmentMessages omits local echoes; append the in-flight event manually.
+            val events: List<TimelineEvent> = if (confirmed.none { it.stableEventId == args.eventId }) {
+                val pending = room?.timelineService()?.getTimelineEvent(args.eventId)
+                if (pending != null) confirmed + pending else confirmed
+            } else {
+                confirmed
+            }
+            initialIndex = events.indexOfFirst { it.stableEventId == args.eventId }.coerceAtLeast(0)
             dataSourceFactory.createProvider(events, lifecycleScope)
         }
         sourceProvider.interactionListener = this

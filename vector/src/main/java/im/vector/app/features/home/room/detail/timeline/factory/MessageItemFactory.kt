@@ -358,7 +358,7 @@ class MessageItemFactory @Inject constructor(
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
                 .fileSize(messageContent.audioInfo?.size ?: 0L)
-                .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.eventId, duration, it) }
+                .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.stableEventId, duration, it) }
                 .mxcUrl(fileUrl)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
@@ -388,7 +388,7 @@ class MessageItemFactory @Inject constructor(
             params: TimelineItemFactoryParams,
     ) = object : ClickListener {
         override fun invoke(view: View) {
-            params.callback?.onVoiceControlButtonClicked(informationData.eventId, messageContent)
+            params.callback?.onVoiceControlButtonClicked(informationData.stableEventId, messageContent)
         }
     }
 
@@ -422,12 +422,12 @@ class MessageItemFactory @Inject constructor(
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
             override fun onWaveformTouchedUp(percentage: Float) {
                 val duration = messageContent.audioInfo?.duration ?: 0
-                params.callback?.onVoiceWaveformTouchedUp(informationData.eventId, duration, percentage)
+                params.callback?.onVoiceWaveformTouchedUp(informationData.stableEventId, duration, percentage)
             }
 
             override fun onWaveformMovedTo(percentage: Float) {
                 val duration = messageContent.audioInfo?.duration ?: 0
-                params.callback?.onVoiceWaveformMovedTo(informationData.eventId, duration, percentage)
+                params.callback?.onVoiceWaveformMovedTo(informationData.stableEventId, duration, percentage)
             }
         }
 
@@ -575,7 +575,7 @@ class MessageItemFactory @Inject constructor(
         // below the image. Use it for the renderer cache key too so identical avatars share.
         val mediaFilename = (messageContent as? MessageWithAttachmentContent)?.getFileName() ?: messageContent.body
         val data = ImageContentRenderer.Data(
-                eventId = informationData.eventId,
+                eventId = informationData.stableEventId,
                 filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),
@@ -652,7 +652,7 @@ class MessageItemFactory @Inject constructor(
         val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
         val mediaFilename = messageContent.getFileName()
         val thumbnailData = ImageContentRenderer.Data(
-                eventId = informationData.eventId,
+                eventId = informationData.stableEventId,
                 filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.videoInfo?.getThumbnailUrl(),
@@ -666,7 +666,7 @@ class MessageItemFactory @Inject constructor(
         )
 
         val videoData = VideoContentRenderer.Data(
-                eventId = informationData.eventId,
+                eventId = informationData.stableEventId,
                 filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),

@@ -124,6 +124,13 @@ class ImageContentRenderer @Inject constructor(
         // a11y
         imageView.contentDescription = data.filename
 
+        // Skip reload on the local-echo → mxc URL flip — the bytes are the same, the swap causes flicker.
+        val previousSignature = imageView.getTag(R.id.media_loaded_signature) as? String
+        if (previousSignature == data.eventId && imageView.drawable != null) {
+            return
+        }
+        imageView.setTag(R.id.media_loaded_signature, data.eventId)
+
         createGlideRequest(data, mode, imageView, size)
                 .let {
                     // Skip the memory drawable cache only for commonly-animated mimes: Glide

@@ -34,7 +34,9 @@ data class MessageInformationData(
         val sendStateDecoration: SendStateDecoration = SendStateDecoration.NONE,
         val isFirstFromThisSender: Boolean = false,
         val isLastFromThisSender: Boolean = false,
-        val messageType: String? = null
+        val messageType: String? = null,
+        // Stable across the local-echo → server-event eventId swap; see TimelineEvent.stableEventId.
+        val stableEventId: String = eventId,
 ) : Parcelable {
 
     val matrixItem: MatrixItem

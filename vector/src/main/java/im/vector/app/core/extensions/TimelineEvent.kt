@@ -13,6 +13,7 @@ import im.vector.app.features.voicebroadcast.model.VoiceBroadcastState
 import im.vector.app.features.voicebroadcast.model.asVoiceBroadcastEvent
 import im.vector.app.features.voicebroadcast.model.isVoiceBroadcast
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -45,3 +46,8 @@ fun TimelineEvent.getVectorLastMessageContent(): MessageContent? {
 fun TimelineEvent.isVoiceBroadcast(): Boolean {
     return root.isVoiceBroadcast()
 }
+
+// Stable across the local-echo → server-event eventId swap: returns the local-echo / txn id when
+// the event was sent from this client, otherwise the regular eventId.
+val TimelineEvent.stableEventId: String
+    get() = root.unsignedData?.transactionId?.takeIf { LocalEcho.isLocalEchoId(it) } ?: eventId
