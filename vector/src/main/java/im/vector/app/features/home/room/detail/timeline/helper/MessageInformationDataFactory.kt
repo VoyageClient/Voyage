@@ -11,7 +11,6 @@ import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
-import im.vector.app.core.extensions.stableEventId
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
@@ -84,7 +83,6 @@ class MessageInformationDataFactory @Inject constructor(
 
         return MessageInformationData(
                 eventId = eventId,
-                stableEventId = event.stableEventId,
                 senderId = senderId,
                 sendState = event.root.sendState,
                 time = time,

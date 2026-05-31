@@ -21,7 +21,6 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.LoadingItem_
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.core.extensions.nextOrNull
-import im.vector.app.core.extensions.stableEventId
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.extensions.prevOrNull
 import im.vector.app.features.home.AvatarRenderer
@@ -494,7 +493,7 @@ class TimelineEventController @Inject constructor(
         }
         updateUTDStates(event, params.nextEvent)
         val eventModel = timelineItemFactory.create(params).also {
-            it.id(event.stableEventId)
+            it.id(event.localId)
             it.setOnVisibilityStateChanged(TimelineEventVisibilityStateChangedListener(callback, event))
         }
         val isCacheable = (eventModel !is ItemWithEvents || eventModel.isCacheable()) && !params.isHighlighted

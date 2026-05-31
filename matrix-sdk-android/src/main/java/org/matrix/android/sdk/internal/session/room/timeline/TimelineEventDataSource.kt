@@ -28,7 +28,6 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.database.RealmSessionProvider
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
-import org.matrix.android.sdk.internal.database.model.RoomEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntityFields
 import org.matrix.android.sdk.internal.database.query.where
@@ -46,14 +45,9 @@ internal class TimelineEventDataSource @Inject constructor(
 
     fun getTimelineEvent(roomId: String, eventId: String): TimelineEvent? {
         return realmSessionProvider.withRealm { realm ->
-            val live = TimelineEventEntity.where(realm, roomId = roomId, eventId = eventId).findFirst()
-            // Local echoes only exist in roomEntity.sendingTimelineEvents until sync replaces them.
-            val match = live ?: RoomEntity.where(realm, roomId).findFirst()
-                    ?.sendingTimelineEvents
-                    ?.where()
-                    ?.equalTo(TimelineEventEntityFields.EVENT_ID, eventId)
-                    ?.findFirst()
-            match?.let { timelineEventMapper.map(it) }
+            TimelineEventEntity.where(realm, roomId = roomId, eventId = eventId).findFirst()?.let {
+                timelineEventMapper.map(it)
+            }
         }
     }
 
