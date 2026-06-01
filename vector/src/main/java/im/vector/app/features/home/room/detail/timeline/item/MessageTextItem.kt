@@ -9,6 +9,8 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.text.Spanned
 import android.text.method.MovementMethod
+import android.util.TypedValue
+import android.view.View
 import android.view.ViewStub
 import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatTextView
@@ -22,9 +24,9 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
@@ -67,8 +69,14 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     @EpoxyAttribute
     var useRichTextEditorStyle: Boolean = false
 
+    @EpoxyAttribute
+    var noticeStyle: Boolean = false
+
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var bodySegments: List<BodySegment>? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var richReplyHeader: CharSequence? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var richBodyRenderer: RichMessageBodyRenderer? = null
@@ -105,6 +113,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
                     movementMethod = movementMethod,
                     onClick = { attributes.itemClickListener?.invoke(it) },
                     onLongClick = { attributes.itemLongClickListener?.onLongClick(it) ?: false },
+                    noticeStyle = noticeStyle,
+                    replyHeader = richReplyHeader,
             )
             renderSendState(container, null)
             return
@@ -136,8 +146,20 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         renderSendState(messageView, messageView)
         messageView.onClick(attributes.itemClickListener)
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
+        val defaultColorAttr = if (noticeStyle) {
+            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_content_primary
+        }
+        messageView.setTextColor(resolveThemeColor(messageView, defaultColorAttr))
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
+    }
+
+    private fun resolveThemeColor(view: View, attrRes: Int): Int {
+        val tv = TypedValue()
+        view.context.theme.resolveAttribute(attrRes, tv, true)
+        return tv.data
     }
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {

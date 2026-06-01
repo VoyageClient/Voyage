@@ -32,6 +32,7 @@ sealed interface ParsedCommand {
     data class SendPlainText(val message: CharSequence) : ParsedCommand
     data class SendFormattedText(val message: CharSequence, val formattedMessage: String) : ParsedCommand
     data class SendEmote(val message: CharSequence) : ParsedCommand
+    data class SendNotice(val message: CharSequence) : ParsedCommand
     data class SendRainbow(val message: CharSequence) : ParsedCommand
     data class SendRainbowEmote(val message: CharSequence) : ParsedCommand
     data class BanUser(val userId: String, val reason: String?) : ParsedCommand

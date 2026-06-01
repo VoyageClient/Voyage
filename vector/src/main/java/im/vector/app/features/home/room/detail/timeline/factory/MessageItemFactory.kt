@@ -82,7 +82,6 @@ import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
-import me.gujun.android.span.span
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
@@ -745,6 +744,7 @@ class MessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes,
             replyToContent: ReplyToContent?,
             mentionHint: String? = null,
+            noticeStyle: Boolean = false,
     ): MessageTextItem? {
         // Render the actual body with any embedded legacy `<mx-reply>` stripped — the synthetic
         // reply header (if any) is rendered in a second Markwon pass and prepended below. This
@@ -756,23 +756,40 @@ class MessageItemFactory @Inject constructor(
         val containsTable = compressed.contains("<table", ignoreCase = true)
         val renderedBody = (htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned).trimUncoveredWhitespace()
 
-        val finalBody: CharSequence = if (replyToContent?.eventId != null) {
-            val header = renderReplyHeader(replyToContent, mentionHint, callback)?.first?.charSequence
-            if (header != null) {
-                SpannableStringBuilder()
-                        .append(header)
-                        .append("\n\n")
-                        .append(renderedBody)
-            } else {
-                renderedBody
-            }
+        val replyHeader: CharSequence? = if (replyToContent?.eventId != null) {
+            renderReplyHeader(replyToContent, mentionHint, callback)?.first?.charSequence
         } else {
-            renderedBody
+            null
         }
         val segments = if (containsTable) {
             HtmlBodySegmenter.segment(compressed)
         } else {
             null
+        }
+        // For the plain-TextView path the header is concatenated into `message`. For the rich
+        // body path the message field is ignored, so we pass the header separately so the
+        // renderer can prepend it as its own TextView above the segments.
+        val finalBody: CharSequence = if (replyHeader != null && segments == null) {
+            val ssb = SpannableStringBuilder()
+                    .append(replyHeader)
+                    .append("\n\n")
+            val headerEnd = ssb.length
+            ssb.append(renderedBody)
+            if (noticeStyle) {
+                // The TextView's base colour is secondary for notice styling; restore primary
+                // over the reply-header range so it doesn't appear muted. Apply only on the
+                // gaps where the header has no inline colour of its own, so usernames and
+                // other coloured spans are preserved verbatim.
+                applyDefaultColorOnGaps(
+                        ssb,
+                        rangeStart = 0,
+                        rangeEnd = headerEnd,
+                        color = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary),
+                )
+            }
+            ssb
+        } else {
+            renderedBody
         }
         return buildMessageTextItem(
                 finalBody,
@@ -782,6 +799,8 @@ class MessageItemFactory @Inject constructor(
                 callback,
                 attributes,
                 bodySegments = segments,
+                noticeStyle = noticeStyle,
+                richReplyHeader = if (segments != null) replyHeader else null,
         )
     }
 
@@ -865,6 +884,8 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
             bodySegments: List<BodySegment>? = null,
+            noticeStyle: Boolean = false,
+            richReplyHeader: CharSequence? = null,
     ): MessageTextItem? {
         val renderedBody = textRenderer.render(body)
         val bindingOptions = spanUtils.getBindingOptions(renderedBody)
@@ -886,6 +907,7 @@ class MessageItemFactory @Inject constructor(
                 .imageContentRenderer(imageContentRenderer)
                 .previewUrlCallback(callback)
                 .useRichTextEditorStyle(useRichTextEditorStyle)
+                .noticeStyle(noticeStyle)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .attributes(attributes)
                 .highlighted(highlight)
@@ -895,6 +917,7 @@ class MessageItemFactory @Inject constructor(
                         bodySegments(bodySegments)
                         richBodyRenderer(richMessageBodyRenderer)
                         htmlPostProcessors(arrayOf<EventHtmlRenderer.PostProcessor>(pillsPostProcessor))
+                        richReplyHeader(richReplyHeader)
                     }
                 }
     }
@@ -945,32 +968,25 @@ class MessageItemFactory @Inject constructor(
 
     private fun buildNoticeMessageItem(
             messageContent: MessageNoticeContent,
-            @Suppress("UNUSED_PARAMETER")
             informationData: MessageInformationData,
             highlight: Boolean,
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): MessageTextItem? {
-        val htmlBody = messageContent.getHtmlBody()
-        val formattedBody = span {
-            text = htmlBody
-            textColor = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-            textStyle = "italic"
+        val matrixFormattedBody = messageContent.matrixFormattedBody
+        val replyToContent = messageContent.relatesTo?.inReplyTo
+        return if (matrixFormattedBody != null) {
+            buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint = null, noticeStyle = true)
+        } else if (replyToContent?.eventId != null) {
+            val escapedBody = messageContent.body
+                    .replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\n", "<br />")
+            buildFormattedTextItem(escapedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint = null, noticeStyle = true)
+        } else {
+            buildMessageTextItem(messageContent.body, false, informationData, highlight, callback, attributes, noticeStyle = true)
         }
-
-        val bindingOptions = spanUtils.getBindingOptions(htmlBody)
-        val message = formattedBody.linkify(callback)
-
-        return MessageTextItem_()
-                .leftGuideline(avatarSizeProvider.leftGuideline)
-                .previewUrlRetriever(callback?.getPreviewUrlRetriever())
-                .imageContentRenderer(imageContentRenderer)
-                .previewUrlCallback(callback)
-                .attributes(attributes)
-                .message(message.toEpoxyCharSequence())
-                .bindingOptions(bindingOptions)
-                .highlighted(highlight)
-                .movementMethod(createLinkMovementMethod(callback))
     }
 
     private fun buildEmoteMessageItem(
@@ -1002,6 +1018,23 @@ class MessageItemFactory @Inject constructor(
                 .attributes(attributes)
                 .highlighted(highlight)
                 .movementMethod(createLinkMovementMethod(callback))
+    }
+
+    /** Add a ForegroundColorSpan over [rangeStart, rangeEnd) only on character runs not already
+     *  covered by an existing ForegroundColorSpan, so inline colours from `<font color>` etc.
+     *  remain authoritative. */
+    private fun applyDefaultColorOnGaps(sb: SpannableStringBuilder, rangeStart: Int, rangeEnd: Int, color: Int) {
+        if (rangeEnd <= rangeStart) return
+        val occupied = sb.getSpans(rangeStart, rangeEnd, ForegroundColorSpan::class.java)
+                .map { sb.getSpanStart(it).coerceAtLeast(rangeStart) to sb.getSpanEnd(it).coerceAtMost(rangeEnd) }
+                .filter { it.first < it.second }
+                .sortedBy { it.first }
+        var cursor = rangeStart
+        for ((s, e) in occupied) {
+            if (s > cursor) sb.setSpan(ForegroundColorSpan(color), cursor, s, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            if (e > cursor) cursor = e
+        }
+        if (cursor < rangeEnd) sb.setSpan(ForegroundColorSpan(color), cursor, rangeEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 
     private fun MessageContentWithFormattedBody.getHtmlBody(): CharSequence {

@@ -422,6 +422,26 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)
                         }
+                        is ParsedCommand.SendNotice -> {
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = parsedCommand.message,
+                                            msgType = MessageType.MSGTYPE_NOTICE,
+                                            autoMarkdown = action.autoMarkdown
+                                    )
+                                } else {
+                                    room.sendService().sendTextMessage(
+                                            text = parsedCommand.message,
+                                            msgType = MessageType.MSGTYPE_NOTICE,
+                                            autoMarkdown = action.autoMarkdown
+                                    )
+                                }
+                            }
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                            popDraft(room)
+                        }
                         is ParsedCommand.SendRainbow -> {
                             val message = parsedCommand.message.toString()
                             offloadSend {

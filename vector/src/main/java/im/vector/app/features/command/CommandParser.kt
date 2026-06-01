@@ -129,6 +129,13 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.EMOTE)
                     }
                 }
+                Command.NOTICE.matches(slashCommand) -> {
+                    if (message.isNotEmpty()) {
+                        ParsedCommand.SendNotice(message)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.NOTICE)
+                    }
+                }
                 Command.RAINBOW.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
                         ParsedCommand.SendRainbow(message)

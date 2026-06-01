@@ -26,6 +26,7 @@ enum class Command(
     GREENTEXT("/greentext", null, "<message>", CommonStrings.command_description_greentext, false, true),
     CRASH_APP("/crash", null, "", CommonStrings.command_description_crash_application, true, true),
     EMOTE("/me", null, "<message>", CommonStrings.command_description_emote, false, true),
+    NOTICE("/notice", null, "<message>", CommonStrings.command_description_notice, false, true),
     BAN_USER("/ban", null, "<user-id> [reason]", CommonStrings.command_description_ban_user, false, false),
     UNBAN_USER("/unban", null, "<user-id> [reason]", CommonStrings.command_description_unban_user, false, false),
     IGNORE_USER("/ignore", null, "<user-id> [reason]", CommonStrings.command_description_ignore_user, false, true),

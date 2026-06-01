@@ -21,6 +21,8 @@
 
     <string name="command_description_greentext" translatable="false">Send a message as greentext.</string>
 
+    <string name="command_description_notice" translatable="false">Sends the given message as a notice</string>
+
     <string name="command_description_jump_to_start" translatable="false">Jump to the first event in this room.</string>
     <string name="command_description_jump_to" translatable="false">Jump to the event with the given ID.</string>
     <string name="command_description_jump_to_date" translatable="false">Jump to the event closest to the given date.</string>

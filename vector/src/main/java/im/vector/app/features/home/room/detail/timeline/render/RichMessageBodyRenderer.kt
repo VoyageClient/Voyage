@@ -51,15 +51,41 @@ class RichMessageBodyRenderer @Inject constructor(
             movementMethod: MovementMethod?,
             onClick: (View) -> Unit,
             onLongClick: (View) -> Boolean,
+            noticeStyle: Boolean = false,
+            replyHeader: CharSequence? = null,
     ) {
         val ctx = container.context
+        val defaultColorAttr = if (noticeStyle) im.vector.lib.ui.styles.R.attr.vctr_content_secondary else im.vector.lib.ui.styles.R.attr.vctr_content_primary
         container.removeAllViews()
+        if (replyHeader != null) {
+            container.addView(buildReplyHeaderView(ctx, replyHeader, movementMethod, onClick, onLongClick))
+        }
         segments.forEach { segment ->
             when (segment) {
-                is BodySegment.Html -> container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, onClick, onLongClick))
-                is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod))
+                is BodySegment.Html -> container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
+                is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, defaultColorAttr))
             }
         }
+    }
+
+    private fun buildReplyHeaderView(
+            ctx: Context,
+            header: CharSequence,
+            movementMethod: MovementMethod?,
+            onClick: (View) -> Unit,
+            onLongClick: (View) -> Boolean,
+    ): AppCompatTextView {
+        val tv = AppCompatTextView(ctx)
+        tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+            bottomMargin = dim.dpToPx(4)
+        }
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
+        tv.setTextColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        tv.movementMethod = movementMethod
+        tv.setOnClickListener(onClick)
+        tv.setOnLongClickListener(onLongClick)
+        tv.text = header
+        return tv
     }
 
     private fun buildTextView(
@@ -69,11 +95,12 @@ class RichMessageBodyRenderer @Inject constructor(
             movementMethod: MovementMethod?,
             onClick: (View) -> Unit,
             onLongClick: (View) -> Boolean,
+            defaultColorAttr: Int,
     ): AppCompatTextView {
         val tv = AppCompatTextView(ctx)
         tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
-        tv.setTextColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        tv.setTextColor(themeColor(ctx, defaultColorAttr))
         tv.movementMethod = movementMethod
         tv.text = htmlRenderer.get().render(html, *postProcessors)
         tv.setOnClickListener(onClick)
@@ -86,6 +113,7 @@ class RichMessageBodyRenderer @Inject constructor(
             rows: List<TableRowData>,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
+            defaultColorAttr: Int,
     ): View {
         val scroll = ShrinkableHorizontalScrollView(ctx).apply {
             layoutParams = LinearLayout.LayoutParams(
@@ -108,7 +136,7 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         val colCount = rows.maxOfOrNull { it.cells.size } ?: 0
         rows.forEach { row ->
-            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod))
+            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod, defaultColorAttr))
         }
         scroll.addView(table)
         return scroll
@@ -120,6 +148,7 @@ class RichMessageBodyRenderer @Inject constructor(
             colCount: Int,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
+            defaultColorAttr: Int,
     ): TableRow {
         val tr = TableRow(ctx)
         tr.layoutParams = TableLayout.LayoutParams(
@@ -128,7 +157,7 @@ class RichMessageBodyRenderer @Inject constructor(
         )
         for (i in 0 until colCount) {
             val cell = row.cells.getOrNull(i)
-            tr.addView(buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod))
+            tr.addView(buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod, defaultColorAttr))
         }
         return tr
     }
@@ -139,6 +168,7 @@ class RichMessageBodyRenderer @Inject constructor(
             rowIsHeader: Boolean,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
+            defaultColorAttr: Int,
     ): AppCompatTextView {
         val isHeader = rowIsHeader || (cell?.isHeader == true)
         val tv = AppCompatTextView(ctx)
@@ -146,7 +176,7 @@ class RichMessageBodyRenderer @Inject constructor(
         val padV = dim.dpToPx(8)
         tv.setPadding(padH, padV, padH, padV)
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
-        tv.setTextColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        tv.setTextColor(themeColor(ctx, defaultColorAttr))
         if (isHeader) {
             tv.setTypeface(tv.typeface, Typeface.BOLD)
             tv.setBackgroundResource(R.drawable.bg_rich_table_cell_header)

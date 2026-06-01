@@ -41,11 +41,19 @@ internal class UpdatedReplyDecorator(
 ) : TimelineEventDecorator {
 
     override fun decorate(timelineEvent: TimelineEvent): TimelineEvent {
-        return if (timelineEvent.isReply() && !timelineEvent.root.isThread() && !timelineEvent.root.isAttachmentMessage()) {
+        return if (timelineEvent.isReply() &&
+                timelineEvent.root.getClearType() == EventType.MESSAGE &&
+                !timelineEvent.root.isThread() &&
+                !timelineEvent.root.isAttachmentMessage()) {
             // Skip media replies — their content (image/video/audio/file/sticker) must reach
             // the timeline factory intact so the media itself renders. The mx-reply header is
             // injected by the UI side via the caption pipeline rather than by rewriting the
             // event content to a "sent an image." text stub.
+            //
+            // Also skip non-message events (state events like m.room.member). Some clients
+            // sneak m.in_reply_to into those; rewriting their content destroys the membership
+            // data so NoticeEventFormatter can't render them. We render them normally and let
+            // the UI ignore the reply marker.
             val newRepliedEvent = createNewRepliedEvent(timelineEvent) ?: return timelineEvent
             timelineEvent.copy(root = newRepliedEvent)
         } else {
@@ -69,6 +77,10 @@ internal class UpdatedReplyDecorator(
         // its escape-and-display path and show the HTML as literal text.
         val replyTextContent = localEchoEventFactory.bodyForReply(currentTimelineEvent.getLastMessageContent(), true)
 
+        // Preserve the original msgtype (m.notice / m.emote / m.text). createReplyTextContent
+        // always returns a MessageTextContent with msgtype m.text, so without this the
+        // dispatcher would route a notice reply through the text path and lose its styling.
+        val originalMsgType = currentTimelineEvent.getLastMessageContent()?.msgType
         val newContent = localEchoEventFactory.createReplyTextContent(
                 timelineEventMapper.map(timelineEventEntity),
                 replyTextContent.text,
@@ -76,7 +88,13 @@ internal class UpdatedReplyDecorator(
                 false,
                 showInThread = false,
                 isRedactedEvent = isRedactedEvent
-        ).toContent()
+        ).toContent().let { content ->
+            if (originalMsgType != null && originalMsgType != content["msgtype"]) {
+                content.toMutableMap().apply { put("msgtype", originalMsgType) }
+            } else {
+                content
+            }
+        }
 
         val decryptionResultToSet = currentTimelineEvent.root.mxDecryptionResult?.copy(
                 payload = mapOf(
