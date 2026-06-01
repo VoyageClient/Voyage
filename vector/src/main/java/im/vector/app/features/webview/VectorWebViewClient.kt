@@ -11,7 +11,9 @@ package im.vector.app.features.webview
 
 import android.annotation.TargetApi
 import android.graphics.Bitmap
+import android.net.http.SslError
 import android.os.Build
+import android.webkit.SslErrorHandler
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -72,6 +74,10 @@ class VectorWebViewClient(private val eventListener: WebViewEventListener) : Web
             mInError = true
             eventListener.onPageError(request.url.toString(), error.errorCode, error.description.toString())
         }
+    }
+
+    override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
+        handler.proceed()
     }
 
     private fun shouldOverrideUrl(url: String): Boolean {
