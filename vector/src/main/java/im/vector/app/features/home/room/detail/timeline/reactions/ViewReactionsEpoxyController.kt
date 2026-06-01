@@ -13,11 +13,13 @@ import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.Success
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.EmojiSpanify
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.core.ui.list.genericLoaderItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import javax.inject.Inject
 
 /**
@@ -25,7 +27,8 @@ import javax.inject.Inject
  */
 class ViewReactionsEpoxyController @Inject constructor(
         private val stringProvider: StringProvider,
-        private val emojiSpanify: EmojiSpanify
+        private val emojiSpanify: EmojiSpanify,
+        private val activeSessionHolder: ActiveSessionHolder,
 ) :
         TypedEpoxyController<DisplayReactionsViewState>() {
 
@@ -51,7 +54,15 @@ class ViewReactionsEpoxyController @Inject constructor(
                     reactionInfoSimpleItem {
                         id(reactionInfo.eventId)
                         timeStamp(reactionInfo.timestamp)
-                        reactionKey(host.emojiSpanify.spanify(reactionInfo.reactionKey).toEpoxyCharSequence())
+                        // For mxc keys we want the raw URL string going through so the item can
+                        // detect it; emoji spanify would otherwise treat any colon-segments as
+                        // shortcode hints and mangle the URL.
+                        if (reactionInfo.reactionKey.isMxcUrl()) {
+                            reactionKey(reactionInfo.reactionKey.toEpoxyCharSequence())
+                        } else {
+                            reactionKey(host.emojiSpanify.spanify(reactionInfo.reactionKey).toEpoxyCharSequence())
+                        }
+                        activeSessionHolder(host.activeSessionHolder)
                         authorDisplayName(reactionInfo.authorName ?: reactionInfo.authorId)
                         userClicked { host.listener?.didSelectUser(reactionInfo.authorId) }
                     }
