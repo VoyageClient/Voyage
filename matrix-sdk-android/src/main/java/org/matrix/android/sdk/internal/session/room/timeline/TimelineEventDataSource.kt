@@ -21,6 +21,7 @@ import com.zhuinden.monarchy.Monarchy
 import io.realm.Sort
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
+import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -62,7 +63,7 @@ internal class TimelineEventDataSource @Inject constructor(
                     .sort(TimelineEventEntityFields.ROOT.ORIGIN_SERVER_TS, Sort.ASCENDING)
                     .distinct(TimelineEventEntityFields.EVENT_ID)
                     .findAll()
-                    ?.mapNotNull { timelineEventMapper.map(it).takeIf { it.root.isImageMessage() || it.root.isVideoMessage() } }
+                    ?.mapNotNull { timelineEventMapper.map(it).takeIf { it.root.isImageMessage() || it.root.isVideoMessage() || it.root.isSticker() } }
                     .orEmpty()
         }
     }

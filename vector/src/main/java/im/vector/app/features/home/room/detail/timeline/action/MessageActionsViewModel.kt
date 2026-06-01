@@ -605,7 +605,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_IMAGE,
             MessageType.MSGTYPE_AUDIO,
             MessageType.MSGTYPE_VIDEO,
-            MessageType.MSGTYPE_FILE -> true
+            MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false
         }
     }
@@ -615,7 +616,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_IMAGE,
             MessageType.MSGTYPE_AUDIO,
             MessageType.MSGTYPE_VIDEO,
-            MessageType.MSGTYPE_FILE -> true
+            MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false
         }
     }

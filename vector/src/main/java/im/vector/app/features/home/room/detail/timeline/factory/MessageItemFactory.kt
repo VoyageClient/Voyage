@@ -630,13 +630,9 @@ class MessageItemFactory @Inject constructor(
                 .apply {
                     if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {
                         mode(ImageContentRenderer.Mode.STICKER)
-                        clickListener { view ->
-                            callback?.onImageMessageClicked(messageContent, data, view, listOf(data))
-                        }
-                    } else {
-                        clickListener { view ->
-                            callback?.onImageMessageClicked(messageContent, data, view, emptyList())
-                        }
+                    }
+                    clickListener { view ->
+                        callback?.onImageMessageClicked(messageContent, data, view, emptyList())
                     }
                 }.apply {
                     if (playableIfAutoplay && vectorPreferences.autoplayAnimatedImages()) {

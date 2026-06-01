@@ -75,7 +75,8 @@ class RoomUploadsViewModel @AssistedInject constructor(
                         .filterNot { it.root.asMessageAudioEvent().isVoiceBroadcast() }
                         .groupBy {
                             it.contentWithAttachmentContent.msgType == MessageType.MSGTYPE_IMAGE ||
-                                    it.contentWithAttachmentContent.msgType == MessageType.MSGTYPE_VIDEO
+                                    it.contentWithAttachmentContent.msgType == MessageType.MSGTYPE_VIDEO ||
+                                    it.contentWithAttachmentContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL
                         }
 
                 setState {

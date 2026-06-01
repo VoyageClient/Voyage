@@ -55,25 +55,23 @@ class EventDetailsFormatter @Inject constructor(
 
     private fun formatPollEndMessage() = context.getString(CommonStrings.message_reply_to_ended_poll_preview)
 
-    /**
-     * Example: "1024 x 720 - 670 kB".
-     */
     private fun formatForImageMessage(event: Event): CharSequence? {
-        return event.getClearContent().toModel<MessageImageContent>()?.info
-                ?.let { "${it.width} x ${it.height} - ${it.size.asFileSize()}" }
+        val info = event.getClearContent().toModel<MessageImageContent>()?.info ?: return null
+        return listOfNotNull(
+                resolution(info.width, info.height),
+                info.size.takeIf { it > 0 }?.asFileSize(),
+        ).joinToString(" - ").takeIf { it.isNotEmpty() }
     }
 
-    /**
-     * Example: "02:45 - 1024 x 720 - 670 kB".
-     */
     private fun formatForVideoMessage(event: Event): CharSequence? {
-        return event.getClearContent().toModel<MessageVideoContent>()?.videoInfo
-                ?.let { "${it.duration.asDuration()} - ${it.width} x ${it.height} - ${it.size.asFileSize()}" }
+        val info = event.getClearContent().toModel<MessageVideoContent>()?.videoInfo ?: return null
+        return listOfNotNull(
+                info.duration.takeIf { it > 0 }?.asDuration(),
+                resolution(info.width, info.height),
+                info.size.takeIf { it > 0 }?.asFileSize(),
+        ).joinToString(" - ").takeIf { it.isNotEmpty() }
     }
 
-    /**
-     * Example: "02:45 - 670 kB".
-     */
     private fun formatForAudioMessage(event: Event): CharSequence? {
         return event.getClearContent().toModel<MessageAudioContent>()?.audioInfo
                 ?.let { audioInfo ->
@@ -83,13 +81,16 @@ class EventDetailsFormatter @Inject constructor(
                 }
     }
 
-    /**
-     * Example: "670 kB - application/pdf".
-     */
     private fun formatForFileMessage(event: Event): CharSequence? {
-        return event.getClearContent().toModel<MessageFileContent>()?.info
-                ?.let { "${it.size.asFileSize()} - ${it.mimeType}" }
+        val info = event.getClearContent().toModel<MessageFileContent>()?.info ?: return null
+        return listOfNotNull(
+                info.size.takeIf { it > 0 }?.asFileSize(),
+                info.mimeType?.takeIf { it.isNotBlank() },
+        ).joinToString(" - ").takeIf { it.isNotEmpty() }
     }
+
+    private fun resolution(width: Int, height: Int): String? =
+            if (width > 0 && height > 0) "$width x $height" else null
 
     private fun Long.asFileSize() = TextUtils.formatFileSize(context, this)
     private fun Int.asDuration() = TextUtils.formatDuration(Duration.ofMillis(toLong()))

@@ -50,6 +50,8 @@ internal class ImageCompressor @Inject constructor(
                 SourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality)
                 SourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality)
                 SourceFormat.XPM -> compressXpm(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                // Re-encoding would drop to the first frame and strip the animation.
+                SourceFormat.ANIMATED_WEBP -> CompressedImage(imageFile, mimeType = "image/webp")
                 SourceFormat.OTHER -> compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality)
             }
         }
@@ -141,7 +143,7 @@ internal class ImageCompressor @Inject constructor(
                 Bitmap.CompressFormat.WEBP
             }
 
-    private enum class SourceFormat { GIF, APNG, XPM, OTHER }
+    private enum class SourceFormat { GIF, APNG, XPM, ANIMATED_WEBP, OTHER }
 
     private fun sniffFormat(file: File): SourceFormat {
         val head = ByteArray(64)
@@ -158,6 +160,14 @@ internal class ImageCompressor @Inject constructor(
                 head[0] == 0x89.toByte() && head[1] == 0x50.toByte() && head[2] == 0x4E.toByte() && head[3] == 0x47.toByte()) {
             // acTL must appear before IDAT — scan the whole file's first ~4 KB to detect.
             return if (containsApngMarker(file)) SourceFormat.APNG else SourceFormat.OTHER
+        }
+        // RIFF....WEBP — VP8X header at offset 12 carries the ANIM flag (bit 1) when animated.
+        if (read >= 21 &&
+                head[0] == 'R'.code.toByte() && head[1] == 'I'.code.toByte() && head[2] == 'F'.code.toByte() && head[3] == 'F'.code.toByte() &&
+                head[8] == 'W'.code.toByte() && head[9] == 'E'.code.toByte() && head[10] == 'B'.code.toByte() && head[11] == 'P'.code.toByte() &&
+                head[12] == 'V'.code.toByte() && head[13] == 'P'.code.toByte() && head[14] == '8'.code.toByte() && head[15] == 'X'.code.toByte() &&
+                (head[20].toInt() and (1 shl 1)) != 0) {
+            return SourceFormat.ANIMATED_WEBP
         }
         if (read >= 9 && String(head, 0, 9, Charsets.US_ASCII).startsWith("/* XPM */")) return SourceFormat.XPM
         return SourceFormat.OTHER

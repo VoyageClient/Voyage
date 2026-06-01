@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.content
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.os.Build
@@ -605,13 +606,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
     private fun encodeBlurHashFromImage(file: File): String? {
         return try {
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            file.inputStream().use { BitmapFactory.decodeStream(it, null, bounds) }
-            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-            val sample = generateSequence(1) { it * 2 }
-                    .first { it * BLURHASH_DECODE_MAX >= maxOf(bounds.outWidth, bounds.outHeight) }
-            val options = BitmapFactory.Options().apply { inSampleSize = sample }
-            val bitmap = file.inputStream().use { BitmapFactory.decodeStream(it, null, options) } ?: return null
+            val bitmap = decodeForBlurHash(file) ?: return null
             try {
                 val (xc, yc) = blurHashComponents(bitmap.width, bitmap.height)
                 BlurHash.encode(bitmap, xc, yc)
@@ -621,6 +616,36 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         } catch (t: Throwable) {
             Timber.w(t, "Failed to encode blurhash")
             null
+        }
+    }
+
+    private fun decodeForBlurHash(file: File): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        file.inputStream().use { BitmapFactory.decodeStream(it, null, bounds) }
+        if (bounds.outWidth > 0 && bounds.outHeight > 0) {
+            val sample = generateSequence(1) { it * 2 }
+                    .first { it * BLURHASH_DECODE_MAX >= maxOf(bounds.outWidth, bounds.outHeight) }
+            val options = BitmapFactory.Options().apply { inSampleSize = sample }
+            return file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
+        }
+        if (!isXpm(file)) return null
+        return XpmBitmapReader.decode(file)?.let(::downscaleForBlurHash)
+    }
+
+    private fun isXpm(file: File): Boolean {
+        val head = ByteArray(9)
+        val read = runCatching { file.inputStream().use { it.read(head) } }.getOrDefault(0)
+        return read >= 9 && String(head, 0, 9, Charsets.US_ASCII) == "/* XPM */"
+    }
+
+    private fun downscaleForBlurHash(bitmap: Bitmap): Bitmap {
+        val largest = maxOf(bitmap.width, bitmap.height)
+        if (largest <= BLURHASH_DECODE_MAX) return bitmap
+        val scale = BLURHASH_DECODE_MAX.toFloat() / largest
+        val w = (bitmap.width * scale).toInt().coerceAtLeast(1)
+        val h = (bitmap.height * scale).toInt().coerceAtLeast(1)
+        return Bitmap.createScaledBitmap(bitmap, w, h, true).also {
+            if (it !== bitmap) bitmap.recycle()
         }
     }
 

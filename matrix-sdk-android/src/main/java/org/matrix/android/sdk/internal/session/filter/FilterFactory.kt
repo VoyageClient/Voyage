@@ -36,7 +36,7 @@ internal object FilterFactory {
         return RoomEventFilter(
                 limit = numberOfEvents,
                 containsUrl = true,
-                types = listOf(EventType.MESSAGE),
+                types = listOf(EventType.MESSAGE, EventType.STICKER),
                 lazyLoadMembers = true,
         )
     }

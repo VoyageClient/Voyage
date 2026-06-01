@@ -40,7 +40,7 @@ import im.vector.app.features.roomprofile.uploads.RoomUploadsViewModel
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
-import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
@@ -121,7 +121,7 @@ class RoomUploadsMediaFragment :
     private fun getItemsArgs(state: RoomUploadsViewState): List<AttachmentData> {
         return state.mediaEvents.mapNotNull {
             when (val content = it.contentWithAttachmentContent) {
-                is MessageImageContent -> {
+                is MessageImageInfoContent -> {
                     ImageContentRenderer.Data(
                             eventId = it.eventId,
                             filename = content.body,

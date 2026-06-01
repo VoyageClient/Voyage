@@ -18,7 +18,7 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
-import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
@@ -68,7 +68,8 @@ class UploadsMediaController @Inject constructor(
         val host = this
         mediaEvents.forEach { uploadEvent ->
             when (uploadEvent.contentWithAttachmentContent.msgType) {
-                MessageType.MSGTYPE_IMAGE -> {
+                MessageType.MSGTYPE_IMAGE,
+                MessageType.MSGTYPE_STICKER_LOCAL -> {
                     val data = uploadEvent.toImageContentRendererData() ?: return@forEach
                     uploadsImageItem {
                         id(uploadEvent.eventId)
@@ -95,7 +96,7 @@ class UploadsMediaController @Inject constructor(
     }
 
     private fun UploadEvent.toImageContentRendererData(): ImageContentRenderer.Data? {
-        val messageContent = (contentWithAttachmentContent as? MessageImageContent) ?: return null
+        val messageContent = (contentWithAttachmentContent as? MessageImageInfoContent) ?: return null
 
         return ImageContentRenderer.Data(
                 eventId = eventId,

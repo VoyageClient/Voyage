@@ -260,8 +260,9 @@ suspend fun saveMedia(
         currentTimeMillis: Long
 ) {
     withContext(Dispatchers.IO) {
+        val resolvedTitle = ensureExtension(title, mediaMimeType)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val filename = appendTimeToFilename(title)
+            val filename = appendTimeToFilename(resolvedTitle)
 
             val values = ContentValues().apply {
                 put(MediaStore.Images.Media.TITLE, filename)
@@ -299,9 +300,16 @@ suspend fun saveMedia(
                 }
             }
         } else {
-            saveMediaLegacy(context, mediaMimeType, title, file, currentTimeMillis)
+            saveMediaLegacy(context, mediaMimeType, resolvedTitle, file, currentTimeMillis)
         }
     }
+}
+
+private fun ensureExtension(title: String, mimeType: String?): String {
+    if (mimeType.isNullOrBlank()) return title
+    if (title.substringAfterLast('.', "").isNotEmpty()) return title
+    val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: return title
+    return "$title.$ext"
 }
 
 private fun saveMediaLegacy(

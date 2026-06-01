@@ -20,8 +20,10 @@ import com.zhuinden.monarchy.Monarchy
 import io.realm.Sort
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.uploads.GetUploadsResult
@@ -79,8 +81,6 @@ internal class DefaultGetUploadsTask @Inject constructor(
                         .sort(EventEntityFields.ORIGIN_SERVER_TS, Sort.DESCENDING)
                         .findAll()
                         .map { it.asDomain() }
-                        // Exclude stickers
-                        .filter { it.getClearType() != EventType.STICKER }
             }
             events = eventsFromRealm
         } else {
@@ -109,8 +109,11 @@ internal class DefaultGetUploadsTask @Inject constructor(
 
             uploadEvents = events.mapNotNull { event ->
                 val eventId = event.eventId ?: return@mapNotNull null
-                val messageContent = event.getClearContent()?.toModel<MessageContent>() ?: return@mapNotNull null
-                val messageWithAttachmentContent = (messageContent as? MessageWithAttachmentContent) ?: return@mapNotNull null
+                val messageWithAttachmentContent = if (event.isSticker()) {
+                    event.getClearContent()?.toModel<MessageStickerContent>()
+                } else {
+                    event.getClearContent()?.toModel<MessageContent>() as? MessageWithAttachmentContent
+                } ?: return@mapNotNull null
                 val senderId = event.senderId ?: return@mapNotNull null
 
                 val senderInfo = cacheOfSenderInfos.getOrPut(senderId) {
