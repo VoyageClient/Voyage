@@ -48,4 +48,7 @@
 
     <!--  WIP -->
     <string name="location_map_view_copyright" translatable="false">© MapTiler © OpenStreetMap contributors</string>
+
+    <string name="settings_timeline_disable_table_wrap" translatable="false">Disable table cell line wrapping</string>
+    <string name="settings_timeline_disable_table_wrap_summary" translatable="false">Cells in tables won\'t wrap. The table scrolls horizontally instead.</string>
 </resources>

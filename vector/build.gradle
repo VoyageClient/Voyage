@@ -201,6 +201,7 @@ dependencies {
     implementation libs.markwon.imageGlide
     implementation libs.markwon.inlineParser
     implementation libs.markwon.html
+    implementation 'org.jsoup:jsoup:1.17.2'
     implementation 'com.googlecode.htmlcompressor:htmlcompressor:1.5.2'
     implementation 'me.saket:better-link-movement-method:2.2.0'
     implementation 'com.google.android.flexbox:flexbox:3.0.0'

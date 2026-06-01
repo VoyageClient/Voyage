@@ -59,6 +59,9 @@ import im.vector.app.features.home.room.detail.timeline.item.VerificationRequest
 import im.vector.app.features.home.room.detail.timeline.item.VerificationRequestItem_
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
+import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.html.BodySegment
+import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
@@ -147,6 +150,7 @@ class MessageItemFactory @Inject constructor(
         private val pollItemViewStateFactory: PollItemViewStateFactory,
         private val voiceBroadcastItemFactory: VoiceBroadcastItemFactory,
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
+        private val richMessageBodyRenderer: RichMessageBodyRenderer,
 ) {
 
     // TODO inject this properly?
@@ -749,6 +753,7 @@ class MessageItemFactory @Inject constructor(
         // combined pass (resulting in literal HTML being shown in the timeline).
         val bareBody = processBodyOfReplyToEventUseCase.stripExistingMxReply(matrixFormattedBody)
         val compressed = htmlCompressor.compress(bareBody)
+        val containsTable = compressed.contains("<table", ignoreCase = true)
         val renderedBody = (htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned).trimUncoveredWhitespace()
 
         val finalBody: CharSequence = if (replyToContent?.eventId != null) {
@@ -764,6 +769,11 @@ class MessageItemFactory @Inject constructor(
         } else {
             renderedBody
         }
+        val segments = if (containsTable) {
+            HtmlBodySegmenter.segment(compressed)
+        } else {
+            null
+        }
         return buildMessageTextItem(
                 finalBody,
                 true,
@@ -771,6 +781,7 @@ class MessageItemFactory @Inject constructor(
                 highlight,
                 callback,
                 attributes,
+                bodySegments = segments,
         )
     }
 
@@ -853,6 +864,7 @@ class MessageItemFactory @Inject constructor(
             highlight: Boolean,
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
+            bodySegments: List<BodySegment>? = null,
     ): MessageTextItem? {
         val renderedBody = textRenderer.render(body)
         val bindingOptions = spanUtils.getBindingOptions(renderedBody)
@@ -878,6 +890,13 @@ class MessageItemFactory @Inject constructor(
                 .attributes(attributes)
                 .highlighted(highlight)
                 .movementMethod(createLinkMovementMethod(callback))
+                .apply {
+                    if (bodySegments != null) {
+                        bodySegments(bodySegments)
+                        richBodyRenderer(richMessageBodyRenderer)
+                        htmlPostProcessors(arrayOf<EventHtmlRenderer.PostProcessor>(pillsPostProcessor))
+                    }
+                }
     }
 
     private fun annotateWithEdited(

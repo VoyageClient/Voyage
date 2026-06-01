@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.text.Spanned
 import android.text.method.MovementMethod
 import android.view.ViewStub
+import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.PrecomputedTextCompat
 import androidx.core.view.isVisible
@@ -20,6 +21,9 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.html.BodySegment
+import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
@@ -63,6 +67,15 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     @EpoxyAttribute
     var useRichTextEditorStyle: Boolean = false
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var bodySegments: List<BodySegment>? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var richBodyRenderer: RichMessageBodyRenderer? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var htmlPostProcessors: Array<EventHtmlRenderer.PostProcessor>? = null
+
     private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
     override fun bind(holder: Holder) {
@@ -77,11 +90,31 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         holder.previewUrlView.delegate = previewUrlCallback
         holder.previewUrlView.renderMessageLayout(attributes.informationData.messageLayout)
+        val segments = bodySegments
+        val richBodyRendererLocal = richBodyRenderer
+        if (segments != null && richBodyRendererLocal != null) {
+            holder.plainMessageView?.isVisible = false
+            holder.richMessageView?.isVisible = false
+            val container = holder.requireRichBodyContainer()
+            container.isVisible = true
+            super.bind(holder)
+            richBodyRendererLocal.render(
+                    container = container,
+                    segments = segments,
+                    postProcessors = htmlPostProcessors ?: emptyArray(),
+                    movementMethod = movementMethod,
+                    onClick = { attributes.itemClickListener?.invoke(it) },
+                    onLongClick = { attributes.itemLongClickListener?.onLongClick(it) ?: false },
+            )
+            renderSendState(container, null)
+            return
+        }
         if (useRichTextEditorStyle) {
             holder.plainMessageView?.isVisible = false
         } else {
             holder.richMessageView?.isVisible = false
         }
+        holder.richBodyContainer?.isVisible = false
         val messageView: AppCompatTextView = if (useRichTextEditorStyle) holder.requireRichMessageView() else holder.requirePlainMessageView()
         messageView.isVisible = true
         if (useBigFont) {
@@ -130,10 +163,19 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         val previewUrlView by bind<PreviewUrlView>(R.id.messageUrlPreview)
         private val richMessageStub by bind<ViewStub>(R.id.richMessageTextViewStub)
         private val plainMessageStub by bind<ViewStub>(R.id.plainMessageTextViewStub)
+        private val richBodyContainerStub by bind<ViewStub>(R.id.richBodyContainerStub)
         var richMessageView: EditorStyledTextView? = null
             private set
         var plainMessageView: AppCompatTextView? = null
             private set
+        var richBodyContainer: LinearLayout? = null
+            private set
+
+        fun requireRichBodyContainer(): LinearLayout {
+            val view = richBodyContainer ?: richBodyContainerStub.inflate().findViewById<LinearLayout>(R.id.richBodyContainer)
+            richBodyContainer = view
+            return view
+        }
 
         fun requireRichMessageView(): AppCompatTextView {
             val view = richMessageView ?: richMessageStub.inflate().findViewById<EditorStyledTextView>(R.id.messageTextView).also {

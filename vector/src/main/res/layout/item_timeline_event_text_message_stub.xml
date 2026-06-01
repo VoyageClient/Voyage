@@ -19,6 +19,12 @@
         android:layout_height="wrap_content"
         android:layout="@layout/item_timeline_event_text_message_rich_stub" />
 
+    <ViewStub
+        android:id="@+id/richBodyContainerStub"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout="@layout/item_timeline_event_rich_body_stub" />
+
     <im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
         android:id="@+id/messageUrlPreview"
         android:layout_width="match_parent"

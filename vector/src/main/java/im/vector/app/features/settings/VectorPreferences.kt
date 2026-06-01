@@ -63,6 +63,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_LABS_NEW_APP_LAYOUT_KEY = "SETTINGS_LABS_NEW_APP_LAYOUT_KEY"
         const val SETTINGS_LABS_DEFERRED_DM_KEY = "SETTINGS_LABS_DEFERRED_DM_KEY"
         const val SETTINGS_LABS_RICH_TEXT_EDITOR_KEY = "SETTINGS_LABS_RICH_TEXT_EDITOR_KEY"
+        const val SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY = "SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY"
         const val SETTINGS_LABS_NEW_SESSION_MANAGER_KEY = "SETTINGS_LABS_NEW_SESSION_MANAGER_KEY"
         const val SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY = "SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY"
         const val SETTINGS_LABS_VOICE_BROADCAST_KEY = "SETTINGS_LABS_VOICE_BROADCAST_KEY"
@@ -1272,6 +1273,10 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_TIMELINE_SHOW_LIVE_SENDER_INFO,
                 getDefault(im.vector.app.config.R.bool.settings_timeline_show_live_sender_info_default)
         )
+    }
+
+    fun isTableLineWrappingDisabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY, false)
     }
 
     fun isRichTextEditorEnabled(): Boolean {
