@@ -20,6 +20,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -427,10 +428,15 @@ class TimelineFragment :
         }
     }
 
+    private var voiceRecorderStackLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     private fun setupVoiceRecorderStacking() {
-        views.composerContainer.viewTreeObserver.addOnGlobalLayoutListener {
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            if (view == null) return@OnGlobalLayoutListener
             withState(messageComposerViewModel, ::syncVoiceRecorderStackMargin)
         }
+        voiceRecorderStackLayoutListener = listener
+        views.composerContainer.viewTreeObserver.addOnGlobalLayoutListener(listener)
     }
 
     private fun syncVoiceRecorderStackMargin(state: MessageComposerViewState) {
@@ -727,6 +733,10 @@ class TimelineFragment :
     }
 
     override fun onDestroyView() {
+        voiceRecorderStackLayoutListener?.let {
+            views.composerContainer.viewTreeObserver.removeOnGlobalLayoutListener(it)
+        }
+        voiceRecorderStackLayoutListener = null
         lazyLoadedViews.unBind()
         timelineEventController.callback = null
         timelineEventController.removeModelBuildListener(modelBuildListener)
