@@ -24,12 +24,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.extensions.vectorStore
 import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.core.session.SwitchAccountUseCase
 import im.vector.app.core.utils.deleteAllFiles
 import im.vector.app.databinding.ActivityMainBinding
 import im.vector.app.features.analytics.VectorAnalytics
 import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.home.ShortcutsHandler
+import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.features.home.room.detail.RoomDetailActivity
 import im.vector.app.features.home.room.threads.ThreadsActivity
 import im.vector.app.features.location.live.map.LiveLocationMapViewActivity
@@ -53,6 +55,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.auth.AuthenticationService
+import org.matrix.android.sdk.api.auth.data.sessionId
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.session.Session
 import timber.log.Timber
@@ -136,6 +140,9 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var vectorAnalytics: VectorAnalytics
     @Inject lateinit var lockScreenKeyRepository: LockScreenKeyRepository
+    @Inject lateinit var authenticationService: AuthenticationService
+    @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
+    @Inject lateinit var accountInfoCache: AccountInfoCache
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -293,9 +300,21 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                 return@launch
             }
             Timber.w("SIGN_OUT: success, start app")
+            val signedOutSessionId = session.sessionId
             activeSessionHolder.clearActiveSession()
-            doLocalCleanup(clearPreferences = true, onboardingStore)
-            startNextActivityAndFinish()
+            accountInfoCache.delete(signedOutSessionId)
+            val remaining = authenticationService.getAllSessionParams()
+            val switched = remaining.isNotEmpty() && runCatching {
+                switchAccountUseCase.execute(remaining.first().credentials.sessionId())
+            }.onFailure { Timber.e(it, "SIGN_OUT: failed to switch to remaining account, falling back to login") }
+                    .isSuccess
+            if (switched) {
+                doLocalCleanup(clearPreferences = false, onboardingStore)
+                restartApp(this@MainActivity, MainActivityArgs())
+            } else {
+                doLocalCleanup(clearPreferences = true, onboardingStore)
+                startNextActivityAndFinish()
+            }
         }
     }
 

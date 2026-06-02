@@ -7,6 +7,7 @@
 
 package im.vector.app.core.di
 
+import im.vector.app.core.session.LastActiveSessionStore
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import org.matrix.android.sdk.api.auth.AuthenticationService
@@ -17,6 +18,7 @@ private val initializerSemaphore = Semaphore(permits = 1)
 
 class SessionInitializer @Inject constructor(
         private val authenticationService: AuthenticationService,
+        private val lastActiveSessionStore: LastActiveSessionStore,
 ) {
 
     /**
@@ -32,8 +34,12 @@ class SessionInitializer @Inject constructor(
             when {
                 currentInMemorySession != null -> currentInMemorySession
                 authenticationService.hasAuthenticatedSessions() -> {
-                    val lastAuthenticatedSession = authenticationService.getLastAuthenticatedSession()!!
-                    lastAuthenticatedSession.also { initializer(lastAuthenticatedSession) }
+                    val preferredId = lastActiveSessionStore.get()
+                    val session = preferredId
+                            ?.let { authenticationService.getSessionParams(it) }
+                            ?.let { authenticationService.getOrCreateSession(it) }
+                            ?: authenticationService.getLastAuthenticatedSession()!!
+                    session.also { initializer(it) }
                 }
                 else -> null
             }

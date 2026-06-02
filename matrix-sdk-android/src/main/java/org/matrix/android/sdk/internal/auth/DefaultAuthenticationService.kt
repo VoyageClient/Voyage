@@ -82,6 +82,26 @@ internal class DefaultAuthenticationService @Inject constructor(
         return sessionManager.getLastSession()
     }
 
+    override fun getAllSessionParams(): List<org.matrix.android.sdk.api.auth.data.SessionParams> {
+        return sessionParamsStore.getAll()
+    }
+
+    override fun getSessionParams(sessionId: String): org.matrix.android.sdk.api.auth.data.SessionParams? {
+        return sessionParamsStore.get(sessionId)
+    }
+
+    override fun getOrCreateSession(sessionParams: org.matrix.android.sdk.api.auth.data.SessionParams): Session {
+        return sessionManager.getOrCreateSession(sessionParams)
+    }
+
+    override suspend fun deleteSessionLocally(sessionId: String) {
+        sessionParamsStore.delete(sessionId)
+    }
+
+    override fun releaseSession(sessionId: String) {
+        runCatching { sessionManager.releaseSession(sessionId) }
+    }
+
     override suspend fun getLoginFlowOfSession(sessionId: String): LoginFlowResult {
         val homeServerConnectionConfig = sessionParamsStore.get(sessionId)?.homeServerConnectionConfig
                 ?: throw IllegalStateException("Session not found")

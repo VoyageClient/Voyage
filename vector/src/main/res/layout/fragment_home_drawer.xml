@@ -39,7 +39,7 @@
             android:singleLine="true"
             android:textColor="?vctr_content_primary"
             app:layout_constraintBottom_toTopOf="@id/homeDrawerUserIdView"
-            app:layout_constraintEnd_toStartOf="@id/homeDrawerQRCodeButton"
+            app:layout_constraintEnd_toStartOf="@id/homeDrawerAccountSwitcherToggle"
             app:layout_constraintStart_toEndOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintTop_toTopOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintVertical_chainStyle="packed"
@@ -56,20 +56,20 @@
             android:singleLine="true"
             android:textColor="?vctr_content_secondary"
             app:layout_constraintBottom_toBottomOf="@id/homeDrawerHeaderAvatarView"
-            app:layout_constraintEnd_toStartOf="@id/homeDrawerQRCodeButton"
+            app:layout_constraintEnd_toStartOf="@id/homeDrawerAccountSwitcherToggle"
             app:layout_constraintStart_toStartOf="@id/homeDrawerUsernameView"
             app:layout_constraintTop_toBottomOf="@id/homeDrawerUsernameView"
             tools:text="@sample/users.json/data/id" />
 
         <ImageView
-            android:id="@+id/homeDrawerQRCodeButton"
+            android:id="@+id/homeDrawerAccountSwitcherToggle"
             android:layout_width="@dimen/layout_touch_size"
             android:layout_height="@dimen/layout_touch_size"
-            android:layout_marginEnd="@dimen/layout_horizontal_margin"
-            android:contentDescription="@string/qr_code"
-            android:rotationY="@integer/rtl_mirror_flip"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/account_switcher_toggle_description"
             android:scaleType="center"
-            android:src="@drawable/ic_qr_code_add"
+            android:src="@drawable/ic_expand_more"
             app:layout_constraintBottom_toBottomOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/homeDrawerHeaderAvatarView"
@@ -128,6 +128,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/homeDrawerHeaderSeparator" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/homeDrawerAccountList"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?android:colorBackground"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/homeDrawerBottomSeparator"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/homeDrawerHeaderSeparator"
+        tools:visibility="visible" />
 
     <View
         android:id="@+id/homeDrawerBottomSeparator"

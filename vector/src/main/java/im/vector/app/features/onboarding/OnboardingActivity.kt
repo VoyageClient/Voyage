@@ -11,6 +11,8 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.View
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.lazyViewModel
 import im.vector.app.core.extensions.validateBackPressed
@@ -19,6 +21,8 @@ import im.vector.app.core.platform.lifecycleAwareLazy
 import im.vector.app.databinding.ActivityLoginBinding
 import im.vector.app.features.login.LoginConfig
 import im.vector.app.features.pin.UnlockedActivity
+import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.auth.AuthenticationService
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -29,6 +33,7 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
     }
 
     @Inject lateinit var onboardingVariantFactory: OnboardingVariantFactory
+    @Inject lateinit var authenticationService: AuthenticationService
 
     override fun getBinding() = ActivityLoginBinding.inflate(layoutInflater)
 
@@ -51,6 +56,17 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
 
     override fun initUiAndData() {
         onboardingVariant.initUiAndData(isFirstCreation())
+        if (intent.getBooleanExtra(EXTRA_KEEP_EXISTING_SESSION, false)) {
+            views.loginAddAccountBack.isVisible = true
+            views.loginAddAccountBack.setOnClickListener {
+                // Reset any partially-entered homeserver / login state so a re-entry to
+                // "+ Add account" starts from a clean slate instead of resuming this attempt.
+                lifecycleScope.launch {
+                    runCatching { authenticationService.reset() }
+                    finish()
+                }
+            }
+        }
     }
 
     // Hack for AccountCreatedFragment
@@ -60,6 +76,7 @@ class OnboardingActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
 
     companion object {
         const val EXTRA_CONFIG = "EXTRA_CONFIG"
+        const val EXTRA_KEEP_EXISTING_SESSION = "EXTRA_KEEP_EXISTING_SESSION"
 
         fun newIntent(context: Context, loginConfig: LoginConfig?): Intent {
             return Intent(context, OnboardingActivity::class.java).apply {

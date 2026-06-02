@@ -54,6 +54,7 @@ class StartAppViewModel @AssistedInject constructor(
     }
 
     private suspend fun eagerlyInitializeSession() {
+        sessionHolder.applyPendingRelease()
         sessionHolder.getOrInitializeSession()
     }
 

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/layout_horizontal_margin"
+    android:paddingVertical="8dp">
+
+    <ImageView
+        android:id="@+id/accountSwitcherAddIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:importantForAccessibility="no"
+        android:scaleType="center"
+        android:src="@drawable/ic_plus"
+        app:tint="?vctr_content_secondary" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="@string/account_switcher_add_account"
+        android:textColor="?vctr_content_primary"
+        android:textSize="16sp" />
+
+</LinearLayout>

@@ -18,6 +18,23 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <ImageButton
+            android:id="@+id/loginAddAccountBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
+            android:scaleType="center"
+            android:src="@drawable/ic_back_24dp"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?vctr_content_primary"
+            tools:ignore="MissingPrefix"
+            tools:visibility="visible" />
+
         <androidx.constraintlayout.widget.Group
             android:id="@+id/loginLoading"
             android:layout_width="wrap_content"

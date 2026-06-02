@@ -29,6 +29,8 @@ import im.vector.app.core.platform.ScreenOrientationLocker
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.databinding.ActivityLoginBinding
+import im.vector.app.features.MainActivity
+import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.login.LoginConfig
@@ -487,13 +489,24 @@ class FtueAuthVariant(
 
     private fun navigateToHome() {
         withState(onboardingViewModel) {
-            val intent = HomeActivity.newIntent(
-                    activity,
-                    firstStartMainActivity = false,
-                    authenticationDescription = it.selectedAuthenticationState.description
+            val isAddAccountFlow = activity.intent.getBooleanExtra(
+                    OnboardingActivity.EXTRA_KEEP_EXISTING_SESSION,
+                    false
             )
-            activity.startActivity(intent)
-            activity.finish()
+            if (isAddAccountFlow) {
+                // Restart the whole app so the previous HomeActivity is cleared from the back
+                // stack and ActiveSessionHolder.applyPendingRelease() closes the old session
+                // cleanly in the fresh MainActivity startup.
+                MainActivity.restartApp(activity, MainActivityArgs())
+            } else {
+                val intent = HomeActivity.newIntent(
+                        activity,
+                        firstStartMainActivity = false,
+                        authenticationDescription = it.selectedAuthenticationState.description
+                )
+                activity.startActivity(intent)
+                activity.finish()
+            }
         }
     }
 

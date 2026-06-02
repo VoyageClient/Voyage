@@ -19,6 +19,7 @@ package org.matrix.android.sdk.api.auth
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.data.LoginFlowResult
+import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
 import org.matrix.android.sdk.api.auth.wellknown.WellknownResult
@@ -91,6 +92,34 @@ interface AuthenticationService {
      * @return the last active session if any, or null
      */
     fun getLastAuthenticatedSession(): Session?
+
+    /**
+     * Returns the [SessionParams] of every signed-in account currently stored locally.
+     */
+    fun getAllSessionParams(): List<SessionParams>
+
+    /**
+     * Returns the locally stored [SessionParams] for the given sessionId, or null.
+     */
+    fun getSessionParams(sessionId: String): SessionParams?
+
+    /**
+     * Get (or build) the [Session] for the given [SessionParams]. No network call is performed.
+     */
+    fun getOrCreateSession(sessionParams: SessionParams): Session
+
+    /**
+     * Remove the locally stored credentials for the given sessionId. No server call is made.
+     * Use this for the offline fallback path when server-side sign-out is not reachable.
+     */
+    suspend fun deleteSessionLocally(sessionId: String)
+
+    /**
+     * Drop the in-memory [Session]/[SessionComponent] for the given sessionId. The next
+     * [getOrCreateSession] call will rebuild a fresh component. No-op if absent. Does not
+     * remove persisted credentials.
+     */
+    fun releaseSession(sessionId: String)
 
     /**
      * Create a session after a SSO successful login.

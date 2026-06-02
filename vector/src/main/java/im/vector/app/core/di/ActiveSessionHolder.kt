@@ -12,6 +12,7 @@ import im.vector.app.core.dispatchers.CoroutineDispatchers
 import im.vector.app.core.pushers.UnregisterUnifiedPushUseCase
 import im.vector.app.core.services.GuardServiceStarter
 import im.vector.app.core.session.ConfigureAndStartSessionUseCase
+import im.vector.app.core.session.LastActiveSessionStore
 import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.crypto.keysrequest.KeyRequestHandler
 import im.vector.app.features.crypto.verification.IncomingVerificationRequestHandler
@@ -45,14 +46,25 @@ class ActiveSessionHolder @Inject constructor(
         private val unregisterUnifiedPushUseCase: UnregisterUnifiedPushUseCase,
         private val applicationCoroutineScope: CoroutineScope,
         private val coroutineDispatchers: CoroutineDispatchers,
+        private val lastActiveSessionStore: LastActiveSessionStore,
 ) {
 
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
+    private val pendingReleaseSessionIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     fun setActiveSession(session: Session) {
         Timber.w("setActiveSession of ${session.myUserId}")
+        val previous = activeSessionReference.get()
+        if (previous != null && previous.sessionId != session.sessionId) {
+            // Detach the previous session's listeners and queue it for release, but skip the
+            // "empty" data-source emission — we're about to publish the new session anyway,
+            // avoiding observer flicker.
+            detachAndPendForRelease(previous)
+            stopAppLevelHandlers()
+        }
         activeSessionReference.set(session)
         activeSessionDataSource.post(session.toOption())
+        lastActiveSessionStore.set(session.sessionId)
 
         keyRequestHandler.start(session)
         incomingVerificationRequestHandler.start(session)
@@ -73,11 +85,12 @@ class ActiveSessionHolder @Inject constructor(
 
         activeSessionReference.set(null)
         activeSessionDataSource.post(Optional.empty())
+        lastActiveSessionStore.set(null)
 
         keyRequestHandler.stop()
         incomingVerificationRequestHandler.stop()
         pushRuleTriggerListener.stop()
-        // No need to unregister the pusher, the sign out will (should?) do it server side.
+        configureAndStartSessionUseCase.cancelProfileObserver()
         unregisterUnifiedPushUseCase.execute(pushersManager = null)
         guardServiceStarter.stop()
     }
@@ -112,9 +125,50 @@ class ActiveSessionHolder @Inject constructor(
 
     fun isWaitingForSessionInitialization() = activeSessionReference.get() == null && authenticationService.hasAuthenticatedSessions()
 
-    // TODO Stop sync ?
-//    fun switchToSession(sessionParams: SessionParams) {
-//        val newActiveSession = authenticationService.getSession(sessionParams)
-//        activeSession.set(newActiveSession)
-//    }
+    /**
+     * Used by [SwitchAccountUseCase] to detach the active session in preparation for an
+     * activity restart. Listeners come down, the in-memory reference is cleared, and the
+     * sessionId is queued for a deferred close+release ([applyPendingRelease]) which runs in
+     * the next process init — by then any UI observers on the previous session's Realm are
+     * gone, so closing it doesn't race with a query.
+     */
+    fun softClearForSwitch() {
+        val previous = activeSessionReference.getAndSet(null)
+        if (previous != null) detachAndPendForRelease(previous)
+        activeSessionDataSource.post(Optional.empty())
+        stopAppLevelHandlers()
+        configureAndStartSessionUseCase.cancelProfileObserver()
+    }
+
+    private fun detachAndPendForRelease(previous: Session) {
+        Timber.w("detachAndPendForRelease: ${previous.myUserId}")
+        runCatching { previous.syncService().stopAnyBackgroundSync() }
+        runCatching { previous.syncService().stopSync() }
+        runCatching { previous.callSignalingService().removeCallListener(callManager) }
+        runCatching { previous.removeListener(sessionListener) }
+        pendingReleaseSessionIds += previous.sessionId
+    }
+
+    private fun stopAppLevelHandlers() {
+        keyRequestHandler.stop()
+        incomingVerificationRequestHandler.stop()
+        pushRuleTriggerListener.stop()
+    }
+
+    suspend fun applyPendingRelease() {
+        val ids = synchronized(pendingReleaseSessionIds) {
+            val snapshot = pendingReleaseSessionIds.toList()
+            pendingReleaseSessionIds.clear()
+            snapshot
+        }
+        if (ids.isEmpty()) return
+        ids.forEach { id ->
+            Timber.w("applyPendingRelease: releasing $id")
+            runCatching {
+                authenticationService.getSessionParams(id)
+                        ?.let { authenticationService.getOrCreateSession(it).close() }
+            }
+            authenticationService.releaseSession(id)
+        }
+    }
 }
