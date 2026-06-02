@@ -1059,7 +1059,7 @@ class TimelineFragment :
         if (activityResult.resultCode == Activity.RESULT_OK) {
             WidgetActivity.getOutput(data).toModel<MessageStickerContent>()
                     ?.let { content ->
-                        timelineViewModel.handle(RoomDetailAction.SendSticker(content))
+                        messageComposerViewModel.handle(MessageComposerAction.SendSticker(content))
                     }
         }
     }

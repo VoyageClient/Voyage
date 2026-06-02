@@ -346,6 +346,9 @@ class MessageActionsViewModel @AssistedInject constructor(
         if (canCancel(timelineEvent)) {
             add(EventSharedAction.Cancel(timelineEvent, false))
         }
+        if (vectorPreferences.developerMode()) {
+            add(EventSharedAction.CopyEventId(timelineEvent.eventId))
+        }
     }
 
     private fun ArrayList<EventSharedAction>.addActionsForSentNotSyncedState(timelineEvent: TimelineEvent) {
@@ -353,6 +356,9 @@ class MessageActionsViewModel @AssistedInject constructor(
         // Still offer action to cancel (will only remove local echo)
         timelineEvent.root.eventId?.let {
             add(EventSharedAction.Cancel(timelineEvent, true))
+        }
+        if (vectorPreferences.developerMode()) {
+            add(EventSharedAction.CopyEventId(timelineEvent.eventId))
         }
 
         // TODO Can be redacted
@@ -391,10 +397,6 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard
                 add(EventSharedAction.Copy(messageContent!!.body))
-            }
-
-            if (vectorPreferences.developerMode()) {
-                add(EventSharedAction.CopyEventId(eventId))
             }
 
             if (timelineEvent.canReact() && actionPermissions.canReact) {
@@ -441,6 +443,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
 
         if (vectorPreferences.developerMode()) {
+            add(EventSharedAction.CopyEventId(eventId))
             if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
                 val keysBackupService = session.cryptoService().keysBackupService()
                 if (keysBackupService.getState() == KeysBackupState.NotTrusted ||

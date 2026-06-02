@@ -454,7 +454,6 @@ class TimelineViewModel @AssistedInject constructor(
         when (action) {
             is RoomDetailAction.ComposerFocusChange -> handleComposerFocusChange(action)
             is RoomDetailAction.SendMedia -> handleSendMedia(action)
-            is RoomDetailAction.SendSticker -> handleSendSticker(action)
             is RoomDetailAction.TimelineEventTurnsVisible -> handleEventVisible(action)
             is RoomDetailAction.TimelineEventTurnsInvisible -> handleEventInvisible(action)
             is RoomDetailAction.LoadMoreTimelineEvents -> handleLoadMore(action)
@@ -590,22 +589,7 @@ class TimelineViewModel @AssistedInject constructor(
                 ?.let { handleNavigateToEvent(RoomDetailAction.NavigateToEvent(it, true)) }
     }
 
-    private fun handleSendSticker(action: RoomDetailAction.SendSticker) {
-        if (room == null) return
-        val content = initialState.rootThreadEventId?.let {
-            action.stickerContent.copy(
-                    relatesTo = RelationDefaultContent(
-                            type = RelationType.THREAD,
-                            isFallingBack = true,
-                            eventId = it
-                    )
-            )
-        } ?: action.stickerContent
-
-        room.sendService().sendEvent(EventType.STICKER, content.toContent())
-    }
-
-    private fun handleStartCall(action: RoomDetailAction.StartCall) {
+private fun handleStartCall(action: RoomDetailAction.StartCall) {
         if (room == null) return
         viewModelScope.launch {
             room.roomSummary()?.otherMemberIds?.firstOrNull()?.let {

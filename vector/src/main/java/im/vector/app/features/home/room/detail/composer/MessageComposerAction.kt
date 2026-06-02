@@ -12,6 +12,7 @@ import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 
 sealed class MessageComposerAction : VectorViewModelAction {
     data class SendMessage(val text: CharSequence, val formattedText: String?, val autoMarkdown: Boolean) : MessageComposerAction()
@@ -26,6 +27,7 @@ sealed class MessageComposerAction : VectorViewModelAction {
     data class InsertUserDisplayName(val userId: String) : MessageComposerAction()
     data class SetFullScreen(val isFullScreen: Boolean) : MessageComposerAction()
     object OnAttachmentsSent : MessageComposerAction()
+    data class SendSticker(val content: MessageStickerContent) : MessageComposerAction()
 
     // Voice Message
     data class InitializeVoiceRecorder(val attachmentData: ContentAttachmentData) : MessageComposerAction()

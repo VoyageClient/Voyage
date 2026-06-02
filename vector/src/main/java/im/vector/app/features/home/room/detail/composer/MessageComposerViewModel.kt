@@ -73,7 +73,11 @@ import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
+import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThread
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -140,10 +144,44 @@ class MessageComposerViewModel @AssistedInject constructor(
             is MessageComposerAction.InsertUserDisplayName -> handleInsertUserDisplayName(action)
             is MessageComposerAction.SetFullScreen -> handleSetFullScreen(action)
             MessageComposerAction.OnAttachmentsSent -> handleOnAttachmentsSent(room)
+            is MessageComposerAction.SendSticker -> handleSendSticker(room, action)
         }
     }
 
     private fun handleOnAttachmentsSent(room: Room) {
+        currentComposerText = ""
+        popDraft(room)
+    }
+
+    private fun handleSendSticker(room: Room, action: MessageComposerAction.SendSticker) = withState { state ->
+        val replyTo = (state.sendMode as? SendMode.Reply)?.timelineEvent
+        val rootThreadEventId = state.rootThreadEventId
+        val captionText = currentComposerText.toString().takeIf { it.isNotBlank() }
+        val originalBody = action.content.body
+        val relatesTo = when {
+            replyTo != null -> RelationDefaultContent(
+                    type = rootThreadEventId?.let { RelationType.THREAD },
+                    eventId = rootThreadEventId,
+                    isFallingBack = false,
+                    inReplyTo = ReplyToContent(eventId = replyTo.eventId),
+            )
+            rootThreadEventId != null -> RelationDefaultContent(
+                    type = RelationType.THREAD,
+                    eventId = rootThreadEventId,
+                    isFallingBack = true,
+            )
+            else -> action.content.relatesTo
+        }
+        val content = if (captionText != null) {
+            action.content.copy(
+                    body = captionText,
+                    filename = action.content.filename ?: originalBody.takeIf { it.isNotBlank() },
+                    relatesTo = relatesTo,
+            )
+        } else {
+            action.content.copy(relatesTo = relatesTo)
+        }
+        room.sendService().sendEvent(EventType.STICKER, content.toContent())
         currentComposerText = ""
         popDraft(room)
     }

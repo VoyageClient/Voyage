@@ -628,14 +628,12 @@ class MessageItemFactory @Inject constructor(
                 .replyHeader(replyHeaderEpoxy)
                 .replyHeaderBindingOptions(replyHeaderBindingOptions)
                 .apply {
-                    if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {
-                        mode(ImageContentRenderer.Mode.STICKER)
-                    }
                     clickListener { view ->
                         callback?.onImageMessageClicked(messageContent, data, view, emptyList())
                     }
-                }.apply {
-                    if (playableIfAutoplay && vectorPreferences.autoplayAnimatedImages()) {
+                    if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {
+                        mode(ImageContentRenderer.Mode.STICKER)
+                    } else if (playableIfAutoplay && vectorPreferences.autoplayAnimatedImages()) {
                         mode(ImageContentRenderer.Mode.ANIMATED_THUMBNAIL)
                     }
                 }
