@@ -43,7 +43,9 @@ import im.vector.app.features.voicebroadcast.usecase.GetVoiceBroadcastStateEvent
 import im.vector.app.features.voicebroadcast.voiceBroadcastId
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -1463,15 +1465,30 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
+    private val pendingPlaybackLoads = mutableMapOf<String, Job>()
+
     private fun handlePlayOrPauseVoicePlayback(action: MessageComposerAction.PlayOrPauseVoicePlayback) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val audioFile = audioMessageHelper.resolveLocalFile(action.messageAudioContent.url)
-                        ?: session.fileService().downloadFile(action.messageAudioContent)
-                audioMessageHelper.startOrPausePlayback(action.eventId, audioFile)
-            } catch (failure: Throwable) {
-                _viewEvents.post(MessageComposerViewEvents.VoicePlaybackOrRecordingFailure(failure))
+        synchronized(pendingPlaybackLoads) {
+            // A second tap while the file is still being fetched cancels the pending load
+            // rather than spawning a parallel download+MediaPlayer that the next tap can't reach.
+            pendingPlaybackLoads.remove(action.eventId)?.let {
+                it.cancel()
+                return
             }
+            val job = viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    val audioFile = audioMessageHelper.resolveLocalFile(action.messageAudioContent.url)
+                            ?: session.fileService().downloadFile(action.messageAudioContent)
+                    audioMessageHelper.startOrPausePlayback(action.eventId, audioFile)
+                } catch (failure: CancellationException) {
+                    throw failure
+                } catch (failure: Throwable) {
+                    _viewEvents.post(MessageComposerViewEvents.VoicePlaybackOrRecordingFailure(failure))
+                } finally {
+                    synchronized(pendingPlaybackLoads) { pendingPlaybackLoads.remove(action.eventId) }
+                }
+            }
+            pendingPlaybackLoads[action.eventId] = job
         }
     }
 
