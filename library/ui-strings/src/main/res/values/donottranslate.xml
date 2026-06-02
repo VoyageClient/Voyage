@@ -65,4 +65,6 @@
 
     <string name="settings_timeline_disable_table_wrap" translatable="false">Disable table cell line wrapping</string>
     <string name="settings_timeline_disable_table_wrap_summary" translatable="false">Cells in tables won\'t wrap. The table scrolls horizontally instead.</string>
+
+    <string name="action_copy_event_id" translatable="false">Copy Event ID</string>
 </resources>

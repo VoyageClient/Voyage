@@ -34,6 +34,9 @@ sealed class EventSharedAction(
     data class Copy(val content: String) :
             EventSharedAction(CommonStrings.action_copy, R.drawable.ic_copy)
 
+    data class CopyEventId(val eventId: String) :
+            EventSharedAction(CommonStrings.action_copy_event_id, R.drawable.ic_copy)
+
     data class Edit(val eventId: String, val eventType: String) :
             EventSharedAction(CommonStrings.edit, R.drawable.ic_edit)
 

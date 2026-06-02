@@ -25,7 +25,7 @@ enum class Command(
 ) {
     GREENTEXT("/greentext", null, "<message>", CommonStrings.command_description_greentext, false, true),
     BLOCKQUOTE("/blockquote", null, "<message>", CommonStrings.command_description_blockquote, false, true),
-    CONVERT_TO_DM("/converttodm", null, "", CommonStrings.command_description_converttodm, false, false),
+    CONVERT_TO_DM("/converttodm", null, "[user-id]", CommonStrings.command_description_converttodm, false, false),
     CONVERT_TO_ROOM("/converttoroom", null, "", CommonStrings.command_description_converttoroom, false, false),
     CRASH_APP("/crash", null, "", CommonStrings.command_description_crash_application, true, true),
     EMOTE("/me", null, "<message>", CommonStrings.command_description_emote, false, true),

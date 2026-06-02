@@ -336,6 +336,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             add(EventSharedAction.Copy(messageContent!!.body))
         }
         if (vectorPreferences.developerMode()) {
+            add(EventSharedAction.CopyEventId(eventId))
             addViewSourceItems(timelineEvent)
         }
     }
@@ -390,6 +391,10 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard
                 add(EventSharedAction.Copy(messageContent!!.body))
+            }
+
+            if (vectorPreferences.developerMode()) {
+                add(EventSharedAction.CopyEventId(eventId))
             }
 
             if (timelineEvent.canReact() && actionPermissions.canReact) {

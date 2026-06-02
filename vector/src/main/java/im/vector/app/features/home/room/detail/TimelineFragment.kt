@@ -1837,6 +1837,10 @@ class TimelineFragment :
                 copyToClipboard(requireContext(), action.content, false)
                 showSnackWithMessage(getString(CommonStrings.copied_to_clipboard))
             }
+            is EventSharedAction.CopyEventId -> {
+                copyToClipboard(requireContext(), action.eventId, false)
+                showSnackWithMessage(getString(CommonStrings.copied_to_clipboard))
+            }
             is EventSharedAction.Redact -> {
                 promptConfirmationToRedactEvent(action)
             }

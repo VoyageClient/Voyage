@@ -425,7 +425,16 @@ class CommandParser @Inject constructor(
                     ParsedCommand.JumpToStart
                 }
                 Command.CONVERT_TO_DM.matches(slashCommand) -> {
-                    ParsedCommand.ConvertToDm
+                    if (messageParts.size >= 2) {
+                        val userId = messageParts[1]
+                        if (MatrixPatterns.isUserId(userId)) {
+                            ParsedCommand.ConvertToDm(targetUserId = userId)
+                        } else {
+                            ParsedCommand.ErrorSyntax(Command.CONVERT_TO_DM)
+                        }
+                    } else {
+                        ParsedCommand.ConvertToDm()
+                    }
                 }
                 Command.CONVERT_TO_ROOM.matches(slashCommand) -> {
                     ParsedCommand.ConvertToRoom

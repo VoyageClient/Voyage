@@ -30,7 +30,7 @@ sealed interface ParsedCommand {
     // Valid commands:
     data class SendGreentext(val message: CharSequence) : ParsedCommand
     data class SendBlockquote(val message: CharSequence) : ParsedCommand
-    object ConvertToDm : ParsedCommand
+    data class ConvertToDm(val targetUserId: String? = null) : ParsedCommand
     object ConvertToRoom : ParsedCommand
     data class SendPlainText(val message: CharSequence) : ParsedCommand
     data class SendFormattedText(val message: CharSequence, val formattedMessage: String) : ParsedCommand

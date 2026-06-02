@@ -1020,9 +1020,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleConvertToDmSlashCommand(room: Room, command: ParsedCommand) {
+    private fun handleConvertToDmSlashCommand(room: Room, command: ParsedCommand.ConvertToDm) {
         launchSlashCommandFlowSuspendable(room, command) {
-            updateDirectAccountData(room, targetUserId = guessDmTargetId(room))
+            updateDirectAccountData(room, targetUserId = command.targetUserId ?: guessDmTargetId(room))
         }
     }
 
