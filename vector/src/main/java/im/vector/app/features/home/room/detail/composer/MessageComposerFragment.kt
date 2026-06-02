@@ -885,7 +885,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                             displayName.length,
                             Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                     )
-                    append(if (startToCompose) ": " else " ")
+                    append(" ")
                 }
                 if (startToCompose && displayName.startsWith("/")) {
                     // Ensure displayName will not be interpreted as a Slash command

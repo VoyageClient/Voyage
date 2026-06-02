@@ -138,7 +138,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             renderSpecialMode(specialMode)
         } else if (mode is MessageComposerMode.Normal) {
             collapse()
-            editText.setTextIfDifferent(mode.content)
+            if (editText.text?.toString() != mode.content?.toString()) {
+                editText.setTextIfDifferent(mode.content)
+            }
         }
 
         views.sendButton.apply {
@@ -213,7 +215,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             defaultContent
         }
 
-        views.composerEditText.setText(content)
+        if (views.composerEditText.text?.toString() != content.toString()) {
+            views.composerEditText.setText(content)
+        }
 
         expand {
             // need to do it here also when not using quick reply

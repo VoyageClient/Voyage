@@ -460,20 +460,24 @@ internal class RichTextComposerLayout @JvmOverloads constructor(
     override fun renderComposerMode(mode: MessageComposerMode) {
         if (mode is MessageComposerMode.Special) {
             views.composerModeGroup.isVisible = true
-            if (isTextFormattingEnabled) {
-                replaceFormattedContent(mode.defaultContent)
-            } else {
-                views.plainTextComposerEditText.setText(mode.defaultContent)
+            if (editText.text?.toString() != mode.defaultContent.toString()) {
+                if (isTextFormattingEnabled) {
+                    replaceFormattedContent(mode.defaultContent)
+                } else {
+                    views.plainTextComposerEditText.setText(mode.defaultContent)
+                }
             }
             hasRelatedMessage = true
             editText.showKeyboard(andRequestFocus = true)
         } else {
             views.composerModeGroup.isGone = true
             (mode as? MessageComposerMode.Normal)?.content?.let { text ->
-                if (isTextFormattingEnabled) {
-                    replaceFormattedContent(text)
-                } else {
-                    views.plainTextComposerEditText.setTextIfDifferent(text)
+                if (editText.text?.toString() != text.toString()) {
+                    if (isTextFormattingEnabled) {
+                        replaceFormattedContent(text)
+                    } else {
+                        views.plainTextComposerEditText.setTextIfDifferent(text)
+                    }
                 }
             }
             hasRelatedMessage = false
