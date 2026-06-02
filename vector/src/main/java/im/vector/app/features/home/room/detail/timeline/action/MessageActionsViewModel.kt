@@ -57,6 +57,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import org.matrix.android.sdk.api.session.room.timeline.isPoll
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
@@ -413,9 +414,10 @@ class MessageActionsViewModel @AssistedInject constructor(
             }
 
             if (canForward(timelineEvent, msgType)) {
-                val clearContent = timelineEvent.root.getClearContent().orEmpty()
+                val baseContent = timelineEvent.getLastEditNewContent()
+                        ?: timelineEvent.root.getClearContent().orEmpty()
                 @Suppress("UNCHECKED_CAST")
-                val forwardContent = coerceWholeDoublesToLongs(clearContent - "m.relates_to") as Map<String, Any?>
+                val forwardContent = coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>
                 add(
                         EventSharedAction.Forward(
                                 eventId = timelineEvent.eventId,
