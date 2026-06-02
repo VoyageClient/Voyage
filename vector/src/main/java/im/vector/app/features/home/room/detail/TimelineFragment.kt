@@ -172,6 +172,8 @@ import im.vector.app.features.roomprofile.RoomProfileActivity
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
+import im.vector.app.features.share.ForwardPayloadHolder
+import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.spaces.share.ShareSpaceBottomSheet
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.widgets.WidgetActivity
@@ -1754,6 +1756,11 @@ class TimelineFragment :
         messageComposerViewModel.handle(MessageComposerAction.AudioSeekBarMovedTo(eventId, duration, percentage))
     }
 
+    private fun onForwardActionClicked(action: EventSharedAction.Forward) {
+        val payloadId = ForwardPayloadHolder.put(action.content)
+        startActivity(IncomingShareActivity.forwardIntent(requireContext(), action.eventType, payloadId))
+    }
+
     private fun onShareActionClicked(action: EventSharedAction.Share) {
         when (action.messageContent) {
             is MessageTextContent -> shareText(requireContext(), action.messageContent.body)
@@ -1843,6 +1850,9 @@ class TimelineFragment :
             }
             is EventSharedAction.Redact -> {
                 promptConfirmationToRedactEvent(action)
+            }
+            is EventSharedAction.Forward -> {
+                onForwardActionClicked(action)
             }
             is EventSharedAction.Share -> {
                 onShareActionClicked(action)

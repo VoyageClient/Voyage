@@ -10,6 +10,7 @@ package im.vector.app.features.share
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import java.util.UUID
 
 sealed class SharedData : Parcelable {
 
@@ -18,4 +19,21 @@ sealed class SharedData : Parcelable {
 
     @Parcelize
     data class Attachments(val attachmentData: List<ContentAttachmentData>) : SharedData()
+
+    @Parcelize
+    data class Forward(val eventType: String, val payloadId: String) : SharedData()
+}
+
+// Content is held in-process keyed by payloadId rather than parcelled, so the original
+// Map<String, Any?> reaches the send pipeline untouched.
+object ForwardPayloadHolder {
+    private val store = mutableMapOf<String, Map<String, Any?>>()
+
+    fun put(content: Map<String, Any?>): String {
+        val id = UUID.randomUUID().toString()
+        store[id] = content
+        return id
+    }
+
+    fun take(id: String): Map<String, Any?>? = store.remove(id)
 }

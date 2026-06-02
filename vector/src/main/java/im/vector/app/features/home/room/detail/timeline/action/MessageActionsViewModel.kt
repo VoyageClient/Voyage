@@ -415,6 +415,19 @@ class MessageActionsViewModel @AssistedInject constructor(
                 add(EventSharedAction.Save(timelineEvent.eventId, messageContent))
             }
 
+            if (canForward(timelineEvent, msgType)) {
+                val clearContent = timelineEvent.root.getClearContent().orEmpty()
+                @Suppress("UNCHECKED_CAST")
+                val forwardContent = coerceWholeDoublesToLongs(clearContent - "m.relates_to") as Map<String, Any?>
+                add(
+                        EventSharedAction.Forward(
+                                eventId = timelineEvent.eventId,
+                                eventType = timelineEvent.root.getClearType(),
+                                content = forwardContent
+                        )
+                )
+            }
+
             if (canShare(msgType)) {
                 add(EventSharedAction.Share(timelineEvent.eventId, messageContent!!))
             }
@@ -602,6 +615,35 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
         // Media with an MSC2530 caption: body is the caption — copyable.
         return (messageContent as? MessageWithAttachmentContent)?.getCaption() != null
+    }
+
+    // Decrypted event content goes through Moshi's Any adapter, which parses every JSON number
+    // as Double. Re-serializing would emit "w":1080.0 — Synapse strictly rejects that
+    // (M_BAD_JSON "Bad JSON value: float"). Round-trip whole-number Doubles back to Long.
+    private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
+        is Double -> if (value.isFinite() && value % 1.0 == 0.0 &&
+                value >= Long.MIN_VALUE.toDouble() && value <= Long.MAX_VALUE.toDouble()) {
+            value.toLong()
+        } else value
+        is Map<*, *> -> value.mapValues { coerceWholeDoublesToLongs(it.value) }
+        is List<*> -> value.map { coerceWholeDoublesToLongs(it) }
+        else -> value
+    }
+
+    private fun canForward(event: TimelineEvent, msgType: String?): Boolean {
+        if (event.root.getClearType() == EventType.STICKER) return true
+        return when (msgType) {
+            MessageType.MSGTYPE_TEXT,
+            MessageType.MSGTYPE_NOTICE,
+            MessageType.MSGTYPE_EMOTE,
+            MessageType.MSGTYPE_LOCATION,
+            MessageType.MSGTYPE_IMAGE,
+            MessageType.MSGTYPE_AUDIO,
+            MessageType.MSGTYPE_VIDEO,
+            MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_STICKER_LOCAL -> true
+            else -> false
+        }
     }
 
     private fun canShare(msgType: String?): Boolean {

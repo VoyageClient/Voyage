@@ -120,13 +120,32 @@ class IncomingShareViewModel @AssistedInject constructor(
                 is SharedData.Attachments -> {
                     shareAttachments(sharedData.attachmentData, state.selectedRoomIds, proposeMediaEdition = true, compressMediaBeforeSending = false)
                 }
+                is SharedData.Forward -> {
+                    forwardToRooms(sharedData, state.selectedRoomIds)
+                }
             }
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun forwardToRooms(forward: SharedData.Forward, roomIds: Set<String>) {
+        val content = ForwardPayloadHolder.take(forward.payloadId) as? Map<String, Any> ?: run {
+            _viewEvents.post(IncomingShareViewEvents.ForwardFailed)
+            return
+        }
+        roomIds.forEach { roomId ->
+            session.getRoom(roomId)?.sendService()?.sendEvent(forward.eventType, content)
+        }
+        _viewEvents.post(IncomingShareViewEvents.ForwardDone(roomIds.first()))
     }
 
     private fun handleShareToRoom(action: IncomingShareAction.ShareToRoom) = withState { state ->
         val sharedData = state.sharedData ?: return@withState
         val roomSummary = session.getRoomSummary(action.roomId) ?: return@withState
+        if (sharedData is SharedData.Forward) {
+            forwardToRooms(sharedData, setOf(roomSummary.roomId))
+            return@withState
+        }
         _viewEvents.post(IncomingShareViewEvents.ShareToRoom(roomSummary, sharedData, showAlert = false))
     }
 
@@ -198,6 +217,8 @@ class IncomingShareViewModel @AssistedInject constructor(
                     // Do not show alert when sharing text to one room, because it will just fill the composer
                     true
                 }
+                // Forward sends immediately without composer, so always confirm.
+                is SharedData.Forward -> false
             }
             _viewEvents.post(IncomingShareViewEvents.ShareToRoom(action.roomSummary, sharedData, !doNotShowAlert))
         }

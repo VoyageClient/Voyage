@@ -848,6 +848,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 // open share edition
                 onContentAttachmentsReady(sharedData.attachmentData)
             }
+            // Forwards are sent directly from the room picker and never reach the composer.
+            is SharedData.Forward -> Unit
             null -> Timber.v("No share data to process")
         }
     }

@@ -3,6 +3,9 @@
 
     <string name="ellipsis" translatable="false">…</string>
 
+    <string name="action_forward" translatable="false">Forward</string>
+    <string name="forward_to_room_confirmation" translatable="false">Forward this message to %s?</string>
+
     <string name="account_switcher_toggle_description" translatable="false">Switch account</string>
     <string name="account_switcher_add_account" translatable="false">Add account</string>
     <string name="account_switcher_server_unreachable_title" translatable="false">Server unreachable</string>

@@ -16,10 +16,13 @@
 
 package org.matrix.android.sdk.internal.session.room.send.queue
 
+import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.send.SendState
+import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
@@ -33,8 +36,15 @@ internal class SendEventQueuedTask(
         val cancelSendTracker: CancelSendTracker
 ) : QueuedTask(queueIdentifier = event.roomId!!, taskIdentifier = event.eventId!!) {
 
+    private var lastFailure: Throwable? = null
+
     override suspend fun doExecute() {
-        sendEventTask.execute(SendEventTask.Params(event, encrypt))
+        try {
+            sendEventTask.execute(SendEventTask.Params(event, encrypt))
+        } catch (e: Throwable) {
+            lastFailure = e
+            throw e
+        }
     }
 
     override fun onTaskFailed() {
@@ -46,12 +56,26 @@ internal class SendEventQueuedTask(
                 // TODO update aggregation :/ or it will stay locally
             }
             else -> {
-                localEchoRepository.updateSendState(event.eventId!!, event.roomId, SendState.UNDELIVERED)
+                localEchoRepository.updateSendState(
+                        event.eventId!!,
+                        event.roomId,
+                        SendState.UNDELIVERED,
+                        sendStateDetailsFor(lastFailure)
+                )
             }
         }
     }
 
     override fun isCancelled(): Boolean {
         return super.isCancelled() || cancelSendTracker.isCancelRequestedFor(event.eventId, event.roomId)
+    }
+
+    private fun sendStateDetailsFor(failure: Throwable?): String? {
+        val serverError = failure as? Failure.ServerError ?: return failure?.message
+        return runCatching {
+            MatrixJsonParser.getMoshi()
+                    .adapter(MatrixError::class.java)
+                    .toJson(serverError.error)
+        }.getOrNull() ?: serverError.error.toString()
     }
 }

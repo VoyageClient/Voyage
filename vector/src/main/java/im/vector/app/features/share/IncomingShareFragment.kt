@@ -21,6 +21,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.registerStartForActivityResult
@@ -62,11 +63,33 @@ class IncomingShareFragment :
                 is IncomingShareViewEvents.ShareToRoom -> handleShareToRoom(it)
                 is IncomingShareViewEvents.EditMediaBeforeSending -> handleEditMediaBeforeSending(it)
                 is IncomingShareViewEvents.MultipleRoomsShareDone -> handleMultipleRoomsShareDone(it)
+                is IncomingShareViewEvents.ForwardDone -> {
+                    navigator.openRoom(
+                            context = requireActivity(),
+                            roomId = it.roomId,
+                            trigger = ViewRoom.Trigger.MobileLinkShare
+                    )
+                    requireActivity().finish()
+                }
+                IncomingShareViewEvents.ForwardFailed -> {
+                    Toast.makeText(requireContext(), CommonStrings.unable_to_send_message, Toast.LENGTH_LONG).show()
+                    requireActivity().finish()
+                }
             }
         }
 
         val intent = vectorBaseActivity.intent
-        val isShareManaged = when (intent?.action) {
+        val forwardEventType = intent?.getStringExtra(IncomingShareActivity.EXTRA_FORWARD_EVENT_TYPE)
+        val forwardPayloadId = intent?.getStringExtra(IncomingShareActivity.EXTRA_FORWARD_PAYLOAD_ID)
+        val isForwardMode = forwardEventType != null && forwardPayloadId != null
+        if (isForwardMode) {
+            views.incomingShareToolbar.setNavigationIcon(R.drawable.ic_back_24dp)
+            views.incomingShareToolbar.setNavigationOnClickListener { requireActivity().finish() }
+        }
+        val isShareManaged = if (isForwardMode) {
+            viewModel.handle(IncomingShareAction.UpdateSharedData(SharedData.Forward(forwardEventType!!, forwardPayloadId!!)))
+            true
+        } else when (intent?.action) {
             Intent.ACTION_SEND -> {
                 val isShareManaged = handleIncomingShareIntent(intent)
                 // Direct share
@@ -138,11 +161,30 @@ class IncomingShareFragment :
     }
 
     private fun handleShareToRoom(event: IncomingShareViewEvents.ShareToRoom) {
+        if (event.sharedData is SharedData.Forward) {
+            if (event.showAlert) {
+                showForwardConfirmationDialog(event.roomSummary)
+            } else {
+                viewModel.handle(IncomingShareAction.ShareToRoom(event.roomSummary.roomId))
+            }
+            return
+        }
         if (event.showAlert) {
             showConfirmationDialog(event.roomSummary, event.sharedData)
         } else {
             navigator.openRoomForSharingAndFinish(requireActivity(), event.roomSummary.roomId, event.sharedData)
         }
+    }
+
+    private fun showForwardConfirmationDialog(roomSummary: RoomSummary) {
+        MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(CommonStrings.action_forward)
+                .setMessage(getString(CommonStrings.forward_to_room_confirmation, roomSummary.displayName))
+                .setPositiveButton(CommonStrings.action_send) { _, _ ->
+                    viewModel.handle(IncomingShareAction.ShareToRoom(roomSummary.roomId))
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
     }
 
     private fun handleSendShare() {

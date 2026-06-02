@@ -20,4 +20,6 @@ sealed class IncomingShareViewEvents : VectorViewEvents {
 
     data class EditMediaBeforeSending(val contentAttachmentData: List<ContentAttachmentData>) : IncomingShareViewEvents()
     data class MultipleRoomsShareDone(val roomId: String) : IncomingShareViewEvents()
+    data class ForwardDone(val roomId: String) : IncomingShareViewEvents()
+    object ForwardFailed : IncomingShareViewEvents()
 }

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.share
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -58,6 +59,25 @@ class IncomingShareActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         } else {
             if (isFirstCreation()) {
                 addFragment(views.simpleFragmentContainer, IncomingShareFragment::class.java)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        if (isFinishing) {
+            intent?.getStringExtra(EXTRA_FORWARD_PAYLOAD_ID)?.let { ForwardPayloadHolder.take(it) }
+        }
+        super.onDestroy()
+    }
+
+    companion object {
+        const val EXTRA_FORWARD_EVENT_TYPE = "IncomingShareActivity.EXTRA_FORWARD_EVENT_TYPE"
+        const val EXTRA_FORWARD_PAYLOAD_ID = "IncomingShareActivity.EXTRA_FORWARD_PAYLOAD_ID"
+
+        fun forwardIntent(context: Context, eventType: String, payloadId: String): Intent {
+            return Intent(context, IncomingShareActivity::class.java).apply {
+                putExtra(EXTRA_FORWARD_EVENT_TYPE, eventType)
+                putExtra(EXTRA_FORWARD_PAYLOAD_ID, payloadId)
             }
         }
     }

@@ -93,8 +93,10 @@ class MessageActionsEpoxyController @Inject constructor(
         val sendState = state.sendState()
         if (sendState?.hasFailed().orFalse()) {
             // Get more details about the error
-            val errorMessage = state.timelineEvent()?.root?.sendStateError()
+            val root = state.timelineEvent()?.root
+            val errorMessage = root?.sendStateError()
                     ?.let { errorFormatter.toHumanReadable(Failure.ServerError(it, 0)) }
+                    ?: root?.sendStateDetails
                     ?: stringProvider.getString(CommonStrings.unable_to_send_message)
             bottomSheetSendStateItem {
                 id("send_state")
