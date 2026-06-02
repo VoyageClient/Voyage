@@ -53,7 +53,7 @@ sealed class EventSharedAction(
             EventSharedAction(CommonStrings.view_in_room, R.drawable.ic_threads_view_in_room_24)
 
     data class Forward(val eventId: String, val eventType: String, val content: Map<String, Any?>) :
-            EventSharedAction(CommonStrings.action_forward, R.drawable.ic_arrow_right)
+            EventSharedAction(CommonStrings.action_forward, R.drawable.ic_forward)
 
     data class Share(val eventId: String, val messageContent: MessageContent) :
             EventSharedAction(CommonStrings.action_share, R.drawable.ic_share)
