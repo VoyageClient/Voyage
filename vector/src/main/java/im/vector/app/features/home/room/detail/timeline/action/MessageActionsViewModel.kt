@@ -17,6 +17,7 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.extensions.canReact
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.app.core.platform.EmptyAction
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
@@ -40,7 +41,6 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
-import org.matrix.android.sdk.api.session.events.model.isContentReportable
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -80,7 +80,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val vectorPreferences: VectorPreferences,
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
-) : VectorViewModel<MessageActionState, MessageActionsAction, EmptyViewEvents>(initialState) {
+) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
     private val room = session.getRoom(initialState.roomId)
@@ -134,19 +134,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    override fun handle(action: MessageActionsAction) {
-        when (action) {
-            MessageActionsAction.ToggleReportMenu -> toggleReportMenu()
-        }
-    }
-
-    private fun toggleReportMenu() = withState {
-        setState {
-            copy(
-                    expendedReportContentMenu = it.expendedReportContentMenu.not()
-            )
-        }
-    }
+    override fun handle(action: EmptyAction) = Unit
 
     private fun observePowerLevel() {
         if (room == null) {
@@ -473,19 +461,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
         add(EventSharedAction.CopyPermalink(eventId))
         if (session.myUserId != timelineEvent.root.senderId) {
-            // not sent by me
-            if (timelineEvent.root.isContentReportable()) {
-                add(EventSharedAction.ReportContent(eventId, timelineEvent.root.senderId))
-            }
-
             add(EventSharedAction.Separator)
             add(EventSharedAction.IgnoreUser(timelineEvent.root.senderId))
-            add(
-                    EventSharedAction.ReportUser(
-                            eventId = eventId,
-                            senderId = timelineEvent.root.senderId,
-                    )
-            )
         }
     }
 

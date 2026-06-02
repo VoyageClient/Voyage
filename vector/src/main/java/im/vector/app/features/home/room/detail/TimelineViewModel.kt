@@ -470,7 +470,6 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.ResendMessage -> handleResendEvent(action)
             is RoomDetailAction.RemoveFailedEcho -> handleRemove(action)
             is RoomDetailAction.MarkAllAsRead -> handleMarkAllAsRead()
-            is RoomDetailAction.ReportContent -> handleReportContent(action)
             is RoomDetailAction.IgnoreUser -> handleIgnoreUser(action)
             is RoomDetailAction.EnterTrackingUnreadMessagesState -> startTrackingUnreadMessages()
             is RoomDetailAction.ExitTrackingUnreadMessagesState -> stopTrackingUnreadMessages()
@@ -1144,34 +1143,6 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
                         public = vectorPreferences.sendReadReceipts(),
                 )
             }
-        }
-    }
-
-    private fun handleReportContent(action: RoomDetailAction.ReportContent) {
-        if (room == null) return
-        viewModelScope.launch {
-            val event = try {
-                if (action.user && action.senderId != null) {
-                    // When reporting a user, use the user state event if available (it should always be available)
-                    val userStateEventId = room.stateService()
-                            .getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(action.senderId))
-                            ?.eventId
-                    // If not found fallback to the provided event
-                    val eventId = userStateEventId ?: action.eventId
-                    room.reportingService()
-                            .reportContent(
-                                    eventId = eventId,
-                                    score = -100,
-                                    reason = action.reason
-                            )
-                } else {
-                    room.reportingService().reportContent(action.eventId, -100, action.reason)
-                }
-                RoomDetailViewEvents.ActionSuccess(action)
-            } catch (failure: Throwable) {
-                RoomDetailViewEvents.ActionFailure(action, failure)
-            }
-            _viewEvents.post(event)
         }
     }
 

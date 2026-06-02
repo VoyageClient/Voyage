@@ -197,28 +197,9 @@ class MessageActionsEpoxyController @Inject constructor(
                     id("action_$index")
                     iconRes(action.iconResId)
                     textRes(action.titleRes)
-                    showExpand(action is EventSharedAction.ReportContent)
-                    expanded(state.expendedReportContentMenu)
                     listener { host.listener?.didSelectMenuAction(action) }
                     destructive(action.destructive)
                     showBetaLabel(showBetaLabel)
-                }
-
-                if (action is EventSharedAction.ReportContent && state.expendedReportContentMenu) {
-                    // Special case for report content menu: add the submenu
-                    listOf(
-                            EventSharedAction.ReportContentSpam(action.eventId, action.senderId),
-                            EventSharedAction.ReportContentInappropriate(action.eventId, action.senderId),
-                            EventSharedAction.ReportContentCustom(action.eventId, action.senderId)
-                    ).forEachIndexed { indexReport, actionReport ->
-                        bottomSheetActionItem {
-                            id("actionReport_$indexReport")
-                            subMenuItem(true)
-                            iconRes(actionReport.iconResId)
-                            textRes(actionReport.titleRes)
-                            listener { host.listener?.didSelectMenuAction(actionReport) }
-                        }
-                    }
                 }
             }
         }

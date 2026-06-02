@@ -33,7 +33,6 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.startSharePlainTextIntent
-import im.vector.app.databinding.DialogReportContentBinding
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
 import im.vector.app.features.analytics.plan.Interaction
@@ -298,26 +297,6 @@ class RoomProfileFragment :
     private fun addShortcut(onShortcutReady: RoomProfileViewEvents.OnShortcutReady) {
         // ... and propose the user to add it
         ShortcutManagerCompat.requestPinShortcut(requireContext(), onShortcutReady.shortcutInfo, null)
-    }
-
-    override fun onReportRoomClicked() {
-        promptReasonToReportRoom()
-    }
-
-    private fun promptReasonToReportRoom() {
-        val inflater = requireActivity().layoutInflater
-        val layout = inflater.inflate(R.layout.dialog_report_content, null)
-        val views = DialogReportContentBinding.bind(layout)
-
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.room_profile_section_more_report)
-                .setView(layout)
-                .setPositiveButton(CommonStrings.report_content_custom_submit) { _, _ ->
-                    val reason = views.dialogReportContentInput.text.toString()
-                    roomProfileViewModel.handle(RoomProfileAction.ReportRoom(reason))
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
     }
 
     override fun onLeaveRoomClicked() {

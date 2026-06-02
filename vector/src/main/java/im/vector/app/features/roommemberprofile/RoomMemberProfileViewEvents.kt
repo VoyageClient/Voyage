@@ -18,7 +18,6 @@ sealed class RoomMemberProfileViewEvents : VectorViewEvents {
     data class Failure(val throwable: Throwable) : RoomMemberProfileViewEvents()
 
     object OnIgnoreActionSuccess : RoomMemberProfileViewEvents()
-    object OnReportActionSuccess : RoomMemberProfileViewEvents()
     object OnSetPowerLevelSuccess : RoomMemberProfileViewEvents()
     object OnInviteActionSuccess : RoomMemberProfileViewEvents()
     object OnKickActionSuccess : RoomMemberProfileViewEvents()

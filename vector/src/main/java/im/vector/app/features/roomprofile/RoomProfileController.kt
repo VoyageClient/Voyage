@@ -52,7 +52,6 @@ class RoomProfileController @Inject constructor(
         fun onUploadsClicked()
         fun createShortcut()
         fun onSettingsClicked()
-        fun onReportRoomClicked()
         fun onLeaveRoomClicked()
         fun onRoomAliasesClicked()
         fun onRoomPermissionsClicked()
@@ -280,13 +279,6 @@ class RoomProfileController @Inject constructor(
                     action = { callback?.createShortcut() }
             )
         }
-        buildProfileAction(
-                id = "Report",
-                title = stringProvider.getString(CommonStrings.room_profile_section_more_report),
-                icon = R.drawable.ic_report_spam,
-                editable = false,
-                action = { callback?.onReportRoomClicked() }
-        )
         buildProfileAction(
                 id = "leave",
                 title = stringProvider.getString(

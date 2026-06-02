@@ -82,23 +82,8 @@ sealed class EventSharedAction(
     data class CopyPermalink(val eventId: String) :
             EventSharedAction(CommonStrings.permalink, R.drawable.ic_permalink)
 
-    data class ReportContent(val eventId: String, val senderId: String?) :
-            EventSharedAction(CommonStrings.report_content, R.drawable.ic_flag)
-
-    data class ReportContentSpam(val eventId: String, val senderId: String?) :
-            EventSharedAction(CommonStrings.report_content_spam, R.drawable.ic_report_spam)
-
-    data class ReportContentInappropriate(val eventId: String, val senderId: String?) :
-            EventSharedAction(CommonStrings.report_content_inappropriate, R.drawable.ic_report_inappropriate)
-
-    data class ReportContentCustom(val eventId: String, val senderId: String?) :
-            EventSharedAction(CommonStrings.report_content_custom, R.drawable.ic_report_custom)
-
     data class IgnoreUser(val senderId: String?) :
             EventSharedAction(CommonStrings.message_ignore_user, R.drawable.ic_alert_triangle, true)
-
-    data class ReportUser(val eventId: String, val senderId: String?) :
-            EventSharedAction(CommonStrings.message_report_user, R.drawable.ic_flag, true)
 
     data class QuickReact(val eventId: String, val clickedOn: String, val add: Boolean) :
             EventSharedAction(0, 0)

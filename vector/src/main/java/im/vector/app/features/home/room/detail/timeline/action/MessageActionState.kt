@@ -39,7 +39,6 @@ data class MessageActionState(
         val quickStates: Async<List<ToggleState>> = Uninitialized,
         // For actions
         val actions: List<EventSharedAction> = emptyList(),
-        val expendedReportContentMenu: Boolean = false,
         val actionPermissions: ActionPermissions = ActionPermissions(),
         val isFromThreadTimeline: Boolean = false
 ) : MavericksState {

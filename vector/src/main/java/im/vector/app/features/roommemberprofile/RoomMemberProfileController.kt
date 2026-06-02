@@ -29,7 +29,6 @@ class RoomMemberProfileController @Inject constructor(
 
     interface Callback {
         fun onIgnoreClicked()
-        fun onReportClicked()
         fun onTapVerify()
         fun onShowDeviceList()
         fun onShowDeviceListNoCrossSigning()
@@ -226,18 +225,10 @@ class RoomMemberProfileController @Inject constructor(
                         title = ignoreActionTitle,
                         destructive = true,
                         editable = false,
-                        divider = true,
+                        divider = false,
                         action = { callback?.onIgnoreClicked() }
                 )
             }
-            buildProfileAction(
-                    id = "report",
-                    title = stringProvider.getString(CommonStrings.message_report_user),
-                    destructive = true,
-                    editable = false,
-                    divider = false,
-                    action = { callback?.onReportClicked() }
-            )
         }
     }
 

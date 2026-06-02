@@ -52,15 +52,6 @@ sealed class RoomDetailAction : VectorViewModelAction {
 
     data class VoteToPoll(val eventId: String, val optionKey: String) : RoomDetailAction()
 
-    data class ReportContent(
-            val eventId: String,
-            val senderId: String?,
-            val reason: String,
-            val spam: Boolean = false,
-            val inappropriate: Boolean = false,
-            val user: Boolean = false,
-    ) : RoomDetailAction()
-
     data class IgnoreUser(val userId: String?) : RoomDetailAction()
 
     object ResendAll : RoomDetailAction()

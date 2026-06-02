@@ -65,17 +65,8 @@ class MessageActionsBottomSheet :
     }
 
     override fun didSelectMenuAction(eventAction: EventSharedAction) {
-        if (eventAction is EventSharedAction.ReportContent) {
-            // Toggle report menu
-            // Enable item animation
-            if (views.bottomSheetRecyclerView.itemAnimator == null) {
-                views.bottomSheetRecyclerView.itemAnimator = MessageActionsAnimator()
-            }
-            viewModel.handle(MessageActionsAction.ToggleReportMenu)
-        } else {
-            sharedActionViewModel.post(eventAction)
-            dismiss()
-        }
+        sharedActionViewModel.post(eventAction)
+        dismiss()
     }
 
     override fun invalidate() = withState(viewModel) {

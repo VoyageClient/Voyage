@@ -104,7 +104,6 @@ import im.vector.app.core.utils.shareMedia
 import im.vector.app.core.utils.shareText
 import im.vector.app.core.utils.startInstallFromSourceIntent
 import im.vector.app.core.utils.toast
-import im.vector.app.databinding.DialogReportContentBinding
 import im.vector.app.databinding.FragmentTimelineBinding
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.analytics.extensions.toAnalyticsInteraction
@@ -1336,22 +1335,6 @@ class TimelineFragment :
                 .show()
     }
 
-    private fun promptReasonToReportContent(action: EventSharedAction.ReportContentCustom) {
-        val inflater = requireActivity().layoutInflater
-        val layout = inflater.inflate(R.layout.dialog_report_content, null)
-        val views = DialogReportContentBinding.bind(layout)
-
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.report_content_custom_title)
-                .setView(layout)
-                .setPositiveButton(CommonStrings.report_content_custom_submit) { _, _ ->
-                    val reason = views.dialogReportContentInput.text.toString()
-                    timelineViewModel.handle(RoomDetailAction.ReportContent(action.eventId, action.senderId, reason))
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
-    }
-
     private fun promptConfirmationToRedactEvent(action: EventSharedAction.Redact) {
         ConfirmationDialogBuilder
                 .show(
@@ -1380,62 +1363,6 @@ class TimelineFragment :
 
     private fun displayRoomDetailActionSuccess(result: RoomDetailViewEvents.ActionSuccess) {
         when (val data = result.action) {
-            is RoomDetailAction.ReportContent -> {
-                when {
-                    data.spam -> {
-                        MaterialAlertDialogBuilder(
-                                requireActivity(),
-                                im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_NegativeDestructive
-                        )
-                                .setTitle(CommonStrings.content_reported_as_spam_title)
-                                .setMessage(CommonStrings.content_reported_as_spam_content)
-                                .setPositiveButton(CommonStrings.ok, null)
-                                .setNegativeButton(CommonStrings.block_user) { _, _ ->
-                                    timelineViewModel.handle(RoomDetailAction.IgnoreUser(data.senderId))
-                                }
-                                .show()
-                    }
-                    data.inappropriate -> {
-                        MaterialAlertDialogBuilder(
-                                requireActivity(),
-                                im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_NegativeDestructive
-                        )
-                                .setTitle(CommonStrings.content_reported_as_inappropriate_title)
-                                .setMessage(CommonStrings.content_reported_as_inappropriate_content)
-                                .setPositiveButton(CommonStrings.ok, null)
-                                .setNegativeButton(CommonStrings.block_user) { _, _ ->
-                                    timelineViewModel.handle(RoomDetailAction.IgnoreUser(data.senderId))
-                                }
-                                .show()
-                    }
-                    data.user -> {
-                        MaterialAlertDialogBuilder(
-                                requireActivity(),
-                                im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_NegativeDestructive
-                        )
-                                .setTitle(CommonStrings.user_reported_as_inappropriate_title)
-                                .setMessage(CommonStrings.user_reported_as_inappropriate_content)
-                                .setPositiveButton(CommonStrings.ok, null)
-                                .setNegativeButton(CommonStrings.block_user) { _, _ ->
-                                    timelineViewModel.handle(RoomDetailAction.IgnoreUser(data.senderId))
-                                }
-                                .show()
-                    }
-                    else -> {
-                        MaterialAlertDialogBuilder(
-                                requireActivity(),
-                                im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_NegativeDestructive
-                        )
-                                .setTitle(CommonStrings.content_reported_title)
-                                .setMessage(CommonStrings.content_reported_content)
-                                .setPositiveButton(CommonStrings.ok, null)
-                                .setNegativeButton(CommonStrings.block_user) { _, _ ->
-                                    timelineViewModel.handle(RoomDetailAction.IgnoreUser(data.senderId))
-                                }
-                                .show()
-                    }
-                }
-            }
             is RoomDetailAction.RequestVerification -> {
                 Timber.v("## SAS RequestVerification action $data")
                 UserVerificationBottomSheet.verifyUser(
@@ -1928,32 +1855,8 @@ class TimelineFragment :
             is EventSharedAction.Cancel -> {
                 handleCancelSend(action)
             }
-            is EventSharedAction.ReportContentSpam -> {
-                timelineViewModel.handle(
-                        RoomDetailAction.ReportContent(
-                                action.eventId, action.senderId, "This message is spam", spam = true
-                        )
-                )
-            }
-            is EventSharedAction.ReportContentInappropriate -> {
-                timelineViewModel.handle(
-                        RoomDetailAction.ReportContent(
-                                action.eventId, action.senderId, "This message is inappropriate", inappropriate = true
-                        )
-                )
-            }
-            is EventSharedAction.ReportContentCustom -> {
-                promptReasonToReportContent(action)
-            }
             is EventSharedAction.IgnoreUser -> {
                 action.senderId?.let { askConfirmationToIgnoreUser(it) }
-            }
-            is EventSharedAction.ReportUser -> {
-                timelineViewModel.handle(
-                        RoomDetailAction.ReportContent(
-                                action.eventId, action.senderId, "Reporting user ${action.senderId}", user = true
-                        )
-                )
             }
             is EventSharedAction.OnUrlClicked -> {
                 onUrlClicked(action.url, action.title)
@@ -1972,7 +1875,6 @@ class TimelineFragment :
             is EventSharedAction.EndPoll -> {
                 askConfirmationToEndPoll(action.eventId)
             }
-            is EventSharedAction.ReportContent -> Unit /* Not clickable */
             EventSharedAction.Separator -> Unit /* Not clickable */
         }
     }
