@@ -346,9 +346,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         if (canCancel(timelineEvent)) {
             add(EventSharedAction.Cancel(timelineEvent, false))
         }
-        if (vectorPreferences.developerMode()) {
-            add(EventSharedAction.CopyEventId(timelineEvent.eventId))
-        }
     }
 
     private fun ArrayList<EventSharedAction>.addActionsForSentNotSyncedState(timelineEvent: TimelineEvent) {
