@@ -333,7 +333,12 @@ class VideoViewHolder constructor(itemView: View) :
         try {
             val player = MediaPlayer().apply {
                 setSurface(activeSurface)
-                setDataSource(mVideoPath ?: return)
+                val path = mVideoPath ?: return
+                if (path.startsWith("content://")) {
+                    setDataSource(itemView.context, android.net.Uri.parse(path))
+                } else {
+                    setDataSource(path)
+                }
                 setOnVideoSizeChangedListener { _, width, height ->
                     this@VideoViewHolder.videoWidth = width
                     this@VideoViewHolder.videoHeight = height

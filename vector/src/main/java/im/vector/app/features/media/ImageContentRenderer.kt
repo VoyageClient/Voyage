@@ -163,11 +163,20 @@ class ImageContentRenderer @Inject constructor(
      * gets visibly blurry once magnified.
      */
     fun render(data: Data, contextView: View, target: CustomViewTarget<*, Drawable>) {
+        val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
         val req = if (data.elementToDecrypt != null) {
             // Encrypted image
             GlideApp
                     .with(contextView)
                     .load(data)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+        } else if (isLocalContentUri) {
+            // Local-echo content URI — load as Uri so Glide can use a ParcelFileDescriptor and
+            // run VideoBitmapDecoder for video frame thumbnails, instead of the InputStream
+            // path which only decodes still images.
+            GlideApp
+                    .with(contextView)
+                    .load(android.net.Uri.parse(data.url))
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
         } else {
             // Clear image
@@ -233,7 +242,15 @@ class ImageContentRenderer @Inject constructor(
 
     fun createGlideRequest(data: Data, mode: Mode, glideRequests: GlideRequests, size: Size = processSize(data, mode)): GlideRequest<Drawable> {
         val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
-        val request = if (data.elementToDecrypt != null || isLocalContentUri) {
+        val isLocalVideoContentUri = isLocalContentUri && data.mimeType?.startsWith("video/") == true
+        val request = if (isLocalVideoContentUri) {
+            // Local-echo video — load the content URI directly so Glide can use a
+            // ParcelFileDescriptor and run VideoBitmapDecoder to extract a frame as the thumbnail.
+            // The InputStream-based path used below only decodes still images.
+            glideRequests
+                    .load(android.net.Uri.parse(data.url))
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+        } else if (data.elementToDecrypt != null || isLocalContentUri) {
             // Encrypted image, or local-echo content URI — go through our custom data loader so
             // Glide always sees an InputStream. The default content-URI loader otherwise prefers a
             // ParcelFileDescriptor, which routes to Downsampler (still bitmap) and skips the

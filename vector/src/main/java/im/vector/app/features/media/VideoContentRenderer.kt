@@ -24,7 +24,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import timber.log.Timber
-import java.net.URLEncoder
 import javax.inject.Inject
 
 class VideoContentRenderer @Inject constructor(
@@ -69,7 +68,7 @@ class VideoContentRenderer @Inject constructor(
                 thumbnailView.isVisible = false
                 loadingView.isVisible = false
                 videoView.isVisible = true
-                videoView.setVideoPath(URLEncoder.encode(data.url, Charsets.US_ASCII.displayName()))
+                videoView.setVideoPath(data.url)
                 videoView.start()
             } else {
                 thumbnailView.isVisible = true
@@ -113,6 +112,12 @@ class VideoContentRenderer @Inject constructor(
                 loadingView.isVisible = false
                 errorView.isVisible = true
                 errorView.setText(CommonStrings.unknown_error)
+            } else if (data.url != null && localFilesHelper.isLocalFile(data.url) && data.allowNonMxcUrls) {
+                thumbnailView.isVisible = false
+                loadingView.isVisible = false
+                videoView.isVisible = true
+                videoView.setVideoPath(data.url)
+                videoView.start()
             } else {
                 // Temporary code, some remote videos are not played by videoview setVideoUri
                 // So for now we download them then play
