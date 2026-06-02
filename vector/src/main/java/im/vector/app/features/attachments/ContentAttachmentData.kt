@@ -17,6 +17,7 @@ private val listOfPreviewableMimeTypes = listOf(
         MimeTypes.Webp,
         MimeTypes.Apng,
         MimeTypes.Xpm,
+        MimeTypes.Farbfeld,
 )
 
 fun ContentAttachmentData.isPreviewable(): Boolean {

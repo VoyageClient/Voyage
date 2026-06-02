@@ -50,6 +50,7 @@ internal class ImageCompressor @Inject constructor(
                 SourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality)
                 SourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality)
                 SourceFormat.XPM -> compressXpm(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                SourceFormat.FARBFELD -> compressFarbfeld(imageFile, desiredWidth, desiredHeight, desiredQuality)
                 // Re-encoding would drop to the first frame and strip the animation.
                 SourceFormat.ANIMATED_WEBP -> CompressedImage(imageFile, mimeType = "image/webp")
                 SourceFormat.OTHER -> compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality)
@@ -77,6 +78,11 @@ internal class ImageCompressor @Inject constructor(
 
     private suspend fun compressXpm(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
         val decoded = XpmBitmapReader.decode(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
+        return encodeBitmapToWebp(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
+    }
+
+    private suspend fun compressFarbfeld(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+        val decoded = FarbfeldBitmapReader.decode(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
         return encodeBitmapToWebp(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
     }
 
@@ -143,7 +149,7 @@ internal class ImageCompressor @Inject constructor(
                 Bitmap.CompressFormat.WEBP
             }
 
-    private enum class SourceFormat { GIF, APNG, XPM, ANIMATED_WEBP, OTHER }
+    private enum class SourceFormat { GIF, APNG, XPM, FARBFELD, ANIMATED_WEBP, OTHER }
 
     private fun sniffFormat(file: File): SourceFormat {
         val head = ByteArray(64)
@@ -170,6 +176,7 @@ internal class ImageCompressor @Inject constructor(
             return SourceFormat.ANIMATED_WEBP
         }
         if (read >= 9 && String(head, 0, 9, Charsets.US_ASCII).startsWith("/* XPM */")) return SourceFormat.XPM
+        if (read >= 8 && String(head, 0, 8, Charsets.US_ASCII) == "farbfeld") return SourceFormat.FARBFELD
         return SourceFormat.OTHER
     }
 

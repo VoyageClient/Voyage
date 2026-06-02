@@ -17,6 +17,7 @@ import android.util.Size
 import androidx.exifinterface.media.ExifInterface
 import timber.log.Timber
 import java.io.BufferedReader
+import java.io.DataInputStream
 import java.io.InputStreamReader
 
 object ImageUtils {
@@ -46,8 +47,8 @@ object ImageUtils {
 
     /**
      * Cheap width/height probe that doesn't allocate a full bitmap. Falls back to header
-     * sniffing for formats Android can't decode (currently: XPM) so they don't end up reported
-     * as 0x0 on upload.
+     * sniffing for formats Android can't decode (currently: XPM, Farbfeld) so they don't end up
+     * reported as 0x0 on upload.
      */
     fun getImageSize(context: Context, uri: Uri): Size? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -58,6 +59,20 @@ object ImageUtils {
             return Size(bounds.outWidth, bounds.outHeight)
         }
         return runCatching { readXpmSize(context, uri) }.getOrNull()
+                ?: runCatching { readFarbfeldSize(context, uri) }.getOrNull()
+    }
+
+    private fun readFarbfeldSize(context: Context, uri: Uri): Size? {
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            val data = DataInputStream(input)
+            val header = ByteArray(8)
+            data.readFully(header)
+            if (String(header, Charsets.US_ASCII) != "farbfeld") return null
+            val w = data.readInt()
+            val h = data.readInt()
+            return if (w > 0 && h > 0) Size(w, h) else null
+        }
+        return null
     }
 
     private fun readXpmSize(context: Context, uri: Uri): Size? {

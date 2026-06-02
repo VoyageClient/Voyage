@@ -41,18 +41,30 @@ internal object XpmBitmapReader {
                 palette[entry.substring(0, cpp)] = parseColorEntry(entry.substring(cpp))
             }
 
-            val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-            val row = IntArray(w)
-            for (y in 0 until h) {
-                val line = strings[1 + ncolors + y]
-                for (x in 0 until w) {
-                    val start = x * cpp
-                    val end = start + cpp
-                    row[x] = if (end <= line.length) palette[line.substring(start, end)] ?: Color.BLACK else Color.BLACK
+            val pixels = IntArray(w * h)
+            if (cpp == 1) {
+                val table = IntArray(256) { Color.BLACK }
+                for ((key, color) in palette) {
+                    if (key.isNotEmpty()) table[key[0].code and 0xff] = color
                 }
-                bitmap.setPixels(row, 0, w, 0, y, w, 1)
+                for (y in 0 until h) {
+                    val line = strings[1 + ncolors + y]
+                    val base = y * w
+                    val cap = minOf(w, line.length)
+                    for (x in 0 until cap) pixels[base + x] = table[line[x].code and 0xff]
+                }
+            } else {
+                for (y in 0 until h) {
+                    val line = strings[1 + ncolors + y]
+                    val base = y * w
+                    for (x in 0 until w) {
+                        val start = x * cpp
+                        val end = start + cpp
+                        pixels[base + x] = if (end <= line.length) palette[line.substring(start, end)] ?: Color.BLACK else Color.BLACK
+                    }
+                }
             }
-            bitmap
+            Bitmap.createBitmap(pixels, w, h, Bitmap.Config.ARGB_8888)
         } catch (t: Throwable) {
             Timber.w(t, "XPM: decode failed")
             null

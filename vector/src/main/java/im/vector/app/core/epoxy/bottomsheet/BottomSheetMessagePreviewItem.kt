@@ -6,7 +6,11 @@
  */
 package im.vector.app.core.epoxy.bottomsheet
 
+import android.graphics.Outline
 import android.text.method.MovementMethod
+import android.util.TypedValue
+import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -75,6 +79,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         holder.avatar.onClick(userClicked)
         holder.sender.onClick(userClicked)
         holder.sender.setTextOrHide(matrixItem.getBestName())
+        // Static outline clip — Glide's RoundedCorners only applies to Bitmap output, so a
+        // blurhash placeholder (Drawable) renders with square corners without this clip.
+        if (holder.imagePreview.outlineProvider !== ROUNDED_OUTLINE_PROVIDER) {
+            holder.imagePreview.outlineProvider = ROUNDED_OUTLINE_PROVIDER
+            holder.imagePreview.clipToOutline = true
+        }
         data?.let {
             imageContentRenderer?.render(it, ImageContentRenderer.Mode.THUMBNAIL, holder.imagePreview)
         }
@@ -116,5 +126,14 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         val mapViewContainer by bind<FrameLayout>(R.id.mapViewContainer)
         val staticMapImageView by bind<ImageView>(R.id.staticMapImageView)
         val staticMapPinImageView by bind<ImageView>(R.id.staticMapPinImageView)
+    }
+
+    companion object {
+        private val ROUNDED_OUTLINE_PROVIDER = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, view.resources.displayMetrics)
+                outline.setRoundRect(0, 0, view.width, view.height, r)
+            }
+        }
     }
 }

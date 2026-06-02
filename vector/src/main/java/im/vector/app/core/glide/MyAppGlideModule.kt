@@ -44,6 +44,8 @@ class MyAppGlideModule : AppGlideModule() {
         // the default BitmapFactory decoder which would error on non-binary inputs. SVG stays
         // a vector all the way to the ImageView so pinch-zoom keeps it crisp.
         registry.prepend(InputStream::class.java, Bitmap::class.java, XpmDecoder(glide.bitmapPool))
+        registry.prepend(InputStream::class.java, Bitmap::class.java, FarbfeldDecoder(glide.bitmapPool))
+        registry.prepend(ByteBuffer::class.java, Bitmap::class.java, FarbfeldByteBufferDecoder(glide.bitmapPool))
         registry.prepend(InputStream::class.java, Drawable::class.java, SvgDecoder())
         // Override penfeizhou's bundled StreamAnimationDecoder: it runs the WebP/APNG/GIF probes
         // back-to-back without resetting the InputStream between them, so any source whose first

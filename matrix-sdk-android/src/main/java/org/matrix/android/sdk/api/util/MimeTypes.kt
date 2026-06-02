@@ -33,6 +33,7 @@ object MimeTypes {
     const val Gif = "image/gif"
     const val Webp = "image/webp"
     const val Xpm = "image/x-xpixmap"
+    const val Farbfeld = "image/x-farbfeld"
     const val Svg = "image/svg+xml"
 
     const val Ogg = "audio/ogg"

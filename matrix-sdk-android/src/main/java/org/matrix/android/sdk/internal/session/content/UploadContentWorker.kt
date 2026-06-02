@@ -628,14 +628,23 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             val options = BitmapFactory.Options().apply { inSampleSize = sample }
             return file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
         }
-        if (!isXpm(file)) return null
-        return XpmBitmapReader.decode(file)?.let(::downscaleForBlurHash)
+        return when {
+            isXpm(file) -> XpmBitmapReader.decode(file)?.let(::downscaleForBlurHash)
+            isFarbfeld(file) -> FarbfeldBitmapReader.decode(file)?.let(::downscaleForBlurHash)
+            else -> null
+        }
     }
 
     private fun isXpm(file: File): Boolean {
         val head = ByteArray(9)
         val read = runCatching { file.inputStream().use { it.read(head) } }.getOrDefault(0)
         return read >= 9 && String(head, 0, 9, Charsets.US_ASCII) == "/* XPM */"
+    }
+
+    private fun isFarbfeld(file: File): Boolean {
+        val head = ByteArray(8)
+        val read = runCatching { file.inputStream().use { it.read(head) } }.getOrDefault(0)
+        return read >= 8 && String(head, 0, 8, Charsets.US_ASCII) == "farbfeld"
     }
 
     private fun downscaleForBlurHash(bitmap: Bitmap): Bitmap {

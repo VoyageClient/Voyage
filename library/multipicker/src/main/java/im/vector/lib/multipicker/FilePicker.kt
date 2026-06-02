@@ -34,8 +34,10 @@ class FilePicker : Picker<MultiPickerBaseType>() {
     override fun getSelectedFiles(context: Context, data: Intent?): List<MultiPickerBaseType> {
         return getSelectedUriList(context, data).mapNotNull { selectedUri ->
             val type = context.contentResolver.getType(selectedUri)
+            val sniffedImageMime = if (type.isMimeTypeImage()) null else sniffImageMime(context, selectedUri)
 
             when {
+                sniffedImageMime != null -> selectedUri.toMultiPickerImageType(context)?.copy(mimeType = sniffedImageMime)
                 type.isMimeTypeVideo() -> selectedUri.toMultiPickerVideoType(context)
                 type.isMimeTypeImage() -> selectedUri.toMultiPickerImageType(context)
                 type.isMimeTypeAudio() -> selectedUri.toMultiPickerAudioType(context)
@@ -62,6 +64,20 @@ class FilePicker : Picker<MultiPickerBaseType>() {
                 }
             }
         }
+    }
+
+    private fun sniffImageMime(context: Context, uri: android.net.Uri): String? {
+        return runCatching {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                val head = ByteArray(8)
+                val read = input.read(head)
+                if (read >= 8 && String(head, 0, 8, Charsets.US_ASCII) == "farbfeld") {
+                    "image/x-farbfeld"
+                } else {
+                    null
+                }
+            }
+        }.getOrNull()
     }
 
     override fun createIntent(): Intent {
