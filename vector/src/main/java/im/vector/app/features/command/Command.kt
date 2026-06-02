@@ -24,6 +24,7 @@ enum class Command(
         val isThreadCommand: Boolean
 ) {
     GREENTEXT("/greentext", null, "<message>", CommonStrings.command_description_greentext, false, true),
+    BLOCKQUOTE("/blockquote", null, "<message>", CommonStrings.command_description_blockquote, false, true),
     CRASH_APP("/crash", null, "", CommonStrings.command_description_crash_application, true, true),
     EMOTE("/me", null, "<message>", CommonStrings.command_description_emote, false, true),
     NOTICE("/notice", null, "<message>", CommonStrings.command_description_notice, false, true),

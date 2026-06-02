@@ -148,7 +148,8 @@ interface RelationService {
             replyFormattedText: CharSequence? = null,
             autoMarkdown: Boolean = false,
             showInThread: Boolean = false,
-            rootThreadEventId: String? = null
+            rootThreadEventId: String? = null,
+            msgType: String = MessageType.MSGTYPE_TEXT,
     ): Cancelable?
 
     /**

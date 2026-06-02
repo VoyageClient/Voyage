@@ -668,7 +668,8 @@ internal class LocalEchoEventFactory @Inject constructor(
             rootThreadEventId: String? = null,
             showInThread: Boolean,
             @Suppress("UNUSED_PARAMETER")
-            isRedactedEvent: Boolean = false
+            isRedactedEvent: Boolean = false,
+            msgType: String = MessageType.MSGTYPE_TEXT,
     ): MessageContent? {
         val eventId = eventReplied.root.eventId ?: return null
         val repliedSenderId = eventReplied.root.senderId
@@ -685,7 +686,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         val isFormatted = htmlBody != plainBody
 
         return MessageTextContent(
-                msgType = MessageType.MSGTYPE_TEXT,
+                msgType = msgType,
                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
                 body = plainBody,
                 formattedBody = if (isFormatted) htmlBody else null,
@@ -710,8 +711,9 @@ internal class LocalEchoEventFactory @Inject constructor(
             rootThreadEventId: String? = null,
             showInThread: Boolean,
             additionalContent: Content? = null,
+            msgType: String = MessageType.MSGTYPE_TEXT,
     ): Event? {
-        val content = createReplyTextContent(eventReplied, replyText, replyTextFormatted, autoMarkdown, rootThreadEventId, showInThread)
+        val content = createReplyTextContent(eventReplied, replyText, replyTextFormatted, autoMarkdown, rootThreadEventId, showInThread, msgType = msgType)
         return content?.let {
             createMessageEvent(roomId, it, additionalContent)
         }

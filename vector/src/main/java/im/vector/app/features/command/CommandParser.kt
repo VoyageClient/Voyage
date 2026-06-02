@@ -63,6 +63,14 @@ class CommandParser @Inject constructor(
                     }
                 }
 
+                Command.BLOCKQUOTE.matches(slashCommand) -> {
+                    if (message.isNotEmpty()) {
+                        ParsedCommand.SendBlockquote(message = message)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.BLOCKQUOTE)
+                    }
+                }
+
                 Command.PLAIN.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
                         if (formattedMessage != null) {

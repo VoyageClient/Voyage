@@ -115,6 +115,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_ENABLE_CHAT_EFFECTS = "SETTINGS_ENABLE_CHAT_EFFECTS"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
         private const val SETTINGS_LABS_ENABLE_LATEX_MATHS = "SETTINGS_LABS_ENABLE_LATEX_MATHS"
+        private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         private const val SETTINGS_ENABLE_DIRECT_SHARE = "SETTINGS_ENABLE_DIRECT_SHARE"
@@ -388,6 +389,10 @@ class VectorPreferences @Inject constructor(
 
     fun latexMathsIsEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_LABS_ENABLE_LATEX_MATHS, false)
+    }
+
+    fun renderBlockquotesAsGreentext(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT, false)
     }
 
     fun failFast(): Boolean {

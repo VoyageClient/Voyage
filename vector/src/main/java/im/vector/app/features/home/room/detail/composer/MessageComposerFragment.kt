@@ -474,7 +474,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun renderSpecialMode(mode: MessageComposerMode.Special) {
-        autoCompleters.values.forEach(AutoCompleter::enterSpecialMode)
+        val allowCommands = mode is MessageComposerMode.Reply
+        autoCompleters.values.forEach { it.enterSpecialMode(allowCommands) }
         composer.renderComposerMode(mode)
     }
 

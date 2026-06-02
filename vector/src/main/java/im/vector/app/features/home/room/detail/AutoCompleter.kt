@@ -71,8 +71,8 @@ class AutoCompleter @AssistedInject constructor(
 
     private var editText: EditText? = null
 
-    fun enterSpecialMode() {
-        commandAutocompletePolicy.enabled = false
+    fun enterSpecialMode(allowCommands: Boolean = false) {
+        commandAutocompletePolicy.enabled = allowCommands
     }
 
     fun exitSpecialMode() {

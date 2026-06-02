@@ -132,7 +132,8 @@ internal class DefaultRelationService @AssistedInject constructor(
             replyFormattedText: CharSequence?,
             autoMarkdown: Boolean,
             showInThread: Boolean,
-            rootThreadEventId: String?
+            rootThreadEventId: String?,
+            msgType: String,
     ): Cancelable? {
         val event = eventFactory.createReplyTextEvent(
                 roomId = roomId,
@@ -141,7 +142,8 @@ internal class DefaultRelationService @AssistedInject constructor(
                 replyTextFormatted = replyFormattedText,
                 autoMarkdown = autoMarkdown,
                 rootThreadEventId = rootThreadEventId,
-                showInThread = showInThread
+                showInThread = showInThread,
+                msgType = msgType,
         )
                 ?.also { saveLocalEcho(it) }
                 ?: return null

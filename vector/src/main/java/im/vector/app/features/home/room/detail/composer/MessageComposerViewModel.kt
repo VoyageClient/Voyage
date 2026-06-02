@@ -63,6 +63,7 @@ import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
@@ -193,10 +194,22 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handleEnterEditMode(room: Room, action: MessageComposerAction.EnterEditMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
             val formatted = vectorPreferences.isRichTextEditorEnabled()
-            val editableContent = timelineEvent.getTextEditableContent(formatted)
+            val richContent = timelineEvent.getTextEditableContent(formatted)
+            // For our own greentext-formatted output, the HTML body would put a green span in
+            // the editor — visually inconsistent with the rest of the composer. Fall back to
+            // the plain body (the user's `>line`-shaped text) so editing happens against the
+            // source they actually typed.
+            val editableContent = if (looksLikeGreentextHtml(richContent)) {
+                timelineEvent.getTextEditableContent(formatted = false)
+            } else {
+                richContent
+            }
             setState { copy(sendMode = SendMode.Edit(timelineEvent, editableContent)) }
         }
     }
+
+    private fun looksLikeGreentextHtml(text: String): Boolean =
+            text.contains("<font color=\"#789922\">", ignoreCase = true)
 
     private fun handleSetFullScreen(action: MessageComposerAction.SetFullScreen) {
         setState { copy(isFullScreen = action.isFullScreen) }
@@ -265,6 +278,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             isInThreadTimeline = state.isInThreadTimeline()
                     )) {
                         is ParsedCommand.ErrorNotACommand -> {
+                            val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
                             // The send path runs markdown parsing, a Realm read for the local echo,
                             // and the synchronous local-echo listener notification — all on the main
                             // thread by default. Offload to background so the composer feels
@@ -274,16 +288,16 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
-                                            replyInThreadText = action.text,
-                                            formattedText = action.formattedText,
-                                            autoMarkdown = action.autoMarkdown
+                                            replyInThreadText = greentext?.first ?: action.text,
+                                            formattedText = greentext?.second ?: action.formattedText,
+                                            autoMarkdown = greentext == null && action.autoMarkdown,
                                     )
+                                } else if (greentext != null) {
+                                    room.sendService().sendFormattedTextMessage(greentext.first, greentext.second)
+                                } else if (action.formattedText != null) {
+                                    room.sendService().sendFormattedTextMessage(action.text.toString(), action.formattedText)
                                 } else {
-                                    if (action.formattedText != null) {
-                                        room.sendService().sendFormattedTextMessage(action.text.toString(), action.formattedText)
-                                    } else {
-                                        room.sendService().sendTextMessage(action.text, autoMarkdown = action.autoMarkdown)
-                                    }
+                                    room.sendService().sendTextMessage(action.text, autoMarkdown = action.autoMarkdown)
                                 }
                             }
 
@@ -337,18 +351,39 @@ class MessageComposerViewModel @AssistedInject constructor(
                             popDraft(room)
                         }
                         is ParsedCommand.SendGreentext -> {
+                            val (plain, formatted) = buildGreentext(parsedCommand.message)
                             offloadSend {
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
-                                            replyInThreadText = ">" + parsedCommand.message.toString(),
-                                            formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>",
+                                            replyInThreadText = plain,
+                                            formattedText = formatted,
                                             autoMarkdown = false
                                     )
                                 } else {
                                     room.sendService().sendFormattedTextMessage(
-                                            text = ">" + parsedCommand.message.toString(),
-                                            formattedText = "<font color=\"#789922\">\n<p>&gt;" + parsedCommand.message.toString() + "</p>\n</font>"
+                                            text = plain,
+                                            formattedText = formatted
+                                    )
+                                }
+                            }
+                            _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                            popDraft(room)
+                        }
+                        is ParsedCommand.SendBlockquote -> {
+                            val (plain, formatted) = buildBlockquote(parsedCommand.message)
+                            offloadSend {
+                                if (state.rootThreadEventId != null) {
+                                    room.relationService().replyInThread(
+                                            rootThreadEventId = state.rootThreadEventId,
+                                            replyInThreadText = plain,
+                                            formattedText = formatted,
+                                            autoMarkdown = false
+                                    )
+                                } else {
+                                    room.sendService().sendFormattedTextMessage(
+                                            text = plain,
+                                            formattedText = formatted
                                     )
                                 }
                             }
@@ -689,28 +724,32 @@ class MessageComposerViewModel @AssistedInject constructor(
                         relationContent?.inReplyTo?.eventId
                     }
 
+                    val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
+                    val editText = greentext?.first ?: action.text
+                    val editFormatted = greentext?.second ?: action.formattedText
+                    val editAutoMarkdown = greentext == null && action.autoMarkdown
                     if (inReplyTo != null) {
                         // TODO check if same content?
                         room.getTimelineEvent(inReplyTo)?.let {
-                            room.relationService().editReply(state.sendMode.timelineEvent, it, action.text, action.formattedText)
+                            room.relationService().editReply(state.sendMode.timelineEvent, it, editText, editFormatted)
                         }
                     } else {
                         val messageContent = state.sendMode.timelineEvent.getVectorLastMessageContent()
                         val existingBody: String
                         val needsEdit = if (messageContent is MessageContentWithFormattedBody) {
                             existingBody = messageContent.formattedBody ?: ""
-                            existingBody != action.formattedText
+                            existingBody != editFormatted
                         } else {
                             existingBody = messageContent?.body ?: ""
-                            existingBody != action.text
+                            existingBody != editText
                         }
                         if (needsEdit) {
                             room.relationService().editTextMessage(
                                     state.sendMode.timelineEvent,
                                     messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
-                                    action.text,
-                                    action.formattedText,
-                                    action.autoMarkdown
+                                    editText,
+                                    editFormatted,
+                                    editAutoMarkdown
                             )
                         } else {
                             Timber.w("Same message content, do not send edition")
@@ -732,28 +771,49 @@ class MessageComposerViewModel @AssistedInject constructor(
                 }
                 is SendMode.Reply -> {
                     val timelineEvent = state.sendMode.timelineEvent
-                    val showInThread = state.sendMode.timelineEvent.root.isThread() && state.rootThreadEventId == null
+                    val showInThread = timelineEvent.root.isThread() && state.rootThreadEventId == null
                     // If threads are disabled this will make the fallback replies visible to clients with threads enabled
                     val rootThreadEventId = if (showInThread) timelineEvent.root.getRootThreadEventId() else null
-                    state.rootThreadEventId?.let {
-                        room.relationService().replyInThread(
-                                rootThreadEventId = it,
-                                replyInThreadText = action.text,
-                                autoMarkdown = action.autoMarkdown,
-                                formattedText = action.formattedText,
-                                eventReplied = timelineEvent
-                        )
-                    } ?: room.relationService().replyToMessage(
-                            eventReplied = timelineEvent,
-                            replyText = action.text,
-                            replyFormattedText = action.formattedText,
-                            autoMarkdown = action.autoMarkdown,
-                            showInThread = showInThread,
-                            rootThreadEventId = rootThreadEventId
-                    )
 
-                    _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                    popDraft(room)
+                    val parsedCommand = commandParser.parseSlashCommand(
+                            textMessage = action.text,
+                            formattedMessage = action.formattedText,
+                            isInThreadTimeline = state.isInThreadTimeline()
+                    )
+                    val handledAsCommand = handleReplyCommand(
+                            room = room,
+                            parsedCommand = parsedCommand,
+                            eventReplied = timelineEvent,
+                            threadRootEventId = state.rootThreadEventId,
+                            showInThread = showInThread,
+                            replyRootThreadEventId = rootThreadEventId,
+                            autoMarkdown = action.autoMarkdown,
+                    )
+                    if (!handledAsCommand) {
+                        val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
+                        val replyText = greentext?.first ?: action.text
+                        val replyFormatted = greentext?.second ?: action.formattedText
+                        val autoMarkdown = greentext == null && action.autoMarkdown
+                        state.rootThreadEventId?.let {
+                            room.relationService().replyInThread(
+                                    rootThreadEventId = it,
+                                    replyInThreadText = replyText,
+                                    autoMarkdown = autoMarkdown,
+                                    formattedText = replyFormatted,
+                                    eventReplied = timelineEvent
+                            )
+                        } ?: room.relationService().replyToMessage(
+                                eventReplied = timelineEvent,
+                                replyText = replyText,
+                                replyFormattedText = replyFormatted,
+                                autoMarkdown = autoMarkdown,
+                                showInThread = showInThread,
+                                rootThreadEventId = rootThreadEventId
+                        )
+
+                        _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                        popDraft(room)
+                    }
                 }
                 is SendMode.Voice -> {
                     // do nothing
@@ -1014,6 +1074,226 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleWhoisSlashCommand(whois: ParsedCommand.ShowUser) {
         _viewEvents.post(MessageComposerViewEvents.OpenRoomMemberProfile(whois.userId))
+    }
+
+    /**
+     * Text-producing slash commands sent while in reply mode get attached to the original event
+     * via m.in_reply_to (regular relation or thread relation, matching the non-command path).
+     * Action commands (/invite, /ban, etc.) and parse errors return false so the caller can fall
+     * back to the normal Reply send path or surface the error.
+     */
+    private fun handleReplyCommand(
+            room: Room,
+            parsedCommand: ParsedCommand,
+            eventReplied: TimelineEvent,
+            threadRootEventId: String?,
+            showInThread: Boolean,
+            replyRootThreadEventId: String?,
+            autoMarkdown: Boolean,
+    ): Boolean {
+        fun reply(text: CharSequence, formatted: String? = null, msgType: String = MessageType.MSGTYPE_TEXT) {
+            offloadSend {
+                if (threadRootEventId != null) {
+                    room.relationService().replyInThread(
+                            rootThreadEventId = threadRootEventId,
+                            replyInThreadText = text,
+                            msgType = msgType,
+                            autoMarkdown = autoMarkdown,
+                            formattedText = formatted,
+                            eventReplied = eventReplied,
+                    )
+                } else {
+                    room.relationService().replyToMessage(
+                            eventReplied = eventReplied,
+                            replyText = text,
+                            replyFormattedText = formatted,
+                            autoMarkdown = autoMarkdown,
+                            showInThread = showInThread,
+                            rootThreadEventId = replyRootThreadEventId,
+                            msgType = msgType,
+                    )
+                }
+            }
+        }
+
+        fun finish() {
+            _viewEvents.post(MessageComposerViewEvents.MessageSent)
+            popDraft(room)
+        }
+
+        return when (parsedCommand) {
+            is ParsedCommand.SendPlainText -> {
+                reply(parsedCommand.message)
+                finish()
+                true
+            }
+            is ParsedCommand.SendFormattedText -> {
+                reply(parsedCommand.message, parsedCommand.formattedMessage)
+                finish()
+                true
+            }
+            is ParsedCommand.SendEmote -> {
+                reply(parsedCommand.message, msgType = MessageType.MSGTYPE_EMOTE)
+                finish()
+                true
+            }
+            is ParsedCommand.SendNotice -> {
+                reply(parsedCommand.message, msgType = MessageType.MSGTYPE_NOTICE)
+                finish()
+                true
+            }
+            is ParsedCommand.SendGreentext -> {
+                val (plain, formatted) = buildGreentext(parsedCommand.message)
+                reply(plain, formatted)
+                finish()
+                true
+            }
+            is ParsedCommand.SendBlockquote -> {
+                val (plain, formatted) = buildBlockquote(parsedCommand.message)
+                reply(plain, formatted)
+                finish()
+                true
+            }
+            is ParsedCommand.SendRainbow -> {
+                val message = parsedCommand.message.toString()
+                reply(message, rainbowGenerator.generate(message))
+                finish()
+                true
+            }
+            is ParsedCommand.SendRainbowEmote -> {
+                val message = parsedCommand.message.toString()
+                reply(message, rainbowGenerator.generate(message), MessageType.MSGTYPE_EMOTE)
+                finish()
+                true
+            }
+            is ParsedCommand.SendSpoiler -> {
+                reply(
+                        text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})",
+                        formatted = "<span data-mx-spoiler>${parsedCommand.message}</span>",
+                )
+                finish()
+                true
+            }
+            is ParsedCommand.SendShrug -> {
+                reply(prefixed("¯\\_(ツ)_/¯", parsedCommand.message))
+                finish()
+                true
+            }
+            is ParsedCommand.SendLenny -> {
+                reply(prefixed("( ͡° ͜ʖ ͡°)", parsedCommand.message))
+                finish()
+                true
+            }
+            is ParsedCommand.SendTableFlip -> {
+                reply(prefixed("(╯°□°）╯︵ ┻━┻", parsedCommand.message))
+                finish()
+                true
+            }
+            is ParsedCommand.ErrorSyntax -> {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandError(parsedCommand.command))
+                true
+            }
+            is ParsedCommand.ErrorEmptySlashCommand -> {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknown("/"))
+                true
+            }
+            is ParsedCommand.ErrorUnknownSlashCommand -> {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandUnknown(parsedCommand.slashCommand))
+                true
+            }
+            is ParsedCommand.ErrorCommandNotSupportedInThreads -> {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandNotSupportedInThreads(parsedCommand.command))
+                true
+            }
+            // Not a slash command — caller will send the typed text as a plain reply.
+            // Action commands (e.g. /invite, /ban) aren't valid as replies and fall through here too.
+            else -> false
+        }
+    }
+
+    /**
+     * Splits the input at the first occurrence of two consecutive newlines: everything before is
+     * the styled segment, everything after is appended verbatim. Returns the head lines and the
+     * trailing remainder (which may be empty and may itself contain further line breaks).
+     */
+    private fun splitStyledSegment(message: CharSequence): Pair<List<String>, String> {
+        val text = message.toString()
+        val breakIndex = text.indexOf("\n\n")
+        return if (breakIndex < 0) {
+            text.split('\n') to ""
+        } else {
+            text.substring(0, breakIndex).split('\n') to text.substring(breakIndex)
+        }
+    }
+
+    private fun buildGreentext(message: CharSequence): Pair<String, String> {
+        val (lines, rest) = splitStyledSegment(message)
+        val head = lines.ifEmpty { listOf("") }
+        val plain = head.joinToString("\n") { ">$it" } + rest
+        val styledHtml = "<font color=\"#789922\">" + head.joinToString("<br />") { "&gt;$it" } + "</font>"
+        val formatted = styledHtml + rest.replace("\n", "<br />")
+        return plain to formatted
+    }
+
+    private fun buildBlockquote(message: CharSequence): Pair<String, String> {
+        val (lines, rest) = splitStyledSegment(message)
+        val head = lines.ifEmpty { listOf("") }
+        val plain = head.joinToString("\n") { "> $it" } + rest
+        val styledHtml = "<blockquote>\n<p>" + head.joinToString("<br />") + "</p>\n</blockquote>"
+        val formatted = styledHtml + rest.replace("\n", "<br />")
+        return plain to formatted
+    }
+
+    /**
+     * Toggle on + the user typed `>`-prefixed lines anywhere in the composer → rewrite the
+     * formatted body so each contiguous run of `>` lines becomes one
+     * `<font color="#789922">…</font>` block (lines joined with `<br />`). Non-`>` lines pass
+     * through verbatim. Every original newline becomes a `<br />` so blank lines survive.
+     * Plain body is the user-typed text unchanged. Returns null when off, when there are no `>`
+     * lines, or when the rich-text editor already provided HTML.
+     */
+    private fun maybeBuildGreentextRuns(text: CharSequence, formattedText: String?): Pair<String, String>? {
+        if (!vectorPreferences.renderBlockquotesAsGreentext()) return null
+        if (formattedText != null) return null
+        val raw = text.toString()
+        val lines = raw.split('\n')
+        if (lines.none { it.startsWith(">") }) return null
+
+        val out = StringBuilder()
+        var i = 0
+        var first = true
+        while (i < lines.size) {
+            if (!first) out.append("<br />")
+            first = false
+            if (lines[i].startsWith(">")) {
+                val run = StringBuilder()
+                var runFirst = true
+                while (i < lines.size && lines[i].startsWith(">")) {
+                    if (!runFirst) run.append("<br />")
+                    runFirst = false
+                    run.append(escapeHtml(lines[i]))
+                    i++
+                }
+                out.append("<font color=\"#789922\">").append(run).append("</font>")
+            } else {
+                out.append(escapeHtml(lines[i]))
+                i++
+            }
+        }
+        return raw to out.toString()
+    }
+
+    private fun escapeHtml(s: String): String = s
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+
+    private fun prefixed(prefix: String, message: CharSequence): String = buildString {
+        append(prefix)
+        if (message.isNotEmpty()) {
+            append(" ")
+            append(message)
+        }
     }
 
     private fun sendPrefixedMessage(room: Room, prefix: String, message: CharSequence, rootThreadEventId: String?) {
