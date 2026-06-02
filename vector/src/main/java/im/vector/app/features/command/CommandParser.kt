@@ -424,6 +424,12 @@ class CommandParser @Inject constructor(
                 Command.JUMP_TO_START.matches(slashCommand) -> {
                     ParsedCommand.JumpToStart
                 }
+                Command.CONVERT_TO_DM.matches(slashCommand) -> {
+                    ParsedCommand.ConvertToDm
+                }
+                Command.CONVERT_TO_ROOM.matches(slashCommand) -> {
+                    ParsedCommand.ConvertToRoom
+                }
                 Command.JUMP_TO.matches(slashCommand) -> {
                     val candidate = message.toString().trim()
                     if (candidate.isNotEmpty() && MatrixPatterns.isEventId(candidate)) {

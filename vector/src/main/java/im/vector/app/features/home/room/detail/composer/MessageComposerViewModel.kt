@@ -52,6 +52,7 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
@@ -63,7 +64,8 @@ import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
@@ -72,6 +74,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThread
 import org.matrix.android.sdk.api.session.room.send.UserDraft
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.session.space.CreateSpaceParams
@@ -658,6 +661,12 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)
                         }
+                        is ParsedCommand.ConvertToDm -> {
+                            handleConvertToDmSlashCommand(room, parsedCommand)
+                        }
+                        is ParsedCommand.ConvertToRoom -> {
+                            handleConvertToRoomSlashCommand(room, parsedCommand)
+                        }
                         is ParsedCommand.JumpToStart -> {
                             val createEventId = room.stateService()
                                     .getStateEvent(EventType.STATE_ROOM_CREATE, QueryStringValue.IsEmpty)
@@ -1007,6 +1016,51 @@ class MessageComposerViewModel @AssistedInject constructor(
         launchSlashCommandFlowSuspendable(room, unban) {
             room.membershipService().unban(unban.userId, unban.reason)
         }
+    }
+
+    private fun handleConvertToDmSlashCommand(room: Room, command: ParsedCommand) {
+        launchSlashCommandFlowSuspendable(room, command) {
+            updateDirectAccountData(room, targetUserId = guessDmTargetId(room))
+        }
+    }
+
+    private fun handleConvertToRoomSlashCommand(room: Room, command: ParsedCommand) {
+        launchSlashCommandFlowSuspendable(room, command) {
+            updateDirectAccountData(room, targetUserId = null)
+        }
+    }
+
+    // Drop this room from every user's list, then (if target is set) add it to that user's.
+    private suspend fun updateDirectAccountData(room: Room, targetUserId: String?) {
+        val currentContent = session.accountDataService()
+                .getUserAccountDataEvent(UserAccountDataTypes.TYPE_DIRECT_MESSAGES)
+                ?.content
+                .orEmpty()
+        val current = currentContent.mapValues { (_, v) ->
+            (v as? List<*>)?.filterIsInstance<String>().orEmpty()
+        }
+        val cleared = current.mapValues { (_, rooms) -> rooms.filter { it != room.roomId } }
+        val updated = if (targetUserId != null) {
+            cleared.toMutableMap().also { it[targetUserId] = (cleared[targetUserId].orEmpty() + room.roomId) }
+        } else {
+            cleared
+        }.filterValues { it.isNotEmpty() }
+        session.accountDataService().updateUserAccountData(
+                UserAccountDataTypes.TYPE_DIRECT_MESSAGES,
+                updated,
+        )
+    }
+
+    // First non-self joined member, then first non-self in any state, then fall back to self.
+    private fun guessDmTargetId(room: Room): String {
+        val myUserId = session.myUserId
+        val joined = room.membershipService().getRoomMembers(
+                roomMemberQueryParams { memberships = listOf(Membership.JOIN) }
+        ).firstOrNull { it.userId != myUserId }
+        if (joined != null) return joined.userId
+        val any = room.membershipService().getRoomMembers(roomMemberQueryParams { })
+                .firstOrNull { it.userId != myUserId }
+        return any?.userId ?: myUserId
     }
 
     private fun handleChangeRoomNameSlashCommand(room: Room, changeRoomName: ParsedCommand.ChangeRoomName) {
