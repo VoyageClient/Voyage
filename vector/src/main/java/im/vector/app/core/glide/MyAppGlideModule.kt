@@ -17,7 +17,6 @@ import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.module.AppGlideModule
-import com.github.penfeizhou.animation.decode.FrameSeqDecoder
 import im.vector.app.features.media.ImageContentRenderer
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -47,11 +46,20 @@ class MyAppGlideModule : AppGlideModule() {
         registry.prepend(InputStream::class.java, Bitmap::class.java, FarbfeldDecoder(glide.bitmapPool))
         registry.prepend(ByteBuffer::class.java, Bitmap::class.java, FarbfeldByteBufferDecoder(glide.bitmapPool))
         registry.prepend(InputStream::class.java, Drawable::class.java, SvgDecoder())
-        // Override penfeizhou's bundled StreamAnimationDecoder: it runs the WebP/APNG/GIF probes
-        // back-to-back without resetting the InputStream between them, so any source whose first
-        // probe is non-WebP silently mis-detects and falls through to the still-bitmap path.
-        // This replacement re-reads from offset 0 for every probe.
-        registry.prepend(InputStream::class.java, FrameSeqDecoder::class.java, AnimatedStreamDecoder())
+        // Animated WebP / APNG via penfeizhou. Glide 4.16's bundled AnimatedImageDecoder doesn't
+        // pick our content up — its ImageHeaderParser misses the VP8X / ANIM chunk on some
+        // sources — so without our own decoder the still-Bitmap path wins, the resource gets
+        // cached as a Bitmap, and the image freezes on a single frame forever after.
+        //
+        // Register on the bucketless "legacy_prepend_all" bucket, which Glide's
+        // setResourceDecoderBucketPriorityList puts FIRST in priority — ahead of the
+        // Animation / Bitmap / BitmapDrawable buckets. This call must come AFTER our other
+        // bucketless prepends above so it lands at position 0 of that bucket's entry list and is
+        // the first entry iterated when Glide enumerates resource classes for ByteBuffer source
+        // data. Otherwise FarbfeldByteBufferDecoder (ByteBuffer→Bitmap, also bucketless) sits
+        // earlier in iteration order, Bitmap is added to the resource class list first, and
+        // Glide's path enumeration picks the still-Bitmap path before ever trying ours.
+        registry.prepend(ByteBuffer::class.java, Drawable::class.java, AnimatedDrawableDecoder())
         // Give Glide a Uri -> ByteBuffer path so attachment-preview loads can hand bytes straight
         // to penfeizhou's ByteBufferAnimationDecoder without us blocking the main thread to read
         // them ourselves. The fetcher runs on Glide's source executor.
