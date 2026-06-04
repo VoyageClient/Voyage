@@ -35,7 +35,6 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
-import org.matrix.android.sdk.api.util.MimeTypes
 import javax.inject.Inject
 import kotlin.math.min
 
@@ -125,25 +124,12 @@ class ImageContentRenderer @Inject constructor(
         imageView.contentDescription = data.filename
 
         createGlideRequest(data, mode, imageView, size)
-                .let {
-                    // Skip the memory drawable cache only for commonly-animated mimes: Glide
-                    // otherwise hands back the same drawable instance across binds with its
-                    // animation in a stopped state, freezing the thumbnail on the first frame.
-                    // Disk cache is untouched, so re-decode is cheap. PNG isn't in this set —
-                    // most PNGs are static and we don't want to re-decode them on every scroll;
-                    // the small risk is an APNG mis-labelled as image/png freezing intermittently.
-                    when {
-                        mode == Mode.ANIMATED_THUMBNAIL && data.mimeType in CACHE_SKIP_ANIMATED_MIMES -> it.skipMemoryCache(true)
-                        mode != Mode.ANIMATED_THUMBNAIL -> it.dontAnimate()
-                        else -> it
-                    }
-                }
+                .let { if (mode != Mode.ANIMATED_THUMBNAIL) it.dontAnimate() else it }
                 .optionalTransform(cornerTransformation)
                 .into(imageView)
     }
 
     companion object {
-        private val CACHE_SKIP_ANIMATED_MIMES = setOf(MimeTypes.Gif, MimeTypes.Webp, MimeTypes.Apng)
         private const val BLURHASH_CROSSFADE_MS = 200L
         private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS)
     }

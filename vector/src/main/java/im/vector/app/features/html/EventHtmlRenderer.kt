@@ -29,6 +29,9 @@ import android.widget.TextView
 import androidx.core.text.toSpannable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
@@ -75,14 +78,26 @@ class EventHtmlRenderer @Inject constructor(
     private val glidePlugin = GlideImagesPlugin.create(object : GlideImagesPlugin.GlideStore {
         override fun load(drawable: AsyncDrawable): RequestBuilder<Drawable> {
             val url = drawable.destination
-            if (url.isMxcUrl()) {
+            val builder = if (url.isMxcUrl()) {
                 val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
                 val imageUrl = contentUrlResolver.resolveFullSize(url)
                 // Override size to avoid crashes for huge pictures
-                return Glide.with(context).load(imageUrl).override(500)
+                Glide.with(context).load(imageUrl).override(500)
+            } else {
+                // We don't want to support other url schemes here, so just return a request for null
+                Glide.with(context).load(null as String?)
             }
-            // We don't want to support other url schemes here, so just return a request for null
-            return Glide.with(context).load(null as String?)
+            // markwon's AsyncDrawable.setResult stores the new drawable without copying the
+            // AsyncDrawable's Callback onto it, so animated results land with mCallback == null
+            // and the decoder's invalidateSelf reaches no one. Setting it here works because
+            // Glide runs listeners before the Target.
+            return builder.listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean) = false
+                override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                    drawable.callback?.let { resource.callback = it }
+                    return false
+                }
+            })
         }
 
         override fun cancel(target: Target<*>) {

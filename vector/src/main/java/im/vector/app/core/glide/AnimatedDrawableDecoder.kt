@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
-import com.bumptech.glide.load.resource.SimpleResource
 import com.github.penfeizhou.animation.apng.APNGDrawable
 import com.github.penfeizhou.animation.apng.decode.APNGParser
 import com.github.penfeizhou.animation.io.ByteBufferReader
@@ -25,6 +24,11 @@ import java.nio.ByteBuffer
  *
  * Glide's bundled AnimatedImageDecoder doesn't detect every animated WebP — its ImageHeaderParser
  * misses the VP8X / ANIM chunk on some sources. penfeizhou's parsers read those chunks directly.
+ *
+ * The Resource builds a fresh Drawable on every get(): a single FrameAnimationDrawable can only
+ * notify one Callback at a time, so if Glide handed the same instance to several ImageViews the
+ * earlier ones would freeze mid-animation or stop entirely. The ByteBufferLoader is shared, so the
+ * source bytes are decoded once but each view gets its own independent animation state.
  *
  * setVisible(true, true) starts first-frame decoding before the drawable is handed to any target.
  * ImageView does this for us on attach, but markwon's AsyncDrawable doesn't propagate visibility,
@@ -42,13 +46,18 @@ internal class AnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
         val loader = object : ByteBufferLoader() {
             override fun getByteBuffer(): ByteBuffer = buffer.asReadOnlyBuffer()
         }
-        val drawable: Drawable = when {
+        val factory: () -> Drawable = when {
             runCatching { WebPParser.isAWebP(ByteBufferReader(buffer.asReadOnlyBuffer())) }.getOrDefault(false) ->
-                WebPDrawable(loader).apply { setAutoPlay(true); setVisible(true, true) }
+                { -> WebPDrawable(loader).apply { setAutoPlay(true); setVisible(true, true) } }
             runCatching { APNGParser.isAPNG(ByteBufferReader(buffer.asReadOnlyBuffer())) }.getOrDefault(false) ->
-                APNGDrawable(loader).apply { setAutoPlay(true); setVisible(true, true) }
+                { -> APNGDrawable(loader).apply { setAutoPlay(true); setVisible(true, true) } }
             else -> return null
         }
-        return SimpleResource(drawable)
+        return object : Resource<Drawable> {
+            override fun getResourceClass(): Class<Drawable> = Drawable::class.java
+            override fun get(): Drawable = factory()
+            override fun getSize(): Int = buffer.capacity()
+            override fun recycle() = Unit
+        }
     }
 }
