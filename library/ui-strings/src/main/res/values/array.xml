@@ -32,6 +32,18 @@
         <item>4</item>
         <item>5</item>
     </string-array>
+    <string-array name="media_preview_modes">
+        <item>@string/settings_media_preview_always_show</item>
+        <item>@string/settings_media_preview_always_hide</item>
+        <item>@string/settings_media_preview_private</item>
+        <item>@string/settings_media_preview_direct</item>
+    </string-array>
+    <string-array name="media_preview_mode_values">
+        <item>always_show</item>
+        <item>always_hide</item>
+        <item>private</item>
+        <item>direct</item>
+    </string-array>
 
     <!-- Room settings notification -->
 

@@ -118,6 +118,8 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
+        const val SETTINGS_MEDIA_PREVIEW_KEY = "SETTINGS_MEDIA_PREVIEW_KEY"
+        const val SETTINGS_MEDIA_PREVIEW_SOLID_KEY = "SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
         private const val SETTINGS_ENABLE_DIRECT_SHARE = "SETTINGS_ENABLE_DIRECT_SHARE"
         private const val SETTINGS_ENABLE_APP_SHORTCUTS = "SETTINGS_ENABLE_APP_SHORTCUTS"
         private const val SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE = "SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE"
@@ -834,6 +836,20 @@ class VectorPreferences @Inject constructor(
      */
     fun autoplayAnimatedImages(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, false)
+    }
+
+    /**
+     * In which rooms incoming photos/videos are shown directly rather than behind a tap-to-reveal placeholder.
+     */
+    fun getMediaPreviewMode(): MediaPreviewMode {
+        return MediaPreviewMode.fromValue(defaultPrefs.getString(SETTINGS_MEDIA_PREVIEW_KEY, MediaPreviewMode.ALWAYS_SHOW.value))
+    }
+
+    /**
+     * Whether hidden media shows a flat solid colour instead of its blurhash (revealed on tap).
+     */
+    fun useSolidColorForHiddenMedia(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_MEDIA_PREVIEW_SOLID_KEY, false)
     }
 
     /**

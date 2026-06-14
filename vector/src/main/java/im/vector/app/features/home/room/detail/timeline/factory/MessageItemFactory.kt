@@ -72,7 +72,9 @@ import im.vector.app.features.location.INITIAL_MAP_ZOOM_IN_TIMELINE
 import im.vector.app.features.location.UrlMapProvider
 import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
@@ -90,6 +92,7 @@ import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventCon
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -150,6 +153,7 @@ class MessageItemFactory @Inject constructor(
         private val voiceBroadcastItemFactory: VoiceBroadcastItemFactory,
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
+        private val mediaContentRevealManager: MediaContentRevealManager,
 ) {
 
     // TODO inject this properly?
@@ -565,6 +569,26 @@ class MessageItemFactory @Inject constructor(
         )
     }
 
+    private fun shouldHideMedia(informationData: MessageInformationData): Boolean {
+        if (informationData.sentByMe) return false
+        return when (vectorPreferences.getMediaPreviewMode()) {
+            MediaPreviewMode.ALWAYS_SHOW -> false
+            MediaPreviewMode.ALWAYS_HIDE -> true
+            MediaPreviewMode.PRIVATE -> !isCurrentRoomPrivate()
+            MediaPreviewMode.DIRECT -> session.roomService().getRoomSummary(roomId)?.isDirect != true
+        }
+    }
+
+    private fun isCurrentRoomPrivate(): Boolean {
+        return when (session.roomService().getRoomSummary(roomId)?.joinRules) {
+            RoomJoinRules.INVITE,
+            RoomJoinRules.KNOCK,
+            RoomJoinRules.RESTRICTED,
+            RoomJoinRules.PRIVATE -> true
+            else -> false
+        }
+    }
+
     private fun buildImageMessageItem(
             messageContent: MessageImageInfoContent,
             informationData: MessageInformationData,
@@ -614,11 +638,16 @@ class MessageItemFactory @Inject constructor(
                 callback = callback,
         ) ?: (null to null)
 
+        val hideMedia = shouldHideMedia(informationData)
+
         return MessageImageVideoItem_()
                 .attributes(attributes)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
+                .hideMedia(hideMedia)
+                .hiddenMediaSolidColor(vectorPreferences.useSolidColorForHiddenMedia())
+                .mediaRevealManager(mediaContentRevealManager)
                 .playable(playable)
                 .highlighted(highlight)
                 .mediaData(data)
@@ -689,6 +718,9 @@ class MessageItemFactory @Inject constructor(
                 .attributes(attributes)
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
+                .hideMedia(shouldHideMedia(informationData))
+                .hiddenMediaSolidColor(vectorPreferences.useSolidColorForHiddenMedia())
+                .mediaRevealManager(mediaContentRevealManager)
                 .playable(true)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)

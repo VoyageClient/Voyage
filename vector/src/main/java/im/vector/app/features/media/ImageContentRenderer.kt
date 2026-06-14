@@ -8,6 +8,7 @@
 package im.vector.app.features.media
 
 import android.graphics.Bitmap
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import android.view.View
@@ -30,6 +31,7 @@ import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.ui.model.Size
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.themes.ThemeUtils
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
@@ -127,6 +129,28 @@ class ImageContentRenderer @Inject constructor(
                 .let { if (mode != Mode.ANIMATED_THUMBNAIL) it.dontAnimate() else it }
                 .optionalTransform(cornerTransformation)
                 .into(imageView)
+    }
+
+    /**
+     * Sizes the view and shows only the static blurhash (or a neutral placeholder) without
+     * triggering any network/thumbnail download. Used while media is hidden behind a tap-to-reveal
+     * placeholder, so nothing is fetched until the user reveals it.
+     */
+    fun renderHidden(data: Data, mode: Mode, imageView: ImageView, forceSolidColor: Boolean) {
+        val size = processSize(data, mode)
+        imageView.updateLayoutParams {
+            width = size.width
+            height = size.height
+        }
+        imageView.contentDescription = data.filename
+        tryOrNull { GlideApp.with(imageView).clear(imageView) }
+        val placeholder = if (forceSolidColor) null else data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height, pulse = false) }
+        if (placeholder != null) {
+            imageView.setImageDrawable(placeholder)
+        } else {
+            // No blurhash to preview: fall back to a flat neutral fill, like Element Web.
+            imageView.setImageDrawable(ColorDrawable(ThemeUtils.getColor(imageView.context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)))
+        }
     }
 
     companion object {

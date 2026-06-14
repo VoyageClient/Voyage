@@ -29,6 +29,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 
@@ -49,6 +50,15 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute
     lateinit var imageContentRenderer: ImageContentRenderer
+
+    @EpoxyAttribute
+    var hideMedia: Boolean = false
+
+    @EpoxyAttribute
+    var hiddenMediaSolidColor: Boolean = false
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    lateinit var mediaRevealManager: MediaContentRevealManager
 
     @EpoxyAttribute
     lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
@@ -94,7 +104,37 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             holder.imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
             holder.imageView.clipToOutline = false
         }
-        imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
+        val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
+        val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.eventId)
+        if (hidden) {
+            imageContentRenderer.renderHidden(mediaData, mode, holder.imageView, hiddenMediaSolidColor)
+        } else {
+            imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
+        }
+        holder.mediaHiddenScrim.isVisible = hidden
+        holder.mediaHiddenScrim.alpha = 1f
+        holder.mediaShowButton.isVisible = hidden
+        if (hidden) {
+            val reveal = View.OnClickListener {
+                mediaRevealManager.reveal(mediaData.eventId)
+                holder.mediaShowButton.isVisible = false
+                // Render the real content underneath, then fade the dark scrim away to it.
+                imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
+                holder.mediaHiddenScrim.animate()
+                        .alpha(0f)
+                        .setDuration(SCRIM_FADE_OUT_MS)
+                        .withEndAction {
+                            holder.mediaHiddenScrim.isVisible = false
+                            holder.mediaHiddenScrim.alpha = 1f
+                        }
+                bindPlayButton(holder, isImageMessage, hidden = false)
+            }
+            holder.mediaShowButton.setOnClickListener(reveal)
+            holder.mediaHiddenScrim.setOnClickListener(reveal)
+        } else {
+            holder.mediaShowButton.setOnClickListener(null)
+            holder.mediaHiddenScrim.setOnClickListener(null)
+        }
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(
                     attributes.informationData.eventId,
@@ -110,16 +150,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         holder.mediaContentView.onClick(attributes.itemClickListener)
         holder.mediaContentView.setOnLongClickListener(attributes.itemLongClickListener)
 
-        val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
-        val autoplayAnimatedImages = attributes.autoplayAnimatedImages
-
-        holder.playContentView.visibility = if (playable && isImageMessage && autoplayAnimatedImages) {
-            View.GONE
-        } else if (playable) {
-            View.VISIBLE
-        } else {
-            View.GONE
-        }
+        bindPlayButton(holder, isImageMessage, hidden)
 
         MediaCaptionBinder.bind(
                 view = holder.replyHeaderView,
@@ -137,12 +168,25 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         )
     }
 
+    private fun bindPlayButton(holder: Holder, isImageMessage: Boolean, hidden: Boolean) {
+        holder.playContentView.visibility = when {
+            hidden -> View.GONE
+            playable && isImageMessage && attributes.autoplayAnimatedImages -> View.GONE
+            playable -> View.VISIBLE
+            else -> View.GONE
+        }
+    }
+
     override fun unbind(holder: Holder) {
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
         holder.imageView.setOnClickListener(null)
         holder.imageView.setOnLongClickListener(null)
+        holder.mediaShowButton.setOnClickListener(null)
+        holder.mediaHiddenScrim.setOnClickListener(null)
+        holder.mediaHiddenScrim.animate().cancel()
+        holder.mediaHiddenScrim.alpha = 1f
         super.unbind(holder)
     }
 
@@ -152,12 +196,15 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)
         val imageView by bind<ImageView>(R.id.messageThumbnailView)
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
+        val mediaHiddenScrim by bind<View>(R.id.messageMediaHiddenScrim)
+        val mediaShowButton by bind<AppCompatTextView>(R.id.messageMediaShowButton)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
         val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {
+        private const val SCRIM_FADE_OUT_MS = 200L
         private val STUB_ID = R.id.messageContentMediaStub
     }
 }

@@ -25,6 +25,7 @@ class BlurHashDrawable private constructor(
         val bitmap: Bitmap,
         private val intrinsicW: Int,
         private val intrinsicH: Int,
+        private val pulse: Boolean,
 ) : Drawable(), Runnable {
 
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
@@ -35,6 +36,10 @@ class BlurHashDrawable private constructor(
 
     override fun draw(canvas: Canvas) {
         if (finished) return
+        if (!pulse) {
+            canvas.drawBitmap(bitmap, null, bounds, paint)
+            return
+        }
         val t = (SystemClock.uptimeMillis() - startMs) % PULSE_PERIOD_MS
         val phase = (t.toDouble() / PULSE_PERIOD_MS) * 2.0 * Math.PI
         val factor = (cos(phase) + 1.0) / 2.0
@@ -71,7 +76,7 @@ class BlurHashDrawable private constructor(
     }
 
     private fun start() {
-        if (running) return
+        if (!pulse || running) return
         running = true
         handler.post(this)
     }
@@ -92,14 +97,14 @@ class BlurHashDrawable private constructor(
         private const val PULSE_MIN_ALPHA = 0.65
         private const val FRAME_INTERVAL_MS = 16L
 
-        fun from(hash: String, width: Int?, height: Int?): BlurHashDrawable? {
+        fun from(hash: String, width: Int?, height: Int?, pulse: Boolean = true): BlurHashDrawable? {
             val w = width?.takeIf { it > 0 } ?: DEFAULT_DIM
             val h = height?.takeIf { it > 0 } ?: DEFAULT_DIM
             val scale = DECODE_MAX.toFloat() / max(w, h)
             val decodeW = max(1, (w * scale).toInt())
             val decodeH = max(1, (h * scale).toInt())
             val bitmap = runCatching { BlurHash.decode(hash, decodeW, decodeH) }.getOrNull() ?: return null
-            return BlurHashDrawable(bitmap, w, h)
+            return BlurHashDrawable(bitmap, w, h, pulse)
         }
 
         private const val DEFAULT_DIM = 320

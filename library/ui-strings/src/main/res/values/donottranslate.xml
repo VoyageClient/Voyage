@@ -18,6 +18,15 @@
     <string name="tooltip_attachment_voice_file" translatable="false">Send audio as voice message</string>
     <string name="send_file_step_processing_audio" translatable="false">Processing audio…</string>
     <string name="settings_enable_voice_message_button_title" translatable="false">Show voice message button</string>
+
+    <string name="settings_media_preview_title" translatable="false">Show media in timeline</string>
+    <string name="settings_media_preview_always_show" translatable="false">Always show</string>
+    <string name="settings_media_preview_always_hide" translatable="false">Always hide</string>
+    <string name="settings_media_preview_private" translatable="false">In private rooms</string>
+    <string name="settings_media_preview_direct" translatable="false">In direct messages</string>
+    <string name="settings_media_preview_solid_title" translatable="false">Use solid color for hidden media</string>
+    <string name="settings_media_preview_solid_summary" translatable="false">Show a flat color instead of a blurred preview until media is revealed</string>
+    <string name="action_show_media" translatable="false">Show</string>
     <string name="settings_enable_voice_message_button_summary" translatable="false">Show the microphone next to the message box.</string>
     <string name="no_value_placeholder" translatable="false">–</string>
 
