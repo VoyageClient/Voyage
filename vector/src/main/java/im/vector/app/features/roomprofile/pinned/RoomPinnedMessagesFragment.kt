@@ -80,7 +80,6 @@ class RoomPinnedMessagesFragment :
                 context = requireContext(),
                 roomId = roomProfileArgs.roomId,
                 eventId = eventId,
-                buildTask = true,
         )
     }
 
