@@ -23,10 +23,18 @@ class BlurFadeOutDrawable(
         private val image: Drawable,
         private val blurBitmap: Bitmap,
         private val durationMs: Long,
-) : Drawable() {
+) : Drawable(), Drawable.Callback {
 
     private val startMs = SystemClock.uptimeMillis()
     private val blurPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+
+    init {
+        // Own the wrapped drawable's callback so an animated child's frame invalidations are
+        // routed through us to the host view. Without this the child's getCallback() is null and,
+        // once the fade ends and we stop self-invalidating, the animation freezes until some
+        // unrelated repaint happens.
+        image.callback = this
+    }
 
     override fun draw(canvas: Canvas) {
         image.bounds = bounds
@@ -46,11 +54,20 @@ class BlurFadeOutDrawable(
         image.bounds = bounds
     }
 
+    override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
+        image.setVisible(visible, restart)
+        return super.setVisible(visible, restart)
+    }
+
     override fun setAlpha(alpha: Int) { image.alpha = alpha }
     override fun setColorFilter(colorFilter: ColorFilter?) { image.colorFilter = colorFilter }
     override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
     override fun getIntrinsicWidth(): Int = image.intrinsicWidth
     override fun getIntrinsicHeight(): Int = image.intrinsicHeight
+
+    override fun invalidateDrawable(who: Drawable) = invalidateSelf()
+    override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) = scheduleSelf(what, `when`)
+    override fun unscheduleDrawable(who: Drawable, what: Runnable) = unscheduleSelf(what)
 }
 
 class BlurFadeOutTransitionFactory(private val durationMs: Long) : TransitionFactory<Drawable> {

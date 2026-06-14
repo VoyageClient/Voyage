@@ -8,7 +8,6 @@
 package im.vector.app.core.glide
 
 import android.content.Context
-import android.graphics.Bitmap
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Options
@@ -26,32 +25,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.BufferedInputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.IOException
 import java.io.InputStream
-
-private fun reencodeUnsupportedFormatAsPng(file: File): ByteArray? {
-    val head = ByteArray(XPM_MAGIC_BYTES.size)
-    val read = runCatching { file.inputStream().use { it.read(head) } }.getOrDefault(0)
-    val bitmap = when {
-        read >= FARBFELD_MAGIC_BYTES.size &&
-                head.sliceArray(FARBFELD_MAGIC_BYTES.indices).contentEquals(FARBFELD_MAGIC_BYTES) ->
-            runCatching { decodeFarbfeldToBitmap(file.readBytes()) }.getOrNull()
-        read >= XPM_MAGIC_BYTES.size && head.contentEquals(XPM_MAGIC_BYTES) ->
-            runCatching { BufferedInputStream(file.inputStream()).use { decodeXpmToBitmap(it) } }.getOrNull()
-        else -> null
-    } ?: return null
-    return try {
-        ByteArrayOutputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            out.toByteArray()
-        }
-    } finally {
-        bitmap.recycle()
-    }
-}
 
 class ImageContentRendererDataLoaderFactory(private val context: Context) : ModelLoaderFactory<ImageContentRenderer.Data, InputStream> {
 
@@ -121,7 +96,7 @@ class ImageContentRendererDataFetcher(
         Timber.v("Load data: $data")
         if (localFilesHelper.isLocalFile(data.url)) {
             // Wrap so the stream supports mark/reset — content-URI input streams typically don't,
-            // and our magic-sniffing decoders (XPM / Farbfeld / animated) skip non-markable sources.
+            // and Glide's animated decoders skip non-markable sources.
             localFilesHelper.openInputStream(data.url)?.let(::BufferedInputStream)?.use {
                 callback.onDataReady(it)
             }
@@ -142,16 +117,9 @@ class ImageContentRendererDataFetcher(
                         elementToDecrypt = data.elementToDecrypt
                 )
             }
-            val preDecoded = result.getOrNull()?.let {
-                withContext(Dispatchers.IO) { reencodeUnsupportedFormatAsPng(it) }
-            }
             withContext(Dispatchers.Main) {
                 result.fold(
-                        {
-                            val stream: InputStream = preDecoded?.let(::ByteArrayInputStream)
-                                    ?: BufferedInputStream(it.inputStream())
-                            callback.onDataReady(stream)
-                        },
+                        { callback.onDataReady(BufferedInputStream(it.inputStream())) },
                         { callback.onLoadFailed(it as? Exception ?: IOException(it.localizedMessage)) }
                 )
             }

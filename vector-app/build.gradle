@@ -45,10 +45,10 @@ static def getGitTimestamp() {
 }
 
 static def generateVersionCodeFromTimestamp() {
-    // It's unix timestamp, minus timestamp of October 3rd 2018 (first commit date) divided by 100: It's incremented by one every 100 seconds.
-    // plus 20_000_000 for compatibility reason with the previous way the Version Code was computed
-    // Note that the result will be multiplied by 10 when adding the digit for the arch
-    return ((getGitTimestamp() - 1_538_524_800) / 100).toInteger() + 20_000_000
+    // Use the wall-clock build time rather than the HEAD commit time so checking out an older
+    // commit and reinstalling still produces a higher versionCode than the previously installed
+    // build, avoiding INSTALL_FAILED_VERSION_DOWNGRADE.
+    return ((System.currentTimeMillis() / 1000 - 1_538_524_800) / 100).toInteger() + 20_000_000
 }
 
 def generateVersionCodeFromVersionName() {

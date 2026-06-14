@@ -88,13 +88,14 @@ class EventHtmlRenderer @Inject constructor(
                 Glide.with(context).load(null as String?)
             }
             // markwon's AsyncDrawable.setResult stores the new drawable without copying the
-            // AsyncDrawable's Callback onto it, so animated results land with mCallback == null
-            // and the decoder's invalidateSelf reaches no one. Setting it here works because
-            // Glide runs listeners before the Target.
+            // AsyncDrawable's callback onto it, and unlike ImageView it never calls setVisible
+            // on the result either. Wire both ourselves so the animated proxy starts its
+            // decoder and invalidations route back to the TextView.
             return builder.listener(object : RequestListener<Drawable> {
                 override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean) = false
                 override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                     drawable.callback?.let { resource.callback = it }
+                    resource.setVisible(true, true)
                     return false
                 }
             })
