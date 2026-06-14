@@ -112,16 +112,18 @@ internal class VideoCompressor @Inject constructor(
                 val videoEffects = buildList {
                     val (srcW, srcH) = readVideoDimensions(sourceUri)
                     if (srcW > 0 && srcH > 0) {
-                        // Scale proportionally so longest side <= TARGET_LONGEST_SIDE. Capped at 1
-                        // so we never upscale a smaller source.
-                        val scale = minOf(TARGET_LONGEST_SIDE.toFloat() / srcW, TARGET_LONGEST_SIDE.toFloat() / srcH, 1f)
+                        // Scale proportionally so the *shortest* side <= TARGET_SHORTEST_SIDE,
+                        // letting the longer side scale freely. This keeps long/wide videos from
+                        // being squished (e.g. 155x720); their shorter side stays at the target (or
+                        // its original value if already below it). Capped at 1 so we never upscale.
+                        val scale = minOf(TARGET_SHORTEST_SIDE.toFloat() / minOf(srcW, srcH), 1f)
                         if (scale < 1f) {
                             add(ScaleAndRotateTransformation.Builder().setScale(scale, scale).build())
                         }
                     } else {
                         // Couldn't read dimensions; fall back to bounded canvas which letterboxes
                         // but is at least correct.
-                        add(Presentation.createForWidthAndHeight(TARGET_LONGEST_SIDE, TARGET_LONGEST_SIDE, Presentation.LAYOUT_SCALE_TO_FIT))
+                        add(Presentation.createForWidthAndHeight(TARGET_SHORTEST_SIDE, TARGET_SHORTEST_SIDE, Presentation.LAYOUT_SCALE_TO_FIT))
                     }
                 }
                 val editedMediaItem = EditedMediaItem.Builder(MediaItem.fromUri(sourceUri))
@@ -215,10 +217,10 @@ internal class VideoCompressor @Inject constructor(
             retriever.setDataSource(context, sourceUri)
             val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: return false
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: return false
-            val longestSide = maxOf(width, height)
+            val shortestSide = minOf(width, height)
             val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
             val estimatedBitrate = if (durationMs > 0 && sourceSize > 0) (sourceSize * 8_000 / durationMs) else Long.MAX_VALUE
-            longestSide <= TARGET_LONGEST_SIDE && estimatedBitrate <= TARGET_BITRATE
+            shortestSide <= TARGET_SHORTEST_SIDE && estimatedBitrate <= TARGET_BITRATE
         } catch (e: Exception) {
             Timber.w(e, "Compressing: failed to inspect source, will transcode")
             false
@@ -228,7 +230,7 @@ internal class VideoCompressor @Inject constructor(
     }
 
     companion object {
-        private const val TARGET_LONGEST_SIDE = 720
+        private const val TARGET_SHORTEST_SIDE = 720
         private const val TARGET_BITRATE = 2_000_000L
         private const val SKIP_TRANSCODE_BYTES = 4L * 1024 * 1024
         private const val WATCHDOG_INTERVAL_MS = 500L

@@ -32,7 +32,6 @@
         android:layout_toEndOf="@id/commandName"
         android:maxLines="1"
         android:textColor="?vctr_content_secondary"
-        android:textStyle="italic"
         tools:text="&lt;user-id&gt;" />
 
     <TextView

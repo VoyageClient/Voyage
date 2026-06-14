@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.action
 
-import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -15,17 +14,17 @@ import javax.inject.Inject
 
 class CheckIfCanReplyEventUseCase @Inject constructor() {
 
-    fun execute(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {
-        // Only EventType.MESSAGE, EventType.POLL_START, EventType.POLL_END and EventType.STATE_ROOM_BEACON_INFO event types are supported for the moment
-        if (event.root.getClearType() !in
-                EventType.STATE_ROOM_BEACON_INFO.values +
-                EventType.POLL_START.values +
-                EventType.POLL_END.values +
-                EventType.MESSAGE
-        ) return false
-
+    fun execute(@Suppress("UNUSED_PARAMETER") event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {
         if (!actionPermissions.canSendMessage) return false
-        return when (messageContent?.msgType) {
+
+        // Non-message events (membership changes, reactions, state events, etc.) carry no
+        // MessageContent. They can all be replied to — the reply only references the target
+        // event id, and the preview is rendered from the cached event by the receiving client.
+        if (messageContent == null) return true
+
+        // For actual message events keep filtering by msgType so we only reply to content we
+        // know how to preview.
+        return when (messageContent.msgType) {
             MessageType.MSGTYPE_TEXT,
             MessageType.MSGTYPE_NOTICE,
             MessageType.MSGTYPE_EMOTE,

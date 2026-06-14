@@ -53,6 +53,8 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageStickerConte
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.PollAnswer
 import org.matrix.android.sdk.api.session.room.model.message.PollCreationInfo
 import org.matrix.android.sdk.api.session.room.model.message.PollQuestion
@@ -65,6 +67,7 @@ import org.matrix.android.sdk.api.session.room.model.relation.ReactionInfo
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.api.util.TextContent
@@ -147,6 +150,72 @@ internal class LocalEchoEventFactory @Inject constructor(
                 ),
                 additionalContent,
         )
+    }
+
+    /**
+     * Build an m.replace edit for a media event (image/video/file/audio/sticker) that updates,
+     * adds or removes its MSC2530 caption while preserving all the media fields (url, info, …).
+     * An empty [newCaption] removes the caption, restoring the captionless form a fresh upload
+     * uses: `body` holds the file name and the `filename` field is omitted.
+     */
+    fun createMediaCaptionReplaceEvent(
+            roomId: String,
+            targetEvent: TimelineEvent,
+            newCaption: CharSequence,
+            newFormattedCaption: String?,
+    ): Event? {
+        val targetEventId = targetEvent.eventId
+        val mediaContent = targetEvent.getLastMessageContent() as? MessageWithAttachmentContent ?: return null
+        val fileName = mediaContent.getFileName()
+        val baseContent = (targetEvent.getLastEditNewContent() ?: targetEvent.root.getClearContent().orEmpty())
+                .toMutableMap()
+                .apply {
+                    remove("m.relates_to")
+                    remove("m.new_content")
+                }
+        val caption = newCaption.toString()
+        val newInnerContent: Content = baseContent.toMutableMap().apply {
+            if (caption.isNotEmpty()) {
+                // With a caption, `filename` carries the file name so `body` is the caption (MSC2530).
+                put("filename", fileName)
+                put("body", caption)
+                if (newFormattedCaption != null) {
+                    put("format", MessageFormat.FORMAT_MATRIX_HTML)
+                    put("formatted_body", newFormattedCaption)
+                } else {
+                    remove("format")
+                    remove("formatted_body")
+                }
+            } else {
+                // Caption removed: restore the captionless form — `body` is the file name and the
+                // `filename` field is omitted, exactly like an upload sent without a caption.
+                put("body", fileName)
+                remove("filename")
+                remove("format")
+                remove("formatted_body")
+            }
+        }
+        val outerContent: Content = newInnerContent.toMutableMap().apply {
+            put("m.relates_to", RelationDefaultContent(RelationType.REPLACE, targetEventId).toContent())
+            put("m.new_content", newInnerContent)
+        }
+        // Decrypted/parsed content goes through Moshi's Any adapter, which reads every JSON number
+        // as Double. Re-serializing media info would emit "w":1080.0, which Synapse rejects
+        // (M_BAD_JSON "Bad JSON value: float"). Round-trip whole-number Doubles back to Long.
+        @Suppress("UNCHECKED_CAST")
+        return createEvent(roomId, targetEvent.root.getClearType(), coerceWholeDoublesToLongs(outerContent) as Content)
+    }
+
+    private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
+        is Double -> if (value.isFinite() && value % 1.0 == 0.0 &&
+                value >= Long.MIN_VALUE.toDouble() && value <= Long.MAX_VALUE.toDouble()) {
+            value.toLong()
+        } else {
+            value
+        }
+        is Map<*, *> -> value.mapValues { coerceWholeDoublesToLongs(it.value) }
+        is List<*> -> value.map { coerceWholeDoublesToLongs(it) }
+        else -> value
     }
 
     private fun createPollContent(

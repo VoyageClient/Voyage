@@ -88,6 +88,19 @@ interface RelationService {
     ): Cancelable
 
     /**
+     * Edit, add or remove the MSC2530 caption of a media event (image/video/file/audio/sticker),
+     * preserving all the media fields. An empty [newCaption] removes the caption.
+     * @param targetEvent The media event to edit
+     * @param newCaption The new caption in plain text (empty to remove)
+     * @param newFormattedCaption The new caption with HTML format, or null
+     */
+    fun editMediaCaption(
+            targetEvent: TimelineEvent,
+            newCaption: CharSequence,
+            newFormattedCaption: String? = null,
+    ): Cancelable
+
+    /**
      * Edit a text message body. Limited to "m.text" contentType.
      * @param targetEvent The event to edit
      * @param msgType the message type

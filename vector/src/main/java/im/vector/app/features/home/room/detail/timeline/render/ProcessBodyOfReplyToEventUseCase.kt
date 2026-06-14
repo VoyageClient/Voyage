@@ -8,16 +8,21 @@
 package im.vector.app.features.home.room.detail.timeline.render
 
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getPollQuestion
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isAudioMessage
@@ -35,8 +40,10 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.util.ContentUtils
 import java.util.Collections
@@ -44,13 +51,29 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val MX_REPLY_OPEN = "<mx-reply>"
-private const val MAX_PREVIEW_LENGTH = 120
+private const val MAX_PREVIEW_LENGTH = 240
+private const val MAX_ENTITY_LENGTH = 12
+private const val DECRYPTION_WATCH_ATTEMPTS = 20
+private const val DECRYPTION_WATCH_INTERVAL_MS = 300L
+private val VOID_HTML_TAGS = setOf(
+        "area", "base", "br", "col", "embed", "hr", "img", "input",
+        "link", "meta", "param", "source", "track", "wbr"
+)
 
 @Singleton
 class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val stringProvider: StringProvider,
+        private val noticeEventFormatter: NoticeEventFormatter,
+        private val colorProvider: ColorProvider,
 ) {
+
+    // Theme's muted/notice colour as a #RRGGBB string for the <font> reply previews, so they
+    // match the notice grey used elsewhere instead of a hardcoded "gray" that's wrong per theme.
+    private fun noticeColorHex(): String {
+        val color = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+        return String.format("#%06X", 0xFFFFFF and color)
+    }
 
     // Events fetched on-demand for replies whose target isn't in the local timeline DB. Kept
     // in-process and shared across uses of this singleton so a fetched event populates the
@@ -62,6 +85,8 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
     // resulting churn could keep the unresolved-reply block in a permanent half-fetched
     // limbo. Cleared on app restart so transient network issues recover.
     private val failedFetches: MutableSet<String> = Collections.synchronizedSet(HashSet())
+    // Reply targets we're polling for decryption to avoid launching duplicate watchers.
+    private val decryptionWatches: MutableSet<String> = Collections.synchronizedSet(HashSet())
     private val fetchScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _resolvedReplyTargets = MutableSharedFlow<String>(extraBufferCapacity = 64)
@@ -95,6 +120,11 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
 
         if (repliedToEvent == null && !failedFetches.contains(eventId)) {
             triggerFetch(roomId, eventId)
+        } else if (repliedToEvent?.getClearType() == EventType.ENCRYPTED) {
+            // Resolved from the local DB but not decrypted yet (the live timeline may already
+            // show it decrypted — its decryption result just hasn't landed in our snapshot).
+            // Poll until it decrypts, then ask the UI to rebuild so the preview fills in.
+            watchForDecryption(roomId, eventId)
         }
 
         // Always rebuild the <mx-reply> block from our own data instead of trying to localize
@@ -103,7 +133,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         // the next render produces fresh HTML (with real sender + preview) and the UI updates
         // without needing to back out of the room.
         val bodyWithoutReply = stripExistingMxReply(matrixFormattedBody)
-        return buildSyntheticReplyBlock(roomId, eventId, repliedToEvent, latestContent, mentionedUserHint) + bodyWithoutReply
+        return buildSyntheticReplyBlock(roomId, eventId, repliedToEvent, timelineEvent, latestContent, mentionedUserHint) + bodyWithoutReply
     }
 
     /**
@@ -124,6 +154,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             roomId: String,
             eventId: String,
             repliedToEvent: Event?,
+            repliedToTimelineEvent: TimelineEvent?,
             latestContent: MessageContent?,
             mentionedUserHint: String?,
     ): String {
@@ -136,7 +167,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             // Loaded — full matrix-spec format with the actual sender + preview.
             val senderId = repliedToEvent.senderId
             val senderPermalink = senderId?.let { "https://matrix.to/#/$it" }
-            val preview = repliedToEvent.shortPreviewHtml(latestContent).orEmpty()
+            val preview = repliedToEvent.shortPreviewHtml(latestContent, repliedToTimelineEvent, roomId).orEmpty()
             val senderAnchor = if (senderId != null && senderPermalink != null) {
                 " <a href=\"$senderPermalink\">${escapeHtml(senderId)}</a>"
             } else {
@@ -170,8 +201,11 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
      * sender's actual formatting — links, inline code, bold, etc. — instead of the raw
      * markdown source. For media / polls / live location we emit a localized stub.
      */
-    private fun Event.shortPreviewHtml(latestContent: MessageContent?): String? {
+    private fun Event.shortPreviewHtml(latestContent: MessageContent?, timelineEvent: TimelineEvent?, roomId: String): String? {
         return when {
+            // Redacted (deleted) target: show the muted "Message deleted" notice.
+            isRedacted() ->
+                "<font color=\"${noticeColorHex()}\">" + escapeHtml(noticeEventFormatter.formatRedactedEvent(this)) + "</font>"
             isFileMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_file))
             isVoiceMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_voice_message))
             isAudioMessage() -> escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_sender_sent_audio_file))
@@ -185,12 +219,20 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
             isPollStart() -> escapeHtml(
                     getPollQuestion() ?: stringProvider.getString(CommonStrings.message_reply_to_sender_created_poll)
             )
+            // Encrypted target that isn't decrypted locally yet: leave the preview empty so it
+            // fills in once decryption lands, rather than showing a notice/placeholder. We can't
+            // tell whether it's a message or a reaction/etc until it's decrypted.
+            getClearType() == EventType.ENCRYPTED -> null
+            // Any non-message clear type (membership change, reaction, redaction, state, …):
+            // render the notice text the timeline shows, greyed to look muted.
+            getClearType() != EventType.MESSAGE ->
+                "<font color=\"${noticeColorHex()}\">" + escapeHtml(noticePreview(timelineEvent, roomId)) + "</font>"
             else -> {
-                // Prefer the latest edited content so the preview reflects the current state
-                // of the replied-to message rather than its original form.
+                // Real message (plaintext or decrypted). Prefer the latest edited content so the
+                // preview reflects the current state rather than the original form.
                 val content = latestContent ?: getClearContent().toModel<MessageContent>() ?: return null
                 val formatted = (content as? MessageContentWithFormattedBody)?.matrixFormattedBody
-                if (!formatted.isNullOrBlank()) {
+                val preview = if (!formatted.isNullOrBlank()) {
                     // Strip any embedded mx-reply (parent is itself a reply) so the preview
                     // doesn't include the grandparent's quoted header.
                     truncateHtml(stripExistingMxReply(formatted))
@@ -203,13 +245,102 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
                     val clipped = if (body.length > MAX_PREVIEW_LENGTH) body.substring(0, MAX_PREVIEW_LENGTH) + "…" else body
                     escapeHtml(clipped)
                 }
+                // m.notice messages are shown muted/grey in the timeline; mirror that in the
+                // reply preview so a replied-to notice looks the same.
+                if (content.msgType == MessageType.MSGTYPE_NOTICE) {
+                    "<font color=\"${noticeColorHex()}\">$preview</font>"
+                } else {
+                    preview
+                }
             }
         }
     }
 
+    private fun watchForDecryption(roomId: String, eventId: String) {
+        if (!decryptionWatches.add(eventId)) return
+        fetchScope.launch {
+            try {
+                repeat(DECRYPTION_WATCH_ATTEMPTS) {
+                    delay(DECRYPTION_WATCH_INTERVAL_MS)
+                    val event = getTimelineEvent(eventId, roomId)?.root
+                    if (event != null && event.getClearType() != EventType.ENCRYPTED) {
+                        _resolvedReplyTargets.tryEmit(eventId)
+                        return@launch
+                    }
+                }
+            } finally {
+                decryptionWatches.remove(eventId)
+            }
+        }
+    }
+
+    private fun Event.noticePreview(timelineEvent: TimelineEvent?, roomId: String): String {
+        val isDm = activeSessionHolder.getSafeActiveSession()
+                ?.getRoom(roomId)
+                ?.roomSummary()
+                ?.isDirect
+                .orFalse()
+        return (timelineEvent?.let { noticeEventFormatter.format(it, isDm) }
+                ?: noticeEventFormatter.format(this, senderId, isDm))
+                ?.toString()
+                ?: "Debug: event type \"${getClearType()}\""
+    }
+
+    // Truncate by *visible* character count while keeping the markup well-formed: never cut in
+    // the middle of a tag or entity (which would leak literal "<spa" / "&am" text into the
+    // rendered preview), and close any tags left open by the cut so styling doesn't bleed into
+    // the rest of the reply block.
     private fun truncateHtml(html: String): String {
-        // Don't risk truncating inside a tag; just cap by source length as a rough guard.
-        return if (html.length > MAX_PREVIEW_LENGTH * 4) html.substring(0, MAX_PREVIEW_LENGTH * 4) + "…" else html
+        val out = StringBuilder(html.length)
+        val openTags = ArrayDeque<String>()
+        var visible = 0
+        var i = 0
+        while (i < html.length) {
+            if (visible >= MAX_PREVIEW_LENGTH) break
+            when (val c = html[i]) {
+                '<' -> {
+                    val close = html.indexOf('>', i)
+                    if (close == -1) break // dangling '<' — drop the rest rather than emit a partial tag
+                    out.append(html, i, close + 1)
+                    val inner = html.substring(i + 1, close).trim()
+                    when {
+                        inner.startsWith("!") || inner.startsWith("?") -> Unit // comment / declaration
+                        inner.startsWith("/") -> {
+                            val name = inner.drop(1).trim().lowercase()
+                            val idx = openTags.indexOfLast { it == name }
+                            if (idx != -1) openTags.removeAt(idx)
+                        }
+                        inner.endsWith("/") -> Unit // self-closing
+                        else -> {
+                            val name = inner.substringBefore(' ').substringBefore('\t').lowercase()
+                            if (name !in VOID_HTML_TAGS) openTags.addLast(name)
+                        }
+                    }
+                    i = close + 1
+                }
+                '&' -> {
+                    val semi = html.indexOf(';', i)
+                    if (semi != -1 && semi - i <= MAX_ENTITY_LENGTH) {
+                        out.append(html, i, semi + 1)
+                        i = semi + 1
+                    } else {
+                        out.append("&amp;")
+                        i++
+                    }
+                    visible++
+                }
+                else -> {
+                    out.append(c)
+                    i++
+                    visible++
+                }
+            }
+        }
+        if (i < html.length) out.append("…")
+        while (openTags.isNotEmpty()) {
+            out.append("</").append(openTags.removeLast()).append(">")
+        }
+        return out.toString()
     }
 
     private fun escapeHtml(text: String): String = text

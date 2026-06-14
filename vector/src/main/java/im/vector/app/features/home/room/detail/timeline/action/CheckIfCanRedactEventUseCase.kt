@@ -22,9 +22,12 @@ class CheckIfCanRedactEventUseCase @Inject constructor(
         val canRedactEventTypes: List<String> = listOf(
                 EventType.MESSAGE,
                 EventType.STICKER,
+                EventType.REACTION,
                 VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO,
         ) +
                 EventType.POLL_START.values +
+                EventType.POLL_END.values +
+                EventType.POLL_RESPONSE.values +
                 EventType.STATE_ROOM_BEACON_INFO.values
 
         return event.root.getClearType() in canRedactEventTypes &&

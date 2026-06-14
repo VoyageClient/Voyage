@@ -48,14 +48,22 @@ class CheckIfCanReplyEventUseCaseTest {
     }
 
     @Test
-    fun `given reply is not allowed for the event type when use case is executed then result is false`() {
-        val event = givenAnEvent(EventType.CALL_ANSWER)
-        val messageContent = givenAMessageContent(MessageType.MSGTYPE_AUDIO)
-        val actionPermissions = givenActionPermissions(canSendMessage = true)
+    fun `given a non-message event when use case is executed then result is true`() {
+        val eventTypes = listOf(
+                EventType.STATE_ROOM_MEMBER,
+                EventType.REACTION,
+                EventType.CALL_ANSWER,
+                EventType.STATE_ROOM_TOPIC,
+        )
 
-        val result = checkIfCanReplyEventUseCase.execute(event, messageContent, actionPermissions)
+        eventTypes.forEach { eventType ->
+            val event = givenAnEvent(eventType)
+            val actionPermissions = givenActionPermissions(canSendMessage = true)
 
-        result shouldBeEqualTo false
+            val result = checkIfCanReplyEventUseCase.execute(event, messageContent = null, actionPermissions)
+
+            result shouldBeEqualTo true
+        }
     }
 
     @Test

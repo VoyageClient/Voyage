@@ -59,14 +59,12 @@ class EncryptedItemFactory @Inject constructor(
                     val message = stringProvider.getString(CommonStrings.encrypted_message).takeIf { cryptoError == null }
                             ?: stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt, errorDescription)
                     span(message) {
-                        textStyle = "italic"
                         textColor = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
                     }
                 } else {
                     val colorFromAttribute = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
                     if (cryptoError == null) {
                         span(stringProvider.getString(CommonStrings.encrypted_message)) {
-                            textStyle = "italic"
                             textColor = colorFromAttribute
                         }
                     } else {
@@ -78,7 +76,6 @@ class EncryptedItemFactory @Inject constructor(
                                         +" "
                                     }
                                     span(stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt_final)) {
-                                        textStyle = "italic"
                                         textColor = colorFromAttribute
                                     }
                                 }
@@ -90,7 +87,6 @@ class EncryptedItemFactory @Inject constructor(
                                         +" "
                                     }
                                     span(stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt_friendly)) {
-                                        textStyle = "italic"
                                         textColor = colorFromAttribute
                                     }
                                 }

@@ -14,6 +14,9 @@ import com.airbnb.mvrx.Fail
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import me.gujun.android.span.Span
 import me.gujun.android.span.span
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
 
 internal class JSonViewerEpoxyController(private val context: Context) :
         TypedEpoxyController<JSonViewerState>() {
@@ -85,6 +88,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                                     }
                                 }.toEpoxyCharSequence()
                         )
+                        copyValue(host.serializedValue(model))
                         itemClickListener(View.OnClickListener { host.itemClicked(model) })
                     }
                 }
@@ -124,6 +128,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                                     }
                                 }.toEpoxyCharSequence()
                         )
+                        copyValue(host.serializedValue(model))
                         itemClickListener(View.OnClickListener { host.itemClicked(model) })
                     }
                 }
@@ -224,8 +229,21 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                         }
                     }.toEpoxyCharSequence()
             )
+            copyValue(host.serializedValue(composed))
             itemClickListener(View.OnClickListener { host.itemClicked(composed) })
         }
+    }
+
+    // The node's value serialized as pretty-printed JSON, excluding its key — so long-pressing
+    // "content" copies `{ ... }`, and the root copies the whole event.
+    private fun serializedValue(model: JSonViewerModel): String? = try {
+        when (val o = model.jObject) {
+            is JSONObject -> o.toString(4)
+            is JSONArray -> o.toString(4)
+            else -> null
+        }
+    } catch (failure: JSONException) {
+        null
     }
 
     private fun itemClicked(model: JSonViewerModel) {

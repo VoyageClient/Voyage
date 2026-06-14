@@ -151,7 +151,6 @@ class DisplayableEventFormatter @Inject constructor(
             else -> {
                 span {
                     text = noticeEventFormatter.format(timelineEvent, isDm) ?: ""
-                    textStyle = "italic"
                 }
             }
         }

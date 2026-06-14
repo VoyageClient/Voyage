@@ -38,6 +38,7 @@ import com.vanniktech.emoji.EmojiPopup
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.error.fatalError
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.showKeyboard
@@ -94,6 +95,7 @@ import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.util.MatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
 import reactivecircus.flowbinding.android.widget.textChanges
@@ -445,7 +447,12 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             Timber.w("Send button is locked")
             return
         }
-        if (text.isNotBlank()) {
+        // Empty submissions are normally ignored, but editing a media caption to empty is how the
+        // caption is removed, so allow it in that single case.
+        val isMediaCaptionEdit = withState(messageComposerViewModel) {
+            (it.sendMode as? SendMode.Edit)?.timelineEvent?.getVectorLastMessageContent() is MessageWithAttachmentContent
+        }
+        if (text.isNotBlank() || isMediaCaptionEdit) {
             composer.renderComposerMode(MessageComposerMode.Normal(""))
             lockSendButton = true
             if (formattedText != null) {

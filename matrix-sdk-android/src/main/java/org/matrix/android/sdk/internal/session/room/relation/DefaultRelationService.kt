@@ -101,6 +101,14 @@ internal class DefaultRelationService @AssistedInject constructor(
         return eventEditor.editPoll(targetEvent, pollType, question, options)
     }
 
+    override fun editMediaCaption(
+            targetEvent: TimelineEvent,
+            newCaption: CharSequence,
+            newFormattedCaption: String?,
+    ): Cancelable {
+        return eventEditor.editMediaCaption(targetEvent, newCaption, newFormattedCaption)
+    }
+
     override fun editTextMessage(
             targetEvent: TimelineEvent,
             msgType: String,

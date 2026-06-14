@@ -242,7 +242,12 @@ class MessageActionsViewModel @AssistedInject constructor(
                     in EventType.ELEMENT_CALL_NOTIFY.values -> {
                         stringProvider.getString(CommonStrings.call_unsupported)
                     }
-                    else -> null
+                    else -> {
+                        // Reactions, redactions, verification, … — show the same notice text the
+                        // timeline uses, falling back to the raw event type for anything unhandled.
+                        noticeEventFormatter.format(timelineEvent, room?.roomSummary()?.isDirect.orFalse())
+                                ?: "Debug: event type \"${timelineEvent.root.getClearType()}\""
+                    }
                 }
             }
         } catch (failure: Throwable) {
@@ -359,6 +364,12 @@ class MessageActionsViewModel @AssistedInject constructor(
             msgType: String?
     ) {
         val eventId = timelineEvent.eventId
+        if (timelineEvent.root.isRedacted()) {
+            // Redacted (deleted) events get no message actions except replying to them.
+            if (canReply(timelineEvent, messageContent, actionPermissions)) {
+                add(EventSharedAction.Reply(eventId))
+            }
+        }
         if (!timelineEvent.root.isRedacted()) {
             if (canReply(timelineEvent, messageContent, actionPermissions)) {
                 add(EventSharedAction.Reply(eventId))
@@ -569,16 +580,24 @@ class MessageActionsViewModel @AssistedInject constructor(
     }
 
     private fun canEdit(event: TimelineEvent, myUserId: String, actionPermissions: ActionPermissions): Boolean {
-        // Only event of type EventType.MESSAGE and EventType.POLL_START are supported for the moment
-        if (event.root.getClearType() !in listOf(EventType.MESSAGE) + EventType.POLL_START.values) return false
         if (!actionPermissions.canSendMessage) return false
         // TODO if user is admin or moderator
+        if (event.root.senderId != myUserId) return false
+        // Stickers: edit/add a caption.
+        if (event.root.getClearType() == EventType.STICKER) return true
+        // Only event of type EventType.MESSAGE and EventType.POLL_START are supported for the moment
+        if (event.root.getClearType() !in listOf(EventType.MESSAGE) + EventType.POLL_START.values) return false
         val messageContent = event.root.getClearContent().toModel<MessageContent>()
-        return event.root.senderId == myUserId && (
-                messageContent?.msgType == MessageType.MSGTYPE_TEXT ||
-                        messageContent?.msgType == MessageType.MSGTYPE_EMOTE ||
-                        canEditPoll(event)
-                )
+        return when (messageContent?.msgType) {
+            MessageType.MSGTYPE_TEXT,
+            MessageType.MSGTYPE_EMOTE,
+            // Media: edit/add a caption.
+            MessageType.MSGTYPE_IMAGE,
+            MessageType.MSGTYPE_VIDEO,
+            MessageType.MSGTYPE_FILE,
+            MessageType.MSGTYPE_AUDIO -> true
+            else -> canEditPoll(event)
+        }
     }
 
     private fun canCopy(msgType: String?, messageContent: MessageContent? = null): Boolean {

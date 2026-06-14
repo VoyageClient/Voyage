@@ -26,20 +26,24 @@ import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ComposerLayoutBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.commonmark.parser.Parser
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -57,6 +61,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
+    @Inject lateinit var noticeEventFormatter: NoticeEventFormatter
     @Inject lateinit var eventHtmlRenderer: EventHtmlRenderer
     @Inject lateinit var dimensionConverter: DimensionConverter
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
@@ -173,15 +178,25 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
 
         val messageContent: MessageContent? = event.getVectorLastMessageContent()
-        val nonFormattedBody = when (messageContent) {
-            is MessageAudioContent -> getAudioContentBodyText(messageContent)
-            is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
-            is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
-            is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
-            else -> messageContent?.body.orEmpty()
+        val nonFormattedBody = when {
+            event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
+            messageContent is MessageAudioContent -> getAudioContentBodyText(messageContent)
+            messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
+            messageContent is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
+            messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
+            // Non-message event (membership change, reaction, …): show the notice text.
+            messageContent == null -> noticeEventFormatter.format(event, isDm = false)
+                    ?: "Debug: event type \"${event.root.getClearType()}\""
+            else -> messageContent.body
         }
         var formattedBody: CharSequence? = null
-        if (messageContent is MessageTextContent && messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
+        // m.text, m.notice and m.emote all carry a formatted_body; render it so HTML-only bodies
+        // (common for bot m.notice messages) aren't shown blank or as raw markup.
+        val isFormattableText = messageContent?.msgType == MessageType.MSGTYPE_TEXT ||
+                messageContent?.msgType == MessageType.MSGTYPE_NOTICE ||
+                messageContent?.msgType == MessageType.MSGTYPE_EMOTE
+        if (isFormattableText && messageContent is MessageContentWithFormattedBody &&
+                messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
             val parser = Parser.builder().build()
 
             val bodyToParse = messageContent.formattedBody?.let {
@@ -192,6 +207,14 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             formattedBody = eventHtmlRenderer.render(document, pillsPostProcessor)
         }
         views.composerRelatedMessageContent.text = (formattedBody ?: nonFormattedBody)
+        // Muted grey for non-message notices and m.notice messages (which render grey in the
+        // timeline), normal text colour for everything else.
+        val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {
+            im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_message_text_color
+        }
+        views.composerRelatedMessageContent.setTextColor(ThemeUtils.getColor(context, contentColorAttr))
 
         // Image Event
         val data = event.buildImageContentRendererData(dimensionConverter.dpToPx(66))

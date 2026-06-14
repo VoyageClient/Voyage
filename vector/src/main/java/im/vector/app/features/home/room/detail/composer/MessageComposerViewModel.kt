@@ -73,6 +73,9 @@ import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.events.model.RelationType
@@ -784,24 +787,43 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                     } else {
                         val messageContent = state.sendMode.timelineEvent.getVectorLastMessageContent()
-                        val existingBody: String
-                        val needsEdit = if (messageContent is MessageContentWithFormattedBody) {
-                            existingBody = messageContent.formattedBody ?: ""
-                            existingBody != editFormatted
+                        if (messageContent is MessageWithAttachmentContent) {
+                            // Media event: edit/add/remove its caption. Empty text removes it.
+                            val existingCaption = if (editFormatted != null) {
+                                messageContent.getFormattedCaption().orEmpty()
+                            } else {
+                                messageContent.getCaption().orEmpty()
+                            }
+                            val newCaption = (editFormatted ?: editText).toString()
+                            if (existingCaption != newCaption) {
+                                room.relationService().editMediaCaption(
+                                        state.sendMode.timelineEvent,
+                                        editText,
+                                        editFormatted?.toString(),
+                                )
+                            } else {
+                                Timber.w("Same caption, do not send edition")
+                            }
                         } else {
-                            existingBody = messageContent?.body ?: ""
-                            existingBody != editText
-                        }
-                        if (needsEdit) {
-                            room.relationService().editTextMessage(
-                                    state.sendMode.timelineEvent,
-                                    messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
-                                    editText,
-                                    editFormatted,
-                                    editAutoMarkdown
-                            )
-                        } else {
-                            Timber.w("Same message content, do not send edition")
+                            val existingBody: String
+                            val needsEdit = if (messageContent is MessageContentWithFormattedBody) {
+                                existingBody = messageContent.formattedBody ?: ""
+                                existingBody != editFormatted
+                            } else {
+                                existingBody = messageContent?.body ?: ""
+                                existingBody != editText
+                            }
+                            if (needsEdit) {
+                                room.relationService().editTextMessage(
+                                        state.sendMode.timelineEvent,
+                                        messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
+                                        editText,
+                                        editFormatted,
+                                        editAutoMarkdown
+                                )
+                            } else {
+                                Timber.w("Same message content, do not send edition")
+                            }
                         }
                     }
                     _viewEvents.post(MessageComposerViewEvents.MessageSent)

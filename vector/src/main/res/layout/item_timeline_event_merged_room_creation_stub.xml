@@ -168,7 +168,6 @@
             android:layout_toStartOf="@id/itemMergedExpandTextView"
             android:layout_toEndOf="@id/itemNoticeAvatarView"
             android:textColor="?vctr_content_secondary"
-            android:textStyle="italic"
             tools:text="@string/room_created_summary_item" />
 
         <TextView
@@ -183,8 +182,7 @@
             android:paddingEnd="8dp"
             android:paddingBottom="4dp"
             android:text="@string/merged_events_expand"
-            android:textColor="?colorSecondary"
-            android:textStyle="italic" />
+            android:textColor="?colorSecondary" />
 
     </RelativeLayout>
 

@@ -161,13 +161,24 @@ class TimelineItemFactory @Inject constructor(
             Timber.e(throwable, "failed to create message item")
             defaultItemFactory.create(params, throwable)
         }
-        return computedModel ?: buildEmptyItem(
-                event,
-                params.prevEvent,
-                params.highlightedEventId,
-                params.rootThreadEventId,
-                params.isFromThreadTimeline()
-        )
+        if (computedModel != null) {
+            return computedModel
+        }
+        // No factory produced a model. When the event is the navigation target (e.g. tapping
+        // "In reply to" on a reaction / membership / otherwise unrendered event) it must still
+        // appear and carry the selection highlight, so fall back to a default item showing the
+        // event type instead of a zero-height empty item that would swallow the highlight.
+        return if (params.isHighlighted) {
+            defaultItemFactory.create(params)
+        } else {
+            buildEmptyItem(
+                    event,
+                    params.prevEvent,
+                    params.highlightedEventId,
+                    params.rootThreadEventId,
+                    params.isFromThreadTimeline()
+            )
+        }
     }
 
     private fun buildEmptyItem(

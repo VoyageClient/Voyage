@@ -137,12 +137,16 @@ import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHist
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
+import im.vector.app.features.home.room.detail.timeline.item.DefaultItem
+import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
 import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageVoiceItem
+import im.vector.app.features.home.room.detail.timeline.item.NoticeItem
+import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.readreceipts.DisplayReadReceiptsBottomSheet
@@ -1121,10 +1125,9 @@ class TimelineFragment :
         if (vectorPreferences.swipeToReplyIsEnabled()) {
             val quickReplyHandler = object : RoomMessageTouchHelperCallback.QuickReplayHandler {
                 override fun performQuickReplyOnHolder(model: EpoxyModel<*>) {
-                    (model as? AbsMessageItem)?.attributes?.informationData?.let {
-                        val eventId = it.eventId
-                        messageComposerViewModel.handle(MessageComposerAction.EnterReplyMode(eventId))
-                    }
+                    val eventId = (model as? AbsMessageItem)?.attributes?.informationData?.eventId
+                            ?: (model as? ItemWithEvents)?.getEventIds()?.firstOrNull()
+                    eventId?.let { messageComposerViewModel.handle(MessageComposerAction.EnterReplyMode(it)) }
                 }
 
                 override fun canSwipeModel(model: EpoxyModel<*>): Boolean {
@@ -1139,9 +1142,15 @@ class TimelineFragment :
                         is MessageAudioItem,
                         is MessageVoiceItem,
                         is MessageImageVideoItem,
-                        is MessageTextItem -> {
-                            return (model as AbsMessageItem).attributes.informationData.sendState == SendState.SYNCED
+                        is MessageTextItem,
+                        // Deleted messages can still be replied to.
+                        is RedactedMessageItem -> {
+                            (model as AbsMessageItem).attributes.informationData.sendState == SendState.SYNCED
                         }
+                        // Non-message events (membership changes, reactions, state events, …):
+                        // these come from sync and are always synced, so they're swipe-replyable.
+                        is NoticeItem,
+                        is DefaultItem -> true
                         else -> false
                     }
                 }

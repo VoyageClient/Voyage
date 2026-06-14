@@ -36,6 +36,9 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoCo
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconLocationDataContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
+import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
@@ -222,6 +225,14 @@ fun TimelineEvent.isRootThread(): Boolean {
  */
 fun TimelineEvent.getTextEditableContent(formatted: Boolean): String {
     val lastMessageContent = getLastMessageContent()
+    // For media events the editable text is the MSC2530 caption, not the file name / body.
+    if (lastMessageContent is MessageWithAttachmentContent) {
+        return if (formatted) {
+            lastMessageContent.getFormattedCaption() ?: lastMessageContent.getCaption() ?: ""
+        } else {
+            lastMessageContent.getCaption() ?: ""
+        }
+    }
     val lastContentBody = if (formatted && lastMessageContent is MessageContentWithFormattedBody) {
         lastMessageContent.formattedBody ?: lastMessageContent.body
     } else {

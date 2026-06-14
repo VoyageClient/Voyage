@@ -8,6 +8,8 @@
 package im.vector.app.features.home.room.detail.timeline.render
 
 import androidx.annotation.StringRes
+import im.vector.app.core.resources.ColorProvider
+import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeStringProvider
 import im.vector.lib.strings.CommonStrings
@@ -82,9 +84,14 @@ class ProcessBodyOfReplyToEventUseCaseTest {
     private val fakeReplyToContent = ReplyToContent(eventId = AN_EVENT_ID)
     private val fakeRepliedEvent = givenARepliedEvent()
 
+    private val fakeNoticeEventFormatter = mockk<NoticeEventFormatter>(relaxed = true)
+    private val fakeColorProvider = mockk<ColorProvider>(relaxed = true)
+
     private val processBodyOfReplyToEventUseCase = ProcessBodyOfReplyToEventUseCase(
             activeSessionHolder = fakeActiveSessionHolder.instance,
             stringProvider = fakeStringProvider.instance,
+            noticeEventFormatter = fakeNoticeEventFormatter,
+            colorProvider = fakeColorProvider,
     )
 
     @Before

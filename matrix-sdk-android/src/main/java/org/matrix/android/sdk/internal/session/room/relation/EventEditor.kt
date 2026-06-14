@@ -70,6 +70,22 @@ internal class EventEditor @Inject constructor(
         }
     }
 
+    fun editMediaCaption(
+            targetEvent: TimelineEvent,
+            newCaption: CharSequence,
+            newFormattedCaption: String?,
+    ): Cancelable {
+        val roomId = targetEvent.roomId
+        return if (targetEvent.root.sendState.isSent()) {
+            val event = eventFactory.createMediaCaptionReplaceEvent(roomId, targetEvent, newCaption, newFormattedCaption)
+                    ?: return NoOpCancellable
+            sendReplaceEvent(event)
+        } else {
+            Timber.w("Can't edit the caption of a non-sent event")
+            NoOpCancellable
+        }
+    }
+
     fun editPoll(
             targetEvent: TimelineEvent,
             pollType: PollType,

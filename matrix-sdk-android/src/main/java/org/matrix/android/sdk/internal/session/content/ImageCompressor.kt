@@ -205,8 +205,13 @@ internal class ImageCompressor @Inject constructor(
     }
 
     private fun scaleBitmapToFit(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
-        if (bitmap.width <= maxWidth && bitmap.height <= maxHeight) return bitmap
-        val scale = minOf(maxWidth.toFloat() / bitmap.width, maxHeight.toFloat() / bitmap.height)
+        // Cap the *smaller* side to the limit (never upscaling), so the larger side scales
+        // proportionally. This keeps long/wide images from being squished down to e.g. 100x640;
+        // their smaller side stays at the limit (or its original value if already below it).
+        val limit = minOf(maxWidth, maxHeight)
+        val smallerSide = minOf(bitmap.width, bitmap.height)
+        if (smallerSide <= limit) return bitmap
+        val scale = limit.toFloat() / smallerSide
         val newWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
         val newHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
         return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true).also {
