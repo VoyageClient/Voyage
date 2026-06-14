@@ -761,7 +761,6 @@
     <string name="qr_code">Mã QR</string>
     <string name="add_by_qr_code">Thêm vào phòng bằng QR code</string>
     <string name="link_copied_to_clipboard">Đường link được copy</string>
-    <string name="labs_swipe_to_reply_in_timeline">Bật chức năng quẹt để Trả lời</string>
     <string name="search_hint_room_name">Tìm Tên</string>
     <string name="room_directory_search_hint">Tên hoặc ID</string>
     <string name="room_filtering_footer_open_room_directory">Xem danh mục phòng chat</string>
@@ -2565,7 +2564,6 @@
     <string name="threads_labs_enable_notice_message">Máy chủ của bạn hiện không hỗ trợ thớt, nên tính năng này có thể sẽ không ổn định. Có thể sẽ không tìm được một sộ thớt. %sBạn vẫn muốn bật tính năng thớt chứ\?</string>
     <string name="restart_the_application_to_apply_changes">Khởi động lại ứng dụng để áp dụng thay đổi.</string>
     <string name="space_explore_filter_no_result_title">Không có kết quả</string>
-    <string name="labs_enable_thread_messages_desc">Lưu ý: ứng dụng sẽ khởi động lại</string>
     <string name="settings_acceptable_use_policy">Chính sách sử dụng</string>
     <string tools:ignore="UnusedResources" name="verify_invalid_qr_notice">Không thể đọc mã QR này. Hãy thử xác thực bằng cách khác.</string>
     <string name="a11y_play_audio_message">Phát %1$s</string>

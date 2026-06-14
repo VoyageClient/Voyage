@@ -868,7 +868,6 @@
     <string name="identity_server_not_defined">Et käytä mitään identiteettipalvelinta</string>
     <string name="error_user_already_logged_in">Näyttää, että yrität yhdistää toiseen kotipalvelimeen. Haluatko kirjautua ulos\?</string>
     <string name="push_gateway_item_url">URL-osoite:</string>
-    <string name="labs_swipe_to_reply_in_timeline">Ota käyttöön pyyhkäisemällä vastaaminen aikajanalla</string>
     <string name="terms_of_service">Käyttöehdot</string>
     <string name="terms_description_for_integration_manager">Käytä botteja, siltoja, sovelmia ja tarrapaketteja</string>
     <string name="identity_server">Identiteettipalvelin</string>
@@ -1970,7 +1969,6 @@
     <string name="location_not_available_dialog_content">${app_name} ei voinut käyttää sijaintiasi. Yritä myöhemmin uudelleen.</string>
     <string name="location_not_available_dialog_title">${app_name} ei voinut käyttää sijaintiasi</string>
     <string name="delete_poll_dialog_content">Haluatko varmasti poistaa tämän kyselyn\? Et voi palauttaa sitä poistamisen jälkeen.</string>
-    <string name="labs_enable_thread_messages_desc">Huomaa: sovellus käynnistetään uudelleen</string>
     <string name="dev_tools_event_content_hint">Tapahtuman sisältö</string>
     <string name="dev_tools_form_hint_event_content">Tapahtuman sisältö</string>
     <string name="dev_tools_send_custom_event">Lähetä mukautettu tapahtuma</string>

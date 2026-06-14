@@ -295,7 +295,6 @@
     <string name="add_by_qr_code">Ajouter avec un code QR</string>
     <string name="link_copied_to_clipboard">Lien copié dans le presse-papiers</string>
     <string name="labs_show_unread_notifications_as_tab">Ajouter un onglet dédié aux notifications non lues sur l’écran principal.</string>
-    <string name="labs_swipe_to_reply_in_timeline">Activer le balayage pour répondre dans l’historique</string>
     <string name="room_directory_search_hint">Nom ou identifiant (#exemple:matrix.org)</string>
     <string name="room_filtering_footer_open_room_directory">Voir le répertoire des salons</string>
     <string name="room_filtering_footer_create_new_direct_message">Envoyer un nouveau message privé</string>

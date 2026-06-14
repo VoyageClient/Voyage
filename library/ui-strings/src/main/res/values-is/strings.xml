@@ -1753,7 +1753,6 @@
     <string name="command_description_deop_user">Tekur stjórnunarréttindi af notanda með uppgefið auðkenni</string>
     <string name="command_description_unignore_user">Hættir að hunsa notanda, birtir skilaboð viðkomandi héðan í frá</string>
     <string name="settings_secure_backup_setup">Setja upp varið öryggisafrit</string>
-    <string name="labs_swipe_to_reply_in_timeline">Virkja að strjúka á tímalínu til að svara</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Birta allan ferilinn í dulrituðum spjallrásum</string>
     <string name="feedback_failed">Mistókst að senda umsögnina (%s)</string>
     <string name="feedback_sent">Það tókst að senda umsögnina</string>
@@ -1910,8 +1909,6 @@
 \nÞú getur bætt fyrirliggjandi svæðum í annað svæði.</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Allar spjallrásir sem þú ert í munu birtast á forsíðu.</string>
     <string name="looking_for_someone_not_in_space">Leitarðu að einhverjum sem ekki er í %s\?</string>
-    <string name="labs_enable_thread_messages_desc">Athugaðu: forritið verður endurræst</string>
-    <string name="labs_enable_thread_messages">Virkja spjallþræði fyrir skilaboð</string>
     <string name="labs_auto_report_uisi">Tilkynna afkóðunarvillur sjálfvirkt.</string>
     <string name="space_add_space_to_any_space_you_manage">Bættu svæði við eitthvað svæði sem þú stýrir.</string>
     <string name="space_add_existing_rooms">Bæta við fyrirliggjandi spjallrásum og svæði</string>

@@ -937,7 +937,6 @@
     <string name="settings_discovery_manage">Administroni rregullimet tuaja për zbulime.</string>
     <string name="identity_server_not_defined">S’po përdorni ndonjë shërbyes identitetesh</string>
     <string name="error_user_already_logged_in">Duket se po rrekeni të lidheni me një tjetër shërbyes Home. Doni të bëhet dalja\?</string>
-    <string name="labs_swipe_to_reply_in_timeline">Që të përgjigjeni te rrjedha kohore, aktivizoni fërkimin</string>
     <string name="identity_server">Shërbyes identitetesh</string>
     <string name="disconnect_identity_server">Shkëpute shërbyesin e identiteteve</string>
     <string name="add_identity_server">Formësoni shërbyes identitetesh</string>
@@ -2336,8 +2335,6 @@
     <string name="message_bubbles">Shfaq Flluska mesazhesh</string>
     <string name="location_timeline_failed_to_load_map">S’u arrit të ngarkohej hartë</string>
     <string name="a11y_static_map_image">Hartë</string>
-    <string name="labs_enable_thread_messages_desc">Shënim: aplikacioni do të riniset</string>
-    <string name="labs_enable_thread_messages">Aktivizoni rrjedha mesazhesh</string>
     <string name="ftue_auth_use_case_connect_to_server">Lidhu te shërbyesi</string>
     <string name="ftue_auth_use_case_join_existing_server">Po shihni për të marrë pjesë në një shërbyes ekzistues\?</string>
     <string name="ftue_auth_use_case_skip_partial">anashkalojeni këtë pyetje</string>

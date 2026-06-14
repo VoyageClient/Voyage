@@ -747,7 +747,6 @@
     <string name="room_filtering_footer_create_new_direct_message">새 다이렉트 메시지 보내기</string>
     <string name="room_filtering_footer_open_room_directory">방 목록 보기</string>
     <string name="room_directory_search_hint">이름 혹은 ID (#예시:matrix.org)</string>
-    <string name="labs_swipe_to_reply_in_timeline">타임라인에서 스와이프로 답장 기능 켜기</string>
     <string name="link_copied_to_clipboard">클립보드에 링크 복사</string>
     <string name="creating_direct_room">방 만드는 중…</string>
     <string name="message_view_edit_history">편집 기록 보기</string>

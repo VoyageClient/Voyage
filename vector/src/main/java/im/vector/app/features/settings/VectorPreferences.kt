@@ -498,7 +498,7 @@ class VectorPreferences @Inject constructor(
      * Show all rooms in room directory.
      */
     fun showAllPublicRooms(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS, false)
+        return defaultPrefs.getBoolean(SETTINGS_ROOM_DIRECTORY_SHOW_ALL_PUBLIC_ROOMS, true)
     }
 
     /**

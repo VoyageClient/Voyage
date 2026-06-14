@@ -783,7 +783,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="room_filtering_footer_create_new_direct_message">Bidali mezu zuzen berri bat</string>
     <string name="room_filtering_footer_open_room_directory">Ikusi gelen direktorioa</string>
     <string name="room_directory_search_hint">Izena edo ID-a (#adibidea:matrix.org)</string>
-    <string name="labs_swipe_to_reply_in_timeline">Gaitu hatza pasatzea denbora-lerroan erantzuteko</string>
     <string name="link_copied_to_clipboard">Esteka arbelera kopiatu da</string>
     <string name="settings_integration_manager">Integrazio kudeatzailea</string>
     <string name="creating_direct_room">Gela sortzen…</string>

@@ -1036,7 +1036,6 @@
     <string name="room_filtering_footer_create_new_direct_message">Enviar uma nova mensagem direta</string>
     <string name="room_filtering_footer_open_room_directory">Visualizar o diretório de salas</string>
     <string name="room_directory_search_hint">Nome ou ID (#exemplo:matrix.org)</string>
-    <string name="labs_swipe_to_reply_in_timeline">Habilitar deslizar para responder em timeline</string>
     <string name="labs_show_unread_notifications_as_tab">Adicionar uma aba dedicada para notificações não-lidas em tela principal.</string>
     <string name="link_copied_to_clipboard">Link copiado para clipboard</string>
     <string name="creating_direct_room">Criando sala…</string>
@@ -2348,8 +2347,6 @@
     <string name="message_bubbles">Mostrar Bolhas de mensagem</string>
     <string name="location_timeline_failed_to_load_map">Falha para carregar mapa</string>
     <string name="a11y_static_map_image">Mapa</string>
-    <string name="labs_enable_thread_messages_desc">Nota: app vai ser recomeçado</string>
-    <string name="labs_enable_thread_messages">Habilitar mensagens com threads</string>
     <string name="ftue_auth_use_case_connect_to_server">Conectar a servidor</string>
     <string name="ftue_auth_use_case_join_existing_server">Procurando se juntar a um servidor existente\?</string>
     <string name="ftue_auth_use_case_skip_partial">Pular esta pergunta</string>

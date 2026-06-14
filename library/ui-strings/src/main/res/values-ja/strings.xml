@@ -692,7 +692,6 @@
     <string name="direct_room_profile_section_more_settings">設定</string>
     <string name="room_settings_enable_encryption_no_permission">このルームの暗号化を有効にする権限がありません。</string>
     <string name="timeline_unread_messages">未読メッセージ</string>
-    <string name="labs_swipe_to_reply_in_timeline">タイムラインでのスワイプによる返信を有効にする</string>
     <string name="settings_labs_show_hidden_events_in_timeline">タイムラインで非表示のイベントを表示</string>
     <string name="user_code_scan">QRコードをスキャン</string>
     <string name="qr_code">QRコード</string>
@@ -1775,7 +1774,6 @@
     <string name="rotate_and_crop_screen_title">回転とトリミング</string>
     <string name="space_explore_activity_title">ルームを探す</string>
     <string name="space_add_existing_rooms">既存のルームとスペースを追加</string>
-    <string name="labs_enable_thread_messages">スレッドのメッセージを有効にする</string>
     <string name="space_mark_as_suggested">おすすめに追加</string>
     <string name="space_mark_as_not_suggested">おすすめから除外</string>
     <string name="space_manage_rooms_and_spaces">ルームとスペースを管理</string>
@@ -1867,7 +1865,6 @@
     <string name="spaces_beta_welcome_to_spaces_desc">スペースは、ルームや連絡先をまとめる新しい方法です。</string>
     <string name="you_are_invited">招待されています</string>
     <string name="space_add_space_to_any_space_you_manage">新しいスペースを、あなたが管理するスペースに追加。</string>
-    <string name="labs_enable_thread_messages_desc">注意：アプリケーションが再起動します</string>
     <string name="spaces_no_server_support_description">ホームサーバーの管理者にお問い合わせください</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">あなたが参加している全てのルームがホームに表示されます。</string>
     <string name="upgrade_room_update_parent_space">上位のスペースを自動的に更新</string>

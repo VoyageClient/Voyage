@@ -898,7 +898,6 @@
     <string name="room_filtering_footer_create_new_direct_message">Envoyer un nouveau message privé</string>
     <string name="room_filtering_footer_open_room_directory">Voir le répertoire des salons</string>
     <string name="room_directory_search_hint">Nom ou identifiant (#exemple:matrix.org)</string>
-    <string name="labs_swipe_to_reply_in_timeline">Activer le balayage pour répondre dans l’historique</string>
     <string name="link_copied_to_clipboard">Lien copié dans le presse-papiers</string>
     <string name="settings_integration_manager">Gestionnaire d’intégrations</string>
     <string name="creating_direct_room">Création du salon…</string>
@@ -2356,8 +2355,6 @@
     <string name="message_bubbles">Afficher les messages en bulles</string>
     <string name="location_timeline_failed_to_load_map">Impossible de charger la carte</string>
     <string name="a11y_static_map_image">Carte</string>
-    <string name="labs_enable_thread_messages_desc">Note : l’application sera redémarrée</string>
-    <string name="labs_enable_thread_messages">Activer les messages en fils de discussion</string>
     <string name="ftue_auth_use_case_connect_to_server">Se connecter au serveur</string>
     <string name="ftue_auth_use_case_join_existing_server">Vous cherchez à joindre un serveur existant \?</string>
     <string name="ftue_auth_use_case_skip_partial">Passer cette question</string>

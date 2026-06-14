@@ -877,7 +877,6 @@
     <string name="room_filtering_footer_create_new_direct_message">Изпрати ново директно съобщение</string>
     <string name="room_filtering_footer_open_room_directory">Виж директорията със стаи</string>
     <string name="room_directory_search_hint">Име или ID (#example:matrix.org)</string>
-    <string name="labs_swipe_to_reply_in_timeline">Активирай отговаряне от списъка с чатове при приплъзване</string>
     <string name="link_copied_to_clipboard">Връзката беше копирана</string>
     <string name="settings_integration_manager">Мениджър на интеграции</string>
     <string name="creating_direct_room">Създаване на стая…</string>

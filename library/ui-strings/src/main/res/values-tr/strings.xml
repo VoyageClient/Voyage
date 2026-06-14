@@ -923,7 +923,6 @@
     <string name="creating_direct_room">Oda oluşturuluyor…</string>
     <string name="link_copied_to_clipboard">Bağlantu</string>
     <string name="labs_show_unread_notifications_as_tab">Ana ekranda okunmamış bildirimler için özel bir sekme ekleyin.</string>
-    <string name="labs_swipe_to_reply_in_timeline">Zaman tünelinde, yanıtlamak için kaydırmayı etkinleştirin</string>
     <string name="room_directory_search_hint">Ad veya ID (#örnek: matrix.org)</string>
     <string name="room_filtering_footer_open_room_directory">Oda dizinini görüntüleyin</string>
     <string name="room_filtering_footer_create_new_direct_message">Yeni bir direkt mesaj gönder</string>

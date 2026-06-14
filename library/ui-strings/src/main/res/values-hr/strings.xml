@@ -517,7 +517,6 @@
     <string name="room_filtering_footer_create_new_direct_message">Pošalji novu izravnu poruku</string>
     <string name="room_filtering_footer_open_room_directory">Prikaži popis soba</string>
     <string name="room_directory_search_hint">Naziv ili identitet (#primjer:matrix.org)</string>
-    <string name="labs_swipe_to_reply_in_timeline">Omogući povlačenje za odgovaranje u vremenskoj crti</string>
     <string name="link_copied_to_clipboard">Poveznica kopirana u spremnik</string>
     <string name="creating_direct_room">Izrađuje se soba…</string>
     <string name="message_view_edit_history">Prikaži povijest uređivanja</string>

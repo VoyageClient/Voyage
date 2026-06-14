@@ -1020,7 +1020,6 @@
     <string name="active_widget_view_action">VISTA</string>
     <string name="settings_category_timeline">Cronologia</string>
     <string name="timeline_unread_messages">Missatges no llegits</string>
-    <string name="labs_swipe_to_reply_in_timeline">Activa lliscar per respondre a la cronologia</string>
     <string name="room_directory_search_hint">Nom o ID (#exemple:matrix.org)</string>
     <string name="room_filtering_footer_open_room_directory">Mostra el directori de la sales</string>
     <string name="room_filtering_footer_create_new_room">Crea una nova sala</string>
@@ -2238,8 +2237,6 @@
     <string name="ftue_display_name_entry_footer">Ho podràs canviar després</string>
     <string name="ftue_profile_picture_title">Afegeix foto de perfil</string>
     <string name="ftue_display_name_entry_title">Àlies</string>
-    <string name="labs_enable_thread_messages_desc">Avís: l\'aplicació es reiniciarà</string>
-    <string name="labs_enable_thread_messages">Activa missatges de fil</string>
     <string name="labs_auto_report_uisi_desc">El sistema enviarà automàticament registres quan es produeixi un error de desxifrat</string>
     <string name="labs_auto_report_uisi">Informa automàticament d\'errors de desxifrat.</string>
     <string name="space_add_space_to_any_space_you_manage">Afegeix espai a un espai gestionat per tu.</string>

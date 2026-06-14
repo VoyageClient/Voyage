@@ -847,7 +847,6 @@
     <string name="edited_suffix">(edytowano)</string>
     <string name="message_edits">Edycje wiadomości</string>
     <string name="no_message_edits_found">Nie znaleziono edycji</string>
-    <string name="labs_swipe_to_reply_in_timeline">Aktywuj gest przesunięcia, aby odpowiedzieć na osi czasu</string>
     <string name="link_copied_to_clipboard">Link skopiowany do schowka</string>
     <string name="message_view_edit_history">Wyświetl historię edycji</string>
     <string name="terms_description_for_identity_server">Bądź odkryty przez innych</string>
@@ -2343,8 +2342,6 @@
     <string name="poll_end_action">Zakończ ankietę</string>
     <string name="end_poll_confirmation_title">Czy zakończyć ankietę\?</string>
     <string name="end_poll_confirmation_description">To powstrzyma użytkowników od głosowania i wyświetli ostateczny wynik ankiety.</string>
-    <string name="labs_enable_thread_messages_desc">Uwaga: aplikacja zostanie uruchomiona ponownie</string>
-    <string name="labs_enable_thread_messages">Włącz wiadomości w wątkach</string>
     <string name="create_spaces_invite_public_header_desc">Upewnij się, że odpowiednie osoby mają dostęp do firmy %s. Więcej osób możesz zaprosić później.</string>
     <string name="dev_tools_send_custom_state_event">Wyślij własne wydarzenie stanu</string>
     <string name="dev_tools_send_state_event">Wyślij zdarzenie stanowe</string>

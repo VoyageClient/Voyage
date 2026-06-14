@@ -37,8 +37,6 @@ import im.vector.app.features.home.room.threads.list.viewmodel.ThreadListViewAct
 import im.vector.app.features.home.room.threads.list.viewmodel.ThreadListViewEvents
 import im.vector.app.features.home.room.threads.list.viewmodel.ThreadListViewModel
 import im.vector.app.features.home.room.threads.list.viewmodel.ThreadListViewState
-import im.vector.app.features.rageshake.BugReporter
-import im.vector.app.features.rageshake.ReportType
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.failure.is400
 import org.matrix.android.sdk.api.failure.is404
@@ -55,7 +53,6 @@ class ThreadListFragment :
         VectorMenuProvider {
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
-    @Inject lateinit var bugReporter: BugReporter
     @Inject lateinit var threadListController: ThreadListPagedController
     @Inject lateinit var legacyThreadListController: ThreadListController
     @Inject lateinit var threadListViewModelFactory: ThreadListViewModel.Factory
@@ -110,7 +107,6 @@ class ThreadListFragment :
         super.onViewCreated(view, savedInstanceState)
         initToolbar()
         initTextConstants()
-        initBetaFeedback()
 
         if (threadListViewModel.canHomeserverUseThreading()) {
             views.threadListRecyclerView.configureWith(threadListController, TimelineItemAnimator(), hasFixedSize = false)
@@ -175,14 +171,6 @@ class ThreadListFragment :
                 resources.getString(CommonStrings.thread_list_empty_notice),
                 resources.getString(CommonStrings.reply_in_thread)
         )
-    }
-
-    private fun initBetaFeedback() {
-        views.threadsFeedBackConstraintLayout.isVisible = resources.getBoolean(im.vector.app.config.R.bool.feature_threads_beta_feedback_enabled)
-        views.threadFeedbackDivider.isVisible = resources.getBoolean(im.vector.app.config.R.bool.feature_threads_beta_feedback_enabled)
-        views.threadsFeedBackConstraintLayout.debouncedClicks {
-            bugReporter.openBugReportScreen(requireActivity(), reportType = ReportType.THREADS_BETA_FEEDBACK)
-        }
     }
 
     override fun invalidate() = withState(threadListViewModel) { state ->

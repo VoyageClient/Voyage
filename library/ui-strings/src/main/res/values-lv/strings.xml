@@ -1232,7 +1232,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="initial_sync_start_server_computing">Sākotnējā sinhronizācija:
 \nGaida servera atbildi…</string>
     <string name="labs_show_unread_notifications_as_tab">Pievienojiet speciālu cilni priekš nelasītiem paziņojumiem galvenajā ekrānā.</string>
-    <string name="labs_swipe_to_reply_in_timeline">Laika joslā iespējot atbildēšanu pavelkot</string>
     <string name="no_message_edits_found">Labojumi netika atrasti</string>
     <string name="message_edits">Ziņu labojumi</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Rādīt pilnu vēsturi šifrētajās istabās</string>
@@ -2556,7 +2555,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="discovery_section">Atklājamība (%s)</string>
     <string name="space_add_existing_spaces">Pievienot esošas vietas</string>
     <string name="space_add_space_to_any_space_you_manage">Pievienot vietu jebkurai sevis pārvaldītai vietai.</string>
-    <string name="labs_enable_thread_messages_desc">Piezīme: lietotne tiks pārsāknēta</string>
     <string name="settings_show_latest_profile">Parādīt jaunāko lietotāja informāciju</string>
     <string name="a11y_play_voice_message">Atskaņot balss ziņu</string>
     <string name="a11y_pause_voice_message">Apturēt balss ziņu</string>
@@ -2611,7 +2609,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="dev_tools_success_event">Notikums ir nosūtīts.</string>
     <string name="event_status_a11y_failed">Neizdevās</string>
     <string name="space_leave_prompt_msg_as_admin">Tu esi vienīgais šīs vietas pārvaldītājs. Tās atstāšana nozīmē, ka neviens to nepārvaldīs.</string>
-    <string name="labs_enable_thread_messages">Iespējot pavedienu ziņas</string>
     <string name="looking_for_someone_not_in_space">Meklē kādu, kurš nav %s\?</string>
     <string name="space_suggested">Ieteiktā</string>
     <string name="unnamed_room">Istaba bez nosaukuma</string>

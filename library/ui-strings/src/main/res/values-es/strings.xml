@@ -962,7 +962,6 @@
     <string name="room_filtering_footer_create_new_direct_message">Enviar un nuevo mensaje directo</string>
     <string name="room_filtering_footer_open_room_directory">Ver el directorio de la sala</string>
     <string name="room_directory_search_hint">Nombre o ID (#ejemplo:servidor.org)</string>
-    <string name="labs_swipe_to_reply_in_timeline">Habilitar \"deslizar para contestar\" en la línea de tiempo</string>
     <string name="link_copied_to_clipboard">Enlace copiado al portapapeles</string>
     <string name="creating_direct_room">Creando sala…</string>
     <string name="message_view_edit_history">Ver historial de modificaciones</string>
@@ -2422,8 +2421,6 @@
     <string name="a11y_play_audio_message">Reproducir %1$s</string>
     <string name="a11y_audio_playback_duration">%1$d minutos %2$d segundos</string>
     <string name="a11y_audio_message_item">%1$s,%2$s,%3$s</string>
-    <string name="labs_enable_thread_messages_desc">Nota: la applicación se reiniciará</string>
-    <string name="labs_enable_thread_messages">Activar mensajes en hilo</string>
     <string name="labs_auto_report_uisi_desc">Tu sistema automáticamente enviará registros cuando ocurra un fallo al desencriptar</string>
     <string name="labs_auto_report_uisi">Reportar errores de desencriptado automáticamente.</string>
     <string name="a11y_presence_unavailable">No disponible</string>

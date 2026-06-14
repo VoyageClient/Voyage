@@ -484,7 +484,6 @@ Meldingssynlegheit på Matrix liknar på epost. At vi gløymer meldingane dine t
     <string name="preference_voice_and_video">Tale og video</string>
     <string name="preference_root_help_about">Hjelp og om</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Vis skjulte hendelsar i historikken</string>
-    <string name="labs_swipe_to_reply_in_timeline">Aktiver swipe-for-å-svare i historikken</string>
     <string name="room_list_quick_actions_leave">Forlat rommet</string>
     <string name="timeline_unread_messages">Uleste meldingar</string>
     <string name="create_room_encryption_description">Etter aktivering, så kan ikkje kryptering bli deaktivert.</string>

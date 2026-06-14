@@ -1053,7 +1053,6 @@
     <string name="add_by_qr_code">הוסף באמצעות קוד QR</string>
     <string name="link_copied_to_clipboard">הקישור הועתק ללוח</string>
     <string name="labs_show_unread_notifications_as_tab">הוסף כרטיסייה ייעודית להתראות שלא נקראו על המסך הראשי.</string>
-    <string name="labs_swipe_to_reply_in_timeline">אפשר החלקה כדי להשיב בציר הזמן</string>
     <string name="room_directory_search_hint">שם או מזהה (# לדוגמא: matrix.ahava528.com)</string>
     <string name="room_filtering_footer_open_room_directory">צפו בספריית החדרים</string>
     <string name="room_filtering_footer_create_new_direct_message">שלח הודעה ישירה חדשה</string>
@@ -2242,8 +2241,6 @@
     <string name="space_mark_as_suggested">סמן כמוצע</string>
     <string name="looking_for_someone_not_in_space">מחפש מישהו שאינו ב-%s\?</string>
     <string name="user_invites_you">%s מזמין אותך</string>
-    <string name="labs_enable_thread_messages_desc">הערה: האפליקציה תופעל מחדש</string>
-    <string name="labs_enable_thread_messages">אפשר הודעות שרשור</string>
     <string name="labs_auto_report_uisi_desc">המערכת שלך תשלח אוטומטית יומנים כאשר מתרחשת שגיאה ללא יכולת לפענח</string>
     <string name="labs_auto_report_uisi">דווח אוטומטית על שגיאות פענוח.</string>
     <string name="you_are_invited">אתם מוזמנים</string>

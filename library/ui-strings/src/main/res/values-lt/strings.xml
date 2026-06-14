@@ -1366,8 +1366,6 @@
     <string name="user_invites_you">%s kviečia tave</string>
     <string name="settings_show_latest_profile_description">Rodyti naujausią profilio informaciją (avatarą ir rodomą vardą) visose žinutėse.</string>
     <string name="settings_show_latest_profile">Rodyti naujausią naudotojo informaciją</string>
-    <string name="labs_enable_thread_messages_desc">Pastaba: programa bus paleista iš naujo</string>
-    <string name="labs_enable_thread_messages">Įjungti temų žinutes</string>
     <string name="labs_auto_report_uisi_desc">Jūsų sistema automatiškai išsiųs žurnalus, kai įvyks negalėjimo iššifruoti klaida</string>
     <string name="labs_auto_report_uisi">Automatiškai pranešti apie iššifravimo klaidas.</string>
     <string name="spaces_beta_welcome_to_spaces_desc">Erdvės - tai naujas kambarių ir žmonių grupavimo būdas.</string>
@@ -2087,7 +2085,6 @@
     <string name="message_edits">Žinutės redagavimai</string>
     <string name="edited_suffix">(redaguota)</string>
     <string name="labs_show_unread_notifications_as_tab">Pagrindiniame ekrane pridėti specialų skirtuką neperskaitytiems pranešimams.</string>
-    <string name="labs_swipe_to_reply_in_timeline">Įjungti perbraukimą, kad atsakytumėte laiko juostoje</string>
     <string name="search_hint_room_name">Ieškoti pavadinimo</string>
     <string name="user_directory_search_hint_2">Ieškoti pagal vardą, ID arba paštą</string>
     <string name="room_directory_search_hint">Pavadinimas arba ID (#pavyzdys:matrix.org)</string>

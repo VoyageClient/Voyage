@@ -1366,7 +1366,6 @@
     <string name="login_server_modular_text">Pagenda gastigado por organizaĵoj</string>
     <string name="a11y_create_menu_close">Fermi la menuon por krei novan ĉambron…</string>
     <string name="a11y_create_menu_open">Malfermi la menuon por krei novan ĉambron</string>
-    <string name="labs_swipe_to_reply_in_timeline">Ŝalti viŝon por respondo en historio</string>
     <string name="room_filtering_footer_create_new_direct_message">Sendi novan individuan mesaĝon</string>
     <string name="push_gateway_item_format">Formato:</string>
     <string name="settings_home_display">Hejmekrano</string>
@@ -2235,7 +2234,6 @@
     <string name="thread_list_not_available">Via hejma servilo ankoraŭ ne subtenas montri la liston de fadenoj.</string>
     <string name="labs_enable_latex_maths">Ebligi LaTeX-matematikon</string>
     <string name="labs_auto_report_uisi">Aŭtomate Raporti pri Malĉifraj Eraroj.</string>
-    <string name="labs_enable_thread_messages_desc">Noto: la aplikaĵo estos rekomencita</string>
     <string name="restart_the_application_to_apply_changes">Rekomencu la aplikaĵon por ke la ŝanĝo ekvalidu.</string>
     <string name="device_manager_session_rename_description">Propraj sesiaj nomoj povas helpi vin rekoni viajn aparatojn pli facile.</string>
     <string name="thread_list_empty_title">Restigu diskutojn organizitajn per fadenoj</string>
@@ -2365,7 +2363,6 @@
     <string name="settings_security_incognito_keyboard_title">Inkognita klavaro</string>
     <string name="space_leave_radio_button_none">Eliri neniun</string>
     <string name="space_explore_filter_no_result_title">Neniuj rezultoj trovitaj</string>
-    <string name="labs_enable_thread_messages">Ebligi fadenigitajn mesaĝojn</string>
     <string name="labs_auto_report_uisi_desc">Via sistemo aŭtomate sendos protokolojn kiam okazas nekapabla malĉifri eraro</string>
     <string name="upgrade_room_for_restricted_no_param">Ĉiu en gepatra spaco povos trovi kaj aliĝi al ĉi tiu ĉambro - ne necesas permane inviti ĉiujn. Vi povos ŝanĝi ĉi tion en la agordoj de la ĉambro iam ajn.</string>
     <string name="labs_enable_live_location">Ebligi Tujan Loko-kunhavigadon</string>

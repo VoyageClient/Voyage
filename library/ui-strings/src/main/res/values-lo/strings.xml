@@ -1167,7 +1167,6 @@
     <string name="add_by_qr_code">ເພີ່ມດ້ວຍລະຫັດ QR</string>
     <string name="link_copied_to_clipboard">ສຳເນົາລິ້ງໃສ່ຄລິບບອດແລ້ວ</string>
     <string name="labs_show_unread_notifications_as_tab">ເພີ່ມແຖບສະເພາະສໍາລັບການແຈ້ງເຕືອນທີ່ຍັງບໍ່ໄດ້ອ່ານໃນຫນ້າຈໍຫຼັກ.</string>
-    <string name="labs_swipe_to_reply_in_timeline">ເປີດໃຊ້ງານການປັດເພື່ອຕອບກັບໃນທາມລາຍ</string>
     <string name="search_hint_room_name">ຊອກຫາຊື່</string>
     <string name="user_directory_search_hint_2">ຄົ້ນຫາດ້ວຍຊື່, ID ຫຼື mail</string>
     <string name="room_directory_search_hint">ຊື່ ຫຼື ID (#example:matrix.org)</string>
@@ -1453,8 +1452,6 @@
     <string name="space_settings_manage_rooms">ຈັດການຫ້ອງ</string>
     <string name="looking_for_someone_not_in_space">ຊອກຫາຄົນທີ່ບໍ່ໄດ້ຢູ່ໃນ %s ບໍ\?</string>
     <string name="user_invites_you">%s ເຊີນທ່ານ</string>
-    <string name="labs_enable_thread_messages_desc">ໝາຍເຫດ: ແອັບຈະຖືກເປີດຄືນໃໝ່</string>
-    <string name="labs_enable_thread_messages">ເປີດໃຊ້ຂໍ້ຄວາມກະທູ້</string>
     <string name="labs_auto_report_uisi_desc">ລະບົບຂອງທ່ານຈະສົ່ງບັນທຶກອັດຕະໂນມັດເມື່ອເກີດຄວາມຜິດພາດທີ່ບໍ່ສາມາດຖອດລະຫັດໄດ້</string>
     <string name="labs_auto_report_uisi">ລາຍງານຄວາມຜິດພາດໃນການຖອດລະຫັດອັດຕະໂນມັດ.</string>
     <string name="you_are_invited">ທ່ານໄດ້ຮັບເຊີນ</string>
