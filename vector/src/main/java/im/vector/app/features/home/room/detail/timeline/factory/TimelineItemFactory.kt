@@ -77,6 +77,7 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_ALIASES,
                     EventType.STATE_SPACE_CHILD,
                     EventType.STATE_SPACE_PARENT,
+                    EventType.STATE_ROOM_PINNED_EVENT,
                     EventType.STATE_ROOM_POWER_LEVELS -> {
                         noticeItemFactory.create(params)
                     }

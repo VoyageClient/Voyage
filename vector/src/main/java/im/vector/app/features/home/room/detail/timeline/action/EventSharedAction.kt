@@ -110,4 +110,10 @@ sealed class EventSharedAction(
 
     data class EndPoll(val eventId: String) :
             EventSharedAction(CommonStrings.poll_end_action, R.drawable.ic_check_on)
+
+    data class Pin(val eventId: String) :
+            EventSharedAction(CommonStrings.pin_action, R.drawable.ic_pin)
+
+    data class Unpin(val eventId: String) :
+            EventSharedAction(CommonStrings.unpin_action, R.drawable.ic_pin)
 }

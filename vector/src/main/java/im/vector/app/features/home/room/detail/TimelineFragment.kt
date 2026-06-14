@@ -82,6 +82,7 @@ import im.vector.app.core.ui.views.CurrentCallsViewPresenter
 import im.vector.app.core.ui.views.FailedMessagesWarningView
 import im.vector.app.core.ui.views.JoinConferenceView
 import im.vector.app.core.ui.views.NotificationAreaView
+import im.vector.app.core.ui.views.PinnedMessagesBannerView
 import im.vector.app.core.utils.Debouncer
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.KeyboardStateUtils
@@ -134,6 +135,7 @@ import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageActionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHistoryBottomSheet
+import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
@@ -253,6 +255,7 @@ class TimelineFragment :
     @Inject lateinit var vectorFeatures: VectorFeatures
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
     @Inject lateinit var permalinkFactory: PermalinkFactory
+    @Inject lateinit var displayableEventFormatter: DisplayableEventFormatter
 
     companion object {
         const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
@@ -341,6 +344,7 @@ class TimelineFragment :
         setupActiveCallView()
         setupJumpToBottomView()
         setupRemoveJitsiWidgetView()
+        setupPinnedMessagesBanner()
         setupLiveLocationIndicator()
         setupBackPressHandling()
         setupVoiceRecorderStacking()
@@ -755,6 +759,78 @@ class TimelineFragment :
     override fun onDestroy() {
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
         super.onDestroy()
+    }
+
+    private fun setupPinnedMessagesBanner() {
+        views.pinnedMessagesBanner.callback = object : PinnedMessagesBannerView.Callback {
+            override fun onPinnedMessageClicked(eventId: String) {
+                timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
+            }
+
+            override fun onViewAllPinnedMessagesClicked() {
+                navigator.openRoomProfile(
+                        requireContext(),
+                        timelineArgs.roomId,
+                        RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_PINNED
+                )
+            }
+        }
+        views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            private var userInitiated = false
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    userInitiated = true
+                } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    userInitiated = false
+                }
+            }
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                // Only follow user scrolls; programmatic scrolls (e.g. banner tap jumps) must not
+                // override the tap-to-cycle selection.
+                if (userInitiated) {
+                    withState(timelineViewModel) { updatePinnedMessagesBannerSelection(it) }
+                }
+            }
+        })
+    }
+
+    private fun renderPinnedMessagesBanner(state: RoomDetailViewState) {
+        val pinnedEvents = state.pinnedEvents
+        if (!vectorPreferences.showPinnedMessagesBanner() || pinnedEvents.isEmpty()) {
+            views.pinnedMessagesBanner.isVisible = false
+            return
+        }
+        val isDirect = state.asyncRoomSummary()?.isDirect ?: false
+        views.pinnedMessagesBanner.render(
+                eventIds = pinnedEvents.map { it.eventId },
+        ) { eventId ->
+            pinnedEvents.firstOrNull { it.eventId == eventId }
+                    ?.let { displayableEventFormatter.format(it, isDm = isDirect, appendAuthor = true) }
+                    ?: ""
+        }
+    }
+
+    // View-based selection driven by user scroll (tap-cycling is handled inside the banner itself).
+    // Show the most recent pinned message still on screen; advance to the older one only once the
+    // current pin has left the screen toward the newest side. At the bottom this is the latest pin;
+    // scrolled above all pins it clamps to the oldest one. Uses timestamps rather than adapter
+    // positions, because pinned messages are often not loaded in the current timeline window.
+    private fun updatePinnedMessagesBannerSelection(state: RoomDetailViewState) {
+        val pinnedEvents = state.pinnedEvents
+        if (pinnedEvents.isEmpty() || !views.pinnedMessagesBanner.isVisible) return
+        val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+        if (firstVisiblePosition == RecyclerView.NO_POSITION) return
+        val newestVisibleTs = timelineEventController.getNewestVisibleEvent(firstVisiblePosition)?.root?.originServerTs ?: return
+        // The most recent pin not newer than the newest visible message = the latest pin you have
+        // not scrolled below. If every pin is newer (you scrolled above them all), clamp to oldest.
+        val selected = pinnedEvents
+                .filter { (it.root.originServerTs ?: 0) <= newestVisibleTs }
+                .maxByOrNull { it.root.originServerTs ?: 0 }
+                ?: pinnedEvents.minByOrNull { it.root.originServerTs ?: 0 }
+                ?: return
+        views.pinnedMessagesBanner.setSelectedEventId(selected.eventId)
     }
 
     private fun setupJumpToBottomView() {
@@ -1211,6 +1287,7 @@ class TimelineFragment :
         }
         val summary = mainState.asyncRoomSummary()
         renderToolbar(summary)
+        renderPinnedMessagesBanner(mainState)
         views.removeJitsiWidgetView.render(mainState)
         if (mainState.hasFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.isVisible = true
@@ -1883,6 +1960,12 @@ class TimelineFragment :
             }
             is EventSharedAction.EndPoll -> {
                 askConfirmationToEndPoll(action.eventId)
+            }
+            is EventSharedAction.Pin -> {
+                timelineViewModel.handle(RoomDetailAction.PinEvent(action.eventId))
+            }
+            is EventSharedAction.Unpin -> {
+                timelineViewModel.handle(RoomDetailAction.UnpinEvent(action.eventId))
             }
             EventSharedAction.Separator -> Unit /* Not clickable */
         }

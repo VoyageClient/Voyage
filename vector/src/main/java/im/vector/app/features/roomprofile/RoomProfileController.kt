@@ -49,6 +49,7 @@ class RoomProfileController @Inject constructor(
         fun onBannedMemberListClicked()
         fun onNotificationsClicked()
         fun onPollHistoryClicked()
+        fun onPinnedMessagesClicked()
         fun onUploadsClicked()
         fun createShortcut()
         fun onSettingsClicked()
@@ -262,6 +263,13 @@ class RoomProfileController @Inject constructor(
                 title = stringProvider.getString(CommonStrings.room_profile_section_more_polls),
                 icon = R.drawable.ic_attachment_poll,
                 action = { callback?.onPollHistoryClicked() }
+        )
+
+        buildProfileAction(
+                id = "pinned_messages",
+                title = stringProvider.getString(CommonStrings.room_profile_section_more_pinned),
+                icon = R.drawable.ic_pin,
+                action = { callback?.onPinnedMessagesClicked() }
         )
 
         buildProfileAction(

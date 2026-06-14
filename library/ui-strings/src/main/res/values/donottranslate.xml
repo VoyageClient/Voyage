@@ -79,4 +79,17 @@
     <string name="settings_timeline_disable_table_wrap_summary" translatable="false">Cells in tables won\'t wrap. The table scrolls horizontally instead.</string>
 
     <string name="action_copy_event_id" translatable="false">Copy Event ID</string>
+
+    <string name="pin_action" translatable="false">Pin</string>
+    <string name="unpin_action" translatable="false">Unpin</string>
+    <string name="room_profile_section_more_pinned" translatable="false">Pinned messages</string>
+    <string name="pinned_messages_title" translatable="false">Pinned messages</string>
+    <string name="pinned_messages_empty" translatable="false">No pinned messages</string>
+    <string name="pinned_messages_view_all" translatable="false">View all</string>
+    <string name="pinned_messages_actions" translatable="false">Pinned message options</string>
+    <string name="notice_room_pinned_added" translatable="false">%1$s pinned a message to this room.</string>
+    <string name="notice_room_pinned_removed" translatable="false">%1$s unpinned a message from this room.</string>
+    <string name="notice_room_pinned_changed" translatable="false">%1$s changed the pinned messages.</string>
+    <string name="settings_show_pinned_messages_banner" translatable="false">Show pinned messages banner</string>
+    <string name="settings_show_pinned_messages_banner_summary" translatable="false">Display a banner with pinned messages at the top of the timeline</string>
 </resources>

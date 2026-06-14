@@ -36,6 +36,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomNameContent
+import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.RoomServerAclContent
 import org.matrix.android.sdk.api.session.room.model.RoomThirdPartyInviteContent
 import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
@@ -81,6 +82,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_WIDGET_LEGACY -> formatWidgetEvent(event, senderName)
             EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName, isDm)
             EventType.STATE_ROOM_POWER_LEVELS -> formatRoomPowerLevels(event, senderName)
+            EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
             EventType.CALL_INVITE,
             EventType.CALL_CANDIDATES,
             EventType.CALL_HANGUP,
@@ -188,11 +190,22 @@ class NoticeEventFormatter @Inject constructor(
             EventType.CALL_REJECT,
             EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
             EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName, isDm)
+            EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
             VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
             else -> {
                 Timber.v("Type $type not handled by this formatter")
                 null
             }
+        }
+    }
+
+    private fun formatRoomPinnedEvent(event: Event, senderName: String?): CharSequence? {
+        val pinned = event.content.toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
+        val previous = event.resolvedPrevContent().toModel<RoomPinnedEventsContent>()?.pinned.orEmpty()
+        return when {
+            pinned.size > previous.size -> sp.getString(CommonStrings.notice_room_pinned_added, senderName)
+            pinned.size < previous.size -> sp.getString(CommonStrings.notice_room_pinned_removed, senderName)
+            else -> sp.getString(CommonStrings.notice_room_pinned_changed, senderName)
         }
     }
 

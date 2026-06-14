@@ -64,6 +64,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_LABS_DEFERRED_DM_KEY = "SETTINGS_LABS_DEFERRED_DM_KEY"
         const val SETTINGS_LABS_RICH_TEXT_EDITOR_KEY = "SETTINGS_LABS_RICH_TEXT_EDITOR_KEY"
         const val SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY = "SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY"
+        const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
         const val SETTINGS_LABS_NEW_SESSION_MANAGER_KEY = "SETTINGS_LABS_NEW_SESSION_MANAGER_KEY"
         const val SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY = "SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY"
         const val SETTINGS_LABS_VOICE_BROADCAST_KEY = "SETTINGS_LABS_VOICE_BROADCAST_KEY"
@@ -1298,6 +1299,10 @@ class VectorPreferences @Inject constructor(
 
     fun isTableLineWrappingDisabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY, false)
+    }
+
+    fun showPinnedMessagesBanner(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY, true)
     }
 
     fun isRichTextEditorEnabled(): Boolean {

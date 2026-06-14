@@ -34,6 +34,8 @@ sealed class RoomDetailAction : VectorViewModelAction {
     data class SendReaction(val targetEventId: String, val reaction: String) : RoomDetailAction()
     data class UndoReaction(val targetEventId: String, val reaction: String, val reason: String? = "") : RoomDetailAction()
     data class RedactAction(val targetEventId: String, val reason: String? = "") : RoomDetailAction()
+    data class PinEvent(val eventId: String) : RoomDetailAction()
+    data class UnpinEvent(val eventId: String) : RoomDetailAction()
     data class UpdateQuickReactAction(val targetEventId: String, val selectedReaction: String, val add: Boolean) : RoomDetailAction()
     data class NavigateToEvent(val eventId: String, val highlight: Boolean, val isFirstUnreadEvent: Boolean = false) : RoomDetailAction()
     object MarkAllAsRead : RoomDetailAction()

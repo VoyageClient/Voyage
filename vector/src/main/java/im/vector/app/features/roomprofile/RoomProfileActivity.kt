@@ -27,6 +27,7 @@ import im.vector.app.features.roomprofile.banned.RoomBannedMemberListFragment
 import im.vector.app.features.roomprofile.members.RoomMemberListFragment
 import im.vector.app.features.roomprofile.notifications.RoomNotificationSettingsFragment
 import im.vector.app.features.roomprofile.permissions.RoomPermissionsFragment
+import im.vector.app.features.roomprofile.pinned.RoomPinnedMessagesFragment
 import im.vector.app.features.roomprofile.polls.RoomPollsFragment
 import im.vector.app.features.roomprofile.settings.RoomSettingsFragment
 import im.vector.app.features.roomprofile.uploads.RoomUploadsFragment
@@ -46,6 +47,7 @@ class RoomProfileActivity :
         const val EXTRA_DIRECT_ACCESS_ROOM_ROOT = 0
         const val EXTRA_DIRECT_ACCESS_ROOM_SETTINGS = 1
         const val EXTRA_DIRECT_ACCESS_ROOM_MEMBERS = 2
+        const val EXTRA_DIRECT_ACCESS_ROOM_PINNED = 3
 
         fun newIntent(context: Context, roomId: String, directAccess: Int?): Intent {
             val roomProfileArgs = RoomProfileArgs(roomId)
@@ -84,6 +86,9 @@ class RoomProfileActivity :
                 EXTRA_DIRECT_ACCESS_ROOM_MEMBERS -> {
                     addFragment(views.simpleFragmentContainer, RoomMemberListFragment::class.java, roomProfileArgs)
                 }
+                EXTRA_DIRECT_ACCESS_ROOM_PINNED -> {
+                    addFragment(views.simpleFragmentContainer, RoomPinnedMessagesFragment::class.java, roomProfileArgs)
+                }
                 else -> addFragment(views.simpleFragmentContainer, RoomProfileFragment::class.java, roomProfileArgs)
             }
         }
@@ -96,6 +101,7 @@ class RoomProfileActivity :
                         RoomProfileSharedAction.OpenRoomAliasesSettings -> openRoomAlias()
                         RoomProfileSharedAction.OpenRoomPermissionsSettings -> openRoomPermissions()
                         RoomProfileSharedAction.OpenRoomPolls -> openRoomPolls()
+                        RoomProfileSharedAction.OpenPinnedMessages -> openPinnedMessages()
                         RoomProfileSharedAction.OpenRoomUploads -> openRoomUploads()
                         RoomProfileSharedAction.OpenBannedRoomMembers -> openBannedRoomMembers()
                         RoomProfileSharedAction.OpenRoomNotificationSettings -> openRoomNotificationSettings()
@@ -126,6 +132,10 @@ class RoomProfileActivity :
 
     private fun openRoomPolls() {
         addFragmentToBackstack(views.simpleFragmentContainer, RoomPollsFragment::class.java, roomProfileArgs)
+    }
+
+    private fun openPinnedMessages() {
+        addFragmentToBackstack(views.simpleFragmentContainer, RoomPinnedMessagesFragment::class.java, roomProfileArgs)
     }
 
     private fun openRoomUploads() {

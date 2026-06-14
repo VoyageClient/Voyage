@@ -26,7 +26,8 @@ data class ToggleState(
 data class ActionPermissions(
         val canSendMessage: Boolean = false,
         val canReact: Boolean = false,
-        val canRedact: Boolean = false
+        val canRedact: Boolean = false,
+        val canPinUnpin: Boolean = false
 )
 
 data class MessageActionState(

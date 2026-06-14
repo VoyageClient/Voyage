@@ -278,6 +278,10 @@ class RoomProfileFragment :
         roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomPolls)
     }
 
+    override fun onPinnedMessagesClicked() {
+        roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenPinnedMessages)
+    }
+
     override fun onUploadsClicked() {
         roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomUploads)
     }

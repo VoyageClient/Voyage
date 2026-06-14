@@ -104,6 +104,12 @@
             android:title="@string/settings_inline_url_preview" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
+            android:summary="@string/settings_show_pinned_messages_banner_summary"
+            android:title="@string/settings_show_pinned_messages_banner" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"
             android:title="@string/settings_always_show_timestamps" />
 

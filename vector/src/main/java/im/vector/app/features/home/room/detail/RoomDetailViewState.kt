@@ -19,6 +19,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.sync.SyncState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationBadgeState
@@ -71,6 +72,7 @@ data class RoomDetailViewState(
         val isSharingLiveLocation: Boolean = false,
         val showKeyboardWhenPresented: Boolean = false,
         val sharedData: SharedData? = null,
+        val pinnedEvents: List<TimelineEvent> = emptyList(),
 ) : MavericksState {
 
     constructor(args: TimelineArgs) : this(

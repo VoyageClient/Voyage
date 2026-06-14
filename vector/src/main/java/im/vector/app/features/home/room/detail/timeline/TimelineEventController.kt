@@ -655,6 +655,19 @@ class TimelineEventController @Inject constructor(
         return adapterPositionMapping[eventId]
     }
 
+    /**
+     * Return the newest timeline event still visible at or below the given adapter position.
+     * The timeline is reverse-laid-out, so the smallest adapter position is the newest event.
+     */
+    fun getNewestVisibleEvent(firstVisibleAdapterPosition: Int): TimelineEvent? = synchronized(modelCache) {
+        val eventId = adapterPositionMapping.entries
+                .filter { it.value >= firstVisibleAdapterPosition }
+                .minByOrNull { it.value }
+                ?.key
+                ?: return null
+        return currentSnapshot.firstOrNull { it.eventId == eventId }
+    }
+
     fun getPositionOfReadMarker(): Int? = synchronized(modelCache) {
         return positionOfReadMarker
     }

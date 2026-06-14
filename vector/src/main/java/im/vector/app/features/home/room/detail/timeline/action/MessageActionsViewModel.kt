@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -46,6 +47,7 @@ import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
@@ -122,6 +124,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                             canSendMessage = initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
                             canReact = initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
                             canRedact = initial.isUserAbleToRedact(session.myUserId),
+                            canPinUnpin = initial.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
                     )
                     setState { copy(actionPermissions = permissions) }
                 }
@@ -145,7 +148,13 @@ class MessageActionsViewModel @AssistedInject constructor(
                     val canReact = roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REACTION)
                     val canRedact = roomPowerLevels.isUserAbleToRedact(session.myUserId)
                     val canSendMessage = roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE)
-                    val permissions = ActionPermissions(canSendMessage = canSendMessage, canRedact = canRedact, canReact = canReact)
+                    val canPinUnpin = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT)
+                    val permissions = ActionPermissions(
+                            canSendMessage = canSendMessage,
+                            canRedact = canRedact,
+                            canReact = canReact,
+                            canPinUnpin = canPinUnpin
+                    )
                     setState {
                         copy(actionPermissions = permissions)
                     }
@@ -430,6 +439,14 @@ class MessageActionsViewModel @AssistedInject constructor(
                 add(EventSharedAction.Share(timelineEvent.eventId, messageContent!!))
             }
 
+            if (actionPermissions.canPinUnpin && canPin(timelineEvent)) {
+                if (eventId in getPinnedEventIds()) {
+                    add(EventSharedAction.Unpin(eventId))
+                } else {
+                    add(EventSharedAction.Pin(eventId))
+                }
+            }
+
             if (canRedact(timelineEvent, actionPermissions)) {
                 if (timelineEvent.root.getClearType() in EventType.POLL_START.values) {
                     add(
@@ -665,6 +682,20 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false
         }
+    }
+
+    private fun canPin(event: TimelineEvent): Boolean {
+        if (event.root.isRedacted()) return false
+        return event.root.getClearType() in listOf(EventType.MESSAGE, EventType.STICKER) + EventType.POLL_START.values
+    }
+
+    private fun getPinnedEventIds(): List<String> {
+        return room?.stateService()
+                ?.getStateEvent(EventType.STATE_ROOM_PINNED_EVENT, QueryStringValue.IsEmpty)
+                ?.content
+                .toModel<RoomPinnedEventsContent>()
+                ?.pinned
+                .orEmpty()
     }
 
     private fun canEndPoll(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {

@@ -47,6 +47,7 @@ import im.vector.app.features.crypto.verification.SupportedVerificationMethodsPr
 import im.vector.app.features.home.room.detail.RoomDetailAction.VoiceBroadcastAction
 import im.vector.app.features.home.room.detail.error.RoomNotFound
 import im.vector.app.features.home.room.detail.location.RedactLiveLocationShareEventUseCase
+import im.vector.app.features.home.room.detail.pinned.GetPinnedEventsUseCase
 import im.vector.app.features.home.room.detail.poll.VoteToPollUseCase
 import im.vector.app.features.home.room.detail.sticker.StickerPickerActionHandler
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineFactory
@@ -103,6 +104,7 @@ import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.LocalRoomCreationState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
+import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -151,6 +153,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val spaceStateHandler: SpaceStateHandler,
         private val voiceBroadcastHelper: VoiceBroadcastHelper,
         private val voteToPollUseCase: VoteToPollUseCase,
+        private val getPinnedEventsUseCase: GetPinnedEventsUseCase,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, ChatEffectManager.Delegate, CallProtocolsChecker.Listener, LocationSharingServiceConnection.Callback {
 
@@ -213,6 +216,7 @@ class TimelineViewModel @AssistedInject constructor(
         observeMyRoomMember()
         observeActiveRoomWidgets()
         observePowerLevel()
+        observePinnedEvents()
         setupPreviewUrlObservers()
         viewModelScope.launch(Dispatchers.IO) {
             tryOrNull {
@@ -323,6 +327,15 @@ class TimelineViewModel @AssistedInject constructor(
                         )
                     }
                 }.launchIn(viewModelScope)
+    }
+
+    private fun observePinnedEvents() {
+        if (room == null) return
+        getPinnedEventsUseCase.execute(room)
+                .onEach { pinnedEvents ->
+                    setState { copy(pinnedEvents = pinnedEvents) }
+                }
+                .launchIn(viewModelScope)
     }
 
     private fun observeActiveRoomWidgets() {
@@ -461,6 +474,8 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.AcceptInvite -> handleAcceptInvite()
             is RoomDetailAction.RejectInvite -> handleRejectInvite()
             is RoomDetailAction.RedactAction -> handleRedactEvent(action)
+            is RoomDetailAction.PinEvent -> handlePinEvent(action.eventId, pin = true)
+            is RoomDetailAction.UnpinEvent -> handlePinEvent(action.eventId, pin = false)
             is RoomDetailAction.UndoReaction -> handleUndoReact(action)
             is RoomDetailAction.UpdateQuickReactAction -> handleUpdateQuickReaction(action)
             is RoomDetailAction.DownloadOrOpen -> handleOpenOrDownloadFile(action)
@@ -1247,6 +1262,34 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
     private fun handleEndPoll(eventId: String) {
         if (room == null) return
         room.sendService().endPoll(eventId)
+    }
+
+    private fun handlePinEvent(eventId: String, pin: Boolean) {
+        val room = this.room ?: return
+        viewModelScope.launch {
+            try {
+                val current = room.stateService()
+                        .getStateEvent(EventType.STATE_ROOM_PINNED_EVENT, QueryStringValue.IsEmpty)
+                        ?.content
+                        .toModel<RoomPinnedEventsContent>()
+                        ?.pinned
+                        .orEmpty()
+                val updated = if (pin) {
+                    if (eventId in current) current else current + eventId
+                } else {
+                    current - eventId
+                }
+                if (updated != current) {
+                    room.stateService().sendStateEvent(
+                            eventType = EventType.STATE_ROOM_PINNED_EVENT,
+                            stateKey = "",
+                            body = RoomPinnedEventsContent(pinned = updated).toContent()
+                    )
+                }
+            } catch (failure: Throwable) {
+                _viewEvents.post(RoomDetailViewEvents.Failure(failure))
+            }
+        }
     }
 
     private fun observeSyncState() {
