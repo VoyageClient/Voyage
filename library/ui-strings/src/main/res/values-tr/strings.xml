@@ -1745,7 +1745,6 @@
     <string name="time_unit_minute_short">dk.</string>
     <string name="action_disable">Devre dışı bırak</string>
     <string name="time_unit_hour_short">sa.</string>
-    <string name="change_space">Alanı Değiştir</string>
     <string name="sign_out_anyway">Yine de oturumu kapat</string>
     <plurals name="x_selected">
         <item quantity="one">%1$d seçildi</item>

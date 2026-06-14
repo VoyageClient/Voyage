@@ -1759,7 +1759,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="looking_for_someone_not_in_space">Olyant keresel aki még nincs itt: %s\?</string>
     <string name="user_invites_you">%s meghívott</string>
     <string name="you_are_invited">Meghívtak</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">A Terek használata egy új lehetőség a szobák és felhasználók csoportosítására.</string>
     <string name="space_add_existing_rooms">Létező szobák és tér hozzáadása</string>
     <string name="space_leave_prompt_msg_as_admin">Ön az egyetlen adminisztrátora a térnek. Ha kilép, senki nem tudja irányítani.</string>
     <string name="space_leave_prompt_msg_private">Amíg nem hívnak meg újra nem tudsz újracsatlakozni.</string>
@@ -2643,7 +2642,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="space_list_empty_title">Nincsenek terek egyelőre.</string>
     <string name="a11y_collapse_space_children">%s összezárása</string>
     <string name="a11y_expand_space_children">%s kibontása</string>
-    <string name="change_space">Tér megváltoztatása</string>
     <string name="onboarding_new_app_layout_feedback_message">A visszajelzési lehetőségekhez koppint jobb felső sarokba.</string>
     <plurals name="device_manager_inactive_sessions_description">
         <item quantity="one">Fontold meg, hogy a régi már nem használt (%1$d napja vagy régebben) munkamenetből kijelentkezel.</item>

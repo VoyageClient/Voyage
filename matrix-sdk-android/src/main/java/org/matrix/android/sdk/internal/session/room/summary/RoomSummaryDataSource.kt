@@ -365,6 +365,10 @@ internal class RoomSummaryDataSource @Inject constructor(
             SpaceFilter.NoFilter -> Unit // nop
         }
 
+        queryParams.activeTagFilter?.let {
+            query.equalTo(RoomSummaryEntityFields.TAGS.TAG_NAME, it)
+        }
+
         return query
     }
 

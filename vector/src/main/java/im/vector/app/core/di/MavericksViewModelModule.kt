@@ -44,6 +44,7 @@ import im.vector.app.features.home.room.detail.timeline.edithistory.ViewEditHist
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsViewModel
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomViewModel
 import im.vector.app.features.home.room.list.RoomListViewModel
+import im.vector.app.features.home.room.list.actions.RoomTagViewModel
 import im.vector.app.features.home.room.list.home.HomeRoomListViewModel
 import im.vector.app.features.home.room.list.home.invites.InvitesViewModel
 import im.vector.app.features.home.room.list.home.release.ReleaseNotesViewModel
@@ -388,6 +389,11 @@ interface MavericksViewModelModule {
     @IntoMap
     @MavericksViewModelKey(RoomPinnedMessagesViewModel::class)
     fun roomPinnedMessagesViewModelFactory(factory: RoomPinnedMessagesViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
+    @MavericksViewModelKey(RoomTagViewModel::class)
+    fun roomTagViewModelFactory(factory: RoomTagViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap

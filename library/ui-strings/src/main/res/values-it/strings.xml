@@ -1928,7 +1928,6 @@
 \nIn attesa di risposta dal server…</string>
     <string name="event_status_sent_message">Messaggio inviato</string>
     <string name="you_are_invited">Sei stato/a invitato/a</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Gli Spazi sono un nuovo modo per raggruppare stanze e contatti.</string>
     <string name="space_add_existing_rooms">Aggiungi stanze e Spazi esistenti</string>
     <string name="leave_space">Esci</string>
     <string name="space_add_child_title">Aggiungi stanze</string>
@@ -2647,7 +2646,6 @@
     <string name="space_list_empty_title">Ancora nessuno spazio.</string>
     <string name="a11y_collapse_space_children">Riduci contenuto di %s</string>
     <string name="a11y_expand_space_children">Espandi contenuto di %s</string>
-    <string name="change_space">Cambia spazio</string>
     <string name="device_manager_session_details_device_ip_address">Indirizzo IP</string>
     <string name="device_manager_session_details_session_last_activity">Ultima attività</string>
     <string name="device_manager_session_details_session_name">Nome sessione</string>

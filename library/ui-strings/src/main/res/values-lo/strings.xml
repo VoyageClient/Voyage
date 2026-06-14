@@ -1455,7 +1455,6 @@
     <string name="labs_auto_report_uisi_desc">ລະບົບຂອງທ່ານຈະສົ່ງບັນທຶກອັດຕະໂນມັດເມື່ອເກີດຄວາມຜິດພາດທີ່ບໍ່ສາມາດຖອດລະຫັດໄດ້</string>
     <string name="labs_auto_report_uisi">ລາຍງານຄວາມຜິດພາດໃນການຖອດລະຫັດອັດຕະໂນມັດ.</string>
     <string name="you_are_invited">ທ່ານໄດ້ຮັບເຊີນ</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">ພື້ນທີ່ເປັນວິທີໃໝ່ໃນການຈັດກຸ່ມຫ້ອງ ແລະ ຄົນ.</string>
     <string name="space_add_space_to_any_space_you_manage">ເພີ່ມພື້ນທີ່ໃສ່ບ່ອນໃດກໍໄດ້ທີ່ທ່ານຈັດການ.</string>
     <string name="space_add_existing_spaces">ເພີ່ມພື້ນທີ່ທີ່ມີຢູ່</string>
     <string name="space_add_existing_rooms_only">ເພີ່ມຫ້ອງທີ່ມີຢູ່</string>

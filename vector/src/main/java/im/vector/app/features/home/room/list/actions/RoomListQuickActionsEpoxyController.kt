@@ -49,6 +49,7 @@ class RoomListQuickActionsEpoxyController @Inject constructor(
             settingsClickListener { host.listener?.didSelectMenuAction(RoomListQuickActionsSharedAction.Settings(roomSummary.roomId)) }
             favoriteClickListener { host.listener?.didSelectMenuAction(RoomListQuickActionsSharedAction.Favorite(roomSummary.roomId)) }
             lowPriorityClickListener { host.listener?.didSelectMenuAction(RoomListQuickActionsSharedAction.LowPriority(roomSummary.roomId)) }
+            tagClickListener { host.listener?.didSelectMenuAction(RoomListQuickActionsSharedAction.Tag(roomSummary.roomId)) }
         }
 
         // Notifications

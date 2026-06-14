@@ -43,8 +43,23 @@ class SpaceSummaryController @Inject constructor(
                 nonNullViewState.selectedSpace,
                 nonNullViewState.rootSpacesOrdered,
                 nonNullViewState.expandedStates,
-                nonNullViewState.homeAggregateCount
+                nonNullViewState.homeAggregateCount,
+                nonNullViewState.tags,
+                nonNullViewState.selectedTag,
         )
+    }
+
+    private fun buildTagModels(tags: List<RoomTagItem>, selectedTag: String?) {
+        val host = this
+        tags.forEach { tag ->
+            spaceTagItem {
+                id(tag.name)
+                name(tag.displayName)
+                count(tag.roomCount)
+                selected(tag.name == selectedTag)
+                listener { host.callback?.onTagSelected(tag.name) }
+            }
+        }
     }
 
     private fun buildGroupModels(
@@ -52,12 +67,11 @@ class SpaceSummaryController @Inject constructor(
             selectedSpace: RoomSummary?,
             rootSpaces: List<RoomSummary>?,
             expandedStates: Map<String, Boolean>,
-            homeCount: RoomAggregateNotificationCount
+            homeCount: RoomAggregateNotificationCount,
+            tags: List<RoomTagItem>,
+            selectedTag: String?,
     ) {
         val host = this
-        spaceBetaHeaderItem {
-            id("beta_header")
-        }
 
         // show invites on top
         summaries
@@ -77,10 +91,12 @@ class SpaceSummaryController @Inject constructor(
 
         homeSpaceSummaryItem {
             id("space_home")
-            selected(selectedSpace == null)
+            selected(selectedSpace == null && selectedTag == null)
             countState(UnreadCounterBadgeView.State.Count(homeCount.totalCount, homeCount.isHighlight))
             listener { host.callback?.onSpaceSelected(null, isSubSpace = false) }
         }
+
+        buildTagModels(tags, selectedTag)
 
         rootSpaces
                 ?.filter { it.membership != Membership.INVITE }
@@ -180,6 +196,7 @@ class SpaceSummaryController @Inject constructor(
         fun onSpaceSettings(spaceSummary: RoomSummary)
         fun onToggleExpand(spaceSummary: RoomSummary)
         fun onAddSpaceSelected()
+        fun onTagSelected(tagName: String?)
         fun sendFeedBack()
     }
 }

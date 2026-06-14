@@ -29,6 +29,7 @@ import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -52,6 +53,7 @@ class RoomListViewModel @AssistedInject constructor(
         private val session: Session,
         stringProvider: StringProvider,
         spaceStateHandler: SpaceStateHandler,
+        tagFilterStateHandler: TagFilterStateHandler,
         vectorPreferences: VectorPreferences,
         autoAcceptInvites: AutoAcceptInvites,
         private val analyticsTracker: AnalyticsTracker
@@ -67,7 +69,7 @@ class RoomListViewModel @AssistedInject constructor(
     private val suggestedRoomJoiningState: MutableLiveData<Map<String, Async<Unit>>> = MutableLiveData(emptyMap())
 
     interface ActiveSpaceQueryUpdater {
-        fun updateForSpaceId(roomId: String?)
+        fun updateForSpaceId(roomId: String?, tag: String?)
     }
 
     enum class SpaceFilterStrategy {
@@ -122,6 +124,7 @@ class RoomListViewModel @AssistedInject constructor(
             session,
             stringProvider,
             spaceStateHandler,
+            tagFilterStateHandler,
             viewModelScope,
             autoAcceptInvites,
             {

@@ -1958,7 +1958,6 @@
     <string name="spaces_header">Espaces</string>
     <string name="suggested_header">Salons recommandés</string>
     <string name="you_are_invited">Vous êtes invité</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Les espaces sont une nouvelle manière de regrouper les salons et les gens.</string>
     <string name="space_add_existing_rooms">Ajouter des salons et espaces existants</string>
     <string name="leave_space">Quitter</string>
     <string name="space_add_child_title">Ajouter des salons</string>
@@ -2656,7 +2655,6 @@
     <string name="space_list_empty_title">Pas d’espace pour l’instant.</string>
     <string name="a11y_collapse_space_children">Réduire %s enfants</string>
     <string name="a11y_expand_space_children">Développer %s enfants</string>
-    <string name="change_space">Changer d’espace</string>
     <string name="device_manager_session_details_device_ip_address">Adresse IP</string>
     <string name="device_manager_session_details_session_last_activity">Dernière activité</string>
     <string name="device_manager_session_details_session_name">Nom de la session</string>

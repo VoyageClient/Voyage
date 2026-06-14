@@ -1992,7 +1992,6 @@
     <string name="share_space_link_message">Gå med i mitt utrymme %1$s %2$s</string>
     <string name="invite_just_to_this_room_desc">De kommer inte att bli en del av %s</string>
     <string name="you_are_invited">Du är inbjuden</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Utrymmen är ett nytt sätt att gruppera rum och personer.</string>
     <string name="space_add_existing_rooms">Lägg till existerande rum och utrymme</string>
     <string name="leave_space">Lämna</string>
     <string name="space_add_child_title">Lägg till rum</string>
@@ -2602,7 +2601,6 @@
     <string name="a11y_collapse_space_children">Kollapsa underutrymmen för %s</string>
     <string name="a11y_expand_space_children">Expandera underutrymmen för %s</string>
     <string name="explore_rooms">Utforska rum</string>
-    <string name="change_space">Byt utrymme</string>
     <string name="create_room">Skapa rum</string>
     <string name="start_chat">Starta chatt</string>
     <string name="all_chats">Alla chattar</string>

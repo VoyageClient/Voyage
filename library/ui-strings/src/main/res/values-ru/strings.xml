@@ -2024,7 +2024,6 @@
     <string name="looking_for_someone_not_in_space">Ищете кого-то не в %s\?</string>
     <string name="user_invites_you">%s приглашает вас</string>
     <string name="you_are_invited">Вы приглашены</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Пространства — это новый способ организации комнат и людей.</string>
     <string name="space_add_existing_rooms">Добавить существующие комнаты и пространство</string>
     <string name="space_leave_prompt_msg_as_admin">Вы единственный администратор этого пространства. Если вы его покинете, то никто не сможет управлять им.</string>
     <string name="space_leave_prompt_msg_private">Вы сможете присоединиться только после повторного приглашения.</string>
@@ -2705,7 +2704,6 @@
     <string name="home_empty_no_unreads_title">Нечего отображать.</string>
     <string name="home_empty_no_unreads_message">Здесь будут отображаться непрочитанные сообщения, когда таковые будут.</string>
     <string name="font_size_use_system">Как в системе</string>
-    <string name="change_space">Смена пространства</string>
     <string name="labs_enable_new_app_layout_summary">Упрощённый Element с дополнительными вкладками</string>
     <string name="onboarding_new_app_layout_welcome_title">Добро пожаловать в новый вид!</string>
     <string name="home_empty_space_no_rooms_title">%s

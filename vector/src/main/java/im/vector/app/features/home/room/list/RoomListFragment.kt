@@ -42,6 +42,7 @@ import im.vector.app.features.home.room.filtered.FilteredRoomFooterItem
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedActionViewModel
+import im.vector.app.features.home.room.list.actions.RoomTagBottomSheet
 import im.vector.app.features.home.room.list.widget.NotifsFabMenuView
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.notifications.NotificationDrawerManager
@@ -454,6 +455,10 @@ class RoomListFragment :
             }
             is RoomListQuickActionsSharedAction.LowPriority -> {
                 roomListViewModel.handle(RoomListAction.ToggleTag(quickAction.roomId, RoomTag.ROOM_TAG_LOW_PRIORITY))
+            }
+            is RoomListQuickActionsSharedAction.Tag -> {
+                RoomTagBottomSheet.newInstance(quickAction.roomId)
+                        .show(childFragmentManager, "ROOM_TAG")
             }
             is RoomListQuickActionsSharedAction.Leave -> {
                 promptLeaveRoom(quickAction.roomId)

@@ -54,6 +54,11 @@ sealed class RoomListQuickActionsSharedAction(
             R.drawable.ic_star_24dp
     )
 
+    data class Tag(val roomId: String) : RoomListQuickActionsSharedAction(
+            CommonStrings.room_list_quick_actions_tag,
+            R.drawable.ic_tag_24
+    )
+
     data class Leave(val roomId: String, val showIcon: Boolean = true) : RoomListQuickActionsSharedAction(
             CommonStrings.room_list_quick_actions_leave,
             if (showIcon) R.drawable.ic_room_actions_leave else null,

@@ -221,7 +221,6 @@
     <string name="a11y_expand_space_children">%s uşağı yay</string>
     <string name="a11y_collapse_space_children">%s uşağı yığışdır</string>
     <string name="explore_rooms">Otaqları Araşdır</string>
-    <string name="change_space">Yeri Dəyiş</string>
     <string name="create_room">Otaq Yarat</string>
     <string name="start_chat">Söhbət Başlat</string>
     <string name="all_chats">Bütün Söhbətlər</string>

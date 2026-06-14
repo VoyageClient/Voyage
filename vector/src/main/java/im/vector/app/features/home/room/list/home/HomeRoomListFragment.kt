@@ -32,6 +32,7 @@ import im.vector.app.features.home.room.list.RoomListListener
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedActionViewModel
+import im.vector.app.features.home.room.list.actions.RoomTagBottomSheet
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.home.room.list.home.header.HomeRoomsHeadersController
 import im.vector.app.features.home.room.list.home.invites.InvitesActivity
@@ -124,6 +125,10 @@ class HomeRoomListFragment :
             }
             is RoomListQuickActionsSharedAction.LowPriority -> {
                 roomListViewModel.handle(HomeRoomListAction.ToggleTag(quickAction.roomId, RoomTag.ROOM_TAG_LOW_PRIORITY))
+            }
+            is RoomListQuickActionsSharedAction.Tag -> {
+                RoomTagBottomSheet.newInstance(quickAction.roomId)
+                        .show(childFragmentManager, "ROOM_TAG")
             }
             is RoomListQuickActionsSharedAction.Leave -> {
                 promptLeaveRoom(quickAction.roomId)

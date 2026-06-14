@@ -43,16 +43,23 @@ class NewSpaceSummaryController @Inject constructor(
     }
 
     private fun buildGroupModels(viewState: SpaceListViewState) = with(viewState) {
-        addHeaderItem()
-        addHomeItem(selectedSpace == null, homeAggregateCount)
+        addHomeItem(selectedSpace == null && selectedTag == null, homeAggregateCount)
+        addTags(tags, selectedTag)
         addSpaces(spaces, selectedSpace, rootSpacesOrdered, expandedStates)
         addInvites(selectedSpace, rootSpacesOrdered, inviters)
         addCreateItem()
     }
 
-    private fun addHeaderItem() {
-        newSpaceListHeaderItem {
-            id("space_list_header")
+    private fun addTags(tags: List<RoomTagItem>, selectedTag: String?) {
+        val host = this
+        tags.forEach { tag ->
+            spaceTagItem {
+                id(tag.name)
+                name(tag.displayName)
+                count(tag.roomCount)
+                selected(tag.name == selectedTag)
+                listener { host.callback?.onTagSelected(tag.name) }
+            }
         }
     }
 
@@ -183,6 +190,7 @@ class NewSpaceSummaryController @Inject constructor(
         fun onSpaceSettings(spaceSummary: RoomSummary)
         fun onToggleExpand(spaceSummary: RoomSummary)
         fun onAddSpaceSelected()
+        fun onTagSelected(tagName: String?)
         fun sendFeedBack()
     }
 }

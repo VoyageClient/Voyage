@@ -2000,7 +2000,6 @@
     <string name="looking_for_someone_not_in_space">Vous cherchez quelqu’un qui n’est pas dans %s\?</string>
     <string name="user_invites_you">%s vous invite</string>
     <string name="you_are_invited">Vous êtes invité·e</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Les espaces sont une nouvelle manière de regrouper les salons et les gens.</string>
     <string name="space_add_existing_rooms">Ajouter des salons et espaces existants</string>
     <string name="space_leave_prompt_msg_as_admin">Vous êtes admin de cet espace, assurez-vous d’avoir transféré les droits d’admin à un autre membre avant de partir.</string>
     <string name="space_leave_prompt_msg_private">Cet espace n’est pas public. Vous ne pourrez pas le rejoindre sans invitation.</string>

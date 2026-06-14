@@ -1802,7 +1802,6 @@
     <string name="call_held_by_user">%s ha puesto la llamada en espera</string>
     <string name="call_hold_action">Esperar</string>
     <string name="call_resume_action">Continuar</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Los espacios son una nueva manera para agrupar salas y personas.</string>
     <string name="join_space">Únete a un Espacio</string>
     <string name="create_space">Crear espacio</string>
     <string name="add_space">Añadir espacio</string>
@@ -2635,7 +2634,6 @@
     <string name="home_layout_preferences_filters">Mostrar filtros</string>
     <string name="home_layout_preferences">Ajustes de disposición</string>
     <string name="explore_rooms">Explorar salas</string>
-    <string name="change_space">Cambiar espacio</string>
     <string name="create_room">Crear sala</string>
     <string name="start_chat">Iniciar conversación</string>
     <string name="all_chats">Todas las conversaciones</string>

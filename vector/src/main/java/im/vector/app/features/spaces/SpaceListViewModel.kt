@@ -18,14 +18,19 @@ import im.vector.app.SpaceStateHandler
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.plan.Interaction
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.notification.GetNotificationCountForSpacesUseCase
+import im.vector.app.features.spaces.tags.TagFilterStateHandler
+import im.vector.app.features.spaces.tags.displayNameForTag
+import im.vector.app.features.spaces.tags.tagSortKey
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -38,16 +43,20 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.spaceSummaryQueryParams
 import org.matrix.android.sdk.api.session.space.SpaceOrderUtils
 import org.matrix.android.sdk.api.session.space.model.SpaceOrderContent
 import org.matrix.android.sdk.api.session.space.model.TopLevelSpaceComparator
 import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.flow.flow
 
 class SpaceListViewModel @AssistedInject constructor(
         @Assisted initialState: SpaceListViewState,
         private val spaceStateHandler: SpaceStateHandler,
+        private val tagFilterStateHandler: TagFilterStateHandler,
         private val session: Session,
+        private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
         private val analyticsTracker: AnalyticsTracker,
         getNotificationCountForSpacesUseCase: GetNotificationCountForSpacesUseCase,
@@ -71,10 +80,16 @@ class SpaceListViewModel @AssistedInject constructor(
                 }
 
         observeSpaceSummaries()
+        observeTags()
         spaceStateHandler.getSelectedSpaceFlow()
                 .distinctUntilChanged()
                 .setOnEach { selectedSpaceOption ->
                     copy(selectedSpace = selectedSpaceOption.orNull())
+                }
+        tagFilterStateHandler.getSelectedTagFlow()
+                .distinctUntilChanged()
+                .setOnEach { selectedTagOption ->
+                    copy(selectedTag = selectedTagOption.orNull())
                 }
 
         getNotificationCountForSpacesUseCase.execute(roomsInSpaceFilter())
@@ -96,6 +111,7 @@ class SpaceListViewModel @AssistedInject constructor(
     override fun handle(action: SpaceListAction) {
         when (action) {
             is SpaceListAction.SelectSpace -> handleSelectSpace(action)
+            is SpaceListAction.SelectTag -> handleSelectTag(action)
             is SpaceListAction.LeaveSpace -> handleLeaveSpace(action)
             SpaceListAction.AddSpace -> handleAddSpace()
             is SpaceListAction.ToggleExpand -> handleToggleExpand(action)
@@ -174,7 +190,8 @@ class SpaceListViewModel @AssistedInject constructor(
     }
 
     private fun handleSelectSpace(action: SpaceListAction.SelectSpace) = withState { state ->
-        if (state.selectedSpace?.roomId != action.spaceSummary?.roomId) {
+        val spaceChanged = state.selectedSpace?.roomId != action.spaceSummary?.roomId
+        if (spaceChanged || tagFilterStateHandler.getSelectedTag() != null) {
             val interactionName = if (action.isSubSpace) {
                 Interaction.Name.SpacePanelSwitchSubSpace
             } else {
@@ -188,11 +205,49 @@ class SpaceListViewModel @AssistedInject constructor(
                     )
             )
             setState { copy(selectedSpace = action.spaceSummary) }
+            tagFilterStateHandler.setSelectedTag(null)
             spaceStateHandler.setCurrentSpace(action.spaceSummary?.roomId)
             _viewEvents.post(SpaceListViewEvents.CloseDrawer)
         } else {
             analyticsTracker.capture(Interaction(null, null, Interaction.Name.SpacePanelSelectedSpace))
         }
+    }
+
+    private fun handleSelectTag(action: SpaceListAction.SelectTag) {
+        tagFilterStateHandler.setSelectedTag(action.tagName)
+        if (action.tagName != null) {
+            spaceStateHandler.setCurrentSpace(null)
+        }
+        _viewEvents.post(SpaceListViewEvents.CloseDrawer)
+    }
+
+    private fun observeTags() {
+        val params = roomSummaryQueryParams {
+            memberships = listOf(Membership.JOIN)
+        }
+        session.flow().liveRoomSummaries(params)
+                .map { roomSummaries ->
+                    roomSummaries
+                            .flatMap { summary -> summary.tags.map { it.name } }
+                            .groupingBy { it }
+                            .eachCount()
+                            .map { (name, count) ->
+                                RoomTagItem(
+                                        name = name,
+                                        displayName = displayNameForTag(stringProvider, name),
+                                        roomCount = count,
+                                )
+                            }
+                            .sortedBy { tagSortKey(it.name) }
+                }
+                .distinctUntilChanged()
+                .onEach { tags ->
+                    val selectedTag = tagFilterStateHandler.getSelectedTag()
+                    if (selectedTag != null && tags.none { it.name == selectedTag }) {
+                        tagFilterStateHandler.setSelectedTag(null)
+                    }
+                }
+                .setOnEach { copy(tags = it) }
     }
 
     private fun handleSelectSpaceInvite(action: SpaceListAction.OpenSpaceInvite) {

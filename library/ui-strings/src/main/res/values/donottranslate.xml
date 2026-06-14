@@ -92,4 +92,12 @@
     <string name="notice_room_pinned_changed" translatable="false">%1$s changed the pinned messages.</string>
     <string name="settings_show_pinned_messages_banner" translatable="false">Show pinned messages banner</string>
     <string name="settings_show_pinned_messages_banner_summary" translatable="false">Display a banner with pinned messages at the top of the timeline</string>
+
+    <string name="tag_favourites" translatable="false">Favorites</string>
+    <string name="tag_low_priority" translatable="false">Low priority</string>
+    <string name="room_list_quick_actions_tag" translatable="false">Tag</string>
+    <string name="room_tag_on_this_room" translatable="false">On this room</string>
+    <string name="room_tag_add_existing" translatable="false">Add a tag</string>
+    <string name="room_tag_create_new" translatable="false">Create new tag…</string>
+    <string name="room_tag_new_hint" translatable="false">Tag name</string>
 </resources>

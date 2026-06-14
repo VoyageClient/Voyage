@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<im.vector.app.core.platform.CheckableConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/tagItemLayout"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:background="@drawable/bg_space_item"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    tools:viewBindingIgnore="true">
+
+    <ImageView
+        android:id="@+id/tagIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:importantForAccessibility="no"
+        android:padding="8dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_tag_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?vctr_content_secondary" />
+
+    <TextView
+        android:id="@+id/tagNameView"
+        style="@style/Widget.Vector.TextView.Subtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?vctr_content_primary"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tagCountView"
+        app:layout_constraintStart_toEndOf="@id/tagIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Favorites" />
+
+    <TextView
+        android:id="@+id/tagCountView"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:textColor="?vctr_content_secondary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="5" />
+
+</im.vector.app.core.platform.CheckableConstraintLayout>

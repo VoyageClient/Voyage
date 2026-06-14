@@ -1902,7 +1902,6 @@
     <string name="settings_category_room_directory">聊天室目錄</string>
     <string name="event_status_sent_message">訊息已傳送</string>
     <string name="you_are_invited">您被邀請了</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">聊天空間是將聊天室與人們分組的新方式。</string>
     <string name="space_add_existing_rooms">新增既有的聊天室與聊天空間</string>
     <string name="leave_space">離開</string>
     <string name="space_add_child_title">新增聊天室</string>
@@ -2604,7 +2603,6 @@
     <string name="space_list_empty_title">尚無聊天空間。</string>
     <string name="a11y_collapse_space_children">收折 %s 個子聊天空間</string>
     <string name="a11y_expand_space_children">展開 %s 個子聊天空間</string>
-    <string name="change_space">變更聊天空間</string>
     <string name="device_manager_session_details_device_ip_address">IP 位址</string>
     <string name="device_manager_session_details_session_last_activity">最後活動</string>
     <string name="device_manager_session_details_session_name">工作階段名稱</string>

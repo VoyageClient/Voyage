@@ -1699,7 +1699,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="looking_for_someone_not_in_space">Mencari seseorang yang tidak ada di %s\?</string>
     <string name="user_invites_you">%s mengundang Anda</string>
     <string name="you_are_invited">Anda telah diundang</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Space adalah cara baru untuk mengelompokkan ruangan dan pengguna.</string>
     <string name="space_add_existing_spaces">Tambahkan space yang sudah ada</string>
     <string name="space_add_existing_rooms_only">Tambahkan ruangan yang sudah ada</string>
     <string name="space_add_existing_rooms">Tambahkan ruangan dan space yang sudah ada</string>
@@ -2606,7 +2605,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="space_list_empty_title">Belum ada space.</string>
     <string name="a11y_collapse_space_children">Tutup %s anak</string>
     <string name="a11y_expand_space_children">Buka %s anak</string>
-    <string name="change_space">Ubah Space</string>
     <string name="device_manager_session_details_device_ip_address">Alamat IP</string>
     <string name="device_manager_session_details_session_last_activity">Aktivitas terakhir</string>
     <string name="device_manager_session_details_session_name">Nama sesi</string>

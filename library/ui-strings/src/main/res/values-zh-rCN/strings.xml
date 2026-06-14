@@ -1865,7 +1865,6 @@
     <string name="looking_for_someone_not_in_space">正在寻找不在 %s 中的人？</string>
     <string name="user_invites_you">%s 邀请了你</string>
     <string name="you_are_invited">你被邀请</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">空间是把房间和人分组的新方式。</string>
     <string name="space_add_existing_rooms">添加现有房间和空间</string>
     <string name="space_leave_prompt_msg_as_admin">你是此空间唯一的管理员。离开就意味着没人能控制它。</string>
     <string name="space_leave_prompt_msg_private">除非你被重新邀请，否则你将无法重新加入。</string>
@@ -2572,7 +2571,6 @@
     <string name="a11y_device_manager_device_type_mobile">移动设备</string>
     <string name="a11y_device_manager_device_type_web">Web</string>
     <string name="a11y_device_manager_device_type_desktop">桌面</string>
-    <string name="change_space">更改空间</string>
     <string name="space_list_empty_title">尚无空间。</string>
     <string name="invites_empty_title">没有新的东西。</string>
     <string name="invites_empty_message">你的新请求和邀请会在这里。</string>

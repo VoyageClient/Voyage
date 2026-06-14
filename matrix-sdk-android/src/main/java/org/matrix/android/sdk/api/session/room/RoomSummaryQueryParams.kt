@@ -93,6 +93,10 @@ data class RoomSummaryQueryParams(
          * Used to filter room using the current space.
          */
         val spaceFilter: SpaceFilter,
+        /**
+         * Used to filter room by an arbitrary room tag name (e.g. "m.favourite" or "u.work").
+         */
+        val activeTagFilter: String?,
 ) {
 
     /**
@@ -109,6 +113,7 @@ data class RoomSummaryQueryParams(
         var excludeType: List<String?>? = listOf(RoomType.SPACE)
         var includeType: List<String?>? = null
         var spaceFilter: SpaceFilter = SpaceFilter.NoFilter
+        var activeTagFilter: String? = null
 
         fun build() = RoomSummaryQueryParams(
                 roomId = roomId,
@@ -120,6 +125,7 @@ data class RoomSummaryQueryParams(
                 excludeType = excludeType,
                 includeType = includeType,
                 spaceFilter = spaceFilter,
+                activeTagFilter = activeTagFilter,
         )
     }
 }

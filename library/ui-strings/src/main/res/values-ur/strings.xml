@@ -168,7 +168,6 @@
     <string name="a11y_expand_space_children">%s اولاد پھیلائیں</string>
     <string name="initial_sync_start_importing_account_invited_rooms">ابتائی ہموقتسازی:
 \nمدعو کردہ کمرے درآمد کررہا ہے</string>
-    <string name="change_space">جگہ بدلیں</string>
     <string name="room_displayname_4_members">%1$s، %2$s، %3$s اور %4$s</string>
     <plurals name="room_displayname_four_and_more_members">
         <item quantity="one">%1$s، %2$s، %3$s اور %4$d دیگر</item>

@@ -2067,7 +2067,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     </plurals>
     <string name="notice_display_name_changed_to">%1$s nomainīja attēlojamo vārdu uz %2$s</string>
     <string name="room_error_access_unauthorized">Nav ļauts pievienoties šai istabai</string>
-    <string name="change_space">Mainīt vietu</string>
     <string name="initial_sync_request_title">Sākotnējais sinhronizēšanas pieprasījums</string>
     <string name="all_chats">Visas tērzēšanas</string>
     <string name="explore_rooms">Izpētīt istabas</string>
@@ -2167,7 +2166,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="auth_reset_password_error_unverified">E-pasta adrese nav apliecināta, jāpārbauda iesūtne</string>
     <string name="space_explore_activity_title">Izpētīt istabas</string>
     <string name="space_add_existing_rooms_only">Pievienot esošas istabas</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Vietas ir jauns veids, kā apkopot istabas un cilvēkus.</string>
     <string name="space_settings_manage_rooms">Pārvaldīt istabas</string>
     <string name="space_add_existing_rooms">Pievienot esošas istabas un vietas</string>
     <string name="this_space_has_no_rooms">Šajā vietā nav istabu</string>

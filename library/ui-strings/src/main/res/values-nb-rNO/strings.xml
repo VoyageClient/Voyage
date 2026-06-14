@@ -1209,7 +1209,6 @@
     <string name="upgrade_room_for_restricted_note">Vær oppmerksom på at oppgradering vil gjøre en ny versjon av rommet. Alle nåværende meldinger vil forbli i dette arkiverte rommet.</string>
     <string name="notice_room_remove">%1$s sparket %2$s</string>
     <string name="notice_room_invite_no_invitee_by_you">Din invitasjon</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Mellomrom er en ny måte å gruppere rom og mennesker på.</string>
     <string name="you_are_invited">Du er invitert</string>
     <string name="user_invites_you">%s inviterer deg</string>
     <string name="looking_for_someone_not_in_space">Leter du etter noen som ikke er i %s\?</string>

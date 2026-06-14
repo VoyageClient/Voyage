@@ -735,7 +735,6 @@
     <string name="preference_show_all_rooms_in_home">Sýna allar spjallrásir á forsíðu</string>
     <string name="space_manage_rooms_and_spaces">Sýsla með spjallrásir og svæði</string>
     <string name="space_settings_manage_rooms">Sýsla með spjallrásir</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Svæði eru ný leið til að hópa fólk og spjallrásir.</string>
     <string name="space_add_existing_spaces">Bæta við fyrirliggjandi svæðum</string>
     <string name="space_add_existing_rooms_only">Bæta við fyrirliggjandi spjallrásum</string>
     <string name="leave_space">Yfirgefa</string>
@@ -2104,7 +2103,6 @@
     <string name="labs_enable_new_app_layout_summary">Einfaldað Element með valkvæðum flipum</string>
     <string name="labs_enable_new_app_layout_title">Virkja nýja framsetningu</string>
     <string name="home_layout_preferences">Kjörstillingar framsetningar</string>
-    <string name="change_space">Skipta um svæði</string>
     <string name="all_chats">Allar spjallrásir</string>
     <string name="onboarding_new_app_layout_button_try">Prófaðu það</string>
     <string name="onboarding_new_app_layout_feedback_title">Gefðu umsögn</string>

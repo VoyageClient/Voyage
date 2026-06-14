@@ -628,7 +628,6 @@
     <string name="space_leave_prompt_msg_private">هذه المساحة ليست عامة. لن تتمكن من الانضمام مرة أخرى بدون دعوة.</string>
     <string name="space_leave_prompt_msg_as_admin">أنت المسؤول عن هذه المساحة، تأكد من أنك قمت بنقل حق المسؤول إلى عضو آخر قبل المغادرة.</string>
     <string name="space_add_existing_rooms">أضف الغُرف الموجودة ومساحة</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">تعد المساحات طريقة جديدة لتجميع الغرف والأشخاص.</string>
     <string name="you_are_invited">أنت مدعو</string>
     <string name="space_mark_as_suggested">علم كمقترحة</string>
     <string name="space_mark_as_not_suggested">علم كغير مقترحة</string>
@@ -1179,7 +1178,6 @@
 \n
 \nملاحظة: هذا الإجراء سيؤدي إلى إعادة تشغيل التطبيق ومن الممكن أن يستغرق بعضاً من الوقت.</string>
     <string name="explore_rooms">استكشف غُرف</string>
-    <string name="change_space">تغيير التجمع</string>
     <string name="create_room">انشئ غرفة</string>
     <string name="start_chat">ابدأ محادثة</string>
     <string name="all_chats">كل المحادثات</string>

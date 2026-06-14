@@ -2247,7 +2247,6 @@
     <string name="user_invites_you">%s nodigt je uit</string>
     <string name="labs_auto_report_uisi_desc">Jouw systeem verzendt automatisch logboeken wanneer er een fout optreedt die niet kan worden ontsleuteld</string>
     <string name="you_are_invited">Je bent uitgenodigd</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Spaces zijn een nieuwe manier om kamers en mensen te groeperen.</string>
     <string name="space_add_space_to_any_space_you_manage">Voeg een space toe aan elke space die jij beheert.</string>
     <string name="space_add_existing_spaces">Bestaande spaces toevoegen</string>
     <string name="space_add_existing_rooms_only">Bestaande kamers toevoegen</string>
@@ -2656,7 +2655,6 @@
     <string name="space_list_empty_title">Nog geen spaces.</string>
     <string name="a11y_collapse_space_children">%s subitems inklappen</string>
     <string name="a11y_expand_space_children">%s subitems uitvouwen</string>
-    <string name="change_space">Space veranderen</string>
     <string name="command_description_table_flip">Voeg (╯°□°）╯︵ ┻━┻ toe voor elk platte tekst bericht</string>
     <string name="attachment_type_voice_broadcast">Spraakuitzending</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} heeft toestemming nodig om notificaties te laten zien.

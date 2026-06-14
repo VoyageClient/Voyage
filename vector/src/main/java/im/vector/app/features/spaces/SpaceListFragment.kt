@@ -149,7 +149,7 @@ class SpaceListFragment :
             }
             is Success -> {
                 views.stateView.state = StateView.State.Content
-                if (spaces.invoke().isEmpty()) {
+                if (spaces.invoke().isEmpty() && state.tags.isEmpty()) {
                     views.spacesEmptyGroup.isVisible = true
                     views.groupListView.isVisible = false
                 } else {
@@ -169,6 +169,11 @@ class SpaceListFragment :
 
     override fun onSpaceSelected(spaceSummary: RoomSummary?, isSubSpace: Boolean) {
         viewModel.handle(SpaceListAction.SelectSpace(spaceSummary, isSubSpace = isSubSpace))
+        roomListSharedActionViewModel.post(RoomListSharedAction.CloseBottomSheet)
+    }
+
+    override fun onTagSelected(tagName: String?) {
+        viewModel.handle(SpaceListAction.SelectTag(tagName))
         roomListSharedActionViewModel.post(RoomListSharedAction.CloseBottomSheet)
     }
 

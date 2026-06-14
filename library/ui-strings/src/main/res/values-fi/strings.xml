@@ -1541,7 +1541,6 @@
     <string name="space_settings_manage_rooms">Hallitse huoneita</string>
     <string name="user_invites_you">%s kutsuu sinut</string>
     <string name="you_are_invited">Sinut on kutsuttu</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Avaruudet ovat uusi tapa ryhmitellä huoneita ja ihmisiä.</string>
     <string name="space_add_space_to_any_space_you_manage">Lisää avaruus mihin tahansa hallitsemaasi avaruuteen.</string>
     <string name="space_add_existing_spaces">Lisää olemassa olevia avaruuksia</string>
     <string name="space_add_existing_rooms_only">Lisää olemassa olevia huoneita</string>
@@ -2273,7 +2272,6 @@
     <string name="onboarding_new_app_layout_spaces_message">Käytä avaruuksia (oikealla alhaalla) nopeammin ja helpommin kuin koskaan aiemmin.</string>
     <string name="onboarding_new_app_layout_spaces_title">Käytä avaruuksia</string>
     <string name="explore_rooms">Selaa huoneita</string>
-    <string name="change_space">Vaihda avaruutta</string>
     <string name="create_room">Luo huone</string>
     <string name="start_chat">Aloita keskustelu</string>
     <string name="all_chats">Kaikki keskustelut</string>

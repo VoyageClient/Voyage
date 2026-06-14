@@ -28,6 +28,7 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
+import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -43,6 +44,7 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.RoomTagQueryFilter
+import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
@@ -64,6 +66,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         @Assisted initialState: HomeRoomListViewState,
         private val session: Session,
         private val spaceStateHandler: SpaceStateHandler,
+        private val tagFilterStateHandler: TagFilterStateHandler,
         private val preferencesStore: HomeLayoutPreferencesStore,
         private val stringProvider: StringProvider,
         private val drawableProvider: DrawableProvider,
@@ -107,16 +110,26 @@ class HomeRoomListViewModel @AssistedInject constructor(
     }
 
     private fun observeSpaceChanges() {
-        spaceStateHandler.getSelectedSpaceFlow()
+        combine(
+                spaceStateHandler.getSelectedSpaceFlow()
+                        .distinctUntilChanged()
+                        .onStart { emit(spaceStateHandler.getCurrentSpace().toOption()) },
+                tagFilterStateHandler.getSelectedTagFlow()
+                        .distinctUntilChanged()
+                        .onStart { emit(tagFilterStateHandler.getSelectedTag().toOption()) },
+        ) { selectedSpaceOption, selectedTagOption ->
+            selectedSpaceOption.orNull()?.roomId to selectedTagOption.orNull()
+        }
                 .distinctUntilChanged()
-                .onStart {
-                    emit(spaceStateHandler.getCurrentSpace().toOption())
-                }
-                .onEach { selectedSpaceOption ->
-                    val selectedSpace = selectedSpaceOption.orNull()
+                .onEach { (selectedSpaceId, selectedTag) ->
                     updateEmptyState()
                     filteredPagedRoomSummariesLive.queryParams = filteredPagedRoomSummariesLive.queryParams.copy(
-                            spaceFilter = selectedSpace?.roomId.toActiveSpaceOrNoFilter()
+                            spaceFilter = if (selectedTag != null) {
+                                SpaceFilter.NoFilter
+                            } else {
+                                selectedSpaceId.toActiveSpaceOrNoFilter()
+                            },
+                            activeTagFilter = selectedTag,
                     )
                 }
                 .launchIn(viewModelScope)

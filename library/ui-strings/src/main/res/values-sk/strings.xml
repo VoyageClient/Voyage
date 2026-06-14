@@ -1865,7 +1865,6 @@
     <string name="spaces_feeling_experimental_subspace">Chcete experimentovať\?
 \nDo priestoru môžete pridať existujúce priestory.</string>
     <string name="space_manage_rooms_and_spaces">Spravovať miestnosti a priestory</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Priestory sú novým spôsobom spájania miestností a ľudí.</string>
     <string name="space_add_existing_spaces">Pridať existujúce priestory</string>
     <string name="create_spaces_room_private_header_desc">Vytvorme pre každého z nich miestnosť. Neskôr môžete pridať aj ďalšie, vrátane už existujúcich.</string>
     <string name="create_spaces_room_private_header">Na akých veciach pracujete\?</string>
@@ -2708,7 +2707,6 @@
     <string name="space_list_empty_title">Zatiaľ žiadne priestory.</string>
     <string name="a11y_collapse_space_children">Zbaliť %s podpriestory</string>
     <string name="a11y_expand_space_children">Rozbaliť %s podpriestory</string>
-    <string name="change_space">Zmeniť priestor</string>
     <string name="device_manager_session_details_device_ip_address">IP adresa</string>
     <string name="device_manager_session_details_session_last_activity">Posledná aktivita</string>
     <string name="device_manager_session_details_session_name">Názov relácie</string>

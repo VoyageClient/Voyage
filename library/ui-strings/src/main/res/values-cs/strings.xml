@@ -1972,7 +1972,6 @@
     <string name="settings_category_room_directory">Adresář místností</string>
     <string name="event_status_sent_message">Zpráva odeslána</string>
     <string name="a11y_unchecked">Neoznačeno</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Prostory představují nový způsob seskupování místností a osob.</string>
     <string name="create_spaces_room_private_header_desc">Založme pro každé místnost. Později můžete přidat i další, včetně již existujících.</string>
     <string name="create_spaces_room_private_header">Na jakých tématech pracujete\?</string>
     <string name="create_spaces_room_public_header_desc">Založíme pro ně místnosti. Můžete přidat další později.</string>
@@ -2708,7 +2707,6 @@
     <string name="space_list_empty_title">Zatím žádné prostory.</string>
     <string name="a11y_collapse_space_children">Sbalit podprostory %s</string>
     <string name="a11y_expand_space_children">Rozbalit podprostory %s</string>
-    <string name="change_space">Změnit prostor</string>
     <string name="device_manager_session_details_device_ip_address">IP adresa</string>
     <string name="device_manager_session_details_session_last_activity">Poslední aktivita</string>
     <string name="device_manager_session_details_session_name">Název relace</string>

@@ -1951,7 +1951,6 @@
     <string name="looking_for_someone_not_in_space">Szukasz kogoś , kto nie jest w %s\?</string>
     <string name="user_invites_you">%s Cię zaprasza</string>
     <string name="you_are_invited">Zostałeś zaproszony</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Przestrzenie są nową metodą na grupowanie razem wielu pokoi i osób.</string>
     <string name="space_add_space_to_any_space_you_manage">Dodaj przestrzeń do jakiejkolwiek przestrzeni, którą zarządzasz.</string>
     <string name="space_add_existing_spaces">Dodaj istniejące przestrzenie</string>
     <string name="space_add_existing_rooms_only">Dodaj istniejące pokoje</string>
@@ -2723,7 +2722,6 @@
     <string name="invites_title">Zaproszenia</string>
     <string name="home_empty_no_unreads_message">Tutaj pojawią się rozmowy które nie zostały jeszcze odczytane.</string>
     <string name="home_empty_no_unreads_title">Brak nowych wiadomości.</string>
-    <string name="change_space">Zmień przestrzeń</string>
     <string name="labs_enable_deferred_dm_summary">Stwórz prywatny chat dopiero po wysłaniu pierwszej wiadomości</string>
     <string name="labs_enable_deferred_dm_title">Włącz odroczone prywatne chaty</string>
     <string name="labs_enable_new_app_layout_summary">Odświeżony wygląd Element z opcjonalnymi kartami</string>

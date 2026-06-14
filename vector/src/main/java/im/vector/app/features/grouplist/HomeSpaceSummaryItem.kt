@@ -42,7 +42,7 @@ abstract class HomeSpaceSummaryItem : VectorEpoxyModel<HomeSpaceSummaryItem.Hold
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.rootView.onClick(listener)
-        holder.groupNameView.text = holder.view.context.getString(CommonStrings.group_details_home)
+        holder.groupNameView.text = holder.view.context.getString(CommonStrings.all_chats)
         holder.rootView.isChecked = selected
         holder.rootView.context.resources
         holder.avatarImageView.background = ContextCompat.getDrawable(holder.view.context, R.drawable.space_home_background)

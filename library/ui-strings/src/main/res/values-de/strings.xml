@@ -1953,7 +1953,6 @@
     <string name="invite_to_space_with_name_desc">Sie wird in der Lage sein, %s zu durchsuchen</string>
     <string name="invite_just_to_this_room_desc">Sie wird kein Teil von %s sein</string>
     <string name="share_space_link_message">Tritt meinem Space %1$s %2$s bei</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Spaces sind eine neue Möglichkeit, Räume und Personen zu gruppieren.</string>
     <string name="space_add_existing_rooms">Räume oder Spaces hinzufügen</string>
     <string name="skip_for_now">Vorübergehend überspringen</string>
     <string name="create_spaces_room_public_header">Über welche Themen möchtest du dich in %s unterhalten\?</string>
@@ -2626,7 +2625,6 @@
     <string name="home_empty_no_unreads_message">Hier werden deine ungelesenen Nachrichten erscheinen, wenn du welche hast.</string>
     <string name="home_empty_no_unreads_title">Es gibt nichts Neues.</string>
     <string name="all_chats">Alle Unterhaltungen</string>
-    <string name="change_space">Space wechseln</string>
     <string name="start_chat">Unterhaltung beginnen</string>
     <string name="device_manager_filter_bottom_sheet_title">Filter</string>
     <string name="a11y_device_manager_filter">Filtern</string>

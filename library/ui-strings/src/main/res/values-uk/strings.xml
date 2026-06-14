@@ -1399,7 +1399,6 @@
     <string name="secure_backup_banner_setup_line2">Захистіться від втрати доступу до зашифрованих повідомлень і даних</string>
     <string name="secure_backup_setup">Налаштувати безпечне резервне копіювання</string>
     <string name="bottom_sheet_setup_secure_backup_title">Безпечне резервне копіювання</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Простори — це новий спосіб згуртувати кімнати та людей.</string>
     <string name="give_feedback">Надіслати відгук</string>
     <string name="you_may_contact_me">Можете зв’язатися зі мною, якщо у вас виникнуть додаткові запитання</string>
     <string name="space_type_private_desc">Лише запрошені, найкраще для себе та команд</string>
@@ -2760,7 +2759,6 @@
     <string name="space_list_empty_title">Ще немає просторів.</string>
     <string name="a11y_collapse_space_children">Згорнути дочірні елементи %s</string>
     <string name="a11y_expand_space_children">Розгорнути дочірні елементи %s</string>
-    <string name="change_space">Змінити простір</string>
     <string name="device_manager_session_details_device_ip_address">IP-адреса</string>
     <string name="device_manager_session_details_session_last_activity">Остання активність</string>
     <string name="device_manager_session_details_session_name">Назва сеансу</string>

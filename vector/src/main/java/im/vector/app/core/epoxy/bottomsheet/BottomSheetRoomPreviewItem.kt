@@ -42,6 +42,7 @@ abstract class BottomSheetRoomPreviewItem : VectorEpoxyModel<BottomSheetRoomPrev
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var settingsClickListener: ClickListener? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var lowPriorityClickListener: ClickListener? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var favoriteClickListener: ClickListener? = null
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var tagClickListener: ClickListener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -50,6 +51,11 @@ abstract class BottomSheetRoomPreviewItem : VectorEpoxyModel<BottomSheetRoomPrev
         holder.roomName.setTextOrHide(matrixItem.displayName)
         setLowPriorityState(holder, izLowPriority)
         setFavoriteState(holder, izFavorite)
+
+        holder.roomTag.apply {
+            onClick(tagClickListener)
+            TooltipCompat.setTooltipText(this, stringProvider.getString(CommonStrings.room_list_quick_actions_tag))
+        }
 
         holder.roomLowPriority.onClick {
             // Immediate echo
@@ -116,6 +122,7 @@ abstract class BottomSheetRoomPreviewItem : VectorEpoxyModel<BottomSheetRoomPrev
     class Holder : VectorEpoxyHolder() {
         val avatar by bind<ImageView>(R.id.bottomSheetRoomPreviewAvatar)
         val roomName by bind<TextView>(R.id.bottomSheetRoomPreviewName)
+        val roomTag by bind<ImageView>(R.id.bottomSheetRoomPreviewTag)
         val roomLowPriority by bind<ImageView>(R.id.bottomSheetRoomPreviewLowPriority)
         val roomFavorite by bind<ImageView>(R.id.bottomSheetRoomPreviewFavorite)
         val roomSettings by bind<View>(R.id.bottomSheetRoomPreviewSettings)

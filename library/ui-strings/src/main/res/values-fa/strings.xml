@@ -1937,7 +1937,6 @@
     <string name="settings_category_room_directory">فهرست اتاق‌ها</string>
     <string name="event_status_sent_message">پیام فرستاده شد</string>
     <string name="you_are_invited">دعوت شده‌اید</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">فضاها شیوه‌ای جدید برای گروه‌بندی اتاق‌ها و افراد است.</string>
     <string name="space_add_existing_rooms">افزودن فضا و اتاق‌های موجود</string>
     <string name="leave_space">ترک</string>
     <string name="space_add_child_title">افزودن اتاق</string>
@@ -2656,7 +2655,6 @@
     <string name="space_list_empty_title">هنوز فضایی وجود ندارد.</string>
     <string name="a11y_collapse_space_children">جمع کردن فرزندان %s</string>
     <string name="a11y_expand_space_children">گسترش فرزندان %s</string>
-    <string name="change_space">تغییر فضا</string>
     <string name="device_manager_session_details_device_ip_address">نشانی آی‌پی</string>
     <string name="device_manager_session_details_session_last_activity">واپسین فعّالیت</string>
     <string name="device_manager_session_details_session_name">نام نشست</string>

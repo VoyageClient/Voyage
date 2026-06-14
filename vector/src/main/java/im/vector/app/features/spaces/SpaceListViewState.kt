@@ -25,5 +25,7 @@ data class SpaceListViewState(
         val spaceOrderInfo: Map<String, String?>? = null,
         val spaceOrderLocalEchos: Map<String, String?>? = null,
         val expandedStates: Map<String, Boolean> = emptyMap(),
-        val homeAggregateCount: RoomAggregateNotificationCount = RoomAggregateNotificationCount(0, 0)
+        val homeAggregateCount: RoomAggregateNotificationCount = RoomAggregateNotificationCount(0, 0),
+        val tags: List<RoomTagItem> = emptyList(),
+        val selectedTag: String? = null,
 ) : MavericksState

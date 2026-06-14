@@ -78,7 +78,6 @@
     <string name="all_chats">ყველა ჩატი</string>
     <string name="start_chat">დაწყება ჩატის</string>
     <string name="create_room">შექმენით ოთახი</string>
-    <string name="change_space">შეცვალეთ სივრცე</string>
     <string name="explore_rooms">ოთახების შესწავლა</string>
     <string name="a11y_collapse_space_children">შეკუმშეთ %s შვილობილი</string>
     <string name="room_error_access_unauthorized">თქვენ არ გაქვთ უფლებას, შეუერთდეთ ამ ოთახს</string>
@@ -2786,7 +2785,6 @@
     <string name="space_leave_prompt_msg_private">ვერ შეუერთდებით ხელახლა, თუ არ იქნებით ხელახლა მოწვეული.</string>
     <string name="space_leave_prompt_msg_as_admin">თქვენ ხართ ერთადერთი ადმინი ამ სივრცის. მისი დატოვება ნიშნავს, რომ მასზე კონტროლი არავის ექნება.</string>
     <string name="space_explore_filter_no_result_description">ზოგიერთი შედეგი შეიძლება დამალული იყოს, რადგან ისინი პირადულია და გჭირდებათ მოწვევა მათთვის.</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">სივრცეები ახალი გზაა ოთახებისა და ადამიანების დასაკავშირებლად.</string>
     <string name="labs_auto_report_uisi_desc">თქვენი სისტემა ავტომატურად გაგზავნის ლოგებს, როცა ვერ მოხერხდება დეკრიფცია</string>
     <string name="settings_show_latest_profile_description">აჩვენეთ ბოლო პროფილის ინფორმაცია (ავატარი და სახელი) ყველა შეტყობინებისთვის.</string>
     <string name="space_settings_manage_rooms">ოთახების მართვა</string>

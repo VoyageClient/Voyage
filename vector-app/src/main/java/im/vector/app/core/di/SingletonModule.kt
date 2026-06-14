@@ -51,6 +51,8 @@ import im.vector.app.features.room.VectorRoomDisplayNameFallbackProvider
 import im.vector.app.features.settings.FontScalePreferences
 import im.vector.app.features.settings.FontScalePreferencesImpl
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.spaces.tags.TagFilterStateHandler
+import im.vector.app.features.spaces.tags.TagFilterStateHandlerImpl
 import im.vector.app.features.ui.SharedPreferencesUiStateRepository
 import im.vector.app.features.ui.UiStateRepository
 import im.vector.application.BuildConfig
@@ -113,6 +115,9 @@ import javax.inject.Singleton
 
     @Binds
     abstract fun bindSpaceStateHandler(spaceStateHandlerImpl: SpaceStateHandlerImpl): SpaceStateHandler
+
+    @Binds
+    abstract fun bindTagFilterStateHandler(tagFilterStateHandlerImpl: TagFilterStateHandlerImpl): TagFilterStateHandler
 
     @Binds
     abstract fun bindGetDeviceInfoUseCase(getDeviceInfoUseCase: DefaultGetDeviceInfoUseCase): GetDeviceInfoUseCase

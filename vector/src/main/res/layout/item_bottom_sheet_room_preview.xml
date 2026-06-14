@@ -38,11 +38,25 @@
         android:textColor="?vctr_content_primary"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@id/bottomSheetRoomPreviewAvatar"
-        app:layout_constraintEnd_toStartOf="@id/bottomSheetRoomPreviewLowPriority"
+        app:layout_constraintEnd_toStartOf="@id/bottomSheetRoomPreviewTag"
         app:layout_constraintStart_toEndOf="@id/bottomSheetRoomPreviewAvatar"
         app:layout_constraintTop_toTopOf="@id/bottomSheetRoomPreviewAvatar"
         tools:fontFamily="sans-serif"
         tools:text="@sample/rooms.json/data/name" />
+
+    <ImageView
+        android:id="@+id/bottomSheetRoomPreviewTag"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackground"
+        android:contentDescription="@string/room_list_quick_actions_tag"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_tag_24"
+        app:layout_constraintBottom_toBottomOf="@id/bottomSheetRoomPreviewAvatar"
+        app:layout_constraintEnd_toStartOf="@id/bottomSheetRoomPreviewLowPriority"
+        app:layout_constraintTop_toTopOf="@id/bottomSheetRoomPreviewAvatar"
+        app:tint="?vctr_content_secondary"
+        tools:ignore="MissingPrefix" />
 
     <ImageView
         android:id="@+id/bottomSheetRoomPreviewLowPriority"

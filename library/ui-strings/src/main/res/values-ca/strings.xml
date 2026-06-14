@@ -1972,7 +1972,6 @@
     <string name="create_space_in_progress">Creant espai…</string>
     <string name="create_space_alias_hint">Adreça de l\'espai</string>
     <string name="create_new_space">Crea un nou espai</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Els espais són una nova manera d\'agrupar sales i gent.</string>
     <string name="command_description_avatar_for_room">Canvia la teva foto només en la sala actual</string>
     <string name="command_description_room_avatar">Canvia la foto de la sala actual</string>
     <string name="room_permissions_change_space_avatar">Canvia la foto de l\'espai</string>
@@ -2656,7 +2655,6 @@
     <string name="space_list_empty_title">Cap espai, encara.</string>
     <string name="a11y_collapse_space_children">Amaga els continguts de %s</string>
     <string name="a11y_expand_space_children">Mostra el contingut de %s</string>
-    <string name="change_space">Canvia espai</string>
     <string name="device_manager_other_sessions_recommendation_description_unverified">Verifica les teves sessions per obtenir missatges segurs millorats o tanca les sessions que no reconeguis o ja no utilitzis.</string>
     <string name="device_manager_filter_option_unverified_description">No llest per a missatges segurs</string>
     <string name="device_manager_filter_option_verified_description">Llest per a missatges segurs</string>

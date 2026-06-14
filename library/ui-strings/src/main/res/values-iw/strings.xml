@@ -2244,7 +2244,6 @@
     <string name="labs_auto_report_uisi_desc">המערכת שלך תשלח אוטומטית יומנים כאשר מתרחשת שגיאה ללא יכולת לפענח</string>
     <string name="labs_auto_report_uisi">דווח אוטומטית על שגיאות פענוח.</string>
     <string name="you_are_invited">אתם מוזמנים</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">מרחבים הם דרך חדשה לאיחוד של חדרים ואנשים.</string>
     <string name="space_add_space_to_any_space_you_manage">הוסף מרחב לכל מרחב שאתה מנהל.</string>
     <string name="space_add_existing_spaces">הוסף מרחבים קיימים</string>
     <string name="space_add_existing_rooms_only">הוסף חדרים קיימים</string>

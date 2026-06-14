@@ -150,7 +150,6 @@
     <string name="all_chats">All Chats</string>
     <string name="start_chat">Start Chat</string>
     <string name="create_room">Create Room</string>
-    <string name="change_space">Change Space</string>
     <string name="explore_rooms">Explore Rooms</string>
     <!-- Note to translators: %s refers to the space whose children is being expanded -->
     <string name="a11y_expand_space_children">Expand %s children</string>
@@ -3096,7 +3095,6 @@
     <string name="space_add_existing_rooms_only">Add existing rooms</string>
     <string name="space_add_existing_spaces">Add existing spaces</string>
     <string name="space_add_space_to_any_space_you_manage">Add a space to any space you manage.</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">Spaces are a new way to group rooms and people.</string>
     <string name="you_are_invited">You are invited</string>
 
     <string name="labs_auto_report_uisi">Auto Report Decryption Errors.</string>

@@ -1862,7 +1862,6 @@
     <string name="invite_to_space">%sに招待</string>
     <string name="invite_by_username_or_mail">ユーザー名かメールアドレスで招待</string>
     <string name="space_leave_prompt_msg_with_name">%sから退出してよろしいですか？</string>
-    <string name="spaces_beta_welcome_to_spaces_desc">スペースは、ルームや連絡先をまとめる新しい方法です。</string>
     <string name="you_are_invited">招待されています</string>
     <string name="space_add_space_to_any_space_you_manage">新しいスペースを、あなたが管理するスペースに追加。</string>
     <string name="spaces_no_server_support_description">ホームサーバーの管理者にお問い合わせください</string>
@@ -2441,7 +2440,6 @@
     <string name="a11y_collapse_space_children">%sのサブスペースを折りたたむ</string>
     <string name="a11y_expand_space_children">%sのサブスペースを展開</string>
     <string name="explore_rooms">ルームを探す</string>
-    <string name="change_space">スペースを変更</string>
     <string name="create_room">ルームを作成</string>
     <string name="start_chat">会話を開始</string>
     <string name="all_chats">全ての会話</string>

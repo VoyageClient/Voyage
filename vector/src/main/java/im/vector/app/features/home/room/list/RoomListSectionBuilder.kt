@@ -19,6 +19,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.showInvites
+import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
@@ -45,12 +47,14 @@ import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
+import org.matrix.android.sdk.api.util.toOption
 import timber.log.Timber
 
 class RoomListSectionBuilder(
         private val session: Session,
         private val stringProvider: StringProvider,
         private val spaceStateHandler: SpaceStateHandler,
+        private val tagFilterStateHandler: TagFilterStateHandler,
         private val viewModelScope: CoroutineScope,
         private val autoAcceptInvites: AutoAcceptInvites,
         private val onUpdatable: (UpdatableLivePageResult) -> Unit,
@@ -86,12 +90,20 @@ class RoomListSectionBuilder(
             }
         }
 
-        spaceStateHandler.getSelectedSpaceFlow()
+        combine(
+                spaceStateHandler.getSelectedSpaceFlow()
+                        .distinctUntilChanged()
+                        .onStart { emit(spaceStateHandler.getCurrentSpace().toOption()) },
+                tagFilterStateHandler.getSelectedTagFlow()
+                        .distinctUntilChanged()
+                        .onStart { emit(tagFilterStateHandler.getSelectedTag().toOption()) },
+        ) { selectedSpaceOption, selectedTagOption ->
+            selectedSpaceOption.orNull()?.roomId to selectedTagOption.orNull()
+        }
                 .distinctUntilChanged()
-                .onEach { selectedSpaceOption ->
-                    val selectedSpace = selectedSpaceOption.orNull()
+                .onEach { (selectedSpaceId, selectedTag) ->
                     activeSpaceAwareQueries.onEach { updater ->
-                        updater.updateForSpaceId(selectedSpace?.roomId)
+                        updater.updateForSpaceId(selectedSpaceId, selectedTag)
                     }
                 }.launchIn(viewModelScope)
 
@@ -368,9 +380,10 @@ class RoomListSectionBuilder(
             when (spaceFilterStrategy) {
                 RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL -> {
                     activeSpaceUpdaters.add(object : RoomListViewModel.ActiveSpaceQueryUpdater {
-                        override fun updateForSpaceId(roomId: String?) {
+                        override fun updateForSpaceId(roomId: String?, tag: String?) {
                             filteredPagedRoomSummariesLive.queryParams = roomQueryParams.copy(
-                                    spaceFilter = roomId.toActiveSpaceOrOrphanRooms()
+                                    spaceFilter = if (tag != null) SpaceFilter.NoFilter else roomId.toActiveSpaceOrOrphanRooms(),
+                                    activeTagFilter = tag,
                             )
                             liveQueryParams.update { filteredPagedRoomSummariesLive.queryParams }
                         }
@@ -378,16 +391,11 @@ class RoomListSectionBuilder(
                 }
                 RoomListViewModel.SpaceFilterStrategy.ALL_IF_SPACE_NULL -> {
                     activeSpaceUpdaters.add(object : RoomListViewModel.ActiveSpaceQueryUpdater {
-                        override fun updateForSpaceId(roomId: String?) {
-                            if (roomId != null) {
-                                filteredPagedRoomSummariesLive.queryParams = roomQueryParams.copy(
-                                        spaceFilter = SpaceFilter.ActiveSpace(roomId)
-                                )
-                            } else {
-                                filteredPagedRoomSummariesLive.queryParams = roomQueryParams.copy(
-                                        spaceFilter = SpaceFilter.NoFilter
-                                )
-                            }
+                        override fun updateForSpaceId(roomId: String?, tag: String?) {
+                            filteredPagedRoomSummariesLive.queryParams = roomQueryParams.copy(
+                                    spaceFilter = if (roomId != null) SpaceFilter.ActiveSpace(roomId) else SpaceFilter.NoFilter,
+                                    activeTagFilter = tag,
+                            )
                             liveQueryParams.update { filteredPagedRoomSummariesLive.queryParams }
                         }
                     })
