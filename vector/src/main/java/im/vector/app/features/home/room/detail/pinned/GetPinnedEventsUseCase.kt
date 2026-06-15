@@ -47,7 +47,7 @@ class GetPinnedEventsUseCase @Inject constructor(
             tryOrNull { session.eventService().ensureEventCached(room.roomId, eventId) }
             room.getTimelineEvent(eventId)?.takeUnless { it.root.isRedacted() }
         }
-                // Order by the pinned event's own date (newest first), not by when it was pinned.
-                .sortedByDescending { it.root.originServerTs ?: 0 }
+                // Order by the pinned event's own date (oldest first), not by when it was pinned.
+                .sortedBy { it.root.originServerTs ?: 0 }
     }
 }

@@ -78,6 +78,17 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Set the banner as if the user had just jumped to [eventId]: suggest the next (older) pin,
+     * matching tap-to-cycle. Used when opening the room directly at a pinned event.
+     */
+    fun advancePast(eventId: String?) {
+        val index = eventIds.indexOf(eventId)
+        if (index < 0) return
+        currentIndex = if (index - 1 < 0) eventIds.lastIndex else index - 1
+        updateUi()
+    }
+
     private fun updateUi() {
         val eventId = eventIds.getOrNull(currentIndex) ?: return
         views.pinnedMessagesPreview.text = previewProvider(eventId)

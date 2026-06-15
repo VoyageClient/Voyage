@@ -53,7 +53,8 @@ class RoomPinnedMessagesViewModel @AssistedInject constructor(
         setState { copy(pinnedEvents = Loading()) }
         getPinnedEventsUseCase.execute(room)
                 .onEach { events ->
-                    setState { copy(pinnedEvents = Success(events)) }
+                    // The use case yields oldest-first (for the timeline banner); show newest-first here.
+                    setState { copy(pinnedEvents = Success(events.reversed())) }
                 }
                 .launchIn(viewModelScope)
     }

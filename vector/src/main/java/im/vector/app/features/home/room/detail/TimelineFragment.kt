@@ -287,6 +287,7 @@ class TimelineFragment :
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
     private var modelBuildListener: OnModelBuildFinishedListener? = null
+    private var pinnedBannerJumpApplied = false
 
     private lateinit var keyboardStateUtils: KeyboardStateUtils
     private lateinit var callActionsHandler: StartCallActionsHandler
@@ -809,6 +810,12 @@ class TimelineFragment :
             pinnedEvents.firstOrNull { it.eventId == eventId }
                     ?.let { displayableEventFormatter.format(it, isDm = isDirect, appendAuthor = true) }
                     ?: ""
+        }
+        // When opening the room directly at a pinned event (e.g. from the pinned list), suggest the
+        // next pin from there right away, instead of staying on the newest until the user scrolls.
+        if (!pinnedBannerJumpApplied) {
+            pinnedBannerJumpApplied = true
+            views.pinnedMessagesBanner.advancePast(timelineArgs.eventId)
         }
     }
 
