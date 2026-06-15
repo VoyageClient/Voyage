@@ -44,6 +44,7 @@ class MessageActionsBottomSheet :
         super.onViewCreated(view, savedInstanceState)
         sharedActionViewModel = activityViewModelProvider.get(MessageSharedActionViewModel::class.java)
         views.bottomSheetRecyclerView.configureWith(messageActionsEpoxyController, hasFixedSize = false, disableItemAnimation = true)
+        views.bottomSheetRecyclerView.isVerticalScrollBarEnabled = false
         messageActionsEpoxyController.listener = this
     }
 

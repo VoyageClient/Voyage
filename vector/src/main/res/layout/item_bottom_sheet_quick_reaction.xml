@@ -1,96 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:padding="8dp"
     tools:viewBindingIgnore="true">
 
-    <TextView
-        android:id="@+id/quickReaction0"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textColor="@color/emoji_black"
-        tools:text="👍" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/reactionsWrapContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/quickReaction1"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        tools:text="👎" />
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/reactionsFlowHelper"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:flow_horizontalGap="0dp"
+            app:flow_horizontalStyle="spread"
+            app:flow_verticalBias="0"
+            app:flow_verticalGap="4dp"
+            app:flow_wrapMode="chain"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/quickReaction2"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textColor="@color/emoji_black"
-        tools:text="😀" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <TextView
-        android:id="@+id/quickReaction3"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
+    <im.vector.app.core.ui.views.NoInitialScrollbarHorizontalScrollView
+        android:id="@+id/reactionsScroll"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textColor="@color/emoji_black"
-        tools:text="🎉" />
+        android:fillViewport="true"
+        android:scrollbars="horizontal"
+        android:visibility="gone">
 
-    <TextView
-        android:id="@+id/quickReaction4"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textColor="@color/emoji_black"
-        tools:text="😕" />
+        <LinearLayout
+            android:id="@+id/reactionsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
 
-    <TextView
-        android:id="@+id/quickReaction5"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textColor="@color/emoji_black"
-        tools:text="♥" />
+    </im.vector.app.core.ui.views.NoInitialScrollbarHorizontalScrollView>
 
-    <TextView
-        android:id="@+id/quickReaction6"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textColor="@color/emoji_black"
-        tools:text="🍆" />
-
-    <TextView
-        android:id="@+id/quickReaction7"
-        style="@style/Widget.Vector.TextView.Title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="4dp"
-        android:textColor="@color/emoji_black"
-        tools:text="👀" />
-
-    <androidx.constraintlayout.helper.widget.Flow
-        android:id="@+id/reactionsFlowHelper"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:constraint_referenced_ids="quickReaction0,quickReaction1,quickReaction2,quickReaction3,quickReaction4,quickReaction5,quickReaction6,quickReaction7"
-        app:flow_horizontalGap="0dp"
-        app:flow_horizontalStyle="spread"
-        app:flow_verticalBias="0"
-        app:flow_verticalGap="4dp"
-        app:flow_wrapMode="chain"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

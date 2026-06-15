@@ -7,7 +7,15 @@
 package im.vector.app.core.epoxy.bottomsheet
 
 import android.graphics.Typeface
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
+import android.widget.HorizontalScrollView
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.constraintlayout.helper.widget.Flow
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.EmojiCompatFontProvider
@@ -15,9 +23,11 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.utils.DimensionConverter
 
 /**
- * A quick reaction list for bottom sheet.
+ * A quick reaction list for bottom sheet. Emojis wrap onto more rows by default; in compact mode they
+ * stay on a single row that scrolls horizontally when there are too many to fit.
  */
 @EpoxyModelClass
 abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuickReactionsItem.Holder>(R.layout.item_bottom_sheet_quick_reaction) {
@@ -32,42 +42,60 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
     lateinit var selecteds: List<Boolean>
 
     @EpoxyAttribute
+    var compact: Boolean = false
+
+    @EpoxyAttribute
     var listener: Listener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.textViews.forEachIndexed { index, textView ->
-            textView.typeface = fontProvider.typeface ?: Typeface.DEFAULT
-            textView.text = texts[index]
-            textView.alpha = if (selecteds[index]) 0.2f else 1f
+        val context = holder.view.context
+        val padding = DimensionConverter(context.resources).dpToPx(4)
 
-            textView.onClick {
-                listener?.didSelect(texts[index], !selecteds[index])
+        holder.addedViews.forEach { (it.parent as? ViewGroup)?.removeView(it) }
+        holder.addedViews.clear()
+
+        holder.wrapContainer.isVisible = !compact
+        holder.scroll.isVisible = compact
+
+        val ids = IntArray(texts.size)
+        texts.forEachIndexed { index, emoji ->
+            val selected = selecteds.getOrElse(index) { false }
+            val textView = TextView(context, null, 0, im.vector.lib.ui.styles.R.style.Widget_Vector_TextView_Title).apply {
+                id = View.generateViewId()
+                setPadding(padding, padding, padding, padding)
+                typeface = fontProvider.typeface ?: Typeface.DEFAULT
+                text = emoji
+                alpha = if (selected) 0.2f else 1f
+                onClick { listener?.didSelect(emoji, !selected) }
             }
+            holder.addedViews.add(textView)
+            if (compact) {
+                // Weighted so leftover width is shared evenly (emojis spread out); on overflow there
+                // is no leftover and the row scrolls horizontally instead.
+                textView.gravity = Gravity.CENTER
+                val params = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f
+                )
+                holder.row.addView(textView, params)
+            } else {
+                holder.wrapContainer.addView(textView)
+                ids[index] = textView.id
+            }
+        }
+        if (!compact) {
+            holder.flow.referencedIds = ids
         }
     }
 
     class Holder : VectorEpoxyHolder() {
-        private val quickReaction0 by bind<TextView>(R.id.quickReaction0)
-        private val quickReaction1 by bind<TextView>(R.id.quickReaction1)
-        private val quickReaction2 by bind<TextView>(R.id.quickReaction2)
-        private val quickReaction3 by bind<TextView>(R.id.quickReaction3)
-        private val quickReaction4 by bind<TextView>(R.id.quickReaction4)
-        private val quickReaction5 by bind<TextView>(R.id.quickReaction5)
-        private val quickReaction6 by bind<TextView>(R.id.quickReaction6)
-        private val quickReaction7 by bind<TextView>(R.id.quickReaction7)
-
-        val textViews
-            get() = listOf(
-                    quickReaction0,
-                    quickReaction1,
-                    quickReaction2,
-                    quickReaction3,
-                    quickReaction4,
-                    quickReaction5,
-                    quickReaction6,
-                    quickReaction7
-            )
+        val wrapContainer by bind<ConstraintLayout>(R.id.reactionsWrapContainer)
+        val flow by bind<Flow>(R.id.reactionsFlowHelper)
+        val scroll by bind<HorizontalScrollView>(R.id.reactionsScroll)
+        val row by bind<LinearLayout>(R.id.reactionsRow)
+        val addedViews = mutableListOf<TextView>()
     }
 
     interface Listener {

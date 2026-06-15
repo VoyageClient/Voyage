@@ -109,6 +109,18 @@
             android:summary="@string/settings_show_pinned_messages_banner_summary"
             android:title="@string/settings_show_pinned_messages_banner" />
 
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_QUICK_REACTIONS_KEY"
+            android:dialogMessage="@string/settings_quick_reactions_summary"
+            android:summary="@string/settings_quick_reactions_summary"
+            android:title="@string/settings_quick_reactions" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
+            android:summary="@string/settings_compact_quick_reactions_summary"
+            android:title="@string/settings_compact_quick_reactions" />
+
         <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"
             android:title="@string/settings_always_show_timestamps" />

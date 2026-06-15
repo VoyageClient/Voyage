@@ -26,13 +26,10 @@ import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormat
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
-import im.vector.app.features.reactions.data.EmojiDataSource
-import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -84,7 +81,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val vectorPreferences: VectorPreferences,
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
-        private val recentEmojiDataSource: RecentEmojiDataSource,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -176,19 +172,16 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     private fun observeReactions() {
         if (room == null) return
-        val limit = EmojiDataSource.quickEmojis.size
+        val quickReactions = vectorPreferences.getQuickReactions()
         eventIdFlow
                 .flatMapLatest { eventId ->
-                    combine(
-                            room.flow().liveAnnotationSummary(eventId),
-                            recentEmojiDataSource.stream(),
-                    ) { annotations, recent ->
-                        val frequent = recent.sortedByDescending { it.second }.map { it.first }
-                        val quickEmojis = (frequent + EmojiDataSource.quickEmojis).distinct().take(limit)
-                        quickEmojis.map { emoji ->
-                            ToggleState(emoji, annotations.getOrNull()?.reactionsSummary?.firstOrNull { it.key == emoji }?.addedByMe ?: false)
-                        }
-                    }
+                    room.flow()
+                            .liveAnnotationSummary(eventId)
+                            .map { annotations ->
+                                quickReactions.map { emoji ->
+                                    ToggleState(emoji, annotations.getOrNull()?.reactionsSummary?.firstOrNull { it.key == emoji }?.addedByMe ?: false)
+                                }
+                            }
                 }
                 .execute {
                     copy(quickStates = it)

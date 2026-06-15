@@ -167,6 +167,7 @@ class MessageActionsEpoxyController @Inject constructor(
             bottomSheetQuickReactionsItem {
                 id("quick_reaction")
                 fontProvider(host.fontProvider)
+                compact(host.vectorPreferences.compactQuickReactions())
                 texts(state.quickStates()?.map { it.reaction }.orEmpty())
                 selecteds(state.quickStates.invoke().map { it.isSelected })
                 listener(object : BottomSheetQuickReactionsItem.Listener {

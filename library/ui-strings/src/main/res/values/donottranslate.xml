@@ -101,4 +101,8 @@
     <string name="room_tag_create_new" translatable="false">Create new tag…</string>
     <string name="room_tag_new_hint" translatable="false">Tag name</string>
     <string name="settings_clear_emoji_cache" translatable="false">Clear remote emoji cache</string>
+    <string name="settings_quick_reactions" translatable="false">Quick reactions</string>
+    <string name="settings_quick_reactions_summary" translatable="false">Emojis shown when long-pressing a message, separated by spaces. Leave empty for the defaults.</string>
+    <string name="settings_compact_quick_reactions" translatable="false">Compact quick reactions</string>
+    <string name="settings_compact_quick_reactions_summary" translatable="false">Keep quick reactions on a single row that scrolls horizontally, instead of wrapping onto more rows.</string>
 </resources>

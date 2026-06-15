@@ -20,6 +20,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.homeserver.ServerUrlsRepository
+import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
@@ -66,6 +67,8 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_LABS_RICH_TEXT_EDITOR_KEY = "SETTINGS_LABS_RICH_TEXT_EDITOR_KEY"
         const val SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY = "SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY"
         const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
+        const val SETTINGS_QUICK_REACTIONS_KEY = "SETTINGS_QUICK_REACTIONS_KEY"
+        const val SETTINGS_COMPACT_QUICK_REACTIONS_KEY = "SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
         const val SETTINGS_LABS_NEW_SESSION_MANAGER_KEY = "SETTINGS_LABS_NEW_SESSION_MANAGER_KEY"
         const val SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY = "SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY"
         const val SETTINGS_LABS_VOICE_BROADCAST_KEY = "SETTINGS_LABS_VOICE_BROADCAST_KEY"
@@ -1304,6 +1307,23 @@ class VectorPreferences @Inject constructor(
 
     fun showPinnedMessagesBanner(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY, true)
+    }
+
+    /**
+     * Emojis shown in the message long-press quick-reaction row. User-entered emojis are
+     * whitespace-separated; falls back to the built-in defaults when unset/blank.
+     */
+    fun getQuickReactions(): List<String> {
+        val configured = defaultPrefs.getString(SETTINGS_QUICK_REACTIONS_KEY, null)
+                ?.trim()
+                ?.split(Regex("\\s+"))
+                ?.filter { it.isNotEmpty() }
+                .orEmpty()
+        return configured.ifEmpty { EmojiDataSource.quickEmojis }
+    }
+
+    fun compactQuickReactions(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_COMPACT_QUICK_REACTIONS_KEY, false)
     }
 
     fun isRichTextEditorEnabled(): Boolean {
