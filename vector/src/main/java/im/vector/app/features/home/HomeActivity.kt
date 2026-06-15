@@ -208,14 +208,14 @@ class HomeActivity :
         roomListSharedActionViewModel = viewModelProvider[RoomListSharedActionViewModel::class.java]
         views.drawerLayout.addDrawerListener(drawerListener)
         if (isFirstCreation()) {
-            if (vectorPreferences.isNewAppLayoutEnabled()) {
-                views.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-                replaceFragment(views.homeDetailFragmentContainer, NewHomeDetailFragment::class.java)
+            val homeDetailFragment = if (vectorPreferences.isNewAppLayoutEnabled()) {
+                NewHomeDetailFragment::class.java
             } else {
-                replaceFragment(views.homeDetailFragmentContainer, HomeDetailFragment::class.java)
-                replaceFragment(views.homeDrawerFragmentContainer, HomeDrawerFragment::class.java)
-                views.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+                HomeDetailFragment::class.java
             }
+            replaceFragment(views.homeDetailFragmentContainer, homeDetailFragment)
+            replaceFragment(views.homeDrawerFragmentContainer, HomeDrawerFragment::class.java)
+            views.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
         }
 
         sharedActionViewModel

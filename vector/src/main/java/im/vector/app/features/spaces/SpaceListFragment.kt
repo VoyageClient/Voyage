@@ -35,11 +35,8 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
 /**
- * This Fragment is displayed in the navigation drawer [im.vector.app.features.home.HomeDrawerFragment] and
- * is displaying the space hierarchy, with some actions on Spaces.
- *
- * In the New App Layout this fragment will instead be displayed in a Bottom Sheet [SpaceListBottomSheet]
- * and will only display spaces that are direct children of the currently selected space (or root spaces if none)
+ * This Fragment is displayed in the navigation drawer [im.vector.app.features.home.HomeDrawerFragment]
+ * (in both the legacy and the new app layout) and displays the space hierarchy, with some actions on Spaces.
  */
 @AndroidEntryPoint
 class SpaceListFragment :

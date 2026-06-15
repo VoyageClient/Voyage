@@ -65,7 +65,7 @@
                         android:id="@+id/avatar"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:contentDescription="@string/a11y_open_settings"
+                        android:contentDescription="@string/a11y_open_spaces"
                         android:padding="6dp"
                         tools:src="@sample/user_round_avatars" />
 
@@ -110,47 +110,6 @@
         </LinearLayout>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/newLayoutOpenSpacesButton"
-        style="@style/Widget.Vector.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:accessibilityTraversalAfter="@id/newLayoutCreateChatButton"
-        android:contentDescription="@string/a11y_open_spaces"
-        android:src="@drawable/ic_spaces"
-        android:visibility="gone"
-        app:backgroundTint="?attr/vctr_toolbar_background"
-        app:fabSize="mini"
-        app:layout_constraintBottom_toTopOf="@id/newLayoutCreateChatButton"
-        app:layout_constraintEnd_toEndOf="@id/newLayoutCreateChatButton"
-        app:layout_constraintStart_toStartOf="@id/newLayoutCreateChatButton"
-        app:tint="?attr/colorPrimary"
-        tools:targetApi="lollipop_mr1"
-        tools:visibility="visible" />
-
-    <im.vector.app.features.home.room.list.UnreadCounterBadgeView
-        android:id="@+id/spacesUnreadCounterBadge"
-        style="@style/Widget.Vector.TextView.Micro"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginEnd="4dp"
-        android:elevation="15dp"
-        android:gravity="center"
-        android:minWidth="16dp"
-        android:minHeight="16dp"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:textColor="?colorOnError"
-        app:layout_constraintCircle="@id/newLayoutOpenSpacesButton"
-        app:layout_constraintCircleAngle="45"
-        app:layout_constraintCircleRadius="24dp"
-        tools:background="@drawable/bg_unread_highlight"
-        tools:ignore="MissingConstraints"
-        tools:text="147"
-        tools:visibility="visible" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/newLayoutCreateChatButton"
