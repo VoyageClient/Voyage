@@ -82,6 +82,8 @@ import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.poll.PollMode
+import im.vector.app.features.reactions.data.AccountDataRecentEmoji
+import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.SharedData
 import im.vector.app.features.voice.VoiceFailure
@@ -116,6 +118,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var vectorFeatures: VectorFeatures
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var session: Session
+    @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
     @Inject lateinit var errorTracker: ErrorTracker
 
     private val permalinkService: PermalinkService
@@ -534,6 +537,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun createEmojiPopup(): EmojiPopup {
         return EmojiPopup(
                 rootView = views.root,
+                recentEmoji = AccountDataRecentEmoji(recentEmojiDataSource),
                 keyboardAnimationStyle = com.vanniktech.emoji.R.style.emoji_fade_animation_style,
                 onEmojiPopupShownListener = {
                     composer.emojiButton?.apply {

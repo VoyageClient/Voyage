@@ -59,6 +59,7 @@ import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.raw.wellknown.CryptoConfig
 import im.vector.app.features.raw.wellknown.getOutboundSessionKeySharingStrategyOrDefault
 import im.vector.app.features.raw.wellknown.withElementWellKnown
+import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorDataStore
 import im.vector.app.features.settings.VectorPreferences
@@ -154,6 +155,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val voiceBroadcastHelper: VoiceBroadcastHelper,
         private val voteToPollUseCase: VoteToPollUseCase,
         private val getPinnedEventsUseCase: GetPinnedEventsUseCase,
+        private val recentEmojiDataSource: RecentEmojiDataSource,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, ChatEffectManager.Delegate, CallProtocolsChecker.Listener, LocationSharingServiceConnection.Callback {
 
@@ -860,6 +862,7 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
     private fun handleSendReaction(action: RoomDetailAction.SendReaction) {
         if (room == null) return
         room.relationService().sendReaction(action.targetEventId, action.reaction)
+        recentEmojiDataSource.recordEmojiUse(listOf(action.reaction))
     }
 
     private fun handleRedactEvent(action: RoomDetailAction.RedactAction) {
@@ -894,6 +897,7 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
         if (room == null) return
         if (action.add) {
             room.relationService().sendReaction(action.targetEventId, action.selectedReaction)
+            recentEmojiDataSource.recordEmojiUse(listOf(action.selectedReaction))
         } else {
             viewModelScope.launch {
                 tryOrNull {

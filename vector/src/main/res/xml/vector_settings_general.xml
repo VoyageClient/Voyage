@@ -100,6 +100,10 @@
             android:title="@string/settings_clear_media_cache" />
 
         <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_CLEAR_EMOJI_CACHE_PREFERENCE_KEY"
+            android:title="@string/settings_clear_emoji_cache" />
+
+        <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_CLEAR_CACHE_PREFERENCE_KEY"
             android:title="@string/settings_clear_cache" />
 

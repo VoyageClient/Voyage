@@ -48,6 +48,7 @@ import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.discovery.DiscoverySettingsFragment
 import im.vector.app.features.navigation.SettingsActivityPayload
+import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -76,6 +77,7 @@ class VectorSettingsGeneralFragment :
         GalleryOrCameraDialogHelper.Listener {
 
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
+    @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
 
     override var titleRes = CommonStrings.settings_general_title
     override val preferenceXmlRes = R.xml.vector_settings_general
@@ -308,6 +310,12 @@ class VectorSettingsGeneralFragment :
                     false
                 }
             }
+        }
+        // clear recent emoji
+        findPreference<VectorPreference>(VectorPreferences.SETTINGS_CLEAR_EMOJI_CACHE_PREFERENCE_KEY)!!
+                .onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            recentEmojiDataSource.clear()
+            false
         }
         // Sign out
         findPreference<VectorPreference>("SETTINGS_SIGN_OUT_KEY")!!

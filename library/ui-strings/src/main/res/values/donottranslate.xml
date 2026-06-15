@@ -100,4 +100,5 @@
     <string name="room_tag_add_existing" translatable="false">Add a tag</string>
     <string name="room_tag_create_new" translatable="false">Create new tag…</string>
     <string name="room_tag_new_hint" translatable="false">Tag name</string>
+    <string name="settings_clear_emoji_cache" translatable="false">Clear remote emoji cache</string>
 </resources>
