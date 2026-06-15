@@ -135,6 +135,11 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
+    var markedUnread: Boolean = false
+        set(value) {
+            if (value != field) field = value
+        }
+
     private var tags: RealmList<RoomTagEntity> = RealmList()
 
     fun tags(): List<RoomTagEntity> = tags

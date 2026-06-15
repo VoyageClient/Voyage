@@ -103,8 +103,8 @@ internal class WidgetManager @Inject constructor(
         return widgetEvents.mapEventsToWidgets(widgetTypes, excludedTypes)
     }
 
-    fun getWidgetComputedUrl(widget: Widget, isLightTheme: Boolean): String? {
-        return widgetFactory.computeURL(widget, isLightTheme)
+    fun getWidgetComputedUrl(widget: Widget, isLightTheme: Boolean, themeName: String? = null): String? {
+        return widgetFactory.computeURL(widget, isLightTheme, themeName)
     }
 
     private fun List<Event>.mapEventsToWidgets(

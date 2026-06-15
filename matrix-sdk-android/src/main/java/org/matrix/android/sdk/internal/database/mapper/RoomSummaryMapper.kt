@@ -64,6 +64,7 @@ internal class RoomSummaryMapper @Inject constructor(
                 threadHighlightCount = roomSummaryEntity.threadHighlightCount,
                 threadNotificationCount = roomSummaryEntity.threadNotificationCount,
                 hasUnreadMessages = roomSummaryEntity.hasUnreadMessages,
+                markedUnread = roomSummaryEntity.markedUnread,
                 tags = tags,
                 typingUsers = typingUsers,
                 membership = roomSummaryEntity.membership,

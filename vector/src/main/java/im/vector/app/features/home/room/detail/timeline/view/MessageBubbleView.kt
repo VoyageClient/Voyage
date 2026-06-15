@@ -19,6 +19,7 @@ import android.widget.RelativeLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -106,13 +107,14 @@ class MessageBubbleView @JvmOverloads constructor(
             this.fillColor = if (isPseudoBubble) {
                 ColorStateList.valueOf(Color.TRANSPARENT)
             } else {
-                val backgroundColorAttr =
-                        if (isIncoming) {
-                            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound
-                        } else {
-                            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound
-                        }
-                val backgroundColor = ThemeUtils.getColor(context, backgroundColorAttr)
+                val backgroundColor = if (isIncoming) {
+                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound)
+                } else {
+                    // Tint the outgoing bubble with the current accent instead of a fixed green, so it
+                    // follows the selected theme accent. A low alpha keeps it legible on light and dark.
+                    val accent = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorAccent)
+                    ColorUtils.setAlphaComponent(accent, OUTGOING_BUBBLE_ACCENT_ALPHA)
+                }
                 ColorStateList.valueOf(backgroundColor)
             }
         }
@@ -177,5 +179,10 @@ class MessageBubbleView @JvmOverloads constructor(
 
     private fun TimelineMessageLayout.Bubble.CornersRadius.toFloatArray(): FloatArray {
         return floatArrayOf(topStartRadius, topStartRadius, topEndRadius, topEndRadius, bottomEndRadius, bottomEndRadius, bottomStartRadius, bottomStartRadius)
+    }
+
+    companion object {
+        // ~13% accent over the surface: a pale accent tint for outgoing bubbles, legible on light & dark.
+        private const val OUTGOING_BUBBLE_ACCENT_ALPHA = 0x22
     }
 }

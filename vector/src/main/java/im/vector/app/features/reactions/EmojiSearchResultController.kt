@@ -12,13 +12,14 @@ import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.EmojiCompatFontProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.reactions.data.EmojiItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
 class EmojiSearchResultController @Inject constructor(
         private val stringProvider: StringProvider,
-        private val fontProvider: EmojiCompatFontProvider
+        private val fontProvider: EmojiCompatFontProvider,
 ) : TypedEpoxyController<EmojiSearchResultViewState>() {
 
     var emojiTypeface: Typeface? = fontProvider.typeface
@@ -38,6 +39,20 @@ class EmojiSearchResultController @Inject constructor(
     override fun buildModels(data: EmojiSearchResultViewState?) {
         val results = data?.results ?: return
         val host = this
+
+        if (data.query.isNotEmpty()) {
+            val freeformItem = EmojiItem(
+                    name = stringProvider.getString(CommonStrings.freeform_react_with, data.query),
+                    unicode = "",
+            )
+            emojiSearchResultItem {
+                id("freeform.reaction.${data.query}")
+                emojiItem(freeformItem)
+                emojiTypeFace(host.emojiTypeface)
+                currentQuery(data.query)
+                onClickListener { host.listener?.onReactionSelected(data.query) }
+            }
+        }
 
         if (results.isEmpty()) {
             if (data.query.isEmpty()) {

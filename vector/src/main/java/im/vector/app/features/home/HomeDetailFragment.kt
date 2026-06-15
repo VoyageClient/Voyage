@@ -319,6 +319,10 @@ class HomeDetailFragment :
     }
 
     private fun setupBottomNavigationView() {
+        if (vectorPreferences.combinedOverview()) {
+            views.bottomNavigationView.isVisible = false
+            return
+        }
         views.bottomNavigationView.menu.findItem(R.id.bottom_action_notification).isVisible = vectorPreferences.labAddNotificationTab()
         views.bottomNavigationView.setOnItemSelectedListener {
             val tab = when (it.itemId) {

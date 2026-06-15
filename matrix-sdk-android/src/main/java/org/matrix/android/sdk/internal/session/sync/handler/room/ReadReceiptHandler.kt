@@ -35,7 +35,10 @@ import javax.inject.Inject
 //                    dict value ts value
 internal typealias ReadReceiptContent = Map<String, Map<String, Map<String, Map<String, Any>>>>
 
-private const val READ_KEY = "m.read"
+// "m.read.private" (MSC2285) is the user's own private read receipt. The server only delivers it to the
+// owning user, so it's safe to treat it as a read receipt for unread computation (without it, privately-read
+// rooms reappear as unread after the cache is rebuilt from the server).
+private val RECEIPT_KEYS = listOf("m.read", "m.read.private")
 private const val TIMESTAMP_KEY = "ts"
 private const val THREAD_ID_KEY = "thread_id"
 
@@ -59,7 +62,7 @@ internal class ReadReceiptHandler @Inject constructor(
             }
             return mapOf(
                     eventId to mapOf(
-                            READ_KEY to mapOf(
+                            "m.read" to mapOf(
                                     userId to userReadReceipt
                             )
                     )
@@ -100,16 +103,22 @@ internal class ReadReceiptHandler @Inject constructor(
     private fun initialSyncStrategy(realm: Realm, roomId: String, content: ReadReceiptContent) {
         val readReceiptSummaries = ArrayList<ReadReceiptsSummaryEntity>()
         for ((eventId, receiptDict) in content) {
-            val userIdsDict = receiptDict[READ_KEY] ?: continue
             val readReceiptsSummary = ReadReceiptsSummaryEntity(eventId = eventId, roomId = roomId)
-
-            for ((userId, paramsDict) in userIdsDict) {
-                val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
-                val threadId = paramsDict[THREAD_ID_KEY] as String?
-                val receiptEntity = ReadReceiptEntity.createUnmanaged(roomId, eventId, userId, threadId, ts)
-                readReceiptsSummary.readReceipts.add(receiptEntity)
+            val handledUserIds = HashSet<String>()
+            for (receiptKey in RECEIPT_KEYS) {
+                val userIdsDict = receiptDict[receiptKey] ?: continue
+                for ((userId, paramsDict) in userIdsDict) {
+                    // m.read wins over m.read.private for the same user/event (it's iterated first).
+                    if (!handledUserIds.add(userId)) continue
+                    val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
+                    val threadId = paramsDict[THREAD_ID_KEY] as String?
+                    val receiptEntity = ReadReceiptEntity.createUnmanaged(roomId, eventId, userId, threadId, ts)
+                    readReceiptsSummary.readReceipts.add(receiptEntity)
+                }
             }
-            readReceiptSummaries.add(readReceiptsSummary)
+            if (readReceiptsSummary.readReceipts.isNotEmpty()) {
+                readReceiptSummaries.add(readReceiptsSummary)
+            }
         }
         realm.insertOrUpdate(readReceiptSummaries)
     }
@@ -132,24 +141,27 @@ internal class ReadReceiptHandler @Inject constructor(
 
     private fun doIncrementalSyncStrategy(realm: Realm, roomId: String, content: ReadReceiptContent) {
         for ((eventId, receiptDict) in content) {
-            val userIdsDict = receiptDict[READ_KEY] ?: continue
+            if (RECEIPT_KEYS.none { receiptDict.containsKey(it) }) continue
             val readReceiptsSummary = ReadReceiptsSummaryEntity.where(realm, eventId).findFirst()
                     ?: realm.createObject(ReadReceiptsSummaryEntity::class.java, eventId).apply {
                         this.roomId = roomId
                     }
 
-            for ((userId, paramsDict) in userIdsDict) {
-                val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
-                val threadId = paramsDict[THREAD_ID_KEY] as String?
-                val receiptEntity = ReadReceiptEntity.getOrCreate(realm, roomId, userId, threadId)
-                // ensure new ts is superior to the previous one
-                if (ts > receiptEntity.originServerTs) {
-                    ReadReceiptsSummaryEntity.where(realm, receiptEntity.eventId).findFirst()?.also {
-                        it.readReceipts.remove(receiptEntity)
+            for (receiptKey in RECEIPT_KEYS) {
+                val userIdsDict = receiptDict[receiptKey] ?: continue
+                for ((userId, paramsDict) in userIdsDict) {
+                    val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
+                    val threadId = paramsDict[THREAD_ID_KEY] as String?
+                    val receiptEntity = ReadReceiptEntity.getOrCreate(realm, roomId, userId, threadId)
+                    // ensure new ts is superior to the previous one (keeps the latest of m.read / m.read.private)
+                    if (ts > receiptEntity.originServerTs) {
+                        ReadReceiptsSummaryEntity.where(realm, receiptEntity.eventId).findFirst()?.also {
+                            it.readReceipts.remove(receiptEntity)
+                        }
+                        receiptEntity.eventId = eventId
+                        receiptEntity.originServerTs = ts
+                        readReceiptsSummary.readReceipts.add(receiptEntity)
                     }
-                    receiptEntity.eventId = eventId
-                    receiptEntity.originServerTs = ts
-                    readReceiptsSummary.readReceipts.add(receiptEntity)
                 }
             }
         }

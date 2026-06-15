@@ -103,7 +103,10 @@ class BlurHashDrawable private constructor(
             val scale = DECODE_MAX.toFloat() / max(w, h)
             val decodeW = max(1, (w * scale).toInt())
             val decodeH = max(1, (h * scale).toInt())
-            val bitmap = runCatching { BlurHash.decode(hash, decodeW, decodeH) }.getOrNull() ?: return null
+            // useCache = false: the library caches cosine tables in a shared singleton that isn't
+            // thread-safe, so concurrent decodes (multiple images scrolling in) corrupt each other and
+            // produce intermittent zig-zag artifacts. Recomputing per call is cheap at this size.
+            val bitmap = runCatching { BlurHash.decode(hash, decodeW, decodeH, punch = 1f, useCache = false) }.getOrNull() ?: return null
             return BlurHashDrawable(bitmap, w, h, pulse)
         }
 

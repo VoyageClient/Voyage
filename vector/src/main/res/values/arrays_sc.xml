@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="sc_theme_entries" translatable="false">
+        <item>@string/light_theme</item>
+        <item>@string/dark_theme</item>
+        <item>@string/black_theme</item>
+        <item>@string/sc_theme_light</item>
+        <item>@string/sc_theme_dark</item>
+        <item>@string/sc_theme_black</item>
+    </string-array>
+
+    <string-array name="sc_theme_values" translatable="false">
+        <item>light</item>
+        <item>dark</item>
+        <item>black</item>
+        <item>sc_light</item>
+        <item>sc_dark</item>
+        <item>sc</item>
+    </string-array>
+
+
+
+    <string-array name="sc_accent_color_light_entries" translatable="false">
+        <item>@string/sc_accent_element</item>
+        <item>@string/sc_accent_greenlight</item>
+        <item>@string/sc_accent_amber</item>
+        <item>@string/sc_accent_bluelight</item>
+        <item>@string/sc_accent_blue</item>
+        <item>@string/sc_accent_carnation</item>
+        <item>@string/sc_accent_cyan</item>
+        <item>@string/sc_accent_denim</item>
+        <item>@string/sc_accent_gold</item>
+        <item>@string/sc_accent_greendark</item>
+        <item>@string/sc_accent_indigo</item>
+        <item>@string/sc_accent_lava</item>
+        <item>@string/sc_accent_lime</item>
+        <item>@string/sc_accent_orange</item>
+        <item>@string/sc_accent_pink</item>
+        <item>@string/sc_accent_purple</item>
+        <item>@string/sc_accent_red</item>
+        <item>@string/sc_accent_teal</item>
+        <item>@string/sc_accent_turquoise</item>
+        <item>@string/sc_accent_yellow</item>
+    </string-array>
+
+    <string-array name="sc_accent_color_previews" translatable="false">
+        <item>#0DBD8B</item>
+        <item>#8bc34a</item>
+        <item>#ffa000</item>
+        <item>#03a9f4</item>
+        <item>#2196F3</item>
+        <item>#fb83b2</item>
+        <item>#00bcd4</item>
+        <item>#1560BD</item>
+        <item>#CFB53B</item>
+        <item>#4CAF50</item>
+        <item>#5C6BC0</item>
+        <item>#B20120</item>
+        <item>#C0CA33</item>
+        <item>#ff9800</item>
+        <item>#e91e63</item>
+        <item>#673ab7</item>
+        <item>#ff0000</item>
+        <item>#008577</item>
+        <item>#00C1C1</item>
+        <item>#FBC02D</item>
+    </string-array>
+
+    <string-array name="sc_accent_color_light_values" translatable="false">
+        <item>element</item>
+        <item>green</item>
+        <item>amber</item>
+        <item>bluelight</item>
+        <item>blue</item>
+        <item>carnation</item>
+        <item>cyan</item>
+        <item>denim</item>
+        <item>gold</item>
+        <item>greendark</item>
+        <item>indigo</item>
+        <item>lava</item>
+        <item>lime</item>
+        <item>orange</item>
+        <item>pink</item>
+        <item>purple</item>
+        <item>red</item>
+        <item>teal</item>
+        <item>turquoise</item>
+        <item>yellow</item>
+    </string-array>
+
+</resources>

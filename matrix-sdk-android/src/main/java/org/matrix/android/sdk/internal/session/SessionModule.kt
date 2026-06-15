@@ -93,6 +93,7 @@ import org.matrix.android.sdk.internal.session.room.create.RoomCreateEventProces
 import org.matrix.android.sdk.internal.session.room.location.LiveLocationShareRedactionEventProcessor
 import org.matrix.android.sdk.internal.session.room.prune.RedactionEventProcessor
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
+import org.matrix.android.sdk.internal.session.room.read.ReadReceiptQueue
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessorCoroutine
 import org.matrix.android.sdk.internal.session.room.tombstone.RoomTombstoneEventProcessor
 import org.matrix.android.sdk.internal.session.typing.DefaultTypingUsersTracker
@@ -393,6 +394,10 @@ internal abstract class SessionModule {
     @Binds
     @IntoSet
     abstract fun bindEventSenderProcessorAsSessionLifecycleObserver(processor: EventSenderProcessorCoroutine): SessionLifecycleObserver
+
+    @Binds
+    @IntoSet
+    abstract fun bindReadReceiptQueueAsSessionLifecycleObserver(queue: ReadReceiptQueue): SessionLifecycleObserver
 
     @Binds
     abstract fun bindHomeServerCapabilitiesService(service: DefaultHomeServerCapabilitiesService): HomeServerCapabilitiesService

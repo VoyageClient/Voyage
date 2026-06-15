@@ -105,4 +105,52 @@
     <string name="settings_quick_reactions_summary" translatable="false">Emojis shown when long-pressing a message, separated by spaces. Leave empty for the defaults.</string>
     <string name="settings_compact_quick_reactions" translatable="false">Compact quick reactions</string>
     <string name="settings_compact_quick_reactions_summary" translatable="false">Keep quick reactions on a single row that scrolls horizontally, instead of wrapping onto more rows.</string>
+
+    <string name="url_previews_in_encrypted_rooms" translatable="false">URL previews in encrypted rooms</string>
+    <string name="url_previews_in_encrypted_rooms_summary" translatable="false">Allow URL previews in encrypted rooms. Only enable this if you trust your homeserver, as previews are generated server-side and can leak message content.</string>
+    <string name="settings_open_chats_at_first_unread" translatable="false">Open chats at first unread message</string>
+    <string name="settings_open_chats_at_first_unread_summary" translatable="false">Open rooms at the first unread message instead of at the bottom of the chat.</string>
+    <string name="settings_hide_call_buttons" translatable="false">Hide call buttons</string>
+    <string name="settings_hide_call_buttons_summary" translatable="false">Hide the start call buttons from the room toolbar.</string>
+    <string name="freeform_react_with" translatable="false">React with \"%s\"</string>
+    <string name="settings_include_space_members_as_rooms" translatable="false">Show space members as people in spaces</string>
+
+    <string name="sc_theme_light" translatable="false">SchildiChat Light</string>
+    <string name="sc_theme_dark" translatable="false">SchildiChat Dark</string>
+    <string name="sc_theme_black" translatable="false">SchildiChat Black</string>
+    <string name="settings_accent" translatable="false">Accent color</string>
+    <string name="color_picker_selected" translatable="false">Selected: %s</string>
+    <string name="sc_accent_element" translatable="false">Element Green</string>
+    <string name="sc_accent_greenlight" translatable="false">SchildiChat Green</string>
+    <string name="sc_accent_amber" translatable="false">Amber</string>
+    <string name="sc_accent_bluelight" translatable="false">Light blue</string>
+    <string name="sc_accent_blue" translatable="false">Blue</string>
+    <string name="sc_accent_carnation" translatable="false">Carnation</string>
+    <string name="sc_accent_cyan" translatable="false">Cyan</string>
+    <string name="sc_accent_denim" translatable="false">Denim</string>
+    <string name="sc_accent_gold" translatable="false">Gold</string>
+    <string name="sc_accent_greendark" translatable="false">Dark green</string>
+    <string name="sc_accent_indigo" translatable="false">Indigo</string>
+    <string name="sc_accent_lava" translatable="false">Lava</string>
+    <string name="sc_accent_lime" translatable="false">Lime</string>
+    <string name="sc_accent_orange" translatable="false">Orange</string>
+    <string name="sc_accent_pink" translatable="false">Pink</string>
+    <string name="sc_accent_purple" translatable="false">Purple</string>
+    <string name="sc_accent_red" translatable="false">Red</string>
+    <string name="sc_accent_teal" translatable="false">Teal</string>
+    <string name="sc_accent_turquoise" translatable="false">Turquoise</string>
+    <string name="sc_accent_yellow" translatable="false">Yellow</string>
+
+    <string name="room_list_quick_actions_mark_unread" translatable="false">Mark as unread</string>
+    <string name="room_list_quick_actions_mark_read" translatable="false">Mark as read</string>
+
+    <string name="settings_jump_to_bottom_on_send" translatable="false">Jump to bottom on send</string>
+    <string name="settings_jump_to_bottom_on_send_summary" translatable="false">Scroll to the latest message after sending one.</string>
+
+    <string name="room_list_overview_title" translatable="false">Overview</string>
+    <string name="normal_priority_header" translatable="false">Rooms</string>
+    <string name="room_list_dm_filter" translatable="false">Direct messages</string>
+    <string name="settings_single_overview" translatable="false">Combine people and rooms</string>
+    <string name="settings_single_overview_summary" translatable="false">Show people and rooms together in a single Overview list instead of separate tabs. Only available in the old layout.</string>
+    <string name="settings_include_space_members_as_rooms_summary" translatable="false">Show people in a space based on their space membership. Disable to only show people whose chat is actually part of the space.</string>
 </resources>

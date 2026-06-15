@@ -178,7 +178,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .showSelected(showSelected)
             .hasFailedSending(roomSummary.hasFailedSending)
             .unreadNotificationCount(unreadCount)
-            .hasUnreadMessage(roomSummary.hasUnreadMessages)
+            .hasUnreadMessage(roomSummary.hasUnreadMessages || roomSummary.markedUnread)
             .hasDraft(roomSummary.userDrafts.isNotEmpty())
             .useSingleLineForLastEvent(singleLineLastEvent)
             .itemLongClickListener { _ -> onLongClick?.invoke(roomSummary) ?: false }
@@ -204,7 +204,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .showSelected(showSelected)
             .hasFailedSending(roomSummary.hasFailedSending)
             .unreadNotificationCount(unreadCount)
-            .hasUnreadMessage(roomSummary.hasUnreadMessages)
+            .hasUnreadMessage(roomSummary.hasUnreadMessages || roomSummary.markedUnread)
             .hasDraft(roomSummary.userDrafts.isNotEmpty())
             .itemLongClickListener { _ -> onLongClick?.invoke(roomSummary) ?: false }
             .itemClickListener { onClick?.invoke(roomSummary) }

@@ -17,4 +17,5 @@ class ThemeProvider @Inject constructor(
         private val context: Context
 ) {
     fun isLightTheme() = ThemeUtils.isLightTheme(context)
+    fun isBlackTheme() = ThemeUtils.isBlackTheme(context)
 }

@@ -14,6 +14,7 @@ import android.provider.MediaStore
 import androidx.annotation.BoolRes
 import androidx.core.content.edit
 import com.squareup.seismic.ShakeDetector
+import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
@@ -36,7 +37,7 @@ class VectorPreferences @Inject constructor(
         @DefaultPreferences
         private val defaultPrefs: SharedPreferences,
         private val stringProvider: StringProvider,
-) {
+) : StaticScSdkHelper.ScSdkPreferenceProvider {
 
     companion object {
         const val SETTINGS_HELP_PREFERENCE_KEY = "SETTINGS_HELP_PREFERENCE_KEY"
@@ -69,6 +70,13 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
         const val SETTINGS_QUICK_REACTIONS_KEY = "SETTINGS_QUICK_REACTIONS_KEY"
         const val SETTINGS_COMPACT_QUICK_REACTIONS_KEY = "SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
+        const val SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY = "SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY"
+        const val SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD = "SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD"
+        const val SETTINGS_HIDE_CALL_BUTTONS = "SETTINGS_HIDE_CALL_BUTTONS"
+        const val SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS = "SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS"
+        const val SETTINGS_SINGLE_OVERVIEW = "SETTINGS_SINGLE_OVERVIEW"
+        const val SETTINGS_JUMP_TO_BOTTOM_ON_SEND = "SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
+        private const val SETTINGS_COLLAPSED_ROOM_SECTIONS = "SETTINGS_COLLAPSED_ROOM_SECTIONS"
         const val SETTINGS_LABS_NEW_SESSION_MANAGER_KEY = "SETTINGS_LABS_NEW_SESSION_MANAGER_KEY"
         const val SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY = "SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY"
         const val SETTINGS_LABS_VOICE_BROADCAST_KEY = "SETTINGS_LABS_VOICE_BROADCAST_KEY"
@@ -1268,6 +1276,24 @@ class VectorPreferences @Inject constructor(
                 defaultPrefs.getBoolean(SETTINGS_LABS_NEW_APP_LAYOUT_KEY, getDefault(im.vector.app.config.R.bool.settings_labs_new_app_layout_default))
     }
 
+    fun combinedOverview(): Boolean {
+        return !isNewAppLayoutEnabled() && defaultPrefs.getBoolean(SETTINGS_SINGLE_OVERVIEW, false)
+    }
+
+    fun jumpToBottomOnSend(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_JUMP_TO_BOTTOM_ON_SEND, false)
+    }
+
+    fun isRoomSectionCollapsed(sectionName: String): Boolean {
+        return defaultPrefs.getStringSet(SETTINGS_COLLAPSED_ROOM_SECTIONS, emptySet()).orEmpty().contains(sectionName)
+    }
+
+    fun setRoomSectionCollapsed(sectionName: String, collapsed: Boolean) {
+        val current = defaultPrefs.getStringSet(SETTINGS_COLLAPSED_ROOM_SECTIONS, emptySet()).orEmpty().toMutableSet()
+        if (collapsed) current.add(sectionName) else current.remove(sectionName)
+        defaultPrefs.edit { putStringSet(SETTINGS_COLLAPSED_ROOM_SECTIONS, current) }
+    }
+
     /**
      * Indicates whether or not deferred DMs are enabled.
      */
@@ -1320,6 +1346,22 @@ class VectorPreferences @Inject constructor(
                 ?.filter { it.isNotEmpty() }
                 .orEmpty()
         return configured.ifEmpty { EmojiDataSource.quickEmojis }
+    }
+
+    fun allowUrlPreviewsInEncryptedRooms(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY, false)
+    }
+
+    fun loadRoomAtFirstUnread(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD, false)
+    }
+
+    fun hideCallButtons(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_HIDE_CALL_BUTTONS, false)
+    }
+
+    override fun includeSpaceMembersAsSpaceRooms(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS, true)
     }
 
     fun compactQuickReactions(): Boolean {

@@ -161,6 +161,11 @@ class TimelineViewModel @AssistedInject constructor(
 
     private val room = session.getRoom(initialState.roomId)
     private val eventId = initialState.eventId
+            ?: if (vectorPreferences.loadRoomAtFirstUnread() && initialState.rootThreadEventId == null) {
+                room?.roomSummary()?.readMarkerId
+            } else {
+                null
+            }
     private val invisibleEventsSource = BehaviorDataSource<RoomDetailAction.TimelineEventTurnsInvisible>()
     private val visibleEventsSource = BehaviorDataSource<RoomDetailAction.TimelineEventTurnsVisible>()
     private var timelineEvents = MutableSharedFlow<List<TimelineEvent>>(0)
@@ -398,7 +403,7 @@ class TimelineViewModel @AssistedInject constructor(
                         .map { it.isEncrypted }
                         .distinctUntilChanged()
         ) { snapshot, isRoomEncrypted ->
-            if (isRoomEncrypted) {
+            if (isRoomEncrypted && !vectorPreferences.allowUrlPreviewsInEncryptedRooms()) {
                 return@combine
             }
             withContext(Dispatchers.Default) {
@@ -487,6 +492,7 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.ResendMessage -> handleResendEvent(action)
             is RoomDetailAction.RemoveFailedEcho -> handleRemove(action)
             is RoomDetailAction.MarkAllAsRead -> handleMarkAllAsRead()
+            is RoomDetailAction.JumpToBottom -> _viewEvents.post(RoomDetailViewEvents.JumpToBottom)
             is RoomDetailAction.IgnoreUser -> handleIgnoreUser(action)
             is RoomDetailAction.EnterTrackingUnreadMessagesState -> startTrackingUnreadMessages()
             is RoomDetailAction.ExitTrackingUnreadMessagesState -> stopTrackingUnreadMessages()
@@ -844,8 +850,8 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
                     R.id.timeline_setting -> true
                     R.id.invite -> state.canInvite
                     R.id.open_matrix_apps -> true
-                    R.id.voice_call -> state.isCallOptionAvailable() || state.hasActiveElementCallWidget()
-                    R.id.video_call -> state.isCallOptionAvailable() || state.jitsiState.confId == null || state.jitsiState.hasJoined
+                    R.id.voice_call -> !vectorPreferences.hideCallButtons() && (state.isCallOptionAvailable() || state.hasActiveElementCallWidget())
+                    R.id.video_call -> !vectorPreferences.hideCallButtons() && (state.isCallOptionAvailable() || state.jitsiState.confId == null || state.jitsiState.hasJoined)
                     // Show Join conference button only if there is an active conf id not joined. Otherwise fallback to default video disabled. ^
                     R.id.join_conference -> !state.isCallOptionAvailable() && state.jitsiState.confId != null && !state.jitsiState.hasJoined
                     R.id.search -> state.isSearchAvailable()

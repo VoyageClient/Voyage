@@ -30,9 +30,6 @@ import org.matrix.android.sdk.internal.database.query.latestEvent
 import org.matrix.android.sdk.internal.database.query.where
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
-import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
-import org.matrix.android.sdk.internal.network.executeRequest
-import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.sync.handler.room.ReadReceiptHandler
 import org.matrix.android.sdk.internal.session.sync.handler.room.RoomFullyReadHandler
 import org.matrix.android.sdk.internal.task.Task
@@ -63,12 +60,11 @@ internal interface SetReadMarkersTask : Task<SetReadMarkersTask.Params, Unit> {
 private const val READ_MARKER = "m.fully_read"
 
 internal class DefaultSetReadMarkersTask @Inject constructor(
-        private val roomAPI: RoomAPI,
         @SessionDatabase private val monarchy: Monarchy,
         private val roomFullyReadHandler: RoomFullyReadHandler,
         private val readReceiptHandler: ReadReceiptHandler,
         @UserId private val userId: String,
-        private val globalErrorReceiver: GlobalErrorReceiver,
+        private val readReceiptQueue: ReadReceiptQueue,
         private val clock: Clock,
         private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
@@ -116,20 +112,15 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
             updateDatabase(params.roomId, readReceiptThreadId, markers, shouldUpdateRoomSummary, readReceiptType)
         }
         if (markers.isNotEmpty()) {
-            executeRequest(
-                    globalErrorReceiver,
-                    canRetry = true
-            ) {
-                if (markers[READ_MARKER] == null) {
-                    if (readReceiptEventId != null) {
-                        val readBody = ReadBody(threadId = params.readReceiptThreadId)
-                        roomAPI.sendReceipt(params.roomId, readReceiptType, readReceiptEventId, readBody)
-                    }
-                } else {
-                    // "m.fully_read" value is mandatory to make this call
-                    roomAPI.sendReadMarker(params.roomId, markers)
-                }
-            }
+            // Hand off to the persistent queue: it retries with backoff and survives restarts, so the
+            // server eventually learns the room was read even if the network is currently down.
+            readReceiptQueue.enqueue(
+                    roomId = params.roomId,
+                    fullyReadEventId = markers[READ_MARKER],
+                    readReceiptEventId = markers[readReceiptType],
+                    readReceiptType = readReceiptType,
+                    threadId = params.readReceiptThreadId,
+            )
         }
     }
 

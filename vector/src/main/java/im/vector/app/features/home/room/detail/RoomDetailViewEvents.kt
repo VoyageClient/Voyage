@@ -22,6 +22,7 @@ import java.io.File
 sealed class RoomDetailViewEvents : VectorViewEvents {
     data class Failure(val throwable: Throwable, val showInDialog: Boolean = false) : RoomDetailViewEvents()
     data class OnNewTimelineEvents(val eventIds: List<String>) : RoomDetailViewEvents()
+    object JumpToBottom : RoomDetailViewEvents()
 
     data class ActionSuccess(val action: RoomDetailAction) : RoomDetailViewEvents()
     data class ActionFailure(val action: RoomDetailAction, val throwable: Throwable) : RoomDetailViewEvents()

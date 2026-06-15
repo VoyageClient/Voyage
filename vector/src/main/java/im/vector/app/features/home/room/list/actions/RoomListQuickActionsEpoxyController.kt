@@ -69,6 +69,24 @@ class RoomListQuickActionsEpoxyController @Inject constructor(
             }
         }
 
+        bottomSheetDividerItem {
+            id("mark_unread_separator")
+        }
+
+        val isUnread = roomSummary.markedUnread || roomSummary.notificationCount > 0 || roomSummary.hasUnreadMessages
+        val markAction = if (isUnread) {
+            RoomListQuickActionsSharedAction.MarkRead(roomSummary.roomId)
+        } else {
+            RoomListQuickActionsSharedAction.MarkUnread(roomSummary.roomId)
+        }
+        bottomSheetActionItem {
+            id("action_mark_read_unread")
+            selected(false)
+            markAction.iconResId?.let { iconRes(it) }
+            textRes(markAction.titleRes)
+            listener { host.listener?.didSelectMenuAction(markAction) }
+        }
+
         RoomListQuickActionsSharedAction.Leave(roomSummary.roomId, showIcon = !true).toBottomSheetItem()
     }
 

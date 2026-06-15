@@ -401,6 +401,7 @@ class TimelineFragment :
             when (it) {
                 is RoomDetailViewEvents.Failure -> displayErrorMessage(it)
                 is RoomDetailViewEvents.OnNewTimelineEvents -> scrollOnNewMessageCallback.addNewTimelineEventIds(it.eventIds)
+                is RoomDetailViewEvents.JumpToBottom -> jumpToBottom()
                 is RoomDetailViewEvents.ActionSuccess -> displayRoomDetailActionSuccess(it)
                 is RoomDetailViewEvents.ActionFailure -> displayRoomDetailActionFailure(it)
                 is RoomDetailViewEvents.ShowMessage -> showSnackWithMessage(it.message)
@@ -840,17 +841,21 @@ class TimelineFragment :
         views.pinnedMessagesBanner.setSelectedEventId(selected.eventId)
     }
 
+    private fun jumpToBottom() {
+        timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
+        views.jumpToBottomView.visibility = View.INVISIBLE
+        if (timelineViewModel.timeline?.isLive == false) {
+            scrollOnNewMessageCallback.forceScrollOnNextUpdate()
+            timelineViewModel.timeline?.restartWithEventId(null)
+        } else {
+            layoutManager.scrollToPosition(0)
+        }
+    }
+
     private fun setupJumpToBottomView() {
         views.jumpToBottomView.visibility = View.INVISIBLE
         views.jumpToBottomView.debouncedClicks {
-            timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
-            views.jumpToBottomView.visibility = View.INVISIBLE
-            if (timelineViewModel.timeline?.isLive == false) {
-                scrollOnNewMessageCallback.forceScrollOnNextUpdate()
-                timelineViewModel.timeline?.restartWithEventId(null)
-            } else {
-                layoutManager.scrollToPosition(0)
-            }
+            jumpToBottom()
         }
 
         jumpToBottomViewVisibilityManager = JumpToBottomViewVisibilityManager(

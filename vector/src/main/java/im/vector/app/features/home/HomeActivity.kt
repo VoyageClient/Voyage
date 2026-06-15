@@ -134,6 +134,7 @@ class HomeActivity :
     @Inject lateinit var notificationPermissionManager: NotificationPermissionManager
 
     private var isNewAppLayoutEnabled: Boolean = false // delete once old app layout is removed
+    private var combinedOverview: Boolean = false
 
     private val createSpaceResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == Activity.RESULT_OK) {
@@ -202,6 +203,7 @@ class HomeActivity :
         val perfMarker = PerfTrace.mark("home.activity.onCreate")
         super.onCreate(savedInstanceState)
         isNewAppLayoutEnabled = vectorPreferences.isNewAppLayoutEnabled()
+        combinedOverview = vectorPreferences.combinedOverview()
         analyticsScreenName = MobileScreen.ScreenName.Home
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
         sharedActionViewModel = viewModelProvider[HomeSharedActionViewModel::class.java]
@@ -609,7 +611,8 @@ class HomeActivity :
     }
 
     private fun checkNewAppLayoutFlagChange() {
-        if (vectorPreferences.isNewAppLayoutEnabled() != isNewAppLayoutEnabled) {
+        if (vectorPreferences.isNewAppLayoutEnabled() != isNewAppLayoutEnabled ||
+                vectorPreferences.combinedOverview() != combinedOverview) {
             restart()
         }
     }

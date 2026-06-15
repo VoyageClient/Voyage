@@ -43,7 +43,7 @@ class WidgetArgsBuilder @Inject constructor(
     fun buildStickerPickerArgs(roomId: String, widget: Widget): WidgetArgs {
         val widgetId = widget.widgetId
         val baseUrl = sessionHolder.getActiveSession().widgetService()
-                .getWidgetComputedUrl(widget, themeProvider.isLightTheme()) ?: throw IllegalStateException()
+                .getWidgetComputedUrl(widget, themeProvider.isLightTheme(), getTheme()) ?: throw IllegalStateException()
         return WidgetArgs(
                 baseUrl = baseUrl,
                 kind = WidgetKind.STICKER_PICKER,
@@ -82,10 +82,10 @@ class WidgetArgsBuilder @Inject constructor(
     }
 
     private fun getTheme(): String {
-        return if (themeProvider.isLightTheme()) {
-            "light"
-        } else {
-            "dark"
+        return when {
+            themeProvider.isLightTheme() -> "light"
+            themeProvider.isBlackTheme() -> "black"
+            else -> "dark"
         }
     }
 }

@@ -101,6 +101,7 @@ class VectorConfiguration @Inject constructor(
     fun getHash(): String {
         return (vectorLocale.applicationLocale.toString() +
                 "_" + fontScalePreferences.getResolvedFontScaleValue().preferenceValue +
-                "_" + ThemeUtils.getApplicationTheme(context))
+                "_" + ThemeUtils.getApplicationTheme(context) +
+                "_" + ThemeUtils.getApplicationThemeAccent(context))
     }
 }

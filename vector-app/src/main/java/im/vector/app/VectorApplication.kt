@@ -122,6 +122,7 @@ class VectorApplication :
         // time the rest of onCreate.
         im.vector.app.core.utils.PerfTrace.isEnabled = vectorPreferences.isPerfLoggingEnabled()
         val perfMarker = im.vector.app.core.utils.PerfTrace.mark("app.onCreate")
+        de.spiritcroc.matrixsdk.StaticScSdkHelper.scSdkPreferenceProvider = vectorPreferences
         appContext = this
         vectorAnalytics.init()
         vectorAnalytics.updateSuperProperties(

@@ -8,19 +8,12 @@
 package im.vector.app.features.home.room.list
 
 import com.airbnb.epoxy.TypedEpoxyController
-import im.vector.app.core.epoxy.helpFooterItem
-import im.vector.app.core.resources.StringProvider
-import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.filtered.FilteredRoomFooterItem
 import im.vector.app.features.home.room.filtered.filteredRoomFooterItem
-import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
-class RoomListFooterController @Inject constructor(
-        private val stringProvider: StringProvider,
-        private val userPreferencesProvider: UserPreferencesProvider
-) : TypedEpoxyController<RoomListViewState>() {
+class RoomListFooterController @Inject constructor() : TypedEpoxyController<RoomListViewState>() {
 
     var listener: FilteredRoomFooterItem.Listener? = null
 
@@ -35,14 +28,7 @@ class RoomListFooterController @Inject constructor(
                     inSpace(data.asyncSelectedSpace.invoke() != null)
                 }
             }
-            else -> {
-                if (userPreferencesProvider.shouldShowLongClickOnRoomHelp()) {
-                    helpFooterItem {
-                        id("long_click_help")
-                        text(host.stringProvider.getString(CommonStrings.help_long_click_on_room_for_more_options))
-                    }
-                }
-            }
+            else -> Unit
         }
     }
 }

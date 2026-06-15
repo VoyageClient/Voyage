@@ -14,6 +14,9 @@ import org.matrix.android.sdk.api.util.toOption
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** Sentinel "tag" used by the legacy Overview to filter the unified list down to direct messages. */
+const val DM_FILTER_TAG = "de.spiritcroc.dm"
+
 interface TagFilterStateHandler {
     fun getSelectedTag(): String?
     fun setSelectedTag(tag: String?)

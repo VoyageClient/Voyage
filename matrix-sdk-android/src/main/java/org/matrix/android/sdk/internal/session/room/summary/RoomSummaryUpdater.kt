@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.summary
 
+import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import io.realm.Realm
 import io.realm.kotlin.createObject
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -414,6 +415,7 @@ internal class RoomSummaryUpdater @Inject constructor(
 
             // we need also to filter DMs...
             // it's more annoying as based on if the other members belong the space or not
+            if (StaticScSdkHelper.scSdkPreferenceProvider?.includeSpaceMembersAsSpaceRooms() != false) {
             RoomSummaryEntity.where(realm)
                     .equalTo(RoomSummaryEntityFields.IS_DIRECT, true)
                     .process(RoomSummaryEntityFields.MEMBERSHIP_STR, Membership.activeMemberships())
@@ -438,6 +440,7 @@ internal class RoomSummaryUpdater @Inject constructor(
                         }
 //                        Timber.v("## SPACES: flatten of ${dmRoom.otherMemberIds.joinToString(",")} is ${dmRoom.flattenParentIds}")
                     }
+            }
 
             // Maybe a good place to count the number of notifications for spaces?
 

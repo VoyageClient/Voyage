@@ -15,12 +15,21 @@
 
         <im.vector.app.core.preference.VectorListPreference
             android:defaultValue="dark"
-            android:entries="@array/theme_entries"
-            android:entryValues="@array/theme_values"
+            android:entries="@array/sc_theme_entries"
+            android:entryValues="@array/sc_theme_values"
             android:key="APPLICATION_THEME_KEY"
             android:summary="%s"
             android:title="@string/settings_theme"
             app:iconSpaceReserved="false" />
+
+        <im.vector.app.core.preference.ColorMatrixListPreference
+            android:defaultValue="cyan"
+            android:entries="@array/sc_accent_color_light_entries"
+            android:entryValues="@array/sc_accent_color_light_values"
+            android:key="SETTINGS_SC_ACCENT_LIGHT"
+            android:summary="%s"
+            android:title="@string/settings_accent"
+            app:entryPreviews="@array/sc_accent_color_previews" />
 
         <im.vector.app.core.preference.VectorPreference
             android:dialogTitle="@string/font_size"
@@ -220,6 +229,24 @@
             android:key="SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
             android:summary="@string/settings_render_blockquotes_as_greentext_summary"
             android:title="@string/settings_render_blockquotes_as_greentext_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
+            android:summary="@string/settings_jump_to_bottom_on_send_summary"
+            android:title="@string/settings_jump_to_bottom_on_send" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS"
+            android:summary="@string/settings_include_space_members_as_rooms_summary"
+            android:title="@string/settings_include_space_members_as_rooms" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SINGLE_OVERVIEW"
+            android:summary="@string/settings_single_overview_summary"
+            android:title="@string/settings_single_overview" />
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 

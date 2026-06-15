@@ -43,6 +43,7 @@ import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
+import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
@@ -54,7 +55,7 @@ class RoomListViewModel @AssistedInject constructor(
         stringProvider: StringProvider,
         spaceStateHandler: SpaceStateHandler,
         tagFilterStateHandler: TagFilterStateHandler,
-        vectorPreferences: VectorPreferences,
+        private val vectorPreferences: VectorPreferences,
         autoAcceptInvites: AutoAcceptInvites,
         private val analyticsTracker: AnalyticsTracker
 ) : VectorViewModel<RoomListViewState, RoomListAction, RoomListViewEvents>(initialState) {
@@ -131,6 +132,7 @@ class RoomListViewModel @AssistedInject constructor(
                 updatableQuery = it
             },
             suggestedRoomJoiningState,
+            vectorPreferences,
             !vectorPreferences.prefSpacesShowAllRoomInHome()
     )
 
@@ -147,7 +149,9 @@ class RoomListViewModel @AssistedInject constructor(
             is RoomListAction.LeaveRoom -> handleLeaveRoom(action)
             is RoomListAction.ChangeRoomNotificationState -> handleChangeNotificationMode(action)
             is RoomListAction.ToggleTag -> handleToggleTag(action)
-            is RoomListAction.ToggleSection -> handleToggleSection(action.section)
+            is RoomListAction.SetMarkedUnread -> handleSetMarkedUnread(action)
+            is RoomListAction.MarkRoomAsRead -> handleMarkRoomAsRead(action)
+            is RoomListAction.ToggleSection -> handleToggleSection(action.section, action.persist)
             is RoomListAction.JoinSuggestedRoom -> handleJoinSuggestedRoom(action)
             is RoomListAction.ShowRoomDetails -> handleShowRoomDetails(action)
             RoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
@@ -164,8 +168,12 @@ class RoomListViewModel @AssistedInject constructor(
         _viewEvents.post(RoomListViewEvents.SelectRoom(action.roomSummary, false))
     }
 
-    private fun handleToggleSection(roomSection: RoomsSection) {
-        roomSection.isExpanded.postValue(!roomSection.isExpanded.value.orFalse())
+    private fun handleToggleSection(roomSection: RoomsSection, persist: Boolean = true) {
+        val nowExpanded = !roomSection.isExpanded.value.orFalse()
+        roomSection.isExpanded.postValue(nowExpanded)
+        if (persist) {
+            vectorPreferences.setRoomSectionCollapsed(roomSection.collapseId, !nowExpanded)
+        }
         /* TODO Cleanup if it is working
         sections.find { it.sectionName == roomSection.sectionName }
                 ?.let { section ->
@@ -292,6 +300,36 @@ class RoomListViewModel @AssistedInject constructor(
                     } else {
                         room.tagsService().deleteTag(action.tag)
                     }
+                } catch (failure: Throwable) {
+                    _viewEvents.post(RoomListViewEvents.Failure(failure))
+                }
+            }
+        }
+    }
+
+    private fun handleSetMarkedUnread(action: RoomListAction.SetMarkedUnread) {
+        session.getRoom(action.roomId)?.let { room ->
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    room.readService().setMarkedUnread(action.markedUnread)
+                } catch (failure: Throwable) {
+                    _viewEvents.post(RoomListViewEvents.Failure(failure))
+                }
+            }
+        }
+    }
+
+    private fun handleMarkRoomAsRead(action: RoomListAction.MarkRoomAsRead) {
+        session.getRoom(action.roomId)?.let { room ->
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    // markAsRead also clears the MSC2867 marked-unread flag. Mirror room-open behaviour:
+                    // only send a public receipt when the user has read receipts enabled, else keep it private.
+                    room.readService().markAsRead(
+                            ReadService.MarkAsReadParams.BOTH,
+                            mainTimeLineOnly = true,
+                            public = vectorPreferences.sendReadReceipts(),
+                    )
                 } catch (failure: Throwable) {
                     _viewEvents.post(RoomListViewEvents.Failure(failure))
                 }

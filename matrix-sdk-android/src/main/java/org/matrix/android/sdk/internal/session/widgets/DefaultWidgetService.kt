@@ -50,8 +50,8 @@ internal class DefaultWidgetService @Inject constructor(
         return widgetManager.getRoomWidgets(roomId, widgetId, widgetTypes, excludedTypes)
     }
 
-    override fun getWidgetComputedUrl(widget: Widget, isLightTheme: Boolean): String? {
-        return widgetManager.getWidgetComputedUrl(widget, isLightTheme)
+    override fun getWidgetComputedUrl(widget: Widget, isLightTheme: Boolean, themeName: String?): String? {
+        return widgetManager.getWidgetComputedUrl(widget, isLightTheme, themeName)
     }
 
     override fun getRoomWidgetsLive(

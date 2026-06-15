@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ColorMatrixListPreference">
+        <!-- Array of color hex strings (parallel to entryValues) shown as swatches in the picker. -->
+        <attr name="entryPreviews" format="reference" />
+    </declare-styleable>
+
+    <dimen name="color_matrix_list_preview_size">48dp</dimen>
+    <dimen name="color_matrix_list_selection_padding">6dp</dimen>
+</resources>

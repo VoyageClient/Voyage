@@ -24,6 +24,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.util.Optional
@@ -32,8 +33,12 @@ import org.matrix.android.sdk.internal.database.mapper.ReadReceiptsSummaryMapper
 import org.matrix.android.sdk.internal.database.model.ReadMarkerEntity
 import org.matrix.android.sdk.internal.database.model.ReadReceiptEntity
 import org.matrix.android.sdk.internal.database.model.ReadReceiptsSummaryEntity
+import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
+import org.matrix.android.sdk.internal.session.room.accountdata.UpdateRoomAccountDataTask
+import org.matrix.android.sdk.internal.util.awaitTransaction
 import org.matrix.android.sdk.internal.database.query.forMainTimelineWhere
 import org.matrix.android.sdk.internal.database.query.isEventRead
+import org.matrix.android.sdk.internal.database.query.isMarkedUnread
 import org.matrix.android.sdk.internal.database.query.where
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
@@ -43,6 +48,7 @@ internal class DefaultReadService @AssistedInject constructor(
         @Assisted private val roomId: String,
         @SessionDatabase private val monarchy: Monarchy,
         private val setReadMarkersTask: SetReadMarkersTask,
+        private val updateRoomAccountDataTask: UpdateRoomAccountDataTask,
         private val readReceiptsSummaryMapper: ReadReceiptsSummaryMapper,
         @UserId private val userId: String,
         private val homeServerCapabilitiesDataSource: HomeServerCapabilitiesDataSource,
@@ -68,6 +74,9 @@ internal class DefaultReadService @AssistedInject constructor(
                 publicReadReceipt = public,
         )
         setReadMarkersTask.execute(taskParams)
+        if (isMarkedUnread(monarchy.realmConfiguration, roomId)) {
+            setMarkedUnread(false)
+        }
     }
 
     override suspend fun setReadReceipt(eventId: String, threadId: String, public: Boolean) = withContext(matrixCoroutineDispatchers.io) {
@@ -89,6 +98,19 @@ internal class DefaultReadService @AssistedInject constructor(
     override suspend fun setReadMarker(fullyReadEventId: String) {
         val params = SetReadMarkersTask.Params(roomId, fullyReadEventId = fullyReadEventId, readReceiptEventId = null)
         setReadMarkersTask.execute(params)
+    }
+
+    override suspend fun setMarkedUnread(markedUnread: Boolean) {
+        monarchy.awaitTransaction { realm ->
+            RoomSummaryEntity.where(realm, roomId).findFirst()?.markedUnread = markedUnread
+        }
+        updateRoomAccountDataTask.execute(
+                UpdateRoomAccountDataTask.Params(
+                        roomId = roomId,
+                        type = RoomAccountDataTypes.MARKED_UNREAD,
+                        content = mapOf("unread" to markedUnread)
+                )
+        )
     }
 
     override fun isEventRead(eventId: String): Boolean {

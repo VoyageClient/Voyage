@@ -29,13 +29,16 @@ import org.matrix.android.sdk.internal.database.model.RoomEntity
 import org.matrix.android.sdk.internal.database.query.getOrCreate
 import org.matrix.android.sdk.internal.database.query.removeAccountData
 import org.matrix.android.sdk.internal.session.room.read.FullyReadContent
+import org.matrix.android.sdk.internal.session.room.read.MarkedUnreadContent
 import org.matrix.android.sdk.internal.session.sync.handler.room.RoomFullyReadHandler
+import org.matrix.android.sdk.internal.session.sync.handler.room.RoomMarkedUnreadHandler
 import org.matrix.android.sdk.internal.session.sync.handler.room.RoomTagHandler
 import javax.inject.Inject
 
 internal class RoomSyncAccountDataHandler @Inject constructor(
         private val roomTagHandler: RoomTagHandler,
-        private val roomFullyReadHandler: RoomFullyReadHandler
+        private val roomFullyReadHandler: RoomFullyReadHandler,
+        private val roomMarkedUnreadHandler: RoomMarkedUnreadHandler
 ) {
 
     fun handle(realm: Realm, roomId: String, accountData: RoomSyncAccountData) {
@@ -52,6 +55,9 @@ internal class RoomSyncAccountDataHandler @Inject constructor(
             } else if (eventType == RoomAccountDataTypes.EVENT_TYPE_FULLY_READ) {
                 val content = event.getClearContent().toModel<FullyReadContent>()
                 roomFullyReadHandler.handle(realm, roomId, content)
+            } else if (eventType == RoomAccountDataTypes.MARKED_UNREAD) {
+                val content = event.getClearContent().toModel<MarkedUnreadContent>()
+                roomMarkedUnreadHandler.handle(realm, roomId, content)
             }
         }
     }

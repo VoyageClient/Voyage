@@ -113,4 +113,16 @@
         android:title="@string/labs_enable_voice_broadcast_title"
         app:isPreferenceVisible="@bool/settings_labs_enable_voice_broadcast_visible" />
 
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="false"
+        android:key="SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY"
+        android:summary="@string/url_previews_in_encrypted_rooms_summary"
+        android:title="@string/url_previews_in_encrypted_rooms" />
+
+    <im.vector.app.core.preference.VectorSwitchPreference
+        android:defaultValue="false"
+        android:key="SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD"
+        android:summary="@string/settings_open_chats_at_first_unread_summary"
+        android:title="@string/settings_open_chats_at_first_unread" />
+
 </androidx.preference.PreferenceScreen>

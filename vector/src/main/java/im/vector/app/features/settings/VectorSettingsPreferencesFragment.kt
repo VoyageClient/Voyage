@@ -17,6 +17,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.dialogs.PhotoOrVideoDialog
 import im.vector.app.core.extensions.restart
+import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.core.preference.ColorMatrixListPreference
+import im.vector.app.core.preference.ColorMatrixListPreferenceDialogFragment
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorSwitchPreference
@@ -60,6 +63,18 @@ class VectorSettingsPreferencesFragment :
         analyticsScreenName = MobileScreen.ScreenName.SettingsPreferences
     }
 
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if (preference is ColorMatrixListPreference) {
+            if (parentFragmentManager.findFragmentByTag(COLOR_MATRIX_DIALOG_TAG) != null) return
+            ColorMatrixListPreferenceDialogFragment.newInstance(preference.key).apply {
+                @Suppress("DEPRECATION")
+                setTargetFragment(this@VectorSettingsPreferencesFragment, 0)
+            }.show(parentFragmentManager, COLOR_MATRIX_DIALOG_TAG)
+        } else {
+            super.onDisplayPreferenceDialog(preference)
+        }
+    }
+
     override fun bindPref() {
         // user interface preferences
         setUserInterfacePreferences()
@@ -69,8 +84,22 @@ class VectorSettingsPreferencesFragment :
                 .onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
             if (newValue is String) {
                 ThemeUtils.setApplicationTheme(requireContext().applicationContext, newValue)
-                // Restart the Activity
                 activity?.restart()
+                true
+            } else {
+                false
+            }
+        }
+
+        findPreference<ColorMatrixListPreference>(ThemeUtils.SETTINGS_SC_ACCENT_LIGHT)!!
+                .onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            if (newValue is String) {
+                ThemeUtils.setApplicationThemeAccent(requireContext().applicationContext, newValue)
+                // recreate() (vs restart()) re-themes while preserving the settings back stack, so we stay
+                // on the Preferences screen. acknowledgeConfigurationChange() stops the configuration watcher
+                // from then forcing a full restart (which would drop us back to the root settings page).
+                (activity as? VectorBaseActivity<*>)?.acknowledgeConfigurationChange()
+                activity?.recreate()
                 true
             } else {
                 false
@@ -94,6 +123,12 @@ class VectorSettingsPreferencesFragment :
                 MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = false))
                 true
             }
+        }
+
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SINGLE_OVERVIEW)!!.let { pref ->
+            // Combined overview is a legacy-layout feature, force it off and grey it out under the new UI.
+            // The change is applied by HomeActivity once the user leaves settings (like the new UI toggle).
+            pref.isEnabled = !vectorPreferences.isNewAppLayoutEnabled()
         }
 
         findPreference<VectorSwitchPreference>("SETTINGS_ENABLE_APP_SHORTCUTS")?.setOnPreferenceChangeListener { _, newValue ->
@@ -212,5 +247,9 @@ class VectorSettingsPreferencesFragment :
             startActivity(Intent(activity, FontScaleSettingActivity::class.java))
             true
         }
+    }
+
+    companion object {
+        private const val COLOR_MATRIX_DIALOG_TAG = "ColorMatrixListPreferenceDialog"
     }
 }

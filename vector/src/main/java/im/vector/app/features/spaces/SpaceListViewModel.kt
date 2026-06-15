@@ -24,9 +24,11 @@ import im.vector.app.features.analytics.plan.Interaction
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.notification.GetNotificationCountForSpacesUseCase
+import im.vector.app.features.spaces.tags.DM_FILTER_TAG
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.app.features.spaces.tags.displayNameForTag
 import im.vector.app.features.spaces.tags.tagSortKey
+import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -227,7 +229,7 @@ class SpaceListViewModel @AssistedInject constructor(
         }
         session.flow().liveRoomSummaries(params)
                 .map { roomSummaries ->
-                    roomSummaries
+                    val tagItems = roomSummaries
                             .flatMap { summary -> summary.tags.map { it.name } }
                             .groupingBy { it }
                             .eachCount()
@@ -239,6 +241,16 @@ class SpaceListViewModel @AssistedInject constructor(
                                 )
                             }
                             .sortedBy { tagSortKey(it.name) }
+                    if (vectorPreferences.combinedOverview()) {
+                        val dmItem = RoomTagItem(
+                                name = DM_FILTER_TAG,
+                                displayName = stringProvider.getString(CommonStrings.room_list_dm_filter),
+                                roomCount = roomSummaries.count { it.isDirect },
+                        )
+                        listOf(dmItem) + tagItems
+                    } else {
+                        tagItems
+                    }
                 }
                 .distinctUntilChanged()
                 .onEach { tags ->

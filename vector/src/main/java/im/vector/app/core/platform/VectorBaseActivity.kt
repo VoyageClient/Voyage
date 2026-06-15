@@ -29,6 +29,7 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.ViewGroupCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.FragmentManager
@@ -211,6 +212,15 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         ThemeUtils.setActivityTheme(this, getOtherThemes())
         viewModelFactory = activityEntryPoint.viewModelFactory()
         enableEdgeToEdge()
+        if (ThemeUtils.isLightTheme(this)) {
+            // On Android 15 (targetSdk 35) the status bar is forced transparent and statusBarColor is
+            // ignored, so it shows the light content behind it. Use dark system-bar icons so the time and
+            // battery indicators stay legible on that light background.
+            WindowInsetsControllerCompat(window, window.decorView).apply {
+                isAppearanceLightStatusBars = true
+                isAppearanceLightNavigationBars = true
+            }
+        }
         ViewGroupCompat.installCompatInsetsDispatch(window.decorView)
         super.onCreate(savedInstanceState)
         addOnMultiWindowModeChangedListener(onMultiWindowModeChangedListener)
@@ -248,7 +258,10 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
         initUiAndData()
 
-        if (vectorPreferences.isNewAppLayoutEnabled()) {
+        if (vectorPreferences.isNewAppLayoutEnabled() && !ThemeUtils.isLightTheme(this)) {
+            // Blend the system bars into the toolbar for dark/black themes only. In the light theme the
+            // toolbar background is near-white, which washes out the status bar and hides its icons, so we
+            // keep the theme's default dark status bar there (and avoid a dark→white flip on restart).
             tryOrNull { // Add to XML theme when feature flag is removed
                 val toolbarBackground = MaterialColors.getColor(views.root, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
                 @Suppress("DEPRECATION")
@@ -402,6 +415,15 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         }
     }
 
+    /**
+     * Call after applying a theme/accent change via [recreate], so the configuration watcher treats the new
+     * configuration as the baseline and doesn't additionally force a full restart (which would drop the user
+     * out of any settings sub-screen).
+     */
+    fun acknowledgeConfigurationChange() {
+        configurationViewModel.acknowledgeConfiguration()
+    }
+
     override fun onResume() {
         super.onResume()
         Timber.i("onResume Activity ${javaClass.simpleName}")
@@ -411,6 +433,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         configurationViewModel.onActivityResumed()
 
         if (this !is BugReportActivity && vectorPreferences.useRageshake()) {
+
             rageShake.start()
         }
         debugReceiver.register(this)

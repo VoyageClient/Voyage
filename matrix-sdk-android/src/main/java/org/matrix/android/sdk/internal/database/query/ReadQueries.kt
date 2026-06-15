@@ -23,6 +23,7 @@ import org.matrix.android.sdk.internal.database.helper.isMoreRecentThan
 import org.matrix.android.sdk.internal.database.model.ChunkEntity
 import org.matrix.android.sdk.internal.database.model.ReadMarkerEntity
 import org.matrix.android.sdk.internal.database.model.ReadReceiptEntity
+import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.model.getThreadId
 
@@ -110,5 +111,14 @@ internal fun isReadMarkerMoreRecent(
         } else {
             eventToCheckChunk != null && readMarkerChunk?.isMoreRecentThan(eventToCheckChunk) == true
         }
+    }
+}
+
+internal fun isMarkedUnread(realmConfiguration: RealmConfiguration, roomId: String?): Boolean {
+    if (roomId.isNullOrBlank()) {
+        return false
+    }
+    return Realm.getInstance(realmConfiguration).use { realm ->
+        RoomSummaryEntity.where(realm, roomId).findFirst()?.markedUnread ?: false
     }
 }

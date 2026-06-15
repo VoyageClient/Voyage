@@ -53,6 +53,11 @@ interface ReadService {
     suspend fun setReadMarker(fullyReadEventId: String)
 
     /**
+     * Mark the room as unread (or clear it) via the MSC2867 marked-unread account data.
+     */
+    suspend fun setMarkedUnread(markedUnread: Boolean)
+
+    /**
      * Check if an event is already read, ie. your read receipt is set on a more recent event.
      */
     fun isEventRead(eventId: String): Boolean

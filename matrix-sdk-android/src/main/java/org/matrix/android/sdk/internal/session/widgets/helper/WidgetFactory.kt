@@ -71,7 +71,7 @@ internal class WidgetFactory @Inject constructor(
     }
 
     // Ref: https://github.com/matrix-org/matrix-widget-api/blob/master/src/templating/url-template.ts#L29-L33
-    fun computeURL(widget: Widget, isLightTheme: Boolean): String? {
+    fun computeURL(widget: Widget, isLightTheme: Boolean, themeName: String? = null): String? {
         var computedUrl = widget.widgetContent.url ?: return null
         val myUser = userDataSource.getUserOrDefault(userId)
 
@@ -82,7 +82,7 @@ internal class WidgetFactory @Inject constructor(
         keyValue[WIDGET_PATTERN_MATRIX_AVATAR_URL] = urlResolver.resolveFullSize(myUser.avatarUrl) ?: ""
         keyValue[WIDGET_PATTERN_MATRIX_WIDGET_ID] = widget.widgetId
         keyValue[WIDGET_PATTERN_MATRIX_ROOM_ID] = widget.event.roomId ?: ""
-        keyValue[WIDGET_PATTERN_THEME] = getTheme(isLightTheme)
+        keyValue[WIDGET_PATTERN_THEME] = themeName ?: getTheme(isLightTheme)
 
         for ((key, value) in keyValue) {
             computedUrl = computedUrl.replace(key, URLEncoder.encode(value.toString(), "utf-8"))

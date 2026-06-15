@@ -73,9 +73,15 @@ class HomeDetailViewModel @AssistedInject constructor(
     companion object : MavericksViewModelFactory<HomeDetailViewModel, HomeDetailViewState> by hiltMavericksViewModelFactory() {
 
         override fun initialState(viewModelContext: ViewModelContext): HomeDetailViewState {
-            val uiStateRepository = viewModelContext.activity.singletonEntryPoint().uiStateRepository()
+            val entryPoint = viewModelContext.activity.singletonEntryPoint()
+            val uiStateRepository = entryPoint.uiStateRepository()
+            val displayMode = if (entryPoint.vectorPreferences().combinedOverview()) {
+                RoomListDisplayMode.ALL
+            } else {
+                uiStateRepository.getDisplayMode()
+            }
             return HomeDetailViewState(
-                    currentTab = HomeTab.RoomList(uiStateRepository.getDisplayMode())
+                    currentTab = HomeTab.RoomList(displayMode)
             )
         }
     }

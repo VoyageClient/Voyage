@@ -39,6 +39,7 @@ sealed class RoomDetailAction : VectorViewModelAction {
     data class UpdateQuickReactAction(val targetEventId: String, val selectedReaction: String, val add: Boolean) : RoomDetailAction()
     data class NavigateToEvent(val eventId: String, val highlight: Boolean, val isFirstUnreadEvent: Boolean = false) : RoomDetailAction()
     object MarkAllAsRead : RoomDetailAction()
+    object JumpToBottom : RoomDetailAction()
     data class DownloadOrOpen(val eventId: String, val senderId: String?, val messageFileContent: MessageWithAttachmentContent) : RoomDetailAction()
     object JoinAndOpenReplacementRoom : RoomDetailAction()
     object OnClickMisconfiguredEncryption : RoomDetailAction()

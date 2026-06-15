@@ -464,6 +464,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, null, vectorPreferences.isMarkdownEnabled()))
             }
             emojiPopup.dismiss()
+            if (vectorPreferences.jumpToBottomOnSend()) {
+                timelineViewModel.handle(RoomDetailAction.JumpToBottom)
+            }
         }
     }
 

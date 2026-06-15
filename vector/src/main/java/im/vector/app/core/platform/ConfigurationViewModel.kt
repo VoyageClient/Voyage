@@ -26,6 +26,15 @@ class ConfigurationViewModel @Inject constructor(
     val activityRestarter: LiveData<LiveEvent<Unit>>
         get() = _activityRestarter
 
+    /**
+     * Acknowledge the current configuration as the baseline without restarting. Use after applying a
+     * theme/accent change via recreate(), so the next onActivityResumed doesn't additionally force a full
+     * restart (which would drop the user out of a settings sub-screen).
+     */
+    fun acknowledgeConfiguration() {
+        currentConfigurationValue = vectorConfiguration.getHash()
+    }
+
     fun onActivityResumed() {
         if (currentConfigurationValue == null) {
             currentConfigurationValue = vectorConfiguration.getHash()

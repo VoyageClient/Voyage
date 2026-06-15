@@ -110,6 +110,10 @@ data class RoomSummary(
          */
         val hasUnreadMessages: Boolean = false,
         /**
+         * Whether the room has been explicitly marked as unread by the user (MSC2867).
+         */
+        val markedUnread: Boolean = false,
+        /**
          * List of tags in this room.
          */
         val tags: List<RoomTag> = emptyList(),

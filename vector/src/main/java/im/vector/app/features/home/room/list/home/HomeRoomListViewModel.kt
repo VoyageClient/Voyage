@@ -28,6 +28,7 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.Flow
@@ -56,6 +57,7 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
+import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -71,6 +73,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val drawableProvider: DrawableProvider,
         private val analyticsTracker: AnalyticsTracker,
+        private val vectorPreferences: VectorPreferences,
 ) : VectorViewModel<HomeRoomListViewState, HomeRoomListAction, HomeRoomListViewEvents>(initialState) {
 
     @AssistedFactory
@@ -323,6 +326,8 @@ class HomeRoomListViewModel @AssistedInject constructor(
             is HomeRoomListAction.LeaveRoom -> handleLeaveRoom(action)
             is HomeRoomListAction.ChangeRoomNotificationState -> handleChangeNotificationMode(action)
             is HomeRoomListAction.ToggleTag -> handleToggleTag(action)
+            is HomeRoomListAction.SetMarkedUnread -> handleSetMarkedUnread(action)
+            is HomeRoomListAction.MarkRoomAsRead -> handleMarkRoomAsRead(action)
             is HomeRoomListAction.ChangeRoomFilter -> handleChangeRoomFilter(action.filter)
             HomeRoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
         }
@@ -359,6 +364,32 @@ class HomeRoomListViewModel @AssistedInject constructor(
             val value = runCatching { session.roomService().leaveRoom(action.roomId) }
                     .fold({ HomeRoomListViewEvents.Done }, { HomeRoomListViewEvents.Failure(it) })
             _viewEvents.post(value)
+        }
+    }
+
+    private fun handleSetMarkedUnread(action: HomeRoomListAction.SetMarkedUnread) {
+        viewModelScope.launch {
+            try {
+                session.getRoom(action.roomId)?.readService()?.setMarkedUnread(action.markedUnread)
+            } catch (failure: Throwable) {
+                _viewEvents.post(HomeRoomListViewEvents.Failure(failure))
+            }
+        }
+    }
+
+    private fun handleMarkRoomAsRead(action: HomeRoomListAction.MarkRoomAsRead) {
+        viewModelScope.launch {
+            try {
+                // markAsRead also clears the MSC2867 marked-unread flag. Keep the receipt private unless
+                // the user has read receipts enabled, mirroring room-open behaviour.
+                session.getRoom(action.roomId)?.readService()?.markAsRead(
+                        ReadService.MarkAsReadParams.BOTH,
+                        mainTimeLineOnly = true,
+                        public = vectorPreferences.sendReadReceipts(),
+                )
+            } catch (failure: Throwable) {
+                _viewEvents.post(HomeRoomListViewEvents.Failure(failure))
+            }
         }
     }
 

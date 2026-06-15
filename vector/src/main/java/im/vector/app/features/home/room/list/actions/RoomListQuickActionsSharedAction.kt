@@ -59,6 +59,16 @@ sealed class RoomListQuickActionsSharedAction(
             R.drawable.ic_tag_24
     )
 
+    data class MarkUnread(val roomId: String) : RoomListQuickActionsSharedAction(
+            CommonStrings.room_list_quick_actions_mark_unread,
+            R.drawable.ic_mark_chat_unread
+    )
+
+    data class MarkRead(val roomId: String) : RoomListQuickActionsSharedAction(
+            CommonStrings.room_list_quick_actions_mark_read,
+            R.drawable.ic_mark_chat_read
+    )
+
     data class Leave(val roomId: String, val showIcon: Boolean = true) : RoomListQuickActionsSharedAction(
             CommonStrings.room_list_quick_actions_leave,
             if (showIcon) R.drawable.ic_room_actions_leave else null,

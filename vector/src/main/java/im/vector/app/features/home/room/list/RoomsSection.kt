@@ -16,6 +16,9 @@ import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotification
 
 data class RoomsSection(
         val sectionName: String,
+        // Stable key used to persist the expand/collapse state. Qualified by display mode so the
+        // same-named section (e.g. Favourites) collapses independently on the People vs Rooms tabs.
+        val collapseId: String = sectionName,
         // can be a paged list or a regular list
         val livePages: LiveData<PagedList<RoomSummary>>? = null,
         val liveList: LiveData<List<RoomSummary>>? = null,

@@ -130,6 +130,12 @@ class HomeRoomListFragment :
                 RoomTagBottomSheet.newInstance(quickAction.roomId)
                         .show(childFragmentManager, "ROOM_TAG")
             }
+            is RoomListQuickActionsSharedAction.MarkUnread -> {
+                roomListViewModel.handle(HomeRoomListAction.SetMarkedUnread(quickAction.roomId, true))
+            }
+            is RoomListQuickActionsSharedAction.MarkRead -> {
+                roomListViewModel.handle(HomeRoomListAction.MarkRoomAsRead(quickAction.roomId))
+            }
             is RoomListQuickActionsSharedAction.Leave -> {
                 promptLeaveRoom(quickAction.roomId)
             }

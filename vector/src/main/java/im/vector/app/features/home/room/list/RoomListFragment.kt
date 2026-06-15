@@ -166,25 +166,17 @@ class RoomListFragment :
         roomListViewModel.sections.forEachIndexed { index, roomsSection ->
             val actualBlock = adapterInfosList[index]
             val isRoomSectionCollapsable = sectionsCount > 1
-            val isRoomSectionExpanded = roomsSection.isExpanded.value.orTrue()
-            if (actualBlock.section.isExpanded && !isRoomSectionExpanded) {
-                // mark controller as collapsed
-                actualBlock.contentEpoxyController.setCollapsed(true)
-            } else if (!actualBlock.section.isExpanded && isRoomSectionExpanded) {
-                // we must expand!
-                actualBlock.contentEpoxyController.setCollapsed(false)
-            }
-            actualBlock.section = actualBlock.section.copy(isExpanded = isRoomSectionExpanded)
+            // The saved/live state is the source of truth. A lone (non-collapsable) section is always shown
+            // expanded for usability, but we never write that back so the user's saved choice survives.
+            val savedExpanded = roomsSection.isExpanded.value.orTrue()
+            val effectiveExpanded = savedExpanded || !isRoomSectionCollapsable
+            actualBlock.contentEpoxyController.setCollapsed(!effectiveExpanded)
+            actualBlock.section = actualBlock.section.copy(isExpanded = effectiveExpanded)
             actualBlock.sectionHeaderAdapter.updateSection {
                 it.copy(
-                        isExpanded = isRoomSectionExpanded,
+                        isExpanded = effectiveExpanded,
                         isCollapsable = isRoomSectionCollapsable
                 )
-            }
-
-            if (!isRoomSectionExpanded && !isRoomSectionCollapsable) {
-                // force expand if the section is not collapsable
-                roomListViewModel.handle(RoomListAction.ToggleSection(roomsSection))
             }
         }
     }
@@ -221,7 +213,8 @@ class RoomListFragment :
 
     private fun setupCreateRoomButton() {
         when (roomListParams.displayMode) {
-            RoomListDisplayMode.NOTIFICATIONS -> views.createChatFabMenu.isVisible = true
+            RoomListDisplayMode.NOTIFICATIONS,
+            RoomListDisplayMode.ALL -> views.createChatFabMenu.isVisible = true
             RoomListDisplayMode.PEOPLE -> views.createChatRoomButton.isVisible = true
             RoomListDisplayMode.ROOMS -> views.createGroupRoomButton.isVisible = true
             RoomListDisplayMode.FILTERED -> Unit // No button in this mode
@@ -247,7 +240,8 @@ class RoomListFragment :
                             RecyclerView.SCROLL_STATE_DRAGGING,
                             RecyclerView.SCROLL_STATE_SETTLING -> {
                                 when (roomListParams.displayMode) {
-                                    RoomListDisplayMode.NOTIFICATIONS -> views.createChatFabMenu.hide()
+                                    RoomListDisplayMode.NOTIFICATIONS,
+                                    RoomListDisplayMode.ALL -> views.createChatFabMenu.hide()
                                     RoomListDisplayMode.PEOPLE -> views.createChatRoomButton.hide()
                                     RoomListDisplayMode.ROOMS -> views.createGroupRoomButton.hide()
                                     RoomListDisplayMode.FILTERED -> Unit
@@ -389,8 +383,10 @@ class RoomListFragment :
             adapterInfosList.add(
                     SectionAdapterInfo(
                             SectionKey(
+                                    // Start as expanded to match the freshly-created content controller; refreshCollapseStates()
+                                    // then diffs against the (possibly persisted-collapsed) section state and collapses if needed.
                                     name = section.sectionName,
-                                    isExpanded = section.isExpanded.value.orTrue(),
+                                    isExpanded = true,
                                     notifyOfLocalEcho = section.notifyOfLocalEcho
                             ),
                             sectionAdapter,
@@ -412,7 +408,8 @@ class RoomListFragment :
     private val showFabRunnable = Runnable {
         if (isAdded) {
             when (roomListParams.displayMode) {
-                RoomListDisplayMode.NOTIFICATIONS -> views.createChatFabMenu.show()
+                RoomListDisplayMode.NOTIFICATIONS,
+                RoomListDisplayMode.ALL -> views.createChatFabMenu.show()
                 RoomListDisplayMode.PEOPLE -> views.createChatRoomButton.show()
                 RoomListDisplayMode.ROOMS -> views.createGroupRoomButton.show()
                 RoomListDisplayMode.FILTERED -> Unit
@@ -460,6 +457,12 @@ class RoomListFragment :
                 RoomTagBottomSheet.newInstance(quickAction.roomId)
                         .show(childFragmentManager, "ROOM_TAG")
             }
+            is RoomListQuickActionsSharedAction.MarkUnread -> {
+                roomListViewModel.handle(RoomListAction.SetMarkedUnread(quickAction.roomId, true))
+            }
+            is RoomListQuickActionsSharedAction.MarkRead -> {
+                roomListViewModel.handle(RoomListAction.MarkRoomAsRead(quickAction.roomId))
+            }
             is RoomListQuickActionsSharedAction.Leave -> {
                 promptLeaveRoom(quickAction.roomId)
             }
@@ -496,7 +499,8 @@ class RoomListFragment :
                             isBigImage = true,
                             message = getString(CommonStrings.room_list_people_empty_body)
                     )
-                RoomListDisplayMode.ROOMS ->
+                RoomListDisplayMode.ROOMS,
+                RoomListDisplayMode.ALL ->
                     StateView.State.Empty(
                             title = getString(CommonStrings.room_list_rooms_empty_title),
                             image = ContextCompat.getDrawable(requireContext(), R.drawable.empty_state_room),
