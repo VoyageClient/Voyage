@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.metrics.SpannableMetricPlugin
 import org.matrix.android.sdk.api.metrics.SyncDurationMetricPlugin
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.pushrules.PushRuleService
@@ -131,7 +132,8 @@ internal class SyncResponseHandler @Inject constructor(
 
             markCryptoSyncCompleted(syncResponse, aggregator.cryptoStoreAggregator)
 
-            handlePostSync()
+            val directChanged = syncResponse.accountData?.list?.any { it.type == UserAccountDataTypes.TYPE_DIRECT_MESSAGES } == true
+            handlePostSync(shouldValidateSpaceHierarchy = isInitialSync || aggregator.spaceHierarchyChanged || directChanged)
 
             Timber.v("On sync completed")
         }
@@ -292,7 +294,11 @@ internal class SyncResponseHandler @Inject constructor(
         }
     }
 
-    private fun handlePostSync() {
+    private fun handlePostSync(shouldValidateSpaceHierarchy: Boolean) {
+        // Revalidating the whole space parent/child graph is expensive; only do it when the sync actually
+        // carried changes that can affect it, otherwise message-only syncs pile up writeAsync tasks on
+        // Monarchy's single writer thread and stall room-list updates.
+        if (!shouldValidateSpaceHierarchy) return
         monarchy.writeAsync {
             roomSyncHandler.postSyncSpaceHierarchyHandle(it)
         }

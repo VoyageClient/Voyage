@@ -234,10 +234,18 @@ internal class RoomSyncHandler @Inject constructor(
 
         val roomEntity = RoomEntity.getOrCreate(realm, roomId)
 
+        if (roomEntity.membership != Membership.JOIN) {
+            // a room entering the joined set changes the active-room graph
+            aggregator.spaceHierarchyChanged = true
+        }
         if (roomEntity.membership == Membership.INVITE) {
             roomEntity.chunks.deleteAllFromRealm()
         }
         roomEntity.membership = Membership.JOIN
+
+        if (!aggregator.spaceHierarchyChanged) {
+            aggregator.spaceHierarchyChanged = roomSync.containsSpaceHierarchyChange()
+        }
 
         // State event
         if (roomSync.state?.events?.isNotEmpty() == true) {
@@ -302,6 +310,7 @@ internal class RoomSyncHandler @Inject constructor(
         Timber.v("Handle invited sync for room $roomId")
         val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
         val roomEntity = RoomEntity.getOrCreate(realm, roomId)
+        aggregator.spaceHierarchyChanged = true
         roomEntity.membership = Membership.INVITE
         if (roomSync.inviteState != null && roomSync.inviteState.events.isNotEmpty()) {
             roomSync.inviteState.events.forEach { event ->
@@ -336,6 +345,7 @@ internal class RoomSyncHandler @Inject constructor(
     ): RoomEntity {
         val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
         val roomEntity = RoomEntity.getOrCreate(realm, roomId)
+        aggregator.spaceHierarchyChanged = true
         for (event in roomSync.state?.events.orEmpty()) {
             if (event.eventId == null || event.stateKey == null || event.type == null) {
                 continue
@@ -641,4 +651,18 @@ internal class RoomSyncHandler @Inject constructor(
             it.deleteOnCascade(true)
         }
     }
+}
+
+private val SPACE_HIERARCHY_STATE_TYPES = setOf(
+        EventType.STATE_SPACE_CHILD,
+        EventType.STATE_SPACE_PARENT,
+        EventType.STATE_ROOM_CREATE,
+        EventType.STATE_ROOM_POWER_LEVELS,
+        EventType.STATE_ROOM_MEMBER,
+        EventType.STATE_ROOM_NAME,
+)
+
+private fun RoomSync.containsSpaceHierarchyChange(): Boolean {
+    if (state?.events?.any { it.type in SPACE_HIERARCHY_STATE_TYPES } == true) return true
+    return timeline?.events?.any { it.type in SPACE_HIERARCHY_STATE_TYPES } == true
 }

@@ -32,6 +32,11 @@ internal class SyncResponsePostTreatmentAggregator {
 
     val roomsWithMembershipChangesForShieldUpdate = mutableSetOf<String>()
 
+    // Set to true when a sync carries changes that can affect the space parent/child graph (membership
+    // transitions, space child/parent, create, power levels, name, DM status). Plain message-only syncs
+    // leave it false so we can skip the expensive full hierarchy revalidation.
+    var spaceHierarchyChanged = false
+
     // For the crypto store
     val cryptoStoreAggregator = CryptoStoreAggregator()
 }
