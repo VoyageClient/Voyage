@@ -61,6 +61,7 @@ import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.html.BodySegment
+import im.vector.app.features.html.HiddenImageSpan
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
@@ -119,6 +120,7 @@ import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
+import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MimeTypes
 import javax.inject.Inject
 
@@ -225,6 +227,13 @@ class MessageItemFactory @Inject constructor(
         }
         return messageItem?.apply {
             layout(informationData.messageLayout.layoutRes)
+            (this as? AbsMessageItem<*>)?.let { item ->
+                item.replyPreviewRetriever = callback?.getReplyPreviewRetriever()
+                item.inReplyToClickCallback = callback
+                if (item.movementMethod == null) {
+                    item.movementMethod = createLinkMovementMethod(callback)
+                }
+            }
         }
     }
 
@@ -351,11 +360,6 @@ class MessageItemFactory @Inject constructor(
                 informationData = informationData,
                 callback = params.callback,
         ) ?: (null to null)
-        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
-                replyToContent = messageContent.relatesTo?.inReplyTo,
-                mentionHint = messageContent.getMentionHint(),
-                callback = params.callback,
-        ) ?: (null to null)
 
         return MessageAudioItem_()
                 .attributes(attributes)
@@ -373,10 +377,7 @@ class MessageItemFactory @Inject constructor(
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .caption(captionEpoxy)
                 .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(params.callback))
-                .replyHeader(replyHeaderEpoxy)
-                .replyHeaderBindingOptions(replyHeaderBindingOptions)
-    }
+                .captionMovementMethod(createLinkMovementMethod(params.callback))    }
 
     private fun getAudioFileUrl(
             messageContent: MessageAudioContent,
@@ -420,11 +421,6 @@ class MessageItemFactory @Inject constructor(
                 informationData = informationData,
                 callback = params.callback,
         ) ?: (null to null)
-        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
-                replyToContent = messageContent.relatesTo?.inReplyTo,
-                mentionHint = messageContent.getMentionHint(),
-                callback = params.callback,
-        ) ?: (null to null)
 
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
             override fun onWaveformTouchedUp(percentage: Float) {
@@ -453,10 +449,7 @@ class MessageItemFactory @Inject constructor(
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .caption(captionEpoxy)
                 .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(params.callback))
-                .replyHeader(replyHeaderEpoxy)
-                .replyHeaderBindingOptions(replyHeaderBindingOptions)
-    }
+                .captionMovementMethod(createLinkMovementMethod(params.callback))    }
 
     private fun buildVerificationRequestMessageItem(
             messageContent: MessageVerificationRequestContent,
@@ -516,11 +509,6 @@ class MessageItemFactory @Inject constructor(
                 informationData = informationData,
                 callback = callback,
         ) ?: (null to null)
-        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
-                replyToContent = messageContent.relatesTo?.inReplyTo,
-                mentionHint = messageContent.getMentionHint(),
-                callback = callback,
-        ) ?: (null to null)
         return MessageFileItem_()
                 .attributes(attributes)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -534,10 +522,7 @@ class MessageItemFactory @Inject constructor(
                 .iconRes(R.drawable.ic_paperclip)
                 .caption(captionEpoxy)
                 .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(callback))
-                .replyHeader(replyHeaderEpoxy)
-                .replyHeaderBindingOptions(replyHeaderBindingOptions)
-    }
+                .captionMovementMethod(createLinkMovementMethod(callback))    }
 
     private fun buildAudioContent(
             params: TimelineItemFactoryParams,
@@ -632,11 +617,6 @@ class MessageItemFactory @Inject constructor(
                     callback = callback,
             )
         } ?: (null to null)
-        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
-                replyToContent = attachmentContent?.relatesTo?.inReplyTo,
-                mentionHint = attachmentContent?.getMentionHint(),
-                callback = callback,
-        ) ?: (null to null)
 
         val hideMedia = shouldHideMedia(informationData)
 
@@ -653,10 +633,7 @@ class MessageItemFactory @Inject constructor(
                 .mediaData(data)
                 .caption(captionEpoxy)
                 .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(callback))
-                .replyHeader(replyHeaderEpoxy)
-                .replyHeaderBindingOptions(replyHeaderBindingOptions)
-                .apply {
+                .captionMovementMethod(createLinkMovementMethod(callback))                .apply {
                     clickListener { view ->
                         callback?.onImageMessageClicked(messageContent, data, view, emptyList())
                     }
@@ -707,11 +684,6 @@ class MessageItemFactory @Inject constructor(
                 informationData = informationData,
                 callback = callback,
         ) ?: (null to null)
-        val (replyHeaderEpoxy, replyHeaderBindingOptions) = renderReplyHeader(
-                replyToContent = messageContent.relatesTo?.inReplyTo,
-                mentionHint = messageContent.getMentionHint(),
-                callback = callback,
-        ) ?: (null to null)
 
         return MessageImageVideoItem_()
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -726,10 +698,7 @@ class MessageItemFactory @Inject constructor(
                 .mediaData(thumbnailData)
                 .caption(captionEpoxy)
                 .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(callback))
-                .replyHeader(replyHeaderEpoxy)
-                .replyHeaderBindingOptions(replyHeaderBindingOptions)
-                .clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
+                .captionMovementMethod(createLinkMovementMethod(callback))                .clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
     }
 
     private fun buildItemForTextContent(
@@ -741,24 +710,13 @@ class MessageItemFactory @Inject constructor(
     ): VectorEpoxyModel<*>? {
         val matrixFormattedBody = messageContent.matrixFormattedBody
         val replyToContent = messageContent.relatesTo?.inReplyTo
-        // MSC3952: modern clients put the user being replied to in m.mentions.user_ids[0].
-        // Use it as a hint for the sender link when the referenced event isn't loaded yet.
-        val mentionHint = messageContent.mentions?.userIds?.firstOrNull()
         return if (matrixFormattedBody != null) {
-            buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint)
-        } else if (replyToContent?.eventId != null) {
-            // Newer clients may send only m.in_reply_to without a formatted_body + legacy
-            // fallback. Route through the formatted path with an HTML-escaped copy of the
-            // plain body so the use case can inject a synthetic <mx-reply> block (or a
-            // "Loading…" placeholder) and the user still sees a clickable reply indicator.
-            val escapedBody = messageContent.body
-                    .replace("&", "&amp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                    .replace("\n", "<br />")
-            buildFormattedTextItem(escapedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint)
+            buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes)
         } else {
-            buildMessageTextItem(messageContent.body, false, informationData, highlight, callback, attributes)
+            // Strip any legacy "> <@user:server> …" reply fallback prefix from the plain body; the
+            // replied-to preview is rendered separately by InReplyToView.
+            val body = if (replyToContent?.eventId != null) ContentUtils.extractUsefulTextFromReply(messageContent.body) else messageContent.body
+            buildMessageTextItem(body, false, informationData, highlight, callback, attributes)
         }
     }
 
@@ -768,8 +726,6 @@ class MessageItemFactory @Inject constructor(
             highlight: Boolean,
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
-            replyToContent: ReplyToContent?,
-            mentionHint: String? = null,
             noticeStyle: Boolean = false,
     ): MessageTextItem? {
         // Render the actual body with any embedded legacy `<mx-reply>` stripped — the synthetic
@@ -777,48 +733,27 @@ class MessageItemFactory @Inject constructor(
         // avoids MxReplyTagHandler's positional surgery on the SpannableBuilder, which mangled
         // span positions of links / inline code that followed the mx-reply block in a single
         // combined pass (resulting in literal HTML being shown in the timeline).
+        // The replied-to preview is now rendered by InReplyToView (SchildiChat-style), so here we
+        // only render the bare body with any embedded legacy `<mx-reply>` stripped.
         val bareBody = processBodyOfReplyToEventUseCase.stripExistingMxReply(matrixFormattedBody)
         val compressed = htmlCompressor.compress(bareBody)
         val containsTable = compressed.contains("<table", ignoreCase = true)
         val renderedBody = (htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned).trimUncoveredWhitespace()
 
-        val replyHeader: CharSequence? = if (replyToContent?.eventId != null) {
-            renderReplyHeader(replyToContent, mentionHint, callback)?.first?.charSequence
-        } else {
-            null
-        }
         val segments = if (containsTable) {
             HtmlBodySegmenter.segment(compressed)
         } else {
             null
         }
-        // For the plain-TextView path the header is concatenated into `message`. For the rich
-        // body path the message field is ignored, so we pass the header separately so the
-        // renderer can prepend it as its own TextView above the segments.
-        val finalBody: CharSequence = if (replyHeader != null && segments == null) {
-            val ssb = SpannableStringBuilder()
-                    .append(replyHeader)
-                    .append("\n\n")
-            val headerEnd = ssb.length
-            ssb.append(renderedBody)
-            if (noticeStyle) {
-                // The TextView's base colour is secondary for notice styling; restore primary
-                // over the reply-header range so it doesn't appear muted. Apply only on the
-                // gaps where the header has no inline colour of its own, so usernames and
-                // other coloured spans are preserved verbatim.
-                applyDefaultColorOnGaps(
-                        ssb,
-                        rangeStart = 0,
-                        rangeEnd = headerEnd,
-                        color = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary),
-                )
-            }
-            ssb
+        // When the room hides media, inline <img>/emoticons are blocked behind grey placeholders
+        // until the message is tapped to reveal (handled in MessageTextItem via mediaRevealManager).
+        val blockedBody = if (segments == null && shouldHideMedia(informationData) && compressed.contains("<img", ignoreCase = true)) {
+            buildBlockedInlineImagesBody(compressed)
         } else {
-            renderedBody
+            null
         }
         return buildMessageTextItem(
-                finalBody,
+                renderedBody,
                 true,
                 informationData,
                 highlight,
@@ -826,8 +761,22 @@ class MessageItemFactory @Inject constructor(
                 attributes,
                 bodySegments = segments,
                 noticeStyle = noticeStyle,
-                richReplyHeader = if (segments != null) replyHeader else null,
+                richReplyHeader = null,
+                blockedBody = blockedBody,
         )
+    }
+
+    private fun buildBlockedInlineImagesBody(compressedHtml: String): CharSequence {
+        val blockedHtml = compressedHtml.replace(IMG_TAG_REGEX, OBJECT_REPLACEMENT_STRING)
+        val rendered = (htmlRenderer.get().render(blockedHtml, pillsPostProcessor) as? Spanned) ?: return ""
+        val ssb = SpannableStringBuilder(rendered)
+        val gray = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
+        var idx = ssb.indexOf(OBJECT_REPLACEMENT_CHAR)
+        while (idx >= 0) {
+            ssb.setSpan(HiddenImageSpan(gray), idx, idx + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            idx = ssb.indexOf(OBJECT_REPLACEMENT_CHAR, idx + 1)
+        }
+        return ssb.trimUncoveredWhitespace()
     }
 
     // Trim outer whitespace, but not whitespace covered by a block span — those spans rely
@@ -879,28 +828,6 @@ class MessageItemFactory @Inject constructor(
         return final.toEpoxyCharSequence() to bindingOptions
     }
 
-    /**
-     * Renders just the `<mx-reply>` block (sender + preview of replied-to event) for a media
-     * event that's a modern reply. Shown above the media. Returns null if there's no reply.
-     */
-    private fun renderReplyHeader(
-            replyToContent: ReplyToContent?,
-            mentionHint: String?,
-            callback: TimelineEventController.Callback?,
-    ): Pair<EpoxyCharSequence, BindingOptions>? {
-        if (replyToContent?.eventId == null) return null
-        val html = processBodyOfReplyToEventUseCase.execute(roomId, "", replyToContent, mentionHint)
-        if (html.isEmpty()) return null
-        val compressed = htmlCompressor.compress(html)
-        val rendered = (htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned) ?: return null
-        // Markwon's blockquote handling leaves trailing newlines after the mx-reply block;
-        // trim them so there's no big gap between the reply header and the media below.
-        val trimmed = rendered.trimEnd('\n', ' ')
-        val processed = textRenderer.render(trimmed)
-        val bindingOptions = spanUtils.getBindingOptions(processed)
-        val linkified = processed.linkify(callback)
-        return linkified.toEpoxyCharSequence() to bindingOptions
-    }
 
     private fun buildMessageTextItem(
             body: CharSequence,
@@ -912,10 +839,14 @@ class MessageItemFactory @Inject constructor(
             bodySegments: List<BodySegment>? = null,
             noticeStyle: Boolean = false,
             richReplyHeader: CharSequence? = null,
+            blockedBody: CharSequence? = null,
     ): MessageTextItem? {
         val renderedBody = textRenderer.render(body)
         val bindingOptions = spanUtils.getBindingOptions(renderedBody)
         val linkifiedBody = renderedBody.linkify(callback)
+
+        val blockedRendered = blockedBody?.let { textRenderer.render(it) }
+        val blockedLinkified = blockedRendered?.linkify(callback)
 
         return MessageTextItem_()
                 .message(
@@ -939,6 +870,11 @@ class MessageItemFactory @Inject constructor(
                 .highlighted(highlight)
                 .movementMethod(createLinkMovementMethod(callback))
                 .apply {
+                    if (blockedLinkified != null) {
+                        blockedMessage(blockedLinkified.toEpoxyCharSequence())
+                        blockedBindingOptions(spanUtils.getBindingOptions(blockedLinkified))
+                        mediaRevealManager(mediaContentRevealManager)
+                    }
                     if (bodySegments != null) {
                         bodySegments(bodySegments)
                         richBodyRenderer(richMessageBodyRenderer)
@@ -1002,16 +938,10 @@ class MessageItemFactory @Inject constructor(
         val matrixFormattedBody = messageContent.matrixFormattedBody
         val replyToContent = messageContent.relatesTo?.inReplyTo
         return if (matrixFormattedBody != null) {
-            buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint = null, noticeStyle = true)
-        } else if (replyToContent?.eventId != null) {
-            val escapedBody = messageContent.body
-                    .replace("&", "&amp;")
-                    .replace("<", "&lt;")
-                    .replace(">", "&gt;")
-                    .replace("\n", "<br />")
-            buildFormattedTextItem(escapedBody, informationData, highlight, callback, attributes, replyToContent, mentionHint = null, noticeStyle = true)
+            buildFormattedTextItem(matrixFormattedBody, informationData, highlight, callback, attributes, noticeStyle = true)
         } else {
-            buildMessageTextItem(messageContent.body, false, informationData, highlight, callback, attributes, noticeStyle = true)
+            val body = if (replyToContent?.eventId != null) ContentUtils.extractUsefulTextFromReply(messageContent.body) else messageContent.body
+            buildMessageTextItem(body, false, informationData, highlight, callback, attributes, noticeStyle = true)
         }
     }
 
@@ -1046,23 +976,6 @@ class MessageItemFactory @Inject constructor(
                 .movementMethod(createLinkMovementMethod(callback))
     }
 
-    /** Add a ForegroundColorSpan over [rangeStart, rangeEnd) only on character runs not already
-     *  covered by an existing ForegroundColorSpan, so inline colours from `<font color>` etc.
-     *  remain authoritative. */
-    private fun applyDefaultColorOnGaps(sb: SpannableStringBuilder, rangeStart: Int, rangeEnd: Int, color: Int) {
-        if (rangeEnd <= rangeStart) return
-        val occupied = sb.getSpans(rangeStart, rangeEnd, ForegroundColorSpan::class.java)
-                .map { sb.getSpanStart(it).coerceAtLeast(rangeStart) to sb.getSpanEnd(it).coerceAtMost(rangeEnd) }
-                .filter { it.first < it.second }
-                .sortedBy { it.first }
-        var cursor = rangeStart
-        for ((s, e) in occupied) {
-            if (s > cursor) sb.setSpan(ForegroundColorSpan(color), cursor, s, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            if (e > cursor) cursor = e
-        }
-        if (cursor < rangeEnd) sb.setSpan(ForegroundColorSpan(color), cursor, rangeEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-    }
-
     private fun MessageContentWithFormattedBody.getHtmlBody(): CharSequence {
         return matrixFormattedBody
                 ?.let { htmlCompressor.compress(it) }
@@ -1093,5 +1006,8 @@ class MessageItemFactory @Inject constructor(
     companion object {
         private const val MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT = 5
         const val MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP = 200
+        private val IMG_TAG_REGEX = Regex("<img\\b[^>]*>", RegexOption.IGNORE_CASE)
+        private const val OBJECT_REPLACEMENT_CHAR = '￼'
+        private const val OBJECT_REPLACEMENT_STRING = "￼"
     }
 }

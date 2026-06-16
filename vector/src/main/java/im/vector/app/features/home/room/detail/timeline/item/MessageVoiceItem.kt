@@ -76,11 +76,6 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
-    @EpoxyAttribute
-    var replyHeader: EpoxyCharSequence? = null
-
-    @EpoxyAttribute
-    var replyHeaderBindingOptions: BindingOptions? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -104,13 +99,6 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         }
         holder.voicePlaybackLayout.backgroundTintList = ColorStateList.valueOf(backgroundTint)
 
-        MediaCaptionBinder.bind(
-                view = holder.replyHeaderView,
-                caption = replyHeader,
-                bindingOptions = replyHeaderBindingOptions,
-                movementMethod = captionMovementMethod,
-                itemLongClickListener = attributes.itemLongClickListener,
-        )
         MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
@@ -200,7 +188,6 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         val voicePlaybackWaveform by bind<AudioWaveformView>(R.id.voicePlaybackWaveform)
         val progressLayout by bind<ViewGroup>(R.id.messageFileUploadProgressLayout)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
-        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {

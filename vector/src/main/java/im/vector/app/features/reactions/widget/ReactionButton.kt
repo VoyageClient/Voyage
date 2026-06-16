@@ -65,6 +65,10 @@ class ReactionButton @JvmOverloads constructor(
             applyReactionContent(value)
         }
 
+    // When true, custom image-emoji (mxc://) reactions are not fetched — the ❓ placeholder is kept,
+    // mirroring the room's media-hiding setting. Set before [reactionString].
+    var blockImages = false
+
     private var isChecked: Boolean = false
     private var onDrawable: Drawable? = null
     private var offDrawable: Drawable? = null
@@ -106,6 +110,11 @@ class ReactionButton @JvmOverloads constructor(
         views.reactionText.text = QUESTION_MARK_EMOJI
         views.reactionText.isVisible = true
         views.reactionImage.isVisible = false
+        if (blockImages) {
+            // Media hidden for this room: keep the ❓ and don't fetch the image.
+            Glide.with(views.reactionImage).clear(views.reactionImage)
+            return
+        }
         val resolved = activeSessionHolder.getSafeActiveSession()
                 ?.contentUrlResolver()
                 ?.resolveFullSize(value)

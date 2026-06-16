@@ -74,11 +74,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
-    @EpoxyAttribute
-    var replyHeader: EpoxyCharSequence? = null
-
-    @EpoxyAttribute
-    var replyHeaderBindingOptions: BindingOptions? = null
 
     private var isUserSeeking = false
 
@@ -91,13 +86,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         bindSeekBar(holder)
         holder.audioPlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
         renderStateBasedOnAudioPlayback(holder)
-        MediaCaptionBinder.bind(
-                view = holder.replyHeaderView,
-                caption = replyHeader,
-                bindingOptions = replyHeaderBindingOptions,
-                movementMethod = captionMovementMethod,
-                itemLongClickListener = attributes.itemLongClickListener,
-        )
         MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
@@ -230,7 +218,6 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val audioPlaybackDuration by bind<TextView>(R.id.audioPlaybackDuration)
         val audioSeekBar by bind<SeekBar>(R.id.audioSeekBar)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
-        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {

@@ -33,6 +33,9 @@ data class MessageInformationData(
         val readReceiptAnonymous: AnonymousReadReceipt = AnonymousReadReceipt.NONE,
         val isDirect: Boolean = false,
         val dmChatPartnerId: String? = null,
+        // True when the room's media-preview setting hides media: custom image-emoji reactions are
+        // then blocked (shown as a ❓) instead of fetched.
+        val hideMediaReactions: Boolean = false,
         val e2eDecoration: E2EDecoration = E2EDecoration.NONE,
         val sendStateDecoration: SendStateDecoration = SendStateDecoration.NONE,
         val isFirstFromThisSender: Boolean = false,

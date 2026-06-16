@@ -7,6 +7,9 @@
 
 package im.vector.app.features.media
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import java.util.Collections
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,9 +23,17 @@ class MediaContentRevealManager @Inject constructor() {
 
     private val revealedEventIds = Collections.synchronizedSet(mutableSetOf<String>())
 
+    private val _revealedEvents = MutableSharedFlow<String>(extraBufferCapacity = 16)
+
+    /** Emits an event id whenever it's revealed, so other surfaces (e.g. the composer reply preview)
+     *  can update without waiting for a rebind. */
+    val revealedEvents: SharedFlow<String> = _revealedEvents.asSharedFlow()
+
     fun isRevealed(eventId: String): Boolean = revealedEventIds.contains(eventId)
 
     fun reveal(eventId: String) {
-        revealedEventIds.add(eventId)
+        if (revealedEventIds.add(eventId)) {
+            _revealedEvents.tryEmit(eventId)
+        }
     }
 }

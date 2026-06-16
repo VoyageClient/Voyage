@@ -74,12 +74,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
-    @EpoxyAttribute
-    var replyHeader: EpoxyCharSequence? = null
-
-    @EpoxyAttribute
-    var replyHeaderBindingOptions: BindingOptions? = null
-
     override fun bind(holder: Holder) {
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
@@ -155,13 +149,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         bindPlayButton(holder, isImageMessage, hidden)
 
         MediaCaptionBinder.bind(
-                view = holder.replyHeaderView,
-                caption = replyHeader,
-                bindingOptions = replyHeaderBindingOptions,
-                movementMethod = captionMovementMethod,
-                itemLongClickListener = attributes.itemLongClickListener,
-        )
-        MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
                 bindingOptions = captionBindingOptions,
@@ -230,7 +217,6 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val mediaShowButton by bind<AppCompatTextView>(R.id.messageMediaShowButton)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
-        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {

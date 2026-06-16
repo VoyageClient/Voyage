@@ -8,12 +8,15 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
+import android.graphics.Outline
 import android.net.Uri
 import android.text.Editable
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.format.DateUtils
 import android.util.AttributeSet
+import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -37,6 +40,9 @@ import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.shouldHideMediaPreview
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.commonmark.parser.Parser
@@ -55,6 +61,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -78,8 +85,14 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var pillsPostProcessorFactory: PillsPostProcessor.Factory
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
 
     private val views: ComposerLayoutBinding
+
+    // The replied-to/related event currently shown in the preview, so its media can be re-rendered
+    // in place when revealed elsewhere.
+    private var relatedMessageEvent: TimelineEvent? = null
 
     override var callback: Callback? = null
 
@@ -106,6 +119,16 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views = ComposerLayoutBinding.bind(this)
 
         views.composerEditText.maxLines = MessageComposerView.MAX_LINES_WHEN_COLLAPSED
+
+        // Round the replied-to image corners. Glide's RoundedCorners only transforms the loaded
+        // bitmap, so a still-loading blurhash placeholder (Drawable) would otherwise show square.
+        val imageCornerRadius = 8 * resources.displayMetrics.density
+        views.composerRelatedMessageImage.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, imageCornerRadius)
+            }
+        }
+        views.composerRelatedMessageImage.clipToOutline = true
 
         collapse()
 
@@ -147,6 +170,30 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     override fun setTextIfDifferent(text: CharSequence?): Boolean {
         return views.composerEditText.setTextIfDifferent(text)
+    }
+
+    private fun renderRelatedMessageImage(event: TimelineEvent, crossFade: Boolean = false): Boolean {
+        val data = event.buildImageContentRendererData(dimensionConverter.dpToPx(66))
+        return if (data != null) {
+            val session = activeSessionHolder.getSafeActiveSession()
+            val hidden = session != null && shouldHideMediaPreview(event, session, vectorPreferences, mediaContentRevealManager)
+            if (hidden) {
+                imageContentRenderer.renderHidden(data, ImageContentRenderer.Mode.THUMBNAIL, views.composerRelatedMessageImage, vectorPreferences.useSolidColorForHiddenMedia())
+            } else {
+                imageContentRenderer.render(data, ImageContentRenderer.Mode.THUMBNAIL, views.composerRelatedMessageImage, crossFade = crossFade)
+            }
+            true
+        } else {
+            imageContentRenderer.clear(views.composerRelatedMessageImage)
+            false
+        }
+    }
+
+    override fun refreshRelatedMessageMedia() {
+        val event = relatedMessageEvent ?: return
+        if (!views.relatedMessageGroup.isVisible) return
+        // Cross-fade from the blurhash/solid placeholder to the revealed image.
+        views.composerRelatedMessageImage.isVisible = renderRelatedMessageImage(event, crossFade = true)
     }
 
     override fun getDraftContent(): CharSequence = serializeMentionPills(text ?: "")
@@ -286,15 +333,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views.composerRelatedMessageContent.setTextColor(ThemeUtils.getColor(context, contentColorAttr))
 
         // Image Event
-        val data = event.buildImageContentRendererData(dimensionConverter.dpToPx(66))
-        val isImageVisible = if (data != null) {
-            imageContentRenderer.render(data, ImageContentRenderer.Mode.THUMBNAIL, views.composerRelatedMessageImage)
-            true
-        } else {
-            imageContentRenderer.clear(views.composerRelatedMessageImage)
-            false
-        }
-
+        relatedMessageEvent = event
+        val isImageVisible = renderRelatedMessageImage(event)
         views.composerRelatedMessageImage.isVisible = isImageVisible
 
         views.composerRelatedMessageActionIcon.setImageDrawable(ContextCompat.getDrawable(context, iconRes))

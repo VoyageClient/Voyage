@@ -116,7 +116,13 @@ class ImageContentRenderer @Inject constructor(
                 .into(imageView)
     }
 
-    fun render(data: Data, mode: Mode, imageView: ImageView, cornerTransformation: Transformation<Bitmap> = RoundedCorners(dimensionConverter.dpToPx(8))) {
+    fun render(
+            data: Data,
+            mode: Mode,
+            imageView: ImageView,
+            cornerTransformation: Transformation<Bitmap> = RoundedCorners(dimensionConverter.dpToPx(8)),
+            crossFade: Boolean = false,
+    ) {
         val size = processSize(data, mode)
         imageView.updateLayoutParams {
             width = size.width
@@ -126,7 +132,8 @@ class ImageContentRenderer @Inject constructor(
         imageView.contentDescription = data.filename
 
         createGlideRequest(data, mode, imageView, size)
-                .let { if (mode != Mode.ANIMATED_THUMBNAIL) it.dontAnimate() else it }
+                .let { if (mode != Mode.ANIMATED_THUMBNAIL && !crossFade) it.dontAnimate() else it }
+                .let { if (crossFade) it.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS)) else it }
                 .optionalTransform(cornerTransformation)
                 .into(imageView)
     }
@@ -156,6 +163,7 @@ class ImageContentRenderer @Inject constructor(
     companion object {
         private const val BLURHASH_CROSSFADE_MS = 200L
         private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS)
+        private const val REVEAL_CROSSFADE_MS = 220
     }
 
     fun clear(imageView: ImageView) {

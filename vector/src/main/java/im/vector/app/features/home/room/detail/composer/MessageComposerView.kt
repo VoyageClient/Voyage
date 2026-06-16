@@ -35,6 +35,10 @@ interface MessageComposerView {
      * String round-trip (they are reconstructed as pills when the draft is restored).
      */
     fun getDraftContent(): CharSequence = formattedText ?: text?.toString().orEmpty()
+
+    /** Re-render the replied-to/related-message media preview in place (e.g. after the user reveals
+     *  hidden media elsewhere), without touching the composer's typed text. */
+    fun refreshRelatedMessageMedia() = Unit
 }
 
 interface Callback : ComposerEditText.Callback {

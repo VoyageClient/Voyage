@@ -33,6 +33,7 @@ import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.element.android.wysiwyg.EditorStyledTextView
 import io.noties.markwon.MarkwonPlugin
@@ -63,9 +64,6 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     var imageContentRenderer: ImageContentRenderer? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
-    var movementMethod: MovementMethod? = null
-
-    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var markwonPlugins: (List<MarkwonPlugin>)? = null
 
     @EpoxyAttribute
@@ -85,6 +83,17 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var htmlPostProcessors: Array<EventHtmlRenderer.PostProcessor>? = null
+
+    // Body variant with inline images replaced by grey placeholders, shown while the room hides media
+    // and the message hasn't been revealed. Tapping the message reveals all its inline images.
+    @EpoxyAttribute
+    var blockedMessage: EpoxyCharSequence? = null
+
+    @EpoxyAttribute
+    var blockedBindingOptions: BindingOptions? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var mediaRevealManager: MediaContentRevealManager? = null
 
     private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
@@ -134,19 +143,31 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         } else {
             messageView.textSize = 15.5F
         }
+        val showBlocked = blockedMessage != null &&
+                mediaRevealManager?.isRevealed(attributes.informationData.eventId) != true
+        val activeMessage = (if (showBlocked) blockedMessage else message)?.charSequence
+        val activeOptions = if (showBlocked) blockedBindingOptions else bindingOptions
         if (searchForPills) {
-            message?.charSequence?.findPillsAndProcess(coroutineScope) {
+            activeMessage?.findPillsAndProcess(coroutineScope) {
                 // mmm.. not sure this is so safe in regards to cell reuse
                 it.bind(messageView)
             }
         }
-        message?.charSequence.let { charSequence ->
+        activeMessage.let { charSequence ->
             markwonPlugins?.forEach { plugin -> plugin.beforeSetText(messageView, charSequence as Spanned) }
         }
         super.bind(holder)
         messageView.movementMethod = movementMethod
         renderSendState(messageView, messageView)
-        messageView.onClick(attributes.itemClickListener)
+        if (showBlocked) {
+            // Tap any blocked inline image to reveal all of this message's images, then re-bind.
+            messageView.onClick {
+                mediaRevealManager?.reveal(attributes.informationData.eventId)
+                bind(holder)
+            }
+        } else {
+            messageView.onClick(attributes.itemClickListener)
+        }
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         val defaultColorAttr = if (noticeStyle) {
             im.vector.lib.ui.styles.R.attr.vctr_content_secondary
@@ -154,7 +175,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             im.vector.lib.ui.styles.R.attr.vctr_content_primary
         }
         messageView.setTextColor(resolveThemeColor(messageView, defaultColorAttr))
-        messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
+        messageView.setTextWithEmojiSupport(activeMessage, activeOptions)
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
     }
 

@@ -33,7 +33,10 @@ import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.location.INITIAL_MAP_ZOOM_IN_TIMELINE
 import im.vector.app.features.location.UrlMapProvider
 import im.vector.app.features.location.toLocationData
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.shouldHideMediaPreview
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -60,7 +63,9 @@ class MessageActionsEpoxyController @Inject constructor(
         private val vectorPreferences: VectorPreferences,
         private val dateFormatter: VectorDateFormatter,
         private val urlMapProvider: UrlMapProvider,
-        private val locationPinProvider: LocationPinProvider
+        private val locationPinProvider: LocationPinProvider,
+        private val activeSessionHolder: ActiveSessionHolder,
+        private val mediaContentRevealManager: MediaContentRevealManager,
 ) : TypedEpoxyController<MessageActionState>() {
 
     var listener: MessageActionsEpoxyControllerListener? = null
@@ -81,6 +86,12 @@ class MessageActionsEpoxyController @Inject constructor(
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
             data(state.timelineEvent()?.buildImageContentRendererData(host.dimensionConverter.dpToPx(66)))
+            hideMedia(
+                    host.activeSessionHolder.getSafeActiveSession()?.let { session ->
+                        state.timelineEvent()?.let { shouldHideMediaPreview(it, session, host.vectorPreferences, host.mediaContentRevealManager) }
+                    }.orFalse()
+            )
+            hideMediaSolidColor(host.vectorPreferences.useSolidColorForHiddenMedia())
             userClicked { host.listener?.didSelectMenuAction(EventSharedAction.OpenUserProfile(state.informationData.senderId)) }
             bindingOptions(bindingOptions)
             body(body.toEpoxyCharSequence())

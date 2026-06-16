@@ -70,14 +70,12 @@
 
     <string-array name="sc_bubble_style_entries" translatable="false">
         <item>@string/settings_sc_bubble_style_none</item>
-        <item>@string/settings_sc_bubble_style_element</item>
         <item>@string/settings_sc_bubble_style_both</item>
         <item>@string/settings_sc_bubble_style_start</item>
     </string-array>
 
     <string-array name="sc_bubble_style_values" translatable="false">
         <item>none</item>
-        <item>element</item>
         <item>both</item>
         <item>start</item>
     </string-array>

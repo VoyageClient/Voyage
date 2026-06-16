@@ -62,6 +62,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
     var data: ImageContentRenderer.Data? = null
 
     @EpoxyAttribute
+    var hideMedia: Boolean = false
+
+    @EpoxyAttribute
+    var hideMediaSolidColor: Boolean = false
+
+    @EpoxyAttribute
     var time: String? = null
 
     @EpoxyAttribute
@@ -86,7 +92,11 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             holder.imagePreview.clipToOutline = true
         }
         data?.let {
-            imageContentRenderer?.render(it, ImageContentRenderer.Mode.THUMBNAIL, holder.imagePreview)
+            if (hideMedia) {
+                imageContentRenderer?.renderHidden(it, ImageContentRenderer.Mode.THUMBNAIL, holder.imagePreview, hideMediaSolidColor)
+            } else {
+                imageContentRenderer?.render(it, ImageContentRenderer.Mode.THUMBNAIL, holder.imagePreview)
+            }
         }
         holder.imagePreview.isVisible = data != null
         holder.body.movementMethod = movementMethod

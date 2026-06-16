@@ -21,6 +21,8 @@
         <attr name="message_highlight_bg_color" format="color" />
         <attr name="vctr_jump_to_bottom_bg_tint" format="color" />
         <attr name="vctr_jump_to_bottom_icon_tint" format="color" />
+        <attr name="vctr_jump_to_bottom_badge_bg_tint" format="color" />
+        <attr name="vctr_jump_to_bottom_badge_text_tint" format="color" />
         <attr name="code_block_bg_color" format="color" />
         <attr name="quote_bar_color" format="color" />
         <attr name="voice_message_playback_background_color" format="color" />

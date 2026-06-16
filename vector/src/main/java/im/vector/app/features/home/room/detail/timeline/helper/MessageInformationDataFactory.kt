@@ -17,6 +17,8 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.home.room.detail.timeline.item.ReferencesInfoData
 import im.vector.app.features.home.room.detail.timeline.item.SendStateDecoration
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayoutFactory
+import im.vector.app.features.settings.MediaPreviewMode
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.BubbleThemeUtils
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
@@ -32,6 +34,7 @@ import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.events.model.toValidDecryptedEvent
 import org.matrix.android.sdk.api.session.room.model.ReferencesAggregatedContent
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
@@ -39,6 +42,13 @@ import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import javax.inject.Inject
+
+private val PRIVATE_JOIN_RULES = setOf(
+        RoomJoinRules.INVITE,
+        RoomJoinRules.KNOCK,
+        RoomJoinRules.RESTRICTED,
+        RoomJoinRules.PRIVATE,
+)
 
 /**
  * This class is responsible of building extra information data associated to a given event.
@@ -49,6 +59,7 @@ class MessageInformationDataFactory @Inject constructor(
         private val messageLayoutFactory: TimelineMessageLayoutFactory,
         private val reactionsSummaryFactory: ReactionsSummaryFactory,
         private val pollResponseDataFactory: PollResponseDataFactory,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     fun create(params: TimelineItemFactoryParams): MessageInformationData {
@@ -100,6 +111,13 @@ class MessageInformationDataFactory @Inject constructor(
 
         val messageLayout = messageLayoutFactory.create(params)
 
+        val hideMediaReactions = when (vectorPreferences.getMediaPreviewMode()) {
+            MediaPreviewMode.ALWAYS_SHOW -> false
+            MediaPreviewMode.ALWAYS_HIDE -> true
+            MediaPreviewMode.PRIVATE -> roomSummary?.joinRules !in PRIVATE_JOIN_RULES
+            MediaPreviewMode.DIRECT -> roomSummary?.isDirect != true
+        }
+
         return MessageInformationData(
                 eventId = eventId,
                 senderId = senderId,
@@ -122,6 +140,7 @@ class MessageInformationDataFactory @Inject constructor(
                 readReceiptAnonymous = BubbleThemeUtils.anonymousReadReceiptForEvent(event),
                 isDirect = isEffectivelyDirect,
                 dmChatPartnerId = dmOtherMemberId,
+                hideMediaReactions = hideMediaReactions,
                 isFirstFromThisSender = isFirstFromThisSender,
                 isLastFromThisSender = isLastFromThisSender,
                 e2eDecoration = e2eDecoration,

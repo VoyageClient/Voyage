@@ -8,16 +8,11 @@
     android:orientation="vertical"
     tools:viewBindingIgnore="true">
 
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/messageReplyHeaderView"
-        style="@style/Widget.Vector.TextView.Body"
-        android:layout_width="match_parent"
+    <im.vector.app.features.home.room.detail.timeline.reply.InReplyToView
+        android:id="@+id/inReplyToContainer"
+        style="@style/InReplyToViewParams"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:textAlignment="viewStart"
-        android:textColor="?vctr_content_primary"
-        android:visibility="gone"
-        tools:text="In reply to @user"
         tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -97,6 +92,7 @@
     <im.vector.app.core.ui.views.FooteredTextView
         android:id="@+id/messageCaptionView"
         style="@style/Widget.Vector.TextView.Body"
+        android:textSize="15.5sp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"

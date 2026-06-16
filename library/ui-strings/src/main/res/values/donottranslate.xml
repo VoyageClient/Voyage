@@ -143,6 +143,9 @@
 
     <string name="footer_read_receipt_content_description" translatable="false">Message status</string>
 
+    <string name="in_reply_to_loading" translatable="false">Loading replied-to message…</string>
+    <string name="in_reply_to_error" translatable="false">Failed to load replied-to message</string>
+
     <string name="settings_sc_bubble_style_title" translatable="false">Message bubbles</string>
     <string name="settings_sc_bubble_style_none" translatable="false">None</string>
     <string name="settings_sc_bubble_style_element" translatable="false">Element</string>

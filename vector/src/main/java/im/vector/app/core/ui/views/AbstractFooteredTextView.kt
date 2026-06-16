@@ -55,12 +55,6 @@ interface AbstractFooteredTextView {
         // Default case
         footerState.requiredHorizontalCanvasMove = 0f
 
-        // No footer reserved (non-bubble, or items that don't overlay a footer): behave exactly like a plain
-        // TextView. Re-deriving the width from line metrics here clips the last glyph on some fonts.
-        if (footerState.footerWidth == 0 && footerState.footerHeight == 0) {
-            return Pair(measuredWidth, measuredHeight)
-        }
-
         val layout = layout ?: return Pair(measuredWidth, measuredHeight)
 
         // Get max available width

@@ -96,6 +96,9 @@
         <item name="quote_bar_color">?vctr_content_quaternary</item>
         <item name="vctr_jump_to_bottom_bg_tint">?colorAccent</item>
         <item name="vctr_jump_to_bottom_icon_tint">@android:color/white</item>
+        <!-- Exactly as SchildiChat: opaque grey (like text_color_secondary_sc_light, without alpha). -->
+        <item name="vctr_jump_to_bottom_badge_bg_tint">#737373</item>
+        <item name="vctr_jump_to_bottom_badge_text_tint">@android:color/white</item>
         <item name="user_color_pl_0">@color/user_color_sc_pl_0</item>
         <item name="user_color_pl_1">@color/user_color_sc_pl_1</item>
         <item name="user_color_pl_50">@color/user_color_sc_pl_50</item>

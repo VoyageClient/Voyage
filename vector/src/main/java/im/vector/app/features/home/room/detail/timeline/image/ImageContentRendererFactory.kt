@@ -10,9 +10,11 @@ package im.vector.app.features.home.room.detail.timeline.image
 import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
+import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
@@ -51,6 +53,22 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int): ImageContentRen
                             maxWidth = maxHeight * 2,
                             allowNonMxcUrls = false,
                             blurHash = videoInfo?.blurHash,
+                    )
+                }
+        root.isSticker() -> root.getClearContent().toModel<MessageStickerContent>()
+                ?.let { stickerContent ->
+                    ImageContentRenderer.Data(
+                            eventId = eventId,
+                            filename = stickerContent.body,
+                            mimeType = stickerContent.mimeType,
+                            url = stickerContent.getFileUrl(),
+                            elementToDecrypt = stickerContent.encryptedFileInfo?.toElementToDecrypt(),
+                            height = stickerContent.info?.height,
+                            maxHeight = maxHeight,
+                            width = stickerContent.info?.width,
+                            maxWidth = maxHeight * 2,
+                            allowNonMxcUrls = false,
+                            blurHash = stickerContent.info?.blurHash,
                     )
                 }
         else -> null

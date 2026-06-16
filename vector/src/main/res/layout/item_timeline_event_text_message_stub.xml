@@ -7,15 +7,22 @@
     android:orientation="vertical"
     tools:viewBindingIgnore="true">
 
+    <im.vector.app.features.home.room.detail.timeline.reply.InReplyToView
+        android:id="@+id/inReplyToContainer"
+        style="@style/InReplyToViewParams"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:visibility="visible" />
+
     <ViewStub
         android:id="@+id/plainMessageTextViewStub"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout="@layout/item_timeline_event_text_message_plain_stub" />
 
     <ViewStub
         android:id="@+id/richMessageTextViewStub"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout="@layout/item_timeline_event_text_message_rich_stub" />
 
@@ -30,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="8dp"
         android:visibility="gone"
         tools:visibility="visible" />
 

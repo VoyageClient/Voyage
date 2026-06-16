@@ -51,6 +51,8 @@
         <item name="code_block_bg_color">#19000000</item>
         <item name="vctr_jump_to_bottom_bg_tint">#FFFFFF</item>
         <item name="vctr_jump_to_bottom_icon_tint">@android:color/black</item>
+        <item name="vctr_jump_to_bottom_badge_bg_tint">?colorAccent</item>
+        <item name="vctr_jump_to_bottom_badge_text_tint">@android:color/white</item>
         <item name="riotx_unread_unimportant_room_badge">?vctr_content_secondary</item>
         <item name="vctr_spoiler_background_color">#FF000000</item>
 

@@ -59,6 +59,16 @@ import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.raw.wellknown.CryptoConfig
 import im.vector.app.features.raw.wellknown.getOutboundSessionKeySharingStrategyOrDefault
 import im.vector.app.features.raw.wellknown.withElementWellKnown
+import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
+import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
+import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.PillsPostProcessor
+import im.vector.app.features.html.SpanUtils
+import im.vector.app.features.html.VectorHtmlCompressor
+import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorDataStore
@@ -156,6 +166,15 @@ class TimelineViewModel @AssistedInject constructor(
         private val voteToPollUseCase: VoteToPollUseCase,
         private val getPinnedEventsUseCase: GetPinnedEventsUseCase,
         private val recentEmojiDataSource: RecentEmojiDataSource,
+        private val displayableEventFormatter: DisplayableEventFormatter,
+        private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
+        private val textRendererFactory: EventTextRenderer.Factory,
+        private val messageColorProvider: MessageColorProvider,
+        private val htmlCompressor: VectorHtmlCompressor,
+        private val htmlRenderer: EventHtmlRenderer,
+        private val spanUtils: SpanUtils,
+        private val imageContentRenderer: ImageContentRenderer,
+        private val mediaContentRevealManager: MediaContentRevealManager,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, ChatEffectManager.Delegate, CallProtocolsChecker.Listener, LocationSharingServiceConnection.Callback {
 
@@ -173,6 +192,21 @@ class TimelineViewModel @AssistedInject constructor(
 
     // Same lifecycle than the ViewModel (survive to screen rotation)
     val previewUrlRetriever = PreviewUrlRetriever(session, viewModelScope, buildMeta)
+    val replyPreviewRetriever = ReplyPreviewRetriever(
+            vectorPreferences,
+            initialState.roomId,
+            session,
+            viewModelScope,
+            displayableEventFormatter,
+            pillsPostProcessorFactory,
+            textRendererFactory,
+            mediaContentRevealManager,
+            messageColorProvider,
+            htmlCompressor,
+            htmlRenderer,
+            spanUtils,
+            imageContentRenderer,
+    )
 
     // Slot to keep a pending action during permission request
     var pendingAction: RoomDetailAction? = null
@@ -225,6 +259,7 @@ class TimelineViewModel @AssistedInject constructor(
         observePowerLevel()
         observePinnedEvents()
         setupPreviewUrlObservers()
+        setupInReplyToObserver()
         viewModelScope.launch(Dispatchers.IO) {
             tryOrNull {
                 room.readService().markAsRead(
@@ -389,6 +424,17 @@ class TimelineViewModel @AssistedInject constructor(
                 .execute {
                     copy(myRoomMember = it)
                 }
+    }
+
+    private fun setupInReplyToObserver() {
+        timelineEvents.onEach { snapshot ->
+            withContext(Dispatchers.Default) {
+                replyPreviewRetriever.invalidateEventsFromSnapshot(snapshot)
+                snapshot.forEach {
+                    replyPreviewRetriever.getReplyTo(it)
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 
     private fun setupPreviewUrlObservers() {

@@ -62,12 +62,6 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
-    @EpoxyAttribute
-    var replyHeader: EpoxyCharSequence? = null
-
-    @EpoxyAttribute
-    var replyHeaderBindingOptions: BindingOptions? = null
-
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.fileLayout, holder.filenameView)
@@ -106,13 +100,6 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         holder.filenameView.paintFlags = (holder.filenameView.paintFlags or Paint.UNDERLINE_TEXT_FLAG)
 
         MediaCaptionBinder.bind(
-                view = holder.replyHeaderView,
-                caption = replyHeader,
-                bindingOptions = replyHeaderBindingOptions,
-                movementMethod = captionMovementMethod,
-                itemLongClickListener = attributes.itemLongClickListener,
-        )
-        MediaCaptionBinder.bind(
                 view = holder.captionView,
                 caption = caption,
                 bindingOptions = captionBindingOptions,
@@ -138,7 +125,6 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         val fileDownloadProgress by bind<ProgressBar>(R.id.messageFileProgressbar)
         val filenameView by bind<TextView>(R.id.messageFilenameView)
         val captionView by bind<AppCompatTextView>(R.id.messageCaptionView)
-        val replyHeaderView by bind<AppCompatTextView>(R.id.messageReplyHeaderView)
     }
 
     companion object {

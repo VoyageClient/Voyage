@@ -93,6 +93,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import im.vector.app.features.media.MediaContentRevealManager
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -120,6 +121,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var session: Session
     @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
     @Inject lateinit var errorTracker: ErrorTracker
+    @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
 
     private val permalinkService: PermalinkService
         get() = session.permalinkService()
@@ -218,6 +220,12 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is SendMode.Voice -> renderVoiceMessageMode(mode.text)
             }
         }
+
+        // Re-render the reply preview's media when the user reveals hidden media elsewhere (e.g. in
+        // the timeline) so it updates in place rather than only after re-opening the reply.
+        mediaContentRevealManager.revealedEvents
+                .onEach { composer.refreshRelatedMessageMedia() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
 
         attachmentActionsViewModel.stream()
                 .filterIsInstance<AttachmentTypeSelectorSharedAction.SelectAttachmentTypeAction>()
