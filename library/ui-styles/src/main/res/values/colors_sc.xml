@@ -34,6 +34,9 @@
     <color name="background_black_sc">#ff000000</color>
     <color name="background_floating_sc">#ff424242</color>
     <color name="background_sc_bright">#ff616161</color>
+    <!-- Message bubble backgrounds for the (pure-black) black themes; darker than the dark-theme greys. -->
+    <color name="sc_message_bg_incoming_black">#ff161616</color>
+    <color name="sc_message_bg_outgoing_black">#ff0d0d0d</color>
     <color name="background_touch_guard_sc">#bf000000</color>
 
     <!-- Light theme text/foreground colors -->

@@ -38,11 +38,13 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.settings.VectorPreferences
 import io.element.android.wysiwyg.view.spans.InlineCodeSpan
+import im.vector.app.features.themes.ThemeUtils
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
 import io.noties.markwon.MarkwonPlugin
 import io.noties.markwon.MarkwonSpansFactory
 import io.noties.markwon.PrecomputedFutureTextSetterCompat
+import io.noties.markwon.core.MarkwonTheme
 import io.noties.markwon.core.spans.EmphasisSpan
 import io.noties.markwon.core.spans.StrongEmphasisSpan
 import io.noties.markwon.ext.latex.JLatexMathPlugin
@@ -65,7 +67,7 @@ import javax.inject.Singleton
 
 @Singleton
 class EventHtmlRenderer @Inject constructor(
-        htmlConfigure: MatrixHtmlPluginConfigure,
+        private val htmlConfigure: MatrixHtmlPluginConfigure,
         private val context: Context,
         private val vectorPreferences: VectorPreferences,
         private val activeSessionHolder: ActiveSessionHolder
@@ -150,6 +152,18 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
+    private fun resolveCodeBlockBackground() = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.code_block_bg_color)
+    private var codeBlockBackground: Int = resolveCodeBlockBackground()
+
+    // SchildiChat colors code blocks/inline code from code_block_bg_color rather than Markwon's auto value.
+    private val codeThemePlugin = object : AbstractMarkwonPlugin() {
+        override fun configureTheme(builder: MarkwonTheme.Builder) {
+            super.configureTheme(builder)
+            builder.codeBlockBackgroundColor(codeBlockBackground)
+                    .codeBackgroundColor(codeBlockBackground)
+        }
+    }
+
     private val cleanUpIntermediateCodePlugin = object : AbstractMarkwonPlugin() {
         override fun afterSetText(textView: TextView) {
             super.afterSetText(textView)
@@ -198,11 +212,12 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
-    private val markwon = Markwon.builder(context)
+    private fun buildMarkwon() = Markwon.builder(context)
             .usePlugin(HtmlRootTagPlugin())
             .usePlugin(HtmlPlugin.create(htmlConfigure))
             .usePlugin(removeLeadingNewlineForInlineElement)
             .usePlugin(glidePlugin)
+            .usePlugin(codeThemePlugin)
             .apply {
                 if (vectorPreferences.latexMathsIsEnabled()) {
                     // If latex maths is enabled in app preferences, reformat it so Markwon recognises it
@@ -216,7 +231,20 @@ class EventHtmlRenderer @Inject constructor(
             .textSetter(PrecomputedFutureTextSetterCompat.create())
             .build()
 
-    val plugins: List<MarkwonPlugin> = markwon.plugins
+    private var markwonBackingField = buildMarkwon()
+
+    // Rebuild when the active theme changed the code-block colour (singleton survives Activity recreate).
+    private val markwon: Markwon
+        get() {
+            val newCodeBlockBackground = resolveCodeBlockBackground()
+            if (newCodeBlockBackground != codeBlockBackground) {
+                codeBlockBackground = newCodeBlockBackground
+                markwonBackingField = buildMarkwon()
+            }
+            return markwonBackingField
+        }
+
+    val plugins: List<MarkwonPlugin> get() = markwon.plugins
 
     fun parse(text: String): Node {
         return markwon.parse(text)

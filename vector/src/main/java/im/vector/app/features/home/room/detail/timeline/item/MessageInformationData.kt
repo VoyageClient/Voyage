@@ -30,6 +30,9 @@ data class MessageInformationData(
         val hasPendingEdits: Boolean = false,
         val referencesInfoData: ReferencesInfoData? = null,
         val sentByMe: Boolean,
+        val readReceiptAnonymous: AnonymousReadReceipt = AnonymousReadReceipt.NONE,
+        val isDirect: Boolean = false,
+        val dmChatPartnerId: String? = null,
         val e2eDecoration: E2EDecoration = E2EDecoration.NONE,
         val sendStateDecoration: SendStateDecoration = SendStateDecoration.NONE,
         val isFirstFromThisSender: Boolean = false,
@@ -109,6 +112,11 @@ enum class SendStateDecoration {
     SENDING_MEDIA,
     SENT,
     FAILED
+}
+
+enum class AnonymousReadReceipt {
+    NONE,
+    PROCESSING,
 }
 
 fun ReadReceiptData.toMatrixItem() = MatrixItem.UserItem(userId, displayName, avatarUrl)

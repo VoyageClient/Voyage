@@ -396,9 +396,11 @@ internal class LocalEchoEventFactory @Inject constructor(
         // the original event keeps its own m.in_reply_to relation so clients render the
         // reply header from cached state rather than from a duplicated embedded snapshot.
         val plainBody = replyText.toString()
+        // See createReplyTextContent: keep an explicit formatted body, and only use the markdown
+        // fallback when it genuinely produced formatting (not the plain-text takeFormatted() fallback).
         val htmlBody = replyTextFormatted
-                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).takeFormatted()
-        val isFormatted = htmlBody != plainBody
+                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).formattedText
+        val isFormatted = htmlBody != null
 
         return createMessageEvent(
                 roomId,
@@ -750,9 +752,13 @@ internal class LocalEchoEventFactory @Inject constructor(
         // and cause inconsistencies on edit. MSC3952 m.mentions carries the replied-to sender
         // as a hint for clients that haven't fetched the target yet.
         val plainBody = replyText.toString()
+        // Honour an explicitly-provided formatted body verbatim (as sendFormattedTextMessage does);
+        // otherwise only treat the markdown fallback as formatting when it actually produced some.
+        // takeFormatted() falls back to the plain text, which made `htmlBody == plainBody` drop a
+        // genuine formatted body whenever it happened to equal the plain text (e.g. literal HTML).
         val htmlBody = replyTextFormatted?.toString()
-                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).takeFormatted()
-        val isFormatted = htmlBody != plainBody
+                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).formattedText
+        val isFormatted = htmlBody != null
 
         return MessageTextContent(
                 msgType = msgType,

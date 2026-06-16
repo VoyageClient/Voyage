@@ -30,6 +30,14 @@
         <item name="vctr_toolbar_background">@color/element_system_dark</item>
         <item name="vctr_message_bubble_inbound">@color/vctr_message_bubble_inbound_dark</item>
         <item name="vctr_message_bubble_outbound">@color/vctr_message_bubble_outbound_dark</item>
+        <!-- SchildiChat message bubble drawables. Outgoing stays neutral here; the accent tint (when enabled) is applied in code. -->
+        <item name="sc_message_bg_incoming">#FF465561</item>
+        <item name="sc_message_bg_outgoing">#FF343B47</item>
+        <item name="sc_notice_bg_incoming">@android:color/transparent</item>
+        <item name="sc_notice_bg_outgoing">@android:color/transparent</item>
+        <item name="timestamp_overlay_bg">@color/timestamp_overlay_bg</item>
+        <item name="timestamp_overlay_fg">@color/timestamp_overlay_fg</item>
+        <item name="message_highlight_bg_color">@color/accent_sc_alpha25</item>
         <item name="vctr_badge_color_border">@color/vctr_badge_color_border_dark</item>
 
         <!-- room message colors -->
@@ -40,6 +48,10 @@
         <item name="vctr_encrypting_message_text_color">@color/palette_element_green</item>
         <item name="vctr_sending_message_text_color">@color/element_content_secondary_dark</item>
         <item name="vctr_markdown_block_background_color">@android:color/black</item>
+        <item name="code_block_bg_color">#19ffffff</item>
+        <item name="vctr_jump_to_bottom_bg_tint">#FFFFFF</item>
+        <item name="vctr_jump_to_bottom_icon_tint">@android:color/black</item>
+        <item name="riotx_unread_unimportant_room_badge">?vctr_content_secondary</item>
         <item name="vctr_spoiler_background_color">#FFFFFFFF</item>
 
         <!-- Presence Indicator colors -->

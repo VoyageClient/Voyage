@@ -21,6 +21,7 @@ class AvatarSizeProvider @Inject constructor(
         when (layoutSettingsProvider.getLayoutSettings()) {
             TimelineLayoutSettings.MODERN -> AvatarStyle.SMALL
             TimelineLayoutSettings.BUBBLE -> AvatarStyle.BUBBLE
+            TimelineLayoutSettings.SC_BUBBLE -> AvatarStyle.SMALL
         }
     }
 

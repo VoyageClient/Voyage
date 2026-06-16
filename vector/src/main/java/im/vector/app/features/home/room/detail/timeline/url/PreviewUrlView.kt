@@ -87,6 +87,11 @@ class PreviewUrlView @JvmOverloads constructor(
                 rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
                 views.urlPreviewStartGuideline.setGuidelineBegin(0)
             }
+            is TimelineMessageLayout.ScBubble -> {
+                setCardBackgroundColor(Color.TRANSPARENT)
+                rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+                views.urlPreviewStartGuideline.setGuidelineBegin(0)
+            }
         }
     }
 

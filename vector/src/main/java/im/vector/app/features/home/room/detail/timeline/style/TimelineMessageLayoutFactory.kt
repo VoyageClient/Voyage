@@ -14,13 +14,20 @@ import im.vector.app.core.resources.LocaleProvider
 import im.vector.app.core.resources.isRTL
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.themes.BubbleThemeUtils
+import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageNoticeContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.isEdition
+import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
 import javax.inject.Inject
 
@@ -29,6 +36,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
         private val layoutSettingsProvider: TimelineLayoutSettingsProvider,
         private val localeProvider: LocaleProvider,
         private val resources: Resources,
+        private val bubbleThemeUtils: BubbleThemeUtils,
         private val vectorPreferences: VectorPreferences
 ) {
 
@@ -46,6 +54,9 @@ class TimelineMessageLayoutFactory @Inject constructor(
         // Can't be rendered in bubbles, so get back to default layout
         private val MSG_TYPES_WITHOUT_BUBBLE_LAYOUT = setOf(
                 MessageType.MSGTYPE_VERIFICATION_REQUEST
+        )
+        private val EVENT_TYPES_WITHOUT_SC_BUBBLE_LAYOUT = setOf(
+                STATE_ROOM_VOICE_BROADCAST_INFO,
         )
 
         // Use the bubble layout but without borders
@@ -100,6 +111,31 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 nextDisplayableEvent.isEdition()
 
         val messageLayout = when (layoutSettingsProvider.getLayoutSettings()) {
+            TimelineLayoutSettings.SC_BUBBLE -> {
+                if (event.shouldNeverUseScLayout()) {
+                    buildModernLayout(showInformation)
+                } else {
+                    val messageContent = event.getLastMessageContent()
+                    val isBubble = event.shouldBuildScBubbleLayout()
+                    val singleSidedLayout = bubbleThemeUtils.getBubbleStyle() == BubbleThemeUtils.BUBBLE_STYLE_START
+                    val pseudoBubble = messageContent.isScPseudoBubble(event)
+                    val showTimestamp = showInformation || !singleSidedLayout || vectorPreferences.alwaysShowTimeStamps()
+                    TimelineMessageLayout.ScBubble(
+                            showAvatar = showInformation,
+                            showDisplayName = showInformation && ((singleSidedLayout && showTimestamp) || !messageContent.redundantDisplayName()),
+                            showTimestamp = showTimestamp,
+                            bubbleAppearance = bubbleThemeUtils.getBubbleAppearance(),
+                            isIncoming = !isSentByMe,
+                            isNotice = messageContent is MessageNoticeContent,
+                            reverseBubble = isSentByMe && !singleSidedLayout,
+                            singleSidedLayout = singleSidedLayout,
+                            isRealBubble = isBubble && !pseudoBubble,
+                            isPseudoBubble = pseudoBubble,
+                            timestampAsOverlay = messageContent.timestampInsideMessage(),
+                            tintOutgoing = bubbleThemeUtils.isOutgoingTintEnabled()
+                    )
+                }
+            }
             TimelineLayoutSettings.MODERN -> {
                 buildModernLayout(showInformation)
             }
@@ -138,9 +174,75 @@ class TimelineMessageLayoutFactory @Inject constructor(
         return messageLayout
     }
 
+    /**
+     * Dumb layout setting, so non-bubble classes (read receipts, merged headers) can still get basic ScBubble alignment.
+     */
+    fun createDummy(): TimelineMessageLayout {
+        return when (layoutSettingsProvider.getLayoutSettings()) {
+            TimelineLayoutSettings.SC_BUBBLE -> {
+                val singleSidedLayout = bubbleThemeUtils.getBubbleStyle() == BubbleThemeUtils.BUBBLE_STYLE_START
+                TimelineMessageLayout.ScBubble(
+                        showAvatar = false,
+                        showDisplayName = false,
+                        showTimestamp = true,
+                        bubbleAppearance = bubbleThemeUtils.getBubbleAppearance(),
+                        isIncoming = false,
+                        isNotice = false,
+                        reverseBubble = false,
+                        singleSidedLayout = singleSidedLayout,
+                        isRealBubble = false,
+                        isPseudoBubble = false,
+                        timestampAsOverlay = false,
+                        tintOutgoing = bubbleThemeUtils.isOutgoingTintEnabled()
+                )
+            }
+            else -> TimelineMessageLayout.Default(
+                    showAvatar = false,
+                    showDisplayName = false,
+                    showTimestamp = vectorPreferences.alwaysShowTimeStamps()
+            )
+        }
+    }
+
     private fun MessageContent?.isPseudoBubble(): Boolean {
         if (this == null) return false
         return this.msgType in MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT
+    }
+
+    private fun MessageContent?.isScPseudoBubble(event: TimelineEvent, ignoreReply: Boolean = false): Boolean {
+        if (this == null) return false
+        if (event.root.isRedacted()) return false
+        val isReply = event.isReply()
+        if (!ignoreReply && isReply) return false
+        if (this is MessageWithAttachmentContent && !getCaption().isNullOrBlank()) return false
+        return this.msgType in MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT
+    }
+
+    private fun MessageContent?.redundantDisplayName(): Boolean {
+        if (this == null) return false
+        return msgType == MessageType.MSGTYPE_EMOTE
+    }
+
+    private fun TimelineEvent.shouldBuildScBubbleLayout(): Boolean {
+        if (root.isRedacted()) {
+            // Redacted messages always go into bubbles
+            return true
+        }
+        val type = root.getClearType()
+        if (type in EVENT_TYPES_WITH_BUBBLE_LAYOUT) {
+            val messageContent = getVectorLastMessageContent()
+            if (messageContent.isScPseudoBubble(this, true)) return true
+            return messageContent?.msgType !in MSG_TYPES_WITHOUT_BUBBLE_LAYOUT
+        }
+        return false
+    }
+
+    private fun TimelineEvent.shouldNeverUseScLayout(): Boolean {
+        if (root.getClearType() in EVENT_TYPES_WITHOUT_SC_BUBBLE_LAYOUT) {
+            return true
+        }
+        val messageContent = getLastMessageContent()
+        return messageContent?.msgType in MSG_TYPES_WITHOUT_BUBBLE_LAYOUT
     }
 
     private fun MessageContent?.timestampInsideMessage(): Boolean {

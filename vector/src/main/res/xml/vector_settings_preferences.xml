@@ -37,6 +37,19 @@
             android:persistent="false"
             android:title="@string/font_size" />
 
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="none"
+            android:entries="@array/sc_bubble_style_entries"
+            android:entryValues="@array/sc_bubble_style_values"
+            android:key="BUBBLE_STYLE_KEY"
+            android:title="@string/settings_sc_bubble_style_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="BUBBLE_APPEARANCE_KEY"
+            android:title="@string/settings_sc_bubble_appearance"
+            app:fragment="im.vector.app.features.settings.VectorSettingsBubbleAppearanceFragment" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
@@ -92,12 +105,6 @@
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_category_timeline">
-
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="@bool/settings_interface_bubble_default"
-            android:key="SETTINGS_INTERFACE_BUBBLE_KEY"
-            android:title="@string/message_bubbles"
-            app:isPreferenceVisible="@bool/settings_interface_bubble_visible" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="@bool/settings_timeline_show_live_sender_info_default"

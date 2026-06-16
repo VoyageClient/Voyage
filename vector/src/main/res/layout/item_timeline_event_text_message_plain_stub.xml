@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Message view to be used when the rich text editor is not enabled -->
-<androidx.appcompat.widget.AppCompatTextView android:id="@+id/messageTextView"
+<im.vector.app.core.ui.views.FooteredTextView android:id="@+id/messageTextView"
     style="@style/Widget.Vector.TextView.Body"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

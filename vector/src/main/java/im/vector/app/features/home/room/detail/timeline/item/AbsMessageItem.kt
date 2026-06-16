@@ -28,6 +28,7 @@ import im.vector.app.core.ui.views.SendStateImageView
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -64,6 +65,10 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
     @SuppressLint("SetTextI18n")
     override fun bind(holder: H) {
         super.bind(holder)
+
+        if ((holder.view as? ScMessageBubbleWrapView)?.customBind(this, holder, attributes, _avatarClickListener) != true) {
+        // Indentation kept flat for easy diffing against upstream
+
         if (attributes.informationData.messageLayout.showAvatar) {
             holder.avatarImageView.layoutParams = holder.avatarImageView.layoutParams?.apply {
                 height = attributes.avatarSize
@@ -99,6 +104,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         // Render send state indicator
         holder.sendStateImageView.render(attributes.informationData.sendStateDecoration)
         holder.eventSendingIndicator.isVisible = attributes.informationData.sendStateDecoration == SendStateDecoration.SENDING_MEDIA
+
+        // Indentation kept flat for easy diffing against upstream - end
+        }
 
         // Threads
         if (attributes.areThreadMessagesEnabled) {
@@ -141,7 +149,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         super.unbind(holder)
     }
 
-    private fun Attributes.getMemberNameColor() = messageColorProvider.getMemberNameTextColor(informationData.matrixItem)
+    override fun getInformationData(): MessageInformationData? = attributes.informationData
 
     abstract class Holder(@IdRes stubId: Int) : AbsBaseMessageItem.Holder(stubId) {
 
@@ -181,6 +189,8 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             val autoplayAnimatedImages: Boolean = false,
             override val reactionsSummaryEvents: ReactionsSummaryEvents? = null,
     ) : AbsBaseMessageItem.Attributes {
+
+        fun getMemberNameColor() = messageColorProvider.getMemberNameTextColor(informationData.matrixItem)
 
         // Have to override as it's used to diff epoxy items
         override fun equals(other: Any?): Boolean {

@@ -94,7 +94,7 @@
             tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <im.vector.app.core.ui.views.FooteredTextView
         android:id="@+id/messageCaptionView"
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="match_parent"

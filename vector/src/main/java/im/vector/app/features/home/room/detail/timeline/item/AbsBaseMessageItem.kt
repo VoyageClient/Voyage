@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.item
 
 import android.annotation.SuppressLint
+import android.content.res.Resources
 import android.graphics.Typeface
 import android.view.View
 import android.view.ViewGroup
@@ -23,17 +24,22 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.getDrawableAsSpannable
+import im.vector.app.core.ui.views.BubbleDependentView
 import im.vector.app.core.ui.views.ShieldImageView
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
+import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.view.TimelineMessageLayoutRenderer
+import im.vector.app.features.home.room.detail.timeline.view.scRenderMessageLayout
 import im.vector.app.features.reactions.widget.ReactionButton
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.send.SendState
+import kotlin.math.ceil
 
 private const val MAX_REACTIONS_TO_SHOW = 8
 
@@ -42,7 +48,8 @@ private const val MAX_REACTIONS_TO_SHOW = 8
  * Manages associated click listeners and send status.
  * Should not be used as this, use a subclass.
  */
-abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layoutId: Int) : BaseEventItem<H>(layoutId) {
+abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layoutId: Int) :
+        BaseEventItem<H>(layoutId), BubbleDependentView<H> {
 
     abstract val baseAttributes: Attributes
 
@@ -72,10 +79,17 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
     override fun bind(holder: H) {
         super.bind(holder)
         renderReactions(holder, baseAttributes.informationData.reactionsSummary)
-        holder.e2EDecorationView.renderE2EDecoration(baseAttributes.informationData.e2eDecoration)
+        if (!baseAttributes.informationData.messageLayout.showsE2eDecorationInFooter()) {
+            holder.e2EDecorationView.renderE2EDecoration(baseAttributes.informationData.e2eDecoration)
+        }
         holder.view.onClick(baseAttributes.itemClickListener)
         holder.view.setOnLongClickListener(baseAttributes.itemLongClickListener)
-        (holder.view as? TimelineMessageLayoutRenderer)?.renderMessageLayout(baseAttributes.informationData.messageLayout)
+        val messageLayout = baseAttributes.informationData.messageLayout
+        if (messageLayout is TimelineMessageLayout.ScBubble) {
+            (holder.view as? TimelineMessageLayoutRenderer).scRenderMessageLayout(messageLayout, this, holder)
+        } else {
+            (holder.view as? TimelineMessageLayoutRenderer)?.renderMessageLayout(messageLayout)
+        }
     }
 
     private fun renderReactions(holder: H, reactionsSummary: ReactionsSummaryData) {
@@ -146,6 +160,23 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
         val state = if (baseAttributes.informationData.hasPendingEdits) SendState.UNSENT else baseAttributes.informationData.sendState
         textView?.setTextColor(baseAttributes.messageColorProvider.getMessageTextColor(state))
         failureIndicator?.isVisible = baseAttributes.informationData.sendState.hasFailed()
+    }
+
+    override fun getScBubbleMargin(resources: Resources): Int {
+        return when {
+            (baseAttributes.informationData.messageLayout as? TimelineMessageLayout.ScBubble)?.singleSidedLayout == true -> 0
+            // Direct chats usually have avatars hidden on both sides
+            baseAttributes.informationData.isDirect -> resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_both_sides_without_avatar_margin)
+            // No direct chat, but sent by me: other side has an avatar
+            baseAttributes.informationData.sentByMe -> {
+                resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_one_side_without_avatar_margin) +
+                        resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_one_side_avatar_offset) +
+                        // SC bubbles use SMALL avatars
+                        ceil(AvatarSizeProvider.Companion.AvatarStyle.SMALL.avatarSizeDP * resources.displayMetrics.density).toInt()
+            }
+            // No direct chat, sent by other: my side has hidden avatar
+            else -> resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.dual_bubble_one_side_without_avatar_margin)
+        }
     }
 
     abstract class Holder(@IdRes stubId: Int) : BaseEventItem.BaseHolder(stubId) {

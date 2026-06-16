@@ -28,6 +28,8 @@ import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
+import im.vector.app.core.ui.views.AbstractFooteredTextView
+import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -191,6 +193,34 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     }
 
     override fun getViewStubId() = STUB_ID
+
+    // No caption: overlay the timestamp chip on the media. With a caption: overlay it inline on the caption
+    // text (reserving space) so it sits next to short captions and drops below long ones.
+    override fun allowFooterOverlay(holder: Holder, bubbleWrapView: ScMessageBubbleWrapView): Boolean = true
+
+    override fun allowFooterBelow(holder: Holder): Boolean = false
+
+    override fun needsFooterReservation(): Boolean = caption != null
+
+    override fun reserveFooterSpace(holder: Holder, width: Int, height: Int) {
+        (holder.captionView as? AbstractFooteredTextView)?.apply {
+            footerWidth = width
+            footerHeight = height
+            getAppCompatTextView().requestLayout()
+        }
+    }
+
+    override fun applyScBubbleStyle(messageLayout: TimelineMessageLayout.ScBubble, holder: Holder) {
+        if ((messageLayout.isRealBubble || messageLayout.isPseudoBubble) && mode == ImageContentRenderer.Mode.THUMBNAIL) {
+            if (attributes.informationData.sentByMe) {
+                holder.mediaContentView.setBackgroundResource(messageLayout.bubbleAppearance.imageBorderOutgoing)
+            } else {
+                holder.mediaContentView.setBackgroundResource(messageLayout.bubbleAppearance.imageBorderIncoming)
+            }
+        } else {
+            holder.mediaContentView.background = null
+        }
+    }
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)

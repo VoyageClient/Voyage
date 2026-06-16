@@ -971,7 +971,9 @@ class VectorPreferences @Inject constructor(
      * @return true to show timeline message in bubble.
      */
     fun useMessageBubblesLayout(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_INTERFACE_BUBBLE_KEY, getDefault(im.vector.app.config.R.bool.settings_interface_bubble_default))
+        // Any bubble style (Element or SchildiChat) implies bubble media sizing.
+        return defaultPrefs.getString(im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_KEY, im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE) !=
+                im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE
     }
 
     /**

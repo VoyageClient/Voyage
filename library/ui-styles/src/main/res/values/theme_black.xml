@@ -16,6 +16,12 @@
         <item name="vctr_reaction_background_off">@color/vctr_reaction_background_off_black</item>
         <item name="vctr_reaction_background_on">@color/vctr_reaction_background_on_black</item>
         <item name="vctr_markdown_block_background_color">#FF4D4D4D</item>
+        <item name="code_block_bg_color">#19ffffff</item>
+        <item name="vctr_jump_to_bottom_bg_tint">#FFFFFF</item>
+        <item name="vctr_jump_to_bottom_icon_tint">@android:color/black</item>
+        <item name="riotx_unread_unimportant_room_badge">?vctr_content_secondary</item>
+        <item name="sc_message_bg_incoming">@color/sc_message_bg_incoming_black</item>
+        <item name="sc_message_bg_outgoing">@color/sc_message_bg_outgoing_black</item>
         <item name="vctr_toolbar_background">@color/element_background_black</item>
         <!-- Room list section headers default to the dark theme's grey system colour; make them black too. -->
         <item name="vctr_header_background">@color/element_background_black</item>

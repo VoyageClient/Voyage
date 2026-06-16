@@ -151,14 +151,14 @@
             android:contentDescription="@string/a11y_jump_to_bottom"
             android:src="@drawable/ic_expand_more"
             android:visibility="gone"
-            app:backgroundTint="#FFFFFF"
-            app:badgeBackgroundColor="?colorPrimary"
-            app:badgeTextColor="?colorOnPrimary"
+            app:backgroundTint="?vctr_jump_to_bottom_bg_tint"
+            app:badgeBackgroundColor="?riotx_unread_unimportant_room_badge"
+            app:badgeTextColor="@android:color/white"
             app:badgeTextPadding="2dp"
             app:badgeTextSize="10sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:tint="@android:color/black" />
+            app:tint="?vctr_jump_to_bottom_icon_tint" />
 
         <im.vector.app.core.ui.views.CompatKonfetti
             android:id="@+id/viewKonfetti"

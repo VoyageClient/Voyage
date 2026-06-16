@@ -258,7 +258,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 it.isRecordingVoiceBroadcast && !requireActivity().isChangingConfigurations -> timelineViewModel.handle(VoiceBroadcastAction.Recording.Pause)
                 else -> {
                     timelineViewModel.handle(VoiceBroadcastAction.Listening.Pause)
-                    messageComposerViewModel.handle(MessageComposerAction.OnEntersBackground(composer.formattedText ?: composer.text.orEmpty().toString()))
+                    messageComposerViewModel.handle(MessageComposerAction.OnEntersBackground(composer.getDraftContent().toString()))
                 }
             }
         }

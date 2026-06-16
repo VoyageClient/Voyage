@@ -239,18 +239,24 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleEnterEditMode(room: Room, action: MessageComposerAction.EnterEditMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
-            val formatted = vectorPreferences.isRichTextEditorEnabled()
-            val richContent = timelineEvent.getTextEditableContent(formatted)
-            // For our own greentext-formatted output, the HTML body would put a green span in
-            // the editor — visually inconsistent with the rest of the composer. Fall back to
-            // the plain body (the user's `>line`-shaped text) so editing happens against the
-            // source they actually typed.
-            val editableContent = if (looksLikeGreentextHtml(richContent)) {
-                timelineEvent.getTextEditableContent(formatted = false)
-            } else {
-                richContent
-            }
-            setState { copy(sendMode = SendMode.Edit(timelineEvent, editableContent)) }
+            setState { copy(sendMode = SendMode.Edit(timelineEvent, computeEditableContent(timelineEvent))) }
+        }
+    }
+
+    /**
+     * The text we pre-fill the composer with when editing [timelineEvent].
+     */
+    private fun computeEditableContent(timelineEvent: TimelineEvent): CharSequence {
+        val formatted = vectorPreferences.isRichTextEditorEnabled()
+        val richContent = timelineEvent.getTextEditableContent(formatted)
+        // For our own greentext-formatted output, the HTML body would put a green span in
+        // the editor — visually inconsistent with the rest of the composer. Fall back to
+        // the plain body (the user's `>line`-shaped text) so editing happens against the
+        // source they actually typed.
+        return if (looksLikeGreentextHtml(richContent)) {
+            timelineEvent.getTextEditableContent(formatted = false)
+        } else {
+            richContent
         }
     }
 
@@ -804,6 +810,10 @@ class MessageComposerViewModel @AssistedInject constructor(
                             } else {
                                 Timber.w("Same caption, do not send edition")
                             }
+                        } else if (action.text.toString() == computeEditableContent(state.sendMode.timelineEvent).toString()) {
+                            // Preserve-if-untouched: the editable text is unchanged from what we loaded, so keep the
+                            // original (possibly richer) formatted body rather than re-send a lossy plain version.
+                            Timber.w("Edit content untouched, preserving original message")
                         } else {
                             val existingBody: String
                             val needsEdit = if (messageContent is MessageContentWithFormattedBody) {

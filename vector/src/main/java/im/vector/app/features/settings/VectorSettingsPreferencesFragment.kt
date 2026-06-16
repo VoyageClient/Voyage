@@ -84,7 +84,10 @@ class VectorSettingsPreferencesFragment :
                 .onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
             if (newValue is String) {
                 ThemeUtils.setApplicationTheme(requireContext().applicationContext, newValue)
-                activity?.restart()
+                // recreate() (vs restart()) re-themes while preserving the settings back stack, so we stay
+                // on the Preferences screen, same as the accent picker below.
+                (activity as? VectorBaseActivity<*>)?.acknowledgeConfigurationChange()
+                activity?.recreate()
                 true
             } else {
                 false
@@ -129,6 +132,17 @@ class VectorSettingsPreferencesFragment :
             // Combined overview is a legacy-layout feature, force it off and grey it out under the new UI.
             // The change is applied by HomeActivity once the user leaves settings (like the new UI toggle).
             pref.isEnabled = !vectorPreferences.isNewAppLayoutEnabled()
+        }
+
+        // Using a solid color for hidden media only makes sense when media isn't always shown.
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_SOLID_KEY)!!.let { solidPref ->
+            findPreference<VectorListPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_KEY)!!.let { modePref ->
+                solidPref.isEnabled = modePref.value != MediaPreviewMode.ALWAYS_SHOW.value
+                modePref.setOnPreferenceChangeListener { _, newValue ->
+                    solidPref.isEnabled = newValue != MediaPreviewMode.ALWAYS_SHOW.value
+                    true
+                }
+            }
         }
 
         findPreference<VectorSwitchPreference>("SETTINGS_ENABLE_APP_SHORTCUTS")?.setOnPreferenceChangeListener { _, newValue ->

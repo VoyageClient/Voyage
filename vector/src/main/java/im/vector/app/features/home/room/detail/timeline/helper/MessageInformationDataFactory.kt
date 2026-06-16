@@ -17,7 +17,10 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.home.room.detail.timeline.item.ReferencesInfoData
 import im.vector.app.features.home.room.detail.timeline.item.SendStateDecoration
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayoutFactory
+import im.vector.app.features.themes.BubbleThemeUtils
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.MessageVerificationState
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationState
@@ -68,6 +71,22 @@ class MessageInformationDataFactory @Inject constructor(
         val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root)
         // this is claimed data or not depending on the e2e decoration
         val senderId = event.senderInfo.userId
+
+        // Determine DM partner so dual-side bubbles can hide both avatars in direct chats.
+        val isEffectivelyDirect = roomSummary?.isDirect ?: false
+        var dmOtherMemberId: String? = null
+        if (roomSummary?.isDirect == true && event.root.roomId != null) {
+            val members = session.roomService().getRoom(event.root.roomId!!)
+                    ?.membershipService()
+                    ?.getRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.JOIN) })
+                    ?.map { it.userId }
+                    .orEmpty()
+                    .toSet()
+            if (members.size == 2) {
+                dmOtherMemberId = members.firstOrNull { it != session.myUserId }
+            }
+        }
+
         // SendState Decoration
         val sendStateDecoration = if (isSentByMe) {
             getSendStateDecoration(
@@ -100,6 +119,9 @@ class MessageInformationDataFactory @Inject constructor(
                     ReferencesInfoData(verificationState)
                 },
                 sentByMe = isSentByMe,
+                readReceiptAnonymous = BubbleThemeUtils.anonymousReadReceiptForEvent(event),
+                isDirect = isEffectivelyDirect,
+                dmChatPartnerId = dmOtherMemberId,
                 isFirstFromThisSender = isFirstFromThisSender,
                 isLastFromThisSender = isLastFromThisSender,
                 e2eDecoration = e2eDecoration,

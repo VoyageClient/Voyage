@@ -28,6 +28,13 @@ interface MessageComposerView {
 
     fun setTextIfDifferent(text: CharSequence?): Boolean
     fun renderComposerMode(mode: MessageComposerMode)
+
+    /**
+     * The composer content to persist as a draft. The rich editor returns its HTML; the plain editor
+     * returns its text with mention pills serialised as matrix.to markdown links so they survive the
+     * String round-trip (they are reconstructed as pills when the draft is restored).
+     */
+    fun getDraftContent(): CharSequence = formattedText ?: text?.toString().orEmpty()
 }
 
 interface Callback : ComposerEditText.Callback {

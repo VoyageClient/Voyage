@@ -22,6 +22,8 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
+import im.vector.app.core.ui.views.AbstractFooteredTextView
+import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
@@ -179,6 +181,18 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         previewUrlRetriever?.removeListener(attributes.informationData.eventId, previewUrlViewUpdater)
     }
 
+    // Overlay the inline timestamp on a single text view; the rich-body (reply) path keeps the footer below.
+    override fun allowFooterOverlay(holder: Holder, bubbleWrapView: ScMessageBubbleWrapView): Boolean = bodySegments == null
+
+    override fun needsFooterReservation(): Boolean = bodySegments == null
+
+    override fun reserveFooterSpace(holder: Holder, width: Int, height: Int) {
+        val footeredView = holder.footeredMessageView(useRichTextEditorStyle) ?: return
+        footeredView.footerWidth = width
+        footeredView.footerHeight = height
+        footeredView.getAppCompatTextView().requestLayout()
+    }
+
     override fun getViewStubId() = STUB_ID
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
@@ -215,6 +229,10 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             val view = plainMessageView ?: plainMessageStub.inflate().findViewById(R.id.messageTextView)
             plainMessageView = view
             return view
+        }
+
+        fun footeredMessageView(useRich: Boolean): AbstractFooteredTextView? {
+            return (if (useRich) richMessageView else plainMessageView) as? AbstractFooteredTextView
         }
     }
 

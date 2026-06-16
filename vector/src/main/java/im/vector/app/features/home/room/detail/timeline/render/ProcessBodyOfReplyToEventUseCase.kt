@@ -68,11 +68,13 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         private val colorProvider: ColorProvider,
 ) {
 
-    // Theme's muted/notice colour as a #RRGGBB string for the <font> reply previews, so they
+    // Theme's muted/notice colour as a #AARRGGBB string for the <font> reply previews, so they
     // match the notice grey used elsewhere instead of a hardcoded "gray" that's wrong per theme.
+    // Keep the alpha: SC themes express the muted colour as translucent white (#b3ffffff); dropping
+    // the alpha would collapse it to pure white and the preview would lose its muted look.
     private fun noticeColorHex(): String {
         val color = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-        return String.format("#%06X", 0xFFFFFF and color)
+        return String.format("#%08X", color)
     }
 
     // Events fetched on-demand for replies whose target isn't in the local timeline DB. Kept

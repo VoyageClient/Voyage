@@ -10,6 +10,8 @@ package im.vector.app.features.home.room.detail.composer
 import android.content.Context
 import android.net.Uri
 import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.widget.EditText
@@ -20,9 +22,11 @@ import androidx.core.text.toSpannable
 import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.setTextIfDifferent
 import im.vector.app.core.extensions.showKeyboard
+import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ComposerLayoutBinding
 import im.vector.app.features.home.AvatarRenderer
@@ -30,11 +34,18 @@ import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormat
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.commonmark.parser.Parser
+import org.matrix.android.sdk.api.session.getUserOrDefault
+import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
+import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
+import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -66,6 +77,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var dimensionConverter: DimensionConverter
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var pillsPostProcessorFactory: PillsPostProcessor.Factory
+    @Inject lateinit var activeSessionHolder: ActiveSessionHolder
 
     private val views: ComposerLayoutBinding
 
@@ -137,14 +149,71 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         return views.composerEditText.setTextIfDifferent(text)
     }
 
+    override fun getDraftContent(): CharSequence = serializeMentionPills(text ?: "")
+
+    // Serialise mention pills (MatrixItemSpan) to matrix.to markdown links so they survive the draft's
+    // String round-trip; non-mention text is left verbatim. Returns the plain text when there are none.
+    private fun serializeMentionPills(source: CharSequence): String {
+        val spannable = source.toSpannable()
+        val spans = spannable.getSpans(0, spannable.length, MatrixItemSpan::class.java)
+                .sortedBy { spannable.getSpanStart(it) }
+        if (spans.isEmpty()) return source.toString()
+        return buildString {
+            var index = 0
+            spans.forEach { span ->
+                val start = spannable.getSpanStart(span)
+                val end = spannable.getSpanEnd(span)
+                if (start < index) return@forEach
+                append(spannable, index, start)
+                append("[").append(spannable.subSequence(start, end).toString()).append("]")
+                append("(https://matrix.to/#/").append(span.matrixItem.id).append(")")
+                index = end
+            }
+            append(spannable, index, spannable.length)
+        }
+    }
+
+    private val mentionLinkRegex = Regex("""\[([^]]+)]\((https://matrix\.to/#/[^)]+)\)""")
+
+    // Inverse of serializeMentionPills: turn matrix.to markdown links back into PillImageSpans.
+    private fun reconstructMentionPills(source: CharSequence): CharSequence {
+        if (!source.contains("https://matrix.to/#/")) return source
+        val session = activeSessionHolder.getSafeActiveSession() ?: return source
+        val out = SpannableStringBuilder()
+        var index = 0
+        mentionLinkRegex.findAll(source).forEach { match ->
+            out.append(source, index, match.range.first)
+            val label = match.groupValues[1]
+            val matrixItem = when (val data = PermalinkParser.parse(match.groupValues[2])) {
+                is PermalinkData.UserLink -> session.getUserOrDefault(data.userId).toMatrixItem()
+                is PermalinkData.RoomLink -> session.getRoomSummary(data.roomIdOrAlias)?.toMatrixItem()
+                else -> null
+            }
+            if (matrixItem != null) {
+                val start = out.length
+                out.append(label)
+                val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem).also { it.bind(editText) }
+                out.setSpan(span, start, start + label.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            } else {
+                out.append(source, match.range.first, match.range.last + 1)
+            }
+            index = match.range.last + 1
+        }
+        out.append(source, index, source.length)
+        return out
+    }
+
     override fun renderComposerMode(mode: MessageComposerMode) {
         val specialMode = mode as? MessageComposerMode.Special
         if (specialMode != null) {
             renderSpecialMode(specialMode)
         } else if (mode is MessageComposerMode.Normal) {
             collapse()
-            if (editText.text?.toString() != mode.content?.toString()) {
-                editText.setTextIfDifferent(mode.content)
+            // Reconstruct mention pills from a restored draft's matrix.to markdown links. For live
+            // content (already-spanned, no markdown), this is a no-op and the existing pills are kept.
+            val content = reconstructMentionPills(mode.content ?: "")
+            if (editText.text?.toString() != content.toString()) {
+                editText.setTextIfDifferent(content)
             }
         }
 

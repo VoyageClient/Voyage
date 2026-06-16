@@ -8,6 +8,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.view.View
 import android.view.ViewStub
+import android.widget.FrameLayout
 import android.widget.RelativeLayout
 import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
@@ -56,6 +57,7 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
     abstract class BaseHolder(@IdRes val stubId: Int) : VectorEpoxyHolder() {
         val leftGuideline by bind<View>(R.id.messageStartGuideline)
         val contentContainer by bind<View>(R.id.viewStubContainer)
+        val viewStubContainer by bind<FrameLayout>(R.id.viewStubContainer)
         val checkableBackground by bind<CheckableView>(R.id.messageSelectedBackground)
 
         override fun bindView(itemView: View) {

@@ -121,7 +121,7 @@
     <string name="settings_accent" translatable="false">Accent color</string>
     <string name="color_picker_selected" translatable="false">Selected: %s</string>
     <string name="sc_accent_element" translatable="false">Element Green</string>
-    <string name="sc_accent_greenlight" translatable="false">SchildiChat Green</string>
+    <string name="sc_accent_greenlight" translatable="false">Lime green</string>
     <string name="sc_accent_amber" translatable="false">Amber</string>
     <string name="sc_accent_bluelight" translatable="false">Light blue</string>
     <string name="sc_accent_blue" translatable="false">Blue</string>
@@ -140,6 +140,23 @@
     <string name="sc_accent_teal" translatable="false">Teal</string>
     <string name="sc_accent_turquoise" translatable="false">Turquoise</string>
     <string name="sc_accent_yellow" translatable="false">Yellow</string>
+
+    <string name="footer_read_receipt_content_description" translatable="false">Message status</string>
+
+    <string name="settings_sc_bubble_style_title" translatable="false">Message bubbles</string>
+    <string name="settings_sc_bubble_style_none" translatable="false">None</string>
+    <string name="settings_sc_bubble_style_element" translatable="false">Element</string>
+    <string name="settings_sc_bubble_style_both" translatable="false">Both sides</string>
+    <string name="settings_sc_bubble_style_start" translatable="false">Same side</string>
+    <string name="settings_sc_bubble_appearance" translatable="false">Bubble appearance</string>
+    <string name="settings_sc_bubble_roundness_title" translatable="false">Corners</string>
+    <string name="settings_sc_bubble_roundness_default" translatable="false">Default</string>
+    <string name="settings_sc_bubble_roundness_r1" translatable="false">Round</string>
+    <string name="settings_sc_bubble_roundness_r2" translatable="false">Extra round</string>
+    <string name="settings_sc_bubble_tail_title" translatable="false">Bubble tail</string>
+    <string name="settings_sc_bubble_tail_summary" translatable="false">Include bubble tail for a sender\'s first message</string>
+    <string name="settings_sc_bubble_tint_title" translatable="false">Tint your own bubbles</string>
+    <string name="settings_sc_bubble_tint_summary" translatable="false">Tint outgoing message bubbles with the accent color.</string>
 
     <string name="room_list_quick_actions_mark_unread" translatable="false">Mark as unread</string>
     <string name="room_list_quick_actions_mark_read" translatable="false">Mark as read</string>
