@@ -415,6 +415,7 @@ class DefaultNavigator @Inject constructor(
                 eventId = imageData.eventId,
                 inMemoryData = listOf(imageData),
                 sharedTransitionName = sharedElement?.let { ViewCompat.getTransitionName(it) },
+                circularTransition = true,
         )
         val options = sharedElement?.let {
             ActivityOptionsCompat.makeSceneTransitionAnimation(activity, it, ViewCompat.getTransitionName(it) ?: "")

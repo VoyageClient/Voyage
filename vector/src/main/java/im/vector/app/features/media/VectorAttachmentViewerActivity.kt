@@ -8,10 +8,12 @@ package im.vector.app.features.media
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Outline
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.view.ViewTreeObserver
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -57,7 +59,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     data class Args(
             val roomId: String?,
             val eventId: String,
-            val sharedTransitionName: String?
+            val sharedTransitionName: String?,
+            // The shared element is a circular avatar; morph the transition image's corners between
+            // circle and square during the transition so it doesn't snap shape at either end.
+            val circularTransition: Boolean = false,
     ) : Parcelable
 
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
@@ -69,6 +74,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private var initialIndex = 0
     private var isAnimatingOut = false
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
+    // Fraction of the shorter side used as the transition image corner radius: 0.5 = circle, 0 = square.
+    private var transitionCornerFraction = CIRCLE_CORNER_FRACTION
+    private var cornerAnimator: android.animation.ValueAnimator? = null
     private val downloadActionResultLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
         if (allGranted) {
             viewModel.pendingAction?.let {
@@ -86,6 +94,19 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         ThemeUtils.setActivityTheme(this, getOtherThemes())
 
         val args = args() ?: throw IllegalArgumentException("Missing arguments")
+
+        if (args.circularTransition) {
+            // The shared element is a circular avatar but the full-screen image is square. Morph the
+            // transition image's corner radius between the two (circle <-> square) in step with the
+            // transition, instead of snapping shape at either end.
+            imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    val radius = minOf(view.width, view.height) * transitionCornerFraction
+                    outline.setRoundRect(0, 0, view.width, view.height, radius)
+                }
+            }
+            imageTransitionView.clipToOutline = true
+        }
 
         if (savedInstanceState == null && addTransitionListener()) {
             args.sharedTransitionName?.let {
@@ -160,6 +181,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             // show back the transition view
             // TODO, we should track and update the mapping
             transitionImageContainer.isVisible = true
+            roundTransitionCornerForClose()
         }
         isAnimatingOut = true
         @Suppress("DEPRECATION")
@@ -175,9 +197,17 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             // show back the transition view
             // TODO, we should track and update the mapping
             transitionImageContainer.isVisible = true
+            roundTransitionCornerForClose()
         }
         isAnimatingOut = true
         ActivityCompat.finishAfterTransition(this)
+    }
+
+    // Round the corners back (square -> circle) as the image shrinks into the avatar.
+    private fun roundTransitionCornerForClose() {
+        if (args()?.circularTransition == true) {
+            animateTransitionCorner(to = CIRCLE_CORNER_FRACTION, transition = window.sharedElementReturnTransition)
+        }
     }
 
     private fun getOtherThemes() = ActivityOtherThemes.VectorAttachmentsPreview
@@ -225,9 +255,25 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                     override fun onPreDraw(): Boolean {
                         sharedElement.viewTreeObserver.removeOnPreDrawListener(this)
                         supportStartPostponedEnterTransition()
+                        // Straighten the corners (circle -> square) as the avatar grows into the image.
+                        if (args()?.circularTransition == true) {
+                            animateTransitionCorner(to = SQUARE_CORNER_FRACTION, transition = window.sharedElementEnterTransition)
+                        }
                         return true
                     }
                 })
+    }
+
+    private fun animateTransitionCorner(to: Float, transition: android.transition.Transition?) {
+        cornerAnimator?.cancel()
+        cornerAnimator = android.animation.ValueAnimator.ofFloat(transitionCornerFraction, to).apply {
+            duration = transition?.duration?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
+            addUpdateListener {
+                transitionCornerFraction = it.animatedValue as Float
+                imageTransitionView.invalidateOutline()
+            }
+            start()
+        }
     }
 
     /**
@@ -312,6 +358,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         private const val EXTRA_IMAGE_DATA = "EXTRA_IMAGE_DATA"
         private const val EXTRA_IN_MEMORY_DATA = "EXTRA_IN_MEMORY_DATA"
         private const val POSTPONED_TRANSITION_TIMEOUT_MS = 150L
+        private const val CIRCLE_CORNER_FRACTION = 0.5f
+        private const val SQUARE_CORNER_FRACTION = 0f
+        private const val DEFAULT_TRANSITION_MS = 300L
 
         fun newIntent(
                 context: Context,
@@ -319,9 +368,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 roomId: String?,
                 eventId: String,
                 inMemoryData: List<AttachmentData>,
-                sharedTransitionName: String?
+                sharedTransitionName: String?,
+                circularTransition: Boolean = false,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
-            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName))
+            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, circularTransition))
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
                 it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))
