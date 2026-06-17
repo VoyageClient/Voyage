@@ -46,10 +46,13 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.roommemberprofile.devices.DeviceListBottomSheet
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.roommemberprofile.powerlevel.EditPowerLevelDialogs
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -71,6 +74,8 @@ class RoomMemberProfileFragment :
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
+    @Inject lateinit var session: Session
+    @Inject lateinit var vectorPreferences: VectorPreferences
 
     private lateinit var headerViews: ViewStubRoomMemberProfileHeaderBinding
 
@@ -216,8 +221,15 @@ class RoomMemberProfileFragment :
                 headerViews.memberProfileNameView.text = bestName
                 headerViews.memberProfileNameView.setTextColor(matrixItemColorProvider.getColor(userMatrixItem))
                 views.matrixProfileToolbarTitleView.text = bestName
-                avatarRenderer.render(userMatrixItem, headerViews.memberProfileAvatarView)
-                avatarRenderer.render(userMatrixItem, views.matrixProfileToolbarAvatarImageView)
+                // In rooms that hide avatars, show the default placeholder here, but keep the real avatar
+                // available when the user taps it to open the full-screen viewer (see onAvatarClicked).
+                val displayedMatrixItem = if (state.userId != session.myUserId && shouldHideAvatars(state.roomId, session, vectorPreferences)) {
+                    userMatrixItem.updateAvatar(null)
+                } else {
+                    userMatrixItem
+                }
+                avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView)
+                avatarRenderer.render(displayedMatrixItem, views.matrixProfileToolbarAvatarImageView)
 
                 if (state.isRoomEncrypted) {
                     headerViews.memberProfileDecorationImageView.isVisible = true

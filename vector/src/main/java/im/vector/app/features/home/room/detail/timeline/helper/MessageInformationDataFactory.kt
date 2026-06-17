@@ -111,12 +111,14 @@ class MessageInformationDataFactory @Inject constructor(
 
         val messageLayout = messageLayoutFactory.create(params)
 
-        val hideMediaReactions = when (vectorPreferences.getMediaPreviewMode()) {
+        val mediaHiddenInRoom = when (vectorPreferences.getMediaPreviewMode()) {
             MediaPreviewMode.ALWAYS_SHOW -> false
             MediaPreviewMode.ALWAYS_HIDE -> true
             MediaPreviewMode.PRIVATE -> roomSummary?.joinRules !in PRIVATE_JOIN_RULES
             MediaPreviewMode.DIRECT -> roomSummary?.isDirect != true
         }
+        val hideMediaReactions = mediaHiddenInRoom
+        val hideAvatars = mediaHiddenInRoom && vectorPreferences.hideAvatarsInHiddenMediaRooms() && !isSentByMe
 
         return MessageInformationData(
                 eventId = eventId,
@@ -141,6 +143,7 @@ class MessageInformationDataFactory @Inject constructor(
                 isDirect = isEffectivelyDirect,
                 dmChatPartnerId = dmOtherMemberId,
                 hideMediaReactions = hideMediaReactions,
+                hideAvatars = hideAvatars,
                 isFirstFromThisSender = isFirstFromThisSender,
                 isLastFromThisSender = isLastFromThisSender,
                 e2eDecoration = e2eDecoration,

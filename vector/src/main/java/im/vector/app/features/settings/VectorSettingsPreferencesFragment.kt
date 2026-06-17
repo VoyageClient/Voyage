@@ -134,17 +134,6 @@ class VectorSettingsPreferencesFragment :
             pref.isEnabled = !vectorPreferences.isNewAppLayoutEnabled()
         }
 
-        // Using a solid color for hidden media only makes sense when media isn't always shown.
-        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_SOLID_KEY)!!.let { solidPref ->
-            findPreference<VectorListPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_KEY)!!.let { modePref ->
-                solidPref.isEnabled = modePref.value != MediaPreviewMode.ALWAYS_SHOW.value
-                modePref.setOnPreferenceChangeListener { _, newValue ->
-                    solidPref.isEnabled = newValue != MediaPreviewMode.ALWAYS_SHOW.value
-                    true
-                }
-            }
-        }
-
         findPreference<VectorSwitchPreference>("SETTINGS_ENABLE_APP_SHORTCUTS")?.setOnPreferenceChangeListener { _, newValue ->
             if (newValue == false) {
                 // Drop current dynamic shortcuts immediately; otherwise they'd hang around

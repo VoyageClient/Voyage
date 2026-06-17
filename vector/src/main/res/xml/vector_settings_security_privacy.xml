@@ -155,4 +155,36 @@
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_MEDIA_AND_AVATARS_CATEGORY"
+        android:title="@string/settings_media_and_avatars">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="always_show"
+            android:entries="@array/media_preview_modes"
+            android:entryValues="@array/media_preview_mode_values"
+            android:key="SETTINGS_MEDIA_PREVIEW_KEY"
+            android:summary="%s"
+            android:title="@string/settings_media_preview_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
+            android:summary="@string/settings_media_preview_solid_summary"
+            android:title="@string/settings_media_preview_solid_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_HIDE_AVATARS_KEY"
+            android:summary="@string/settings_hide_avatars_summary"
+            android:title="@string/settings_hide_avatars_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_HIDE_INVITE_AVATARS_KEY"
+            android:summary="@string/settings_hide_invite_avatars_summary"
+            android:title="@string/settings_hide_invite_avatars_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
 </androidx.preference.PreferenceScreen>

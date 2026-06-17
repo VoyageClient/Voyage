@@ -65,7 +65,7 @@ import im.vector.app.features.login.LoginConfig
 import im.vector.app.features.matrixto.MatrixToBottomSheet
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.media.AttachmentData
-import im.vector.app.features.media.BigImageViewerActivity
+import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VectorAttachmentViewerActivity
 import im.vector.app.features.onboarding.OnboardingActivity
 import im.vector.app.features.pin.PinActivity
@@ -395,15 +395,31 @@ class DefaultNavigator @Inject constructor(
     }
 
     override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?) {
-        mxcUrl
-                ?.takeIf { it.isNotBlank() }
-                ?.let { avatarUrl ->
-                    val intent = BigImageViewerActivity.newIntent(activity, title, avatarUrl)
-                    val options = sharedElement?.let {
-                        ActivityOptionsCompat.makeSceneTransitionAnimation(activity, it, ViewCompat.getTransitionName(it) ?: "")
-                    }
-                    activity.startActivity(intent, options?.toBundle())
-                }
+        val avatarUrl = mxcUrl?.takeIf { it.isNotBlank() } ?: return
+        // Reuse the timeline media viewer (zoom + download + share) with the avatar as a single entry.
+        val imageData = ImageContentRenderer.Data(
+                eventId = "avatar_${avatarUrl.hashCode()}",
+                filename = title?.takeIf { it.isNotBlank() } ?: "avatar",
+                mimeType = null,
+                url = avatarUrl,
+                elementToDecrypt = null,
+                height = null,
+                maxHeight = -1,
+                width = null,
+                maxWidth = -1,
+        )
+        val intent = VectorAttachmentViewerActivity.newIntent(
+                context = activity,
+                mediaData = imageData,
+                roomId = null,
+                eventId = imageData.eventId,
+                inMemoryData = listOf(imageData),
+                sharedTransitionName = sharedElement?.let { ViewCompat.getTransitionName(it) },
+        )
+        val options = sharedElement?.let {
+            ActivityOptionsCompat.makeSceneTransitionAnimation(activity, it, ViewCompat.getTransitionName(it) ?: "")
+        }
+        activity.startActivity(intent, options?.toBundle())
     }
 
     override fun openAnalyticsOptIn(context: Context) {

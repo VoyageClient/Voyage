@@ -21,11 +21,13 @@ import com.airbnb.mvrx.Uninitialized
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentSpacePreviewBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.SpacePreviewSharedAction
 import im.vector.app.features.spaces.SpacePreviewSharedActionViewModel
 import im.vector.lib.core.utils.flow.throttleFirst
@@ -33,6 +35,8 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.util.MatrixItem
 import reactivecircus.flowbinding.appcompat.navigationClicks
 import javax.inject.Inject
@@ -48,6 +52,8 @@ class SpacePreviewFragment :
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var epoxyController: SpacePreviewController
+    @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    @Inject lateinit var vectorPreferences: VectorPreferences
 
     private val viewModel by fragmentViewModel(SpacePreviewViewModel::class)
     lateinit var sharedActionViewModel: SpacePreviewSharedActionViewModel
@@ -141,7 +147,9 @@ class SpacePreviewFragment :
 //                val roomPeekResult = preview.summary.roomPeekResult
         val spaceName = spacePreviewState.spaceInfo.invoke()?.name ?: spacePreviewState.name ?: ""
         val spaceAvatarUrl = spacePreviewState.spaceInfo.invoke()?.avatarUrl ?: spacePreviewState.avatarUrl
-        val mxItem = MatrixItem.SpaceItem(spacePreviewState.idOrAlias, spaceName, spaceAvatarUrl)
+        val isInvite = activeSessionHolder.getSafeActiveSession()?.getRoomSummary(spacePreviewState.idOrAlias)?.membership == Membership.INVITE
+        val resolvedAvatarUrl = spaceAvatarUrl.takeUnless { vectorPreferences.hideInviteAvatars() && isInvite }
+        val mxItem = MatrixItem.SpaceItem(spacePreviewState.idOrAlias, spaceName, resolvedAvatarUrl)
         avatarRenderer.render(mxItem, views.spacePreviewToolbarAvatar)
         views.roomPreviewNoPreviewToolbarTitle.text = spaceName
 //            }

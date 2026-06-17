@@ -16,6 +16,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.databinding.VectorInviteViewBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
@@ -39,6 +40,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
     private val views: VectorInviteViewBinding
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var vectorPreferences: VectorPreferences
     var callback: Callback? = null
 
     init {
@@ -51,7 +53,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
     fun render(sender: RoomMemberSummary, mode: Mode = Mode.LARGE, changeMembershipState: ChangeMembershipState) {
         if (mode == Mode.LARGE) {
             updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
-            avatarRenderer.render(sender.toMatrixItem(), views.inviteAvatarView)
+            avatarRenderer.render(sender.toMatrixItem().let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }, views.inviteAvatarView)
             views.inviteIdentifierView.text = sender.userId
             views.inviteNameView.text = sender.displayName
             views.inviteLabelView.text = context.getString(CommonStrings.send_you_invite)

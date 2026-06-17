@@ -16,8 +16,11 @@ import im.vector.app.core.extensions.join
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.roomprofile.permissions.RoleFormatter
+import im.vector.app.features.settings.VectorPreferences
 import me.gujun.android.span.span
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
@@ -32,6 +35,8 @@ class RoomMemberListController @Inject constructor(
         private val colorProvider: ColorProvider,
         private val roomMemberSummaryFilter: RoomMemberSummaryFilter,
         private val roleFormatter: RoleFormatter,
+        private val session: Session,
+        private val vectorPreferences: VectorPreferences,
 ) : TypedEpoxyController<RoomMemberListViewState>() {
 
     interface Callback {
@@ -115,10 +120,12 @@ class RoomMemberListController @Inject constructor(
             data: RoomMemberListViewState
     ) {
         val powerLabel = roleFormatter.format(roomMember.powerLevel)
+        val hideAvatars = shouldHideAvatars(data.roomId, session, vectorPreferences) && roomMember.summary.userId != session.myUserId
+        val matrixItem = roomMember.summary.toMatrixItem().let { if (hideAvatars) it.updateAvatar(null) else it }
 
         profileMatrixItemWithPowerLevelWithPresence {
             id(roomMember.summary.userId)
-            matrixItem(roomMember.summary.toMatrixItem())
+            matrixItem(matrixItem)
             avatarRenderer(host.avatarRenderer)
             userVerificationLevel(data.trustLevelMap.invoke()?.get(roomMember.summary.userId))
             clickListener {

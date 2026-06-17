@@ -133,6 +133,8 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         const val SETTINGS_MEDIA_PREVIEW_KEY = "SETTINGS_MEDIA_PREVIEW_KEY"
         const val SETTINGS_MEDIA_PREVIEW_SOLID_KEY = "SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
+        const val SETTINGS_HIDE_AVATARS_KEY = "SETTINGS_HIDE_AVATARS_KEY"
+        const val SETTINGS_HIDE_INVITE_AVATARS_KEY = "SETTINGS_HIDE_INVITE_AVATARS_KEY"
         private const val SETTINGS_ENABLE_DIRECT_SHARE = "SETTINGS_ENABLE_DIRECT_SHARE"
         private const val SETTINGS_ENABLE_APP_SHORTCUTS = "SETTINGS_ENABLE_APP_SHORTCUTS"
         private const val SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE = "SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE"
@@ -863,6 +865,23 @@ class VectorPreferences @Inject constructor(
      */
     fun useSolidColorForHiddenMedia(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_MEDIA_PREVIEW_SOLID_KEY, false)
+    }
+
+    /**
+     * Whether, in rooms where media is hidden, avatars are also forced to the default placeholder
+     * (timeline, member list and the member profile opened from that room). Only meaningful when the
+     * media-preview mode isn't [MediaPreviewMode.ALWAYS_SHOW].
+     */
+    fun hideAvatarsInHiddenMediaRooms(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_HIDE_AVATARS_KEY, false)
+    }
+
+    /**
+     * Whether incoming room/DM invites in the room and space lists show the default placeholder avatar
+     * instead of the inviter-controlled one — a safety toggle against unsolicited invite avatars.
+     */
+    fun hideInviteAvatars(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_HIDE_INVITE_AVATARS_KEY, false)
     }
 
     /**

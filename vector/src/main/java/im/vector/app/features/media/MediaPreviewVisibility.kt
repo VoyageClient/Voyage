@@ -44,3 +44,33 @@ fun shouldHideMediaPreview(
     }
     return hideByMode && !mediaContentRevealManager.isRevealed(event.eventId)
 }
+
+/**
+ * Whether media is hidden in [roomId] per the media-preview setting, regardless of any specific event.
+ */
+fun isMediaHiddenInRoom(
+        roomId: String?,
+        session: Session,
+        vectorPreferences: VectorPreferences,
+): Boolean {
+    roomId ?: return false
+    val summary = session.getRoomSummary(roomId)
+    return when (vectorPreferences.getMediaPreviewMode()) {
+        MediaPreviewMode.ALWAYS_SHOW -> false
+        MediaPreviewMode.ALWAYS_HIDE -> true
+        MediaPreviewMode.PRIVATE -> summary?.joinRules !in PRIVATE_JOIN_RULES
+        MediaPreviewMode.DIRECT -> summary?.isDirect != true
+    }
+}
+
+/**
+ * Whether avatars should be forced to the default placeholder in [roomId]: the "hide avatars" toggle is on
+ * and media is hidden there. Drives the timeline, member list and the member profile opened from the room.
+ */
+fun shouldHideAvatars(
+        roomId: String?,
+        session: Session,
+        vectorPreferences: VectorPreferences,
+): Boolean {
+    return vectorPreferences.hideAvatarsInHiddenMediaRooms() && isMediaHiddenInRoom(roomId, session, vectorPreferences)
+}

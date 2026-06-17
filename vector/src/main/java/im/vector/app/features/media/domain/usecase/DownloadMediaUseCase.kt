@@ -15,8 +15,10 @@ import im.vector.app.core.utils.saveMedia
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.lib.core.utils.timer.Clock
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import java.io.File
+import java.net.URLConnection
 import javax.inject.Inject
 
 class DownloadMediaUseCase @Inject constructor(
@@ -28,14 +30,23 @@ class DownloadMediaUseCase @Inject constructor(
 
     suspend fun execute(input: File): Result<Unit> = withContext(session.coroutineDispatchers.io) {
         runCatching {
+            // Fall back to sniffing the file's content when the type can't be derived from its name
+            // (e.g. downloaded avatars have no extension), so it's saved with a proper extension.
+            val mimeType = getMimeTypeFromUri(appContext, input.toUri()) ?: sniffMimeType(input)
             saveMedia(
                     context = appContext,
                     file = input,
                     title = input.name,
-                    mediaMimeType = getMimeTypeFromUri(appContext, input.toUri()),
+                    mediaMimeType = mimeType,
                     notificationUtils = notificationUtils,
                     currentTimeMillis = clock.epochMillis()
             )
+        }
+    }
+
+    private fun sniffMimeType(file: File): String? {
+        return tryOrNull {
+            file.inputStream().buffered().use { URLConnection.guessContentTypeFromStream(it) }
         }
     }
 }

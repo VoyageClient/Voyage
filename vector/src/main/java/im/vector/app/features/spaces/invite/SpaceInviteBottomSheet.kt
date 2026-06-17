@@ -29,6 +29,7 @@ import im.vector.app.databinding.BottomSheetInvitedToSpaceBinding
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.matrixto.SpaceCardRenderer
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -51,6 +52,7 @@ class SpaceInviteBottomSheet : VectorBaseBottomSheetDialogFragment<BottomSheetIn
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var spaceCardRenderer: SpaceCardRenderer
+    @Inject lateinit var vectorPreferences: VectorPreferences
 
     private val viewModel: SpaceInviteBottomSheetViewModel by fragmentViewModel(SpaceInviteBottomSheetViewModel::class)
 
@@ -95,12 +97,13 @@ class SpaceInviteBottomSheet : VectorBaseBottomSheetDialogFragment<BottomSheetIn
     override fun invalidate() = withState(viewModel) { state ->
         super.invalidate()
         val summary = state.summary.invoke()
+        val hideInviteAvatars = vectorPreferences.hideInviteAvatars()
         val inviter = state.inviterUser.invoke()?.toMatrixItem()
         if (inviter != null) {
             views.inviterAvatarImage.isVisible = true
             views.inviterText.isVisible = true
             views.inviterMxid.isVisible = true
-            avatarRenderer.render(inviter, views.inviterAvatarImage)
+            avatarRenderer.render(inviter.let { if (hideInviteAvatars) it.updateAvatar(null) else it }, views.inviterAvatarImage)
             views.inviterText.text = getString(CommonStrings.user_invites_you, inviter.getBestName())
             views.inviterMxid.text = inviter.id
         } else {
@@ -109,7 +112,7 @@ class SpaceInviteBottomSheet : VectorBaseBottomSheetDialogFragment<BottomSheetIn
             views.inviterMxid.isVisible = false
         }
 
-        spaceCardRenderer.render(summary, state.peopleYouKnow.invoke().orEmpty(), null, views.spaceCard, showDescription = true)
+        spaceCardRenderer.render(summary, state.peopleYouKnow.invoke().orEmpty(), null, views.spaceCard, showDescription = true, hideAvatar = hideInviteAvatars)
 
         views.spaceCard.matrixToCardMainButton.button.text = getString(CommonStrings.action_accept)
         views.spaceCard.matrixToCardSecondaryButton.button.text = getString(CommonStrings.action_decline)

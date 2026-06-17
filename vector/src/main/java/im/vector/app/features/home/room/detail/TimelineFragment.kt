@@ -1409,7 +1409,10 @@ class TimelineFragment :
                 } else {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = roomSummary.membership == Membership.JOIN
                     views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName
-                    avatarRenderer.render(roomSummary.toMatrixItem(), views.includeRoomToolbar.roomToolbarAvatarImageView)
+                    val toolbarMatrixItem = roomSummary.toMatrixItem().let {
+                        if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it
+                    }
+                    avatarRenderer.render(toolbarMatrixItem, views.includeRoomToolbar.roomToolbarAvatarImageView)
                     val showPresence = roomSummary.isDirect
                     views.includeRoomToolbar.roomToolbarPresenceImageView.render(showPresence, roomSummary.directUserPresence)
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield

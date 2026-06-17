@@ -20,6 +20,7 @@ import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.list.usecase.GetLatestPreviewableEventUseCase
 import im.vector.app.features.home.room.typing.TypingHelper
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voicebroadcast.isLive
 import im.vector.app.features.voicebroadcast.model.asVoiceBroadcastEvent
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
@@ -41,6 +42,7 @@ class RoomSummaryItemFactory @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
         private val errorFormatter: ErrorFormatter,
         private val getLatestPreviewableEventUseCase: GetLatestPreviewableEventUseCase,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     fun create(
@@ -101,10 +103,13 @@ class RoomSummaryItemFactory @Inject constructor(
             }
         }
 
+        val matrixItem = roomSummary.toMatrixItem()
+                .let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }
+
         return RoomInvitationItem_()
                 .id(roomSummary.roomId)
                 .avatarRenderer(avatarRenderer)
-                .matrixItem(roomSummary.toMatrixItem())
+                .matrixItem(matrixItem)
                 .secondLine(secondLine)
                 .changeMembershipState(changeMembershipState)
                 .acceptListener { listener?.onAcceptRoomInvitation(roomSummary) }

@@ -25,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.ButtonStateView
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.utils.styleMatchingText
 import im.vector.app.core.utils.tappableMatchingText
@@ -34,10 +35,13 @@ import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.roomdirectory.JoinState
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
+import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.util.MatrixItem
 import javax.inject.Inject
@@ -50,6 +54,8 @@ class RoomPreviewNoPreviewFragment :
         VectorBaseFragment<FragmentRoomPreviewNoPreviewBinding>() {
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    @Inject lateinit var vectorPreferences: VectorPreferences
 
     private val roomPreviewViewModel: RoomPreviewViewModel by fragmentViewModel()
     private val roomPreviewData: RoomPreviewData by args()
@@ -118,7 +124,7 @@ class RoomPreviewNoPreviewFragment :
                     PeekingState.FOUND -> {
                         // show join buttons
                         views.roomPreviewNoPreviewJoin.isVisible = true
-                        renderState(bestName, state.matrixItem(), state.roomTopic)
+                        renderState(bestName, state.matrixItem().hideAvatarIfInvite(state), state.roomTopic)
                         if (state.fromEmailInvite != null && !state.isEmailBoundToAccount) {
                             views.roomPreviewNoPreviewLabel.text =
                                     span {
@@ -159,7 +165,7 @@ class RoomPreviewNoPreviewFragment :
                         views.roomPreviewNoPreviewJoin.isVisible = true
                         views.roomPreviewNoPreviewLabel.isVisible = true
                         views.roomPreviewNoPreviewLabel.setText(CommonStrings.room_preview_no_preview_join)
-                        renderState(bestName, state.matrixItem().takeIf { state.roomAlias != null }, state.roomTopic)
+                        renderState(bestName, state.matrixItem().takeIf { state.roomAlias != null }?.hideAvatarIfInvite(state), state.roomTopic)
                     }
                     else -> {
                         views.roomPreviewNoPreviewJoin.isVisible = false
@@ -173,10 +179,16 @@ class RoomPreviewNoPreviewFragment :
                 // Render with initial state, no peeking
                 views.roomPreviewPeekingProgress.isVisible = false
                 views.roomPreviewNoPreviewJoin.isVisible = true
-                renderState(bestName, state.matrixItem(), state.roomTopic)
+                renderState(bestName, state.matrixItem().hideAvatarIfInvite(state), state.roomTopic)
                 views.roomPreviewNoPreviewLabel.isVisible = false
             }
         }
+    }
+
+    // Honour the "hide avatars on invites" setting: only an actual invite is masked, not a directory preview.
+    private fun MatrixItem.hideAvatarIfInvite(state: RoomPreviewViewState): MatrixItem {
+        val isInvite = activeSessionHolder.getSafeActiveSession()?.getRoomSummary(state.roomId)?.membership == Membership.INVITE
+        return if (vectorPreferences.hideInviteAvatars() && isInvite) updateAvatar(null) else this
     }
 
     private fun renderState(roomName: String, matrixItem: MatrixItem?, topic: String?) {

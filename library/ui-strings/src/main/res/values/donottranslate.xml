@@ -19,6 +19,7 @@
     <string name="send_file_step_processing_audio" translatable="false">Processing audio…</string>
     <string name="settings_enable_voice_message_button_title" translatable="false">Show voice message button</string>
 
+    <string name="settings_media_and_avatars" translatable="false">Media and avatars</string>
     <string name="settings_media_preview_title" translatable="false">Show media in timeline</string>
     <string name="settings_media_preview_always_show" translatable="false">Always show</string>
     <string name="settings_media_preview_always_hide" translatable="false">Always hide</string>
@@ -26,6 +27,10 @@
     <string name="settings_media_preview_direct" translatable="false">In direct messages</string>
     <string name="settings_media_preview_solid_title" translatable="false">Use solid color for hidden media</string>
     <string name="settings_media_preview_solid_summary" translatable="false">Show a flat color instead of a blurred preview until media is revealed</string>
+    <string name="settings_hide_avatars_title" translatable="false">Hide avatars where media is hidden</string>
+    <string name="settings_hide_avatars_summary" translatable="false">Also show the default avatar in the timeline, member list and member profiles of rooms where media is hidden</string>
+    <string name="settings_hide_invite_avatars_title" translatable="false">Hide avatars on invites</string>
+    <string name="settings_hide_invite_avatars_summary" translatable="false">Show the default avatar for incoming room and direct message invites in your room and space lists</string>
     <string name="action_show_media" translatable="false">Show</string>
     <string name="settings_enable_voice_message_button_summary" translatable="false">Show the microphone next to the message box.</string>
     <string name="no_value_placeholder" translatable="false">–</string>

@@ -12,6 +12,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.grouplist.homeSpaceSummaryItem
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -24,6 +25,7 @@ import javax.inject.Inject
 class SpaceSummaryController @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
         private val stringProvider: StringProvider,
+        private val vectorPreferences: VectorPreferences,
 ) : EpoxyController() {
 
     var callback: Callback? = null
@@ -80,7 +82,7 @@ class SpaceSummaryController @Inject constructor(
                     spaceSummaryItem {
                         avatarRenderer(host.avatarRenderer)
                         id("invite_${roomSummary.roomId}")
-                        matrixItem(roomSummary.toMatrixItem())
+                        matrixItem(roomSummary.toMatrixItem().let { if (host.vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it })
                         countState(UnreadCounterBadgeView.State.Count(1, true))
                         selected(false)
                         description(host.stringProvider.getString(CommonStrings.you_are_invited))

@@ -133,7 +133,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
 
                 val userId = threadDetails.threadSummarySenderInfo?.userId ?: return@let
                 val displayName = threadDetails.threadSummarySenderInfo?.displayName
-                val avatarUrl = threadDetails.threadSummarySenderInfo?.avatarUrl
+                val avatarUrl = threadDetails.threadSummarySenderInfo?.avatarUrl.takeUnless { attributes.informationData.hideAvatars }
                 attributes.avatarRenderer.render(MatrixItem.UserItem(userId, displayName, avatarUrl), holder.threadSummaryAvatarImageView)
                 updateHighlightedMessageHeight(holder, true)
             } ?: run {

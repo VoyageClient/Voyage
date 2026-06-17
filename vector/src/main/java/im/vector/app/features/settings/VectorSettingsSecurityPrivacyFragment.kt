@@ -25,6 +25,7 @@ import androidx.preference.PreferenceCategory
 import androidx.preference.SwitchPreference
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.mvrx.fragmentViewModel
+import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -36,6 +37,7 @@ import im.vector.app.core.intent.ExternalIntentData
 import im.vector.app.core.intent.analyseIntent
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
@@ -280,6 +282,9 @@ class VectorSettingsSecurityPrivacyFragment :
         // Incognito Keyboard
         setUpIncognitoKeyboard()
 
+        // Media visibility / avatar hiding
+        setUpMediaVisibility()
+
         // Pin code
         openPinCodeSettingsPref.setOnPreferenceClickListener {
             openPinCodePreferenceScreen()
@@ -342,6 +347,36 @@ class VectorSettingsSecurityPrivacyFragment :
 
     private fun setUpIncognitoKeyboard() {
         incognitoKeyboardPref.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+    }
+
+    private fun setUpMediaVisibility() {
+        // Using a solid color for hidden media and hiding avatars only make sense when media isn't always shown.
+        val modePref = findPreference<VectorListPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_KEY) ?: return
+        val solidPref = findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_MEDIA_PREVIEW_SOLID_KEY)
+        val hideAvatarsPref = findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_HIDE_AVATARS_KEY)
+        val applyEnabled = { value: Any? ->
+            val enabled = value != MediaPreviewMode.ALWAYS_SHOW.value
+            solidPref?.isEnabled = enabled
+            hideAvatarsPref?.isEnabled = enabled
+        }
+        applyEnabled(modePref.value)
+        modePref.setOnPreferenceChangeListener { _, newValue ->
+            applyEnabled(newValue)
+            true
+        }
+
+        // Invite avatars are loaded by URL, so Glide would otherwise keep serving the previously-shown
+        // (or previously-hidden) version until its cache expires. Drop it whenever the toggle flips.
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_HIDE_INVITE_AVATARS_KEY)
+                ?.setOnPreferenceChangeListener { _, _ ->
+                    lifecycleScope.launch {
+                        Glide.get(requireContext()).clearMemory()
+                        withContext(Dispatchers.IO) {
+                            Glide.get(requireContext()).clearDiskCache()
+                        }
+                    }
+                    true
+                }
     }
 
     // Todo this should be refactored and use same state as 4S section
