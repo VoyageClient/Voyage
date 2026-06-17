@@ -52,6 +52,7 @@ typealias RoomMembersByRole = List<Pair<RoomMemberListCategories, List<RoomMembe
 enum class RoomMemberListCategories(@StringRes val titleRes: Int) {
     ADMIN(CommonStrings.room_member_power_level_admins),
     MODERATOR(CommonStrings.room_member_power_level_moderators),
+    CUSTOM(CommonStrings.room_member_power_level_custom),
     INVITE(CommonStrings.room_member_power_level_invites),
     USER(CommonStrings.room_member_power_level_users)
 }

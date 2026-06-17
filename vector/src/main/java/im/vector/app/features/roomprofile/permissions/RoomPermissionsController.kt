@@ -25,7 +25,6 @@ import org.matrix.android.sdk.api.session.room.model.kickOrDefault
 import org.matrix.android.sdk.api.session.room.model.redactOrDefault
 import org.matrix.android.sdk.api.session.room.model.stateDefaultOrDefault
 import org.matrix.android.sdk.api.session.room.model.usersDefaultOrDefault
-import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import javax.inject.Inject
 
@@ -167,13 +166,12 @@ class RoomPermissionsController @Inject constructor(
             isSpace: Boolean
     ) {
         val currentPowerLevel = getPowerLevel(editablePermission, content)
-        val currentRole = Role.getSuggestedRole(currentPowerLevel)
         buildProfileAction(
                 id = editablePermission.labelResId.toString(),
                 title = stringProvider.getString(
                         if (isSpace) editablePermission.spaceLabelResId else editablePermission.labelResId
                 ),
-                subtitle = roleFormatter.format(currentRole),
+                subtitle = roleFormatter.format(currentPowerLevel),
                 divider = true,
                 editable = editable,
                 action = {

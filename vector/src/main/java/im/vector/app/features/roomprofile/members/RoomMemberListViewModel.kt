@@ -34,8 +34,10 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
+import org.matrix.android.sdk.api.session.room.model.usersDefaultOrDefault
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
+import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -181,8 +183,10 @@ class RoomMemberListViewModel @AssistedInject constructor(
     private fun buildRoomMemberSummaries(roomPowerLevels: RoomPowerLevels, roomMembers: List<RoomMemberSummary>): RoomMembersByRole {
         val admins = ArrayList<RoomMemberWithPowerLevel>()
         val moderators = ArrayList<RoomMemberWithPowerLevel>()
+        val customs = ArrayList<RoomMemberWithPowerLevel>()
         val users = ArrayList<RoomMemberWithPowerLevel>(roomMembers.size)
         val invites = ArrayList<RoomMemberWithPowerLevel>()
+        val roomDefault = UserPowerLevel.Value(roomPowerLevels.powerLevelsContent.usersDefaultOrDefault())
         roomMembers
                 .forEach { roomMember ->
                     val powerLevel = roomPowerLevels.getUserPowerLevel(roomMember.userId)
@@ -193,17 +197,20 @@ class RoomMemberListViewModel @AssistedInject constructor(
                     )
                     when {
                         roomMember.membership == Membership.INVITE -> invites.add(roomMemberWithPowerLevel)
+                        // Admins/owners stay under "Admins" even when their power level is a custom value.
                         userRole == Role.SuperAdmin ||
                                 userRole == Role.Creator ||
                                 userRole == Role.Admin -> admins.add(roomMemberWithPowerLevel)
-                        userRole == Role.Moderator -> moderators.add(roomMemberWithPowerLevel)
-                        userRole == Role.User -> users.add(roomMemberWithPowerLevel)
+                        powerLevel == UserPowerLevel.Moderator -> moderators.add(roomMemberWithPowerLevel)
+                        powerLevel == roomDefault -> users.add(roomMemberWithPowerLevel)
+                        else -> customs.add(roomMemberWithPowerLevel)
                     }
                 }
 
         return listOf(
                 RoomMemberListCategories.ADMIN to admins.sortedWith(roomMemberListComparator),
                 RoomMemberListCategories.MODERATOR to moderators.sortedWith(roomMemberListComparator),
+                RoomMemberListCategories.CUSTOM to customs.sortedWith(roomMemberListComparator),
                 RoomMemberListCategories.INVITE to invites.sortedWith(roomMemberListComparator),
                 RoomMemberListCategories.USER to users.sortedWith(roomMemberListComparator)
         )

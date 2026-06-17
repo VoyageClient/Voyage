@@ -75,6 +75,7 @@
 
     <string name="power_level_custom">Custom (%1$d)</string>
     <string name="power_level_custom_no_value">Custom</string>
+    <string name="room_member_power_level_custom">Custom</string>
     <string name="room_member_power_level_custom_in">Custom (%1$d) in %2$s</string>
 
     <!--  WIP -->
