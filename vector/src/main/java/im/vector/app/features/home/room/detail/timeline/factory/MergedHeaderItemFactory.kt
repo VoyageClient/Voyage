@@ -74,8 +74,27 @@ class MergedHeaderItemFactory @Inject constructor(
                 buildSameTypeEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
             isStartOfRedactedEventsSummary(event, items, currentPosition, partialState, addDaySeparator) ->
                 buildRedactedEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
+            isStartOfHiddenEventsSummary(event, nextEvent, partialState, addDaySeparator) ->
+                buildHiddenEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
             else -> null
         }
+    }
+
+    /**
+     * @param event the main timeline event
+     * @param nextEvent is an older event than event
+     * @param addDaySeparator true to add a day separator
+     */
+    private fun isStartOfHiddenEventsSummary(
+            event: TimelineEvent,
+            nextEvent: TimelineEvent?,
+            partialState: TimelineEventController.PartialState,
+            addDaySeparator: Boolean,
+    ): Boolean {
+        return timelineEventVisibilityHelper.isHiddenEvent(event, partialState.rootThreadEventId, partialState.isFromThreadTimeline()) &&
+                (nextEvent == null ||
+                        addDaySeparator ||
+                        !timelineEventVisibilityHelper.isHiddenEvent(nextEvent, partialState.rootThreadEventId, partialState.isFromThreadTimeline()))
     }
 
     /**
@@ -171,13 +190,35 @@ class MergedHeaderItemFactory @Inject constructor(
         return buildSimilarEventsMergedSummary(mergedEvents, partialState, event, eventIdToHighlight, requestModelBuild, callback)
     }
 
+    private fun buildHiddenEventsMergedSummary(
+            currentPosition: Int,
+            items: List<TimelineEvent>,
+            partialState: TimelineEventController.PartialState,
+            event: TimelineEvent,
+            eventIdToHighlight: String?,
+            requestModelBuild: () -> Unit,
+            callback: TimelineEventController.Callback?
+    ): MergedSimilarEventsItem_? {
+        val mergedEvents = timelineEventVisibilityHelper.prevHiddenEvents(
+                items,
+                currentPosition,
+                MIN_NUMBER_OF_MERGED_EVENTS,
+                partialState.rootThreadEventId,
+                partialState.isFromThreadTimeline()
+        )
+        return buildSimilarEventsMergedSummary(
+                mergedEvents, partialState, event, eventIdToHighlight, requestModelBuild, callback, CommonPlurals.merged_hidden_events
+        )
+    }
+
     private fun buildSimilarEventsMergedSummary(
             mergedEvents: List<TimelineEvent>,
             partialState: TimelineEventController.PartialState,
             event: TimelineEvent,
             eventIdToHighlight: String?,
             requestModelBuild: () -> Unit,
-            callback: TimelineEventController.Callback?
+            callback: TimelineEventController.Callback?,
+            forcedSummaryTitleResId: Int? = null
     ): MergedSimilarEventsItem_? {
         return if (mergedEvents.isEmpty()) {
             null
@@ -212,7 +253,7 @@ class MergedHeaderItemFactory @Inject constructor(
                 collapsedEventIds.removeAll(mergedEventIds)
             }
             val mergeId = mergedEventIds.joinToString(separator = "_") { it.toString() }
-            getSummaryTitleResId(event.root)?.let { summaryTitle ->
+            (forcedSummaryTitleResId ?: getSummaryTitleResId(event.root))?.let { summaryTitle ->
                 val attributes = MergedSimilarEventsItem.Attributes(
                         summaryTitleResId = summaryTitle,
                         isCollapsed = isCollapsed,

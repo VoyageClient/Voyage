@@ -162,6 +162,51 @@ class TimelineEventVisibilityHelper @Inject constructor(
     }
 
     /**
+     * Collect the consecutive run of "hidden" events ending at [index], following the prev (newer)
+     * direction within the same day. Used to compact debug/hidden events when they are surfaced by
+     * the "show hidden events" developer setting.
+     *
+     * @param timelineEvents the events to search in, sorted from newer event to oldest event
+     * @param index the index to start computing (inclusive)
+     * @param minSize the minimum number of hidden events to have sequentially, otherwise returns an empty list
+     */
+    fun prevHiddenEvents(
+            timelineEvents: List<TimelineEvent>,
+            index: Int,
+            minSize: Int,
+            rootThreadEventId: String?,
+            isFromThreadTimeline: Boolean
+    ): List<TimelineEvent> {
+        val startEvent = timelineEvents.getOrNull(index) ?: return emptyList()
+        val startDate = startEvent.root.localDateTime().toLocalDate()
+        val result = mutableListOf<TimelineEvent>()
+        var i = index
+        while (i >= 0) {
+            val candidate = timelineEvents[i]
+            if (candidate.root.localDateTime().toLocalDate() != startDate) break
+            if (!isHiddenEvent(candidate, rootThreadEventId, isFromThreadTimeline)) break
+            result.add(candidate)
+            i--
+        }
+        return if (result.size < minSize) emptyList() else result
+    }
+
+    /**
+     * An event is "hidden" when it is only surfaced because of the "show hidden events" developer
+     * setting, i.e. it would not be displayed at all with that setting off.
+     */
+    fun isHiddenEvent(
+            timelineEvent: TimelineEvent,
+            rootThreadEventId: String?,
+            isFromThreadTimeline: Boolean
+    ): Boolean {
+        if (isFromThreadTimeline || !userPreferencesProvider.shouldShowHiddenEvents()) {
+            return false
+        }
+        return !timelineEvent.isDisplayable() || timelineEvent.shouldBeHidden(rootThreadEventId, isFromThreadTimeline)
+    }
+
+    /**
      * @param timelineEvent the event to check for visibility
      * @param highlightedEventId can be checked to force visibility to true
      * @param isFromThreadTimeline true if the timeline is a thread

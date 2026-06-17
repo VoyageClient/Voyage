@@ -178,4 +178,9 @@
     <string name="settings_single_overview" translatable="false">Combine people and rooms</string>
     <string name="settings_single_overview_summary" translatable="false">Show people and rooms together in a single Overview list instead of separate tabs. Only available in the old layout.</string>
     <string name="settings_include_space_members_as_rooms_summary" translatable="false">Show people in a space based on their space membership. Disable to only show people whose chat is actually part of the space.</string>
+
+    <plurals name="merged_hidden_events">
+        <item quantity="one">%d hidden event</item>
+        <item quantity="other">%d hidden events</item>
+    </plurals>
 </resources>

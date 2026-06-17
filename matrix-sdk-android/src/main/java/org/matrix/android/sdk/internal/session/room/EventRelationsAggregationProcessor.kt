@@ -424,52 +424,56 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
             Timber.v("Reaction $reactionEventId relates to $relatedEventID")
             val eventSummary = EventAnnotationsSummaryEntity.getOrCreate(realm, roomId, relatedEventID)
 
-            var sum = eventSummary.reactionsSummary.find { it.key == reaction }
+            val sum = eventSummary.reactionsSummary.find { it.key == reaction }
+                    ?: realm.createObject(ReactionAggregatedSummaryEntity::class.java).also {
+                        it.key = reaction
+                        it.firstTimestamp = event.originServerTs ?: 0
+                        eventSummary.reactionsSummary.add(it)
+                    }
             val txId = event.unsignedData?.transactionId
             if (isLocalEcho && txId.isNullOrBlank()) {
                 Timber.w("Received a local echo with no transaction ID")
             }
-            if (sum == null) {
-                sum = realm.createObject(ReactionAggregatedSummaryEntity::class.java)
-                sum.key = reaction
-                sum.firstTimestamp = event.originServerTs ?: 0
-                if (isLocalEcho) {
+
+            if (isLocalEcho) {
+                if (txId != null && !sum.sourceLocalEcho.contains(txId)) {
                     Timber.v("Adding local echo reaction")
                     sum.sourceLocalEcho.add(txId)
-                    sum.count = 1
-                } else {
+                }
+            } else {
+                if (!sum.sourceEvents.contains(reactionEventId)) {
                     Timber.v("Adding synced reaction")
-                    sum.count = 1
                     sum.sourceEvents.add(reactionEventId)
                 }
-                sum.addedByMe = sum.addedByMe || (userId == event.senderId)
-                eventSummary.reactionsSummary.add(sum)
-            } else {
-                // is this a known event (is possible? pagination?)
-                if (!sum.sourceEvents.contains(reactionEventId)) {
-                    // check if it's not the sync of a local echo
-                    if (!isLocalEcho && sum.sourceLocalEcho.contains(txId)) {
-                        // ok it has already been counted, just sync the list, do not touch count
-                        Timber.v("Ignoring synced of local echo for reaction")
-                        sum.sourceLocalEcho.remove(txId)
-                        sum.sourceEvents.add(reactionEventId)
-                    } else {
-                        sum.count += 1
-                        if (isLocalEcho) {
-                            Timber.v("Adding local echo reaction")
-                            sum.sourceLocalEcho.add(txId)
-                        } else {
-                            Timber.v("Adding synced reaction")
-                            sum.sourceEvents.add(reactionEventId)
-                        }
-
-                        sum.addedByMe = sum.addedByMe || (userId == event.senderId)
-                    }
+                // Drop the pending local echo this synced reaction reconciles with. Prefer the
+                // transaction id, but some homeservers omit unsigned.transaction_id, so fall back
+                // to any pending echo of our own (a user can only react once per key).
+                val matchingLocalEcho = when {
+                    txId != null && sum.sourceLocalEcho.contains(txId) -> txId
+                    event.senderId == userId -> sum.sourceLocalEcho.firstOrNull()
+                    else -> null
+                }
+                if (matchingLocalEcho != null) {
+                    Timber.v("Reconciling local echo for reaction")
+                    sum.sourceLocalEcho.remove(matchingLocalEcho)
                 }
             }
+
+            refreshReactionSummary(realm, sum)
         } else {
             Timber.e("Unknown relation type ${content.relatesTo?.type} for event ${event.eventId}")
         }
+    }
+
+    /**
+     * Derive [count] and [addedByMe] from the source lists so they can never drift out of sync with
+     * the reactions actually known (which is what causes inflated counters and stale highlight state).
+     */
+    private fun refreshReactionSummary(realm: Realm, sum: ReactionAggregatedSummaryEntity) {
+        sum.count = sum.sourceEvents.size + sum.sourceLocalEcho.size
+        // Local echoes are always our own; otherwise look up the sender of each known source event.
+        sum.addedByMe = sum.sourceLocalEcho.isNotEmpty() ||
+                sum.sourceEvents.any { EventEntity.where(realm, it).findFirst()?.sender == userId }
     }
 
     /**
@@ -517,11 +521,7 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
                             Timber.v("REMOVE reaction for key $reactionKey")
                             aggregation.sourceEvents.remove(eventToPrune.eventId)
                             Timber.v("Known reactions after  ${aggregation.sourceEvents.joinToString(",")}")
-                            aggregation.count = aggregation.count - 1
-                            if (eventToPrune.sender == userId) {
-                                // Was it a redact on my reaction?
-                                aggregation.addedByMe = false
-                            }
+                            refreshReactionSummary(realm, aggregation)
                             if (aggregation.count == 0) {
                                 // delete!
                                 aggregation.deleteFromRealm()

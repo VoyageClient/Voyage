@@ -9,3 +9,7 @@ Default to no comment when writing code. Only write one when the WHY is non-obvi
 # Building
 
 The command you should use to build or install should always be ./gradlew :vector-app:installFdroidDebug so please do not use anything else.
+
+# Changelog
+
+Never write changelog entries to any file (no `changelog.d/` fragments, no `CHANGES.md` — that towncrier setup predates this fork and is unused). The changelog lives only in the commit message: a concise imperative subject line followed by a body describing the changes. Every body item MUST start with `- ` — NEVER write a paragraph that does not begin with `- `. Put a blank line between each `- ` entry.
