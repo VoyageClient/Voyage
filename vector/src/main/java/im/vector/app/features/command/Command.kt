@@ -58,6 +58,7 @@ enum class Command(
     SHRUG("/shrug", null, "<message>", CommonStrings.command_description_shrug, false, true),
     LENNY("/lenny", null, "<message>", CommonStrings.command_description_lenny, false, true),
     PLAIN("/plain", null, "<message>", CommonStrings.command_description_plain, false, true),
+    HTML("/html", null, "<message>", CommonStrings.command_description_html, false, true),
     WHOIS("/whois", null, "<user-id>", CommonStrings.command_description_whois, false, true),
     DISCARD_SESSION("/discardsession", null, "", CommonStrings.command_description_discard_session, false, false),
     CONFETTI("/confetti", null, "<message>", CommonStrings.command_confetti, false, false),

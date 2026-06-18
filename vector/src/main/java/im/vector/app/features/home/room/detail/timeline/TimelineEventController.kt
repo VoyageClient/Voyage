@@ -190,7 +190,7 @@ class TimelineEventController @Inject constructor(
     }
 
     interface InReplyToClickCallback {
-        fun onRepliedToEventClicked(eventId: String)
+        fun onRepliedToEventClicked(sourceEventId: String?, targetEventId: String)
     }
 
     interface PreviewUrlCallback {

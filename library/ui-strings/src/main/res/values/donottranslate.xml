@@ -44,6 +44,7 @@
     <string name="command_description_crash_application" translatable="false">Crash the application.</string>
 
     <string name="command_description_greentext" translatable="false">Send a message as greentext.</string>
+    <string name="command_description_html" translatable="false">Send a message as HTML.</string>
     <string name="command_description_blockquote" translatable="false">Send a message as a blockquote.</string>
     <string name="command_description_converttodm" translatable="false">Converts the room to a DM</string>
     <string name="command_description_converttoroom" translatable="false">Converts the DM to a room</string>

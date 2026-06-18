@@ -96,9 +96,11 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 }
             }
             holder.imageView.clipToOutline = true
+            holder.imageView.tag = r
         } else {
             holder.imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
             holder.imageView.clipToOutline = false
+            holder.imageView.tag = 0f
         }
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
         val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.eventId)

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.command
 
+import androidx.core.text.HtmlCompat
 import im.vector.app.core.extensions.isMsisdn
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.features.home.room.detail.ChatEffect
@@ -68,6 +69,16 @@ class CommandParser @Inject constructor(
                         ParsedCommand.SendBlockquote(message = message)
                     } else {
                         ParsedCommand.ErrorSyntax(Command.BLOCKQUOTE)
+                    }
+                }
+
+                Command.HTML.matches(slashCommand) -> {
+                    val rawHtml = extractMessage(textMessage.toString())?.second ?: ""
+                    if (rawHtml.isNotEmpty()) {
+                        val plainText = HtmlCompat.fromHtml(rawHtml, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
+                        ParsedCommand.SendFormattedText(message = plainText, formattedMessage = rawHtml)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.HTML)
                     }
                 }
 

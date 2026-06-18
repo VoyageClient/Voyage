@@ -152,6 +152,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                 safeReplyPreviewRetriever.addListener(attributes.informationData.eventId, replyViewUpdater)
             }
             holder.replyToView?.delegate = inReplyToClickCallback
+            holder.replyToView?.sourceEventId = attributes.informationData.eventId
         }
     }
 

@@ -500,13 +500,15 @@ class DefaultNavigator @Inject constructor(
             inMemory: List<AttachmentData>,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     ) {
+        val cornerRadiusPx = (view.tag as? Float)?.toInt()?.takeIf { it > 0 } ?: 0
         VectorAttachmentViewerActivity.newIntent(
                 activity,
                 mediaData,
                 roomId,
                 mediaData.eventId,
                 inMemory,
-                ViewCompat.getTransitionName(view)
+                ViewCompat.getTransitionName(view),
+                transitionCornerRadiusPx = cornerRadiusPx,
         ).let { intent ->
             val pairs = ArrayList<Pair<View, String>>()
             activity.window.decorView.findViewById<View>(android.R.id.statusBarBackground)?.let {

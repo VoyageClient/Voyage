@@ -63,6 +63,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             // The shared element is a circular avatar; morph the transition image's corners between
             // circle and square during the transition so it doesn't snap shape at either end.
             val circularTransition: Boolean = false,
+            // The shared element has rounded corners with this pixel radius; animate them away during
+            // the enter transition and restore them on return, so corners don't snap at either end.
+            val transitionCornerRadiusPx: Int = 0,
     ) : Parcelable
 
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
@@ -76,6 +79,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
     // Fraction of the shorter side used as the transition image corner radius: 0.5 = circle, 0 = square.
     private var transitionCornerFraction = CIRCLE_CORNER_FRACTION
+    // Absolute pixel corner radius for rounded (non-circular) shared elements.
+    private var transitionCornerPx = 0f
     private var cornerAnimator: android.animation.ValueAnimator? = null
     private val downloadActionResultLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
         if (allGranted) {
@@ -103,6 +108,14 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 override fun getOutline(view: View, outline: Outline) {
                     val radius = minOf(view.width, view.height) * transitionCornerFraction
                     outline.setRoundRect(0, 0, view.width, view.height, radius)
+                }
+            }
+            imageTransitionView.clipToOutline = true
+        } else if (args.transitionCornerRadiusPx > 0) {
+            transitionCornerPx = args.transitionCornerRadiusPx.toFloat()
+            imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, transitionCornerPx)
                 }
             }
             imageTransitionView.clipToOutline = true
@@ -205,8 +218,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     // Round the corners back (square -> circle) as the image shrinks into the avatar.
     private fun roundTransitionCornerForClose() {
-        if (args()?.circularTransition == true) {
-            animateTransitionCorner(to = CIRCLE_CORNER_FRACTION, transition = window.sharedElementReturnTransition)
+        val a = args() ?: return
+        val returnTransition = window.sharedElementReturnTransition
+        when {
+            a.circularTransition -> animateTransitionCorner(to = CIRCLE_CORNER_FRACTION, transition = returnTransition)
+            a.transitionCornerRadiusPx > 0 -> animateTransitionCornerPx(to = a.transitionCornerRadiusPx.toFloat(), transition = returnTransition)
         }
     }
 
@@ -255,9 +271,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                     override fun onPreDraw(): Boolean {
                         sharedElement.viewTreeObserver.removeOnPreDrawListener(this)
                         supportStartPostponedEnterTransition()
-                        // Straighten the corners (circle -> square) as the avatar grows into the image.
-                        if (args()?.circularTransition == true) {
-                            animateTransitionCorner(to = SQUARE_CORNER_FRACTION, transition = window.sharedElementEnterTransition)
+                        val a = args()
+                        val enterTransition = window.sharedElementEnterTransition
+                        when {
+                            a?.circularTransition == true -> animateTransitionCorner(to = SQUARE_CORNER_FRACTION, transition = enterTransition)
+                            (a?.transitionCornerRadiusPx ?: 0) > 0 -> animateTransitionCornerPx(to = 0f, transition = enterTransition)
                         }
                         return true
                     }
@@ -270,6 +288,18 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             duration = transition?.duration?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
             addUpdateListener {
                 transitionCornerFraction = it.animatedValue as Float
+                imageTransitionView.invalidateOutline()
+            }
+            start()
+        }
+    }
+
+    private fun animateTransitionCornerPx(to: Float, transition: android.transition.Transition?) {
+        cornerAnimator?.cancel()
+        cornerAnimator = android.animation.ValueAnimator.ofFloat(transitionCornerPx, to).apply {
+            duration = transition?.duration?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
+            addUpdateListener {
+                transitionCornerPx = it.animatedValue as Float
                 imageTransitionView.invalidateOutline()
             }
             start()
@@ -370,8 +400,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 inMemoryData: List<AttachmentData>,
                 sharedTransitionName: String?,
                 circularTransition: Boolean = false,
+                transitionCornerRadiusPx: Int = 0,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
-            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, circularTransition))
+            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, circularTransition, transitionCornerRadiusPx))
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
                 it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))

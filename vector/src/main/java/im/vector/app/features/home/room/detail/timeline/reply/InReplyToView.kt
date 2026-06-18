@@ -73,6 +73,7 @@ class InReplyToView @JvmOverloads constructor(
     private lateinit var views: ViewInReplyToBinding
 
     var delegate: TimelineEventController.InReplyToClickCallback? = null
+    var sourceEventId: String? = null
 
     init {
         setupView()
@@ -111,7 +112,7 @@ class InReplyToView @JvmOverloads constructor(
     }
 
     override fun onClick(v: View?) {
-        state.repliedToEventId?.let { delegate?.onRepliedToEventClicked(it) }
+        state.repliedToEventId?.let { delegate?.onRepliedToEventClicked(sourceEventId, it) }
     }
 
     // PRIVATE METHODS ****************************************************************************************************************************************
@@ -331,6 +332,7 @@ class InReplyToView @JvmOverloads constructor(
 
     private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) {
         views.replyTextView.isVisible = true
+        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
         views.replyTextView.text = retriever.formatFallbackReply(event)
     }
 

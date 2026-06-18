@@ -287,6 +287,7 @@ class TimelineFragment :
 
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
+    private var replyJumpSourceEventId: String? = null
     private var modelBuildListener: OnModelBuildFinishedListener? = null
     private var pinnedBannerJumpApplied = false
 
@@ -843,6 +844,7 @@ class TimelineFragment :
     }
 
     private fun jumpToBottom() {
+        replyJumpSourceEventId = null
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
         views.jumpToBottomView.visibility = View.INVISIBLE
         if (timelineViewModel.timeline?.isLive == false) {
@@ -856,7 +858,13 @@ class TimelineFragment :
     private fun setupJumpToBottomView() {
         views.jumpToBottomView.visibility = View.INVISIBLE
         views.jumpToBottomView.debouncedClicks {
-            jumpToBottom()
+            val sourceId = replyJumpSourceEventId
+            if (sourceId != null) {
+                replyJumpSourceEventId = null
+                timelineViewModel.handle(RoomDetailAction.NavigateToEvent(sourceId, highlight = true))
+            } else {
+                jumpToBottom()
+            }
         }
 
         jumpToBottomViewVisibilityManager = JumpToBottomViewVisibilityManager(
@@ -1736,8 +1744,9 @@ class TimelineFragment :
         return timelineViewModel.replyPreviewRetriever
     }
 
-    override fun onRepliedToEventClicked(eventId: String) {
-        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
+    override fun onRepliedToEventClicked(sourceEventId: String?, targetEventId: String) {
+        replyJumpSourceEventId = sourceEventId
+        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(targetEventId, highlight = true))
     }
 
     override fun onRoomCreateLinkClicked(url: String) {
