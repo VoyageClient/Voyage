@@ -1,0 +1,3 @@
+[submodule "library/external/libce"]
+	path = library/external/libce
+	url = https://github.com/VoyageClient/libce
