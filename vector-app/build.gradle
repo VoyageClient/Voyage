@@ -352,6 +352,7 @@ android {
     compileOptions {
         sourceCompatibility versions.sourceCompat
         targetCompatibility versions.targetCompat
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -381,6 +382,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     implementation project(':vector')
     implementation project(':vector-config')
     implementation project(':library:core-utils')
