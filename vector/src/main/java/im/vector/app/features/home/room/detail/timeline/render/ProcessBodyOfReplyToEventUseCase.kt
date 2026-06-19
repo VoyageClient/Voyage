@@ -184,7 +184,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         // Not loaded — covers both "fetch still in flight" and "fetch failed". Display the
         // unresolved-event explanation. If we have an MSC3952 mention hint, prepend an
         // "In reply to @hint" line so the user at least sees who was replied to.
-        val unresolvedText = escapeHtml(stringProvider.getString(CommonStrings.message_reply_to_unresolved))
+        val unresolvedText = escapeHtml(stringProvider.getString(CommonStrings.in_reply_to_error))
         return if (mentionedUserHint != null) {
             val senderPermalink = "https://matrix.to/#/$mentionedUserHint"
             "<mx-reply><blockquote>" +
