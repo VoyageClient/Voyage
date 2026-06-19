@@ -24,7 +24,6 @@ import im.vector.app.core.extensions.nextOrNull
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.extensions.prevOrNull
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.JitsiState
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.RoomDetailViewState
 import im.vector.app.features.home.room.detail.UnreadState
@@ -100,7 +99,6 @@ class TimelineEventController @Inject constructor(
     data class PartialState(
             val unreadState: UnreadState = UnreadState.Unknown,
             val highlightedEventId: String? = null,
-            val jitsiState: JitsiState = JitsiState(),
             val roomSummary: RoomSummary? = null,
             val rootThreadEventId: String? = null,
     ) {
@@ -108,7 +106,6 @@ class TimelineEventController @Inject constructor(
         constructor(state: RoomDetailViewState) : this(
                 unreadState = state.unreadState,
                 highlightedEventId = state.highlightedEventId,
-                jitsiState = state.jitsiState,
                 roomSummary = state.asyncRoomSummary(),
                 rootThreadEventId = state.rootThreadEventId,
         )

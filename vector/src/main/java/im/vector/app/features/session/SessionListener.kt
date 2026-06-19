@@ -13,9 +13,7 @@ import im.vector.app.core.extensions.postLiveEvent
 import im.vector.app.core.utils.LiveEvent
 import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.extensions.toListOfPerformanceTimer
-import im.vector.app.features.call.vectorCallService
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.statistics.StatisticEvent
@@ -33,12 +31,6 @@ class SessionListener @Inject constructor(
 
     override fun onGlobalError(session: Session, globalError: GlobalError) {
         _globalErrorLiveData.postLiveEvent(globalError)
-    }
-
-    override fun onNewInvitedRoom(session: Session, roomId: String) {
-        session.coroutineScope.launch {
-            session.vectorCallService.userMapper.onNewInvitedRoom(roomId)
-        }
     }
 
     override fun onStatisticsEvent(session: Session, statisticEvent: StatisticEvent) {

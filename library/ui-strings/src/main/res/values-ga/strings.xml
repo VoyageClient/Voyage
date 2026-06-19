@@ -23,17 +23,11 @@
     <string name="no">NÍL</string>
     <string name="yes">TÁ</string>
     <string name="permissions_rationale_popup_title">Eolas</string>
-    <string name="call_hold_action">Fan</string>
-    <string name="call_resume_action">Tosaigh arís</string>
-    <string name="call">Glaoigh ar</string>
-    <string name="settings_call_category">Glaonna</string>
     <string name="compression_opt_list_small">Beag</string>
     <string name="compression_opt_list_medium">Meánach</string>
     <string name="compression_opt_list_large">Mór</string>
     <string name="compression_opt_list_original">Bunchóip</string>
     <string name="auth_submit">Cuir isteach</string>
-    <string name="call_camera_back">Ar Ais</string>
-    <string name="call_camera_front">Tosaigh</string>
     <string name="sound_device_headset">Gléas cinn</string>
     <string name="sound_device_speaker">Callaire</string>
     <string name="sound_device_phone">Guthán</string>
@@ -56,8 +50,6 @@
     <string name="action_copy">Cóipeáil</string>
     <string name="action_close">Dún</string>
     <string name="action_open">Oscail</string>
-    <string name="call_notification_reject">Diúltaigh</string>
-    <string name="call_notification_answer">Glac</string>
     <string name="action_decline">Diúltaigh</string>
     <string name="action_ignore">Déan neamhaird de</string>
     <string name="done">Críochnaithe</string>

@@ -7,11 +7,4 @@
         android:id="@+id/menu_home_mark_all_as_read"
         android:icon="@drawable/ic_material_done"
         android:title="@string/action_mark_all_as_read" />
-
-    <item
-        android:id="@+id/menu_home_dialpad"
-        android:title="@string/call_dial_pad_title"
-        android:visible="false"
-        app:showAsAction="never"
-        tools:visible="true" />
 </menu>

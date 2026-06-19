@@ -18,11 +18,6 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.platform.VectorViewModel
-import im.vector.app.features.VectorOverrides
-import im.vector.app.features.call.dialpad.DialPadLookup
-import im.vector.app.features.call.lookup.CallProtocolsChecker
-import im.vector.app.features.call.webrtc.WebRtcCallManager
-import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.showInvites
 import im.vector.app.features.settings.VectorDataStore
@@ -57,13 +52,9 @@ class HomeDetailViewModel @AssistedInject constructor(
         private val session: Session,
         private val uiStateRepository: UiStateRepository,
         private val vectorDataStore: VectorDataStore,
-        private val callManager: WebRtcCallManager,
-        private val directRoomHelper: DirectRoomHelper,
         private val spaceStateHandler: SpaceStateHandler,
         private val autoAcceptInvites: AutoAcceptInvites,
-        private val vectorOverrides: VectorOverrides
-) : VectorViewModel<HomeDetailViewState, HomeDetailAction, HomeDetailViewEvents>(initialState),
-        CallProtocolsChecker.Listener {
+) : VectorViewModel<HomeDetailViewState, HomeDetailAction, HomeDetailViewEvents>(initialState) {
 
     @AssistedFactory
     interface Factory : MavericksAssistedViewModelFactory<HomeDetailViewModel, HomeDetailViewState> {
@@ -97,10 +88,8 @@ class HomeDetailViewModel @AssistedInject constructor(
         observeRoomGroupingMethod()
         session.cryptoService().addNewSessionListener(refreshRoomSummariesOnCryptoSessionChange)
         observeRoomSummaries()
-        updatePstnSupportFlag()
         observeDataStore()
         observeCrossSigningState()
-        callManager.addProtocolsCheckerListener(this)
         session.flow().liveUser(session.myUserId).execute {
             copy(
                     myMatrixItem = it.invoke()?.getOrNull()?.toMatrixItem()
@@ -129,31 +118,12 @@ class HomeDetailViewModel @AssistedInject constructor(
                     pushCounter = nbOfPush
             )
         }
-        vectorOverrides.forceDialPad.setOnEach { force ->
-            copy(
-                    forceDialPadTab = force
-            )
-        }
     }
 
     override fun handle(action: HomeDetailAction) {
         when (action) {
             is HomeDetailAction.SwitchTab -> handleSwitchTab(action)
             HomeDetailAction.MarkAllRoomsRead -> handleMarkAllRoomsRead()
-            is HomeDetailAction.StartCallWithPhoneNumber -> handleStartCallWithPhoneNumber(action)
-        }
-    }
-
-    private fun handleStartCallWithPhoneNumber(action: HomeDetailAction.StartCallWithPhoneNumber) {
-        viewModelScope.launch {
-            try {
-                _viewEvents.post(HomeDetailViewEvents.Loading)
-                val result = DialPadLookup(session, callManager, directRoomHelper).lookupPhoneNumber(action.phoneNumber)
-                callManager.startOutgoingCall(result.roomId, result.userId, isVideoCall = false)
-                _viewEvents.post(HomeDetailViewEvents.CallStarted)
-            } catch (failure: Throwable) {
-                _viewEvents.post(HomeDetailViewEvents.FailToCall(failure))
-            }
         }
     }
 
@@ -170,18 +140,7 @@ class HomeDetailViewModel @AssistedInject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        callManager.removeProtocolsCheckerListener(this)
         session.cryptoService().removeSessionListener(refreshRoomSummariesOnCryptoSessionChange)
-    }
-
-    override fun onPSTNSupportUpdated() {
-        updatePstnSupportFlag()
-    }
-
-    private fun updatePstnSupportFlag() {
-        setState {
-            copy(pstnSupportFlag = callManager.supportsPSTNProtocol)
-        }
     }
 
     // PRIVATE METHODS *****************************************************************************

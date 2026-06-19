@@ -58,8 +58,6 @@
     <string name="or">ou</string>
     <string name="action_invite">Convidar</string>
     <string name="action_sign_out">Sair</string>
-    <string name="action_voice_call">Chamada de voz</string>
-    <string name="action_video_call">Chamada de vídeo</string>
     <string name="action_mark_all_as_read">Marcar como lido</string>
     <string name="action_quick_reply">Resposta rápida</string>
     <string name="action_open">Abrir</string>
@@ -95,8 +93,6 @@
     <string name="logout">Sair</string>
     <string name="hs_url">URL do homeserver</string>
     <string name="search">Pesquisar</string>
-    <string name="start_voice_call">Iniciar chamada de voz</string>
-    <string name="start_video_call">Iniciar chamada de vídeo</string>
     <string name="option_send_files">Enviar ficheiros</string>
     <string name="option_take_photo_video">Capturar foto ou vídeo</string>
     <string name="auth_login">Iniciar sessão</string>
@@ -117,12 +113,6 @@
     <string name="compression_opt_list_large">Grande</string>
     <string name="compression_opt_list_medium">Média</string>
     <string name="compression_opt_list_small">Pequena</string>
-    <string name="call_connecting">A estabelecer a chamada…</string>
-    <string name="call_ended">Chamada terminada</string>
-    <string name="incoming_video_call">A receber chamada de vídeo</string>
-    <string name="incoming_voice_call">A receber chamada de voz</string>
-    <string name="call_in_progress">Chamada em curso</string>
-    <string name="call_error_user_not_responding">O destinatário não atendeu.</string>
     <string name="permissions_rationale_popup_title">Informação</string>
 
 
@@ -318,8 +308,6 @@ Note que esta acção irá reiniciar a aplicação e poderá levar algum tempo.<
     <string name="send_bug_report_description_in_english">Se possível, escrever a descrição em inglês.</string>
     <string name="send_bug_report_rage_shake">Agitar furiosamente para relatar um erro</string>
     <string name="option_send_voice">Enviar voz</string>
-    <string name="start_voice_call_prompt_msg">Tem a certeza que pretende iniciar uma chamada de voz?</string>
-    <string name="start_video_call_prompt_msg">Tem a certeza que pretende iniciar uma chamada de vídeo?</string>
     <string name="option_send_sticker">Enviar autocolante</string>
     <string name="option_take_photo">Tirar foto</string>
     <string name="option_take_video">Gravar vídeo</string>
@@ -333,7 +321,6 @@ Adicionar alguns agora?</string>
         <item quantity="one">%d mudança de adesão</item>
         <item quantity="other">%d mudanças de adesões</item>
     </plurals>
-    <string name="call">Chamar</string>
     <string name="list_members">Listar participantes</string>
 
     <plurals name="room_title_members">
@@ -472,11 +459,6 @@ A visibilidade das mensagens no Matrix é parecida com a dos emails. O nosso esq
     <string name="action_sign_out_confirmation_simple">Tem a certeza que quer Sair?</string>
     <string name="keys_backup_settings_delete_confirm_title">Apagar Backup</string>
     <string name="auth_accept_policies">Por favor veja e aceite, apolice para este servidor</string>
-    <string name="settings_call_category">Chamadas</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Usar toque padrão para chamadas recebidas</string>
-    <string name="settings_call_ringtone_title">Toque para chamadas recebidas</string>
-    <string name="settings_call_ringtone_dialog_title">Selecione toque para chamadas:</string>
-    <string name="video_call_in_progress">Chamada de Vídeo em Progresso…</string>
     <string name="room_participants_action_remove">Expulsar</string>
     <string name="settings_notification_advanced">Configurações avançadas para notificações</string>
     <string name="settings_notification_by_event">Importância de notificações por evento</string>

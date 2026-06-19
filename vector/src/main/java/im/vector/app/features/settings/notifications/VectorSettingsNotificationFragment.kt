@@ -334,16 +334,6 @@ class VectorSettingsNotificationFragment :
     }
 
     private fun handleSystemPreference() {
-        val callNotificationsSystemOptions = findPreference<VectorPreference>(VectorPreferences.SETTINGS_SYSTEM_CALL_NOTIFICATION_PREFERENCE_KEY)!!
-        if (NotificationUtils.supportNotificationChannels()) {
-            callNotificationsSystemOptions.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                NotificationUtils.openSystemSettingsForCallCategory(this)
-                false
-            }
-        } else {
-            callNotificationsSystemOptions.isVisible = false
-        }
-
         val noisyNotificationsSystemOptions = findPreference<VectorPreference>(VectorPreferences.SETTINGS_SYSTEM_NOISY_NOTIFICATION_PREFERENCE_KEY)!!
         if (NotificationUtils.supportNotificationChannels()) {
             noisyNotificationsSystemOptions.onPreferenceClickListener = Preference.OnPreferenceClickListener {

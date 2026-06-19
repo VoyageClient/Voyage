@@ -83,9 +83,6 @@
     <string name="room_list_quick_actions_notifications_all_noisy">Toate mesajele (zgomotos)</string>
     <string name="settings_noisy_notifications_preferences">Configurează notificările zgomotoase</string>
     <string name="notification_noisy">Zgomotos</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Solicitați confirmarea înainte de a începe un apel</string>
-    <string name="settings_call_show_confirmation_dialog_title">Preveniți apelul accidental</string>
-    <string name="settings_call_category">Apeluri</string>
     <string name="join_space">Alătură-te spațiului</string>
     <string name="create_space">Crează spațiul</string>
     <string name="leave_space">Părăsește spațiul</string>

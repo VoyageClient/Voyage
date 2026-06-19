@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -30,16 +29,10 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.ColorProvider
-import im.vector.app.core.ui.views.CurrentCallsView
-import im.vector.app.core.ui.views.CurrentCallsViewPresenter
 import im.vector.app.core.ui.views.KeysBackupBanner
 import im.vector.app.core.ui.views.VerifyDeviceBanner
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.FragmentNewHomeDetailBinding
-import im.vector.app.features.call.SharedKnownCallsViewModel
-import im.vector.app.features.call.VectorCallActivity
-import im.vector.app.features.call.dialpad.PstnDialActivity
-import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.home.room.list.home.HomeRoomListFragment
 import im.vector.app.features.home.room.list.home.NewChatBottomSheet
@@ -62,7 +55,6 @@ import javax.inject.Inject
 class NewHomeDetailFragment :
         VectorBaseFragment<FragmentNewHomeDetailBinding>(),
         KeysBackupBanner.Delegate,
-        CurrentCallsView.Callback,
         OnBackPressed,
         VectorMenuProvider,
         VerifyDeviceBanner.Delegate {
@@ -70,7 +62,6 @@ class NewHomeDetailFragment :
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var alertManager: PopupAlertManager
-    @Inject lateinit var callManager: WebRtcCallManager
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var buildMeta: BuildMeta
@@ -81,7 +72,6 @@ class NewHomeDetailFragment :
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
 
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
-    private lateinit var sharedCallActionViewModel: SharedKnownCallsViewModel
 
     private val newChatBottomSheet = NewChatBottomSheet()
 
@@ -101,10 +91,6 @@ class NewHomeDetailFragment :
                 viewModel.handle(HomeDetailAction.MarkAllRoomsRead)
                 true
             }
-            R.id.menu_home_dialpad -> {
-                startActivity(Intent(requireContext(), PstnDialActivity::class.java))
-                true
-            }
             else -> false
         }
     }
@@ -113,7 +99,6 @@ class NewHomeDetailFragment :
         withState(viewModel) { state ->
             val isRoomList = state.currentTab is HomeTab.RoomList
             menu.findItem(R.id.menu_home_mark_all_as_read).isVisible = isRoomList && hasUnreadRooms
-            menu.findItem(R.id.menu_home_dialpad).isVisible = state.showDialPadTab
         }
     }
 
@@ -121,16 +106,12 @@ class NewHomeDetailFragment :
         return FragmentNewHomeDetailBinding.inflate(inflater, container, false)
     }
 
-    private val currentCallsViewPresenter = CurrentCallsViewPresenter()
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         sharedActionViewModel = activityViewModelProvider.get(HomeSharedActionViewModel::class.java)
-        sharedCallActionViewModel = activityViewModelProvider.get(SharedKnownCallsViewModel::class.java)
         setupToolbar()
         setupKeysBackupBanner()
         setupVerificationBanner()
-        setupActiveCallView()
         setupDebugButton()
         setupFabs()
 
@@ -140,14 +121,6 @@ class NewHomeDetailFragment :
 
         viewModel.onEach(HomeDetailViewState::selectedSpace) { selectedSpace ->
             onSpaceChange(selectedSpace)
-        }
-
-        viewModel.observeViewEvents { viewEvent ->
-            when (viewEvent) {
-                HomeDetailViewEvents.CallStarted -> Unit
-                is HomeDetailViewEvents.FailToCall -> Unit
-                HomeDetailViewEvents.Loading -> showLoadingDialog()
-            }
         }
 
         unknownDeviceDetectorSharedViewModel.onEach { state ->
@@ -169,14 +142,6 @@ class NewHomeDetailFragment :
                 }
             }
         }
-
-        sharedCallActionViewModel
-                .liveKnownCalls
-                .observe(viewLifecycleOwner) {
-                    currentCallsViewPresenter.updateCall(callManager.getCurrentCall(), callManager.getCalls())
-                    invalidateOptionsMenu()
-                }
-
     }
 
     private fun setupFabs() {
@@ -196,14 +161,8 @@ class NewHomeDetailFragment :
         sharedActionViewModel.post(HomeActivitySharedAction.OnCloseSpace)
     }
 
-    override fun onDestroyView() {
-        currentCallsViewPresenter.unBind()
-        super.onDestroyView()
-    }
-
     override fun onResume() {
         super.onResume()
-        callManager.checkForProtocolsSupportIfNeeded()
         refreshSpaceState()
     }
 
@@ -301,10 +260,6 @@ class NewHomeDetailFragment :
         views.homeVerifyDevice.delegate = this
     }
 
-    private fun setupActiveCallView() {
-        currentCallsViewPresenter.bind(views.currentCallsView, this)
-    }
-
     private fun setupToolbar() {
         setupToolbar(views.toolbar)
 
@@ -364,22 +319,6 @@ class NewHomeDetailFragment :
     private fun refreshAvatar() = withState(viewModel) { state ->
         state.myMatrixItem?.let { user ->
             avatarRenderer.render(user, views.avatar)
-        }
-    }
-
-    override fun onTapToReturnToCall() {
-        callManager.getCurrentCall()?.let { call ->
-            VectorCallActivity.newIntent(
-                    context = requireContext(),
-                    callId = call.callId,
-                    signalingRoomId = call.signalingRoomId,
-                    otherUserId = call.mxCall.opponentUserId,
-                    isIncomingCall = !call.mxCall.isOutgoing,
-                    isVideoCall = call.mxCall.isVideoCall,
-                    mode = null
-            ).let {
-                startActivity(it)
-            }
         }
     }
 

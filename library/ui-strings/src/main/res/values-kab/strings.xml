@@ -177,7 +177,6 @@
     <string name="action_disconnect">Ffeɣ seg tuqqna</string>
     <string name="action_play">Ɣeṛ</string>
     <string name="action_dismiss">Agi</string>
-    <string name="no_permissions_to_start_conf_call">Ur tesεiḍ ara tisirag ad tebduḍ asireg s usiwel deg texxamt-a</string>
     <string name="failed_to_remove_widget">Tukksa n uwiǧit ur teddi ara</string>
     <string name="or">neɣ</string>
     <string name="action_invite">Nced</string>
@@ -210,14 +209,11 @@
     <string name="logout">Ffeɣ seg tuqqna</string>
     <string name="search">Nadi</string>
     <string name="sound_device_phone">Tiliɣri</string>
-    <string name="call_camera_back">Uɣal ɣer deffir</string>
     <string name="auth_login_sso">Qqen s unekcum asuf</string>
     <string name="auth_submit">Azen</string>
     <string name="auth_reset_password_error_unauthorized">Asenqed n tansa n yimayl ur yeddi ara: wali ma yella tsateḍ ɣef useɣwen yellan deg yimayl</string>
     <string name="compression_opt_list_original">Aneẓli</string>
     <string name="compression_opt_list_medium">Alemmas</string>
-    <string name="settings_call_category">Isawalen</string>
-    <string name="call_ended">Asiwel yekfa</string>
     <string name="permissions_rationale_popup_title">Talɣut</string>
     <string name="yes">IH</string>
     <string name="_continue">Kemmel</string>
@@ -487,13 +483,9 @@
     <string name="video_meeting">Bdu timlilit s tvidyut</string>
     <string name="audio_meeting">Bdu timlilit tameslawt</string>
     <string name="audio_video_meeting_description">Timlilit s useqdec n tsertiyin n tɣellist d tsiregt n Jitsi. Medden akk i yellan deg texxamt ad ẓren tinubga i tmerniwt mi ara d-teḍru temlilit.</string>
-    <string name="cannot_call_yourself">Ur tezmireḍ ara ad tesɛeddiḍ asiwel i yima-ik•im</string>
-    <string name="cannot_call_yourself_with_invite">Ur tezmireḍ ara ad tesɛeddiḍ asiwel i yiman-ik•im, rǧu ad qeblen yimettekkiyen tinubga</string>
     <string name="failed_to_add_widget">Timerniwt n uwiǧit ur teddi ara</string>
     <string name="encrypted_message">Izen yettwawgelhen</string>
     <string name="action_sign_out_confirmation_simple">D tidet tebɣiḍ ad teffɣeḍ\?</string>
-    <string name="action_voice_call">Asiwel aɣectan</string>
-    <string name="action_video_call">Asiwel s tvidyut</string>
     <string name="action_quick_reply">Tiririt taruradt</string>
     <string name="action_mark_room_read">Creḍ yettwaɣṛa</string>
     <string name="copied_to_clipboard">Nɣel deg \"ɣef ufus\"</string>
@@ -514,20 +506,9 @@
     <string name="send_bug_report_failed">Ur nessaweḍ ara ad nazen aneqqis n wabug (%s)</string>
     <string name="send_bug_report_progress">Asfari (%s%%)</string>
     <string name="hs_url">URL n uqeddac agejdan</string>
-    <string name="start_voice_call">Yebda usiwel s taɣect</string>
-    <string name="start_video_call">Yebda usiwel s tvidyut</string>
     <string name="option_send_voice">Azen s taɣuct</string>
-    <string name="start_voice_call_prompt_msg">Tebɣiḍ s tidet ad tebduḍ asiwel s taɣect\?</string>
-    <string name="start_video_call_prompt_msg">Tebɣiḍ s tidet ad tebduḍ asiwel s tvidyut\?</string>
-
-    <string name="call_failed_no_connection">Asiwel s ${app_name} ur yeddi ara</string>
-    <string name="call_select_sound_device">Fren ibenk n yimesli</string>
     <string name="sound_device_speaker">Amennay</string>
     <string name="sound_device_headset">Kask</string>
-    <string name="call_switch_camera">Beddel takamiṛat</string>
-    <string name="call_camera_front">N sdat</string>
-    <string name="call_format_turn_hd_off">Sens HD</string>
-    <string name="call_format_turn_hd_on">Rmed HD</string>
     <string name="option_send_files">Azen ifuyla</string>
     <string name="option_send_sticker">Azen astiker</string>
     <string name="option_take_photo_video">Ṭṭef-d tawlaft neɣ tavidyut</string>
@@ -547,12 +528,6 @@
     <string name="login_error_ssl_other">Tuccḍa n SSL.</string>
     <string name="compression_opt_list_large">Hraw</string>
     <string name="compression_opt_list_small">Meẓẓiy</string>
-    <string name="call">Siwel</string>
-    <string name="call_connecting">Asiwel yetteqqen…</string>
-    <string name="incoming_video_call">Asiwel s tvidyut i d-ikecmen</string>
-    <string name="incoming_voice_call">Asiwel s taɣect i d-ikecmen</string>
-    <string name="call_in_progress">Asiwel la iteddu…</string>
-    <string name="video_call_in_progress">Asiwel s tvidyut la iteddu…</string>
     <string name="no">UHU</string>
     <string name="list_members">Tabdart n yiɛeggalen</string>
     <string name="room_jump_to_first_unread">Ɛeddi ɣer yizen amezwaru ur nettwaɣra ara.</string>
@@ -667,8 +642,6 @@
         <item quantity="one">1 usnifel deg umulteɣ</item>
         <item quantity="other">%d yisnifal deg umulteɣ</item>
     </plurals>
-    <string name="settings_call_show_confirmation_dialog_title">Sewḥel isawalen iɣef ur tebniḍ</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Suter i usentem send beddu n usiwel</string>
     <string name="room_participants_remove_title">Suffeɣ aseqdac</string>
     <string name="room_participants_remove_reason">Ssebba n usuffeɣ</string>
     <string name="room_participants_ban_title">Agi aseqdac</string>
@@ -832,8 +805,6 @@
     <string name="encrypted_unverified">Yettuwgelhen s yibenk ur nettwasenqed ara</string>
     <string name="verify_this_session">Senqed anekcam amaynut i ikecmen ɣer umiḍan-ik/im: %1$s</string>
     <string name="crosssigning_verify_session">Senqed anekcam</string>
-    <string name="call_notification_answer">Qbel</string>
-    <string name="call_notification_reject">Agwi</string>
     <string name="call_notification_hangup">Ɛelleq</string>
     <string name="error_empty_field_choose_user_name">Ttxil-ik·im fren isem n useqdac.</string>
     <string name="error_empty_field_choose_password">Ttxil-ik·im fren awal uffir.</string>
@@ -1060,7 +1031,6 @@
         <item quantity="one">1 uwiǧit i yettwaremden</item>
         <item quantity="other">%d n yiwiǧiten i yettwaremden</item>
     </plurals>
-    <string name="error_jitsi_not_supported_on_old_device">Nesḥassef, asarag s usiwel s Jitsi ur yettusefrak ara ɣef yibenkan iqburen (ibenkan s Android OS ddaw 6.0)</string>
     <string name="room_widget_resource_permission_title">Iwiǧit-a yebɣa ad isseqdec tiɣbula-a:</string>
     <string name="room_widget_webview_access_camera">Seqdec takamiṛat</string>
     <string name="room_widget_webview_access_microphone">Seqdec asawaḍ</string>
@@ -1079,10 +1049,6 @@
     <string name="send_bug_report_alert_message">Akka d-yettban tetthuzzuḍ tiliɣri s lxiq. Tebɣiḍ ad teldiḍ agdil i tuzna n wabug\?</string>
 
     <string name="e2e_re_request_encryption_key_dialog_content">Ma ulac aɣilif err ${app_name} deg yibenk-nniḍen i izemren ad yekkes awgelhen i yiznan, akken ad yizmir ad yazen tisura ɣer tɣimit-a.</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Seqdec taṭenṭunt n ${app_name} tamezwert i yisawalin ara d-ikecmen</string>
-    <string name="settings_call_ringtone_title">Taṭenṭunt n usiwel i d-ikecmen</string>
-    <string name="settings_call_ringtone_dialog_title">Fren asṭeṭen i yisawalen:</string>
-    <string name="call_error_user_not_responding">Agalis anmeggag ur yessaweḍ ara ad yerfed.</string>
     <string name="room_participants_leave_prompt_msg">S tidet tebɣiḍ ad teǧǧeḍ taxxamt\?</string>
     <string name="room_participants_power_level_prompt">Ur tettizmireḍ ara ad tesfesxeḍ asnifel-a acku tessebɣaseḍ aseqdac ad yesɛu aswir n tezmert am kečč·kemm.
 \nTebɣiḍ s tidet\?</string>
@@ -1590,8 +1556,6 @@
     <string name="settings_rageshake">Ahuzzu n ufḍam</string>
     <string name="settings_rageshake_detection_threshold">Talast n tifin</string>
     <string name="settings_rageshake_detection_threshold_summary">Huzz tiliɣri-inek·inem i wakken ad teskeydeḍ talast n tifin</string>
-    <string name="call_failed_no_connection_description">Asenker n tuqqna deg wakud ilaw ur yeddi ara.
-\nMa ulac aɣilif suter deg unebdal n uqeddac-iim agejdan ad yeswel aqeddac TURN i wakken ad qeɛden isawalen.</string>
     <string name="ssl_cert_new_account_expl">Ma yella anedbal n uqeddac yenna-d belli aya yettuau, ẓer ma yella adsil umḍin ddaw yemṣada d udsil umḍin i d-mudden nutni.</string>
     <string name="ssl_unexpected_existing_expl">Aselken yettubeddel deg ubdil n win yettwamanen deg tiliɣri-inek·inem. Aya MAČČI D AYEN IGERRZEN. Issefk UR TETTAQBALEḌ ARA aselkin-a amaynut.</string>
     <string name="ssl_expected_existing_expl">Aselkin yettwabeddel seg win yettwamanen ɣer win ur nettwaman ara. Ahat aqeddac iɛawed-d aselkin-ines. Nermes anedbal n uqeddac ɣef udsil umḍin yetturaǧun.</string>
@@ -1634,7 +1598,6 @@
     </plurals>
     <string name="sent_verification_conclusion">Taggrayt n usenqed</string>
     <string name="universal_link_malformed">Aseɣwen ur yemsil ara akken iwata</string>
-    <string name="no_permissions_to_start_webrtc_call">Ur tesɛiḍ ara tasiregt ad tebduḍ asiwel deg texxamt-a</string>
     <string name="sent_a_reaction">Issedmer s: %s</string>
     <string name="settings_troubleshoot_test_push_loop_title">Sekyed Push</string>
     <string name="search_banned_user_hint">Sizdeg iseqdacen yettwagedlen</string>
@@ -1644,8 +1607,6 @@
     <string name="no_more_results">Ulac akkigmaḍ</string>
     <string name="action_unpublish">Ur suffuɣ ara</string>
     <string name="action_add">Rnu</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Ur tesεiḍ ara azref ad tesiwleḍ</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Ur tesεiḍ ara azref ad tebduḍ asarag s tilifun</string>
     <string name="start_chatting">Bdu asqerdec</string>
     <string name="action_reset">Wennez</string>
     <string name="settings_security_pin_code_use_biometrics_title">Rmed abyumitri</string>
@@ -1750,7 +1711,6 @@
     <string name="room_permissions_title">Tisirag</string>
     <string name="room_settings_permissions_title">Tisirag n texxamt</string>
     <string name="room_participants_leave_private_warning">Taxxamt-a mačči d tazayezt. Ur tzemmreḍ ara ad tedduḍ ɣur-d war tinnubga.</string>
-    <string name="call_hold_action">Ṭṭef</string>
     <string name="settings_category_room_directory">Akaram n texxamin</string>
     <string name="dialog_edit_hint">Azal amaynut</string>
     <string name="action_switch">Beddel</string>

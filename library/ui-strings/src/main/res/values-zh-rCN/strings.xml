@@ -172,13 +172,9 @@
     <string name="notice_direct_room_guest_access_forbidden">%1$s 已阻止访客加入房间。</string>
     <string name="notice_direct_room_guest_access_can_join_by_you">你已允许访客加入这里。</string>
     <string name="notice_direct_room_guest_access_can_join">%1$s 已允许访客加入这里。</string>
-    <string name="call_notification_answer">接受</string>
-    <string name="call_notification_reject">拒绝</string>
     <string name="call_notification_hangup">挂断</string>
     <string name="action_quote">引用</string>
     <string name="action_share">分享</string>
-    <string name="action_voice_call">语音通话</string>
-    <string name="action_video_call">视频通话</string>
     <string name="action_mark_all_as_read">全部标记为已读</string>
     <string name="action_quick_reply">快速回复</string>
     <string name="copied_to_clipboard">已复制到剪贴板</string>
@@ -189,7 +185,6 @@
     <string name="logout">登出</string>
     <string name="search">搜索</string>
     <string name="option_send_files">发送文件</string>
-    <string name="call_ended">通话已结束</string>
     <string name="_continue">继续</string>
     <string name="action_join">加入</string>
     <string name="action_reject">拒绝</string>
@@ -251,13 +246,10 @@
     <string name="dialog_title_confirmation">确认</string>
     <string name="send_bug_report_include_crash_logs">发送崩溃日志</string>
     <string name="send_bug_report_app_crashed">上次启动后本应用发生了崩溃。是否打开崩溃报告页面？</string>
-    <string name="start_voice_call">开始语音通话</string>
-    <string name="start_video_call">开始视频通话</string>
     <string name="option_take_photo_video">拍摄照片或视频</string>
     <string name="auth_recaptcha_message">此家服务器想确认你不是机器人</string>
     <string name="auth_reset_password_error_unauthorized">电子邮件地址验证失败：请确保你已点击邮件中的链接</string>
     <string name="compression_opt_list_original">原始</string>
-    <string name="call_connecting">通话正在连接……</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} 需要权限以访问你的麦克风来进行语音通话。</string>
     <string name="room_participants_header_direct_chats">私聊</string>
     <string name="room_participants_action_invite">邀请</string>
@@ -329,10 +321,6 @@
     <string name="send_bug_report_sent">问题反馈发送成功</string>
     <string name="send_bug_report_failed">问题反馈发送失败（%s）</string>
     <string name="login_error_bad_json">异常的 JSON</string>
-    <string name="incoming_video_call">呼入的视频通话</string>
-    <string name="incoming_voice_call">呼入的语音通话</string>
-    <string name="call_in_progress">通话中……</string>
-    <string name="call_error_user_not_responding">远端未能接听。</string>
     <string name="permissions_rationale_popup_title">信息</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} 需要权限以访问你的摄像机和麦克风来进行视频通话。
 \n
@@ -426,7 +414,6 @@
     <string name="widget_integration_room_not_visible">房间 %s 不可见。</string>
     <string name="room_add_matrix_apps">添加 Matrix 应用</string>
     <string name="notification_listening_for_events">监听事件</string>
-    <string name="call">通话</string>
     <string name="settings_containing_my_display_name">包含我显示名称的消息</string>
     <string name="settings_containing_my_user_name">包含我用户名的消息</string>
     <string name="you_added_a_new_device">你添加了一个新会话“%s”，它正在请求加密密钥。</string>
@@ -445,8 +432,6 @@
     <string name="settings_analytics">数据分析</string>
     <string name="notification_noisy">响铃</string>
     <string name="loading">正在加载……</string>
-    <string name="start_voice_call_prompt_msg">你确定要发起语音通话吗？</string>
-    <string name="start_video_call_prompt_msg">你确定要发起视频通话吗？</string>
     <string name="room_participants_ban_prompt_msg">封禁用户会把他们移出此房间并阻止他们再次加入。</string>
     <string name="room_settings_all_messages">全部消息</string>
     <string name="room_settings_add_homescreen_shortcut">添加到主屏幕</string>
@@ -540,10 +525,6 @@
     <string name="action_accept">接受</string>
     <string name="dialog_title_error">错误</string>
     <string name="auth_accept_policies">请审阅并接受此家服务器的政策：</string>
-    <string name="settings_call_category">通话</string>
-    <string name="settings_call_ringtone_use_app_ringtone">为来电使用 ${app_name} 的默认铃声</string>
-    <string name="settings_call_ringtone_title">来电铃声</string>
-    <string name="settings_call_ringtone_dialog_title">选择来电铃声：</string>
     <string name="room_participants_action_remove">从聊天移除</string>
     <string name="settings_notification_troubleshoot">通知故障排除</string>
     <string name="settings_troubleshoot_diagnostic">故障排除诊断</string>
@@ -605,7 +586,6 @@
     <string name="unknown_error">抱歉，发生了一个错误</string>
     <string name="markdown_has_been_disabled">Markdown 已禁用。</string>
     <string name="markdown_has_been_enabled">已启用 Markdown。</string>
-    <string name="video_call_in_progress">视频通话中……</string>
     <string name="settings_troubleshoot_test_service_boot_success">服务将在设备重启后启动。</string>
     <string name="settings_troubleshoot_test_service_boot_failed">服务不会在设备重启后启动，在你打开 ${app_name} 一次之前你将不会收到消息通知。</string>
     <string name="settings_troubleshoot_test_bg_restricted_success">已禁用对 ${app_name} 的后台限制。此测试应使用移动数据（非Wi-Fi）进行。
@@ -765,7 +745,6 @@
     <string name="notification_new_invitation">新邀请</string>
     <string name="notification_sender_me">我</string>
     <string name="notification_inline_reply_failed">** 发送失败 - 请打开房间</string>
-    <string name="error_jitsi_not_supported_on_old_device">抱歉，旧设备（Android 系统版本低于 6.0）不支持使用 Jitsi 创建电话会议</string>
     <string name="encryption_information_unknown_ip">未知 IP</string>
     <string name="you_added_a_new_device_with_info">一个新会话正在请求加密密钥。
 \n会话名称：%1$s
@@ -833,19 +812,10 @@
     <string name="action_copy">复制</string>
     <string name="dialog_title_success">成功</string>
     <string name="bottom_action_notification">通知</string>
-    <string name="call_failed_no_connection">${app_name} 呼叫失败</string>
-    <string name="call_failed_no_connection_description">无法建立实时连接。
-\n请让你的家服务器的管理员配置一个 TURN 服务器，以便呼叫能够可靠地工作。</string>
-    <string name="call_select_sound_device">选择声音设备</string>
     <string name="sound_device_phone">电话</string>
     <string name="sound_device_speaker">扬声器</string>
     <string name="sound_device_headset">耳机</string>
     <string name="sound_device_wireless_headset">无线耳机</string>
-    <string name="call_switch_camera">切换相机</string>
-    <string name="call_camera_front">前</string>
-    <string name="call_camera_back">后</string>
-    <string name="call_format_turn_hd_off">关闭 HD</string>
-    <string name="call_format_turn_hd_on">打开 HD</string>
     <string name="login_error_ssl_peer_unverified">SSL 错误：尚未验证对等端身份。</string>
     <string name="login_error_ssl_other">SSL 错误。</string>
     <string name="room_participants_action_cancel_invite">取消邀请</string>
@@ -1547,14 +1517,9 @@
     <string name="auth_pin_reset_content">为重置你的 PIN，你将需要重新登录并创建新的。</string>
     <string name="settings_security_pin_code_title">启用 PIN</string>
     <string name="settings_security_pin_code_summary">如果你想要重置你的PIN，点按“忘记PIN”以登出并重置。</string>
-    <string name="settings_call_show_confirmation_dialog_title">防止意外通话</string>
-    <string name="settings_call_show_confirmation_dialog_summary">在开始通话之前要求确认</string>
-    <string name="no_permissions_to_start_conf_call">你没有权限在此房间发起会议通话</string>
     <string name="video_meeting">发起视频会议</string>
     <string name="audio_meeting">发起音频会议</string>
     <string name="audio_video_meeting_description">会议使用 Jitsi 安全和权限策略。 当前在会议室中的所有人都会在会议进行期间看到加入邀请。</string>
-    <string name="cannot_call_yourself">你无法呼叫你自己</string>
-    <string name="cannot_call_yourself_with_invite">你无法与自己通话，请等待参与者接受邀请</string>
     <string name="failed_to_add_widget">添加小部件失败</string>
     <string name="failed_to_remove_widget">移除小部件失败</string>
     <plurals name="encryption_import_room_keys_success">
@@ -1587,7 +1552,6 @@
     <string name="confirm_your_identity_quad_s">验证此登录来确认你的身份，授权其访问加密消息。</string>
     <string name="error_opening_banned_room">无法打开你被封禁的房间。</string>
     <string name="room_error_not_found">无法找到此房间。请确认它存在。</string>
-    <string name="no_permissions_to_start_webrtc_call">你没有权限在此房间发起通话</string>
     <plurals name="seconds">
         <item quantity="other">%d 秒</item>
     </plurals>
@@ -1645,8 +1609,6 @@
     <string name="settings_troubleshoot_test_push_loop_waiting_for_push">应用正在等待推送</string>
     <string name="settings_troubleshoot_test_push_loop_title">测试推送</string>
     <string name="search_banned_user_hint">过滤被封禁的用户</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">你没有权限发起通话</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">你没有权限发起会议通话</string>
     <string name="action_reset">重置</string>
     <string name="permissions_denied_add_contact">允许访问你的联系人。</string>
     <string name="permissions_denied_qr_code">如需扫描QR码，你须允许相机访问权限。</string>
@@ -1754,10 +1716,6 @@
     <string name="room_settings_permissions_subtitle">查看和更新更改房间各个部分所需的角色。</string>
     <string name="room_settings_permissions_title">房间权限</string>
     <string name="room_participants_leave_private_warning">此房间不公开。没有邀请，你将无法重新加入。</string>
-    <string name="call_held_by_you">你保持通话</string>
-    <string name="call_held_by_user">%s 保持通话</string>
-    <string name="call_hold_action">保持</string>
-    <string name="call_resume_action">继续</string>
     <string name="error_unauthorized">未验证，缺少有效验证凭证</string>
     <string name="system_theme">系统默认</string>
     <string name="notice_room_server_acl_updated_banned">• 匹配%s的服务器现已封禁。</string>
@@ -1767,7 +1725,6 @@
     <string name="notice_room_server_acl_set_allowed">• 已允许匹配 %s 的服务器。</string>
     <string name="a11y_checked">已勾选</string>
     <string name="a11y_selected">已选中</string>
-    <string name="call_only_active">可用通话（%1$s）</string>
     <string name="re_authentication_activity_title">需要重新验证</string>
     <string name="event_status_a11y_delete_all">删除失败的消息</string>
     <string name="event_status_cancel_sending_dialog_message">你确定要取消发送消息吗？</string>
@@ -1792,8 +1749,6 @@
     <string name="dev_tools_menu_name">开发者工具</string>
     <string name="a11y_video">视频</string>
     <string name="authentication_error">验证失败</string>
-    <string name="call_transfer_users_tab_title">用户</string>
-    <string name="call_tile_call_back">回拨</string>
     <plurals name="entries">
         <item quantity="other">%d 个条目</item>
     </plurals>
@@ -1818,9 +1773,6 @@
     <string name="room_list_quick_actions_room_settings">房间设置</string>
     <string name="room_settings_room_version_title">房间版本</string>
     <string name="warning_unsaved_change_discard">放弃修改</string>
-    <string name="call_dial_pad_title">拨号键盘</string>
-    <string name="call_transfer_title">转移</string>
-    <string name="call_transfer_connect_action">连接</string>
     <string name="a11y_delete_avatar">删除头像</string>
     <string name="a11y_change_avatar">修改头像</string>
     <string name="a11y_image">图片</string>
@@ -1928,10 +1880,6 @@
     <string name="a11y_open_widget">打开小部件</string>
     <string name="a11y_screenshot">屏幕截图</string>
     <string name="re_authentication_default_confirm_text">${app_name} 需要你输入凭据才能执行此操作。</string>
-    <string name="call_transfer_failure">呼叫转移时发生错误</string>
-    <string name="call_transfer_consult_first">先询问</string>
-    <string name="call_dial_pad_lookup_error">查找电话号码时发生了错误</string>
-    <string name="call_tile_ended">此通话已结束</string>
     <string name="call_tile_other_declined">%1$s 拒绝了此通话</string>
     <string name="warning_unsaved_change">有未保存的更改。要放弃更改吗？</string>
     <string name="warning_room_not_created_yet">房间尚未创建。取消创建房间？</string>
@@ -1961,8 +1909,6 @@
     <string name="send_feedback_space_info">你正在使用空间的测试版。你的反馈将有助于改善下一版本。我们将会记录你的平台和用户名以帮助我们尽我们所能多发挥你的反馈的作用。</string>
     <string name="feedback">反馈</string>
     <string name="send_feedback_space_title">空间反馈</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">离开当前会议并切换至另一个？</string>
-    <string name="error_jitsi_join_conf">抱歉，在尝试加入会议时发生了错误</string>
     <string name="room_settings_room_access_restricted_description">所有在此空间中的人都可以找到并加入它。仅有此房间的管理员可以将其添加到空间中。</string>
     <string name="room_settings_room_access_restricted_title">仅空间成员</string>
     <string name="room_settings_room_access_public_description">任何人都能找到房间并加入</string>
@@ -2009,9 +1955,6 @@
     <string name="unnamed_room">未命名的房间</string>
     <string name="private_space">私有空间</string>
     <string name="public_space">公开空间</string>
-    <string name="call_transfer_unknown_person">陌生人</string>
-    <string name="call_transfer_transfer_to_title">转移给 %1$s</string>
-    <string name="call_transfer_consulting_with">与 %1$s 商量</string>
     <string name="directory_add_a_new_server_error_already_added">该服务器已经存在于列表中</string>
     <string name="directory_add_a_new_server_error">找不到此服务器或它的房间列表</string>
     <string name="directory_add_a_new_server_prompt">输入你想要探索的新服务器的名称。</string>
@@ -2046,12 +1989,6 @@
     <string name="missing_permissions_title">缺少权限</string>
     <string name="denied_permission_camera">要执行此操作，请从系统设置中授予相机权限。</string>
     <string name="denied_permission_generic">缺少执行此操作的某些权限，请从系统设置中授予权限。</string>
-    <plurals name="missed_video_call">
-        <item quantity="other">%d 个未接视频电话</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="other">%d 个未接音频电话</item>
-    </plurals>
     <string name="upgrade_room_for_restricted_note">请注意，升级将使房间焕然一新。 所有当前消息都将保留在此存档的房间中。</string>
     <string name="upgrade_room_for_restricted_no_param">主空间中的任何人都可以找到并加入此房间 - 无需手动邀请所有人。 你可以随时在房间设置中更改此设置。</string>
     <string name="upgrade_room_for_restricted">%s 中的任何人将可以查找并加入此房间 - 无需手动邀请所有人。 你可以随时在房间设置中更改此设置。</string>
@@ -2094,29 +2031,12 @@
     <string name="settings_notification_other">其它</string>
     <string name="settings_notification_mentions_and_keywords">提及和关键词</string>
     <string name="settings_notification_default">默认通知</string>
-    <string name="call_tile_video_active">可用视频通话</string>
-    <string name="call_tile_voice_active">可用语音通话</string>
     <string name="link_this_email_with_your_account">在 ${app_name} 中直接接收邀请的设置 %s。</string>
     <string name="link_this_email_settings_link">将此电子邮件地址与你的账户链接</string>
     <string name="this_invite_to_this_space_was_sent">此空间的邀请已发送至与你的账户无关的 %s</string>
     <string name="this_invite_to_this_room_was_sent">此房间的邀请已发送至与你的账户无关的 %s</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">你所在的全部房间将显示在主页上。</string>
     <string name="preference_show_all_rooms_in_home">在主页上显示所有房间</string>
-    <string name="call_slide_to_end_conference">滑动结束通话</string>
-    <string name="call_tap_to_return">%1$s 轻按返回</string>
-    <string name="call_one_active">可用通话 (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="other">%1$d 个可用通话·</item>
-    </plurals>
-    <string name="call_tile_no_answer">无应答</string>
-    <string name="call_tile_video_missed">未接视频通话</string>
-    <string name="call_tile_voice_missed">未接语音通话</string>
-    <string name="call_tile_video_declined">视频通话被拒绝</string>
-    <string name="call_tile_voice_declined">语音通话被拒绝</string>
-    <string name="call_tile_video_call_has_ended">视频通话已结束 • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">语音通话已结束 • %1$s</string>
-    <string name="call_tile_video_incoming">视频来电</string>
-    <string name="call_tile_voice_incoming">语音来电</string>
     <string name="call_tile_you_declined_this_call">你拒绝了此通话</string>
     <string name="room_settings_room_notifications_account_settings">账户设置</string>
     <string name="room_settings_room_notifications_manage_notifications">你可以管理 %1$s 中的通知。</string>
@@ -2131,13 +2051,6 @@
     <string name="settings_notification_your_keywords">你的关键词</string>
     <string name="room_settings_none">无</string>
     <string name="room_settings_mention_and_keyword_only">仅提及和关键词</string>
-    <string name="call_remove_jitsi_widget_progress">正结束通话…</string>
-    <string name="call_ended_invite_timeout_title">无应答</string>
-    <string name="call_ended_user_busy_description">你呼叫的用户正忙。</string>
-    <string name="call_ended_user_busy_title">用户忙</string>
-    <string name="audio_call_with_participant">与 %s 音频通话</string>
-    <string name="video_call_with_participant">和 %s 视频通话</string>
-    <string name="call_ringing">通话正在响铃……</string>
     <string name="spaces">空间</string>
     <string name="space_add_space_to_any_space_you_manage">将一个空间添加到你管理的任何空间。</string>
     <string name="space_add_existing_spaces">添加现有空间</string>
@@ -2317,8 +2230,6 @@
     <string name="unifiedpush_distributor_background_sync">后台同步</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google 服务</string>
     <string name="unifiedpush_getdistributors_dialog_title">选择如何接收通知</string>
-    <string name="screen_sharing_notification_description">屏幕共享进行中</string>
-    <string name="screen_sharing_notification_title">${app_name} 屏幕共享</string>
     <string name="room_message_autocomplete_users">用户</string>
     <string name="room_message_notify_everyone">通知整个房间</string>
     <string name="message_reaction_show_less">显示更少</string>
@@ -2509,8 +2420,6 @@
     <string name="room_unsupported_e2e_algorithm">加密被错误地配置了，所以你无法发送消息。请联系管理员将加密还原到有效的状态。</string>
     <string name="room_notification_more_than_two_users_are_typing">%1$s、%2$s与其他人</string>
     <string name="room_notification_two_users_are_typing">%1$s与%2$s</string>
-    <string name="call_start_screen_sharing">共享屏幕</string>
-    <string name="call_stop_screen_sharing">停止共享屏幕</string>
     <string name="action_next">下一步</string>
     <string name="action_learn_more">进一步了解</string>
     <string name="action_try_it_out">试试看</string>
@@ -2902,9 +2811,7 @@
 \n
 \n%s</string>
     <string name="invite_unknown_users_dialog_submit">无论如何都邀请</string>
-    <string name="microphone_in_use_title">麦克风正在使用</string>
     <string name="call_unsupported">不支持的通话</string>
-    <string name="call_unsupported_matrix_rtc_call">不支持的通话。需要新的Element X应用来加入此通话。</string>
     <string name="view_download_replacement_app_title">下载%1$s</string>
     <string name="view_download_replacement_app_subtitle">更快、更安全，并配备了强大的协作工具。</string>
     <string name="error_mas_not_supported_subtitle">下载%1$s以将%2$s用于您的帐户或选择不同的主服务器。</string>

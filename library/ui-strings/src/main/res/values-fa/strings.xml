@@ -204,8 +204,6 @@
     <string name="or">یا</string>
     <string name="action_invite">دعوت</string>
     <string name="action_sign_out">خروج از حساب</string>
-    <string name="action_voice_call">تماس صوتی</string>
-    <string name="action_video_call">تماس تصویری</string>
     <string name="action_mark_all_as_read">همه را به عنوان خوانده شده علامت بزن</string>
     <string name="action_quick_reply">پاسخ سریع</string>
     <string name="action_open">گشودن</string>
@@ -221,8 +219,6 @@
     <string name="username">نام کاربری</string>
     <string name="logout">خروج از حساب</string>
     <string name="search">جست‌وجو</string>
-    <string name="start_voice_call">آغاز تماس صوتی</string>
-    <string name="start_video_call">آغاز تماس تصویری</string>
     <string name="option_take_photo_video">عکس یا فیلم بگیرید</string>
     <string name="option_take_photo">عکس بگیرید</string>
     <string name="option_take_video">فیلم بگیرید</string>
@@ -260,8 +256,6 @@
     <string name="send_bug_report_progress">پیشرفت (%s%%)</string>
     <string name="hs_url">نشانی کارساز خانگی</string>
     <string name="option_send_voice">ارسال صدا</string>
-    <string name="start_voice_call_prompt_msg">آیا مطمئنید می‌خواهید که یک تماس صوتی را آغاز کنید؟</string>
-    <string name="start_video_call_prompt_msg">آیا مطمئنید می‌خواهید که یک تماس صوتی را آغاز کنید؟</string>
     <string name="option_send_files">ارسال پرونده‌ها</string>
     <string name="option_send_sticker">ارسال برچسب</string>
     <string name="no_sticker_application_dialog_content">بستهٔ برچسب فعّالی ندارید.
@@ -269,8 +263,6 @@
 \nچندتایی افزوده شود؟</string>
     <string name="error_no_external_application_found">متاسفانه برنامه‌ای روی گوشی شما برای انجام این کار پیدا نشد.</string>
     <string name="auth_email_already_defined">این نشانی رایانامه قبلاً ثبت شده.</string>
-    <string name="settings_call_category">تماس‌ها</string>
-    <string name="call">تماس</string>
     <string name="yes">بله</string>
     <string name="no">نه</string>
     <string name="_continue">ادامه</string>
@@ -278,13 +270,6 @@
     <string name="action_join">پیوستن</string>
     <string name="action_reject">رد کردن</string>
     <string name="list_members">اعضا</string>
-    <string name="call_connecting">در حال برقراری تماس…</string>
-    <string name="call_ended">تماس پایان یافت</string>
-    <string name="incoming_video_call">تماس ویدئویی ورودی</string>
-    <string name="incoming_voice_call">تماس صوتی ورودی</string>
-    <string name="call_in_progress">تماس در جریان است…</string>
-    <string name="video_call_in_progress">تماس ویدئویی در جریان است…</string>
-    <string name="call_error_user_not_responding">طرف مقابل پاسخ نداد.</string>
     <plurals name="room_title_members">
         <item quantity="one">%d عضو</item>
         <item quantity="other">%d عضو</item>
@@ -506,9 +491,6 @@
     <string name="login_error_bad_json">JSON ناهنجار</string>
     <string name="login_error_not_json">شامل یک JSON معتبر نبود</string>
     <string name="login_error_limit_exceeded">درخواست‌های بیش از حد ارسال شده</string>
-    <string name="settings_call_ringtone_use_app_ringtone">استفاده از صدای زنگ پیش‌گزیدهٔ المنت برای تماس‌های ورودی</string>
-    <string name="settings_call_ringtone_title">صدای زنگ تماس ورودی</string>
-    <string name="settings_call_ringtone_dialog_title">گزینش صدای زنگ برای تماس‌ها:</string>
     <string name="permissions_rationale_popup_title">اطلاعات</string>
     <string name="room_jump_to_first_unread">پرش به ناخوانده</string>
     <string name="room_participants_action_ban">تحریم</string>
@@ -538,36 +520,21 @@
     <string name="dialog_title_success">موفقیت</string>
     <string name="bottom_action_notification">آگاهی‌ها</string>
     <string name="action_dismiss">خاتمه</string>
-    <string name="no_permissions_to_start_conf_call">اجازهٔ شروع تماس کنفرانسی در این اتاق را ندارید</string>
-    <string name="no_permissions_to_start_webrtc_call">اجازهٔ شروع تماس در این اتاق را ندارید</string>
     <string name="video_meeting">شروع جلسهٔ ویدیویی</string>
     <string name="audio_meeting">شروع جلسهٔ صوتی</string>
-    <string name="cannot_call_yourself">نمی‌توانید با خودتان تماس بگیرید</string>
-    <string name="cannot_call_yourself_with_invite">نمی‌توانید با خودتان تماس بگیرید. منتظر پذیرش دعوت شرکت‌کنندگان شوید</string>
     <string name="failed_to_add_widget">شکست در افزودن ابزارک</string>
     <string name="failed_to_remove_widget">شکست در برداشتن ابزارک</string>
-    <string name="call_notification_answer">پذیرش</string>
-    <string name="call_notification_reject">رد</string>
     <string name="call_notification_hangup">قطع</string>
-    <string name="call_failed_no_connection">تماس المنت شکست خورد</string>
-    <string name="call_select_sound_device">گزینش افزارهٔ صوتی</string>
     <string name="sound_device_phone">تلفن</string>
     <string name="sound_device_speaker">بلندگو</string>
     <string name="sound_device_headset">هدست</string>
     <string name="sound_device_wireless_headset">هدست بی‌سیم</string>
-    <string name="call_switch_camera">تعویض دوربین</string>
-    <string name="call_camera_front">جلو</string>
-    <string name="call_camera_back">پشت</string>
-    <string name="call_format_turn_hd_off">خاموش کردن HD</string>
-    <string name="call_format_turn_hd_on">روشن کردن HD</string>
     <string name="auth_msisdn_already_defined">این شماره تلفن از پیش تعریف شده.</string>
     <string name="login_error_ssl_other">خطای SSL.</string>
     <plurals name="membership_changes">
         <item quantity="one">%d عضویت تغییر کرد</item>
         <item quantity="other">%d عضویت تغییر کردند</item>
     </plurals>
-    <string name="settings_call_show_confirmation_dialog_title">پیش‌گیری از تماس تصادفی</string>
-    <string name="settings_call_show_confirmation_dialog_summary">خواستن تأیید پیش از شروع تماس</string>
     <string name="room_participants_action_cancel_invite">لغو دعوت</string>
     <string name="room_participants_action_ignore_title">نادیده گرفتن کاربر</string>
     <string name="room_participants_action_unignore_title">لغو نادیده‌گیری کاربر</string>
@@ -742,7 +709,6 @@
     <string name="room_widget_permission_user_id">شناسهٔ کاربریتان</string>
     <string name="room_widget_permission_widget_id">شناسهٔ ابزارک</string>
     <string name="room_widget_permission_room_id">شناسهٔ اتاق</string>
-    <string name="error_jitsi_not_supported_on_old_device">متأسّفانه تماس‌های کنفرانسی با جیتسی روی دستگاه‌های قدیمی (دستگاه‌هایی با سیستم‌عامل اندروید زیر ۶) پشتیبانی نمی‌شود</string>
     <string name="room_widget_resource_permission_title">این ابزارک می‌خواهد از منابع زیر استفاده کند:</string>
     <string name="room_widget_resource_grant_permission">اجازه</string>
     <string name="room_widget_resource_decline_permission">انسداد همه</string>
@@ -1170,8 +1136,6 @@
     <string name="settings_send_typing_notifs_summary">دیگر کاربران بدانند در حال نوشتنید.</string>
     <string name="settings_send_markdown_summary">قالب‌بندی پیام‌ها با استفاده از ترکیب مارک‌دوم پیش از ارسال. این گزینه، اجازهٔ قالب‌بندی‌های پیش‌رفته مثل ستاره برای نمایش متن کج را می‌دهد.</string>
     <string name="settings_notification_configuration">پیکربندی آگاهی‌ها</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">اجازهٔ آغاز یک تماس را ندارید</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">اجازهٔ آغاز یک تماس کنفرانسی را ندارید</string>
     <string name="action_reset">بازنشانی</string>
     <string name="reset_secure_backup_warning">این کار کلید امنیتی قبلی شما را حذف می‌کند.</string>
     <string name="reset_secure_backup_title">یک کلید امنیتی جدید به صورت تصادفی ایجاد کنید یا یک عبارت امنیتی جدید برای فایل‌های پشتیبان موجود خود تنظیم کنید.</string>
@@ -1256,8 +1220,6 @@
 \nلطفا در پنجره های بعدی دسترسی های لازم را بدهید.</string>
     <string name="permissions_rationale_msg_record_audio">المنت برای برقراری تماس صوتی نیازمند دسترسی به میکروفون است.</string>
     <string name="login_error_ssl_peer_unverified">خطای SSL: هویت طرف مقابل تأیید نشد.</string>
-    <string name="call_failed_no_connection_description">شکست در برقراری ارتباط همزمان.
-\nلطاً از مدیر کارساز بخواهید برای برقراری مطمئن تماس‌ها، کارساز turn را پیکربندی کند.</string>
     <string name="secure_backup_reset_no_history">بعد از راه‌اندازی مجدد، هیچ تاریخچه، پیام، دستگاه تائید شده یا کاربر تائید شده‌ای در حساب شما وجود نخواهد داشت</string>
     <string name="secure_backup_reset_if_you_reset_all">اگر همه چیز را بازنشانی کنید</string>
     <string name="secure_backup_reset_all_no_other_devices">تنها در صورتی این کار را انجام دهید که از هیچ دستگاه دیگری نمی‌توانید این دستگاه را تائید نمائید.</string>
@@ -1813,21 +1775,8 @@
     <string name="authentication_error">تأیید هویت شکست خورد</string>
     <string name="re_authentication_default_confirm_text">${app_name} برای انجام این کار، نیاز به ورود گذواژه‌‌تان دارد.</string>
     <string name="re_authentication_activity_title">نیاز به تأیید هویت دوباره است</string>
-    <string name="call_transfer_users_tab_title">کاربران</string>
-    <string name="call_transfer_failure">هنگام انتقال تماس خطایی روی داد</string>
-    <string name="call_transfer_title">انتقال</string>
-    <string name="call_transfer_connect_action">متصل شوید</string>
-    <string name="call_only_active">تماس فعّال (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">خطایی در یافتن شماره تلفن رخ داد</string>
-    <string name="call_dial_pad_title">صفحهٔ شماره گیری</string>
-    <string name="call_tile_call_back">پاسخ تماس</string>
-    <string name="call_tile_ended">این تماس پایان یافته است</string>
     <string name="call_tile_other_declined">%1$s تماس را رد کرد</string>
     <string name="failed_to_initialize_cross_signing">خطا در تنظیم امضای متقابل</string>
-    <string name="call_held_by_you">شما تماس را در حالت انتظار قرار داده‌اید</string>
-    <string name="call_held_by_user">%s تماس را در حالت انتظار قرار داده‌است</string>
-    <string name="call_hold_action">حالت انتظار</string>
-    <string name="call_resume_action">از سرگیری</string>
     <string name="error_unauthorized">غیر مجاز، اطلاعات هویت‌سنجی موجود نمی‌باشد</string>
     <string name="dev_tools_event_content_hint">محتوای رویداد</string>
     <string name="dev_tools_success_state_event">رویداد وضعیت فرستاده شد!</string>
@@ -1866,7 +1815,6 @@
     <string name="a11y_import_key_from_file">درون‌ریزی کلید از پرونده</string>
     <string name="a11y_open_widget">گشودن ابزارک‌ها</string>
     <string name="a11y_screenshot">نماگرفت</string>
-    <string name="call_transfer_consult_first">ابتدا مشاوره بگیرید</string>
     <plurals name="entries">
         <item quantity="one">%d ورودی</item>
         <item quantity="other">%d ورودی</item>
@@ -1877,7 +1825,6 @@
     <string name="settings_server_version">نگارش کارساز</string>
     <string name="settings_server_name">نام کارساز</string>
     <string name="room_list_quick_actions_room_settings">تنظیمات اتاق</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">آیا مایل به ترک جلسه‌ی فعلی و ورود به جلسه‌ی دیگری هستید؟</string>
     <string name="room_settings_room_version_title">ورژن اتاق</string>
     <string name="dialog_edit_hint">مقدار جدید</string>
     <string name="action_switch">تعویض</string>
@@ -2024,14 +1971,11 @@
     <string name="use_as_default_and_do_not_ask_again">به عنوان پیش فرض استفاده کن و دیگر سوال نپرس</string>
     <string name="option_always_ask">همواره بپرس</string>
     <string name="invite_to_space">دعوت به %s</string>
-    <string name="call_transfer_unknown_person">فرد ناشناس</string>
-    <string name="call_transfer_transfer_to_title">انتقال به %1$s</string>
     <string name="give_feedback">دادن بازخورد</string>
     <string name="feedback_failed">فرستادن بازخورد شکست خورد (%s)</string>
     <string name="feedback_sent">سپاس! بازخوردتان با موفّقیت فرستاده شد</string>
     <string name="send_feedback_space_info">دارید از نگارشی آزمایشی از فضاها استفاده می‌کنید. بازخوردتان در شکل‌دهی به نگارش‌های آتی کمک خواهد کرد. برای کمک به استفادهٔ هرچه بیش‌تر از بازخوردتان، بن‌سازه و نام کاربریتان یادداشت خواهد شد.</string>
     <string name="feedback">بازخورد</string>
-    <string name="error_jitsi_join_conf">متاسفم، یک خطا زمانی که در تلاش برای اضافه شدن به کنفرانس بود ، اتفاق افتاد</string>
     <string name="directory_add_a_new_server_error_already_added">این کارساز در حال حاضر در فهرست موجود است</string>
     <string name="directory_add_a_new_server_error">نمی‌توانم این کارساز یا فهرست اتاقش را بیابم</string>
     <string name="directory_add_a_new_server_prompt">نام کارسازی جدید که می‌خواهید کشف کنید را وارد کنید.</string>
@@ -2081,7 +2025,6 @@
     <string name="command_description_upgrade_room">اتاقی را به نگارشی جدید ارتقا می‌دهد</string>
     <string name="spaces_feeling_experimental_subspace">حس آزمایش دارید؟
 \nمی‌توانید فضاهای موجود را به فضایی بیفزایید.</string>
-    <string name="call_transfer_consulting_with">مشاوره با %1$s</string>
     <string name="voice_message_reply_content">پیام صوتی (%1$s)</string>
     <string name="error_voice_message_cannot_reply_or_edit">نمی‌توان هنگام فعّال بودن پیام صوتی، پاسخ داد یا ویراست</string>
     <string name="error_voice_message_unable_to_record">نمی‌توان پیام صوتی ضبط کرد</string>
@@ -2107,14 +2050,6 @@
     <string name="allow_space_member_to_find_and_access">اجازه به اعضای فضا برای یافتن و دسترسی.</string>
     <string name="room_create_member_of_space_name_can_join">اعضای فضای %s می‌توانند یافته، دیده و بپیوندند.</string>
     <string name="room_settings_room_access_private_invite_only_title">خصوصی (فقط با دعوت)</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">تماس تصویری بی‌پاسخ</item>
-        <item quantity="other">%d تماس تصویری بی‌پاسخ</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">تماس صوتی بی‌پاسخ</item>
-        <item quantity="other">%d تماس صوتی بی‌پاسخ</item>
-    </plurals>
     <string name="denied_permission_voice_message">لطفاً برای فرستادن پیام صوتی، اجازهٔ میکروفون را اعطا کنید.</string>
     <string name="upgrade_room_for_restricted_note">به خاطر داشته باشید که ارتقا، نگارشی جدید از اتاق خواهد ساخت. تمامی پیام‌های کنونی در این اتاق بایگانی‌شده خواهند ماند.</string>
     <string name="upgrade_room_for_restricted_no_param">هرکسی در یک فضای والد قادر خواهد بود این اتاق را یافته و بپیوندد - نیازی به دعوت دستی همه نیست. می‌توانید هر زمان در تنظیمات اتاق، عوضش کنید.</string>
@@ -2139,24 +2074,6 @@
     <string name="upgrade_public_room_from_to">این اتاق را از %1$s به %2$s ارتقا خواهید داد.</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">تمام اتاق‌هایی که‌در آن‌هایید، در خانه نشان داده خواهند شد.</string>
     <string name="preference_show_all_rooms_in_home">نمایش تمامی اتاق‌ها در خانه</string>
-    <string name="call_slide_to_end_conference">برای پایان تماس، بکشید</string>
-    <string name="call_tap_to_return">%1$s برای بازگشت بزنید</string>
-    <string name="call_one_active">تماس فعّال (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">تماس فعّال ·</item>
-        <item quantity="other">%1$d تماس فعّال ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">بدون پاسخ</string>
-    <string name="call_tile_video_missed">تماس تصویری از دست رفته</string>
-    <string name="call_tile_voice_missed">تماس صوتی از دست رفته</string>
-    <string name="call_tile_video_declined">تماس تصویری رد شد</string>
-    <string name="call_tile_voice_declined">تماس صوتی رد شد</string>
-    <string name="call_tile_video_call_has_ended">تماس تصویری پایان یافت • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">تماس صوتی پایان یافت • %1$s</string>
-    <string name="call_tile_video_active">فعّال کردن تماس تصویری</string>
-    <string name="call_tile_voice_active">فعّال کردن تماس صوتی</string>
-    <string name="call_tile_video_incoming">تماس تصویری ورودی</string>
-    <string name="call_tile_voice_incoming">تماس صوتی ورودی</string>
     <string name="call_tile_you_declined_this_call">این تماس را رد کردید</string>
     <string name="room_settings_room_notifications_account_settings">تنظیمات حساب</string>
     <string name="room_settings_room_notifications_manage_notifications">می‌توانید آگاهی‌ها را در %1$s مدیریت کنید.</string>
@@ -2171,13 +2088,6 @@
     <string name="settings_notification_your_keywords">کلیدواژگانتان</string>
     <string name="room_settings_none">هیچ‌کدام</string>
     <string name="room_settings_mention_and_keyword_only">فقط اشاره‌ها و کلیدواژگان</string>
-    <string name="call_remove_jitsi_widget_progress">پایان دادن به تماس…</string>
-    <string name="call_ended_invite_timeout_title">بدون پاسخ</string>
-    <string name="call_ended_user_busy_description">کاربری که با او تماس گرفته‌اید، مشغول است.</string>
-    <string name="call_ended_user_busy_title">کاربر مشغول</string>
-    <string name="audio_call_with_participant">تماس صوتی با %s</string>
-    <string name="video_call_with_participant">تماس تصویری با %s</string>
-    <string name="call_ringing">زنگ خوردن تماس…</string>
     <string name="spaces">فضاها</string>
     <string name="space_add_space_to_any_space_you_manage">افزودن فضایی به هر فضایی که مدیریت می‌کنید.</string>
     <string name="space_add_existing_spaces">افزودن فضاهای موجود</string>
@@ -2454,10 +2364,6 @@
 \n%s
 \n
 \nبه خاطر داشته باشید این عمل، کاره را دوباره شروع خواهد کرد و ممکن است کمی زمان ببرد.</string>
-    <string name="screen_sharing_notification_description">هم‌رسانی صفحه در حال پیشرفت است</string>
-    <string name="screen_sharing_notification_title">هم‌رسانی صفحهٔ ${app_name}</string>
-    <string name="call_stop_screen_sharing">توقّف هم‌رسانی صفحه</string>
-    <string name="call_start_screen_sharing">هم‌رسانی صفحه</string>
     <string name="initial_sync_request_reason_unignored_users">- برخی کاربران ناچشم‌پوشی شده‌اند</string>
     <string name="initial_sync_request_title">درخواست همگام سازی نخستین</string>
     <string name="settings_show_latest_profile_description">نمایش جدیدترین اطَلاعات نمایه (چهرک و نام نمایشی) برای تمامی پیام‌ها.</string>
@@ -2962,8 +2868,6 @@
     <string name="user_reported_as_inappropriate_content">کاربر گزارش شد.
 \n
 \nاگر دیگر نمی‌خواهید محتوایی از این کاربر ببینید، می‌توانید برای نهفتن پیام‌هایش نادیده‌اش بگیرید.</string>
-    <string name="call_unsupported_matrix_rtc_call">تماس پشتیبانی نشده. برای پیوستن به این تماس نیاز به کارهٔ جدید المنت اکس است.</string>
-    <string name="microphone_in_use_title">صدابَر در حال استفاده</string>
     <string name="call_unsupported">تماس پشتیبانی نشده</string>
     <string name="error_mas_not_supported_subtitle">برای استفاده از %2$s برای حسابتان %1$s را گرفته یا کارساز خانگی دیگری را برگزینید.</string>
     <string name="view_download_replacement_app_title">بارگیری %1$s</string>

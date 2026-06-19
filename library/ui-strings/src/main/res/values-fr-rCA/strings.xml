@@ -394,8 +394,6 @@
     <string name="no_sticker_application_dialog_content">Vous n’avez aucun jeu d\'autocollants activé pour le moment.
 \n
 \nVoulez-vous en ajouter\?</string>
-    <string name="start_video_call_prompt_msg">Voulez-vous vraiment engager un nouvel appel vidéo\?</string>
-    <string name="start_voice_call_prompt_msg">Voulez-vous vraiment engager un nouvel appel audio\?</string>
     <string name="send_bug_report_app_crashed">L’application s’est arrêtée anormalement la dernière fois. Souhaitez-vous ouvrir l’écran de rapport d’anomalie\?</string>
     <string name="send_bug_report_alert_message">Vous semblez secouer le téléphone avec agacement. Souhaitez-vous ouvrir soumettre un rapport d’anomalie\?</string>
     <string name="send_bug_report_description">Veuillez décrire l’erreur. Qu’avez-vous fait\? Quel était le comportement attendu\? Que s’est-il réellement passé\?</string>
@@ -1229,16 +1227,6 @@
     <string name="authentication_error">Échec d’authentification</string>
     <string name="re_authentication_default_confirm_text">${app_name} requiert que vous saisissiez vos identifiants à nouveau pour effectuer cette action.</string>
     <string name="re_authentication_activity_title">Une nouvelle authentification est requise</string>
-    <string name="call_transfer_users_tab_title">Utilisateurs</string>
-    <string name="call_transfer_failure">Une erreur s’est produite lors du transfert de l’appel</string>
-    <string name="call_transfer_title">Transférer</string>
-    <string name="call_transfer_connect_action">Rejoindre</string>
-    <string name="call_transfer_consult_first">Consulter d’abord</string>
-    <string name="call_only_active">Appel en cours (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Il y a eu une erreur lors de la recherche du numéro de téléphone</string>
-    <string name="call_dial_pad_title">Pavé de numérotation</string>
-    <string name="call_tile_call_back">Rappeler</string>
-    <string name="call_tile_ended">Cet appel est terminé</string>
     <string name="call_tile_other_declined">%1$s a refusé cet appel</string>
     <string name="warning_unsaved_change_discard">Annuler les changements</string>
     <string name="warning_unsaved_change">Il y a des modifications non-enregistrées. Annuler les changements \?</string>
@@ -1376,8 +1364,6 @@
     <string name="room_widget_webview_access_camera">Utiliser la caméra</string>
     <string name="room_widget_resource_decline_permission">Tout bloquer</string>
     <string name="room_widget_resource_grant_permission">Autoriser</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Partir de la téléconférence actuelle et basculer sur une autre \?</string>
-    <string name="error_jitsi_not_supported_on_old_device">Désolé, les appels en visioconférence avec Jitsi ne sont pas pris en charge sur les anciens appareils (avec une version d\'Android antérieure à 6.0)</string>
     <string name="room_widget_permission_room_id">L’identifiant du salon</string>
     <string name="room_widget_permission_theme">Votre thème</string>
     <string name="room_widget_permission_user_id">Votre identifiant utilisateur</string>
@@ -1425,22 +1411,11 @@
     <string name="option_take_photo_video">Prendre une photo ou une vidéo</string>
     <string name="option_send_sticker">Envoyer un autocollant</string>
     <string name="option_send_files">Envoyer des fichiers</string>
-    <string name="call_format_turn_hd_on">Activer la HD</string>
-    <string name="call_format_turn_hd_off">Désactiver la HD</string>
-    <string name="call_camera_back">Arrière</string>
-    <string name="call_camera_front">Frontale</string>
-    <string name="call_switch_camera">Changer de caméra</string>
     <string name="sound_device_wireless_headset">Écouteurs sans fil</string>
     <string name="sound_device_headset">Écouteurs</string>
     <string name="sound_device_speaker">Hauts-parleurs</string>
     <string name="sound_device_phone">Téléphone</string>
-    <string name="call_select_sound_device">Sélectionner un périphérique audio</string>
-    <string name="call_failed_no_connection_description">Impossible d\'établir une connexion en temps réel.
-\nVeuillez demander à l’administrateur de votre serveur d’accueil de configurer un serveur TURN afin que les appels fonctionnent de manière fiable.</string>
-    <string name="call_failed_no_connection">Appel échoué</string>
     <string name="option_send_voice">Envoyer un message vocal</string>
-    <string name="start_video_call">Nouvel appel vidéo</string>
-    <string name="start_voice_call">Nouvel appel audio</string>
     <string name="search">Rechercher</string>
     <string name="hs_url">URL du serveur d’accueil</string>
     <string name="logout">Se déconnecter</string>
@@ -1489,12 +1464,8 @@
     <string name="action_mark_room_read">Marquer comme lu</string>
     <string name="action_quick_reply">Réponse rapide</string>
     <string name="action_mark_all_as_read">Tout marquer comme lu</string>
-    <string name="action_video_call">Appel vidéo</string>
-    <string name="action_voice_call">Appel audio</string>
     <string name="action_sign_out">Se déconnecter</string>
     <string name="call_notification_hangup">Raccrocher</string>
-    <string name="call_notification_reject">Refuser</string>
-    <string name="call_notification_answer">Accepter</string>
     <string name="action_decline">Refuser</string>
     <string name="action_ignore">Ignorer</string>
     <string name="done">Terminé</string>
@@ -1502,15 +1473,9 @@
     <string name="action_accept">Accepter</string>
     <string name="action_invite">Inviter</string>
     <string name="or">ou</string>
-    <string name="cannot_call_yourself_with_invite">Vous ne pouvez pas passer un appel avec vous-même, attendez que les participants acceptent l’invitation</string>
-    <string name="cannot_call_yourself">Vous ne pouvez pas passer un appel avec vous-même</string>
     <string name="audio_video_meeting_description">Les réunions utilisent les règles de sécurité et les permissions de Jitsi. Toutes les personnes actuellement dans ce salon recevront une invitation à participer à la réunion.</string>
     <string name="audio_meeting">Commencer une téléconférence audio</string>
     <string name="video_meeting">Commencer une téléconférence vidéo</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Vous n’avez pas la permission de lancer un appel</string>
-    <string name="no_permissions_to_start_webrtc_call">Vous n\'avez pas la permission de lancer un appel dans ce salon</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Vous n’avez pas la permission de lancer une téléconférence</string>
-    <string name="no_permissions_to_start_conf_call">Vous n’avez pas la permission de lancer une téléconférence dans ce salon</string>
     <string name="start_chatting">Commencer une conversation</string>
     <string name="action_reset">Réinitialiser</string>
     <string name="action_dismiss">Ignorer</string>
@@ -1878,24 +1843,6 @@
 \nVeuillez autoriser l’accès dans les prochaines fenêtres pour pouvoir effectuer l’appel.</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} a besoin d’accéder à votre microphone pour passer des appels audio.</string>
     <string name="permissions_rationale_popup_title">Information</string>
-    <string name="call_error_user_not_responding">Le correspondant n’a pas décroché.</string>
-    <string name="call_held_by_you">Vous avez mis l’appel en attente</string>
-    <string name="call_held_by_user">%s a mis l’appel en attente</string>
-    <string name="call_hold_action">Mettre en attente</string>
-    <string name="call_resume_action">Reprendre</string>
-    <string name="video_call_in_progress">Appel vidéo en cours…</string>
-    <string name="call_in_progress">Appel en cours…</string>
-    <string name="incoming_voice_call">Appel audio entrant</string>
-    <string name="incoming_video_call">Appel vidéo entrant</string>
-    <string name="call_ended">Appel terminé</string>
-    <string name="call_connecting">Appel en cours de connexion…</string>
-    <string name="call">Appel</string>
-    <string name="settings_call_ringtone_dialog_title">Sélectionner la sonnerie pour les appels :</string>
-    <string name="settings_call_ringtone_title">Sonnerie d’appel entrant</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Utiliser la sonnerie par défaut de ${app_name} pour les appels entrants</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Demander une confirmation avant de lancer un appel</string>
-    <string name="settings_call_show_confirmation_dialog_title">Éviter les appels accidentels</string>
-    <string name="settings_call_category">Appels</string>
     <string name="compression_opt_list_small">Petit</string>
     <string name="compression_opt_list_medium">Moyen</string>
     <string name="compression_opt_list_large">Grand</string>
@@ -2043,7 +1990,6 @@
     <string name="send_feedback_space_info">Vous utilisez une version bêta des espaces. Vos remarques aideront à concevoir les prochaines versions. Votre plateforme et votre nom d’utilisateur seront marqués pour nous aider à utiliser vos remarques autant que possible.</string>
     <string name="feedback">Remarques</string>
     <string name="send_feedback_space_title">Remarques sur les espaces</string>
-    <string name="error_jitsi_join_conf">Désolé, une erreur s’est produite en essayant d’entrer dans la conférence</string>
     <string name="denied_permission_generic">Certaines permissions manquent pour effectuer cette action, veuillez autoriser ces permissions depuis les réglages système.</string>
     <string name="spaces">Espaces</string>
     <string name="notification_listening_for_notifications">Écoute des notifications</string>

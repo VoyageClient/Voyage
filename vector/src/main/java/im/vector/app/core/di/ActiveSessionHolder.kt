@@ -13,7 +13,6 @@ import im.vector.app.core.pushers.UnregisterUnifiedPushUseCase
 import im.vector.app.core.services.GuardServiceStarter
 import im.vector.app.core.session.ConfigureAndStartSessionUseCase
 import im.vector.app.core.session.LastActiveSessionStore
-import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.crypto.keysrequest.KeyRequestHandler
 import im.vector.app.features.crypto.verification.IncomingVerificationRequestHandler
 import im.vector.app.features.notifications.PushRuleTriggerListener
@@ -35,7 +34,6 @@ class ActiveSessionHolder @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
         private val keyRequestHandler: KeyRequestHandler,
         private val incomingVerificationRequestHandler: IncomingVerificationRequestHandler,
-        private val callManager: WebRtcCallManager,
         private val pushRuleTriggerListener: PushRuleTriggerListener,
         private val sessionListener: SessionListener,
         private val imageManager: ImageManager,
@@ -70,7 +68,6 @@ class ActiveSessionHolder @Inject constructor(
         incomingVerificationRequestHandler.start(session)
         session.addListener(sessionListener)
         pushRuleTriggerListener.startWithSession(session)
-        session.callSignalingService().addCallListener(callManager)
         imageManager.onSessionStarted(session)
         guardServiceStarter.start()
     }
@@ -79,7 +76,6 @@ class ActiveSessionHolder @Inject constructor(
         // Do some cleanup first
         getSafeActiveSession()?.let {
             Timber.w("clearActiveSession of ${it.myUserId}")
-            it.callSignalingService().removeCallListener(callManager)
             it.removeListener(sessionListener)
         }
 
@@ -144,7 +140,6 @@ class ActiveSessionHolder @Inject constructor(
         Timber.w("detachAndPendForRelease: ${previous.myUserId}")
         runCatching { previous.syncService().stopAnyBackgroundSync() }
         runCatching { previous.syncService().stopSync() }
-        runCatching { previous.callSignalingService().removeCallListener(callManager) }
         runCatching { previous.removeListener(sessionListener) }
         pendingReleaseSessionIds += previous.sessionId
     }

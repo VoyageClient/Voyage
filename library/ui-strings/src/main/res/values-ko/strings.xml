@@ -81,8 +81,6 @@
     <string name="or">또는</string>
     <string name="action_invite">초대</string>
     <string name="action_sign_out">로그아웃</string>
-    <string name="action_voice_call">음성 통화하기</string>
-    <string name="action_video_call">영상 통화하기</string>
     <string name="action_mark_all_as_read">모두 읽음으로 표시</string>
     <string name="action_quick_reply">빠른 답장</string>
     <string name="action_open">열기</string>
@@ -110,10 +108,6 @@
     <string name="logout">로그아웃</string>
     <string name="hs_url">홈서버 URL</string>
     <string name="search">검색</string>
-    <string name="start_voice_call">음성 통화 시작하기</string>
-    <string name="start_video_call">영상 통화 시작하기</string>
-    <string name="start_voice_call_prompt_msg">정말 음성통화를 시작하시겠습니까\?</string>
-    <string name="start_video_call_prompt_msg">정말 영상통화를 시작하시겠습니까\?</string>
     <string name="option_send_files">파일 보내기</string>
     <string name="option_send_sticker">스티커 보내기</string>
     <string name="option_take_photo_video">사진이나 영상 촬영</string>
@@ -178,18 +172,6 @@
     <string name="compression_opt_list_large">크게</string>
     <string name="compression_opt_list_medium">중간</string>
     <string name="compression_opt_list_small">작게</string>
-    <string name="settings_call_category">전화</string>
-    <string name="settings_call_ringtone_use_app_ringtone">수신 전화에 ${app_name} 기본 벨소리를 사용합니다</string>
-    <string name="settings_call_ringtone_title">수신 전화 벨소리</string>
-    <string name="settings_call_ringtone_dialog_title">전화에 사용할 벨소리를 선택하세요:</string>
-    <string name="call">전화</string>
-    <string name="call_connecting">전화 연결 중…</string>
-    <string name="call_ended">전화 종료됨</string>
-    <string name="incoming_video_call">수신 영상 통화</string>
-    <string name="incoming_voice_call">수신 음성 통화</string>
-    <string name="call_in_progress">전화 진행 중…</string>
-    <string name="video_call_in_progress">영상 통화 진행 중…</string>
-    <string name="call_error_user_not_responding">상대방이 전화를 받지 못했습니다.</string>
     <string name="permissions_rationale_popup_title">정보</string>
     <string name="permissions_rationale_msg_record_audio">음성 통화를 하려면 ${app_name}은 마이크에 접근하는 권한이 필요합니다.</string>
     <string name="permissions_rationale_msg_camera_and_audio">영상 통화를 하려면 ${app_name}은 카메라와 마이크에 접근하는 권한이 필요합니다.
@@ -488,7 +470,6 @@
     <plurals name="active_widgets">
         <item quantity="other">%d개의 활성 위젯</item>
     </plurals>
-    <string name="error_jitsi_not_supported_on_old_device">죄송합니다, Jitsi로 회의 전화는 오래된 기기에서 지원하지 않습니다 (안드로이드 OS가 6.0 이하인 기기)</string>
     <string name="widget_integration_unable_to_create">위젯을 만들 수 없습니다.</string>
     <string name="widget_integration_failed_to_send_request">요청을 보낼 수 없습니다.</string>
     <string name="widget_integration_positive_power_level">권한 등급은 양의 정수이어야 합니다.</string>
@@ -876,10 +857,6 @@
     <string name="audio_video_meeting_description">회의는 Jitsi의 보안 및 권한 정책을 사용합니다. 회의가 진행되는 동안 방에 있는 사람들이 참여 버튼을 통해 참가할 수 있습니다.</string>
     <string name="audio_meeting">전화 회의 시작</string>
     <string name="video_meeting">화상회의 시작</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">전화를 걸 수 있는 권한이 없습니다</string>
-    <string name="no_permissions_to_start_webrtc_call">이 방에서 전화를 걸 수 있는 권한이 없습니다</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">전화 회의를 시작할 수 있는 권한이 없습니다</string>
-    <string name="no_permissions_to_start_conf_call">이 방에서 전화 회의를 시작할 수 있는 권한이 없습니다</string>
     <string name="missing_permissions_title">권한 없음</string>
     <string name="denied_permission_camera">이 작업을 수행하려면 시스템 설정에서 카메라 권한을 허용해주세요.</string>
     <string name="denied_permission_generic">이 작업을 수행할 수 있는 일부 권한이 없습니다. 시스템 설정에서 권한을 허용해주세요.</string>
@@ -918,7 +895,6 @@
     <string name="settings_security_pin_code_title">PIN 활성화</string>
     <string name="settings_security_application_protection_summary">PIN이나 생체 인증으로 보안 접근을 사용합니다.</string>
     <string name="settings_security_application_protection_title">보안 접근</string>
-    <string name="call_dial_pad_title">키패드</string>
     <string name="notice_direct_room_created">%1$s가 새로운 토론을 생성함</string>
     <string name="notice_direct_room_created_by_you">새로운 토론을 생성함</string>
     <string name="notice_room_created_by_you">새로운 방을 생성함</string>

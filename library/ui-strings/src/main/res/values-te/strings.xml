@@ -70,7 +70,6 @@
     <string name="view_source">మూలాన్ని వీక్షించండి</string>
     <string name="action_rename">పేరు మార్చండి</string>
     <string name="or">లేదా</string>
-    <string name="action_video_call">విడియో కాల్</string>
     <string name="action_close">మూసివేయు</string>
     <string name="copied_to_clipboard">క్లిప్బోర్డ్కు నకలు చేయబడింది</string>
 
@@ -116,8 +115,6 @@
     <string name="hs_url">హోమ్ సర్వర్ URL</string>
     <string name="search">వెతుకు</string>
 
-    <string name="start_video_call">వీడియో కాల్ని ప్రారంభించండి</string>
-
     <string name="option_send_files">దస్త్రాలను పంపండి</string>
     <string name="auth_login">ప్రవేశించు</string>
     <string name="auth_submit">సమర్పించు</string>
@@ -135,14 +132,6 @@
     <string name="compression_opt_list_medium">మద్యమ</string>
     <string name="compression_opt_list_small">చిన్నది</string>
 
-
-
-
-    <string name="call_connecting">కాల్ అనుసంధానించబడుతున్నది…</string>
-    <string name="call_ended">కాల్ ముగిసింది</string>
-    <string name="incoming_video_call">మీకు వస్తున్న వీడియో కాల్</string>
-    <string name="incoming_voice_call">మీకు వస్తున్న కాల్</string>
-    <string name="call_in_progress">కాల్ పురోగతిలో వుంది</string>
 
 
 
@@ -167,7 +156,6 @@
 
     <string name="room_participants_action_invite">ఆహ్వానము</string>
     <string name="room_participants_action_ban">నిషేధించు</string>
-    <string name="start_voice_call">వాయిస్ కాల్ని ప్రారంభించండి</string>
     <string name="room_participants_action_ignore">ఈ వాడుకరి అన్ని సందేశాలను దాచు</string>
     <string name="room_participants_action_unignore">ఈ వాడుకరి అన్ని సందేశాలను చూపించు</string>
     <string name="room_participants_action_mention">సూచన</string>
@@ -280,8 +268,6 @@
     <string name="send_bug_report_alert_message">చిరాకుతో ఫోను ఊపుతున్నట్లున్నారు. సమస్య నివేదిక పంపాలని ఉందా?</string>
     <string name="option_take_photo_video">చిత్రం లేదా విడియో తీయిండి</string>
 
-    <string name="call_error_user_not_responding">అటు వైపు ఎవరు కాల్ ఎత్తలేదు</string>
-    <string name="action_voice_call">వాయిస్ కాల్</string>
     <string name="passphrase_enter_passphrase">గుప్తపదం ఇవ్వండి</string>
     <string name="passphrase_confirm_passphrase">గుప్తపదం మరల ఇవ్వండి</string>
     <string name="room_settings_read_history_entry_members_only_joined">సభ్యులు మాత్రమే (చేరినప్పుడ్నుంచి)</string>

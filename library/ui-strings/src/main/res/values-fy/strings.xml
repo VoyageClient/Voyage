@@ -47,8 +47,6 @@
     <string name="action_decline">Wegerje</string>
     <string name="action_sign_out">Ofmelde</string>
     <string name="action_sign_out_confirmation_simple">Binne jo wis dat jo ôfmelde wolle\?</string>
-    <string name="action_voice_call">Spraakoprop</string>
-    <string name="action_video_call">Fideo-oprop</string>
     <string name="action_mark_all_as_read">Alles as lêzen markearje</string>
     <string name="action_quick_reply">Flugge reaksje</string>
     <string name="action_mark_room_read">As lêzen markearje</string>
@@ -80,8 +78,6 @@
     <string name="keep_it_safe">Hâld it feilich</string>
     <string name="bootstrap_finish_title">Klear!</string>
     <string name="call_notification_hangup">Ophingje</string>
-    <string name="call_notification_reject">Ofwize</string>
-    <string name="call_notification_answer">Akseptearje</string>
     <string name="notice_room_canonical_alias_unset_by_you">Jo hawwe it haadadres fan dit petear fuortsmiten.</string>
     <string name="notice_room_canonical_alias_no_change">%1$s hat it petearadres wizige.</string>
     <string name="notice_room_canonical_alias_no_change_by_you">Jo hawwe it petearadres wizige.</string>
@@ -195,7 +191,6 @@
     <string name="no">NEE</string>
     <string name="yes">JA</string>
     <string name="permissions_rationale_popup_title">Ynformaasje</string>
-    <string name="call_resume_action">Trochgean</string>
     <string name="compression_opt_list_small">Lyts</string>
     <string name="compression_opt_list_medium">Gemiddeld</string>
     <string name="compression_opt_list_large">Grut</string>
@@ -214,16 +209,11 @@
     <string name="auth_forgot_password">Wachtwurd fergetten\?</string>
     <string name="auth_email_already_defined">Dit e-mailadres is al yn gebrûk.</string>
     <string name="auth_login">Oanmelde</string>
-    <string name="call_switch_camera">Fan kamera wikselje</string>
     <string name="option_take_video">Fideo meitsje</string>
     <string name="option_take_photo">Foto meitsje</string>
     <string name="option_take_photo_video">Foto of fideo meitsje</string>
     <string name="option_send_sticker">Stikkers ferstjoere</string>
     <string name="option_send_files">Bestannen ferstjoere</string>
-    <string name="call_format_turn_hd_on">HD ynskeakelje</string>
-    <string name="call_format_turn_hd_off">HD útskeakelje</string>
-    <string name="call_camera_back">Efterkant</string>
-    <string name="call_camera_front">Foarkant</string>
     <string name="auth_recaptcha_message">Dizze thússerver wol der graach wis fan wêze dat jo gjin robot binne</string>
     <string name="settings_security_and_privacy">Befeiliging &amp; privacy</string>
     <string name="room_widget_resource_grant_permission">Tastean</string>
@@ -314,7 +304,6 @@
     <string name="reason_colon">Reden: %1$s</string>
     <string name="has_been_banned">%2$s hat jo út %1$s ferballe</string>
     <string name="identity_server_set_default_submit">%1$s brûke</string>
-    <string name="call_transfer_users_tab_title">Brûkers</string>
     <string name="command_description_emote">Toant in aksje</string>
     <string name="notice_member_no_changes_by_you">Jo hawwe neat wizige</string>
     <string name="notice_room_topic_removed_by_you">Jo hawwe it keamerûnderwerp fuortsmiten</string>
@@ -623,7 +612,6 @@
     <string name="room_participants_header_direct_chats">Direkte berjochten</string>
     <string name="room_participants_leave_prompt_msg">Binne jo der wis fan dat jo de keamer ferlitte wolle\?</string>
     <string name="room_participants_leave_prompt_title">Keamer ferlitte</string>
-    <string name="call">Belje</string>
     <string name="e2e_re_request_encryption_key">De fersiferingskaaien fan jo oare sesjes opnij opfreegje.</string>
     <string name="use_as_default_and_do_not_ask_again">As standert ynstelle en net wer freegje</string>
     <string name="option_always_ask">Altyd freegje</string>
@@ -631,8 +619,6 @@
     <string name="sound_device_headset">Koptelefoan</string>
     <string name="sound_device_speaker">Lûdsprekker</string>
     <string name="option_send_voice">Spraakberjocht ferstjoere</string>
-    <string name="start_video_call">Fideo-oprop begjinne</string>
-    <string name="start_voice_call">Spraakoprop begjinne</string>
     <string name="hs_client_url">Thússerver API-URL</string>
     <string name="hs_url">Thússerver-URL</string>
     <string name="send_bug_report_failed">It oanjaan fan in flater yn dizze applikaasje is net slagge (%s)</string>
@@ -650,9 +636,6 @@
     <string name="dialog_edit_hint">Nije wearde</string>
     <string name="action_switch">Wikselje</string>
     <string name="action_copy">Kopiearje</string>
-    <string name="cannot_call_yourself">Jo kinne josels net belje</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Jo meie gjin konferinsje starte</string>
-    <string name="no_permissions_to_start_conf_call">Jo misse it rjocht om in gearkomste yn dit petear te starten</string>
     <string name="start_chatting">Starte mei chatten</string>
     <string name="denied_permission_camera">Skeakelje om dizze aksje út te fieren fan de systeemynstellingen út de kameratastimming yn.</string>
     <string name="notice_end_to_end_ok_by_you">Jo hawwe end-to-end-fersifering ynskeakele.</string>
@@ -771,7 +754,6 @@
     <string name="invite_friends">Freonen útnûgje</string>
     <string name="room_settings_none">Gjin</string>
     <string name="space_settings_permissions_title">Spacerjochten</string>
-    <string name="settings_call_category">Oproppen</string>
     <string name="notice_room_canonical_alias_unset">%1$s hat it haadadres foar dit petear fuortsmiten.</string>
     <string name="notice_room_canonical_alias_set_by_you">Jo hawwe it haadadres foar dit petear ynsteld op %1$s.</string>
     <string name="notice_room_canonical_alias_set">%1$s hat it haadadres foar dit petear ynsteld op %2$s.</string>
@@ -820,11 +802,6 @@
     <string name="create_spaces_default_public_random_room_name">Samar wat</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="encryption_information_device_name">Iepenbiere namme</string>
-    <string name="settings_call_ringtone_dialog_title">Beltoan foar oproppen selektearje:</string>
-    <string name="settings_call_ringtone_title">Beltoan foar ynkommende oproppen</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Brûk de standertbeltoan fan ${app_name} foar ynkommende oproppen</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Befêstiging freegje foar it starten fan in oprop</string>
-    <string name="settings_call_show_confirmation_dialog_title">Net bedoele oprop foarkomme</string>
     <string name="login_error_not_json">Befette gjin jildige JSON</string>
     <string name="error_unauthorized">Net autorisearre, jildige autentikaasjegegevens ûntbrekke</string>
     <string name="login_error_ssl_peer_unverified">SSL-flater: de identiteit fan de oar is net befêstige.</string>
@@ -837,21 +814,12 @@
     <string name="no_sticker_application_dialog_content">Jo hawwe op dit stuit gjin stikkerpakketten ynskeakele.
 \n
 \nWolle jo der no in pear tafoegje\?</string>
-    <string name="call_select_sound_device">Lûdsapparaten selektearje</string>
-    <string name="call_failed_no_connection_description">Live ferbining opsetten mislearre.
-\nFreegje de behearder fan jo thússerver om in TURN-server te konfigurearjen, sadat oproppen betrouber wurkje.</string>
-    <string name="call_failed_no_connection">${app_name} Oprop mislearre</string>
-    <string name="start_video_call_prompt_msg">Binne jo wis dat jo in fideo-oprop begjinne wolle\?</string>
-    <string name="start_voice_call_prompt_msg">Binne jo wis dat jo in spraakoprop begjinne wolle\?</string>
     <string name="send_bug_report_rage_shake">Skodzje om in probleem te melden</string>
     <string name="send_bug_report_logs_description">Om it probleem ûndersykje te kinnen, wurde lochboeken fan dizze kliïnt mei de flatermelding ferstjoerd. Dizze flatermelding, ynklusyf de lochboeken en skermôfdruk, sille net iepenbier sichtber weze. As jo leaver allinnich de boppesteande tekst ferstjoere, helje dan it finkje fuort:</string>
     <string name="send_bug_report_include_key_share_history">Kaaidielfersykskiednis ferstjoere</string>
     <string name="failed_to_remove_widget">Widget fuortsmite mislearre</string>
     <string name="failed_to_add_widget">Widget tafoegje mislearre</string>
-    <string name="cannot_call_yourself_with_invite">Jo kinne josels net belje, wachtsje oant dielnimmers de útnûging akseptearje</string>
     <string name="audio_video_meeting_description">Gearkomsten brûke befeiligings- en tastimmingsbelied fan Jitsi. Alle aktuele persoanen yn it petear sille in útnûging sjen wylst dyn gearkomst dwaande is.</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Jo misse it rjocht om in oprop te starten</string>
-    <string name="no_permissions_to_start_webrtc_call">Jo misse it rjocht om in oprop yn dizze keamer te starten</string>
     <string name="denied_permission_voice_message">Jou tastimming om de mikrofoan te brûken om spraakberjochten te ferstjoeren.</string>
     <string name="denied_permission_generic">Guon rjochten ûntbrekke om dizze aksje út te fieren, jou tastimming fia de systeemynstellingen.</string>
     <string name="notification_listening_for_notifications">Harket nei notifikaasjes</string>
@@ -885,31 +853,6 @@
 \n
 \nJou tagong op de folgjende pop-ups om de oprop te meitsjen.</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} hat tagong nedich ta jo mikrofoan om spraakoproppen te meitsjen.</string>
-    <string name="call_remove_jitsi_widget_progress">Oprop beëinigje…</string>
-    <string name="call_error_user_not_responding">De oare kant hat net opnommen.</string>
-    <string name="call_ended_invite_timeout_title">Gjin antwurd</string>
-    <string name="call_ended_user_busy_description">De brûker dy’t jo belle hawwe is dwaande.</string>
-    <string name="call_ended_user_busy_title">Brûker dwaande</string>
-    <string name="call_held_by_you">Jo hawwe de oprop yn de wacht set</string>
-    <string name="call_held_by_user">%s hat de oprop yn de wacht set</string>
-    <string name="call_hold_action">Yn de wacht sette</string>
-    <string name="audio_call_with_participant">Belje mei %s</string>
-    <string name="video_call_with_participant">Fideo-oprop mei %s</string>
-    <string name="video_call_in_progress">Fideo-oprop dwaande…</string>
-    <string name="call_in_progress">Oprop dwaande…</string>
-    <string name="incoming_voice_call">Ynkommende spraakoprop</string>
-    <string name="incoming_video_call">Ynkommende fideo-oprop</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Miste fideo-oprop</item>
-        <item quantity="other">%d miste fideo-oproppen</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Miste spraakoprop</item>
-        <item quantity="other">%d miste spraakoproppen</item>
-    </plurals>
-    <string name="call_ended">Oprop beëinige</string>
-    <string name="call_ringing">Giet oer…</string>
-    <string name="call_connecting">Oprop is oan it ferbinen…</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Start ${app_name} op in oar apparaat dat it berjocht ûntsiferje kin, sadat it de kaaien nei dizze sesje stjoere kin.</string>
     <string name="login_error_homeserver_from_url_not_found">Thússerver-URL %s net te berikken. Kontrolearje jo keppeling of kies hânmjittich in oare thússerver.</string>
     <string name="space_participants_ban_prompt_msg">Troch dizze brûker te ferballen, sil dy fuortsmiten wurde út dizze romte en foarkommen wurde dat dy opnij binnen komt.</string>

@@ -148,7 +148,6 @@
     <string name="room_widget_resource_decline_permission">সব অবরুদ্ধ</string>
     <string name="room_widget_resource_grant_permission">অনুমতি</string>
     <string name="room_widget_resource_permission_title">এই উইজেটটি নিম্নলিখিত সংস্থানগুলি ব্যবহার করতে চায়:</string>
-    <string name="error_jitsi_not_supported_on_old_device">দুঃখিত, জিটসির সাথে কনফারেন্স কলগুলি পুরোনো ডিভাইসগুলিতে সমর্থিত নয় (৬.০ এর নীচে এন্ড্রোইড অপারেটিং সিস্টেম সহ ডিভাইসগুলি)</string>
     <string name="room_widget_permission_room_id">কক্ষের আইডি</string>
     <string name="room_widget_permission_widget_id">উইজেট আইডি</string>
     <string name="room_widget_permission_theme">আপনার থিম</string>
@@ -378,25 +377,11 @@
     <string name="option_take_photo_video">ছবি বা ভিডিও নিন</string>
     <string name="option_send_sticker">স্টিকার পাঠাও</string>
     <string name="option_send_files">ফাইলগুলো পাঠাও</string>
-    <string name="call_format_turn_hd_on">এইচডি চালু করুন</string>
-    <string name="call_format_turn_hd_off">এইচডি বন্ধ করুন</string>
-    <string name="call_camera_back">পেছনের</string>
-    <string name="call_camera_front">সম্মুখ</string>
-    <string name="call_switch_camera">ক্যামেরা স্যুইচ করুন</string>
     <string name="sound_device_wireless_headset">বেতার হেডসেট</string>
     <string name="sound_device_headset">হেডসেট</string>
     <string name="sound_device_speaker">স্পিকার</string>
     <string name="sound_device_phone">ফোন</string>
-    <string name="call_select_sound_device">সাউন্ড ডিভাইস নির্বাচন করুন</string>
-    <string name="call_failed_no_connection_description">রিয়েল টাইম সংযোগ স্থাপন করতে ব্যর্থ।
-\nকলগুলি নির্ভরযোগ্যতার সাথে কাজ করার জন্য দয়া করে আপনার হোমসার্ভারের প্রশাসককে একটি টার্ন সার্ভার কনফিগার করতে বলুন।</string>
-    <string name="call_failed_no_connection">এলিমেন্ট কল ব্যর্থ</string>
-
-    <string name="start_video_call_prompt_msg">আপনি কি একটি ভিডিও কল শুরু করতে চাওয়ার বিষয়ে নিশ্চিত\?</string>
-    <string name="start_voice_call_prompt_msg">আপনি কি একটি ভয়েস কল শুরু করতে চাওয়ার বিষয়ে নিশ্চিত\?</string>
     <string name="option_send_voice">ভয়েস পাঠান</string>
-    <string name="start_video_call">ভিডিও কল শুরু করুন</string>
-    <string name="start_voice_call">ভয়েস কল শুরু করুন</string>
     <string name="search">অনুসন্ধান</string>
     <string name="hs_url">হোম সার্ভার ইউআরএল</string>
     <string name="logout">সাইন আউট</string>
@@ -439,13 +424,9 @@
     <string name="action_mark_room_read">পঠিত হিসেবে চিহ্নিত</string>
     <string name="action_quick_reply">দ্রুত উত্তর</string>
     <string name="action_mark_all_as_read">সবগুলো পঠিত বলে সনাক্ত কর</string>
-    <string name="action_video_call">ভিডিও কল</string>
-    <string name="action_voice_call">ভয়েস কল</string>
     <string name="action_sign_out_confirmation_simple">আপনি সাইন আউট করতে চান\?</string>
     <string name="action_sign_out">সিগণ আউট</string>
     <string name="call_notification_hangup">বন্ধ করুন</string>
-    <string name="call_notification_reject">পতন</string>
-    <string name="call_notification_answer">গ্রহণ</string>
     <string name="action_decline">পতন</string>
     <string name="action_ignore">উপেক্ষা</string>
     <string name="done">সম্পন্ন</string>
@@ -828,18 +809,6 @@
 
 
     <string name="permissions_rationale_popup_title">তথা</string>
-    <string name="call_error_user_not_responding">দূরবর্তী এর একটি ধার নিতে ব্যর্থ হচ্ছে।</string>
-    <string name="video_call_in_progress">দৃশ্য-রেকর্ড ডাক এর অগ্রগতি…</string>
-    <string name="call_in_progress">ডাক এর অগ্রগতি…</string>
-    <string name="incoming_voice_call">প্রবেশ কথাবলার ডাক</string>
-    <string name="incoming_video_call">প্রবেশ দৃশ্য-রেকর্ড ডাক</string>
-    <string name="call_ended">কল শেষ হলো</string>
-    <string name="call_connecting">কল সংযোগ হচ্ছে।…</string>
-    <string name="call">ডাকা</string>
-    <string name="settings_call_ringtone_dialog_title">নির্বাচন করুন রিংটোন কল আর জন্য:</string>
-    <string name="settings_call_ringtone_title">আসা কল এর রিংটোন</string>
-    <string name="settings_call_ringtone_use_app_ringtone">ব্যবহার করছেন অনুপস্থিত ${app_name} রিংটোন আগামী ডাক এর জন্য</string>
-    <string name="settings_call_category">ডাকা</string>
     <string name="compression_opt_list_small">ছোট</string>
     <string name="compression_opt_list_medium">মাধ্যম</string>
     <string name="compression_opt_list_large">বড়</string>

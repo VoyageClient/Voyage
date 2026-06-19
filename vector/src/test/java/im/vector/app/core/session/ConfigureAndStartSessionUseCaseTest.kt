@@ -16,7 +16,6 @@ import im.vector.app.test.fakes.FakeNotificationsSettingUpdater
 import im.vector.app.test.fakes.FakePushRulesUpdater
 import im.vector.app.test.fakes.FakeSession
 import im.vector.app.test.fakes.FakeVectorPreferences
-import im.vector.app.test.fakes.FakeWebRtcCallManager
 import io.mockk.coJustRun
 import io.mockk.coVerify
 import io.mockk.every
@@ -35,7 +34,6 @@ import org.junit.Test
 class ConfigureAndStartSessionUseCaseTest {
 
     private val fakeContext = FakeContext()
-    private val fakeWebRtcCallManager = FakeWebRtcCallManager()
     private val fakeUpdateMatrixClientInfoUseCase = mockk<UpdateMatrixClientInfoUseCase>()
     private val fakeVectorPreferences = FakeVectorPreferences()
     private val fakeNotificationsSettingUpdater = FakeNotificationsSettingUpdater()
@@ -44,7 +42,6 @@ class ConfigureAndStartSessionUseCaseTest {
 
     private val configureAndStartSessionUseCase = ConfigureAndStartSessionUseCase(
             context = fakeContext.instance,
-            webRtcCallManager = fakeWebRtcCallManager.instance,
             updateMatrixClientInfoUseCase = fakeUpdateMatrixClientInfoUseCase,
             vectorPreferences = fakeVectorPreferences.instance,
             notificationsSettingUpdater = fakeNotificationsSettingUpdater.instance,
@@ -68,7 +65,6 @@ class ConfigureAndStartSessionUseCaseTest {
         // Given
         val aSession = givenASession()
         every { aSession.coroutineScope } returns this
-        fakeWebRtcCallManager.givenCheckForProtocolsSupportIfNeededSucceeds()
         coJustRun { fakeUpdateMatrixClientInfoUseCase.execute(any()) }
         coJustRun { fakeUpdateNotificationSettingsAccountDataUseCase.execute(any()) }
         fakeVectorPreferences.givenIsClientInfoRecordingEnabled(isEnabled = true)
@@ -82,7 +78,6 @@ class ConfigureAndStartSessionUseCaseTest {
         // Then
         verify { aSession.startSyncing(fakeContext.instance) }
         aSession.fakePushersService.verifyRefreshPushers()
-        fakeWebRtcCallManager.verifyCheckForProtocolsSupportIfNeeded()
         coVerify {
             fakeUpdateMatrixClientInfoUseCase.execute(aSession)
             fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)
@@ -94,7 +89,6 @@ class ConfigureAndStartSessionUseCaseTest {
         // Given
         val aSession = givenASession()
         every { aSession.coroutineScope } returns this
-        fakeWebRtcCallManager.givenCheckForProtocolsSupportIfNeededSucceeds()
         coJustRun { fakeUpdateNotificationSettingsAccountDataUseCase.execute(any()) }
         fakeVectorPreferences.givenIsClientInfoRecordingEnabled(isEnabled = false)
         fakeNotificationsSettingUpdater.givenOnSessionStarted(aSession)
@@ -107,7 +101,6 @@ class ConfigureAndStartSessionUseCaseTest {
         // Then
         verify { aSession.startSyncing(fakeContext.instance) }
         aSession.fakePushersService.verifyRefreshPushers()
-        fakeWebRtcCallManager.verifyCheckForProtocolsSupportIfNeeded()
         coVerify(inverse = true) {
             fakeUpdateMatrixClientInfoUseCase.execute(aSession)
         }
@@ -121,7 +114,6 @@ class ConfigureAndStartSessionUseCaseTest {
         // Given
         val aSession = givenASession()
         every { aSession.coroutineScope } returns this
-        fakeWebRtcCallManager.givenCheckForProtocolsSupportIfNeededSucceeds()
         coJustRun { fakeUpdateMatrixClientInfoUseCase.execute(any()) }
         coJustRun { fakeUpdateNotificationSettingsAccountDataUseCase.execute(any()) }
         fakeVectorPreferences.givenIsClientInfoRecordingEnabled(isEnabled = true)
@@ -135,7 +127,6 @@ class ConfigureAndStartSessionUseCaseTest {
         // Then
         verify(inverse = true) { aSession.startSyncing(fakeContext.instance) }
         aSession.fakePushersService.verifyRefreshPushers()
-        fakeWebRtcCallManager.verifyCheckForProtocolsSupportIfNeeded()
         coVerify {
             fakeUpdateMatrixClientInfoUseCase.execute(aSession)
             fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)

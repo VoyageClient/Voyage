@@ -239,8 +239,6 @@
     <string name="or">o</string>
     <string name="action_invite">Invita</string>
     <string name="action_sign_out">Disconnetti</string>
-    <string name="action_voice_call">Chiamata audio</string>
-    <string name="action_video_call">Chiamata video</string>
     <string name="action_mark_all_as_read">Segna tutti come letti</string>
     <string name="action_quick_reply">Risposta rapida</string>
     <string name="action_open">Apri</string>
@@ -275,12 +273,8 @@
     <string name="logout">Disconnetti</string>
     <string name="hs_url">URL dell\'homeserver</string>
     <string name="search">Cerca</string>
-    <string name="start_voice_call">Avvia chiamata audio</string>
-    <string name="start_video_call">Avvia chiamata video</string>
     <string name="option_send_files">Invia file</string>
     <string name="option_take_photo_video">Fai una foto o un video</string>
-    <string name="call_notification_answer">Accetta</string>
-    <string name="call_notification_reject">Rifiuta</string>
     <string name="call_notification_hangup">Riaggancia</string>
     <string name="auth_login">Accedi</string>
     <string name="auth_submit">Invia</string>
@@ -298,12 +292,6 @@
     <string name="compression_opt_list_large">Grande</string>
     <string name="compression_opt_list_medium">Medio</string>
     <string name="compression_opt_list_small">Piccolo</string>
-    <string name="call_connecting">Chiamata in connessione…</string>
-    <string name="call_ended">Chiamata terminata</string>
-    <string name="incoming_video_call">Chiamata video in arrivo</string>
-    <string name="incoming_voice_call">Chiamata audio in arrivo</string>
-    <string name="call_in_progress">Chiamata in corso…</string>
-    <string name="call_error_user_not_responding">Ricezione fallita da parte del destinatario.</string>
     <string name="permissions_rationale_popup_title">Informazione</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} deve essere autorizzato ad accedere al microfono e poter così fare chiamate audio.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} deve essere autorizzato ad accedere a fotocamera e microfono per poter fare chiamate video.
@@ -480,12 +468,9 @@
     <string name="notification_noisy_notifications">Notifiche audio</string>
     <string name="notification_listening_for_events">Rilevazione eventi</string>
     <string name="title_activity_bug_report">Segnalazione errore</string>
-    <string name="call">Chiama</string>
     <string name="encrypted_message">Messaggio criptato</string>
     <string name="loading">Caricamento…</string>
     <string name="send_bug_report_rage_shake">Per segnalare un errore agita il dispositivo con rabbia</string>
-    <string name="start_voice_call_prompt_msg">Sicuro di voler fare una chiamata audio\?</string>
-    <string name="start_video_call_prompt_msg">Sicuro di voler fare una videochiamata\?</string>
     <string name="list_members">Membri</string>
     <plurals name="room_title_members">
         <item quantity="one">%d utente</item>
@@ -619,10 +604,6 @@
     <string name="command_problem_with_parameters">Il comando \"%s\" necessita di più parametri, oppure alcuni parametri non sono corretti.</string>
     <string name="markdown_has_been_enabled">Markdown è stato abilitato.</string>
     <string name="markdown_has_been_disabled">Markdown è stato disabilitato.</string>
-    <string name="settings_call_category">Chiamate</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Usa la suoneria predefinita di ${app_name} per le chiamate in arrivo</string>
-    <string name="settings_call_ringtone_title">Suoneria delle chiamate in arrivo</string>
-    <string name="settings_call_ringtone_dialog_title">Scegli la suoneria per le chiamate:</string>
     <string name="action_accept">Accetta</string>
     <string name="auth_accept_policies">Per favore, leggi e accetta i termini di servizio di questo Home Server:</string>
     <string name="settings_notification_troubleshoot">Diagnostica delle notifiche</string>
@@ -676,7 +657,6 @@
     <string name="settings_troubleshoot_test_battery_failed">Se si lascia un dispositivo scollegato, fermo e con lo schermo spento, dopo un certo tempo questo entra in modalità Doze. Ciò impedisce alle App di accedere alla rete e ritarda le attività, le sincronizzazioni e la ricezione dei normali allarmi.</string>
     <string name="settings_troubleshoot_test_battery_quickfix">Ignora l\'ottimizzazione</string>
     <string name="no_valid_google_play_services_apk">Google Play Services non trovato. Le notifiche non funzioneranno bene.</string>
-    <string name="video_call_in_progress">Chiamata video in corso…</string>
     <string name="title_activity_keys_backup_setup">Backup delle chiavi</string>
     <string name="title_activity_keys_backup_restore">Usa il Backup delle chiavi</string>
     <string name="action_skip">Salta</string>
@@ -825,7 +805,6 @@
     <string name="notification_new_invitation">Nuovo invito</string>
     <string name="notification_sender_me">Io</string>
     <string name="notification_inline_reply_failed">** Invio fallito - per favore apri la stanza</string>
-    <string name="error_jitsi_not_supported_on_old_device">Purtroppo i vecchi dispositivi (quelli con Android precedenti al 6.0) non supportano le conferenze con Jitsi</string>
     <string name="encryption_information_unknown_ip">IP sconosciuto</string>
     <string name="you_added_a_new_device_with_info">Una nuova sessione sta chiedendo le chiavi crittografiche.
 \nNome sessione: %1$s
@@ -1477,19 +1456,10 @@
     <string name="action_copy">Copia</string>
     <string name="dialog_title_success">Completato</string>
     <string name="bottom_action_notification">Notifiche</string>
-    <string name="call_failed_no_connection">Telefonata di ${app_name} fallita</string>
-    <string name="call_failed_no_connection_description">Connessione in tempo reale fallita.
-\nChiedi all\'amministratore del tuo homeserver di configurare un server TURN per fare funzionare le chiamate.</string>
-    <string name="call_select_sound_device">Seleziona dispositivo audio</string>
     <string name="sound_device_phone">Telefono</string>
     <string name="sound_device_speaker">Altoparlante</string>
     <string name="sound_device_headset">Cuffie</string>
     <string name="sound_device_wireless_headset">Cuffie wireless</string>
-    <string name="call_switch_camera">Cambia fotocamera</string>
-    <string name="call_camera_front">Frontale</string>
-    <string name="call_camera_back">Posteriore</string>
-    <string name="call_format_turn_hd_off">Disattiva l\'HD</string>
-    <string name="call_format_turn_hd_on">Attiva l\'HD</string>
     <string name="login_error_ssl_peer_unverified">Errore SSL: l\'identità del peer non è stata verificata.</string>
     <string name="login_error_ssl_other">Errore SSL.</string>
     <string name="room_participants_action_cancel_invite">Annulla invito</string>
@@ -1606,14 +1576,9 @@
     <string name="auth_pin_reset_content">Per reimpostare il PIN dovrai riaccedere e crearne uno nuovo.</string>
     <string name="settings_security_pin_code_title">Attiva il PIN</string>
     <string name="settings_security_pin_code_summary">Se vuoi reimpostare il PIN tocca \"PIN dimenticato\" per disconnetterti e reimpostarlo.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Impedisci chiamate accidentali</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Chiedi conferma prima di iniziare una chiamata</string>
-    <string name="no_permissions_to_start_conf_call">Non hai il permesso di avviare una chiamata di gruppo in questa stanza</string>
     <string name="video_meeting">Avvia conferenza video</string>
     <string name="audio_meeting">Avvia conferenza audio</string>
     <string name="audio_video_meeting_description">Le conferenze usano la sicurezza di Jitsi e le sua politica sui permessi. Tutte le persone attualmente nella stanza vedranno un invito per unirsi quando la conferenza è in corso.</string>
-    <string name="cannot_call_yourself">Non puoi chiamare te stesso</string>
-    <string name="cannot_call_yourself_with_invite">Non puoi chiamare te stesso, attendi che i partecipanti accettino l\'invito</string>
     <string name="failed_to_add_widget">Aggiunta del widget fallita</string>
     <string name="failed_to_remove_widget">Rimozione del widget fallita</string>
     <plurals name="encryption_import_room_keys_success">
@@ -1649,7 +1614,6 @@
     <string name="confirm_your_identity_quad_s">Conferma la tua identità verificando questo accesso, dandogli l\'accesso ai messaggi cifrati.</string>
     <string name="error_opening_banned_room">È impossibile entrare in una stanza da cui sei stato bannato.</string>
     <string name="room_error_not_found">Impossibile trovare questa stanza. Assicurati che esista.</string>
-    <string name="no_permissions_to_start_webrtc_call">Non hai il permesso di avviare una chiamata in questa stanza</string>
     <plurals name="seconds">
         <item quantity="one">%d secondo</item>
         <item quantity="other">%d secondi</item>
@@ -1705,8 +1669,6 @@
     <string name="settings_troubleshoot_test_push_loop_success">L\'applicazione sta ricevendo il PUSH</string>
     <string name="settings_troubleshoot_test_push_loop_title">Prova push</string>
     <string name="search_banned_user_hint">Filtra utenti banditi</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Non hai il permesso di avviare una chiamata</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Non hai il permesso di avviare una chiamata di gruppo</string>
     <string name="action_reset">Reimposta</string>
     <string name="settings_security_pin_code_grace_period_summary_off">Il codice PIN è richiesto ogni volta che apri ${app_name}.</string>
     <string name="settings_security_pin_code_grace_period_summary_on">Il codice PIN è richiesto dopo 2 minuti di inattività su ${app_name}.</string>
@@ -1843,22 +1805,8 @@
     <string name="authentication_error">Autenticazione fallita</string>
     <string name="re_authentication_default_confirm_text">${app_name} chiede siano reinserite le credenziali per eseguire questa azione.</string>
     <string name="re_authentication_activity_title">È necessario riautenticarsi</string>
-    <string name="call_transfer_users_tab_title">Utenti</string>
-    <string name="call_transfer_failure">Si è verificato un errore trasferendo la chiamata</string>
-    <string name="call_transfer_title">Trasferisci</string>
-    <string name="call_transfer_connect_action">Connetti</string>
-    <string name="call_transfer_consult_first">Prima consulta</string>
-    <string name="call_only_active">Chiamata attiva (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Si è verificato un errore cercando il numero di telefono</string>
-    <string name="call_dial_pad_title">Tastierino numerico</string>
-    <string name="call_tile_call_back">Richiama</string>
-    <string name="call_tile_ended">Questa chiamata è terminata</string>
     <string name="call_tile_other_declined">%1$s ha rifiutato questa chiamata</string>
     <string name="failed_to_initialize_cross_signing">Impostazione della firma incrociata fallita</string>
-    <string name="call_held_by_you">Hai messo la chiamata in attesa</string>
-    <string name="call_held_by_user">%s ha messo la chiamata in attesa</string>
-    <string name="call_hold_action">In attesa</string>
-    <string name="call_resume_action">Riprendi</string>
     <string name="error_unauthorized">Non autorizzato, credenziali di autenticazione valide mancanti</string>
     <string name="event_status_delete_all_failed_dialog_message">Vuoi veramente eliminare tutti i messaggi non inviati in questa stanza\?</string>
     <string name="event_status_delete_all_failed_dialog_title">Elimina i messaggi non inviati</string>
@@ -1915,7 +1863,6 @@
     <string name="settings_server_version">Versione server</string>
     <string name="settings_server_name">Nome server</string>
     <string name="room_list_quick_actions_room_settings">Impostazioni stanza</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Abbandonare la conferenza attuale e passare all\'altra\?</string>
     <string name="room_settings_room_version_title">Versione stanza</string>
     <string name="settings_room_directory_show_all_rooms_summary">Mostra tutte le stanze nell\'elenco, incluse quelle con contenuti espliciti.</string>
     <string name="settings_room_directory_show_all_rooms">Mostra stanze con contenuti espliciti</string>
@@ -2023,7 +1970,6 @@
     <string name="send_feedback_space_info">Gli Spazi sono ancora in via di sviluppo. Il tuo feedback ci è utile per migliorarli. Il tuo nome utente e i dati sull\'app verranno comunicati per permetterci di utilizzare il tuo feedback al meglio.</string>
     <string name="feedback">Feedback</string>
     <string name="send_feedback_space_title">Feedback sugli Spazi</string>
-    <string name="error_jitsi_join_conf">Ops! Qualcosa è andato storto nel cercar di entrare nella conferenza</string>
     <string name="space_leave_prompt_msg_as_admin">Sei l\'unico amministratore di questo spazio. Abbandonarlo significa che nessuno ne avrà il controllo.</string>
     <string name="space_leave_prompt_msg_only_you">Sei l\'unico utente di questo Spazio. Se esci nessuno potrà più entrarci. Nemmeno tu.</string>
     <string name="this_space_has_no_rooms_admin">Alcune stanze potrebbero essere nascoste perché sono private e ti serve il loro invito.</string>
@@ -2037,9 +1983,6 @@
     <string name="unnamed_room">Stanza senza nome</string>
     <string name="private_space">Spazio privato</string>
     <string name="public_space">Spazio pubblico</string>
-    <string name="call_transfer_unknown_person">Persona sconosciuta</string>
-    <string name="call_transfer_transfer_to_title">Trasferisci a %1$s</string>
-    <string name="call_transfer_consulting_with">Consultazione con %1$s</string>
     <string name="directory_add_a_new_server_error_already_added">Questo server è già presente nell\'elenco</string>
     <string name="directory_add_a_new_server_error">Impossibile trovare questo server o il suo elenco di stanze</string>
     <string name="directory_add_a_new_server_prompt">Inserisci il nome di un nuovo server che vuoi esplorare.</string>
@@ -2074,14 +2017,6 @@
     <string name="missing_permissions_title">Autorizzazioni mancanti</string>
     <string name="denied_permission_camera">Per eseguire questa azione, concedi l\'autorizzazione Fotocamera dalle impostazioni di sistema.</string>
     <string name="denied_permission_generic">Mancano alcune autorizzazioni per eseguire questa azione, concedile dalle impostazioni di sistema.</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Videochiamata persa</item>
-        <item quantity="other">%d videochiamate perse</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Telefonata persa</item>
-        <item quantity="other">%d telefonate perse</item>
-    </plurals>
     <string name="upgrade_room_for_restricted_note">Nota che aggiornare creerà una nuova versione della stanza. Tutti i messaggi attuali resteranno in questa stanza archiviata.</string>
     <string name="upgrade_room_for_restricted_no_param">Chiunque in uno spazio superiore potrà trovare ed entrare in questa stanza - non serve invitare a mano tutti. Potrai cambiare questa cosa nelle impostazioni della stanza in qualsiasi momento.</string>
     <string name="upgrade_room_for_restricted">Chiunque in %s potrà trovare ed entrare in questa stanza - non serve invitare a mano tutti. Potrai cambiare questa cosa nelle impostazioni della stanza in qualsiasi momento.</string>
@@ -2130,24 +2065,6 @@
     <string name="this_invite_to_this_room_was_sent">Questo invito per questa stanza è stato inviato a %s, la quale non è associata al tuo account</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Tutte le stanze in cui sei appariranno nella pagina principale.</string>
     <string name="preference_show_all_rooms_in_home">Mostra tutte le stanze nella pagina principale</string>
-    <string name="call_slide_to_end_conference">Scorri per terminare la chiamata</string>
-    <string name="call_tap_to_return">%1$s Tocca per tornare</string>
-    <string name="call_one_active">Chiamata attiva (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Chiamata attiva ·</item>
-        <item quantity="other">%1$d chiamate attive ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">Nessuna risposta</string>
-    <string name="call_tile_video_missed">Videochiamata persa</string>
-    <string name="call_tile_voice_missed">Telefonata persa</string>
-    <string name="call_tile_video_declined">Videochiamata rifiutata</string>
-    <string name="call_tile_voice_declined">Telefonata rifiutata</string>
-    <string name="call_tile_video_call_has_ended">Videochiamata terminata • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Telefonata terminata • %1$s</string>
-    <string name="call_tile_video_active">Videochiamata attiva</string>
-    <string name="call_tile_voice_active">Telefonata attiva</string>
-    <string name="call_tile_video_incoming">Videochiamata in arrivo</string>
-    <string name="call_tile_voice_incoming">Telefonata in arrivo</string>
     <string name="call_tile_you_declined_this_call">Hai rifiutato questa chiamata</string>
     <string name="room_settings_room_notifications_account_settings">Impostazioni dell\'account</string>
     <string name="room_settings_room_notifications_manage_notifications">Puoi gestire le notifiche nelle %1$s.</string>
@@ -2162,13 +2079,6 @@
     <string name="settings_notification_your_keywords">Le tue parole chiave</string>
     <string name="room_settings_none">Nessuno</string>
     <string name="room_settings_mention_and_keyword_only">Solo menzioni e parole chiave</string>
-    <string name="call_remove_jitsi_widget_progress">Chiusura chiamata…</string>
-    <string name="call_ended_invite_timeout_title">Nessuna risposta</string>
-    <string name="call_ended_user_busy_description">L\'utente che hai chiamato è occupato.</string>
-    <string name="call_ended_user_busy_title">Utente occupato</string>
-    <string name="audio_call_with_participant">Telefonata con %s</string>
-    <string name="video_call_with_participant">Videochiamata con %s</string>
-    <string name="call_ringing">Sta squillando…</string>
     <string name="spaces">Spazi</string>
     <string name="open_discovery_settings">Apri impostazioni di rintracciabilità</string>
     <string name="discovery_section">Farsi trovare (%s)</string>
@@ -2441,10 +2351,6 @@
     <string name="threads_beta_enable_notice_title">Beta conversazioni</string>
     <string name="action_learn_more">Maggiori informazioni</string>
     <string name="action_try_it_out">Provalo</string>
-    <string name="screen_sharing_notification_description">Stai condividendo lo schermo</string>
-    <string name="screen_sharing_notification_title">${app_name} - Condivisione schermo</string>
-    <string name="call_stop_screen_sharing">Ferma condivisione schermo</string>
-    <string name="call_start_screen_sharing">Condividi schermo</string>
     <string name="initial_sync_request_reason_unignored_users">- Alcuni utenti non vengono più ignorati</string>
     <string name="initial_sync_request_content">${app_name} ha bisogno di eseguire una pulizia della cache per aggiornarsi, per il seguente motivo:
 \n%s

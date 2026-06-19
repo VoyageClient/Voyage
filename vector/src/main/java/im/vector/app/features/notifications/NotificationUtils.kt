@@ -44,12 +44,8 @@ import im.vector.app.core.extensions.createIgnoredUri
 import im.vector.app.core.platform.PendingIntentCompat
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.core.services.CallAndroidService
 import im.vector.app.core.utils.startNotificationChannelSettingsIntent
 import im.vector.app.features.MainActivity
-import im.vector.app.features.call.VectorCallActivity
-import im.vector.app.features.call.service.CallHeadsUpActionReceiver
-import im.vector.app.features.call.webrtc.WebRtcCall
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.home.room.detail.RoomDetailActivity
@@ -100,7 +96,6 @@ class NotificationUtils @Inject constructor(
         private const val NOISY_NOTIFICATION_CHANNEL_ID = "DEFAULT_NOISY_NOTIFICATION_CHANNEL_ID"
 
         const val SILENT_NOTIFICATION_CHANNEL_ID = "DEFAULT_SILENT_NOTIFICATION_CHANNEL_ID_V2"
-        private const val CALL_NOTIFICATION_CHANNEL_ID = "CALL_NOTIFICATION_CHANNEL_ID_V2"
 
         @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
         fun supportNotificationChannels() = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
@@ -113,9 +108,6 @@ class NotificationUtils @Inject constructor(
             startNotificationChannelSettingsIntent(fragment, NOISY_NOTIFICATION_CHANNEL_ID)
         }
 
-        fun openSystemSettingsForCallCategory(fragment: Fragment) {
-            startNotificationChannelSettingsIntent(fragment, CALL_NOTIFICATION_CHANNEL_ID)
-        }
     }
 
     private val notificationManager = NotificationManagerCompat.from(context)
@@ -196,19 +188,6 @@ class NotificationUtils @Inject constructor(
                             setSound(null, null)
                             setShowBadge(false)
                         })
-
-        notificationManager.createNotificationChannel(
-                NotificationChannel(
-                        CALL_NOTIFICATION_CHANNEL_ID,
-                        stringProvider.getString(CommonStrings.call).ifEmpty { "Call" },
-                        NotificationManager.IMPORTANCE_HIGH
-                )
-                        .apply {
-                            description = stringProvider.getString(CommonStrings.call)
-                            setSound(null, null)
-                            enableLights(true)
-                            lightColor = accentColor
-                        })
     }
 
     fun getChannel(channelId: String): NotificationChannel? {
@@ -274,279 +253,6 @@ class NotificationUtils @Inject constructor(
             }
         }
         return notification
-    }
-
-    fun getChannelForIncomingCall(fromBg: Boolean): NotificationChannel? {
-        val notificationChannel = if (fromBg) CALL_NOTIFICATION_CHANNEL_ID else SILENT_NOTIFICATION_CHANNEL_ID
-        return getChannel(notificationChannel)
-    }
-
-    /**
-     * Build an incoming call notification.
-     * This notification starts the VectorHomeActivity which is in charge of centralizing the incoming call flow.
-     *
-     * @param call information about the call
-     * @param title title of the notification
-     * @param fromBg true if the app is in background when posting the notification
-     * @return the call notification.
-     */
-    fun buildIncomingCallNotification(
-            call: WebRtcCall,
-            title: String,
-            fromBg: Boolean
-    ): Notification {
-        val accentColor = ContextCompat.getColor(context, im.vector.lib.ui.styles.R.color.notification_accent_color)
-        val notificationChannel = if (fromBg) CALL_NOTIFICATION_CHANNEL_ID else SILENT_NOTIFICATION_CHANNEL_ID
-        val builder = NotificationCompat.Builder(context, notificationChannel)
-                .setContentTitle(ensureTitleNotEmpty(title))
-                .apply {
-                    if (call.mxCall.isVideoCall) {
-                        setContentText(stringProvider.getString(CommonStrings.incoming_video_call))
-                        setSmallIcon(R.drawable.ic_call_answer_video)
-                    } else {
-                        setContentText(stringProvider.getString(CommonStrings.incoming_voice_call))
-                        setSmallIcon(R.drawable.ic_call_answer)
-                    }
-                }
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-                .setColor(ThemeUtils.getColor(context, android.R.attr.colorPrimary))
-                .setLights(accentColor, 500, 500)
-                .setOngoing(true)
-
-        val contentIntent = VectorCallActivity.newIntent(
-                context = context,
-                call = call,
-                mode = VectorCallActivity.INCOMING_RINGING
-        ).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            data = createIgnoredUri(call.callId)
-        }
-        val contentPendingIntent = PendingIntent.getActivity(
-                context,
-                clock.epochMillis().toInt(),
-                contentIntent,
-                PendingIntentCompat.FLAG_IMMUTABLE
-        )
-
-        val answerCallPendingIntent = TaskStackBuilder.create(context)
-                .addNextIntentWithParentStack(HomeActivity.newIntent(context, firstStartMainActivity = false))
-                .addNextIntent(
-                        VectorCallActivity.newIntent(
-                                context = context,
-                                call = call,
-                                mode = VectorCallActivity.INCOMING_ACCEPT
-                        )
-                )
-                .getPendingIntent(clock.epochMillis().toInt(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntentCompat.FLAG_IMMUTABLE)
-
-        val rejectCallPendingIntent = buildRejectCallPendingIntent(call.callId)
-
-        builder.addAction(
-                NotificationCompat.Action(
-                        IconCompat.createWithResource(context, R.drawable.ic_call_hangup)
-                                .setTint(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorError)),
-                        getActionText(CommonStrings.call_notification_reject, com.google.android.material.R.attr.colorError),
-                        rejectCallPendingIntent
-                )
-        )
-
-        builder.addAction(
-                NotificationCompat.Action(
-                        R.drawable.ic_call_answer,
-                        getActionText(CommonStrings.call_notification_answer, com.google.android.material.R.attr.colorPrimary),
-                        answerCallPendingIntent
-                )
-        )
-        if (fromBg) {
-            // Compat: Display the incoming call notification on the lock screen
-            builder.priority = NotificationCompat.PRIORITY_HIGH
-            builder.setFullScreenIntent(contentPendingIntent, true)
-        }
-        return builder.build()
-    }
-
-    fun buildOutgoingRingingCallNotification(
-            call: WebRtcCall,
-            title: String
-    ): Notification {
-        val accentColor = ContextCompat.getColor(context, im.vector.lib.ui.styles.R.color.notification_accent_color)
-        val builder = NotificationCompat.Builder(context, SILENT_NOTIFICATION_CHANNEL_ID)
-                .setContentTitle(ensureTitleNotEmpty(title))
-                .apply {
-                    setContentText(stringProvider.getString(CommonStrings.call_ringing))
-                    if (call.mxCall.isVideoCall) {
-                        setSmallIcon(R.drawable.ic_call_answer_video)
-                    } else {
-                        setSmallIcon(R.drawable.ic_call_answer)
-                    }
-                }
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-                .setLights(accentColor, 500, 500)
-                .setColor(ThemeUtils.getColor(context, android.R.attr.colorPrimary))
-                .setOngoing(true)
-
-        val contentIntent = VectorCallActivity.newIntent(
-                context = context,
-                call = call,
-                mode = null
-        ).apply {
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            data = createIgnoredUri(call.callId)
-        }
-        val contentPendingIntent = PendingIntent.getActivity(
-                context,
-                clock.epochMillis().toInt(),
-                contentIntent,
-                PendingIntentCompat.FLAG_IMMUTABLE
-        )
-
-        val rejectCallPendingIntent = buildRejectCallPendingIntent(call.callId)
-
-        builder.addAction(
-                NotificationCompat.Action(
-                        IconCompat.createWithResource(context, R.drawable.ic_call_hangup)
-                                .setTint(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorError)),
-                        getActionText(CommonStrings.call_notification_hangup, com.google.android.material.R.attr.colorError),
-                        rejectCallPendingIntent
-                )
-        )
-        builder.setContentIntent(contentPendingIntent)
-
-        return builder.build()
-    }
-
-    /**
-     * Build a pending call notification.
-     *
-     * @param call information about the call
-     * @param title title of the notification
-     * @return the call notification.
-     */
-    fun buildPendingCallNotification(
-            call: WebRtcCall,
-            title: String
-    ): Notification {
-        val builder = NotificationCompat.Builder(context, SILENT_NOTIFICATION_CHANNEL_ID)
-                .setContentTitle(ensureTitleNotEmpty(title))
-                .apply {
-                    if (call.mxCall.isVideoCall) {
-                        setContentText(stringProvider.getString(CommonStrings.video_call_in_progress))
-                        setSmallIcon(R.drawable.ic_call_answer_video)
-                    } else {
-                        setContentText(stringProvider.getString(CommonStrings.call_in_progress))
-                        setSmallIcon(R.drawable.ic_call_answer)
-                    }
-                }
-                .setColor(ThemeUtils.getColor(context, android.R.attr.colorPrimary))
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-
-        val rejectCallPendingIntent = buildRejectCallPendingIntent(call.callId)
-
-        builder.addAction(
-                NotificationCompat.Action(
-                        IconCompat.createWithResource(context, R.drawable.ic_call_hangup)
-                                .setTint(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorError)),
-                        getActionText(CommonStrings.call_notification_hangup, com.google.android.material.R.attr.colorError),
-                        rejectCallPendingIntent
-                )
-        )
-
-        val contentPendingIntent = TaskStackBuilder.create(context)
-                .addNextIntentWithParentStack(HomeActivity.newIntent(context, firstStartMainActivity = false))
-                .addNextIntent(VectorCallActivity.newIntent(context, call, null))
-                .getPendingIntent(clock.epochMillis().toInt(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntentCompat.FLAG_IMMUTABLE)
-
-        builder.setContentIntent(contentPendingIntent)
-
-        return builder.build()
-    }
-
-    private fun buildRejectCallPendingIntent(callId: String): PendingIntent {
-        val rejectCallActionReceiver = Intent(context, CallHeadsUpActionReceiver::class.java).apply {
-            putExtra(CallHeadsUpActionReceiver.EXTRA_CALL_ID, callId)
-            putExtra(CallHeadsUpActionReceiver.EXTRA_CALL_ACTION_KEY, CallHeadsUpActionReceiver.CALL_ACTION_REJECT)
-        }
-        return PendingIntent.getBroadcast(
-                context,
-                clock.epochMillis().toInt(),
-                rejectCallActionReceiver,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntentCompat.FLAG_IMMUTABLE
-        )
-    }
-
-    /**
-     * Build a temporary (because service will be stopped just after) notification for the CallService, when a call is ended.
-     */
-    fun buildCallEndedNotification(isVideoCall: Boolean): Notification {
-        return NotificationCompat.Builder(context, SILENT_NOTIFICATION_CHANNEL_ID)
-                .setContentTitle(stringProvider.getString(CommonStrings.call_ended))
-                .apply {
-                    if (isVideoCall) {
-                        setSmallIcon(R.drawable.ic_call_answer_video)
-                    } else {
-                        setSmallIcon(R.drawable.ic_call_answer)
-                    }
-                }
-                .setTimeoutAfter(1)
-                .setColor(ThemeUtils.getColor(context, android.R.attr.colorPrimary))
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-                .build()
-    }
-
-    /**
-     * Build notification for the CallService, when a call is missed.
-     */
-    fun buildCallMissedNotification(callInformation: CallAndroidService.CallInformation): Notification {
-        val builder = NotificationCompat.Builder(context, SILENT_NOTIFICATION_CHANNEL_ID)
-                .setContentTitle(callInformation.opponentMatrixItem?.getBestName() ?: callInformation.opponentUserId)
-                .apply {
-                    if (callInformation.isVideoCall) {
-                        setContentText(stringProvider.getQuantityString(CommonPlurals.missed_video_call, 1, 1))
-                        setSmallIcon(R.drawable.ic_missed_video_call)
-                    } else {
-                        setContentText(stringProvider.getQuantityString(CommonPlurals.missed_audio_call, 1, 1))
-                        setSmallIcon(R.drawable.ic_missed_voice_call)
-                    }
-                }
-                .setShowWhen(true)
-                .setColor(ThemeUtils.getColor(context, android.R.attr.colorPrimary))
-                .setAutoCancel(true)
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-
-        val contentPendingIntent = TaskStackBuilder.create(context)
-                .addNextIntentWithParentStack(HomeActivity.newIntent(context, firstStartMainActivity = false))
-                .addNextIntent(RoomDetailActivity.newIntent(context, TimelineArgs(callInformation.nativeRoomId), true))
-                .getPendingIntent(clock.epochMillis().toInt(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntentCompat.FLAG_IMMUTABLE)
-
-        builder.setContentIntent(contentPendingIntent)
-        return builder.build()
-    }
-
-    /**
-     * Creates a notification that indicates the application is capturing the screen.
-     */
-    fun buildScreenSharingNotification(): Notification {
-        return NotificationCompat.Builder(context, SILENT_NOTIFICATION_CHANNEL_ID)
-                .setContentTitle(stringProvider.getString(CommonStrings.screen_sharing_notification_title))
-                .setContentText(stringProvider.getString(CommonStrings.screen_sharing_notification_description))
-                .setSmallIcon(R.drawable.ic_share_screen)
-                .setColor(ThemeUtils.getColor(context, android.R.attr.colorPrimary))
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .setContentIntent(buildOpenHomePendingIntentForSummary())
-                .build()
-    }
-
-    /**
-     * Creates a notification indicating that the microphone is currently being accessed by the application.
-     */
-    fun buildMicrophoneAccessNotification(): Notification {
-        return NotificationCompat.Builder(context, SILENT_NOTIFICATION_CHANNEL_ID)
-                .setContentTitle(stringProvider.getString(CommonStrings.microphone_in_use_title))
-                .setSmallIcon(R.drawable.ic_call_answer)
-                .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setColor(ThemeUtils.getColor(context, android.R.attr.colorPrimary))
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-                .build()
     }
 
     /**

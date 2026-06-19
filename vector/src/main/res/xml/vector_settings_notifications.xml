@@ -77,12 +77,6 @@
             android:summary="@string/settings_system_preferences_summary"
             android:title="@string/settings_silent_notifications_preferences" />
 
-        <im.vector.app.core.preference.VectorPreference
-            android:key="SETTINGS_SYSTEM_CALL_NOTIFICATION_PREFERENCE_KEY"
-            android:persistent="false"
-            android:summary="@string/settings_system_preferences_summary"
-            android:title="@string/settings_call_notifications_preferences" />
-
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory

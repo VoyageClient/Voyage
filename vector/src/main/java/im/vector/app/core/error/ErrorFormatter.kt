@@ -9,7 +9,6 @@ package im.vector.app.core.error
 
 import android.content.ActivityNotFoundException
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.features.call.dialpad.DialPadLookup
 import im.vector.app.features.roomprofile.polls.RoomPollsLoadingError
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voicebroadcast.VoiceBroadcastFailure
@@ -123,10 +122,6 @@ class DefaultErrorFormatter @Inject constructor(
                         throwable.localizedMessage
                 }
             }
-            is DialPadLookup.Failure.NumberIsYours ->
-                stringProvider.getString(CommonStrings.cannot_call_yourself)
-            is DialPadLookup.Failure.NoResult ->
-                stringProvider.getString(CommonStrings.call_dial_pad_lookup_error)
             is MatrixIdFailure.InvalidMatrixId ->
                 stringProvider.getString(CommonStrings.login_signin_matrix_id_error_invalid_matrix_id)
             is VoiceFailure -> voiceMessageError(throwable)

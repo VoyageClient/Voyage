@@ -101,8 +101,6 @@
     <string name="or">edo</string>
     <string name="action_invite">Gonbidatu</string>
     <string name="action_sign_out">Amaitu saioa</string>
-    <string name="action_voice_call">Ahots deia</string>
-    <string name="action_video_call">Bideo deia</string>
     <string name="action_mark_all_as_read">Markatu irakurrita gisa</string>
     <string name="action_quick_reply">Erantzun azkarra</string>
     <string name="action_open">Ireki</string>
@@ -137,8 +135,6 @@
     <string name="logout">Amaitu saioa</string>
     <string name="hs_url">Hasiera zerbitzariaren URL-a</string>
     <string name="search">Bilatu</string>
-    <string name="start_voice_call">Hasi ahots deia</string>
-    <string name="start_video_call">Hasi bideo deia</string>
     <string name="option_send_files">Bidali fitxategiak</string>
     <string name="option_take_photo_video">Atera argazkia edo bideoa</string>
     <string name="auth_login">Hasi saioa</string>
@@ -157,12 +153,6 @@
     <string name="compression_opt_list_large">Handia</string>
     <string name="compression_opt_list_medium">Ertaina</string>
     <string name="compression_opt_list_small">Txikia</string>
-    <string name="call_connecting">Deia konektatzen…</string>
-    <string name="call_ended">Deia amaitu da</string>
-    <string name="incoming_video_call">Bideo-deia jasotzen</string>
-    <string name="incoming_voice_call">Ahots-deia jasotzen</string>
-    <string name="call_in_progress">Deia abioan…</string>
-    <string name="call_error_user_not_responding">Urruneko aldeak ez du erantzun.</string>
     <string name="permissions_rationale_popup_title">Informazioa</string>
     <string name="permissions_rationale_msg_record_audio">Elementek zure mikrofonoa atzitzeko baimena behar du ahots deiak egin ahal izateko.</string>
     <string name="permissions_rationale_msg_camera_and_audio">Elementek zure kamera eta mikrofonoa atzitzeko baimenak behar ditu bideo deiak egin ahal izateko.
@@ -353,10 +343,7 @@ Kontuan izan ekintza honek aplikazioa berrabiaraziko duela eta denbora bat behar
     <string name="title_activity_bug_report">Arazte-txostena</string>
     <string name="option_take_photo">Atera argazkia</string>
     <string name="option_take_video">Grabatu bideoa</string>
-    <string name="call">Deia</string>
     <string name="loading">Kargatzen…</string>
-    <string name="start_voice_call_prompt_msg">Ziur ahots-dei bat hasi nahi duzula?</string>
-    <string name="start_video_call_prompt_msg">Ziur bideo-dei bat hasi nahi duzula?</string>
     <string name="room_participants_ban_prompt_msg">Ziur erabiltzaile hau txat honetan debekatu nahi duzula?</string>
     <string name="room_settings_all_messages">Mezu guztiak</string>
     <string name="room_settings_add_homescreen_shortcut">Gehitu hasiera pantailako laster-bidea</string>
@@ -463,10 +450,6 @@ Matrix-eko mezuen ikusgaitasuna e-mail sistemaren antekoa da. Guk zure mezuak ah
     <string name="merged_events_collapse">tolestu</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="x_plus">%d+</string>
-    <string name="settings_call_category">Deiak</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Erabili ${app_name}en lehenetsitako dei-doinua jasotako deientzat</string>
-    <string name="settings_call_ringtone_title">Jasotako deien doinua</string>
-    <string name="settings_call_ringtone_dialog_title">Hautatu deientzako doinua:</string>
     <string name="room_participants_action_remove">Kanporatu</string>
     <string name="settings_inline_url_preview_summary">Erakutsi txateko esteken aurrebista hasiera-zerbitzariak onartzen badu.</string>
     <string name="settings_send_typing_notifs">Bidali idazte jakinarazpenak</string>
@@ -537,7 +520,6 @@ Aplikazioa egiten saiatzen ari dena agresiboki murriztuko zaio bigarren planoan 
     <string name="settings_troubleshoot_test_battery_quickfix">Ezikusi optimizazioa</string>
     <string name="no_valid_google_play_services_apk">Ez da baliozko Google Play Services APK-rik aurkitu. Jakinarazpenak agian ez dira ongi ibiliko.</string>
     <string name="settings_troubleshoot_test_battery_failed">Erabiltzaile batek gailu bat deskonektatuta eta erabili gabe uzten badu denbora batez, pantaila itzalita duela, gailua kuluxka moduan sartzen da. Honek aplikazioak sarera konektatzea eragozten du eta beraien lanak atzeratzen ditu, baita ohiko alarmak.</string>
-    <string name="video_call_in_progress">Bide-deia abioan…</string>
     <string name="title_activity_keys_backup_setup">Gakoen babes-kopia</string>
     <string name="title_activity_keys_backup_restore">Erabili gakoen babes-kopia</string>
     <string name="action_skip">Saltatu</string>
@@ -686,7 +668,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="notification_new_invitation">Gonbidapen berria</string>
     <string name="notification_sender_me">Ni</string>
     <string name="notification_inline_reply_failed">** Bidalketak huts egin du, ireki gela</string>
-    <string name="error_jitsi_not_supported_on_old_device">Sentitzen dugu, gailu zaharretan ezin dira Jitsi bidezko konferentzia deiak egin (Android OS 6.0 baino zaharragoak)</string>
     <string name="encryption_information_unknown_ip">ip ezezaguna</string>
     <string name="you_added_a_new_device_with_info">"Saio berri bat zifratze gakoak eskatzen ari da. 
 \nSaioaren izena: %1$s 

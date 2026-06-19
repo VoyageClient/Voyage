@@ -15,9 +15,6 @@ import im.vector.app.features.analytics.accountdata.AnalyticsAccountDataViewMode
 import im.vector.app.features.analytics.ui.consent.AnalyticsConsentViewModel
 import im.vector.app.features.attachments.AttachmentTypeSelectorViewModel
 import im.vector.app.features.auth.ReAuthViewModel
-import im.vector.app.features.call.VectorCallViewModel
-import im.vector.app.features.call.conference.JitsiCallViewModel
-import im.vector.app.features.call.transfer.CallTransferViewModel
 import im.vector.app.features.contactsbook.ContactsBookViewModel
 import im.vector.app.features.createdirect.CreateDirectRoomViewModel
 import im.vector.app.features.crypto.keysbackup.settings.KeysBackupSettingsViewModel
@@ -157,16 +154,6 @@ interface MavericksViewModelModule {
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey(VectorCallViewModel::class)
-    fun vectorCallViewModelFactory(factory: VectorCallViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey(JitsiCallViewModel::class)
-    fun jitsiCallViewModelFactory(factory: JitsiCallViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
     @MavericksViewModelKey(RoomDirectoryViewModel::class)
     fun roomDirectoryViewModelFactory(factory: RoomDirectoryViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
@@ -214,11 +201,6 @@ interface MavericksViewModelModule {
     @IntoMap
     @MavericksViewModelKey(IgnoredUsersViewModel::class)
     fun ignoredUsersViewModelFactory(factory: IgnoredUsersViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey(CallTransferViewModel::class)
-    fun callTransferViewModelFactory(factory: CallTransferViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap

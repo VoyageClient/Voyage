@@ -204,8 +204,6 @@
     <string name="send_bug_report">Raporti eraron</string>
     <string name="or">aŭ</string>
     <string name="action_invite">Inviti</string>
-    <string name="action_voice_call">Voĉvoko</string>
-    <string name="action_video_call">Vidvoko</string>
     <string name="action_quick_reply">Rapida respondo</string>
     <string name="action_open">Malfermi</string>
     <string name="action_close">Fermi</string>
@@ -261,11 +259,7 @@
     <string name="logout">Elsaluti</string>
     <string name="hs_url">URL de hejmservilo</string>
     <string name="search">Serĉi</string>
-    <string name="start_voice_call">Komenci voĉvokon</string>
-    <string name="start_video_call">Komenci vidvokon</string>
     <string name="option_send_voice">Sendi voĉon</string>
-    <string name="start_voice_call_prompt_msg">Ĉu vi certe volas komenci novan voĉvokon\?</string>
-    <string name="start_video_call_prompt_msg">Ĉu vi certe volas komenci novan vidvokon\?</string>
     <string name="option_send_files">Sendi dosierojn</string>
     <string name="option_send_sticker">Sendi glumarkon</string>
     <string name="option_take_photo_video">Foti aŭ filmi</string>
@@ -288,7 +282,6 @@
     <string name="compression_opt_list_large">Granda</string>
     <string name="compression_opt_list_medium">Meza</string>
     <string name="compression_opt_list_small">Malgranda</string>
-    <string name="settings_call_category">Vokoj</string>
     <plurals name="room_details_selected">
         <item quantity="one">%d elektita</item>
         <item quantity="other">%d elektitaj</item>
@@ -379,10 +372,6 @@
     <string name="login_error_limit_exceeded">Tro multaj petoj sendiĝis</string>
     <string name="e2e_re_request_encryption_key">Repeti ĉifrajn ŝlosilojn de aliaj viaj salutaĵoj.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Bonvolu ruli ${app_name} sur alia aparato kiu scipovas malĉifri la mesaĝon, por ke ĝi povu sendi la ŝlosilojn al ĉi tiu salutaĵo.</string>
-    <string name="incoming_video_call">Envena vidvoko</string>
-    <string name="incoming_voice_call">Envena voĉvoko</string>
-    <string name="call_in_progress">Voko progresas…</string>
-    <string name="video_call_in_progress">Vidvoko progresas…</string>
     <string name="permissions_rationale_popup_title">Informoj</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} bezonas permeson aliri vian mikrofonon por fari voĉvokojn.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} bezonas premeson aliri viajn filmilon kaj mikrofonon por fari vidvokojn.
@@ -428,12 +417,9 @@
     <string name="settings_troubleshoot_test_account_settings_success">Sciigoj estas ŝaltitaj por via konto.</string>
     <string name="action_play">Ludi</string>
     <string name="action_dismiss">Eksigi</string>
-    <string name="no_permissions_to_start_conf_call">Vi ne havas permeson ekigi grupan vokon en ĉi tiu ĉambro</string>
     <string name="video_meeting">Komenci grupan vidvokon</string>
     <string name="audio_meeting">Komenci grupan voĉvokon</string>
     <string name="audio_video_meeting_description">Grupaj vokoj uzas la politikon de Jitsi pri permesoj kaj sekureco. Ĉiuj personoj en la ĉambro vidos aliĝilon dum la voko daŭros.</string>
-    <string name="cannot_call_yourself">Vi ne povas voki sola</string>
-    <string name="cannot_call_yourself_with_invite">Vi ne povas voki sola; atendu aliajn partoprenantojn</string>
     <string name="command_description_rainbow">Sendas la donitan mesaĝon en ĉielarkaj koloroj</string>
     <string name="verify_cannot_cross_sign">Tiu ĉi salutaĵo ne povas konigi ĉi tiun kontrolon al aliaj viaj salutaĵoj.
 \nLa kontrolo konserviĝos loke kaj estos konigota de venonta versio de la aplikaĵo.</string>
@@ -989,7 +975,6 @@
     <string name="room_widget_resource_decline_permission">Ĉion bloki</string>
     <string name="room_widget_resource_grant_permission">Permesi</string>
     <string name="room_widget_resource_permission_title">Ĉi tiu fenestraĵo volas uzi la jenajn rimedojn:</string>
-    <string name="error_jitsi_not_supported_on_old_device">Pardonu, grupaj vokoj ne estas subtenataj sur malnovaj aparatoj (Android je versio sub 6.0)</string>
     <string name="room_widget_permission_room_id">Identigilo de ĉambro</string>
     <string name="room_widget_permission_widget_id">Identigilo de fenestraĵo</string>
     <string name="room_widget_permission_theme">Via haŭto</string>
@@ -1317,14 +1302,6 @@
     <string name="room_participants_power_level_demote_warning_title">Ĉu malaltigi vian propran povnivelon\?</string>
     <string name="room_participants_action_cancel_invite">Nuligi inviton</string>
     <string name="room_participants_header_direct_chats">Individuaj ĉambroj</string>
-    <string name="call_error_user_not_responding">La alia flanko ne respondis la vokon.</string>
-    <string name="call_ended">Voko finiĝis</string>
-    <string name="call_connecting">Konektante vokon…</string>
-    <string name="call">Voko</string>
-    <string name="settings_call_ringtone_title">Sonoro de envena voko</string>
-    <string name="settings_call_ringtone_dialog_title">Elektu sonoron por vokoj:</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Peti konfirmon antaŭ komenco de voko</string>
-    <string name="settings_call_show_confirmation_dialog_title">Preventi nevolan vokon</string>
     <plurals name="membership_changes">
         <item quantity="one">%d ŝanĝo de aneco</item>
         <item quantity="other">%d ŝanĝoj de aneco</item>
@@ -1333,30 +1310,17 @@
     <string name="login_error_ssl_peer_unverified">Eraro de SSL: la identeco de la samtavolano ne estas kontrolita.</string>
     <string name="auth_msisdn_already_defined">Ĉi tiu telefonnumero jam estas difinita.</string>
     <string name="auth_submit">Sendi</string>
-    <string name="call_format_turn_hd_on">Ŝalti altan distingumon (HD)</string>
-    <string name="call_format_turn_hd_off">Malŝalti altan distingumon (HD)</string>
-    <string name="call_camera_back">Malantaŭa</string>
-    <string name="call_camera_front">Antaŭa</string>
     <string name="sound_device_wireless_headset">Sendrata kapaŭskultilo</string>
     <string name="sound_device_headset">Kapaŭskultilo</string>
     <string name="sound_device_speaker">Laŭtparolilo</string>
     <string name="sound_device_phone">Telefono</string>
-    <string name="call_select_sound_device">Elekti sonaparaton</string>
-    <string name="call_failed_no_connection_description">Malsukcesis fari realtempan konekton.
-\nBonvolu peti la administranton de via hejmservilo agordi TURN-servilon, por ke vokoj funkciu dependeble.</string>
-    <string name="call_failed_no_connection">Malsukcesis voko de ${app_name}</string>
     <string name="matrix_only_filter">Nur kontaktoj de Matrix</string>
     <string name="bottom_action_notification">Sciigoj</string>
     <string name="dialog_title_success">Sukceso</string>
     <string name="action_copy">Kopii</string>
     <string name="call_notification_hangup">Fini vokon</string>
-    <string name="call_notification_reject">Rifuzi</string>
-    <string name="call_notification_answer">Akcepti</string>
     <string name="failed_to_remove_widget">Malsukcesis forigi fenestraĵon</string>
     <string name="failed_to_add_widget">Malsukcesis aldoni fenestraĵon</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Vi ne havas permeson komenci vokon</string>
-    <string name="no_permissions_to_start_webrtc_call">Vi ne havas permeson komenci vokon en ĉi tiu ĉambro</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Vi ne havas permeson komenci grupan vokon</string>
     <string name="action_reset">Restarigi</string>
     <string name="initialize_cross_signing">Pretigi delegajn subskribojn</string>
     <string name="settings_rageshake">Kolera skuado</string>
@@ -1371,8 +1335,6 @@
     <string name="settings_home_display">Hejmekrano</string>
     <string name="settings_troubleshoot_test_battery_failed">Se uzanto lasas aparaton neŝargata kaj senmova por ioma tempo, kun ekrano malaktiva, la aparato eniras dorman reĝimon. Tio malhelpas aplikaĵojn aliri la reton kaj fortenas iliajn taskojn, speguladon, kaj normalajn avertojn.</string>
     <string name="room_settings_add_homescreen_shortcut">Aldoni al hejmekrano</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Uzi implicitan sonoron de ${app_name} por envenaj vokoj</string>
-    <string name="call_switch_camera">Baskuli filmilon</string>
     <string name="auth_pin_forgot">Ĉu vi forgesis PIN\?</string>
     <string name="universal_link_malformed">La ligilo estis misformita</string>
     <string name="room_error_not_found">Ne povas trovi ĉi tiun ĉambron. Certiĝu, ke ĝi ekzistas.</string>
@@ -1684,17 +1646,12 @@
     <string name="room_participants_leave_private_warning">Ĉi tiu ĉambro ne estas publika. Vi ne povos re-aliĝi sen invito.</string>
     <string name="permissions_denied_add_contact">Permesi aliron al viaj kontaktoj.</string>
     <string name="permissions_denied_qr_code">Por skani rapidrespondan kodon, vi bezonas permesi aliron al filmilo.</string>
-    <string name="call_held_by_you">Vi paŭzigis la vokon</string>
-    <string name="call_held_by_user">%s paŭzigis la vokon</string>
-    <string name="call_hold_action">Paŭzigi</string>
-    <string name="call_resume_action">Daŭrigi</string>
     <string name="send_bug_report_include_key_share_history">Sendi historion de petoj havigi ŝlosilojn</string>
     <string name="no_more_results">Neniu pliaj rezultoj</string>
     <string name="action_unpublish">Malpublikigi</string>
     <string name="action_add">Aldoni</string>
     <string name="start_chatting">Ekbabili</string>
     <string name="system_theme">Defaŭlta de sistemo</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Ĉu forlasi la nunan grupan vokon kaj iri al la alia\?</string>
     <string name="room_settings_room_version_title">Versio de ĉambro</string>
     <string name="room_alias_publish_to_directory_error">Ne povis akiri la nunan videblecon en la katalogo de ĉambroj (%1$s).</string>
     <string name="room_alias_publish_to_directory">Ĉu publikigi ĉi tiun ĉambron per la katalogo de ĉambroj de %1$s\?</string>
@@ -1776,15 +1733,6 @@
     <string name="notice_room_server_acl_set_banned">• Serviloj akordaj kun %s estas forbaritaj.</string>
     <string name="notice_room_server_acl_set_title_by_you">Vi agordis la alirpermesojn por serviloj (ACL) por ĉi tiu ĉambro.</string>
     <string name="notice_room_server_acl_set_title">%s agordis la alirpermesojn por serviloj (ACL) por ĉi tiu ĉambro.</string>
-    <string name="call_transfer_users_tab_title">Uzantoj</string>
-    <string name="call_transfer_failure">Eraris transdonado de voko</string>
-    <string name="call_transfer_title">Transdonu</string>
-    <string name="call_transfer_consult_first">Unue konsulti</string>
-    <string name="call_only_active">Aktiva voko (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Eraris serĉado de la telefonnumero</string>
-    <string name="call_dial_pad_title">Ciferplato</string>
-    <string name="call_tile_call_back">Revoki</string>
-    <string name="call_tile_ended">Ĉi tiu voko finiĝis</string>
     <string name="call_tile_other_declined">%1$s rifuzis ĉi tiun vokon</string>
     <string name="warning_unsaved_change_discard">Forĵeti ŝanĝojn</string>
     <string name="warning_unsaved_change">Ekzistas nekonservitaj ŝanĝoj. Ĉu ili forĵetiĝu\?</string>
@@ -1913,7 +1861,6 @@
     <string name="a11y_screenshot">Ekrankopio</string>
     <string name="authentication_error">Malsukcesis aŭtentikigi</string>
     <string name="re_authentication_default_confirm_text">${app_name} postulas enigon de viaj salutiloj por tiu ĉi ago.</string>
-    <string name="error_jitsi_join_conf">Pardonu, eraris via aliĝo al la grupa voko</string>
     <string name="this_space_has_no_rooms_admin">Iuj ĉambroj povas esti kaŝitaj ĉar ili estas privataj kaj vi bezonas inviton.</string>
     <string name="this_space_has_no_rooms_not_admin">Iuj ĉambroj povas esti kaŝitaj, ĉar ili estas privataj kaj vi bezonas inviton.
 \nVi ne havas permeson aldoni ĉambrojn.</string>
@@ -2066,10 +2013,6 @@
     <string name="public_space">Publika spaco</string>
     <string name="command_description_upgrade_room">Gradaltigas ĉambron al nova versio</string>
     <string name="re_authentication_activity_title">Necesas aŭtentikiĝo rea</string>
-    <string name="call_transfer_unknown_person">Nekonata persono</string>
-    <string name="call_transfer_transfer_to_title">Transdonante al %1$s</string>
-    <string name="call_transfer_consulting_with">Konsultante kun %1$s</string>
-    <string name="call_transfer_connect_action">Konekti</string>
     <string name="settings_server_room_version_unstable">nestabila</string>
     <string name="settings_server_room_version_stable">stabila</string>
     <string name="settings_server_default_room_version">Implicita versio</string>
@@ -2108,14 +2051,6 @@
     <string name="settings_notification_other">Aliaj</string>
     <string name="settings_notification_mentions_and_keywords">Mencioj kaj ĉefvortoj</string>
     <string name="settings_notification_default">Implicitaj sciigoj</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Nerespondita vidvoko</item>
-        <item quantity="other">%d neresponditaj vidvokoj</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Nerespondita voĉvoko</item>
-        <item quantity="other">%d neresponditaj voĉvokoj</item>
-    </plurals>
     <string name="hs_client_url">URL de API de hejmservilo</string>
     <string name="missing_permissions_title">Mankas permesoj</string>
     <string name="denied_permission_voice_message">Por sendi voĉmesaĝojn, bonvolu doni permeson uzi mikrofonon.</string>
@@ -2127,22 +2062,6 @@
     <string name="discovery_section">Trovado (%s)</string>
     <string name="invite_by_username_or_mail">Inviti laŭ uzantonomo aŭ retpoŝtadreso</string>
     <string name="command_description_add_to_space">Aldoni al la spaco</string>
-    <string name="call_one_active">Aktiva voko (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Aktiva voko ·</item>
-        <item quantity="other">%1$d aktivaj vokoj ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">Sen respondo</string>
-    <string name="call_tile_video_missed">Nerespondita vidvoko</string>
-    <string name="call_tile_voice_missed">Nerespondita voĉvoko</string>
-    <string name="call_tile_video_declined">Vidvoko rifuziĝis</string>
-    <string name="call_tile_voice_declined">Voĉvoko rifuziĝis</string>
-    <string name="call_tile_video_call_has_ended">Vidvoko finiĝis • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Voĉvoko finiĝis • %1$s</string>
-    <string name="call_tile_video_active">Aktiva vidvoko</string>
-    <string name="call_tile_voice_active">Aktiva voĉvoko</string>
-    <string name="call_tile_video_incoming">Envena vidvoko</string>
-    <string name="call_tile_voice_incoming">Envena voĉvoko</string>
     <string name="call_tile_you_declined_this_call">Vi rifuzis ĉi tiun vokon</string>
     <string name="create_space_in_progress">Kreante spacon…</string>
     <string name="does_not_look_like_valid_email">Tio ne ŝajnas valida retpoŝtadreso</string>
@@ -2182,13 +2101,6 @@
     <string name="space_participants_remove_prompt_msg">La uzanto estos forigita de ĉi tiu spaco.
 \n
 \nPor preventi ĝin aliĝi denove, vi devus forbari ĝin anstataŭe.</string>
-    <string name="call_remove_jitsi_widget_progress">Finante vokon…</string>
-    <string name="call_ended_invite_timeout_title">Sen respondo</string>
-    <string name="call_ended_user_busy_description">La uzanto, kiun vi vokis, estas okupata.</string>
-    <string name="call_ended_user_busy_title">Uzanto estas okupata</string>
-    <string name="audio_call_with_participant">Voĉvoko kun %s</string>
-    <string name="video_call_with_participant">Vidvoko kun %s</string>
-    <string name="call_ringing">Sonorante…</string>
     <string name="spaces">Spacoj</string>
     <string name="initial_sync_request_reason_unignored_users">- Iom uzantoj reatentita</string>
     <string name="settings_mentions_at_room">\@room</string>
@@ -2366,20 +2278,16 @@
     <string name="labs_enable_live_location">Ebligi Tujan Loko-kunhavigadon</string>
     <string name="action_proceed_to_reset">Procedi por rekomencigi</string>
     <string name="action_disable">Malebligi</string>
-    <string name="call_tap_to_return">%1$s Tuŝetu por reveni</string>
     <string name="font_size_section_auto">Agordi aŭtomate</string>
     <string name="action_learn_more">Lerni pli</string>
     <string name="action_try_it_out">Provi ĝin</string>
-    <string name="call_slide_to_end_conference">Glitu por fini la vokon</string>
     <string name="action_next">Poste</string>
     <string name="action_enable">Ebligi</string>
     <string name="action_not_now">Ne nun</string>
-    <string name="call_stop_screen_sharing">Ĉesi ekrankunhavigadon</string>
     <string name="action_stop">Jes, Halti</string>
     <string name="action_got_it">Atingis</string>
     <string name="action_select_all">Elekti ĉiujn</string>
     <string name="action_deselect_all">Malelekti ĉiujn</string>
-    <string name="call_start_screen_sharing">Kunhavigi ekranon</string>
     <string name="updating_your_data">Ĝisdatigante viajn datumojn…</string>
     <string name="settings_notification_error_on_update">Okazis eraro dum la ĝisdatigo de viaj sciigaj preferoj. Bonvolu reprovi.</string>
 </resources>

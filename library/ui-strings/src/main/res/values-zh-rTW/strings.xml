@@ -216,8 +216,6 @@
     <string name="dark_theme">深色主題</string>
     <string name="black_theme">黑色主題</string>
     <string name="notification_listening_for_events">正在監聽事件</string>
-    <string name="call_notification_answer">接受</string>
-    <string name="call_notification_reject">拒絕</string>
     <string name="call_notification_hangup">掛斷</string>
     <string name="title_activity_settings">設定</string>
     <string name="title_activity_bug_report">錯誤回報</string>
@@ -241,8 +239,6 @@
     <string name="or">或</string>
     <string name="action_invite">邀請</string>
     <string name="action_sign_out">登出</string>
-    <string name="action_voice_call">語音通話</string>
-    <string name="action_video_call">視訊通話</string>
     <string name="action_mark_all_as_read">標記為已讀取</string>
     <string name="action_quick_reply">快速回覆</string>
     <string name="action_open">開啟</string>
@@ -278,10 +274,6 @@
     <string name="logout">登出</string>
     <string name="hs_url">家伺服器網址</string>
     <string name="search">搜尋</string>
-    <string name="start_voice_call">開始語音通話</string>
-    <string name="start_video_call">開始視訊通話</string>
-    <string name="start_voice_call_prompt_msg">您確定想要與開始語音通話？</string>
-    <string name="start_video_call_prompt_msg">您確定想要與開始視訊通話？</string>
     <string name="option_send_files">傳送檔案</string>
     <string name="option_take_photo_video">拍照或錄影</string>
     <string name="option_take_photo">拍照</string>
@@ -302,13 +294,6 @@
     <string name="compression_opt_list_large">大</string>
     <string name="compression_opt_list_medium">中</string>
     <string name="compression_opt_list_small">小</string>
-    <string name="call">通話</string>
-    <string name="call_connecting">接通中…</string>
-    <string name="call_ended">通話結束</string>
-    <string name="incoming_video_call">視訊通話來電</string>
-    <string name="incoming_voice_call">語音通話來電</string>
-    <string name="call_in_progress">通話中…</string>
-    <string name="call_error_user_not_responding">對方未接聽電話。</string>
     <string name="permissions_rationale_popup_title">資訊</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} 需要麥克風存取權限來撥打語音通話。</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} 需要相機及麥克風存取權限來撥打視訊通話。
@@ -603,10 +588,6 @@
     <string name="markdown_has_been_disabled">Markdown 已停用。</string>
     <string name="generic_label_and_value">%1$s：%2$s</string>
     <string name="x_plus">+%d</string>
-    <string name="settings_call_category">通話</string>
-    <string name="settings_call_ringtone_use_app_ringtone">為來電使用預設的 ${app_name} 鈴聲</string>
-    <string name="settings_call_ringtone_title">來電鈴聲</string>
-    <string name="settings_call_ringtone_dialog_title">選取通話鈴聲：</string>
     <string name="action_accept">接受</string>
     <string name="auth_accept_policies">請審閱並接受此家伺服器的政策：</string>
     <string name="settings_notification_troubleshoot">疑難排解通知</string>
@@ -661,7 +642,6 @@
     <string name="settings_troubleshoot_test_battery_failed">如果裝置未充電，並且關閉螢幕後靜置一段時間，將進入瞌睡模式。此模式可能會導致應用程式無法使用網路，導致運作、同步與標準警報延後觸發。</string>
     <string name="settings_troubleshoot_test_battery_quickfix">忽略最佳化</string>
     <string name="no_valid_google_play_services_apk">找不到有效的 Google Play Services APK。通知可能無法正常運作。</string>
-    <string name="video_call_in_progress">視訊通話進行中…</string>
     <string name="title_activity_keys_backup_setup">金鑰備份</string>
     <string name="title_activity_keys_backup_restore">使用金鑰備份</string>
     <string name="action_skip">略過</string>
@@ -805,7 +785,6 @@
     <string name="notification_new_invitation">新邀請</string>
     <string name="notification_sender_me">我</string>
     <string name="notification_inline_reply_failed">** 無法傳送 - 請開啟聊天室</string>
-    <string name="error_jitsi_not_supported_on_old_device">很抱歉，不支援在舊版裝置（Android 系統版本小於 6.0）使用 Jitsi 進行會議通話</string>
     <string name="encryption_information_unknown_ip">未知的 IP</string>
     <string name="you_added_a_new_device_with_info">有新工作階段正在要求加密金鑰。
 \n工作階段名稱：%1$s
@@ -1459,19 +1438,10 @@
     <string name="action_copy">複製</string>
     <string name="dialog_title_success">成功</string>
     <string name="bottom_action_notification">通知</string>
-    <string name="call_failed_no_connection">無法 ${app_name} 呼叫</string>
-    <string name="call_failed_no_connection_description">無法建立即時連線。
-\n請要求您家伺服器的管理員設定 TURN 伺服器以讓通話的運作更可靠。</string>
-    <string name="call_select_sound_device">選取音效裝置</string>
     <string name="sound_device_phone">電話</string>
     <string name="sound_device_speaker">喇叭</string>
     <string name="sound_device_headset">耳機</string>
     <string name="sound_device_wireless_headset">無線耳機</string>
-    <string name="call_switch_camera">切換相機</string>
-    <string name="call_camera_front">前</string>
-    <string name="call_camera_back">上一步</string>
-    <string name="call_format_turn_hd_off">關閉 HD</string>
-    <string name="call_format_turn_hd_on">開啟 HD</string>
     <string name="login_error_ssl_peer_unverified">SSL 錯誤：無法驗證對方的身分。</string>
     <string name="login_error_ssl_other">SSL 錯誤。</string>
     <string name="room_participants_action_cancel_invite">取消邀請</string>
@@ -1587,14 +1557,9 @@
     <string name="auth_pin_reset_content">若要重設 PIN 碼，需要重新登入並建立新的 PIN 碼。</string>
     <string name="settings_security_pin_code_title">啟用 PIN 碼</string>
     <string name="settings_security_pin_code_summary">如果您想要重設 PIN 碼，請點擊「忘記 PIN 碼」即可登出並重設。</string>
-    <string name="settings_call_show_confirmation_dialog_title">避免不小心撥出通話</string>
-    <string name="settings_call_show_confirmation_dialog_summary">開始通話前要求確認</string>
-    <string name="no_permissions_to_start_conf_call">您沒有在此聊天室中開始會議通話的權限</string>
     <string name="video_meeting">開始視訊會議</string>
     <string name="audio_meeting">開始語音會議</string>
     <string name="audio_video_meeting_description">會議使用 Jitsi 安全與權限策略。目前在聊天室中的所有人，在您會議開始時都會看到加入的邀請。</string>
-    <string name="cannot_call_yourself">您無法與自己通話</string>
-    <string name="cannot_call_yourself_with_invite">您無法與自己進行通話，請等候參與者接受邀請</string>
     <string name="failed_to_add_widget">無法新增小工具</string>
     <string name="failed_to_remove_widget">無法移除小工具</string>
     <plurals name="encryption_import_room_keys_success">
@@ -1634,7 +1599,6 @@
     <string name="sent_a_reaction">送出反應：%s</string>
     <string name="sent_verification_conclusion">驗證結果</string>
     <string name="universal_link_malformed">連結格式錯誤</string>
-    <string name="no_permissions_to_start_webrtc_call">您沒有權限在此聊天室開始通話</string>
     <string name="delete_account_data_warning">刪除類型為 %1$s 的帳號資料？
 \n
 \n小心使用，它可能會導致意料之外的行為。</string>
@@ -1684,8 +1648,6 @@
     <string name="settings_troubleshoot_test_push_loop_waiting_for_push">應用程式正在等待推送</string>
     <string name="settings_troubleshoot_test_push_loop_title">測試推送</string>
     <string name="search_banned_user_hint">過濾被封鎖的使用者</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">您沒有開始通話的權限</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">您沒有開始會議通話的權限</string>
     <string name="action_reset">重設</string>
     <string name="settings_security_pin_code_use_biometrics_title">啟用生物特徵驗證</string>
     <string name="warning_unsaved_change_discard">放棄變更</string>
@@ -1820,21 +1782,7 @@
     <string name="re_authentication_activity_title">需要重新驗證</string>
     <string name="failed_to_initialize_cross_signing">未能設定交叉簽署</string>
     <string name="error_unauthorized">未授權，缺少有效的身分驗證憑證</string>
-    <string name="call_transfer_users_tab_title">使用者</string>
-    <string name="call_transfer_failure">轉接電話時發生錯誤</string>
-    <string name="call_transfer_title">轉接</string>
-    <string name="call_transfer_connect_action">連線</string>
-    <string name="call_transfer_consult_first">先諮詢</string>
-    <string name="call_only_active">通話中（%1$s）</string>
-    <string name="call_dial_pad_lookup_error">查詢電話號碼時發生錯誤</string>
-    <string name="call_dial_pad_title">撥號鍵盤</string>
-    <string name="call_tile_call_back">回撥</string>
-    <string name="call_tile_ended">此通話已結束</string>
     <string name="call_tile_other_declined">%1$s 拒接這通電話</string>
-    <string name="call_held_by_you">您保留了通話</string>
-    <string name="call_held_by_user">%s 保留了通話</string>
-    <string name="call_hold_action">保留</string>
-    <string name="call_resume_action">繼續</string>
     <string name="dev_tools_event_content_hint">事件內容</string>
     <string name="dev_tools_success_state_event">已傳送狀態事件！</string>
     <string name="dev_tools_success_event">已傳送事件！</string>
@@ -1881,7 +1829,6 @@
     <string name="settings_server_version">伺服器版本</string>
     <string name="settings_server_name">伺服器名稱</string>
     <string name="room_list_quick_actions_room_settings">聊天室設定</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">離開目前的會議並切換到另一場會議？</string>
     <string name="room_settings_room_version_title">聊天室版本</string>
     <string name="dialog_edit_hint">新值</string>
     <string name="action_switch">切換</string>
@@ -2005,13 +1952,9 @@
     <string name="send_feedback_space_info">您正在使用聊天空間的 Beta 測試版本。您的回饋有助於改善未來的版本。我們將會紀錄您的平台與使用者名稱以協助我們使用您的回饋。</string>
     <string name="feedback">回饋</string>
     <string name="send_feedback_space_title">聊天空間回饋</string>
-    <string name="error_jitsi_join_conf">抱歉，嘗試加入會議時發生錯誤</string>
     <string name="unnamed_room">未命名聊天室</string>
     <string name="private_space">私密聊天空間</string>
     <string name="public_space">公開聊天空間</string>
-    <string name="call_transfer_unknown_person">未知的人</string>
-    <string name="call_transfer_transfer_to_title">轉接至 %1$s</string>
-    <string name="call_transfer_consulting_with">與 %1$s 進行諮詢</string>
     <string name="directory_add_a_new_server_error_already_added">此伺服器已在清單中</string>
     <string name="directory_add_a_new_server_error">找不到此伺服器或其聊天室清單</string>
     <string name="directory_add_a_new_server_prompt">輸入您想要探索的新伺服器名稱。</string>
@@ -2046,12 +1989,6 @@
     <string name="missing_permissions_title">缺少權限</string>
     <string name="denied_permission_camera">要執行此動作，請至系統設定授予「相機」權限。</string>
     <string name="denied_permission_generic">缺少執行此動作的部份權限，請至系統設定授予權限。</string>
-    <plurals name="missed_video_call">
-        <item quantity="other">%d 通未接視訊通話</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="other">%d 通未接來電</item>
-    </plurals>
     <string name="upgrade_room_for_restricted_note">請注意，升級會讓聊天室變為新的版本。目前的所有訊息都將保留在此被封存的聊天室中。</string>
     <string name="upgrade_room_for_restricted_no_param">母聊天空間中的任何人都可以找到並加入此聊天室，不需要手動邀請所有人。您隨時都可以在聊天室設定中變更此設定。</string>
     <string name="upgrade_room_for_restricted">任何在 %s 中的人都可以找到並加入此聊天室，不需要手動邀請所有人。您隨時都可以在聊天室設定中變更此設定。</string>
@@ -2100,23 +2037,6 @@
     <string name="this_invite_to_this_room_was_sent">此聊天室的邀請是傳送給與您的帳號無關的 %s</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">您加入的所有聊天室都會顯示在首頁中。</string>
     <string name="preference_show_all_rooms_in_home">在首頁顯示所有聊天室</string>
-    <string name="call_slide_to_end_conference">滑動結束通話</string>
-    <string name="call_tap_to_return">%1$s 點擊返回</string>
-    <string name="call_one_active">進行中的通話（%1$s）。</string>
-    <plurals name="call_active_status">
-        <item quantity="other">%1$d 通進行中的通話。</item>
-    </plurals>
-    <string name="call_tile_no_answer">無回應</string>
-    <string name="call_tile_video_missed">未接聽的視訊通話</string>
-    <string name="call_tile_voice_missed">未接聽的語音通話</string>
-    <string name="call_tile_video_declined">已拒接視訊通話</string>
-    <string name="call_tile_voice_declined">已拒接視訊通話</string>
-    <string name="call_tile_video_call_has_ended">視訊通話已結束 • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">語音通話已結束 • %1$s</string>
-    <string name="call_tile_video_active">進行中的視訊通話</string>
-    <string name="call_tile_voice_active">進行中的語音通話</string>
-    <string name="call_tile_video_incoming">視訊通話來電</string>
-    <string name="call_tile_voice_incoming">語音通話來電</string>
     <string name="call_tile_you_declined_this_call">您拒接了這通來電</string>
     <string name="room_settings_room_notifications_account_settings">帳號設定</string>
     <string name="room_settings_room_notifications_manage_notifications">您可以管理 %1$s 中的通知。</string>
@@ -2131,13 +2051,6 @@
     <string name="settings_notification_your_keywords">您的關鍵字</string>
     <string name="room_settings_none">無</string>
     <string name="room_settings_mention_and_keyword_only">僅有被提及與出現關鍵字時</string>
-    <string name="call_remove_jitsi_widget_progress">結束通話…</string>
-    <string name="call_ended_invite_timeout_title">未接聽</string>
-    <string name="call_ended_user_busy_description">您要通話的使用者忙線中。</string>
-    <string name="call_ended_user_busy_title">使用者忙線中</string>
-    <string name="audio_call_with_participant">與 %s 進行語音通話</string>
-    <string name="video_call_with_participant">與 %s 進行視訊通話</string>
-    <string name="call_ringing">通話響鈴中…</string>
     <string name="spaces">聊天空間</string>
     <string name="space_add_space_to_any_space_you_manage">新增聊天空間至您管理的任何聊天空間。</string>
     <string name="space_add_existing_spaces">新增既有的聊天空間</string>
@@ -2403,10 +2316,6 @@
     <string name="threads_beta_enable_notice_title">討論串 Beta 測試版</string>
     <string name="action_learn_more">了解更多</string>
     <string name="action_try_it_out">試試看</string>
-    <string name="screen_sharing_notification_description">正在分享畫面</string>
-    <string name="screen_sharing_notification_title">${app_name} 分享畫面中</string>
-    <string name="call_stop_screen_sharing">停止分享畫面</string>
-    <string name="call_start_screen_sharing">分享畫面</string>
     <string name="initial_sync_request_reason_unignored_users">- 有些使用者已被取消忽略</string>
     <string name="initial_sync_request_content">${app_name} 需要清除快取以保持最新狀態，原因如下：
 \n%s
@@ -2903,8 +2812,6 @@
 \n若您不想要看到來自此使用者的任何內容，您可以忽略他們以隱藏他們的訊息。</string>
     <string name="message_report_user">回報使用者</string>
     <string name="view_download_replacement_app_title">下載 %1$s</string>
-    <string name="microphone_in_use_title">麥克風使用中</string>
-    <string name="call_unsupported_matrix_rtc_call">不支援的通話。需要新的 Element X 應用程式才能加入此通話。</string>
     <string name="call_unsupported">不支援的通話</string>
     <string name="error_mas_not_supported_title">您無法再使用此應用程式建立 %1$s 的帳號</string>
     <string name="error_mas_not_supported_subtitle">下載 %1$s 以將 %2$s 用於您的帳號或選擇其他家伺服器。</string>

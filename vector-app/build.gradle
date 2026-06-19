@@ -390,6 +390,10 @@ dependencies {
     debugImplementation project(':library:external:span')
     debugImplementation project(':library:ui-styles')
     implementation libs.dagger.hilt
+    // Needed on the compile classpath to instantiate MatrixConfiguration (okhttp ConnectionSpec);
+    // previously reached vector-app transitively via the Jitsi SDK.
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
+    implementation 'com.squareup.okhttp3:okhttp'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "androidx.sharetarget:sharetarget:1.2.0"
 

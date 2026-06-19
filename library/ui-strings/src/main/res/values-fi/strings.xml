@@ -189,8 +189,6 @@
     <string name="or">tai</string>
     <string name="action_invite">Kutsu</string>
     <string name="action_sign_out">Kirjaudu ulos</string>
-    <string name="action_voice_call">Äänipuhelu</string>
-    <string name="action_video_call">Videopuhelu</string>
     <string name="action_mark_all_as_read">Merkitse kaikki luetuiksi</string>
     <string name="action_quick_reply">Pikavastaus</string>
     <string name="action_open">Avaa</string>
@@ -225,8 +223,6 @@
     <string name="logout">Kirjaudu ulos</string>
     <string name="hs_url">Kotipalvelimen URL-osoite</string>
     <string name="search">Etsi</string>
-    <string name="start_voice_call">Aloita puhelu</string>
-    <string name="start_video_call">Aloita videopuhelu</string>
     <string name="option_send_files">Lähetä tiedostoja</string>
     <string name="option_take_photo_video">Ota kuva tai video</string>
     <string name="auth_login">Kirjaudu sisään</string>
@@ -245,12 +241,6 @@
     <string name="compression_opt_list_large">Iso</string>
     <string name="compression_opt_list_medium">Keskikokoinen</string>
     <string name="compression_opt_list_small">Pieni</string>
-    <string name="call_connecting">Yhdistetään…</string>
-    <string name="call_ended">Puhelu loppui</string>
-    <string name="incoming_video_call">Saapuva videopuhelu</string>
-    <string name="incoming_voice_call">Saapuva puhelu</string>
-    <string name="call_in_progress">Puhelu käynnissä…</string>
-    <string name="call_error_user_not_responding">Toinen osapuoli ei vastannut.</string>
     <string name="permissions_rationale_popup_title">Huomio</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} tarvitsee käyttöluvan mikrofoniin suorittakseen puheluita.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} tarvitsee käyttöluvan kameraan ja mikrofoniin suorittakseen videopuheluita.
@@ -416,7 +406,6 @@
     <string name="title_activity_bug_report">Virheraportti</string>
     <string name="option_take_photo">Ota kuva</string>
     <string name="option_take_video">Kaappaa video</string>
-    <string name="call">Puhelu</string>
     <string name="settings_notification_ringtone">Ilmoitusääni</string>
     <string name="settings_containing_my_display_name">Viesti sisältää nimeni</string>
     <string name="settings_containing_my_user_name">Viesti sisältää käyttäjänimeni</string>
@@ -442,8 +431,6 @@
     <string name="notification_noisy">Äänekäs</string>
     <string name="encrypted_message">Salattu viesti</string>
     <string name="loading">Ladataan…</string>
-    <string name="start_voice_call_prompt_msg">Haluatko varmasti aloittaa äänipuhelun\?</string>
-    <string name="start_video_call_prompt_msg">Haluatko varmasti aloittaa videopuhelun\?</string>
     <string name="room_participants_ban_prompt_msg">Käyttäjän estäminen poistaa hänet tästä huoneesta ja estää häntä liittymästä huoneeseen uudelleen.</string>
     <string name="room_settings_all_messages">Kaikki viestit</string>
     <string name="room_settings_add_homescreen_shortcut">Lisää aloitusruudulle</string>
@@ -459,8 +446,6 @@
     <string name="settings_send_markdown">Markdown-muotoilu</string>
     <string name="markdown_has_been_enabled">Markdown on käytössä.</string>
     <string name="markdown_has_been_disabled">Markdown on pois käytöstä.</string>
-    <string name="settings_call_category">Puhelut</string>
-    <string name="settings_call_ringtone_dialog_title">Valitse soittoääni puheluille:</string>
     <string name="settings_password">Salasana</string>
     <string name="error_empty_field_your_password">Kirjoita salasanasi.</string>
     <string name="settings_send_typing_notifs">Lähetä kirjoitusilmoitukset</string>
@@ -506,9 +491,6 @@
         <item quantity="one">yksi jäsenyysmuutos</item>
         <item quantity="other">%d jäsenyysmuutosta</item>
     </plurals>
-    <string name="settings_call_ringtone_use_app_ringtone">Käytä ${app_name}in oletussoittoääntä saapuville puheluille</string>
-    <string name="settings_call_ringtone_title">Saapuvien puheluiden soittoääni</string>
-    <string name="video_call_in_progress">Videopuhelu menossa…</string>
     <string name="list_members">Jäsenet</string>
     <plurals name="room_title_members">
         <item quantity="one">yksi jäsen</item>
@@ -774,7 +756,6 @@
     <string name="notification_new_invitation">Uusi kutsu</string>
     <string name="notification_sender_me">Minä</string>
     <string name="notification_inline_reply_failed">** Lähetys epäonnistui — avaathan huoneen</string>
-    <string name="error_jitsi_not_supported_on_old_device">Valitettavasti ryhmäpuhelut Jitsillä eivät toimi vanhoissa laitteissa (laitteet, joissa on Android 6.0 tai vanhempi)</string>
     <string name="encryption_information_unknown_ip">tuntematon IP-osoite</string>
     <string name="you_added_a_new_device_with_info">Uusi istunto pyytää salausavaimia.
 \nIstunnon nimi: %1$s
@@ -1287,10 +1268,6 @@
     <string name="audio_video_meeting_description">Tapaamiset käyttävät Jitsin turvallisuus- ja käyttöoikeuskäytäntöjä. Kaikki huoneessa olevat henkilöt näkevät kutsun tapaamiseen liittymiseksi niin kauan kuin tapaaminen on käynnissä.</string>
     <string name="audio_meeting">Aloita äänitapaaminen</string>
     <string name="video_meeting">Aloita videotapaaminen</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Sinulla ei ole oikeuksia puhelun aloittamiseen</string>
-    <string name="no_permissions_to_start_webrtc_call">Sinulla ei ole oikeuksia puhelun aloittamiseen tässä huoneessa</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Sinulla ei ole oikeuksia ryhmäpuhelun aloittamiseen</string>
-    <string name="no_permissions_to_start_conf_call">Sinulla ei ole oikeuksia ryhmäpuhelun aloittamiseen tässä huoneessa</string>
     <string name="action_reset">Nollaa</string>
     <string name="action_dismiss">Jätä huomiotta</string>
     <string name="action_play">Toista</string>
@@ -1304,35 +1281,20 @@
     <string name="room_participants_action_cancel_invite">Peruuta kutsu</string>
     <string name="permissions_denied_add_contact">Anna lupa hakea yhteystiedot.</string>
     <string name="permissions_denied_qr_code">QR-koodin skannaaminen vaatii luvan kameran käyttöön.</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Kysy varmistusta ennen puhelun aloittamista</string>
-    <string name="settings_call_show_confirmation_dialog_title">Estä vahinkopuhelut</string>
     <string name="login_error_ssl_other">SSL-virhe.</string>
-    <string name="call_camera_back">Takakamera</string>
-    <string name="call_camera_front">Etukamera</string>
-    <string name="call_switch_camera">Vaihda kameraa</string>
     <string name="sound_device_wireless_headset">Langattomat kuulokkeet</string>
     <string name="sound_device_headset">Kuulokkeet</string>
     <string name="sound_device_speaker">Kaiutin</string>
     <string name="sound_device_phone">Puhelin</string>
-    <string name="call_select_sound_device">Valitse äänilaite</string>
-    <string name="call_failed_no_connection">${app_name}-puhelu epäonnistui</string>
     <string name="send_bug_report_include_key_share_history">Lähetä avaimen jakopyyntöjen historia</string>
     <string name="no_more_results">Ei enempää tuloksia</string>
     <string name="bottom_action_notification">Ilmoitukset</string>
     <string name="dialog_title_success">Onnistui</string>
     <string name="action_copy">Kopioi</string>
     <string name="call_notification_hangup">Lopeta puhelu</string>
-    <string name="call_notification_reject">Hylkää</string>
     <string name="failed_to_remove_widget">Sovelman poistaminen epäonnistui</string>
     <string name="failed_to_add_widget">Sovelman lisääminen epäonnistui</string>
-    <string name="cannot_call_yourself_with_invite">Et voi aloittaa puhelua itsesi kanssa. Odota, että muut osallistujat hyväksyvät kutsun</string>
-    <string name="cannot_call_yourself">Et voi aloittaa puhelua itsesi kanssa</string>
     <string name="room_participants_action_cancel_invite_title">Peruuta kutsu</string>
-    <string name="call_format_turn_hd_on">Korkea laatu päälle</string>
-    <string name="call_format_turn_hd_off">Korkea laatu pois</string>
-    <string name="call_failed_no_connection_description">Reaaliaikaisen yhteyden muodostus epäonnistui.
-\nPyydäthän kotipalvelimesi ylläpitäjää asentamaan TURN-palvelimen varmistaaksesi puhelujen luotettavan toiminnan.</string>
-    <string name="call_notification_answer">Vastaa</string>
     <string name="start_chatting">Aloita keskustelu</string>
     <string name="room_list_quick_actions_favorite_remove">Poista suosikeista</string>
     <string name="room_list_quick_actions_favorite_add">Lisää suosikiksi</string>
@@ -1620,30 +1582,6 @@
     <string name="authentication_error">Tunnistautuminen epäonnistui</string>
     <string name="re_authentication_default_confirm_text">${app_name} vaatii tämän toimenpiteen suorittamiseksi, että annat kirjautumistietosi.</string>
     <string name="re_authentication_activity_title">Tunnistautuminen uudelleen vaaditaan</string>
-    <string name="call_slide_to_end_conference">Liu\'uta lopettaaksesi puhelun</string>
-    <string name="call_transfer_unknown_person">Tuntematon henkilö</string>
-    <string name="call_transfer_users_tab_title">Käyttäjät</string>
-    <string name="call_tap_to_return">%1$s Napauta palataksesi</string>
-    <string name="call_one_active">Aktiivinen puhelu (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Aktiivinen puhelu ·</item>
-        <item quantity="other">%1$d aktiivista puhelua ·</item>
-    </plurals>
-    <string name="call_only_active">Aktiivinen puhelu (%1$s)</string>
-    <string name="call_dial_pad_title">Numeronäppäimistö</string>
-    <string name="call_tile_no_answer">Ei vastausta</string>
-    <string name="call_tile_video_missed">Vastaamaton videopuhelu</string>
-    <string name="call_tile_voice_missed">Vastaamaton äänipuhelu</string>
-    <string name="call_tile_video_declined">Kieltäydytty videopuhelusta</string>
-    <string name="call_tile_voice_declined">Kieltäydytty äänipuhelusta</string>
-    <string name="call_tile_video_call_has_ended">Videopuhelu päättyi • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Äänipuhelu päättyi • %1$s</string>
-    <string name="call_tile_video_active">Aktiivinen videopuhelu</string>
-    <string name="call_tile_voice_active">Aktiivinen äänipuhelu</string>
-    <string name="call_tile_video_incoming">Saapuva videopuhelu</string>
-    <string name="call_tile_voice_incoming">Saapuva äänipuhelu</string>
-    <string name="call_tile_call_back">Soita takaisin</string>
-    <string name="call_tile_ended">Puhelu on päättynyt</string>
     <string name="call_tile_other_declined">%1$s kieltäytyi tästä puhelusta</string>
     <string name="call_tile_you_declined_this_call">Kieltäydyit tästä puhelusta</string>
     <string name="warning_unsaved_change">Tallentamattomia muutoksia. Hylätäänkö muutokset\?</string>
@@ -1846,25 +1784,6 @@
     <string name="room_permissions_change_space_name">Vaihda avaruuden nimeä</string>
     <string name="room_permissions_enable_space_encryption">Ota avaruuden salaus käyttöön</string>
     <string name="space_settings_permissions_title">Avaruuden käyttöoikeudet</string>
-    <string name="call_remove_jitsi_widget_progress">Lopetetaan puhelu…</string>
-    <string name="call_ended_invite_timeout_title">Ei vastausta</string>
-    <string name="call_ended_user_busy_description">Käyttäjä, jolle soitit, on varattu.</string>
-    <string name="call_ended_user_busy_title">Käyttäjä on varattu</string>
-    <string name="call_held_by_you">Laitoit puhelun pitoon</string>
-    <string name="call_held_by_user">%s laittoi puhelun pitoon</string>
-    <string name="call_hold_action">Pitoon</string>
-    <string name="call_resume_action">Palaa</string>
-    <string name="audio_call_with_participant">Äänipuhelu henkilön %s kanssa</string>
-    <string name="video_call_with_participant">Videopuhelu henkilön %s kanssa</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Vastaamatta jäänyt videopuhelu</item>
-        <item quantity="other">%d vastaamatta jäänyttä videopuhelua</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Vastaamatta jäänyt puhelu</item>
-        <item quantity="other">%d vastaamatta jäänyttä puhelua</item>
-    </plurals>
-    <string name="call_ringing">Puhelu soi…</string>
     <string name="login_error_ssl_peer_unverified">SSL-virhe: vertaisen identiteettiä ei ole vahvistettu.</string>
     <string name="auth_msisdn_already_defined">Tämä puhelinnumero on jo käytössä.</string>
     <string name="use_as_default_and_do_not_ask_again">Käytä oletuksena, älä kysy uudelleen</string>
@@ -2065,7 +1984,6 @@
     <string name="settings_discovery_no_policy_provided">Identiteettipalvelin ei tarjoa käytäntöä</string>
     <string name="settings_discovery_hide_identity_server_policy_title">Piilota identiteettipalvelimen käytäntö</string>
     <string name="settings_discovery_show_identity_server_policy_title">Näytä identiteettipalvelimen käytäntö</string>
-    <string name="error_jitsi_join_conf">Valitettavasti ryhmäpuheluun liityttäessä ilmeni virhe</string>
     <string name="legals_no_policy_provided">Tämä palvelin ei tarjoa mitään käytäntöä.</string>
     <string name="legals_identity_server_title">Identiteettipalvelimesi käytäntö</string>
     <string name="legals_home_server_title">Kotipalvelimesi käytäntö</string>
@@ -2092,8 +2010,6 @@
     <string name="settings_presence_user_always_appears_offline">Yhteydetön tila</string>
     <string name="settings_presence">Läsnäolo</string>
     <string name="error_threepid_auth_failed">Varmista, että olet napsauttanut linkkiä saamassasi sähköpostissa.</string>
-    <string name="call_stop_screen_sharing">Lopeta näytön jako</string>
-    <string name="call_start_screen_sharing">Jaa näyttö</string>
     <string name="action_learn_more">Lue lisää</string>
     <string name="action_try_it_out">Kokeile</string>
     <string name="time_unit_hour_short">t</string>
@@ -2164,8 +2080,6 @@
     <string name="settings_notification_method">Ilmoitusmenetelmä</string>
     <string name="unifiedpush_distributor_background_sync">Taustasynkronointi</string>
     <string name="unifiedpush_getdistributors_dialog_title">Valitse miten ilmoitukset vastaanotetaan</string>
-    <string name="screen_sharing_notification_description">Näytönjako on päällä</string>
-    <string name="screen_sharing_notification_title">${app_name}-näytönjako</string>
     <string name="room_message_autocomplete_notification">Huoneilmoitus</string>
     <string name="room_message_notify_everyone">Ilmoita koko huoneelle</string>
     <string name="live_location_share_location_item_share">Jaa sijainti</string>
@@ -2306,7 +2220,6 @@
     <string name="space_leave_radio_button_all">Poistu kaikista</string>
     <string name="a11y_delete_avatar">Poista profiilikuva</string>
     <string name="a11y_change_avatar">Vaihda profiilikuva</string>
-    <string name="call_dial_pad_lookup_error">Puhelinnumeron haussa tapahtui virhe</string>
     <plurals name="invitations_sent_to_one_and_more_users">
         <item quantity="one">Kutsut lähetetty käyttäjälle %1$s ja yhdelle muulle</item>
         <item quantity="other">Kutsut lähetetty käyttäjälle %1$s ja %2$d muulle</item>
@@ -2327,7 +2240,6 @@
     <string name="ftue_auth_use_case_subtitle">Laitetaan yhteydet kuntoon</string>
     <string name="ftue_auth_use_case_title">Kenen kanssa juttelet eniten\?</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} toimii mainiosti työpaikallakin. Siihen luottavat maailman turvallisimmat organisaatiot.</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Poistutaanko nykyisestä ryhmäpuhelusta ja vaihdetaan toiseen\?</string>
     <string name="directory_add_a_new_server_error_already_added">Tämä palvelin on jo luettelossa</string>
     <string name="directory_add_a_new_server_error">Tätä palvelinta tai sen huoneluetteloa ei löydy</string>
     <string name="room_settings_room_access_entry_knock">Kuka vain voi koputtaa huoneeseen ja jäsenet voivat sen jälkeen hyväksyä tai hylätä</string>
@@ -2417,8 +2329,6 @@
     <string name="space_mark_as_suggested">Merkitse ehdotetuksi</string>
     <string name="event_status_failed_messages_warning">Viestien lähettäminen epäonnistui</string>
     <string name="a11y_presence_busy">Varattu</string>
-    <string name="call_transfer_failure">Virhe puhelua siirrettäessä</string>
-    <string name="call_transfer_connect_action">Yhdistä</string>
     <string name="three_pid_revoke_invite_dialog_title">Kumoa kutsu</string>
     <string name="error_forbidden_digits_only_username">Kotipalvelin ei hyväksy pelkistä numeroista koostuvaa käyttäjänimeä.</string>
     <string name="pill_message_in_unknown_room">Viesti huoneessa</string>

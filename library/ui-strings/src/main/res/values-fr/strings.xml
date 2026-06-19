@@ -215,8 +215,6 @@
     <string name="or">ou</string>
     <string name="action_invite">Inviter</string>
     <string name="action_sign_out">Se déconnecter</string>
-    <string name="action_voice_call">Appel audio</string>
-    <string name="action_video_call">Appel vidéo</string>
     <string name="action_mark_all_as_read">Tout marquer comme lu</string>
     <string name="action_quick_reply">Réponse rapide</string>
     <string name="action_open">Ouvrir</string>
@@ -245,8 +243,6 @@
     <string name="logout">Se déconnecter</string>
     <string name="hs_url">URL du serveur d’accueil</string>
     <string name="search">Rechercher</string>
-    <string name="start_voice_call">Nouvel appel audio</string>
-    <string name="start_video_call">Nouvel appel vidéo</string>
     <string name="option_send_files">Envoyer des fichiers</string>
     <string name="option_take_photo_video">Prendre une photo ou une vidéo</string>
     <string name="auth_login">Se connecter</string>
@@ -260,11 +256,6 @@
     <string name="compression_opt_list_large">Grand</string>
     <string name="compression_opt_list_medium">Moyen</string>
     <string name="compression_opt_list_small">Petit</string>
-    <string name="call_connecting">Appel en cours de connexion…</string>
-    <string name="call_ended">Appel terminé</string>
-    <string name="incoming_video_call">Appel vidéo entrant</string>
-    <string name="incoming_voice_call">Appel audio entrant</string>
-    <string name="call_in_progress">Appel en cours…</string>
     <string name="yes">OUI</string>
     <string name="no">NON</string>
     <string name="_continue">Continuer</string>
@@ -375,7 +366,6 @@
     <string name="login_error_limit_exceeded">Trop de requêtes ont été envoyées</string>
     <string name="action_leave">Quitter</string>
     <string name="action_quote">Citer</string>
-    <string name="call_error_user_not_responding">Le correspondant n’a pas décroché.</string>
     <string name="permissions_rationale_popup_title">Information</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} a besoin d’accéder à votre microphone pour passer des appels audio.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} a besoin d’accéder à votre appareil photo et à votre microphone pour passer des appels vidéo.
@@ -450,7 +440,6 @@
     <string name="widget_integration_missing_user_id">user_id manquant dans la requête.</string>
     <string name="widget_integration_room_not_visible">Le salon %s n’est pas visible.</string>
     <string name="room_add_matrix_apps">Ajouter des applications Matrix</string>
-    <string name="call">Appel</string>
     <string name="settings_containing_my_display_name">Messages contenant mon nom affiché</string>
     <string name="settings_containing_my_user_name">Messages contenant mon nom d’utilisateur</string>
     <string name="you_added_a_new_device">Vous avez ajouté une nouvelle session « %s », qui demande les clés de chiffrement.</string>
@@ -469,8 +458,6 @@
     <string name="notification_noisy">Notification sonore</string>
     <string name="encrypted_message">Message chiffré</string>
     <string name="loading">Chargement…</string>
-    <string name="start_voice_call_prompt_msg">Voulez-vous vraiment engager un nouvel appel audio \?</string>
-    <string name="start_video_call_prompt_msg">Voulez-vous vraiment engager un nouvel appel vidéo \?</string>
     <string name="room_participants_ban_prompt_msg">L’exclusion de l’utilisateur va l’expulser du salon et l’empêcher de le rejoindre à nouveau.</string>
     <string name="room_settings_all_messages">Notification pour chaque message</string>
     <string name="room_settings_add_homescreen_shortcut">Ajouter à l’écran d’accueil</string>
@@ -594,10 +581,6 @@
     <string name="command_problem_with_parameters">La commande « %s » nécessite plus de paramètres, ou certains paramètres ne sont pas corrects.</string>
     <string name="markdown_has_been_enabled">Le Markdown a été activé.</string>
     <string name="markdown_has_been_disabled">Le Markdown a été désactivé.</string>
-    <string name="settings_call_category">Appels</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Utiliser la sonnerie par défaut de ${app_name} pour les appels entrants</string>
-    <string name="settings_call_ringtone_title">Sonnerie d’appel entrant</string>
-    <string name="settings_call_ringtone_dialog_title">Sélectionner la sonnerie pour les appels :</string>
     <string name="action_accept">Accepter</string>
     <string name="auth_accept_policies">Veuillez lire et accepter les politiques de ce serveur d’accueil :</string>
     <string name="settings_notification_troubleshoot">Résoudre les problèmes de notification</string>
@@ -652,7 +635,6 @@
     <string name="settings_troubleshoot_test_battery_failed">Si un utilisateur laisse un appareil débranché et immobile pour une longue durée, avec l’écran éteint, l’appareil entre en mode veille.. Cela empêche les applications d’accéder au réseau et reporte leurs tâches, synchronisations et alarmes standard.</string>
     <string name="settings_troubleshoot_test_battery_quickfix">Ignorer l’optimisation</string>
     <string name="no_valid_google_play_services_apk">Aucun APK des services Google Play valide n’a été trouvé. Les notifications peuvent ne pas fonctionner correctement.</string>
-    <string name="video_call_in_progress">Appel vidéo en cours…</string>
     <string name="title_activity_keys_backup_setup">Sauvegarde de clé</string>
     <string name="title_activity_keys_backup_restore">Utiliser la sauvegarde de clé</string>
     <string name="action_skip">Passer</string>
@@ -801,7 +783,6 @@
     <string name="notification_new_invitation">Nouvelle invitation</string>
     <string name="notification_sender_me">Moi</string>
     <string name="notification_inline_reply_failed">** Échec de l’envoi − veuillez ouvrir le salon</string>
-    <string name="error_jitsi_not_supported_on_old_device">Désolé, les appels en visioconférence avec Jitsi ne sont pas pris en charge sur les anciens appareils (avec une version d\'Android antérieure à 6.0)</string>
     <string name="encryption_information_unknown_ip">adresse IP inconnue</string>
     <string name="you_added_a_new_device_with_info">Une nouvelle session demande les clés de chiffrement.
 \nNom de la session : %1$s
@@ -1458,34 +1439,22 @@
     <string name="identity_server_set_alternative_submit">Valider</string>
     <string name="action_play">Lancer</string>
     <string name="action_dismiss">Ignorer</string>
-    <string name="no_permissions_to_start_conf_call">Vous n’avez pas la permission de lancer une téléconférence dans ce salon</string>
-    <string name="no_permissions_to_start_webrtc_call">Vous n\'avez pas la permission de lancer un appel dans ce salon</string>
     <string name="video_meeting">Commencer une téléconférence vidéo</string>
     <string name="audio_meeting">Commencer une téléconférence audio</string>
     <string name="audio_video_meeting_description">Les réunions utilisent les règles de sécurité et les permissions de Jitsi. Toutes les personnes actuellement dans ce salon recevront une invitation à participer à la réunion.</string>
-    <string name="cannot_call_yourself">Vous ne pouvez pas passer un appel avec vous-même</string>
-    <string name="cannot_call_yourself_with_invite">Vous ne pouvez pas passer un appel avec vous-même, attendez que les participants acceptent l’invitation</string>
     <string name="failed_to_add_widget">Échec de l’ajout du widget</string>
     <string name="failed_to_remove_widget">Échec de la suppression du widget</string>
-    <string name="call_notification_answer">Accepter</string>
-    <string name="call_notification_reject">Refuser</string>
     <string name="call_notification_hangup">Raccrocher</string>
     <string name="action_copy">Copier</string>
     <string name="dialog_title_success">Succès</string>
     <string name="bottom_action_notification">Notifications</string>
-    <string name="call_failed_no_connection_description">Impossible d\'établir une connexion en temps réel.
-\nVeuillez demander à l’administrateur de votre serveur d’accueil de configurer un serveur TURN afin que les appels fonctionnent de manière fiable.</string>
-    <string name="call_select_sound_device">Sélectionner un périphérique audio</string>
     <string name="sound_device_phone">Téléphone</string>
     <string name="sound_device_speaker">Hauts-parleurs</string>
     <string name="sound_device_headset">Écouteurs</string>
     <string name="sound_device_wireless_headset">Écouteurs sans fil</string>
-    <string name="call_switch_camera">Changer de caméra</string>
     <string name="auth_msisdn_already_defined">Le numéro de téléphone est déjà défini.</string>
     <string name="login_error_ssl_peer_unverified">Erreur SSL : l\'identité du pair n\'a pas été vérifiée.</string>
     <string name="login_error_ssl_other">Erreur SSL.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Éviter les appels accidentels</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Demander une confirmation avant de lancer un appel</string>
     <string name="room_participants_action_cancel_invite">Annuler l’invitation</string>
     <string name="room_participants_action_ignore_title">Ignorer l’utilisateur</string>
     <string name="room_participants_action_ignore_prompt_msg">Ignorer cet utilisateur aura pour effet de supprimer ses messages des salons que vous partagez.
@@ -1559,7 +1528,6 @@
     <string name="settings_troubleshoot_test_notification_title">Affichage de la notification</string>
     <string name="settings_troubleshoot_test_push_notification_content">Vous voyez la notification ! Cliquez-moi dessus !</string>
     <string name="settings_troubleshoot_test_notification_notification_clicked">La notification a été cliquée !</string>
-    <string name="call_failed_no_connection">Appel échoué</string>
     <string name="direct_room_encryption_enabled_tile_description">Les messages de ce salon sont chiffrés de bout en bout.</string>
     <string name="room_created_summary_item_by_you">Vous avez créé et configuré ce salon.</string>
     <string name="settings_security_pin_code_grace_period_summary_off">Le code est requis à l’ouverture de ${app_name}.</string>
@@ -1673,12 +1641,6 @@
     <string name="room_participants_remove_reason">Motif d’expulsion</string>
     <string name="room_participants_remove_title">Expulser l’utilisateur</string>
     <string name="room_participants_action_unignore_title">Ne plus ignorer l’utilisateur</string>
-    <string name="call_format_turn_hd_on">Activer la HD</string>
-    <string name="call_format_turn_hd_off">Désactiver la HD</string>
-    <string name="call_camera_back">Arrière</string>
-    <string name="call_camera_front">Frontale</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Vous n’avez pas la permission de lancer un appel</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Vous n’avez pas la permission de lancer une téléconférence</string>
     <string name="action_reset">Réinitialiser</string>
     <string name="failed_to_unban">Échec de la révocation du bannissement de l’utilisateur</string>
     <string name="alert_push_are_disabled_description">Vérifiez vos paramètres pour activer les notifications push</string>
@@ -1798,16 +1760,6 @@
     <string name="authentication_error">Échec d’authentification</string>
     <string name="re_authentication_default_confirm_text">${app_name} requiert que vous saisissiez vos identifiants à nouveau pour effectuer cette action.</string>
     <string name="re_authentication_activity_title">Une nouvelle authentification est requise</string>
-    <string name="call_transfer_users_tab_title">Utilisateurs</string>
-    <string name="call_transfer_failure">Une erreur s’est produite lors du transfert de l’appel</string>
-    <string name="call_transfer_title">Transférer</string>
-    <string name="call_transfer_connect_action">Rejoindre</string>
-    <string name="call_transfer_consult_first">Consulter d’abord</string>
-    <string name="call_only_active">Appel en cours (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Il y a eu une erreur lors de la recherche du numéro de téléphone</string>
-    <string name="call_dial_pad_title">Pavé de numérotation</string>
-    <string name="call_tile_call_back">Rappeler</string>
-    <string name="call_tile_ended">Cet appel est terminé</string>
     <string name="call_tile_other_declined">%1$s a refusé cet appel</string>
     <string name="settings_security_pin_code_change_pin_summary">Changer votre code PIN actuel</string>
     <string name="settings_security_pin_code_change_pin_title">Changer le code PIN</string>
@@ -1835,7 +1787,6 @@
     <string name="room_preview_no_preview_join">Impossible d’afficher un aperçu du salon. Voulez-vous le rejoindre \?</string>
     <string name="room_preview_not_found">Ce salon n’est pas accessible en ce moment.
 \nRéessayez plus tard, ou demandez à un administrateur de ce salon de vérifier que vous pouvez y accéder.</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Partir de la téléconférence actuelle et basculer sur une autre \?</string>
     <string name="room_settings_room_version_title">Version du salon</string>
     <string name="room_alias_publish_to_directory_error">Impossible de récupérer la visibilité du répertoire de salons actuel (%1$s).</string>
     <string name="room_alias_publish_to_directory">Publier ce salon dans le répertoire public de %1$s \?</string>
@@ -1888,10 +1839,6 @@
     <string name="room_settings_permissions_subtitle">Voir et changer les rôles requis pour changer les différentes parties du salon.</string>
     <string name="room_settings_permissions_title">Permissions du salon</string>
     <string name="room_participants_leave_private_warning">Ce salon n’est pas public. Vous ne pourrez pas le rejoindre sans invitation.</string>
-    <string name="call_held_by_you">Vous avez mis l’appel en attente</string>
-    <string name="call_held_by_user">%s a mis l’appel en attente</string>
-    <string name="call_hold_action">Mettre en attente</string>
-    <string name="call_resume_action">Reprendre</string>
     <string name="error_unauthorized">Non autorisé, identifiants d’authentification valides manquants</string>
     <string name="dialog_edit_hint">Nouvelle valeur</string>
     <string name="action_unpublish">Dé-publier</string>
@@ -2042,18 +1989,14 @@
     <string name="feedback_failed">L’envoi des remarques a échoué (%s)</string>
     <string name="feedback_sent">Merci, vos remarques ont bien été envoyées</string>
     <string name="feedback">Remarques</string>
-    <string name="error_jitsi_join_conf">Désolé, une erreur s’est produite en essayant d’entrer dans la conférence</string>
     <string name="unnamed_room">Salon sans nom</string>
     <string name="private_space">Espace privé</string>
     <string name="public_space">Espace public</string>
-    <string name="call_transfer_unknown_person">Personne inconnue</string>
-    <string name="call_transfer_transfer_to_title">Transférer à %1$s</string>
     <string name="directory_add_a_new_server_error_already_added">Ce serveur fait déjà partie de la liste</string>
     <string name="directory_add_a_new_server_error">Impossible de trouver ce serveur ou la liste de ses salons</string>
     <string name="directory_add_a_new_server_prompt">Saisissez le nom du nouveau serveur que vous souhaitez explorer.</string>
     <string name="directory_add_a_new_server">Ajouter un nouveau serveur</string>
     <string name="directory_your_server">Votre serveur</string>
-    <string name="call_transfer_consulting_with">Consultation de %1$s</string>
     <string name="error_failed_to_join_room">Désolé, une erreur est survenue en essayant de rejoindre %s</string>
     <string name="create_space_alias_hint">Adresse de l’espace</string>
     <string name="space_settings_alias_subtitle">Afficher et gérer les adresses de cet espace.</string>
@@ -2079,14 +2022,6 @@
     <string name="verification_scan_self_emoji_subtitle">Vérifier en comparant des émoticônes à la place</string>
     <string name="verification_scan_with_this_device">Scanner avec cet appareil</string>
     <string name="verification_scan_self_notice">Scannez le code avec votre autre appareil, ou échangez et scannez avec cet appareil</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Appel vidéo manqué</item>
-        <item quantity="other">%d appels vidéos manqués</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Appel vocal manqué</item>
-        <item quantity="other">%d appels vocaux manqués</item>
-    </plurals>
     <string name="hs_client_url">URL de l’API du serveur d’accueil</string>
     <string name="missing_permissions_title">Permissions manquantes</string>
     <string name="denied_permission_camera">Pour effectuer cette action, veuillez autoriser la permission Caméra depuis les réglages système.</string>
@@ -2139,24 +2074,6 @@
     <string name="this_invite_to_this_room_was_sent">Cette invitation à ce salon a été envoyée à %s qui n’est pas associé à votre compte</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Tous les salons dans lesquels vous vous trouvez seront affichés sur l’Accueil.</string>
     <string name="preference_show_all_rooms_in_home">Montrer tous les salons dans Accueil</string>
-    <string name="call_slide_to_end_conference">Faire glisser pour terminer l’appel</string>
-    <string name="call_tap_to_return">%1$s Toucher pour revenir</string>
-    <string name="call_one_active">Appel en cours (%1$s) ·</string>
-    <string name="call_tile_video_active">Appel vidéo en cours</string>
-    <string name="call_tile_voice_active">Appel vocal en cours</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Appel en cours ·</item>
-        <item quantity="other">%1$d appels en cours ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">Pas de réponse</string>
-    <string name="call_tile_video_missed">Appel vidéo manqué</string>
-    <string name="call_tile_voice_missed">Appel vocal manqué</string>
-    <string name="call_tile_video_declined">Appel vidéo refusé</string>
-    <string name="call_tile_voice_declined">Appel vocal refusé</string>
-    <string name="call_tile_video_call_has_ended">Appel vidéo terminé • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Appel vocal terminé • %1$s</string>
-    <string name="call_tile_video_incoming">Appel vidéo entrant</string>
-    <string name="call_tile_voice_incoming">Appel vocal entrant</string>
     <string name="call_tile_you_declined_this_call">Vous avez refusé cet appel</string>
     <string name="room_settings_room_notifications_account_settings">Paramètres du compte</string>
     <string name="room_settings_room_notifications_manage_notifications">Vous pouvez gérer les notifications dans %1$s.</string>
@@ -2171,13 +2088,6 @@
     <string name="settings_notification_your_keywords">Vos mots-clés</string>
     <string name="room_settings_none">Aucun</string>
     <string name="room_settings_mention_and_keyword_only">Mentions et mots-clés seulement</string>
-    <string name="call_remove_jitsi_widget_progress">Fin de l’appel…</string>
-    <string name="call_ended_invite_timeout_title">Pas de réponse</string>
-    <string name="call_ended_user_busy_description">L’utilisateur que vous avez appelé est occupé.</string>
-    <string name="call_ended_user_busy_title">Utilisateur occupé</string>
-    <string name="audio_call_with_participant">Appel audio avec %s</string>
-    <string name="video_call_with_participant">Appel vidéo avec %s</string>
-    <string name="call_ringing">Appel en cours…</string>
     <string name="spaces">Espaces</string>
     <string name="a11y_stop_voice_message">Arrêter l’enregistrement</string>
     <string name="space_add_space_to_any_space_you_manage">Ajouter un espace à un espace que vous gérez.</string>
@@ -2422,8 +2332,6 @@
 \nPour nous y préparer, nous avons besoin de faire certains changements : les fils créés avant maintenant seront affichés comme des réponses classiques.
 \n
 \nCette transition sera unique, maintenant que les fils de discussions ont intégré la spécification de Matrix.</string>
-    <string name="screen_sharing_notification_description">Partage d’écran en cours</string>
-    <string name="screen_sharing_notification_title">Partage d’écran pour ${app_name}</string>
     <string name="location_share_live_started">Chargement de la position en direct…</string>
     <string name="location_share_live_select_duration_option_3">8 heures</string>
     <string name="location_share_live_select_duration_option_2">1 heure</string>
@@ -2455,8 +2363,6 @@
     <string name="threads_beta_enable_notice_message">Les fils de discussion vous permettent de recentrer vos conversations et de les rendre facile à suivre. %sActiver les fils de discussion rechargera l’application. Cela peut prendre du temps pour certains comptes.</string>
     <string name="threads_beta_enable_notice_title">Fils de discussion Bêta</string>
     <string name="initial_sync_request_reason_unignored_users">– Certains utilisateurs ne sont plus ignorés</string>
-    <string name="call_stop_screen_sharing">Arrêter le partage d’écran</string>
-    <string name="call_start_screen_sharing">Partager l’écran</string>
     <string name="action_learn_more">En savoir plus</string>
     <string name="action_try_it_out">Essayer</string>
     <string name="initial_sync_request_content">${app_name} a besoin d’effacer le cache pour la mise-à-jour, pour la raison suivante :
@@ -2963,8 +2869,6 @@
 \n
 \nSi vous ne voulez plus voir de contenu de cet utilisateur, vous pouvez l’ignorer pour masquer ses messages.</string>
     <string name="call_unsupported">Appel non pris en charge</string>
-    <string name="call_unsupported_matrix_rtc_call">Appel non pris en charge. La nouvelle application Element X est nécessaire pour rejoindre cet appel.</string>
-    <string name="microphone_in_use_title">Microphone en service</string>
     <string name="error_mas_not_supported_title">Vous ne pouvez plus créer de compte sur %1$s avec cette application</string>
     <string name="error_mas_not_supported_subtitle">Téléchargez %1$s pour utiliser %2$s avec votre compte, ou choisissez un autre serveur d’accueil.</string>
     <string name="view_download_replacement_app_title">Télécharger %1$s</string>

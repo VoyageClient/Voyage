@@ -44,7 +44,6 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.analytics.DecryptionFailureTracker
 import im.vector.app.features.analytics.VectorAnalytics
 import im.vector.app.features.analytics.plan.SuperProperties
-import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.invite.InvitesAcceptor
 import im.vector.app.features.lifecycle.VectorActivityLifecycleCallbacks
@@ -59,7 +58,6 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.version.VersionProvider
 import im.vector.application.R
-import org.jitsi.meet.sdk.log.JitsiMeetDefaultLogHandler
 import org.maplibre.android.MapLibre
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
@@ -90,7 +88,6 @@ class VectorApplication :
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var pinLocker: PinLocker
-    @Inject lateinit var callManager: WebRtcCallManager
     @Inject lateinit var invitesAcceptor: InvitesAcceptor
     @Inject lateinit var autoRageShaker: AutoRageShaker
     @Inject lateinit var decryptionFailureTracker: DecryptionFailureTracker
@@ -101,7 +98,6 @@ class VectorApplication :
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var leakDetector: LeakDetector
     @Inject lateinit var vectorLocale: VectorLocale
-    @Inject lateinit var webRtcCallManager: WebRtcCallManager
 
     // font thread handler
     private var fontThreadHandler: Handler? = null
@@ -137,11 +133,6 @@ class VectorApplication :
         decryptionFailureTracker.start()
         vectorUncaughtExceptionHandler.activate()
 
-        // Remove Log handler statically added by Jitsi
-        Timber.forest()
-                .filterIsInstance(JitsiMeetDefaultLogHandler::class.java)
-                .forEach { Timber.uproot(it) }
-
         if (buildMeta.isDebug) {
             Timber.plant(Timber.DebugTree())
         }
@@ -174,42 +165,21 @@ class VectorApplication :
         notificationUtils.createNotificationChannels()
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
-            private var stopBackgroundSync = false
-
             override fun onResume(owner: LifecycleOwner) {
                 Timber.i("App entered foreground")
                 fcmHelper.onEnterForeground(activeSessionHolder)
-                if (webRtcCallManager.currentCall.get() == null) {
-                    Timber.i("App entered foreground and no active call: stop any background sync")
-                    activeSessionHolder.getSafeActiveSessionAsync {
-                        it?.syncService()?.stopAnyBackgroundSync()
-                    }
-                } else {
-                    Timber.i("App entered foreground: there is an active call, set stopBackgroundSync to true")
-                    stopBackgroundSync = true
+                activeSessionHolder.getSafeActiveSessionAsync {
+                    it?.syncService()?.stopAnyBackgroundSync()
                 }
             }
 
             override fun onPause(owner: LifecycleOwner) {
                 Timber.i("App entered background")
                 fcmHelper.onEnterBackground(activeSessionHolder)
-
-                if (stopBackgroundSync) {
-                    if (webRtcCallManager.currentCall.get() == null) {
-                        Timber.i("App entered background: stop any background sync")
-                        activeSessionHolder.getSafeActiveSessionAsync {
-                            it?.syncService()?.stopAnyBackgroundSync()
-                        }
-                        stopBackgroundSync = false
-                    } else {
-                        Timber.i("App entered background: there is an active call do not stop background sync")
-                    }
-                }
             }
         })
         ProcessLifecycleOwner.get().lifecycle.addObserver(spaceStateHandler)
         ProcessLifecycleOwner.get().lifecycle.addObserver(pinLocker)
-        ProcessLifecycleOwner.get().lifecycle.addObserver(callManager)
         // This should be done as early as possible
         // initKnownEmojiHashSet(appContext)
         ContextCompat.registerReceiver(

@@ -15,7 +15,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
 import dagger.multibindings.IntoMap
 import im.vector.app.core.platform.ConfigurationViewModel
-import im.vector.app.features.call.SharedKnownCallsViewModel
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreFromKeyViewModel
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreFromPassphraseViewModel
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreSharedViewModel
@@ -79,11 +78,6 @@ interface ViewModelModule {
     @IntoMap
     @ViewModelKey(ConfigurationViewModel::class)
     fun bindConfigurationViewModel(viewModel: ConfigurationViewModel): ViewModel
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(SharedKnownCallsViewModel::class)
-    fun bindSharedActiveCallViewModel(viewModel: SharedKnownCallsViewModel): ViewModel
 
     @Binds
     @IntoMap

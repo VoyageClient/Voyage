@@ -16,7 +16,6 @@ import im.vector.app.config.Analytics
 import im.vector.app.config.Config
 import im.vector.app.config.KeySharingStrategy
 import im.vector.app.features.analytics.AnalyticsConfig
-import im.vector.app.features.call.webrtc.VoipConfig
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageConfig
 import im.vector.app.features.location.LocationSharingConfig
@@ -66,8 +65,4 @@ object ConfigurationModule {
             mapTilerKey = Config.LOCATION_MAP_TILER_KEY,
     )
 
-    @Provides
-    fun providesVoipConfig() = VoipConfig(
-            handleCallAssertedIdentityEvents = Config.HANDLE_CALL_ASSERTED_IDENTITY_EVENTS
-    )
 }

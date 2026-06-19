@@ -252,7 +252,6 @@
     <string name="delete_event_dialog_title">Bekreft fjerning</string>
     <string name="notification_listening_for_events">Lytter etter hendelser</string>
     <string name="send_bug_report_include_logs">Send loggbøker</string>
-    <string name="settings_call_category">Samtaler</string>
     <plurals name="room_title_members">
         <item quantity="one">%d medlem</item>
         <item quantity="other">%d medlemmer</item>
@@ -372,8 +371,6 @@
     <string name="view_decrypted_source">Se dekryptert kilde</string>
     <string name="report_content">Rapporter innhold</string>
     <string name="action_sign_out_confirmation_simple">Er du sikker på at vil logge ut\?</string>
-    <string name="action_voice_call">Telefonsamtale</string>
-    <string name="action_video_call">Videosamtale</string>
     <string name="action_mark_all_as_read">Marker alle som lest</string>
     <string name="action_quick_reply">Raskt svar</string>
     <string name="action_mark_room_read">Marker som lest</string>
@@ -396,35 +393,21 @@
     <string name="send_bug_report_sent">Feilrapport har blitt sendt</string>
     <string name="send_bug_report_failed">feilrapporten feilet å sendes (%s)</string>
     <string name="hs_url">Hjemmetjener URL</string>
-    <string name="start_voice_call">Start lydsamtale</string>
-    <string name="start_video_call">Start videosamtale</string>
     <string name="option_send_voice">Send lydopptak</string>
-    <string name="start_voice_call_prompt_msg">Er du sikker på du vil starte en lydsamtale\?</string>
-    <string name="start_video_call_prompt_msg">Er du sikker på du vil starte en videosamtale\?</string>
     <string name="action_play">Spill av</string>
     <string name="action_dismiss">Avslå</string>
-    <string name="no_permissions_to_start_conf_call">Du har ikke rettigheter til å starte en konferansesamtale i dette rommet</string>
     <string name="video_meeting">Start videomøte</string>
     <string name="audio_meeting">Start lydmøte</string>
     <string name="audio_video_meeting_description">Møter bruker sikkerhets- og tilgangsregler fra Jitsi. Alle i rommet vil kunne se en invitasjon til møtet mens det pågår.</string>
-    <string name="cannot_call_yourself">Du kan ikke ringe deg selv</string>
-    <string name="cannot_call_yourself_with_invite">Du kan ikke ringe deg selv. Vent til inviterte deltakere godtar invitasjonen</string>
     <string name="failed_to_add_widget">Kunne ikke legge til utvidelse</string>
     <string name="failed_to_remove_widget">Kunne ikke fjerne utvidelse</string>
     <string name="action_copy">Kopier</string>
     <string name="dialog_title_success">Suksess</string>
     <string name="bottom_action_notification">Varsler</string>
-    <string name="call_failed_no_connection">${app_name} samtale feilet</string>
-    <string name="call_select_sound_device">Velg lydenhet</string>
     <string name="sound_device_phone">Telefon</string>
     <string name="sound_device_speaker">Høytaler</string>
     <string name="sound_device_headset">Hodesett</string>
     <string name="sound_device_wireless_headset">Trådløst hodesett</string>
-    <string name="call_switch_camera">Bytt kamera</string>
-    <string name="call_camera_front">Foran</string>
-    <string name="call_camera_back">Bak</string>
-    <string name="call_format_turn_hd_off">Slå HD av</string>
-    <string name="call_format_turn_hd_on">Slå HD på</string>
     <string name="option_send_files">Send filer</string>
     <string name="option_send_sticker">Send klistremerke</string>
     <string name="option_take_photo_video">Ta bilde eller video</string>
@@ -582,17 +565,10 @@
     <string name="send_bug_report_include_key_share_history">Send historikk om forespørsel om nøkkelandel</string>
     <string name="no_more_results">Ingen flere resultater</string>
     <string name="call_notification_hangup">Legg på</string>
-    <string name="call_notification_reject">Avslå</string>
-    <string name="call_notification_answer">Godta</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Du har ikke tillatelse til å starte en samtale</string>
-    <string name="no_permissions_to_start_webrtc_call">Du har ikke tillatelse til å starte en samtale i dette rommet</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Du har ikke tillatelse til å starte en konferansesamtale</string>
     <string name="action_reset">Tilbakestill</string>
     <string name="auth_accept_policies">Vennligst gjennomgå og godta retningslinjene til denne hjemmeserveren:</string>
     <string name="auth_reset_password_error_unauthorized">Klarte ikke verifisere e-postadressen: Pass på at du har klikket på lenken i e-posten</string>
     <string name="auth_recaptcha_message">Denne hjemmetjeneren vil vite om du er en robot</string>
-    <string name="call_failed_no_connection_description">Klarte ikke å starte en sanntidskopling.
-\nVennligst be hjemmetjeneradministratoren din om å sette opp en TURN server så samtaler blir mer stabile.</string>
     <string name="login_error_not_json">Inneholdt ikke gyldig JSON</string>
     <string name="login_error_bad_json">Ugyldig JSON</string>
     <string name="set_a_security_phrase_hint">Sikkerhetsfrase</string>
@@ -727,16 +703,6 @@
 \n
 \nTillat tilgang til de neste popup-vinduene for å kunne ringe.</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} trenger tillatelse for å få tilgang til mikrofonen din for å utføre lydanrop.</string>
-    <string name="incoming_voice_call">Innkommende taleanrop</string>
-    <string name="incoming_video_call">Innkommende videosamtale</string>
-    <string name="call_ended">Anrop avsluttet</string>
-    <string name="call_connecting">Anrop kobler til…</string>
-    <string name="call">Ring</string>
-    <string name="settings_call_ringtone_dialog_title">Velg ringetone for samtaler:</string>
-    <string name="settings_call_ringtone_title">Ringetone for innkommende samtaler</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Bruk standard ${app_name}-ringetone for innkommende anrop</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Be om bekreftelse før du starter en samtale</string>
-    <string name="settings_call_show_confirmation_dialog_title">Forhindre utilsiktet samtale</string>
     <plurals name="membership_changes">
         <item quantity="one">%d medlemskapsendring</item>
         <item quantity="other">%d medlemskapsendringer</item>
@@ -750,9 +716,6 @@
     <string name="start_chatting">Begynn å chatte</string>
     <string name="settings_troubleshoot_test_fcm_failed_too_many_registration">[%1$s]
 \nDenne feilen er utenfor kontroll av ${app_name}, og ifølge Google indikerer denne feilen at enheten har for mange apper registrert hos FCM. Feilen oppstår bare i tilfeller der det er ekstremt mange apper, så det bør ikke påvirke gjennomsnittsbrukeren.</string>
-    <string name="call_error_user_not_responding">Ekstern vert kunne ikke plukke opp.</string>
-    <string name="video_call_in_progress">Pågående videosamtale…</string>
-    <string name="call_in_progress">Pågående samtale…</string>
     <string name="error_user_already_logged_in">Det ser ut til at du prøver å koble til en annen hjemmeserver. Vil du logge av\?</string>
     <string name="room_list_catchup_empty_body">Du har ikke flere uleste meldinger</string>
     <string name="room_list_people_empty_body">Dine direktemeldinger vises her. Trykk på + nederst til høyre for å starte noen.</string>
@@ -1021,13 +984,6 @@
     <string name="a11y_open_chat">Åpne chat</string>
     <string name="share_by_text">Del på tekst</string>
     <string name="call_tile_other_declined">%1$s avviste denne samtalen</string>
-    <string name="call_tile_ended">Denne samtalen er avsluttet</string>
-    <string name="call_tile_call_back">Ring tilbake</string>
-    <string name="call_dial_pad_lookup_error">Det oppsto en feil med å slå opp telefonnummeret</string>
-    <string name="call_only_active">Aktiv samtale (%1$s)</string>
-    <string name="call_transfer_title">Overfør</string>
-    <string name="call_transfer_failure">Det oppstod en feil under overføring av samtalen</string>
-    <string name="call_transfer_users_tab_title">Brukere</string>
     <string name="re_authentication_default_confirm_text">${app_name} krever at du oppgir legitimasjonen din for å utføre denne handlingen.</string>
     <string name="reset_secure_backup_warning">Dette vil erstatte din nåværende nøkkel eller frase.</string>
     <string name="reset_secure_backup_title">Generer en ny sikkerhetsnøkkel eller sett en ny sikkerhetsfrase for din eksisterende sikkerhetskopi.</string>
@@ -1088,10 +1044,6 @@
     <string name="room_settings_permissions_subtitle">Se og oppdater rollene som kreves for å endre forskjellige deler av rommet.</string>
     <string name="room_settings_permissions_title">Romtillatelser</string>
     <string name="room_participants_leave_private_warning">Dette rommet er ikke offentlig. Du vil ikke kunne bli med uten invitasjon.</string>
-    <string name="call_held_by_you">Du holdt samtalen</string>
-    <string name="call_held_by_user">%s holdt samtalen</string>
-    <string name="call_hold_action">Sett på vent</string>
-    <string name="call_resume_action">Gjenoppta</string>
     <string name="error_unauthorized">Uautorisert, mangler gyldig autentiseringslegitimasjon</string>
     <string name="system_theme">System standard</string>
     <string name="search_banned_user_hint">Filtrer utestengte brukere</string>

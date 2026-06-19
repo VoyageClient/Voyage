@@ -17,22 +17,13 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="gone" />
 
-    <im.vector.app.core.ui.views.CurrentCallsView
-        android:id="@+id/currentCallsView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="48dp"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/homeKeysBackupBanner"
-        tools:visibility="gone" />
-
     <im.vector.app.features.sync.widget.SyncStateView
         android:id="@+id/syncStateView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/currentCallsView"
+        app:layout_constraintTop_toBottomOf="@id/homeKeysBackupBanner"
         tools:visibility="gone" />
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout

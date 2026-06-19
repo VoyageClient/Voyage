@@ -63,8 +63,6 @@
     <string name="or">eða</string>
     <string name="action_invite">Bjóða</string>
     <string name="action_sign_out">Skrá út</string>
-    <string name="action_voice_call">Raddsímtal</string>
-    <string name="action_video_call">Myndsímtal</string>
     <string name="action_mark_all_as_read">Merkja allt sem lesið</string>
     <string name="action_open">Opna</string>
     <string name="action_close">Loka</string>
@@ -88,8 +86,6 @@
     <string name="username">Notandanafn</string>
     <string name="logout">Skrá út</string>
     <string name="search">Leita</string>
-    <string name="start_voice_call">Hefja raddsímtal</string>
-    <string name="start_video_call">Hefja myndsímtal</string>
     <string name="option_send_files">Senda skrár</string>
     <string name="option_take_photo_video">Taka ljósmynd eða myndskeið</string>
     <string name="option_take_photo">Taka ljósmynd</string>
@@ -107,10 +103,6 @@
     <string name="compression_opt_list_large">Stórt</string>
     <string name="compression_opt_list_medium">Miðlungs</string>
     <string name="compression_opt_list_small">Lítið</string>
-    <string name="call">Símtal</string>
-    <string name="incoming_video_call">Innhringing myndsímtals</string>
-    <string name="incoming_voice_call">Innhringing raddsímtals</string>
-    <string name="call_in_progress">Símtal í gangi…</string>
     <string name="permissions_rationale_popup_title">Upplýsingar</string>
     <string name="yes">JÁ</string>
     <string name="no">NEI</string>
@@ -242,8 +234,6 @@
     <string name="login_error_invalid_home_server">Skráðu inn gilda URL-lóð</string>
     <string name="login_error_not_json">Inniheldur ekki gilt JSON</string>
     <string name="login_error_limit_exceeded">Of margar beiðnir hafa verið sendar</string>
-    <string name="call_connecting">Símtal tengist…</string>
-    <string name="call_ended">Símtali lokið</string>
     <string name="settings_call_invitations">Boð um símtöl</string>
     <string name="settings_labs_native_camera">Nota innbyggða myndavél</string>
     <string name="room_participants_action_mention">Minnst á</string>
@@ -264,8 +254,6 @@
     <string name="room_settings_labs_pref_title">Tilraunir</string>
     <string name="report_content">Kæra efni</string>
     <string name="hs_url">Slóð á heimaþjón</string>
-    <string name="start_voice_call_prompt_msg">Ertu viss að þú viljir byrja raddsímtal\?</string>
-    <string name="start_video_call_prompt_msg">Ertu viss að þú viljir byrja myndsímtal\?</string>
     <string name="room_jump_to_first_unread">Fara í ólesið</string>
     <string name="room_participants_action_ban">Banna</string>
     <string name="room_participants_action_unban">Afbanna</string>
@@ -329,7 +317,6 @@
     <string name="widget_integration_missing_room_id">Vantar spjallrásarauðkenni í beiðni.</string>
     <string name="widget_integration_missing_user_id">Vantar notandaauðkenni í beiðni.</string>
     <string name="title_activity_choose_sticker">Senda límmerki</string>
-    <string name="call_error_user_not_responding">Ekki var svarað á fjartengda endanum.</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} þarf heimild til að nota hljóðnemann svo hægt sé að hringja hljóðsímtöl.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} þarf heimild til að nota myndavélina og hljóðnemann svo hægt sé að hringja myndsímtöl.
 \n
@@ -420,33 +407,11 @@
     <string name="room_participants_leave_private_warning">Þessi spjallrás er ekki opinber. Þú munt ekki geta tekið aftur þátt nema að vera boðið.</string>
     <string name="permissions_denied_add_contact">Gefa heimild til að fá aðgang að tengiliðunum þínum.</string>
     <string name="permissions_denied_qr_code">Til að skanna QR-kóða þarftu að veita aðgang að myndavélinni.</string>
-    <string name="call_remove_jitsi_widget_progress">Lýk símtali…</string>
-    <string name="call_ended_user_busy_title">Notandi upptekinn</string>
-    <string name="call_held_by_you">Þú settir símtalið í bið</string>
-    <string name="call_held_by_user">%s setti símtalið í bið</string>
-    <string name="audio_call_with_participant">Raddsímtal við %s</string>
-    <string name="video_call_with_participant">Myndsímtal við %s</string>
-    <string name="video_call_in_progress">Myndsímtal í gangi…</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Ósvarað myndsímtal</item>
-        <item quantity="other">%d ósvöruð myndsímtöl</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Ósvarað raddsímtal</item>
-        <item quantity="other">%d ósvöruð raddsímtöl</item>
-    </plurals>
-    <string name="settings_call_ringtone_dialog_title">Veldu hringitón fyrir símtöl:</string>
-    <string name="settings_call_ringtone_title">Innhringitónn</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Nota sjálfgefinn ${app_name} hringitón fyrir innhringingar</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Biðja um staðfestingu áður en símtal er hafið</string>
-    <string name="settings_call_show_confirmation_dialog_title">Koma í veg fyrir símtöl af slysni</string>
     <string name="auth_msisdn_already_defined">Þetta símanúmer er nú þegar skráð.</string>
     <string name="error_no_external_application_found">Því miður, ekkert utankomandi forrit hefur fundist sem getur lokið þessari aðgerð.</string>
     <string name="no_sticker_application_dialog_content">Í augnablikinu ertu ekki með neina límmerkjapakka virkjaða.
 \n
 \nBæta einhverjum við núna\?</string>
-    <string name="call_select_sound_device">Veldu hljóðtæki</string>
-    <string name="call_failed_no_connection">${app_name} símtal mistókst</string>
     <string name="option_send_voice">Senda tal</string>
     <string name="hs_client_url">Slóð á API-kerfisviðmót heimaþjóns</string>
     <string name="send_bug_report_description_in_english">Ef mögulegt, skaltu skrifa lýsinguna á ensku.</string>
@@ -458,17 +423,11 @@
     <string name="action_view_threads">Skoða spjallþræði</string>
     <string name="failed_to_remove_widget">Mistókst að fjarlægja viðmótshluta</string>
     <string name="failed_to_add_widget">Mistókst að bæta við viðmótshluta</string>
-    <string name="cannot_call_yourself_with_invite">Þú getur ekki byrjað símtal með sjálfum þér, bíddu eftir að þátttakendur samþykki boðið</string>
-    <string name="cannot_call_yourself">Þú getur ekki byrjað símtal með sjálfum þér</string>
     <string name="denied_permission_voice_message">Til að senda talskilaboð þarf að gefa heimild fyrir hljóðnema.</string>
     <string name="denied_permission_camera">Til að framkvæma þessa aðgerð þarf að gefa heimild fyrir myndavél í kerfisstillingum.</string>
     <string name="denied_permission_generic">Það vantar heimildir til að framkvæma þessa aðgerð, það þarf að gefa viðkomandi heimildir í kerfisstillingum.</string>
     <string name="audio_meeting">Hefja talfund</string>
     <string name="video_meeting">Hefja myndfund</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Þú hefur ekki heimildir til að hefja símtal</string>
-    <string name="no_permissions_to_start_webrtc_call">Þú hefur ekki heimildir til að hefja símtal á þessari spjallrás</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Þú hefur ekki heimildir til að hefja fjarfund</string>
-    <string name="no_permissions_to_start_conf_call">Þú hefur ekki heimildir til að hefja fjarfund á þessari spjallrás</string>
     <string name="missing_permissions_title">Vantar heimildir</string>
     <string name="sign_out_bottom_sheet_will_lose_secure_messages">Þú munt missa aðgang að dulrituðu skilaboðunum þínum nema þú takir öryggisafrit af dulritunarlyklum áður en þú skráir þig út.</string>
     <string name="sign_out_bottom_sheet_warning_backing_up">Öryggisafritun dulritunarlykla í gangi. Þú munt tapa dulrituðu skilaboðunum þínum ef þú skráir þig út núna.</string>
@@ -616,8 +575,6 @@
     <string name="a11y_open_emoji_picker">Opna emoji-tánmyndaval</string>
     <string name="a11y_change_avatar">Skipta um auðkennismynd</string>
     <string name="a11y_open_widget">Opna viðmótshluta</string>
-    <string name="call_only_active">Virkt símtal (%1$s)</string>
-    <string name="call_dial_pad_title">Talnaborð</string>
     <string name="auth_pin_new_pin_action">Nýtt PIN-númer</string>
     <string name="open_terms_of">Opna notkunarskilmála %s</string>
     <string name="choose_locale_other_locales_title">Önnur tiltæk tungumál</string>
@@ -708,8 +665,6 @@
     <string name="settings_notification_notify_me_for">Láta mig vita fyrir</string>
     <string name="settings_emails_empty">Engu tölvupóstfangi hefur verið bætt við notandaaðganginn þinn</string>
     <string name="settings_phone_number_empty">Engu símanúmeri hefur verið bætt við notandaaðganginn þinn</string>
-    <string name="call_failed_no_connection_description">Mistókst að koma á rauntímatengingu.
-\nBiddu kerfisstjóra heimaþjónsins þíns um að setja upp TURN-þjón til að tryggja að símtöl virki eðlilega.</string>
     <string name="notice_power_level_diff">%1$s úr %2$s í %3$s</string>
     <string name="notice_power_level_changed">%1$s breytti völdum %2$s.</string>
     <string name="power_level_admin">Stjórnandi</string>
@@ -752,7 +707,6 @@
     <string name="command_description_create_space">Búa til svæði</string>
     <string name="a11y_public_room">Almenningsspjallrás</string>
     <string name="a11y_delete_avatar">Eyða auðkennismynd</string>
-    <string name="call_dial_pad_lookup_error">Það kom upp villa við að fletta upp símanúmerinu</string>
     <string name="command_snow">Sendir skilaboðin með snjókomu</string>
     <string name="command_confetti">Sendir skilaboðin með skrauti</string>
     <string name="upgrade_security">Uppfærsla dulritunar tiltæk</string>
@@ -911,7 +865,6 @@
     <string name="passphrase_passphrase_does_not_match">Lykilsetningar samsvara ekki</string>
     <string name="passphrase_create_passphrase">Búa til lykilsetningu</string>
     <string name="encryption_export_notice">Útbúðu lykilsetningu til að dulrita útfluttu dulritunarlyklana. Þú þarft að setja inn sama lykilsetningu til að geta flutt aftur inn þessa dulritunarlykla.</string>
-    <string name="call_slide_to_end_conference">Renna til að ljúka símtalinu</string>
     <string name="keys_backup_setup_step1_title">Tapaðu aldrei dulrituðum skilaboðum</string>
     <string name="resource_limit_hard_contact">Endilega %s til að halda áfram að nota þessa þjónustu.</string>
     <string name="resource_limit_soft_contact">Endilega %s til að fá þessi takmörk hækkuð.</string>
@@ -929,9 +882,6 @@
     <string name="widget_integration_review_terms">Þú verður að samþykkja þjónustuskilmálana til að geta haldið áfram.</string>
     <string name="settings_labs_native_camera_summary">Ræstu myndavél kerfisins í stað sérsniðna myndavélaskjásins.</string>
     <string name="room_widget_resource_permission_title">Þessi viðmótshluti vill nota eftirfarandi tilföng:</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Fara af fyrirliggjandi fjarfundi og skipta yfir í hinn\?</string>
-    <string name="error_jitsi_join_conf">Því miður, villa kom upp við að reyna að tengjast fjarfundinum</string>
-    <string name="error_jitsi_not_supported_on_old_device">Því miður, fjarfundasímtöl með Jitsi eru ekki studd á eldri tækjum (tæki með Android OS minna en 6.0)</string>
     <string name="room_widget_revoke_access">Afturkalla aðgang fyrir mig</string>
     <string name="room_widget_failed_to_load">Mistókst að hlaða inn viðmótshluta.
 \n%s</string>
@@ -996,9 +946,6 @@
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Veldu heimaþjón</string>
     <string name="auth_login_sso">Skrá inn með einfaldri innskráningu (single sign-on)</string>
     <string name="use_as_default_and_do_not_ask_again">Nota sem sjálfgefið og ekki spyrja aftur</string>
-    <string name="call_format_turn_hd_on">Kveikja á HD</string>
-    <string name="call_format_turn_hd_off">Slökkva á HD</string>
-    <string name="call_switch_camera">Skipta á milli myndavéla</string>
     <string name="sound_device_wireless_headset">Þráðlaus heyrnartól</string>
     <string name="room_message_autocomplete_notification">Tilkynning á spjallrás</string>
     <string name="room_message_autocomplete_users">Notendur</string>
@@ -1060,20 +1007,6 @@
     <string name="a11y_image">Mynd</string>
     <string name="a11y_screenshot">Skjámynd</string>
     <string name="authentication_error">Tókst ekki að auðkenna</string>
-    <string name="call_transfer_unknown_person">Óþekktur einstaklingur</string>
-    <string name="call_transfer_users_tab_title">Notendur</string>
-    <string name="call_transfer_title">Flutningur</string>
-    <string name="call_transfer_connect_action">Tengjast</string>
-    <string name="call_one_active">Virkt símtal (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Virkt símtal ·</item>
-        <item quantity="other">%1$d virk símtöl ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">Ekkert svar</string>
-    <string name="call_tile_video_incoming">Innhringing myndsímtals</string>
-    <string name="call_tile_voice_incoming">Innhringing raddsímtals</string>
-    <string name="call_tile_call_back">Hringja til baka</string>
-    <string name="call_tile_ended">Þessu símtali er lokið</string>
     <string name="warning_unsaved_change_discard">Henda breytingum</string>
     <string name="settings_security_pin_code_change_pin_title">Breyta PIN-númeri</string>
     <string name="settings_security_pin_code_title">Virkja PIN-númer</string>
@@ -1369,13 +1302,7 @@
     <string name="room_participants_ban_title">Banna notanda</string>
     <string name="room_participants_remove_title">Fjarlægja notanda</string>
     <string name="room_participants_power_level_demote">Lækka í tign</string>
-    <string name="call_ended_invite_timeout_title">Ekkert svar</string>
-    <string name="call_hold_action">Bíða</string>
-    <string name="call_resume_action">Halda áfram</string>
-    <string name="settings_call_category">Símtöl</string>
     <string name="option_always_ask">Alltaf spyrja</string>
-    <string name="call_camera_back">Til baka</string>
-    <string name="call_camera_front">Fram</string>
     <string name="sound_device_headset">Heyrnartól</string>
     <string name="sound_device_speaker">Hátalari</string>
     <string name="sound_device_phone">Sími</string>
@@ -1440,7 +1367,6 @@
     <string name="room_participants_power_level_demote_warning_title">Lækka þig sjálfa/n í tign\?</string>
     <string name="room_participants_action_remove">Fjarlægja úr spjalli</string>
     <string name="room_participants_action_cancel_invite">Hætta við boð</string>
-    <string name="call_ended_user_busy_description">Notandinn sem þú hringdir í er upptekinn.</string>
     <string name="login_error_no_homeserver_found">Þetta er ekki gilt vistfang á Matrix-þjóni</string>
     <string name="suggested_header">Tillögur að spjallrásum</string>
     <string name="action_thread_view_in_room">Skoða á spjallrás</string>
@@ -1493,13 +1419,10 @@
     <string name="room_permissions_send_messages">Senda skilaboð</string>
     <string name="room_permissions_default_role">Sjálfgefið hlutverk</string>
     <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s og aðrir</string>
-    <string name="call_ringing">Hringing…</string>
     <string name="action_copy">Afrita</string>
     <string name="action_mark_room_read">Merkja sem lesið</string>
     <string name="action_sign_out_confirmation_simple">Ertu viss um að þú viljir skrá þig út\?</string>
     <string name="call_notification_hangup">Leggja á</string>
-    <string name="call_notification_reject">Hafna</string>
-    <string name="call_notification_answer">Samþykkja</string>
     <string name="done">Lokið</string>
     <string name="spaces">Svæði</string>
     <string name="start_chatting">Hefja spjall</string>
@@ -1712,10 +1635,6 @@
     <string name="create_spaces_organise_rooms">Einkasvæði til að skipuleggja spjallrásirnar þínar</string>
     <string name="create_spaces_who_are_you_working_with">Hverjum ertu að vinna með\?</string>
     <string name="dev_tools_form_hint_event_content">Efni atburðar</string>
-    <string name="call_tile_video_missed">Ósvarað myndsímtal</string>
-    <string name="call_tile_voice_missed">Ósvarað símtal</string>
-    <string name="call_tile_video_active">Virkt myndsímtal</string>
-    <string name="call_tile_voice_active">Virkt raddsímtal</string>
     <string name="call_tile_you_declined_this_call">Þú hafnaðir þessu símtali</string>
     <string name="qr_code_not_scanned">QR-kóði var ekki skannaður!</string>
     <string name="invalid_qr_code_uri">Ógildur QR-kóði (ógild slóð)!</string>
@@ -1833,12 +1752,6 @@
     <string name="cross_signing_verify_by_emoji">Sannprófa gagnvirkt með táknmyndum</string>
     <string name="crosssigning_verify_session">Sannprófa innskráningu</string>
     <string name="spaces_no_server_support_title">Það lítur út fyrir að heimaþjónninn þinn styðji ekki ennþá við notkun svæða</string>
-    <string name="call_transfer_failure">Villa kom upp þegar við áframsendingu símtals</string>
-    <string name="call_tap_to_return">%1$s Ýttu til að fara til baka</string>
-    <string name="call_tile_video_declined">sinnum hafnað</string>
-    <string name="call_tile_voice_declined">Raddsímtali hafnað</string>
-    <string name="call_tile_video_call_has_ended">Mynddsímtali lauk • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Raddsímtali lauk • %1$s</string>
     <string name="call_tile_other_declined">%1$s hafnaði þessu símtali</string>
     <string name="warning_unsaved_change">Það eru óvistaðar breytingar. Viltu henda þeim\?</string>
     <string name="cannot_dm_self">Getur ekki sent sjálfum þér bein skilaboð!</string>
@@ -1950,10 +1863,6 @@
     <string name="secure_backup_banner_setup_line2">Tryggðu þig gegn því að missa aðgang að dulrituðum skilaboðum og gögnum</string>
     <string name="settings_secure_backup_section_info">Tryggðu þig gegn því að missa aðgang að dulrituðum skilaboðum og gögnum með því að taka öryggisafrit af dulritunarlyklunum á netþjóninum þinum.</string>
     <string name="threads_notice_migration_title">Spjallþræðir í bráðlegri Beta-útgáfu 🎉</string>
-    <string name="call_transfer_consulting_with">Ráðfæri við %1$s</string>
-    <string name="call_transfer_consult_first">Ráðfæra fyrst</string>
-    <string name="screen_sharing_notification_description">Deiling á skjá er í vinnslu</string>
-    <string name="screen_sharing_notification_title">${app_name} skjádeiling</string>
     <string name="live_location_sharing_notification_description">Deiling staðsetningar er í vinnslu</string>
     <string name="live_location_sharing_notification_title">${app_name} rauntímastaðsetning</string>
     <string name="location_share_live_started">Hleð inn rauntímastaðsetningu…</string>
@@ -1969,7 +1878,6 @@
     <string name="a11y_audio_playback_duration">%1$d mínútur %2$d sekúndur</string>
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
     <string name="a11y_presence_busy">Upptekinn</string>
-    <string name="call_transfer_transfer_to_title">Flytja yfir í %1$s</string>
     <string name="bootstrap_progress_generating_ssss_recovery">Útbý SSSS-lykil úr endurheimtulykli</string>
     <string name="bootstrap_progress_generating_ssss_with_info">Útbý SSSS-lykil úr lykilsetningu (%s)</string>
     <string name="bootstrap_progress_generating_ssss">Útbý SSSS-lykil úr lykilsetningu</string>
@@ -1996,8 +1904,6 @@
     <string name="keys_backup_restore_is_getting_backup_version">Næ í útgáfu öryggisafrits…</string>
     <string name="settings_presence_user_always_appears_offline">Ónettengdur hamur</string>
     <string name="settings_presence">Viðvera</string>
-    <string name="call_stop_screen_sharing">Hætta skjádeilingu</string>
-    <string name="call_start_screen_sharing">Deila skjá</string>
     <string name="action_learn_more">Kanna nánar</string>
     <string name="action_try_it_out">Prófaðu það</string>
     <string name="action_disable">Gera óvirkt</string>

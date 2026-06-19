@@ -72,7 +72,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_COMPACT_QUICK_REACTIONS_KEY = "SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
         const val SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY = "SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY"
         const val SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD = "SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD"
-        const val SETTINGS_HIDE_CALL_BUTTONS = "SETTINGS_HIDE_CALL_BUTTONS"
         const val SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS = "SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS"
         const val SETTINGS_SINGLE_OVERVIEW = "SETTINGS_SINGLE_OVERVIEW"
         const val SETTINGS_JUMP_TO_BOTTOM_ON_SEND = "SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
@@ -157,7 +156,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_EMAIL_NOTIFICATION_CATEGORY_PREFERENCE_KEY = "SETTINGS_EMAIL_NOTIFICATION_CATEGORY_PREFERENCE_KEY"
 
         //    public static final String SETTINGS_TURN_SCREEN_ON_PREFERENCE_KEY = "SETTINGS_TURN_SCREEN_ON_PREFERENCE_KEY";
-        const val SETTINGS_SYSTEM_CALL_NOTIFICATION_PREFERENCE_KEY = "SETTINGS_SYSTEM_CALL_NOTIFICATION_PREFERENCE_KEY"
         const val SETTINGS_SYSTEM_NOISY_NOTIFICATION_PREFERENCE_KEY = "SETTINGS_SYSTEM_NOISY_NOTIFICATION_PREFERENCE_KEY"
         const val SETTINGS_SYSTEM_SILENT_NOTIFICATION_PREFERENCE_KEY = "SETTINGS_SYSTEM_SILENT_NOTIFICATION_PREFERENCE_KEY"
         const val SETTINGS_NOTIFICATION_RINGTONE_PREFERENCE_KEY = "SETTINGS_NOTIFICATION_RINGTONE_PREFERENCE_KEY"
@@ -178,16 +176,10 @@ class VectorPreferences @Inject constructor(
         // notification method
         const val SETTINGS_NOTIFICATION_METHOD_KEY = "SETTINGS_NOTIFICATION_METHOD_KEY"
 
-        // Calls
-        const val SETTINGS_CALL_PREVENT_ACCIDENTAL_CALL_KEY = "SETTINGS_CALL_PREVENT_ACCIDENTAL_CALL_KEY"
-        const val SETTINGS_CALL_RINGTONE_USE_RIOT_PREFERENCE_KEY = "SETTINGS_CALL_RINGTONE_USE_RIOT_PREFERENCE_KEY"
-        const val SETTINGS_CALL_RINGTONE_URI_PREFERENCE_KEY = "SETTINGS_CALL_RINGTONE_URI_PREFERENCE_KEY"
-
         // labs
         const val SETTINGS_LAZY_LOADING_PREFERENCE_KEY = "SETTINGS_LAZY_LOADING_PREFERENCE_KEY"
         const val SETTINGS_USER_REFUSED_LAZY_LOADING_PREFERENCE_KEY = "SETTINGS_USER_REFUSED_LAZY_LOADING_PREFERENCE_KEY"
         const val SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY = "SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY"
-        private const val SETTINGS_USE_JITSI_CONF_PREFERENCE_KEY = "SETTINGS_USE_JITSI_CONF_PREFERENCE_KEY"
         private const val SETTINGS_USE_NATIVE_CAMERA_PREFERENCE_KEY = "SETTINGS_USE_NATIVE_CAMERA_PREFERENCE_KEY"
         private const val SETTINGS_ENABLE_SEND_VOICE_FEATURE_PREFERENCE_KEY = "SETTINGS_ENABLE_SEND_VOICE_FEATURE_PREFERENCE_KEY"
 
@@ -299,7 +291,6 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_DATA_SAVE_MODE_PREFERENCE_KEY,
                 SETTINGS_START_ON_BOOT_PREFERENCE_KEY,
                 SETTINGS_INTERFACE_TEXT_SIZE_KEY,
-                SETTINGS_USE_JITSI_CONF_PREFERENCE_KEY,
                 SETTINGS_NOTIFICATION_RINGTONE_PREFERENCE_KEY,
                 SETTINGS_NOTIFICATION_RINGTONE_SELECTION_PREFERENCE_KEY,
 
@@ -669,15 +660,6 @@ class VectorPreferences @Inject constructor(
     }
 
     /**
-     * Tells if the conf calls must be done with Jitsi.
-     *
-     * @return true if the conference call must be done with jitsi.
-     */
-    fun useJitsiConfCall(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_USE_JITSI_CONF_PREFERENCE_KEY, true)
-    }
-
-    /**
      * Tells if the application is started on boot.
      *
      * @return true if the application must be started on boot
@@ -791,13 +773,6 @@ class VectorPreferences @Inject constructor(
             defaultPrefs.edit {
                 putBoolean(SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY, isEnabled)
             }
-
-    /**
-     * Tells if a confirmation dialog should be displayed before staring a call.
-     */
-    fun preventAccidentalCall(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_CALL_PREVENT_ACCIDENTAL_CALL_KEY, false)
-    }
 
     /**
      * Tells if the read receipts should be shown.
@@ -1375,10 +1350,6 @@ class VectorPreferences @Inject constructor(
 
     fun loadRoomAtFirstUnread(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD, false)
-    }
-
-    fun hideCallButtons(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_HIDE_CALL_BUTTONS, false)
     }
 
     override fun includeSpaceMembersAsSpaceRooms(): Boolean {

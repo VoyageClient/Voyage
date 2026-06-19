@@ -188,8 +188,6 @@
     <string name="action_rename">غيّر الاسم</string>
     <string name="report_content">أبلِغ عن المحتوى</string>
     <string name="action_sign_out">تسجيل الخروج</string>
-    <string name="action_voice_call">مكالمة صوتية</string>
-    <string name="action_video_call">مكالمة صورية</string>
     <string name="action_mark_all_as_read">علّمها كلّها كمقروءة</string>
     <string name="action_open">افتح</string>
     <string name="action_close">أغلِق</string>
@@ -214,8 +212,6 @@
     <string name="send_bug_report_failed">فشل إرسال بلاغ العلة (%s)</string>
     <string name="username">اسم المستخدم</string>
     <string name="logout">خروج</string>
-    <string name="start_voice_call">ابدأ مكالمة صوتية</string>
-    <string name="start_video_call">ابدأ مكالمة صورية</string>
     <string name="option_send_files">أرسِل ملفات</string>
     <string name="option_take_photo_video">خُذ صورة أو ڤديو</string>
     <string name="option_take_photo">خُذ صورة</string>
@@ -229,10 +225,6 @@
     <string name="login_error_invalid_home_server">أدخِل مسارا صالحا</string>
     <string name="login_error_not_json">لم يحتوي JSON صالح</string>
     <string name="login_error_limit_exceeded">أُرسلت الكثير من الطلبات</string>
-    <string name="call_ended">انتهت المكالمة</string>
-    <string name="incoming_video_call">مكالمة صورية واردة</string>
-    <string name="incoming_voice_call">مكالمة صوتية واردة</string>
-    <string name="call_in_progress">المكالمة جارية…</string>
     <string name="permissions_rationale_popup_title">معلومات</string>
     <string name="yes">نعم</string>
     <string name="no">لا</string>
@@ -375,8 +367,6 @@
     <string name="later">لاحقا</string>
     <string name="hs_url">عنوان خادوم المنزل</string>
     <string name="search">ابحث</string>
-    <string name="start_voice_call_prompt_msg">أمتأكد من بدء محادثة صوتية؟</string>
-    <string name="start_video_call_prompt_msg">أمتأكد من بدء محادثة صورية؟</string>
     <string name="auth_email_already_defined">عنوان البريد مُعرّف بالفعل.</string>
     <string name="auth_recaptcha_message">يريد خادوم المنزل هذا التأكد من أنك لست أحد الآليين</string>
     <string name="login_error_bad_json">JSON‏ معطوب</string>
@@ -395,7 +385,6 @@
     <string name="action_invite">ادعُ</string>
     <string name="join_room">انضم إلى الغرفة</string>
     <string name="compression_opt_list_original">الأصلي</string>
-    <string name="call_error_user_not_responding">لم يُجب الطرف البعيد.</string>
     <string name="room_participants_header_direct_chats">الدردشات المباشرة</string>
     <string name="room_participants_action_mention">أشِر إليه</string>
     <string name="room_participants_power_level_prompt">لا يمكن التراجع عن هذا التغيير إذ أنك تمنح المستخدم نفس مستوى الصلاحيات الخاص بك.
@@ -440,7 +429,6 @@
     <string name="compression_opt_list_large">كبير</string>
     <string name="compression_opt_list_medium">متوسط</string>
     <string name="compression_opt_list_small">صغير</string>
-    <string name="call">مكالمة</string>
     <string name="settings_set_sync_delay">التأخير بين كل طلبي مزامنة</string>
     <string name="settings_version">الإصدارة</string>
     <string name="settings_olm_version">إصدارة Olm</string>
@@ -561,21 +549,17 @@
     <string name="resource_limit_hard_default">تخطّ خادوم المنزل هذا أحد حدود الموارد لديه.</string>
     <string name="resource_limit_soft_mau"> وصل هذا الخادم الحدّ الأقصى للمستخدمين النشطين شهريًا بذلك <b>لن يستطيع بعض المستخدمين الولوج لحساباتهم</b>.</string>
     <string name="resource_limit_hard_mau">وصل خادوم المنزل هذا حدّ المستخدمين النشطين شهريًا.</string>
-    <string name="call_connecting">يجري وصل الاتصال…</string>
     <string name="deactivate_account_content">سيجعل هذا حسابك محال الاستخدام للأبد. لن تقدر على تسجيل دخولك ولن يقدر أحد على إعادة التسجيل بنفس معرّف المستخدم. سيتسبب هذا بأن يترك حسابك كل الغرف التي تشارك فيها، وستُزال تفاصيل الحساب من خادم التعريف. <b>هذا إجراء لا مجال الرجوع فيه</b>. حذفك لحسابك <b>لا يتسبب بأن ننسى رسائلك التي أرسلتها (مبدئيًا)</b>. إن أردت ذلك فرجاءً ضع علامة على المربّع أدناه. ظهور الرسائل في «ماترِكس» يشبه كثيرًا بالبريد الإلكتروني. نسياننا لرسائلك يعني أن الرسائل التي أرسلتها لن تُشارك مع أي مستخدم جديد أو غير مسجّل، إلا أن المستخدمين المسجّلين الذي يقدرون على الوصول إليها سيمتلكون نسخة عنها.</string>
     <string name="title_activity_keys_backup_restore">الرسائل الآمنة</string>
     <string name="action_skip">تخطي</string>
     <string name="done">تم</string>
     <string name="dialog_title_error">خطأ</string>
-    <string name="settings_call_category">المكالمات</string>
     <string name="room_participants_action_remove">طرد</string>
     <string name="settings_notification_advanced">الإعدادات المتقدمة للإشعارات</string>
     <string name="sign_out_bottom_sheet_warning_no_backup">عند تسجيل الخروج الآن ستخسر مفاتيحك</string>
     <string name="sign_out_bottom_sheet_warning_backing_up">النسخ الاحتياطي المفاتيح ما زال جاريا. في حال خروجك الآن لن تتمكن لاحقا من قراءة الرسائل المعماة.</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">تأكد من تفعيل النسخ الاحتياطي للمفاتيح على كل أجهزتك كي لا تخسر رسائلك المشفرة.</string>
     <string name="sign_out_bottom_sheet_backing_up_keys">ينسخ احتياطيا المفاتيح…</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">ليس لديك تصريح لبدء إجتماع</string>
-    <string name="no_permissions_to_start_conf_call">ليس لديك تصريح لبدء إجتماع في هذه الغرفة</string>
     <string name="start_chatting">إبدأ بالمحادثة</string>
     <string name="action_reset">إعادة ضبط</string>
     <string name="action_dismiss">إصرف</string>
@@ -703,41 +687,15 @@
         <item quantity="many">أضفت الروابط البديلة %1$s للغرفة.</item>
         <item quantity="other">أضفت الروابط البديلة %1$s للغرفة.</item>
     </plurals>
-    <string name="call_remove_jitsi_widget_progress">ينهي المكالمة…</string>
-    <string name="call_ended_invite_timeout_title">لا رد</string>
-    <string name="call_ended_user_busy_description">المتَصل به مشغول.</string>
-    <string name="call_ended_user_busy_title">المستخدم مشغول</string>
-    <string name="call_held_by_you">علّقتَ المكالمة</string>
-    <string name="call_held_by_user">علق %s المكالمة</string>
-    <string name="call_hold_action">علِّق</string>
-    <string name="call_resume_action">استأنِف</string>
-    <string name="audio_call_with_participant">مكالمة صوتية مع %s</string>
-    <string name="video_call_with_participant">مكالمة فيديو مع %s</string>
-    <plurals name="missed_audio_call">
-        <item quantity="zero">لا مكالمات فائة</item>
-        <item quantity="one">مكالمة فائة واحدة</item>
-        <item quantity="two">مكالمتان فائتتان</item>
-        <item quantity="few">%d مكالمات فائة</item>
-        <item quantity="many">%d مكالمةً فائة</item>
-        <item quantity="other">%d مكالمة فائة</item>
-    </plurals>
-    <string name="call_ringing">يَرِن…</string>
-    <string name="settings_call_ringtone_dialog_title">اختر نغمة للمكالمات:</string>
-    <string name="settings_call_ringtone_title">نغمة المكالمات الواردة</string>
-    <string name="settings_call_show_confirmation_dialog_summary">أكّد المكالمة قبل إجرائها</string>
     <string name="login_error_ssl_other">خطأ SSL.</string>
     <string name="login_error_no_homeserver_found">هذا ليس عنوان صالح لخادم مايتركس</string>
     <string name="auth_accept_policies">راجع واقبل سياسات هذا الخادم:</string>
     <string name="auth_msisdn_already_defined">رقم الهاتف مستخدم بالفعل.</string>
     <string name="use_as_default_and_do_not_ask_again">استخدمه كافتراضي ولا تسأل مجددًا</string>
     <string name="option_always_ask">اسأل دائمًا</string>
-    <string name="call_camera_back">الخلفية</string>
-    <string name="call_camera_front">الأمامية</string>
-    <string name="call_switch_camera">غيّر الكاميرا</string>
     <string name="sound_device_headset">السماعة</string>
     <string name="sound_device_speaker">المكبر</string>
     <string name="sound_device_phone">الهاتف</string>
-    <string name="call_select_sound_device">اختر جهاز الصوت</string>
     <string name="spaces_header">الفضاءات</string>
     <string name="call_notification_hangup">علّق</string>
     <string name="notice_room_canonical_alias_main_and_alternative_changed">غيّر %1$s العنوان الرئيسي و العناوين البديلة للغرفة.</string>
@@ -754,14 +712,9 @@
     <string name="action_copy">انسخ</string>
     <string name="action_mark_room_read">علّمه كمقروء</string>
     <string name="action_sign_out_confirmation_simple">أمتأكد من الخروج؟</string>
-    <string name="call_notification_reject">رَفض</string>
-    <string name="call_notification_answer">قبُول</string>
     <string name="action_decline">رَفض</string>
     <string name="action_ignore">تجاهل</string>
     <string name="action_accept">قبُول</string>
-    <string name="cannot_call_yourself">لا يمكن مكالمة نفسك</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">ليس لديك تصريح لبدء مكالمة</string>
-    <string name="no_permissions_to_start_webrtc_call">ليس لديك تصريح لبدء مكالمة في هذه الغرفة</string>
     <string name="missing_permissions_title">تصاريح ناقصة</string>
     <string name="denied_permission_voice_message">لإرسال رسائل صوتية امنح تصريح الوصول للميكريفون.</string>
     <string name="denied_permission_camera">لإكمال هذا الإجراء امنح تصريح الوصول للكميرا عبر إعدادات النظام.</string>
@@ -800,7 +753,6 @@
     <string name="keys_backup_restoring_importing_keys_waiting_message">يستورد المفاتيح…</string>
     <string name="keys_backup_restoring_downloading_backup_waiting_message">ينزّل المفاتيح…</string>
     <string name="room_error_access_unauthorized">لا يسمح لك بالانضمام لهذه الغرفة</string>
-    <string name="call_failed_no_connection">فشلت مكالمة ${app_name}</string>
     <string name="action_thread_copy_link_to_thread">انسخ رابط النقاش</string>
     <string name="action_thread_view_in_room">اعرضه في الغرفة</string>
     <string name="action_agree">أقبل</string>
@@ -1042,24 +994,12 @@
     <string name="room_participants_leave_private_warning">هذه الغرفة ليست علنية، لا يمكنك إعادة الانضمام إليها بدون دعوة.</string>
     <string name="permissions_denied_add_contact">امنح اذن النفاذ للمتراسلين.</string>
     <string name="permissions_denied_qr_code">لمسح رمز الاستحابة السريعة اسمح بالنفاذ للكاميرا.</string>
-    <string name="video_call_in_progress">تجري مكالمة مرئية…</string>
-    <plurals name="missed_video_call">
-        <item quantity="zero">لا مكالمات مرئية فائتة</item>
-        <item quantity="one">مكالمة مرئية فائتة</item>
-        <item quantity="two">مكالمتان مرئيتان فائتتان</item>
-        <item quantity="few">%d مكالمات مرئية فائتة</item>
-        <item quantity="many">%d مكالمة مرئية فائتة</item>
-        <item quantity="other">%d مكالمة مرئية فائتة</item>
-    </plurals>
-    <string name="settings_call_ringtone_use_app_ringtone">استخدم نغمة ${app_name} الافتراضية للمكالمات الواردة</string>
-    <string name="settings_call_show_confirmation_dialog_title">امنع المكالمات العَرضية</string>
     <string name="action_learn_more">استزد</string>
     <string name="action_change">عدّل</string>
     <string name="action_try_it_out">جربه</string>
     <string name="action_not_now">ليس الآن</string>
     <string name="action_disable">عطّل</string>
     <string name="action_enable">فعّل</string>
-    <string name="cannot_call_yourself_with_invite">لا يمكنك إجراء مكالمة مع نفسك، انتظر قبول منتسبين لطلب</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">شغّلتّ التعمية بين الطرفيات (خورزمية مجهولة %1$s).</string>
     <string name="settings_background_fdroid_sync_mode">وضع المزامنة في الخلفية</string>
     <string name="settings_mentions_and_keywords_encryption_notice">على الهاتف لن تتلق إخطارات عند ذكرك أو ذكر كلمة مفتاحية في الغرف المعماة.</string>
@@ -1145,8 +1085,6 @@
     <string name="notification_unread_notified_messages_and_invitation">%1$s و%2$s</string>
     <string name="notification_unread_notified_messages_in_room_and_invitation">%1$s فِي %2$s و%3$s</string>
     <string name="directory_your_server">خَادِمُك</string>
-    <string name="call_stop_screen_sharing">وَقَّفْ مشاركة الشاشة</string>
-    <string name="call_start_screen_sharing">شارك الشاشة</string>
     <string name="settings_room_directory_show_all_rooms">عرض الغُرف ذات المحتوى الواضح</string>
     <string name="initial_sync_request_reason_unignored_users">أُلْغِيَ تجاهل بعض المستخدمين</string>
     <string name="initial_sync_request_title">طَلَبُ مُزامَنة أوَّلِيّ</string>
@@ -1231,7 +1169,6 @@
     <string name="invite_friends">دعوة الأصدقاء</string>
     <string name="settings_discovery_manage">إدارة إعدادات الاستكشاف.</string>
     <string name="labs_enable_new_app_layout_summary">Element مبسط مع نوافذ تبويب اختيارية</string>
-    <string name="call_format_turn_hd_off">الغاء تشغيل HD</string>
     <plurals name="notice_room_canonical_alias_alternative_removed_by_you">
         <item quantity="zero">قد حذفت العنوان الثنائي %1$s لهذه الغرفة.</item>
         <item quantity="one">قد حذفت العنوان الثنائي %1$s لهذه الغرفة.</item>
@@ -1242,7 +1179,6 @@
     </plurals>
     <string name="audio_video_meeting_description">الأجتماعات تستخدم امن Jitsi و سياسات السماح، جميع الأشخاص في الغرفة سيرون دعوة دخول في منتصف اجتماعك.</string>
     <string name="sound_device_wireless_headset">سماعة لاسلكية</string>
-    <string name="call_format_turn_hd_on">تشغيل HD</string>
     <string name="login_error_ssl_peer_unverified">خطأ SSL: لم يتم تأكيد هوية الجهه الأخرى.</string>
     <string name="labs_enable_rich_text_editor_title">تشغيل محرر النصوص</string>
 </resources>

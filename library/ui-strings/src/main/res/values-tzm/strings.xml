@@ -14,7 +14,6 @@
     <string name="settings_interface_language">Tutlayt</string>
     <string name="settings_other">Yaḍen</string>
     <string name="settings_notifications">Tineɣmisin</string>
-    <string name="settings_call_category">Iɣuriten</string>
     <string name="settings_troubleshoot_test_fcm_failed_account_missing_quick_fix">Rnu Amiḍan</string>
     <string name="settings_troubleshoot_test_account_settings_title">Tisɣal n umiḍan.</string>
     <string name="open_settings">Ṛẓem Tisɣal</string>
@@ -30,7 +29,6 @@
     <string name="action_join">Lkem</string>
     <string name="no">UHU</string>
     <string name="yes">YAH</string>
-    <string name="call">Ɣer</string>
     <string name="sound_device_phone">Atilifun</string>
     <string name="search">Rzu</string>
     <string name="bottom_action_notification">Tineɣmisin</string>
@@ -54,7 +52,6 @@
     <string name="room_participants_action_invite">Ɣer</string>
     <string name="auth_submit">Azen</string>
     <string name="dialog_title_confirmation">Asentem</string>
-    <string name="call_notification_reject">Agy</string>
     <string name="action_ignore">Ttu</string>
     <string name="action_dismiss">Agy</string>
     <string name="none">Awd yan</string>

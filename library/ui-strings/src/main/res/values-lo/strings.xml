@@ -206,37 +206,6 @@
 \nກະລຸນາອະນຸຍາດໃຫ້ເຂົ້າເຖິງໃນpop-ups ຖັດໄປເພື່ອໃຫ້ສາມາດໂທອອກໄດ້.</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} ຕ້ອງການການອະນຸຍາດເພື່ອເຂົ້າເຖິງໄມໂຄຣໂຟນຂອງທ່ານເພື່ອປະຕິບັດການໂທສຽງ.</string>
     <string name="permissions_rationale_popup_title">ຂໍ້ມູນ</string>
-    <string name="call_remove_jitsi_widget_progress">ກຳລັງວາງສາຍ…</string>
-    <string name="call_error_user_not_responding">ທາງໄກບໍ່ສາມາດຮັບໄດ້.</string>
-    <string name="call_ended_invite_timeout_title">ບໍ່ມີຄໍາຕອບ</string>
-    <string name="call_ended_user_busy_description">ຜູ້ໃຊ້ທີ່ທ່ານໂທຫາບໍ່ຫວ່າງ.</string>
-    <string name="call_ended_user_busy_title">ຜູ້ໃຊ້ບໍ່ຫວ່າງ</string>
-    <string name="call_held_by_you">ທ່ານຖືສາຍການໂທ</string>
-    <string name="call_held_by_user">%s ຖືສາຍ</string>
-    <string name="call_hold_action">ຖື</string>
-    <string name="call_resume_action">ປະຫວັດຫຍໍ້</string>
-    <string name="audio_call_with_participant">ໂທສຽງດ້ວຍ %s</string>
-    <string name="video_call_with_participant">ໂທວິດີໂອດ້ວຍ %s</string>
-    <string name="video_call_in_progress">ກຳລັງດຳເນີນການໂທດ້ວຍວິດີໂອ…</string>
-    <string name="call_in_progress">ກຳລັງດຳເນີນການໂທ…</string>
-    <string name="incoming_voice_call">ສາຍໂທເຂົ້າ</string>
-    <string name="incoming_video_call">ສາຍເຂົ້າວິດີໂອ</string>
-    <plurals name="missed_video_call">
-        <item quantity="other">%d ບໍ່ໄດ້ຮັບສາຍວິດີໂອ</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="other">%d ສາຍບໍ່ໄດ້ຮັບ</item>
-    </plurals>
-    <string name="call_ended">ສິ້ນສຸດການໂທ</string>
-    <string name="call_ringing">ກຳລັງໂທເຂົ້ົ້າ…</string>
-    <string name="call_connecting">ກຳລັງເຊື່ອມຕໍ່ການໂທ…</string>
-    <string name="call">ໂທ</string>
-    <string name="settings_call_ringtone_dialog_title">ເລືອກສຽງເອີ້ນເຂົ້າສໍາລັບການໂທ:</string>
-    <string name="settings_call_ringtone_title">ສຽງເອີ້ນເຂົ້າ</string>
-    <string name="settings_call_ringtone_use_app_ringtone">ໃຊ້ສຽງເອີ້ນເຂົ້າ ${app_name} ເລີ່ມຕົ້ນສຳລັບສາຍໂທເຂົ້າ</string>
-    <string name="settings_call_show_confirmation_dialog_summary">ຂໍການຢືນຢັນກ່ອນເລີ່ມການໂທ</string>
-    <string name="settings_call_show_confirmation_dialog_title">ປ້ອງກັນການໂທຫາໂດຍບັງເອີນ</string>
-    <string name="settings_call_category">ໂທ</string>
     <string name="compression_opt_list_small">ຂະຫນາດນ້ອຍ</string>
     <string name="compression_opt_list_medium">ຂະຫນາດກາງ</string>
     <string name="compression_opt_list_large">ຂະຫນາດໃຫຍ່</string>
@@ -279,24 +248,11 @@
     <string name="option_take_photo_video">ຖ່າຍຮູບ ຫຼືວິດີໂອ</string>
     <string name="option_send_sticker">ສົ່ງສະຕິກເກີ</string>
     <string name="option_send_files">ສົ່ງໄຟລ໌</string>
-    <string name="call_format_turn_hd_on">ເປີດ HD</string>
-    <string name="call_format_turn_hd_off">ປິດ HD</string>
-    <string name="call_camera_back">ດ້ານຫລັງ</string>
-    <string name="call_camera_front">ດ້ານໜ້າ</string>
-    <string name="call_switch_camera">ສະຫຼັບກ້ອງຖ່າຍຮູບ</string>
     <string name="sound_device_wireless_headset">ຊຸດຫູຟັງໄຮ້ສາຍ</string>
     <string name="sound_device_headset">ຊຸດຫູຟັງ</string>
     <string name="sound_device_speaker">ລໍາໂພງ</string>
     <string name="sound_device_phone">ໂທລະສັບ</string>
-    <string name="call_select_sound_device">ເລືອກອຸປະກອນສຽງ</string>
-    <string name="call_failed_no_connection_description">ການສ້າງການເຊື່ອມຕໍ່ແບບສົດໆບໍ່ສຳເລັດ.
-\nກະລຸນາຮ້ອງຂໍໃຫ້ຜູ້ເບິ່ງແຍງ homeserver ຂອງທ່ານເພື່ອກໍານົດຄ່າເຊີບເວີ TURN ເພື່ອໃຫ້ການໂທເຮັດວຽກໄດ້ຢ່າງຫມັ້ນຄົງ.</string>
-    <string name="call_failed_no_connection">${app_name} ໂທລົ້ມເຫລວ</string>
-    <string name="start_video_call_prompt_msg">ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເລີ່ມການໂທດ້ວຍວິດີໂອ\?</string>
-    <string name="start_voice_call_prompt_msg">ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການເລີ່ມການໂທສຽງ\?</string>
     <string name="option_send_voice">ສົ່ງສຽງ</string>
-    <string name="start_video_call">ລີ່ມການໂທວິດີໂອ</string>
-    <string name="start_voice_call">ເລີ່ມການໂທດ້ວຍສຽງ</string>
     <string name="search">ຊອກຫາ</string>
     <string name="hs_client_url">API URL ຂອງສະຖານີ</string>
     <string name="hs_url">Homeserver URL</string>
@@ -381,26 +337,16 @@
     <string name="action_quick_reply">ຕອບກັບດ່ວນ</string>
     <string name="action_mark_all_as_read">ໝາຍທັງໝົດວ່າອ່ານແລ້ວ</string>
     <string name="action_view_threads">ເບິ່ງກະທູ້</string>
-    <string name="action_video_call">ໂທວິດີໂອ</string>
-    <string name="action_voice_call">ໂທສຽງ</string>
     <string name="action_sign_out_confirmation_simple">ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການອອກຈາກລະບົບ\?</string>
     <string name="action_sign_out">ອກຈາກລະບົບ</string>
     <string name="call_notification_hangup">ວາງສາຍ</string>
-    <string name="call_notification_reject">ຫຼຸດລົງ</string>
-    <string name="call_notification_answer">ຍອມຮັບ</string>
     <string name="done">ສຳເລັດແລ້ວ</string>
     <string name="or">ຫຼື</string>
     <string name="failed_to_remove_widget">ລຶບວິດເຈັດບໍ່ສຳເລັດ</string>
     <string name="failed_to_add_widget">ເພີ່ມວິດເຈັດບໍ່ສຳເລັດ</string>
-    <string name="cannot_call_yourself_with_invite">ທ່ານບໍ່ສາມາດໂທຫາຕົວທ່ານເອງໄດ້, ລໍຖ້າໃຫ້ຜູ້ເຂົ້າຮ່ວມທີ່ຈະຮັບເອົາການເຊີນ</string>
-    <string name="cannot_call_yourself">ທ່ານບໍ່ສາມາດໂທຫາຕົວທ່ານເອງໄດ້</string>
     <string name="audio_video_meeting_description">ກອງປະຊຸມໃຊ້ນະໂຍບາຍຄວາມປອດໄພ ແລະອະນຸຍາດ Jitsi. ຄົນທັງໝົດຢູ່ໃນຫ້ອງໃນປັດຈຸບັນຈະເຫັນຄຳເຊີນໃຫ້ເຂົ້າຮ່ວມ ໃນຂະນະທີ່ການປະຊຸມຂອງທ່ານກຳລັງເກີດຂຶ້ນ.</string>
     <string name="audio_meeting">ເລີ່ມການປະຊຸມສຽງ</string>
     <string name="video_meeting">ເລີ່ມການປະຊຸມວິດີໂອ</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">ທ່ານບໍ່ໄດ້ຮັບອະນຸຍາດໃຫ້ເລີ່ມການໂທ</string>
-    <string name="no_permissions_to_start_webrtc_call">ທ່ານບໍ່ໄດ້ຮັບອະນຸຍາດໃຫ້ໂທຢູ່ໃນຫ້ອງນີ້</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">ທ່ານບໍ່ໄດ້ຮັບອະນຸຍາດໃຫ້ເລີ່ມການປະຊຸມທາງໂທລະສັບ</string>
-    <string name="no_permissions_to_start_conf_call">ທ່ານບໍ່ມີສິດໃນການເລີ່ມການໂທປະຊຸມຢູ່ໃນຫ້ອງນີ້</string>
     <string name="missing_permissions_title">ຂາດການອະນຸຍາດ</string>
     <string name="denied_permission_voice_message">ເພື່ອສົ່ງຂໍ້ຄວາມສຽງ, ກະລຸນາອະນຸຍາດໄມໂຄຣໂຟນ.</string>
     <string name="denied_permission_camera">ເພື່ອດໍາເນີນການນີ້, ກະລຸນາອະນຸຍາດກ້ອງຖ່າຍຮູບຈາກການຕັ້ງຄ່າລະບົບ.</string>
@@ -1340,9 +1286,6 @@
     <string name="room_widget_resource_decline_permission">ບລັອກທັງໝົດ</string>
     <string name="room_widget_resource_grant_permission">ອະນຸຍາດ</string>
     <string name="room_widget_resource_permission_title">widget ນີ້ຕ້ອງການໃຊ້ຊັບພະຍາກອນຕໍ່ໄປນີ້:</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">ອອກຈາກກອງປະຊຸມປະຈຸບັນ ແລະປ່ຽນໄປຫາກອງປະຊຸມອື່ນບໍ\?</string>
-    <string name="error_jitsi_join_conf">ຂໍອະໄພ, ເກີດຄວາມຜິດພາດຂຶ້ນໃນຂະນະທີ່ພະຍາຍາມເຂົ້າຮ່ວມກອງປະຊຸມ</string>
-    <string name="error_jitsi_not_supported_on_old_device">ຂໍອະໄພ, ການປະຊຸມການໂທດ້ວຍ Jitsi ບໍ່ຮອງຮັບໃນອຸປະກອນເກົ່າ (ອຸປະກອນທີ່ມີ Android OS ຕ່ຳກວ່າ 6.0)</string>
     <string name="room_widget_permission_room_id">ID ຫ້ອງ</string>
     <string name="room_widget_permission_widget_id">ໄອດີວິດເຈັດ</string>
     <string name="room_widget_permission_theme">ຫົວຂໍ້ຂອງທ່ານ</string>
@@ -1477,14 +1420,6 @@
     <string name="room_alias_preview_not_found">ບໍ່ສາມາດເຂົ້າເຖິງນາມແຝງນີ້ໄດ້ໃນເວລານີ້.
 \nລອງໃໝ່ໃນພາຍຫຼັງ, ຫຼື ຖາມຜູ້ເບິ່ງແຍງຫ້ອງເພື່ອກວດເບິ່ງວ່າທ່ານມີການເຂົ້າເຖິງຫຼືບໍ່.</string>
     <string name="join_anyway">ເຂົ້າຮ່ວມເລີຍ</string>
-    <string name="call_tile_video_call_has_ended">ສິ້ນສຸດການໂທດ້ວຍວິດີໂອ • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">ສິ້ນສຸດການໂທ • %1$s</string>
-    <string name="call_tile_video_active">ການໂທວິດີໂອ</string>
-    <string name="call_tile_voice_active">ໂທດ້ວຍສຽງ</string>
-    <string name="call_tile_video_incoming">ໂທວິດີໂອເຂົ້າມາ</string>
-    <string name="call_tile_voice_incoming">ສາຍໂທເຂົ້າ</string>
-    <string name="call_tile_call_back">ໂທກັບ</string>
-    <string name="call_tile_ended">ການໂທນີ້ສິ້ນສຸດລົງ</string>
     <string name="call_tile_other_declined">%1$s ປະຕິເສດການໂທນີ້</string>
     <string name="call_tile_you_declined_this_call">ທ່ານໄດ້ປະຕິເສດການໂທນີ້</string>
     <string name="warning_unsaved_change_discard">ຍົກເລີກການປ່ຽນແປງ</string>
@@ -2029,28 +1964,6 @@
     <string name="authentication_error">ການຢືນຢັນບໍ່ສຳເລັດ</string>
     <string name="re_authentication_default_confirm_text">${app_name} ຮ້ອງຂໍໃຫ້ທ່ານໃສ່ຂໍ້ມູນປະຈໍາຕົວຂອງທ່ານເພື່ອດໍາເນີນການນີ້.</string>
     <string name="re_authentication_activity_title">ຕ້ອງການພິສູດການຢືນຢັນຄືນໃໝ່</string>
-    <string name="call_slide_to_end_conference">ເລື່ອນເພື່ອວາງສາຍ</string>
-    <string name="call_transfer_unknown_person">ບຸກຄົນທີ່ບໍ່ຮູ້ຈັກ</string>
-    <string name="call_transfer_transfer_to_title">ໂອນໄປ %1$s</string>
-    <string name="call_transfer_consulting_with">ໃຫ້ຄໍາປຶກສາກັບ %1$s</string>
-    <string name="call_transfer_users_tab_title">ຜູ້ໃຊ້</string>
-    <string name="call_transfer_failure">ເກີດຄວາມຜິດພາດໃນລະຫວ່າງການໂອນສາຍ</string>
-    <string name="call_transfer_title">ໂອນ</string>
-    <string name="call_transfer_connect_action">ເຊື່ອມຕໍ່</string>
-    <string name="call_transfer_consult_first">ປຶກສາກ່ອນ</string>
-    <string name="call_tap_to_return">%1$s ແຕະເພື່ອກັບຄືນ</string>
-    <string name="call_one_active">ການໂທເຂົ້າ (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="other">%1$d ສາຍໂທເຂົ້າ.</item>
-    </plurals>
-    <string name="call_only_active">ການໂທເຂົ້າ (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">ກີດຄວາມຜິດພາດໃນການຊອກຫາເບີໂທລະສັບ</string>
-    <string name="call_dial_pad_title">ປຸ່ມກົດ</string>
-    <string name="call_tile_no_answer">ບໍ່ຮັບສາຍ</string>
-    <string name="call_tile_video_missed">ສາຍວິດີໂອທີ່ບໍ່ໄດ້ຮັບ</string>
-    <string name="call_tile_voice_missed">ສາຍບໍ່ໄດ້ຮັບ</string>
-    <string name="call_tile_video_declined">ປະຕິເສດການໂທວິດີໂອ</string>
-    <string name="call_tile_voice_declined">ການໂທດ້ວຍສຽງຖືກປະຕິເສດ</string>
     <string name="login_social_signup_with">ສະໝັກດ້ວຍ %s</string>
     <string name="login_social_continue_with">ສືບຕໍ່ດ້ວຍ %s</string>
     <string name="login_social_continue">ຫຼື</string>
@@ -2299,16 +2212,12 @@
     <string name="a11y_start_voice_message">ບັນທຶກຂໍ້ຄວາມສຽງ</string>
     <string name="error_failed_to_join_room">ຂໍອະໄພ, ເກີດຄວາມຜິດພາດຂຶ້ນໃນຂະນະທີ່ພະຍາຍາມເຂົ້າຮ່ວມ: %s</string>
     <string name="room_upgrade_to_recommended_version">ຍົກລະດັບເປັນເວີຊັນຫ້ອງທີ່ແນະນຳ</string>
-    <string name="call_stop_screen_sharing">ຢຸດການແບ່ງປັນໜ້າຈໍ</string>
-    <string name="call_start_screen_sharing">ແບ່ງປັນຫນ້າຈໍ</string>
     <string name="initial_sync_request_reason_unignored_users">- ຜູ້ໃຊ້ບາງຄົນໄດ້ຖືກສົນໃຈ</string>
     <string name="initial_sync_request_content">${app_name} ຕ້ອງດໍາເນີນການ cache ທີ່ຊັດເຈນເພື່ອໃຫ້ທັນສະໄຫມ, ສໍາລັບເຫດຜົນດັ່ງຕໍ່ໄປນີ້:
 \n%s
 \n
 \nກະລຸນາຮັບຊາບວ່າຄຳສັ່ງນີ້ຈະປິດເປີດແອັບຄືນໃໝ່ ແລະ ມັນອາດຈະໃຊ້ເວລາຄາວໜຶ່ງ.</string>
     <string name="initial_sync_request_title">ການຮ້ອງຂໍການຊິງຄ໌ເບື້ອງຕົ້ນ</string>
-    <string name="screen_sharing_notification_description">ການແບ່ງປັນໜ້າຈໍກຳລັງດຳເນີນຢູ່</string>
-    <string name="screen_sharing_notification_title">${app_name} ການແບ່ງປັນໜ້າຈໍ</string>
     <string name="room_message_autocomplete_notification">ການແຈ້ງເຕືອນຫ້ອງ</string>
     <string name="room_message_autocomplete_users">ຜູ້ໃຊ້</string>
     <string name="room_message_notify_everyone">ແຈ້ງໃຫ້ຫ້ອງໍທັງຫມົດ</string>

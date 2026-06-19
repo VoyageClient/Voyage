@@ -31,8 +31,6 @@ class TimelineItemFactory @Inject constructor(
         private val roomCreateItemFactory: RoomCreateItemFactory,
         private val widgetItemFactory: WidgetItemFactory,
         private val verificationConclusionItemFactory: VerificationItemFactory,
-        private val callItemFactory: CallItemFactory,
-        private val elementCallItemFactory: ElementCallItemFactory,
         private val decryptionFailureTracker: DecryptionFailureTracker,
         private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper,
         private val session: Session,
@@ -108,10 +106,6 @@ class TimelineItemFactory @Inject constructor(
                     EventType.KEY_VERIFICATION_KEY,
                     EventType.KEY_VERIFICATION_READY,
                     EventType.KEY_VERIFICATION_MAC,
-                    EventType.CALL_CANDIDATES,
-                    EventType.CALL_REPLACES,
-                    EventType.CALL_SELECT_ANSWER,
-                    EventType.CALL_NEGOTIATE,
                     EventType.REACTION,
                     in EventType.POLL_RESPONSE.values -> noticeItemFactory.create(params)
                     in EventType.BEACON_LOCATION_DATA.values -> {
@@ -121,13 +115,6 @@ class TimelineItemFactory @Inject constructor(
                             noticeItemFactory.create(params)
                         }
                     }
-                    // Element Call
-                    in EventType.ELEMENT_CALL_NOTIFY.values -> elementCallItemFactory.create(params)
-                    // Calls
-                    EventType.CALL_INVITE,
-                    EventType.CALL_HANGUP,
-                    EventType.CALL_REJECT,
-                    EventType.CALL_ANSWER -> callItemFactory.create(params)
                     // Crypto
                     EventType.ENCRYPTED -> {
                         val relationContent = event.getRelationContent()

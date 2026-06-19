@@ -77,10 +77,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.UserPreferencesProvider
-import im.vector.app.core.ui.views.CurrentCallsView
-import im.vector.app.core.ui.views.CurrentCallsViewPresenter
 import im.vector.app.core.ui.views.FailedMessagesWarningView
-import im.vector.app.core.ui.views.JoinConferenceView
 import im.vector.app.core.ui.views.NotificationAreaView
 import im.vector.app.core.ui.views.PinnedMessagesBannerView
 import im.vector.app.core.utils.Debouncer
@@ -111,13 +108,6 @@ import im.vector.app.features.analytics.extensions.toAnalyticsInteraction
 import im.vector.app.features.analytics.plan.Interaction
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.attachments.ShareIntentHandler
-import im.vector.app.features.call.SharedKnownCallsViewModel
-import im.vector.app.features.call.VectorCallActivity
-import im.vector.app.features.call.conference.ConferenceEvent
-import im.vector.app.features.call.conference.ConferenceEventEmitter
-import im.vector.app.features.call.conference.ConferenceEventObserver
-import im.vector.app.features.call.conference.JitsiCallViewModel
-import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.home.AvatarRenderer
@@ -214,7 +204,6 @@ import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
@@ -230,7 +219,6 @@ class TimelineFragment :
         TimelineEventController.Callback,
         VectorInviteView.Callback,
         GalleryOrCameraDialogHelper.Listener,
-        CurrentCallsView.Callback,
         VectorMenuProvider {
 
     @Inject lateinit var session: Session
@@ -249,7 +237,6 @@ class TimelineFragment :
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
-    @Inject lateinit var callManager: WebRtcCallManager
     @Inject lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
     @Inject lateinit var shareIntentHandler: ShareIntentHandler
     @Inject lateinit var clock: Clock
@@ -283,8 +270,6 @@ class TimelineFragment :
     private lateinit var sharedActionViewModel: MessageSharedActionViewModel
     private lateinit var sharedActivityActionViewModel: RoomDetailSharedActionViewModel
 
-    private lateinit var knownCallsViewModel: SharedKnownCallsViewModel
-
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
     private var replyJumpSourceEventId: String? = null
@@ -292,9 +277,6 @@ class TimelineFragment :
     private var pinnedBannerJumpApplied = false
 
     private lateinit var keyboardStateUtils: KeyboardStateUtils
-    private lateinit var callActionsHandler: StartCallActionsHandler
-
-    private val currentCallsViewPresenter = CurrentCallsViewPresenter()
 
     private val lazyLoadedViews = RoomDetailLazyLoadedViews()
 
@@ -322,21 +304,9 @@ class TimelineFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) = PerfTrace.time("timeline.onViewCreated") {
-        lifecycle.addObserver(ConferenceEventObserver(vectorBaseActivity, this::onBroadcastJitsiEvent))
         super.onViewCreated(view, savedInstanceState)
         sharedActionViewModel = activityViewModelProvider.get(MessageSharedActionViewModel::class.java)
         sharedActivityActionViewModel = activityViewModelProvider.get(RoomDetailSharedActionViewModel::class.java)
-        knownCallsViewModel = activityViewModelProvider.get(SharedKnownCallsViewModel::class.java)
-        callActionsHandler = StartCallActionsHandler(
-                roomId = timelineArgs.roomId,
-                fragment = this,
-                vectorPreferences = vectorPreferences,
-                timelineViewModel = timelineViewModel,
-                callManager = callManager,
-                startCallActivityResultLauncher = startCallActivityResultLauncher,
-                showDialogWithMessage = ::showDialogWithMessage,
-                onTapToReturnToCall = ::onTapToReturnToCall
-        )
         keyboardStateUtils = KeyboardStateUtils(requireActivity())
         lazyLoadedViews.bind(views)
         setupToolbar(views.roomToolbar)
@@ -344,9 +314,7 @@ class TimelineFragment :
         PerfTrace.time("timeline.setupRecyclerView") { setupRecyclerView() }
         setupNotificationView()
         setupJumpToReadMarkerView()
-        setupActiveCallView()
         setupJumpToBottomView()
-        setupRemoveJitsiWidgetView()
         setupPinnedMessagesBanner()
         setupLiveLocationIndicator()
         setupBackPressHandling()
@@ -374,13 +342,6 @@ class TimelineFragment :
         processBodyOfReplyToEventUseCase.resolvedReplyTargets
                 .onEach { eventId -> timelineEventController.invalidateEventCache(eventId) }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
-
-        knownCallsViewModel
-                .liveKnownCalls
-                .observe(viewLifecycleOwner) {
-                    currentCallsViewPresenter.updateCall(callManager.getCurrentCall(), it)
-                    invalidateOptionsMenu()
-                }
 
         timelineViewModel.onEach(RoomDetailViewState::canShowJumpToReadMarker, RoomDetailViewState::unreadState) { _, _ ->
             updateJumpToReadMarkerViewVisibility()
@@ -417,8 +378,6 @@ class TimelineFragment :
                 is RoomDetailViewEvents.OpenFile -> startOpenFileIntent(it)
                 RoomDetailViewEvents.OpenActiveWidgetBottomSheet -> onViewWidgetsClicked()
                 is RoomDetailViewEvents.ShowInfoOkDialog -> showDialogWithMessage(it.message)
-                is RoomDetailViewEvents.JoinJitsiConference -> joinJitsiRoom(it.widget, it.withVideo)
-                RoomDetailViewEvents.LeaveJitsiConference -> leaveJitsiConference()
                 is RoomDetailViewEvents.ShowWaitingView -> vectorBaseActivity.showWaitingView(it.text)
                 RoomDetailViewEvents.HideWaitingView -> vectorBaseActivity.hideWaitingView()
                 is RoomDetailViewEvents.RequestNativeWidgetPermission -> requestNativeWidgetPermission(it)
@@ -432,9 +391,7 @@ class TimelineFragment :
                 }
                 is RoomDetailViewEvents.StartChatEffect -> handleChatEffect(it.type)
                 RoomDetailViewEvents.StopChatEffects -> handleStopChatEffects()
-                is RoomDetailViewEvents.DisplayAndAcceptCall -> acceptIncomingCall(it)
                 RoomDetailViewEvents.RoomReplacementStarted -> handleRoomReplacement()
-                RoomDetailViewEvents.OpenElementCallWidget -> handleOpenElementCallWidget()
                 RoomDetailViewEvents.DisplayPromptToStopVoiceBroadcast -> displayPromptToStopVoiceBroadcast()
                 is RoomDetailViewEvents.RevokeFilePermission -> revokeFilePermission(it)
             }
@@ -486,35 +443,6 @@ class TimelineFragment :
                 }
             }
         }
-    }
-
-    private fun setupRemoveJitsiWidgetView() {
-        views.removeJitsiWidgetView.onCompleteSliding = {
-            withState(timelineViewModel) {
-                val jitsiWidgetId = it.jitsiState.widgetId ?: return@withState
-                if (it.jitsiState.hasJoined) {
-                    leaveJitsiConference()
-                }
-                timelineViewModel.handle(RoomDetailAction.RemoveWidget(jitsiWidgetId))
-            }
-        }
-    }
-
-    private fun leaveJitsiConference() {
-        ConferenceEventEmitter(vectorBaseActivity).emitConferenceEnded()
-    }
-
-    private fun onBroadcastJitsiEvent(conferenceEvent: ConferenceEvent) {
-        timelineViewModel.handle(RoomDetailAction.UpdateJoinJitsiCallStatus(conferenceEvent))
-    }
-
-    private fun acceptIncomingCall(event: RoomDetailViewEvents.DisplayAndAcceptCall) {
-        val intent = VectorCallActivity.newIntent(
-                context = vectorBaseActivity,
-                call = event.call,
-                mode = VectorCallActivity.INCOMING_ACCEPT
-        )
-        startActivity(intent)
     }
 
     private fun handleRoomReplacement() {
@@ -668,10 +596,6 @@ class TimelineFragment :
         }
     }
 
-    private fun joinJitsiRoom(jitsiWidget: Widget, enableVideo: Boolean) {
-        navigator.openRoomWidget(requireContext(), timelineArgs.roomId, jitsiWidget, mapOf(JitsiCallViewModel.ENABLE_VIDEO_OPTION to enableVideo))
-    }
-
     private fun openStickerPicker(event: RoomDetailViewEvents.OpenStickerPicker) {
         navigator.openStickerPicker(requireContext(), stickerActivityResultLauncher, timelineArgs.roomId, event.widget)
     }
@@ -753,7 +677,6 @@ class TimelineFragment :
         lazyLoadedViews.unBind()
         timelineEventController.callback = null
         timelineEventController.removeModelBuildListener(modelBuildListener)
-        currentCallsViewPresenter.unBind()
         modelBuildListener = null
         debouncer.cancelAll()
         views.timelineRecyclerView.cleanup()
@@ -884,10 +807,6 @@ class TimelineFragment :
         }
     }
 
-    private fun setupActiveCallView() {
-        currentCallsViewPresenter.bind(views.currentCallsView, this)
-    }
-
     private fun navigateToEvent(action: RoomDetailViewEvents.NavigateToEvent) {
         val scrollPosition = timelineEventController.getPositionOfReadMarker().takeIf { action.isFirstUnreadEvent }
                 ?: timelineEventController.searchPositionOfEvent(action.eventId)
@@ -945,11 +864,6 @@ class TimelineFragment :
                 handleMenuItemSelected(menuItem)
             }
         }
-        val joinConfItem = menu.findItem(R.id.join_conference)
-        (joinConfItem.actionView as? JoinConferenceView)?.onJoinClicked = {
-            timelineViewModel.handle(RoomDetailAction.JoinJitsiCall)
-        }
-
         // Custom thread notification menu item
         menu.findItem(R.id.menu_timeline_thread_list)?.let { menuItem ->
             menuItem.actionView?.setOnClickListener {
@@ -964,20 +878,9 @@ class TimelineFragment :
         }
 
         withState(timelineViewModel) { state ->
-            // Set the visual state of the call buttons (voice/video) to enabled/disabled according to user permissions
-            val hasCallInRoom = callManager.getCallsByRoomId(state.roomId).isNotEmpty() || state.jitsiState.hasJoined
-            val callButtonsEnabled = !hasCallInRoom && when (state.asyncRoomSummary.invoke()?.joinedMembersCount) {
-                1 -> false
-                2 -> state.isAllowedToStartWebRTCCall
-                else -> state.isAllowedToManageWidgets
-            }
-            menu.findItem(R.id.video_call).icon?.alpha = if (callButtonsEnabled) 0xFF else 0x40
-            menu.findItem(R.id.voice_call).icon?.alpha = if (callButtonsEnabled || state.hasActiveElementCallWidget()) 0xFF else 0x40
-
             val matrixAppsMenuItem = menu.findItem(R.id.open_matrix_apps)
             val widgetsCount = state.activeRoomWidgets.invoke()?.size ?: 0
-            val hasOnlyJitsiWidget = widgetsCount == 1 && state.hasActiveJitsiWidget()
-            if (widgetsCount == 0 || hasOnlyJitsiWidget) {
+            if (widgetsCount == 0) {
                 // icon should be default color no badge
                 val actionView = matrixAppsMenuItem.actionView
                 actionView
@@ -1012,14 +915,6 @@ class TimelineFragment :
             }
             R.id.open_matrix_apps -> {
                 timelineViewModel.handle(RoomDetailAction.ManageIntegrations)
-                true
-            }
-            R.id.voice_call -> {
-                callActionsHandler.onVoiceCallClicked()
-                true
-            }
-            R.id.video_call -> {
-                callActionsHandler.onVideoCallClicked()
                 true
             }
             R.id.menu_timeline_thread_list -> {
@@ -1166,20 +1061,6 @@ class TimelineFragment :
         }
     }
 
-    private val startCallActivityResultLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
-        if (allGranted) {
-            (timelineViewModel.pendingAction as? RoomDetailAction.StartCall)?.let {
-                timelineViewModel.pendingAction = null
-                timelineViewModel.handle(it)
-            }
-        } else {
-            if (deniedPermanently) {
-                activity?.onPermissionDeniedDialog(CommonStrings.denied_permission_generic)
-            }
-            cleanUpAfterPermissionNotGranted()
-        }
-    }
-
 // PRIVATE METHODS *****************************************************************************
 
     private fun setupRecyclerView() {
@@ -1309,7 +1190,6 @@ class TimelineFragment :
         val summary = mainState.asyncRoomSummary()
         renderToolbar(summary)
         renderPinnedMessagesBanner(mainState)
-        views.removeJitsiWidgetView.render(mainState)
         if (mainState.hasFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.isVisible = true
         } else {
@@ -2136,15 +2016,6 @@ class TimelineFragment :
                 .show(childFragmentManager, "ROOM_WIDGETS_BOTTOM_SHEET")
     }
 
-    private fun handleOpenElementCallWidget() = withState(timelineViewModel) { state ->
-        state
-                .activeRoomWidgets()
-                ?.find { it.type == WidgetType.ElementCall }
-                ?.also { widget ->
-                    navigator.openRoomWidget(requireContext(), state.roomId, widget)
-                }
-    }
-
     private fun displayPromptToStopVoiceBroadcast() {
         ConfirmationDialogBuilder
                 .show(
@@ -2171,22 +2042,6 @@ class TimelineFragment :
                     revokeFilePermission.uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
             )
-        }
-    }
-
-    override fun onTapToReturnToCall() {
-        callManager.getCurrentCall()?.let { call ->
-            VectorCallActivity.newIntent(
-                    context = requireContext(),
-                    callId = call.callId,
-                    signalingRoomId = call.signalingRoomId,
-                    otherUserId = call.mxCall.opponentUserId,
-                    isIncomingCall = !call.mxCall.isOutgoing,
-                    isVideoCall = call.mxCall.isVideoCall,
-                    mode = null
-            ).let {
-                startActivity(it)
-            }
         }
     }
 

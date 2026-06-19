@@ -14,7 +14,6 @@ import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.notification.NotificationsSettingUpdater
 import im.vector.app.core.notification.PushRulesUpdater
 import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
-import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.devices.v2.notification.UpdateNotificationSettingsAccountDataUseCase
@@ -37,7 +36,6 @@ import javax.inject.Singleton
 @Singleton
 class ConfigureAndStartSessionUseCase @Inject constructor(
         @ApplicationContext private val context: Context,
-        private val webRtcCallManager: WebRtcCallManager,
         private val updateMatrixClientInfoUseCase: UpdateMatrixClientInfoUseCase,
         private val vectorPreferences: VectorPreferences,
         private val notificationsSettingUpdater: NotificationsSettingUpdater,
@@ -55,7 +53,6 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
             session.startSyncing(context)
         }
         session.pushersService().refreshPushers()
-        webRtcCallManager.checkForProtocolsSupportIfNeeded()
         updateMatrixClientInfoIfNeeded(session)
         createNotificationSettingsAccountDataIfNeeded(session)
         notificationsSettingUpdater.onSessionStarted(session)

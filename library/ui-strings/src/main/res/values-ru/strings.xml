@@ -236,8 +236,6 @@
         <item quantity="other">%1$s добавил(а) альтернативные адреса %2$s для этой комнаты.</item>
     </plurals>
     <string name="title_activity_settings">Настройки</string>
-    <string name="call_notification_answer">Принять</string>
-    <string name="call_notification_reject">Отклонить</string>
     <string name="call_notification_hangup">Завершить звонок</string>
     <string name="ok">OK</string>
     <string name="action_cancel">Отмена</string>
@@ -256,8 +254,6 @@
     <string name="or">или</string>
     <string name="action_invite">Пригласить</string>
     <string name="action_sign_out">Выйти из учётной записи</string>
-    <string name="action_voice_call">Голосовой вызов</string>
-    <string name="action_video_call">Видео вызов</string>
     <string name="action_mark_all_as_read">Пометить все как прочитанное</string>
     <string name="action_quick_reply">Быстрый ответ</string>
     <string name="action_open">Открыть</string>
@@ -292,8 +288,6 @@
     <string name="logout">Выйти</string>
     <string name="hs_url">URL домашнего сервера</string>
     <string name="search">Поиск</string>
-    <string name="start_voice_call">Начать голосовой вызов</string>
-    <string name="start_video_call">Начать видеовызов</string>
     <string name="option_send_files">Отправить файлы</string>
     <string name="option_take_photo_video">Камера</string>
     <string name="auth_login">Вход</string>
@@ -312,12 +306,6 @@
     <string name="compression_opt_list_large">Крупный</string>
     <string name="compression_opt_list_medium">Средний</string>
     <string name="compression_opt_list_small">Мелкий</string>
-    <string name="call_connecting">Устанавливается соединение…</string>
-    <string name="call_ended">Вызов завершен</string>
-    <string name="incoming_video_call">Входящий видеовызов</string>
-    <string name="incoming_voice_call">Входящий голосовой вызов</string>
-    <string name="call_in_progress">Идёт разговор…</string>
-    <string name="call_error_user_not_responding">Вызываемый абонент не смог ответить.</string>
     <string name="permissions_rationale_popup_title">Информация</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} необходимы разрешения на доступ к микрофону, чтобы выполнять звонки.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} необходимы разрешения на доступ к камере и микрофону для видеовызовов.
@@ -489,7 +477,6 @@
     <string name="widget_integration_room_not_visible">Комната %s невидима.</string>
     <string name="room_add_matrix_apps">Добавить приложения Matrix</string>
     <string name="notification_listening_for_events">Мониторинг событий</string>
-    <string name="call">Вызов</string>
     <string name="settings_containing_my_user_name">Сообщения, содержащие мое имя пользователя</string>
     <string name="you_added_a_new_device">Вы добавили новою сессию \'%s\', запрашивающую ключи шифрования.</string>
     <string name="your_unverified_device_requesting">Ваш незаверенный сеанс \'%s\' запрашивает ключи шифрования.</string>
@@ -508,8 +495,6 @@
     <string name="notification_noisy">Громко</string>
     <string name="encrypted_message">Зашифрованное сообщение</string>
     <string name="loading">Загрузка…</string>
-    <string name="start_voice_call_prompt_msg">Вы уверены, что хотите начать голосовой вызов?</string>
-    <string name="start_video_call_prompt_msg">Вы уверены, что хотите начать видеовызов?</string>
     <string name="room_participants_ban_prompt_msg">Блокировка пользователя удалит его из этой комнаты и не позволит ему присоединиться вновь.</string>
     <string name="room_settings_all_messages">Все сообщения</string>
     <string name="room_settings_add_homescreen_shortcut">Добавить на главный экран</string>
@@ -630,11 +615,6 @@
     <string name="merged_events_collapse">свернуть</string>
     <string name="settings_password">Пароль</string>
     <string name="auth_accept_policies">Пожалуйста, ознакомьтесь и примите правила этого домашнего сервера:</string>
-    <string name="settings_call_category">Вызовы</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Использовать стандартную мелодию ${app_name} для входящих звонков</string>
-    <string name="settings_call_ringtone_title">Мелодия входящего вызова</string>
-    <string name="settings_call_ringtone_dialog_title">Выберите мелодию звонка:</string>
-    <string name="video_call_in_progress">Идёт видеозвонок …</string>
     <string name="room_participants_action_remove">Удалить из комнаты</string>
     <string name="settings_notification_troubleshoot">Поиск проблем с уведомлениями</string>
     <string name="settings_send_typing_notifs">Оправлять уведомления о наборе текста</string>
@@ -863,7 +843,6 @@
     <string name="settings_play_shutter_sound">Воспроизвести звук затвора</string>
     <string name="encryption_information_unknown_ip">неизвестный IP</string>
     <string name="notification_inline_reply_failed">** Отправить не удалось — пожалуйста, откройте комнату</string>
-    <string name="error_jitsi_not_supported_on_old_device">К сожалению, конференц-звонки с Jitsi не поддерживаются на старых устройствах (ниже Android OS - 6.0)</string>
     <string name="you_added_a_new_device_with_info">Новый сеанс запрашивает ключи шифрования.
 \nНазвание сеанса: %1$s
 \nПоследний раз в сети: %2$s
@@ -1269,19 +1248,10 @@
     <string name="action_copy">Копировать</string>
     <string name="dialog_title_success">Удачно</string>
     <string name="bottom_action_notification">Уведомления</string>
-    <string name="call_failed_no_connection">Звонок не состоялся</string>
-    <string name="call_failed_no_connection_description">Не удалось установить соединение реального времени.
-\nПопросите администратора вашего сервера настроить сервер TURN, чтобы звонки работали надёжно.</string>
-    <string name="call_select_sound_device">Выберите звуковое устройство</string>
     <string name="sound_device_phone">Телефон</string>
     <string name="sound_device_speaker">Динамик</string>
     <string name="sound_device_headset">Гарнитура</string>
     <string name="sound_device_wireless_headset">Беспроводная гарнитура</string>
-    <string name="call_switch_camera">Переключить камеру</string>
-    <string name="call_camera_front">Передняя</string>
-    <string name="call_camera_back">Задняя</string>
-    <string name="call_format_turn_hd_off">Выключить HD</string>
-    <string name="call_format_turn_hd_on">Включить HD</string>
     <string name="login_error_ssl_peer_unverified">Ошибка SSL: не удалось идентифицировать другого абонента.</string>
     <string name="login_error_ssl_other">Ошибка SSL.</string>
     <string name="room_participants_action_cancel_invite">Отменить приглашение</string>
@@ -1659,14 +1629,9 @@
     <string name="auth_pin_reset_content">Чтобы сбросить свой PIN-код, вам нужно будет повторно войти в аккаунт и создать новый PIN-код.</string>
     <string name="settings_security_pin_code_title">Включить PIN-код</string>
     <string name="settings_security_pin_code_summary">Для сброса PIN-кода нажмите Забыл(а) PIN-код, чтобы выйти из сессии и сбросить его.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Предотвращение случайных звонков</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Запрашивать подтверждение перед началом звонка</string>
-    <string name="no_permissions_to_start_conf_call">У вас нет разрешения на запуск конференции в этой комнате</string>
     <string name="video_meeting">Начать видеовстречу</string>
     <string name="audio_meeting">Начать аудиовстречу</string>
     <string name="audio_video_meeting_description">На встречах используются политики безопасности и разрешения Jitsi. Все люди, находящиеся в данный момент в комнате, увидят приглашение присоединиться во время вашей встречи.</string>
-    <string name="cannot_call_yourself">Вы не можете позвонить самому себе</string>
-    <string name="cannot_call_yourself_with_invite">Вы не можете позвонить самому себе, дождитесь, пока участники примут приглашение</string>
     <string name="failed_to_add_widget">Не удалось добавить виджет</string>
     <string name="failed_to_remove_widget">Не удалось удалить виджет</string>
     <plurals name="encryption_import_room_keys_success">
@@ -1715,7 +1680,6 @@
     <string name="sent_a_reaction">Отреагировал(а): %s</string>
     <string name="sent_verification_conclusion">Результат проверки</string>
     <string name="universal_link_malformed">Ссылка была искажена</string>
-    <string name="no_permissions_to_start_webrtc_call">У вас нет разрешения на запуск звонка в этой комнате</string>
     <string name="delete_account_data_warning">Удалить данные учетной записи типа %1$s\?
 \n
 \nИспользуйте с осторожностью, это может привести к неожиданному поведению.</string>
@@ -1758,8 +1722,6 @@
         <item quantity="other">%d приглашений</item>
     </plurals>
     <string name="search_banned_user_hint">Фильтр заблокированных пользователей</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">У вас нет разрешения на запуск звонка</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">У вас нет разрешения на запуск конференции</string>
     <string name="action_reset">Сброс</string>
     <plurals name="secure_backup_reset_devices_you_can_verify">
         <item quantity="one">Показать устройство, которое вы можете проверить сейчас</item>
@@ -1906,21 +1868,7 @@
     <string name="re_authentication_default_confirm_text">${app_name} требует от вас ввести свои учетные данные для выполнения этого действия.</string>
     <string name="re_authentication_activity_title">Требуется повторная аутентификация</string>
     <string name="failed_to_initialize_cross_signing">Не удалось настроить перекрестную подпись</string>
-    <string name="call_only_active">Активный звонок (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">При поиске номера телефона произошла ошибка</string>
-    <string name="call_dial_pad_title">Панель набора номера</string>
-    <string name="call_tile_call_back">Перезвонить</string>
-    <string name="call_tile_ended">Этот вызов закончился</string>
     <string name="call_tile_other_declined">%1$s отменил(а) этот вызов</string>
-    <string name="call_held_by_you">Вы поставили вызов на удержание</string>
-    <string name="call_held_by_user">%s поставил вызов на удержание</string>
-    <string name="call_hold_action">Удерживать</string>
-    <string name="call_resume_action">Возобновить</string>
-    <string name="call_transfer_users_tab_title">Пользователи</string>
-    <string name="call_transfer_failure">Произошла ошибка при переводе вызова</string>
-    <string name="call_transfer_title">Перевод</string>
-    <string name="call_transfer_connect_action">Подключиться</string>
-    <string name="call_transfer_consult_first">Сначала посоветуйтесь</string>
     <string name="error_unauthorized">Нет учётных данных, неправильная учётная запись пользователя и/или пароль</string>
     <string name="event_status_delete_all_failed_dialog_message">Вы уверены, что хотите удалить все неотправленные сообщения в этой комнате\?</string>
     <string name="event_status_delete_all_failed_dialog_title">Удалить неотправленные сообщения</string>
@@ -1979,7 +1927,6 @@
     <string name="settings_server_version">Версия сервера</string>
     <string name="settings_server_name">Название сервера</string>
     <string name="room_list_quick_actions_room_settings">Настройки комнаты</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Покинуть текущую конференцию и перейти к другой\?</string>
     <string name="room_settings_room_version_title">Версия комнаты</string>
     <string name="settings_room_directory_show_all_rooms_summary">Показать все комнаты в списке комнат, в том числе с откровенным содержанием.</string>
     <string name="settings_room_directory_show_all_rooms">Комнаты с непристойным содержанием</string>
@@ -2090,9 +2037,6 @@
     <string name="command_description_create_space">Создать пространство</string>
     <string name="a11y_public_room">Публичная комната</string>
     <string name="a11y_unchecked">Непроверенные</string>
-    <string name="call_transfer_unknown_person">Неизвестное лицо</string>
-    <string name="call_transfer_transfer_to_title">Перевести на %1$s</string>
-    <string name="call_transfer_consulting_with">Консультация с %1$s</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">Отправить видео в исходном размере</item>
         <item quantity="few">Отправить видео в исходном размере</item>
@@ -2118,7 +2062,6 @@
     <string name="you_may_contact_me">Вы можете связаться со мной, если у вас есть дополнительные вопросы</string>
     <string name="send_feedback_space_info">Вы используете бета-версию пространств. Ваши отзывы помогут при разработке следующих версий. Ваша платформа и имя пользователя будут отмечены, чтобы мы могли максимально использовать ваш отзыв.</string>
     <string name="feedback">Отзыв</string>
-    <string name="error_jitsi_join_conf">Извините, при попытке присоединиться к конференции произошла ошибка</string>
     <string name="directory_add_a_new_server_error_already_added">Этот сервер уже присутствует в списке</string>
     <string name="directory_add_a_new_server_error">Не удается найти этот сервер или список его комнат</string>
     <string name="directory_add_a_new_server_prompt">Введите имя нового сервера, который вы хотите исследовать.</string>
@@ -2134,18 +2077,6 @@
     <string name="room_settings_room_access_entry_knock">Любой может постучаться в комнату, а участники могут принять или отклонить его</string>
     <string name="space_settings_alias_subtitle">Просмотреть и управлять адресами этого пространства.</string>
     <string name="room_settings_guest_access_title">Разрешить гостям присоединяться</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Пропущенный видеозвонок</item>
-        <item quantity="few">%d пропущенных видеозвонка</item>
-        <item quantity="many">%d пропущенных видеозвонков</item>
-        <item quantity="other">%d пропущенных видеозвонков</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Пропущенный аудиовызов</item>
-        <item quantity="few">%d пропущенных аудиовызова</item>
-        <item quantity="many">%d пропущенных аудиовызовов</item>
-        <item quantity="other">%d пропущенных аудиовызовов</item>
-    </plurals>
     <string name="use_as_default_and_do_not_ask_again">Использовать по умолчанию и больше не спрашивать</string>
     <string name="option_always_ask">Всегда спрашивать</string>
     <string name="hs_client_url">URL API домашнего сервера</string>
@@ -2202,26 +2133,6 @@
     <string name="this_invite_to_this_space_was_sent">Приглашение в это пространство было отправлено на %s, который не связан с вашей учетной записью</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Все комнаты, в которых вы находитесь, будут отображаться в Начале.</string>
     <string name="preference_show_all_rooms_in_home">Показать все комнаты в Начале</string>
-    <string name="call_slide_to_end_conference">Проведите для завершения вызова</string>
-    <string name="call_tap_to_return">%1$s Нажмите, чтобы вернуться</string>
-    <string name="call_one_active">Активный вызов (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">%1$d Активный вызов ·</item>
-        <item quantity="few">%1$d активных вызова ·</item>
-        <item quantity="many">%1$d активных вызовов ·</item>
-        <item quantity="other">%1$d активных вызовов ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">Нет ответа</string>
-    <string name="call_tile_video_missed">Пропущенный выдеовызов</string>
-    <string name="call_tile_voice_missed">Пропущенный голосовой вызов</string>
-    <string name="call_tile_video_declined">Видеовызов отклонен</string>
-    <string name="call_tile_voice_declined">Голосовой вызов отклонен</string>
-    <string name="call_tile_video_call_has_ended">Выдеовызов завершен • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Голосовой вызов завершен • %1$s</string>
-    <string name="call_tile_video_active">Активный видеовызов</string>
-    <string name="call_tile_voice_active">Активный голосовой вызов</string>
-    <string name="call_tile_video_incoming">Входящий видеовызов</string>
-    <string name="call_tile_voice_incoming">Входящий голосовой вызов</string>
     <string name="call_tile_you_declined_this_call">Вы отклонили этот вызов</string>
     <string name="room_settings_room_notifications_account_settings">Настройки учётной записи</string>
     <string name="room_settings_room_notifications_manage_notifications">Вы можете управлять уведомлениями в %1$s.</string>
@@ -2236,13 +2147,6 @@
     <string name="settings_notification_your_keywords">Ваши ключевые слова</string>
     <string name="room_settings_none">Отсутствует</string>
     <string name="room_settings_mention_and_keyword_only">Только упоминания и ключевые слова</string>
-    <string name="call_remove_jitsi_widget_progress">Завершение вызова…</string>
-    <string name="call_ended_invite_timeout_title">Нет ответа</string>
-    <string name="call_ended_user_busy_description">Пользователь, которого вы вызвали, занят.</string>
-    <string name="call_ended_user_busy_title">Пользователь занят</string>
-    <string name="audio_call_with_participant">Аудиовызов с %s</string>
-    <string name="video_call_with_participant">Видеовызов с %s</string>
-    <string name="call_ringing">Вызов…</string>
     <string name="spaces">Пространства</string>
     <string name="space_add_space_to_any_space_you_manage">Добавьте пространство в любое пространство, которым вы управляете.</string>
     <string name="space_add_existing_spaces">Добавить существующие пространства</string>
@@ -2486,8 +2390,6 @@
     <string name="threads_labs_enable_notice_title">Бета-версия Обсуждений</string>
     <string name="threads_beta_enable_notice_title">Бета-версия Обсуждений</string>
     <string name="threads_notice_migration_title">Обсуждения почти в бете 🎉</string>
-    <string name="call_stop_screen_sharing">Остановить демонстрацию экрана</string>
-    <string name="call_start_screen_sharing">Демонстрировать экран</string>
     <string name="action_learn_more">Узнать больше</string>
     <string name="action_try_it_out">Попробуйте</string>
     <string name="action_disable">Отключить</string>
@@ -2556,8 +2458,6 @@
     <string name="space_leave_radio_button_none">Не выходить</string>
     <string name="space_leave_radio_button_all">Выйти из всех</string>
     <string name="settings_presence">Присутствие</string>
-    <string name="screen_sharing_notification_title">${app_name} Демонстрация экрана</string>
-    <string name="screen_sharing_notification_description">Идёт демонстрация экрана</string>
     <string name="location_share_live_view">Посмотреть трансляцию местоположения</string>
     <string name="settings_troubleshoot_test_current_gateway">Текущий шлюз: %s</string>
     <string name="settings_troubleshoot_test_current_gateway_title">Шлюз</string>
@@ -3067,7 +2967,5 @@
 \n%s</string>
     <string name="invite_unknown_users_dialog_submit">Всё равно пригласить</string>
     <string name="create_room_unknown_users_dialog_submit">Всё равно начать беседу</string>
-    <string name="microphone_in_use_title">Используется микрофон</string>
     <string name="call_unsupported">Неподдерживаемый вызов</string>
-    <string name="call_unsupported_matrix_rtc_call">Вызов не поддерживается. Для подключения к этому вызову необходимо новое приложение Element X.</string>
 </resources>

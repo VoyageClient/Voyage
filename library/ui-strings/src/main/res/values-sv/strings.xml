@@ -268,8 +268,6 @@
     <string name="action_decline">Avslå</string>
     <string name="action_sign_out">Logga ut</string>
     <string name="action_sign_out_confirmation_simple">Är du säker på att du vill logga ut\?</string>
-    <string name="action_voice_call">Röstsamtal</string>
-    <string name="action_video_call">Videosamtal</string>
     <string name="action_mark_all_as_read">Markera alla som lästa</string>
     <string name="action_quick_reply">Snabbsvar</string>
     <string name="action_mark_room_read">Markera som läst</string>
@@ -309,11 +307,7 @@
     <string name="logout">Logga ut</string>
     <string name="hs_url">URL för hemserver</string>
     <string name="search">Sök</string>
-    <string name="start_voice_call">Starta röstsamtal</string>
-    <string name="start_video_call">Starta videosamtal</string>
     <string name="option_send_voice">Skicka röst</string>
-    <string name="start_voice_call_prompt_msg">Är du säker på att du vill starta ett röstsamtal\?</string>
-    <string name="start_video_call_prompt_msg">Är du säker på att du vill skapa ett videosamtal\?</string>
     <string name="option_send_files">Skicka filer</string>
     <string name="option_send_sticker">Skicka dekal</string>
     <string name="option_take_photo_video">Ta foto eller video</string>
@@ -349,18 +343,6 @@
     <string name="compression_opt_list_large">Stor</string>
     <string name="compression_opt_list_medium">Medium</string>
     <string name="compression_opt_list_small">Liten</string>
-    <string name="settings_call_category">Samtal</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Använd förvald ${app_name}-ringsignal för inkommande samtal</string>
-    <string name="settings_call_ringtone_title">Ringsignal för inkommande samtal</string>
-    <string name="settings_call_ringtone_dialog_title">Välj ringsignal för samtal:</string>
-    <string name="call">Ring</string>
-    <string name="call_connecting">Samtal ansluter…</string>
-    <string name="call_ended">Samtal avslutat</string>
-    <string name="incoming_video_call">Inkommande videosamtal</string>
-    <string name="incoming_voice_call">Inkommande röstsamtal</string>
-    <string name="call_in_progress">Samtal pågår…</string>
-    <string name="video_call_in_progress">Videosamtal pågår…</string>
-    <string name="call_error_user_not_responding">Den andra parten svarade inte.</string>
     <string name="permissions_rationale_popup_title">Information</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} behöver tillstånd att komma åt din mikrofon för hålla röstsamtal.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} behöver tillstånd att komma åt din kamera och mikrofon för att kunna utföra videosamtal.
@@ -695,7 +677,6 @@
     <string name="action_copy">Kopiera</string>
     <string name="dialog_title_success">Framgång</string>
     <string name="bottom_action_notification">Aviseringar</string>
-    <string name="call_switch_camera">Byt kamera</string>
     <string name="room_participants_action_ignore_prompt_msg">Att ignorera den här användaren kommer att ta bort hens meddelanden från rum ni delar.
 \n
 \nDu kan återkalla det här när som helst i de allmänna inställningarna.</string>
@@ -792,30 +773,17 @@
     <string name="crypto_error_withheld_unverified">Du kan inte komma åt det här meddelandet för att din session inte är betrodd av avsändaren</string>
     <string name="crypto_error_withheld_generic">Du kan inte komma åt det här meddelandet för att avsändaren avsiktligt inte skickade nycklarna</string>
     <string name="empty_contact_book">Din kontaktbok är tom</string>
-    <string name="no_permissions_to_start_conf_call">Du är inte behörig att starta ett gruppsamtal i det här rummet</string>
     <string name="video_meeting">Starta videomöte</string>
     <string name="audio_meeting">Starta ljudmöte</string>
     <string name="audio_video_meeting_description">Möten använder Jitsis säkerhets- och behörighetsprinciper. Alla personer nu i rummet kommer att se en inbjudan för att gå med medans mötet pågår.</string>
-    <string name="cannot_call_yourself">Du kan inte ringa ett samtal till dig själv</string>
-    <string name="cannot_call_yourself_with_invite">Du kan inte ringa ett samtal till dig själv, vänta tills deltagare accepterar inbjudan</string>
     <string name="failed_to_add_widget">Misslyckades att lägga till widget</string>
     <string name="failed_to_remove_widget">Misslyckades att ta bort widget</string>
-    <string name="call_failed_no_connection">${app_name}samtal misslyckades</string>
-    <string name="call_failed_no_connection_description">Misslyckades att upprätta en realtidsuppkoppling.
-\nVänligen be administratören för din hemserver att konfigurera en TURN-server för att samtal ska fungera pålitligt.</string>
-    <string name="call_select_sound_device">Välj ljudenhet</string>
     <string name="sound_device_phone">Telefon</string>
     <string name="sound_device_speaker">Högtalare</string>
     <string name="sound_device_headset">Hörlurar</string>
     <string name="sound_device_wireless_headset">Trådlösa hörlurar</string>
-    <string name="call_camera_front">Fram</string>
-    <string name="call_camera_back">Bak</string>
-    <string name="call_format_turn_hd_off">Stäng av HD</string>
-    <string name="call_format_turn_hd_on">Sätt på HD</string>
     <string name="login_error_ssl_peer_unverified">SSL-fel: andra partens identitet har inte verifierats.</string>
     <string name="login_error_ssl_other">SSL-fel.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Förhindra oavsiktligt samtal</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Fråga efter bekräftelse innan ett samtal startas</string>
     <string name="room_participants_action_cancel_invite">Avbryt inbjudan</string>
     <string name="room_participants_action_mention">Omnämn</string>
     <string name="room_participants_power_level_prompt">Du kommer inte kunna ångra den här ändringen eftersom du befordrar användaren till samma behörighetsnivå som dig själv.
@@ -1171,7 +1139,6 @@
     <string name="room_widget_permission_user_id">Ditt användar-ID</string>
     <string name="room_widget_permission_widget_id">Widget-ID</string>
     <string name="room_widget_permission_room_id">Rums-ID</string>
-    <string name="error_jitsi_not_supported_on_old_device">Tyvärr, gruppsamtal med Jitsi stöds inte på gamla enheter (enheter med Android äldre än 6.0)</string>
     <string name="room_widget_resource_permission_title">Den här widgeten vill använda följande resurser:</string>
     <string name="room_widget_resource_grant_permission">Tillåt</string>
     <string name="room_widget_resource_decline_permission">Blockera alla</string>
@@ -1487,8 +1454,6 @@
     <string name="rendering_event_error_exception">${app_name} stötte på ett fel vid rendering av innehållet i händelsen med id \'%1$s\'</string>
     <string name="unignore">Avignorera</string>
     <string name="command_description_rainbow_emote">Skickar den givna emoten i regnbågsfärg</string>
-    <string name="call_notification_answer">Godkänn</string>
-    <string name="call_notification_reject">Avslå</string>
     <string name="call_notification_hangup">Lägg på</string>
     <string name="room_settings_enable_encryption_dialog_title">Aktivera kryptering\?</string>
     <string name="room_settings_enable_encryption_dialog_submit">Aktivera kryptering</string>
@@ -1666,7 +1631,6 @@
     <string name="sent_a_reaction">Reagerade med: %s</string>
     <string name="sent_verification_conclusion">Verifieringsavslutning</string>
     <string name="universal_link_malformed">Länken var felformaterad</string>
-    <string name="no_permissions_to_start_webrtc_call">Du är inte behörig att starta ett samtal i det här rummet</string>
     <string name="delete_account_data_warning">Radera kontodata av typen %1$s\?
 \n
 \nAnvänd varsamt, det kan leda till oväntat beteende.</string>
@@ -1719,8 +1683,6 @@
     <string name="settings_troubleshoot_test_push_loop_waiting_for_push">Appen väntar på PUSH:en</string>
     <string name="settings_troubleshoot_test_push_loop_title">Testa push</string>
     <string name="search_banned_user_hint">Filtrera bannade användare</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Du är inte behörig att starta ett samtal</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Du är inte behörig att starta ett gruppsamtal</string>
     <string name="action_reset">Återställ</string>
     <string name="create_room_topic_hint">Ämne</string>
     <string name="warning_unsaved_change_discard">Förkasta ändringar</string>
@@ -1854,21 +1816,7 @@
     <string name="re_authentication_activity_title">Omautentisering krävs</string>
     <string name="failed_to_initialize_cross_signing">Mislyckades att ställa in korssignering</string>
     <string name="error_unauthorized">Obehörig, saknar giltiga autentiseringsuppgifter</string>
-    <string name="call_transfer_users_tab_title">Användare</string>
-    <string name="call_transfer_failure">Ett fel inträffade när samtalet flyttades</string>
-    <string name="call_transfer_title">Flytta</string>
-    <string name="call_transfer_connect_action">Anslut</string>
-    <string name="call_transfer_consult_first">Rådfråga först</string>
-    <string name="call_only_active">Aktivt samtal (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Ett fel inträffade när telefonnumret slogs upp</string>
-    <string name="call_dial_pad_title">Knappsats</string>
-    <string name="call_tile_call_back">Ring tillbaka</string>
-    <string name="call_tile_ended">Det här samtalet har avslutats</string>
     <string name="call_tile_other_declined">%1$s avböjde det här samtalet</string>
-    <string name="call_held_by_you">Du parkerade samtalet</string>
-    <string name="call_held_by_user">%s parkerade samtalet</string>
-    <string name="call_hold_action">Parkera</string>
-    <string name="call_resume_action">Återuppta</string>
     <plurals name="entries">
         <item quantity="one">%d inmatning</item>
         <item quantity="other">%d inmatningar</item>
@@ -1879,7 +1827,6 @@
     <string name="settings_server_version">Serverversion</string>
     <string name="settings_server_name">Servernamn</string>
     <string name="room_list_quick_actions_room_settings">Rumsinställningar</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Lämna det nuvarande gruppsamtalet och byt till det andra\?</string>
     <string name="room_settings_room_version_title">Rumsversion</string>
     <string name="dialog_edit_hint">Nytt värde</string>
     <string name="action_switch">Byt</string>
@@ -2042,13 +1989,9 @@
     <string name="send_feedback_space_info">Du använder en betaversion av utrymmen. Din återkoppling kommer att hjälpa till att utveckla nästa version. Din plattform och ditt användarnamn kommer att noteras för att hjälpa oss att få så mycket användning för din återkoppling som vi kan.</string>
     <string name="feedback">Återkoppling</string>
     <string name="send_feedback_space_title">Utrymmesåterkoppling</string>
-    <string name="error_jitsi_join_conf">Tyvärr så inträffade ett fel vid försök att gå med i gruppsamtalet</string>
     <string name="unnamed_room">Namnlöst rum</string>
     <string name="private_space">Privat utrymme</string>
     <string name="public_space">Offentligt utrymme</string>
-    <string name="call_transfer_unknown_person">Ökänd person</string>
-    <string name="call_transfer_transfer_to_title">Överför till %1$s</string>
-    <string name="call_transfer_consulting_with">Rådfrågar %1$s</string>
     <string name="directory_add_a_new_server_error_already_added">Den här servern finns redan i listan</string>
     <string name="directory_add_a_new_server_error">Kan inte hitta den här servern eller dess rumslista</string>
     <string name="directory_add_a_new_server_prompt">Ange namnet för en ny server du vill utforska.</string>
@@ -2122,14 +2065,6 @@
     <string name="settings_notification_other">Andra</string>
     <string name="settings_notification_mentions_and_keywords">Omnämnanden och nyckelord</string>
     <string name="settings_notification_default">Förvalda aviseringar</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Missat videosamtal</item>
-        <item quantity="other">%d missade videosamtal</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Missat ljudsamtal</item>
-        <item quantity="other">%d missade ljudsamtal</item>
-    </plurals>
     <string name="hs_client_url">Hemserver-API-URL</string>
     <string name="missing_permissions_title">Saknar behörighet</string>
     <string name="denied_permission_voice_message">För att skicka röstmeddelanden, vänligen ge mikrofonåtkomst.</string>
@@ -2139,24 +2074,6 @@
     <string name="this_invite_to_this_room_was_sent">Denna inbjudan till det här rummet skickades till %s, vilket inte är associerat med ditt konto</string>
     <string name="preference_show_all_rooms_in_home">Visa alla rum i Hem</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Alla rum du är i kommer att visas i Hem.</string>
-    <string name="call_slide_to_end_conference">Svep för att avsluta samtalet</string>
-    <string name="call_tap_to_return">%1$s Tryck för att återgå</string>
-    <string name="call_one_active">Aktivt samtal (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Aktivt samtal ·</item>
-        <item quantity="other">%1$d aktiva samtal ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">Inget svar</string>
-    <string name="call_tile_video_missed">Missat videosamtal</string>
-    <string name="call_tile_voice_missed">Missat röstsamtal</string>
-    <string name="call_tile_video_declined">Videosamtal avböjt</string>
-    <string name="call_tile_voice_declined">Röstsamtal avböjt</string>
-    <string name="call_tile_video_call_has_ended">Videosamtal avslutat • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Röstsamtal avslutat • %1$s</string>
-    <string name="call_tile_video_active">Aktivt videosamtal</string>
-    <string name="call_tile_voice_active">Aktivt röstsamtal</string>
-    <string name="call_tile_video_incoming">Inkommande videosamtal</string>
-    <string name="call_tile_voice_incoming">Inkommande röstsamtal</string>
     <string name="call_tile_you_declined_this_call">Du avböjde det här samtalet</string>
     <string name="room_settings_room_notifications_account_settings">Kontoinställningar</string>
     <string name="room_settings_room_notifications_manage_notifications">Du kan hantera aviseringar i %1$s.</string>
@@ -2171,13 +2088,6 @@
     <string name="settings_notification_your_keywords">Dina nyckelord</string>
     <string name="room_settings_none">Inga</string>
     <string name="room_settings_mention_and_keyword_only">Endast omnämnanden och nyckelord</string>
-    <string name="call_remove_jitsi_widget_progress">Avslutar samtal…</string>
-    <string name="call_ended_invite_timeout_title">Inget svar</string>
-    <string name="call_ended_user_busy_description">Användaren du ringde är upptagen.</string>
-    <string name="call_ended_user_busy_title">Användare upptagen</string>
-    <string name="audio_call_with_participant">Ljudsamtal med %s</string>
-    <string name="video_call_with_participant">Videosamtal med %s</string>
-    <string name="call_ringing">Samtal ringer…</string>
     <string name="spaces">Utrymmen</string>
     <string name="space_settings_permissions_title">Utrymmesbehörigheter</string>
     <string name="space_participants_unban_prompt_msg">Om användaren avbannas kommer denna att få gå med i utrymmet igen.</string>
@@ -2450,10 +2360,6 @@
     <string name="threads_beta_enable_notice_title">Trådar Beta</string>
     <string name="action_learn_more">Läs mer</string>
     <string name="action_try_it_out">Prova</string>
-    <string name="screen_sharing_notification_description">Skärmdelning pågår</string>
-    <string name="screen_sharing_notification_title">${app_name} delar skärm</string>
-    <string name="call_stop_screen_sharing">Avsluta skärmdelning</string>
-    <string name="call_start_screen_sharing">Dela skärm</string>
     <string name="initial_sync_request_reason_unignored_users">- Vissa användare har avignorerats</string>
     <string name="initial_sync_request_content">${app_name} behöver rensa cache för att uppdateras, av följande anledning:
 \n%s
@@ -2962,9 +2868,7 @@
     <string name="user_reported_as_inappropriate_content">Användaren har rapporterats.
 \n
 \nOm du inte vill se något mer innehåll från den här användaren så kan du ignorera denne för att dölja dennes meddelanden.</string>
-    <string name="microphone_in_use_title">Mikrofon används</string>
     <string name="call_unsupported">Samtal stöds inte</string>
-    <string name="call_unsupported_matrix_rtc_call">Samtal stöds inte. Nya Element X-appen behövs för att gå med i det här samtalet.</string>
     <string name="view_download_replacement_app_title">Ladda ner %1$s</string>
     <string name="view_download_replacement_app_subtitle">Snabbare, säkrare och fullproppad med kraftfulla samarbetsverktyg.</string>
     <string name="error_mas_not_supported_title">Du kan inte längre skapa ett konto med %1$s med den här appen</string>

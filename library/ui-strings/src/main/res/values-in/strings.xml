@@ -16,8 +16,6 @@
     <string name="report_content">Laporkan Konten</string>
     <string name="or">atau</string>
     <string name="action_invite">Undang</string>
-    <string name="action_voice_call">Panggilan Suara</string>
-    <string name="action_video_call">Panggilan Video</string>
     <string name="action_quick_reply">Balasan Cepat</string>
     <string name="dialog_title_warning">Peringatan</string>
     <string name="dialog_title_confirmation">Konfirmasi</string>
@@ -49,9 +47,7 @@
     <string name="send_bug_report">Laporan kutu</string>
     <string name="send_bug_report_app_crashed">Aplikasi mogok saat terakhir digunakan. Apakah Anda ingin membuka halaman laporan kemogokan\?</string>
     <string name="join_room">Bergabung ke Ruangan</string>
-    <string name="start_voice_call">Mulai Panggilan Suara</string>
     <string name="auth_login">Masuk</string>
-    <string name="start_video_call">Mulai Panggilan Video</string>
     <string name="option_send_files">Kirim file</string>
     <string name="auth_email_already_defined">Alamat email ini sudah terdefinisi.</string>
     <string name="auth_forgot_password">Lupa kata sandi\?</string>
@@ -62,8 +58,6 @@
     <string name="compression_opt_list_large">Besar</string>
     <string name="compression_opt_list_medium">Sedang</string>
     <string name="compression_opt_list_small">Kecil</string>
-    <string name="call_connecting">Menyambungkan panggilan…</string>
-    <string name="call_ended">Panggilan diakhiri</string>
     <string name="permissions_rationale_popup_title">Informasi</string>
     <string name="yes">YA</string>
     <string name="no">TIDAK</string>
@@ -97,9 +91,6 @@
     <string name="login_error_bad_json">JSON amburadul</string>
     <string name="login_error_not_json">Tidak berisi JSON yang absah</string>
     <string name="login_error_limit_exceeded">Pengajuan yang dikirimkan terlalu banyak</string>
-    <string name="incoming_video_call">Panggilan Video Masuk</string>
-    <string name="incoming_voice_call">Panggilan Suara Masuk</string>
-    <string name="call_in_progress">Panggilan Sedang Berlangsung…</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} membutuhkan permisi atas akses mikrofon Anda untuk melakukan panggilan audio.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} membutuhkan izin untuk mengakses kamera dan mikrofon Anda untuk melakukan panggilan video.
 \n
@@ -117,8 +108,6 @@
     <string name="send_bug_report_description_in_english">Mohon deskripsikan dengan bahasa Inggris apabila memungkinkan.</string>
     <string name="send_bug_report_rage_shake">Guncang perangkat untuk laporan gangguan</string>
     <string name="option_send_voice">Kirim Pesan Suara</string>
-    <string name="start_voice_call_prompt_msg">Apa benar Anda ingin memulai panggilan suara?</string>
-    <string name="start_video_call_prompt_msg">Apa benar Anda ingin memulai panggilan video?</string>
     <string name="option_send_sticker">Kirim Sticker</string>
     <string name="option_take_photo">Ambil foto</string>
     <string name="option_take_video">Ambil video</string>
@@ -131,7 +120,6 @@
     <plurals name="membership_changes">
         <item quantity="other">%d perubahan keanggotaan</item>
     </plurals>
-    <string name="call">Panggilan</string>
     <string name="list_members">Anggota</string>
     <string name="room_jump_to_first_unread">Arahkan ke pesan yang belum dibaca</string>
     <plurals name="room_title_members">
@@ -149,7 +137,6 @@
     <string name="room_participants_power_level_prompt">Anda tidak akan dapat mengembalikan perubahan ini setelah Anda mengangkat pengguna ini agar memiliki daya yang setara dengan Anda.
 \nApakah Anda yakin untuk melanjutkan\?</string>
     <string name="room_participants_ban_prompt_msg">Melakukan pencekalan pengguna akan mengeluarkannya dari ruangan ini dan mencegahnya untuk kembali masuk.</string>
-    <string name="call_error_user_not_responding">Gagal terjawab oleh pihak lain.</string>
     <string name="room_one_user_is_typing">%s sedang mengetik…</string>
     <string name="room_two_users_are_typing">%1$s &amp; %2$s sedang mengetik…</string>
     <string name="room_many_users_are_typing">%1$s &amp; %2$s &amp; lainnya sedang mengetik…</string>
@@ -370,11 +357,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="action_accept">Terima</string>
     <string name="dialog_title_error">Error</string>
     <string name="auth_accept_policies">Mohon telaah dan terima kebijakan homeserver ini:</string>
-    <string name="settings_call_category">Panggilan</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Gunakan nada dering bawaan ${app_name} untuk panggilan masuk</string>
-    <string name="settings_call_ringtone_title">Nada dering panggilan masuk</string>
-    <string name="settings_call_ringtone_dialog_title">Pilih nada dering untuk panggilan:</string>
-    <string name="video_call_in_progress">Panggilan Video Sedang Berlangsung…</string>
     <string name="room_participants_action_remove">Keluarkan</string>
     <string name="settings_notification_troubleshoot">Periksa Keadaan Pemberitahuan</string>
     <string name="settings_troubleshoot_diagnostic">Hasil diagnosa pemeriksaan keadaan</string>
@@ -598,18 +580,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_participants_leave_private_warning">Ruangan ini tidak umum. Anda tidak akan dapat bergabung kembali tanpa undangan.</string>
     <string name="permissions_denied_add_contact">Izinkan untuk mengakses kontak.</string>
     <string name="permissions_denied_qr_code">Untuk dapat meng-scan kode QR, Anda harus mengizinkan akses kamera.</string>
-    <string name="call_held_by_you">Anda menjeda panggilan</string>
-    <string name="call_held_by_user">%s menjeda panggilan</string>
-    <string name="call_hold_action">Jeda</string>
-    <string name="call_resume_action">Lanjut</string>
-    <plurals name="missed_video_call">
-        <item quantity="other">%d panggilan video yang terjawab</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="other">%d panggilan audio yang terjawab</item>
-    </plurals>
-    <string name="settings_call_show_confirmation_dialog_summary">Meminta untuk konfirmasi sebelum memulai panggilan</string>
-    <string name="settings_call_show_confirmation_dialog_title">Cegah panggilan tidak disengaja</string>
     <string name="error_unauthorized">Tidak sah, tidak ada kredensial autentikasi yang absah</string>
     <string name="login_error_ssl_other">Kesalahan SSL.</string>
     <string name="login_error_ssl_peer_unverified">Kesalahan SSL: identitas peer belum diverifikasi.</string>
@@ -619,19 +589,10 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="auth_login_sso">Masuk dengan single sign-on</string>
     <string name="use_as_default_and_do_not_ask_again">Gunakan sebagai bawaan dan jangan tanya lagi</string>
     <string name="option_always_ask">Selalu tanya</string>
-    <string name="call_format_turn_hd_on">Nyalakan HD</string>
-    <string name="call_format_turn_hd_off">Matikan HD</string>
-    <string name="call_camera_back">Belakang</string>
-    <string name="call_camera_front">Depan</string>
-    <string name="call_switch_camera">Ganti Kamera</string>
     <string name="sound_device_wireless_headset">Headset Wireless</string>
     <string name="sound_device_headset">Headset</string>
     <string name="sound_device_speaker">Speaker</string>
     <string name="sound_device_phone">Ponsel</string>
-    <string name="call_select_sound_device">Pilih Perangkat Suara</string>
-    <string name="call_failed_no_connection_description">Gagal membuat koneksi real-time.
-\nSilakan minta administrator homeserver Anda untuk mengkonfigurasi server TURN agar panggilan untuk bekerja dengan andal.</string>
-    <string name="call_failed_no_connection">${app_name} Panggilan Gagal</string>
     <string name="hs_client_url">URL API homeserver</string>
     <string name="send_bug_report_include_key_share_history">Kirim riwayat permintaan pemberian kunci</string>
     <string name="spaces_header">Space</string>
@@ -649,21 +610,13 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="action_copy">Salin</string>
     <string name="action_mark_room_read">Tandai sebagai dibaca</string>
     <string name="call_notification_hangup">Tutup Telepon</string>
-    <string name="call_notification_reject">Tolak</string>
-    <string name="call_notification_answer">Terima</string>
     <string name="action_decline">Tolak</string>
     <string name="action_ignore">Abaikan</string>
     <string name="failed_to_remove_widget">Gagal menghapus widget</string>
     <string name="failed_to_add_widget">Gagal menambahkan widget</string>
-    <string name="cannot_call_yourself_with_invite">Anda tidak dapat melakukan panggilan dengan diri sendiri, tunggu untuk peserta untuk menerima undangan</string>
-    <string name="cannot_call_yourself">Anda tidak dapat melakukan panggilan dengan diri sendiri</string>
     <string name="audio_video_meeting_description">Pertemuan menggunakan kebijakan keamanan dan perizinan Jitsi. Semua orang saat ini berada di ruangan akan melihat undangan untuk bergabung saat pertemuan Anda sedang berlangsung.</string>
     <string name="video_meeting">Mulai rapat video</string>
     <string name="audio_meeting">Mulai rapat audio</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Anda tidak memiliki izin untuk memulai panggilan</string>
-    <string name="no_permissions_to_start_webrtc_call">Anda tidak memiliki izin untuk memulai panggilan di ruangan ini</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Anda tidak memiliki izin untuk memulai panggilan konferensi</string>
-    <string name="no_permissions_to_start_conf_call">Anda tidak memiliki izin untuk memulai panggilan konferensi di ruangan ini</string>
     <string name="missing_permissions_title">Tidak ada izin</string>
     <string name="denied_permission_voice_message">Untuk mengirim pesan suara, silakan berikan izin Mikrofon.</string>
     <string name="denied_permission_camera">Untuk melakukan tindakan ini, silakan berikan izin Kamera dari pengaturan sistem.</string>
@@ -855,9 +808,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_widget_resource_decline_permission">Blokir Semua</string>
     <string name="room_widget_resource_grant_permission">Izinkan</string>
     <string name="room_widget_resource_permission_title">Widget ini ingin menggunakan sumber daya berikut:</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Tinggalkan konferensi saat ini dan beralih ke yang lain\?</string>
-    <string name="error_jitsi_join_conf">Maaf, terjadi kesalahan saat mencoba bergabung konferensi</string>
-    <string name="error_jitsi_not_supported_on_old_device">Maaf, panggilan konferensi dengan Jitsi tidak didukung di perangkat lama (perangkat dengan OS Android di bawah 6.0)</string>
     <string name="room_widget_permission_room_id">ID Ruangan</string>
     <string name="room_widget_permission_widget_id">ID Widget</string>
     <string name="room_widget_permission_theme">Tema Anda</string>
@@ -1025,13 +975,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_notification_default">Notifikasi Bawaan</string>
     <string name="room_settings_none">Tidak ada</string>
     <string name="room_settings_mention_and_keyword_only">Hanya sebutan &amp; kata kunci</string>
-    <string name="call_remove_jitsi_widget_progress">Mengakhiri panggilan…</string>
-    <string name="call_ended_invite_timeout_title">Tidak ada jawaban</string>
-    <string name="call_ended_user_busy_description">Pengguna yang Anda panggil sedang sibuk.</string>
-    <string name="call_ended_user_busy_title">Pengguna sedang sibuk</string>
-    <string name="audio_call_with_participant">Panggilan suara dengan %s</string>
-    <string name="video_call_with_participant">Panggilan video dengan %s</string>
-    <string name="call_ringing">Panggilan berdering…</string>
     <string name="spaces">Space</string>
     <string name="settings_discovery_confirm_mail_not_clicked">Kami mengirim Anda email konfirmasi ke %s, mohon periksa email Anda dan klik tautan konfirmasi</string>
     <string name="settings_discovery_no_mails">Opsi penemuan akan muncul setelah Anda menambahkan sebuah alamat email.</string>
@@ -2103,36 +2046,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="authentication_error">Gagal mengautentikasi</string>
     <string name="re_authentication_default_confirm_text">${app_name} meminta Anda untuk memasukkan kredensial untuk melakukan tindakan ini.</string>
     <string name="re_authentication_activity_title">Autentikasi Ulang Dibutuhkan</string>
-    <string name="call_slide_to_end_conference">Geser untuk mengakhirkan panggilan</string>
-    <string name="call_transfer_unknown_person">Orang tak dikenal</string>
-    <string name="call_transfer_transfer_to_title">Pindah ke %1$s</string>
-    <string name="call_transfer_consulting_with">Mengkonsultasikan dengan %1$s</string>
-    <string name="call_transfer_users_tab_title">Pengguna</string>
-    <string name="call_transfer_failure">Sebuah kesalahan terjadi ketika memindahkan panggilan</string>
-    <string name="call_transfer_title">Pindahkan</string>
-    <string name="call_transfer_connect_action">Sambungkan</string>
-    <string name="call_transfer_consult_first">Konsultasi dahulu</string>
-    <string name="call_tap_to_return">%1$s Ketuk untuk kembali</string>
-    <string name="call_one_active">Panggilan aktif (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="other">%1$d panggilan aktif ·</item>
-    </plurals>
-    <string name="call_only_active">Panggilan aktif (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Ada sebuah kesalahan saat mencari nomor telepon</string>
-    <string name="call_dial_pad_title">Tombol penyetel</string>
-    <string name="call_tile_no_answer">Tidak ada jawaban</string>
-    <string name="call_tile_video_missed">Panggilan video yang terlewat</string>
-    <string name="call_tile_voice_missed">Panggilan suara yang terlewat</string>
-    <string name="call_tile_video_declined">Panggilan video ditolak</string>
-    <string name="call_tile_voice_declined">Panggilan suara ditolak</string>
-    <string name="call_tile_video_call_has_ended">Panggilan video berakhir • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Panggilan suara berakhir • %1$s</string>
-    <string name="call_tile_video_active">Panggilan video yang aktif</string>
-    <string name="call_tile_voice_active">Panggilan suara yang aktif</string>
-    <string name="call_tile_video_incoming">Panggilan video yang masuk</string>
-    <string name="call_tile_voice_incoming">Panggilan suara yang masuk</string>
-    <string name="call_tile_call_back">Panggil lagi</string>
-    <string name="call_tile_ended">Panggilan ini telah berakhir</string>
     <string name="call_tile_other_declined">%1$s menolak panggilan ini</string>
     <string name="call_tile_you_declined_this_call">Anda menolak panggilan ini</string>
     <string name="warning_unsaved_change_discard">Buang perubahan</string>
@@ -2405,10 +2318,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="threads_beta_enable_notice_title">Utasan Beta</string>
     <string name="action_learn_more">Pelajari lebih lanjut</string>
     <string name="action_try_it_out">Coba</string>
-    <string name="screen_sharing_notification_description">Sedang membagikan layar</string>
-    <string name="screen_sharing_notification_title">Pembagian Layar ${app_name}</string>
-    <string name="call_stop_screen_sharing">Berhenti membagikan layar</string>
-    <string name="call_start_screen_sharing">Bagikan layar</string>
     <string name="initial_sync_request_reason_unignored_users">- Beberapa pengguna telah dibatalkan pengabaiannya</string>
     <string name="initial_sync_request_content">${app_name} membutuhkan sebuah penghapusan cache supaya bisa diperbarui, untuk alasan berikut:
 \n%s
@@ -2904,9 +2813,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="user_reported_as_inappropriate_content">Pengguna ini telah dilaporkan.
 \n
 \nJika Anda tidak ingin melihat konten lagi dari pengguna ini, Anda dapat mengabaikan untuk menyembunyikan pesannya.</string>
-    <string name="microphone_in_use_title">Mikrofon digunakan</string>
     <string name="call_unsupported">Panggilan tidak didukung</string>
-    <string name="call_unsupported_matrix_rtc_call">Panggilan tidak didukung. Aplikasi Element X yang baru diperlukan untuk bergabung ke panggilan ini.</string>
     <string name="view_download_replacement_app_title">Unduh %1$s</string>
     <string name="view_download_replacement_app_subtitle">Lebih cepat, lebih aman, dan lengkap dengan peralatan kolaborasi yang lebih berdaya.</string>
     <string name="error_mas_not_supported_title">Anda sudah tidak bisa lagi membuat akun dengan %1$s menggunakan aplikasi ini</string>

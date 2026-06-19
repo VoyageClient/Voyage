@@ -10,7 +10,6 @@ package im.vector.app.features.home.room.detail
 import android.net.Uri
 import android.view.View
 import im.vector.app.core.platform.VectorViewEvents
-import im.vector.app.features.call.webrtc.WebRtcCall
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -34,8 +33,6 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
     data class OpenRoom(val roomId: String, val closeCurrentRoom: Boolean = false) : RoomDetailViewEvents()
 
     data class NavigateToEvent(val eventId: String, val isFirstUnreadEvent: Boolean) : RoomDetailViewEvents()
-    data class JoinJitsiConference(val widget: Widget, val withVideo: Boolean) : RoomDetailViewEvents()
-    object LeaveJitsiConference : RoomDetailViewEvents()
 
     object OpenInvitePeople : RoomDetailViewEvents()
     object OpenSetRoomAvatarDialog : RoomDetailViewEvents()
@@ -61,8 +58,6 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
             val uri: Uri
     ) : RoomDetailViewEvents()
 
-    data class DisplayAndAcceptCall(val call: WebRtcCall) : RoomDetailViewEvents()
-
     object DisplayPromptForIntegrationManager : RoomDetailViewEvents()
 
     object DisplayEnableIntegrationsWarning : RoomDetailViewEvents()
@@ -82,5 +77,4 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
     data class StartChatEffect(val type: ChatEffect) : RoomDetailViewEvents()
     object StopChatEffects : RoomDetailViewEvents()
     object RoomReplacementStarted : RoomDetailViewEvents()
-    object OpenElementCallWidget : RoomDetailViewEvents()
 }

@@ -36,11 +36,6 @@ import im.vector.app.features.analytics.DecryptionFailureTracker
 import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
 import im.vector.app.features.analytics.plan.CreatedRoom
 import im.vector.app.features.analytics.plan.JoinedRoom
-import im.vector.app.features.call.conference.ConferenceEvent
-import im.vector.app.features.call.conference.JitsiActiveConferenceHolder
-import im.vector.app.features.call.conference.JitsiService
-import im.vector.app.features.call.lookup.CallProtocolsChecker
-import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
 import im.vector.app.features.crypto.verification.SupportedVerificationMethodsProvider
@@ -147,12 +142,9 @@ class TimelineViewModel @AssistedInject constructor(
         private val supportedVerificationMethodsProvider: SupportedVerificationMethodsProvider,
         private val stickerPickerActionHandler: StickerPickerActionHandler,
         private val typingHelper: TypingHelper,
-        private val callManager: WebRtcCallManager,
         private val chatEffectManager: ChatEffectManager,
         private val directRoomHelper: DirectRoomHelper,
-        private val jitsiService: JitsiService,
         private val analyticsTracker: AnalyticsTracker,
-        private val activeConferenceHolder: JitsiActiveConferenceHolder,
         private val decryptionFailureTracker: DecryptionFailureTracker,
         private val notificationDrawerManager: NotificationDrawerManager,
         private val locationSharingServiceConnection: LocationSharingServiceConnection,
@@ -176,7 +168,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val imageContentRenderer: ImageContentRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
-        Timeline.Listener, ChatEffectManager.Delegate, CallProtocolsChecker.Listener, LocationSharingServiceConnection.Callback {
+        Timeline.Listener, ChatEffectManager.Delegate, LocationSharingServiceConnection.Callback {
 
     private val room = session.getRoom(initialState.roomId)
     private val eventId = initialState.eventId
@@ -239,7 +231,7 @@ class TimelineViewModel @AssistedInject constructor(
             timeline = null
         } else {
             // Nominal case, we have retrieved the room.
-            timeline = timelineFactory.createTimeline(viewModelScope, room, eventId, initialState.rootThreadEventId)
+            timeline = timelineFactory.createTimeline(room, eventId, initialState.rootThreadEventId)
             initSafe(room, timeline)
         }
     }
@@ -273,8 +265,6 @@ class TimelineViewModel @AssistedInject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             tryOrNull { session.roomService().onRoomDisplayed(initialState.roomId) }
         }
-        callManager.addProtocolsCheckerListener(this)
-        callManager.checkForProtocolsSupportIfNeeded()
         chatEffectManager.delegate = this
 
         // Ensure to share the outbound session keys with all members
@@ -358,13 +348,11 @@ class TimelineViewModel @AssistedInject constructor(
                 .onEach { powerLevels ->
                     val canInvite = powerLevels.isUserAbleToInvite(session.myUserId)
                     val isAllowedToManageWidgets = session.widgetService().hasPermissionsToHandleWidgets(room.roomId)
-                    val isAllowedToStartWebRTCCall = powerLevels.isUserAllowedToSend(session.myUserId, false, EventType.CALL_INVITE)
                     val isAllowedToSetupEncryption = powerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_ENCRYPTION)
                     setState {
                         copy(
                                 canInvite = canInvite,
                                 isAllowedToManageWidgets = isAllowedToManageWidgets,
-                                isAllowedToStartWebRTCCall = isAllowedToStartWebRTCCall,
                                 isAllowedToSetupEncryption = isAllowedToSetupEncryption
                         )
                     }
@@ -392,22 +380,6 @@ class TimelineViewModel @AssistedInject constructor(
                 .execute { widgets ->
                     copy(activeRoomWidgets = widgets)
                 }
-
-        onAsync(RoomDetailViewState::activeRoomWidgets) { widgets ->
-            setState {
-                val jitsiWidget = widgets.firstOrNull { it.type == WidgetType.Jitsi }
-                val jitsiConfId = jitsiWidget?.let {
-                    jitsiService.extractJitsiWidgetData(it)?.confId
-                }
-                copy(
-                        jitsiState = jitsiState.copy(
-                                confId = jitsiConfId,
-                                widgetId = jitsiWidget?.widgetId,
-                                hasJoined = activeConferenceHolder.isJoined(jitsiConfId)
-                        )
-                )
-            }
-        }
     }
 
     private fun observeMyRoomMember() {
@@ -552,14 +524,7 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.SelectStickerAttachment -> handleSelectStickerAttachment()
             is VoiceBroadcastAction -> handleVoiceBroadcastAction(action)
             is RoomDetailAction.OpenIntegrationManager -> handleOpenIntegrationManager()
-            is RoomDetailAction.StartCall -> handleStartCall(action)
-            is RoomDetailAction.AcceptCall -> handleAcceptCall(action)
-            is RoomDetailAction.EndCall -> handleEndCall()
             is RoomDetailAction.ManageIntegrations -> handleManageIntegrations()
-            is RoomDetailAction.AddJitsiWidget -> handleAddJitsiConference(action)
-            is RoomDetailAction.UpdateJoinJitsiCallStatus -> handleJitsiCallJoinStatus(action)
-            is RoomDetailAction.JoinJitsiCall -> handleJoinJitsiCall()
-            is RoomDetailAction.LeaveJitsiCall -> handleLeaveJitsiCall()
             is RoomDetailAction.RemoveWidget -> handleDeleteWidget(action.widgetId)
             is RoomDetailAction.EnsureNativeWidgetAllowed -> handleCheckWidgetAllowed(action)
             is RoomDetailAction.CancelSend -> handleCancel(action)
@@ -584,46 +549,6 @@ class TimelineViewModel @AssistedInject constructor(
             }
             is RoomDetailAction.EndPoll -> handleEndPoll(action.eventId)
             RoomDetailAction.StopLiveLocationSharing -> handleStopLiveLocationSharing()
-            RoomDetailAction.OpenElementCallWidget -> handleOpenElementCallWidget()
-        }
-    }
-
-    private fun handleOpenElementCallWidget() = withState { state ->
-        if (state.hasActiveElementCallWidget()) {
-            _viewEvents.post(RoomDetailViewEvents.OpenElementCallWidget)
-        }
-    }
-
-    private fun handleJitsiCallJoinStatus(action: RoomDetailAction.UpdateJoinJitsiCallStatus) = withState { state ->
-        if (state.jitsiState.confId == null) {
-            // If jitsi widget is removed while on the call
-            if (state.jitsiState.hasJoined) {
-                setState { copy(jitsiState = jitsiState.copy(hasJoined = false)) }
-            }
-            return@withState
-        }
-        when (action.conferenceEvent) {
-            is ConferenceEvent.Joined,
-            is ConferenceEvent.Terminated -> {
-                setState { copy(jitsiState = jitsiState.copy(hasJoined = activeConferenceHolder.isJoined(jitsiState.confId))) }
-            }
-            else -> Unit
-        }
-    }
-
-    private fun handleLeaveJitsiCall() {
-        _viewEvents.post(RoomDetailViewEvents.LeaveJitsiConference)
-    }
-
-    private fun handleJoinJitsiCall() = withState { state ->
-        val jitsiWidget = state.activeRoomWidgets()?.firstOrNull { it.widgetId == state.jitsiState.widgetId } ?: return@withState
-        val action = RoomDetailAction.EnsureNativeWidgetAllowed(jitsiWidget, false, RoomDetailViewEvents.JoinJitsiConference(jitsiWidget, true))
-        handleCheckWidgetAllowed(action)
-    }
-
-    private fun handleAcceptCall(action: RoomDetailAction.AcceptCall) {
-        callManager.getCallById(action.callId)?.also {
-            _viewEvents.post(RoomDetailViewEvents.DisplayAndAcceptCall(it))
         }
     }
 
@@ -657,20 +582,7 @@ class TimelineViewModel @AssistedInject constructor(
                 ?.let { handleNavigateToEvent(RoomDetailAction.NavigateToEvent(it, true)) }
     }
 
-private fun handleStartCall(action: RoomDetailAction.StartCall) {
-        if (room == null) return
-        viewModelScope.launch {
-            room.roomSummary()?.otherMemberIds?.firstOrNull()?.let {
-                callManager.startOutgoingCall(room.roomId, it, action.isVideo)
-            }
-        }
-    }
-
-    private fun handleEndCall() {
-        callManager.endCallForRoom(initialState.roomId)
-    }
-
-    private fun handleSelectStickerAttachment() {
+private fun handleSelectStickerAttachment() {
         viewModelScope.launch {
             val viewEvent = stickerPickerActionHandler.handle()
             _viewEvents.post(viewEvent)
@@ -726,29 +638,10 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
         }
     }
 
-    private fun handleAddJitsiConference(action: RoomDetailAction.AddJitsiWidget) {
-        _viewEvents.post(RoomDetailViewEvents.ShowWaitingView())
+    private fun handleDeleteWidget(widgetId: String) = withState { _ ->
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val widget = jitsiService.createJitsiWidget(initialState.roomId, action.withVideo)
-                _viewEvents.post(RoomDetailViewEvents.JoinJitsiConference(widget, action.withVideo))
-            } catch (failure: Throwable) {
-                _viewEvents.post(RoomDetailViewEvents.ShowMessage(stringProvider.getString(CommonStrings.failed_to_add_widget)))
-            } finally {
-                _viewEvents.post(RoomDetailViewEvents.HideWaitingView)
-            }
-        }
-    }
-
-    private fun handleDeleteWidget(widgetId: String) = withState { state ->
-        val isJitsiWidget = state.jitsiState.widgetId == widgetId
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                if (isJitsiWidget) {
-                    setState { copy(jitsiState = jitsiState.copy(deleteWidgetInProgress = true)) }
-                } else {
-                    _viewEvents.post(RoomDetailViewEvents.ShowWaitingView())
-                }
+                _viewEvents.post(RoomDetailViewEvents.ShowWaitingView())
                 session.widgetService().destroyRoomWidget(initialState.roomId, widgetId)
                 // local echo
                 setState {
@@ -764,11 +657,7 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
             } catch (failure: Throwable) {
                 _viewEvents.post(RoomDetailViewEvents.ShowMessage(stringProvider.getString(CommonStrings.failed_to_remove_widget)))
             } finally {
-                if (isJitsiWidget) {
-                    setState { copy(jitsiState = jitsiState.copy(deleteWidgetInProgress = false)) }
-                } else {
-                    _viewEvents.post(RoomDetailViewEvents.HideWaitingView)
-                }
+                _viewEvents.post(RoomDetailViewEvents.HideWaitingView)
             }
         }
     }
@@ -896,10 +785,6 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
                     R.id.timeline_setting -> true
                     R.id.invite -> state.canInvite
                     R.id.open_matrix_apps -> true
-                    R.id.voice_call -> !vectorPreferences.hideCallButtons() && (state.isCallOptionAvailable() || state.hasActiveElementCallWidget())
-                    R.id.video_call -> !vectorPreferences.hideCallButtons() && (state.isCallOptionAvailable() || state.jitsiState.confId == null || state.jitsiState.hasJoined)
-                    // Show Join conference button only if there is an active conf id not joined. Otherwise fallback to default video disabled. ^
-                    R.id.join_conference -> !state.isCallOptionAvailable() && state.jitsiState.confId != null && !state.jitsiState.hasJoined
                     R.id.search -> state.isSearchAvailable()
                     R.id.menu_timeline_thread_list -> vectorPreferences.areThreadMessagesEnabled()
                     R.id.dev_tools -> vectorPreferences.developerMode()
@@ -1578,7 +1463,6 @@ private fun handleStartCall(action: RoomDetailAction.StartCall) {
         }
         chatEffectManager.delegate = null
         chatEffectManager.dispose()
-        callManager.removeProtocolsCheckerListener(this)
         // we should also mark it as read here, for the scenario that the user
         // is already in the thread timeline
         markThreadTimelineAsReadLocal()

@@ -101,8 +101,6 @@
     <string name="or">of</string>
     <string name="action_invite">Uitnodigen</string>
     <string name="action_sign_out">Afmelden</string>
-    <string name="action_voice_call">Spraakoproep</string>
-    <string name="action_video_call">Video-oproep</string>
     <string name="action_mark_all_as_read">Alles als gelezen markeren</string>
     <string name="action_quick_reply">Snel reageren</string>
     <string name="action_open">Openen</string>
@@ -137,8 +135,6 @@
     <string name="logout">Afmelden</string>
     <string name="hs_url">Server-URL</string>
     <string name="search">Zoeken</string>
-    <string name="start_voice_call">Spraakoproep beginnen</string>
-    <string name="start_video_call">Video-oproep beginnen</string>
     <string name="option_send_files">Bestanden versturen</string>
     <string name="option_take_photo_video">Foto of video maken</string>
     <string name="auth_login">Aanmelden</string>
@@ -157,12 +153,6 @@
     <string name="compression_opt_list_large">Groot</string>
     <string name="compression_opt_list_medium">Medium</string>
     <string name="compression_opt_list_small">Klein</string>
-    <string name="call_connecting">Oproep is aan het verbinden…</string>
-    <string name="call_ended">Oproep beëindigd</string>
-    <string name="incoming_video_call">Inkomende video-oproep</string>
-    <string name="incoming_voice_call">Inkomende spraakoproep</string>
-    <string name="call_in_progress">Oproep gaande…</string>
-    <string name="call_error_user_not_responding">De andere kant heeft niet opgenomen.</string>
     <string name="permissions_rationale_popup_title">Informatie</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} heeft toegang nodig tot je microfoon om spraakoproepen te maken.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} heeft toegang nodig tot je camera en microfoon om video-oproepen te maken.
@@ -339,7 +329,6 @@
     <string name="title_activity_bug_report">Foutmelding</string>
     <string name="option_take_photo">Foto maken</string>
     <string name="option_take_video">Video maken</string>
-    <string name="call">Bellen</string>
     <string name="settings_containing_my_display_name">Berichten die mijn weergavenaam bevatten</string>
     <string name="settings_containing_my_user_name">Berichten die mijn inlognaam bevatten</string>
     <string name="settings_analytics">Statistische gegevens</string>
@@ -354,8 +343,6 @@
     <string name="encrypted_message">Versleuteld bericht</string>
     <string name="loading">Laden…</string>
     <string name="send_bug_report_rage_shake">Schudden om een probleem te melden</string>
-    <string name="start_voice_call_prompt_msg">Weet je zeker dat je een spraakoproep wilt beginnen\?</string>
-    <string name="start_video_call_prompt_msg">Weet je zeker dat je een video-oproep wilt beginnen\?</string>
     <plurals name="membership_changes">
         <item quantity="one">%d verandering in lidmaatschap</item>
         <item quantity="other">%d veranderingen in lidmaatschap</item>
@@ -455,10 +442,6 @@
     <string name="dialog_title_error">Foutmelding</string>
     <string name="action_accept">Aanvaarden</string>
     <string name="auth_accept_policies">Gelieve het beleid van deze server te lezen en aanvaarden:</string>
-    <string name="settings_call_category">Oproepen</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Standaardbeltoon van ${app_name} gebruiken voor inkomende oproepen</string>
-    <string name="settings_call_ringtone_title">Beltoon voor inkomende oproepen</string>
-    <string name="settings_call_ringtone_dialog_title">Selecteer beltoon voor oproepen:</string>
     <string name="room_participants_action_remove">Eruit sturen</string>
     <string name="settings_inline_url_preview_summary">Voorvertoning van koppelingen in het gesprek tonen (als je server deze functionaliteit ondersteunt).</string>
     <string name="settings_send_typing_notifs">Typmeldingen versturen</string>
@@ -487,7 +470,6 @@
     <string name="action_sign_out_confirmation_simple">Weet je zeker dat je jezelf wilt afmelden\?</string>
     <string name="action_mark_room_read">Markeren als gelezen</string>
     <string name="auth_login_sso">Aanmelden met unieke aanmelding</string>
-    <string name="video_call_in_progress">Video-oproep gaande…</string>
     <string name="settings_notification_advanced">Geavanceerde meldingsinstellingen</string>
     <string name="settings_notification_by_event">Meldingsbelang op gebeurtenis</string>
     <string name="settings_notification_troubleshoot">Problemen met meldingen oplossen</string>
@@ -685,7 +667,6 @@
     <string name="keys_backup_info_title_version">Versie</string>
     <string name="keys_backup_info_title_algorithm">Algoritme</string>
     <string name="keys_backup_info_title_signature">Ondertekening</string>
-    <string name="error_jitsi_not_supported_on_old_device">Sorry, vergadergesprekken met Jitsi worden nog niet ondersteund op oudere apparaten (met een Android-versie lager dan 6.0)</string>
     <string name="encryption_information_unknown_ip">onbekend IP-adres</string>
     <string name="you_added_a_new_device_with_info">Een nieuwe sessie vraagt versleutelingssleutels aan.
 \nSessienaam: %1$s
@@ -1055,9 +1036,7 @@
     <string name="room_participants_action_ignore_title">Persoon negeren</string>
     <string name="room_participants_power_level_demote_warning_title">Jezelf degraderen\?</string>
     <string name="room_participants_action_cancel_invite">Uitnodiging annuleren</string>
-    <string name="call_hold_action">In de wacht zetten</string>
     <string name="login_error_ssl_other">SSL-fout.</string>
-    <string name="call_switch_camera">Camera wisselen</string>
     <string name="sound_device_wireless_headset">Draadloze Koptelefoon</string>
     <string name="spaces_header">Spaces</string>
     <string name="action_switch">Wisselen</string>
@@ -1078,9 +1057,6 @@
     <string name="a11y_video">Video</string>
     <string name="a11y_image">Afbeelding</string>
     <string name="a11y_screenshot">Schermafbeelding</string>
-    <string name="call_transfer_users_tab_title">Personen</string>
-    <string name="call_transfer_title">Overdragen</string>
-    <string name="call_transfer_connect_action">Verbinden</string>
     <string name="room_settings_topic_hint">Onderwerp</string>
     <string name="power_level_title">Rol</string>
     <string name="topic_prefix">"Onderwerp: "</string>
@@ -1093,11 +1069,8 @@
     <string name="create_room_topic_hint">Onderwerp</string>
     <string name="room_alias_published_alias_add_manually_submit">Publiceren</string>
     <string name="room_permissions_title">Rechten</string>
-    <string name="call_resume_action">Doorgaan</string>
     <string name="action_unpublish">Depubliceren</string>
     <string name="action_add">Toevoegen</string>
-    <string name="call_notification_reject">Afwijzen</string>
-    <string name="call_notification_answer">Accepteren</string>
     <string name="identity_server_set_alternative_submit">Versturen</string>
     <string name="invite_users_to_room_action_invite">UITNODIGEN</string>
     <string name="unencrypted">Onversleuteld</string>
@@ -1174,8 +1147,6 @@
     <string name="settings_general_title">Algemeen</string>
     <string name="active_widget_view_action">BEKIJKEN</string>
     <string name="room_participants_power_level_demote">Degraderen</string>
-    <string name="call_camera_back">Achterkant</string>
-    <string name="call_camera_front">Voorkant</string>
     <string name="sound_device_headset">Headset</string>
     <string name="sound_device_speaker">Luidspreker</string>
     <string name="sound_device_phone">Telefoon</string>
@@ -1241,36 +1212,11 @@
     <string name="room_participants_leave_private_warning">Deze kamer is niet publiek. Je kan niet opnieuw deelnemer worden zonder uitnodiging.</string>
     <string name="permissions_denied_add_contact">Toegang verlenen tot je contactpersonen.</string>
     <string name="permissions_denied_qr_code">Om de QR-code te scannen moet je toegang verlenen tot de camera.</string>
-    <string name="call_remove_jitsi_widget_progress">Oproep beëindigen…</string>
-    <string name="call_ended_invite_timeout_title">Geen antwoord</string>
-    <string name="call_ended_user_busy_description">De persoon die je hebt gebeld is bezet.</string>
-    <string name="call_ended_user_busy_title">Persoon bezet</string>
-    <string name="call_held_by_you">Je hebt de oproep in de wacht gezet</string>
-    <string name="call_held_by_user">%s heeft de oproep in de wacht gezet</string>
-    <string name="audio_call_with_participant">Bellen met %s</string>
-    <string name="video_call_with_participant">Videobellen met %s</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Gemiste video-oproep</item>
-        <item quantity="other">%d gemiste video-oproepen</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Gemiste stemoproep</item>
-        <item quantity="other">%d gemiste stemoproepen</item>
-    </plurals>
-    <string name="call_ringing">Gaat over…</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Bevestiging vragen voor het starten van een oproep</string>
-    <string name="settings_call_show_confirmation_dialog_title">Onbedoelde oproep voorkomen</string>
     <string name="error_unauthorized">Niet geautoriseerd, geldige authenticatiegegevens ontbreken</string>
     <string name="login_error_ssl_peer_unverified">SSL-fout: de identiteit van de ander is niet bevestigd.</string>
     <string name="auth_msisdn_already_defined">Dit telefoonnummer is al gedefinieerd.</string>
     <string name="use_as_default_and_do_not_ask_again">Gebruik als standaard en niet opnieuw vragen</string>
     <string name="option_always_ask">Altijd vragen</string>
-    <string name="call_format_turn_hd_on">HD inschakelen</string>
-    <string name="call_format_turn_hd_off">HD uitschakelen</string>
-    <string name="call_select_sound_device">Geluidsapparaat Selecteren</string>
-    <string name="call_failed_no_connection_description">Kan geen realtime verbinding tot stand brengen.
-\nVraag de beheerder van jouw server om een TURN-server te configureren om gesprekken betrouwbaar te laten werken.</string>
-    <string name="call_failed_no_connection">${app_name} Oproep Mislukt</string>
     <string name="hs_client_url">Server API URL</string>
     <string name="send_bug_report_include_key_share_history">Sleutel deelverzoekgeschiedenis versturen</string>
     <string name="settings_room_directory_show_all_rooms_summary">Alle gesprekken in de lijst tonen, waaronder gesprekken met expliciete inhoud.</string>
@@ -1281,15 +1227,9 @@
     <string name="dialog_edit_hint">Nieuwe waarde</string>
     <string name="failed_to_remove_widget">Widget verwijderen mislukt</string>
     <string name="failed_to_add_widget">Widget toevoegen mislukt</string>
-    <string name="cannot_call_yourself_with_invite">Je kunt jezelf niet bellen, wacht totdat deelnemers de uitnodiging accepteren</string>
-    <string name="cannot_call_yourself">Je kunt niet met jezelf bellen</string>
     <string name="audio_video_meeting_description">Vergaderingen gebruiken beveiligings- en toestemmingsbeleid van Jitsi. Alle huidige personen in het gesprek zullen een uitnodiging zien terwijl je vergadering bezig is.</string>
     <string name="audio_meeting">Geluidsvergadering starten</string>
     <string name="video_meeting">Videoconferentie starten</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Je mist de rechten om een oproep te starten</string>
-    <string name="no_permissions_to_start_webrtc_call">Je mist de rechten om een oproep in dit gesprek te starten</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Je mist de rechten om een vergadering te starten</string>
-    <string name="no_permissions_to_start_conf_call">Je mist de rechten om een vergadering in dit gesprek te starten</string>
     <string name="missing_permissions_title">Ontbrekende rechten</string>
     <string name="denied_permission_voice_message">Geef toestemming om de microfoon te gebruiken om stemberichten te versturen.</string>
     <string name="secure_backup_reset_all">Alles herstellen</string>
@@ -1508,8 +1448,6 @@
     <string name="command_description_unignore_user">Stopt met het negeren van een persoon, toon hun berichten in de toekomst</string>
     <string name="command_description_ignore_user">Negeer een persoon en verberg hun berichten voor jou</string>
     <string name="room_no_active_widgets">Geen actieve widgets</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">De huidige conferentie verlaten en naar de andere overschakelen\?</string>
-    <string name="error_jitsi_join_conf">Sorry, er is een fout opgetreden bij het deelnemen aan de conferentie</string>
     <string name="notification_ticker_text_group">%1$s: %2$s %3$s</string>
     <string name="notification_unread_notified_messages_and_invitation">%1$s en %2$s</string>
     <string name="notification_unread_notified_messages_in_room_and_invitation">%1$s in %2$s en %3$s</string>
@@ -1704,34 +1642,6 @@
     <string name="authentication_error">Authenticatie mislukt</string>
     <string name="re_authentication_default_confirm_text">${app_name} vereist dat je jouw inloggegevens invoert om deze actie uit te voeren.</string>
     <string name="re_authentication_activity_title">Opnieuw authenticatie nodig</string>
-    <string name="call_slide_to_end_conference">Schuif om het gesprek te beëindigen</string>
-    <string name="call_transfer_unknown_person">Onbekend persoon</string>
-    <string name="call_transfer_transfer_to_title">Doorverbinden naar %1$s</string>
-    <string name="call_transfer_consulting_with">Overleg met %1$s</string>
-    <string name="call_transfer_failure">Er is een fout opgetreden tijdens het doorverbinden van een gesprek</string>
-    <string name="call_transfer_consult_first">Eerst overleggen</string>
-    <string name="call_tap_to_return">%1$s Tik om terug te keren</string>
-    <string name="call_one_active">Actieve oproep (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Actieve oproep ·</item>
-        <item quantity="other">%1$d actieve gesprekken ·</item>
-    </plurals>
-    <string name="call_only_active">Actieve oproep (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Er is een fout opgetreden bij het opzoeken van het telefoonnummer</string>
-    <string name="call_dial_pad_title">Toetsenblok</string>
-    <string name="call_tile_no_answer">Geen antwoord</string>
-    <string name="call_tile_video_missed">Gemist videogesprek</string>
-    <string name="call_tile_voice_missed">Gemiste spraakoproep</string>
-    <string name="call_tile_video_declined">Videogesprek geweigerd</string>
-    <string name="call_tile_voice_declined">Spraakoproep geweigerd</string>
-    <string name="call_tile_video_call_has_ended">Videogesprek beëindigd • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Spraakoproep beëindigd • %1$s</string>
-    <string name="call_tile_video_active">Actief videogesprek</string>
-    <string name="call_tile_voice_active">Actieve spraakoproep</string>
-    <string name="call_tile_video_incoming">Inkomend videogesprek</string>
-    <string name="call_tile_voice_incoming">Inkomende spraakoproep</string>
-    <string name="call_tile_call_back">Terugbellen</string>
-    <string name="call_tile_ended">Dit gesprek is beëindigd</string>
     <string name="call_tile_other_declined">%1$s heeft dit gesprek geweigerd</string>
     <string name="call_tile_you_declined_this_call">Je hebt deze oproep geweigerd</string>
     <string name="warning_unsaved_change_discard">Veranderingen ongedaan maken</string>
@@ -2450,10 +2360,6 @@
     <string name="threads_beta_enable_notice_title">Threads bèta</string>
     <string name="action_learn_more">Leer meer</string>
     <string name="action_try_it_out">Probeer het uit</string>
-    <string name="screen_sharing_notification_description">Scherm delen is bezig</string>
-    <string name="screen_sharing_notification_title">${app_name} Scherm delen</string>
-    <string name="call_stop_screen_sharing">Stop scherm delen</string>
-    <string name="call_start_screen_sharing">Deel scherm</string>
     <string name="initial_sync_request_reason_unignored_users">- Sommige personen zijn niet genegeerd</string>
     <string name="initial_sync_request_content">${app_name} moet de cache wissen om up-to-date te zijn om volgende reden een:
 \n%s

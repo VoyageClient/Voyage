@@ -29,7 +29,6 @@
     <string name="time_unit_minute_short">мин</string>
     <string name="time_unit_second_short">сек</string>
     <string name="done">Әзер</string>
-    <string name="call_notification_answer">Кабул итү</string>
     <string name="action_sign_out">Чыгу</string>
     <string name="action_open">Ачу</string>
     <string name="action_close">Ябу</string>
@@ -72,13 +71,9 @@
     <string name="sound_device_speaker">Динамик</string>
     <string name="sound_device_headset">Колакчыннар</string>
     <string name="sound_device_wireless_headset">Чыбыксыз колакчыннар</string>
-    <string name="call_camera_front">Алгы</string>
-    <string name="call_camera_back">Арткы</string>
     <string name="auth_login">Керү</string>
     <string name="auth_submit">Тапшыру</string>
     <string name="login_error_ssl_other">SSL Хатасы.</string>
-    <string name="call">Шалтырату</string>
-    <string name="call_ended_invite_timeout_title">Җавап юк</string>
     <string name="medium_email">Эл. почта адресы</string>
     <string name="dark_theme">Караңгы тема</string>
     <string name="medium_phone_number">Телефон номеры</string>
@@ -93,5 +88,4 @@
     <string name="action_select_all">Барысын да сайлау</string>
     <string name="dialog_title_confirmation">Раслау</string>
     <string name="bottom_action_notification">Искәртүләр</string>
-    <string name="call_resume_action">Дәвам итү</string>
 </resources>

@@ -242,8 +242,6 @@
     <string name="report_content">Raportoni Lëndë</string>
     <string name="action_invite">Ftoje</string>
     <string name="action_sign_out">Dilni</string>
-    <string name="action_voice_call">Thirrje Audio</string>
-    <string name="action_video_call">Thirrje Video</string>
     <string name="action_mark_all_as_read">Vëru krejt shenjë si të lexuara</string>
     <string name="action_quick_reply">Përgjigje e shpejtë</string>
     <string name="action_open">Hape</string>
@@ -273,10 +271,6 @@
     <string name="username">Emër përdoruesi</string>
     <string name="hs_url">URL shërbyesi Home</string>
     <string name="search">Kërko</string>
-    <string name="start_voice_call">Nis Thirrje Audio</string>
-    <string name="start_video_call">Nis Thirrje Video</string>
-    <string name="start_voice_call_prompt_msg">Jeni i sigurt se doni të niset thirrje audio?</string>
-    <string name="start_video_call_prompt_msg">Jeni i sigurt se doni të niset thirrje video?</string>
     <string name="option_send_files">Dërgoni kartela</string>
     <string name="option_take_photo_video">Bëni foto ose video</string>
     <string name="option_take_photo">Bëni një foto</string>
@@ -295,11 +289,6 @@
     <string name="compression_opt_list_large">E madhe</string>
     <string name="compression_opt_list_medium">Mesatare</string>
     <string name="compression_opt_list_small">E vogël</string>
-    <string name="call">Thirrje</string>
-    <string name="call_ended">Thirrja përfundoi</string>
-    <string name="incoming_video_call">Thirrje Video Ardhëse</string>
-    <string name="incoming_voice_call">Thirrje Audio Ardhëse</string>
-    <string name="call_in_progress">Thirrje Në Kryerje e Sipër…</string>
     <string name="permissions_rationale_popup_title">Të dhëna</string>
     <string name="yes">PO</string>
     <string name="_continue">Vazhdo</string>
@@ -543,8 +532,6 @@
         <item quantity="one">%d ndryshim anëtarësie</item>
         <item quantity="other">%d ndryshime anëtarësie</item>
     </plurals>
-    <string name="call_connecting">Po bëhet lidhja e thirrjes…</string>
-    <string name="call_error_user_not_responding">Ana e largët dështoi të përgjigjet.</string>
     <string name="permissions_rationale_msg_record_audio">Për të kryer thirrje audio, ${app_name}-i lyp leje të përdorë mikrofonin tuaj.</string>
     <string name="permissions_rationale_msg_camera_and_audio">Për të kryer thirrje video, ${app_name}-i lyp leje të përdorë kamerën dhe mikrofonin tuaj.
 \n
@@ -609,10 +596,6 @@
     </plurals>
     <string name="title_activity_choose_sticker">Dërgoni një ngjitës</string>
     <string name="option_send_sticker">Dërgoni një ngjitës</string>
-    <string name="settings_call_category">Thirrje</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Për thirrje ardhëse përdor zilen parazgjedhje të ${app_name}-it</string>
-    <string name="settings_call_ringtone_title">Zile thirrjesh ardhëse</string>
-    <string name="settings_call_ringtone_dialog_title">Përzgjidhni zile për thirrjet:</string>
     <string name="action_accept">Pranoje</string>
     <string name="auth_accept_policies">Ju lutemi, merrni në shqyrtim dhe pranoni rregullat e këtij shërbyesi Home:</string>
     <string name="settings_notification_troubleshoot">Diagnostikoni Njoftime</string>
@@ -667,7 +650,6 @@
     <string name="settings_troubleshoot_test_battery_failed">Nëse një përdorues e lë një pajisje jo në prizë dhe të palëvizshme për një periudhë, me ekranin të fikur, pajisja kalon nën mënyrën Dremitje. Kjo u parandalon aplikimeve të hyjnë në rrjet dhe shtyn për më vonë punët e tyre, njëkohësimet dhe alarmet standarde.</string>
     <string name="settings_troubleshoot_test_battery_quickfix">Shpërfille Optimizimin</string>
     <string name="no_valid_google_play_services_apk">S’u gjet APK për Google Play Services. Njoftimet mund të mos punojnë saktë.</string>
-    <string name="video_call_in_progress">Thirrje Video Në Kryerje e Sipër…</string>
     <string name="title_activity_keys_backup_setup">Kopjeruajtje Kyçesh</string>
     <string name="title_activity_keys_backup_restore">Përdor Kopjeruajtje Kyçesh</string>
     <string name="action_skip">Anashkaloje</string>
@@ -816,7 +798,6 @@
     <string name="notification_new_invitation">Ftesë e Re</string>
     <string name="notification_sender_me">Unë</string>
     <string name="notification_inline_reply_failed">** S’u arrit të dërgohej - ju lutemi, hapni dhomë</string>
-    <string name="error_jitsi_not_supported_on_old_device">Na ndjeni, thirrjet konferencë me Jitsi-n nuk mbulohen në pajisje të vjetra (pajisje me Android OS nën 6.0)</string>
     <string name="encryption_information_unknown_ip">ip e panjohur</string>
     <string name="you_added_a_new_device_with_info">Një sesion i ri po kërkon emër kyçe fshehtëzimi.
 \nEmër sesioni: %1$s
@@ -1469,37 +1450,20 @@
     <string name="open_terms_of">Hap termat e %s</string>
     <string name="action_play">Luaje</string>
     <string name="action_dismiss">Hidhe poshtë</string>
-    <string name="no_permissions_to_start_conf_call">S’keni leje të nisni një thirrje konferencë në këtë dhomë</string>
-    <string name="no_permissions_to_start_webrtc_call">S’keni leje të nisni thirrje në këtë dhomë</string>
     <string name="video_meeting">Nis mbledhje video</string>
     <string name="audio_meeting">Nis mbledhje audio</string>
     <string name="audio_video_meeting_description">Mbledhjet përdorin siguri dhe rregulla lejesh Jitsi. Krejt personat aktualisht në dhomë do të shohin një ftesë për të marrë pjesë, teksa mbahet mbledhja juaj.</string>
-    <string name="cannot_call_yourself">S’mund të bëni thirrje me vetveten</string>
-    <string name="cannot_call_yourself_with_invite">S’mund të bëni thirrje me vetveten, prisni për pjesëmarrësit të pranojnë ftesën</string>
     <string name="failed_to_add_widget">S’u arrit të shtohej widget</string>
     <string name="failed_to_remove_widget">S’u arrit të hiqej widget</string>
-    <string name="call_notification_answer">Pranoje</string>
-    <string name="call_notification_reject">Hidhe poshtë</string>
     <string name="call_notification_hangup">Mbylle</string>
     <string name="action_copy">Kopjoje</string>
     <string name="dialog_title_success">Sukses</string>
     <string name="bottom_action_notification">Njoftime</string>
-    <string name="call_failed_no_connection">Thirrja ${app_name} Dështoi</string>
-    <string name="call_failed_no_connection_description">S’u arrit të vendosej lidhje e atypëratyshme.
-\nQë thirrjet të punojnë mirë, ju lutemi, kërkojini përgjegjësit të shërbyesit tuaj Home të formësojë një shërbyes TURN.</string>
-    <string name="call_select_sound_device">Përzgjidhni Pajisje Zëri</string>
     <string name="sound_device_phone">Telefon</string>
     <string name="sound_device_speaker">Altoparlant</string>
-    <string name="call_switch_camera">Ndërroni Kamera</string>
-    <string name="call_camera_front">Ballore</string>
-    <string name="call_camera_back">E pasme</string>
-    <string name="call_format_turn_hd_off">Mbyllni HD-në</string>
-    <string name="call_format_turn_hd_on">Hapni HD-në</string>
     <string name="auth_msisdn_already_defined">Ky numër telefoni është i përcaktuar tashmë.</string>
     <string name="login_error_ssl_peer_unverified">Gabim SSL: identiteti i ortakut s’është verifikuar.</string>
     <string name="login_error_ssl_other">Gabim SSL.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Parandalo thirrje aksidentale</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Kërko për ripohim, para se të fillohet një thirrje</string>
     <string name="room_participants_action_cancel_invite">Anuloje ftesën</string>
     <string name="room_participants_power_level_demote_warning_title">Të zhgradohet vetja\?</string>
     <string name="room_participants_power_level_demote_warning_prompt">S’do të jeni në gjendje ta zhbëni këtë ndryshim, teksa zhgradoni veten, nëse jeni përdoruesi i fundit i privilegjuar, s’do të jetë e mundur të rifitoni privilegjet.</string>
@@ -1707,8 +1671,6 @@
     <string name="settings_troubleshoot_test_push_loop_success">Aplikacioni po merr PUSH</string>
     <string name="settings_troubleshoot_test_push_loop_waiting_for_push">Aplikacioni po pret për PUSH-in</string>
     <string name="search_banned_user_hint">Filtro përdorues të dëbuar</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">S’keni leje të nisni një thirrje</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">S’keni leje të nisni një thirrje konferencë</string>
     <string name="warning_unsaved_change_discard">Hidhi tej ndryshimet</string>
     <string name="warning_unsaved_change">Ka ndryshime të paruajtura. Të hidhen tej ndryshimet\?</string>
     <string name="warning_room_not_created_yet">Dhoma s’është krijuar ende. Të anulohet krijimi i dhomës\?</string>
@@ -1802,16 +1764,6 @@
     <string name="authentication_error">S’u arrit të bëhej mirëfilltësimi</string>
     <string name="re_authentication_default_confirm_text">Që të kryejë këtë veprim, ${app_name}-i lyp dhënien prej jush të kredencialeve tuaja.</string>
     <string name="re_authentication_activity_title">Lypset Rimirëfilltësim</string>
-    <string name="call_transfer_users_tab_title">Përdorues</string>
-    <string name="call_transfer_failure">Ndodhi një gabim teksa shpërngulej thirrja</string>
-    <string name="call_transfer_title">Shpërngule</string>
-    <string name="call_transfer_connect_action">Lidhe</string>
-    <string name="call_transfer_consult_first">Konsultohu së pari</string>
-    <string name="call_only_active">Thirrje aktive (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Pati një gabim gjatë kërkimit të numrit të telefonit</string>
-    <string name="call_dial_pad_title">Pjesa e numrave</string>
-    <string name="call_tile_call_back">Ktheji thirrjen</string>
-    <string name="call_tile_ended">Kjo thirrje ka përfunduar</string>
     <string name="call_tile_other_declined">%1$s hodhi poshtë këtë thirrje</string>
     <string name="failed_to_initialize_cross_signing">S’u arrit të ujdisej “Cross Signing”</string>
     <string name="default_message_emote_snow">dërgon dëborë ❄️</string>
@@ -1852,10 +1804,6 @@
     <string name="room_settings_permissions_subtitle">Të shohë dhe përditësojë role të domosdoshëm për të ndryshuar anë të ndryshme të dhomës.</string>
     <string name="room_settings_permissions_title">Leje dhome</string>
     <string name="room_participants_leave_private_warning">Kjo dhomë s’është publike. S’do të jeni në gjendje të rihyni në të pa një ftesë.</string>
-    <string name="call_held_by_you">E mbajtët thirrjen</string>
-    <string name="call_held_by_user">%s e mbajti thirrjen</string>
-    <string name="call_hold_action">Mbaje</string>
-    <string name="call_resume_action">Rimerre</string>
     <string name="error_unauthorized">E paautorizuar, i mungojnë kredenciale të vlefshme mirëfilltësimi</string>
     <string name="system_theme">Parazgjedhje Sistemi</string>
     <string name="event_status_delete_all_failed_dialog_message">Jeni i sigurt se doni të fshihen krejt mesazhet e padërguar në këtë dhomë\?</string>
@@ -1912,7 +1860,6 @@
     <string name="settings_server_version">Version shërbyesi</string>
     <string name="settings_server_name">Emër shërbyesi</string>
     <string name="room_list_quick_actions_room_settings">Rregullime dhome</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Të braktiset konferenca e tanishme dhe të kalohet te një tjetër\?</string>
     <string name="room_settings_room_version_title">Version dhome</string>
     <string name="settings_room_directory_show_all_rooms_summary">Shfaq krejt dhomat te drejtoria e dhomave, përfshi dhomat me lëndë troç.</string>
     <string name="settings_room_directory_show_all_rooms">Shfaq dhoma me lëndë eksplicite</string>
@@ -2031,13 +1978,9 @@
     <string name="send_feedback_space_info">Po përdorni një version beta të hapësirave. Përshtypjet tuaja do të ndihmojnë në përmirësimin e versioneve të ardhshëm. Platforma dhe emri juaj i përdoruesit do të mbahen shënim, për të na ndihmuar të përdoren përshtypjet tuaja sa më shumë që të jetë e mundur.</string>
     <string name="feedback">Përshtypje</string>
     <string name="send_feedback_space_title">Përshtypje për hapësirat</string>
-    <string name="error_jitsi_join_conf">Na ndjeni, ndodhi një gabim teksa provohej të hyhej te konferenca</string>
     <string name="unnamed_room">Dhomë e Paemërtuar</string>
     <string name="private_space">Hapësirë private</string>
     <string name="public_space">Hapësirë publike</string>
-    <string name="call_transfer_unknown_person">Person i panjohur</string>
-    <string name="call_transfer_transfer_to_title">Shpërngule te %1$s</string>
-    <string name="call_transfer_consulting_with">Po konsultohet me %1$s</string>
     <string name="directory_add_a_new_server_error_already_added">Ky shërbyes është tashmë i pranishëm te lista</string>
     <string name="directory_add_a_new_server_error">S’gjendet dot ky shërbyes ose lista e dhomave të tij</string>
     <string name="directory_add_a_new_server_prompt">Jepni emrin e e një shërbyesi të ri që doni të eksploroni.</string>
@@ -2072,14 +2015,6 @@
     <string name="missing_permissions_title">Mungojnë leje</string>
     <string name="denied_permission_camera">Për kryerjen e këtij veprimi, ju lutemi, akordoni leje Kamerës që nga rregullimet e sistemit.</string>
     <string name="denied_permission_generic">Për kryerjen e këtij veprimi mungojnë disa leje, ju lutemi, akordojini lejet që nga rregullimet e sistemit.</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Thirrje video e humbur</item>
-        <item quantity="other">%d thirrje video të humbura</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Thirrje audio e humbur</item>
-        <item quantity="other">%d thirrje audio të humbura</item>
-    </plurals>
     <string name="upgrade_room_for_restricted_note">Ju lutemi, kini parasysh se përmirësimi do të prodhojë një version të ri të dhomës. Krejt mesazhet e tanishëm do të mbeten në këtë dhomë të arkivuar.</string>
     <string name="upgrade_room_for_restricted_no_param">Cilido në një hapësirë mëmë do të jetë në gjendje ta gjejë dhe hyjë në këtë dhomë - s’ka nevojë të ftohen dorazi një e nga një. Do të jeni në gjendje ta ndryshoni këtë te rregullimet e dhomës, në çfarëdo kohe.</string>
     <string name="upgrade_room_for_restricted">Cilido te %s do të jetë në gjendje të gjejë dhe hyjë në këtë dhomë - s’ka nevojë të ftohen dorazi një e nga një. Do të jeni në gjendje ta ndryshoni këtë te rregullimet e kësaj dhome, në çfarëdo kohe.</string>
@@ -2128,24 +2063,6 @@
     <string name="this_invite_to_this_room_was_sent">Kjo ftesë për te kjo dhomë qe dërguar për %s që s’është i përshoqëruar me llogarinë tuaj</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Krejt dhomat ku gjendeni do të shfaqen te Home.</string>
     <string name="preference_show_all_rooms_in_home">Shfaq krejt dhomat te Home</string>
-    <string name="call_slide_to_end_conference">Rrëshqiteni, që të përfundohet thirrja</string>
-    <string name="call_tap_to_return">%1$s Prekeni që të kthehet</string>
-    <string name="call_one_active">Thirrje aktive (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Thirrje aktive ·</item>
-        <item quantity="other">%1$d thirrje aktive ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">S’ka përgjigje</string>
-    <string name="call_tile_video_missed">Thirrje video e humbur</string>
-    <string name="call_tile_voice_missed">Thirrje zanore e humbur</string>
-    <string name="call_tile_video_declined">Thirrja video u hodh poshtë</string>
-    <string name="call_tile_voice_declined">U hodh poshtë thirrje zanore</string>
-    <string name="call_tile_video_call_has_ended">Thirrja video përfundoi • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Thirrja zanore përfundoi • %1$s</string>
-    <string name="call_tile_video_active">Thirrje video aktive</string>
-    <string name="call_tile_voice_active">Thirrje zanore aktive</string>
-    <string name="call_tile_video_incoming">Thirrje video ardhëse</string>
-    <string name="call_tile_voice_incoming">Thirrje zanore ardhëse</string>
     <string name="call_tile_you_declined_this_call">Hodhët poshtë këtë thirrje</string>
     <string name="room_settings_room_notifications_account_settings">Rregullime llogarie</string>
     <string name="room_settings_room_notifications_manage_notifications">Njoftimet mund t’i administroni te %1$s.</string>
@@ -2159,13 +2076,6 @@
     <string name="settings_notification_your_keywords">Fjalëkyçet tuaja</string>
     <string name="room_settings_none">Asnjë</string>
     <string name="room_settings_mention_and_keyword_only">Vetëm Përmendje &amp; Fjalëkyçe</string>
-    <string name="call_remove_jitsi_widget_progress">Po përfundohet thirrja…</string>
-    <string name="call_ended_invite_timeout_title">S’ka përgjigje</string>
-    <string name="call_ended_user_busy_description">Përdoruesi që thirrët është i zënë.</string>
-    <string name="call_ended_user_busy_title">Përdoruesi është i zënë</string>
-    <string name="audio_call_with_participant">Thirrje audio me %s</string>
-    <string name="video_call_with_participant">Thirrje video me %s</string>
-    <string name="call_ringing">Po i bihet ziles…</string>
     <string name="spaces">Hapësira</string>
     <string name="space_add_space_to_any_space_you_manage">Shtoni një hapësirë te cilado hapësirë që administroni.</string>
     <string name="space_add_existing_spaces">Shtoni hapësira ekzistuese</string>
@@ -2618,8 +2528,6 @@
     <string name="unifiedpush_distributor_background_sync">Njëkohësim në prapaskenë</string>
     <string name="unifiedpush_distributor_fcm_fallback">Shërbime Google</string>
     <string name="unifiedpush_getdistributors_dialog_title">Zgjidhni si të merren njoftime</string>
-    <string name="screen_sharing_notification_description">Tregimi i ekranit është në punë e sipër</string>
-    <string name="screen_sharing_notification_title">Tregim Ekrani ${app_name}</string>
     <string name="attachment_type_selector_camera">Kamerë</string>
     <string name="attachment_type_selector_location">Vendndodhje</string>
     <string name="attachment_type_selector_poll">Pyetësorë</string>
@@ -2757,8 +2665,6 @@
 \n
 \nJu lutemi, lejoni përdorimin e tyre te flluska pasuese, që të jeni në gjendje të shihni njoftime.</string>
     <string name="auth_reset_password_error_unverified">Email jo i verifikuar, kontrolloni te Të marrët tuaj</string>
-    <string name="call_stop_screen_sharing">Reshtni tregimin e ekranit tuaj</string>
-    <string name="call_start_screen_sharing">Tregojuani ekranin të tjerëve</string>
     <string name="invites_empty_message">Ky është vendi ku do të gjenden kërkesat dhe ftesat tuaja të reja.</string>
     <string name="invites_empty_title">S’ka gjë të re.</string>
     <string name="invites_title">Ftesa</string>
@@ -2950,8 +2856,6 @@
     <string name="user_reported_as_inappropriate_content">Përdoruesi është raportuar.
 \n
 \nNëse s’doni të shihni më lëndë nga ky përdorues, mund ta shpërfillni, që mesazhet e tij të jenë të fshehura.</string>
-    <string name="microphone_in_use_title">Mikrofon në përdorim</string>
-    <string name="call_unsupported_matrix_rtc_call">Thirrje që s’mbulohet. Për të marrë pjesë në këtë thirrje lypset aplikacioni i ri Element X.</string>
     <string name="call_unsupported">Thirrje që s’mbulohet</string>
     <string name="error_mas_not_supported_subtitle">Shkarkoni %1$s, që të përdorni %2$s për llogarinë tuaj, ose zgjidhni një tjetër shërbyes Home.</string>
     <string name="view_download_replacement_app_title">Shkarko %1$s</string>

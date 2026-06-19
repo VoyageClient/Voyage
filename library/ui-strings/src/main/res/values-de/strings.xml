@@ -222,8 +222,6 @@
     <string name="notice_room_server_acl_set_title_by_you">Du hast die Server-ACL für diesen Raum gesetzt.</string>
     <string name="notice_room_server_acl_set_title">%s hat die Server-Zugriffssteuerungsliste (ACL) für diesen Raum gesetzt.</string>
     <string name="title_activity_settings">Einstellungen</string>
-    <string name="call_notification_answer">Akzeptieren</string>
-    <string name="call_notification_reject">Ablehnen</string>
     <string name="call_notification_hangup">Anruf beenden</string>
     <string name="ok">Ok</string>
     <string name="action_cancel">Abbrechen</string>
@@ -242,8 +240,6 @@
     <string name="or">oder</string>
     <string name="action_invite">Einladen</string>
     <string name="action_sign_out">Abmelden</string>
-    <string name="action_voice_call">Sprachanruf</string>
-    <string name="action_video_call">Videoanruf</string>
     <string name="action_mark_all_as_read">Alles als gelesen markieren</string>
     <string name="action_quick_reply">Antworten</string>
     <string name="action_open">Öffnen</string>
@@ -278,8 +274,6 @@
     <string name="logout">Abmelden</string>
     <string name="hs_url">Heim-Server-Adresse</string>
     <string name="search">Suchen</string>
-    <string name="start_voice_call">Sprachanruf starten</string>
-    <string name="start_video_call">Videoanruf starten</string>
     <string name="option_send_files">Dateien senden</string>
     <string name="option_take_photo_video">Foto oder Video aufnehmen</string>
     <string name="auth_login">Anmelden</string>
@@ -298,12 +292,6 @@
     <string name="compression_opt_list_large">Groß</string>
     <string name="compression_opt_list_medium">Mittel</string>
     <string name="compression_opt_list_small">Klein</string>
-    <string name="call_connecting">Verbindungsaufbau …</string>
-    <string name="call_ended">Anruf beendet</string>
-    <string name="incoming_video_call">Eingehender Videoanruf</string>
-    <string name="incoming_voice_call">Eingehender Sprachanruf</string>
-    <string name="call_in_progress">Anruf aktiv …</string>
-    <string name="call_error_user_not_responding">Die Gegenseite hat den Anruf nicht angenommen.</string>
     <string name="permissions_rationale_popup_title">Information</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} benötigt die Berechtigung, auf dein Mikrofon zugreifen zu können, um (Sprach-)Anrufe tätigen zu können.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} benötigt die Berechtigung, auf Kamera und Mikrofon zuzugreifen, um Videoanrufe durchzuführen.
@@ -480,7 +468,6 @@
     <string name="you_added_a_new_device">Du hast die neue Sitzung „%s“ hinzugefügt, die jetzt Verschlüsselungs-Schlüssel anfordert.</string>
     <string name="your_unverified_device_requesting">Deine bislang nicht verifizierte Sitzung „%s“ fordert Verschlüsselungs-Schlüssel an.</string>
     <string name="start_verification">Verifizierung beginnen</string>
-    <string name="call">Anruf</string>
     <string name="notification_noisy_notifications">Laute Benachrichtigungen</string>
     <string name="notification_silent_notifications">Stumme Benachrichtigungen</string>
     <string name="option_take_photo">Foto aufnehmen</string>
@@ -494,8 +481,6 @@
     <string name="notification_noisy">Laut</string>
     <string name="encrypted_message">Verschlüsselte Nachricht</string>
     <string name="loading">Laden …</string>
-    <string name="start_voice_call_prompt_msg">Sicher, dass du einen Sprachanruf starten möchtest\?</string>
-    <string name="start_video_call_prompt_msg">Sicher, dass du einen Videoanruf starten möchtest\?</string>
     <string name="room_participants_ban_prompt_msg">Die Verbannung einer Person entfernt sie aus diesem Raum und hindert sie am erneuten Beitritt.</string>
     <string name="room_settings_all_messages">Alle Nachrichten</string>
     <string name="settings_inline_url_preview">URL-Vorschau</string>
@@ -619,10 +604,6 @@
     <string name="settings_show_join_leave_messages">Betreten oder Verlassen von Benutzern zeigen</string>
     <string name="settings_show_avatar_display_name_changes_messages">Kontoänderungen zeigen</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Enthält Änderungen des Profilbilds und des Anzeigenamens.</string>
-    <string name="settings_call_category">Anrufe</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Nutze den Standard-Klingelton von ${app_name} für eingehende Anrufe</string>
-    <string name="settings_call_ringtone_title">Klingelton für eingehende Anrufe</string>
-    <string name="settings_call_ringtone_dialog_title">Wähle Klingelton für Anrufe:</string>
     <string name="action_accept">Akzeptieren</string>
     <string name="auth_accept_policies">Bitte lese und akzeptiere die Richtlinien dieses Heim-Servers:</string>
     <string name="settings_troubleshoot_diagnostic_run_button_title">Tests ausführen</string>
@@ -677,7 +658,6 @@
     <string name="settings_troubleshoot_test_battery_failed">Wenn ein Benutzer ein abgestecktes Gerät mit ausgeschaltetem Bildschirm eine Weile nicht bewegt, wechselt es in den Bereitschaftsmodus. Dies hindert Apps daran, auf das Netzwerk zuzugreifen und verzögert die Ausführung von Aufgaben, Synchronisierungen und Standard-Alarmen.</string>
     <string name="settings_troubleshoot_test_battery_quickfix">Ignoriere Optimierungen</string>
     <string name="no_valid_google_play_services_apk">Keine validen Google-Play-Dienste gefunden. Benachrichtigungen könnten nicht richtig funktionieren.</string>
-    <string name="video_call_in_progress">Videogespräch aktiv …</string>
     <string name="title_activity_keys_backup_setup">Schlüsselsicherung</string>
     <string name="title_activity_keys_backup_restore">Schlüsselsicherung verwenden</string>
     <string name="action_skip">Überspringen</string>
@@ -826,7 +806,6 @@
     <string name="notification_new_invitation">Neue Einladung</string>
     <string name="notification_sender_me">Ich</string>
     <string name="notification_inline_reply_failed">** Fehler beim Senden - bitte Raum öffnen</string>
-    <string name="error_jitsi_not_supported_on_old_device">Entschuldigung, Konferenzanrufe mit Jitsi werden auf älteren Geräten (mit älteren Android-Versionen als 6.0) nicht unterstützt</string>
     <string name="encryption_information_unknown_ip">Unbekannte IP-Adresse</string>
     <string name="you_added_a_new_device_with_info">Eine neue Sitzung fordert Schlüssel an.
 \nSitzungsname: %1$s
@@ -1449,22 +1428,13 @@
     <string name="invite_users_to_room_failure">Wir konnten den Benutzer nicht einladen. Bitte überprüfe den Benutzernamen, welchen du einladen möchtest und versuche es erneut.</string>
     <string name="action_copy">Kopieren</string>
     <string name="bottom_action_notification">Benachrichtigungen</string>
-    <string name="call_failed_no_connection">${app_name}-Anruf fehlgeschlagen</string>
     <string name="action_play">Abspielen</string>
     <string name="action_dismiss">Ablehnen</string>
     <string name="dialog_title_success">Erfolg</string>
-    <string name="call_failed_no_connection_description">Echtzeitverbindung konnte nicht hergestellt werden.
-\nBitte den Administrator deines Heim-Servers, einen TURN-Server zu konfigurieren, damit Anrufe zuverlässig funktionieren.</string>
-    <string name="call_select_sound_device">Audiogerät auswählen</string>
     <string name="sound_device_phone">Telefon</string>
     <string name="sound_device_speaker">Lautsprecher</string>
     <string name="sound_device_headset">Kopfhörer</string>
     <string name="sound_device_wireless_headset">Drahtloser Kopfhörer</string>
-    <string name="call_switch_camera">Kamera wechseln</string>
-    <string name="call_camera_front">Frontkamera</string>
-    <string name="call_camera_back">Hintere Kamera</string>
-    <string name="call_format_turn_hd_off">HD-Qualität deaktivieren</string>
-    <string name="call_format_turn_hd_on">HD-Qualität aktivieren</string>
     <string name="login_error_ssl_peer_unverified">SSL-Fehler: Die Identität des Gegenüber ist noch nicht verifiziert.</string>
     <string name="login_error_ssl_other">SSL Fehler.</string>
     <string name="room_participants_action_cancel_invite">Einladung zurückziehen</string>
@@ -1614,15 +1584,10 @@
     <string name="auth_pin_reset_content">Um deine PIN zurückzusetzen, musst du dich erneut anmelden und eine neue erstellen.</string>
     <string name="settings_security_pin_code_title">Aktiviere PIN</string>
     <string name="settings_security_pin_code_summary">Wenn du deine PIN zurücksetzen möchtest, tippe auf „PIN vergessen“, um dich abzumelden und sie zurückzusetzen.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Versehentliche Anrufe verhindern</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Vor einem Anruf um Bestätigung bitten</string>
     <string name="bottom_sheet_setup_secure_backup_submit">Einrichten</string>
-    <string name="no_permissions_to_start_conf_call">Du bist nicht berechtigt, in diesem Raum ein Konferenzgespräch zu starten</string>
     <string name="video_meeting">Videokonferenz starten</string>
     <string name="audio_meeting">Audiokonferenz starten</string>
     <string name="audio_video_meeting_description">Konferenzen nutzen die Jitsi-Sicherheits- und Berechtigungsrichtlinien. Alle im Raum Anwesenden können während der Konferenz beitreten.</string>
-    <string name="cannot_call_yourself">Du kannst dich nicht selbst anrufen</string>
-    <string name="cannot_call_yourself_with_invite">Du kannst dich nicht selbst anrufen, warte bis Teilnehmer die Einladung annehmen</string>
     <string name="failed_to_add_widget">Hinzufügen des Widgets fehlgeschlagen</string>
     <string name="failed_to_remove_widget">Entfernen des Widgets fehlgeschlagen</string>
     <plurals name="encryption_import_room_keys_success">
@@ -1665,7 +1630,6 @@
     <string name="sent_a_poll">Umfrage</string>
     <string name="sent_a_reaction">Reagierte mit: %s</string>
     <string name="universal_link_malformed">Der Link war fehlerhaft</string>
-    <string name="no_permissions_to_start_webrtc_call">Du bist nicht berechtigt, in diesem Raum einen Anruf zu beginnen</string>
     <string name="sent_verification_conclusion">Ergebnis der Überprüfung</string>
     <string name="delete_account_data_warning">Kontodaten vom Typ %1$s löschen\?
 \n
@@ -1676,8 +1640,6 @@
     <string name="settings_troubleshoot_test_push_loop_waiting_for_push">Die Applikation wartet auf den PUSH</string>
     <string name="settings_troubleshoot_test_push_loop_title">Push testen</string>
     <string name="search_banned_user_hint">Gebannte Nutzer filtern</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Du bist nicht berechtigt, einen Anruf zu beginnen</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Du bist nicht berechtigt, ein Konferenzgespräch zu starten</string>
     <string name="settings_security_pin_code_notifications_summary_on">Details wie Raumnamen und Nachrichteninhalt zeigen.</string>
     <string name="settings_security_pin_code_notifications_title">Inhalt in Benachrichtigungen anzeigen</string>
     <string name="settings_security_pin_code_use_biometrics_summary_off">PIN-Code ist die einzige Möglichkeit ${app_name} zu entsperren.</string>
@@ -1854,20 +1816,7 @@
     <string name="re_authentication_activity_title">Erneute Authentifizierung erforderlich</string>
     <string name="failed_to_initialize_cross_signing">Quersignierung konnte nicht eingerichtet werden</string>
     <string name="error_unauthorized">Nicht autorisierte, fehlende gültige Authentifizierungsdaten</string>
-    <string name="call_transfer_users_tab_title">Benutzer</string>
-    <string name="call_transfer_failure">Beim Weiterleiten des Anrufs ist ein Fehler aufgetreten</string>
-    <string name="call_transfer_title">Weiterleiten</string>
-    <string name="call_transfer_connect_action">Verbinden</string>
-    <string name="call_only_active">Aktiver Anruf (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Beim Suchen der Telefonnummer ist ein Fehler aufgetreten</string>
-    <string name="call_dial_pad_title">Wähltastatur</string>
-    <string name="call_tile_call_back">Zurückrufen</string>
-    <string name="call_tile_ended">Dieser Anruf wurde beendet</string>
     <string name="call_tile_other_declined">%1$s hat diesen Anruf abgelehnt</string>
-    <string name="call_held_by_you">Du hältst den Anruf</string>
-    <string name="call_held_by_user">%s hält den Anruf</string>
-    <string name="call_hold_action">Halten</string>
-    <string name="call_resume_action">Fortsetzen</string>
     <string name="dev_tools_event_content_hint">Ereignis-Inhalt</string>
     <string name="dev_tools_success_state_event">Status-Event gesendet!</string>
     <string name="dev_tools_success_event">Ereignis gesendet!</string>
@@ -1915,7 +1864,6 @@
     <string name="settings_server_version">Serverversion</string>
     <string name="settings_server_name">Server-Name</string>
     <string name="room_list_quick_actions_room_settings">Raumeinstellungen</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Derzeitige Konferenz verlassen und zu einer anderen wechseln\?</string>
     <string name="room_settings_room_version_title">Raum-Version</string>
     <string name="dialog_edit_hint">Neuer Wert</string>
     <string name="initial_sync_start_downloading">Erste Synchronisation:
@@ -1935,7 +1883,6 @@
     <string name="event_status_failed_messages_warning">Senden der Nachricht gescheitert</string>
     <string name="event_status_a11y_sending">Wird gesendet</string>
     <string name="event_status_sent_message">Nachricht gesendet</string>
-    <string name="call_transfer_consult_first">Zuerst anfragen</string>
     <string name="space_type_private">Privat</string>
     <string name="space_type_public">Öffentlich</string>
     <string name="create_spaces_you_can_change_later">Du kannst dies später ändern</string>
@@ -2031,7 +1978,6 @@
     <string name="this_space_has_no_rooms_not_admin">Möglicherweise musst du extra eingeladen werden, damit du die Räume siehst.
 \nDie fehlt die Berechtigung, Räume hinzuzufügen.</string>
     <string name="spaces_feeling_experimental_subspace">Du kannst Unterspaces zu einem Space hinzufügen.</string>
-    <string name="error_jitsi_join_conf">Leider ist ein Fehler beim Betreten der Konferenz aufgetreten</string>
     <string name="unnamed_room">Unbenannter Raum</string>
     <string name="this_space_has_no_rooms">Dieser Space hat noch keine Räume</string>
     <string name="spaces_no_server_support_description">Für weitere Infos kontaktiere bitte die Administration des Homeservers</string>
@@ -2042,7 +1988,6 @@
     <string name="invite_to_space">Einladen in %s</string>
     <string name="private_space">Privater Space</string>
     <string name="public_space">Öffentlicher Space</string>
-    <string name="call_transfer_unknown_person">Unbekannte Person</string>
     <string name="give_feedback">Rückmeldung geben</string>
     <string name="feedback_failed">Fehler beim Senden vom Feedback (%s)</string>
     <string name="feedback_sent">Dein Feedback wurde erfolgreich versandt. Danke!</string>
@@ -2051,8 +1996,6 @@
     <string name="send_feedback_space_title">Spaces Feedback</string>
     <string name="directory_add_a_new_server_error_already_added">Dieser Server ist schon in der Liste vorhanden</string>
     <string name="directory_add_a_new_server_error">Server oder Raumliste kann nicht gefunden werden</string>
-    <string name="call_transfer_consulting_with">Bei %1$s anfragen</string>
-    <string name="call_transfer_transfer_to_title">Zu %1$s weiterleiten</string>
     <string name="space_settings_alias_title">Space-Adressen</string>
     <string name="space_settings_alias_subtitle">Adressen des Spaces anzeigen und verwalten.</string>
     <string name="create_space_alias_hint">Space-Adressen</string>
@@ -2113,14 +2056,6 @@
     <string name="settings_notification_other">Andere</string>
     <string name="settings_notification_mentions_and_keywords">Erwähnungen und Schlüsselwörter</string>
     <string name="settings_notification_default">Normale Benachrichtigungen</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Verpasster Videoanruf</item>
-        <item quantity="other">%d verpasste Videoanrufe</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Verpasster Sprachanruf</item>
-        <item quantity="other">%d verpasste Sprachanrufe</item>
-    </plurals>
     <string name="hs_client_url">Heim-Server-API-Adresse</string>
     <string name="denied_permission_voice_message">Um Sprachnachrichten zu senden, gewähre bitte den Zugriff aufs Mikrofon.</string>
     <string name="denied_permission_camera">Um fortzufahren, gewähre bitte in den Systemeinstellungen den Zugriff auf die Kamera.</string>
@@ -2132,37 +2067,14 @@
     <string name="other_spaces_or_rooms_you_might_not_know">Andere Spaces oder Räume die du kennst</string>
     <string name="space_you_know_that_contains_this_room">Spaces mit diesem Raum und dir als Mitglied</string>
     <string name="room_settings_mention_and_keyword_only">Nur Erwähnungen und Schlüsselwörter</string>
-    <string name="call_remove_jitsi_widget_progress">Auflegen …</string>
-    <string name="audio_call_with_participant">Sprachanruf mit %s</string>
-    <string name="video_call_with_participant">Videoanruf mit %s</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Alle beigetretenen Räume werden auf der Startseite angezeigt.</string>
     <string name="preference_show_all_rooms_in_home">Alle Räume auf der Startseite anzeigen</string>
-    <string name="call_slide_to_end_conference">Wische, um den Anruf zu beenden</string>
-    <string name="call_one_active">Aktiver Anruf (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Aktiver Anruf ·</item>
-        <item quantity="other">%1$d aktive Anrufe ·</item>
-    </plurals>
-    <string name="call_tile_video_declined">Videoanruf abgelehnt</string>
-    <string name="call_tile_voice_declined">Sprachanruf abgelehnt</string>
-    <string name="call_tile_video_call_has_ended">Videoanruf beendet • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Sprachanruf beendet • %1$s</string>
     <string name="room_settings_room_notifications_notify_me">Benachrichtige mich bei</string>
     <string name="settings_mentions_at_room">\@room</string>
     <string name="settings_notification_keyword_contains_invalid_character">Schlüsselwörter dürfen kein „%s“ enthalten</string>
     <string name="settings_notification_keyword_contains_dot">Schlüsselwörter können nicht mit einem Punkt beginnen</string>
     <string name="room_settings_none">Nichts</string>
-    <string name="call_ended_invite_timeout_title">Nicht erreicht</string>
-    <string name="call_ended_user_busy_description">Die angerufene Person ist beschäftigt.</string>
-    <string name="call_ended_user_busy_title">Person beschäftigt</string>
-    <string name="call_ringing">Klingeln …</string>
     <string name="spaces">Spaces</string>
-    <string name="call_tile_video_missed">Verpasster Videoanruf</string>
-    <string name="call_tile_voice_missed">Verpasster Sprachanruf</string>
-    <string name="call_tile_video_active">Aktiver Videoanruf</string>
-    <string name="call_tile_voice_active">Aktiver Sprachanruf</string>
-    <string name="call_tile_video_incoming">Eingehender Videoanruf</string>
-    <string name="call_tile_voice_incoming">Eingehender Sprachanruf</string>
     <string name="call_tile_you_declined_this_call">Du hast diesen Anruf abgelehnt</string>
     <string name="room_settings_room_notifications_account_settings">Kontoeinstellungen</string>
     <string name="settings_messages_containing_keywords">Schlüsselwörter</string>
@@ -2204,8 +2116,6 @@
     <string name="a11y_presence_unavailable">Nicht da</string>
     <string name="a11y_presence_offline">Offline</string>
     <string name="a11y_presence_online">Online</string>
-    <string name="call_tap_to_return">%1$s Klicke zum Zurückkehren</string>
-    <string name="call_tile_no_answer">Nicht angenommen</string>
     <string name="command_description_lenny">Nachricht mit ( ͡° ͜ʖ ͡°) beginnen</string>
     <string name="command_description_whois">Zeigt Information über die Person an</string>
     <string name="command_description_avatar_for_room">Ändert dein Profilbild im aktuellen Raum</string>
@@ -2402,7 +2312,6 @@
     <string name="beta_title_bottom_sheet_action">BETA</string>
     <string name="threads_labs_enable_notice_title">Threads-Beta</string>
     <string name="threads_beta_enable_notice_title">Threads Beta</string>
-    <string name="call_start_screen_sharing">Bildschirm teilen</string>
     <string name="action_try_it_out">Probiere es aus</string>
     <string name="location_share_live_until">Echtzeit bis %1$s</string>
     <string name="unifiedpush_getdistributors_dialog_title">Wähle deine Benachrichtigungsmethode</string>
@@ -2429,8 +2338,6 @@
     <string name="settings_notification_method">Benachrichtigungsmethode</string>
     <string name="unifiedpush_distributor_background_sync">Hintergrund-Synchronisation</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google Services</string>
-    <string name="screen_sharing_notification_description">Bildschirmfreigabe ist in Arbeit</string>
-    <string name="screen_sharing_notification_title">${app_name} Bildschirmfreigabe</string>
     <string name="live_location_bottom_sheet_last_updated_at">Aktualisiert vor %1$s</string>
     <string name="labs_enable_live_location">Aktiviere Echtzeit-Standortfreigabe</string>
     <string name="live_location_sharing_notification_description">Standortfreigabe ist in Arbeit</string>
@@ -2480,7 +2387,6 @@
 \nIn Vorbereitung darauf müssen wir einige Änderungen vornehmen: Threads, die vor diesem Zeitpunkt erstellt wurden, werden als normale Antworten angezeigt.
 \n
 \nDies wird ein einmaliger Übergang sein, da Threads nun Teil der Matrix-Spezifikation sind.</string>
-    <string name="call_stop_screen_sharing">Bildschirmfreigabe beenden</string>
     <string name="action_next">Weiter</string>
     <string name="action_learn_more">Mehr erfahren</string>
     <string name="time_unit_second_short">sek</string>
@@ -2961,7 +2867,5 @@
     <string name="user_reported_as_inappropriate_content">Dieser Benutzer ist gemeldet worden.
 \n
 \nWenn du keine Inhalte mehr von dieser Person sehen möchtest, kannst du sie ignorieren, um ihre Nachrichten auszublenden.</string>
-    <string name="microphone_in_use_title">Mikrofon wird benutzt</string>
     <string name="call_unsupported">Nicht unterstützter Anruf</string>
-    <string name="call_unsupported_matrix_rtc_call">Nicht unterstützter Anruf. Die neue Element X-App wird benötigt, um diesem Anruf beizutreten.</string>
 </resources>

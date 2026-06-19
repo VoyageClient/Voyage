@@ -29,8 +29,6 @@
     <string name="or">veya</string>
     <string name="action_invite">Davet et</string>
     <string name="action_sign_out">Oturumu kapat</string>
-    <string name="action_voice_call">Sesli Arama</string>
-    <string name="action_video_call">Görüntülü Arama</string>
     <string name="action_mark_all_as_read">Hepsini okunmuş olarak işaretle</string>
     <string name="action_quick_reply">Hızlı yanıt</string>
     <string name="action_open">Aç</string>
@@ -67,11 +65,7 @@
     <string name="logout">Çıkış yap</string>
     <string name="hs_url">Ana Sunucu URL\'si</string>
     <string name="search">Ara</string>
-    <string name="start_voice_call">Sesli Görüşme Başlat</string>
-    <string name="start_video_call">Görüntülü Görüşme Başlat</string>
     <string name="option_send_voice">Sesli mesej gönder</string>
-    <string name="start_voice_call_prompt_msg">Sesli görüşme başlatmak istediğinize emin misiniz?</string>
-    <string name="start_video_call_prompt_msg">Görüntülü görüşme başlatmak istediğinize emin misiniz?</string>
     <string name="option_send_files">Dosya gönder</string>
     <string name="option_send_sticker">Çıkartma gönder</string>
     <string name="option_take_photo_video">Video kaydet veya fotoğraf çek</string>
@@ -130,18 +124,6 @@
     <string name="compression_opt_list_large">Büyük</string>
     <string name="compression_opt_list_medium">Orta</string>
     <string name="compression_opt_list_small">Küçük</string>
-    <string name="settings_call_category">Aramalar</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Gelen aramalar için varsayılan ${app_name} zil sesini kullan</string>
-    <string name="settings_call_ringtone_title">Gelen arama zil sesi</string>
-    <string name="settings_call_ringtone_dialog_title">Aramalar için zil sesi seç:</string>
-    <string name="call">Arama</string>
-    <string name="call_connecting">Çağrı bağlanıyor…</string>
-    <string name="call_ended">Çağrı sonlandı</string>
-    <string name="incoming_video_call">Gelen Görüntülü Arama</string>
-    <string name="incoming_voice_call">Gelen Sesli Arama</string>
-    <string name="call_in_progress">Çağrıda…</string>
-    <string name="video_call_in_progress">Görüntülü Çağrıda…</string>
-    <string name="call_error_user_not_responding">Uzak sunucu alınamadı.</string>
     <string name="permissions_rationale_popup_title">Bilgilendirme</string>
     <string name="permissions_rationale_msg_record_audio">${app_name}\'in sesli arama yapması için mikrofonunuza erişmeye ihtiyacı var.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name}\'in görüntülü arama yapması için kameranıza ve mikrofonunuza erişmeye ihtiyacı var.
@@ -638,7 +620,6 @@
     <string name="room_widget_permission_theme">Teman</string>
     <string name="room_widget_permission_widget_id">Widget kimliği</string>
     <string name="room_widget_permission_room_id">Oda kimliği</string>
-    <string name="error_jitsi_not_supported_on_old_device">Üzgünüz, jitsi konferans aramaları eski cihazlarda desteklenmiyor (Android 6.0 altı)</string>
     <string name="room_widget_resource_permission_title">Bu widget şu kaynakları kullanmak istiyor:</string>
     <string name="room_widget_resource_grant_permission">İzin ver</string>
     <string name="room_widget_resource_decline_permission">Hepsini reddet</string>
@@ -712,23 +693,12 @@
     <string name="action_copy">Kopyala</string>
     <string name="dialog_title_success">Başarılı</string>
     <string name="bottom_action_notification">Bildirimler</string>
-    <string name="call_failed_no_connection">${app_name} Araması Başarısız Oldu</string>
-    <string name="call_failed_no_connection_description">Eş zamanlı bağlantı kurulamadı.
-\nAramaların hatasız çalışması için snucunuzun yöneticisinden TURN sunucusu ayarlamasını rica edin.</string>
-    <string name="call_select_sound_device">Ses Cihazı Seç</string>
     <string name="sound_device_phone">Telefon</string>
     <string name="sound_device_speaker">Hoparlör</string>
     <string name="sound_device_headset">Kulaklık</string>
     <string name="sound_device_wireless_headset">Kablosuz Kulaklık</string>
-    <string name="call_switch_camera">Kamerayı Değiştir</string>
-    <string name="call_camera_front">Ön</string>
-    <string name="call_camera_back">Arka</string>
-    <string name="call_format_turn_hd_off">Yüksek çözünürlüğü kapat</string>
-    <string name="call_format_turn_hd_on">Yüksek çözünürlüğü aç</string>
     <string name="login_error_ssl_peer_unverified">SSL Hatası: karşınıdaki kişinin kimliği doğrulanmadı.</string>
     <string name="login_error_ssl_other">SSL Hatası.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Yanlışlıkla aramayı önle</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Arama başlatmadan önce onay iste</string>
     <string name="room_participants_action_cancel_invite">Daveti Geri Çevir</string>
     <string name="room_participants_power_level_demote_warning_title">Kendi yetkinizi düşürmek istediğinizden emin misin\?</string>
     <string name="room_participants_power_level_demote_warning_prompt">Kendi yetkinizi düşürdüğünüzde bunu geri alma şansınız olmayacak, eğer bu odadaki son yetkili kişiyseniz yetkileri geri alma imkânınız olmayacak.</string>
@@ -779,7 +749,6 @@
     <string name="search_banned_user_hint">Banlanan kullanıcıları filtrele</string>
     <string name="room_permissions_change_topic">Konuyu değiştir</string>
     <string name="room_permissions_upgrade_the_room">Odayı geliştir</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Konferans görüşmesi başlatma izniniz yok</string>
     <string name="room_permissions_change_permissions">İzinleri değiştir</string>
     <string name="room_permissions_change_room_name">Oda ismini değiştir</string>
     <string name="room_permissions_change_history_visibility">Geçmiş görünürlüğünü değiştir</string>
@@ -844,21 +813,14 @@
     <string name="action_unpublish">Yayından kaldır</string>
     <string name="action_add">Ekle</string>
     <string name="call_notification_hangup">Beklet</string>
-    <string name="call_notification_reject">Reddet</string>
-    <string name="call_notification_answer">Kabul et</string>
     <string name="failed_to_remove_widget">Widget kaldırılamadı</string>
     <string name="failed_to_add_widget">Widget eklenemedi</string>
-    <string name="cannot_call_yourself_with_invite">Kendinizi arayamazsınız, katılımcıların davetinizi kabul etmelerini bekleyin</string>
-    <string name="cannot_call_yourself">Kendinizi arayamazsınız</string>
     <string name="send_file_step_idle">Bekleniyor…</string>
     <string name="push_gateway_item_format">Biçim:</string>
     <string name="push_gateway_item_url">Url:</string>
     <string name="settings_preferences">Tercihler</string>
     <string name="audio_meeting">Sesli görüşme başlat</string>
     <string name="video_meeting">Video görüşme başlat</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Arama başlatma izniniz yok</string>
-    <string name="no_permissions_to_start_conf_call">Bu odada konferans görüşmesi başlatma izniniz yok</string>
-    <string name="no_permissions_to_start_webrtc_call">Bu odada arama başlatma izniniz yok</string>
     <string name="start_chatting">Sohbet etmeye başla</string>
     <string name="action_reset">Sıfırla</string>
     <string name="system_theme">Sistem Varsayılan Teması</string>
@@ -1110,10 +1072,6 @@
         <item quantity="one">%1$d/%2$d anahtar başarıyla içe aktarıldı.</item>
         <item quantity="other">%1$d/%2$d anahtar başarıyla içe aktarıldı.</item>
     </plurals>
-    <string name="call_held_by_you">Aramayı beklettiniz</string>
-    <string name="call_held_by_user">%s aramayı bekletti</string>
-    <string name="call_hold_action">Beklet</string>
-    <string name="call_resume_action">Devam et</string>
     <string name="notice_avatar_url_changed_by_you">Avatarını değiştirdin</string>
     <string name="notice_avatar_url_changed">%1$s avatarını değiştirdi</string>
     <string name="notice_room_withdraw_by_you">%1$s kişisinin davetini geri çektin</string>
@@ -1171,7 +1129,6 @@
     <string name="notice_room_remove_by_you">%1$s adlı kullanıcıyı attı</string>
     <string name="notice_room_remove">%1$s, %2$s adlı kullanıcıyı attı</string>
     <string name="room_list_quick_actions_room_settings">Oda ayarları</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Mevcut konferanstan ayrıl ve bir diğerine git\?</string>
     <string name="room_settings_room_version_title">Oda sürümü</string>
     <string name="event_status_sending_message">Mesaj gönderiliyor…</string>
     <string name="room_displayname_empty_room">Boş oda</string>
@@ -1236,21 +1193,6 @@
     <string name="space_participants_remove_prompt_msg">Kullanıcı bu alandan kaldırılacaktır.
 \n
 \nTekrar katılmalarını önlemek için, onları yasaklamalısınız.</string>
-    <string name="call_remove_jitsi_widget_progress">Arama sonlandırılıyor…</string>
-    <string name="call_ended_invite_timeout_title">Cevap yok</string>
-    <string name="call_ended_user_busy_description">Aradığınız kullanıcı meşgul.</string>
-    <string name="call_ended_user_busy_title">Kullanıcı meşgul</string>
-    <string name="audio_call_with_participant">%s ile sesli arama</string>
-    <string name="video_call_with_participant">%s ile görüntülü arama</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Cevapsız görüntülü arama</item>
-        <item quantity="other">%d adet cevapsız görüntülü arama</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Cevapsız sesli arama</item>
-        <item quantity="other">%d adet cevapsız sesli arama</item>
-    </plurals>
-    <string name="call_ringing">Çalıyor…</string>
     <string name="error_unauthorized">Yetkisiz, eksik geçerli kimlik doğrulama kimlik bilgileri</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Ana sunucuyu seçin</string>
     <string name="login_error_homeserver_from_url_not_found">%s url\'sinde bir ana sunucuya ulaşılamıyor. Lütfen bağlantınızı kontrol edin veya bir ana sunucuyu manuel olarak seçin.</string>
@@ -1400,7 +1342,6 @@
     <string name="notice_room_server_acl_updated_title_by_you">Bu oda için sunucu ACL\'lerini değiştirdiniz.</string>
     <string name="notice_room_server_acl_updated_title">%s, bu oda için sunucu ACL\'lerini değiştirdi.</string>
     <string name="command_description_ignore_user">Bir kullanıcıyı yok sayar, mesajlarını sizden gizler</string>
-    <string name="error_jitsi_join_conf">Üzgünüz, konferansa katılmaya çalışırken bir hata oluştu</string>
     <string name="notification_unread_notified_messages_in_room_and_invitation">%1$s, %2$s ve %3$s içinde</string>
     <string name="directory_add_a_new_server_error_already_added">Bu sunucu listede zaten mevcut</string>
     <string name="directory_add_a_new_server_error">Bu sunucu veya oda listesi bulunamıyor</string>

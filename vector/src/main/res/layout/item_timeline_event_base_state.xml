@@ -43,12 +43,6 @@
         android:padding="8dp">
 
         <ViewStub
-            android:id="@+id/messageCallStub"
-            style="@style/TimelineContentStubBaseParams"
-            android:layout="@layout/item_timeline_event_call_tile_stub"
-            tools:visibility="visible" />
-
-        <ViewStub
             android:id="@+id/messageVerificationRequestStub"
             style="@style/TimelineContentStubBaseParams"
             android:layout="@layout/item_timeline_event_verification_stub"
@@ -67,13 +61,6 @@
             style="@style/TimelineContentStubBaseParams"
             android:layout="@layout/item_timeline_event_widget_stub"
             tools:layout_marginTop="440dp"
-            tools:visibility="visible" />
-
-        <ViewStub
-            android:id="@+id/messageElementCallStub"
-            style="@style/TimelineContentStubBaseParams"
-            android:layout="@layout/item_timeline_event_element_call_tile_stub"
-            tools:layout_marginTop="520dp"
             tools:visibility="visible" />
 
     </FrameLayout>

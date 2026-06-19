@@ -97,8 +97,6 @@
     <string name="send_bug_report_sent">バグレポートを送信しました</string>
     <string name="send_bug_report_failed">バグレポートの送信に失敗しました（%s）</string>
     <string name="join_room">ルームに参加</string>
-    <string name="action_voice_call">音声通話</string>
-    <string name="action_video_call">ビデオ通話</string>
     <string name="search">検索</string>
     <string name="option_send_files">ファイルを送信</string>
     <string name="auth_invalid_login_param">ユーザー名とパスワードの一方あるいは両方が正しくありません</string>
@@ -110,7 +108,6 @@
     <string name="compression_opt_list_large">大</string>
     <string name="compression_opt_list_medium">中</string>
     <string name="compression_opt_list_small">小</string>
-    <string name="call_ended">通話が終了しました</string>
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
     <string name="_continue">続行</string>
@@ -209,8 +206,6 @@
     <string name="notification_listening_for_events">イベントを待機しています</string>
     <string name="view_decrypted_source">復号化されたソースコードを表示</string>
     <string name="action_rename">名前変更</string>
-    <string name="start_voice_call">音声通話を開始</string>
-    <string name="start_video_call">ビデオ通話を開始</string>
     <string name="option_take_photo_video">写真または動画を撮影</string>
     <string name="action_sign_out">サインアウト</string>
     <string name="no_result_placeholder">結果がありません</string>
@@ -222,10 +217,6 @@
     <string name="login_error_bad_json">不正な形式のJSON</string>
     <string name="login_error_not_json">有効なJSONを含んでいませんでした</string>
     <string name="login_error_limit_exceeded">ログイン要求が多すぎます</string>
-    <string name="call_connecting">通話を接続しています…</string>
-    <string name="incoming_video_call">ビデオ通話の着信中</string>
-    <string name="incoming_voice_call">音声通話の着信中</string>
-    <string name="call_in_progress">通話しています…</string>
     <string name="action_reject">拒否</string>
     <string name="room_participants_header_direct_chats">ダイレクトメッセージ</string>
     <string name="room_participants_action_ban">ブロック</string>
@@ -261,7 +252,6 @@
     <string name="room_add_matrix_apps">Matrixアプリを追加</string>
     <string name="widget_integration_positive_power_level">権限の数値は正の整数で入力してください。</string>
     <string name="matrix_only_filter">Matrixの連絡先のみ</string>
-    <string name="call_error_user_not_responding">相手が電話に出られませんでした。</string>
     <string name="permissions_rationale_popup_title">情報</string>
     <string name="permissions_rationale_msg_record_audio">${app_name}は、音声通話を実行するためにマイクにアクセスする権限を必要としています。</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name}は、ビデオ通話を行うためにカメラとマイクにアクセスする権限を必要としています。
@@ -288,7 +278,6 @@
     <string name="encryption_export_export">エクスポート</string>
     <string name="encryption_export_room_keys_summary">鍵をローカルファイルにエクスポート</string>
     <string name="encryption_export_room_keys">ルームの暗号鍵をエクスポート</string>
-    <string name="call">通話</string>
     <string name="notification_noisy_notifications">通知（音量大）</string>
     <string name="notification_silent_notifications">通知（サイレント）</string>
     <string name="title_activity_bug_report">バグレポート</string>
@@ -331,8 +320,6 @@
     <string name="notification_noisy">音量大</string>
     <string name="encrypted_message">暗号化されたメッセージ</string>
     <string name="loading">読み込んでいます…</string>
-    <string name="start_voice_call_prompt_msg">音声通話を開始してよろしいですか？</string>
-    <string name="start_video_call_prompt_msg">ビデオ通話を開始してよろしいですか？</string>
     <string name="room_participants_ban_prompt_msg">ユーザーをブロックすると、ユーザーはこのルームから追放され、二度と参加できなくなります。</string>
     <string name="room_settings_all_messages">全てのメッセージ</string>
     <string name="room_settings_add_homescreen_shortcut">ホーム画面にショートカットを作成</string>
@@ -436,10 +423,6 @@
     <string name="merged_events_collapse">折りたたむ</string>
     <string name="action_accept">同意</string>
     <string name="auth_accept_policies">このホームサーバーの運営方針を確認し、同意してください：</string>
-    <string name="settings_call_category">通話設定画面</string>
-    <string name="settings_call_ringtone_use_app_ringtone">着信に${app_name}の既定の着信音を使用</string>
-    <string name="settings_call_ringtone_title">着信音</string>
-    <string name="settings_call_ringtone_dialog_title">着信音を選んでください：</string>
     <string name="room_participants_action_remove">会話から追放</string>
     <string name="title_activity_keys_backup_setup">鍵のバックアップ</string>
     <string name="title_activity_keys_backup_restore">鍵のバックアップを使用</string>
@@ -608,7 +591,6 @@
     <plurals name="send_images_with_original_size">
         <item quantity="other">元の大きさのまま画像を送信</item>
     </plurals>
-    <string name="cannot_call_yourself">自分に電話を発信することはできません</string>
     <string name="settings_send_markdown">マークダウン書式</string>
     <string name="settings_send_markdown_summary">メッセージ送信前にマークダウン書式を適用します。アスタリスクを使用して斜字体のテキストを表示するなどの高度な書式設定が利用できます。</string>
     <string name="preference_voice_and_video">音声とビデオ</string>
@@ -654,35 +636,20 @@
     <string name="verification_scan_emoji_title">スキャンできません</string>
     <string name="action_decline">拒否</string>
     <string name="sas_incoming_request_notif_title">認証の要求</string>
-    <string name="settings_call_show_confirmation_dialog_summary">通話の開始前に確認</string>
-    <string name="settings_call_show_confirmation_dialog_title">意図しない通話を防止</string>
     <string name="login_error_ssl_other">SSLエラー。</string>
     <string name="login_error_ssl_peer_unverified">SSLエラー：相手のIDが認証されていません。</string>
     <string name="login_error_homeserver_not_found">このURLからホームサーバーに接続できませんでした。URLを確認してください</string>
     <string name="login_error_no_homeserver_found">有効なMatrixサーバーのアドレスではありません</string>
     <string name="auth_msisdn_already_defined">この電話番号は既に登録されています。</string>
     <string name="auth_login_sso">シングルサインオンを使用してサインイン</string>
-    <string name="call_format_turn_hd_on">HDを使用する</string>
-    <string name="call_format_turn_hd_off">HDを使用しない</string>
-    <string name="call_camera_back">背面</string>
-    <string name="call_camera_front">前面</string>
-    <string name="call_switch_camera">カメラの切り替え</string>
     <string name="sound_device_wireless_headset">ワイヤレスヘッドセット</string>
     <string name="sound_device_headset">ヘッドセット</string>
     <string name="sound_device_speaker">スピーカー</string>
     <string name="sound_device_phone">電話</string>
-    <string name="call_select_sound_device">サウンドデバイスを選択</string>
-    <string name="call_failed_no_connection_description">リアルタイム接続を確立できませんでした。
-\n安定した通話のために、ホームサーバーの管理者にTURNサーバーの設定を依頼してください。</string>
     <string name="call_notification_hangup">電話を切る</string>
-    <string name="call_notification_reject">拒否</string>
-    <string name="call_notification_answer">同意</string>
     <string name="failed_to_remove_widget">ウィジェットの削除に失敗しました</string>
     <string name="failed_to_add_widget">ウィジェットの追加に失敗しました</string>
     <string name="video_meeting">ビデオ通話を開始</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">通話を開始する権限がありません</string>
-    <string name="no_permissions_to_start_webrtc_call">このルームで通話を開始する権限がありません</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">グループ通話を開始する権限がありません</string>
     <string name="action_reset">リセット</string>
     <string name="none">なし</string>
     <string name="room_settings_topic_hint">トピック</string>
@@ -770,13 +737,7 @@
     <string name="room_participants_leave_private_warning">このルームは公開されていません。再度参加するには、招待が必要です。</string>
     <string name="permissions_denied_add_contact">連絡先へのアクセスを許可します。</string>
     <string name="permissions_denied_qr_code">QRコードをスキャンするには、カメラへのアクセスを許可する必要があります。</string>
-    <string name="call_held_by_you">通話を保留しました</string>
-    <string name="call_held_by_user">%sが通話を保留しました</string>
-    <string name="call_hold_action">保留</string>
-    <string name="call_resume_action">通話を再開</string>
-    <string name="video_call_in_progress">ビデオ通話が行われています…</string>
     <string name="error_unauthorized">有効な認証情報がないため、許可されていません</string>
-    <string name="call_failed_no_connection">${app_name}が呼び出しに失敗しました</string>
     <string name="settings_room_directory_show_all_rooms_summary">ルームディレクトリーの全てのルームを表示（露骨なコンテンツのあるルームを含む）。</string>
     <string name="settings_room_directory_show_all_rooms">露骨なコンテンツのあるルームを表示</string>
     <string name="settings_category_room_directory">ルームディレクトリー</string>
@@ -1054,7 +1015,6 @@
     <string name="join_anyway">無視して参加</string>
     <string name="space_add_child_title">ルームを追加</string>
     <string name="user_invites_you">%sはあなたを招待しています</string>
-    <string name="no_permissions_to_start_conf_call">このルームでグループ通話を開始する権限がありません</string>
     <string name="audio_meeting">音声通話を開始</string>
     <string name="secure_backup_setup">セキュアバックアップを設定</string>
     <string name="keys_backup_banner_update_line2">鍵のバックアップで管理</string>
@@ -1146,9 +1106,6 @@
     <string name="room_widget_webview_access_microphone">マイクの使用</string>
     <string name="room_widget_webview_access_camera">カメラの使用</string>
     <string name="room_widget_resource_permission_title">このウィジェットは次のリソースの使用を要求しています：</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">現在の会議から退出し、もう一つの会議に参加しますか？</string>
-    <string name="error_jitsi_join_conf">申し訳ありませんが、グループ通話に参加する際に問題が発生しました</string>
-    <string name="error_jitsi_not_supported_on_old_device">申し訳ありませんが、古い端末（Android OS 6.0以前）はJitsiを使用したグループ通話をサポートしていません</string>
     <string name="room_widget_permission_display_name">あなたの表示名</string>
     <string name="room_widget_failed_to_load">ウィジェットの読み込みに失敗しました。
 \n%s</string>
@@ -1355,16 +1312,9 @@
     <string name="settings_notification_other">その他</string>
     <string name="settings_notification_mentions_and_keywords">メンションとキーワード</string>
     <string name="settings_notification_default">通知のデフォルト</string>
-    <plurals name="missed_video_call">
-        <item quantity="other">%d件の不在着信（ビデオ）</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="other">%d件の不在着信（音声）</item>
-    </plurals>
     <string name="use_as_default_and_do_not_ask_again">既定に設定し、次回から確認しない</string>
     <string name="send_bug_report_include_key_share_history">鍵の共有リクエストの履歴を送信</string>
     <string name="no_more_results">結果がありません</string>
-    <string name="cannot_call_yourself_with_invite">自分に電話を発信することはできません。参加者が招待を受け入れるまでお待ちください</string>
     <string name="audio_video_meeting_description">ミーティングはJitsiのセキュリティーとパーミッションポリシーを使用します。ミーティング中は、現在ルームにいる全ての人に招待が表示されます。</string>
     <string name="missing_permissions_title">権限がありません</string>
     <string name="denied_permission_voice_message">音声メッセージを送信するには、マイクの権限を許可してください。</string>
@@ -1421,7 +1371,6 @@
     <string name="space_participants_remove_prompt_msg">このユーザーはスペースから追放されます。
 \n
 \n再参加を防ぐためには、追放する代わりにブロックする必要があります。</string>
-    <string name="call_remove_jitsi_widget_progress">通話を終了しています…</string>
     <string name="notification_listening_for_notifications">通知を待機しています</string>
     <string name="settings_mentions_at_room">\@room</string>
     <string name="settings_messages_containing_keywords">キーワード</string>
@@ -1431,11 +1380,6 @@
     <plurals name="create_poll_not_enough_options_error">
         <item quantity="other">%1$s個以上の選択肢が必要です</item>
     </plurals>
-    <string name="call_ended_user_busy_description">呼び出したユーザーは通話中です。</string>
-    <string name="call_ended_user_busy_title">通話中</string>
-    <string name="audio_call_with_participant">%sとの音声通話</string>
-    <string name="video_call_with_participant">%sとのビデオ通話</string>
-    <string name="call_ringing">呼び出しています…</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">ホームサーバーを選択</string>
     <string name="login_error_homeserver_from_url_not_found">URL %s のホームサーバーに接続できません。リンクを確認するか、手動でホームサーバーを選択してください。</string>
     <string name="action_not_now">後で</string>
@@ -1456,7 +1400,6 @@
     <string name="thread_list_modal_my_threads_title">自分のスレッド</string>
     <string name="thread_list_modal_all_threads_title">全てのスレッド</string>
     <string name="upgrade_room_auto_invite">ユーザーを自動的に招待</string>
-    <string name="call_transfer_users_tab_title">ユーザー</string>
     <string name="space_participants_unban_prompt_msg">ブロックを解除すると、ユーザーはスペースに再び参加できるようになります。</string>
     <string name="room_join_rules_invite_by_you">このルームを「招待者のみ参加可能」に設定しました。</string>
     <string name="room_list_quick_actions_low_priority_remove">低優先度から削除</string>
@@ -1475,7 +1418,6 @@
     <string name="a11y_video">動画</string>
     <string name="a11y_image">画像</string>
     <string name="a11y_screenshot">スクリーンショット</string>
-    <string name="call_transfer_connect_action">接続</string>
     <string name="attachment_type_poll">アンケート</string>
     <string name="sent_a_poll">アンケート</string>
     <string name="settings_text_message_sent_hint">コード</string>
@@ -1544,8 +1486,6 @@
     <string name="room_permissions_upgrade_the_space">スペースのアップグレード</string>
     <string name="room_permissions_change_space_name">スペース名の変更</string>
     <string name="space_settings_permissions_title">スペースの権限</string>
-    <string name="call_tile_no_answer">応答がありません</string>
-    <string name="call_ended_invite_timeout_title">応答がありません</string>
     <string name="action_thread_copy_link_to_thread">スレッドへのリンクをコピー</string>
     <string name="action_enable">有効にする</string>
     <string name="legals_identity_server_title">あなたのIDサーバーの運営方針</string>
@@ -1652,8 +1592,6 @@
     <string name="a11y_public_room">公開ルーム</string>
     <string name="a11y_delete_avatar">アバターを削除</string>
     <string name="a11y_change_avatar">アバターを変更</string>
-    <string name="call_tile_call_back">かけ直す</string>
-    <string name="call_dial_pad_title">ダイヤルパッド</string>
     <string name="settings_security_pin_code_change_pin_summary">現在のPINコードを変更</string>
     <string name="settings_security_pin_code_change_pin_title">PINコードを変更</string>
     <string name="settings_security_application_protection_summary">PINコードと生体認証でアクセスを保護できます。</string>
@@ -1815,7 +1753,6 @@
     <string name="a11y_presence_offline">オフライン</string>
     <string name="a11y_presence_online">オンライン</string>
     <string name="create_spaces_default_public_room_name">一般</string>
-    <string name="call_transfer_title">転送</string>
     <string name="trusted">信頼済</string>
     <string name="verification_profile_verified">認証済</string>
     <string name="event_status_delete_all_failed_dialog_title">未送信のメッセージを削除</string>
@@ -1906,8 +1843,6 @@
     <string name="direct_room_join_rules_invite">%1$sがこれを「招待者のみ参加可能」に設定しました。</string>
     <string name="event_status_failed_messages_warning">メッセージを送信できませんでした</string>
     <string name="a11y_open_widget">ウィジェットを開く</string>
-    <string name="call_transfer_transfer_to_title">%1$sに転送</string>
-    <string name="call_tile_ended">通話が終了しました</string>
     <string name="cannot_dm_self">自分自身にダイレクトメッセージを送信することはできません！</string>
     <string name="login_set_msisdn_optional_hint">電話番号（任意）</string>
     <string name="login_msisdn_confirm_title">電話番号を確認</string>
@@ -2189,7 +2124,6 @@
     <string name="room_message_notify_everyone">ルーム全体に通知</string>
     <string name="room_message_autocomplete_users">ユーザー</string>
     <string name="discovery_section">ディスカバリー（%s）</string>
-    <string name="call_transfer_unknown_person">不明な人間</string>
     <string name="disclaimer_negative_button">了解</string>
     <string name="dev_tools_event_content_hint">イベントの内容</string>
     <string name="dev_tools_error_malformed_event">不正な形式のイベント</string>
@@ -2217,8 +2151,6 @@
     <string name="secure_backup_reset_no_history">履歴とメッセージが消去され、信頼済の端末、信頼済のユーザーが取り消されます</string>
     <string name="secure_backup_reset_if_you_reset_all">全てをリセットすると</string>
     <string name="use_other_session_content_description">最新の${app_name}を他の端末で、${app_name} ウェブ版、${app_name} デスクトップ版、${app_name} iOS、${app_name} Android、あるいはクロス署名に対応した他のMatrixのクライアントでご使用ください</string>
-    <string name="call_slide_to_end_conference">スライドして通話を終了</string>
-    <string name="call_dial_pad_lookup_error">電話番号を検索する際にエラーが発生しました</string>
     <string name="call_tile_you_declined_this_call">通話を拒否しました</string>
     <string name="create_spaces_room_private_header_desc">それぞれにルームを作りましょう。後から追加することもできます（既にあるルームも追加できます）。</string>
     <string name="create_spaces_details_private_header">このスペースを特定できるような特徴を記入してください。これはいつでも変更できます。</string>
@@ -2238,7 +2170,6 @@
         <item quantity="other">あと%1$d件</item>
     </plurals>
     <string name="phone_book_perform_lookup">Matrix上の連絡先を検索</string>
-    <string name="call_transfer_failure">通話の転送中にエラーが発生しました</string>
     <string name="settings_security_pin_code_grace_period_title">2分後にPINコードを要求</string>
     <string name="settings_security_pin_code_notifications_summary_on">ルーム名やメッセージの内容などの詳細を表示。</string>
     <string name="too_many_pin_failures">多数のエラーが発生したため、ログアウトしました</string>
@@ -2296,16 +2227,12 @@
     <string name="settings_export_trail">監査結果をエクスポート</string>
     <string name="enter_secret_storage_invalid">ストレージから機密情報を発見できません</string>
     <string name="identity_server_error_outdated_home_server">操作を実行できません。ホームサーバーは最新のバージョンではありません。</string>
-    <string name="call_tile_video_declined">ビデオ通話が拒否されました</string>
-    <string name="call_tile_voice_declined">音声通話が拒否されました</string>
     <string name="call_tile_other_declined">%1$sは通話を拒否しました</string>
     <string name="secure_backup_reset_all_no_other_devices">この端末を認証できる他の端末が全くない場合にのみ、続行してください。</string>
     <string name="settings_active_sessions_unverified_device_desc">このセッションを信頼済として認証すると、暗号化されたメッセージにアクセスすることができます。このアカウントにサインインしなかった場合は、あなたのアカウントのセキュリティーが破られている可能性があります：</string>
     <string name="verify_new_session_compromized">アカウントのセキュリティーが破られている可能性があります</string>
     <string name="command_description_add_to_space">選択したスペースに追加</string>
     <string name="use_latest_app">最新の${app_name}は他のデバイスでも使用できます：</string>
-    <string name="call_tile_voice_call_has_ended">音声通話が終了しました・%1$s</string>
-    <string name="call_tile_video_call_has_ended">ビデオ通話が終了しました・%1$s</string>
     <string name="discovery_invite">メールアドレスで招待したり、連絡先を検索したりできます…</string>
     <string name="bootstrap_progress_storing_in_sss">鍵のバックアップの機密情報をSSSSに保存しています</string>
     <string name="set_a_security_phrase_notice">あなたしか知らないセキュリティーフレーズを入力してください。サーバーで機密情報を保護するために使用します。</string>
@@ -2374,8 +2301,6 @@
 \n
 \n通知を表示するには、次のポップアップでアクセスを許可してください。</string>
     <string name="auth_reset_password_error_unverified">メールアドレスが認証されていません。メールボックスを確認してください</string>
-    <string name="call_stop_screen_sharing">画面共有を停止</string>
-    <string name="call_start_screen_sharing">画面を共有</string>
     <string name="invites_title">招待</string>
     <string name="device_manager_push_notifications_title">プッシュ通知</string>
     <string name="device_manager_session_rename_edit_hint">セッション名</string>
@@ -2604,8 +2529,6 @@
     <string name="settings_notification_method">通知方法</string>
     <string name="unifiedpush_distributor_fcm_fallback">Googleサービス</string>
     <string name="unifiedpush_getdistributors_dialog_title">通知の受信方法を選択してください</string>
-    <string name="screen_sharing_notification_description">画面を共有しています</string>
-    <string name="screen_sharing_notification_title">${app_name}の画面共有</string>
     <string name="attachment_type_selector_text_formatting">テキストの装飾</string>
     <string name="attachment_type_selector_camera">カメラ</string>
     <string name="attachment_type_selector_location">位置情報</string>
@@ -2674,8 +2597,6 @@
 \n後でもう一度やり直すか、ルームの管理者にアクセス権があるかどうかを確認するよう依頼してください。</string>
     <string name="invite_just_to_this_room_desc">%sのメンバーにはなりません</string>
     <string name="a11y_open_settings">設定を開く</string>
-    <string name="call_tile_video_incoming">ビデオ通話の着信中</string>
-    <string name="call_tile_voice_incoming">音声通話の着信中</string>
     <string name="command_description_discard_session">暗号化されたルーム内の現在のアウトバウンドグループセッションを強制的に破棄</string>
     <string name="settings_security_incognito_keyboard_summary">会話で入力したデータに基づいて入力履歴や辞書などに関する個人用データを変更しないようキーボードに指示します。いくつかのキーボードでは、この設定が無視されることがあります。</string>
     <string name="settings_security_incognito_keyboard_title">プライベートキーボード</string>
@@ -2720,17 +2641,6 @@
     <string name="settings_enable_direct_share_title">直接共有を有効にする</string>
     <string name="a11y_trust_level_trusted">信頼済の信頼レベル</string>
     <string name="a11y_trust_level_warning">警告の信頼レベル</string>
-    <string name="call_transfer_consulting_with">%1$sと相談しています</string>
-    <string name="call_transfer_consult_first">初めに相談</string>
-    <string name="call_one_active">実施中の通話（%1$s）・</string>
-    <plurals name="call_active_status">
-        <item quantity="other">%1$d件の実施中の通話・</item>
-    </plurals>
-    <string name="call_only_active">実施中の通話（%1$s）</string>
-    <string name="call_tile_video_missed">不在着信（ビデオ）</string>
-    <string name="call_tile_voice_missed">不在着信（音声）</string>
-    <string name="call_tile_video_active">実施中のビデオ通話</string>
-    <string name="call_tile_voice_active">実施中の音声通話</string>
     <string name="auth_biometric_key_invalidated_message">新しい生体認証の方法が最近追加されたため、生体認証は無効になりました。設定から再び有効にできます。</string>
     <string name="identity_server_error_no_current_binding_error">このIDとの連携は現在ありません。</string>
     <string name="error_forbidden_digits_only_username">このホームサーバーは数字だけからなるユーザー名を承諾しません。</string>
@@ -2844,7 +2754,6 @@
     <string name="device_manager_learn_more_sessions_verified_description">認証済のセッションは、パスフレーズの入力、または他の認証済のセッションで本人確認を行ったセッションです。
 \n
 \n認証済のセッションには、暗号化されたメッセージを復号化する際に使用する全ての鍵が備わっています。また、他のユーザーに対しては、あなたがこのセッションを信頼していることが表示されます。</string>
-    <string name="call_tap_to_return">%1$s タップして戻る</string>
     <string name="qr_code_login_header_failed_other_device_not_signed_in_description">もう一方の端末でサインインしてください。</string>
     <string name="qr_code_login_signing_in_a_mobile_device">携帯端末にサインインしますか？</string>
     <string name="qr_code_login_link_a_device_show_qr_code_instruction_1">サインインの画面で開始</string>

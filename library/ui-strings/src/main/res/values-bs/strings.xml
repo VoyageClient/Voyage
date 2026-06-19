@@ -28,8 +28,6 @@
     <string name="or">ili</string>
     <string name="action_invite">Pozovi</string>
     <string name="action_sign_out">Odjavi se</string>
-    <string name="action_voice_call">Glasovni Poziv</string>
-    <string name="action_video_call">Video Poziv</string>
     <string name="action_mark_all_as_read">Označi kao pročitano</string>
     <string name="action_quick_reply">Brzi odgovor</string>
     <string name="action_open">Otvori</string>
@@ -64,8 +62,6 @@
     <string name="logout">Odjavi se</string>
     <string name="hs_url">URL lokalnog servera</string>
     <string name="search">Traži</string>
-    <string name="start_voice_call">Započni Glasnovni Poziv</string>
-    <string name="start_video_call">Započni Video Poziv</string>
     <string name="option_send_files">Pošalji fajlove</string>
     <string name="option_take_photo_video">Napravi fotografiju ili videozapis</string>
     <string name="option_take_photo">Napravi fotografiju</string>
@@ -88,13 +84,6 @@
     <string name="compression_opt_list_large">Veliko</string>
     <string name="compression_opt_list_medium">Srednje</string>
     <string name="compression_opt_list_small">Malo</string>
-    <string name="call">Poziv</string>
-    <string name="call_connecting">Poziv se uspostavlja…</string>
-    <string name="call_ended">Poziv završen</string>
-    <string name="incoming_video_call">Dolazni Video Poziv</string>
-    <string name="incoming_voice_call">Dolazni Glasovni Poziv</string>
-    <string name="call_in_progress">Poziv u Toku</string>
-    <string name="call_error_user_not_responding">Daljinska strana nije uspjela pokupiti.</string>
     <string name="permissions_rationale_popup_title">Informacije</string>
 
 

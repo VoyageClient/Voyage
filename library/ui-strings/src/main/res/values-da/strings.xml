@@ -62,8 +62,6 @@
     <string name="or">eller</string>
     <string name="action_invite">Invitér</string>
     <string name="action_sign_out">Log ud</string>
-    <string name="action_voice_call">Stemmeopkald</string>
-    <string name="action_video_call">Videoopkald</string>
     <string name="action_mark_all_as_read">Markér alle som læst</string>
     <string name="action_quick_reply">Hurtigsvar</string>
     <string name="action_open">Åben</string>
@@ -98,8 +96,6 @@
     <string name="logout">Log ud</string>
     <string name="hs_url">Home Server URL</string>
     <string name="search">Søg</string>
-    <string name="start_voice_call">Start Stemmeopkald</string>
-    <string name="start_video_call">Start Videoopkald</string>
     <string name="option_send_files">Send filer</string>
     <string name="option_take_photo_video">Tag billede eller video</string>
     <string name="auth_login">Log ind</string>
@@ -122,13 +118,6 @@
     <string name="compression_opt_list_large">Stor</string>
     <string name="compression_opt_list_medium">Middel</string>
     <string name="compression_opt_list_small">Lille</string>
-    <string name="call">Opkald</string>
-    <string name="call_connecting">Opkald forbinder…</string>
-    <string name="call_ended">Opkald afsluttet</string>
-    <string name="incoming_video_call">Indgående Videoopkald</string>
-    <string name="incoming_voice_call">Indgående Stemmeopkald</string>
-    <string name="call_in_progress">Opkald I Gang</string>
-    <string name="call_error_user_not_responding">Den anden side tog den ikke.</string>
     <string name="permissions_rationale_popup_title">Information</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} skal bruge tilladelse til at bruge din mikrofon for at lave lydopkald.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} skal bruge tilladelse til at bruge dit kamera og din mikrofon for at lave videoopkald.
@@ -169,8 +158,6 @@ Er du sikker?</string>
     <string name="ssl_expected_existing_expl">Certifikatet er ændret fra et tidligere betroet, til et der ikke er betroet. Serveren kan have fornyet sit certifikat. Kontakt server administratoren for det forventede fingeraftryk.</string>
     <string name="ssl_only_accept">Accepter kun certifikatet hvis server administratoren har publiceret et fingeraftryk der matcher det ovenstående.</string>
     <string name="loading">Loader…</string>
-    <string name="start_voice_call_prompt_msg">Er du sikker på, at du ønsker at starte et opkald?</string>
-    <string name="start_video_call_prompt_msg">Er du sikker på, at du ønsker at starte et videoopkald\?</string>
     <plurals name="membership_changes">
         <item quantity="one">1 medlemsændring</item>
         <item quantity="other">%d medlemsændringer</item>

@@ -74,8 +74,6 @@
     <string name="or">i</string>
     <string name="action_invite">Zaproś</string>
     <string name="action_sign_out">Wyloguj</string>
-    <string name="action_voice_call">Połączenie głosowe</string>
-    <string name="action_video_call">Połączenie wideo</string>
     <string name="action_mark_all_as_read">Oznacz wszystko jako przeczytane</string>
     <string name="action_quick_reply">Szybka odpowiedź</string>
     <string name="action_open">Otwórz</string>
@@ -110,8 +108,6 @@
     <string name="logout">Wyloguj</string>
     <string name="hs_url">Adres serwera domowego</string>
     <string name="search">Szukaj</string>
-    <string name="start_voice_call">Rozpocznij połączenie telefoniczne</string>
-    <string name="start_video_call">Rozpocznij połączenie wideo</string>
     <string name="option_send_files">Wyślij pliki</string>
     <string name="option_take_photo_video">Zrób zdjęcie lub film</string>
     <string name="auth_login">Zaloguj się</string>
@@ -129,11 +125,6 @@
     <string name="compression_opt_list_large">Duży</string>
     <string name="compression_opt_list_medium">Średni</string>
     <string name="compression_opt_list_small">Mały</string>
-    <string name="call_connecting">Łączenie…</string>
-    <string name="call_ended">Zakończono połączenie</string>
-    <string name="incoming_video_call">Przychodzące połączenie wideo</string>
-    <string name="incoming_voice_call">Przychodzące połączenie głosowe</string>
-    <string name="call_in_progress">W trakcie połączenia…</string>
     <string name="permissions_rationale_popup_title">Informacja</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} wymaga uprawnienia, aby przeprowadzić połączenie audio.</string>
     <string name="yes">TAK</string>
@@ -252,7 +243,6 @@
     <string name="light_theme">Jasny motyw</string>
     <string name="dark_theme">Ciemny motyw</string>
     <string name="black_theme">Czarny motyw</string>
-    <string name="call">Zadzwoń</string>
     <string name="avatar">Awatar</string>
     <string name="reason_colon">Powód: %1$s</string>
     <string name="has_been_banned">Zostałeś zbanowany z %1$s przez %2$s</string>
@@ -266,8 +256,6 @@
     <string name="title_activity_bug_report">Zgłoś błąd</string>
     <string name="loading">Wczytywanie…</string>
     <string name="send_bug_report_rage_shake">Potrząśnij wściekle, aby zgłosić błąd</string>
-    <string name="start_voice_call_prompt_msg">Czy jesteś pewien, że chcesz rozpocząć rozmowę głosową?</string>
-    <string name="start_video_call_prompt_msg">Czy jesteś pewien, że chcesz rozpocząć wideorozmowę?</string>
     <string name="option_take_photo">Zrób zdjęcie</string>
     <string name="option_take_video">Nagraj film</string>
     <string name="login_error_bad_json">Uszkodzony JSON</string>
@@ -277,7 +265,6 @@
         <item quantity="many">%d zmian członkostwa</item>
         <item quantity="other"/>
     </plurals>
-    <string name="call_error_user_not_responding">Rozmówca nie połączył się.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} wymaga dostępu do kamery i mikrofonu, aby przeprowadzać rozmowy wideo.
 \n
 \nPrzyznaj dostęp w następnym oknie.</string>
@@ -446,16 +433,12 @@
     <string name="resource_limit_hard_contact">Proszę %s, aby kontynuować z tej usługi.</string>
     <string name="merged_events_expand">Rozwiń</string>
     <string name="merged_events_collapse">Zwiń</string>
-    <string name="settings_call_ringtone_title">Dzwonek przychodzących połączeń</string>
-    <string name="settings_call_ringtone_dialog_title">Wybierz dzwonek dla połączeń:</string>
     <string name="settings_send_typing_notifs">Wyślij powiadomienia o pisaniu</string>
     <string name="settings_password">Hasło</string>
     <string name="markdown_has_been_enabled">Markdown został włączony.</string>
     <string name="markdown_has_been_disabled">Markdown został wyłączony.</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="x_plus">+%d</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Użyj domyślnego dzwonka ${app_name} dla przychodzących połączeń</string>
-    <string name="settings_call_category">Połączenia</string>
     <string name="room_participants_action_remove">Wyrzuć</string>
     <string name="settings_send_markdown">Formatowanie Markdown</string>
     <string name="settings_show_join_leave_messages">Pokaż zdarzenia dołączenia i wyjścia</string>
@@ -490,7 +473,6 @@
     <string name="settings_troubleshoot_test_battery_quickfix">Ignoruj Optymalizację</string>
     <string name="settings_troubleshoot_test_battery_title">Optymalizacja Baterii</string>
     <string name="settings_troubleshoot_diagnostic_failure_status_no_quickfix">Jeden lub więcej testów nie powiodło się, prosimy o przesłanie raportu o błędzie, aby pomóc nam w zbadaniu problemu.</string>
-    <string name="video_call_in_progress">Połączenie wideo trwa…</string>
     <string name="title_activity_keys_backup_setup">Kopia Zapasowa Klucza</string>
     <string name="action_skip">Pomiń</string>
     <string name="settings_notification_advanced">Zaawansowane ustawienia powiadomień</string>
@@ -764,7 +746,6 @@
     <string name="room_widget_permission_avatar_url">Adres URL awatara</string>
     <string name="room_widget_permission_user_id">Twój ID użytkownika</string>
     <string name="room_widget_permission_widget_id">ID Widżetu</string>
-    <string name="error_jitsi_not_supported_on_old_device">Przepraszamy, połączenia konferencyjne za pomocą Jitsi nie są wspierane na starszych urządzeniach (urządzenia z systemem Android poniżej wersji 6.0)</string>
     <string name="room_widget_resource_permission_title">Widżet chce użyć następujących zasobów:</string>
     <string name="room_widget_resource_decline_permission">Zablokuj wszystko</string>
     <string name="room_widget_webview_access_camera">Użyj aparatu</string>
@@ -1198,17 +1179,10 @@
     <string name="verify_new_session_was_not_me">To nie ja</string>
     <string name="action_dismiss">Zamknij</string>
     <string name="action_play">Odtwórz</string>
-    <string name="no_permissions_to_start_webrtc_call">Nie posiadasz wymaganych uprawnień do rozpoczęcia połączenia w tym pokoju</string>
-    <string name="call_notification_answer">Odbierz</string>
     <string name="failed_to_remove_widget">Usuwanie widżetu nie powiodło się</string>
     <string name="failed_to_add_widget">Dodawanie widżetu nie powiodło się</string>
-    <string name="cannot_call_yourself_with_invite">Nie można rozpocząć połączenia z samym sobą, poczekaj aż inni zaakceptują zaproszenie</string>
-    <string name="cannot_call_yourself">Nie można rozpocząć połączenia z samym sobą</string>
     <string name="audio_meeting">Rozpocznij połączenie głosowe</string>
     <string name="video_meeting">Rozpocznij połączenie wideo</string>
-    <string name="no_permissions_to_start_conf_call">Nie posiadasz uprawnień, aby rozpocząć połączenie grupowe w tym pokoju</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Nie posiadasz wymaganych uprawnień do rozpoczęcia połączenia</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Nie posiadasz uprawnień, aby rozpocząć połączenie grupowe</string>
     <string name="alert_push_are_disabled_description">Przejrzyj swoje ustawienia aby włączyć powiadomienia PUSH</string>
     <string name="alert_push_are_disabled_title">Powiadomienia PUSH są wyłączone</string>
     <string name="failed_to_unban">Nie udało się odblokować użytkownika</string>
@@ -1311,7 +1285,6 @@
     <string name="active_widgets_title">Aktywne widżety</string>
     <string name="notification_ticker_text_group">%1$s: %2$s %3$s</string>
     <string name="notification_ticker_text_dm">%1$s: %2$s</string>
-    <string name="call_switch_camera">Przełącz aparat</string>
     <string name="bootstrap_crosssigning_progress_save_usk">Synchronizacja Klucza Użytkownika (User Key)</string>
     <string name="bootstrap_crosssigning_progress_save_msk">Synchronizacja Głównego Klucza (Master Key)</string>
     <string name="bootstrap_crosssigning_progress_pbkdf2">Generowanie kluczy bezpieczeństwa z hasła</string>
@@ -1356,7 +1329,6 @@
     <string name="room_participants_remove_prompt_msg">Wykopanie użytkownika spowoduje usunięcie go z tego pokoju.
 \n
 \nŻeby zapobiec jego ponownemu dołączeniu należy go zamiast tego zablokować.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Zapobiegaj przypadkowym połączeniom</string>
     <string name="action_unpublish">Wycofaj publikację</string>
     <string name="action_add">Dodaj</string>
     <string name="action_copy">Kopiuj</string>
@@ -1519,20 +1491,13 @@
     <string name="room_participants_power_level_demote_warning_prompt">Nie będziesz mógł cofnąć tej zmiany, ponieważ degradujesz swoje uprawnienia. Jeśli jesteś ostatnim użytkownikiem uprzywilejowanym w tym pokoju, nie będziesz mógł ich odzyskać.</string>
     <string name="room_participants_action_cancel_invite">Anuluj zaproszenie</string>
     <string name="permissions_denied_qr_code">Żeby zeskanować kod QR musisz zezwolić na dostęp do aparatu.</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Pytaj o potwierdzenie przed rozpoczęciem połączenia</string>
     <string name="login_error_ssl_other">Błąd SSL.</string>
     <string name="login_error_ssl_peer_unverified">Błąd SSL: tożsamość peer-a nie została zweryfikowana.</string>
     <string name="auth_msisdn_already_defined">Ten numer telefonu jest już zdefiniowany.</string>
-    <string name="call_format_turn_hd_on">Włącz HD</string>
-    <string name="call_format_turn_hd_off">Wyłącz HD</string>
-    <string name="call_camera_back">Tył</string>
-    <string name="call_camera_front">Przód</string>
     <string name="sound_device_wireless_headset">Bezprzewodowy zestaw słuchawkowy</string>
     <string name="sound_device_headset">Zestaw słuchawkowy</string>
     <string name="sound_device_speaker">Głośnik</string>
     <string name="sound_device_phone">Telefon</string>
-    <string name="call_failed_no_connection_description">Nie udało się zestawić połączenia czasu rzeczywistego. 
-\nPoproś administratora Twojego serwera domowego o skonfigurowanie serwera TURN w celu zapewnienia poprawnego dziania połączeń.</string>
     <string name="no_more_results">Koniec wyników</string>
     <string name="bottom_action_notification">Powiadomienia</string>
     <string name="dialog_title_success">Sukces</string>
@@ -1579,9 +1544,6 @@
     <string name="settings_secure_backup_enter_to_setup">Skonfiguruj na tym urządzeniu</string>
     <string name="room_participants_power_level_demote_warning_title">Czy chcesz się zdegradować\?</string>
     <string name="permissions_denied_add_contact">Zezwól na dostęp do Twoich kontaktów.</string>
-    <string name="call_select_sound_device">Wybierz urządzenie dźwiękowe</string>
-    <string name="call_failed_no_connection">Połączenie ${app_name} nieudane</string>
-    <string name="call_notification_reject">Odrzuć</string>
     <string name="start_chatting">Rozpocznij konwersację</string>
     <string name="warning_unsaved_change_discard">Odrzuć zmiany</string>
     <string name="warning_unsaved_change">Istnieję niezachowane zmiany. Czy chcesz je odrzucić\?</string>
@@ -1816,29 +1778,6 @@
     <string name="space_participants_unban_prompt_msg">Odblokowanie użytkownika pozwoli mu na ponowne dołączenie do tej przestrzeni.</string>
     <string name="space_participants_ban_prompt_msg">Zablokowanie użytkownika usunie go z tego miejsca i uniemożliwi ponowne dołączenie.</string>
     <string name="room_participants_leave_private_warning">Ten pokój nie jest publiczny. Nie będziesz w stanie dołączyć bez zaproszenia.</string>
-    <string name="call_remove_jitsi_widget_progress">Zakańczanie połączenia…</string>
-    <string name="call_ended_invite_timeout_title">Brak odpowiedzi</string>
-    <string name="call_ended_user_busy_description">Użytkownik, do którego zadzwoniłeś jest zajęty.</string>
-    <string name="call_ended_user_busy_title">Użytkownik zajęty</string>
-    <string name="call_held_by_you">Zawiesiłeś(aś) połączenie</string>
-    <string name="call_held_by_user">%s zawiesił(a) połączenie</string>
-    <string name="call_hold_action">Zawieś</string>
-    <string name="call_resume_action">Wznów</string>
-    <string name="audio_call_with_participant">Połączenie głosowe z %s</string>
-    <string name="video_call_with_participant">Połączenie wideo z %s</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Nieodebrane połączenie wideo</item>
-        <item quantity="few">%d nieodebrane połączenia wideo</item>
-        <item quantity="many">%d nieodebranych połączeń wideo</item>
-        <item quantity="other">%d nieodebranych połączeń wideo</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Nie odebrane połączenie głosowe</item>
-        <item quantity="few">%d nie odebrane połączenia głosowe</item>
-        <item quantity="many">%d nie odebranych połączeń głosowych</item>
-        <item quantity="other">%d nie odebranych połączeń głosowych</item>
-    </plurals>
-    <string name="call_ringing">Dzwoni…</string>
     <string name="error_unauthorized">Błąd autoryzacji, niepoprawne dane logowania</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Wybierz serwer domowy</string>
     <string name="login_error_homeserver_from_url_not_found">Nie można było połączyć się z serwerem domowym %s. Proszę sprawdzić link lub wybrać serwer domowy manualnie.</string>
@@ -2074,8 +2013,6 @@
     <string name="command_description_room_name">Ustawia nazwę pokoju</string>
     <string name="command_description_unignore_user">Przestaje ignorować użytkownika, od teraz jego wiadomości będą dla Ciebie widoczne</string>
     <string name="command_description_ignore_user">Ignoruje użytkownika, ukrywając dla Ciebie jego wiadomości</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Opuścić obecną konferencję i przejść do innej\?</string>
-    <string name="error_jitsi_join_conf">Wystąpił błąd podczas próby dołączenia do konferencji</string>
     <string name="directory_add_a_new_server_error_already_added">Ten serwer znajduje się już na liście</string>
     <string name="directory_add_a_new_server_error">Nie można odnaleźć tego serwera lub jego listy pokojów</string>
     <string name="directory_add_a_new_server_prompt">Wprowadź nazwę nowego serwera, który chcesz odkrywać.</string>
@@ -2140,18 +2077,6 @@
     <string name="secure_backup_banner_setup_line1">Bezpieczna kopia</string>
     <string name="shortcut_disabled_reason_sign_out">Sesja została wylogowana!</string>
     <string name="re_authentication_activity_title">Wymagane ponowne logowanie</string>
-    <string name="call_slide_to_end_conference">Przesuń aby zakończyć rozmowę</string>
-    <string name="call_transfer_unknown_person">Nieznana osoba</string>
-    <string name="call_transfer_users_tab_title">Użytkownicy</string>
-    <string name="call_transfer_failure">Wystąpił błąd podczas przekazywania połączenia</string>
-    <string name="call_transfer_connect_action">Połącz</string>
-    <string name="call_tile_no_answer">Brak odpowiedzi</string>
-    <string name="call_tile_voice_missed">Nieodebrane połączenie głosowe</string>
-    <string name="call_tile_video_active">Aktywna wideorozmowa</string>
-    <string name="call_tile_voice_active">Aktywna rozmowa głosowa</string>
-    <string name="call_tile_video_incoming">Przychodząca wideorozmowa</string>
-    <string name="call_tile_voice_incoming">Przychodzące połączenie głosowe</string>
-    <string name="call_tile_ended">Rozmowa zakończona</string>
     <string name="call_tile_other_declined">%1$s odrzucił połączenie</string>
     <string name="call_tile_you_declined_this_call">Odrzuciłeś połączenie</string>
     <string name="share_by_text">Udostępnij przez tekst</string>
@@ -2191,18 +2116,6 @@
     </plurals>
     <string name="login_social_sso">pojedyncze logowanie</string>
     <string name="shortcut_disabled_reason_room_left">Pokój został opuszczony!</string>
-    <string name="call_dial_pad_lookup_error">Błąd podczas wyszukiwania numeru telefonu</string>
-    <string name="call_transfer_title">Przekaż</string>
-    <string name="call_tap_to_return">%1$s dotknij by powrócić</string>
-    <string name="call_one_active">Aktywne połączenie (%1$s) ·</string>
-    <string name="call_only_active">Aktywne połączenie (%1$s)</string>
-    <string name="call_dial_pad_title">Klawisze wybierania</string>
-    <string name="call_tile_video_call_has_ended">Wideorozmowa zakończona • %1$s</string>
-    <string name="call_tile_video_declined">Odrzucono wideorozmowę</string>
-    <string name="call_tile_video_missed">Nieodebrana wideorozmowa</string>
-    <string name="call_tile_voice_declined">Odrzucono połączenie głosowe</string>
-    <string name="call_tile_voice_call_has_ended">Rozmowa głosowa zakończona • %1$s</string>
-    <string name="call_tile_call_back">Oddzwoń</string>
     <string name="failed_to_initialize_cross_signing">Nie udało się skonfigurować logowania krzyżowego</string>
     <string name="upgrade_room_for_restricted_note">Aktualizacja spowoduje utworzenie pokoju w nowej wersji. Wszystkie bieżące wiadomości zostaną zarchiwizowane w tym pokoju.</string>
     <string name="a11y_recording_voice_message">Nagrywanie wiadomości głosowej</string>
@@ -2260,7 +2173,6 @@
     <string name="a11y_screenshot">Zrzut ekranu</string>
     <string name="authentication_error">Uwierzytelnianie nieudane</string>
     <string name="re_authentication_default_confirm_text">${app_name} wymaga podania Twoich danych do wykonania tej czynności.</string>
-    <string name="call_transfer_transfer_to_title">Przekaż do %1$s</string>
     <string name="create_poll_empty_question_error">Pytanie nie może być puste</string>
     <string name="create_poll_button">UTWÓRZ ANKIETĘ</string>
     <string name="create_poll_add_option">DODAJ OPCJĘ</string>
@@ -2273,12 +2185,6 @@
     <string name="create_spaces_room_private_header_desc">Stwórzmy pokój dla każdego z nich. Możesz potem dodać kolejne, także te już istniejące.</string>
     <string name="create_spaces_room_private_header">Nad czym pracujesz\?</string>
     <string name="delete_poll_dialog_content">Czy na pewno chcesz usunąć ankietę\? Nie będziesz w stanie jej odzyskać po usunięciu.</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Aktywne połączenie ·</item>
-        <item quantity="few">%1$d aktywnych połączeń ·</item>
-        <item quantity="many">%1$d aktywnych połączeń ·</item>
-        <item quantity="other">%1$d aktywnych połączeń ·</item>
-    </plurals>
     <string name="identity_server_consent_dialog_content_question">Zgadzasz się na wysłanie tych informacji\?</string>
     <string name="preference_system_settings">Ustawienia systemu</string>
     <string name="preference_versions">Wersje</string>
@@ -2333,7 +2239,6 @@
     <string name="dev_tools_error_no_content">Brak zawartości</string>
     <string name="dev_tools_send_custom_event">Wyślij zdarzenie niestandardowe</string>
     <string name="a11y_trust_level_warning">Ostrzegawczy poziom zaufania</string>
-    <string name="call_transfer_consult_first">Upewnij się najpierw</string>
     <string name="a11y_unchecked">Nie sprawdzono</string>
     <string name="a11y_checked">Sprawdzono</string>
     <string name="restart_the_application_to_apply_changes">Aby zmiany zostały zastosowane, należy uruchomić ponownie aplikację.</string>
@@ -2351,7 +2256,6 @@
     <string name="dev_tools_error_malformed_event">Nieprawidłowe zdarzenie</string>
     <string name="dev_tools_form_hint_event_content">Zawartość wydarzenia</string>
     <string name="dev_tools_form_hint_state_key">Klucz stanu</string>
-    <string name="call_transfer_consulting_with">Konsultacja z %1$s</string>
     <string name="error_forbidden_digits_only_username">Serwer domowy nie akceptuje nazwy użytkownika zawierającej tylko cyfry.</string>
     <string name="command_description_discard_session">Wymusza odrzucenie bieżącej sesji grupowej wychodzącej z zaszyfrowanego pokoju</string>
     <string name="bootstrap_progress_compute_curve_key">Pobieranie krzywego klucza</string>
@@ -2532,10 +2436,8 @@
 \n%s
 \n
 \nPamiętaj, że ta czynność spowoduje ponowne uruchomienie aplikacji i może to zająć trochę czasu.</string>
-    <string name="screen_sharing_notification_title">Udostępnianie ekranu ${app_name}</string>
     <string name="a11y_audio_playback_duration">%1$d minut %2$d sekund</string>
     <string name="ftue_auth_carousel_workplace_body">${app_name} świetnie sprawdza się również w miejscu pracy. Cieszy się zaufaniem najbezpieczniejszych organizacji na świecie.</string>
-    <string name="screen_sharing_notification_description">Trwa udostępnianie ekranu</string>
     <string name="location_share_live_started">Wczytuję lokalizację na żywo…</string>
     <string name="location_share_live_select_duration_option_3">8 godzin</string>
     <string name="location_share_live_select_duration_option_2">1 godzinę</string>
@@ -2549,8 +2451,6 @@
     <string name="a11y_audio_message_item">%1$s, %2$s, %3$s</string>
     <string name="sent_live_location">Udostępnił swoją lokalizację na żywo</string>
     <string name="send_feedback_threads_info">Wątki są w toku produkcyjnym i mają nowe, ekscytujące nadchodzące funkcje, takie jak ulepszone powiadomienia. Chętnie poznamy Twoją opinię!</string>
-    <string name="call_stop_screen_sharing">Zatrzymaj udostępnianie ekranu</string>
-    <string name="call_start_screen_sharing">Udostępnij ekran</string>
     <string name="initial_sync_request_reason_unignored_users">- Niektórzy użytkownicy przestali być ignorowani</string>
     <string name="initial_sync_request_title">Początkowe żądanie synchronizacji</string>
     <string name="keys_backup_settings_signature_from_this_user">Kopia zapasowa ma poprawny podpis tego użytkownika.</string>

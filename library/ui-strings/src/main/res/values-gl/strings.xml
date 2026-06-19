@@ -248,8 +248,6 @@
     <string name="or">ou</string>
     <string name="action_invite">Convidar</string>
     <string name="action_sign_out">Saír</string>
-    <string name="action_voice_call">Chamada de voz</string>
-    <string name="action_video_call">Chamada de vídeo</string>
     <string name="action_mark_all_as_read">Marcar todo como lido</string>
     <string name="action_quick_reply">Resposta rápida</string>
     <string name="action_open">Abrir</string>
@@ -286,10 +284,6 @@
     <string name="logout">Saír</string>
     <string name="hs_url">URL do servidor local</string>
     <string name="search">Buscar</string>
-    <string name="start_voice_call">Iniciar chamada de voz</string>
-    <string name="start_video_call">Iniciar videochamada</string>
-    <string name="start_voice_call_prompt_msg">Seguro que quere comezar unha chamada de audio?</string>
-    <string name="start_video_call_prompt_msg">Seguro que quere comezar unha chamada de vídeo?</string>
     <string name="option_send_files">Enviar ficheiros</string>
     <string name="option_send_sticker">Enviar iconas</string>
     <string name="option_take_photo_video">Sacar unha foto ou vídeo</string>
@@ -307,7 +301,6 @@
 
     <string name="auth_recaptcha_message">Este servidor local quere asegurarse de que non é un robot</string>
     <string name="auth_reset_password_error_unauthorized">Fallo na verificación do enderezo de correo: asegúrese de ter picado na ligazón do correo</string>
-    <string name="call">Chamar</string>
     <string name="_continue">Continuar</string>
     <string name="action_remove">Eliminar</string>
     <string name="action_reject">Rexeitar</string>
@@ -461,11 +454,6 @@
     <string name="compression_opt_list_original">Autor Inicial</string>
     <string name="compression_opt_list_medium">Mediano</string>
     <string name="compression_opt_list_small">Pequeno</string>
-    <string name="call_ended">Chamada finalizada</string>
-    <string name="incoming_video_call">Videochamada entrante</string>
-    <string name="incoming_voice_call">Chamada de audio entrante</string>
-    <string name="call_in_progress">Chamada activa…</string>
-    <string name="call_error_user_not_responding">Fallou a conexión desde o outro lado.</string>
     <string name="permissions_rationale_popup_title">Información</string>
     <string name="yes">SI</string>
     <string name="no">NON</string>
@@ -520,7 +508,5 @@
 \nDescargando datos…</string>
     <string name="initial_sync_start_server_computing">Sincr. inicial:
 \nAgardando resposta do servidor…</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Non tes permisos para comezar unha chamada de conferencia nesta sala</string>
-    <string name="no_permissions_to_start_conf_call">Non tes permisos para comezar unha chamada de conferencia nesta sala</string>
     <string name="event_status_sent_message">Mensaxe enviada</string>
 </resources>

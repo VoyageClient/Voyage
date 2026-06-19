@@ -13,13 +13,9 @@
     <string name="action_mark_room_read">סמן כ\'נקרא\'</string>
     <string name="action_quick_reply">תגובה מהירה</string>
     <string name="action_mark_all_as_read">סמן הכל כ\'נקרא\'</string>
-    <string name="action_video_call">שיחת וידאו</string>
-    <string name="action_voice_call">שיחה קולית</string>
     <string name="action_sign_out_confirmation_simple">האם אתה בטוח שברצונך לצאת מחשבונך\?</string>
     <string name="action_sign_out">יציאה מהחשבון</string>
     <string name="call_notification_hangup">נתק</string>
-    <string name="call_notification_reject">להסיר</string>
-    <string name="call_notification_answer">לקבל</string>
     <string name="action_decline">יְרִידָה</string>
     <string name="action_ignore">להתעלם</string>
     <string name="done">בוצע</string>
@@ -28,15 +24,9 @@
     <string name="action_invite">להזמין</string>
     <string name="failed_to_remove_widget">הסרת היישומון נכשלה</string>
     <string name="failed_to_add_widget">הוספת היישומון נכשלה</string>
-    <string name="cannot_call_yourself_with_invite">אתה לא יכול להתקשר עם עצמך, לחכות שהמשתתפים יקבלו את ההזמנה</string>
-    <string name="cannot_call_yourself">אינך יכול להתקשר עם עצמך</string>
     <string name="audio_video_meeting_description">הפגישות משתמשות במדיניות האבטחה וההרשאה של Jitsi. כל האנשים שנמצאים כעת בחדר יראו הזמנה להצטרף בזמן שהפגישה שלך מתרחשת.</string>
     <string name="audio_meeting">התחל פגישת שמע</string>
     <string name="video_meeting">התחל פגישת וידאו</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">אין לך הרשאה להתחיל שיחה</string>
-    <string name="no_permissions_to_start_webrtc_call">אין לך הרשאה להתחיל שיחה בחדר זה</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">אין לך הרשאה להתחיל שיחת ועידה</string>
-    <string name="no_permissions_to_start_conf_call">אין לך הרשאה להתחיל שיחת ועידה בחדר זה</string>
     <string name="start_chatting">התחל לצ\'וטט</string>
     <string name="action_reset">אתחול</string>
     <string name="action_play">לנגן</string>
@@ -93,8 +83,6 @@
     <string name="no_more_results">אין תוצאות נוספות</string>
     <string name="no_result_placeholder">אין תוצאות</string>
     <string name="option_send_voice">שלח קול</string>
-    <string name="start_video_call">התחל שיחת וידאו</string>
-    <string name="start_voice_call">התחל שיחה קולית</string>
     <string name="search">חיפוש</string>
     <string name="hs_url">קישור לשרת הבית</string>
     <string name="logout">יציאה</string>
@@ -142,21 +130,10 @@
     <string name="option_take_photo_video">צלם תמונה או סרטון</string>
     <string name="option_send_sticker">שלח סטיקר</string>
     <string name="option_send_files">שלח קבצים</string>
-    <string name="call_format_turn_hd_on">הפעל מצב HD</string>
-    <string name="call_format_turn_hd_off">כבה מצב HD</string>
-    <string name="call_camera_back">אחורה</string>
-    <string name="call_camera_front">קדימה</string>
-    <string name="call_switch_camera">החלף בין מצלמה</string>
     <string name="sound_device_wireless_headset">אוזניות אלחוטיות</string>
     <string name="sound_device_headset">אוזניות</string>
     <string name="sound_device_speaker">רמקול</string>
     <string name="sound_device_phone">טלפון</string>
-    <string name="call_select_sound_device">בחר מכשיר סאונד</string>
-    <string name="call_failed_no_connection_description">נכשל החיבור בזמן אמת.
-\nאנא בקש ממנהל שרת הבית שלך להגדיר שרת TURN על מנת שהשיחות יעבדו בצורה אמינה.</string>
-    <string name="call_failed_no_connection">שיחת האלמנט נכשלה</string>
-    <string name="start_video_call_prompt_msg">האם אתה בטוח שברצונך להתחיל שיחת וידאו\?</string>
-    <string name="start_voice_call_prompt_msg">האם אתה בטוח שברצונך להתחיל שיחה קולית\?</string>
     <string name="room_jump_to_first_unread">עבור להודעה שלא נקראה</string>
     <string name="list_members">שותפים</string>
     <string name="action_reject">דחייה</string>
@@ -172,20 +149,6 @@
 \nאנא אפשר גישה בחלונות הקופצים הבאים כדי להיות מסוגל לבצע את השיחה.</string>
     <string name="permissions_rationale_msg_record_audio">אלמנט זקוק להרשאה כדי לגשת למיקרופון שלך כדי לבצע שיחות שמע.</string>
     <string name="permissions_rationale_popup_title">מידע</string>
-    <string name="call_error_user_not_responding">הצד המרוחק לא הצליח להרים.</string>
-    <string name="video_call_in_progress">שיחת וידאו מתבצעת …</string>
-    <string name="call_in_progress">במהלך התקשרות…</string>
-    <string name="incoming_voice_call">שיחה קולית נכנסת</string>
-    <string name="incoming_video_call">שיחת וידאו נכנסת</string>
-    <string name="call_ended">שיחה הסתיימה</string>
-    <string name="call_connecting">שיחה מתחברת …</string>
-    <string name="call">שִׂיחָה</string>
-    <string name="settings_call_ringtone_dialog_title">בחר רינגטון לשיחות:</string>
-    <string name="settings_call_ringtone_title">רינגטון שיחה נכנסת</string>
-    <string name="settings_call_ringtone_use_app_ringtone">השתמש ברינגטון ברירת המחדל של אלמנט לשיחות נכנסות</string>
-    <string name="settings_call_show_confirmation_dialog_summary">בקש אישור לפני שמתחילים בשיחה</string>
-    <string name="settings_call_show_confirmation_dialog_title">מנע שיחה מקרית</string>
-    <string name="settings_call_category">שיחות</string>
     <string name="compression_opt_list_small">קטן</string>
     <string name="compression_opt_list_medium">בינוני</string>
     <string name="compression_opt_list_large">גדול</string>
@@ -438,7 +401,6 @@
     <string name="room_widget_resource_decline_permission">חסום הכל</string>
     <string name="room_widget_resource_grant_permission">אפשר</string>
     <string name="room_widget_resource_permission_title">יישומון זה רוצה להשתמש במשאבים הבאים:</string>
-    <string name="error_jitsi_not_supported_on_old_device">מצטערים, שיחות ועידה עם Jitsi אינן נתמכות במכשירים ישנים (מכשירים עם מערכת הפעלה אנדרואיד מתחת ל -6.0)</string>
     <string name="room_widget_permission_room_id">מזהה חדר</string>
     <string name="room_widget_permission_widget_id">מזהה ישומון</string>
     <string name="room_widget_permission_theme">ערכת הנושא שלכם</string>
@@ -1911,29 +1873,6 @@
     <string name="space_participants_remove_prompt_msg">המשתמש יוסר מהמרחב הזה.
 \n
 \nכדי למנוע מהם להצטרף שוב, עליך לחסום אותם במקום זאת.</string>
-    <string name="call_remove_jitsi_widget_progress">מסיים שיחה…</string>
-    <string name="call_ended_invite_timeout_title">אין מענה</string>
-    <string name="call_ended_user_busy_description">המשתמש אליו התקשרת עסוק.</string>
-    <string name="call_ended_user_busy_title">מנוי תפוס</string>
-    <string name="call_held_by_you">החזקת השיחה</string>
-    <string name="call_held_by_user">%s החזיק את השיחה</string>
-    <string name="call_hold_action">להחזיק</string>
-    <string name="call_resume_action">לְהַמשִׁיך</string>
-    <string name="audio_call_with_participant">שיחת שמע עם %s</string>
-    <string name="video_call_with_participant">שיחת וידאו עם %s</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">שיחת וידאו שלא נענתה</item>
-        <item quantity="two">%d שיחות וידאו שלא נענו</item>
-        <item quantity="many">%d שיחות וידאו שלא נענו</item>
-        <item quantity="other">%d שיחות וידאו שלא נענו</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">שיחה שלא נענתה</item>
-        <item quantity="two">%d שיחות שלא נענו</item>
-        <item quantity="many">%d שיחות שלא נענו</item>
-        <item quantity="other">%d שיחות שלא נענו</item>
-    </plurals>
-    <string name="call_ringing">צלצול שיחה…</string>
     <string name="error_unauthorized">לא מורשה, חסרים אישורי אימות חוקיים</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">בחר שרת בית</string>
     <string name="login_error_homeserver_from_url_not_found">לא ניתן להגיע לשרת ביתי בכתובת ה- %s. אנא בדוק את הקישור שלך או בחר שרת ביתי באופן ידני.</string>
@@ -2062,39 +2001,6 @@
     <string name="authentication_error">האימות נכשלה</string>
     <string name="re_authentication_default_confirm_text">${app_name} כדי לבצע פעולה זו נדורש להזין את פרטי התחברות שלך.</string>
     <string name="re_authentication_activity_title">יש צורך באימות מחדש</string>
-    <string name="call_slide_to_end_conference">החלק כדי לסיים את השיחה</string>
-    <string name="call_transfer_unknown_person">אדם לא ידוע</string>
-    <string name="call_transfer_transfer_to_title">העבר אל %1$s</string>
-    <string name="call_transfer_consulting_with">התייעצות עם %1$s</string>
-    <string name="call_transfer_users_tab_title">משתמשים</string>
-    <string name="call_transfer_failure">אירעה שגיאה בהעברת השיחה</string>
-    <string name="call_transfer_title">הַעֲבִר</string>
-    <string name="call_transfer_connect_action">התחבר</string>
-    <string name="call_transfer_consult_first">התייעץ קודם</string>
-    <string name="call_tap_to_return">%1$s הקש לחזרה</string>
-    <string name="call_one_active">שיחה פעילה (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">שיחה פעילה ·</item>
-        <item quantity="two">%1$d שיחות פעילות ·</item>
-        <item quantity="many">%1$d שיחות פעילות ·</item>
-        <item quantity="other">%1$d שיחות פעילות ·</item>
-    </plurals>
-    <string name="call_only_active">שיחה פעילה (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">אירעה שגיאה בחיפוש מספר הטלפון</string>
-    <string name="call_dial_pad_title">לוח חיוג</string>
-    <string name="call_tile_no_answer">אין מענה</string>
-    <string name="call_tile_video_missed">שיחה וידאו שלא נענתה</string>
-    <string name="call_tile_voice_missed">שיחה קולית שלא נענתה</string>
-    <string name="call_tile_voice_declined">השיחה קולית נדחתה</string>
-    <string name="call_tile_video_declined">שיחת וידאו נדחתה</string>
-    <string name="call_tile_video_call_has_ended">שיחת הווידאו הסתיימה • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">השיחה הקולית הסתיימה • %1$s</string>
-    <string name="call_tile_voice_active">שיחת קולית פעילה</string>
-    <string name="call_tile_video_active">שיחת וידאו פעילה</string>
-    <string name="call_tile_video_incoming">שיחה וידאו נכנסת</string>
-    <string name="call_tile_voice_incoming">שיחה קולית נכנסת</string>
-    <string name="call_tile_call_back">שיחה חוזרת</string>
-    <string name="call_tile_ended">השיחה הזו הסתיימה</string>
     <string name="call_tile_other_declined">%1$s דחה את השיחה הזו</string>
     <string name="call_tile_you_declined_this_call">דחית את השיחה הזו</string>
     <string name="room_message_autocomplete_notification">התראת חדר</string>
@@ -2342,8 +2248,6 @@
     <string name="command_description_unignore_user">הפסק להתעלם ממשתמש , אשר הודעותיו נראות</string>
     <string name="command_description_room_name">הגדר את שם החדר</string>
     <string name="command_description_ignore_user">מתעלם ממשתמש, מסתיר ממך את ההודעות שלו</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">האם מאושרת עזיבת שיחת הועידה הנוכחית ומעבר לשיחת ועידה אחרת \?</string>
-    <string name="error_jitsi_join_conf">מצטערים , אירעה שגיאה בניסיון הצטרפות לשיחת הועידה</string>
     <string name="directory_add_a_new_server_error_already_added">השרת כבר נמצא ברשימה</string>
     <string name="directory_add_a_new_server_error">לא מוצא את השרת הזה או את רשימת החדרים שלו</string>
     <string name="directory_add_a_new_server_prompt">הזן את השם של שרת חדש שברצונך לחקור.</string>
@@ -2493,6 +2397,4 @@
 \nבזמן שאנו מתכוננים לכך, עלינו לבצע מספר שינויים: שרשורים שנוצרו לפני נקודה זו יוצגו כתשובות רגילות.
 \n
 \nזה יהיה מעבר חד פעמי שכן שרשורים הם כעת חלק ממפרט Matrix.</string>
-    <string name="screen_sharing_notification_title">שיתוף מסך של ${app_name}</string>
-    <string name="screen_sharing_notification_description">המסך משותף כרגע</string>
 </resources>

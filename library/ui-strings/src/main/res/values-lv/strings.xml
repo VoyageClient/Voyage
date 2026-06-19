@@ -222,8 +222,6 @@
     <string name="or">vai</string>
     <string name="action_invite">Uzaicināt</string>
     <string name="action_sign_out">Atteikties</string>
-    <string name="action_voice_call">Balss zvans</string>
-    <string name="action_video_call">Video zvans</string>
     <string name="action_mark_all_as_read">Atzīmēt visas ziņas, kā lasītas</string>
     <string name="action_quick_reply">Ātrā atbilde</string>
     <string name="action_open">Atvērt</string>
@@ -258,8 +256,6 @@
     <string name="logout">Atteikties</string>
     <string name="hs_url">Mājasservera URL</string>
     <string name="search">Meklēt</string>
-    <string name="start_voice_call">Sākt audio zvanu</string>
-    <string name="start_video_call">Sākt video zvanu</string>
     <string name="option_send_files">Sūtīt failus</string>
     <string name="option_take_photo_video">Uzņemt foto vai video</string>
     <string name="auth_login">Pierakstīties</string>
@@ -272,8 +268,6 @@
     <string name="notification_silent_notifications">Klusi paziņojumi</string>
     <string name="title_activity_bug_report">Ziņojums par kļūdu</string>
     <string name="loading">Ielādējas…</string>
-    <string name="start_voice_call_prompt_msg">Tiešām vēlies uzsākt balss zvanu\?</string>
-    <string name="start_video_call_prompt_msg">Tiešām vēlies uzsākt video zvanu\?</string>
     <string name="option_take_photo">Uzņemt foto</string>
     <string name="option_take_video">Uzņemt video</string>
     <string name="auth_invalid_login_param">Nepareizs lietotājvārds un/vai parole</string>
@@ -290,13 +284,6 @@
     <string name="compression_opt_list_large">Lielu</string>
     <string name="compression_opt_list_medium">Vidēju</string>
     <string name="compression_opt_list_small">Mazu</string>
-    <string name="call">Zvans</string>
-    <string name="call_connecting">Tiek veidots zvana savienojums…</string>
-    <string name="call_ended">Zvans beigts</string>
-    <string name="incoming_video_call">Ienākošs VIDEO zvans</string>
-    <string name="incoming_voice_call">Ienākošs AUDIO zvans</string>
-    <string name="call_in_progress">Notiek zvans…</string>
-    <string name="call_error_user_not_responding">Adresāts neatbildēja uz zvanu.</string>
     <string name="permissions_rationale_popup_title">Element informācija</string>
     <string name="permissions_rationale_msg_record_audio">${app_name}-am nepieciešama atļauja piekļūt mikrofonam, lai nodrošinātu audio zvanus.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} nepieciešama atļauja piekļūt kamerai un mikrofonam, lai veiktu videozvanus.
@@ -750,9 +737,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_participants_leave_private_warning">Šī istaba nav publiska. Tai nebūs iespējams atkārtoti pievienoties bez uzaicinājuma.</string>
     <string name="permissions_denied_add_contact">Atļaujiet piekļuvi savām kontaktpersonām.</string>
     <string name="permissions_denied_qr_code">Lai nolasītu kvadrātkodu, jāatļauj piekļuve kamerai.</string>
-    <string name="video_call_in_progress">Notiek video zvans…</string>
     <string name="auth_login_sso">Pieteikties ar vienoto pierakstīšanos</string>
-    <string name="call_camera_back">Atpakaļ</string>
     <string name="sound_device_phone">Tālrunis</string>
     <string name="option_send_voice">Sūtīt balsi</string>
     <string name="send_bug_report_description_in_english">Ja iespējams, lūgums rakstīt angļu valodā.</string>
@@ -764,14 +749,11 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="action_copy">Ievietot starpliktuvē</string>
     <string name="action_mark_room_read">Atzīmēt kā izlasītu</string>
     <string name="action_sign_out_confirmation_simple">Vai tiešām atteikties\?</string>
-    <string name="call_notification_reject">Noraidīt</string>
-    <string name="call_notification_answer">Pieņemt</string>
     <string name="action_decline">Noraidīt</string>
     <string name="action_ignore">Nerādīt nevienu šī dalībnieka ziņu</string>
     <string name="done">Gatavs</string>
     <string name="action_skip">Izlaist</string>
     <string name="action_accept">Pieņemt</string>
-    <string name="no_permissions_to_start_conf_call">Nav atļaujas uzsākt sapulces zvanu šajā istabā</string>
     <string name="action_reset">Atiestatīt</string>
     <string name="action_dismiss">Aizvērt</string>
     <string name="action_play">Atskaņot</string>
@@ -951,7 +933,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
 \nŠo darbību var jebkurā brīdī atcelt vispārīgajos iestatījumos.</string>
     <string name="room_participants_power_level_demote">Pazemināt</string>
     <string name="room_participants_power_level_demote_warning_title">Pazemināt sevi\?</string>
-    <string name="settings_call_category">Zvani</string>
     <string name="e2e_re_request_encryption_key">Atkārtoti pieprasīt šifrēšanas atslēgas no citām savām sesijām.</string>
     <string name="auth_msisdn_already_defined">Šis tālruņa numurs jau ir definēts.</string>
     <string name="option_send_sticker">Sūtīt uzlīmi</string>
@@ -961,8 +942,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_category_room_directory">Istabu katalogs</string>
     <string name="dialog_edit_hint">Jaunā vērtība</string>
     <string name="action_switch">Pārslēgt</string>
-    <string name="cannot_call_yourself_with_invite">Nevar uzsākt zvanu ar sevi, jāpagaida, līdz dalībnieki apstiprinās uzaicinājumu</string>
-    <string name="cannot_call_yourself">Tu nevari uzsākt zvanu ar sevi</string>
     <string name="title_activity_choose_sticker">Sūtīt uzlīmi</string>
     <string name="notice_crypto_unable_to_decrypt_friendly_desc">Pilnīgas šifrēšanas dēļ var būt nepieciešams sagaidīt ziņu no kāda, jo šifrēšanas atslēgas netika pareizi nosūtītas.</string>
     <string name="notice_crypto_unable_to_decrypt_friendly">Gaida šo ziņu, tas var aizņemt ilgāku laiku</string>
@@ -1289,8 +1268,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="no_sticker_application_dialog_content">Šobrīd nav nevienas iespējotas uzlīmju pakas.
 \n
 \nPievienot dažas tagad\?</string>
-    <string name="call_failed_no_connection_description">Neizdevās izveidot reāllaika savienojumu.
-\nLūgums vaicāt mājasservera pārvaldītājam uzstādīt TURN serveri, lai zvani varētu uzticami darboties.</string>
     <string name="settings_integrations_summary">Izmanto iekļaušanas pārvaldnieku, lai pārvaldītu robotprogrammatūru, tiltus, logrīkus un uzlīmju pakas.
 \nIekļaušanas pārvaldnieks saņem konfigurācijas datus un var pārveidot logrīkus, sūtīt istabu uzaicinājumus un iestatīt spēka līmeņus Tavā vārdā.</string>
     <string name="settings_background_fdroid_sync_mode_disabled_description">Par ienākošajiem ziņojumiem netiks paziņots, kad lietotne darbojas fonā.</string>
@@ -1307,7 +1284,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Lūgums palaist ${app_name} citā ierīcē, kas var atšifrēt ziņu, lai tā varētu nosūtīt šīs sesijas atslēgas.</string>
     <string name="error_unauthorized">Neautorizēts, trūkstošas autentifikācijas apliecības</string>
     <string name="error_no_external_application_found">Atvainojiet, nav atrasta ārēja aplikācija, lai pabeigtu šo darbību.</string>
-    <string name="call_failed_no_connection">${app_name} Zvans Neizdevās</string>
     <string name="send_bug_report_include_key_share_history">Nosūtīt atslēgu kopīgošanas pieprasījumu vēsturi</string>
     <string name="settings_room_directory_show_all_rooms_summary">Rādīt visas istabas istabu rādītājā, tostarp istabas ar vecumam ierobežotu saturu.</string>
     <string name="settings_room_directory_show_all_rooms">Rādīt istabas ar vecuma ierobežojumu</string>
@@ -1392,8 +1368,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_widget_resource_decline_permission">Bloķēt Visu</string>
     <string name="room_widget_resource_grant_permission">Atļaut</string>
     <string name="room_widget_resource_permission_title">Šis logrīks vēlas izmantos tālāk norādītos resursus:</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Pamest pašreizējo apspriedi un pārslēgties uz otru\?</string>
-    <string name="error_jitsi_not_supported_on_old_device">Atvainojiet, konferences zvani ar Jitsi netiek atbalstīti vecās ierīces (ierīces ar Android OS zem 6.0)</string>
     <string name="room_widget_permission_room_id">Istabas ID</string>
     <string name="room_widget_permission_widget_id">Logrīka ID</string>
     <string name="room_widget_permission_theme">Tavs izskats</string>
@@ -1475,31 +1449,14 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_notification_troubleshoot">Paziņojumu pārbaude</string>
     <string name="settings_notification_by_event">Paziņojumu svarīgums</string>
     <string name="settings_notification_advanced">Paziņojumu papildu iestatījumi</string>
-    <string name="call_held_by_you">Tu aizturēji zvanu</string>
-    <string name="call_held_by_user">%s apturēja zvanu</string>
-    <string name="call_hold_action">Apturēt</string>
-    <string name="call_resume_action">Turpināt</string>
-    <string name="settings_call_ringtone_dialog_title">Izvēlieties zvana signālu:</string>
-    <string name="settings_call_ringtone_title">Ienākoša zvana signāls</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Izmantot noklusējuma ${app_name} zvana signālu ienākošajiem zvaniem</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Pirms zvana uzsākšanas lūgt apstiprinājumu</string>
-    <string name="settings_call_show_confirmation_dialog_title">Novērst nejaušu zvanu</string>
     <string name="login_error_ssl_peer_unverified">SSL kļūda: Peer identitāte nav pārbaudīta.</string>
     <string name="login_error_ssl_other">SSL kļūda.</string>
     <string name="login_error_homeserver_not_found">Ar šo URL mājasserveris nav sasniedzams, lūgums pārbaudīt to</string>
     <string name="login_error_no_homeserver_found">Šī nav derīga Matrix servera adrese</string>
     <string name="auth_accept_policies">Lūgums pārskatīt un pieņemt šī mājasservera nosacījumus:</string>
-    <string name="call_format_turn_hd_on">Ieslēgt HD</string>
-    <string name="call_format_turn_hd_off">Izslēgt HD</string>
-    <string name="call_camera_front">Priekšējā</string>
-    <string name="call_switch_camera">Pārslēgt kameru</string>
-    <string name="call_select_sound_device">Izvēlieties Skaņas Ierīci</string>
     <string name="audio_video_meeting_description">Sanāksmes izmanto Jitsi drošības un atļauju nosacījumus. Visi cilvēki, kas pašlaik atrodas telpā, redzēs uzaicinājumu pievienoties, kamēr notiek sanāksme.</string>
     <string name="audio_meeting">Sākt audio sanāksmi</string>
     <string name="video_meeting">Sākt video sanāksmi</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Nav atļaujas uzsākt zvanu</string>
-    <string name="no_permissions_to_start_webrtc_call">Nav atļaujas uzsākt zvanu šajā istabā</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Nav atļaujas uzsākt sapulces zvanu</string>
     <string name="start_chatting">Uzsākt tērzēšanu</string>
     <string name="sign_out_bottom_sheet_will_lose_secure_messages">Tu zaudēsi piekļuvu savām šifrētajām ziņām, ja pirms atteikšanās neveiksi atslēgu rezerves kopēšanu.</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">Drošai atslēgu rezerves kopēšanai jābūt ieslēgtai visās sesijās, lai izvairītos no piekļuves zaudēšanas šifrētajām ziņām.</string>
@@ -1734,28 +1691,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="a11y_image">Bilde</string>
     <string name="a11y_open_widget">Atvērt logrīkus</string>
     <string name="a11y_screenshot">Ekrānšāviņš</string>
-    <string name="call_slide_to_end_conference">Velciet, lai pārtrauktu zvanu</string>
-    <string name="call_transfer_unknown_person">Nezināma persona</string>
-    <string name="call_transfer_users_tab_title">Lietotāji</string>
-    <string name="call_transfer_connect_action">Savienoties</string>
-    <string name="call_tap_to_return">%1$s Pieskarieties, lai atgrieztos</string>
-    <string name="call_one_active">Aktīvs zvans (%1$s) ·</string>
-    <string name="call_only_active">Aktīvs zvans (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Tika pieļauta kļūda, meklējot tālruņa numuru</string>
-    <string name="call_dial_pad_title">Zvanu taustiņi</string>
-    <string name="call_tile_no_answer">Nav atbildes</string>
-    <string name="call_tile_video_missed">Neatbildēts video zvans</string>
-    <string name="call_tile_voice_missed">Neatbildēts zvans</string>
-    <string name="call_tile_video_declined">Video zvans atteikts</string>
-    <string name="call_tile_voice_declined">Zvans atteikts</string>
-    <string name="call_tile_video_call_has_ended">Video zvans beidzās • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Balss zvans beidzās • %1$s</string>
-    <string name="call_tile_video_active">Aktīvs video zvans</string>
-    <string name="call_tile_voice_active">Aktīvs zvans</string>
-    <string name="call_tile_video_incoming">Ienākošs video zvans</string>
-    <string name="call_tile_voice_incoming">Ienākošs zvans</string>
-    <string name="call_tile_call_back">Piezvanīt atpakaļ</string>
-    <string name="call_tile_ended">Zvans beidzās</string>
     <string name="call_tile_other_declined">%1$s atteica zvanu</string>
     <string name="call_tile_you_declined_this_call">Tu atteici šo zvanu</string>
     <string name="warning_room_not_created_yet">Telpa vēl nav izveidota. Atcelt telpas izveidi\?</string>
@@ -1820,7 +1755,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     </plurals>
     <string name="command_description_unignore_user">Pārtrauc lietotāja ignorēšanu, rādot viņa ziņojumus</string>
     <string name="command_description_ignore_user">Neņem vērā lietotāju, slēpjot tā ziņojumus</string>
-    <string name="error_jitsi_join_conf">Atvainojiet, mēģinot pievienoties konferencei, radās kļūda</string>
     <string name="directory_add_a_new_server_error_already_added">Šis serveris jau ir iekļauts sarakstā</string>
     <string name="directory_add_a_new_server_error">Nevar atrast šo serveri vai tā istabu sarakstu</string>
     <string name="directory_add_a_new_server_prompt">Ievadiet jaunā servera nosaukumu, kuru vēlaties izpētīt.</string>
@@ -2021,23 +1955,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="space_participants_remove_prompt_msg">Lietotājs tiks noņemts no šīs vietas.
 \n
 \nLai novērstu atkārtotu pievēršanos, vajadzētu liegt piekļuvi.</string>
-    <string name="call_remove_jitsi_widget_progress">Beidz zvanu…</string>
-    <string name="call_ended_invite_timeout_title">Nav atbildes</string>
-    <string name="call_ended_user_busy_description">Lietotājs, kuram zvanījāt, ir aizņemts.</string>
-    <string name="call_ended_user_busy_title">Lietotājs aizņemts</string>
-    <string name="audio_call_with_participant">Zvans ar %s</string>
-    <string name="video_call_with_participant">Video zvans ar %s</string>
-    <plurals name="missed_video_call">
-        <item quantity="zero">%d neatbildētu video zvanu</item>
-        <item quantity="one">%d neatbildēts video zvans</item>
-        <item quantity="other">%d neatbildēti zvans</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="zero">%d neatbildētu zvanu</item>
-        <item quantity="one">%d neatbildēts zvans</item>
-        <item quantity="other">%d neatbildēti zvani</item>
-    </plurals>
-    <string name="call_ringing">Zvana…</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Izvēlēties mājasserveri</string>
     <string name="hs_client_url">Mājasservera API URL</string>
     <string name="login_error_homeserver_from_url_not_found">Nevar sasniegt mājasserveri ar URL %s. Lūgums pārbaudīt saiti vai pašrocīgi izvēlieties mājasserveri.</string>
@@ -2124,7 +2041,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="thread_list_empty_title">Uztur apspriedes sakārtotas ar pavedieniem</string>
     <string name="thread_list_empty_notice">Mājiens: ilgi jāpiespiež ziņa un jāizmanto “%s”.</string>
     <string name="thread_list_modal_my_threads_subtitle">Rāda visus pavedienus, kuros ir notikusi iesaistīšanās</string>
-    <string name="call_start_screen_sharing">Kopīgot ekrānu</string>
     <string name="labs_enable_deferred_dm_summary">Izveidot tiešo ziņu tikai pēc pirmās ziņas</string>
     <string name="labs_enable_rich_text_editor_summary">Izmēģināt bagātinātu teksta rakstīšanu (vienkārša teksta ievade gaidāma drīzumā)</string>
     <string name="invites_empty_title">Nekā jauna.</string>
@@ -2158,7 +2074,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="space_list_empty_message">Vietas ir jauns veids, kā apkopot istabas un cilvēkus. Jāizveido vieta, lai sāktu.</string>
     <string name="room_unsupported_e2e_algorithm">Šifrēšanas konfigurācijā ir kļūmes, tādēļ nevar nosūtīt ziņas. Lūgums sazināties ar pārvaldītāju, lai atjaunotu šifrēšanu derīgā stāvoklī.</string>
     <string name="thread_list_modal_title">Atlasīt</string>
-    <string name="call_stop_screen_sharing">Apturēt ekrāna kopīgošanu</string>
     <string name="security_prompt_text">Jāpārbauda sevi un citus, lai uzturētu tērzēšanas drošas</string>
     <string name="a11y_open_chat">Atvērt tērzēšanu</string>
     <string name="ftue_auth_use_case_title">Ar ko ir tērzēts visvairāk\?</string>
@@ -2518,7 +2433,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="a11y_trust_level_default">Noklusējuma uzticamības līmenis</string>
     <string name="settings_security_pin_code_summary">Ja ir vēlēšanas atiestatīt savu PIN, jāpiesit Aizmirsu PIN, lai atteiktos un atiesatītu.</string>
     <string name="settings_security_pin_code_grace_period_title">Pieprasīt PIN pēc 2 minūtēm</string>
-    <string name="call_transfer_consult_first">Iepriekškonsultēšana</string>
     <string name="dev_tools_error_no_content">Nav satura</string>
     <string name="error_voice_message_unable_to_record">Nevar ierakstīt balss ziņu</string>
     <string name="voice_broadcast_buffering">Buferizācija…</string>
@@ -2543,11 +2457,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="upgrade">Jaunināt</string>
     <string name="voice_message_n_seconds_warning_toast">Atlikušas %1$d s</string>
-    <plurals name="call_active_status">
-        <item quantity="zero">%1$d notiekošu zvanu ·</item>
-        <item quantity="one">%1$d notiekošs zvans ·</item>
-        <item quantity="other">%1$d notiekoši zvani ·</item>
-    </plurals>
     <string name="a11y_unchecked">Nav atzīmēts</string>
     <string name="dev_tools_menu_name">Izstrādātāja rīki</string>
     <string name="discovery_section">Atklājamība (%s)</string>
@@ -2559,10 +2468,8 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="voice_message_reply_content">Balss ziņa (%1$s)</string>
     <string name="voice_broadcast_live">Tiešraide</string>
     <string name="a11y_resume_voice_broadcast_record">Atsākt balss apraides ierakstu</string>
-    <string name="call_transfer_consulting_with">Konsultējas ar %1$s</string>
     <string name="voice_message_slide_to_cancel">Slidināt, lai atceltu</string>
     <string name="a11y_stop_voice_broadcast_record">Pārtraukt balss apraides ierakstu</string>
-    <string name="call_transfer_title">Pārvirzīt</string>
     <string name="a11y_rule_notify_noisy">Paziņot ar skaņu</string>
     <string name="a11y_error_some_message_not_sent">Dažas ziņas netika nosūtītas</string>
     <string name="user_invites_you">%s uzaicina Tevi</string>
@@ -2589,7 +2496,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_security_pin_code_notifications_summary_on">Rādīt, piemēram, istabu nosaukumus un ziņas saturu.</string>
     <string name="settings_security_pin_code_notifications_summary_off">Attēlot tikai neizlasīto ziņu skaitu vienkāršā paziņojumā.</string>
     <string name="error_opening_banned_room">Nevar atvērt istabu, no kuras esi izslēgts.</string>
-    <string name="call_transfer_transfer_to_title">Pārvirzīt uz %1$s</string>
     <string name="re_authentication_activity_title">Nepieciešama atkārtota autentificēšanās</string>
     <string name="dev_tools_state_event">Stāvokļa notikumi</string>
     <string name="room_alias_preview_not_found">Pašlaik šis aizstājvārds nav pieejams.
@@ -2602,7 +2508,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_security_pin_code_use_biometrics_summary_on">Iespējot no ierīces atkarīgu biometriju, piemēram, pirkstu nospiedumus un sejas atpazīšanu.</string>
     <string name="settings_security_pin_code_grace_period_summary_on">PIN kods tiks pieprasīts pēc 2 minūšu ${app_name} neizmantošanas.</string>
     <string name="settings_security_pin_code_grace_period_summary_off">PIN kods tiek pieprasīts katrā ${app_name} atvēršanas reizē.</string>
-    <string name="call_transfer_failure">Notika kļūda zvana pārvirzīšanas laikā</string>
     <string name="a11y_rule_notify_silent">Paziņot bez skaņas</string>
     <string name="dev_tools_success_event">Notikums ir nosūtīts.</string>
     <string name="event_status_a11y_failed">Neizdevās</string>
@@ -2799,7 +2704,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="attachment_type_selector_voice_broadcast">Balss apraide</string>
     <string name="message_reaction_show_less">Rādīt mazāk</string>
     <string name="room_message_autocomplete_notification">Istabas paziņojums</string>
-    <string name="screen_sharing_notification_title">${app_name} ekrāna kopīgošana</string>
     <string name="settings_troubleshoot_test_distributors_fdroid">Netika atrasts neviens cits veids bez sinhronizēšanas fonā.</string>
     <string name="settings_troubleshoot_test_current_endpoint_success">Pašreizējais galamērķis: %s</string>
     <string name="settings_troubleshoot_test_current_gateway_title">Vārteja</string>
@@ -2813,7 +2717,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="device_manager_session_details_description">Informācija par lietotne, ierīci un darbībām.</string>
     <string name="device_manager_session_details_device_operating_system">Operētājsistēma</string>
     <string name="device_manager_learn_more_sessions_verified_title">Apliecinātas sesijas</string>
-    <string name="screen_sharing_notification_description">Notiek ekrāna kopīgošana</string>
     <string name="labs_enable_element_call_permission_shortcuts_summary">Automātiski apstiprināt Element zvanu logrīkus un piešķirt piekļuvi kamerai/mikrofonam</string>
     <string name="device_manager_filter_bottom_sheet_title">Atlase</string>
     <string name="device_manager_other_sessions_recommendation_title_unverified">Neapliecinātas</string>

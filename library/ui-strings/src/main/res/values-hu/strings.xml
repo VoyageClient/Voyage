@@ -177,8 +177,6 @@
     <string name="or">vagy</string>
     <string name="action_invite">Meghívás</string>
     <string name="action_sign_out">Kijelentkezés</string>
-    <string name="action_voice_call">Hanghívás</string>
-    <string name="action_video_call">Videohívás</string>
     <string name="action_mark_all_as_read">Összes olvasottnak jelölése</string>
     <string name="action_quick_reply">Gyors válasz</string>
     <string name="action_open">Megnyitás</string>
@@ -213,8 +211,6 @@
     <string name="logout">Kijelentkezés</string>
     <string name="hs_url">Saját kiszolgáló webcíme</string>
     <string name="search">Keresés</string>
-    <string name="start_voice_call">Hanghívás indítása</string>
-    <string name="start_video_call">Videohívás indítása</string>
     <string name="option_send_files">Fájlok küldése</string>
     <string name="option_take_photo_video">Kép- vagy videókészítés</string>
     <string name="auth_login">Bejelentkezés</string>
@@ -233,12 +229,6 @@
     <string name="compression_opt_list_large">Nagy</string>
     <string name="compression_opt_list_medium">Közepes</string>
     <string name="compression_opt_list_small">Kicsi</string>
-    <string name="call_connecting">Kapcsolódás…</string>
-    <string name="call_ended">Hívás vége</string>
-    <string name="incoming_video_call">Bejövő videohívás</string>
-    <string name="incoming_voice_call">Bejövő hanghívás</string>
-    <string name="call_in_progress">Hívás folyamatban…</string>
-    <string name="call_error_user_not_responding">A hívott fél nem vette fel.</string>
     <string name="permissions_rationale_popup_title">Információ</string>
     <string name="permissions_rationale_msg_record_audio">A(z) ${app_name} alkalmazásnak engedélyre van szüksége a mikrofon eléréséhez, hogy hanghívást tudjon indítani.</string>
     <string name="permissions_rationale_msg_camera_and_audio">A(z) ${app_name} alkalmazásnak engedélyre van szüksége a mikrofon és a kamera eléréséhez, hogy videohívást tudjon indítani.
@@ -410,7 +400,6 @@
     <string name="widget_integration_room_not_visible">%s szoba nem látható.</string>
     <string name="room_add_matrix_apps">Matrix alkalmazás hozzáadása</string>
     <string name="notification_listening_for_events">Események figyelése</string>
-    <string name="call">Hívás</string>
     <string name="settings_containing_my_display_name">Az Ön megjelenítendő nevét tartalmazó üzenetek</string>
     <string name="settings_containing_my_user_name">Az Ön felhasználónevét tartalmazó üzenetek</string>
     <string name="you_added_a_new_device">Hozzá adtál egy új munkamenetet \'%s\', mely titkosító kulcsot kér.</string>
@@ -429,8 +418,6 @@
     <string name="notification_noisy">Hangos</string>
     <string name="encrypted_message">Titkosított üzenet</string>
     <string name="loading">Betöltés…</string>
-    <string name="start_voice_call_prompt_msg">Biztosan hanghívást akar indítani\?</string>
-    <string name="start_video_call_prompt_msg">Biztosan videóhívást akar indítani\?</string>
     <string name="room_participants_ban_prompt_msg">A felhasználó kitiltása eltávolítja őt a szobából, és megakadályozza, hogy újra csatlakozhasson.</string>
     <string name="room_settings_all_messages">Összes üzenet</string>
     <string name="room_settings_add_homescreen_shortcut">Kezdőképernyőhöz adás</string>
@@ -554,10 +541,6 @@
     <string name="command_problem_with_parameters">\"%s\" parancsnak több paraméterre van szüksége vagy valamelyik paraméter hibás.</string>
     <string name="markdown_has_been_enabled">Markdown engedélyezve.</string>
     <string name="markdown_has_been_disabled">Markdown tiltva.</string>
-    <string name="settings_call_category">Hívások</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Az alapértelmezett ${app_name} csengőhang használata bejövő hívásokhoz</string>
-    <string name="settings_call_ringtone_title">Bejövő hívás csengőhangja</string>
-    <string name="settings_call_ringtone_dialog_title">Csengőhang kiválasztása a hívásokhoz:</string>
     <string name="action_accept">Elfogadás</string>
     <string name="auth_accept_policies">Nézze át és fogadja el a saját kiszolgálójának házirendjét:</string>
     <string name="settings_notification_troubleshoot">Értesítéshiba-elhárítás</string>
@@ -609,7 +592,6 @@
     <string name="settings_troubleshoot_test_battery_failed">Ha a felhasználó töltés nélkül kikapcsolt képernyővel egy ideig magára hagyja az eszközt, az eszköz „Doze” módba kerül. Ez megakadályozza az alkalmazás számára, hogy hozzáférjen a hálózathoz, nem engedi elvégezni a feladatait, szinkronizációt és az alapértelmezett riasztásait.</string>
     <string name="settings_troubleshoot_test_battery_quickfix">Optimalizáció figyelmen kívül hagyása</string>
     <string name="no_valid_google_play_services_apk">Érvényes Google Play Services APK nem található. Az értesítések megbízhatatlanul működhetnek.</string>
-    <string name="video_call_in_progress">Videohívás folyamatban…</string>
     <string name="title_activity_keys_backup_setup">Kulcsmentés</string>
     <string name="title_activity_keys_backup_restore">Kulcsmentés használata</string>
     <string name="action_skip">Kihagyás</string>
@@ -758,7 +740,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="notification_new_invitation">Új meghívók</string>
     <string name="notification_sender_me">Én</string>
     <string name="notification_inline_reply_failed">** A küldés nem sikerült - kérlek nyisd meg a szobát</string>
-    <string name="error_jitsi_not_supported_on_old_device">Elnézést, Jitsi konferencia hívások a régi eszközökön (Android OS 6.0-nál régebbi) nem támogatottak</string>
     <string name="encryption_information_unknown_ip">ismeretlen ip</string>
     <string name="you_added_a_new_device_with_info">Új munkamenet kér titkosítási kulcsokat. 
 \nMunkamenet neve: %1$s 
@@ -1416,18 +1397,11 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="action_copy">Másolás</string>
     <string name="dialog_title_success">Kész</string>
     <string name="bottom_action_notification">Értesítések</string>
-    <string name="call_select_sound_device">Hangeszköz kiválasztása</string>
     <string name="sound_device_phone">Telefon</string>
     <string name="sound_device_speaker">Hangszóró</string>
     <string name="sound_device_headset">Fejhallgató</string>
     <string name="sound_device_wireless_headset">Vezeték nélküli fejhallgató</string>
-    <string name="call_switch_camera">Kameraváltás</string>
-    <string name="call_camera_front">Előlapi kamera</string>
-    <string name="call_camera_back">Hátlapi kamera</string>
-    <string name="call_format_turn_hd_off">HD kikapcsolása</string>
-    <string name="call_format_turn_hd_on">HD bekapcsolása</string>
     <string name="login_error_ssl_other">SSL hiba.</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Hívás indítása előtt kérjen megerősítést</string>
     <string name="room_participants_action_ignore_title">Felhasználó mellőzése</string>
     <string name="room_participants_remove_title">Felhasználó eltávolítása</string>
     <string name="room_participants_remove_reason">Eltávolítás oka</string>
@@ -1444,19 +1418,12 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="disabled_integration_dialog_title">Az integrációk ki vannak kapcsolva</string>
     <string name="action_play">Lejátszás</string>
     <string name="action_dismiss">Eltüntetés</string>
-    <string name="no_permissions_to_start_conf_call">Nincs jogosultsága konferenciahívást indítani ebben a szobában</string>
     <string name="video_meeting">Videomegbeszélés indítása</string>
     <string name="audio_meeting">Megbeszélés indítása (csak hang)</string>
     <string name="audio_video_meeting_description">A megbeszélések a Jitsi biztonsági és jogosultsági házirendjét használják. A szobában szereplő összes ember meghívást fog kapni, ha elkezdődik a megbeszélés.</string>
-    <string name="cannot_call_yourself">Nem hívhatja fel saját magát</string>
-    <string name="cannot_call_yourself_with_invite">Nem hívhatja fel saját magát, várjon amíg a résztvevők elfogadják a meghívást</string>
     <string name="failed_to_add_widget">Kisalkalmazás hozzáadása sikertelen</string>
     <string name="failed_to_remove_widget">Kisalkalmazás eltávolítása sikertelen</string>
-    <string name="call_failed_no_connection">${app_name} hívás sikertelen</string>
-    <string name="call_failed_no_connection_description">Nem sikerült felépíteni a valós idejű kapcsolatot.
-\nKérje meg a saját-kiszolgálójának rendszergazdáját, hogy állítson be egy TURN-kiszolgálót, hogy a hívások megbízhatóan működjenek.</string>
     <string name="login_error_ssl_peer_unverified">SSL hiba: a partner személyazonossága nem lett hitelesítve.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Véletlen hívás megakadályozása</string>
     <string name="room_participants_action_cancel_invite">Meghívás visszavonása</string>
     <string name="room_participants_power_level_demote_warning_title">Lefokozza magát\?</string>
     <string name="room_participants_power_level_demote_warning_prompt">Nem fogja tudni visszavonni ezt a változtatást, mert lefokozza magát, ha Ön az utolsó privilegizált felhasználó a szobában, akkor lehetetlen lesz a jogosultságok visszanyerése.</string>
@@ -1604,8 +1571,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="sent_a_reaction">Reakció: %s</string>
     <string name="action_add">Hozzáadás</string>
     <string name="call_notification_hangup">Befejezés</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Nincs jogosultsága hívást indítani</string>
-    <string name="no_permissions_to_start_webrtc_call">Nincs jogosultsága hívást indítani ebben a szobában</string>
     <string name="user_code_info_text">Mutassa meg ezt a kódot az ismerőseinek, hogy be tudják olvasni, és elkezdődhessen a csevegés.</string>
     <string name="invite_friends_rich_title">🔐️ Csatlakozz hozzám ${app_name}-en</string>
     <string name="invite_friends_text">Hey, beszélgessünk ${app_name}-en: %s</string>
@@ -1619,9 +1584,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="qr_code">QR kód</string>
     <string name="add_by_qr_code">Meghívás QR kóddal</string>
     <string name="permissions_denied_qr_code">A QR-kód beolvasásához szükség van a kamera hozzáférésre.</string>
-    <string name="call_notification_reject">Elutasítás</string>
-    <string name="call_notification_answer">Elfogadás</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Nincs jogosultsága konferenciahívás indításához</string>
     <string name="start_chatting">Csevegés indítása</string>
     <string name="action_reset">Visszaállítás</string>
     <string name="permissions_denied_add_contact">Engedélyezze a névjegyek elérését.</string>
@@ -1689,7 +1651,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     </plurals>
     <string name="room_displayname_4_members">%1$s, %2$s, %3$s és %4$s</string>
     <string name="room_displayname_3_members">%1$s, %2$s és %3$s</string>
-    <string name="call_held_by_user">%s felfüggesztette a hívást</string>
     <string name="settings_troubleshoot_test_notification_title">Értesítés megjelenítése</string>
     <string name="settings_troubleshoot_test_push_notification_content">Az értesítést látja. Kattintson ide!</string>
     <string name="settings_troubleshoot_test_push_loop_failed">A push-t nem sikerült megkapni. Megoldás lehet az alkalmazás újratelepítése.</string>
@@ -1723,9 +1684,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_settings_permissions_subtitle">Szerepek megjelenítése és megváltoztatása, amik szükségesek a szoba bizonyos részeinek megváltoztatásához.</string>
     <string name="room_settings_permissions_title">Szoba jogosultságok</string>
     <string name="room_participants_leave_private_warning">Ez a szoba nem nyilvános. Kilépés után csak újabb meghívóval tud újra belépni a szobába.</string>
-    <string name="call_held_by_you">Ön felfüggesztette a hívást</string>
-    <string name="call_hold_action">Várakoztat</string>
-    <string name="call_resume_action">Folytatás</string>
     <string name="error_unauthorized">Jogosulatlan, érvényes azonosítási adatok hiányoznak</string>
     <string name="use_as_default_and_do_not_ask_again">Használja alapértelmezettként és ne kérdezze újra</string>
     <string name="option_always_ask">Mindig rákérdez</string>
@@ -1869,8 +1827,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="authentication_error">Azonosítás sikertelen</string>
     <string name="re_authentication_default_confirm_text">A művelet elvégzéséhez ${app_name} kéri, hogy adja meg az azonosításhoz az adatokat.</string>
     <string name="re_authentication_activity_title">Újra-Azonosítás szükséges</string>
-    <string name="call_transfer_users_tab_title">Felhasználók</string>
-    <string name="call_transfer_failure">A hívás átadásánál hiba történt</string>
     <string name="failed_to_initialize_cross_signing">Eszközök közötti aláírást nem sikerült beállítani</string>
     <string name="settings_export_trail">Audit kiexportálása</string>
     <string name="delete_account_data_warning">%1$s fiók adatait törlöd\?
@@ -1879,14 +1835,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="login_error_outdated_homeserver_warning_content">Ez egy régi verziójú saját kiszolgáló. Kérje meg a kiszolgáló adminisztrátorát, hogy frissítse. Folytathatja, de néhány funkció nem fog megfelelően működni.</string>
     <string name="room_settings_room_access_restricted_description">Mindenki aki ezzel a szobával egy Térben van megtalálhatja és beléphet. Csak a szoba adminisztrátorok tudják Térhez adni.</string>
     <string name="this_space_has_no_rooms_admin">Néhány szoba lehet rejtett, mert privát és meghívóra van szükséged.</string>
-    <string name="call_transfer_title">Átadás</string>
-    <string name="call_transfer_connect_action">Kapcsolódás</string>
-    <string name="call_transfer_consult_first">Először tájékozódj</string>
-    <string name="call_only_active">Aktív hívás (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">A telefonszám megkeresésekor hiba történt</string>
-    <string name="call_dial_pad_title">Tárcsázó számlap</string>
-    <string name="call_tile_call_back">Visszahívás</string>
-    <string name="call_tile_ended">Hívás befejeződött</string>
     <string name="call_tile_other_declined">%1$s elutasította a hívást</string>
     <string name="warning_unsaved_change_discard">Változtatások elvetése</string>
     <string name="warning_unsaved_change">Mentetlen változások vannak. Elveted a változásokat\?</string>
@@ -1991,8 +1939,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_preview_no_preview_join">Ennek a szobának nincs előnézete. Szeretnél csatlakozni\?</string>
     <string name="room_preview_not_found">Ez a szoba jelenleg nem elérhető.
 \nPróbáld meg később vagy kérdezd meg a szoba adminisztrátorát, hogy van-e hozzáférésed.</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Elhagyod ezt a konferenciát és átváltasz egy másikba\?</string>
-    <string name="error_jitsi_join_conf">Bocsánat, a konferenciába való belépésnél hiba történt</string>
     <string name="notification_unread_notified_messages_and_invitation">%1$s és %2$s</string>
     <string name="notification_unread_notified_messages_in_room_and_invitation">%1$s, %2$s és %3$s</string>
     <plurals name="notification_invitations">
@@ -2040,12 +1986,9 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     </plurals>
     <string name="settings_troubleshoot_test_notification_notification_clicked">Az értesítésre kattintottak!</string>
     <string name="settings_troubleshoot_test_notification_notice">Kattintson az értesítésre. Ha nem lát értesítést, ellenőrizze a rendszerbeállításokat.</string>
-    <string name="call_transfer_transfer_to_title">Hívásátirányítás ide: %1$s</string>
     <string name="unnamed_room">Névtelen szoba</string>
     <string name="private_space">Privát tér</string>
     <string name="public_space">Nyilvános tér</string>
-    <string name="call_transfer_unknown_person">Ismeretlen személy</string>
-    <string name="call_transfer_consulting_with">Konzultáció vele: %1$s</string>
     <string name="directory_add_a_new_server_error_already_added">Ez a kiszolgáló már szerepel a listában</string>
     <string name="directory_add_a_new_server_error">A kiszolgáló vagy annak szobalistája nem található</string>
     <string name="directory_add_a_new_server_prompt">Adja meg a felfedezni kívánt új kiszolgáló nevét.</string>
@@ -2080,14 +2023,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="missing_permissions_title">Hiányzó engedélyek</string>
     <string name="denied_permission_camera">A művelet végrehajtásához adja meg a Kamera engedélyt a rendszerbeállításokban.</string>
     <string name="denied_permission_generic">Néhány jogosultság hiányzik a művelet végrehajtásához, adja meg a jogosultságokat a rendszerbeállításokban.</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">Nem fogadott videóhívás</item>
-        <item quantity="other">%d nem fogadott videóhívás</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Nem fogadott hanghívás</item>
-        <item quantity="other">%d nem fogadott hanghívás</item>
-    </plurals>
     <string name="upgrade_required">Fejlesztés szükséges</string>
     <string name="sent_a_voice_message">Hanggal</string>
     <string name="other_spaces_or_rooms_you_might_not_know">Más terek vagy szobák melyről lehet, hogy nem tudsz</string>
@@ -2136,24 +2071,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="link_this_email_settings_link">Ennek az e-mailnek a fiókhoz való kötése</string>
     <string name="all_rooms_youre_in_will_be_shown_in_home">Minden szoba amibe beléptél megjelenik a Kezdő téren.</string>
     <string name="preference_show_all_rooms_in_home">Minden szoba megjelenítése a Kezdő téren</string>
-    <string name="call_slide_to_end_conference">A hívás befejezéséhez oldalra húzni</string>
-    <string name="call_tap_to_return">%1$s koppintás a visszatéréshez</string>
-    <string name="call_one_active">Aktív hívás (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Aktív hívás ·</item>
-        <item quantity="other">%1$d aktív hívás ·</item>
-    </plurals>
-    <string name="call_tile_no_answer">Nincs válasz</string>
-    <string name="call_tile_video_missed">Nem fogadott videóhívás</string>
-    <string name="call_tile_voice_missed">Nem fogadott hanghívás</string>
-    <string name="call_tile_video_declined">Videóhívás elutasítva</string>
-    <string name="call_tile_voice_declined">Hanghívás elutasítva</string>
-    <string name="call_tile_video_call_has_ended">Videóhívás befejeződött • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Hívás befejeződött • %1$s</string>
-    <string name="call_tile_video_active">Videó hívás folyamatban</string>
-    <string name="call_tile_voice_active">Hanghívás folyamatban</string>
-    <string name="call_tile_video_incoming">Bejövő videó hívás</string>
-    <string name="call_tile_voice_incoming">Bejövő hanghívás</string>
     <string name="call_tile_you_declined_this_call">Elutasítottad a hívást</string>
     <string name="room_settings_room_notifications_account_settings">Fiók beállítások</string>
     <string name="room_settings_room_notifications_manage_notifications">Értesítések kezelése itt: %1$s.</string>
@@ -2168,13 +2085,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="settings_notification_your_keywords">Kulcsszavak</string>
     <string name="room_settings_none">Semmi</string>
     <string name="room_settings_mention_and_keyword_only">Csak megemlítések és kulcsszavak</string>
-    <string name="call_remove_jitsi_widget_progress">Hívás vége…</string>
-    <string name="call_ended_invite_timeout_title">Nincs válasz</string>
-    <string name="call_ended_user_busy_description">A hívott felhasználó foglalt.</string>
-    <string name="call_ended_user_busy_title">A felhasználó foglalt</string>
-    <string name="audio_call_with_participant">Hanghívás vele: %s</string>
-    <string name="video_call_with_participant">Videóhívás vele: %s</string>
-    <string name="call_ringing">Hívás kicseng…</string>
     <string name="spaces">Terek</string>
     <string name="space_add_space_to_any_space_you_manage">Add hozzá a teret bármelyik általad kezelt térhez.</string>
     <string name="space_add_existing_spaces">Meglévő terek hozzáadása</string>
@@ -2447,10 +2357,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="threads_beta_enable_notice_title">Üzenetszálak (béta)</string>
     <string name="action_learn_more">Tudjon meg többet</string>
     <string name="action_try_it_out">Próbálja ki</string>
-    <string name="screen_sharing_notification_description">Képernyőmegosztás folyamatban</string>
-    <string name="screen_sharing_notification_title">${app_name} képernyő megosztás</string>
-    <string name="call_stop_screen_sharing">Képernyőmegosztás megállítása</string>
-    <string name="call_start_screen_sharing">Képernyő megosztása</string>
     <string name="initial_sync_request_reason_unignored_users">- Egyes felhasználók nincsenek mellőzve</string>
     <string name="initial_sync_request_content">A(z) ${app_name} alkalmazásnak az alábbi okokból törölnie kell a gyorsítótárat:
 \n%s

@@ -356,29 +356,19 @@
     <string name="denied_permission_voice_message">To send voice messages, please grant the Microphone permission.</string>
 
     <string name="missing_permissions_title">Missing permissions</string>
-    <string name="no_permissions_to_start_conf_call">You do not have permission to start a conference call in this room</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">You do not have permission to start a conference call</string>
-    <string name="no_permissions_to_start_webrtc_call">You do not have permission to start a call in this room</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">You do not have permission to start a call</string>
     <string name="video_meeting">Start video meeting</string>
     <string name="audio_meeting">Start audio meeting</string>
     <string name="audio_video_meeting_description">Meetings use Jitsi security and permission policies. All people currently in the room will see an invite to join while your meeting is happening.</string>
-    <string name="cannot_call_yourself">You cannot place a call with yourself</string>
-    <string name="cannot_call_yourself_with_invite">You cannot place a call with yourself, wait for participants to accept invitation</string>
     <string name="failed_to_add_widget">Failed to add widget</string>
     <string name="failed_to_remove_widget">Failed to remove widget</string>
     <string name="or">or</string>
     <string name="done">Done</string>
 
-    <string name="call_notification_answer">Accept</string>
-    <string name="call_notification_reject">Decline</string>
     <string name="call_notification_hangup">Hang Up</string>
 
     <!-- actions -->
     <string name="action_sign_out">Sign out</string>
     <string name="action_sign_out_confirmation_simple">Are you sure you want to sign out?</string>
-    <string name="action_voice_call">Voice Call</string>
-    <string name="action_video_call">Video Call</string>
     <string name="action_view_threads">View Threads</string>
     <string name="action_mark_all_as_read">Mark all as read</string>
     <string name="action_quick_reply">Quick reply</string>
@@ -522,31 +512,13 @@
     <string name="hs_client_url">Homeserver API URL</string>
     <string name="search">Search</string>
 
-    <string name="start_voice_call">Start Voice Call</string>
-    <string name="start_video_call">Start Video Call</string>
-
     <string name="option_send_voice">Send voice</string>
 
-    <string name="start_voice_call_prompt_msg">Are you sure that you want to start a voice call?</string>
-    <string name="start_video_call_prompt_msg">Are you sure that you want to start a video call?</string>
-
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
-    <string name="call_failed_no_connection">${app_name} Call Failed</string>
-    <string name="call_failed_no_connection_description">Failed to establish real time connection.\nPlease ask the administrator of your homeserver to configure a TURN server in order for calls to work reliably.</string>
-
-    <string name="call_select_sound_device">Select Sound Device</string>
     <string name="sound_device_phone">Phone</string>
     <string name="sound_device_speaker">Speaker</string>
     <string name="sound_device_headset">Headset</string>
     <string name="sound_device_wireless_headset">Wireless Headset</string>
-    <string name="call_switch_camera">Switch Camera</string>
-    <string name="call_camera_front">Front</string>
-    <string name="call_camera_back">Back</string>
-    <string name="call_format_turn_hd_off">Turn HD off</string>
-    <string name="call_format_turn_hd_on">Turn HD on</string>
-    <string name="call_start_screen_sharing">Share screen</string>
-    <string name="call_stop_screen_sharing">Stop screen sharing</string>
-
     <string name="option_send_files">Send files</string>
     <string name="option_send_sticker">Send sticker</string>
     <string name="option_take_photo_video">Take photo or video</string>
@@ -611,47 +583,8 @@
     <string name="compression_opt_list_small">Small</string>
 
     <!-- Call settings screen -->
-    <string name="settings_call_category">Calls</string>
-    <string name="settings_call_show_confirmation_dialog_title">Prevent accidental call</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Ask for confirmation before starting a call</string>
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
-    <string name="settings_call_ringtone_use_app_ringtone">Use default ${app_name} ringtone for incoming calls</string>
-    <string name="settings_call_ringtone_title">Incoming call ringtone</string>
-    <string name="settings_call_ringtone_dialog_title">Select ringtone for calls:</string>
-
     <!-- call string -->
-    <string name="call">Call</string>
-    <string name="call_connecting">Call connecting…</string>
-    <string name="call_ringing">Call ringing…</string>
-    <string name="call_ended">Call ended</string>
-    <plurals name="missed_audio_call">
-        <item quantity="one">Missed audio call</item>
-        <item quantity="other">%d missed audio calls</item>
-    </plurals>
-    <plurals name="missed_video_call">
-        <item quantity="one">Missed video call</item>
-        <item quantity="other">%d missed video calls</item>
-    </plurals>
-    <string name="incoming_video_call">Incoming Video Call</string>
-    <string name="incoming_voice_call">Incoming Voice Call</string>
-    <string name="call_in_progress">Call In Progress…</string>
-    <string name="video_call_in_progress">Video Call In Progress…</string>
-    <string name="video_call_with_participant">Video call with %s</string>
-    <string name="audio_call_with_participant">Audio call with %s</string>
-    <string name="call_resume_action">Resume</string>
-    <string name="call_hold_action">Hold</string>
-    <string name="call_held_by_user">%s held the call</string>
-    <string name="call_held_by_you">You held the call</string>
-
-    <string name="call_ended_user_busy_title">User busy</string>
-    <string name="call_ended_user_busy_description">The user you called is busy."</string>
-    <string name="call_ended_invite_timeout_title">No answer</string>
-    <string name="call_error_user_not_responding">The remote side failed to pick up.</string>
-
-    <string name="call_remove_jitsi_widget_progress">Ending call…</string>
-
-    <string name="microphone_in_use_title">Microphone in use</string>
-
     <!-- permissions Android M -->
     <string name="permissions_rationale_popup_title">Information</string>
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
@@ -1377,10 +1310,6 @@
     <string name="room_widget_permission_widget_id">Widget ID</string>
     <string name="room_widget_permission_room_id">Room ID</string>
 
-
-    <string name="error_jitsi_not_supported_on_old_device">Sorry, conference calls with Jitsi are not supported on old devices (devices with Android OS below 6.0)</string>
-    <string name="error_jitsi_join_conf">Sorry, an error occurred while trying to join the conference</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Leave the current conference and switch to the other one?</string>
 
     <string name="room_widget_resource_permission_title">This widget wants to use the following resources:</string>
     <string name="room_widget_resource_grant_permission">Allow</string>
@@ -2902,47 +2831,7 @@
 
     <string name="call_tile_you_declined_this_call">You declined this call</string>
     <string name="call_tile_other_declined">%1$s declined this call</string>
-    <string name="call_tile_ended">This call has ended</string>
-    <string name="call_tile_call_back">Call back</string>
-
-    <string name="call_tile_voice_incoming">Incoming voice call</string>
-    <string name="call_tile_video_incoming">Incoming video call</string>
-    <string name="call_tile_voice_active">Active voice call</string>
-    <string name="call_tile_video_active">Active video call</string>
-    <string name="call_tile_voice_call_has_ended">Voice call ended • %1$s</string>
-    <string name="call_tile_video_call_has_ended">Video call ended • %1$s</string>
-    <string name="call_tile_voice_declined">Voice call declined</string>
-    <string name="call_tile_video_declined">Video call declined</string>
-    <string name="call_tile_voice_missed">Missed voice call</string>
-    <string name="call_tile_video_missed">Missed video call</string>
-    <string name="call_tile_no_answer">No answer</string>
-
-    <string name="call_dial_pad_title">Dial pad</string>
-    <string name="call_dial_pad_lookup_error">"There was an error looking up the phone number"</string>
-
-
-    <string name="call_only_active">Active call (%1$s)</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Active call ·</item>
-        <item quantity="other">%1$d active calls ·</item>
-    </plurals>
-    <string name="call_one_active">Active call (%1$s) ·</string>
-    <string name="call_tap_to_return">%1$s Tap to return</string>
-
-    <string name="call_transfer_consult_first">Consult first</string>
-    <string name="call_transfer_connect_action">Connect</string>
-    <string name="call_transfer_title">Transfer</string>
-    <string name="call_transfer_failure">An error occurred while transferring call</string>
-    <string name="call_transfer_users_tab_title">Users</string>
-    <string name="call_transfer_consulting_with">Consulting with %1$s</string>
-    <string name="call_transfer_transfer_to_title">Transfer to %1$s</string>
-    <string name="call_transfer_unknown_person">Unknown person</string>
-
-    <string name="call_slide_to_end_conference">Slide to end the call</string>
-
     <string name="call_unsupported">Unsupported call</string>
-    <string name="call_unsupported_matrix_rtc_call">Unsupported call. The new Element X app is needed to join this call.</string>
-
     <string name="re_authentication_activity_title">Re-Authentication Needed</string>
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
     <string name="re_authentication_default_confirm_text">${app_name} requires you to enter your credentials to perform this action.</string>
@@ -3345,9 +3234,6 @@
     <string name="room_message_autocomplete_notification">Room notification</string>
 
     <!-- Screen sharing -->
-    <string name="screen_sharing_notification_title">${app_name} Screen Sharing</string>
-    <string name="screen_sharing_notification_description">Screen sharing is in progress</string>
-
     <string name="unifiedpush_getdistributors_dialog_title">Choose how to receive notifications</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google Services</string>
     <string name="unifiedpush_distributor_background_sync">Background synchronization</string>

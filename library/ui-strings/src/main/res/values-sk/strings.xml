@@ -174,8 +174,6 @@
     <string name="dark_theme">Tmavý vzhľad</string>
     <string name="black_theme">Čierny vzhľad</string>
     <string name="notification_listening_for_events">Spracovanie udalostí</string>
-    <string name="call_notification_answer">Prijať</string>
-    <string name="call_notification_reject">Odmietnuť</string>
     <string name="call_notification_hangup">Zavesiť</string>
     <string name="title_activity_settings">Nastavenia</string>
     <string name="ok">OK</string>
@@ -195,8 +193,6 @@
     <string name="or">alebo</string>
     <string name="action_invite">Pozvať</string>
     <string name="action_sign_out">Odhlásiť sa</string>
-    <string name="action_voice_call">Audio hovor</string>
-    <string name="action_video_call">Video hovor</string>
     <string name="action_mark_all_as_read">Označiť všetko ako prečítané</string>
     <string name="action_quick_reply">Rýchla odpoveď</string>
     <string name="action_open">Otvoriť</string>
@@ -231,8 +227,6 @@
     <string name="logout">Odhlásiť sa</string>
     <string name="hs_url">URL adresa domovského servera</string>
     <string name="search">Hľadať</string>
-    <string name="start_voice_call">Uskutočniť audio hovor</string>
-    <string name="start_video_call">Uskutočniť video hovor</string>
     <string name="option_send_files">Poslať súbory</string>
     <string name="option_take_photo_video">Poslať fotku alebo video</string>
     <string name="auth_login">Prihlásiť sa</string>
@@ -251,13 +245,6 @@
     <string name="compression_opt_list_large">Veľký</string>
     <string name="compression_opt_list_medium">Stredný</string>
     <string name="compression_opt_list_small">Malý</string>
-    <string name="call">Hovor</string>
-    <string name="call_connecting">Spojenie hovoru…</string>
-    <string name="call_ended">Hovor ukončený</string>
-    <string name="incoming_video_call">Prichádzajúci video hovor</string>
-    <string name="incoming_voice_call">Prichádzajúci hlasový hovor</string>
-    <string name="call_in_progress">Prebiehajúci hovor…</string>
-    <string name="call_error_user_not_responding">Vzdialenej strane sa nepodarilo prijať hovor.</string>
     <string name="permissions_rationale_popup_title">Informácia</string>
     <string name="permissions_rationale_msg_record_audio">Aby ste mohli uskutočňovať audio hovory, ${app_name} potrebuje prístup k mikrofónu vašeho zariadenia.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} potrebuje povolenie na prístup k vašej kamere a mikrofónu na uskutočňovanie videohovorov.
@@ -443,8 +430,6 @@
     <string name="notification_noisy">Hlasné</string>
     <string name="encrypted_message">Šifrovaná správa</string>
     <string name="loading">Načítavanie…</string>
-    <string name="start_voice_call_prompt_msg">Ste si istý, že chcete začať hlasový hovor?</string>
-    <string name="start_video_call_prompt_msg">Ste si istí, že chcete začať video hovor?</string>
     <string name="room_participants_ban_prompt_msg">Zakázanie používateľa ho odstráni z tejto miestnosti a zabráni mu v ďalšom vstupe.</string>
     <string name="room_settings_all_messages">Všetky správy</string>
     <string name="room_settings_add_homescreen_shortcut">Pridať na domovskú obrazovku</string>
@@ -560,11 +545,6 @@
     <string name="x_plus">+%d</string>
     <string name="action_accept">Prijať</string>
     <string name="auth_accept_policies">Prosím prečítajte si a odsúhlaste zmluvné podmienky tohoto domovského servera:</string>
-    <string name="settings_call_category">Hovory</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Použiť predvolené zvonenie ${app_name} pre prichádzajúce hovory</string>
-    <string name="settings_call_ringtone_title">Zvonenie pre prichádzajúci hovor</string>
-    <string name="settings_call_ringtone_dialog_title">Vyberte zvonenie pre prichádzajúce hovory:</string>
-    <string name="video_call_in_progress">Prebiehajúci video hovor…</string>
     <string name="room_participants_action_remove">Vykázať</string>
     <string name="settings_notification_troubleshoot">Riešiť problémy s oznámeniami</string>
     <string name="settings_troubleshoot_diagnostic">Diagnostika problémov</string>
@@ -705,34 +685,20 @@
     <string name="room_member_profile_sessions_section_title">Relácie</string>
     <string name="action_play">Prehrať</string>
     <string name="action_dismiss">Odmietnuť</string>
-    <string name="no_permissions_to_start_conf_call">Nemáte právo začať konferenčný hovor v tejto miestnosti</string>
     <string name="video_meeting">Začať video schôdzu</string>
     <string name="audio_meeting">Začať audio schôdzu</string>
     <string name="audio_video_meeting_description">Pre schôdze platia bezpečnostné politiky Jitsi. Počas prebiehajúcej schôdze sa všetkým členom v miestnosti bude zobrazovať pozvanie s možnosťou pridať sa k schôdzi.</string>
-    <string name="cannot_call_yourself">Nemôžete telefonovať samému sebe</string>
-    <string name="cannot_call_yourself_with_invite">Nemôžete telefonovať samému sebe, počkajte, kým sa pridajú ďalší účastníci</string>
     <string name="failed_to_add_widget">Nepodarilo sa pridať widget</string>
     <string name="failed_to_remove_widget">Nepodarilo sa odstrániť widget</string>
     <string name="action_copy">Kopírovať</string>
     <string name="dialog_title_success">Úspešné</string>
     <string name="bottom_action_notification">Oznámenia</string>
-    <string name="call_failed_no_connection">${app_name} hovor zlyhal</string>
-    <string name="call_failed_no_connection_description">Nepodarilo sa uskutočniť spojenie v reálnom čase.
-\nProsím, požiadajte správcu domovského servera, aby správne nastavil server turn na zaistenie čo najspoľahlivejšej prevádzky hovorov.</string>
-    <string name="call_select_sound_device">Vybrať zvukové zariadenie</string>
     <string name="sound_device_phone">Slúchadlo telefónu</string>
     <string name="sound_device_speaker">Reproduktor</string>
     <string name="sound_device_headset">Slúchadlá</string>
     <string name="sound_device_wireless_headset">Bezdrôtové slúchadlá</string>
-    <string name="call_switch_camera">Prepnúť fotoaparát</string>
-    <string name="call_camera_front">Predný</string>
-    <string name="call_camera_back">Zadný</string>
-    <string name="call_format_turn_hd_off">Vypnúť HD</string>
-    <string name="call_format_turn_hd_on">Zapnúť HD</string>
     <string name="login_error_ssl_peer_unverified">Chyba SSL: Nie je možné overiť totožnosť protistrany.</string>
     <string name="login_error_ssl_other">Chyba SSL.</string>
-    <string name="settings_call_show_confirmation_dialog_title">Zabrániť neúmyselnému telefonovaniu</string>
-    <string name="settings_call_show_confirmation_dialog_summary">Žiadať potvrdenie pred uskutočnením hovoru</string>
     <string name="room_participants_action_cancel_invite">Zrušiť pozvanie</string>
     <string name="room_participants_power_level_demote_warning_title">Znížiť vlastnú úroveň oprávnenia\?</string>
     <string name="room_participants_power_level_demote_warning_prompt">Túto zmenu nebudete môcť vrátiť späť, pretože znižujete vašu vlastnú úroveň oprávnenia. Ak ste jediný poverený používateľ v miestnosti, nebudete môcť znovu získať úroveň, akú máte teraz.</string>
@@ -811,7 +777,6 @@
     <string name="room_widget_permission_theme">Váš vzhľad</string>
     <string name="room_widget_permission_widget_id">ID widgetu</string>
     <string name="room_widget_permission_room_id">ID miestnosti</string>
-    <string name="error_jitsi_not_supported_on_old_device">Prepáčte, konferenčné hovory Jitsi nie sú podporované na starších zariadeniach (starší systém než Android 6.0)</string>
     <string name="room_widget_resource_permission_title">Tento widget žiada o nasledujúce zdroje:</string>
     <string name="room_widget_resource_grant_permission">Povoliť</string>
     <string name="room_widget_resource_decline_permission">Zablokovať všetko</string>
@@ -1158,8 +1123,6 @@
     <string name="a11y_image">Obrázok</string>
     <string name="a11y_screenshot">Snímka obrazovky</string>
     <string name="action_switch">Prepnúť</string>
-    <string name="call_transfer_users_tab_title">Používatelia</string>
-    <string name="call_hold_action">Podržať</string>
     <string name="login_social_continue">alebo</string>
     <string name="room_permissions_title">Povolenia</string>
     <string name="room_alias_published_alias_add_manually_submit">Zverejniť</string>
@@ -1296,7 +1259,6 @@
     <string name="unnamed_room">Nepomenovaná miestnosť</string>
     <string name="private_space">Súkromný priestor</string>
     <string name="public_space">Verejný priestor</string>
-    <string name="call_transfer_unknown_person">Neznáma osoba</string>
     <string name="directory_your_server">Váš server</string>
     <string name="give_feedback">Poskytnite spätnú väzbu</string>
     <string name="send_feedback_space_title">Spätná väzba na priestory</string>
@@ -1336,8 +1298,6 @@
     <string name="room_list_quick_actions_room_settings">Nastavenia miestnosti</string>
     <string name="room_settings_room_version_title">Verzia miestnosti</string>
     <string name="dialog_edit_hint">Nová hodnota</string>
-    <string name="call_dial_pad_title">Číselník</string>
-    <string name="call_tile_call_back">Zavolať späť</string>
     <string name="login_clear_homeserver_history">Vyčistiť históriu</string>
     <string name="room_permissions_change_topic">Zmeniť tému</string>
     <string name="room_permissions_change_permissions">Zmeniť povolenia</string>
@@ -1428,7 +1388,6 @@
     <string name="rageshake_detected">Zistené otrasy!</string>
     <string name="login_a11y_choose_matrix_org">Vybrať matrix.org</string>
     <string name="content_reported_title">Obsah nahlásený</string>
-    <string name="call_resume_action">Pokračovať</string>
     <string name="settings_rageshake">Zúrivé trasenie</string>
     <string name="create_spaces_just_me">Iba ja</string>
     <string name="disclaimer_title">Riot je teraz Element!</string>
@@ -1437,17 +1396,6 @@
     <string name="ftue_auth_carousel_secure_title">Vlastnite svoje konverzácie.</string>
     <string name="login_splash_already_have_account">Už mám účet</string>
     <string name="tooltip_attachment_file">Nahrať súbor</string>
-    <string name="video_call_with_participant">Videohovor s %s</string>
-    <plurals name="missed_video_call">
-        <item quantity="one">%d zmeškaný video hovor</item>
-        <item quantity="few">%d zmeškané video hovory</item>
-        <item quantity="other">%d zmeškaných video hovorov</item>
-    </plurals>
-    <plurals name="missed_audio_call">
-        <item quantity="one">%d zmeškaný hlasový hovor</item>
-        <item quantity="few">%d zmeškané hlasové hovory</item>
-        <item quantity="other">%d zmeškaných hlasových hovorov</item>
-    </plurals>
     <string name="login_error_homeserver_from_url_not_found">Nie je možné pristupovať k domovskému serveru na adrese %s. Skontrolujte prosím odkaz alebo vyberte server ručne.</string>
     <string name="auth_msisdn_already_defined">Toto telefónne číslo je už priradené.</string>
     <string name="use_as_default_and_do_not_ask_again">Použiť ako predvolené a viac sa nepýtať</string>
@@ -1455,9 +1403,6 @@
     <string name="send_bug_report_include_key_share_history">Odoslať históriu žiadostí o šifrovacie kľúče</string>
     <string name="settings_room_directory_show_all_rooms_summary">V adresári zobrazí všetky miestnosti, aj tie s explicitným obsahom.</string>
     <string name="settings_room_directory_show_all_rooms">Zobrazovať miestnosti s explicitným obsahom</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Nemáte oprávnenie na začatie hovoru</string>
-    <string name="no_permissions_to_start_webrtc_call">Nemáte oprávnenie na začatie hovoru v tejto miestnosti</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Nemáte oprávnenie na začatie konferenčného hovoru</string>
     <string name="missing_permissions_title">Chýbajúce oprávnenia</string>
     <string name="denied_permission_voice_message">Aby ste mohli posielať hlasové správy, udeľte prosím oprávnenie používať mikrofón.</string>
     <string name="denied_permission_camera">Na vykonanie tejto akcie, prosím udeľte oprávnenie na používanie fotoaparátu cez systémové nastavenia.</string>
@@ -1609,10 +1554,6 @@
     <string name="room_participants_leave_private_warning">Táto miestnosť nie je verejná. Bez pozvánky sa do nej nebudete môcť opätovne pripojiť.</string>
     <string name="permissions_denied_add_contact">Povoľte prístup ku kontaktom.</string>
     <string name="permissions_denied_qr_code">Ak chcete skenovať QR kód, musíte povoliť prístup k fotoaparátu.</string>
-    <string name="call_ended_user_busy_description">Volaný používateľ je obsadený.</string>
-    <string name="call_ended_user_busy_title">Používateľ je obsadený</string>
-    <string name="call_held_by_user">%s podržal hovor</string>
-    <string name="audio_call_with_participant">Hlasový hovor s %s</string>
     <string name="login_reset_password_mail_confirmation_title">Skontrolujte si doručenú poštu</string>
     <string name="login_reset_password_notice">Na emailovú adresu vám odošleme overovaciu správu, aby bolo možné potvrdiť nastavenie vašeho nového hesla.</string>
     <string name="login_login_with_email_error">Tento e-mail nie je prepojený so žiadnym účtom.</string>
@@ -1726,8 +1667,6 @@
     <string name="room_permissions_remove_messages_sent_by_others">Odstrániť správy odoslané inými osobami</string>
     <string name="room_permissions_notice_read_only">Nemáte oprávnenie aktualizovať role potrebné na zmenu rôznych častí tejto miestnosti</string>
     <string name="room_permissions_notice">Vyberte role potrebné na zmenu rôznych častí miestnosti</string>
-    <string name="call_ended_invite_timeout_title">Žiadna odpoveď</string>
-    <string name="call_held_by_you">Podržali ste hovor</string>
     <string name="upgrade_room_update_parent_space">Automaticky aktualizovať nadradený priestor</string>
     <string name="this_space_has_no_rooms_admin">Niektoré miestnosti môžu byť skryté, pretože sú súkromné a potrebujete pozvánku.</string>
     <string name="this_space_has_no_rooms">Tento priestor nemá žiadne miestnosti</string>
@@ -1924,27 +1863,6 @@
 \n
 \nMôžete si prečítať všetky naše podmienky %s.</string>
     <string name="analytics_opt_in_title">Pomôžte zlepšiť ${app_name}</string>
-    <string name="call_tap_to_return">%1$s Ťuknite pre návrat</string>
-    <string name="call_one_active">Aktívny hovor (%1$s) ·</string>
-    <plurals name="call_active_status">
-        <item quantity="one">Aktívny hovor ·</item>
-        <item quantity="few">%1$d aktívne hovory ·</item>
-        <item quantity="other">%1$d aktívnych hovorov ·</item>
-    </plurals>
-    <string name="call_only_active">Prebiehajúci hovor (%1$s)</string>
-    <string name="call_dial_pad_lookup_error">Pri vyhľadávaní telefónneho čísla došlo k chybe</string>
-    <string name="call_tile_no_answer">Žiadna odpoveď</string>
-    <string name="call_tile_video_missed">Zmeškaný video hovor</string>
-    <string name="call_tile_voice_missed">Zmeškaný hlasový hovor</string>
-    <string name="call_tile_video_declined">Video hovor odmietnutý</string>
-    <string name="call_tile_voice_declined">Hlasový hovor odmietnutý</string>
-    <string name="call_tile_video_call_has_ended">Video hovor skončil • %1$s</string>
-    <string name="call_tile_voice_call_has_ended">Hlasový hovor skončil • %1$s</string>
-    <string name="call_tile_video_active">Aktívny video hovor</string>
-    <string name="call_tile_voice_active">Aktívny hovor</string>
-    <string name="call_tile_video_incoming">Prichádzajúci video hovor</string>
-    <string name="call_tile_voice_incoming">Prichádzajúci hlasový hovor</string>
-    <string name="call_tile_ended">Tento hovor bol ukončený</string>
     <string name="call_tile_other_declined">%1$s odmietol tento hovor</string>
     <string name="call_tile_you_declined_this_call">Tento hovor ste odmietli</string>
     <string name="create_pin_confirm_failure">Nepodarilo sa overiť kód PIN, zadajte nový kód.</string>
@@ -2200,7 +2118,6 @@
     <string name="error_voice_message_cannot_reply_or_edit">Nemôžete odpovedať ani upravovať, kým je hlasová správa aktívna</string>
     <string name="voice_message_reply_content">Hlasová správa (%1$s)</string>
     <string name="upgrade_room_for_restricted_note">Vezmite prosím na vedomie, že aktualizácia vytvorí novú verziu miestnosti. Všetky aktuálne správy zostanú v tejto archivovanej miestnosti.</string>
-    <string name="call_slide_to_end_conference">Posunutím ukončíte hovor</string>
     <string name="link_this_email_settings_link">Prepojte tento e-mail so svojím účtom</string>
     <string name="user_directory_search_hint_2">Vyhľadávať podľa mena, ID alebo e-mailu</string>
     <string name="open_discovery_settings">Otvoriť nastavenia objavovania</string>
@@ -2266,7 +2183,6 @@
     <string name="a11y_static_map_image">Mapa</string>
     <string name="location_timeline_failed_to_load_map">Nepodarilo sa načítať mapu</string>
     <string name="message_bubbles">Zobraziť správy v bublinách</string>
-    <string name="error_jitsi_join_conf">Ospravedlňujeme sa, pri pokuse o pripojenie ku konferencii došlo k chybe</string>
     <string name="directory_add_a_new_server_error_already_added">Tento server sa už nachádza v zozname</string>
     <string name="directory_add_a_new_server_error">Nemôžeme nájsť tento server alebo jeho zoznam miestností</string>
     <string name="directory_add_a_new_server_prompt">Zadajte názov nového servera, ktorý chcete preskúmať.</string>
@@ -2312,8 +2228,6 @@
     <string name="thread_list_title">Vlákna</string>
     <string name="thread_timeline_title">Vlákno</string>
     <string name="room_threads_filter">Filtrovať vlákna v miestnosti</string>
-    <string name="call_remove_jitsi_widget_progress">Ukončenie hovoru…</string>
-    <string name="call_ringing">Vyzváňanie hovoru…</string>
     <string name="action_thread_copy_link_to_thread">Kopírovať odkaz na vlákno</string>
     <string name="action_thread_view_in_room">Zobraziť v miestnosti</string>
     <string name="a11y_view_read_receipts">Zobraziť potvrdenia o prečítaní</string>
@@ -2366,9 +2280,6 @@
     <string name="event_redacted_by_admin_reason_with_reason">Udalosť bola upravená administrátorom miestnosti, dôvod: %1$s</string>
     <string name="room_preview_not_found">Táto miestnosť je momentálne neprístupná.
 \nSkúste to neskôr alebo požiadajte správcu miestnosti, aby skontroloval, či máte prístup.</string>
-    <string name="call_transfer_transfer_to_title">Presmerovať na používateľa %1$s</string>
-    <string name="call_transfer_failure">Počas presmerovania hovoru došlo k chybe</string>
-    <string name="call_transfer_title">Presmerovať</string>
     <string name="joining_replacement_room">Pripojiť sa k náhradnej miestnosti</string>
     <string name="dev_tools_success_state_event">Udalosť stavu odoslaná!</string>
     <string name="dev_tools_send_custom_state_event">Odoslať vlastnú udalosť stavu</string>
@@ -2388,7 +2299,6 @@
     <string name="dev_tools_form_hint_state_key">Stavový kľúč</string>
     <string name="dev_tools_send_custom_event">Odoslať vlastnú udalosť</string>
     <string name="dev_tools_explore_room_state">Preskúmať stav miestnosti</string>
-    <string name="call_transfer_consulting_with">Konzultácia s %1$s</string>
     <string name="share_by_text">Zdieľať pomocou textu</string>
     <string name="bootstrap_crosssigning_progress_initializing">Zverejňovanie vytvorených kľúčov totožnosti</string>
     <string name="event_redacted_by_user_reason_with_reason">Udalosť vymazaná používateľom, dôvod: %1$s</string>
@@ -2400,7 +2310,6 @@
     <string name="report_content_custom">Vlastné hlásenie…</string>
     <string name="report_content_inappropriate">Je to nevhodné</string>
     <string name="error_handling_incoming_share">Nepodarilo sa spracovať zdieľané údaje</string>
-    <string name="jitsi_leave_conf_to_join_another_one_content">Opustiť súčasnú konferenciu a prepnúť na inú\?</string>
     <plurals name="notice_room_server_acl_changes">
         <item quantity="one">%d zmena ACL servera</item>
         <item quantity="few">%d zmeny ACL servera</item>
@@ -2431,10 +2340,8 @@
     <string name="bootstrap_progress_generating_ssss_recovery">Generovanie kľúča SSSS z kľúča pre obnovu</string>
     <string name="bootstrap_crosssigning_progress_default_key">Definovanie predvoleného kľúča SSSS</string>
     <string name="settings_developer_mode_fail_fast_title">Rýchle-zlyhanie</string>
-    <string name="call_transfer_consult_first">Najprv konzultovať</string>
     <string name="command_description_leave_room">Opustiť miestnosť s daným id (alebo aktuálnu miestnosť, ak je prázdna)</string>
     <string name="a11y_trust_level_warning">Varovná úroveň dôveryhodnosti</string>
-    <string name="call_transfer_connect_action">Pripojiť</string>
     <string name="location_share_live_stop">Zastaviť</string>
     <string name="location_share_live_enabled">Poloha v reálnom čase zapnutá</string>
     <string name="a11y_location_share_option_pinned_icon">Zdieľať túto polohu</string>
@@ -2497,10 +2404,6 @@
     <string name="threads_beta_enable_notice_title">Vlákna Beta</string>
     <string name="action_learn_more">Zistiť viac</string>
     <string name="action_try_it_out">Vyskúšajte si to</string>
-    <string name="screen_sharing_notification_description">Prebieha zdieľanie obrazovky</string>
-    <string name="screen_sharing_notification_title">Zdieľanie obrazovky aplikácie ${app_name}</string>
-    <string name="call_stop_screen_sharing">Zastaviť zdieľanie obrazovky</string>
-    <string name="call_start_screen_sharing">Zdieľať obrazovku</string>
     <string name="initial_sync_request_reason_unignored_users">- Pre niektorých používateľov bolo zrušené ignorovanie</string>
     <string name="initial_sync_request_content">${app_name} potrebuje vyčistiť vyrovnávaciu pamäť, aby bola aktuálna, a to z nasledujúceho dôvodu:
 \n%s
@@ -3022,9 +2925,7 @@
 \n
 \nAk nechcete vidieť viac obsahu od tohto používateľa, môžete ho ignorovať a skryť jeho správy.</string>
     <string name="message_report_user">Nahlásiť používateľa</string>
-    <string name="microphone_in_use_title">Mikrofón v prevádzke</string>
     <string name="call_unsupported">Nepodporovaný hovor</string>
-    <string name="call_unsupported_matrix_rtc_call">Nepodporovaný hovor. Na pripojenie k tomuto hovoru je potrebná nová aplikácia Element X.</string>
     <string name="error_mas_not_supported_subtitle">Stiahnite si %1$s a používajte %2$s pre svoje konto alebo si vyberte iný domovský server.</string>
     <string name="view_download_replacement_app_title">Stiahnuť %1$s</string>
     <string name="error_mas_not_supported_title">Pomocou tejto aplikácie si už nemôžete vytvoriť účet %1$s</string>

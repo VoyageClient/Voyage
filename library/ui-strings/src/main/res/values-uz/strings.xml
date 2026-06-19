@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="call_notification_answer">Koʻtarish</string>
     <string name="action_decline">Rad etish</string>
     <string name="action_ignore">Eʼtiborsiz qoldirish</string>
     <string name="done">Bajarildi</string>
@@ -8,14 +7,7 @@
     <string name="action_accept">Qabul qilish</string>
     <string name="action_invite">Taklif qilish</string>
     <string name="or">yoki</string>
-    <string name="cannot_call_yourself_with_invite">Siz o\'zingiz bilan qo\'ng\'iroq qila olmaysiz, ishtirokchilar taklifnomani qabul qilishini kuting</string>
-    <string name="cannot_call_yourself">Siz o\'zingiz bilan qo\'ng\'iroq qila olmaysiz</string>
     <string name="audio_video_meeting_description">Uchrashuvlarda Jitsi xavfsizlik va ruxsat berish qoidalari qo\'llaniladi. Xonada hozir bo\'lgan barcha odamlar sizning uchrashuvingiz o\'tayotganda qo\'shilishga taklifni ko\'rishadi.</string>
-    <string name="no_permissions_to_start_webrtc_call_in_direct_room">Sizda qo\'ng\'iroqni boshlash uchun ruxsat yo\'q</string>
-    <string name="no_permissions_to_start_webrtc_call">Ushbu xonada qoʻngʻiroqni amalga oshirishga ruxsatingiz yo‘q</string>
-    <string name="no_permissions_to_start_conf_call_in_direct_room">Konferentsiya qo\'ng\'irog\'ini boshlash uchun sizning ruxsatingiz yo\'q</string>
-    <string name="no_permissions_to_start_conf_call">Ushbu xonada konferents-aloqani boshlashga ruxsatingiz yo‘q</string>
-
     <string name="start_chatting">Chatni boshlash</string>
     <string name="action_reset">Qayta oʻrnatish</string>
     <string name="action_dismiss">Bekor qilish</string>

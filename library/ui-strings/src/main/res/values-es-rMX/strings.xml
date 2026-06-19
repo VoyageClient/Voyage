@@ -75,8 +75,6 @@
     <string name="or">o</string>
     <string name="action_invite">Invitar</string>
     <string name="action_sign_out">Cerrar la sesión</string>
-    <string name="action_voice_call">Llamada de Voz</string>
-    <string name="action_video_call">Llamada de Video</string>
     <string name="action_mark_all_as_read">Marcar todos como visto</string>
     <string name="action_quick_reply">Respuesta rápida</string>
     <string name="action_open">Abrir</string>
@@ -112,8 +110,6 @@
     <string name="logout">Cerrar sesión</string>
     <string name="hs_url">Enlace de el Servidor</string>
     <string name="search">Buscar</string>
-    <string name="start_voice_call">Comenzar Llamada de Voz</string>
-    <string name="start_video_call">Comenzar Llamada de video</string>
     <string name="option_send_files">Enviar archivos</string>
     <string name="option_take_photo_video">Tomar foto o video</string>
     <string name="auth_login">Iniciar sesión</string>
@@ -132,12 +128,6 @@
     <string name="compression_opt_list_large">Grande</string>
     <string name="compression_opt_list_medium">Mediano</string>
     <string name="compression_opt_list_small">Chico</string>
-    <string name="call_connecting">La llamada se está conectando…</string>
-    <string name="call_ended">Llamada finalizada</string>
-    <string name="incoming_video_call">Llamada de Video Entrante</string>
-    <string name="incoming_voice_call">Llamada de Voz Entrante</string>
-    <string name="call_in_progress">Llamada en Curso…</string>
-    <string name="call_error_user_not_responding">El lado remoto no pudo contestar.</string>
     <string name="permissions_rationale_popup_title">Información</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} necesita tu permiso para usar tu micrófono para hacer llamadas de voz.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} necesita tu permiso para usar su cámara y micrófono para hacer llamadas de video.\n\nPor favor permite el acceso en el siguiente mensaje para poder hacer la llamada.</string>
@@ -280,7 +270,6 @@
     <string name="option_take_photo">Tomar foto</string>
     <string name="option_take_video">Grabar video</string>
     <string name="error_no_external_application_found">Lo sentimos, no se encontró una aplicación externa para completar esta acción.</string>
-    <string name="call">Llamar</string>
     <string name="list_members">Lista de miembros</string>
 
     <plurals name="room_title_members">
@@ -315,14 +304,8 @@
     <string name="system_alerts_header">Alertas de Sistema</string>
     <string name="send_bug_report_description_in_english">Si es posible, por favor escribe la descripción en inglés.</string>
     <string name="send_bug_report_rage_shake">Agitar con rabia para reportar un error</string>
-    <string name="start_voice_call_prompt_msg">¿Seguro que quieres iniciar una llamada de voz?</string>
-    <string name="start_video_call_prompt_msg">¿Seguro que quieres iniciar una llamada de vídeo?</string>
     <string name="settings_containing_my_display_name">Mensajes que contienen mi nombre público</string>
     <string name="settings_containing_my_user_name">Mensajes que contienen mi nombre de usuario</string>
-    <string name="settings_call_category">Llamadas</string>
-    <string name="settings_call_ringtone_use_app_ringtone">Usar el tono de llamada normal de ${app_name} para llamadas entrantes</string>
-    <string name="settings_call_ringtone_title">Tono para llamadas entrantes</string>
-    <string name="settings_call_ringtone_dialog_title">Elegir sonido de llamadas:</string>
     <string name="title_activity_keys_backup_setup">Copia de seguridad de la clave</string>
     <string name="title_activity_keys_backup_restore">Usar copia de seguridad de la clave</string>
 </resources>

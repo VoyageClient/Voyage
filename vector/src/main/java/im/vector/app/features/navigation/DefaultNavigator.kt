@@ -11,7 +11,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.view.View
 import android.view.Window
 import android.widget.Toast
@@ -22,7 +21,6 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.SpaceStateHandler
 import im.vector.app.config.OnboardingVariant
 import im.vector.app.core.debug.DebugNavigator
@@ -34,9 +32,6 @@ import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.extensions.toAnalyticsViewRoom
 import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.analytics.ui.consent.AnalyticsOptInActivity
-import im.vector.app.features.call.conference.JitsiCallViewModel
-import im.vector.app.features.call.conference.VectorJitsiActivity
-import im.vector.app.features.call.transfer.CallTransferActivity
 import im.vector.app.features.createdirect.CreateDirectRoomActivity
 import im.vector.app.features.crypto.keysbackup.settings.KeysBackupManageActivity
 import im.vector.app.features.crypto.keysbackup.setup.KeysBackupSetupActivity
@@ -462,25 +457,12 @@ class DefaultNavigator @Inject constructor(
     }
 
     override fun openRoomWidget(context: Context, roomId: String, widget: Widget, options: Map<String, Any>?) {
-        if (widget.type is WidgetType.Jitsi) {
-            // Jitsi SDK is now for API 26+
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                MaterialAlertDialogBuilder(context)
-                        .setTitle(CommonStrings.dialog_title_error)
-                        .setMessage(CommonStrings.error_jitsi_not_supported_on_old_device)
-                        .setPositiveButton(CommonStrings.ok, null)
-                        .show()
-            } else {
-                val enableVideo = options?.get(JitsiCallViewModel.ENABLE_VIDEO_OPTION) == true
-                context.startActivity(VectorJitsiActivity.newIntent(context, roomId = roomId, widgetId = widget.widgetId, enableVideo = enableVideo))
-            }
-        } else if (widget.type is WidgetType.ElementCall) {
-            val widgetArgs = widgetArgsBuilder.buildElementCallWidgetArgs(roomId, widget)
-            context.startActivity(WidgetActivity.newIntent(context, widgetArgs))
+        val widgetArgs = if (widget.type is WidgetType.ElementCall) {
+            widgetArgsBuilder.buildElementCallWidgetArgs(roomId, widget)
         } else {
-            val widgetArgs = widgetArgsBuilder.buildRoomWidgetArgs(roomId, widget)
-            context.startActivity(WidgetActivity.newIntent(context, widgetArgs))
+            widgetArgsBuilder.buildRoomWidgetArgs(roomId, widget)
         }
+        context.startActivity(WidgetActivity.newIntent(context, widgetArgs))
     }
 
     override fun openPinCode(
@@ -538,15 +520,6 @@ class DefaultNavigator @Inject constructor(
 
     override fun openDevTools(context: Context, roomId: String) {
         context.startActivity(RoomDevToolActivity.intent(context, roomId))
-    }
-
-    override fun openCallTransfer(
-            context: Context,
-            activityResultLauncher: ActivityResultLauncher<Intent>,
-            callId: String
-    ) {
-        val intent = CallTransferActivity.newIntent(context, callId)
-        activityResultLauncher.launch(intent)
     }
 
     override fun openCreatePoll(context: Context, roomId: String, editedEventId: String?, mode: PollMode) {
