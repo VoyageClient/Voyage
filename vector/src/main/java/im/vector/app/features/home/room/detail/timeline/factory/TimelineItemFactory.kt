@@ -107,6 +107,14 @@ class TimelineItemFactory @Inject constructor(
                     EventType.KEY_VERIFICATION_READY,
                     EventType.KEY_VERIFICATION_MAC,
                     EventType.REACTION,
+                    EventType.CALL_INVITE,
+                    EventType.CALL_CANDIDATES,
+                    EventType.CALL_ANSWER,
+                    EventType.CALL_HANGUP,
+                    EventType.CALL_REJECT,
+                    EventType.CALL_NEGOTIATE,
+                    EventType.CALL_SELECT_ANSWER,
+                    EventType.CALL_REPLACES,
                     in EventType.POLL_RESPONSE.values -> noticeItemFactory.create(params)
                     in EventType.BEACON_LOCATION_DATA.values -> {
                         if (event.root.isRedacted()) {
