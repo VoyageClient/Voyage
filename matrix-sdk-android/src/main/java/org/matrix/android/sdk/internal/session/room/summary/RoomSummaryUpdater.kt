@@ -175,6 +175,12 @@ internal class RoomSummaryUpdater @Inject constructor(
 
         roomSummaryEntity.isEncrypted = encryptionEvent != null
 
+        // A non-encrypted room must never carry an encryption shield (the trust worker can set one
+        // when recomputing trust for all participating rooms).
+        if (encryptionEvent == null && roomSummaryEntity.roomEncryptionTrustLevel != null) {
+            roomSummaryEntity.roomEncryptionTrustLevel = null
+        }
+
         roomSummaryEntity.e2eAlgorithm = ContentMapper.map(encryptionEvent?.content)
                 ?.toModel<EncryptionEventContent>()
                 ?.algorithm

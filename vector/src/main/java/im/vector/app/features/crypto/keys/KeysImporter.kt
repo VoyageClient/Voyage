@@ -13,6 +13,7 @@ import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.resources.openResource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.ImportRoomKeysResult
 import javax.inject.Inject
@@ -27,13 +28,14 @@ class KeysImporter @Inject constructor(
     suspend fun import(
             uri: Uri,
             mimetype: String?,
-            password: String
+            password: String,
+            progressListener: ProgressListener? = null
     ): ImportRoomKeysResult {
         return withContext(Dispatchers.IO) {
             val resource = openResource(context, uri, mimetype ?: getMimeTypeFromUri(context, uri))
             val stream = resource?.mContentStream ?: throw Exception("Error")
             val data = stream.use { it.readBytes() }
-            session.cryptoService().importRoomKeys(data, password, null)
+            session.cryptoService().importRoomKeys(data, password, progressListener)
         }
     }
 }

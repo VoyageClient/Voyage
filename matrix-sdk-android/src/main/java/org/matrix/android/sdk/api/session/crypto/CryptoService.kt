@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.api.session.crypto
 
+import android.content.Context
 import androidx.annotation.Size
 import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
@@ -59,6 +60,10 @@ interface CryptoService {
     suspend fun deleteDevice(deviceId: String, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor)
 
     suspend fun deleteDevices(@Size(min = 1) deviceIds: List<String>, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor)
+
+    fun getCryptoVersion(context: Context, longFormat: Boolean): String
+
+    fun exportSecrets(): Result<String>
 
     fun isCryptoEnabled(): Boolean
 
@@ -207,8 +212,6 @@ interface CryptoService {
     fun getSharedWithInfo(roomId: String?, sessionId: String): MXUsersDevicesMap<Int>
     fun getWithHeldMegolmSession(roomId: String, sessionId: String): RoomKeyWithHeldContent?
 
-    fun exportSecrets(): Result<String>
-
     /**
      * Perform any background tasks that can be done before a message is ready to
      * send, in order to speed up sending of the message.
@@ -239,9 +242,7 @@ interface CryptoService {
             toDevice: ToDeviceSyncResponse?,
             deviceChanges: DeviceListResponse?,
             keyCounts: DeviceOneTimeKeysCountSyncResponse?,
-            deviceUnusedFallbackKeyTypes: List<String>?,
-            nextBatch: String?,
-    )
+            deviceUnusedFallbackKeyTypes: List<String>?)
 
     suspend fun onLiveEvent(roomId: String, event: Event, isInitialSync: Boolean, cryptoStoreAggregator: CryptoStoreAggregator?)
     suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?) {}

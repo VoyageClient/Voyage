@@ -16,7 +16,17 @@
 
 package org.matrix.android.sdk.api.session.crypto.keysbackup
 
+import org.matrix.android.sdk.internal.crypto.keysbackup.generatePrivateKeyWithPassword
+
 object BackupUtils {
-    fun recoveryKeyFromBase58(key: String): IBackupRecoveryKey = BackupRecoveryKey.fromBase58(key)
-    fun recoveryKeyFromPassphrase(passphrase: String): IBackupRecoveryKey = BackupRecoveryKey.newFromPassphrase(passphrase)
+
+    fun recoveryKeyFromBase58(base58: String): IBackupRecoveryKey? {
+        return extractCurveKeyFromRecoveryKey(base58)?.let {
+            BackupRecoveryKey(it)
+        }
+    }
+
+    fun recoveryKeyFromPassphrase(passphrase: String): IBackupRecoveryKey? {
+        return BackupRecoveryKey(generatePrivateKeyWithPassword(passphrase, null).privateKey)
+    }
 }

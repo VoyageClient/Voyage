@@ -147,10 +147,8 @@ class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
         }
 
         fun getCryptoVersion(longFormat: Boolean): String {
-            val version = org.matrix.rustcomponents.sdk.crypto.version()
-            val gitHash = org.matrix.rustcomponents.sdk.crypto.versionInfo().gitSha
-            val vodozemac = org.matrix.rustcomponents.sdk.crypto.vodozemacVersion()
-            return if (longFormat) "Rust SDK $version ($gitHash), Vodozemac $vodozemac" else version
+            val version = org.matrix.olm.OlmManager().olmLibVersion
+            return if (longFormat) "libce $version" else version
         }
     }
 }

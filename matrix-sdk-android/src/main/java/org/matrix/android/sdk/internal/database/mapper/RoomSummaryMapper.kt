@@ -76,9 +76,13 @@ internal class RoomSummaryMapper @Inject constructor(
                 isEncrypted = roomSummaryEntity.isEncrypted,
                 encryptionEventTs = roomSummaryEntity.encryptionEventTs,
                 breadcrumbsIndex = roomSummaryEntity.breadcrumbsIndex,
-                roomEncryptionTrustLevel = if (roomSummaryEntity.isEncrypted && roomSummaryEntity.e2eAlgorithm != MXCRYPTO_ALGORITHM_MEGOLM) {
-                    RoomEncryptionTrustLevel.E2EWithUnsupportedAlgorithm
-                } else roomSummaryEntity.roomEncryptionTrustLevel,
+                roomEncryptionTrustLevel = when {
+                    // A non-encrypted room must never carry an encryption shield, even if a stale trust
+                    // level was persisted (e.g. by the trust worker recomputing all participating rooms).
+                    !roomSummaryEntity.isEncrypted -> null
+                    roomSummaryEntity.e2eAlgorithm != MXCRYPTO_ALGORITHM_MEGOLM -> RoomEncryptionTrustLevel.E2EWithUnsupportedAlgorithm
+                    else -> roomSummaryEntity.roomEncryptionTrustLevel
+                },
                 inviterId = roomSummaryEntity.inviterId,
                 hasFailedSending = roomSummaryEntity.hasFailedSending,
                 roomType = roomSummaryEntity.roomType,

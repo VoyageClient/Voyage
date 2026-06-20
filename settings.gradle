@@ -18,6 +18,7 @@ include ':library:external:span'
 include ':library:external:barcodescanner:core'
 include ':library:external:barcodescanner:zxing'
 
-include ':library:rustCrypto'
+include ':library:external:libce'
+project(':library:external:libce').projectDir = new File(rootProject.projectDir, 'library/external/libce/android/olm-sdk')
 include ':matrix-sdk-android'
 include ':matrix-sdk-android-flow'

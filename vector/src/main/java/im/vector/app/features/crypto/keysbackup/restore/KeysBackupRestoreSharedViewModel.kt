@@ -255,17 +255,18 @@ class KeysBackupRestoreSharedViewModel @Inject constructor(
         }
     }
 
-    suspend fun recoverUsingBackupRecoveryKey(recoveryKey: IBackupRecoveryKey, keyVersion: KeysVersionResult? = null) {
+    suspend fun recoverUsingBackupRecoveryKey(recoveryKey: IBackupRecoveryKey?, keyVersion: KeysVersionResult? = null) {
         val keysBackup = session.cryptoService().keysBackupService()
         // This is badddddd
         val version = keyVersion ?: keyVersionResult.value ?: return
+        val recoveryKeyValue = recoveryKey ?: return
 
         loadingEvent.postValue(WaitingViewData(stringProvider.getString(CommonStrings.loading)))
 
         try {
             val result = keysBackup.restoreKeysWithRecoveryKey(
                     version,
-                    recoveryKey,
+                    recoveryKeyValue,
                     null,
                     session.myUserId,
                     progressObserver

@@ -43,6 +43,7 @@ import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 import org.matrix.android.sdk.internal.util.system.SystemModule
 import org.matrix.android.sdk.internal.worker.MatrixWorkerFactory
+import org.matrix.olm.OlmManager
 import java.io.File
 
 @Component(
@@ -89,6 +90,8 @@ internal interface MatrixComponent {
     fun cacheDir(): File
 
     fun taskExecutor(): TaskExecutor
+
+    fun olmManager(): OlmManager
 
     fun sessionParamsStore(): SessionParamsStore
 

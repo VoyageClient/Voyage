@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/importKeysProgressStatus"
+        style="@style/Widget.Vector.TextView.Subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Importing room keys…" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/importKeysProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:max="100"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="8dp"
+        tools:progress="42" />
+
+    <TextView
+        android:id="@+id/importKeysProgressCount"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:textColor="?vctr_content_secondary"
+        tools:text="42 / 100" />
+
+</LinearLayout>

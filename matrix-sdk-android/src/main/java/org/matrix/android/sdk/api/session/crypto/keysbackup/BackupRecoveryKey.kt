@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 The Matrix.org Foundation C.I.C.
+ * Copyright 2022 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,11 @@
 
 package org.matrix.android.sdk.api.session.crypto.keysbackup
 
-import org.matrix.rustcomponents.sdk.crypto.BackupRecoveryKey as InnerBackupRecoveryKey
+import org.matrix.android.sdk.api.util.toBase64NoPadding
+import org.matrix.android.sdk.internal.crypto.tools.withOlmDecryption
+import org.matrix.olm.OlmPkMessage
 
-class BackupRecoveryKey internal constructor(internal val inner: InnerBackupRecoveryKey) : IBackupRecoveryKey {
-
-    constructor() : this(InnerBackupRecoveryKey())
-
-    companion object {
-
-        fun fromBase58(key: String): BackupRecoveryKey {
-            val inner = InnerBackupRecoveryKey.fromBase58(key)
-            return BackupRecoveryKey(inner)
-        }
-
-        fun fromBase64(key: String): BackupRecoveryKey {
-            val inner = InnerBackupRecoveryKey.fromBase64(key)
-            return BackupRecoveryKey(inner)
-        }
-
-        fun fromPassphrase(passphrase: String, salt: String, rounds: Int): BackupRecoveryKey {
-            val inner = InnerBackupRecoveryKey.fromPassphrase(passphrase, salt, rounds)
-            return BackupRecoveryKey(inner)
-        }
-
-        fun newFromPassphrase(passphrase: String): BackupRecoveryKey {
-            val inner = InnerBackupRecoveryKey.newFromPassphrase(passphrase)
-            return BackupRecoveryKey(inner)
-        }
-    }
+class BackupRecoveryKey(private val key: ByteArray) : IBackupRecoveryKey {
 
     override fun equals(other: Any?): Boolean {
         if (other !is BackupRecoveryKey) return false
@@ -51,26 +28,34 @@ class BackupRecoveryKey internal constructor(internal val inner: InnerBackupReco
     }
 
     override fun hashCode(): Int {
-        return toBase58().hashCode()
+        return key.contentHashCode()
     }
 
-    override fun toBase58() = inner.toBase58()
+    override fun toBase58() = computeRecoveryKey(key)
 
-    override fun toBase64() = inner.toBase64()
+    override fun toBase64() = key.toBase64NoPadding()
 
-    override fun decryptV1(ephemeralKey: String, mac: String, ciphertext: String) = inner.decryptV1(ephemeralKey, mac, ciphertext)
+    override fun decryptV1(ephemeralKey: String, mac: String, ciphertext: String): String = withOlmDecryption {
+        it.setPrivateKey(key)
+        it.decrypt(OlmPkMessage().apply {
+            this.mEphemeralKey = ephemeralKey
+            this.mCipherText = ciphertext
+            this.mMac = mac
+        })
+    }
 
-    override fun megolmV1PublicKey() = megolmV1Key
+    override fun megolmV1PublicKey() = v1pk
 
-    private val megolmV1Key = object : IMegolmV1PublicKey {
+    private val v1pk = object : IMegolmV1PublicKey {
         override val publicKey: String
-            get() = inner.megolmV1PublicKey().publicKey
+            get() = withOlmDecryption {
+                it.setPrivateKey(key)
+            }
         override val privateKeySalt: String?
-            get() = inner.megolmV1PublicKey().passphraseInfo?.privateKeySalt
+            get() = null // not use in kotlin sdk
         override val privateKeyIterations: Int?
-            get() = inner.megolmV1PublicKey().passphraseInfo?.privateKeyIterations
-
+            get() = null // not use in kotlin sdk
         override val backupAlgorithm: String
-            get() = inner.megolmV1PublicKey().backupAlgorithm
+            get() = "" // not use in kotlin sdk
     }
 }

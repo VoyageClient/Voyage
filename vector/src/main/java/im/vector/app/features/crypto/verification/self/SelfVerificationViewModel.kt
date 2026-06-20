@@ -524,10 +524,8 @@ class SelfVerificationViewModel @AssistedInject constructor(
                 val version = session.cryptoService().keysBackupService().getCurrentVersion()?.toKeysVersionResult() ?: return@launch
 
                 val recoveryKey = computeRecoveryKey(secret.fromBase64())
-                val backupRecoveryKey = BackupUtils.recoveryKeyFromBase58(recoveryKey)
-                val isValid = backupRecoveryKey
-                        .let { session.cryptoService().keysBackupService().isValidRecoveryKeyForCurrentVersion(it) }
-                if (isValid) {
+                val backupRecoveryKey = BackupUtils.recoveryKeyFromBase58(recoveryKey) ?: return@launch
+                if (session.cryptoService().keysBackupService().isValidRecoveryKeyForCurrentVersion(backupRecoveryKey)) {
                     session.cryptoService().keysBackupService().saveBackupRecoveryKey(backupRecoveryKey, version.version)
                     // session.cryptoService().keysBackupService().trustKeysBackupVersion(version, true)
                 }

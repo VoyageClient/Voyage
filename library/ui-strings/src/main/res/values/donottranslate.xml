@@ -183,4 +183,7 @@
         <item quantity="one">%d hidden event</item>
         <item quantity="other">%d hidden events</item>
     </plurals>
+
+    <string name="import_e2e_keys_progress" translatable="false">Importing room keys…</string>
+    <string name="import_e2e_keys_progress_count" translatable="false">%1$d / %2$d</string>
 </resources>

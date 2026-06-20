@@ -84,9 +84,11 @@ class BackupToQuadSMigrationTask @Inject constructor(
             reportProgress(params, CommonStrings.bootstrap_progress_compute_curve_key)
             val recoveryKey = computeRecoveryKey(curveKey)
             val backupRecoveryKey = BackupUtils.recoveryKeyFromBase58(recoveryKey)
-            val isValid = backupRecoveryKey.let { keysBackupService.isValidRecoveryKeyForCurrentVersion(it) }
+                    ?: return Result.InvalidRecoverySecret
 
-            if (!isValid) return Result.InvalidRecoverySecret
+            if (!keysBackupService.isValidRecoveryKeyForCurrentVersion(backupRecoveryKey)) {
+                return Result.InvalidRecoverySecret
+            }
 
             val info: SsssKeyCreationInfo =
                     when {

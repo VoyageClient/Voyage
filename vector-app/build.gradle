@@ -58,7 +58,9 @@ def generateVersionCodeFromVersionName() {
 }
 
 def getVersionCode() {
-    if (gitBranchName() == "develop") {
+    // Any untagged (development) build uses the monotonic timestamp scheme so reinstalling over a
+    // previous dev build — from develop or any feature branch — never triggers a version downgrade.
+    if (gitTag() == "") {
         return generateVersionCodeFromTimestamp()
     } else {
         return generateVersionCodeFromVersionName()

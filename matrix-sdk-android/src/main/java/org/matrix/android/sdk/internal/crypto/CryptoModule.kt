@@ -1,11 +1,11 @@
 /*
- * Copyright 2020 The Matrix.org Foundation C.I.C.
+ * Copyright (c) 2019 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,8 @@ import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningServic
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupService
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationService
 import org.matrix.android.sdk.internal.crypto.api.CryptoApi
-import org.matrix.android.sdk.internal.crypto.keysbackup.RustKeyBackupService
+import org.matrix.android.sdk.internal.crypto.crosssigning.DefaultCrossSigningService
+import org.matrix.android.sdk.internal.crypto.keysbackup.DefaultKeysBackupService
 import org.matrix.android.sdk.internal.crypto.keysbackup.api.RoomKeysApi
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.CreateKeysBackupVersionTask
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.DefaultCreateKeysBackupVersionTask
@@ -59,7 +60,8 @@ import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.StoreRoomSessions
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.StoreSessionsDataTask
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.UpdateKeysBackupVersionTask
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.RustCryptoStore
+import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
+import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreMigration
 import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreModule
 import org.matrix.android.sdk.internal.crypto.tasks.ClaimOneTimeKeysForUsersDeviceTask
@@ -69,6 +71,7 @@ import org.matrix.android.sdk.internal.crypto.tasks.DefaultDownloadKeysForUsers
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultEncryptEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultGetDeviceInfoTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultGetDevicesTask
+import org.matrix.android.sdk.internal.crypto.tasks.DefaultInitializeCrossSigningTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultSendEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultSendToDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultSendVerificationMessageTask
@@ -81,6 +84,7 @@ import org.matrix.android.sdk.internal.crypto.tasks.DownloadKeysForUsersTask
 import org.matrix.android.sdk.internal.crypto.tasks.EncryptEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDeviceInfoTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDevicesTask
+import org.matrix.android.sdk.internal.crypto.tasks.InitializeCrossSigningTask
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.SendToDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.SendVerificationMessageTask
@@ -88,7 +92,7 @@ import org.matrix.android.sdk.internal.crypto.tasks.SetDeviceNameTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadKeysTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadSignaturesTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadSigningKeysTask
-import org.matrix.android.sdk.internal.crypto.verification.RustVerificationService
+import org.matrix.android.sdk.internal.crypto.verification.DefaultVerificationService
 import org.matrix.android.sdk.internal.database.RealmKeysUtils
 import org.matrix.android.sdk.internal.di.CryptoDatabase
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
@@ -159,7 +163,10 @@ internal abstract class CryptoModule {
     }
 
     @Binds
-    abstract fun bindCryptoService(service: RustCryptoService): CryptoService
+    abstract fun bindCryptoService(service: DefaultCryptoService): CryptoService
+
+    @Binds
+    abstract fun bindKeysBackupService(service: DefaultKeysBackupService): KeysBackupService
 
     @Binds
     abstract fun bindDeleteDeviceTask(task: DefaultDeleteDeviceTask): DeleteDeviceTask
@@ -240,17 +247,20 @@ internal abstract class CryptoModule {
     abstract fun bindClaimOneTimeKeysForUsersDeviceTask(task: DefaultClaimOneTimeKeysForUsersDevice): ClaimOneTimeKeysForUsersDeviceTask
 
     @Binds
-    abstract fun bindCrossSigningService(service: RustCrossSigningService): CrossSigningService
+    abstract fun bindCrossSigningService(service: DefaultCrossSigningService): CrossSigningService
 
     @Binds
-    abstract fun bindVerificationService(service: RustVerificationService): VerificationService
+    abstract fun bindVerificationService(service: DefaultVerificationService): VerificationService
 
     @Binds
-    abstract fun bindCryptoStore(store: RustCryptoStore): IMXCommonCryptoStore
+    abstract fun bindCryptoStore(store: RealmCryptoStore): IMXCryptoStore
+
+    @Binds
+    abstract fun bindCommonCryptoStore(store: RealmCryptoStore): IMXCommonCryptoStore
 
     @Binds
     abstract fun bindSendEventTask(task: DefaultSendEventTask): SendEventTask
 
     @Binds
-    abstract fun bindKeysBackupService(service: RustKeyBackupService): KeysBackupService
+    abstract fun bindInitalizeCrossSigningTask(task: DefaultInitializeCrossSigningTask): InitializeCrossSigningTask
 }

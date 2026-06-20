@@ -46,6 +46,7 @@ import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.openFileSelection
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.DialogImportE2eKeysBinding
+import im.vector.app.databinding.DialogImportE2eKeysProgressBinding
 import im.vector.app.features.analytics.AnalyticsConfig
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.analytics.ui.consent.AnalyticsConsentViewActions
@@ -72,6 +73,7 @@ import kotlinx.coroutines.withContext
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.extensions.getFingerprintHumanReadable
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
@@ -563,16 +565,32 @@ class VectorSettingsSecurityPrivacyFragment :
             views.dialogE2eKeysImportButton.debouncedClicks {
                 val password = views.dialogE2eKeysPassphraseEditText.text.toString()
 
-                displayLoadingView()
+                val progressLayout = thisActivity.layoutInflater.inflate(R.layout.dialog_import_e2e_keys_progress, null)
+                val progressViews = DialogImportE2eKeysProgressBinding.bind(progressLayout)
+                progressViews.importKeysProgressStatus.text = getString(CommonStrings.import_e2e_keys_progress)
+                val progressDialog = MaterialAlertDialogBuilder(thisActivity)
+                        .setTitle(CommonStrings.encryption_import_room_keys)
+                        .setView(progressLayout)
+                        .setCancelable(false)
+                        .show()
+                val progressListener = object : ProgressListener {
+                    override fun onProgress(progress: Int, total: Int) {
+                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                            progressViews.importKeysProgress.max = total
+                            progressViews.importKeysProgress.setProgressCompat(progress, true)
+                            progressViews.importKeysProgressCount.text = getString(CommonStrings.import_e2e_keys_progress_count, progress, total)
+                        }
+                    }
+                }
 
                 lifecycleScope.launch {
                     val data = try {
-                        keysImporter.import(uri, mimetype, password)
+                        keysImporter.import(uri, mimetype, password, progressListener)
                     } catch (failure: Throwable) {
                         appContext.toast(errorFormatter.toHumanReadable(failure))
                         null
                     }
-                    hideLoadingView()
+                    progressDialog.dismiss()
 
                     if (data != null) {
                         MaterialAlertDialogBuilder(thisActivity)
