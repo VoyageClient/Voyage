@@ -10,10 +10,14 @@ package im.vector.app.features
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.View
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.BlendModeColorFilterCompat
+import androidx.core.graphics.BlendModeCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -151,6 +155,12 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         super.onCreate(savedInstanceState)
 
         shortcutsHandler.updateShortcutsWithPreviousIntent()
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            // android:indeterminateTint is ignored pre-Lollipop, leaving the holo-blue default
+            views.progressBar.indeterminateDrawable?.colorFilter =
+                    BlendModeColorFilterCompat.createBlendModeColorFilterCompat(Color.WHITE, BlendModeCompat.SRC_IN)
+        }
 
         startAppViewModel.onEach {
             renderState(it)

@@ -186,6 +186,9 @@
 
     <style name="AppTheme.Launcher.SC" parent="Theme.MaterialComponents.NoActionBar">
         <item name="android:windowBackground">@drawable/splash</item>
+        <item name="colorPrimary">@color/element_accent_light</item>
+        <item name="android:statusBarColor">@color/element_accent_light</item>
+        <item name="android:navigationBarColor">@color/element_accent_light</item>
     </style>
 
 </resources>
