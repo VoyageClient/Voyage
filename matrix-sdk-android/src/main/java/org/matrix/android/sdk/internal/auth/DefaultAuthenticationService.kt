@@ -298,21 +298,35 @@ internal class DefaultAuthenticationService @Inject constructor(
 
         return when (wellknownResult) {
             is WellknownResult.Prompt -> {
-                val newHomeServerConnectionConfig = homeServerConnectionConfig.copy(
-                        homeServerUriBase = Uri.parse(wellknownResult.homeServerUrl),
-                        identityServerUri = wellknownResult.identityServerUrl?.let { Uri.parse(it) } ?: homeServerConnectionConfig.identityServerUri
-                )
-
-                val newAuthAPI = buildAuthAPI(newHomeServerConnectionConfig)
-
-                val versions = executeRequest(null) {
-                    newAuthAPI.versions()
-                }
-
-                getLoginFlowResult(newAuthAPI, versions, wellknownResult.homeServerUrl)
+                useWellknownHomeServer(homeServerConnectionConfig, wellknownResult.homeServerUrl, wellknownResult.identityServerUrl)
+            }
+            is WellknownResult.FailPrompt -> {
+                // Relax on identity-server discovery: a valid homeserver is still usable even if the IS lookup failed
+                val homeServerUrl = wellknownResult.homeServerUrl
+                        ?: throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
+                useWellknownHomeServer(homeServerConnectionConfig, homeServerUrl, identityServerUrl = null)
             }
             else -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
         }
+    }
+
+    private suspend fun useWellknownHomeServer(
+            homeServerConnectionConfig: HomeServerConnectionConfig,
+            homeServerUrl: String,
+            identityServerUrl: String?
+    ): LoginFlowResult {
+        val newHomeServerConnectionConfig = homeServerConnectionConfig.copy(
+                homeServerUriBase = Uri.parse(homeServerUrl),
+                identityServerUri = identityServerUrl?.let { Uri.parse(it) } ?: homeServerConnectionConfig.identityServerUri
+        )
+
+        val newAuthAPI = buildAuthAPI(newHomeServerConnectionConfig)
+
+        val versions = executeRequest(null) {
+            newAuthAPI.versions()
+        }
+
+        return getLoginFlowResult(newAuthAPI, versions, homeServerUrl)
     }
 
     private suspend fun getLoginFlowResult(authAPI: AuthAPI, versions: Versions, homeServerUrl: String): LoginFlowResult {
