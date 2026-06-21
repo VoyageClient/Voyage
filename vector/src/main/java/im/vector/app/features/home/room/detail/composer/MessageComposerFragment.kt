@@ -391,6 +391,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                                 AttachmentType.LOCATION,
                                 vectorFeatures.isLocationSharingEnabled(),
                         )
+                        // No maplibre below API 21: keep the entry visible but dimmed and inert.
+                        attachmentTypeSelector.setAttachmentEnabled(
+                                AttachmentType.LOCATION,
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP,
+                        )
                         attachmentTypeSelector.setAttachmentVisibility(
                                 AttachmentType.POLL, !isThreadTimeLine()
                         )

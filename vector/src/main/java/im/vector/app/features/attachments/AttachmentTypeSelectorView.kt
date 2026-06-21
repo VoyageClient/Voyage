@@ -33,6 +33,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlin.math.max
 
 private const val ANIMATION_DURATION = 250
+private const val DISABLED_ALPHA = 0.4f
 
 /**
  * This class is the view presenting choices for picking attachments.
@@ -115,18 +116,29 @@ class AttachmentTypeSelectorView(
     }
 
     fun setAttachmentVisibility(type: AttachmentType, isVisible: Boolean) {
-        when (type) {
-            AttachmentType.CAMERA -> views.attachmentCameraButton
-            AttachmentType.GALLERY -> views.attachmentGalleryButton
-            AttachmentType.FILE -> views.attachmentFileButton
-            AttachmentType.STICKER -> views.attachmentStickersButton
-            AttachmentType.VOICE_FILE -> views.attachmentVoiceFileButton
-            AttachmentType.POLL -> views.attachmentPollButton
-            AttachmentType.LOCATION -> views.attachmentLocationButton
-            AttachmentType.VOICE_BROADCAST -> views.attachmentVoiceBroadcast
-        }.let {
-            it.isVisible = isVisible
+        buttonForType(type).isVisible = isVisible
+    }
+
+    /**
+     * Keep the button visible but dim it and ignore clicks, to signal an option that exists but is
+     * unavailable on this device (e.g. location, which needs maplibre / API 21+).
+     */
+    fun setAttachmentEnabled(type: AttachmentType, isEnabled: Boolean) {
+        buttonForType(type).apply {
+            this.isEnabled = isEnabled
+            alpha = if (isEnabled) 1f else DISABLED_ALPHA
         }
+    }
+
+    private fun buttonForType(type: AttachmentType): ImageButton = when (type) {
+        AttachmentType.CAMERA -> views.attachmentCameraButton
+        AttachmentType.GALLERY -> views.attachmentGalleryButton
+        AttachmentType.FILE -> views.attachmentFileButton
+        AttachmentType.STICKER -> views.attachmentStickersButton
+        AttachmentType.VOICE_FILE -> views.attachmentVoiceFileButton
+        AttachmentType.POLL -> views.attachmentPollButton
+        AttachmentType.LOCATION -> views.attachmentLocationButton
+        AttachmentType.VOICE_BROADCAST -> views.attachmentVoiceBroadcast
     }
 
     private fun animateWindowInCircular(anchor: View, contentView: View) {
