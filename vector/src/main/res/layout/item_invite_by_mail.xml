@@ -26,7 +26,7 @@
             android:layout_height="40dp"
             android:importantForAccessibility="no"
             android:padding="4dp"
-            android:src="@drawable/ic_mail"
+            app:srcCompat="@drawable/ic_mail"
             android:visibility="gone"
             app:tint="@android:color/white"
             tools:visibility="visible" />
@@ -37,7 +37,7 @@
             android:layout_height="40dp"
             android:contentDescription="@string/a11y_checked"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_material_done"
+            app:srcCompat="@drawable/ic_material_done"
             app:tint="@android:color/white"
             tools:ignore="MissingPrefix" />
     </FrameLayout>

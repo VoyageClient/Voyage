@@ -13,10 +13,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import im.vector.lib.core.utils.compat.getParcelableArrayListExtraCompat
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.core.utils.compat.queryIntentActivitiesCompat
+import im.vector.lib.multipicker.utils.copyToMultiPickerCache
 import timber.log.Timber
 
 /**
@@ -114,6 +116,11 @@ abstract class Picker<T> {
                 // Handle the exception, e.g., log it or notify the user
                 Timber.w("Picker", "Failed to grant URI permission for $uri: ${e.message}")
             }
+        }
+        // Pre-21 the GET_CONTENT grant is gone by the time the upload worker reads the uri, so copy
+        // into our own FileProvider storage now (while the grant holds) and hand back uris we own.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            return selectedUriList.map { it.copyToMultiPickerCache(context) }
         }
         return selectedUriList
     }

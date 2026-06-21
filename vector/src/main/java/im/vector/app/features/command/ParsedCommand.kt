@@ -7,7 +7,6 @@
 
 package im.vector.app.features.command
 
-import im.vector.app.features.home.room.detail.ChatEffect
 import org.matrix.android.sdk.api.session.identity.ThreePid
 
 /**
@@ -63,7 +62,6 @@ sealed interface ParsedCommand {
     data class SendLenny(val message: CharSequence) : ParsedCommand
     object DiscardSession : ParsedCommand
     data class ShowUser(val userId: String) : ParsedCommand
-    data class SendChatEffect(val chatEffect: ChatEffect, val message: String) : ParsedCommand
     data class CreateSpace(val name: String, val invitees: List<String>) : ParsedCommand
     data class AddToSpace(val spaceId: String) : ParsedCommand
     data class JoinSpace(val spaceIdOrAlias: String) : ParsedCommand

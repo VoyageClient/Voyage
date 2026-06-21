@@ -16,7 +16,7 @@
         android:layout_height="40dp"
         android:importantForAccessibility="no"
         android:scaleType="center"
-        android:src="@drawable/ic_plus"
+        app:srcCompat="@drawable/ic_plus"
         app:tint="?vctr_content_secondary" />
 
     <TextView

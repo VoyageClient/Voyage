@@ -29,7 +29,7 @@ internal class DownloadProgressInterceptor @Inject constructor(
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val url = chain.request().url.toUrl()
+        val url = chain.request().url().url()
         val mxcURl = chain.request().header(DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER)
 
         val request = chain.request().newBuilder()
@@ -38,10 +38,10 @@ internal class DownloadProgressInterceptor @Inject constructor(
 
         val originalResponse = chain.proceed(request)
         if (!originalResponse.isSuccessful) {
-            downloadStateTracker.error(mxcURl ?: url.toExternalForm(), originalResponse.code)
+            downloadStateTracker.error(mxcURl ?: url.toExternalForm(), originalResponse.code())
             return originalResponse
         }
-        val responseBody = originalResponse.body ?: return originalResponse
+        val responseBody = originalResponse.body() ?: return originalResponse
         return originalResponse.newBuilder()
                 .body(ProgressResponseBody(responseBody, mxcURl ?: url.toExternalForm(), downloadStateTracker))
                 .build()

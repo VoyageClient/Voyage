@@ -10,7 +10,7 @@
         android:layout_height="18dp"
         android:layout_marginTop="2dp"
         android:contentDescription="@string/room_threads_filter"
-        android:src="@drawable/ic_thread_summary"
+        app:srcCompat="@drawable/ic_thread_summary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

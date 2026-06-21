@@ -12,6 +12,7 @@ package im.vector.app.features.onboarding.ftueauth
 import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.graphics.Bitmap
+import android.os.Build
 import android.net.http.SslError
 import android.os.Bundle
 import android.view.KeyEvent
@@ -99,7 +100,13 @@ class FtueAuthWebFragment :
                 launchWebView(state)
             } else {
                 try {
-                    cookieManager.removeAllCookies { launchWebView(state) }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        cookieManager.removeAllCookies { launchWebView(state) }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        cookieManager.removeAllCookie()
+                        launchWebView(state)
+                    }
                 } catch (e: Exception) {
                     Timber.e(e, " cookieManager.removeAllCookie() fails")
                     launchWebView(state)

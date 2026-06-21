@@ -24,13 +24,14 @@ import retrofit2.http.Query
 /**
  * Implementation of the media repository API using the new Authenticated media API.
  */
-internal interface AuthenticatedMediaAPI : MediaAPI {
+// Must not extend MediaAPI: Retrofit 2.6.x forbids service interfaces extending other interfaces.
+internal interface AuthenticatedMediaAPI {
     /**
      * Retrieve the configuration of the content repository
      * Ref: https://spec.matrix.org/v1.11/client-server-api/#get_matrixclientv1mediaconfig
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "media/config")
-    override suspend fun getMediaConfig(): GetMediaConfigResult
+    suspend fun getMediaConfig(): GetMediaConfigResult
 
     /**
      * Get information about a URL for the client. Typically this is called when a client
@@ -41,5 +42,5 @@ internal interface AuthenticatedMediaAPI : MediaAPI {
      * if it does not have the requested version available.
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "media/preview_url")
-    override suspend fun getPreviewUrlData(@Query("url") url: String, @Query("ts") ts: Long?): JsonDict
+    suspend fun getPreviewUrlData(@Query("url") url: String, @Query("ts") ts: Long?): JsonDict
 }

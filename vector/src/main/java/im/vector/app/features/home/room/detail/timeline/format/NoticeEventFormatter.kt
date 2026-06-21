@@ -41,6 +41,8 @@ import org.matrix.android.sdk.api.session.room.model.RoomServerAclContent
 import org.matrix.android.sdk.api.session.room.model.RoomThirdPartyInviteContent
 import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
 import org.matrix.android.sdk.api.session.room.model.call.CallInviteContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -89,10 +91,11 @@ class NoticeEventFormatter @Inject constructor(
             EventType.CALL_REJECT,
             EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
             VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
+            EventType.MESSAGE -> formatMessageEvent(event, senderName)
+            in EventType.STATE_ROOM_BEACON_INFO.values -> formatLocationNotice(event, senderName)
             EventType.CALL_NEGOTIATE,
             EventType.CALL_SELECT_ANSWER,
             EventType.CALL_REPLACES,
-            EventType.MESSAGE,
             EventType.REACTION,
             EventType.KEY_VERIFICATION_START,
             EventType.KEY_VERIFICATION_CANCEL,
@@ -340,6 +343,22 @@ class NoticeEventFormatter @Inject constructor(
                 }
             }
             else -> null
+        }
+    }
+
+    private fun formatMessageEvent(event: Event, senderName: String?): CharSequence? {
+        return if (event.getClearContent().toModel<MessageContent>()?.msgType == MessageType.MSGTYPE_LOCATION) {
+            formatLocationNotice(event, senderName)
+        } else {
+            formatDebug(event)
+        }
+    }
+
+    fun formatLocationNotice(event: Event, senderName: String?): CharSequence {
+        return if (event.isSentByCurrentUser()) {
+            sp.getString(CommonStrings.notice_location_sent_by_you)
+        } else {
+            sp.getString(CommonStrings.notice_location_sent, senderName)
         }
     }
 

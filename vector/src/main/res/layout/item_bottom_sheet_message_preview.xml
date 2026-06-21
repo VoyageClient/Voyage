@@ -107,7 +107,7 @@
         tools:visibility="visible" />
 
 
-    <com.google.android.material.card.MaterialCardView
+    <androidx.cardview.widget.CardView
         android:id="@+id/mapViewContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -133,7 +133,7 @@
             android:layout_gravity="center"
             android:layout_marginBottom="28dp"
             android:importantForAccessibility="no"
-            android:src="@drawable/bg_map_user_pin" />
-    </com.google.android.material.card.MaterialCardView>
+            app:srcCompat="@drawable/bg_map_user_pin" />
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

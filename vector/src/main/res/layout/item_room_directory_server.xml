@@ -56,7 +56,7 @@
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
         android:contentDescription="@string/action_remove"
         android:padding="8dp"
-        android:src="@drawable/ic_delete"
+        app:srcCompat="@drawable/ic_delete"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -22,10 +22,10 @@ import androidx.core.content.FileProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.RequestBody
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
@@ -147,7 +147,7 @@ internal class DefaultFileService @Inject constructor(
                             Request.Builder()
                                     .url(resolvedMethod.url)
                                     .header(DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER, url)
-                                    .post(resolvedMethod.jsonBody.toRequestBody("application/json".toMediaType()))
+                                    .post(RequestBody.create(MediaType.parse("application/json"), resolvedMethod.jsonBody))
                                     .build()
                         }
                     }
@@ -166,9 +166,9 @@ internal class DefaultFileService @Inject constructor(
                         throw Failure.NetworkConnection(IOException())
                     }
 
-                    val source = response.body?.source() ?: throw Failure.NetworkConnection(IOException())
+                    val source = response.body()?.source() ?: throw Failure.NetworkConnection(IOException())
 
-                    Timber.v("Response size ${response.body?.contentLength()} - Stream available: ${!source.exhausted()}")
+                    Timber.v("Response size ${response.body()?.contentLength()} - Stream available: ${!source.exhausted()}")
 
                     // Write the file to cache (encrypted version if the file is encrypted)
                     // Write to a part file first, so if we abort before done, we don't have a broken cached file

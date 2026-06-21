@@ -71,7 +71,7 @@
                     android:layout_marginStart="12dp"
                     android:importantForAccessibility="no"
                     android:scaleType="center"
-                    android:src="@drawable/ic_settings_x"
+                    app:srcCompat="@drawable/ic_settings_x"
                     app:tint="?colorPrimary"
                     tools:ignore="MissingPrefix" />
 
@@ -110,7 +110,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:contentDescription="@string/a11y_create_message"
-        android:src="@drawable/ic_new_chat"
+        app:srcCompat="@drawable/ic_new_chat"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

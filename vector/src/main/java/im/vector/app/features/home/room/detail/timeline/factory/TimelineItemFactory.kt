@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.factory
 
+import android.os.Build
 import im.vector.app.core.epoxy.TimelineEmptyItem
 import im.vector.app.core.epoxy.TimelineEmptyItem_
 import im.vector.app.core.epoxy.VectorEpoxyModel
@@ -17,6 +18,9 @@ import im.vector.app.features.voicebroadcast.model.isVoiceBroadcast
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import timber.log.Timber
@@ -84,7 +88,7 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_ENCRYPTION -> encryptionItemFactory.create(params)
                     // State room create
                     EventType.STATE_ROOM_CREATE -> roomCreateItemFactory.create(params)
-                    in EventType.STATE_ROOM_BEACON_INFO.values -> messageItemFactory.create(params)
+                    in EventType.STATE_ROOM_BEACON_INFO.values -> locationItemFactory(params)
                     VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> messageItemFactory.create(params)
                     // Unhandled state event types
                     else -> {
@@ -98,8 +102,11 @@ class TimelineItemFactory @Inject constructor(
                     // Message itemsX
                     EventType.STICKER,
                     in EventType.POLL_START.values,
-                    in EventType.POLL_END.values,
-                    EventType.MESSAGE -> messageItemFactory.create(params)
+                    in EventType.POLL_END.values -> messageItemFactory.create(params)
+                    EventType.MESSAGE -> {
+                        // KitKat has no maps (maplibre is API 21+); show location as a text notice.
+                        if (isLocationMessage(event)) locationItemFactory(params) else messageItemFactory.create(params)
+                    }
                     EventType.REDACTION,
                     EventType.KEY_VERIFICATION_ACCEPT,
                     EventType.KEY_VERIFICATION_START,
@@ -174,6 +181,20 @@ class TimelineItemFactory @Inject constructor(
                     params.rootThreadEventId,
                     params.isFromThreadTimeline()
             )
+        }
+    }
+
+    private fun isLocationMessage(event: TimelineEvent): Boolean {
+        return event.root.getClearContent().toModel<MessageContent>()?.msgType == MessageType.MSGTYPE_LOCATION
+    }
+
+    // On KitKat there is no map renderer (maplibre needs API 21), so render location/live-location
+    // as a plain text notice instead. On API 21+ keep the interactive/static map item.
+    private fun locationItemFactory(params: TimelineItemFactoryParams): VectorEpoxyModel<*>? {
+        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            noticeItemFactory.create(params)
+        } else {
+            messageItemFactory.create(params)
         }
     }
 

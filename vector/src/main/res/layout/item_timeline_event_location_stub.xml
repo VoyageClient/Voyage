@@ -22,7 +22,7 @@
         android:layout_height="55dp"
         android:layout_gravity="center"
         android:importantForAccessibility="no"
-        android:src="@drawable/bg_map_user_pin"
+        app:srcCompat="@drawable/bg_map_user_pin"
         app:layout_constraintBottom_toTopOf="@id/staticMapVerticalCenter"
         app:layout_constraintEnd_toEndOf="@id/staticMapImageView"
         app:layout_constraintStart_toStartOf="@id/staticMapImageView"

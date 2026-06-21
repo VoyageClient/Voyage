@@ -10,6 +10,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.TypedValue
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -44,7 +45,7 @@ class ReactionButton @JvmOverloads constructor(
         defStyleAttr: Int = 0,
         defStyleRes: Int = im.vector.lib.ui.styles.R.style.TimelineReactionView
 ) :
-        LinearLayout(context, attrs, defStyleAttr, defStyleRes), View.OnClickListener, View.OnLongClickListener {
+        LinearLayout(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr), View.OnClickListener, View.OnLongClickListener {
 
     @Inject lateinit var emojiSpanify: EmojiSpanify
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder

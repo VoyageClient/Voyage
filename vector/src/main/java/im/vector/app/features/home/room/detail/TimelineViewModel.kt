@@ -142,7 +142,6 @@ class TimelineViewModel @AssistedInject constructor(
         private val supportedVerificationMethodsProvider: SupportedVerificationMethodsProvider,
         private val stickerPickerActionHandler: StickerPickerActionHandler,
         private val typingHelper: TypingHelper,
-        private val chatEffectManager: ChatEffectManager,
         private val directRoomHelper: DirectRoomHelper,
         private val analyticsTracker: AnalyticsTracker,
         private val decryptionFailureTracker: DecryptionFailureTracker,
@@ -168,7 +167,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val imageContentRenderer: ImageContentRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
-        Timeline.Listener, ChatEffectManager.Delegate, LocationSharingServiceConnection.Callback {
+        Timeline.Listener, LocationSharingServiceConnection.Callback {
 
     private val room = session.getRoom(initialState.roomId)
     private val eventId = initialState.eventId
@@ -265,7 +264,6 @@ class TimelineViewModel @AssistedInject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             tryOrNull { session.roomService().onRoomDisplayed(initialState.roomId) }
         }
-        chatEffectManager.delegate = this
 
         // Ensure to share the outbound session keys with all members
         if (room.roomCryptoService().isEncrypted()) {
@@ -872,20 +870,7 @@ private fun handleSelectStickerAttachment() {
                     visibleEventsSource.post(RoomDetailAction.TimelineEventTurnsVisible(event))
                 }
             }
-
-            // handle chat effects here
-            if (vectorPreferences.chatEffectsEnabled()) {
-                chatEffectManager.checkForEffect(action.event)
-            }
         }
-    }
-
-    override fun shouldStartEffect(effect: ChatEffect) {
-        _viewEvents.post(RoomDetailViewEvents.StartChatEffect(effect))
-    }
-
-    override fun stopEffects() {
-        _viewEvents.post(RoomDetailViewEvents.StopChatEffects)
     }
 
     private fun handleLoadMore(action: RoomDetailAction.LoadMoreTimelineEvents) {
@@ -1461,8 +1446,6 @@ private fun handleSelectStickerAttachment() {
         if (vectorPreferences.sendTypingNotifs()) {
             room?.typingService()?.userStopsTyping()
         }
-        chatEffectManager.delegate = null
-        chatEffectManager.dispose()
         // we should also mark it as read here, for the scenario that the user
         // is already in the thread timeline
         markThreadTimelineAsReadLocal()

@@ -42,7 +42,7 @@
             android:background="@drawable/circle"
             android:backgroundTint="?colorSecondary"
             android:contentDescription="@null"
-            android:src="@drawable/ic_email"
+            app:srcCompat="@drawable/ic_email"
             app:layout_constraintBottom_toTopOf="@id/emailEntryHeaderTitle"
             app:layout_constraintEnd_toEndOf="@id/emailEntryGutterEnd"
             app:layout_constraintHeight_percent="0.12"

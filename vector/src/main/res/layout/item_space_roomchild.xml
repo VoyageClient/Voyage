@@ -79,7 +79,7 @@
             android:layout_height="18dp"
             android:layout_marginEnd="4dp"
             android:importantForAccessibility="no"
-            android:src="@drawable/ic_room_profile_member_list"
+            app:srcCompat="@drawable/ic_room_profile_member_list"
             app:layout_constraintBottom_toBottomOf="@id/spaceChildMemberCountText"
             app:layout_constraintEnd_toStartOf="@id/spaceChildMemberCountText"
             app:layout_constraintTop_toTopOf="@id/spaceChildMemberCountText"

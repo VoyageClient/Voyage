@@ -13,6 +13,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.StrictMode
@@ -113,6 +114,9 @@ class VectorApplication :
 
     override fun onCreate() {
         enableStrictModeIfNeeded()
+        // KitKat can't inflate <vector> drawables natively (android:src/setImageResource); let
+        // AppCompat load them through VectorDrawableCompat instead. Must run before any inflation.
+        androidx.appcompat.app.AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         super.onCreate()
         // Hilt has injected vectorPreferences by now. Seed perf flag immediately so we can
         // time the rest of onCreate.
@@ -194,8 +198,11 @@ class VectorApplication :
         )
         EmojiManager.install(GoogleEmojiProvider())
 
-        // Initialize Mapbox before inflating mapViews
-        MapLibre.getInstance(this)
+        // Initialize MapLibre before inflating mapViews. Its native lib is API 21+; on KitKat maps
+        // are never shown (locations render as a text notice), so skip init to avoid loading it.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            MapLibre.getInstance(this)
+        }
 
         initMemoryLeakAnalysis()
         perfMarker.end()
@@ -247,6 +254,13 @@ class VectorApplication :
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
         MultiDex.install(this)
+        // KitKat's stock JCE providers lack a working AES/GCM (BouncyCastle rejects GCMParameterSpec)
+        // and don't enable TLS 1.2 by default. Conscrypt backfills both; install it first so secure
+        // storage and OkHttp pick it up. Harmless to skip on API 21+ where the platform is fine.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            runCatching { java.security.Security.insertProviderAt(org.conscrypt.Conscrypt.newProvider(), 1) }
+                    .onFailure { Log.e("VectorApplication", "Failed to install Conscrypt", it) }
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

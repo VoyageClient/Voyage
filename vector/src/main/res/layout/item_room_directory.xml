@@ -74,7 +74,7 @@
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
         android:contentDescription="@string/a11y_selected"
         android:padding="8dp"
-        android:src="@drawable/ic_check_on"
+        app:srcCompat="@drawable/ic_check_on"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

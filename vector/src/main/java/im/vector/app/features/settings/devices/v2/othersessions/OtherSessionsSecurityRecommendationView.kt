@@ -18,6 +18,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.setTextWithColoredPart
 import im.vector.app.databinding.ViewOtherSessionSecurityRecommendationBinding
 import im.vector.lib.strings.CommonStrings
+import androidx.core.view.ViewCompat
 
 @AndroidEntryPoint
 class OtherSessionsSecurityRecommendationView @JvmOverloads constructor(
@@ -76,7 +77,7 @@ class OtherSessionsSecurityRecommendationView @JvmOverloads constructor(
     }
 
     private fun setImageBackgroundTint(backgroundTintColor: Int) {
-        views.recommendationShieldImageView.backgroundTintList = ColorStateList.valueOf(backgroundTintColor)
+        ViewCompat.setBackgroundTintList(views.recommendationShieldImageView, ColorStateList.valueOf(backgroundTintColor))
     }
 
     private fun setDescription(description: String?) {

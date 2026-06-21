@@ -123,7 +123,7 @@
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="4dp"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_room_profile_member_list"
+                app:srcCompat="@drawable/ic_room_profile_member_list"
                 app:tint="?vctr_content_primary"
                 tools:ignore="MissingPrefix" />
 

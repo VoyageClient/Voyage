@@ -44,7 +44,7 @@
             android:background="@drawable/circle"
             android:backgroundTint="?colorSecondary"
             android:contentDescription="@null"
-            android:src="@drawable/ic_privacy_policy"
+            app:srcCompat="@drawable/ic_privacy_policy"
             app:layout_constraintBottom_toTopOf="@id/termsHeaderTitle"
             app:layout_constraintEnd_toEndOf="@id/termsGutterEnd"
             app:layout_constraintHeight_percent="0.12"

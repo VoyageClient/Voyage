@@ -12,9 +12,20 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
+import android.os.Build
 import timber.log.Timber
 import java.io.File
+import java.nio.ByteBuffer
 import kotlin.math.abs
+
+// getInputBuffer/getOutputBuffer are API 21+; pre-21 use the getInputBuffers()/getOutputBuffers() arrays (API 16).
+@Suppress("DEPRECATION")
+private fun MediaCodec.inputBufferCompat(index: Int): ByteBuffer? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) getInputBuffer(index) else inputBuffers.getOrNull(index)
+
+@Suppress("DEPRECATION")
+private fun MediaCodec.outputBufferCompat(index: Int): ByteBuffer? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) getOutputBuffer(index) else outputBuffers.getOrNull(index)
 
 object AudioWaveformExtractor {
 
@@ -93,7 +104,7 @@ object AudioWaveformExtractor {
             if (!inputDone) {
                 val inIdx = codec.dequeueInputBuffer(CODEC_TIMEOUT_US)
                 if (inIdx >= 0) {
-                    val buf = codec.getInputBuffer(inIdx)
+                    val buf = codec.inputBufferCompat(inIdx)
                     val size = if (buf != null) extractor.readSampleData(buf, 0) else -1
                     if (size < 0) {
                         codec.queueInputBuffer(inIdx, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
@@ -110,7 +121,7 @@ object AudioWaveformExtractor {
                 if (inputDone && outIdx == MediaCodec.INFO_TRY_AGAIN_LATER) break
                 continue
             }
-            val output = codec.getOutputBuffer(outIdx)
+            val output = codec.outputBufferCompat(outIdx)
             if (output != null && info.size > 0) {
                 output.position(info.offset)
                 output.limit(info.offset + info.size)

@@ -8,12 +8,11 @@
 package im.vector.app.features.home.room.detail.timeline.url
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.view.isVisible
-import com.google.android.material.card.MaterialCardView
+import androidx.cardview.widget.CardView
 import im.vector.app.R
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.utils.DimensionConverter
@@ -32,7 +31,7 @@ class PreviewUrlView @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0
-) : MaterialCardView(context, attrs, defStyleAttr), View.OnClickListener, TimelineMessageLayoutRenderer {
+) : CardView(context, attrs, defStyleAttr), View.OnClickListener, TimelineMessageLayoutRenderer {
 
     private lateinit var views: ViewUrlPreviewBinding
 
@@ -84,12 +83,10 @@ class PreviewUrlView @JvmOverloads constructor(
             }
             is TimelineMessageLayout.Bubble -> {
                 setCardBackgroundColor(Color.TRANSPARENT)
-                rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
                 views.urlPreviewStartGuideline.setGuidelineBegin(0)
             }
             is TimelineMessageLayout.ScBubble -> {
                 setCardBackgroundColor(Color.TRANSPARENT)
-                rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
                 views.urlPreviewStartGuideline.setGuidelineBegin(0)
             }
         }

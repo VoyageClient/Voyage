@@ -17,8 +17,10 @@ import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.withStyledAttributes
 import im.vector.app.R
+import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.databinding.ViewSpaceTypeButtonBinding
+import androidx.core.widget.ImageViewCompat
 
 class WizardButtonView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) :
         ConstraintLayout(context, attrs, defStyle) {
@@ -53,7 +55,7 @@ class WizardButtonView @JvmOverloads constructor(context: Context, attrs: Attrib
         set(value) {
             field = value
             if (value != null) {
-                views.buttonImageView.imageTintList = ColorStateList.valueOf(value)
+                ImageViewCompat.setImageTintList(views.buttonImageView, ColorStateList.valueOf(value))
             }
         }
 
@@ -73,7 +75,7 @@ class WizardButtonView @JvmOverloads constructor(context: Context, attrs: Attrib
         context.withStyledAttributes(attrs, im.vector.lib.ui.styles.R.styleable.WizardButtonView) {
             title = getString(im.vector.lib.ui.styles.R.styleable.WizardButtonView_title)
             subTitle = getString(im.vector.lib.ui.styles.R.styleable.WizardButtonView_subTitle)
-            icon = getDrawable(im.vector.lib.ui.styles.R.styleable.WizardButtonView_icon)
+            icon = getDrawableCompat(context, im.vector.lib.ui.styles.R.styleable.WizardButtonView_icon)
             tint = getColor(im.vector.lib.ui.styles.R.styleable.WizardButtonView_iconTint, -1)
                     .takeIf { it != -1 }
         }

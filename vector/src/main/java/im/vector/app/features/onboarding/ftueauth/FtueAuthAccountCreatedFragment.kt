@@ -15,8 +15,6 @@ import android.view.ViewGroup
 import androidx.core.text.toSpannable
 import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.core.animations.play
-import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.core.utils.styleMatchingText
 import im.vector.app.databinding.FragmentFtueAccountCreatedBinding
 import im.vector.app.features.onboarding.OnboardingAction
@@ -27,8 +25,6 @@ import im.vector.lib.strings.CommonStrings
 @AndroidEntryPoint
 class FtueAuthAccountCreatedFragment :
         AbstractFtueAuthFragment<FragmentFtueAccountCreatedBinding>() {
-
-    private var hasPlayedConfetti = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentFtueAccountCreatedBinding {
         return FragmentFtueAccountCreatedBinding.inflate(inflater, container, false)
@@ -52,12 +48,6 @@ class FtueAuthAccountCreatedFragment :
         val canPersonalize = state.personalizationState.supportsPersonalization()
         views.personalizeButtonGroup.isVisible = canPersonalize
         views.takeMeHomeButtonGroup.isVisible = !canPersonalize
-
-        if (!hasPlayedConfetti && requireContext().isAnimationEnabled()) {
-            hasPlayedConfetti = true
-            views.viewKonfetti.isVisible = true
-            views.viewKonfetti.play()
-        }
     }
 
     override fun resetViewModel() {

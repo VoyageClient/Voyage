@@ -99,9 +99,11 @@ class RoomDetailActivity :
     private fun onCreateBody(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // For dealing with insets and status bar background color
-        @Suppress("DEPRECATION")
-        window.statusBarColor = Color.TRANSPARENT
+        // For dealing with insets and status bar background color (setStatusBarColor is API 21+).
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            @Suppress("DEPRECATION")
+            window.statusBarColor = Color.TRANSPARENT
+        }
 
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
         waitingView = views.waitingView.waitingView

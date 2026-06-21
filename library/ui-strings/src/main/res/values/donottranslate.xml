@@ -186,4 +186,7 @@
 
     <string name="import_e2e_keys_progress" translatable="false">Importing room keys…</string>
     <string name="import_e2e_keys_progress_count" translatable="false">%1$d / %2$d</string>
+
+    <string name="notice_location_sent_by_you" translatable="false">You sent a location.</string>
+    <string name="notice_location_sent" translatable="false">%1$s sent a location.</string>
 </resources>

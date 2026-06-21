@@ -208,7 +208,7 @@ dependencies {
     api libs.androidx.datastorepreferences
 
     // Opus Encoder
-    implementation libs.element.opusencoder
+    implementation project(':library:external:libopus')
 
     // WYSIWYG Editor
     implementation libs.element.wysiwyg
@@ -285,17 +285,16 @@ dependencies {
     implementation libs.github.glide
     kapt libs.github.glideCompiler
     implementation libs.vanniktech.blurhash
-    // APNG decoding for Glide (animated PNGs often labelled image/png).
+    // Animated image decoders wired manually in MyAppGlideModule. We pull the individual decoders
+    // directly instead of the `glide-plugin` umbrella: its GlideModule hard-references the AVIF
+    // decoder, which drags in org.aomedia libavif (native, API 21+) that we don't support on KitKat.
     implementation 'com.github.penfeizhou.android.animation:apng:3.0.5'
-    implementation 'com.github.penfeizhou.android.animation:glide-plugin:3.0.5'
+    implementation 'com.github.penfeizhou.android.animation:awebp:3.0.5'
+    implementation 'com.github.penfeizhou.android.animation:gif:3.0.5'
     // SVG rendering
     implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'com.github.yalantis:ucrop:2.2.8'
 
-    // Chat effects
-    implementation 'nl.dionsegijn:konfetti-xml:2.0.2'
-
-    implementation 'com.github.jetradarmobile:android-snowfall:1.2.1'
     // DI
     implementation libs.dagger.hilt
     kapt libs.dagger.hiltCompiler

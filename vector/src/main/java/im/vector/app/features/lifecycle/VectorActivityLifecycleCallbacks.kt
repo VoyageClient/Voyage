@@ -132,16 +132,21 @@ class VectorActivityLifecycleCallbacks constructor(private val popupAlertManager
             // This was present in ActivityManager.RunningTaskInfo class since API level 1!
             // and it is inherited from TaskInfo since Android Q (API level 29).
             // API 29 changes : https://developer.android.com/sdk/api_diff/29/changes/android.app.ActivityManager.RunningTaskInfo
+            // getRunningTasks() needs the GET_TASKS permission on pre-Lollipop. We don't request it,
+            // so if it's denied we can't run this anti-task-hijack check — treat the task as safe
+            // rather than crash.
             @Suppress("DEPRECATION")
-            manager.getRunningTasks(10).any { runningTaskInfo ->
-                runningTaskInfo.topActivity?.let {
-                    // Check whether the activity task affinity matches with app task affinity.
-                    // The activity is considered safe when its task affinity doesn't correspond to app task affinity.
-                    if (context.packageManager.getActivityInfo(it, 0).taskAffinity == context.applicationInfo.taskAffinity) {
-                        isPotentialMaliciousActivity(it)
-                    } else false
-                } ?: false
-            }
+            runCatching {
+                manager.getRunningTasks(10).any { runningTaskInfo ->
+                    runningTaskInfo.topActivity?.let {
+                        // Check whether the activity task affinity matches with app task affinity.
+                        // The activity is considered safe when its task affinity doesn't correspond to app task affinity.
+                        if (context.packageManager.getActivityInfo(it, 0).taskAffinity == context.applicationInfo.taskAffinity) {
+                            isPotentialMaliciousActivity(it)
+                        } else false
+                    } ?: false
+                }
+            }.getOrDefault(false)
         }
     }
 

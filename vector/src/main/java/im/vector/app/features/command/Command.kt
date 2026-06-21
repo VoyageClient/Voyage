@@ -61,8 +61,6 @@ enum class Command(
     HTML("/html", null, "<message>", CommonStrings.command_description_html, false, true),
     WHOIS("/whois", null, "<user-id>", CommonStrings.command_description_whois, false, true),
     DISCARD_SESSION("/discardsession", null, "", CommonStrings.command_description_discard_session, false, false),
-    CONFETTI("/confetti", null, "<message>", CommonStrings.command_confetti, false, false),
-    SNOWFALL("/snowfall", null, "<message>", CommonStrings.command_snow, false, false),
     CREATE_SPACE("/createspace", null, "<name> <invitee>*", CommonStrings.command_description_create_space, true, false),
     ADD_TO_SPACE("/addToSpace", null, "spaceId", CommonStrings.command_description_add_to_space, true, false),
     JOIN_SPACE("/joinSpace", null, "spaceId", CommonStrings.command_description_join_space, true, false),

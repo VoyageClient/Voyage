@@ -1,0 +1,44 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+// Vendored from github.com/vector-im/libopusencoder-android (Apache-2.0). Builds libopus +
+// libopusenc from source so voice-message Opus encoding works on all devices, including KitKat —
+// the published io.element.android:opusencoder AAR is minSdk 21. Native target is ICS-class.
+def v = project.hasProperty('versions') ? project.versions : [:]
+
+android {
+    namespace "io.element.android.opusencoder"
+    compileSdk v.compileSdk ?: 35
+    ndkVersion project.findProperty('libopusNdkVersion') ?: '23.2.8568313'
+
+    defaultConfig {
+        minSdk 16
+        targetSdk v.targetSdk ?: 35
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DUSE_PREBUILTS=false"
+                abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64', 'x86'
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility v.sourceCompat ?: JavaVersion.VERSION_21
+        targetCompatibility v.targetCompat ?: JavaVersion.VERSION_21
+    }
+
+    kotlinOptions {
+        jvmTarget = v.jvmTarget ?: "21"
+    }
+}
+
+dependencies {
+    implementation "androidx.annotation:annotation:1.9.1"
+}

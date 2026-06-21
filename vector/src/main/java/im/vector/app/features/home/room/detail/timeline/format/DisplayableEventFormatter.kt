@@ -99,7 +99,7 @@ class DisplayableEventFormatter @Inject constructor(
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_a_file), appendAuthor)
                         }
                         MessageType.MSGTYPE_LOCATION -> {
-                            simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_location), appendAuthor)
+                            noticeEventFormatter.formatLocationNotice(timelineEvent.root, senderName)
                         }
                         else -> {
                             simpleFormat(senderName, messageContent.body, appendAuthor)

@@ -14,6 +14,7 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.ContextThemeWrapper
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import androidx.core.view.setMargins
@@ -27,7 +28,7 @@ class LockScreenCodeView @JvmOverloads constructor(
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0,
         defStyleRes: Int = 0,
-) : LinearLayout(context, attrs, defStyleAttr, defStyleRes) {
+) : LinearLayout(ContextThemeWrapper(context, defStyleRes), attrs, defStyleAttr) {
 
     private val code: MutableList<Char> = mutableListOf()
 

@@ -24,7 +24,7 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <com.google.android.material.card.MaterialCardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/showUserCodeCard"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -79,7 +79,7 @@
                 <!--                android:contentDescription="@string/a11y_qr_code_for_verification"-->
                 <!--                tools:src="@color/vctr_header_panel_background_black" />-->
 
-                <com.google.android.material.card.MaterialCardView
+                <androidx.cardview.widget.CardView
                     android:layout_width="200dp"
                     android:layout_height="200dp"
                     android:layout_marginTop="16dp"
@@ -99,11 +99,11 @@
                         android:contentDescription="@string/a11y_qr_code_for_verification"
                         tools:src="@drawable/ic_qr_code_add" />
 
-                </com.google.android.material.card.MaterialCardView>
+                </androidx.cardview.widget.CardView>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </com.google.android.material.card.MaterialCardView>
+        </androidx.cardview.widget.CardView>
 
         <ImageView
             android:id="@+id/showUserCodeAvatar"

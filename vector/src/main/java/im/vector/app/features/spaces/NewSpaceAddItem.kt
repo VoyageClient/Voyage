@@ -17,6 +17,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.features.themes.ThemeUtils
+import androidx.core.widget.ImageViewCompat
 
 @EpoxyModelClass
 abstract class NewSpaceAddItem : VectorEpoxyModel<NewSpaceAddItem.Holder>(R.layout.item_new_space_add) {
@@ -27,7 +28,7 @@ abstract class NewSpaceAddItem : VectorEpoxyModel<NewSpaceAddItem.Holder>(R.layo
         super.bind(holder)
         holder.view.onClick(listener)
 
-        holder.plus.imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        ImageViewCompat.setImageTintList(holder.plus, ColorStateList.valueOf(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)))
     }
 
     class Holder : VectorEpoxyHolder() {

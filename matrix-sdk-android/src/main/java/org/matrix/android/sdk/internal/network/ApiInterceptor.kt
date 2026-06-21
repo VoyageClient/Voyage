@@ -39,8 +39,8 @@ internal class ApiInterceptor @Inject constructor() : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val path = request.url.encodedPath.replaceFirst("/", "")
-        val method = request.method
+        val path = request.url().encodedPath().replaceFirst("/", "")
+        val method = request.method()
 
         val response = chain.proceed(request)
 

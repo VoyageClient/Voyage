@@ -102,7 +102,7 @@
         android:background="@drawable/bg_rounded_button"
         android:backgroundTint="?vctr_system"
         android:contentDescription="@string/a11y_resume_voice_broadcast_record"
-        android:src="@drawable/ic_recording_dot" />
+        app:srcCompat="@drawable/ic_recording_dot" />
 
     <ImageButton
         android:id="@+id/stopRecordButton"
@@ -111,7 +111,7 @@
         android:background="@drawable/bg_rounded_button"
         android:backgroundTint="?vctr_system"
         android:contentDescription="@string/a11y_stop_voice_broadcast_record"
-        android:src="@drawable/ic_stop" />
+        app:srcCompat="@drawable/ic_stop" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/controlsGroup"

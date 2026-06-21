@@ -9,6 +9,7 @@ package im.vector.app.features.webview
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -64,7 +65,9 @@ class VectorWebViewActivity : VectorBaseActivity<ActivityVectorWebViewBinding>()
         }
 
         val cookieManager = android.webkit.CookieManager.getInstance()
-        cookieManager.setAcceptThirdPartyCookies(views.simpleWebview, true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            cookieManager.setAcceptThirdPartyCookies(views.simpleWebview, true)
+        }
 
         val url = intent.extras?.getString(EXTRA_URL) ?: return
         val title = intent.extras?.getString(EXTRA_TITLE, USE_TITLE_FROM_WEB_PAGE)

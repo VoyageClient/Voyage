@@ -7,6 +7,7 @@
 
 package im.vector.app.features.login
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.CallSuper
@@ -39,8 +40,12 @@ abstract class AbstractLoginFragment<VB : ViewBinding> : VectorBaseFragment<VB>(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        context?.let {
-            sharedElementEnterTransition = TransitionInflater.from(it).inflateTransition(android.R.transition.move)
+        // android.R.transition.move is an API 21+ framework resource; on KitKat androidx.transition
+        // misparses it. The shared-element transition is cosmetic, so just skip it there.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            context?.let {
+                sharedElementEnterTransition = TransitionInflater.from(it).inflateTransition(android.R.transition.move)
+            }
         }
     }
 

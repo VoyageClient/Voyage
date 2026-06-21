@@ -8,6 +8,8 @@
 package im.vector.app.core.extensions
 
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.text.InputType
 import android.view.View
 import android.view.ViewGroup
@@ -64,6 +66,13 @@ fun ImageView.setAttributeTintedImageResource(@DrawableRes drawableRes: Int, @At
     val drawable = ContextCompat.getDrawable(context, drawableRes)!!
     DrawableCompat.setTint(drawable, ThemeUtils.getColor(context, tint))
     setImageDrawable(drawable)
+}
+
+// Pre-21 can't resolve ?attr theme colors inside XML <shape> drawables (e.g. background_circle's
+// solid), so the circle renders with no/wrong color. Resolve against the active theme in code.
+fun View.applyThemeShapeColorCompat(@AttrRes colorAttr: Int) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) return
+    (background?.mutate() as? GradientDrawable)?.setColor(ThemeUtils.getColor(context, colorAttr))
 }
 
 fun View.setAttributeBackground(@AttrRes attributeId: Int) {

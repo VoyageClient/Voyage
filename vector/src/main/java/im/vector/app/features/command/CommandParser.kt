@@ -10,7 +10,6 @@ package im.vector.app.features.command
 import androidx.core.text.HtmlCompat
 import im.vector.app.core.extensions.isMsisdn
 import im.vector.app.core.extensions.orEmpty
-import im.vector.app.features.home.room.detail.ChatEffect
 import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
@@ -391,12 +390,6 @@ class CommandParser @Inject constructor(
                     } else {
                         ParsedCommand.ErrorSyntax(Command.WHOIS)
                     }
-                }
-                Command.CONFETTI.matches(slashCommand) -> {
-                    ParsedCommand.SendChatEffect(ChatEffect.CONFETTI, message)
-                }
-                Command.SNOWFALL.matches(slashCommand) -> {
-                    ParsedCommand.SendChatEffect(ChatEffect.SNOWFALL, message)
                 }
                 Command.CREATE_SPACE.matches(slashCommand) -> {
                     if (messageParts.size >= 2) {

@@ -70,7 +70,7 @@ internal fun HttpException.toFailure(globalErrorReceiver: GlobalErrorReceiver?):
  * Convert a okhttp3 Response to a Failure, and eventually parse errorBody to convert it to a [MatrixError].
  */
 internal fun okhttp3.Response.toFailure(globalErrorReceiver: GlobalErrorReceiver?): Failure {
-    return toFailure(body, code, globalErrorReceiver)
+    return toFailure(body(), code(), globalErrorReceiver)
 }
 
 private fun toFailure(errorBody: ResponseBody?, httpCode: Int, globalErrorReceiver: GlobalErrorReceiver?): Failure {

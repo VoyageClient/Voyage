@@ -36,7 +36,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:contentDescription="@string/action_play"
-            android:src="@drawable/ic_material_play_circle"
+            app:srcCompat="@drawable/ic_material_play_circle"
             app:tint="?vctr_system"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/messageThumbnailView"

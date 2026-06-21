@@ -23,6 +23,8 @@ import im.vector.app.core.platform.CheckableConstraintLayout
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
+import androidx.core.view.ViewCompat
+import androidx.core.widget.ImageViewCompat
 
 @EpoxyModelClass
 abstract class NewHomeSpaceSummaryItem : VectorEpoxyModel<NewHomeSpaceSummaryItem.Holder>(R.layout.item_new_space) {
@@ -42,13 +44,13 @@ abstract class NewHomeSpaceSummaryItem : VectorEpoxyModel<NewHomeSpaceSummaryIte
         holder.root.isChecked = selected
         holder.root.context.resources
         holder.avatar.background = ContextCompat.getDrawable(holder.view.context, R.drawable.new_space_home_background)
-        holder.avatar.backgroundTintList = ColorStateList.valueOf(
+        ViewCompat.setBackgroundTintList(holder.avatar, ColorStateList.valueOf(
                 ColorUtils.setAlphaComponent(
                         ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary), (255 * 0.3).toInt()
                 )
-        )
+        ))
         holder.avatar.setImageResource(R.drawable.ic_space_home)
-        holder.avatar.imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        ImageViewCompat.setImageTintList(holder.avatar, ColorStateList.valueOf(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)))
         holder.avatar.scaleType = ImageView.ScaleType.CENTER_INSIDE
 
         holder.unreadCounter.render(countState)

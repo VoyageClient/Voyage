@@ -58,7 +58,7 @@
         android:id="@+id/threadSummaryUnreadImageView"
         android:layout_width="8dp"
         android:layout_height="8dp"
-        android:src="@drawable/notification_badge"
+        app:srcCompat="@drawable/notification_badge"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/threadSummaryDateTextView"
         app:layout_constraintEnd_toEndOf="parent"

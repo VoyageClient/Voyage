@@ -8,6 +8,7 @@
 package im.vector.app.features.importer
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
@@ -62,7 +63,12 @@ class ImporterService : VectorAndroidService() {
             if (replyTo == null) {
                 Timber.e("ImporterService: no replyTo in the message, cannot answer")
             } else {
-                if (signaturePermissionChecker.check(msg.sendingUid, packageManager)) {
+                // Message.sendingUid is API 21+, and a Messenger handler runs after the binder
+                // transaction ends so Binder.getCallingUid() can't recover the caller. Pre-21 we
+                // cannot verify the caller's signature, so we fail closed rather than leak the session.
+                val authorized = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                        signaturePermissionChecker.check(msg.sendingUid, packageManager)
+                if (authorized) {
                     Timber.w("ImporterService: Authorized caller")
                     when (msg.what) {
                         MSG_GET_SESSION -> replyTo.sendSession()

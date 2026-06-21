@@ -34,7 +34,7 @@
         android:id="@+id/mapLoadingErrorIcon"
         android:layout_width="28dp"
         android:layout_height="28dp"
-        android:src="@drawable/ic_warning_badge"
+        app:srcCompat="@drawable/ic_warning_badge"
         tools:ignore="ContentDescription" />
 
     <TextView

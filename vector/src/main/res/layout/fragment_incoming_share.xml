@@ -51,7 +51,7 @@
             android:layout_marginBottom="16dp"
             android:accessibilityTraversalBefore="@id/incomingShareRoomList"
             android:contentDescription="@string/a11y_create_room"
-            android:src="@drawable/ic_send"
+            app:srcCompat="@drawable/ic_send"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

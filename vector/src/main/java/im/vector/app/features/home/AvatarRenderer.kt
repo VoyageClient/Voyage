@@ -8,16 +8,14 @@
 package im.vector.app.features.home
 
 import android.graphics.Bitmap
-import android.graphics.Outline
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.view.View
-import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import androidx.annotation.AnyThread
 import androidx.annotation.ColorInt
 import androidx.annotation.UiThread
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.ViewCompat
 import com.amulyakhare.textdrawable.TextDrawable
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.Transformation
@@ -32,6 +30,7 @@ import com.bumptech.glide.signature.ObjectKey
 import im.vector.app.core.contacts.MappedContact
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.AvatarPlaceholder
+import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
@@ -66,12 +65,20 @@ class AvatarRenderer @Inject constructor(
     @UiThread
     fun render(matrixItem: MatrixItem, imageView: ImageView) {
         imageView.setContentDescription(matrixItem)
-        imageView.applyAvatarOutline(matrixItem)
         render(
                 GlideApp.with(imageView),
                 matrixItem,
-                DrawableImageViewTarget(imageView),
+                avatarTarget(imageView, matrixItem),
         )
+    }
+
+    // Clips avatars to a circle (or rounded square for spaces) for animated drawables / placeholders
+    // too — a cross-version replacement for clipToOutline (API 21+). Static images are already shaped
+    // by Glide's CircleCrop/RoundedCorners transforms and pass through untouched.
+    private fun avatarTarget(imageView: ImageView, matrixItem: MatrixItem): DrawableImageViewTarget {
+        val isSpace = matrixItem is MatrixItem.SpaceItem
+        val cornerPx = if (isSpace) dimensionConverter.dpToPx(8).toFloat() else 0f
+        return ClippedDrawableImageViewTarget(imageView, cornerPx, oval = !isSpace)
     }
 
 //    fun renderSpace(matrixItem: MatrixItem, imageView: ImageView) {
@@ -96,32 +103,27 @@ class AvatarRenderer @Inject constructor(
     fun clear(imageView: ImageView) {
         // It can be called after recycler view is destroyed, just silently catch
         tryOrNull { GlideApp.with(imageView).clear(imageView) }
-        // Drop the outline mask in case this ImageView is recycled for a non-avatar use later.
-        imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
-        imageView.clipToOutline = false
     }
 
     @UiThread
     fun render(matrixItem: MatrixItem, imageView: ImageView, glideRequests: GlideRequests) {
         imageView.setContentDescription(matrixItem)
-        imageView.applyAvatarOutline(matrixItem)
         render(
                 glideRequests,
                 matrixItem,
-                DrawableImageViewTarget(imageView),
+                avatarTarget(imageView, matrixItem),
         )
     }
 
     @UiThread
     fun render(matrixItem: MatrixItem, localUri: Uri?, imageView: ImageView) {
         imageView.setContentDescription(matrixItem)
-        imageView.applyAvatarOutline(matrixItem)
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(localUri?.let { File(localUri.path!!) })
                 .apply(RequestOptions.circleCropTransform())
                 .placeholder(placeholder)
-                .into(imageView)
+                .into(avatarTarget(imageView, matrixItem))
     }
 
     @UiThread
@@ -134,12 +136,11 @@ class AvatarRenderer @Inject constructor(
         )
 
         val placeholder = getPlaceholderDrawable(matrixItem)
-        imageView.applyAvatarOutline(matrixItem)
         GlideApp.with(imageView)
                 .load(mappedContact.photoURI)
                 .apply(RequestOptions.circleCropTransform())
                 .placeholder(placeholder)
-                .into(imageView)
+                .into(avatarTarget(imageView, matrixItem))
     }
 
     @UiThread
@@ -152,12 +153,11 @@ class AvatarRenderer @Inject constructor(
         )
 
         val placeholder = getPlaceholderDrawable(matrixItem)
-        imageView.applyAvatarOutline(matrixItem)
         GlideApp.with(imageView)
                 .load(profileInfo.fullAvatarUrl)
                 .apply(RequestOptions.circleCropTransform())
                 .placeholder(placeholder)
-                .into(imageView)
+                .into(avatarTarget(imageView, matrixItem))
     }
 
     @UiThread
@@ -306,30 +306,11 @@ class AvatarRenderer @Inject constructor(
     }
 
     /**
-     * Mask the ImageView to the avatar shape via outline clipping. Works for any drawable
-     * (animated WebP / APNG included), unlike Glide's CircleCrop which is a Bitmap-only
-     * transformation and is silently skipped for animated drawables.
-     */
-    private fun ImageView.applyAvatarOutline(matrixItem: MatrixItem) {
-        val cornerPx = if (matrixItem is MatrixItem.SpaceItem) dimensionConverter.dpToPx(8) else -1
-        outlineProvider = object : ViewOutlineProvider() {
-            override fun getOutline(view: View, outline: Outline) {
-                if (cornerPx >= 0) {
-                    outline.setRoundRect(0, 0, view.width, view.height, cornerPx.toFloat())
-                } else {
-                    outline.setOval(0, 0, view.width, view.height)
-                }
-            }
-        }
-        clipToOutline = true
-    }
-
-    /**
      * Accessibility management.
      */
     private fun ImageView.setContentDescription(matrixItem: MatrixItem) {
         // Do not set contentDescription if the ImageView should be ignored regarding accessibility.
-        if (isImportantForAccessibility.not()) return
+        if (ViewCompat.isImportantForAccessibility(this).not()) return
         when (matrixItem) {
             is MatrixItem.SpaceItem -> {
                 contentDescription = stringProvider.getString(CommonStrings.avatar_of_space, matrixItem.getBestName())

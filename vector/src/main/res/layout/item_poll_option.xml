@@ -11,7 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:importantForAccessibility="no"
-        android:src="@drawable/bg_poll_option"
+        app:srcCompat="@drawable/bg_poll_option"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -24,7 +24,7 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
         android:importantForAccessibility="no"
-        android:src="@drawable/poll_option_unchecked"
+        app:srcCompat="@drawable/poll_option_unchecked"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

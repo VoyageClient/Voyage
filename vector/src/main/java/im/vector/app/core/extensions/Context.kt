@@ -22,6 +22,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.FloatRange
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import dagger.hilt.EntryPoints
@@ -56,7 +57,7 @@ fun Context.getTintedDrawable(
 ) = ContextCompat.getDrawable(this, drawableRes)
         ?.mutate()
         ?.also { drawable ->
-            drawable.setTint(tint)
+            DrawableCompat.setTint(drawable, tint)
             alpha.let {
                 drawable.alpha = it.toAndroidAlpha()
             }

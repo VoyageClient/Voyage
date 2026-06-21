@@ -18,7 +18,7 @@
             android:layout_height="24dp"
             android:layout_marginStart="@dimen/layout_horizontal_margin"
             android:importantForAccessibility="no"
-            android:src="@drawable/ic_security_phrase_24dp"
+            app:srcCompat="@drawable/ic_security_phrase_24dp"
             app:layout_constraintBottom_toBottomOf="@id/ssss_restore_with_passphrase"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/ssss_restore_with_passphrase"

@@ -33,7 +33,7 @@
             android:layout_height="56dp"
             android:contentDescription="@string/a11y_checked"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_material_done"
+            app:srcCompat="@drawable/ic_material_done"
             app:tint="@android:color/white"
             tools:ignore="MissingPrefix" />
 
@@ -44,7 +44,7 @@
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:contentDescription="@string/a11y_error_some_message_not_sent"
-        android:src="@drawable/ic_warning_badge"
+        app:srcCompat="@drawable/ic_warning_badge"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="45"
         app:layout_constraintCircleRadius="30dp"
@@ -68,7 +68,7 @@
         android:background="@drawable/background_circle"
         android:contentDescription="@string/a11y_public_room"
         android:padding="2dp"
-        android:src="@drawable/ic_public_room"
+        app:srcCompat="@drawable/ic_public_room"
         android:visibility="gone"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="135"

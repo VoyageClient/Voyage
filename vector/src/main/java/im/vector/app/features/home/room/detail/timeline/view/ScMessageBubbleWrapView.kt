@@ -9,6 +9,9 @@ package im.vector.app.features.home.room.detail.timeline.view
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.os.Build
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
@@ -21,6 +24,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.children
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -280,12 +284,39 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             // Padding for bubble content: long for side with tail, short for other sides
             val longPadding: Int
             val shortPadding: Int
-            bubbleView.setBackgroundResource(messageLayout.bubbleDrawable)
             // Element/SchildiChat keep outgoing bubbles neutral; tint them with the accent when enabled.
-            if (!messageLayout.isPseudoBubble && !messageLayout.isIncoming && messageLayout.tintOutgoing) {
-                val accent = ThemeUtils.getColor(bubbleView.context, com.google.android.material.R.attr.colorAccent)
-                val base = ThemeUtils.getColor(bubbleView.context, im.vector.lib.ui.styles.R.attr.sc_message_bg_outgoing)
-                bubbleView.background?.mutate()?.setTint(ColorUtils.blendARGB(base, accent, OUTGOING_TINT_RATIO))
+            val hasTail = !messageLayout.isPseudoBubble && messageLayout.showAvatar
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP && hasTail) {
+                // Pre-21 the XML layer-list can't size the tail (item gravity/size is API 23+), so draw
+                // the bubble (body + tail) ourselves to keep the tail the right height.
+                val base = ThemeUtils.getColor(
+                        bubbleView.context,
+                        if (messageLayout.isIncoming) im.vector.lib.ui.styles.R.attr.sc_message_bg_incoming
+                        else im.vector.lib.ui.styles.R.attr.sc_message_bg_outgoing
+                )
+                val color = if (!messageLayout.isIncoming && messageLayout.tintOutgoing) {
+                    val accent = ThemeUtils.getColor(bubbleView.context, com.google.android.material.R.attr.colorAccent)
+                    ColorUtils.blendARGB(base, accent, OUTGOING_TINT_RATIO)
+                } else {
+                    base
+                }
+                bubbleView.background = ScBubbleBackgroundDrawable(
+                        fillColor = color,
+                        cornerRadius = messageLayout.bubbleAppearance.getBubbleRadiusPx(bubbleView.context).toFloat(),
+                        tailWidth = bubbleView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_tail_size).toFloat(),
+                        tailHeight = bubbleView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_tail_height).toFloat(),
+                        tailOnRight = messageLayout.reverseBubble != defaultRtl,
+                )
+            } else {
+                bubbleView.setBackgroundResource(messageLayout.bubbleDrawable)
+                if (!messageLayout.isPseudoBubble && !messageLayout.isIncoming && messageLayout.tintOutgoing) {
+                    val accent = ThemeUtils.getColor(bubbleView.context, com.google.android.material.R.attr.colorAccent)
+                    val base = ThemeUtils.getColor(bubbleView.context, im.vector.lib.ui.styles.R.attr.sc_message_bg_outgoing)
+                    // PorterDuffColorFilter (API 1) instead of DrawableCompat.setTint, which is a no-op on
+                    // an unwrapped LayerDrawable pre-21.
+                    bubbleView.background?.mutate()?.colorFilter =
+                            PorterDuffColorFilter(ColorUtils.blendARGB(base, accent, OUTGOING_TINT_RATIO), PorterDuff.Mode.SRC_IN)
+                }
             }
             if (!messageLayout.isPseudoBubble) {
                 longPadding = bubbleView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_inner_padding_long_side)
@@ -422,7 +453,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
 
     private fun tintFooter(color: Int) {
         val tintList = ColorStateList(arrayOf(intArrayOf(0)), intArrayOf(color))
-        views.bubbleFooterReadReceipt.imageTintList = tintList
+        ImageViewCompat.setImageTintList(views.bubbleFooterReadReceipt, tintList)
         views.bubbleFooterMessageTimeView.setTextColor(tintList)
     }
 

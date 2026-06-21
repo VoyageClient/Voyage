@@ -130,9 +130,13 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private val autoCompleters: MutableMap<EditText, AutoCompleter> = hashMapOf()
 
-    private val emojiPopup: EmojiPopup by lifecycleAwareLazy {
+    // vanniktech EmojiPopup themes the pager with EdgeEffect.setColor (API 21+), so it can't run pre-21.
+    private val isEmojiKeyboardSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+
+    private val emojiPopupLazy = lifecycleAwareLazy {
         createEmojiPopup()
     }
+    private val emojiPopup: EmojiPopup by emojiPopupLazy
 
     private val glideRequests by lazy {
         GlideApp.with(this)
@@ -296,7 +300,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         (composer as? RichTextComposerLayout)?.also {
             val isTextFormattingEnabled = attachmentState.isTextFormattingEnabled
             it.isTextFormattingEnabled = isTextFormattingEnabled
-            autoCompleters[it.richTextEditText]?.setEnabled(isTextFormattingEnabled)
+            it.richTextEditText?.let { editText -> autoCompleters[editText]?.setEnabled(isTextFormattingEnabled) }
             autoCompleters[it.plainTextEditText]?.setEnabled(!isTextFormattingEnabled)
         }
     }
@@ -340,7 +344,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         composerEditText.setHint(CommonStrings.room_message_placeholder)
 
         (composer as? RichTextComposerLayout)?.let {
-            initAutoCompleter(it.richTextEditText)
+            it.richTextEditText?.let { editText -> initAutoCompleter(editText) }
             initAutoCompleter(it.plainTextEditText)
         } ?: run {
             initAutoCompleter(composer.editText)
@@ -369,7 +373,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             result
         }
 
-        composer.emojiButton?.isVisible = vectorPreferences.showEmojiKeyboard()
+        composer.emojiButton?.isVisible = vectorPreferences.showEmojiKeyboard() && isEmojiKeyboardSupported
 
         val showKeyboard = withState(timelineViewModel) { it.showKeyboardWhenPresented }
         if (isThreadTimeLine() && showKeyboard) {
@@ -400,7 +404,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             }
 
             override fun onExpandOrCompactChange() {
-                composer.emojiButton?.isVisible = isEmojiKeyboardVisible
+                composer.emojiButton?.isVisible = isEmojiKeyboardVisible && isEmojiKeyboardSupported
             }
 
             override fun onSendMessage(text: CharSequence) = withState(messageComposerViewModel) { state ->
@@ -471,7 +475,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             } else {
                 messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, null, vectorPreferences.isMarkdownEnabled()))
             }
-            emojiPopup.dismiss()
+            if (emojiPopupLazy.isInitialized()) emojiPopup.dismiss()
             if (vectorPreferences.jumpToBottomOnSend()) {
                 timelineViewModel.handle(RoomDetailAction.JumpToBottom)
             }
@@ -579,6 +583,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun setupEmojiButton() {
+        if (!isEmojiKeyboardSupported) {
+            // vanniktech EmojiPopup can't run pre-21 (EdgeEffect.setColor); hide the button on KitKat.
+            composer.emojiButton?.isVisible = false
+            return
+        }
         composer.emojiButton?.debouncedClicks {
             emojiPopup.toggle()
         }

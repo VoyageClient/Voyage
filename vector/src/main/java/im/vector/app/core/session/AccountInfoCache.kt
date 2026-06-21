@@ -109,7 +109,7 @@ class AccountInfoCache @Inject constructor(
                 runCatching {
                     client.newCall(Request.Builder().url(resolved).build()).execute().use { resp ->
                         if (!resp.isSuccessful) return@runCatching
-                        tmp.outputStream().use { out -> resp.body?.byteStream()?.copyTo(out) }
+                        tmp.outputStream().use { out -> resp.body()?.byteStream()?.copyTo(out) }
                         if (!tmp.renameTo(target)) tmp.delete()
                     }
                 }.onFailure {

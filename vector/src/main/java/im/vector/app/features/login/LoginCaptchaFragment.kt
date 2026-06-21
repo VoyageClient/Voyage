@@ -135,6 +135,7 @@ class LoginCaptchaFragment :
                 // runOnUiThread(Runnable { finish() })
             }
 
+            @android.annotation.TargetApi(Build.VERSION_CODES.M)
             override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
                 super.onReceivedHttpError(view, request, errorResponse)
 

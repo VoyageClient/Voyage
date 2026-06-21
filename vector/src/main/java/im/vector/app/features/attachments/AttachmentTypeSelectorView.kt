@@ -10,6 +10,7 @@ package im.vector.app.features.attachments
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Context
+import android.os.Build
 import android.graphics.drawable.BitmapDrawable
 import android.util.Pair
 import android.view.Gravity
@@ -106,7 +107,7 @@ class AttachmentTypeSelectorView(
         animateClose()
 
         val capturedAnchor = anchor
-        if (capturedAnchor != null) {
+        if (capturedAnchor != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             animateWindowOutCircular(capturedAnchor, contentView)
         } else {
             animateWindowOutTranslate(contentView)
@@ -129,6 +130,7 @@ class AttachmentTypeSelectorView(
     }
 
     private fun animateWindowInCircular(anchor: View, contentView: View) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
         val coordinates = getClickCoordinates(anchor, contentView)
         val animator = ViewAnimationUtils.createCircularReveal(
                 contentView,

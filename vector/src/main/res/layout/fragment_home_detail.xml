@@ -40,7 +40,7 @@
                         android:layout_centerVertical="true"
                         android:layout_marginStart="4dp"
                         android:importantForAccessibility="no"
-                        android:src="@drawable/ic_space_icons"
+                        app:srcCompat="@drawable/ic_space_icons"
                         app:tint="?vctr_content_secondary"
                         tools:ignore="MissingPrefix" />
 

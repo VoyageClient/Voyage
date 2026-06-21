@@ -34,10 +34,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Call
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody
 import okhttp3.Response
 import org.json.JSONException
 import org.json.JSONObject
@@ -301,7 +301,7 @@ class BugReporter @Inject constructor(
 
                     // add the gzipped files
                     for (file in gzippedFiles) {
-                        builder.addFormDataPart("compressed-log", file.name, file.asRequestBody(MimeTypes.OctetStream.toMediaTypeOrNull()))
+                        builder.addFormDataPart("compressed-log", file.name, RequestBody.create(MediaType.parse(MimeTypes.OctetStream), file))
                     }
 
                     mBugReportFiles.addAll(gzippedFiles)
@@ -323,7 +323,7 @@ class BugReporter @Inject constructor(
 
                                 builder.addFormDataPart(
                                         "file",
-                                        logCatScreenshotFile.name, logCatScreenshotFile.asRequestBody(MimeTypes.OctetStream.toMediaTypeOrNull())
+                                        logCatScreenshotFile.name, RequestBody.create(MediaType.parse(MimeTypes.OctetStream), logCatScreenshotFile)
                                 )
                             } catch (e: Exception) {
                                 Timber.e(e, "## sendBugReport() : fail to write screenshot$e")
@@ -408,7 +408,7 @@ class BugReporter @Inject constructor(
                     try {
                         mBugReportCall = mOkHttpClient.newCall(request)
                         response = mBugReportCall!!.execute()
-                        responseCode = response.code
+                        responseCode = response.code()
                     } catch (e: Exception) {
                         Timber.e(e, "response")
                         errorMessage = e.localizedMessage
@@ -418,11 +418,11 @@ class BugReporter @Inject constructor(
                     if (responseCode != HttpURLConnection.HTTP_OK) {
                         if (null != errorMessage) {
                             serverError = "Failed with error $errorMessage"
-                        } else if (response?.body == null) {
+                        } else if (response?.body() == null) {
                             serverError = "Failed with error $responseCode"
                         } else {
                             try {
-                                val inputStream = response.body!!.byteStream()
+                                val inputStream = response.body()!!.byteStream()
 
                                 serverError = inputStream.use {
                                     buildString {
@@ -453,7 +453,7 @@ class BugReporter @Inject constructor(
                             }
                         }
                     } else {
-                        reportURL = response?.body?.string()?.let { stringBody ->
+                        reportURL = response?.body()?.string()?.let { stringBody ->
                             adapter.fromJson(stringBody)?.get("report_url")?.toString()
                         }
                     }

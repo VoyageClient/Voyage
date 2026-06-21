@@ -32,7 +32,7 @@
             android:layout_height="40dp"
             android:contentDescription="@string/a11y_checked"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_material_done"
+            app:srcCompat="@drawable/ic_material_done"
             app:tint="@android:color/white"
             tools:ignore="MissingPrefix" />
     </FrameLayout>

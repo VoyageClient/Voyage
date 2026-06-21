@@ -22,7 +22,7 @@
         android:duplicateParentState="true"
         android:importantForAccessibility="no"
         android:padding="10dp"
-        android:src="@drawable/ic_fab_add"
+        app:srcCompat="@drawable/ic_fab_add"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

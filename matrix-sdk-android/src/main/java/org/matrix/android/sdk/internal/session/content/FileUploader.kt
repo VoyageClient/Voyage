@@ -21,13 +21,11 @@ import android.net.Uri
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.HttpUrl
 import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import okio.source
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -86,11 +84,8 @@ internal class FileUploader @Inject constructor(
         val uploadBody = object : RequestBody() {
             override fun contentLength() = file.length()
 
-            // Disable okhttp auto resend for 'large files'
-            override fun isOneShot() = contentLength() == 0L || contentLength() >= 1_000_000
-
             override fun contentType(): MediaType? {
-                return mimeType?.toMediaTypeOrNull()
+                return mimeType?.let { MediaType.parse(it) }
             }
 
             override fun writeTo(sink: BufferedSink) {
@@ -107,7 +102,7 @@ internal class FileUploader @Inject constructor(
             mimeType: String?,
             progressListener: ProgressRequestBody.Listener? = null
     ): ContentUploadResponse {
-        val uploadBody = byteArray.toRequestBody(mimeType?.toMediaTypeOrNull())
+        val uploadBody = RequestBody.create(mimeType?.let { MediaType.parse(it) }, byteArray)
         return upload(uploadBody, filename, progressListener)
     }
 
@@ -140,7 +135,7 @@ internal class FileUploader @Inject constructor(
             filename: String?,
             progressListener: ProgressRequestBody.Listener?
     ): ContentUploadResponse {
-        val urlBuilder = uploadUrl.toHttpUrlOrNull()?.newBuilder() ?: throw RuntimeException()
+        val urlBuilder = HttpUrl.parse(uploadUrl)?.newBuilder() ?: throw RuntimeException()
 
         val httpUrl = urlBuilder
                 .apply {
@@ -162,7 +157,7 @@ internal class FileUploader @Inject constructor(
                 if (!response.isSuccessful) {
                     throw response.toFailure(globalErrorReceiver)
                 } else {
-                    response.body?.source()?.let {
+                    response.body()?.source()?.let {
                         responseAdapter.fromJson(it)
                     }
                             ?: throw IOException()

@@ -26,7 +26,7 @@
         android:layout_gravity="bottom|end"
         android:accessibilityTraversalBefore="@id/roomListView"
         android:contentDescription="@string/a11y_create_room"
-        android:src="@drawable/ic_fab_add_room"
+        app:srcCompat="@drawable/ic_fab_add_room"
         app:backgroundTint="#FFFFFF"
         app:fabCustomSize="48dp"
         app:maxImageSize="26dp"
@@ -50,7 +50,7 @@
         android:layout_gravity="bottom|end"
         android:accessibilityTraversalBefore="@id/createRoomItemGroup"
         android:contentDescription="@string/a11y_create_direct_message"
-        android:src="@drawable/ic_fab_add_chat"
+        app:srcCompat="@drawable/ic_fab_add_chat"
         app:backgroundTint="#FFFFFF"
         app:fabCustomSize="48dp"
         app:maxImageSize="29dp"
@@ -73,7 +73,7 @@
         android:layout_height="wrap_content"
         android:accessibilityTraversalBefore="@id/createRoomItemChat"
         android:contentDescription="@string/a11y_create_menu_open"
-        android:src="@drawable/ic_fab_add"
+        app:srcCompat="@drawable/ic_fab_add"
         app:maxImageSize="14dp" />
 
 </merge>

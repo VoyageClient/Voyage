@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
@@ -66,7 +67,9 @@ class ButtonStateView @JvmOverloads constructor(context: Context, attrs: Attribu
                         }
 
                         button.text = getString(im.vector.lib.ui.styles.R.styleable.ButtonStateView_bsv_button_text)
-                        views.buttonStateLoaded.setImageDrawable(getDrawable(im.vector.lib.ui.styles.R.styleable.ButtonStateView_bsv_loaded_image_src))
+                        views.buttonStateLoaded.setImageDrawable(
+                                getDrawableCompat(context, im.vector.lib.ui.styles.R.styleable.ButtonStateView_bsv_loaded_image_src)
+                        )
                     } finally {
                         recycle()
                     }

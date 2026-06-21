@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fingerprint_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -26,7 +27,7 @@
         android:layout_alignParentStart="true"
         android:layout_below="@id/fingerprint_description"
         android:layout_marginTop="20dp"
-        android:src="@drawable/lockscreen_fingerprint_40"
+        app:srcCompat="@drawable/lockscreen_fingerprint_40"
         android:contentDescription="@string/lockscreen_description_fingerprint_icon"/>
 
     <TextView

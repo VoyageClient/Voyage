@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.media
 
+import org.matrix.android.sdk.api.util.JsonDict
 import javax.inject.Inject
 
 internal class MediaAPIProvider @Inject constructor(
@@ -24,11 +25,19 @@ internal class MediaAPIProvider @Inject constructor(
         private val unauthenticatedMediaAPI: UnauthenticatedMediaAPI,
 ) {
 
+    // The two Retrofit services can't share a MediaAPI supertype (Retrofit 2.6.x rejects service
+    // interfaces that extend others), so bridge the selected one to the common MediaAPI here.
     fun getMediaAPI(): MediaAPI {
         return if (isAuthenticatedMediaSupported()) {
-            authenticatedMediaAPI
+            object : MediaAPI {
+                override suspend fun getMediaConfig(): GetMediaConfigResult = authenticatedMediaAPI.getMediaConfig()
+                override suspend fun getPreviewUrlData(url: String, ts: Long?): JsonDict = authenticatedMediaAPI.getPreviewUrlData(url, ts)
+            }
         } else {
-            unauthenticatedMediaAPI
+            object : MediaAPI {
+                override suspend fun getMediaConfig(): GetMediaConfigResult = unauthenticatedMediaAPI.getMediaConfig()
+                override suspend fun getPreviewUrlData(url: String, ts: Long?): JsonDict = unauthenticatedMediaAPI.getPreviewUrlData(url, ts)
+            }
         }
     }
 }

@@ -19,7 +19,7 @@
         android:layout_height="16dp"
         android:layout_gravity="center"
         android:contentDescription="@string/attachment_type_file"
-        android:src="@drawable/ic_download"
+        app:srcCompat="@drawable/ic_download"
         app:tint="?vctr_notice_secondary"
         tools:ignore="MissingPrefix"
         tools:src="@drawable/ic_paperclip" />

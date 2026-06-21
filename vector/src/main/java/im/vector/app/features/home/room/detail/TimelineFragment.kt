@@ -55,11 +55,11 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
-import im.vector.app.core.animations.play
 import im.vector.app.core.dialogs.ConfirmationDialogBuilder
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
+import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.extensions.containsRtLOverride
@@ -389,8 +389,6 @@ class TimelineFragment :
                 is RoomDetailViewEvents.ShowRoomAvatarFullScreen -> it.matrixItem?.let { item ->
                     navigator.openBigImageViewer(requireActivity(), it.view, item)
                 }
-                is RoomDetailViewEvents.StartChatEffect -> handleChatEffect(it.type)
-                RoomDetailViewEvents.StopChatEffects -> handleStopChatEffects()
                 RoomDetailViewEvents.RoomReplacementStarted -> handleRoomReplacement()
                 RoomDetailViewEvents.DisplayPromptToStopVoiceBroadcast -> displayPromptToStopVoiceBroadcast()
                 is RoomDetailViewEvents.RevokeFilePermission -> revokeFilePermission(it)
@@ -450,30 +448,6 @@ class TimelineFragment :
         // so we need to report progress and retry
         val tag = JoinReplacementRoomBottomSheet::javaClass.name
         JoinReplacementRoomBottomSheet().show(childFragmentManager, tag)
-    }
-
-    private fun handleChatEffect(chatEffect: ChatEffect) {
-        if (!requireContext().isAnimationEnabled()) {
-            Timber.d("Do not perform chat effect, animations are disabled.")
-            return
-        }
-        when (chatEffect) {
-            ChatEffect.CONFETTI -> {
-                views.viewKonfetti.isVisible = true
-                views.viewKonfetti.play()
-            }
-            ChatEffect.SNOWFALL -> {
-                views.viewSnowFall.isVisible = true
-                views.viewSnowFall.restartFalling()
-            }
-        }
-    }
-
-    private fun handleStopChatEffects() {
-        TransitionManager.beginDelayedTransition(views.rootConstraintLayout)
-        views.viewSnowFall.isVisible = false
-        // when gone the effect is a bit buggy
-        views.viewKonfetti.isInvisible = true
     }
 
     override fun onImageReady(uri: Uri?) {
@@ -663,9 +637,6 @@ class TimelineFragment :
     private fun handleSpaceShare() {
         timelineArgs.openShareSpaceForId?.let { spaceId ->
             ShareSpaceBottomSheet.show(childFragmentManager, spaceId, true)
-            view?.post {
-                handleChatEffect(ChatEffect.CONFETTI)
-            }
         }
     }
 
@@ -1306,6 +1277,7 @@ class TimelineFragment :
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
+                    views.includeRoomToolbar.roomToolbarPublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
                 }
             }
         }

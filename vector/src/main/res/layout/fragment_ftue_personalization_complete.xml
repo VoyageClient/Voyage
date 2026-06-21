@@ -35,7 +35,7 @@
         android:background="@drawable/circle"
         android:backgroundTint="?colorSecondary"
         android:importantForAccessibility="no"
-        android:src="@drawable/ic_celebration"
+        app:srcCompat="@drawable/ic_celebration"
         app:layout_constraintBottom_toTopOf="@id/personalizationCompleteSpace2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent="0.15"

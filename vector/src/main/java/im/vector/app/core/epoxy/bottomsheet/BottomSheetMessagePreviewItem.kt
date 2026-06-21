@@ -7,6 +7,7 @@
 package im.vector.app.core.epoxy.bottomsheet
 
 import android.graphics.Outline
+import android.os.Build
 import android.text.method.MovementMethod
 import android.util.TypedValue
 import android.view.View
@@ -87,7 +88,9 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         holder.sender.setTextOrHide(matrixItem.getBestName())
         // Static outline clip — Glide's RoundedCorners only applies to Bitmap output, so a
         // blurhash placeholder (Drawable) renders with square corners without this clip.
-        if (holder.imagePreview.outlineProvider !== ROUNDED_OUTLINE_PROVIDER) {
+        // ViewOutlineProvider / clipToOutline are API 21+; pre-21 the preview renders square corners.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
+                holder.imagePreview.outlineProvider !== ROUNDED_OUTLINE_PROVIDER) {
             holder.imagePreview.outlineProvider = ROUNDED_OUTLINE_PROVIDER
             holder.imagePreview.clipToOutline = true
         }
@@ -139,10 +142,13 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
     }
 
     companion object {
-        private val ROUNDED_OUTLINE_PROVIDER = object : ViewOutlineProvider() {
-            override fun getOutline(view: View, outline: Outline) {
-                val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, view.resources.displayMetrics)
-                outline.setRoundRect(0, 0, view.width, view.height, r)
+        // lazy so the ViewOutlineProvider subclass (API 21+) is never loaded pre-21.
+        private val ROUNDED_OUTLINE_PROVIDER by lazy {
+            object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, view.resources.displayMetrics)
+                    outline.setRoundRect(0, 0, view.width, view.height, r)
+                }
             }
         }
     }

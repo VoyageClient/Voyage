@@ -80,7 +80,7 @@
         android:background="@drawable/circle"
         android:contentDescription="@string/a11y_unsent_draft"
         android:padding="3dp"
-        android:src="@drawable/ic_edit"
+        app:srcCompat="@drawable/ic_edit"
         android:visibility="gone"
         app:layout_constraintCircle="@id/breadcrumbsImageView"
         app:layout_constraintCircleAngle="225"

@@ -27,6 +27,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
+import androidx.core.view.ViewCompat
 
 @EpoxyModelClass
 abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
@@ -92,7 +93,7 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
         }
-        holder.mainLayout.backgroundTintList = ColorStateList.valueOf(backgroundTint)
+        ViewCompat.setBackgroundTintList(holder.mainLayout, ColorStateList.valueOf(backgroundTint))
         holder.filenameView.onClick(attributes.itemClickListener)
         holder.filenameView.setOnLongClickListener(attributes.itemLongClickListener)
         holder.fileImageWrapper.onClick(attributes.itemClickListener)

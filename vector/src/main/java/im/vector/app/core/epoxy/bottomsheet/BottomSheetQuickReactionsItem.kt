@@ -7,6 +7,7 @@
 package im.vector.app.core.epoxy.bottomsheet
 
 import android.graphics.Typeface
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -61,7 +62,7 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
         val ids = IntArray(texts.size)
         texts.forEachIndexed { index, emoji ->
             val selected = selecteds.getOrElse(index) { false }
-            val textView = TextView(context, null, 0, im.vector.lib.ui.styles.R.style.Widget_Vector_TextView_Title).apply {
+            val textView = TextView(ContextThemeWrapper(context, im.vector.lib.ui.styles.R.style.Widget_Vector_TextView_Title), null, 0).apply {
                 id = View.generateViewId()
                 setPadding(padding, padding, padding, padding)
                 typeface = fontProvider.typeface ?: Typeface.DEFAULT

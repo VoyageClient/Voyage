@@ -7,7 +7,9 @@
 
 package im.vector.app.features.widgets.webview
 
+import android.annotation.TargetApi
 import android.app.Activity
+import android.os.Build
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.PermissionRequest
@@ -53,6 +55,7 @@ fun WebView.setupForWidget(activity: Activity,
 
     // Permission requests
     webChromeClient = object : WebChromeClient() {
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         override fun onPermissionRequest(request: PermissionRequest) {
             if (checkWebViewPermissionsUseCase.execute(activity, request)) {
                 request.grant(request.resources)
@@ -64,7 +67,9 @@ fun WebView.setupForWidget(activity: Activity,
     webViewClient = VectorWebViewClient(eventListener)
 
     val cookieManager = CookieManager.getInstance()
-    cookieManager.setAcceptThirdPartyCookies(this, false)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        cookieManager.setAcceptThirdPartyCookies(this, false)
+    }
 }
 
 fun WebView.clearAfterWidget() {

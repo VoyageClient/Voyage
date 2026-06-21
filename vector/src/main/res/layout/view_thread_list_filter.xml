@@ -19,7 +19,7 @@
             android:layout_width="@dimen/menu_item_icon_size"
             android:layout_height="@dimen/menu_item_icon_size"
             android:layout_gravity="center"
-            android:src="@drawable/ic_filter"
+            app:srcCompat="@drawable/ic_filter"
             tools:ignore="ContentDescription" />
 
         <View

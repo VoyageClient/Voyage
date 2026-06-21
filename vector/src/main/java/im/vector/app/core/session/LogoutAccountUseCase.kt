@@ -10,9 +10,9 @@ package im.vector.app.core.session
 import im.vector.app.core.dispatchers.CoroutineDispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.RequestBody
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import timber.log.Timber
 import java.io.IOException
@@ -46,14 +46,14 @@ class LogoutAccountUseCase @Inject constructor(
         val accessToken = sessionParams.credentials.accessToken
         val request = Request.Builder()
                 .url("$homeServerBase/_matrix/client/v3/logout")
-                .post("{}".toRequestBody(JSON))
+                .post(RequestBody.create(JSON, "{}"))
                 .addHeader("Authorization", "Bearer $accessToken")
                 .build()
 
         val reached = withTimeoutOrNull(SERVER_SIGNOUT_TIMEOUT_MS) {
             try {
                 session.getOkHttpClient().newCall(request).execute().use { resp ->
-                    Timber.d("tryServerSignOut $sessionId: HTTP ${resp.code}")
+                    Timber.d("tryServerSignOut $sessionId: HTTP ${resp.code()}")
                     true
                 }
             } catch (io: IOException) {
@@ -98,6 +98,6 @@ class LogoutAccountUseCase @Inject constructor(
 
     companion object {
         private const val SERVER_SIGNOUT_TIMEOUT_MS = 10_000L
-        private val JSON = "application/json".toMediaType()
+        private val JSON = MediaType.parse("application/json")
     }
 }

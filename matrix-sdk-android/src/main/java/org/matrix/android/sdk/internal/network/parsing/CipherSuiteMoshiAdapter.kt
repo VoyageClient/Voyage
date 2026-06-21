@@ -24,7 +24,7 @@ internal class CipherSuiteMoshiAdapter {
 
     @ToJson
     fun toJson(cipherSuite: CipherSuite): String {
-        return cipherSuite.javaName
+        return cipherSuite.javaName()
     }
 
     @FromJson

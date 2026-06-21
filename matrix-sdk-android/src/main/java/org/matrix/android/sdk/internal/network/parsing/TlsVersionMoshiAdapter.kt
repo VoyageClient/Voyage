@@ -24,7 +24,7 @@ internal class TlsVersionMoshiAdapter {
 
     @ToJson
     fun toJson(tlsVersion: TlsVersion): String {
-        return tlsVersion.javaName
+        return tlsVersion.javaName()
     }
 
     @FromJson

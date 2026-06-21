@@ -72,9 +72,12 @@ class RoomWidgetPermissionBottomSheet :
         permissionData.permissionsList.forEach {
             infoBuilder.append("\n")
             val bulletPoint = getString(it)
-            infoBuilder.append(
-                    bulletPoint,
+            val start = infoBuilder.length
+            infoBuilder.append(bulletPoint)
+            infoBuilder.setSpan(
                     BulletSpan(resources.getDimension(im.vector.lib.ui.styles.R.dimen.quote_gap).toInt()),
+                    start,
+                    infoBuilder.length,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }

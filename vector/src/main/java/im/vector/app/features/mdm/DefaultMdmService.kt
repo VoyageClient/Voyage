@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.RestrictionsManager
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,7 +24,13 @@ import javax.inject.Singleton
 class DefaultMdmService @Inject constructor(
         @ApplicationContext applicationContext: Context
 ) : MdmService {
-    private val restrictionsManager = applicationContext.getSystemService<RestrictionsManager>()
+    // RestrictionsManager (enterprise MDM) only exists on API 21+. Touching the type at all on
+    // KitKat throws NoClassDefFoundError, so gate the whole feature off below Lollipop.
+    private val restrictionsManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        applicationContext.getSystemService<RestrictionsManager>()
+    } else {
+        null
+    }
     private var onChangedListener: (() -> Unit)? = null
 
     private val restrictionsReceiver = object : BroadcastReceiver() {
@@ -50,6 +57,7 @@ class DefaultMdmService @Inject constructor(
     }
 
     override fun getData(mdmData: MdmData): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null
         return restrictionsManager?.applicationRestrictions?.getString(mdmData.key)
     }
 }

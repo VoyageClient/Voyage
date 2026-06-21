@@ -152,7 +152,7 @@
         android:backgroundTint="?vctr_header_background"
         android:contentDescription="@string/avatar"
         android:padding="8dp"
-        android:src="@drawable/ic_more_horizontal"
+        app:srcCompat="@drawable/ic_more_horizontal"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?vctr_content_secondary"
         tools:ignore="MissingConstraints" />

@@ -54,9 +54,9 @@ internal class CurlLoggingInterceptor @Inject constructor() :
         curlOptions?.let {
             curlCmd += " $it"
         }
-        curlCmd += " -X " + request.method
+        curlCmd += " -X " + request.method()
 
-        val requestBody = request.body
+        val requestBody = request.body()
         if (requestBody != null) {
             if (requestBody.contentLength() > 100_000) {
                 Timber.w("Unable to log curl command data, size is too big (${requestBody.contentLength()})")
@@ -75,9 +75,9 @@ internal class CurlLoggingInterceptor @Inject constructor() :
             }
         }
 
-        val headers = request.headers
+        val headers = request.headers()
         var i = 0
-        val count = headers.size
+        val count = headers.size()
         while (i < count) {
             val name = headers.name(i)
             val value = headers.value(i)
@@ -88,7 +88,7 @@ internal class CurlLoggingInterceptor @Inject constructor() :
             i++
         }
 
-        curlCmd += ((if (compressed) " --compressed " else " ") + "'" + request.url.toString()
+        curlCmd += ((if (compressed) " --compressed " else " ") + "'" + request.url().toString()
                 // Replace localhost for emulator by localhost for shell
                 .replace("://10.0.2.2:8080/".toRegex(), "://127.0.0.1:8080/") +
                 "'")
@@ -96,7 +96,7 @@ internal class CurlLoggingInterceptor @Inject constructor() :
         // Add Json formatting
         curlCmd += " | python -m json.tool"
 
-        Timber.d("--- cURL (${request.url})")
+        Timber.d("--- cURL (${request.url()})")
         Timber.d(curlCmd)
 
         return chain.proceed(request)

@@ -131,6 +131,9 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
 
     override fun getOtherThemes() = ActivityOtherThemes.Launcher
 
+    // Keep the splash windowBackground (logo); don't replace it with a flat color.
+    override val forceOpaqueWindowBackgroundPreLollipop = false
+
     private lateinit var args: MainActivityArgs
 
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager

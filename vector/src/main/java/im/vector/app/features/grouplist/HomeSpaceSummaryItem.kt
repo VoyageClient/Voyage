@@ -24,6 +24,7 @@ import im.vector.app.core.platform.CheckableConstraintLayout
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
+import androidx.core.widget.ImageViewCompat
 
 @EpoxyModelClass
 abstract class HomeSpaceSummaryItem : VectorEpoxyModel<HomeSpaceSummaryItem.Holder>(R.layout.item_space) {
@@ -47,9 +48,9 @@ abstract class HomeSpaceSummaryItem : VectorEpoxyModel<HomeSpaceSummaryItem.Hold
         holder.rootView.context.resources
         holder.avatarImageView.background = ContextCompat.getDrawable(holder.view.context, R.drawable.space_home_background)
         holder.avatarImageView.setImageResource(R.drawable.ic_space_home)
-        holder.avatarImageView.imageTintList = ColorStateList.valueOf(
+        ImageViewCompat.setImageTintList(holder.avatarImageView, ColorStateList.valueOf(
                 ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
-        )
+        ))
         holder.avatarImageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
         holder.leaveView.isVisible = false
 

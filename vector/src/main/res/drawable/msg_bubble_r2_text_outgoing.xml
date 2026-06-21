@@ -27,18 +27,7 @@ Note also that most of the comments should not be changed without checking their
 
     <!-- Tail -->
     <item
-        android:gravity="top|right">
-        <vector
-            android:width="@dimen/sc_bubble_tail_size"
-            android:height="@dimen/sc_bubble_tail_size"
-            android:viewportWidth="10.0"
-            android:viewportHeight="10.0">
-            
-            <path
-                android:pathData="M10,0 L0,10 L0,0 Z"
-                android:fillColor="?sc_message_bg_outgoing" />
-            <!-- tail end -->
-        </vector>
-    </item>
+        android:gravity="top|right"
+        android:drawable="@drawable/sc_bubble_tail_outgoing" />
     <!-- Tail end -->
 </layer-list>

@@ -124,7 +124,6 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY = "SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY"
         private const val SETTINGS_VIBRATE_ON_MENTION_KEY = "SETTINGS_VIBRATE_ON_MENTION_KEY"
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
-        private const val SETTINGS_ENABLE_CHAT_EFFECTS = "SETTINGS_ENABLE_CHAT_EFFECTS"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
         private const val SETTINGS_LABS_ENABLE_LATEX_MATHS = "SETTINGS_LABS_ENABLE_LATEX_MATHS"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
@@ -1050,9 +1049,6 @@ class VectorPreferences @Inject constructor(
         return defaultPrefs.getBoolean(SETTINGS_SECURITY_USE_GRACE_PERIOD_FLAG, true)
     }
 
-    fun chatEffectsEnabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_ENABLE_CHAT_EFFECTS, true)
-    }
 
     fun directShareEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ENABLE_DIRECT_SHARE, true)
@@ -1360,11 +1356,10 @@ class VectorPreferences @Inject constructor(
         return defaultPrefs.getBoolean(SETTINGS_COMPACT_QUICK_REACTIONS_KEY, false)
     }
 
+    // The wysiwyg composer is backed by a Rust/uniffi native lib we can't support down to KitKat.
+    // Hard-off everywhere so the legacy plain-text compose/render paths are always used.
     fun isRichTextEditorEnabled(): Boolean {
-        return defaultPrefs.getBoolean(
-                SETTINGS_LABS_RICH_TEXT_EDITOR_KEY,
-                getDefault(im.vector.app.config.R.bool.settings_labs_rich_text_editor_default)
-        )
+        return false
     }
 
     fun isVoiceBroadcastEnabled(): Boolean {

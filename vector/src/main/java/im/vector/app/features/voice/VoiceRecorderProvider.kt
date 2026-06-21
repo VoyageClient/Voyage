@@ -43,6 +43,7 @@ class VoiceRecorderProvider @Inject constructor(
 
     @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal fun hasOpusEncoder(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false
         val codecList = MediaCodecList(MediaCodecList.ALL_CODECS)
         val format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_OPUS, 48000, 1)
         return codecList.findEncoderForFormat(format) != null

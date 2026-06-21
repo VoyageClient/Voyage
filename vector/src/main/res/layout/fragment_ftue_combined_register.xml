@@ -45,7 +45,7 @@
             android:background="@drawable/circle"
             android:backgroundTint="?colorSecondary"
             android:contentDescription="@null"
-            android:src="@drawable/ic_user_fg"
+            app:srcCompat="@drawable/ic_user_fg"
             app:layout_constraintBottom_toTopOf="@id/createAccountHeaderTitle"
             app:layout_constraintEnd_toEndOf="@id/createAccountGutterEnd"
             app:layout_constraintHeight_percent="0.10"

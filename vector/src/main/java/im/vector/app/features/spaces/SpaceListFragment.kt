@@ -12,6 +12,7 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyTouchHelper
 import com.airbnb.mvrx.Loading
@@ -94,8 +95,8 @@ class SpaceListFragment :
                             viewModel.handle(SpaceListAction.OnStartDragging(it, model.expanded))
                         }
                         itemView?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                        initialElevation = itemView?.elevation
-                        itemView?.elevation = 6f
+                        initialElevation = itemView?.let { ViewCompat.getElevation(it) }
+                        itemView?.let { ViewCompat.setElevation(it, 6f) }
                     }
 
                     override fun onDragReleased(model: SpaceSummaryItem?, itemView: View?) {
@@ -105,7 +106,7 @@ class SpaceListFragment :
                     }
 
                     override fun clearView(model: SpaceSummaryItem?, itemView: View?) {
-                        itemView?.elevation = initialElevation ?: 0f
+                        itemView?.let { ViewCompat.setElevation(it, initialElevation ?: 0f) }
                     }
 
                     override fun onModelMoved(fromPosition: Int, toPosition: Int, modelBeingMoved: SpaceSummaryItem?, itemView: View?) {

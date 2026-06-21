@@ -56,7 +56,7 @@
         android:layout_height="32dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/pinned_messages_actions"
-        android:src="@drawable/ic_more_vertical"
+        app:srcCompat="@drawable/ic_more_vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?vctr_content_secondary" />

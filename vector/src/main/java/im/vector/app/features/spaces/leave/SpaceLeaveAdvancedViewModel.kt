@@ -24,7 +24,6 @@ import im.vector.app.features.powerlevel.isLastAdminFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import okhttp3.internal.toImmutableList
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.session.Session
@@ -132,7 +131,7 @@ class SpaceLeaveAdvancedViewModel @AssistedInject constructor(
         }
         setState {
             copy(
-                    selectedRooms = existing.toImmutableList(),
+                    selectedRooms = existing.toList(),
             )
         }
     }

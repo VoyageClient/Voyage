@@ -9,6 +9,7 @@ package im.vector.app.features.themes
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.util.TypedValue
 import androidx.annotation.AttrRes
@@ -50,6 +51,12 @@ object ThemeUtils {
     private var currentThemeAccent = AtomicReference<String>(null)
 
     private val mColorByAttr = HashMap<Int, Int>()
+
+    // Colors are resolved against this freshly-built theme rather than a Context's theme. Context.setTheme
+    // is cumulative (applyStyle never resets), so a live theme swap leaves stale attrs from the previous
+    // theme on the app context; rebuilding from scratch each change keeps resolution accurate without a
+    // process restart.
+    private var themeReference: Resources.Theme? = null
 
     // init the theme
     fun init(context: Context) {
@@ -112,7 +119,12 @@ object ThemeUtils {
     fun setApplicationTheme(context: Context, aTheme: String, aAccent: String) {
         currentTheme.set(aTheme)
         currentThemeAccent.set(aAccent)
-        context.setTheme(themeToRes(aTheme, aAccent))
+        val themeRes = themeToRes(aTheme, aAccent)
+        context.setTheme(themeRes)
+
+        themeReference = context.applicationContext.resources.newTheme().apply {
+            applyStyle(themeRes, true)
+        }
 
         // Clear the cache
         mColorByAttr.clear()
@@ -155,7 +167,7 @@ object ThemeUtils {
         return mColorByAttr.getOrPut(colorAttribute) {
             try {
                 val color = TypedValue()
-                c.theme.resolveAttribute(colorAttribute, color, true)
+                (themeReference ?: c.theme).resolveAttribute(colorAttribute, color, true)
                 color.data
             } catch (e: Exception) {
                 Timber.e(e, "Unable to get color")

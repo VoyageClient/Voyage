@@ -12,7 +12,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="@null"
-        android:src="@drawable/ic_close_24dp"
+        app:srcCompat="@drawable/ic_close_24dp"
         android:tint="?vctr_content_secondary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"/>

@@ -12,7 +12,7 @@
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:importantForAccessibility="no"
-        android:src="@drawable/ic_room_profile_member_list"
+        app:srcCompat="@drawable/ic_room_profile_member_list"
         app:layout_constraintBottom_toBottomOf="@id/spaceSummaryMemberCountText"
         app:layout_constraintStart_toEndOf="@id/spaceSummaryMemberCountText"
         app:layout_constraintStart_toStartOf="parent"

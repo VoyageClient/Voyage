@@ -16,6 +16,7 @@ import androidx.core.content.res.use
 import im.vector.app.R
 import im.vector.app.databinding.ViewSecurityRecommendationBinding
 import im.vector.lib.strings.CommonStrings
+import androidx.core.view.ViewCompat
 
 class SecurityRecommendationView @JvmOverloads constructor(
         context: Context,
@@ -67,7 +68,7 @@ class SecurityRecommendationView @JvmOverloads constructor(
         val imageResource = typedArray.getResourceId(im.vector.lib.ui.styles.R.styleable.SecurityRecommendationView_recommendationImageResource, 0)
         val backgroundTint = typedArray.getColor(im.vector.lib.ui.styles.R.styleable.SecurityRecommendationView_recommendationImageBackgroundTint, 0)
         views.recommendationShieldImageView.setImageResource(imageResource)
-        views.recommendationShieldImageView.backgroundTintList = ColorStateList.valueOf(backgroundTint)
+        ViewCompat.setBackgroundTintList(views.recommendationShieldImageView, ColorStateList.valueOf(backgroundTint))
     }
 
     private fun setDescription(description: String?) {

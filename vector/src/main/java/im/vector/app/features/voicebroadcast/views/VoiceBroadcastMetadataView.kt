@@ -14,6 +14,7 @@ import android.view.LayoutInflater
 import android.widget.LinearLayout
 import androidx.core.content.res.use
 import im.vector.app.R
+import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.databinding.ViewVoiceBroadcastMetadataBinding
 
 class VoiceBroadcastMetadataView @JvmOverloads constructor(
@@ -46,7 +47,7 @@ class VoiceBroadcastMetadataView @JvmOverloads constructor(
     }
 
     private fun setIcon(typedArray: TypedArray) {
-        val icon = typedArray.getDrawable(im.vector.lib.ui.styles.R.styleable.VoiceBroadcastMetadataView_metadataIcon)
+        val icon = typedArray.getDrawableCompat(context, im.vector.lib.ui.styles.R.styleable.VoiceBroadcastMetadataView_metadataIcon)
         views.metadataIcon.setImageDrawable(icon)
     }
 

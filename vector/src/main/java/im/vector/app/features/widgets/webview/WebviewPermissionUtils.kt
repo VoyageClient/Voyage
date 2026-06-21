@@ -7,7 +7,9 @@
 package im.vector.app.features.widgets.webview
 
 import android.Manifest
+import android.annotation.TargetApi
 import android.content.Context
+import android.os.Build
 import android.webkit.PermissionRequest
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.StringRes
@@ -27,6 +29,7 @@ class WebviewPermissionUtils @Inject constructor(
     private var permissionRequest: PermissionRequest? = null
     private var selectedPermissions = listOf<String>()
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     fun promptForPermissions(
             @StringRes title: Int,
             request: PermissionRequest,
@@ -67,6 +70,7 @@ class WebviewPermissionUtils @Inject constructor(
                 .show()
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private fun onPermissionsSelected(
             permissions: List<String>,
             request: PermissionRequest,
@@ -88,6 +92,7 @@ class WebviewPermissionUtils @Inject constructor(
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     fun onPermissionResult(result: Map<String, Boolean>) {
         if (permissionRequest == null) {
             fatalError(

@@ -11,7 +11,6 @@ import android.animation.Animator
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
@@ -19,7 +18,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.animation.doOnEnd
-import androidx.core.widget.ImageViewCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import im.vector.app.features.themes.ThemeUtils
@@ -93,16 +92,6 @@ open class VectorPreference : Preference {
 
             summary?.setTypeface(null, mTypeface)
 
-            if (tintIcon) {
-                // Tint icons (See #1786)
-                val icon = holder.findViewById(android.R.id.icon) as? ImageView
-
-                icon?.let {
-                    val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                    ImageViewCompat.setImageTintList(it, ColorStateList.valueOf(color))
-                }
-            }
-
             // cancel existing animation (find a way to resume if happens during anim?)
             currentHighlightAnimator?.cancel()
             if (isHighlighted) {
@@ -136,6 +125,19 @@ open class VectorPreference : Preference {
         }
 
         super.onBindViewHolder(holder)
+
+        if (tintIcon) {
+            // Tint after super, which is what actually sets the icon drawable on the ImageView. Tint the
+            // drawable directly via DrawableCompat — pre-21, ImageViewCompat.setImageTintList is a no-op for
+            // plain (non-AppCompat) ImageViews, which is what the preference row icon is, so it stays black.
+            val icon = holder.findViewById(android.R.id.icon) as? ImageView
+            icon?.drawable?.let { drawable ->
+                val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                val tinted = DrawableCompat.wrap(drawable.mutate())
+                DrawableCompat.setTint(tinted, color)
+                icon.setImageDrawable(tinted)
+            }
+        }
     }
 
     /**

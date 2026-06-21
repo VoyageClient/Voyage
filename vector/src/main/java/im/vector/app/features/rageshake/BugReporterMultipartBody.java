@@ -9,13 +9,13 @@ package im.vector.app.features.rageshake;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import okhttp3.Headers;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import okhttp3.internal.Util;
 import okio.Buffer;
 import okio.BufferedSink;
 import okio.ByteString;
@@ -56,7 +56,7 @@ public class BugReporterMultipartBody extends RequestBody {
     private BugReporterMultipartBody(ByteString boundary, List<Part> parts) {
         mBoundary = boundary;
         mContentType = MediaType.parse(FORM + "; boundary=" + boundary.utf8());
-        mParts = Util.toImmutableList(parts);
+        mParts = Collections.unmodifiableList(new ArrayList<>(parts));
     }
 
     @Override
@@ -215,7 +215,7 @@ public class BugReporterMultipartBody extends RequestBody {
         }
 
         public static Part createFormData(String name, String value) {
-            return createFormData(name, null, RequestBody.create(value, null));
+            return createFormData(name, null, RequestBody.create((MediaType) null, value));
         }
 
         public static Part createFormData(String name, String filename, RequestBody body) {

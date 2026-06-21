@@ -18,7 +18,7 @@ package org.matrix.android.sdk.internal.session.space
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import okhttp3.ResponseBody.Companion.toResponseBody
+import okhttp3.ResponseBody
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 import org.matrix.android.sdk.test.fakes.FakeGlobalErrorReceiver
@@ -55,6 +55,6 @@ internal class DefaultResolveSpaceInfoTaskTest {
 
     companion object {
         private val response = aSpacesResponse()
-        private val httpException = HttpException(Response.error<SpacesResponse>(500, "".toResponseBody()))
+        private val httpException = HttpException(Response.error<SpacesResponse>(500, ResponseBody.create(null, "")))
     }
 }

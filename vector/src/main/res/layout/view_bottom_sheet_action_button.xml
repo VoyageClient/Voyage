@@ -76,7 +76,7 @@
             app:layout_constraintEnd_toStartOf="@id/bottomSheetActionIcon"
             app:layout_constraintStart_toEndOf="@id/bottomSheetActionTitle"
             app:layout_constraintTop_toTopOf="parent"
-            android:src="@drawable/ic_beta_pill" />
+            app:srcCompat="@drawable/ic_beta_pill" />
 
         <ImageView
             android:id="@+id/bottomSheetActionIcon"

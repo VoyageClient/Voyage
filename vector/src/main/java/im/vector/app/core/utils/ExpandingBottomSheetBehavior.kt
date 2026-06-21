@@ -205,7 +205,7 @@ class ExpandingBottomSheetBehavior<V : View> : CoordinatorLayout.Behavior<V> {
             val scrimView = View(parent.context)
             scrimView.setBackgroundColor(scrimViewColor)
             @Suppress("DEPRECATION")
-            scrimView.translationZ = scrimViewTranslationZ * child.resources.displayMetrics.scaledDensity
+            ViewCompat.setTranslationZ(scrimView, scrimViewTranslationZ * child.resources.displayMetrics.scaledDensity)
             scrimView.isVisible = false
             val params = CoordinatorLayout.LayoutParams(
                     CoordinatorLayout.LayoutParams.MATCH_PARENT,
@@ -627,7 +627,7 @@ class ExpandingBottomSheetBehavior<V : View> : CoordinatorLayout.Behavior<V> {
 
             override fun onEnd(animation: WindowInsetsAnimationCompat) {
                 isAnimating = false
-                view.requestApplyInsets()
+                ViewCompat.requestApplyInsets(view)
             }
         })
 

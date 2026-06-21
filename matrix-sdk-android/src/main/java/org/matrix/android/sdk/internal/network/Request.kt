@@ -63,11 +63,11 @@ internal suspend inline fun <DATA> executeRequest(
             }
 
             // Log some details about the request which has failed.
-            val request = (throwable as? HttpException)?.response()?.raw()?.request
+            val request = (throwable as? HttpException)?.response()?.raw()?.request()
             if (request == null) {
                 Timber.e("Exception when executing request")
             } else {
-                Timber.e("Exception when executing request ${request.method} ${request.url.toString().substringBefore("?")}")
+                Timber.e("Exception when executing request ${request.method()} ${request.url().toString().substringBefore("?")}")
             }
 
             // Check if this is a certificateException

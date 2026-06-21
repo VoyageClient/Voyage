@@ -124,7 +124,7 @@
                 android:backgroundTint="?colorPrimary"
                 android:importantForAccessibility="no"
                 android:scaleType="center"
-                android:src="@drawable/ic_add_people" />
+                app:srcCompat="@drawable/ic_add_people" />
 
             <TextView
                 style="@style/Widget.Vector.TextView.Body"

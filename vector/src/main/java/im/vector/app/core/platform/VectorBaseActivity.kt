@@ -10,6 +10,8 @@ package im.vector.app.core.platform
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
@@ -27,7 +29,6 @@ import androidx.core.app.MultiWindowModeChangedInfo
 import androidx.core.util.Consumer
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
-import androidx.core.view.ViewGroupCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
@@ -188,6 +189,17 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         super.attachBaseContext(vectorConfiguration.getLocalisedContext(base))
     }
 
+    private var themeAwareResources: android.content.res.Resources? = null
+
+    // On KitKat, wrap resources so theme attributes inside drawables (?colorAccent, ?vctr_*) resolve
+    // against the live theme — pre-21 the framework can't do this and the drawable fails to inflate.
+    override fun getResources(): android.content.res.Resources {
+        val base = super.getResources()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) return base
+        return themeAwareResources ?: im.vector.app.core.resources.ThemeAwareResources(base) { theme }
+                .also { themeAwareResources = it }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         restorables.forEach { it.onSaveInstanceState(outState) }
@@ -210,6 +222,12 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         Timber.i("onCreate Activity ${javaClass.simpleName}")
         val activityEntryPoint = EntryPointAccessors.fromActivity(this, ActivityEntryPoint::class.java)
         ThemeUtils.setActivityTheme(this, getOtherThemes())
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP && forceOpaqueWindowBackgroundPreLollipop) {
+            // Pre-21 the themed window background can end up transparent (no edge-to-edge backing),
+            // leaving content-less screens see-through. Force a concrete themed background; the attr is
+            // resolved in code (which works pre-21, unlike ?attr inside XML drawables).
+            window.setBackgroundDrawable(ColorDrawable(ThemeUtils.getColor(this, android.R.attr.colorBackground)))
+        }
         viewModelFactory = activityEntryPoint.viewModelFactory()
         enableEdgeToEdge()
         if (ThemeUtils.isLightTheme(this)) {
@@ -221,7 +239,6 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                 isAppearanceLightNavigationBars = true
             }
         }
-        ViewGroupCompat.installCompatInsetsDispatch(window.decorView)
         super.onCreate(savedInstanceState)
         addOnMultiWindowModeChangedListener(onMultiWindowModeChangedListener)
         setupMenu()
@@ -262,12 +279,14 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             // Blend the system bars into the toolbar for dark/black themes only. In the light theme the
             // toolbar background is near-white, which washes out the status bar and hides its icons, so we
             // keep the theme's default dark status bar there (and avoid a dark→white flip on restart).
-            tryOrNull { // Add to XML theme when feature flag is removed
-                val toolbarBackground = MaterialColors.getColor(views.root, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
-                @Suppress("DEPRECATION")
-                window.statusBarColor = toolbarBackground
-                @Suppress("DEPRECATION")
-                window.navigationBarColor = toolbarBackground
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                tryOrNull { // Add to XML theme when feature flag is removed
+                    val toolbarBackground = MaterialColors.getColor(views.root, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+                    @Suppress("DEPRECATION")
+                    window.statusBarColor = toolbarBackground
+                    @Suppress("DEPRECATION")
+                    window.navigationBarColor = toolbarBackground
+                }
             }
         }
 
@@ -409,7 +428,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             else -> {
                 if (pinLocker.getLiveState().value != PinLocker.State.UNLOCKED) {
                     // Remove the task, to be sure that PIN code will be requested when resumed
-                    finishAndRemoveTask()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) finishAndRemoveTask() else finish()
                 }
             }
         }
@@ -613,6 +632,9 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
      * Return a object containing other themes for this activity.
      */
     open fun getOtherThemes(): ActivityOtherThemes = ActivityOtherThemes.Default
+
+    // Activities with an intentionally translucent window (e.g. the attachment viewer) opt out.
+    protected open val forceOpaqueWindowBackgroundPreLollipop: Boolean = true
 
     /* ==========================================================================================
      * PUBLIC METHODS

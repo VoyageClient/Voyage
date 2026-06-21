@@ -169,18 +169,32 @@ class AttachmentsPreviewFragment :
             @Suppress("DEPRECATION")
             view?.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
         }
-        ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerBottomContainer) { v, insets ->
-            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(bottom = systemBarsInsets.bottom)
-            insets
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerToolbar) { v, insets ->
-            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = systemBarsInsets.top
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerBottomContainer) { v, insets ->
+                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.updatePadding(bottom = systemBarsInsets.bottom)
+                insets
             }
-            insets
+            ViewCompat.setOnApplyWindowInsetsListener(views.attachmentPreviewerToolbar) { v, insets ->
+                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    topMargin = systemBarsInsets.top
+                }
+                insets
+            }
+        } else {
+            // Pre-21 has no window-insets dispatch, so derive the status bar height from platform
+            // resources; otherwise the toolbar renders under the status bar. The nav bar isn't
+            // overlapped pre-21 (and many KitKat devices have hardware keys), so no bottom padding.
+            views.attachmentPreviewerToolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = getSystemBarHeightPx("status_bar_height")
+            }
         }
+    }
+
+    private fun getSystemBarHeightPx(resName: String): Int {
+        val resId = resources.getIdentifier(resName, "dimen", "android")
+        return if (resId > 0) resources.getDimensionPixelSize(resId) else 0
     }
 
     private fun handleRemoveAction() {

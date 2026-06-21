@@ -9,8 +9,8 @@
 
     <!-- BottomSheet theming -->
     <style name="Vector.BottomSheet.SC" parent="Theme.Vector.BottomSheetDialog.Dark">
-        <item name="colorPrimary">?android:colorAccent</item>
-        <item name="colorSecondary">?android:colorAccent</item>
+        <item name="colorPrimary">?colorAccent</item>
+        <item name="colorSecondary">?colorAccent</item>
         <item name="colorSurface">@color/background_dark_sc</item>
         <item name="colorOnSurface">@color/text_color_primary_sc</item>
         <item name="colorError">@color/element_alert_dark</item>
@@ -25,8 +25,8 @@
     </style>
 
     <style name="Vector.BottomSheet.SC.Light" parent="Theme.Vector.BottomSheetDialog.Light">
-        <item name="colorPrimary">?android:colorAccent</item>
-        <item name="colorSecondary">?android:colorAccent</item>
+        <item name="colorPrimary">?colorAccent</item>
+        <item name="colorSecondary">?colorAccent</item>
         <item name="colorSurface">@color/background_sc_light</item>
         <item name="colorOnSurface">@color/text_color_primary_sc_light</item>
         <item name="colorError">@color/element_alert_light</item>

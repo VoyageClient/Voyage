@@ -81,7 +81,7 @@ internal object NetworkModule {
         // Keep many idle HTTPS connections warm for 5 minutes. The default of 5 means a
         // burst of avatar/media fetches reopens TCP+TLS on every request after a brief
         // pause — extremely visible on launch and after the screen wakes from sleep.
-        val connectionPool = ConnectionPool(maxIdleConnections = 16, keepAliveDuration = 5, timeUnit = TimeUnit.MINUTES)
+        val connectionPool = ConnectionPool(16, 5, TimeUnit.MINUTES)
         return OkHttpClient.Builder()
                 // Allow ALPN to negotiate HTTP/2 (fall back to HTTP/1.1). The blanket force to
                 // HTTP/1.1 dates from #4669 (early 2022) which was an OkHttp client bug long

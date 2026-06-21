@@ -17,7 +17,7 @@
         android:layout_marginBottom="16dp"
         android:contentDescription="@string/add_members_to_room"
         android:scaleType="center"
-        android:src="@drawable/ic_fab_add_members"
+        app:srcCompat="@drawable/ic_fab_add_members"
         app:maxImageSize="36dp" />
 
 </FrameLayout>

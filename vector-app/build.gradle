@@ -150,6 +150,7 @@ android {
         minSdk versions.minSdk
         targetSdk versions.targetSdk
         multiDexEnabled true
+        multiDexKeepProguard file('multidex-keep.pro')
 
         renderscriptTargetApi 24
         renderscriptSupportModeEnabled true
@@ -394,8 +395,9 @@ dependencies {
     implementation libs.dagger.hilt
     // Needed on the compile classpath to instantiate MatrixConfiguration (okhttp ConnectionSpec);
     // previously reached vector-app transitively via the Jitsi SDK.
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
-    implementation 'com.squareup.okhttp3:okhttp'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    // Conscrypt (minSdk 9) backfills AES/GCM + TLS 1.2 on KitKat where the platform providers fail.
+    implementation 'org.conscrypt:conscrypt-android:2.5.2'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "androidx.sharetarget:sharetarget:1.2.0"
 

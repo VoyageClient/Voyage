@@ -7,11 +7,11 @@
 
 package im.vector.app.features.voicebroadcast.listening
 
-import android.media.AudioAttributes
 import android.media.MediaPlayer
 import androidx.annotation.MainThread
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.onFirst
+import im.vector.app.core.utils.MediaPlayerCompat
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.voicebroadcast.VoiceBroadcastFailure
@@ -348,13 +348,7 @@ class VoiceBroadcastPlayerImpl @Inject constructor(
                     mediaPlayerListener.onError(mp, what, extra)
                     latch.completeExceptionally(VoiceBroadcastFailure.ListeningError.PrepareMediaPlayerError())
                 }
-                setAudioAttributes(
-                        AudioAttributes.Builder()
-                                // Do not use CONTENT_TYPE_SPEECH / USAGE_VOICE_COMMUNICATION because we want to play loud here
-                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                .setUsage(AudioAttributes.USAGE_MEDIA)
-                                .build()
-                )
+                MediaPlayerCompat.setMediaAudioAttributes(this)
                 audioFile.inputStream().use { fis -> setDataSource(fis.fd) }
                 setOnInfoListener(mediaPlayerListener)
                 setOnPreparedListener(latch::complete)

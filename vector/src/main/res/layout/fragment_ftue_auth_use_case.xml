@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="52dp"
             android:contentDescription="@null"
-            android:src="@drawable/ic_onboarding_use_case_icon"
+            app:srcCompat="@drawable/ic_onboarding_use_case_icon"
             app:layout_constraintBottom_toTopOf="@id/useCaseHeaderTitle"
             app:layout_constraintEnd_toEndOf="@id/useCaseGutterEnd"
             app:layout_constraintStart_toStartOf="@id/useCaseGutterStart"

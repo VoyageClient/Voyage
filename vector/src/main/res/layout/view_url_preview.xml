@@ -5,7 +5,7 @@
     android:id="@+id/informationUrlPreviewContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:parentTag="com.google.android.material.card.MaterialCardView">
+    tools:parentTag="androidx.cardview.widget.CardView">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -93,7 +93,7 @@
             android:scaleType="center"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:src="@drawable/ic_close_with_circular_bg"
+            app:srcCompat="@drawable/ic_close_with_circular_bg"
             tools:ignore="MissingPrefix" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

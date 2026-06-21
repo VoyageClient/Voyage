@@ -31,6 +31,7 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
+import androidx.core.view.ViewCompat
 
 @EpoxyModelClass
 abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
@@ -112,7 +113,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
         }
-        holder.mainLayout.backgroundTintList = ColorStateList.valueOf(backgroundTint)
+        ViewCompat.setBackgroundTintList(holder.mainLayout, ColorStateList.valueOf(backgroundTint))
     }
 
     private fun bindViewAttributes(holder: Holder) {

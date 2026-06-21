@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-21 can't resolve ?attr colors in drawables; the solid is set at runtime via
+     applyThemeShapeColorCompat(). Placeholder color here is overwritten on KitKat. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
 
     <corners android:radius="96dp" />
-    <solid android:color="?android:colorBackground" />
+    <solid android:color="@android:color/transparent" />
 
 </shape>

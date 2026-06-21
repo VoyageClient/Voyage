@@ -27,10 +27,8 @@ import im.vector.app.features.attachments.toContentAttachmentData
 import im.vector.app.features.command.CommandParser
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
-import im.vector.app.features.home.room.detail.ChatEffect
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
-import im.vector.app.features.home.room.detail.toMessageType
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.VoiceFailure
@@ -594,11 +592,6 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)
                         }
-                        is ParsedCommand.SendChatEffect -> {
-                            sendChatEffect(room, parsedCommand)
-                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
-                        }
                         is ParsedCommand.ChangeTopic -> {
                             handleChangeTopicSlashCommand(room, parsedCommand)
                         }
@@ -964,21 +957,6 @@ class MessageComposerViewModel @AssistedInject constructor(
             } else {
                 room.typingService().userStopsTyping()
             }
-        }
-    }
-
-    private fun sendChatEffect(room: Room, sendChatEffect: ParsedCommand.SendChatEffect) {
-        // If message is blank, convert to an emote, with default message
-        if (sendChatEffect.message.isBlank()) {
-            val defaultMessage = stringProvider.getString(
-                    when (sendChatEffect.chatEffect) {
-                        ChatEffect.CONFETTI -> CommonStrings.default_message_emote_confetti
-                        ChatEffect.SNOWFALL -> CommonStrings.default_message_emote_snow
-                    }
-            )
-            room.sendService().sendTextMessage(defaultMessage, MessageType.MSGTYPE_EMOTE)
-        } else {
-            room.sendService().sendTextMessage(sendChatEffect.message, sendChatEffect.chatEffect.toMessageType())
         }
     }
 

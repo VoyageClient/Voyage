@@ -31,6 +31,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
+import androidx.core.view.ViewCompat
 
 @EpoxyModelClass
 abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
@@ -97,7 +98,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
         }
-        holder.voicePlaybackLayout.backgroundTintList = ColorStateList.valueOf(backgroundTint)
+        ViewCompat.setBackgroundTintList(holder.voicePlaybackLayout, ColorStateList.valueOf(backgroundTint))
 
         MediaCaptionBinder.bind(
                 view = holder.captionView,

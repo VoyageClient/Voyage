@@ -36,7 +36,7 @@
         android:background="@drawable/circle"
         android:contentDescription="@string/action_delete"
         android:scaleType="center"
-        android:src="@drawable/ic_delete_10dp"
+        app:srcCompat="@drawable/ic_delete_10dp"
         app:layout_constraintBottom_toBottomOf="@id/formTextInputTextInputLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/formTextInputTextInputLayout"

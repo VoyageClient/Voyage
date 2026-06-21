@@ -48,7 +48,7 @@ class ActiveSessionHolder @Inject constructor(
 ) {
 
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
-    private val pendingReleaseSessionIds = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    private val pendingReleaseSessionIds = java.util.Collections.newSetFromMap<String>(java.util.concurrent.ConcurrentHashMap())
 
     fun setActiveSession(session: Session) {
         Timber.w("setActiveSession of ${session.myUserId}")

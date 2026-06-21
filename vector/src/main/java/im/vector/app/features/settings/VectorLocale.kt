@@ -10,6 +10,7 @@ package im.vector.app.features.settings
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
+import android.os.Build
 import androidx.core.content.edit
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
@@ -17,7 +18,6 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.IllformedLocaleException
 import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -104,7 +104,7 @@ class VectorLocale @Inject constructor(
                 putString(APPLICATION_LOCALE_VARIANT_KEY, variant)
             }
 
-            val script = locale.script
+            val script = scriptOf(locale)
             if (script.isEmpty()) {
                 remove(APPLICATION_LOCALE_SCRIPT_KEY)
             } else {
@@ -163,18 +163,11 @@ class VectorLocale @Inject constructor(
         }
 
         val list = knownLocalesSet.mapNotNull { (language, country, script) ->
-            try {
-                Locale.Builder()
-                        .setLanguage(language)
-                        .setRegion(country)
-                        .setScript(script)
-                        .build()
-            } catch (exception: IllformedLocaleException) {
-                if (buildMeta.isDebug) {
-                    throw exception
-                }
-                // Ignore this locale in production
-                null
+            // Locale.Builder / scripts are API 21+; on KitKat fall back to a plain language+country.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                LocaleScriptCompat.build(language, country, script, buildMeta.isDebug)
+            } else {
+                Locale(language, country)
             }
         }
                 // sort by human display names
@@ -194,9 +187,10 @@ class VectorLocale @Inject constructor(
         return buildString {
             append(locale.getDisplayLanguage(locale))
 
-            if (locale.script != ISO_15924_LATN && locale.getDisplayScript(locale).isNotEmpty()) {
+            val displayScript = displayScriptOf(locale)
+            if (scriptOf(locale) != ISO_15924_LATN && displayScript.isNotEmpty()) {
                 append(" - ")
-                append(locale.getDisplayScript(locale))
+                append(displayScript)
             }
 
             if (locale.getDisplayCountry(locale).isNotEmpty()) {
@@ -217,9 +211,10 @@ class VectorLocale @Inject constructor(
         return buildString {
             append("[")
             append(locale.displayLanguage)
-            if (locale.script != ISO_15924_LATN) {
+            val displayScript = displayScriptOf(locale)
+            if (scriptOf(locale) != ISO_15924_LATN && displayScript.isNotEmpty()) {
                 append(" - ")
-                append(locale.displayScript)
+                append(displayScript)
             }
             if (locale.displayCountry.isNotEmpty()) {
                 append(" (")
@@ -229,6 +224,15 @@ class VectorLocale @Inject constructor(
             append("]")
         }
     }
+
+    // Locale script APIs are API 21+. Route them through LocaleScriptCompat so this class never
+    // references them directly (which would VerifyError on KitKat); that class is only loaded here
+    // on API >= 21.
+    private fun scriptOf(locale: Locale): String =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) LocaleScriptCompat.script(locale) else ""
+
+    private fun displayScriptOf(locale: Locale): String =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) LocaleScriptCompat.displayScript(locale, locale) else ""
 
     suspend fun getSupportedLocales(): List<Locale> {
         if (supportedLocales.isEmpty()) {

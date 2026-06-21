@@ -25,6 +25,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.animations.AppBarStateChangeListener
 import im.vector.app.core.animations.MatrixItemAppBarStateChangeListener
+import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
@@ -236,6 +237,7 @@ class RoomProfileFragment :
                 views.matrixProfileDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
                 headerViews.roomProfilePresenceImageView.render(it.isDirect, it.directUserPresence)
                 headerViews.roomProfilePublicImageView.isVisible = it.isPublic && !it.isDirect
+                headerViews.roomProfilePublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
             }
         }
         roomProfileController.setData(state)

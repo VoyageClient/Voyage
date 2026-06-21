@@ -7,8 +7,10 @@
 
 package im.vector.app.core.utils
 
+import android.annotation.TargetApi
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.os.Build
 import android.webkit.PermissionRequest
 import androidx.core.content.ContextCompat
 import javax.inject.Inject
@@ -21,6 +23,7 @@ class CheckWebViewPermissionsUseCase @Inject constructor() {
      * @param request WebView permission request of onPermissionRequest function
      * @return true if WebView permissions are already granted, false otherwise
      */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     fun execute(activity: Activity, request: PermissionRequest): Boolean {
         return request.resources.all {
             when (it) {

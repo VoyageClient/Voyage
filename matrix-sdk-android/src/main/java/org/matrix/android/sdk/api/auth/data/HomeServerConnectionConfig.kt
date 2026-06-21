@@ -205,12 +205,12 @@ data class HomeServerConnectionConfig(
                 withShouldAcceptTlsExtensions(false)
 
                 // TlS versions
-                ConnectionSpec.RESTRICTED_TLS.tlsVersions?.let { this.tlsVersions.addAll(it) }
+                ConnectionSpec.RESTRICTED_TLS.tlsVersions()?.let { this.tlsVersions.addAll(it) }
 
                 forceUsageOfTlsVersions(enableCompatibilityMode)
 
                 // Cipher suites
-                ConnectionSpec.RESTRICTED_TLS.cipherSuites?.let { this.tlsCipherSuites.addAll(it) }
+                ConnectionSpec.RESTRICTED_TLS.cipherSuites()?.let { this.tlsCipherSuites.addAll(it) }
 
                 if (enableCompatibilityMode) {
                     // Adopt some preceding cipher suites for Android < 20 to be able to negotiate

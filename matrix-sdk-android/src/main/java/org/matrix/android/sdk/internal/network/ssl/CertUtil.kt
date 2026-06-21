@@ -200,7 +200,7 @@ internal object CertUtil {
      * @return a new HostnameVerifier.
      */
     fun newHostnameVerifier(hsConfig: HomeServerConnectionConfig): HostnameVerifier {
-        val defaultVerifier: HostnameVerifier = OkHostnameVerifier // HttpsURLConnection.getDefaultHostnameVerifier()
+        val defaultVerifier: HostnameVerifier = OkHostnameVerifier.INSTANCE // HttpsURLConnection.getDefaultHostnameVerifier()
         val trustedFingerprints = hsConfig.allowedFingerprints
 
         return HostnameVerifier { hostname, session ->

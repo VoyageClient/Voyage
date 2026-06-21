@@ -116,14 +116,27 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
         scaleDetector = createScaleGestureDetector()
 
-        ViewCompat.setOnApplyWindowInsetsListener(views.rootContainer) { _, insets ->
-            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ViewCompat.setOnApplyWindowInsetsListener(views.rootContainer) { _, insets ->
+                val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-            overlayView?.updatePadding(top = systemBarsInsets.top, bottom = systemBarsInsets.bottom)
-            topInset = systemBarsInsets.top
-            bottomInset = systemBarsInsets.bottom
-            insets
+                overlayView?.updatePadding(top = systemBarsInsets.top, bottom = systemBarsInsets.bottom)
+                topInset = systemBarsInsets.top
+                bottomInset = systemBarsInsets.bottom
+                insets
+            }
+        } else {
+            // Pre-21 has no window-insets dispatch, so derive the system bar heights from platform resources;
+            // otherwise the overlay (title/actions bar) renders under the translucent status bar.
+            topInset = getSystemBarHeightPx("status_bar_height")
+            bottomInset = getSystemBarHeightPx("navigation_bar_height")
+            overlayView?.updatePadding(top = topInset, bottom = bottomInset)
         }
+    }
+
+    private fun getSystemBarHeightPx(resName: String): Int {
+        val resId = resources.getIdentifier(resName, "dimen", "android")
+        return if (resId > 0) resources.getDimensionPixelSize(resId) else 0
     }
 
     private fun setDecorViewFullScreen() {
@@ -321,8 +334,10 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     protected open fun shouldAnimateDismiss(): Boolean = true
 
     protected open fun animateClose() {
-        @Suppress("DEPRECATION")
-        window.statusBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            @Suppress("DEPRECATION")
+            window.statusBarColor = Color.TRANSPARENT
+        }
         finish()
     }
 

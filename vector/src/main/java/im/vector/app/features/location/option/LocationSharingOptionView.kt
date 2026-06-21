@@ -17,6 +17,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.use
 import androidx.core.view.setPadding
+import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.tintBackground
 import im.vector.app.databinding.ViewLocationSharingOptionBinding
 
@@ -52,8 +53,8 @@ class LocationSharingOptionView @JvmOverloads constructor(
     }
 
     private fun setIcon(typedArray: TypedArray) {
-        val icon = typedArray.getDrawable(im.vector.lib.ui.styles.R.styleable.LocationSharingOptionView_locShareIcon)
-        val background = typedArray.getDrawable(im.vector.lib.ui.styles.R.styleable.LocationSharingOptionView_locShareIconBackground)
+        val icon = typedArray.getDrawableCompat(context, im.vector.lib.ui.styles.R.styleable.LocationSharingOptionView_locShareIcon)
+        val background = typedArray.getDrawableCompat(context, im.vector.lib.ui.styles.R.styleable.LocationSharingOptionView_locShareIconBackground)
         val backgroundTint = typedArray.getColor(
                 im.vector.lib.ui.styles.R.styleable.LocationSharingOptionView_locShareIconBackgroundTint,
                 ContextCompat.getColor(context, android.R.color.transparent)

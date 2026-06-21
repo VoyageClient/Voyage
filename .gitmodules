@@ -1,3 +1,9 @@
 [submodule "library/external/libce"]
 	path = library/external/libce
 	url = https://github.com/VoyageClient/libce
+[submodule "library/external/libopus/src/main/cpp/opus/libopus"]
+	path = library/external/libopus/src/main/cpp/opus/libopus
+	url = https://github.com/xiph/opus.git
+[submodule "library/external/libopus/src/main/cpp/opus/libopusenc"]
+	path = library/external/libopus/src/main/cpp/opus/libopusenc
+	url = https://github.com/xiph/libopusenc.git

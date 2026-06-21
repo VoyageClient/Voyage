@@ -27,7 +27,7 @@
         android:clickable="true"
         android:contentDescription="@string/a11y_location_share_locate_button"
         android:focusable="true"
-        android:src="@drawable/btn_locate"
+        app:srcCompat="@drawable/btn_locate"
         android:visibility="gone"
         tools:visibility="visible" />
 

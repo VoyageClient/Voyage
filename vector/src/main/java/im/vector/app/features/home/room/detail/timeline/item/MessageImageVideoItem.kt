@@ -88,19 +88,23 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         // view-level outline clip too, so animated drawables (FrameAnimationDrawable / animated
         // WebP / APNG) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
         // Transformation and is silently skipped for those.
-        if (!isBubble) {
-            val r = dimensionConverter.dpToPx(8).toFloat()
-            holder.imageView.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, r)
+        // clipToOutline / ViewOutlineProvider are API 21+. On KitKat static images are still rounded
+        // by Glide's RoundedCorners; only animated drawables miss the view-level clip there.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (!isBubble) {
+                val r = dimensionConverter.dpToPx(8).toFloat()
+                holder.imageView.outlineProvider = object : ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: Outline) {
+                        outline.setRoundRect(0, 0, view.width, view.height, r)
+                    }
                 }
+                holder.imageView.clipToOutline = true
+                holder.imageView.tag = r
+            } else {
+                holder.imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
+                holder.imageView.clipToOutline = false
+                holder.imageView.tag = 0f
             }
-            holder.imageView.clipToOutline = true
-            holder.imageView.tag = r
-        } else {
-            holder.imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
-            holder.imageView.clipToOutline = false
-            holder.imageView.tag = 0f
         }
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
         val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.eventId)

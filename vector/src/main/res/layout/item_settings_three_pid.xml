@@ -44,7 +44,7 @@
         android:layout_height="@dimen/layout_touch_size"
         android:contentDescription="@string/action_delete"
         android:scaleType="center"
-        android:src="@drawable/ic_trash_24"
+        app:srcCompat="@drawable/ic_trash_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"

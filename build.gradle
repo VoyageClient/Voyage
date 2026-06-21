@@ -120,6 +120,31 @@ allprojects {
         kotlinOptions.allWarningsAsErrors = project.getProperties().getOrDefault("allWarningsAsErrors", "true").toBoolean()
     }
 
+    // KitKat (API 19) needs the okhttp 3.12.x LTS line; 3.13+ require API 21. okhttp 4.x keeps
+    // binary back-compat for 3.x-compiled callers, but 4.x-compiled libs (glide's 4.12
+    // okhttp3-integration) call getters absent in 3.12 — so pin the integration to its last
+    // okhttp-3.x-based release too.
+    configurations.all {
+        resolutionStrategy {
+            force 'com.squareup.okhttp3:okhttp:3.12.13'
+            force 'com.squareup.okhttp3:logging-interceptor:3.12.13'
+            force 'com.github.bumptech.glide:okhttp3-integration:4.11.0'
+
+            // appcompat 1.7 / core 1.14+ / fragment 1.7+ raised their minSdk to 21; transitive
+            // deps (notably maplibre) pull them back up, which would put API-21-only AndroidX on
+            // KitKat's core UI paths. Pin the whole stack to its last minSdk-19 line.
+            force 'androidx.appcompat:appcompat:1.6.1'
+            force 'androidx.appcompat:appcompat-resources:1.6.1'
+            force 'androidx.core:core:1.13.1'
+            force 'androidx.core:core-ktx:1.13.1'
+            force 'androidx.fragment:fragment:1.6.2'
+            force 'androidx.fragment:fragment-ktx:1.6.2'
+            force 'androidx.fragment:fragment-testing-manifest:1.6.2'
+            force 'androidx.activity:activity:1.8.2'
+            force 'androidx.activity:activity-ktx:1.8.2'
+        }
+    }
+
     // Fix "Java heap space" issue
     tasks.withType(org.jlleitschuh.gradle.ktlint.tasks.BaseKtLintCheckTask).configureEach {
         it.workerMaxHeapSize.set("2G")

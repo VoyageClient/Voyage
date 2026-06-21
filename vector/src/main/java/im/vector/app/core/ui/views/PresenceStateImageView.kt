@@ -12,6 +12,7 @@ import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
 import org.matrix.android.sdk.api.session.presence.model.UserPresence
@@ -24,6 +25,10 @@ class PresenceStateImageView @JvmOverloads constructor(
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
+
+    init {
+        applyThemeShapeColorCompat(android.R.attr.colorBackground)
+    }
 
     fun render(showPresence: Boolean = true, userPresence: UserPresence?) {
         isVisible = showPresence && userPresence != null

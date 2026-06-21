@@ -28,7 +28,7 @@
                 android:layout_height="32dp"
                 android:importantForAccessibility="no"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_security_key_24dp"
+                app:srcCompat="@drawable/ic_security_key_24dp"
                 app:tint="?vctr_content_primary"
                 tools:ignore="MissingPrefix" />
 

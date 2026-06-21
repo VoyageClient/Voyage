@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- These libraries declare minSdk 21 but we run on 19. The pure-Java/Kotlin ones (emoji,
+         blurhash, vanniktech.ui, glide transforms, posthog, penfeizhou animation, compose/sentry
+         transitive) are fine on KitKat. wysiwyg (Rust composer) is force-disabled so its native
+         lib never loads. maplibre (location maps) is runtime-gated: on KitKat locations render as
+         a text notice instead of a map, so its native lib is never touched. -->
+    <uses-sdk tools:overrideLibrary="com.vanniktech.emoji, com.vanniktech.emoji.google, com.vanniktech.emoji.material, com.vanniktech.blurhash, com.vanniktech.ui, jp.wasabeef.glide.transformations, com.posthog.android, com.github.penfeizhou.animation.apng, com.github.penfeizhou.animation.awebp, com.github.penfeizhou.animation.gif, com.github.penfeizhou.animation.frameanimation, io.element.android.wysiwyg, io.sentry.android, io.sentry.android.core, io.sentry.android.ndk, io.sentry.android.replay, io.sentry.ndk, androidx.compose.runtime, androidx.compose.runtime.saveable, androidx.compose.ui, androidx.compose.ui.graphics, androidx.compose.ui.text, androidx.compose.ui.unit, androidx.compose.foundation, androidx.compose.animation, androidx.compose.animation.core, androidx.compose.material, androidx.compose.material.ripple, org.maplibre.android, org.maplibre.android.plugins.annotation, org.maplibre.android.gestures" />
+
     <application
         android:name="im.vector.app.VectorApplication"
         android:allowBackup="false"

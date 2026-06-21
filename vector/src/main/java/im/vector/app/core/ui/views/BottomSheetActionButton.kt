@@ -17,10 +17,12 @@ import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.setDrawableOrHide
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.databinding.ViewBottomSheetActionButtonBinding
 import im.vector.app.features.themes.ThemeUtils
+import androidx.core.widget.ImageViewCompat
 
 class BottomSheetActionButton @JvmOverloads constructor(
         context: Context,
@@ -82,7 +84,7 @@ class BottomSheetActionButton @JvmOverloads constructor(
     var tint: Int? = null
         set(value) {
             field = value
-            views.bottomSheetActionLeftIcon.imageTintList = value?.let { ColorStateList.valueOf(value) }
+            ImageViewCompat.setImageTintList(views.bottomSheetActionLeftIcon, value?.let { ColorStateList.valueOf(value) })
         }
 
     var titleTextColor: Int? = null
@@ -105,9 +107,9 @@ class BottomSheetActionButton @JvmOverloads constructor(
             title = getString(im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_actionTitle) ?: ""
             subTitle = getString(im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_actionDescription) ?: ""
             forceStartPadding = getBoolean(im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_forceStartPadding, false)
-            leftIcon = getDrawable(im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_leftIcon)
+            leftIcon = getDrawableCompat(context, im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_leftIcon)
 
-            rightIcon = getDrawable(im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_rightIcon)
+            rightIcon = getDrawableCompat(context, im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_rightIcon)
 
             tint = getColor(im.vector.lib.ui.styles.R.styleable.BottomSheetActionButton_tint, ThemeUtils.getColor(context, android.R.attr.textColor))
             titleTextColor = getColor(

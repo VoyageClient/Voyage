@@ -33,7 +33,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/rootConstraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="?android:colorBackground">
 
         <im.vector.app.core.ui.views.PinnedMessagesBannerView
             android:id="@+id/pinnedMessagesBanner"
@@ -131,7 +132,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             android:contentDescription="@string/a11y_jump_to_bottom"
-            android:src="@drawable/ic_expand_more"
+            app:srcCompat="@drawable/ic_expand_more"
             android:visibility="gone"
             app:backgroundTint="?vctr_jump_to_bottom_bg_tint"
             app:badgeBackgroundColor="?vctr_jump_to_bottom_badge_bg_tint"
@@ -142,18 +143,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:tint="?vctr_jump_to_bottom_icon_tint" />
 
-        <im.vector.app.core.ui.views.CompatKonfetti
-            android:id="@+id/viewKonfetti"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="invisible" />
-
-        <com.jetradarmobile.snowfall.SnowfallView
-            android:id="@+id/viewSnowFall"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?vctr_chat_effect_snow_background"
-            android:visibility="invisible" />
 
         <!-- Room not found layout -->
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -174,7 +163,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_alert_triangle"
+                app:srcCompat="@drawable/ic_alert_triangle"
                 app:layout_constraintBottom_toTopOf="@id/roomNotFoundText"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

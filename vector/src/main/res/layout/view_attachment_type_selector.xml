@@ -13,7 +13,7 @@
         android:layout_margin="@dimen/composer_attachment_margin"
         android:background="@null"
         android:contentDescription="@string/action_close"
-        android:src="@drawable/ic_attachment"
+        app:srcCompat="@drawable/ic_attachment"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -40,7 +40,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_gallery"
-                android:src="@drawable/ic_attachment_gallery"
+                app:srcCompat="@drawable/ic_attachment_gallery"
                 app:tint="?colorPrimary" />
 
             <ImageButton
@@ -50,7 +50,7 @@
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_sticker"
-                android:src="@drawable/ic_attachment_sticker"
+                app:srcCompat="@drawable/ic_attachment_sticker"
                 app:tint="?colorPrimary" />
 
             <ImageButton
@@ -60,7 +60,7 @@
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_file"
-                android:src="@drawable/ic_attachment_file"
+                app:srcCompat="@drawable/ic_attachment_file"
                 app:tint="?colorPrimary" />
 
             <ImageButton
@@ -70,7 +70,7 @@
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_voice_broadcast"
-                android:src="@drawable/ic_attachment_voice_broadcast"
+                app:srcCompat="@drawable/ic_attachment_voice_broadcast"
                 app:tint="?colorPrimary" />
 
             <ImageButton
@@ -80,7 +80,7 @@
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_poll"
-                android:src="@drawable/ic_attachment_poll"
+                app:srcCompat="@drawable/ic_attachment_poll"
                 app:tint="?colorPrimary" />
 
             <ImageButton
@@ -90,7 +90,7 @@
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_location"
-                android:src="@drawable/ic_attachment_location"
+                app:srcCompat="@drawable/ic_attachment_location"
                 app:tint="?colorPrimary" />
 
             <ImageButton
@@ -100,7 +100,7 @@
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_camera"
-                android:src="@drawable/ic_attachment_camera"
+                app:srcCompat="@drawable/ic_attachment_camera"
                 app:tint="?colorPrimary" />
 
             <ImageButton
@@ -110,7 +110,7 @@
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_voice_file"
-                android:src="@drawable/ic_attachment_voice_file"
+                app:srcCompat="@drawable/ic_attachment_voice_file"
                 app:tint="?colorPrimary" />
 
         </LinearLayout>

@@ -14,10 +14,12 @@ import android.util.AttributeSet
 import android.widget.FrameLayout
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
+import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.databinding.ViewSignOutBottomSheetActionButtonBinding
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.ui.styles.R
+import androidx.core.widget.ImageViewCompat
 
 class SignOutBottomSheetActionButton @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -48,7 +50,7 @@ class SignOutBottomSheetActionButton @JvmOverloads constructor(
     private var tint: Int? = null
         set(value) {
             field = value
-            views.actionIconImageView.imageTintList = value?.let { ColorStateList.valueOf(value) }
+            ImageViewCompat.setImageTintList(views.actionIconImageView, value?.let { ColorStateList.valueOf(value) })
         }
 
     private var textColor: Int? = null
@@ -63,7 +65,7 @@ class SignOutBottomSheetActionButton @JvmOverloads constructor(
 
         context.withStyledAttributes(attrs, R.styleable.SignOutBottomSheetActionButton) {
             title = getString(R.styleable.SignOutBottomSheetActionButton_actionTitle) ?: ""
-            leftIcon = getDrawable(R.styleable.SignOutBottomSheetActionButton_leftIcon)
+            leftIcon = getDrawableCompat(context, R.styleable.SignOutBottomSheetActionButton_leftIcon)
             tint = getColor(R.styleable.SignOutBottomSheetActionButton_iconTint, ThemeUtils.getColor(context, R.attr.vctr_content_primary))
             textColor = getColor(R.styleable.SignOutBottomSheetActionButton_textColor, ThemeUtils.getColor(context, R.attr.vctr_content_primary))
         }

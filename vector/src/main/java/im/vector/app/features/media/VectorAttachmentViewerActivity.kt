@@ -100,25 +100,27 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
         val args = args() ?: throw IllegalArgumentException("Missing arguments")
 
-        if (args.circularTransition) {
-            // The shared element is a circular avatar but the full-screen image is square. Morph the
-            // transition image's corner radius between the two (circle <-> square) in step with the
-            // transition, instead of snapping shape at either end.
-            imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    val radius = minOf(view.width, view.height) * transitionCornerFraction
-                    outline.setRoundRect(0, 0, view.width, view.height, radius)
+        if (supportsSharedElementTransition) {
+            if (args.circularTransition) {
+                // The shared element is a circular avatar but the full-screen image is square. Morph the
+                // transition image's corner radius between the two (circle <-> square) in step with the
+                // transition, instead of snapping shape at either end.
+                imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: Outline) {
+                        val radius = minOf(view.width, view.height) * transitionCornerFraction
+                        outline.setRoundRect(0, 0, view.width, view.height, radius)
+                    }
                 }
-            }
-            imageTransitionView.clipToOutline = true
-        } else if (args.transitionCornerRadiusPx > 0) {
-            transitionCornerPx = args.transitionCornerRadiusPx.toFloat()
-            imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, transitionCornerPx)
+                imageTransitionView.clipToOutline = true
+            } else if (args.transitionCornerRadiusPx > 0) {
+                transitionCornerPx = args.transitionCornerRadiusPx.toFloat()
+                imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: Outline) {
+                        outline.setRoundRect(0, 0, view.width, view.height, transitionCornerPx)
+                    }
                 }
+                imageTransitionView.clipToOutline = true
             }
-            imageTransitionView.clipToOutline = true
         }
 
         if (savedInstanceState == null && addTransitionListener()) {
@@ -170,10 +172,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             }
         }
 
-        @Suppress("DEPRECATION")
-        window.statusBarColor = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.black_alpha)
-        @Suppress("DEPRECATION")
-        window.navigationBarColor = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.black_alpha)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            @Suppress("DEPRECATION")
+            window.statusBarColor = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.black_alpha)
+            @Suppress("DEPRECATION")
+            window.navigationBarColor = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.black_alpha)
+        }
 
         observeViewEvents()
     }
@@ -218,6 +222,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     // Round the corners back (square -> circle) as the image shrinks into the avatar.
     private fun roundTransitionCornerForClose() {
+        if (!supportsSharedElementTransition) return
         val a = args() ?: return
         val returnTransition = window.sharedElementReturnTransition
         when {
@@ -228,6 +233,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     private fun getOtherThemes() = ActivityOtherThemes.VectorAttachmentsPreview
 
+    // Shared-element transitions, ViewOutlineProvider and clipToOutline are all API 21+; pre-21 the viewer
+    // simply opens without the morph animation.
+    private val supportsSharedElementTransition get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+
     /**
      * Try and add a [Transition.TransitionListener] to the entering shared element
      * [Transition]. We do this so that we can load the full-size image after the transition
@@ -236,6 +245,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
      * @return true if we were successful in adding a listener to the enter transition
      */
     private fun addTransitionListener(): Boolean {
+        if (!supportsSharedElementTransition) return false
         val transition = window.sharedElementEnterTransition
 
         if (transition != null) {
@@ -272,7 +282,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                         sharedElement.viewTreeObserver.removeOnPreDrawListener(this)
                         supportStartPostponedEnterTransition()
                         val a = args()
-                        val enterTransition = window.sharedElementEnterTransition
+                        val enterTransition = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) window.sharedElementEnterTransition else null
                         when {
                             a?.circularTransition == true -> animateTransitionCorner(to = SQUARE_CORNER_FRACTION, transition = enterTransition)
                             (a?.transitionCornerRadiusPx ?: 0) > 0 -> animateTransitionCornerPx(to = 0f, transition = enterTransition)
@@ -288,7 +298,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             duration = transition?.duration?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
             addUpdateListener {
                 transitionCornerFraction = it.animatedValue as Float
-                imageTransitionView.invalidateOutline()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) imageTransitionView.invalidateOutline()
             }
             start()
         }
@@ -300,7 +310,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             duration = transition?.duration?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
             addUpdateListener {
                 transitionCornerPx = it.animatedValue as Float
-                imageTransitionView.invalidateOutline()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) imageTransitionView.invalidateOutline()
             }
             start()
         }

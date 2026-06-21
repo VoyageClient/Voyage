@@ -21,13 +21,14 @@ import org.matrix.android.sdk.internal.network.NetworkConstants
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-internal interface UnauthenticatedMediaAPI : MediaAPI {
+// Must not extend MediaAPI: Retrofit 2.6.x forbids service interfaces extending other interfaces.
+internal interface UnauthenticatedMediaAPI {
     /**
      * Retrieve the configuration of the content repository
      * Ref: https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-media-r0-config
      */
     @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "config")
-    override suspend fun getMediaConfig(): GetMediaConfigResult
+    suspend fun getMediaConfig(): GetMediaConfigResult
 
     /**
      * Get information about a URL for the client. Typically this is called when a client
@@ -38,5 +39,5 @@ internal interface UnauthenticatedMediaAPI : MediaAPI {
      * if it does not have the requested version available.
      */
     @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "preview_url")
-    override suspend fun getPreviewUrlData(@Query("url") url: String, @Query("ts") ts: Long?): JsonDict
+    suspend fun getPreviewUrlData(@Query("url") url: String, @Query("ts") ts: Long?): JsonDict
 }

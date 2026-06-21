@@ -127,13 +127,16 @@ class InReplyToView @JvmOverloads constructor(
 
         // Round the thumbnail corners (matches the timeline). renderHidden() draws the blurhash/solid
         // drawable directly without a corner transform, so clip the view itself to cover both cases.
-        val radius = 8 * resources.displayMetrics.density
-        views.replyThumbnailView.outlineProvider = object : ViewOutlineProvider() {
-            override fun getOutline(view: View, outline: Outline) {
-                outline.setRoundRect(0, 0, view.width, view.height, radius)
+        // clipToOutline / ViewOutlineProvider are API 21+.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            val radius = 8 * resources.displayMetrics.density
+            views.replyThumbnailView.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, radius)
+                }
             }
+            views.replyThumbnailView.clipToOutline = true
         }
-        views.replyThumbnailView.clipToOutline = true
     }
 
     private fun hideViews() {

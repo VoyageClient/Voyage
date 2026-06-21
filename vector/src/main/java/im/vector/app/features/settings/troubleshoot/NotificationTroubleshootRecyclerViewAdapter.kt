@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.R
 import im.vector.app.databinding.ItemNotificationTroubleshootBinding
 import im.vector.app.features.themes.ThemeUtils
+import androidx.core.widget.ImageViewCompat
 
 class NotificationTroubleshootRecyclerViewAdapter(val tests: ArrayList<TroubleshootTest>) :
         RecyclerView.Adapter<NotificationTroubleshootRecyclerViewAdapter.ViewHolder>() {
@@ -67,7 +68,7 @@ class NotificationTroubleshootRecyclerViewAdapter(val tests: ArrayList<Troublesh
                     views.troubleshootProgressBar.visibility = View.INVISIBLE
                     views.troubleshootStatusIcon.visibility = View.VISIBLE
                     views.troubleshootStatusIcon.setImageResource(R.drawable.unit_test_ko)
-                    views.troubleshootStatusIcon.imageTintList = null
+                    ImageViewCompat.setImageTintList(views.troubleshootStatusIcon, null)
                     views.troubleshootTestDescription.setTextColor(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorError))
                 }
                 TroubleshootTest.TestStatus.SUCCESS -> {

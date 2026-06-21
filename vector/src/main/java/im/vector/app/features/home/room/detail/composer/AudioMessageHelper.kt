@@ -8,11 +8,11 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
-import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import androidx.core.content.FileProvider
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.core.utils.MediaPlayerCompat
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voice.VoiceRecorder
@@ -146,13 +146,7 @@ class AudioMessageHelper @Inject constructor(
         try {
             FileInputStream(file).use { fis ->
                 mediaPlayer = MediaPlayer().apply {
-                    setAudioAttributes(
-                            AudioAttributes.Builder()
-                                    // Do not use CONTENT_TYPE_SPEECH / USAGE_VOICE_COMMUNICATION because we want to play loud here
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                                    .build()
-                    )
+                    MediaPlayerCompat.setMediaAudioAttributes(this)
                     setDataSource(fis.fd)
                     prepare()
                     start()

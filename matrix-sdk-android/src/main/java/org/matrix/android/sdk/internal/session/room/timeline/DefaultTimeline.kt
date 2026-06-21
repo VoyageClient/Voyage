@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.internal.closeQuietly
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -170,7 +169,7 @@ internal class DefaultTimeline(
             sequencer.post {
                 if (isStarted.compareAndSet(true, false)) {
                     strategy.onStop()
-                    backgroundRealm.get().closeQuietly()
+                    tryOrNull { backgroundRealm.get().close() }
                 }
             }
         }

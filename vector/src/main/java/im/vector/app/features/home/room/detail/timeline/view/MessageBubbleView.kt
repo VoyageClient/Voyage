@@ -78,14 +78,20 @@ class MessageBubbleView @JvmOverloads constructor(
         rippleMaskDrawable = MaterialShapeDrawable()
         DrawableCompat.setTint(rippleMaskDrawable, Color.WHITE)
         views.bubbleView.apply {
-            outlineProvider = ViewOutlineProvider.BACKGROUND
-            clipToOutline = true
-            background = RippleDrawable(
-                    ContextCompat.getColorStateList(context, com.google.android.material.R.color.mtrl_btn_ripple_color)
-                            ?: ColorStateList.valueOf(Color.TRANSPARENT),
-                    bubbleDrawable,
-                    rippleMaskDrawable
-            )
+            // RippleDrawable + clipToOutline are API 21+; the bubble's rounded shape comes from the
+            // MaterialShapeDrawable either way, so on KitKat just use it directly (no ripple/outline).
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                outlineProvider = ViewOutlineProvider.BACKGROUND
+                clipToOutline = true
+                background = RippleDrawable(
+                        ContextCompat.getColorStateList(context, com.google.android.material.R.color.mtrl_btn_ripple_color)
+                                ?: ColorStateList.valueOf(Color.TRANSPARENT),
+                        bubbleDrawable,
+                        rippleMaskDrawable
+                )
+            } else {
+                background = bubbleDrawable
+            }
         }
     }
 

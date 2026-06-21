@@ -74,7 +74,5 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
             val grantedEvents: RoomDetailViewEvents
     ) : RoomDetailViewEvents()
 
-    data class StartChatEffect(val type: ChatEffect) : RoomDetailViewEvents()
-    object StopChatEffects : RoomDetailViewEvents()
     object RoomReplacementStarted : RoomDetailViewEvents()
 }

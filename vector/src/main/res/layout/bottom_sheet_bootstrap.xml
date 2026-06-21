@@ -23,7 +23,7 @@
             android:layout_marginStart="16dp"
             android:importantForAccessibility="no"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_security_key_24dp"
+            app:srcCompat="@drawable/ic_security_key_24dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@id/bootstrapTitleText"
             app:layout_constraintBottom_toBottomOf="@id/bootstrapTitleText"
