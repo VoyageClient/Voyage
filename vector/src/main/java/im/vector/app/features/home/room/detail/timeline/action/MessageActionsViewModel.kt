@@ -223,6 +223,10 @@ class MessageActionsViewModel @AssistedInject constructor(
                             stringProvider.getString(CommonStrings.verification_request)
                         } else if (messageContent is MessageWithAttachmentContent) {
                             messageContent.getFileName()
+                        } else if (messageContent?.msgType == MessageType.MSGTYPE_LOCATION) {
+                            // The text representation of a location is the same on every API; only the
+                            // long-press preview's map (buildLocationUiData) is gated to Lollipop+.
+                            noticeEventFormatter.formatLocationNotice(timelineEvent.root, timelineEvent.senderInfo.disambiguatedDisplayName)
                         } else {
                             messageContent?.body
                         }

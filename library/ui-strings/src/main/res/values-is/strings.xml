@@ -1520,7 +1520,6 @@
     <string name="change_password_summary">Setja upp nýtt lykilorð notandaaðgangs…</string>
     <string name="encryption_information_cross_signing_state">Kross-undirritun</string>
     <string name="room_settings_enable_encryption">Virkja enda-í-enda dulritun…</string>
-    <string name="sent_location">Deildi staðsetningu sinni</string>
     <string name="soft_logout_title">Þú ert skráð/ur út</string>
     <string name="signed_out_title">Þú ert skráð/ur út</string>
     <string name="login_signup_error_user_in_use">Þetta notandanafn er þegar í notkun</string>

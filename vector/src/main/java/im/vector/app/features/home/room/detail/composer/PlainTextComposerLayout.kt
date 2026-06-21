@@ -303,6 +303,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
             messageContent is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
             messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
+            // The composer preview never shows a map, so location is always the notice text.
+            messageContent?.msgType == MessageType.MSGTYPE_LOCATION ->
+                noticeEventFormatter.formatLocationNotice(event.root, event.senderInfo.disambiguatedDisplayName)
             // Non-message event (membership change, reaction, …): show the notice text.
             messageContent == null -> noticeEventFormatter.format(event, isDm = false)
                     ?: "Debug: event type \"${event.root.getClearType()}\""

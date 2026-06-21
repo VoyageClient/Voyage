@@ -355,10 +355,11 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     fun formatLocationNotice(event: Event, senderName: String?): CharSequence {
-        return if (event.isSentByCurrentUser()) {
-            sp.getString(CommonStrings.notice_location_sent_by_you)
-        } else {
-            sp.getString(CommonStrings.notice_location_sent, senderName)
+        return when {
+            event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_location_sent_by_you)
+            // No sender name available (e.g. thread summaries, which show the sender separately).
+            senderName == null -> sp.getString(CommonStrings.notice_location_sent_no_sender)
+            else -> sp.getString(CommonStrings.notice_location_sent, senderName)
         }
     }
 

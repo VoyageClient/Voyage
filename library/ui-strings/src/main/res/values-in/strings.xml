@@ -2204,7 +2204,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_profile_section_restore_security">Pulihkan Enkripsi</string>
     <string name="contact_admin_to_restore_encryption">Mohon hubungi sebuah admin untuk memulihkan enkripsi ke status yang absah.</string>
     <string name="encryption_has_been_misconfigured">Enkripsi telah dikonfigurasi dengan salah.</string>
-    <string name="sent_location">Membagikan lokasinya</string>
     <string name="login_splash_create_account">Buat akun</string>
     <string name="ftue_auth_carousel_workplace_title">Perpesanan untuk tim Anda.</string>
     <string name="ftue_auth_carousel_encrypted_body">Terenkripsi secara ujung ke ujung dan tidak memerlukan nomor telepon. Tanpa iklan atau penambangan data.</string>

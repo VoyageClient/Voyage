@@ -2235,7 +2235,6 @@
     <string name="room_profile_section_restore_security">Reimposta crittografia</string>
     <string name="contact_admin_to_restore_encryption">Contatta un amministratore per reimpostare la crittografia ad uno stato valido.</string>
     <string name="encryption_has_been_misconfigured">La crittografia è stata configurata male.</string>
-    <string name="sent_location">Ha condiviso la sua posizione</string>
     <string name="login_splash_create_account">Crea account</string>
     <string name="ftue_auth_carousel_workplace_title">Messaggistica per la tua squadra.</string>
     <string name="ftue_auth_carousel_encrypted_body">Crittografia end-to-end e nessun numero di telefono richiesto. Niente pubblicità o raccolta di dati.</string>

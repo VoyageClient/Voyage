@@ -2237,7 +2237,6 @@
     <string name="room_profile_section_restore_security">Riktheni Fshehtëzimin</string>
     <string name="contact_admin_to_restore_encryption">Ju lutemi, lidhuni me një nga përgjegjësit, që ta ktheni fshehtëzimin në një gjendje të vlefshme.</string>
     <string name="encryption_has_been_misconfigured">Fshehtëzimi është formësuar gabim.</string>
-    <string name="sent_location">Tregoi vendndodhjen e vet</string>
     <string name="attachment_type_location">Vendndodhje</string>
     <string name="room_unsupported_e2e_algorithm_as_admin">Fshehtëzimi është formësuar keq, që të mos dërgoni mesazhe. Klikoni që të hapni rregullimet.</string>
     <string name="room_unsupported_e2e_algorithm">Fshehtëzimi është formësuar keq, që të mos dërgoni mesazhe. Ju lutemi, lidhuni me një nga përgjegjësit që ta ktheni fshehtëzimin në një gjendje të vlefshme.</string>

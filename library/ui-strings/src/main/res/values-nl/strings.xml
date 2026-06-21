@@ -2244,7 +2244,6 @@
     <string name="room_profile_section_restore_security">Versleuteling herstellen</string>
     <string name="contact_admin_to_restore_encryption">Neem contact op met een beheerder om de versleuteling in een geldige staat te herstellen.</string>
     <string name="encryption_has_been_misconfigured">Versleuteling is verkeerd geconfigureerd.</string>
-    <string name="sent_location">Hun locatie gedeeld</string>
     <string name="login_splash_create_account">Account aanmaken</string>
     <string name="ftue_auth_carousel_workplace_title">Berichten voor jouw team.</string>
     <string name="ftue_auth_carousel_encrypted_body">Eind-tot-eind versleuteld en geen telefoonnummer vereist. Geen advertenties of dataverzameling.</string>

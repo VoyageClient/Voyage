@@ -2244,7 +2244,6 @@
     <string name="room_profile_section_restore_security">Återställ kryptering</string>
     <string name="contact_admin_to_restore_encryption">Vänligen kontakta en admin för att återställa kryptering till ett giltigt konto.</string>
     <string name="encryption_has_been_misconfigured">Kryptering har felkonfigurerats.</string>
-    <string name="sent_location">Delade sin plats</string>
     <string name="login_splash_create_account">Skapa konto</string>
     <string name="ftue_auth_carousel_workplace_title">Meddelanden för ditt team.</string>
     <string name="ftue_auth_carousel_encrypted_body">Totalsträckskrypterad och inget telefonnummer krävs. Ingen reklam eller datainsamling.</string>

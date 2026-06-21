@@ -1975,7 +1975,6 @@
     <string name="notice_room_withdraw_with_reason">%1$s משך את ההזמנה של %2$s. סיבה: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">קיבלת את ההזמנה עבור %1$s. סיבה: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s קיבל את ההזמנה עבור %2$s. סיבה: %3$s</string>
-    <string name="sent_location">שיתפו את מיקומם</string>
     <string name="attachment_type_location">מיקום</string>
     <string name="room_message_autocomplete_users">משתמשים</string>
     <string name="message_reaction_show_less">הצג פחות</string>

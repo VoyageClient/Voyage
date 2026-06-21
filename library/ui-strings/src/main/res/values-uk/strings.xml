@@ -2328,7 +2328,6 @@
     <string name="room_profile_section_restore_security">Відновити шифрування</string>
     <string name="contact_admin_to_restore_encryption">Зв\'яжіться з адміністратором для відновлення роботи шифрування.</string>
     <string name="encryption_has_been_misconfigured">Шифрування неправильно налаштовано.</string>
-    <string name="sent_location">Поділилися своїм місцеперебуванням</string>
     <string name="login_splash_create_account">Створити обліковий запис</string>
     <string name="ftue_auth_carousel_workplace_title">Спілкування вашої команди.</string>
     <string name="ftue_auth_carousel_encrypted_body">З наскрізним шифруванням і без вимоги номера телефону. Без реклами чи аналізу даних.</string>

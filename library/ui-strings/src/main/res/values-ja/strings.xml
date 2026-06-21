@@ -1943,7 +1943,6 @@
     <string name="a11y_start_camera">カメラを開始</string>
     <string name="a11y_stop_camera">カメラを停止</string>
     <string name="bottom_sheet_save_your_recovery_key_title">セキュリティーキーを保存</string>
-    <string name="sent_location">位置情報を共有しました</string>
     <string name="sent_a_reaction">%sでリアクションしました</string>
     <string name="sent_verification_conclusion">認証が完了しました</string>
     <string name="verification_conclusion_compromised">次のいずれかのセキュリティーが破られている可能性があります。

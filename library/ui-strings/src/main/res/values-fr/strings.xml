@@ -2246,7 +2246,6 @@
     <string name="room_profile_section_restore_security">Restaurer le Chiffrement</string>
     <string name="contact_admin_to_restore_encryption">Veuillez contacter un administrateur pour reconfigurer le chiffrement.</string>
     <string name="encryption_has_been_misconfigured">Le chiffrement a été mal configuré.</string>
-    <string name="sent_location">On partagé leur localisation</string>
     <string name="login_splash_create_account">Créer un compte</string>
     <string name="ftue_auth_carousel_workplace_title">Messagerie pour votre équipe.</string>
     <string name="ftue_auth_carousel_encrypted_body">Chiffré de bout en bout et aucun numéro de téléphone n\'est nécessaire. Pas de pubs ni de collecte de données.</string>

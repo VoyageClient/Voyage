@@ -2416,7 +2416,6 @@
     <string name="labs_auto_report_uisi_desc">Twój system automatycznie wyśle dzienniki, gdy wystąpi błąd niemożności odszyfrowania</string>
     <string name="labs_auto_report_uisi">Automatycznie zgłaszaj błędy deszyfrowania.</string>
     <string name="command_description_leave_room">Opuść pokój o podanym identyfikatorze (lub aktualny pokój, jeśli null)</string>
-    <string name="sent_location">Udostępnili swoją lokalizację</string>
     <string name="room_message_notify_everyone">Powiadom cały pokój</string>
     <string name="room_message_autocomplete_users">Użytkownicy</string>
     <string name="beta">BETA</string>

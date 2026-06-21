@@ -6,6 +6,7 @@
  */
 package im.vector.app.features.home.room.detail.timeline.action
 
+import android.os.Build
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Success
 import im.vector.app.EmojiCompatFontProvider
@@ -218,6 +219,9 @@ class MessageActionsEpoxyController @Inject constructor(
     }
 
     private fun buildLocationUiData(state: MessageActionState): LocationUiData? {
+        // No map renderer on KitKat (maplibre needs API 21); the preview falls back to the notice
+        // body ("… sent a location."), matching how the timeline renders location there.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null
         if (state.timelineEvent()?.root?.isLocationMessage() != true) return null
 
         val locationContent = state.timelineEvent()?.root?.getClearContent().toModel<MessageLocationContent>(catchError = true)

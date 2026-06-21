@@ -2287,7 +2287,6 @@
     <string name="room_unsupported_e2e_algorithm">Šifrování bylo špatně nakonfigurováno, takže nelze odesílat zprávy. Kontaktujte správce, aby obnovil šifrování do funkčního stavu.</string>
     <string name="contact_admin_to_restore_encryption">Kontaktujte správce, aby obnovil šifrování do funkčního stavu.</string>
     <string name="encryption_has_been_misconfigured">Šifrování bylo špatně nakonfigurováno.</string>
-    <string name="sent_location">Sdíleli svou polohu</string>
     <string name="login_splash_create_account">Vytvořit účet</string>
     <string name="ftue_auth_carousel_workplace_title">Zasílání zpráv pro váš tým.</string>
     <string name="ftue_auth_carousel_encrypted_body">Koncové šifrování bez potřeby telefonního čísla. Žádné reklamy ani vytěžování dat.</string>

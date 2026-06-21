@@ -2225,7 +2225,6 @@
         <item quantity="other">%d thay đổi về danh sách truy cập</item>
     </plurals>
     <string name="encryption_has_been_misconfigured">Mã hóa bị thiết đặt sai.</string>
-    <string name="sent_location">Đã chia sẻ vị trí</string>
     <string name="permalink_unsupported_groups">Không mở được liên kết: cộng đồng đã được thay bằng spaces</string>
     <string name="login_scan_qr_code">Quét mã QR</string>
     <string name="login_splash_already_have_account">Tôi đã có tài khoản</string>

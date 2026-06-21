@@ -216,7 +216,7 @@ class DisplayableEventFormatter @Inject constructor(
                             stringProvider.getString(CommonStrings.sent_a_file)
                         }
                         MessageType.MSGTYPE_LOCATION -> {
-                            stringProvider.getString(CommonStrings.sent_location)
+                            noticeEventFormatter.formatLocationNotice(event, senderName = null)
                         }
                         else -> {
                             messageContent.body

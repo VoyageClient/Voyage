@@ -2342,7 +2342,6 @@
     <string name="contact_admin_to_restore_encryption">Por favor, contacta con un administrador para restablecer la encriptación a un estado válido.</string>
     <string name="encryption_has_been_misconfigured">La encriptación ha sido configurada de forma incorrecta.</string>
     <string name="sent_live_location">Compartieron su localización en vivo</string>
-    <string name="sent_location">Compartieron su localización</string>
     <string name="ftue_profile_picture_subtitle">Puedes cambiar esto en todo momento.</string>
     <string name="ftue_account_created_take_me_home">Llévame a casa</string>
     <string name="ftue_account_created_personalize">Personalizar perfil</string>

@@ -2259,7 +2259,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="ftue_account_created_personalize">Pielāgot profilu</string>
     <string name="ftue_auth_choose_server_ems_cta">Sazināties</string>
     <string name="room_member_override_nick_color">Aizvietot attēlojamā vārda krāsu</string>
-    <string name="sent_location">Kopīgoja atrašanās vietu</string>
     <string name="ftue_auth_create_account_title">Izveidot kontu</string>
     <string name="ftue_auth_captcha_title">Vai esi cilvēks\?</string>
     <string name="ftue_auth_terms_subtitle">Lūgums izlasīt %s noteikumus un nosacījumus</string>

@@ -1499,7 +1499,6 @@
     <string name="edit_poll_title">Upraviť anketu</string>
     <string name="closed_poll_option_description">Výsledky sa zobrazia až po ukončení ankety</string>
     <string name="attachment_type_location">Poloha</string>
-    <string name="sent_location">Zdieľali svoju polohu</string>
     <string name="location_activity_title_static_sharing">Zdieľať polohu</string>
     <string name="location_activity_title_preview">Poloha</string>
     <string name="location_not_available_dialog_title">${app_name} nemohol získať prístup k vašej polohe</string>

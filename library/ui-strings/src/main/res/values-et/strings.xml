@@ -2244,7 +2244,6 @@
     <string name="room_profile_section_restore_security">Taasta krüptimine</string>
     <string name="contact_admin_to_restore_encryption">Kui soovid krüptimist töökorda saada, siis võta ühendust serveri haldajaga.</string>
     <string name="encryption_has_been_misconfigured">Krüptimise seadistustes on viga.</string>
-    <string name="sent_location">Jagas oma asukohta</string>
     <string name="login_splash_create_account">Loo kasutajakonto</string>
     <string name="ftue_auth_carousel_workplace_title">Sõnumisuhtlus sinu tiimi või kogukonna jaoks.</string>
     <string name="ftue_auth_carousel_encrypted_body">Tagatud on andmete läbiv krüptimine ning oma telefoninumbrit ei pea sa jagama. Pole reklaame ega sinu andmete kogumist.</string>

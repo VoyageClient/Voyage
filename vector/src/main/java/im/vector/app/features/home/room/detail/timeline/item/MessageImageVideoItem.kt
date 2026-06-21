@@ -24,6 +24,7 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.ui.views.RoundedCornerImageView
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
@@ -86,10 +87,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         }
         // Bubble layout already clips at the MessageBubbleView level. For non-bubble we apply a
         // view-level outline clip too, so animated drawables (FrameAnimationDrawable / animated
-        // WebP / APNG) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
+        // WebP / APNG / GIF) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
         // Transformation and is silently skipped for those.
-        // clipToOutline / ViewOutlineProvider are API 21+. On KitKat static images are still rounded
-        // by Glide's RoundedCorners; only animated drawables miss the view-level clip there.
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             if (!isBubble) {
                 val r = dimensionConverter.dpToPx(8).toFloat()
@@ -104,6 +103,16 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 holder.imageView.outlineProvider = ViewOutlineProvider.BACKGROUND
                 holder.imageView.clipToOutline = false
                 holder.imageView.tag = 0f
+            }
+        } else {
+            // clipToOutline is API 21+: backport the same view-level clip with identical radii so
+            // animated drawables round on KitKat too (static bitmaps are already rounded by Glide).
+            if (isBubble) {
+                val radius = (messageLayout as TimelineMessageLayout.Bubble).cornersRadius
+                holder.imageView.setCornerRadii(radius.topStartRadius, radius.topEndRadius, radius.bottomEndRadius, radius.bottomStartRadius)
+            } else {
+                val r = dimensionConverter.dpToPx(8).toFloat()
+                holder.imageView.setCornerRadii(r, r, r, r)
             }
         }
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
@@ -217,7 +226,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)
-        val imageView by bind<ImageView>(R.id.messageThumbnailView)
+        val imageView by bind<RoundedCornerImageView>(R.id.messageThumbnailView)
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
         val mediaHiddenScrim by bind<View>(R.id.messageMediaHiddenScrim)
         val mediaShowButton by bind<AppCompatTextView>(R.id.messageMediaShowButton)

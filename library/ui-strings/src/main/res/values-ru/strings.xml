@@ -2278,7 +2278,6 @@
     <string name="room_profile_section_restore_security">Восстановить шифрование</string>
     <string name="contact_admin_to_restore_encryption">Обратитесь к администратору, чтобы восстановить шифрование до рабочего состояния.</string>
     <string name="encryption_has_been_misconfigured">Шифрование настроено неправильно.</string>
-    <string name="sent_location">Поделился(лась) местоположением</string>
     <string name="login_splash_already_have_account">У меня уже есть учётная запись</string>
     <string name="login_splash_create_account">Создать учётную запись</string>
     <string name="ftue_auth_carousel_workplace_title">Обмен сообщениями для вашей команды.</string>

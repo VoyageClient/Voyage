@@ -2239,7 +2239,6 @@
     <string name="verification_scan_with_this_device">Escaneja amb aquest dispositiu</string>
     <string name="verification_scan_self_notice">Escaneja el codi amb un altre dispositiu o canvia i fes l\'escaneig amb aquest dispositiu</string>
     <string name="sent_live_location">Ha compartit la seva ubicació en directe</string>
-    <string name="sent_location">Ha compartit la seva ubicació</string>
     <string name="sent_a_voice_message">Veu</string>
     <string name="command_description_lenny">Afegeix ( ͡° ͜ʖ ͡°) abans d\'un missatge de text</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Mostra informació útil per ajudar a depurar l\'aplicació</string>

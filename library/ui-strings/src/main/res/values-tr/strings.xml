@@ -1436,7 +1436,6 @@
     <string name="verification_request_you_cancelled">iptal ettin</string>
     <string name="verification_request_other_cancelled">%s iptal edildi</string>
     <string name="verification_request_waiting">Bekleyiniz…</string>
-    <string name="sent_location">Konumlarını paylaştı</string>
     <string name="sent_verification_conclusion">Doğrulama Sonucu</string>
     <string name="sent_a_reaction">İle tepki verdi: %s</string>
     <string name="sent_a_poll">Anket</string>

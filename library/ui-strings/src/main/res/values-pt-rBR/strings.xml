@@ -2243,7 +2243,6 @@
     <string name="encryption_misconfigured">Encriptação está malconfigurada</string>
     <string name="room_profile_section_restore_security">Restaurar Encriptação</string>
     <string name="contact_admin_to_restore_encryption">Por favor contate um administrador para restaurar a criptografia a um estado válido.</string>
-    <string name="sent_location">Compartilhou a localização dela(e)</string>
     <string name="attachment_type_location">Localização</string>
     <string name="encryption_has_been_misconfigured">Encriptação tem sido malconfigurada.</string>
     <string name="login_splash_create_account">Criar conta</string>

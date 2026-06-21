@@ -189,4 +189,5 @@
 
     <string name="notice_location_sent_by_you" translatable="false">You sent a location.</string>
     <string name="notice_location_sent" translatable="false">%1$s sent a location.</string>
+    <string name="notice_location_sent_no_sender" translatable="false">Sent a location.</string>
 </resources>

@@ -134,7 +134,10 @@ class ImageContentRenderer @Inject constructor(
         createGlideRequest(data, mode, imageView, size)
                 .let { if (mode != Mode.ANIMATED_THUMBNAIL && !crossFade) it.dontAnimate() else it }
                 .let { if (crossFade) it.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS)) else it }
-                .optionalTransform(cornerTransformation)
+                // For animated content the corners are clipped at the view level (clipToOutline /
+                // RoundedCornerImageView). A Bitmap RoundedCorners here would round GIF frames at their
+                // small native resolution and upscale the result, giving over-rounded, pixelated corners.
+                .let { if (mode != Mode.ANIMATED_THUMBNAIL) it.optionalTransform(cornerTransformation) else it }
                 .into(imageView)
     }
 

@@ -290,7 +290,8 @@ dependencies {
     // decoder, which drags in org.aomedia libavif (native, API 21+) that we don't support on KitKat.
     implementation 'com.github.penfeizhou.android.animation:apng:3.0.5'
     implementation 'com.github.penfeizhou.android.animation:awebp:3.0.5'
-    implementation 'com.github.penfeizhou.android.animation:gif:3.0.5'
+    // No penfeizhou gif: it decodes LZW in a native lib that fails to load on KitKat. GIFs are
+    // handled by Glide's built-in pure-Java decoder instead (see AnimatedDrawableDecoder).
     // SVG rendering
     implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'com.github.yalantis:ucrop:2.2.8'

@@ -2202,7 +2202,6 @@
     <string name="room_profile_section_restore_security">還原加密</string>
     <string name="contact_admin_to_restore_encryption">請聯絡管理員以將加密還原至有效狀態。</string>
     <string name="encryption_has_been_misconfigured">加密設定錯誤。</string>
-    <string name="sent_location">分享了他們的位置</string>
     <string name="login_splash_create_account">建立帳號</string>
     <string name="ftue_auth_carousel_workplace_title">傳訊息給您的團隊。</string>
     <string name="ftue_auth_carousel_encrypted_body">端對端加密且無須電話號碼。沒有廣告也不探勘您的個資。</string>
