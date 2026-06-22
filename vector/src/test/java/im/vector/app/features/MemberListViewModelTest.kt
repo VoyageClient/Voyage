@@ -111,6 +111,7 @@ class MemberListViewModelTest {
             every { getStateEventLive(any(), any()) } returns MutableLiveData()
             every { getStateEventsLive(any(), any()) } returns MutableLiveData()
             every { getStateEvent(any(), any()) } returns null
+            every { getRoomPowerLevelsLive() } returns MutableLiveData()
         }
 
         every { stateService() } returns fakeStateService

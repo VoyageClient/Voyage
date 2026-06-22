@@ -7,6 +7,7 @@
 
 package im.vector.app.core.session
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
 import im.vector.app.features.session.coroutineScope
@@ -25,13 +26,21 @@ import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class ConfigureAndStartSessionUseCaseTest {
+
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private val fakeContext = FakeContext()
     private val fakeUpdateMatrixClientInfoUseCase = mockk<UpdateMatrixClientInfoUseCase>()
@@ -39,6 +48,9 @@ class ConfigureAndStartSessionUseCaseTest {
     private val fakeNotificationsSettingUpdater = FakeNotificationsSettingUpdater()
     private val fakePushRulesUpdater = FakePushRulesUpdater()
     private val fakeUpdateNotificationSettingsAccountDataUseCase = mockk<UpdateNotificationSettingsAccountDataUseCase>()
+    private val fakeAccountInfoCache = mockk<AccountInfoCache>().also {
+        coJustRun { it.storeForActive(any()) }
+    }
 
     private val configureAndStartSessionUseCase = ConfigureAndStartSessionUseCase(
             context = fakeContext.instance,
@@ -47,16 +59,20 @@ class ConfigureAndStartSessionUseCaseTest {
             notificationsSettingUpdater = fakeNotificationsSettingUpdater.instance,
             updateNotificationSettingsAccountDataUseCase = fakeUpdateNotificationSettingsAccountDataUseCase,
             pushRulesUpdater = fakePushRulesUpdater.instance,
+            accountInfoCache = fakeAccountInfoCache,
     )
 
     @Before
     fun setup() {
+        // observeOwnProfileForCache collects getUserLive().asFlow(), which dispatches on Main.
+        Dispatchers.setMain(UnconfinedTestDispatcher())
         mockkStatic("im.vector.app.core.extensions.SessionKt")
         mockkStatic("im.vector.app.features.session.SessionCoroutineScopesKt")
     }
 
     @After
     fun tearDown() {
+        Dispatchers.resetMain()
         unmockkAll()
     }
 
@@ -82,6 +98,9 @@ class ConfigureAndStartSessionUseCaseTest {
             fakeUpdateMatrixClientInfoUseCase.execute(aSession)
             fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)
         }
+
+        // Stop the long-lived profile observer so runTest doesn't see an uncompleted coroutine.
+        configureAndStartSessionUseCase.cancelProfileObserver()
     }
 
     @Test
@@ -107,6 +126,9 @@ class ConfigureAndStartSessionUseCaseTest {
         coVerify {
             fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)
         }
+
+        // Stop the long-lived profile observer so runTest doesn't see an uncompleted coroutine.
+        configureAndStartSessionUseCase.cancelProfileObserver()
     }
 
     @Test
@@ -131,6 +153,9 @@ class ConfigureAndStartSessionUseCaseTest {
             fakeUpdateMatrixClientInfoUseCase.execute(aSession)
             fakeUpdateNotificationSettingsAccountDataUseCase.execute(aSession)
         }
+
+        // Stop the long-lived profile observer so runTest doesn't see an uncompleted coroutine.
+        configureAndStartSessionUseCase.cancelProfileObserver()
     }
 
     private fun givenASession(): FakeSession {

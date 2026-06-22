@@ -1,3 +1,13 @@
+# Platform support (KitKat / API 19)
+
+This is a fork that targets KitKat (API 19). Any new feature or code you add MUST run on API 19 — either natively or with an explicit fallback. Never introduce an unconditional dependency on an API that didn't exist at 19 without guarding it.
+
+- Before using a platform API, check its `@RequiresApi` / added-in level. If it's above 19, gate it with `Build.VERSION.SDK_INT` and provide a working path for API 19. A feature that silently no-ops on 19 is not acceptable unless that degradation is deliberate and documented in the code comment.
+- Prefer AndroidX/compat wrappers (e.g. `ContextCompat`, `ViewCompat`, `HtmlCompat`) and desugared `java.time`/NIO over raw framework calls, since those already backport behavior to 19.
+- Where it costs little, write code so it also works below 19 (down to the lowest the dependency allows) — choose the broadest-compatible API rather than the newest convenient one.
+- Don't bump `minSdk`, and don't pull in a library whose own `minSdk` exceeds 19.
+- When a feature genuinely can't work on 19, the higher-API branch must be isolated behind a version check and the 19 branch must still leave the app usable.
+
 # Strings
 
 New strings always go into `library/ui-strings/src/main/res/values/donottranslate.xml` with `translatable="false"`. Do not add them to `strings.xml` — that file is the source for translation pipelines and stale entries cause AAPT warnings ("removing resource X without required default value") across every locale.

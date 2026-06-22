@@ -7,12 +7,17 @@
 
 package im.vector.app.test.fakes
 
+import io.mockk.every
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.events.model.Event
 
 class FakeEventService : EventService by mockk() {
+
+    init {
+        every { getEventFromCache(any(), any()) } returns null
+    }
 
     fun givenGetEventReturns(event: Event) {
         coEvery { getEvent(any(), any()) } returns event

@@ -26,6 +26,8 @@ import im.vector.app.test.fakes.FakeHomeLayoutPreferencesStore
 import im.vector.app.test.fakes.FakeSession
 import im.vector.app.test.fakes.FakeSpaceStateHandler
 import im.vector.app.test.fakes.FakeStringProvider
+import im.vector.app.test.fakes.FakeVectorPreferences
+import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.app.test.fixtures.RoomSummaryFixture.aRoomSummary
 import im.vector.app.test.test
 import im.vector.lib.strings.CommonStrings
@@ -63,6 +65,11 @@ class RoomsListViewModelTest {
     private val fakeDrawableProvider = FakeDrawableProvider()
     private val fakeSpaceStateHandler = FakeSpaceStateHandler()
     private val fakeHomeLayoutPreferencesStore = FakeHomeLayoutPreferencesStore()
+    private val fakeVectorPreferences = FakeVectorPreferences()
+    private val fakeTagFilterStateHandler = mockk<TagFilterStateHandler>(relaxed = true) {
+        every { getSelectedTagFlow() } returns flowOf(Optional.empty())
+        every { getSelectedTag() } returns null
+    }
 
     private var initialState = HomeRoomListViewState()
     private lateinit var viewModel: HomeRoomListViewModel
@@ -187,11 +194,12 @@ class RoomsListViewModelTest {
                 state,
                 session = fakeSession,
                 spaceStateHandler = fakeSpaceStateHandler,
+                tagFilterStateHandler = fakeTagFilterStateHandler,
                 preferencesStore = fakeHomeLayoutPreferencesStore.instance,
                 stringProvider = fakeStringProvider.instance,
                 drawableProvider = fakeDrawableProvider.instance,
-                analyticsTracker = fakeAnalyticsTracker
-
+                analyticsTracker = fakeAnalyticsTracker,
+                vectorPreferences = fakeVectorPreferences.instance,
         ).also {
             viewModel = it
             initialState = state
