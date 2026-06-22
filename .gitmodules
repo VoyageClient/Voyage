@@ -7,3 +7,9 @@
 [submodule "library/external/libopus/src/main/cpp/opus/libopusenc"]
 	path = library/external/libopus/src/main/cpp/opus/libopusenc
 	url = https://github.com/xiph/libopusenc.git
+[submodule "library/external/libopus/src/main/cpp/opus/libogg"]
+	path = library/external/libopus/src/main/cpp/opus/libogg
+	url = https://github.com/xiph/ogg.git
+[submodule "library/external/libopus/src/main/cpp/opus/libopusfile"]
+	path = library/external/libopus/src/main/cpp/opus/libopusfile
+	url = https://github.com/xiph/opusfile.git

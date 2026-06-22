@@ -10,6 +10,8 @@ set(distribution_OPUS_DIR ${CMAKE_SOURCE_DIR}/opus)
 
 set(LIBOPUS_DIR ${distribution_OPUS_DIR}/libopus)
 set(LIBOPUSENC_DIR ${distribution_OPUS_DIR}/libopusenc)
+set(LIBOGG_DIR ${distribution_OPUS_DIR}/libogg)
+set(LIBOPUSFILE_DIR ${distribution_OPUS_DIR}/libopusfile)
 
 if (USE_PREBUILTS)
     # Creates and names a library, sets it as either STATIC
@@ -46,17 +48,38 @@ else()
             OPE_BUILD)
     target_include_directories(opusenc
             PUBLIC ${LIBOPUSENC_DIR}/include ${LIBOPUS_DIR}/include)
+
+    # libogg ships its own CMake build (provided by the submodule). Used by libopusfile to demux Ogg.
+    add_subdirectory(${LIBOGG_DIR})
+
+    # libopusfile has no upstream CMake build either, so build it here from the submodule sources.
+    # HTTP/HTTPS streaming (http.c, wincerts.c) is omitted — we only decode local files.
+    add_library(opusfile
+            ${LIBOPUSFILE_DIR}/src/info.c
+            ${LIBOPUSFILE_DIR}/src/internal.c
+            ${LIBOPUSFILE_DIR}/src/opusfile.c
+            ${LIBOPUSFILE_DIR}/src/stream.c)
+    target_include_directories(opusfile
+            PUBLIC ${LIBOPUSFILE_DIR}/include
+            PRIVATE ${LIBOPUSFILE_DIR}/src ${LIBOPUS_DIR}/include)
+    # fseeko/ftello are only in Android's libc from API 24; redirect to fseek/ftell so the library
+    # loads on KitKat (voice files are far below the 2 GB long-offset limit). minSdk 16 means the
+    # API-24-guarded declarations aren't visible, so there's no conflict with these macros.
+    target_compile_definitions(opusfile PRIVATE fseeko=fseek ftello=ftell)
+    target_link_libraries(opusfile PUBLIC ogg opus)
 endif()
 
 # Creates the library as a shared library, adds the needed sources.
 add_library(opuscodec
         SHARED
         codec/CodecOggOpus.cpp
+        codec/CodecOggOpusDecoder.cpp
         opuscodec.cpp)
 
 target_include_directories(opuscodec PRIVATE
         ${LIBOPUS_DIR}/include
-        ${LIBOPUSENC_DIR}/include)
+        ${LIBOPUSENC_DIR}/include
+        ${LIBOPUSFILE_DIR}/include)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -71,8 +94,10 @@ find_library(log-lib log)
 target_link_libraries(opuscodec
         # Links needed Android JNI dependencies.
         android
-        # Links Opus libraries.
+        # Links Opus libraries (encode + decode).
         opusenc
+        opusfile
+        ogg
         opus
         # Links the target library to the log library included in the NDK.
         ${log-lib})

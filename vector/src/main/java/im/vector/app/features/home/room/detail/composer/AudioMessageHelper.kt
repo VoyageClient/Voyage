@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.composer
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import androidx.core.content.FileProvider
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.MediaPlayerCompat
@@ -18,6 +19,7 @@ import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voice.VoiceRecorder
 import im.vector.app.features.voice.VoiceRecorderProvider
 import im.vector.lib.core.utils.timer.CountUpTimer
+import io.element.android.opusencoder.OggOpusDecoder
 import im.vector.lib.multipicker.entity.MultiPickerAudioType
 import im.vector.lib.multipicker.utils.toMultiPickerAudioType
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -41,6 +43,7 @@ class AudioMessageHelper @Inject constructor(
     private var mediaPlayer: MediaPlayer? = null
     private var currentPlayingId: String? = null
     private val voiceRecorder: VoiceRecorder by lazy { voiceRecorderProvider.provideVoiceRecorder() }
+    private val opusDecoder: OggOpusDecoder by lazy { OggOpusDecoder.create() }
 
     private val amplitudeList = mutableListOf<Int>()
 
@@ -142,9 +145,10 @@ class AudioMessageHelper @Inject constructor(
 
     private fun startPlayback(id: String, file: File) {
         val currentPlaybackTime = playbackTracker.getPlaybackTime(id) ?: 0
+        val playableFile = resolvePlayableFile(file)
 
         try {
-            FileInputStream(file).use { fis ->
+            FileInputStream(playableFile).use { fis ->
                 mediaPlayer = MediaPlayer().apply {
                     MediaPlayerCompat.setMediaAudioAttributes(this)
                     setDataSource(fis.fd)
@@ -159,6 +163,37 @@ class AudioMessageHelper @Inject constructor(
             throw VoiceFailure.UnableToPlay(failure)
         }
         startPlaybackTicker(id)
+    }
+
+    /**
+     * MediaPlayer only supports Opus-in-Ogg from API 24, so below that we transcode the file to a
+     * (cached) PCM WAV that MediaPlayer can always play, keeping the rest of the playback machinery
+     * unchanged. Non-Opus audio and API 24+ are passed through untouched.
+     */
+    private fun resolvePlayableFile(file: File): File {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N || !isOggOpus(file)) return file
+
+        val wav = File(context.cacheDir, "opus-decoded-${file.name}.wav")
+        if (wav.exists() && wav.length() > 0 && wav.lastModified() >= file.lastModified()) return wav
+
+        val decoded = tryOrNull { opusDecoder.decodeToWav(file.absolutePath, wav.absolutePath) }
+        return if (decoded == 0 && wav.length() > 0) {
+            wav
+        } else {
+            tryOrNull { wav.delete() }
+            file
+        }
+    }
+
+    private fun isOggOpus(file: File): Boolean {
+        // The Opus identification header ("OpusHead") sits at the start of the first Ogg page payload.
+        return tryOrNull {
+            FileInputStream(file).use { fis ->
+                val head = ByteArray(64)
+                val read = fis.read(head)
+                read > 0 && String(head, 0, read, Charsets.ISO_8859_1).contains("OpusHead")
+            }
+        }.orFalse()
     }
 
     fun stopPlayback() {

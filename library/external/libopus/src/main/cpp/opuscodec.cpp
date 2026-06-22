@@ -16,6 +16,7 @@
 
 #include <jni.h>
 #include "codec/CodecOggOpus.h"
+#include "codec/CodecOggOpusDecoder.h"
 
 CodecOggOpus oggCodec;
 
@@ -39,4 +40,15 @@ JNIEXPORT jint JNICALL Java_io_element_android_opusencoder_OggOpusEncoderImpl_se
 extern "C"
 JNIEXPORT void JNICALL Java_io_element_android_opusencoder_OggOpusEncoderImpl_encoderRelease(JNIEnv *env, jobject thiz) {
     oggCodec.encoderRelease();
+}
+
+extern "C"
+JNIEXPORT jint JNICALL Java_io_element_android_opusencoder_OggOpusDecoderImpl_nativeDecodeToWav(JNIEnv *env, jobject thiz, jstring input_path, jstring output_path) {
+    const char *inPath = env->GetStringUTFChars(input_path, 0);
+    const char *outPath = env->GetStringUTFChars(output_path, 0);
+    CodecOggOpusDecoder decoder;
+    jint result = decoder.decodeToWav(inPath, outPath);
+    env->ReleaseStringUTFChars(input_path, inPath);
+    env->ReleaseStringUTFChars(output_path, outPath);
+    return result;
 }
