@@ -393,7 +393,6 @@
     <string name="room_participants_action_invite">Inviti</string>
     <string name="room_participants_action_ban">Forbari</string>
     <string name="room_participants_action_unban">Malforbari</string>
-    <string name="room_participants_action_remove">Forpeli</string>
     <string name="room_participants_action_ignore">Malatenti</string>
     <string name="room_participants_action_unignore">Reatenti</string>
     <string name="room_participants_action_mention">Mencii</string>
@@ -927,7 +926,6 @@
     <string name="has_been_banned">%2$s vin forbaris de %1$s</string>
     <string name="has_been_removed">%2$s vin forpelis de %1$s</string>
     <string name="command_description_nick">Ŝanĝas vian prezentan nomon</string>
-    <string name="command_description_remove_user">Forpelas uzanton kun la donita identigilo</string>
     <string name="command_description_topic">Agordi temon por la ĉambro</string>
     <string name="command_description_part_room">Foriri de ĉambro</string>
     <string name="command_description_join_room">Aliĝas al ĉambro kun donita kromnomo</string>
@@ -1284,11 +1282,6 @@
     <string name="room_participants_unban_title">Malforbari uzanton</string>
     <string name="room_participants_ban_reason">Kialo de forbaro</string>
     <string name="room_participants_ban_title">Forbari uzanton</string>
-    <string name="room_participants_remove_prompt_msg">Forpelo de uzanto ĝin forigos de la ĉambro.
-\n
-\nPor preventi ĝin ree aliĝi, vi ĝin anstataŭe forbaru.</string>
-    <string name="room_participants_remove_reason">Kialo de forpelo</string>
-    <string name="room_participants_remove_title">Forpeli uzanton</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Ĉu vi certe volas nuligi la inviton por tiu ĉi uzanto\?</string>
     <string name="room_participants_action_cancel_invite_title">Nuligi inviton</string>
     <string name="room_participants_action_unignore_prompt_msg">Reatento de tiu ĉi uzanto remontros ĉiujn ĝiajn mesaĝojn.</string>
@@ -1673,7 +1666,6 @@
     <string name="room_permissions_notify_everyone">Sciigi ĉiujn</string>
     <string name="room_permissions_remove_messages_sent_by_others">Forigi mesaĝojn senditajn de aliuloj</string>
     <string name="room_permissions_ban_users">Forbari uzantojn</string>
-    <string name="room_permissions_remove_users">Forpeli uzantojn</string>
     <string name="room_permissions_change_settings">Ŝanĝi agordojn</string>
     <string name="room_permissions_invite_users">Inviti uzantojn</string>
     <string name="room_permissions_send_messages">Sendi mesaĝon</string>
@@ -2098,9 +2090,6 @@
     <string name="space_settings_permissions_title">Permesoj de spaco</string>
     <string name="space_participants_unban_prompt_msg">Malforbaro de uzanto permesos al ĝi re-aliĝi al la spaco.</string>
     <string name="space_participants_ban_prompt_msg">Forbaro forpelos uzanton de tiu ĉi spaco kaj malhelpos ĝian re-aliĝon.</string>
-    <string name="space_participants_remove_prompt_msg">La uzanto estos forigita de ĉi tiu spaco.
-\n
-\nPor preventi ĝin aliĝi denove, vi devus forbari ĝin anstataŭe.</string>
     <string name="spaces">Spacoj</string>
     <string name="initial_sync_request_reason_unignored_users">- Iom uzantoj reatentita</string>
     <string name="settings_mentions_at_room">\@room</string>

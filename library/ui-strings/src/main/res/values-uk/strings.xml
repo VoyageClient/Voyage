@@ -479,7 +479,6 @@
     <string name="command_description_join_room">Приєднує до кімнати із вказаною адресою</string>
     <string name="command_description_part_room">Вийти з кімнати</string>
     <string name="command_description_topic">Встановити тему кімнати</string>
-    <string name="command_description_remove_user">Вилучити користувача із вказаним ID</string>
     <string name="command_description_nick">Змінити псевдонім</string>
     <string name="command_description_markdown">Увімкнути/Вимкнути розмітку Markdown</string>
     <string name="command_description_clear_scalar_token">Для виправлення керування застосунками Matrix</string>
@@ -518,7 +517,6 @@
     <string name="merged_events_collapse">згорнути</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="x_plus">+%d</string>
-    <string name="room_participants_action_remove">Вилучити</string>
     <string name="settings_inline_url_preview_summary">Попередній перегляд посилань у бесіді, якщо ваш сервер підтримує цю можливість.</string>
     <string name="settings_send_typing_notifs">Надсилати сповіщення про набір повідомлення</string>
     <string name="settings_send_typing_notifs_summary">Дозволити іншим користувачам бачити, що ви набираєте повідомлення.</string>
@@ -949,11 +947,6 @@
     <string name="room_participants_unban_title">Розблокувати користувача</string>
     <string name="room_participants_ban_reason">Причина блокування</string>
     <string name="room_participants_ban_title">Заблокувати користувача</string>
-    <string name="room_participants_remove_prompt_msg">вилучення користувачів прибере їх з цієї кімнати.
-\n
-\nЩоб запобігти їхньому повторному приєднанню, замість цього слід заблокувати їх.</string>
-    <string name="room_participants_remove_reason">Причина вилучення</string>
-    <string name="room_participants_remove_title">Вилучити користувача</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Ви впевнені, що бажаєте скасувати запрошення для цього користувача\?</string>
     <string name="room_participants_action_cancel_invite_title">Скасувати запрошення</string>
     <string name="room_participants_action_unignore_prompt_msg">Якщо перестати нехтувати цього користувача, усі його повідомлення стануть знову видимими.</string>
@@ -1083,7 +1076,6 @@
     <string name="room_permissions_notify_everyone">Сповіщати всіх</string>
     <string name="room_permissions_remove_messages_sent_by_others">Вилучати повідомлення, надіслані іншими</string>
     <string name="room_permissions_ban_users">Блокувати користувачів</string>
-    <string name="room_permissions_remove_users">Вилучати користувачів</string>
     <string name="room_permissions_change_settings">Змінювати налаштування</string>
     <string name="room_permissions_invite_users">Запрошувати користувачів</string>
     <string name="room_permissions_send_messages">Надсилати повідомлення</string>
@@ -1868,9 +1860,6 @@
     <string name="space_settings_permissions_title">Дозволи простору</string>
     <string name="space_participants_unban_prompt_msg">Розблокування користувачів дозволить їм знову приєднатися до простору.</string>
     <string name="space_participants_ban_prompt_msg">Блокування користувачів вилучить їх із цього простору та не дозволить їм знову приєднатися.</string>
-    <string name="space_participants_remove_prompt_msg">вилучення користувачів прибере їх з цього простору.
-\n
-\nЩоб запобігти їхньому повторному приєднанню, замість цього слід заблокувати їх.</string>
     <string name="verification_verify_user">Звірити %s</string>
     <string name="verification_emoji_notice">Порівняйте унікальні емоджі, переконавшись, що їх показано в однаковому порядку.</string>
     <string name="verification_no_scan_emoji_title">Звірити порівнявши емоджі</string>

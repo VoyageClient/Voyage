@@ -462,8 +462,6 @@
     <string name="room_participants_action_unignore_title">მომხმარებლის იგნორირების მოხსნა</string>
     <string name="room_participants_action_unignore">იგნორირების მოხსნა</string>
     <string name="room_participants_action_cancel_invite_title">მოწვევის გაუქმება</string>
-    <string name="room_participants_remove_title">მომხმარებლის წაშლა</string>
-    <string name="room_participants_remove_reason">წაშლის მიზეზი</string>
     <string name="room_participants_ban_title">მომხმარებლის აკრძალვა</string>
     <string name="room_participants_ban_reason">დაბლოკვის მიზეზი</string>
     <string name="room_participants_unban_title">მომხმარებლის განბლოკვა</string>
@@ -538,7 +536,6 @@
     <string name="e2e_re_request_encryption_key">სხვა სესიებიდან დაშიფრვის გასაღებების გამოთხოვა.</string>
     <string name="room_participants_action_ban">აკრძალვა</string>
     <string name="e2e_re_request_encryption_key_dialog_content">გთხოვთ, გახსნათ ${app_name} სხვა მოწყობილობაზე, რომელსაც შეუძლია გაშიფროს ეს შეტყობინება, რათა გააგზავნოს გასაღებები ამ სესიაზე.</string>
-    <string name="room_participants_action_remove">ჩატის დატოვება</string>
     <plurals name="membership_changes">
         <item quantity="one">%d წევრობის ცვლილება</item>
         <item quantity="other">%d წევრობის ცვლილებები</item>
@@ -548,12 +545,6 @@
     <string name="room_participants_power_level_demote_warning_prompt">ვერ შეძლებთ ამ ცვლილების გაუქმებას, რადგან თქვენ თავს დაიმცირებთ, თუ თქვენ ხართ ბოლო პრივილეგირებული მომხმარებელი ოთახში, პრივილეგიების აღდგენა შეუძლებელი იქნება.</string>
     <string name="room_participants_action_unignore_prompt_msg">მომხმარებლის იგნორირების მოხსნა აჩვენებს ყველა შეტყობინებას, რაც მას ჰქონდა.</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">დარწმუნებული ხართ, რომ გსურთ ამ მომხმარებლის მოწვევის გაუქმება\?</string>
-    <string name="room_participants_remove_prompt_msg">მომხმარებელი წაიშლება ამ ოთახიდან. 
-\n
-\nმათი ხელახლა შეყვანის თავიდან ასაცილებლად, უნდა აკრძალოთ ისინი.</string>
-    <string name="space_participants_remove_prompt_msg">მომხმარებელი წაიშლება ამ სივრციდან. 
-\n
-\nმათი ხელახლა შეყვანის თავიდან ასაცილებლად, უნდა აკრძალოთ ისინი.</string>
     <string name="room_participants_unban_prompt_msg">მომხმარებლის განბლოკვა მისცემს საშუალებას ხელახლა შეუერთდეს ოთახს.</string>
     <string name="room_many_users_are_typing">%1$s, %2$s და სხვები წერენ…</string>
     <string name="room_do_not_have_permission_to_post">თქვენ არ გაქვთ ნებართვა ამ ოთახში პოსტის განთავსებაზე.</string>
@@ -570,7 +561,6 @@
     <string name="room_settings_permissions_subtitle">ნახვა და განახლება იმ როლების, რომლებიც საჭირო არიან ოთახის სხვადასხვა ნაწილის შესაცვლელად.</string>
     <string name="space_permissions_notice">აირჩიეთ როლები, რომლებიც საჭიროა ამ სივრცის სხვადასხვა ნაწილის შესაცვლელად</string>
     <string name="room_permissions_notice_read_only">თქვენ არ გაქვთ ნებართვა ოთახის სხვადასხვა ნაწილის შესაცვლელად როლების განახლებაზე</string>
-    <string name="room_permissions_remove_users">მომხმარებლების წაშლა</string>
     <string name="room_permissions_remove_messages_sent_by_others">სხვების მიერ გაგზავნილი შეტყობინებების წაშლა</string>
     <string name="room_permissions_change_main_address_for_the_room">ოთახის ძირითადი მისამართის შეცვლა</string>
     <string name="room_permissions_enable_space_encryption">სივრცის დაშიფვრის ჩართვა</string>
@@ -827,7 +817,6 @@
     <string name="avatar_of_room">ოთახის %1$s-ის ავატარი</string>
     <string name="command_description_topic">ოთახის თემის დაყენება</string>
     <string name="dialog_user_consent_content">გაგრძელებისთვის უნდა გადახედოთ და დაეთანხმოთ %1$s ჰომესერვერის პირობებს.</string>
-    <string name="command_description_remove_user">მომხმარებლის ამოღება მოცემული ID-ით ამ ოთახიდან</string>
     <string name="deactivate_account_content">ეს თქვენი ანგარიში მუდმივად გამოუსადეგარს გახდის. თქვენ ვერ შეძლებთ შესვლას, და ვერავინ შეძლებს იგივე მომხმარებლის ID-ის რეგისტრაციას. ეს გამოიწვევს თქვენი ანგარიშის ყველა ოთახიდან გამოსვლას, რომელშიც მონაწილეობდით, და თქვენი ანგარიშის დეტალები წაიშლება თქვენი იდენტობის სერვერიდან. &lt;b&gt;
 \n
 \nეს ქმედება შეუქცევადია&lt;/b&gt;. თქვენი ანგარიშის დეაქტივაცია &lt;b&gt;ნაგულისხმევად არ იწვევს ჩვენ მიერ გაგზავნილი შეტყობინებების დავიწყებას&lt;/b&gt;. თუ გსურთ, რომ ჩვენ დავივიწყოთ თქვენი შეტყობინებები, გთხოვთ მონიშნოთ ქვემოთ მოცემული ყუთი.

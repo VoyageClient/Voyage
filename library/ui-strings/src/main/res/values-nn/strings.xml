@@ -351,7 +351,6 @@
     <string name="command_description_join_room">Vert med i rommet med det gjevne aliaset</string>
     <string name="command_description_part_room">Forlat rom</string>
     <string name="command_description_topic">Set romemnet</string>
-    <string name="command_description_remove_user">Sparkar brukarar med gjeven ID</string>
     <string name="command_description_nick">Forandrar visingsnamnet ditt</string>
     <string name="command_description_markdown">På/Av markdown</string>
     <string name="command_description_clear_scalar_token">For å ordne opp i Matrix-App-administrasjon</string>
@@ -403,7 +402,6 @@ Meldingssynlegheit på Matrix liknar på epost. At vi gløymer meldingane dine t
     <string name="action_sign_out_confirmation_simple">Sikker på at du vil logga ut\?</string>
     <string name="action_mark_room_read">Merk som lest</string>
     <string name="auth_accept_policies">Venligast sjå over og godta retningslinjene til heimtenaren:</string>
-    <string name="room_participants_action_remove">Spark</string>
     <string name="settings_notification_advanced">Avanserte varslingsinnstillingar</string>
     <string name="settings_notification_by_event">Prioritet på varsel ut ifrå hendingar</string>
     <string name="settings_notification_troubleshoot">Løys problem med varslingar</string>

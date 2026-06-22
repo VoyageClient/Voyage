@@ -613,11 +613,6 @@
     <string name="notice_room_server_acl_set_banned">• Serveriai atitinkantys %s yra uždrausti.</string>
     <string name="room_permissions_send_m_room_server_acl_events">Siųsti m.room.server_acl įvykius</string>
     <string name="room_participants_ban_title">Užblokuoti naudotoją</string>
-    <string name="room_participants_remove_prompt_msg">Naudotojas bus pašalintas iš šio kambario.
-\n
-\nKad jis negalėtų prisijungti dar kartą, turėtumėte jį užblokuoti.</string>
-    <string name="room_participants_remove_reason">Pašalinimo priežastis</string>
-    <string name="room_participants_remove_title">Pašalinti naudotoją</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Ar tikrai norite atšaukti kvietimą šiam naudotojui\?</string>
     <string name="room_participants_action_cancel_invite_title">Atšaukti kvietimą</string>
     <string name="room_participants_action_unignore">Nebeignoruoti</string>
@@ -633,7 +628,6 @@
     <string name="room_participants_power_level_prompt">Šio pakeitimo atšaukti negalėsite, nes padidinsite naudotojo galią, kad jis turėtų tokį patį galios lygį, kaip ir jūs pats.
 \nAr esate tikri\?</string>
     <string name="room_participants_action_mention">Paminėti</string>
-    <string name="room_participants_action_remove">Pašalinti iš pokalbio</string>
     <string name="room_participants_action_cancel_invite">Atšaukti kvietimą</string>
     <string name="room_participants_header_direct_chats">Tiesioginiai pokalbiai</string>
     <string name="room_participants_leave_private_warning">Šis kambarys nėra viešas. Negalėsite vėl prisijungti be kvietimo.</string>
@@ -847,9 +841,6 @@
     <string name="space_settings_permissions_title">Erdvės leidimai</string>
     <string name="space_participants_unban_prompt_msg">Atblokavus naudotoją, jis vėl galės prisijungti prie erdvės.</string>
     <string name="space_participants_ban_prompt_msg">Užblokavus naudotoją, jis bus pašalintas iš šios erdvės ir negalės prisijungti dar kartą.</string>
-    <string name="space_participants_remove_prompt_msg">Naudotojas bus pašalintas iš šios erdvės.
-\n
-\nKad jis negalėtų prisijungti dar kartą, turėtumėte jį užblokuoti.</string>
     <string name="spaces_header">Erdvės</string>
     <string name="space_list_empty_message">Erdvės - tai naujas kambarių ir žmonių grupavimo būdas. Sukurkite erdvę ir pradėkite.</string>
     <string name="space_list_empty_title">Erdvių dar nėra.</string>
@@ -1012,7 +1003,6 @@
     <string name="command_description_nick_for_room">Pakeičia jūsų rodomą slapyvardį tik šiame kambaryje</string>
     <string name="command_description_avatar_for_room">Pakeičia jūsų avatarą tik šiame kambaryje</string>
     <string name="command_description_nick">Pakeičia jūsų rodomą slapyvardį</string>
-    <string name="command_description_remove_user">Pašalina naudotoją su nurodytu id iš šio kambario</string>
     <string name="command_description_topic">Nustatyti kambario temą</string>
     <string name="command_description_part_room">Palikti kambarį</string>
     <string name="unrecognized_command">Neatpažinta komanda: %s</string>
@@ -1321,7 +1311,6 @@
     <string name="room_permissions_notify_everyone">Pranešti visiems</string>
     <string name="room_permissions_remove_messages_sent_by_others">Pašalinti kitų išsiųstas žinutes</string>
     <string name="room_permissions_ban_users">Užblokuoti naudotojus</string>
-    <string name="room_permissions_remove_users">Pašalinti naudotojus</string>
     <string name="room_permissions_change_settings">Keisti nustatymus</string>
     <string name="room_permissions_invite_users">Kviesti naudotojus</string>
     <string name="room_permissions_send_messages">Siųsti žinutes</string>

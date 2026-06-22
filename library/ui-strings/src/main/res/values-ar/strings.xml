@@ -539,7 +539,6 @@
     <string name="command_description_join_room">ينضمّ للغرفة حسب الاختصار المعطى</string>
     <string name="command_description_part_room">اترك الغرفة</string>
     <string name="command_description_topic">اضبط موضوع الغرفة</string>
-    <string name="command_description_remove_user">يطرد المستخدم حسب المعرّف المعطى</string>
     <string name="command_description_nick">يُغيّر اسم العرض لحسابك</string>
     <string name="command_description_clear_scalar_token">لإصلاح إدارة تطبيقات «ماترِكس»</string>
     <string name="avatar">شعار</string>
@@ -554,7 +553,6 @@
     <string name="action_skip">تخطي</string>
     <string name="done">تم</string>
     <string name="dialog_title_error">خطأ</string>
-    <string name="room_participants_action_remove">طرد</string>
     <string name="settings_notification_advanced">الإعدادات المتقدمة للإشعارات</string>
     <string name="sign_out_bottom_sheet_warning_no_backup">عند تسجيل الخروج الآن ستخسر مفاتيحك</string>
     <string name="sign_out_bottom_sheet_warning_backing_up">النسخ الاحتياطي المفاتيح ما زال جاريا. في حال خروجك الآن لن تتمكن لاحقا من قراءة الرسائل المعماة.</string>
@@ -742,7 +740,6 @@
     <string name="room_permissions_notify_everyone">نبّه الكل</string>
     <string name="room_permissions_remove_messages_sent_by_others">أزل رسائل الآخرين</string>
     <string name="room_permissions_ban_users">احظر مستخدمين</string>
-    <string name="room_permissions_remove_users">أطرد مستخدمين</string>
     <string name="room_permissions_change_settings">غيّر الإعدادات</string>
     <string name="room_permissions_invite_users">أدعوا مستخدمين</string>
     <string name="room_permissions_send_messages">أرسل رسائل</string>
@@ -972,14 +969,6 @@
     <string name="room_participants_unban_title">فك حظر مستخدم</string>
     <string name="room_participants_ban_reason">سبب الحظر</string>
     <string name="room_participants_ban_title">احظر مستخدمًا</string>
-    <string name="space_participants_remove_prompt_msg">سيزال المستخدم من هذه الفضاء.
-\n
-\nلمنعه من الانضمام ثانية لهذه الفضاء احظره.</string>
-    <string name="room_participants_remove_prompt_msg">سيزال المستخدم من هذه الغرفة.
-\n
-\nلمنعه من الانضمام ثانية لهذه الغرفة احظره.</string>
-    <string name="room_participants_remove_reason">سبب الإزالة</string>
-    <string name="room_participants_remove_title">أزل مستخدمًا</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">أمتأكد من سحب دعوة هذا المستخدم؟</string>
     <string name="room_participants_action_cancel_invite_title">اسحب الدعوة</string>
     <string name="room_participants_action_unignore_title">ألغ تجاهل المستخدم</string>

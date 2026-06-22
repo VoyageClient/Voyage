@@ -552,7 +552,6 @@
     <string name="command_description_join_room">Entra na sala com endereço dado</string>
     <string name="command_description_part_room">Sair de sala</string>
     <string name="command_description_topic">Definir o tópico da sala</string>
-    <string name="command_description_remove_user">Expulsa o usuário com a id dada</string>
     <string name="command_description_nick">Muda seu apelido de exibição</string>
     <string name="command_description_markdown">Ativar/Desativar markdown</string>
     <string name="command_description_clear_scalar_token">Para consertar gerenciamento de Apps Matrix</string>
@@ -601,7 +600,6 @@
     <string name="settings_troubleshoot_test_account_settings_quickfix">Habilitar</string>
     <string name="settings_troubleshoot_test_device_settings_title">Configurações de Sessão.</string>
     <string name="settings_troubleshoot_test_device_settings_success">Notificações estão habilitadas para esta sessão.</string>
-    <string name="room_participants_action_remove">Expulsar</string>
     <string name="settings_troubleshoot_test_device_settings_failed">Notificações não estão habilitadas para esta sessão.
 \nPor favor cheque as configurações de ${app_name}.</string>
     <string name="settings_troubleshoot_test_device_settings_quickfix">Habilitar</string>
@@ -722,11 +720,6 @@
     <string name="room_participants_action_unignore_prompt_msg">Designorar este usuário vai mostrar todas as mensagens dele(a) de novo.</string>
     <string name="room_participants_action_cancel_invite_title">Cancelar convite</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Você tem certeza que você quer cancelar o convite para este usuário\?</string>
-    <string name="room_participants_remove_title">Expulsar usuário</string>
-    <string name="room_participants_remove_reason">Razão de expulsão</string>
-    <string name="room_participants_remove_prompt_msg">O usuário será removido desta sala.
-\n
-\nPara impedi-lo de entrar novamente, você deveria bani-lo ao invés disso.</string>
     <string name="room_participants_ban_title">Banir usuário</string>
     <string name="room_participants_ban_reason">Razão de ban</string>
     <string name="room_participants_unban_title">Desbanir usuário</string>
@@ -1799,7 +1792,6 @@
     <string name="room_permissions_modify_widgets">Modificar widgets</string>
     <string name="room_permissions_remove_messages_sent_by_others">Remover mensagens enviadas pelos outros</string>
     <string name="room_permissions_ban_users">Banir usuários</string>
-    <string name="room_permissions_remove_users">Expulsar usuários</string>
     <string name="room_permissions_change_settings">Mudar configurações</string>
     <string name="room_permissions_invite_users">Convidar usuários</string>
     <string name="room_permissions_send_messages">Enviar mensagens</string>
@@ -2126,9 +2118,6 @@
     <string name="space_settings_permissions_title">Permissões de espaço</string>
     <string name="space_participants_unban_prompt_msg">Desbanir o usuário vai permiti-lo a participar do espaço de novo.</string>
     <string name="space_participants_ban_prompt_msg">Banir o usuário vai removê-lo deste espaço e impedi-lo de entrar novamente.</string>
-    <string name="space_participants_remove_prompt_msg">O usuário será removido deste espaço.
-\n
-\nPara impedi-lo de entrar novamente, você deveria bani-lo ao invés disso.</string>
     <string name="a11y_stop_voice_message">Parar de Gravar</string>
     <string name="command_description_lenny">Prepende ( ͡° ͜ʖ ͡°) a uma mensagem de texto puro</string>
     <string name="settings_discovery_no_policy_provided">Nenhuma política provida pelo servidor de identidade</string>

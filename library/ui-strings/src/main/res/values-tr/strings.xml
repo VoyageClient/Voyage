@@ -146,7 +146,6 @@
     <string name="room_participants_action_invite">Davet et</string>
     <string name="room_participants_action_ban">Engelle</string>
     <string name="room_participants_action_unban">Engeli kaldır</string>
-    <string name="room_participants_action_remove">At</string>
     <string name="room_participants_action_ignore">Bu kullanıcının tüm mesajlarını gizle</string>
     <string name="room_participants_action_unignore">Bu kullanıcının tüm mesajlarını göster</string>
     <string name="room_participants_action_mention">Bahset</string>
@@ -431,7 +430,6 @@
     <string name="command_description_join_room">Belirtilen adresle odaya katılır</string>
     <string name="command_description_part_room">Odadan ayrıl</string>
     <string name="command_description_topic">Odanın konusunu belirle</string>
-    <string name="command_description_remove_user">Verilen id ile kullanıcıları atar</string>
     <string name="command_description_nick">Görünür ismini değiştirir</string>
     <string name="command_description_markdown">Markdown Aç/Kapat</string>
     <string name="command_description_clear_scalar_token">Matrix uygulamaları yönetmeyi düzeltmek için</string>
@@ -711,11 +709,6 @@
     <string name="room_participants_action_unignore_prompt_msg">Bu kullanıcıyı yoksaymaktan vazgeçerseniz tekrar tüm mesajlarını görmeye başlayacaksınız.</string>
     <string name="room_participants_action_cancel_invite_title">Daveti geri çevir</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Bu kullanıcıdan gelen daveti geri çevirmek istediğinizden emin misiniz\?</string>
-    <string name="room_participants_remove_title">Kullanıcıyı kov</string>
-    <string name="room_participants_remove_reason">Kovma sebebi</string>
-    <string name="room_participants_remove_prompt_msg">Kullanıcıyı kovarsanız kendisi bu odadan çıkacak.
-\n
-\nEğer tekrar katılmasını engellemek istiyorsanız kovmak yerine yasaklamalısınız.</string>
     <string name="room_participants_ban_title">Kullanıcıyı yasakla</string>
     <string name="room_participants_ban_reason">Yasaklama sebebi</string>
     <string name="room_participants_unban_title">Kullanıcının yasağını kaldır</string>
@@ -759,7 +752,6 @@
     <string name="room_permissions_notify_everyone">Herkesi bilgilendir</string>
     <string name="room_permissions_remove_messages_sent_by_others">Başkaları tarafından gönderilen mesajları kaldır</string>
     <string name="room_permissions_ban_users">Kullanıcıları banla</string>
-    <string name="room_permissions_remove_users">Kullanıcıları at</string>
     <string name="room_permissions_change_settings">Ayarları değiştir</string>
     <string name="room_permissions_invite_users">Kullanıcı davet et</string>
     <string name="room_permissions_send_messages">Mesaj gönder</string>
@@ -1190,9 +1182,6 @@
     <string name="room_unsupported_e2e_algorithm">Şifreleme yanlış yapılandırıldı, böylece mesaj gönderemezsiniz. Şifrelemeyi geçerli bir duruma geri yüklemek için lütfen bir yöneticiyle iletişime geçin.</string>
     <string name="space_participants_unban_prompt_msg">Yasağı kaldırmak, kullanıcının alana tekrar katılmasına izin verir.</string>
     <string name="space_participants_ban_prompt_msg">Kullanıcıyı yasaklamak onları bu alandan kaldıracak ve tekrar katılmalarını engelleyecektir.</string>
-    <string name="space_participants_remove_prompt_msg">Kullanıcı bu alandan kaldırılacaktır.
-\n
-\nTekrar katılmalarını önlemek için, onları yasaklamalısınız.</string>
     <string name="error_unauthorized">Yetkisiz, eksik geçerli kimlik doğrulama kimlik bilgileri</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Ana sunucuyu seçin</string>
     <string name="login_error_homeserver_from_url_not_found">%s url\'sinde bir ana sunucuya ulaşılamıyor. Lütfen bağlantınızı kontrol edin veya bir ana sunucuyu manuel olarak seçin.</string>

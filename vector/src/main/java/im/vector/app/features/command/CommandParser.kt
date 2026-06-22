@@ -223,20 +223,20 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.INVITE)
                     }
                 }
-                Command.REMOVE_USER.matches(slashCommand) -> {
+                Command.KICK_USER.matches(slashCommand) -> {
                     if (messageParts.size >= 2) {
                         val userId = messageParts[1]
 
                         if (MatrixPatterns.isUserId(userId)) {
-                            ParsedCommand.RemoveUser(
+                            ParsedCommand.KickUser(
                                     userId,
                                     trimParts(textMessage, messageParts.take(2))
                             )
                         } else {
-                            ParsedCommand.ErrorSyntax(Command.REMOVE_USER)
+                            ParsedCommand.ErrorSyntax(Command.KICK_USER)
                         }
                     } else {
-                        ParsedCommand.ErrorSyntax(Command.REMOVE_USER)
+                        ParsedCommand.ErrorSyntax(Command.KICK_USER)
                     }
                 }
                 Command.BAN_USER.matches(slashCommand) -> {

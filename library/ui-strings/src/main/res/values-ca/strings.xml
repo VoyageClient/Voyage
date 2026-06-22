@@ -554,7 +554,6 @@
     <string name="command_description_join_room">T\'uneix a sales amb l\'adreça corresponent</string>
     <string name="command_description_part_room">Marxa de la sala</string>
     <string name="command_description_topic">Defineix el tema de la sala</string>
-    <string name="command_description_remove_user">Expulsa l\'usuari amb l\'ID proporcionat</string>
     <string name="command_description_nick">Canvia l\'àlies</string>
     <string name="command_description_markdown">Activa/Desactiva el markdown</string>
     <string name="command_description_clear_scalar_token">Arreglar la gestió de les Apps de Matrix</string>
@@ -585,7 +584,6 @@
     <string name="merged_events_expand">desplega</string>
     <string name="merged_events_collapse">plega</string>
     <string name="action_accept">Accepta</string>
-    <string name="room_participants_action_remove">Expulsa</string>
     <string name="settings_inline_url_preview_summary">Mostra la vista prèvia dels enllaços dins del xat en cas que el vostre servidor base suporti aquesta funcionalitat.</string>
     <string name="settings_send_typing_notifs">Envia notificacions d\'escriptura</string>
     <string name="settings_send_typing_notifs_summary">Feu saber a altres usuaris que esteu escrivint.</string>
@@ -867,8 +865,6 @@
     <string name="settings_general_title">General</string>
     <string name="settings_preferences">Preferències</string>
     <string name="settings_security_and_privacy">Seguretat i privadesa</string>
-    <string name="room_participants_remove_reason">Motiu de l\'expulsió</string>
-    <string name="room_participants_remove_title">Expulsa usuari</string>
     <string name="login_signin_sso">Continua amb SSO</string>
     <string name="identity_server_error_bulk_sha256_not_supported">Per a la teva pròpia privadesa, ${app_name} només admet l\'enviament del \'hash\' d\'adreces de correu electrònic i números de telèfon.</string>
     <string name="command_description_discard_session_not_handled">Només admès en sales xifrades</string>
@@ -1138,7 +1134,6 @@
     <string name="room_permissions_notify_everyone">Notificar a tothom</string>
     <string name="room_permissions_remove_messages_sent_by_others">Eliminar missatges enviats per altres</string>
     <string name="room_permissions_ban_users">Vetar usuaris</string>
-    <string name="room_permissions_remove_users">Expulsar usuaris</string>
     <string name="room_permissions_change_settings">Canviar la configuració</string>
     <string name="room_permissions_invite_users">Convida usuaris</string>
     <string name="room_permissions_send_messages">Enviar missatges</string>
@@ -1147,9 +1142,6 @@
     <string name="room_permissions_notice">Selecciona els rols necessaris per canviar les diferents parts de la sala</string>
     <string name="room_permissions_title">Permisos</string>
     <string name="room_settings_permissions_title">Permisos de la sala</string>
-    <string name="room_participants_remove_prompt_msg">l\'expulsió d\'un usuari l\'eliminarà de la sala.
-\n
-\nPer evitar que torni a unir-s\'hi, l\'hauries de vetar.</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Segur que vols cancel·lar la invitació d\'aquest usuari\?</string>
     <string name="room_participants_leave_private_warning">Aquesta sala no és pública. No podràs tornar-t\'hi a unir sense una invitació.</string>
     <string name="encryption_enabled">Xifrat activat</string>
@@ -1931,9 +1923,6 @@
     <string name="room_notification_two_users_are_typing">%1$s i %2$s</string>
     <string name="space_participants_unban_prompt_msg">Si deixes de vetar un usuari, es podrà tornar a unir a l\'espai.</string>
     <string name="space_participants_ban_prompt_msg">Si vetes un usuari, se l\'expulsarà de l\'espai i no s\'hi podrà tornar a unir.</string>
-    <string name="space_participants_remove_prompt_msg">L\'usuari s\'eliminarà d\'aquest espai.
-\n
-\nPer evitar que tornin a unir-se, els hauries de vetar.</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Tria el servidor</string>
     <string name="login_error_homeserver_from_url_not_found">No s\'ha pogut arribar a cap servidor a l\'URL %s. Comprova l\'enllaç o escull un servidor manualment.</string>
     <string name="use_as_default_and_do_not_ask_again">Utilitza com a predeterminat i no ho preguntis més</string>

@@ -495,7 +495,6 @@
     <string name="room_jump_to_first_unread">پرش به ناخوانده</string>
     <string name="room_participants_action_ban">تحریم</string>
     <string name="room_participants_action_unban">رفع انسداد</string>
-    <string name="room_participants_action_remove">اخراج</string>
     <string name="room_participants_action_ignore">نادیده‌گرفتن</string>
     <string name="room_participants_action_unignore">لغو نادیده‌گیری</string>
     <string name="room_participants_action_mention">اشاره</string>
@@ -540,11 +539,6 @@
     <string name="room_participants_action_unignore_title">لغو نادیده‌گیری کاربر</string>
     <string name="room_participants_action_cancel_invite_title">لغو دعوت</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">مطمئنید که می‌خواهید دعوت این کاربر را لغو کنید؟</string>
-    <string name="room_participants_remove_title">اخراج کاربر</string>
-    <string name="room_participants_remove_reason">دلیل اخراج</string>
-    <string name="room_participants_remove_prompt_msg">اخراج کاربر، از این اتاق برش می‌دارد.
-\n
-\nبرای پیش‌گیری از پیوستن دوباره، باید تحریمش کنید.</string>
     <string name="room_participants_ban_title">تحریم کاربر</string>
     <string name="room_participants_ban_reason">دلیل تحریم</string>
     <string name="room_participants_unban_title">تحریم نکردن کاربر</string>
@@ -1568,7 +1562,6 @@
     <string name="command_description_clear_scalar_token">جهت رفع مشکلات مدیریت برنامه‌های ماتریکس</string>
     <string name="command_description_markdown">فعال و غیرفعال کردن markdown</string>
     <string name="command_description_nick">نام مستعار شما را تغییر می‌دهد</string>
-    <string name="command_description_remove_user">اخراج کاربر با شناسه داده شده</string>
     <string name="command_description_topic">تنظیم موضوع اتاق</string>
     <string name="command_description_part_room">ترک اتاق</string>
     <string name="command_description_join_room">به اتاق با نشانی داده شده می‌پیوندد</string>
@@ -1746,7 +1739,6 @@
     <string name="room_permissions_send_messages">فرستادن پیام‌ها</string>
     <string name="room_permissions_invite_users">دعوت کاربران</string>
     <string name="room_permissions_change_settings">تغییر تنظیمات</string>
-    <string name="room_permissions_remove_users">اخراج کاربران</string>
     <string name="room_permissions_ban_users">تحریم کاربران</string>
     <string name="room_permissions_remove_messages_sent_by_others">برداشتن پیام‌های دیگران</string>
     <string name="room_permissions_notify_everyone">آگاه کردن همه</string>
@@ -2126,9 +2118,6 @@
     <string name="space_settings_permissions_title">اجازه‌های فضا</string>
     <string name="space_participants_unban_prompt_msg">لغو تحریم کاربر، اجازهٔ پیوستن دوباره‌اش به فضا را می‌دهد.</string>
     <string name="space_participants_ban_prompt_msg">تحریم کاربر، او را از این فضا برداشته و از پیوستن دوباره‌اش جلوگیری می‌کند.</string>
-    <string name="space_participants_remove_prompt_msg">اخراج کاربر، از این فضا برش می‌دارد.
-\n
-\nبرای پیش‌گیری از پیوستن دوباره، باید تحریمش کنید.</string>
     <string name="a11y_stop_voice_message">پایان ضبط</string>
     <string name="command_description_lenny">( ͡° ͜ʖ ͡°) را به ابتدای پیام‌های متنی خام می‌افزاید</string>
     <string name="settings_discovery_no_policy_provided">سیاستی از سوری کارساز هویت فراهم نشده</string>

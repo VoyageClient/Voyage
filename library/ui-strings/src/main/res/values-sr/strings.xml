@@ -393,7 +393,6 @@
     <string name="room_permissions_notify_everyone">Обавестити све</string>
     <string name="room_permissions_remove_messages_sent_by_others">Уклонити поруке које су други послали</string>
     <string name="room_permissions_ban_users">Забранити кориснике</string>
-    <string name="room_permissions_remove_users">Протерати кориснике</string>
     <string name="room_permissions_change_settings">Променити подешавања</string>
     <string name="room_permissions_invite_users">Позвати чланове</string>
     <string name="room_permissions_send_messages">Слати поруке</string>
@@ -414,7 +413,6 @@
     <string name="room_participants_power_level_demote_warning_prompt">Нећете моћи да поништите ову промену пошто снизујете ваша права, ако сте последњи привилеговани корисник у соби, неће бити могуће повратити привилегије.</string>
     <string name="room_participants_power_level_demote_warning_title">Ауто снизити права\?</string>
     <string name="room_participants_action_mention">Спомени</string>
-    <string name="room_participants_action_remove">Изтерај</string>
     <string name="room_participants_action_unban">Уклони забрану</string>
     <string name="room_participants_action_ban">Забрани</string>
     <string name="room_participants_action_cancel_invite">Поништи позив</string>
@@ -447,8 +445,6 @@
     <string name="room_participants_unban_title">Склони забрану корисника</string>
     <string name="room_participants_ban_reason">Разлог забране</string>
     <string name="room_participants_ban_title">Забрани корисника</string>
-    <string name="room_participants_remove_reason">Разлог одбацивања</string>
-    <string name="room_participants_remove_title">Одбацити корисник</string>
     <string name="no">НЕ</string>
     <string name="yes">ДА</string>
     <string name="permissions_denied_add_contact">Дозволите приступ вашим контактима.</string>

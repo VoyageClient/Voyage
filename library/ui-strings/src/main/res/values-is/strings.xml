@@ -923,7 +923,6 @@
     <string name="command_description_avatar_for_room">Breytir auðkennismyndinni þinni einungis í fyrirliggjandi spjallrás</string>
     <string name="command_description_room_avatar">Breytir auðkennismyndinni einungis í fyrirliggjandi spjallrás</string>
     <string name="command_description_nick_for_room">Breytir birtu gælunafni þínu einungis í fyrirliggjandi spjallrás</string>
-    <string name="command_description_remove_user">Fjarlægir notanda með uppgefið auðkenni úr þessari spjallrás</string>
     <string name="command_description_topic">Stilla umfjöllunarefni spjallrásar</string>
     <string name="command_description_join_room">Gengur til liðs við spjallrás með uppgefnu vistfangi</string>
     <string name="command_description_invite_user">Býður notanda með uppgefið auðkenni í fyrirliggjandi spjallrás</string>
@@ -1300,7 +1299,6 @@
     <string name="room_notification_two_users_are_typing">%1$s og %2$s</string>
     <string name="room_participants_unban_title">Taka notanda úr banni</string>
     <string name="room_participants_ban_title">Banna notanda</string>
-    <string name="room_participants_remove_title">Fjarlægja notanda</string>
     <string name="room_participants_power_level_demote">Lækka í tign</string>
     <string name="option_always_ask">Alltaf spyrja</string>
     <string name="sound_device_headset">Heyrnartól</string>
@@ -1360,12 +1358,10 @@
     <string name="settings_when_rooms_are_upgraded">Þegar spjallrásir eru uppfærðar</string>
     <string name="space_settings_permissions_title">Heimildir svæðis</string>
     <string name="room_participants_ban_reason">Ástæða fyrir banni</string>
-    <string name="room_participants_remove_reason">Ástæða fjarlægingar</string>
     <string name="room_participants_action_cancel_invite_title">Hætta við boð</string>
     <string name="room_participants_action_unignore_title">Hætta að hunsa notanda</string>
     <string name="room_participants_action_ignore_title">Hunsa notanda</string>
     <string name="room_participants_power_level_demote_warning_title">Lækka þig sjálfa/n í tign\?</string>
-    <string name="room_participants_action_remove">Fjarlægja úr spjalli</string>
     <string name="room_participants_action_cancel_invite">Hætta við boð</string>
     <string name="login_error_no_homeserver_found">Þetta er ekki gilt vistfang á Matrix-þjóni</string>
     <string name="suggested_header">Tillögur að spjallrásum</string>
@@ -1415,7 +1411,6 @@
     <string name="room_permissions_notify_everyone">Tilkynna öllum</string>
     <string name="room_permissions_remove_messages_sent_by_others">Fjarlægja skilaboð send af öðrum</string>
     <string name="room_permissions_ban_users">Banna notendur</string>
-    <string name="room_permissions_remove_users">Fjarlægja notendur</string>
     <string name="room_permissions_send_messages">Senda skilaboð</string>
     <string name="room_permissions_default_role">Sjálfgefið hlutverk</string>
     <string name="room_notification_more_than_two_users_are_typing">%1$s, %2$s og aðrir</string>
@@ -2123,12 +2118,6 @@
     <string name="space_participants_unban_prompt_msg">Afbönnun á þessum notanda mun gera viðkomandi kleift að taka þátt aftur í svæðinu.</string>
     <string name="room_participants_unban_prompt_msg">Afbönnun á þessum notanda mun gera viðkomandi kleift að taka þátt aftur í spjallrásinni.</string>
     <string name="space_participants_ban_prompt_msg">Bann á notanda mun henda honum út af þessu svæði og koma í veg fyrir að viðkomandi komi aftur.</string>
-    <string name="space_participants_remove_prompt_msg">Notandinn verður fjarlægður af þessu svæði.
-\n
-\nTil koma í veg fyrir að viðkomandi komi aftur, ætti frekar að banna hann.</string>
-    <string name="room_participants_remove_prompt_msg">Notandinn verður fjarlægður af þessari spjallrás.
-\n
-\nTil koma í veg fyrir að viðkomandi komi aftur, ætti frekar að banna hann.</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Ertu viss um að þú viljir hætta við boðið til þessa notanda\?</string>
     <string name="room_participants_action_unignore_prompt_msg">Afhunsun á þessum notanda mun sýna öll skilaboð frá viðkomandi aftur.</string>
     <string name="room_participants_action_ignore_prompt_msg">Að hunsa þennan notanda mun fjarlægja skilaboð frá viðkomandi í þeim spjallrásum sem þið eigið sameiginlegar.

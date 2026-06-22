@@ -543,7 +543,6 @@
     <string name="command_description_join_room">加入指定位址的聊天室</string>
     <string name="command_description_part_room">離開聊天室</string>
     <string name="command_description_topic">設定聊天室主題</string>
-    <string name="command_description_remove_user">移除指定 ID 的使用者</string>
     <string name="command_description_nick">變更您的顯示暱稱</string>
     <string name="command_description_markdown">開啟／關閉 markdown</string>
     <string name="command_description_clear_scalar_token">為了修復 Matrix 應用程式管理</string>
@@ -569,7 +568,6 @@
     <string name="passphrase_passphrase_does_not_match">密語不相符</string>
     <string name="merged_events_expand">展開</string>
     <string name="merged_events_collapse">收折</string>
-    <string name="room_participants_action_remove">從聊天移除</string>
     <string name="settings_inline_url_preview_summary">當您的家伺服器支援此功能時在聊天中預覽連結。</string>
     <string name="settings_send_typing_notifs">傳送「輸入中」的通知</string>
     <string name="settings_send_typing_notifs_summary">讓其他使用者知道您正在打字。</string>
@@ -1456,11 +1454,6 @@
     <string name="room_participants_action_unignore_prompt_msg">取消忽略此使用者將再次顯示從他們而來的所有訊息。</string>
     <string name="room_participants_action_cancel_invite_title">取消邀請</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">您確定要取消對此使用者的邀請嗎？</string>
-    <string name="room_participants_remove_title">移除使用者</string>
-    <string name="room_participants_remove_reason">移除的理由</string>
-    <string name="room_participants_remove_prompt_msg">使用者將會從此聊天室中被移除。
-\n
-\n為了防止他們再加入，您應該封鎖他們。</string>
     <string name="room_participants_ban_title">封鎖使用者</string>
     <string name="room_participants_ban_reason">封鎖的理由</string>
     <string name="room_participants_unban_title">取消封鎖使用者</string>
@@ -1763,7 +1756,6 @@
     <string name="room_permissions_notify_everyone">通知每個人</string>
     <string name="room_permissions_remove_messages_sent_by_others">移除其他人傳送的訊息</string>
     <string name="room_permissions_ban_users">封鎖使用者</string>
-    <string name="room_permissions_remove_users">移除使用者</string>
     <string name="room_permissions_change_settings">變更設定</string>
     <string name="room_permissions_invite_users">邀請使用者</string>
     <string name="room_permissions_send_messages">傳送訊息</string>
@@ -2089,9 +2081,6 @@
     <string name="space_settings_permissions_title">聊天空間權限</string>
     <string name="space_participants_unban_prompt_msg">取消封鎖使用者將讓他們可以再次加入聊天空間。</string>
     <string name="space_participants_ban_prompt_msg">封鎖使用者將會把他們從此聊天空間中移除，並避免他們再次加入。</string>
-    <string name="space_participants_remove_prompt_msg">使用者將會從此聊天空間中被移除。
-\n
-\n為了防止他們再加入，您應該封鎖他們。</string>
     <string name="a11y_stop_voice_message">停止錄製</string>
     <string name="command_description_lenny">在文字訊息前加入 ( ͡° ͜ʖ ͡°)</string>
     <string name="settings_discovery_no_policy_provided">身分伺服器未提供政策</string>

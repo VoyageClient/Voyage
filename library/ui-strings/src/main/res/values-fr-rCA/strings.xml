@@ -1112,7 +1112,6 @@
     <string name="room_permissions_notify_everyone">Notifier tout le monde</string>
     <string name="room_permissions_remove_messages_sent_by_others">Supprimer les messages des autres</string>
     <string name="room_permissions_ban_users">Bannir des utilisateurs</string>
-    <string name="room_permissions_remove_users">Expulser des utilisateurs</string>
     <string name="room_permissions_change_settings">Mettre à jour les paramètres</string>
     <string name="room_permissions_invite_users">Inviter des utilisateurs</string>
     <string name="room_permissions_send_messages">Envoyer des messages</string>
@@ -1319,7 +1318,6 @@
     <string name="command_description_clear_scalar_token">Pour réparer la gestion des applications Matrix</string>
     <string name="command_description_markdown">Markdown activé/désactivé</string>
     <string name="command_description_nick">Change le nom d’affichage</string>
-    <string name="command_description_remove_user">Expulse l’utilisateur avec l’identifiant fourni</string>
     <string name="command_description_topic">Définit le sujet du salon</string>
     <string name="command_description_part_room">Quitte le salon</string>
     <string name="command_description_join_room">Rejoint le salon avec l’alias fourni</string>
@@ -1392,11 +1390,6 @@
     <string name="room_participants_unban_title">Révoquer le bannissement de l’utilisateur</string>
     <string name="room_participants_ban_reason">Motif du bannissement</string>
     <string name="room_participants_ban_title">Bannir l’utilisateur</string>
-    <string name="room_participants_remove_prompt_msg">expulser un utilisateur le supprimera de ce salon.
-\n
-\nPour l’empêcher de revenir, vous devez plutôt le bannir.</string>
-    <string name="room_participants_remove_reason">Motif d’expulsion</string>
-    <string name="room_participants_remove_title">Expulser l’utilisateur</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Êtes-vous sûr de vouloir annuler l’invitation pour cet utilisateur \?</string>
     <string name="room_participants_action_cancel_invite_title">Annuler l’invitation</string>
     <string name="room_participants_action_unignore">Afficher tous les messages de cet utilisateur</string>
@@ -1820,7 +1813,6 @@
     <string name="room_participants_power_level_prompt">Vous ne pourrez pas annuler cette modification car vous promouvez l’utilisateur au même rang que le vôtre.
 \nLe voulez-vous vraiment \?</string>
     <string name="room_participants_action_mention">Mentionner</string>
-    <string name="room_participants_action_remove">Expulser</string>
     <string name="room_participants_action_unban">Révoquer le bannissement</string>
     <string name="room_participants_action_ban">Bannir</string>
     <string name="room_participants_action_cancel_invite">Annuler l’invitation</string>

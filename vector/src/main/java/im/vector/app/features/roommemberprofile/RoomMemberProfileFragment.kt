@@ -387,11 +387,11 @@ class RoomMemberProfileFragment :
                 .show(
                         activity = requireActivity(),
                         askForReason = true,
-                        confirmationRes = if (isSpace) CommonStrings.space_participants_remove_prompt_msg
-                        else CommonStrings.room_participants_remove_prompt_msg,
-                        positiveRes = CommonStrings.room_participants_action_remove,
-                        reasonHintRes = CommonStrings.room_participants_remove_reason,
-                        titleRes = CommonStrings.room_participants_remove_title
+                        confirmationRes = if (isSpace) CommonStrings.space_participants_kick_prompt_msg
+                        else CommonStrings.room_participants_kick_prompt_msg,
+                        positiveRes = CommonStrings.room_participants_action_kick,
+                        reasonHintRes = CommonStrings.room_participants_kick_reason,
+                        titleRes = CommonStrings.room_participants_kick_title
                 ) { reason ->
                     viewModel.handle(RoomMemberProfileAction.KickUser(reason))
                 }

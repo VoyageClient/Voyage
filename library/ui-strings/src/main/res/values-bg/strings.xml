@@ -514,7 +514,6 @@
     <string name="command_description_join_room">Присъединява се към стая с даден псевдоним</string>
     <string name="command_description_part_room">Напуска стаята</string>
     <string name="command_description_topic">Слага тема на стаята</string>
-    <string name="command_description_remove_user">Изгонва потребител с даден идентификатор</string>
     <string name="command_description_nick">Променя името Ви</string>
     <string name="command_description_markdown">Включва/изключва markdown</string>
     <string name="command_description_clear_scalar_token">Поправя управлението на Matrix приспособленията</string>
@@ -545,7 +544,6 @@
     <string name="x_plus">%d+</string>
     <string name="action_accept">Приемам</string>
     <string name="auth_accept_policies">Моля прегледайте и приемете политиките на сървъра:</string>
-    <string name="room_participants_action_remove">Изгони</string>
     <string name="settings_inline_url_preview_summary">Прегледи на връзки директно в самия чат, когато функцията се поддържа от сървъра.</string>
     <string name="settings_send_typing_notifs">Изпращане на информация, че пиша</string>
     <string name="settings_send_typing_notifs_summary">Показва на другите, че в момента пишете.</string>
@@ -1133,8 +1131,6 @@
     <string name="settings_show_redacted">Показвай премахнатите съобщения</string>
     <string name="settings_show_redacted_summary">Показвай индикатор на мястото на премахнатите съобщения</string>
     <string name="action_play">Възпроизведи</string>
-    <string name="room_participants_remove_reason">Причина за изгонване</string>
-    <string name="room_participants_remove_title">Изгонване на потребител</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Сигурни ли сте, че искате да откажете изпратената към този потребител покана\?</string>
     <string name="room_participants_action_cancel_invite_title">Отказва на покана</string>
     <string name="room_participants_action_unignore_prompt_msg">Премахване на игнорирането на потребителя ще покаже отново всички техни съобщения.</string>
@@ -1346,9 +1342,6 @@
     <string name="room_participants_unban_title">Премахване на блокиране</string>
     <string name="room_participants_ban_reason">Причина за блокирането</string>
     <string name="room_participants_ban_title">Блокиране на потребител</string>
-    <string name="room_participants_remove_prompt_msg">Изгонването на потребителя ще ги премахне от тази стая.
-\n
-\nАко искате да не могат да влязат пак, блокирайте ги вместо това.</string>
     <string name="event_redacted_by_admin_reason_with_reason">Събитието бе модерирано от администратор на стаята, причина: %1$s</string>
     <string name="event_redacted_by_user_reason_with_reason">Събитието бе изтрито от потребител, причина: %1$s</string>
     <string name="delete_event_dialog_reason_hint">Причина за редактиране</string>

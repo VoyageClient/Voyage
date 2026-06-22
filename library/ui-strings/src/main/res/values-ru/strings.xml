@@ -583,7 +583,6 @@
     <string name="command_description_invite_user">Пригласить пользователя с данным ID в текущую комнату</string>
     <string name="command_description_part_room">Покинуть комнату</string>
     <string name="command_description_topic">Задать тему комнаты</string>
-    <string name="command_description_remove_user">Выгнать пользователя с заданным ID из этой комнаты</string>
     <string name="command_description_nick">Изменить ваше отображаемое имя</string>
     <string name="command_description_markdown">Вкл/выкл markdown</string>
     <string name="room_tombstone_versioned_description">Эта комната была заменена и больше не активна.</string>
@@ -615,7 +614,6 @@
     <string name="merged_events_collapse">свернуть</string>
     <string name="settings_password">Пароль</string>
     <string name="auth_accept_policies">Пожалуйста, ознакомьтесь и примите правила этого домашнего сервера:</string>
-    <string name="room_participants_action_remove">Удалить из комнаты</string>
     <string name="settings_notification_troubleshoot">Поиск проблем с уведомлениями</string>
     <string name="settings_send_typing_notifs">Оправлять уведомления о наборе текста</string>
     <string name="settings_send_markdown">Markdown форматирование</string>
@@ -1267,11 +1265,6 @@
     <string name="room_participants_action_unignore_prompt_msg">Если вы перестанете игнорировать этого пользователя, то вы увидите все его сообщения снова.</string>
     <string name="room_participants_action_cancel_invite_title">Отменить приглашение</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Вы уверены, что хотите отменить приглашение для этого пользователя\?</string>
-    <string name="room_participants_remove_title">Выгнать пользователя</string>
-    <string name="room_participants_remove_reason">Причина гонения</string>
-    <string name="room_participants_remove_prompt_msg">Пользователь будет выгнан из этой комнаты.
-\n
-\nЧтобы предотвратить его повторное присоединение, вы должны заблокировать его.</string>
     <string name="room_participants_ban_title">Заблокировать пользователя</string>
     <string name="room_participants_ban_reason">Причина блокировки</string>
     <string name="room_participants_unban_title">Разблокировать пользователя</string>
@@ -1852,7 +1845,6 @@
     <string name="room_permissions_notify_everyone">Уведомить всех</string>
     <string name="room_permissions_remove_messages_sent_by_others">Удалить сообщения, отправленные другими</string>
     <string name="room_permissions_ban_users">Блокировка пользователей</string>
-    <string name="room_permissions_remove_users">Выгнать пользователей</string>
     <string name="room_permissions_change_settings">Изменить настройки</string>
     <string name="room_permissions_invite_users">Пригласить пользователей</string>
     <string name="room_permissions_send_messages">Отправить сообщения</string>
@@ -2185,9 +2177,6 @@
     <string name="space_settings_permissions_title">Разрешения пространства</string>
     <string name="space_participants_unban_prompt_msg">Разблокирование пользователя позволит ему присоединиться к пространству опять.</string>
     <string name="space_participants_ban_prompt_msg">Блокировка пользователя удалит его из этого пространства и не позволит ему присоединиться вновь.</string>
-    <string name="space_participants_remove_prompt_msg">Пользователь будет выгнан из этого пространства.
-\n
-\nЧтобы предотвратить его повторное присоединение, вы должны заблокировать его.</string>
     <string name="a11y_stop_voice_message">Остановить запись</string>
     <string name="command_description_lenny">Добавляет ( ͡° ͜ʖ ͡°) в начало сообщения</string>
     <string name="settings_discovery_no_policy_provided">Нет правил, предоставляемых сервером обнаружения</string>

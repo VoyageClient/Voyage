@@ -676,7 +676,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="deactivate_account_submit">Deaktivizēt kontu</string>
     <string name="deactivate_account_title">Deaktivizēt kontu</string>
     <string name="command_description_nick">Nomaina Tavu attēlojamo segvārdu</string>
-    <string name="command_description_remove_user">Padzen lietotāju ar norādīto id</string>
     <string name="command_description_part_room">Pamest istabu</string>
     <string name="command_description_invite_user">Uzaicina lietotāju ar norādīto id uz pašreizējo istabu</string>
     <string name="command_description_deop_user">Atceļ operatora statusu lietotājam ar norādīto Id</string>
@@ -720,7 +719,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_permissions_notify_everyone">Apziņot visus</string>
     <string name="room_permissions_remove_messages_sent_by_others">Dzēst citu sūtītas ziņas</string>
     <string name="room_permissions_ban_users">Liegt pieeju lietotājiem</string>
-    <string name="room_permissions_remove_users">Padzīt lietotājus</string>
     <string name="room_permissions_change_settings">Mainīt iestatījumus</string>
     <string name="room_permissions_invite_users">Uzaicināt lietotājus</string>
     <string name="room_permissions_send_messages">Sūtīt ziņas</string>
@@ -732,7 +730,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_participants_action_unignore_title">Atcelt lietotāja ignorēšanu</string>
     <string name="room_participants_action_ignore_title">Ignorēt lietotāju</string>
     <string name="room_participants_power_level_demote_warning_prompt">Tu nevarēsi atdarīt šo izmaiņu, jo Tu pazemini sevi. Ja esi pēdējais istabas lietotājs ar paaugstinātām tiesībām, būs neiespējami tās atgūt.</string>
-    <string name="room_participants_action_remove">Noņemt no tērzēšanas</string>
     <string name="room_participants_action_cancel_invite">Atcelt uzaicinājumu</string>
     <string name="room_participants_leave_private_warning">Šī istaba nav publiska. Tai nebūs iespējams atkārtoti pievienoties bez uzaicinājuma.</string>
     <string name="permissions_denied_add_contact">Atļaujiet piekļuvi savām kontaktpersonām.</string>
@@ -921,11 +918,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_participants_unban_title">Atcelt pieejas liegumu lietotājam</string>
     <string name="room_participants_ban_reason">Pieejas lieguma iemesls</string>
     <string name="room_participants_ban_title">Liegt pieeju lietotājam</string>
-    <string name="room_participants_remove_prompt_msg">Lietotājs tiks noņemts no šīs istabas.
-\n
-\nLai novērstu atkārtotu pievienošanos, tā vietā vajadzētu liegt pieeju.</string>
-    <string name="room_participants_remove_reason">Padzīšanas iemesls</string>
-    <string name="room_participants_remove_title">Padzīt lietotāju</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Vai tiešām vēlaties atcelt uzaicinājumu šim lietotājam\?</string>
     <string name="room_participants_action_unignore_prompt_msg">Atceļot ši lietotāja ignorēšanu, visas lietotāja ziņas atkal būs redzamas.</string>
     <string name="room_participants_action_ignore_prompt_msg">Šī lietotāja neņemšana vērā kopīgajās istabās noņems viņa ziņas.
@@ -1952,9 +1944,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="space_settings_permissions_title">Telpas atļaujas</string>
     <string name="space_participants_unban_prompt_msg">Atceļot pievienošanās aizliegumu lietotājam, ļaus viņam atkal pievienoties Telpai.</string>
     <string name="space_participants_ban_prompt_msg">Aizliedzot lietotājam pievienoties, viņš tiks izmests no šīs Telpas un vairs nevarēs tai pievienoties.</string>
-    <string name="space_participants_remove_prompt_msg">Lietotājs tiks noņemts no šīs vietas.
-\n
-\nLai novērstu atkārtotu pievēršanos, vajadzētu liegt piekļuvi.</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">Izvēlēties mājasserveri</string>
     <string name="hs_client_url">Mājasservera API URL</string>
     <string name="login_error_homeserver_from_url_not_found">Nevar sasniegt mājasserveri ar URL %s. Lūgums pārbaudīt saiti vai pašrocīgi izvēlieties mājasserveri.</string>

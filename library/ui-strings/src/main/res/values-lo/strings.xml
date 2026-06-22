@@ -117,7 +117,6 @@
     <string name="room_permissions_notify_everyone">ແຈ້ງເຕືອນທຸກຄົນ</string>
     <string name="room_permissions_remove_messages_sent_by_others">ລຶບຂໍ້ຄວາມທີ່ຄົນອື່ນສົ່ງມາ</string>
     <string name="room_permissions_ban_users">ຫ້າມຜູ້ໃຊ້</string>
-    <string name="room_permissions_remove_users">ລຶບຜູ້ໃຊ້ອອກ</string>
     <string name="room_permissions_change_settings">ປ່ຽນການຕັ້ງຄ່າ</string>
     <string name="room_permissions_invite_users">ເຊີນຜູ້ໃຊ້</string>
     <string name="room_permissions_send_messages">ສົ່ງຂໍ້ຄວາມ</string>
@@ -158,14 +157,6 @@
     <string name="room_participants_unban_title">ຍົກເລີກການຫ້າມຜູ້ໃຊ້</string>
     <string name="room_participants_ban_reason">ເຫດຜົນທີ່ຫ້າມ</string>
     <string name="room_participants_ban_title">ຫ້າມຜູ້ໃຊ້</string>
-    <string name="space_participants_remove_prompt_msg">ຜູ້ໃຊ້ຈະຖືກລຶບອອກຈາກພື້ນທີ່ນີ້.
-\n
-\nເພື່ອປ້ອງກັນບໍ່ໃຫ້ພວກເຂົາເຂົ້າຮ່ວມອີກເທື່ອຫນຶ່ງ, ທ່ານຄວນຫ້າມພວກເຂົາແທນ.</string>
-    <string name="room_participants_remove_prompt_msg">ຜູ້ໃຊ້ຈະຖືກລຶບອອກຈາກຫ້ອງນີ້.
-\n
-\nເພື່ອປ້ອງກັນບໍ່ໃຫ້ພວກເຂົາເຂົ້າຮ່ວມອີກເທື່ອຫນຶ່ງ, ທ່ານຄວນຫ້າມພວກເຂົາແທນ.</string>
-    <string name="room_participants_remove_reason">ເຫດຜົນທີ່ຈະລຶບອອກ</string>
-    <string name="room_participants_remove_title">ເອົາຜູ້ໃຊ້ອອກ</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການຍົກເລີກການເຊີນຜູ້ໃຊ້ນີ້\?</string>
     <string name="room_participants_action_cancel_invite_title">ຍົກເລີກການເຊີນ</string>
     <string name="room_participants_action_unignore">ຍົກເລີກການບໍ່ສົນໃຈ</string>
@@ -182,7 +173,6 @@
     <string name="room_participants_power_level_prompt">ທ່ານຈະບໍ່ສາມາດຍົກເລີກການປ່ຽນແປງນີ້ໄດ້ເນື່ອງຈາກທ່ານກໍາລັງສົ່ງເສີມຜູ້ໃຊ້ໃຫ້ມີລະດັບພະລັງງານດຽວກັນກັບຕົວທ່ານເອງ.
 \nທ່ານແນ່ໃຈບໍ່\?</string>
     <string name="room_participants_action_mention">ກ່າວເຖິງ</string>
-    <string name="room_participants_action_remove">ລຶບອອກຈາກການສົນທະນາ</string>
     <string name="room_participants_action_unban">ຍົກເລີກການຫ້າມ</string>
     <string name="room_participants_action_ban">ຫ້າມ</string>
     <string name="room_participants_action_cancel_invite">ຍົກເລີກການເຊີນ</string>
@@ -1234,7 +1224,6 @@
     <string name="command_description_room_avatar">ປ່ຽນຮູບແທນຕົວຂອງຫ້ອງປັດຈຸບັນ</string>
     <string name="command_description_nick_for_room">ປ່ຽນຊື່ສະແດງຂອງທ່ານໃນຫ້ອງປັດຈຸບັນເທົ່ານັ້ນ</string>
     <string name="command_description_nick">ປ່ຽນຊື່ສະແດງຂອງທ່ານ</string>
-    <string name="command_description_remove_user">ລຶບຜູ້ໃຊ້ທີ່ມີ ID ໃຫ້ອອກຈາກຫ້ອງນີ້</string>
     <string name="command_description_topic">ກໍານົດຫົວຂໍ້ຫ້ອງ</string>
     <string name="command_description_part_room">ອອກຈາກຫ້ອງ</string>
     <string name="command_description_join_room">ເຂົ້າຮ່ວມຫ້ອງຕາມທີ່ຢູ່ໄດ້ລະບຸໃຫ້</string>

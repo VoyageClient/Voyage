@@ -558,7 +558,6 @@
     <string name="command_description_join_room">Entra nella stanza con l\'indirizzo scelto</string>
     <string name="command_description_part_room">Esci dalla stanza</string>
     <string name="command_description_topic">Imposta l\'argomento della stanza</string>
-    <string name="command_description_remove_user">Butta fuori l\'utente con l\'ID specificato</string>
     <string name="command_description_nick">Cambia il tuo nome visualizzato</string>
     <string name="command_description_markdown">Markdown attivo / spento</string>
     <string name="command_description_clear_scalar_token">Per correggere la gestione dei widget</string>
@@ -587,7 +586,6 @@
     <string name="merged_events_collapse">riduci</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="x_plus">+%d</string>
-    <string name="room_participants_action_remove">Butta fuori</string>
     <string name="settings_inline_url_preview_summary">Se il tuo Home Server supporta questa funzione, all\'interno delle chat verrà visualizzata un\'anteprima dei link postati.</string>
     <string name="settings_send_typing_notifs">Invia notifiche di digitazione</string>
     <string name="settings_send_typing_notifs_summary">Fai sapere agli altri utenti che stai scrivendo.</string>
@@ -1474,11 +1472,6 @@
     <string name="room_participants_action_unignore_prompt_msg">Se non ignori più l\'utente vedrai di nuovo tutti i suoi messaggi.</string>
     <string name="room_participants_action_cancel_invite_title">Annulla invito</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Sei sicuro di voler annullare l\'invito per questo utente\?</string>
-    <string name="room_participants_remove_title">Butta fuori l\'utente</string>
-    <string name="room_participants_remove_reason">Motivo</string>
-    <string name="room_participants_remove_prompt_msg">buttando fuori l\'utente verrà rimosso da questa stanza.
-\n
-\nPer evitare che possa rientrare, dovresti invece bandirlo.</string>
     <string name="room_participants_ban_title">Bandisci l\'utente</string>
     <string name="room_participants_ban_reason">Motivo del ban</string>
     <string name="room_participants_unban_title">Togli il ban dell\'utente</string>
@@ -1790,7 +1783,6 @@
     <string name="room_permissions_notify_everyone">Notifica tutti</string>
     <string name="room_permissions_remove_messages_sent_by_others">Rimuovi i messaggi inviati dagli altri</string>
     <string name="room_permissions_ban_users">Bandisci utenti</string>
-    <string name="room_permissions_remove_users">Butta fuori utenti</string>
     <string name="room_permissions_change_settings">Modifica impostazioni</string>
     <string name="room_permissions_invite_users">Invita utenti</string>
     <string name="room_permissions_send_messages">Invia messaggi</string>
@@ -2117,9 +2109,6 @@
     <string name="space_settings_permissions_subtitle">Vedi e aggiorna i ruoli necessari per cambiare varie parti dello spazio.</string>
     <string name="space_participants_unban_prompt_msg">Riammettere l\'utente gli permetterà di rientrare nello spazio.</string>
     <string name="space_participants_ban_prompt_msg">Bandire l\'utente lo rimuoverà da questo spazio e gli impedirà di rientrare.</string>
-    <string name="space_participants_remove_prompt_msg">buttando fuori l\'utente verrà rimosso da questo spazio.
-\n
-\nPer impedire che possa rientrare, dovresti invece bandirlo.</string>
     <string name="a11y_stop_voice_message">Ferma la registrazione</string>
     <string name="command_description_lenny">Antepone ( ͡° ͜ʖ ͡°) ad un messaggio di testo</string>
     <string name="settings_discovery_no_policy_provided">Nessun informativa fornita dal server d\'identità</string>

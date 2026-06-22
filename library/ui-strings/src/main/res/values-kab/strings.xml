@@ -225,7 +225,6 @@
     <string name="room_participants_action_invite">Nced</string>
     <string name="room_participants_action_ban">Agi</string>
     <string name="room_participants_action_unban">Asefsex n tigtin</string>
-    <string name="room_participants_action_remove">Suffeɣ</string>
     <string name="room_participants_action_mention">Abder</string>
     <string name="room_participants_power_level_demote_warning_title">Ṣubb deg usellun-ik·im\?</string>
     <string name="room_participants_power_level_demote">Ṣubb deg usellun</string>
@@ -326,7 +325,6 @@
     <string name="command_description_deop_user">Aseqdac Deops s usulay i d-yettunefken</string>
     <string name="command_description_invite_user">Inced iseqdacen s tikci n usulay i texxamt tamirant</string>
     <string name="command_description_part_room">Ffeɣ seg texxamt</string>
-    <string name="command_description_remove_user">Suffeɣ aseqdac s usulay i d-yettunefken</string>
     <string name="command_description_nick">Ibeddel isem-inek·inem yettwaskanen</string>
     <string name="notification_off">Insa</string>
     <string name="create">Snulfu-d</string>
@@ -642,8 +640,6 @@
         <item quantity="one">1 usnifel deg umulteɣ</item>
         <item quantity="other">%d yisnifal deg umulteɣ</item>
     </plurals>
-    <string name="room_participants_remove_title">Suffeɣ aseqdac</string>
-    <string name="room_participants_remove_reason">Ssebba n usuffeɣ</string>
     <string name="room_participants_ban_title">Agi aseqdac</string>
     <string name="room_participants_ban_reason">Ssebba n tigtin</string>
     <string name="room_participants_unban_title">Asefsex n useqdac</string>
@@ -1057,9 +1053,6 @@
 \nTzemreḍ ad tbeddleḍ tigawt-a melmi i tebɣiḍ deg yiɣewwaren imuta.</string>
     <string name="room_participants_action_unignore_prompt_msg">Tukksa n uzgal i useqdac-a ad d-yesken akk iznan-ines i tikkel-nniḍen.</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">S tidet tebɣiḍ ad tesfesxeḍ tinubga i useqdac-a\?</string>
-    <string name="room_participants_remove_prompt_msg">asuffeɣ n useqdac ad t-yekkes seg texxamt-a.
-\n
-\nAkken ur tettɛemmideḍ ara attekki-nsen tikkelt-nniḍen, ilaq ad t-tagiḍ xiṛ.</string>
     <string name="room_participants_ban_prompt_msg">Tegtin n useqdac ad t-isuffeɣ seg texxamt-a rnu ur as-yettɛemmid ara ad yettekki tikkelt-nniḍen.</string>
     <string name="room_participants_unban_prompt_msg">Tukksa n tigtin i useqdac ad t-teǧǧ ad ittekki deg texxamt tikkelt-nniḍen.</string>
     <string name="ssl_cert_not_trust">Aya yebɣa ad d-yini yellawin d ugur i tikli-inek·inem s yir udem, neɣ tiliɣri-inek·inem ur yettkil ara ɣef uselkin i as-imudd uqeddac anmeggag.</string>

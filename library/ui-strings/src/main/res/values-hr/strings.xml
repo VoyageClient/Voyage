@@ -146,7 +146,6 @@
     <string name="room_participants_action_invite">Pozovi</string>
     <string name="room_participants_action_ban">Zabrani pristup</string>
     <string name="room_participants_action_unban">Ukloni zabranu pristupa</string>
-    <string name="room_participants_action_remove">Izbaci</string>
     <string name="room_participants_action_ignore">Sakrij sve poruke ovog korisnika</string>
     <string name="room_participants_action_unignore">Prikaži sve poruke ovog korisnika</string>
     <string name="room_participants_action_mention">Spomeni</string>
@@ -413,7 +412,6 @@
     <string name="command_description_join_room">Pridružuje Vas u sobu s danim alternativnim nazivom</string>
     <string name="command_description_part_room">Napusti sobu</string>
     <string name="command_description_topic">Postavi temu sobe</string>
-    <string name="command_description_remove_user">Izbacuje korisnika s danim identitetom</string>
     <string name="command_description_nick">Mijenja Vaš nadimak za prikaz</string>
     <string name="command_description_markdown">Uključi/isključi Markdown</string>
     <string name="markdown_has_been_enabled">Markdown je omogućen.</string>

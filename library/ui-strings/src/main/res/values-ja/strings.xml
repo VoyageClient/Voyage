@@ -386,7 +386,6 @@
     <string name="command_description_join_room">指定したアドレスのルームに参加</string>
     <string name="command_description_part_room">ルームから退出</string>
     <string name="command_description_topic">ルームのトピックを設定</string>
-    <string name="command_description_remove_user">指定したIDのユーザーをこのルームから追放</string>
     <string name="command_description_nick">表示するニックネームを変更</string>
     <string name="command_description_markdown">Markdown書式の入/切</string>
     <string name="command_description_clear_scalar_token">Matrixアプリの管理を修正するには</string>
@@ -423,7 +422,6 @@
     <string name="merged_events_collapse">折りたたむ</string>
     <string name="action_accept">同意</string>
     <string name="auth_accept_policies">このホームサーバーの運営方針を確認し、同意してください：</string>
-    <string name="room_participants_action_remove">会話から追放</string>
     <string name="title_activity_keys_backup_setup">鍵のバックアップ</string>
     <string name="title_activity_keys_backup_restore">鍵のバックアップを使用</string>
     <string name="settings_notification_advanced">詳細な通知設定</string>
@@ -703,7 +701,6 @@
     <string name="room_permissions_notify_everyone">全員への通知</string>
     <string name="room_permissions_remove_messages_sent_by_others">他の人から送信されたメッセージの削除</string>
     <string name="room_permissions_ban_users">ユーザーのブロック</string>
-    <string name="room_permissions_remove_users">ユーザーの追放</string>
     <string name="room_permissions_change_settings">設定の変更</string>
     <string name="room_permissions_invite_users">ユーザーの招待</string>
     <string name="room_permissions_send_messages">メッセージの送信</string>
@@ -717,11 +714,6 @@
     <string name="room_participants_ban_title">ユーザーをブロック</string>
     <string name="room_participants_ban_reason">ブロックする理由</string>
     <string name="room_participants_unban_title">ユーザーのブロックを解除</string>
-    <string name="room_participants_remove_prompt_msg">このユーザーはルームから追放されます。
-\n
-\n再参加を防ぐためには、追放する代わりにブロックする必要があります。</string>
-    <string name="room_participants_remove_reason">追放する理由</string>
-    <string name="room_participants_remove_title">ユーザーを追放</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">このユーザーの招待をキャンセルしてよろしいですか？</string>
     <string name="room_participants_action_cancel_invite_title">招待をキャンセル</string>
     <string name="room_participants_action_unignore_prompt_msg">このユーザーの無視を解除すると、そのユーザーからの全てのメッセージが再び表示されます。</string>
@@ -1368,9 +1360,6 @@
     <string name="login_server_url_form_other_hint">アドレス</string>
     <string name="login_continue">続行</string>
     <string name="uploads_files_title">ファイル</string>
-    <string name="space_participants_remove_prompt_msg">このユーザーはスペースから追放されます。
-\n
-\n再参加を防ぐためには、追放する代わりにブロックする必要があります。</string>
     <string name="notification_listening_for_notifications">通知を待機しています</string>
     <string name="settings_mentions_at_room">\@room</string>
     <string name="settings_messages_containing_keywords">キーワード</string>

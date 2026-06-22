@@ -496,7 +496,6 @@
         <item quantity="one">yksi jäsen</item>
         <item quantity="other">%d jäsentä</item>
     </plurals>
-    <string name="room_participants_action_remove">Poista keskustelusta</string>
     <plurals name="room_new_messages_notification">
         <item quantity="one">yksi uusi viesti</item>
         <item quantity="other">%d uutta viestiä</item>
@@ -607,7 +606,6 @@
     <string name="command_description_join_room">Liittyy osoitteen mukaiseen huoneeseen</string>
     <string name="command_description_part_room">Poistu huoneesta</string>
     <string name="command_description_topic">Aseta huoneen aihe</string>
-    <string name="command_description_remove_user">Potkaisee käyttäjän pois</string>
     <string name="command_description_nick">Vaihtaa näytettävän nimimerkkisi</string>
     <string name="command_description_markdown">Markdown päällä/pois</string>
     <string name="command_description_clear_scalar_token">Matrix-sovellusten hallinnan korjaamiseen</string>
@@ -1358,12 +1356,7 @@
     <string name="settings_chat_effects_title">Näytä keskustelujen tehosteet</string>
     <string name="settings_show_redacted">Näytä poistetut viestit</string>
     <string name="room_participants_unban_prompt_msg">Jos poistat käyttäjän porttikiellon, hän voi liittyä huoneeseen uudelleen.</string>
-    <string name="room_participants_remove_prompt_msg">Tämä poistaa käyttäjän huoneesta, mutta hän voi liittyä uudelleen.
-\n
-\nJos haluat estää häntä liittymästä uudelleen, anna hänelle porttikielto.</string>
     <string name="room_participants_ban_reason">Syy porttikielolle</string>
-    <string name="room_participants_remove_reason">Syy poistolle</string>
-    <string name="room_participants_remove_title">Poista käyttäjä</string>
     <string name="room_settings_room_read_history_dialog_subtitle">Valitse ketkä näkevät huoneen historian. Tähänastinen historian näkyvyys ei muutu.</string>
     <string name="room_permissions_change_room_avatar">Muuttaa huoneen profiilikuvaa</string>
     <string name="room_permissions_change_room_name">Muuttaa ryhmän nimeä</string>
@@ -1375,7 +1368,6 @@
     <string name="room_permissions_change_permissions">Muuttaa oikeuksia</string>
     <string name="room_permissions_modify_widgets">Hallita sovelmia</string>
     <string name="room_permissions_ban_users">Estää käyttäjiä</string>
-    <string name="room_permissions_remove_users">Poistaa käyttäjiä</string>
     <string name="room_permissions_change_settings">Muuttaa asetuksia</string>
     <string name="room_permissions_invite_users">Kutsua käyttäjiä</string>
     <string name="room_settings_permissions_title">Oikeudet</string>

@@ -479,8 +479,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.UnignoreUser -> {
                             handleUnignoreSlashCommand(parsedCommand)
                         }
-                        is ParsedCommand.RemoveUser -> {
-                            handleRemoveSlashCommand(room, parsedCommand)
+                        is ParsedCommand.KickUser -> {
+                            handleKickSlashCommand(room, parsedCommand)
                         }
                         is ParsedCommand.JoinRoom -> {
                             handleJoinToAnotherRoomSlashCommand(parsedCommand)
@@ -1067,9 +1067,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleRemoveSlashCommand(room: Room, removeUser: ParsedCommand.RemoveUser) {
-        launchSlashCommandFlowSuspendable(room, removeUser) {
-            room.membershipService().remove(removeUser.userId, removeUser.reason)
+    private fun handleKickSlashCommand(room: Room, kickUser: ParsedCommand.KickUser) {
+        launchSlashCommandFlowSuspendable(room, kickUser) {
+            room.membershipService().remove(kickUser.userId, kickUser.reason)
         }
     }
 
@@ -1423,7 +1423,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private val mentionIdCommands = setOf(
-            Command.REMOVE_USER,
+            Command.KICK_USER,
             Command.CONVERT_TO_DM,
             Command.BAN_USER,
             Command.UNBAN_USER,

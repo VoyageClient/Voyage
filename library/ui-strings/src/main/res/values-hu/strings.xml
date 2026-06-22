@@ -495,7 +495,6 @@
     <string name="command_description_join_room">Megadott címmel csatlakozik a szobához</string>
     <string name="command_description_part_room">Kilépés a szobából</string>
     <string name="command_description_topic">A szoba témájának beállítása</string>
-    <string name="command_description_remove_user">Megadott azonosítójú felhasználó kirúgása</string>
     <string name="command_description_nick">Becenév megváltoztatása</string>
     <string name="command_description_markdown">Markdown ki-,bekapcsolása</string>
     <string name="command_description_clear_scalar_token">Matrix-kisalkalmazás-token törlése</string>
@@ -524,7 +523,6 @@
     <string name="merged_events_collapse">bezár</string>
     <string name="generic_label_and_value">%1$s: %2$s</string>
     <string name="x_plus">+%d</string>
-    <string name="room_participants_action_remove">Elküldés</string>
     <string name="settings_inline_url_preview_summary">Webcímelőnézet a csevegőablakban, ha a saját kiszolgáló támogatja ezt a lehetőséget.</string>
     <string name="settings_send_typing_notifs">Gépelés-visszajelzés küldése</string>
     <string name="settings_send_typing_notifs_summary">Hogy a többi felhasználó lássa, ha gépelsz.</string>
@@ -1403,8 +1401,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="sound_device_wireless_headset">Vezeték nélküli fejhallgató</string>
     <string name="login_error_ssl_other">SSL hiba.</string>
     <string name="room_participants_action_ignore_title">Felhasználó mellőzése</string>
-    <string name="room_participants_remove_title">Felhasználó eltávolítása</string>
-    <string name="room_participants_remove_reason">Eltávolítás oka</string>
     <string name="room_participants_ban_title">Felhasználó kitiltása a szobából</string>
     <string name="room_participants_ban_reason">Kitiltás oka</string>
     <string name="room_participants_unban_title">Felhasználó visszaengedése</string>
@@ -1435,9 +1431,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_participants_action_unignore_prompt_msg">A felhasználó mellőzésének visszavonása után újra meg fog jelenni az összes üzenete.</string>
     <string name="room_participants_action_cancel_invite_title">Meghívás visszavonása</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Biztos, hogy visszavonja a felhasználó meghívását\?</string>
-    <string name="room_participants_remove_prompt_msg">A felhasználó el lesz távolítva a szobából.
-\n
-\nHa meg akarja akadályozni, hogy újra csatlakozzon, akkor inkább tiltsa ki.</string>
     <string name="room_participants_unban_prompt_msg">A felhasználó tiltásának visszavonása lehetővé teszi, hogy újra csatlakozzon a szobához.</string>
     <string name="disabled_integration_dialog_content">Ehhez kapcsolja be az „Integrációk engedélyezését” a Beállításokban.</string>
     <plurals name="room_settings_banned_users_count">
@@ -1673,7 +1666,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_permissions_notify_everyone">Mindenki értesítése</string>
     <string name="room_permissions_remove_messages_sent_by_others">Mások által küldött üzenetek törlése</string>
     <string name="room_permissions_ban_users">Felhasználók kitiltása</string>
-    <string name="room_permissions_remove_users">Felhasználók eltávolítása</string>
     <string name="room_permissions_change_settings">Beállítások megváltoztatása</string>
     <string name="room_permissions_invite_users">Felhasználók meghívása</string>
     <string name="room_permissions_send_messages">Üzenet küldése</string>
@@ -2123,9 +2115,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="space_settings_permissions_title">Tér jogosultságok</string>
     <string name="space_participants_unban_prompt_msg">A felhasználó tiltásának visszavonása lehetővé teszi, hogy újra csatlakozzon a térhez.</string>
     <string name="space_participants_ban_prompt_msg">A felhasználó kitiltása eltávolítja őt a térből és megakadályozza, hogy újra csatlakozhasson.</string>
-    <string name="space_participants_remove_prompt_msg">A felhasználó el lesz távolítva a térből.
-\n
-\nHa meg akarja akadályozni, hogy újra csatlakozzon, akkor inkább tiltsa ki.</string>
     <string name="a11y_stop_voice_message">Felvétel megállítása</string>
     <string name="command_description_lenny">( ͡° ͜ʖ ͡°) -t tesz a szöveg elejére</string>
     <string name="settings_discovery_no_policy_provided">Az azonosító-kiszolgáló nem rendelkezik házirenddel</string>

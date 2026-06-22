@@ -50,17 +50,17 @@ class CommandParserTest {
     }
 
     @Test
-    fun parseSlashCommandRemove() {
+    fun parseSlashCommandKick() {
         // Nominal
-        test("/remove @foo:bar", ParsedCommand.RemoveUser("@foo:bar", null))
+        test("/kick @foo:bar", ParsedCommand.KickUser("@foo:bar", null))
         // With a reason
-        test("/remove @foo:bar a reason", ParsedCommand.RemoveUser("@foo:bar", "a reason"))
+        test("/kick @foo:bar a reason", ParsedCommand.KickUser("@foo:bar", "a reason"))
         // Trim the reason
-        test("/remove @foo:bar    a    reason    ", ParsedCommand.RemoveUser("@foo:bar", "a    reason"))
+        test("/kick @foo:bar    a    reason    ", ParsedCommand.KickUser("@foo:bar", "a    reason"))
         // Alias
-        test("/kick @foo:bar", ParsedCommand.RemoveUser("@foo:bar", null))
+        test("/remove @foo:bar", ParsedCommand.KickUser("@foo:bar", null))
         // Error
-        test("/remove", ParsedCommand.ErrorSyntax(Command.REMOVE_USER))
+        test("/kick", ParsedCommand.ErrorSyntax(Command.KICK_USER))
     }
 
     private fun test(message: String, expectedResult: ParsedCommand) {

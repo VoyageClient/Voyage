@@ -194,7 +194,6 @@
     <string name="room_participants_action_invite">초대</string>
     <string name="room_participants_action_ban">출입 금지</string>
     <string name="room_participants_action_unban">출입 금지 풀기</string>
-    <string name="room_participants_action_remove">추방</string>
     <string name="room_participants_action_ignore">차단</string>
     <string name="room_participants_action_unignore">차단 해제</string>
     <string name="room_participants_action_mention">언급</string>
@@ -508,7 +507,6 @@
     <string name="command_description_join_room">주어진 별칭으로 방에 참가하기</string>
     <string name="command_description_part_room">방 떠나기</string>
     <string name="command_description_topic">방 주제 설정하기</string>
-    <string name="command_description_remove_user">주어진 ID로 사용자 추방하기</string>
     <string name="command_description_nick">표시 별명 바꾸기</string>
     <string name="command_description_markdown">마크다운 On/Off</string>
     <string name="command_description_clear_scalar_token">Matrix 앱 관리 문제를 해결하려면</string>

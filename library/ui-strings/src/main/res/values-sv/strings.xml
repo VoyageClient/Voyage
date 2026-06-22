@@ -366,7 +366,6 @@
     <string name="room_participants_action_invite">Bjud in</string>
     <string name="room_participants_action_ban">Banna</string>
     <string name="room_participants_action_unban">Avbanna</string>
-    <string name="room_participants_action_remove">Kicka</string>
     <string name="room_participants_action_ignore">Ignorera</string>
     <string name="search_members_hint">Filtrera rumsmedlemmar</string>
     <string name="settings_pin_missed_notifications">Fäst rum med missade aviseringar</string>
@@ -796,11 +795,6 @@
     <string name="room_participants_action_unignore_prompt_msg">Att avignorera den här användaren kommer att visa alla meddelanden från denne igen.</string>
     <string name="room_participants_action_cancel_invite_title">Avbryt inbjudan</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Är du säker på att du vill avbryta inbjudan för den här användaren\?</string>
-    <string name="room_participants_remove_title">Kicka användaren</string>
-    <string name="room_participants_remove_reason">Anledning för kick</string>
-    <string name="room_participants_remove_prompt_msg">att sparka ut användaren kommer att ta bort hen från det här rummet.
-\n
-\nFör att hindra hen från att gå med i rummet igen så bör du banna hen istället.</string>
     <string name="room_participants_ban_title">Banna användaren</string>
     <string name="room_participants_ban_reason">Anledning för bann</string>
     <string name="room_participants_unban_title">Avbanna användaren</string>
@@ -1169,7 +1163,6 @@
     <string name="command_description_invite_user">Bjuder in användaren med det angivna ID:t till det nuvarande rummet</string>
     <string name="command_description_join_room">Går med i rummet med den angivna adressen</string>
     <string name="command_description_topic">Sätt ett rumsämne</string>
-    <string name="command_description_remove_user">Sparkar ut användaren med det angivna ID:t</string>
     <string name="command_description_nick">Byter ditt visningsnamn</string>
     <string name="command_description_clear_scalar_token">För att fixa Matrixapphantering</string>
     <string name="create">Skapa</string>
@@ -1799,7 +1792,6 @@
     <string name="room_permissions_notify_everyone">Underrätta alla</string>
     <string name="room_permissions_remove_messages_sent_by_others">Ta bort meddelanden skickade av andra</string>
     <string name="room_permissions_ban_users">Banna användare</string>
-    <string name="room_permissions_remove_users">Kicka användare</string>
     <string name="room_permissions_change_settings">Ändra inställningar</string>
     <string name="room_permissions_invite_users">Bjuda in användare</string>
     <string name="room_permissions_send_messages">Skicka meddelanden</string>
@@ -2092,9 +2084,6 @@
     <string name="space_settings_permissions_title">Utrymmesbehörigheter</string>
     <string name="space_participants_unban_prompt_msg">Om användaren avbannas kommer denna att få gå med i utrymmet igen.</string>
     <string name="space_participants_ban_prompt_msg">Att banna användaren kommer att ta bort denne från det här utrymmet och hindra denne från att gå med igen.</string>
-    <string name="space_participants_remove_prompt_msg">att kicka användaren kommer att ta bort den från det här utrymmet.
-\n
-\nFör att hindra hen från att gå med igen så bör de banna hen istället.</string>
     <string name="create_space_in_progress">Skapar utrymme…</string>
     <string name="command_description_lenny">Lägger till ( ͡° ͜ʖ ͡°) till början av ett textmeddelande</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Visa lite användbar info för att hjälpa till att avbugga appen</string>

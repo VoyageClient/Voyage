@@ -353,7 +353,6 @@
     <string name="room_participants_action_invite">Pozvat</string>
     <string name="room_participants_action_ban">Vykázat</string>
     <string name="room_participants_action_unban">Zrušit vykázání</string>
-    <string name="room_participants_action_remove">Vykopnout</string>
     <string name="room_participants_action_ignore">Skrýt všechny zprávy od tohoto uživatele</string>
     <string name="room_participants_action_unignore">Zobrazit všechny zprávy od tohoto uživatele</string>
     <string name="room_participants_action_mention">Zmínit</string>
@@ -766,7 +765,6 @@
     <string name="command_description_join_room">Vstoupí do místnosti s danou adresou</string>
     <string name="command_description_part_room">Opustit místnost</string>
     <string name="command_description_topic">Určit téma místnosti</string>
-    <string name="command_description_remove_user">Nakopne uživatele s daným id</string>
     <string name="command_description_nick">Změní Vaši veřejnou přezdívku</string>
     <string name="command_description_markdown">Markdown zap/vyp</string>
     <string name="command_description_deop_user">Odebere práva uživateli s daným id</string>
@@ -1516,11 +1514,6 @@
     <string name="room_participants_action_unignore_prompt_msg">Zrušení ignorování tohoto uživatele opět ukáže všechny jejich zprávy.</string>
     <string name="room_participants_action_cancel_invite_title">Zrušit pozvánku</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Jste si jisti, že chcete zrušit pozvánku tomuto uživateli\?</string>
-    <string name="room_participants_remove_title">Vykopnout uživatele</string>
-    <string name="room_participants_remove_reason">Důvod k vykopnutí</string>
-    <string name="room_participants_remove_prompt_msg">Vykopnutí uživatele je odstraní z této místnosti.
-\n
-\nAbyste mu zamezili opětovně vstoupit, měli byste jej zakázat.</string>
     <string name="room_participants_ban_title">Vykázat uživatele</string>
     <string name="room_participants_ban_reason">Důvod k vykázání</string>
     <string name="room_participants_unban_title">Zrušit vykázání uživatele</string>
@@ -1831,7 +1824,6 @@
     <string name="room_permissions_notify_everyone">Upozornit všechny</string>
     <string name="room_permissions_remove_messages_sent_by_others">Odstranit zprávy odeslané ostatními</string>
     <string name="room_permissions_ban_users">Vykázat uživatele</string>
-    <string name="room_permissions_remove_users">Vykopnout uživatele</string>
     <string name="room_permissions_change_settings">Upravit nastavení</string>
     <string name="room_permissions_invite_users">Pozvat uživatele</string>
     <string name="room_permissions_send_messages">Poslat zprávu</string>
@@ -2163,9 +2155,6 @@
     <string name="space_settings_permissions_title">Oprávnění prostoru</string>
     <string name="space_participants_unban_prompt_msg">Zrušením vykázání uživateli umožní znovu se připojit do prostoru.</string>
     <string name="space_participants_ban_prompt_msg">Vykázání uživatele z tohoto prostoru ho odebere a zamezí, aby opět vstoupil.</string>
-    <string name="space_participants_remove_prompt_msg">vykopnutí uživatele je z tohoto prostoru odstraní.
-\n
-\nAbyste jim zabránili v dalším vstupu, měli byste je raději vykázat.</string>
     <string name="command_description_lenny">Předsune ( ͡° ͜ʖ ͡°) do textové zprávy</string>
     <string name="a11y_stop_voice_message">Zastavit nahrávání</string>
     <string name="settings_discovery_no_policy_provided">Server identit neposkytuje žádné zásady</string>

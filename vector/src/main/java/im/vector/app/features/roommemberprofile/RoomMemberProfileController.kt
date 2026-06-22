@@ -268,7 +268,7 @@ class RoomMemberProfileController @Inject constructor(
                             editable = false,
                             divider = canBan,
                             destructive = true,
-                            title = stringProvider.getString(CommonStrings.room_participants_action_remove),
+                            title = stringProvider.getString(CommonStrings.room_participants_action_kick),
                             action = { callback?.onKickClicked(state.isSpace) }
                     )
                 }

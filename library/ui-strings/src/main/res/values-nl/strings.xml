@@ -419,7 +419,6 @@
     <string name="command_description_join_room">Voegt een kamer toe met het opgegeven adres</string>
     <string name="command_description_part_room">Gesprek verlaten</string>
     <string name="command_description_topic">Onderwerp van het gesprek instellen</string>
-    <string name="command_description_remove_user">Stuurt persoon met gegeven ID eruit</string>
     <string name="command_description_nick">Wijzig je weergavenaam</string>
     <string name="command_description_markdown">Markdown aan/uit</string>
     <string name="room_tombstone_versioned_description">Dit gesprek is vervangen en is niet langer actief.</string>
@@ -442,7 +441,6 @@
     <string name="dialog_title_error">Foutmelding</string>
     <string name="action_accept">Aanvaarden</string>
     <string name="auth_accept_policies">Gelieve het beleid van deze server te lezen en aanvaarden:</string>
-    <string name="room_participants_action_remove">Eruit sturen</string>
     <string name="settings_inline_url_preview_summary">Voorvertoning van koppelingen in het gesprek tonen (als je server deze functionaliteit ondersteunt).</string>
     <string name="settings_send_typing_notifs">Typmeldingen versturen</string>
     <string name="settings_send_typing_notifs_summary">Laat andere personen weten dat je aan het typen bent.</string>
@@ -998,7 +996,6 @@
     <string name="settings_secure_backup_section_title">Beveiligde Backup</string>
     <string name="room_participants_unban_title">Verbanning persoon ongedaan maken</string>
     <string name="room_participants_ban_title">Persoon verbannen</string>
-    <string name="room_participants_remove_title">Persoon verwijderen</string>
     <string name="room_participants_action_cancel_invite_title">Uitnodiging annuleren</string>
     <string name="room_participants_action_unignore_title">Persoon niet meer negeren</string>
     <string name="sent_a_voice_message">Stem</string>
@@ -1196,13 +1193,6 @@
     <string name="room_participants_unban_prompt_msg">Door de verbanning op te heffen kan deze persoon opnieuw deelnemer worden van de kamer.</string>
     <string name="space_participants_ban_prompt_msg">Door deze persoon te verbannen zullen ze verwijderd worden uit deze space en voorkomen dat ze opnieuw toetreden.</string>
     <string name="room_participants_ban_reason">Reden voor verbanning</string>
-    <string name="space_participants_remove_prompt_msg">De persoon zal worden verwijderd uit deze space.
-\n
-\nOm te voorkomen dat ze opnieuw toetreden, kan je ze verbannen.</string>
-    <string name="room_participants_remove_prompt_msg">De persoon zal worden verwijderd van deze kamer.
-\n
-\nOm te voorkomen dat ze opnieuw toetreden, kan je ze verbannen.</string>
-    <string name="room_participants_remove_reason">Reden voor verwijdering</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Weet je zeker dat je de uitnodiging voor deze persoon wilt annuleren\?</string>
     <string name="room_participants_action_unignore_prompt_msg">Als je deze persoon niet negeert, worden alle berichten van deze persoon opnieuw weergegeven.</string>
     <string name="room_participants_action_ignore_prompt_msg">Door deze persoon te negeren worden zijn/haar berichten verwijderd uit gesprekken die jullie delen.
@@ -1589,7 +1579,6 @@
     <string name="room_permissions_notify_everyone">Iedereen informeren</string>
     <string name="room_permissions_remove_messages_sent_by_others">Berichten verwijderen die door anderen zijn verzonden</string>
     <string name="room_permissions_ban_users">Personen verbannen</string>
-    <string name="room_permissions_remove_users">Kick personen</string>
     <string name="room_permissions_change_settings">Instellingen veranderen</string>
     <string name="room_permissions_invite_users">Personen uitnodigen</string>
     <string name="room_permissions_send_messages">Berichten sturen</string>

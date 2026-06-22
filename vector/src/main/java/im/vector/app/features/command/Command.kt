@@ -41,7 +41,7 @@ enum class Command(
     JOIN_ROOM("/join", arrayOf("/j", "/goto"), "<room-address> [reason]", CommonStrings.command_description_join_room, false, false),
     PART("/part", null, "[room-address]", CommonStrings.command_description_part_room, false, false),
     TOPIC("/topic", null, "<topic>", CommonStrings.command_description_topic, false, false),
-    REMOVE_USER("/kick", arrayOf("/remove"), "<user-id> [reason]", CommonStrings.command_description_remove_user, false, false),
+    KICK_USER("/kick", arrayOf("/remove"), "<user-id> [reason]", CommonStrings.command_description_kick_user, false, false),
     CHANGE_DISPLAY_NAME("/nick", null, "<display-name>", CommonStrings.command_description_nick, false, false),
     CHANGE_DISPLAY_NAME_FOR_ROOM("/myroomnick", arrayOf("/roomnick"), "<display-name>", CommonStrings.command_description_nick_for_room, false, false),
     ROOM_AVATAR("/roomavatar", null, "<mxc_url>", CommonStrings.command_description_room_avatar, true /* User has to know the mxc url */, false),

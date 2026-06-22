@@ -91,7 +91,7 @@ sealed class EditablePermission(@StringRes val labelResId: Int, @StringRes val s
     class ChangeSettings : EditablePermission(CommonStrings.room_permissions_change_settings)
 
     // Updates `content.kick`
-    class KickUsers : EditablePermission(CommonStrings.room_permissions_remove_users)
+    class KickUsers : EditablePermission(CommonStrings.room_permissions_kick_users)
 
     // Updates `content.ban`
     class BanUsers : EditablePermission(CommonStrings.room_permissions_ban_users)

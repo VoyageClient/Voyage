@@ -518,7 +518,6 @@
     <string name="command_description_join_room">Pripojí sa do miestnosti s danou adresou</string>
     <string name="command_description_part_room">Opustí aktuálnu miestnosť</string>
     <string name="command_description_topic">Nastaví tému aktuálnej miestnosti</string>
-    <string name="command_description_remove_user">Vykáže zadaného používateľa z miestnosti</string>
     <string name="command_description_nick">Mení vaše zobrazované meno / prezývku</string>
     <string name="command_description_markdown">Zapnutie/vypnutie formátovanie textu markdown</string>
     <string name="command_description_clear_scalar_token">Užitočné na opravu spravovania Matrix aplikácií</string>
@@ -545,7 +544,6 @@
     <string name="x_plus">+%d</string>
     <string name="action_accept">Prijať</string>
     <string name="auth_accept_policies">Prosím prečítajte si a odsúhlaste zmluvné podmienky tohoto domovského servera:</string>
-    <string name="room_participants_action_remove">Vykázať</string>
     <string name="settings_notification_troubleshoot">Riešiť problémy s oznámeniami</string>
     <string name="settings_troubleshoot_diagnostic">Diagnostika problémov</string>
     <string name="settings_troubleshoot_diagnostic_run_button_title">Spustiť testovanie</string>
@@ -711,11 +709,6 @@
     <string name="room_participants_action_unignore_prompt_msg">Zrušením ignorovania tohto používateľa sa opäť zobrazia všetky správy od neho.</string>
     <string name="room_participants_action_cancel_invite_title">Zrušiť pozvanie</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Ste si istí, že chcete zrušiť pozvanie tohoto používateľa\?</string>
-    <string name="room_participants_remove_title">Vykázať používateľa</string>
-    <string name="room_participants_remove_reason">Dôvod vykázania</string>
-    <string name="room_participants_remove_prompt_msg">Vykázaním odstránite používateľa z miestnosti.
-\n
-\nAk si želáte, aby sa nemohol vrátiť, mali by ste mu tiež zakázať vstupovať.</string>
     <string name="room_participants_ban_title">Zakázať používateľovi vstupovať</string>
     <string name="room_participants_ban_reason">Dôvod zákazu vstupovať</string>
     <string name="room_participants_unban_title">Povoliť používateľovi vstupovať</string>
@@ -1304,7 +1297,6 @@
     <string name="room_permissions_modify_widgets">Upraviť widgety</string>
     <string name="room_permissions_notify_everyone">Poslať oznámenie všetkým</string>
     <string name="room_permissions_ban_users">Zakázať používateľov</string>
-    <string name="room_permissions_remove_users">Vylúčiť používateľov</string>
     <string name="room_permissions_change_settings">Zmeniť nastavenia</string>
     <string name="room_permissions_invite_users">Pozvať používateľov</string>
     <string name="room_permissions_send_messages">Odoslať správy</string>
@@ -1547,9 +1539,6 @@
     <string name="room_unsupported_e2e_algorithm">Šifrovanie bolo nesprávne nastavené, takže nemôžete odosielať správy. Obráťte sa na správcu, aby obnovil platný stav šifrovania.</string>
     <string name="space_participants_unban_prompt_msg">Zrušenie zákazu používateľovi mu umožní znovu sa pripojiť do priestoru.</string>
     <string name="space_participants_ban_prompt_msg">Zakázanie používateľa ho odstráni z tohto priestoru a zabráni mu v ďalšom vstupe.</string>
-    <string name="space_participants_remove_prompt_msg">Používateľ bude z tohto priestoru odstránený.
-\n
-\nAby ste mu zabránili v opätovnom pripojení, mali by ste ho zakázať.</string>
     <string name="room_participants_leave_private_warning">Táto miestnosť nie je verejná. Bez pozvánky sa do nej nebudete môcť opätovne pripojiť.</string>
     <string name="permissions_denied_add_contact">Povoľte prístup ku kontaktom.</string>
     <string name="permissions_denied_qr_code">Ak chcete skenovať QR kód, musíte povoliť prístup k fotoaparátu.</string>

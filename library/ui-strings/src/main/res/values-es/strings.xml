@@ -555,7 +555,6 @@
     <string name="command_description_join_room">Se une a la sala con la dirección dada</string>
     <string name="command_description_part_room">Salir de la sala</string>
     <string name="command_description_topic">Establecer el tema de la sala</string>
-    <string name="command_description_remove_user">Expulsa al usuario con la ID dada</string>
     <string name="command_description_nick">Cambia tu apodo público</string>
     <string name="command_description_markdown">Activar/Desactivar markdown</string>
     <string name="command_description_clear_scalar_token">Para reparar la gestión de las Aplicaciones de Matrix</string>
@@ -586,7 +585,6 @@
     <string name="merged_events_collapse">colapsar</string>
     <string name="action_accept">Aceptar</string>
     <string name="auth_accept_policies">Por favor revisa y acepta las reglas de este servidor doméstico:</string>
-    <string name="room_participants_action_remove">Expulsar</string>
     <string name="settings_notification_troubleshoot">Diagnóstico de fallas</string>
     <string name="settings_troubleshoot_diagnostic">Diagnóstico de errores</string>
     <string name="settings_troubleshoot_diagnostic_run_button_title">Iniciar pruebas</string>
@@ -1108,7 +1106,6 @@
     <string name="audio_meeting">Iniciar Audioconferencia</string>
     <string name="failed_to_add_widget">Fallo al añadir Widget</string>
     <string name="failed_to_remove_widget">Fallo al eliminar Widget</string>
-    <string name="room_participants_remove_reason">Rason de expulsion</string>
     <string name="room_participants_ban_title">Banear usuario</string>
     <string name="room_participants_ban_reason">Rason de baneo</string>
     <string name="room_participants_unban_title">Desbanear usuario</string>
@@ -1259,10 +1256,6 @@
     <string name="room_participants_action_unignore_title">Dejar de ignorar al usuario</string>
     <string name="room_participants_action_unignore_prompt_msg">Si ignora a este usuario, se mostrarán todos sus mensajes nuevamente.</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">¿Estás seguro de que deseas cancelar la invitación de este usuario\?</string>
-    <string name="room_participants_remove_title">Patear usuario</string>
-    <string name="room_participants_remove_prompt_msg">patear al usuario los eliminará de esta sala.
-\n
-\nPara evitar que vuelvan a unirse, debes prohibirlos.</string>
     <string name="settings_phone_number_empty">No se ha agregado ningún número de teléfono a su cuenta</string>
     <string name="settings_emails">Correos electrónicos</string>
     <string name="settings_emails_empty">No se ha agregado ningún correo electrónico a su cuenta</string>
@@ -1751,7 +1744,6 @@
     <string name="room_permissions_notify_everyone">Notificar a todos los participantes</string>
     <string name="room_permissions_remove_messages_sent_by_others">Eliminar mensajes enviados por otros usuarios</string>
     <string name="room_permissions_ban_users">Banear usuarios</string>
-    <string name="room_permissions_remove_users">Echar usuarios</string>
     <string name="room_permissions_change_settings">Modificar ajustes</string>
     <string name="room_permissions_invite_users">Invitar usuarios</string>
     <string name="room_permissions_default_role">Rol por defecto</string>
@@ -2105,9 +2097,6 @@
     <string name="space_settings_permissions_title">Permisos de espacio</string>
     <string name="space_participants_unban_prompt_msg">Quitar la prohibición al usuario le permitirá unirse al espacio nuevamente.</string>
     <string name="space_participants_ban_prompt_msg">Vetar un usuario lo expulsará de este espacio y evitará que se una nuevamente.</string>
-    <string name="space_participants_remove_prompt_msg">Patear al usuario lo eliminará de este espacio.
-\n
-\nPara evitar que se unan nuevamente, debe prohibirlos.</string>
     <string name="spaces">Espacios</string>
     <string name="link_this_email_with_your_account">%s en Configuración para recibir invitaciones directamente en ${app_name}.</string>
     <string name="link_this_email_settings_link">Vincula este correo electrónico con tu cuenta</string>

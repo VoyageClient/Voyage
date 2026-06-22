@@ -294,11 +294,6 @@
     <string name="room_participants_unban_title">הסר נידוי ממשתמש</string>
     <string name="room_participants_ban_reason">סיבות לנידוי</string>
     <string name="room_participants_ban_title">נדה משתמש</string>
-    <string name="room_participants_remove_prompt_msg">משתמש מעיף יסיר אותם מחדר זה.
-\n
-\nכדי למנוע מהם להצטרף שוב, עליך לאסור אותם במקום זאת.</string>
-    <string name="room_participants_remove_reason">סיבות להעפה</string>
-    <string name="room_participants_remove_title">העף משתמש</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">האם אתה בטוח שברצונך לבטל את ההזמנה עבור משתמש זה\?</string>
     <string name="room_participants_action_cancel_invite_title">בטל הזמנה</string>
     <string name="room_participants_action_unignore">הסרת התעלמות</string>
@@ -315,7 +310,6 @@
     <string name="room_participants_power_level_prompt">לא תוכל לבטל את השינוי הזה מכיוון שאתה מקדם את המשתמש לאותה רמת כוח כמוך.
 \nהאם אתה בטוח\?</string>
     <string name="room_participants_action_mention">אזכר</string>
-    <string name="room_participants_action_remove">העף</string>
     <string name="room_participants_action_unban">הסרת התעלמות</string>
     <string name="room_participants_action_ban">התעלם</string>
     <string name="room_participants_action_cancel_invite">בטל הזמנה</string>
@@ -640,7 +634,6 @@
     <string name="command_description_clear_scalar_token">כדי לתקן את ניהול אפליקציות מטריקס</string>
     <string name="command_description_markdown">הפעלה / כיבוי של סימון MARKDOWN</string>
     <string name="command_description_nick">משנה את כינוי התצוגה שלך</string>
-    <string name="command_description_remove_user">בועט משתמש עם מזהה נתון</string>
     <string name="command_description_topic">הגדר את נושא החדר</string>
     <string name="command_description_part_room">עזוב חדר</string>
     <string name="command_description_join_room">מצטרף לחדר עם כתובת נתונה</string>
@@ -1194,7 +1187,6 @@
     <string name="room_permissions_notify_everyone">הודע לכולם</string>
     <string name="room_permissions_remove_messages_sent_by_others">הסר הודעות שנשלחו על ידי אחרים</string>
     <string name="room_permissions_ban_users">נדה משתמשים</string>
-    <string name="room_permissions_remove_users">בעט החוצה משתמשים</string>
     <string name="room_permissions_change_settings">שנה הגדרות</string>
     <string name="room_permissions_invite_users">הזמן משתמשם</string>
     <string name="room_permissions_send_messages">שלח הודעות</string>
@@ -1870,9 +1862,6 @@
     <string name="room_unsupported_e2e_algorithm">ההצפנה הוגדרה בצורה שגויה כך שאינך יכול לשלוח הודעות. אנא צור קשר עם מנהל מערכת כדי לשחזר את ההצפנה למצב חוקי.</string>
     <string name="space_participants_unban_prompt_msg">ביטול החסימה של המשתמש יאפשר לו להצטרף שוב למרחב.</string>
     <string name="space_participants_ban_prompt_msg">חסימת משתמש תסיר אותם מהמרחב הזה ותמנע ממנו להצטרף שוב.</string>
-    <string name="space_participants_remove_prompt_msg">המשתמש יוסר מהמרחב הזה.
-\n
-\nכדי למנוע מהם להצטרף שוב, עליך לחסום אותם במקום זאת.</string>
     <string name="error_unauthorized">לא מורשה, חסרים אישורי אימות חוקיים</string>
     <string name="login_error_homeserver_from_url_not_found_enter_manual">בחר שרת בית</string>
     <string name="login_error_homeserver_from_url_not_found">לא ניתן להגיע לשרת ביתי בכתובת ה- %s. אנא בדוק את הקישור שלך או בחר שרת ביתי באופן ידני.</string>

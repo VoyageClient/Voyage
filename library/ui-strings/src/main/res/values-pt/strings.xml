@@ -387,7 +387,6 @@ Adicionar alguns agora?</string>
     <string name="command_description_join_room">Entra na sala com o pseudónimo fornecido</string>
     <string name="command_description_part_room">Faz sair da sala</string>
     <string name="command_description_topic">Define o tópico da sala</string>
-    <string name="command_description_remove_user">Expulsa o utilizador com o ID fornecido</string>
     <string name="command_description_nick">Altera o seu nome público</string>
     <string name="command_description_markdown">Activa/Desactiva o Markdown</string>
     <string name="command_description_clear_scalar_token">Repara a gestão de aplicações Matrix</string>
@@ -459,7 +458,6 @@ A visibilidade das mensagens no Matrix é parecida com a dos emails. O nosso esq
     <string name="action_sign_out_confirmation_simple">Tem a certeza que quer Sair?</string>
     <string name="keys_backup_settings_delete_confirm_title">Apagar Backup</string>
     <string name="auth_accept_policies">Por favor veja e aceite, apolice para este servidor</string>
-    <string name="room_participants_action_remove">Expulsar</string>
     <string name="settings_notification_advanced">Configurações avançadas para notificações</string>
     <string name="settings_notification_by_event">Importância de notificações por evento</string>
     <string name="settings_notification_troubleshoot">Diagnóstico de Notificações</string>

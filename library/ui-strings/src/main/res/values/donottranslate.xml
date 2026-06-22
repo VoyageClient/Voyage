@@ -190,4 +190,12 @@
     <string name="notice_location_sent_by_you" translatable="false">You sent a location.</string>
     <string name="notice_location_sent" translatable="false">%1$s sent a location.</string>
     <string name="notice_location_sent_no_sender" translatable="false">Sent a location.</string>
+
+    <string name="room_participants_action_kick" translatable="false">Kick from chat</string>
+    <string name="room_participants_kick_title" translatable="false">Kick user</string>
+    <string name="room_participants_kick_reason" translatable="false">Reason to kick</string>
+    <string name="room_participants_kick_prompt_msg" translatable="false">The user will be kicked from this room.\n\nTo prevent them from joining again, you should ban them instead.</string>
+    <string name="space_participants_kick_prompt_msg" translatable="false">The user will be kicked from this space.\n\nTo prevent them from joining again, you should ban them instead.</string>
+    <string name="room_permissions_kick_users" translatable="false">Kick users</string>
+    <string name="command_description_kick_user" translatable="false">Kicks user with given id from this room</string>
 </resources>
