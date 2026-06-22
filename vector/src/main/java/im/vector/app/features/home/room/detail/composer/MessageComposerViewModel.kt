@@ -1448,7 +1448,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 audioMessageHelper.startRecording(room.roomId)
                 setState {
                     copy(
-                            voiceRecordingUiState = VoiceMessageRecorderView.RecordingUiState.Locked(clock.epochMillis()),
+                            voiceRecordingUiState = VoiceMessageRecorderView.RecordingUiState.Recording(clock.epochMillis()),
                             sendMode = sendMode.withSyncedText(currentComposerText),
                     )
                 }

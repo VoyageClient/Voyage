@@ -5,7 +5,7 @@
     android:id="@+id/voice_message_recording_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:minHeight="200dp">
+    android:minHeight="120dp">
 
     <View
         android:id="@+id/voiceMessageBackgroundView"
@@ -15,19 +15,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:background="?android:colorBackground" />
-
-    <View
-        android:id="@+id/voiceMessageLockBackground"
-        android:layout_width="52dp"
-        android:layout_height="180dp"
-        android:background="@drawable/bg_voice_message_lock"
-        android:backgroundTint="?vctr_system"
-        android:visibility="gone"
-        android:layout_marginEnd="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/voiceMessageMicButton"
-        tools:translationY="-180dp"
-        tools:visibility="visible" />
 
     <ImageButton
         android:id="@+id/voiceMessageMicButton"
@@ -47,6 +34,7 @@
         android:id="@+id/voiceMessageSendButton"
         android:layout_width="56dp"
         android:layout_height="@dimen/composer_min_height"
+        android:layout_marginEnd="12dp"
         android:background="@drawable/bg_send"
         android:contentDescription="@string/action_send"
         android:scaleType="center"
@@ -114,42 +102,15 @@
         app:layout_constraintStart_toEndOf="@id/voiceMessageTimer"
         app:layout_constraintTop_toTopOf="@id/voiceMessageTimer" />
 
-    <ImageView
-        android:id="@+id/voiceMessageLockImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:importantForAccessibility="no"
-        app:srcCompat="@drawable/ic_voice_message_unlocked"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@id/voiceMessageMicButton"
-        app:layout_constraintStart_toStartOf="@id/voiceMessageMicButton"
-        app:layout_constraintTop_toTopOf="@id/voiceMessageLockBackground"
-        tools:translationY="-180dp"
-        tools:visibility="visible" />
-
-    <ImageView
-        android:id="@+id/voiceMessageLockArrow"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="14dp"
-        android:importantForAccessibility="no"
-        app:srcCompat="@drawable/ic_voice_lock_arrow"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/voiceMessageMicButton"
-        app:layout_constraintEnd_toEndOf="@id/voiceMessageLockBackground"
-        app:layout_constraintStart_toStartOf="@id/voiceMessageLockBackground"
-        app:tint="?vctr_content_secondary"
-        tools:visibility="visible" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/voiceMessagePlaybackLayout"
         android:layout_width="0dp"
         android:layout_height="44dp"
         android:layout_marginBottom="4dp"
+        android:layout_marginEnd="12dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/voiceMessageSendButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:layout_marginBottom="120dp"
         tools:visibility="visible">

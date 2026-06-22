@@ -14,17 +14,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.doOnLayout
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import im.vector.app.R
 import im.vector.app.core.extensions.setAttributeBackground
-import im.vector.app.core.extensions.setAttributeTintedBackground
-import im.vector.app.core.extensions.setAttributeTintedImageResource
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewVoiceMessageRecorderBinding
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView.DraggingState
-import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView.RecordingUiState
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
@@ -36,7 +32,6 @@ class VoiceMessageViews(
         private val dimensionConverter: DimensionConverter,
 ) {
 
-    private val distanceToLock = dimensionConverter.dpToPx(48).toFloat()
     private val distanceToCancel = dimensionConverter.dpToPx(120).toFloat()
     private val rtlXMultiplier = resources.getInteger(im.vector.lib.ui.styles.R.integer.rtl_x_multiplier)
 
@@ -88,21 +83,6 @@ class VoiceMessageViews(
         views.voiceMessageSlideToCancel.translationX = -translationAmount / 2 * rtlXMultiplier
     }
 
-    fun renderLocked() {
-        views.voiceMessageLockImage.setImageResource(R.drawable.ic_voice_message_locked)
-    }
-
-    fun renderLocking(distanceY: Float) {
-        views.voiceMessageLockImage.setAttributeTintedImageResource(R.drawable.ic_voice_message_locked, com.google.android.material.R.attr.colorPrimary)
-        val translationAmount = -distanceY.coerceIn(0F, distanceToLock)
-        views.voiceMessageMicButton.translationY = translationAmount
-        views.voiceMessageLockArrow.translationY = translationAmount
-        views.voiceMessageLockArrow.alpha = 1 - (-translationAmount / distanceToLock)
-        // Reset X translations
-        views.voiceMessageMicButton.translationX = 0F
-        views.voiceMessageSlideToCancel.translationX = 0F
-    }
-
     fun renderCancelling(distanceX: Float) {
         val translationAmount = distanceX.coerceAtMost(distanceToCancel)
         views.voiceMessageMicButton.translationX = -translationAmount * rtlXMultiplier
@@ -111,61 +91,20 @@ class VoiceMessageViews(
         views.voiceMessageSlideToCancel.alpha = reducedAlpha
         views.voiceMessageTimerIndicator.alpha = reducedAlpha
         views.voiceMessageTimer.alpha = reducedAlpha
-        views.voiceMessageLockBackground.isVisible = false
-        views.voiceMessageLockImage.isVisible = false
-        views.voiceMessageLockArrow.isVisible = false
         views.voiceMessageSlideToCancelDivider.isVisible = true
-        // Reset Y translations
         views.voiceMessageMicButton.translationY = 0F
-        views.voiceMessageLockArrow.translationY = 0F
     }
 
-    fun showRecordingViews() {
-        views.voiceMessageBackgroundView.isVisible = true
-        views.voiceMessageMicButton.setImageResource(R.drawable.ic_composer_rich_mic_pressed)
-        views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
-        views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            setMargins(0, 0, 0, 0)
-        }
-        views.voiceMessageMicButton.animate().scaleX(1.5f).scaleY(1.5f).setDuration(300).start()
-
-        views.voiceMessageLockBackground.isVisible = true
-        views.voiceMessageLockBackground.animate().setDuration(300).translationY(-dimensionConverter.dpToPx(180).toFloat()).start()
-        views.voiceMessageLockImage.isVisible = true
-        views.voiceMessageLockImage.setImageResource(R.drawable.ic_voice_message_unlocked)
-        views.voiceMessageLockImage.animate().setDuration(500).translationY(-dimensionConverter.dpToPx(180).toFloat()).start()
-        views.voiceMessageLockArrow.isVisible = true
-        views.voiceMessageLockArrow.alpha = 1f
-        views.voiceMessageSlideToCancel.isVisible = true
-        views.voiceMessageTimerIndicator.isVisible = true
-        views.voiceMessageTimer.isVisible = true
-        views.voiceMessageSlideToCancel.alpha = 1f
-        views.voiceMessageTimerIndicator.alpha = 1f
-        views.voiceMessageTimer.alpha = 1f
-        views.voiceMessageSendButton.isVisible = false
-    }
-
-    fun hideRecordingViews(recordingState: RecordingUiState) {
-        // We need to animate the lock image first
+    fun hideRecordingViews(resetMic: Boolean) {
         views.voiceMessageBackgroundView.isVisible = false
-        if (recordingState !is RecordingUiState.Locked) {
-            views.voiceMessageLockImage.isVisible = false
-            views.voiceMessageLockImage.animate().translationY(0f).start()
-            views.voiceMessageLockBackground.isVisible = false
-            views.voiceMessageLockBackground.animate().translationY(0f).start()
-        } else {
-            animateLockImageWithBackground()
-        }
         views.voiceMessageSlideToCancelDivider.isVisible = false
-        views.voiceMessageLockArrow.isVisible = false
-        views.voiceMessageLockArrow.animate().translationY(0f).start()
         views.voiceMessageSlideToCancel.isVisible = false
         views.voiceMessageSlideToCancel.animate().translationX(0f).translationY(0f).start()
         views.voiceMessagePlaybackLayout.isVisible = false
         views.voiceMessageTimerIndicator.isVisible = false
         views.voiceMessageTimer.isVisible = false
 
-        if (recordingState !is RecordingUiState.Locked) {
+        if (resetMic) {
             views.voiceMessageMicButton
                     .animate()
                     .scaleX(1f)
@@ -178,8 +117,6 @@ class VoiceMessageViews(
                     }
                     .start()
         } else {
-            views.voiceMessageTimerIndicator.isVisible = false
-            views.voiceMessageTimer.isVisible = false
             views.voiceMessageMicButton.apply {
                 scaleX = 1f
                 scaleY = 1f
@@ -187,51 +124,7 @@ class VoiceMessageViews(
                 translationY = 0f
             }
         }
-
-        // Hide toasts if user cancelled recording before the timeout of the toast.
-        if (recordingState == RecordingUiState.Idle) {
-            hideToast()
-        }
-    }
-
-    fun animateLockImageWithBackground() {
-        views.voiceMessageLockBackground.updateLayoutParams {
-            height = dimensionConverter.dpToPx(78)
-        }
-        views.voiceMessageLockBackground.apply {
-            animate()
-                    .scaleX(0f)
-                    .scaleY(0f)
-                    .setDuration(400L)
-                    .withEndAction {
-                        updateLayoutParams {
-                            height = dimensionConverter.dpToPx(180)
-                        }
-                        isVisible = false
-                        scaleX = 1f
-                        scaleY = 1f
-                        animate().translationY(0f).start()
-                    }
-                    .start()
-        }
-
-        // Lock image animation
-        views.voiceMessageMicButton.isInvisible = true
-        views.voiceMessageLockImage.apply {
-            isVisible = true
-            animate()
-                    .scaleX(0f)
-                    .scaleY(0f)
-                    .setDuration(400L)
-                    .withEndAction {
-                        isVisible = false
-                        scaleX = 1f
-                        scaleY = 1f
-                        translationY = 0f
-                        resetMicButtonUi()
-                    }
-                    .start()
-        }
+        hideToast()
     }
 
     fun resetMicButtonUi() {
@@ -253,7 +146,7 @@ class VoiceMessageViews(
     }
 
     fun showDraftViews() {
-        hideRecordingViews(RecordingUiState.Idle)
+        hideRecordingViews(resetMic = false)
         views.voiceMessageBackgroundView.isVisible = true
         views.voiceMessageMicButton.isVisible = false
         views.voiceMessageSendButton.isVisible = false
@@ -263,11 +156,9 @@ class VoiceMessageViews(
         views.voicePlaybackWaveform.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
-    fun showRecordingLockedViews(recordingState: RecordingUiState) {
-        hideRecordingViews(recordingState)
+    fun showRecordingViews() {
+        hideRecordingViews(resetMic = false)
         views.voiceMessageMicButton.isVisible = false
-        views.voiceMessageLockImage.isVisible = false
-        views.voiceMessageLockBackground.isVisible = false
         views.voiceMessageBackgroundView.isVisible = true
         views.voiceMessagePlaybackLayout.isVisible = true
         views.voiceMessagePlaybackTimerIndicator.isVisible = true
@@ -278,7 +169,7 @@ class VoiceMessageViews(
     }
 
     fun initViews() {
-        hideRecordingViews(RecordingUiState.Idle)
+        hideRecordingViews(resetMic = true)
         views.voiceMessageMicButton.isVisible = true
         views.voiceMessageSendButton.isVisible = false
         views.voicePlaybackWaveform.post { views.voicePlaybackWaveform.clear() }
@@ -311,18 +202,10 @@ class VoiceMessageViews(
         views.voiceMessageToast.isVisible = false
     }
 
-    fun renderRecordingTimer(isLocked: Boolean, recordingTimeMillis: Long) {
+    fun renderRecordingTimer(recordingTimeMillis: Long) {
         val formattedTimerText = DateUtils.formatElapsedTime(recordingTimeMillis)
-        if (isLocked) {
-            views.voicePlaybackTime.apply {
-                post {
-                    text = formattedTimerText
-                }
-            }
-        } else {
-            views.voiceMessageTimer.post {
-                views.voiceMessageTimer.text = formattedTimerText
-            }
+        views.voicePlaybackTime.post {
+            views.voicePlaybackTime.text = formattedTimerText
         }
     }
 

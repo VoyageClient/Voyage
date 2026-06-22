@@ -291,7 +291,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
         (composer as? View)?.isVisible = messageComposerState.isComposerVisible
         val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() &&
-                messageComposerState.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Locked
+                messageComposerState.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Recording
         composer.sendButton.visibility = when {
             messageComposerState.isSendButtonVisible -> View.VISIBLE
             recorderClaimsSlot -> View.INVISIBLE
@@ -540,10 +540,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             composer.sendButton.isVisible = true
             composer.sendButton.animate().alpha(1f).setDuration(150).start()
         } else {
-            val isLocked = withState(messageComposerViewModel) {
-                it.voiceRecordingUiState is VoiceMessageRecorderView.RecordingUiState.Locked
+            val isRecording = withState(messageComposerViewModel) {
+                it.voiceRecordingUiState is VoiceMessageRecorderView.RecordingUiState.Recording
             }
-            val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() && !isLocked
+            val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() && !isRecording
             composer.sendButton.visibility = if (recorderClaimsSlot) View.INVISIBLE else View.GONE
         }
     }

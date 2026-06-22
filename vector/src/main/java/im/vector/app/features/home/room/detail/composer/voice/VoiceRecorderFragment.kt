@@ -31,7 +31,6 @@ import im.vector.app.features.home.room.detail.composer.MessageComposerViewState
 import im.vector.app.features.home.room.detail.composer.SendMode
 import im.vector.app.features.home.room.detail.composer.boolean
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
-import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
@@ -39,7 +38,6 @@ import javax.inject.Inject
 class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>() {
 
     @Inject lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
-    @Inject lateinit var clock: Clock
 
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
     private val messageComposerViewModel: MessageComposerViewModel by parentFragmentViewModel()
@@ -133,12 +131,6 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
                 messageComposerViewModel.handle(MessageComposerAction.EndRecordingVoiceMessage(isCancelled = true, rootThreadEventId = getRootThreadEventId()))
                 vibrate(requireContext())
                 updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Idle)
-            }
-
-            override fun onVoiceRecordingLocked() {
-                val startedState = withState(messageComposerViewModel) { it.voiceRecordingUiState as? VoiceMessageRecorderView.RecordingUiState.Recording }
-                val startTime = startedState?.recordingStartTimestamp ?: clock.epochMillis()
-                updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Locked(startTime))
             }
 
             override fun onVoiceRecordingEnded() {

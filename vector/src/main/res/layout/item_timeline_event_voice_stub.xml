@@ -9,6 +9,12 @@
     android:minWidth="@dimen/chat_bubble_fixed_size"
     tools:viewBindingIgnore="true">
 
+    <im.vector.app.features.home.room.detail.timeline.reply.InReplyToView
+        android:id="@+id/inReplyToContainer"
+        style="@style/InReplyToViewParams"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/voicePlaybackLayout"

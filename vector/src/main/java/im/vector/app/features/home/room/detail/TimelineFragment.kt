@@ -36,6 +36,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.forEach
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
@@ -419,9 +420,14 @@ class TimelineFragment :
             recorder.layoutParams = recorderParams
         }
 
+        val recorderVisible = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
+        val timelinePadding = if (state.isVoiceRecording) recorderVisible else 0
+        if (views.timelineRecyclerView.paddingBottom != timelinePadding) {
+            views.timelineRecyclerView.updatePadding(bottom = timelinePadding)
+        }
+
         val jumpParams = views.jumpToBottomView.layoutParams as? ViewGroup.MarginLayoutParams ?: return
         val baseMargin = (16f * resources.displayMetrics.density).toInt()
-        val recorderVisible = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_min_height)
         val jumpTarget = baseMargin + if (state.isVoiceRecording) recorderVisible else 0
         if (jumpParams.bottomMargin != jumpTarget) {
             jumpParams.bottomMargin = jumpTarget

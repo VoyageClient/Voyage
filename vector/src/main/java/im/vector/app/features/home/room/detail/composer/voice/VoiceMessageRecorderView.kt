@@ -38,7 +38,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         fun onVoiceRecordingEnded()
         fun onVoicePlaybackButtonClicked()
         fun onVoiceRecordingCancelled()
-        fun onVoiceRecordingLocked()
         fun onSendVoiceMessage()
         fun onDeleteVoiceMessage()
         fun onRecordingLimitReached()
@@ -76,10 +75,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
             override fun onRequestRecording() = callback.onVoiceRecordingStarted()
             override fun onMicButtonReleased() {
                 when (dragState) {
-                    DraggingState.Lock -> {
-                        // do nothing,
-                        // onSendVoiceMessage, onDeleteVoiceMessage or onRecordingLimitReached will be triggered instead
-                    }
                     DraggingState.Cancel -> callback.onVoiceRecordingCancelled()
                     else -> callback.onVoiceRecordingEnded()
                 }
@@ -89,8 +84,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
             override fun onDeleteVoiceMessage() = callback.onDeleteVoiceMessage()
             override fun onWaveformClicked() {
                 when (lastKnownState) {
-                    is RecordingUiState.Recording,
-                    is RecordingUiState.Locked -> callback.onRecordingWaveformClicked()
+                    is RecordingUiState.Recording -> callback.onRecordingWaveformClicked()
                     else -> Unit
                 }
             }
@@ -129,16 +123,11 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
                 reset()
             }
             is RecordingUiState.Recording -> {
-                startRecordingTicker(startFromLocked = false, startAt = recordingState.recordingStartTimestamp)
-                voiceMessageViews.renderToast(context.getString(CommonStrings.voice_message_release_to_send_toast))
+                if (lastKnownState !is RecordingUiState.Recording) {
+                    startRecordingTicker(startAt = recordingState.recordingStartTimestamp)
+                }
                 voiceMessageViews.showRecordingViews()
                 dragState = DraggingState.Ready
-            }
-            is RecordingUiState.Locked -> {
-                if (lastKnownState !is RecordingUiState.Recording) {
-                    startRecordingTicker(startFromLocked = true, startAt = recordingState.recordingStartTimestamp)
-                }
-                voiceMessageViews.showRecordingLockedViews(recordingState)
             }
             RecordingUiState.Draft -> {
                 stopRecordingTicker()
@@ -158,14 +147,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         if (currentDragState == newDragState) return
         when (newDragState) {
             is DraggingState.Cancelling -> voiceMessageViews.renderCancelling(newDragState.distanceX)
-            is DraggingState.Locking -> {
-                if (currentDragState is DraggingState.Cancelling) {
-                    voiceMessageViews.showRecordingViews()
-                }
-                voiceMessageViews.renderLocking(newDragState.distanceY)
-            }
             DraggingState.Cancel -> callback.onVoiceRecordingCancelled()
-            DraggingState.Lock -> callback.onVoiceRecordingLocked()
             DraggingState.Ignored,
             DraggingState.Ready -> {
                 // do nothing
@@ -174,21 +156,20 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         dragState = newDragState
     }
 
-    private fun startRecordingTicker(startFromLocked: Boolean, startAt: Long) {
+    private fun startRecordingTicker(startAt: Long) {
         val startMs = ((clock.epochMillis() - startAt)).coerceAtLeast(0)
         recordingTicker?.stop()
         recordingTicker = CountUpTimer().apply {
             tickListener = CountUpTimer.TickListener { milliseconds ->
-                val isLocked = startFromLocked || lastKnownState is RecordingUiState.Locked
-                onRecordingTick(isLocked, milliseconds + startMs)
+                onRecordingTick(milliseconds + startMs)
             }
             start()
         }
-        onRecordingTick(startFromLocked, milliseconds = startMs)
+        onRecordingTick(milliseconds = startMs)
     }
 
-    private fun onRecordingTick(isLocked: Boolean, milliseconds: Long) {
-        voiceMessageViews.renderRecordingTimer(isLocked, milliseconds / 1_000)
+    private fun onRecordingTick(milliseconds: Long) {
+        voiceMessageViews.renderRecordingTimer(milliseconds / 1_000)
         val timeDiffToRecordingLimit = voiceMessageConfig.lengthLimitMs - milliseconds
         if (timeDiffToRecordingLimit <= 0) {
             post {
@@ -228,7 +209,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
     sealed interface RecordingUiState {
         object Idle : RecordingUiState
         data class Recording(val recordingStartTimestamp: Long) : RecordingUiState
-        data class Locked(val recordingStartTimestamp: Long) : RecordingUiState
         object Draft : RecordingUiState
     }
 
@@ -236,8 +216,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         object Ready : DraggingState
         object Ignored : DraggingState
         data class Cancelling(val distanceX: Float) : DraggingState
-        data class Locking(val distanceY: Float) : DraggingState
         object Cancel : DraggingState
-        object Lock : DraggingState
     }
 }

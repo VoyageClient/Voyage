@@ -125,10 +125,18 @@ fun Uri.toMultiPickerAudioType(context: Context): MultiPickerAudioType? {
             val size = cursor.getLongOrNull(sizeColumn) ?: 0
             var duration = 0L
 
+            // Opus-in-Ogg metadata is unreadable by MediaMetadataRetriever below API 24; swallow the
+            // failure and leave duration at 0 so the caller can fall back to a computed value.
             context.contentResolver.openFileDescriptor(this, "r")?.use { pfd ->
                 val mediaMetadataRetriever = MediaMetadataRetriever()
-                mediaMetadataRetriever.setDataSource(pfd.fileDescriptor)
-                duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+                try {
+                    mediaMetadataRetriever.setDataSource(pfd.fileDescriptor)
+                    duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+                } catch (failure: RuntimeException) {
+                    duration = 0L
+                } finally {
+                    mediaMetadataRetriever.release()
+                }
             }
 
             MultiPickerAudioType(

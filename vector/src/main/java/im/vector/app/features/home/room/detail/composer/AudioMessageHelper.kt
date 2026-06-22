@@ -31,6 +31,8 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import javax.inject.Inject
 
+private const val AMPLITUDE_INTERVAL_MS = 50
+
 /**
  * Helper class to record audio for voice messages.
  */
@@ -88,6 +90,13 @@ class AudioMessageHelper @Inject constructor(
                 val outputFileUri = FileProvider.getUriForFile(context, buildMeta.applicationId + ".fileProvider", it, "Voice message.${it.extension}")
                 outputFileUri
                         .toMultiPickerAudioType(context)
+                        // Opus duration is unreadable from metadata below API 24, so fall back to the
+                        // elapsed time implied by the amplitude samples (one every AMPLITUDE_INTERVAL_MS).
+                        ?.let { audioType ->
+                            val duration = audioType.duration.takeIf { d -> d > 0 }
+                                    ?: (amplitudeList.size * AMPLITUDE_INTERVAL_MS).toLong()
+                            audioType.copy(duration = duration)
+                        }
                         ?.apply {
                             waveform = if (amplitudeList.size < 50) {
                                 amplitudeList
@@ -224,7 +233,7 @@ class AudioMessageHelper @Inject constructor(
 
     private fun startRecordingAmplitudes() {
         amplitudeTicker?.stop()
-        amplitudeTicker = CountUpTimer(intervalInMs = 50).apply {
+        amplitudeTicker = CountUpTimer(intervalInMs = AMPLITUDE_INTERVAL_MS.toLong()).apply {
             tickListener = CountUpTimer.TickListener { onAmplitudeTick() }
             start()
         }
