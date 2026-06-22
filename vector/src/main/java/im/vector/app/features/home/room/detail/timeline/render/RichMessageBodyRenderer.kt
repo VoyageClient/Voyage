@@ -24,6 +24,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.html.Alignment
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.html.TableCellData
 import im.vector.app.features.html.TableRowData
 import javax.inject.Inject
@@ -103,6 +104,7 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.setTextColor(themeColor(ctx, defaultColorAttr))
         tv.movementMethod = movementMethod
         tv.text = htmlRenderer.get().render(html, *postProcessors)
+        tv.applySpoilerRenderLayer()
         tv.setOnClickListener(onClick)
         tv.setOnLongClickListener(onLongClick)
         return tv

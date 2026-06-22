@@ -8,8 +8,10 @@
 package im.vector.app.features.home.room.detail.timeline.tools
 
 import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.style.ClickableSpan
 import android.view.MotionEvent
+import android.view.View
 import android.widget.TextView
 import androidx.core.text.toSpannable
 import im.vector.app.core.linkify.VectorLinkify
@@ -17,6 +19,7 @@ import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.SpoilerSpan
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,6 +35,15 @@ fun CharSequence.findPillsAndProcess(scope: CoroutineScope, processBlock: (PillI
             }
         }.forEach { processBlock(it) }
     }
+}
+
+// BlurMaskFilter (used by hidden spoilers) is ignored on a hardware layer, so switch the view to a
+// software layer whenever it still contains a blurred spoiler, and back once everything is revealed.
+fun TextView.applySpoilerRenderLayer() {
+    val spanned = text as? Spanned
+    val blurred = spanned?.getSpans(0, spanned.length, SpoilerSpan::class.java)?.any { it.blurFraction > 0f } ?: false
+    val desired = if (blurred) View.LAYER_TYPE_SOFTWARE else View.LAYER_TYPE_NONE
+    if (layerType != desired) setLayerType(desired, null)
 }
 
 fun CharSequence.linkify(callback: TimelineEventController.UrlClickCallback?): CharSequence {

@@ -11,10 +11,13 @@ package im.vector.app.features.html
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.BlurMaskFilter
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.text.Spanned
+import android.text.TextPaint
 import android.text.TextUtils
 import android.text.style.ReplacementSpan
 import android.widget.TextView
@@ -34,6 +37,7 @@ import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 import java.lang.ref.WeakReference
+import kotlin.math.ceil
 
 /**
  * This span is able to replace a text by a [ChipDrawable]
@@ -50,6 +54,7 @@ class PillImageSpan(
     private val pillDrawable = createChipDrawable()
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
+    private val spoilerTextPaint = TextPaint()
 
     @UiThread
     fun bind(textView: TextView) {
@@ -65,6 +70,13 @@ class PillImageSpan(
             end: Int,
             fm: Paint.FontMetricsInt?
     ): Int {
+        // While hidden, occupy only the (blurred) name's width with regular text line metrics, so
+        // the mention flows like the surrounding text and leaves no gap. The chip width is reserved
+        // again once revealed (the host view is re-laid-out on toggle).
+        if (isInsideHiddenSpoiler(text, start, end)) {
+            fm?.let { paint.getFontMetricsInt(it) }
+            return ceil(paint.measureText(matrixItem.getBestName())).toInt()
+        }
         val rect = pillDrawable.bounds
         if (fm != null) {
             val fmPaint = paint.fontMetricsInt
@@ -90,9 +102,18 @@ class PillImageSpan(
             bottom: Int,
             paint: Paint
     ) {
-        canvas.save()
         val fm = paint.fontMetricsInt
         val transY: Int = y + (fm.descent + fm.ascent - pillDrawable.bounds.bottom) / 2
+        val blurFraction = spoilerBlurFraction(text, start, end)
+
+        // While hidden, render the mention as its blurred plaintext name so it blends with the
+        // surrounding blurred text instead of standing out as a chip. Crossfade into the chip as it reveals.
+        if (blurFraction > 0f) {
+            drawSpoilerName(canvas, x, y, paint, blurFraction)
+            if (blurFraction >= 1f) return
+        }
+
+        canvas.save()
         canvas.save()
         canvas.translate(x, transY.toFloat())
 
@@ -104,8 +125,28 @@ class PillImageSpan(
             pillDrawable.ellipsize = TextUtils.TruncateAt.END
         }
 
+        pillDrawable.alpha = ((1f - blurFraction) * 255).toInt()
         pillDrawable.draw(canvas)
+        pillDrawable.alpha = 255
         canvas.restore()
+    }
+
+    private fun spoilerBlurFraction(text: CharSequence, start: Int, end: Int): Float {
+        val spanned = text as? Spanned ?: return 0f
+        return spanned.getSpans(start, end, SpoilerSpan::class.java).maxOfOrNull { it.blurFraction } ?: 0f
+    }
+
+    private fun isInsideHiddenSpoiler(text: CharSequence, start: Int, end: Int): Boolean {
+        val spanned = text as? Spanned ?: return false
+        return spanned.getSpans(start, end, SpoilerSpan::class.java).any { !it.isRevealed }
+    }
+
+    private fun drawSpoilerName(canvas: Canvas, x: Float, baseline: Int, paint: Paint, blurFraction: Float) {
+        spoilerTextPaint.set(paint)
+        spoilerTextPaint.maskFilter = BlurMaskFilter((paint.textSize * SPOILER_BLUR_RATIO * blurFraction).coerceAtLeast(0.1f), BlurMaskFilter.Blur.NORMAL)
+        spoilerTextPaint.color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_spoiler_background_color)
+        spoilerTextPaint.alpha = (blurFraction * 255).toInt()
+        canvas.drawText(matrixItem.getBestName(), x, baseline.toFloat(), spoilerTextPaint)
     }
 
     internal fun updateAvatarDrawable(drawable: Drawable?) {
@@ -155,6 +196,11 @@ class PillImageSpan(
             }
             setBounds(0, 0, intrinsicWidth, intrinsicHeight)
         }
+    }
+
+    companion object {
+        // Keep in sync with SpoilerSpan's text blur so a hidden mention matches the surrounding text.
+        private const val SPOILER_BLUR_RATIO = 0.4f
     }
 }
 

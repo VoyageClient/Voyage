@@ -11,6 +11,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatTextView
+import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import io.element.android.wysiwyg.EditorStyledTextView
 
 class FooteredEditorStyledTextView @JvmOverloads constructor(
@@ -22,6 +23,11 @@ class FooteredEditorStyledTextView @JvmOverloads constructor(
     override val footerState: AbstractFooteredTextView.FooterState = AbstractFooteredTextView.FooterState()
     override fun getAppCompatTextView(): AppCompatTextView = this
     override fun setMeasuredDimensionExposed(measuredWidth: Int, measuredHeight: Int) = setMeasuredDimension(measuredWidth, measuredHeight)
+
+    override fun onTextChanged(text: CharSequence?, start: Int, lengthBefore: Int, lengthAfter: Int) {
+        super.onTextChanged(text, start, lengthBefore, lengthAfter)
+        applySpoilerRenderLayer()
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
