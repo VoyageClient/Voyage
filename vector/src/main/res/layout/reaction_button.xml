@@ -16,6 +16,9 @@
         android:ellipsize="middle"
         android:gravity="center"
         android:maxEms="10"
+        android:minWidth="0dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
         android:singleLine="true"
         android:textColor="?vctr_content_primary"
         tools:text="* Party Parrot Again * 👀" />
@@ -26,6 +29,7 @@
         android:layout_height="20dp"
         android:adjustViewBounds="true"
         android:contentDescription="@null"
+        android:minWidth="0dp"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -37,6 +41,9 @@
         android:layout_marginStart="4dp"
         android:gravity="center"
         android:maxLines="1"
+        android:minWidth="0dp"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
         android:textColor="?vctr_content_secondary"
         android:textStyle="bold"
         tools:text="13450" />
