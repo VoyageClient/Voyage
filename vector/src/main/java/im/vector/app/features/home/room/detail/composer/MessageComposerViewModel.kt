@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.composer
 
+import android.text.Spanned
 import android.text.SpannableString
 import androidx.lifecycle.asFlow
 import com.airbnb.mvrx.MavericksViewModelFactory
@@ -80,6 +81,7 @@ import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.model.relation.shouldRenderInThread
+import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
@@ -323,7 +325,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             when (state.sendMode) {
                 is SendMode.Regular -> {
                     when (val parsedCommand = commandParser.parseSlashCommand(
-                            textMessage = action.text,
+                            textMessage = resolveComposerMentions(action.text),
                             formattedMessage = action.formattedText,
                             isInThreadTimeline = state.isInThreadTimeline()
                     )) {
@@ -508,6 +510,13 @@ class MessageComposerViewModel @AssistedInject constructor(
                             popDraft(room)
                         }
                         is ParsedCommand.SendNotice -> {
+                            // sendTextMessage only builds a formatted body for m.text/m.emote, so an
+                            // m.notice with mention pills would send plain. Build the HTML ourselves.
+                            val noticeFormatted = if (containsMentionPills(parsedCommand.message)) {
+                                mentionsToHtml(parsedCommand.message)
+                            } else {
+                                null
+                            }
                             offloadSend {
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
@@ -515,6 +524,12 @@ class MessageComposerViewModel @AssistedInject constructor(
                                             replyInThreadText = parsedCommand.message,
                                             msgType = MessageType.MSGTYPE_NOTICE,
                                             autoMarkdown = action.autoMarkdown
+                                    )
+                                } else if (noticeFormatted != null) {
+                                    room.sendService().sendFormattedTextMessage(
+                                            text = parsedCommand.message.toString(),
+                                            formattedText = noticeFormatted,
+                                            msgType = MessageType.MSGTYPE_NOTICE
                                     )
                                 } else {
                                     room.sendService().sendTextMessage(
@@ -529,15 +544,16 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.SendRainbow -> {
                             val message = parsedCommand.message.toString()
+                            val formatted = rainbowWithMentions(parsedCommand.message)
                             offloadSend {
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
                                             replyInThreadText = parsedCommand.message,
-                                            formattedText = rainbowGenerator.generate(message)
+                                            formattedText = formatted
                                     )
                                 } else {
-                                    room.sendService().sendFormattedTextMessage(message, rainbowGenerator.generate(message))
+                                    room.sendService().sendFormattedTextMessage(message, formatted)
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
@@ -545,15 +561,16 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.SendRainbowEmote -> {
                             val message = parsedCommand.message.toString()
+                            val formatted = rainbowWithMentions(parsedCommand.message)
                             if (state.rootThreadEventId != null) {
                                 room.relationService().replyInThread(
                                         rootThreadEventId = state.rootThreadEventId,
                                         replyInThreadText = parsedCommand.message,
                                         msgType = MessageType.MSGTYPE_EMOTE,
-                                        formattedText = rainbowGenerator.generate(message)
+                                        formattedText = formatted
                                 )
                             } else {
-                                room.sendService().sendFormattedTextMessage(message, rainbowGenerator.generate(message), MessageType.MSGTYPE_EMOTE)
+                                room.sendService().sendFormattedTextMessage(message, formatted, MessageType.MSGTYPE_EMOTE)
                             }
 
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
@@ -561,7 +578,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.SendSpoiler -> {
                             val text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})"
-                            val formattedText = "<span data-mx-spoiler>${parsedCommand.message}</span>"
+                            val formattedText = "<span data-mx-spoiler>${mentionsToHtml(parsedCommand.message)}</span>"
                             if (state.rootThreadEventId != null) {
                                 room.relationService().replyInThread(
                                         rootThreadEventId = state.rootThreadEventId,
@@ -850,7 +867,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                     val rootThreadEventId = if (showInThread) timelineEvent.root.getRootThreadEventId() else null
 
                     val parsedCommand = commandParser.parseSlashCommand(
-                            textMessage = action.text,
+                            textMessage = resolveComposerMentions(action.text),
                             formattedMessage = action.formattedText,
                             isInThreadTimeline = state.isInThreadTimeline()
                     )
@@ -1259,37 +1276,35 @@ class MessageComposerViewModel @AssistedInject constructor(
                 true
             }
             is ParsedCommand.SendRainbow -> {
-                val message = parsedCommand.message.toString()
-                reply(message, rainbowGenerator.generate(message))
+                reply(parsedCommand.message.toString(), rainbowWithMentions(parsedCommand.message))
                 finish()
                 true
             }
             is ParsedCommand.SendRainbowEmote -> {
-                val message = parsedCommand.message.toString()
-                reply(message, rainbowGenerator.generate(message), MessageType.MSGTYPE_EMOTE)
+                reply(parsedCommand.message.toString(), rainbowWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
                 finish()
                 true
             }
             is ParsedCommand.SendSpoiler -> {
                 reply(
                         text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})",
-                        formatted = "<span data-mx-spoiler>${parsedCommand.message}</span>",
+                        formatted = "<span data-mx-spoiler>${mentionsToHtml(parsedCommand.message)}</span>",
                 )
                 finish()
                 true
             }
             is ParsedCommand.SendShrug -> {
-                reply(prefixed("¯\\_(ツ)_/¯", parsedCommand.message))
+                replyPrefixed("¯\\_(ツ)_/¯", parsedCommand.message, ::reply)
                 finish()
                 true
             }
             is ParsedCommand.SendLenny -> {
-                reply(prefixed("( ͡° ͜ʖ ͡°)", parsedCommand.message))
+                replyPrefixed("( ͡° ͜ʖ ͡°)", parsedCommand.message, ::reply)
                 finish()
                 true
             }
             is ParsedCommand.SendTableFlip -> {
-                reply(prefixed("(╯°□°）╯︵ ┻━┻", parsedCommand.message))
+                replyPrefixed("(╯°□°）╯︵ ┻━┻", parsedCommand.message, ::reply)
                 finish()
                 true
             }
@@ -1320,33 +1335,106 @@ class MessageComposerViewModel @AssistedInject constructor(
      * the styled segment, everything after is appended verbatim. Returns the head lines and the
      * trailing remainder (which may be empty and may itself contain further line breaks).
      */
-    private fun splitStyledSegment(message: CharSequence): Pair<List<String>, String> {
+    private fun splitStyledSegment(message: CharSequence): Pair<List<CharSequence>, CharSequence> {
         val text = message.toString()
         val breakIndex = text.indexOf("\n\n")
         return if (breakIndex < 0) {
-            text.split('\n') to ""
+            message.splitPreservingSpans('\n') to ""
         } else {
-            text.substring(0, breakIndex).split('\n') to text.substring(breakIndex)
+            message.subSequence(0, breakIndex).splitPreservingSpans('\n') to message.subSequence(breakIndex, message.length)
         }
     }
 
     private fun buildGreentext(message: CharSequence): Pair<String, String> {
         val (lines, rest) = splitStyledSegment(message)
-        val head = lines.ifEmpty { listOf("") }
+        val head = lines.ifEmpty { listOf<CharSequence>("") }
         val plain = head.joinToString("\n") { ">$it" } + rest
-        val styledHtml = "<font color=\"#789922\">" + head.joinToString("<br />") { "&gt;$it" } + "</font>"
-        val formatted = styledHtml + rest.replace("\n", "<br />")
+        val styledHtml = "<font color=\"#789922\">" + head.joinToString("<br />") { "&gt;${mentionsToHtml(it)}" } + "</font>"
+        val formatted = styledHtml + mentionsToHtml(rest).replace("\n", "<br />")
         return plain to formatted
     }
 
     private fun buildBlockquote(message: CharSequence): Pair<String, String> {
         val (lines, rest) = splitStyledSegment(message)
-        val head = lines.ifEmpty { listOf("") }
+        val head = lines.ifEmpty { listOf<CharSequence>("") }
         val plain = head.joinToString("\n") { "> $it" } + rest
-        val styledHtml = "<blockquote>\n<p>" + head.joinToString("<br />") + "</p>\n</blockquote>"
-        val formatted = styledHtml + rest.replace("\n", "<br />")
+        val styledHtml = "<blockquote>\n<p>" + head.joinToString("<br />") { mentionsToHtml(it) } + "</p>\n</blockquote>"
+        val formatted = styledHtml + mentionsToHtml(rest).replace("\n", "<br />")
         return plain to formatted
     }
+
+    private fun CharSequence.splitPreservingSpans(delimiter: Char): List<CharSequence> {
+        val result = mutableListOf<CharSequence>()
+        val asString = toString()
+        var start = 0
+        var idx = asString.indexOf(delimiter)
+        while (idx >= 0) {
+            result.add(subSequence(start, idx))
+            start = idx + 1
+            idx = asString.indexOf(delimiter, start)
+        }
+        result.add(subSequence(start, length))
+        return result
+    }
+
+    // Programmatic commands target a user, so each mention pill resolves to its matrix id; everything
+    // else keeps the pill spans so display commands can render them as proper mention links.
+    private fun resolveComposerMentions(text: CharSequence): CharSequence {
+        return if (commandParser.getCommand(text) in mentionIdCommands) {
+            mapPillSegments(text, onText = { it }, onPill = { id, _ -> id })
+        } else {
+            text
+        }
+    }
+
+    private fun mentionsToHtml(message: CharSequence): String =
+            mapPillSegments(message, onText = { it }, onPill = { id, name -> mentionLink(id, name) })
+
+    private fun rainbowWithMentions(message: CharSequence): String =
+            mapPillSegments(message, onText = { rainbowGenerator.generate(it) }, onPill = { id, name -> mentionLink(id, name) })
+
+    private fun mentionLink(id: String, name: String) = "<a href=\"https://matrix.to/#/$id\">$name</a>"
+
+    private fun containsMentionPills(text: CharSequence) =
+            (text as? Spanned)?.getSpans(0, text.length, MatrixItemSpan::class.java)?.isNotEmpty() == true
+
+    private inline fun mapPillSegments(
+            message: CharSequence,
+            onText: (String) -> String,
+            onPill: (id: String, name: String) -> String,
+    ): String {
+        val spanned = message as? Spanned
+        val spans = spanned?.getSpans(0, message.length, MatrixItemSpan::class.java)
+                ?.sortedBy { spanned.getSpanStart(it) }
+                .orEmpty()
+        if (spans.isEmpty()) return onText(message.toString())
+        return buildString {
+            var index = 0
+            spans.forEach { span ->
+                val start = spanned!!.getSpanStart(span)
+                val end = spanned.getSpanEnd(span)
+                if (start < index) return@forEach
+                if (start > index) append(onText(message.subSequence(index, start).toString()))
+                append(onPill(span.matrixItem.id, message.subSequence(start, end).toString()))
+                index = end
+            }
+            if (index < message.length) append(onText(message.subSequence(index, message.length).toString()))
+        }
+    }
+
+    private val mentionIdCommands = setOf(
+            Command.REMOVE_USER,
+            Command.CONVERT_TO_DM,
+            Command.BAN_USER,
+            Command.UNBAN_USER,
+            Command.IGNORE_USER,
+            Command.UNIGNORE_USER,
+            Command.SET_USER_POWER_LEVEL,
+            Command.RESET_USER_POWER_LEVEL,
+            Command.INVITE,
+            Command.CREATE_SPACE,
+            Command.WHOIS,
+    )
 
     /**
      * Toggle on + the user typed `>`-prefixed lines anywhere in the composer → rewrite the
@@ -1400,17 +1488,24 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
+    private fun replyPrefixed(prefix: String, message: CharSequence, reply: (CharSequence, String?, String) -> Unit) {
+        val plain = prefixed(prefix, message)
+        val formatted = if (containsMentionPills(message)) prefixed(prefix, mentionsToHtml(message)) else null
+        reply(plain, formatted, MessageType.MSGTYPE_TEXT)
+    }
+
     private fun sendPrefixedMessage(room: Room, prefix: String, message: CharSequence, rootThreadEventId: String?) {
-        val sequence = buildString {
-            append(prefix)
-            if (message.isNotEmpty()) {
-                append(" ")
-                append(message)
-            }
+        val sequence = prefixed(prefix, message)
+        if (containsMentionPills(message)) {
+            val formatted = prefixed(prefix, mentionsToHtml(message))
+            rootThreadEventId?.let {
+                room.relationService().replyInThread(rootThreadEventId = it, replyInThreadText = sequence, formattedText = formatted)
+            } ?: room.sendService().sendFormattedTextMessage(sequence, formatted)
+        } else {
+            rootThreadEventId?.let {
+                room.relationService().replyInThread(it, sequence)
+            } ?: room.sendService().sendTextMessage(sequence)
         }
-        rootThreadEventId?.let {
-            room.relationService().replyInThread(it, sequence)
-        } ?: room.sendService().sendTextMessage(sequence)
     }
 
     /**

@@ -47,7 +47,7 @@ class CommandParser @Inject constructor(
                 return ParsedCommand.ErrorNotACommand
             }
 
-            val (messageParts, message) = extractMessage(message.toString()) ?: return ParsedCommand.ErrorEmptySlashCommand
+            val (messageParts, message) = extractMessage(message) ?: return ParsedCommand.ErrorEmptySlashCommand
             val slashCommand = messageParts.first()
 
             getNotSupportedByThreads(isInThreadTimeline, slashCommand)?.let {
@@ -72,7 +72,7 @@ class CommandParser @Inject constructor(
                 }
 
                 Command.HTML.matches(slashCommand) -> {
-                    val rawHtml = extractMessage(textMessage.toString())?.second ?: ""
+                    val rawHtml = extractMessage(textMessage)?.second?.toString() ?: ""
                     if (rawHtml.isNotEmpty()) {
                         val plainText = HtmlCompat.fromHtml(rawHtml, HtmlCompat.FROM_HTML_MODE_LEGACY).toString().trim()
                         ParsedCommand.SendFormattedText(message = plainText, formattedMessage = rawHtml)
@@ -84,8 +84,8 @@ class CommandParser @Inject constructor(
                 Command.PLAIN.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
                         if (formattedMessage != null) {
-                            val trimmedPlainTextMessage = extractMessage(textMessage.toString())?.second.orEmpty()
-                            ParsedCommand.SendFormattedText(message = trimmedPlainTextMessage, formattedMessage = message)
+                            val trimmedPlainTextMessage = extractMessage(textMessage)?.second?.toString().orEmpty()
+                            ParsedCommand.SendFormattedText(message = trimmedPlainTextMessage, formattedMessage = message.toString())
                         } else {
                             ParsedCommand.SendPlainText(message = message)
                         }
@@ -95,14 +95,14 @@ class CommandParser @Inject constructor(
                 }
                 Command.CHANGE_DISPLAY_NAME.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
-                        ParsedCommand.ChangeDisplayName(displayName = message)
+                        ParsedCommand.ChangeDisplayName(displayName = message.toString())
                     } else {
                         ParsedCommand.ErrorSyntax(Command.CHANGE_DISPLAY_NAME)
                     }
                 }
                 Command.CHANGE_DISPLAY_NAME_FOR_ROOM.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
-                        ParsedCommand.ChangeDisplayNameForRoom(displayName = message)
+                        ParsedCommand.ChangeDisplayNameForRoom(displayName = message.toString())
                     } else {
                         ParsedCommand.ErrorSyntax(Command.CHANGE_DISPLAY_NAME_FOR_ROOM)
                     }
@@ -135,7 +135,7 @@ class CommandParser @Inject constructor(
                 }
                 Command.TOPIC.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
-                        ParsedCommand.ChangeTopic(topic = message)
+                        ParsedCommand.ChangeTopic(topic = message.toString())
                     } else {
                         ParsedCommand.ErrorSyntax(Command.TOPIC)
                     }
@@ -193,7 +193,7 @@ class CommandParser @Inject constructor(
                 }
                 Command.ROOM_NAME.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
-                        ParsedCommand.ChangeRoomName(name = message)
+                        ParsedCommand.ChangeRoomName(name = message.toString())
                     } else {
                         ParsedCommand.ErrorSyntax(Command.ROOM_NAME)
                     }
@@ -416,11 +416,11 @@ class CommandParser @Inject constructor(
                     }
                 }
                 Command.LEAVE_ROOM.matches(slashCommand) -> {
-                    ParsedCommand.LeaveRoom(roomId = message)
+                    ParsedCommand.LeaveRoom(roomId = message.toString())
                 }
                 Command.UPGRADE_ROOM.matches(slashCommand) -> {
                     if (message.isNotEmpty()) {
-                        ParsedCommand.UpgradeRoom(newVersion = message)
+                        ParsedCommand.UpgradeRoom(newVersion = message.toString())
                     } else {
                         ParsedCommand.ErrorSyntax(Command.UPGRADE_ROOM)
                     }
@@ -470,9 +470,22 @@ class CommandParser @Inject constructor(
         }
     }
 
-    private fun extractMessage(message: String): Pair<List<String>, String>? {
+    /**
+     * Returns the [Command] the text would resolve to without parsing arguments, or null if it is
+     * not a slash command. Lets callers resolve mention pills differently per command.
+     */
+    fun getCommand(textMessage: CharSequence): Command? {
+        val message = textMessage.toString()
+        if (!message.startsWith("/") || message.length < 2 || message[1] == '/') return null
+        val slashCommand = message.split("\\s+".toRegex()).firstOrNull()?.takeIf { it.isNotEmpty() } ?: return null
+        return Command.values().firstOrNull { it.matches(slashCommand) }
+    }
+
+    // Keep the message part as a span-preserving subSequence so mention pills survive parsing;
+    // the split parts stay plain strings, which is all the command keyword/argument matching needs.
+    private fun extractMessage(message: CharSequence): Pair<List<String>, CharSequence>? {
         val messageParts = try {
-            message.split("\\s+".toRegex()).dropLastWhile { it.isEmpty() }
+            message.toString().split("\\s+".toRegex()).dropLastWhile { it.isEmpty() }
         } catch (e: Exception) {
             Timber.e(e, "## parseSlashCommand() : split failed")
             null
@@ -484,9 +497,17 @@ class CommandParser @Inject constructor(
         }
 
         val slashCommand = messageParts.first()
-        val trimmedMessage = message.substring(slashCommand.length).trim()
+        val trimmedMessage = message.subSequence(slashCommand.length, message.length).trimSequence()
 
         return messageParts to trimmedMessage
+    }
+
+    private fun CharSequence.trimSequence(): CharSequence {
+        var start = 0
+        var end = length
+        while (start < end && this[start].isWhitespace()) start++
+        while (end > start && this[end - 1].isWhitespace()) end--
+        return subSequence(start, end)
     }
 
     private val notSupportedThreadsCommands: List<Command> by lazy {
