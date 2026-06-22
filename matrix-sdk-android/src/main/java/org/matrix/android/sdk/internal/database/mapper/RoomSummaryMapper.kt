@@ -34,7 +34,8 @@ internal class RoomSummaryMapper @Inject constructor(
         private val typingUsersTracker: TypingUsersTracker
 ) {
 
-    fun map(roomSummaryEntity: RoomSummaryEntity): RoomSummary {
+    fun map(roomSummaryEntity: RoomSummaryEntity, ancestorRoomIds: Set<String> = emptySet()): RoomSummary {
+        val nextAncestorRoomIds = ancestorRoomIds + roomSummaryEntity.roomId
         val tags = roomSummaryEntity.tags().map {
             RoomTag(it.tagName, it.tagOrder)
         }
@@ -89,7 +90,9 @@ internal class RoomSummaryMapper @Inject constructor(
                 spaceParents = roomSummaryEntity.parents.map { relationInfoEntity ->
                     SpaceParentInfo(
                             parentId = relationInfoEntity.parentRoomId,
-                            roomSummary = relationInfoEntity.parentSummaryEntity?.let { map(it) },
+                            roomSummary = relationInfoEntity.parentSummaryEntity
+                                    ?.takeUnless { it.roomId in nextAncestorRoomIds }
+                                    ?.let { map(it, nextAncestorRoomIds) },
                             canonical = relationInfoEntity.canonical ?: false,
                             viaServers = relationInfoEntity.viaServers.toList()
                     )
