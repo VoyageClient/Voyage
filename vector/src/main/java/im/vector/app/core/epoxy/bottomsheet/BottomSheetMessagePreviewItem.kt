@@ -26,6 +26,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.ui.views.RoundedCornerImageView
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.action.LocationUiData
@@ -88,11 +89,16 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         holder.sender.setTextOrHide(matrixItem.getBestName())
         // Static outline clip — Glide's RoundedCorners only applies to Bitmap output, so a
         // blurhash placeholder (Drawable) renders with square corners without this clip.
-        // ViewOutlineProvider / clipToOutline are API 21+; pre-21 the preview renders square corners.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP &&
-                holder.imagePreview.outlineProvider !== ROUNDED_OUTLINE_PROVIDER) {
-            holder.imagePreview.outlineProvider = ROUNDED_OUTLINE_PROVIDER
-            holder.imagePreview.clipToOutline = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // ViewOutlineProvider / clipToOutline are API 21+ (anti-aliased).
+            if (holder.imagePreview.outlineProvider !== ROUNDED_OUTLINE_PROVIDER) {
+                holder.imagePreview.outlineProvider = ROUNDED_OUTLINE_PROVIDER
+                holder.imagePreview.clipToOutline = true
+            }
+        } else {
+            // Pre-Lollipop: RoundedCornerImageView clips via canvas path instead.
+            val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, holder.imagePreview.resources.displayMetrics)
+            holder.imagePreview.setCornerRadii(r, r, r, r)
         }
         data?.let {
             if (hideMedia) {
@@ -135,7 +141,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         val body by bind<TextView>(R.id.bottom_sheet_message_preview_body)
         val bodyDetails by bind<TextView>(R.id.bottom_sheet_message_preview_body_details)
         val timestamp by bind<TextView>(R.id.bottom_sheet_message_preview_timestamp)
-        val imagePreview by bind<ImageView>(R.id.bottom_sheet_message_preview_image)
+        val imagePreview by bind<RoundedCornerImageView>(R.id.bottom_sheet_message_preview_image)
         val mapViewContainer by bind<FrameLayout>(R.id.mapViewContainer)
         val staticMapImageView by bind<ImageView>(R.id.staticMapImageView)
         val staticMapPinImageView by bind<ImageView>(R.id.staticMapPinImageView)

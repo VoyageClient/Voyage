@@ -122,15 +122,18 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         // Round the replied-to image corners. Glide's RoundedCorners only transforms the loaded
         // bitmap, so a still-loading blurhash placeholder (Drawable) would otherwise show square.
-        // clipToOutline / ViewOutlineProvider are API 21+.
+        val imageCornerRadius = 8 * resources.displayMetrics.density
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            val imageCornerRadius = 8 * resources.displayMetrics.density
+            // clipToOutline / ViewOutlineProvider are API 21+ (anti-aliased).
             views.composerRelatedMessageImage.outlineProvider = object : ViewOutlineProvider() {
                 override fun getOutline(view: View, outline: Outline) {
                     outline.setRoundRect(0, 0, view.width, view.height, imageCornerRadius)
                 }
             }
             views.composerRelatedMessageImage.clipToOutline = true
+        } else {
+            // Pre-Lollipop: RoundedCornerImageView clips via canvas path instead.
+            views.composerRelatedMessageImage.setCornerRadii(imageCornerRadius, imageCornerRadius, imageCornerRadius, imageCornerRadius)
         }
 
         collapse()

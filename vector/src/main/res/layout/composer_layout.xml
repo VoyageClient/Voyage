@@ -87,7 +87,7 @@
             tools:ignore="MissingPrefix"
             tools:src="@drawable/ic_edit" />
 
-        <ImageView
+        <im.vector.app.core.ui.views.RoundedCornerImageView
             android:id="@+id/composerRelatedMessageImage"
             android:layout_width="100dp"
             android:layout_height="66dp"

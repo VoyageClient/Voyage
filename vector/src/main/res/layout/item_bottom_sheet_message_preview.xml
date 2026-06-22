@@ -53,7 +53,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="Friday 8pm" />
 
-    <ImageView
+    <im.vector.app.core.ui.views.RoundedCornerImageView
         android:id="@+id/bottom_sheet_message_preview_image"
         android:layout_width="100dp"
         android:layout_height="66dp"

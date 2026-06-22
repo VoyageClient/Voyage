@@ -31,7 +31,7 @@
             android:textSize="12sp"
             tools:text="@sample/users.json/data/displayName" />
 
-        <ImageView
+        <im.vector.app.core.ui.views.RoundedCornerImageView
             android:id="@+id/replyThumbnailView"
             android:layout_width="0dp"
             android:layout_height="@dimen/reply_thumbnail_height"
