@@ -79,6 +79,8 @@ add_library(opuscodec
         codec/CodecOggOpusDecoder.cpp
         opuscodec.cpp)
 
+target_link_options(opuscodec PRIVATE "-Wl,-z,max-page-size=16384,-z,common-page-size=16384")
+
 target_include_directories(opuscodec PRIVATE
         ${LIBOPUS_DIR}/include
         ${LIBOPUSENC_DIR}/include
