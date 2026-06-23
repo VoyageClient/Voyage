@@ -9,7 +9,6 @@ package im.vector.app.features.html
 
 import android.content.Context
 import android.text.Spannable
-import android.text.Spanned
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -65,7 +64,7 @@ class PillsPostProcessor @AssistedInject constructor(
             startSpan: Int,
             endSpan: Int
     ) {
-        renderedText.setSpan(pillSpan, startSpan, endSpan, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        renderedText.setPillSpan(pillSpan, startSpan, endSpan)
     }
 
     private fun addLinkSpans(renderedText: Spannable) {

@@ -278,7 +278,8 @@ class EventHtmlRenderer @Inject constructor(
     }
 
     private fun renderAndProcess(node: Node, postProcessors: Array<out PostProcessor>): CharSequence {
-        val renderedText = markwon.render(node).toSpannable()
+        // Editable so post-processors can collapse pill backing text to a placeholder (see setPillSpan).
+        val renderedText = SpannableStringBuilder(markwon.render(node))
         postProcessors.forEach {
             it.afterRender(renderedText)
         }

@@ -14,7 +14,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Spannable
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -80,6 +79,7 @@ import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecord
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.poll.PollMode
 import im.vector.app.features.reactions.data.AccountDataRecentEmoji
@@ -909,20 +909,15 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 }
             } else {
                 val displayName = sanitizeDisplayName(roomMember?.displayName ?: userId)
+                val span = PillImageSpan(
+                        glideRequests,
+                        avatarRenderer,
+                        requireContext(),
+                        MatrixItem.UserItem(userId, displayName, roomMember?.avatarUrl),
+                ).also { it.bind(composer.editText) }
                 val pill = buildSpannedString {
                     append(displayName)
-                    setSpan(
-                            PillImageSpan(
-                                    glideRequests,
-                                    avatarRenderer,
-                                    requireContext(),
-                                    MatrixItem.UserItem(userId, displayName, roomMember?.avatarUrl),
-                            )
-                                    .also { it.bind(composer.editText) },
-                            0,
-                            displayName.length,
-                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                    )
+                    setPillSpan(span, 0, displayName.length)
                     append(" ")
                 }
                 if (startToCompose && displayName.startsWith("/")) {

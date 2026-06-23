@@ -10,7 +10,6 @@ package im.vector.app.features.home.room.detail
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.text.Editable
-import android.text.Spannable
 import android.widget.EditText
 import com.otaliastudios.autocomplete.Autocomplete
 import com.otaliastudios.autocomplete.AutocompleteCallback
@@ -30,6 +29,7 @@ import im.vector.app.features.command.Command
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import io.element.android.wysiwyg.EditorEditText
@@ -280,7 +280,7 @@ class AutoCompleter @AssistedInject constructor(
         )
         span.bind(editText)
 
-        editable.setSpan(span, startIndex, startIndex + displayName.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        editable.setPillSpan(span, startIndex, startIndex + displayName.length)
     }
 
     companion object {

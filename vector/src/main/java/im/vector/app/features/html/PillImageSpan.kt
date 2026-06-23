@@ -16,6 +16,8 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.text.Editable
+import android.text.Spannable
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.TextUtils
@@ -201,6 +203,21 @@ class PillImageSpan(
     companion object {
         // Keep in sync with SpoilerSpan's text blur so a hidden mention matches the surrounding text.
         private const val SPOILER_BLUR_RATIO = 0.4f
+    }
+}
+
+// A pill's display name (with emoji) as backing text gets split by the layout at emoji-cluster
+// boundaries, so the chip is drawn for one run and the emoji rendered as plain glyphs for the next.
+// Back the span with a single object-replacement char instead - it can't be split, and the chip
+// draws the real name from matrixItem.
+const val PILL_PLACEHOLDER = "￼"
+
+fun Spannable.setPillSpan(span: PillImageSpan, start: Int, end: Int) {
+    if (this is Editable && end > start) {
+        replace(start, end, PILL_PLACEHOLDER)
+        setSpan(span, start, start + PILL_PLACEHOLDER.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+    } else {
+        setSpan(span, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 }
 

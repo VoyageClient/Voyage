@@ -10,7 +10,6 @@ package im.vector.app.features.home.room.detail.timeline.render
 import android.content.Context
 import android.text.Spannable
 import android.text.SpannableStringBuilder
-import android.text.Spanned
 import android.util.Patterns
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -20,6 +19,7 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.setPillSpan
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.getRoomSummary
@@ -88,16 +88,21 @@ class EventTextRenderer @AssistedInject constructor(
         )
 
         // search for notify everyone text
+        val foundIndices = mutableListOf<Int>()
         var foundIndex = text.indexOf(MatrixItem.NOTIFY_EVERYONE, 0)
         while (foundIndex >= 0) {
-            val endSpan = foundIndex + MatrixItem.NOTIFY_EVERYONE.length
-            addPillSpan(text, createPillImageSpan(matrixItem), foundIndex, endSpan)
-            foundIndex = text.indexOf(MatrixItem.NOTIFY_EVERYONE, endSpan)
+            foundIndices.add(foundIndex)
+            foundIndex = text.indexOf(MatrixItem.NOTIFY_EVERYONE, foundIndex + MatrixItem.NOTIFY_EVERYONE.length)
+        }
+        // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier indices.
+        foundIndices.asReversed().forEach { index ->
+            addPillSpan(text, createPillImageSpan(matrixItem), index, index + MatrixItem.NOTIFY_EVERYONE.length)
         }
     }
 
     private fun addPermalinksSpans(text: Spannable) {
-        for (match in webUrlRegex.findAll(text)) {
+        // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier match ranges.
+        for (match in webUrlRegex.findAll(text).toList().asReversed()) {
             val url = text.substring(match.range)
             val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedPermalinkHosts, url).orFalse()
             val matrixItem = if (isPermalinkSupported) {
@@ -123,7 +128,7 @@ class EventTextRenderer @AssistedInject constructor(
             startSpan: Int,
             endSpan: Int
     ) {
-        renderedText.setSpan(pillSpan, startSpan, endSpan, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        renderedText.setPillSpan(pillSpan, startSpan, endSpan)
     }
 
     private fun PermalinkData.UserLink.toMatrixItem(): MatrixItem? =

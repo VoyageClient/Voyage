@@ -13,7 +13,6 @@ import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.text.Editable
-import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.format.DateUtils
 import android.util.AttributeSet
@@ -34,6 +33,7 @@ import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ComposerLayoutBinding
+import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
@@ -43,6 +43,7 @@ import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
+import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
@@ -233,7 +234,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 val end = spannable.getSpanEnd(span)
                 if (start < index) return@forEach
                 append(spannable, index, start)
-                append("[").append(spannable.subSequence(start, end).toString()).append("]")
+                // The backing text is a placeholder char, so take the label from the matrix item.
+                append("[").append(span.matrixItem.getBestName()).append("]")
                 append("(https://matrix.to/#/").append(span.matrixItem.id).append(")")
                 index = end
             }
@@ -261,7 +263,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 val start = out.length
                 out.append(label)
                 val span = PillImageSpan(GlideApp.with(this), avatarRenderer, context, matrixItem).also { it.bind(editText) }
-                out.setSpan(span, start, start + label.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                out.setPillSpan(span, start, start + label.length)
             } else {
                 out.append(source, match.range.first, match.range.last + 1)
             }
