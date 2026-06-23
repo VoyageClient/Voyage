@@ -134,7 +134,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             )
         }
         holder.body.movementMethod = movementMethod
-        holder.body.text = body.charSequence
+        val safeRenderer = richBodyRenderer
+        if (safeRenderer != null) {
+            safeRenderer.setTextWithPlugins(holder.body, body.charSequence)
+        } else {
+            holder.body.text = body.charSequence
+        }
         holder.bodyDetails.setTextOrHide(bodyDetails?.charSequence)
         body.charSequence.findPillsAndProcess(coroutineScope) { it.bind(holder.body) }
         holder.timestamp.setTextOrHide(time)

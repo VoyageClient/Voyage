@@ -45,6 +45,10 @@ class RichMessageBodyRenderer @Inject constructor(
         private val vectorPreferences: VectorPreferences,
 ) {
 
+    fun setTextWithPlugins(textView: android.widget.TextView, text: CharSequence?) {
+        htmlRenderer.get().setTextWithPlugins(textView, text)
+    }
+
     fun render(
             container: LinearLayout,
             segments: List<BodySegment>,
@@ -85,7 +89,7 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.movementMethod = movementMethod
         tv.setOnClickListener(onClick)
         tv.setOnLongClickListener(onLongClick)
-        tv.text = header
+        htmlRenderer.get().setTextWithPlugins(tv, header)
         return tv
     }
 
@@ -103,7 +107,7 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
         tv.setTextColor(themeColor(ctx, defaultColorAttr))
         tv.movementMethod = movementMethod
-        tv.text = htmlRenderer.get().render(html, *postProcessors)
+        htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(html, *postProcessors))
         tv.applySpoilerRenderLayer()
         tv.setOnClickListener(onClick)
         tv.setOnLongClickListener(onLongClick)
@@ -200,7 +204,7 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         tv.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT)
         val cellHtml = cell?.html?.trim().orEmpty()
-        tv.text = if (cellHtml.isEmpty()) "" else htmlRenderer.get().render(cellHtml, *postProcessors)
+        if (cellHtml.isEmpty()) tv.text = "" else htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(cellHtml, *postProcessors))
         return tv
     }
 

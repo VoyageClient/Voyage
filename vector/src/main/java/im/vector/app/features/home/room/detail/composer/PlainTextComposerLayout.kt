@@ -357,7 +357,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             views.composerRelatedMessageRichContainer.removeAllViews()
         }
         views.composerRelatedMessageContent.isVisible = !renderedTable
-        views.composerRelatedMessageContent.text = (formattedBody ?: nonFormattedBody)
+        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, formattedBody ?: nonFormattedBody)
         // Muted grey for non-message notices and m.notice messages (which render grey in the
         // timeline), normal text colour for everything else.
         val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {

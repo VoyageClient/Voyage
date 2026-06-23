@@ -21,6 +21,7 @@ import android.content.res.Resources
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.Spannable
+import android.text.Spanned
 import android.text.SpannableStringBuilder
 import android.text.style.StrikethroughSpan
 import android.text.style.URLSpan
@@ -233,21 +234,38 @@ class EventHtmlRenderer @Inject constructor(
 
     private var markwonBackingField = buildMarkwon()
 
+    // The Markwon instance holds a single shared, mutable HTML parser (MarkwonHtmlParserImpl). The
+    // timeline renders on a background thread while previews render on the main thread, so serialise
+    // all parse/render access to keep that parser's state consistent across concurrent callers.
+    private val renderLock = Any()
+
     // Rebuild when the active theme changed the code-block colour (singleton survives Activity recreate).
     private val markwon: Markwon
-        get() {
+        get() = synchronized(renderLock) {
             val newCodeBlockBackground = resolveCodeBlockBackground()
             if (newCodeBlockBackground != codeBlockBackground) {
                 codeBlockBackground = newCodeBlockBackground
                 markwonBackingField = buildMarkwon()
             }
-            return markwonBackingField
+            markwonBackingField
         }
 
     val plugins: List<MarkwonPlugin> get() = markwon.plugins
 
-    fun parse(text: String): Node {
-        return markwon.parse(text)
+    /**
+     * Set rendered text on a [TextView] running the Markwon plugins around it, so inline image
+     * emoticons get scheduled (AsyncDrawableScheduler) and the #423 newline workaround applies.
+     * Plain `textView.text = …` skips both, leaving emoticons as their alt text with a stray newline.
+     */
+    fun setTextWithPlugins(textView: TextView, text: CharSequence?) {
+        val markwonPlugins = plugins
+        (text as? Spanned)?.let { spanned -> markwonPlugins.forEach { it.beforeSetText(textView, spanned) } }
+        textView.text = text
+        markwonPlugins.forEach { it.afterSetText(textView) }
+    }
+
+    fun parse(text: String): Node = synchronized(renderLock) {
+        markwon.parse(text)
     }
 
     /**
@@ -256,7 +274,7 @@ class EventHtmlRenderer @Inject constructor(
      */
     fun render(text: String, vararg postProcessors: PostProcessor): CharSequence = im.vector.app.core.utils.PerfTrace.time("html.render") {
         try {
-            val parsed = markwon.parse(text)
+            val parsed = parse(text)
             renderAndProcess(parsed, postProcessors)
         } catch (failure: Throwable) {
             Timber.v("Fail to render $text to html")
@@ -277,13 +295,13 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
-    private fun renderAndProcess(node: Node, postProcessors: Array<out PostProcessor>): CharSequence {
+    private fun renderAndProcess(node: Node, postProcessors: Array<out PostProcessor>): CharSequence = synchronized(renderLock) {
         // Editable so post-processors can collapse pill backing text to a placeholder (see setPillSpan).
         val renderedText = SpannableStringBuilder(markwon.render(node))
         postProcessors.forEach {
             it.afterRender(renderedText)
         }
-        return renderedText
+        renderedText
     }
 }
 
