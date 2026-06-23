@@ -99,7 +99,8 @@
     <string name="settings_show_pinned_messages_banner_summary" translatable="false">Display a banner with pinned messages at the top of the timeline</string>
 
     <string name="tag_favourites" translatable="false">Favorites</string>
-    <string name="tag_low_priority" translatable="false">Low priority</string>
+    <string name="tag_low_priority" translatable="false">Low Priority</string>
+    <string name="tag_server_notice" translatable="false">System Alerts</string>
     <string name="room_list_quick_actions_tag" translatable="false">Tag</string>
     <string name="room_tag_on_this_room" translatable="false">On this room</string>
     <string name="room_tag_add_existing" translatable="false">Add a tag</string>

@@ -17,6 +17,7 @@ fun displayNameForTag(stringProvider: StringProvider, tagName: String): String {
     return when (tagName) {
         RoomTag.ROOM_TAG_FAVOURITE -> stringProvider.getString(CommonStrings.tag_favourites)
         RoomTag.ROOM_TAG_LOW_PRIORITY -> stringProvider.getString(CommonStrings.tag_low_priority)
+        RoomTag.ROOM_TAG_SERVER_NOTICE -> stringProvider.getString(CommonStrings.tag_server_notice)
         else -> tagName.removePrefix(USER_TAG_PREFIX)
     }
 }
@@ -25,7 +26,8 @@ fun tagSortKey(tagName: String): String {
     return when (tagName) {
         RoomTag.ROOM_TAG_FAVOURITE -> "0"
         RoomTag.ROOM_TAG_LOW_PRIORITY -> "1"
-        else -> "2" + tagName.removePrefix(USER_TAG_PREFIX).lowercase()
+        RoomTag.ROOM_TAG_SERVER_NOTICE -> "2"
+        else -> "3" + tagName.removePrefix(USER_TAG_PREFIX).lowercase()
     }
 }
 
