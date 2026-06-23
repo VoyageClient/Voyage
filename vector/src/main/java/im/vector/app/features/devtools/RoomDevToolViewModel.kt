@@ -27,9 +27,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.flow.flow
@@ -209,10 +207,6 @@ class RoomDevToolViewModel @AssistedInject constructor(
                             json
                     )
                 } else {
-                    // can we try to do some validation??
-                    // val validParse = MoshiProvider.providesMoshi().adapter(MessageContent::class.java).fromJson(it.sendEventDraft.content ?: "")
-                    json.toModel<MessageContent>(catchError = false)
-                            ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_malformed_event))
                     room.sendService().sendEvent(
                             eventType,
                             json
