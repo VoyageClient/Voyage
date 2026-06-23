@@ -44,9 +44,12 @@ class SpoilerSpan(private val colorProvider: ColorProvider) : ClickableSpan() {
         isRevealed = !isRevealed
         val target = if (isRevealed) 0f else 1f
         animator?.cancel()
-        widget.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         // Re-set the text so any contained mention re-measures (hidden = name width, revealed = chip width).
+        // setText fires onTextChanged → applySpoilerRenderLayer(), which sets the layer type based on the
+        // current blurFraction. For the hide direction blurFraction is 0 at this point, so it would
+        // reset to LAYER_TYPE_NONE. Set SOFTWARE after setText so we always win.
         (widget as? TextView)?.let { it.text = it.text }
+        widget.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         animator = ValueAnimator.ofFloat(blurFraction, target).apply {
             duration = REVEAL_DURATION_MS
             addUpdateListener {
