@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.4.1)
 set(CMAKE_CXX_STANDARD 14)
 project(OpusEncoder C CXX)
 
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O2")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O2")
+
 set(distribution_OPUS_DIR ${CMAKE_SOURCE_DIR}/opus)
 
 set(LIBOPUS_DIR ${distribution_OPUS_DIR}/libopus)
