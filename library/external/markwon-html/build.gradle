@@ -1,0 +1,25 @@
+// Vendored fork of io.noties.markwon:html:4.6.2 so we can carry a local patch; upstream is
+// archived. The rest of Markwon stays on the published 4.6.2 artifacts (see vector/build.gradle).
+apply plugin: 'com.android.library'
+
+android {
+    namespace "io.noties.markwon.html"
+    compileSdk versions.compileSdk
+
+    defaultConfig {
+        minSdk versions.minSdk
+        targetSdk versions.targetSdk
+    }
+
+    compileOptions {
+        sourceCompatibility versions.sourceCompat
+        targetCompatibility versions.targetCompat
+    }
+}
+
+dependencies {
+    // Keep the rest of Markwon on the published 4.6.2 artifacts; only html is vendored.
+    api "io.noties.markwon:core:4.6.2"
+    // StrikeHandler reflects on the strikethrough node when commonmark-strikethrough is present.
+    compileOnly "com.atlassian.commonmark:commonmark-ext-gfm-strikethrough:0.13.0"
+}

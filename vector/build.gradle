@@ -253,7 +253,9 @@ dependencies {
     implementation libs.markwon.extLatex
     implementation libs.markwon.imageGlide
     implementation libs.markwon.inlineParser
-    implementation libs.markwon.html
+    // Vendored fork of markwon-html (see library/external/markwon-html) carrying the
+    // HtmlParser previousIsBlock reset fix; the rest of Markwon stays on 4.6.2 artifacts.
+    implementation project(":library:external:markwon-html")
     implementation 'org.jsoup:jsoup:1.17.2'
     implementation 'com.googlecode.htmlcompressor:htmlcompressor:1.5.2'
     implementation 'me.saket:better-link-movement-method:2.2.0'
