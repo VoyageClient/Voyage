@@ -1272,16 +1272,12 @@
     <string name="verification_cannot_access_other_session">Nutze eine Wiederherstellungsmethode</string>
     <string name="verification_use_passphrase">Wenn du auf keine existierende Sitzung zugreifen kannst</string>
     <string name="enter_secret_storage_invalid">Kann keine Geheimnisse im Speicher finden</string>
-    <string name="message_action_item_redact">Entferne …</string>
     <string name="share_confirm_room">Möchtest du diesen Anhang an %1$s senden\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Sende Bild in Originalgröße</item>
         <item quantity="other">Sende Bilder in Originalgröße</item>
     </plurals>
-    <string name="delete_event_dialog_title">Entfernen bestätigen</string>
-    <string name="delete_event_dialog_content">Möchtest du dieses Ereignis wirklich entfernen (löschen)\? Beachte, dass beim Löschen eines Raumnamens oder einer Themenänderung die Änderung rückgängig gemacht werden kann.</string>
     <string name="delete_event_dialog_reason_checkbox">Grund hinzufügen</string>
-    <string name="delete_event_dialog_reason_hint">Grund für das Editieren</string>
     <string name="event_redacted_by_user_reason_with_reason">Ereignis durch den Benutzer gelöscht, Grund: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Ereignis vom Raumadministrator moderiert, Grund: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Schlüssel sind bereits aktuell!</string>
@@ -1454,9 +1450,6 @@
     <string name="secure_backup_banner_setup_line1">Verschlüsselte Sicherung</string>
     <string name="secure_backup_banner_setup_line2">Absicherung gegen den Verlust verschlüsselter Nachrichten</string>
     <string name="secure_backup_setup">Sicherung einrichten</string>
-    <string name="event_redacted">Nachricht entfernt</string>
-    <string name="settings_show_redacted">Gelöschte Nachrichten zeigen</string>
-    <string name="settings_show_redacted_summary">Zeigt einen Platzhalter für gelöschte Nachrichten an</string>
     <string name="labs_show_unread_notifications_as_tab">Dedizierten Tab für ungelesene Nachrichten zur Hauptansicht hinzufügen</string>
     <string name="settings_discovery_confirm_mail_not_clicked">Wir haben eine E-Mail an %s gesendet. Bitte prüfe deine E-Mails und klicke auf den Bestätigungslink</string>
     <string name="settings_text_message_sent_wrong_code">Der Verifizierungscode ist nicht korrekt.</string>
@@ -2411,10 +2404,6 @@
     <string name="labs_enable_msc3061_share_history">MSC3061: Raumschlüssel für vorherige Nachrichten teilen</string>
     <string name="labs_enable_msc3061_share_history_desc">Beim Einladen in einen Raum mit sichtbarem Verlauf wird der verschlüsselte Verlauf sichtbar sein.</string>
     <string name="live_location_description">Echtzeit-Standort</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d Nachricht gelöscht</item>
-        <item quantity="other">%d Nachrichten gelöscht</item>
-    </plurals>
     <string name="labs_enable_element_call_permission_shortcuts">Keine Element-Call-Berechtigungsabfragen</string>
     <string name="labs_enable_element_call_permission_shortcuts_summary">Bestätige automatisch Element-Call-Widgets und erlaube Kamera- und Mikrofonzugriff</string>
     <string name="create_room_action_go">Los</string>

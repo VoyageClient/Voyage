@@ -1109,7 +1109,6 @@
     <string name="verification_cannot_access_other_session">Użyj hasła odzyskiwania lub klucza</string>
     <string name="verification_use_passphrase">Użyj klucza odzyskiwania lub hasła</string>
     <string name="enter_secret_storage_invalid">Nie można odnaleźć tajemnej przestrzeni w pamięci</string>
-    <string name="message_action_item_redact">Usuń…</string>
     <string name="share_confirm_room">Czy chcesz wysłać załącznik do %1$s\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Wyślij obraz w oryginalnym rozmiarze</item>
@@ -1117,10 +1116,7 @@
         <item quantity="many">Wyślij obrazów w oryginalnym rozmiarze</item>
         <item quantity="other">Wyślij obrazów w oryginalnym rozmiarze</item>
     </plurals>
-    <string name="delete_event_dialog_title">Potwierdź Usunięcie</string>
-    <string name="delete_event_dialog_content">Czy na pewno chcesz usunąć to wydarzenie\? Pamiętaj, że skasowanie nazwy pokoju lub zmiana jego tematu może czasem je przywrócić.</string>
     <string name="delete_event_dialog_reason_checkbox">Podaj przyczynę</string>
-    <string name="delete_event_dialog_reason_hint">Powód usunięcia</string>
     <string name="event_redacted_by_user_reason_with_reason">Wydarzenie usunięte przez użytkownika, przyczyna: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Wydarzenie moderowane przez administratora pokoju, przyczyna: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Klucze są już aktualne!</string>
@@ -1383,9 +1379,6 @@
     <string name="room_preview_no_preview_join">Tego pokoju nie można podejrzeć. Czy chcesz do niego dołączyć\?</string>
     <string name="room_preview_not_found">Ten pokój nie jest dostępny w tej chwili. 
 \nSpróbuj ponownie później bądź zapytaj administratora czy masz stosowne uprawnienia.</string>
-    <string name="settings_show_redacted_summary">Pokaż symbol zastępczy dla usuniętych wiadomości</string>
-    <string name="settings_show_redacted">Pokaż usunięte wiadomości</string>
-    <string name="event_redacted">Wiadomość usunięta</string>
     <string name="secure_backup_setup">Ustaw bezpieczną kopię zapasową</string>
     <string name="secure_backup_banner_setup_line2">Zabezpieczenie przeciwko utracie dostępu do zaszyfrowanych wiadomości oraz danych</string>
     <string name="recovery_key_export_saved">Klucz odzyskiwania został zapisany.</string>
@@ -2457,12 +2450,6 @@
     <string name="settings_troubleshoot_test_distributors_title">Dostępni dostawcy</string>
     <string name="settings_notification_method">Dostawca powiadomień</string>
     <string name="unifiedpush_getdistributors_dialog_title">Wybierz, którego dostawcy powiadomień push chcesz używać</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d wiadomość usunięta</item>
-        <item quantity="few">%d wiadomości usunięte</item>
-        <item quantity="many">%d wiadomości usuniętych</item>
-        <item quantity="other">%d wiadomości usuniętych</item>
-    </plurals>
     <string name="live_location_labs_promotion_switch_title">Włącz udostępnianie lokalizacji</string>
     <string name="ftue_auth_choose_server_ems_cta">Skontaktuj się z nami</string>
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">Zresetuj metodę powiadomień</string>

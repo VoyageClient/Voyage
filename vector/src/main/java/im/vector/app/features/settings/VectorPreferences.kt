@@ -118,6 +118,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_12_24_TIMESTAMPS_KEY = "SETTINGS_12_24_TIMESTAMPS_KEY"
         private const val SETTINGS_SHOW_READ_RECEIPTS_KEY = "SETTINGS_SHOW_READ_RECEIPTS_KEY"
         private const val SETTINGS_SHOW_REDACTED_KEY = "SETTINGS_SHOW_REDACTED_KEY"
+        private const val SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY = "SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY"
         private const val SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY = "SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY"
         private const val SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY = "SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY"
         private const val SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY = "SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY"
@@ -784,6 +785,10 @@ class VectorPreferences @Inject constructor(
      */
     fun showRedactedMessages(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_REDACTED_KEY, true)
+    }
+
+    fun skipRedactionConfirmation(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY, false)
     }
 
     /**

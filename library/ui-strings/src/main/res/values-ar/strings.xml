@@ -788,8 +788,6 @@
     <string name="create_new_space">أنشئ فضاء جديد</string>
     <string name="create_new_room">أنشئ غرفة جديدة</string>
     <string name="event_redacted_by_user_reason">حدث حذفه مستخدم</string>
-    <string name="settings_show_redacted">اعرض الرسائل المحذوفة</string>
-    <string name="event_redacted">حُذفت الرسالة</string>
     <string name="reactions">الانفعالات</string>
     <string name="message_view_reaction">اعرض الانفعالات</string>
     <string name="message_add_reaction">أضف انفعالًا</string>

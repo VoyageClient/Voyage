@@ -1110,9 +1110,6 @@
     <string name="settings_developer_mode_fail_fast_summary">${app_name} може да забива по-често когато възникне неочаквана грешка</string>
     <string name="notification_ticker_text_dm">%1$s: %2$s</string>
     <string name="notification_ticker_text_group">%1$s: %2$s %3$s</string>
-    <string name="event_redacted">Съобщението беше изтрито</string>
-    <string name="settings_show_redacted">Показвай премахнатите съобщения</string>
-    <string name="settings_show_redacted_summary">Показвай индикатор на мястото на премахнатите съобщения</string>
     <string name="action_play">Възпроизведи</string>
     <string name="room_participants_action_cancel_invite_prompt_msg">Сигурни ли сте, че искате да откажете изпратената към този потребител покана\?</string>
     <string name="room_participants_action_cancel_invite_title">Отказва на покана</string>
@@ -1327,16 +1324,12 @@
     <string name="room_participants_ban_title">Блокиране на потребител</string>
     <string name="event_redacted_by_admin_reason_with_reason">Събитието бе модерирано от администратор на стаята, причина: %1$s</string>
     <string name="event_redacted_by_user_reason_with_reason">Събитието бе изтрито от потребител, причина: %1$s</string>
-    <string name="delete_event_dialog_reason_hint">Причина за редактиране</string>
     <string name="delete_event_dialog_reason_checkbox">Укажете причина</string>
-    <string name="delete_event_dialog_content">Сигурни ли сте, че искате да премахнете (изтриете) това събитие\? Имайте предвид, че изтриването на събитие за промяна на името на стаята или темата й, може да премахне и самата промяна направена от събитието.</string>
-    <string name="delete_event_dialog_title">Потвърждаване на премахването</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Изпрати снимката с оригинален размер</item>
         <item quantity="other">Изпрати снимките с оригинални размери</item>
     </plurals>
     <string name="share_confirm_room">Искате ли да изпратите този прикачен файл към %1$s\?</string>
-    <string name="message_action_item_redact">Премахни…</string>
     <string name="enter_secret_storage_invalid">Не могат да бъдат намерени тайни в секретното складиране</string>
     <string name="verification_use_passphrase">Ако не можете да достъпите съществуваща сесия</string>
     <string name="verification_cannot_access_other_session">Използвай парола или ключ за възстановяване</string>

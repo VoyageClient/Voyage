@@ -1610,9 +1610,6 @@
     <string name="message_view_reaction">View Reactions</string>
     <string name="reactions">Reactions</string>
 
-    <string name="event_redacted">Message removed</string>
-    <string name="settings_show_redacted">Show removed messages</string>
-    <string name="settings_show_redacted_summary">Show a placeholder for removed messages</string>
     <string name="event_redacted_by_user_reason">Event deleted by user</string>
     <string name="event_redacted_by_admin_reason">Event moderated by room admin</string>
 
@@ -2406,7 +2403,6 @@
 
     <string name="enter_secret_storage_invalid">Cannot find secrets in storage</string>
 
-    <string name="message_action_item_redact">Remove…</string>
     <string name="share_confirm_room">Do you want to send this attachment to %1$s?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Send image with the original size</item>
@@ -2418,10 +2414,7 @@
     </plurals>
     <string name="send_images_and_video_with_original_size">Send media with the original size</string>
 
-    <string name="delete_event_dialog_title">Confirm Removal</string>
-    <string name="delete_event_dialog_content">Are you sure you wish to remove (delete) this event? Note that if you delete a room name or topic change, it could undo the change.</string>
     <string name="delete_event_dialog_reason_checkbox">Include a reason</string>
-    <string name="delete_event_dialog_reason_hint">Reason for redacting</string>
 
     <string name="event_redacted_by_user_reason_with_reason">Event deleted by user, reason: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Event moderated by room admin, reason: %1$s</string>
@@ -3231,11 +3224,6 @@
     <string name="live_location_labs_promotion_title">Live location sharing</string>
     <string name="live_location_labs_promotion_description">Please note: this is a labs feature using a temporary implementation. This means you will not be able to delete your location history, and advanced users will be able to see your location history even after you stop sharing your live location with this room.</string>
     <string name="live_location_labs_promotion_switch_title">Enable location sharing</string>
-
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d message removed</item>
-        <item quantity="other">%d messages removed</item>
-    </plurals>
 
     <!-- Element Call Widget -->
     <string name="labs_enable_element_call_permission_shortcuts">Enable Element Call permission shortcuts</string>

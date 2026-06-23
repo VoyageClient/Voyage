@@ -927,9 +927,6 @@
     <string name="message_add_reaction">Adicionar Reação</string>
     <string name="message_view_reaction">Visualizar Reações</string>
     <string name="reactions">Reações</string>
-    <string name="event_redacted">Mensagem removida</string>
-    <string name="settings_show_redacted">Mostrar mensagens removidas</string>
-    <string name="settings_show_redacted_summary">Mostrar um placeholder para mensagens removidas</string>
     <string name="event_redacted_by_user_reason">Evento deletado por usuária(o)</string>
     <string name="event_redacted_by_admin_reason">Evento moderado por admin da sala</string>
     <string name="malformed_message">Evento malformado, não dá para exibir</string>
@@ -1351,16 +1348,12 @@
     <string name="verification_cannot_access_other_session">Use uma Chave ou Frase-passe de Recuperação</string>
     <string name="verification_use_passphrase">Se você não pode acessar uma sessão existente</string>
     <string name="enter_secret_storage_invalid">Não foi possível encontrar segredos em armazenamento</string>
-    <string name="message_action_item_redact">Remover…</string>
     <string name="share_confirm_room">Você quer enviar este anexo para %1$s\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Enviar imagem com o tamanho original</item>
         <item quantity="other">Enviar imagens com o tamanho original</item>
     </plurals>
-    <string name="delete_event_dialog_title">Confirmar Remoção</string>
-    <string name="delete_event_dialog_content">Você tem certeza que você deseja remover (deletar) este evento\? Note que se você deletar um nome de sala ou mudança de tópico, isto poderia desfazer a mudança.</string>
     <string name="delete_event_dialog_reason_checkbox">Incluir uma razão</string>
-    <string name="delete_event_dialog_reason_hint">Razão para redigir</string>
     <string name="event_redacted_by_user_reason_with_reason">Evento deletado por usuária(o), razão: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Evento moderado por admin de sala, razão: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Chaves já estão atualizadas!</string>
@@ -2387,10 +2380,6 @@
     <string name="settings_troubleshoot_test_endpoint_registration_success">Endpoint registrado com sucesso ao servidorcasa.</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Registro de Endpoint</string>
     <string name="action_next">Próximo</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d mensagem removida</item>
-        <item quantity="other">%d mensagens removidas</item>
-    </plurals>
     <string name="live_location_share_location_item_share">Compartilhar localização</string>
     <string name="live_location_not_enough_permission_dialog_description">Você precisa ter as permissões certas a fim de compartilhar localização ao vivo nesta sala.</string>
     <string name="live_location_not_enough_permission_dialog_title">Você não tem permissão para compartilhar localização ao vivo</string>

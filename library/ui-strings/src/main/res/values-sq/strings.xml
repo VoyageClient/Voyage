@@ -1265,16 +1265,12 @@
     <string name="verification_cannot_access_other_session">Përdorni Frazëkalim Rikthimesh ose Kyç</string>
     <string name="verification_use_passphrase">Nëse s’hyni dot në një sesion ekzistues</string>
     <string name="enter_secret_storage_invalid">S’gjenden dot të fshehta në depozitim</string>
-    <string name="message_action_item_redact">Hiqni…</string>
     <string name="share_confirm_room">Doni të dërgohet kjo bashkëngjitje te %1$s\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Dërgoje figurën në madhësinë origjinale</item>
         <item quantity="other">Dërgoji figurat në madhësinë origjinale</item>
     </plurals>
-    <string name="delete_event_dialog_title">Ripohoni Heqjen</string>
-    <string name="delete_event_dialog_content">Jeni i sigurt se doni të hiqet (fshihet) kjo veprimtari\? Kini parasysh se, nëse fshini emrin ose ndryshimin e temës së një dhome, ndryshimi mund të zhbëhet.</string>
     <string name="delete_event_dialog_reason_checkbox">Përfshini një arsye</string>
-    <string name="delete_event_dialog_reason_hint">Arsye për redaktimin</string>
     <string name="event_redacted_by_user_reason_with_reason">Veprimtari e fshirë nga përdorues, arsye: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Veprimtari e moderuar nga përgjegjësi i dhomës, arsye: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Kyçet janë tashmë të përditësuar!</string>
@@ -1397,9 +1393,6 @@
         <item quantity="other">U dërguan ftesa te %1$s dhe %2$d të tjerë</item>
     </plurals>
     <string name="invite_users_to_room_failure">S’ftuam dot përdorues. Ju lutemi, kontrolloni përdoruesit që doni të ftoni dhe riprovoni.</string>
-    <string name="event_redacted">Mesazhi u fshi</string>
-    <string name="settings_show_redacted">Shfaq mesazhe të hequr</string>
-    <string name="settings_show_redacted_summary">Shfaq një vendmbajtëse për mesazhe të hequr</string>
     <string name="settings_discovery_confirm_mail_not_clicked">Ju dërguam një email te %s, ju lutemi, së pari, shihni email-in tuaj dhe klikoni mbi lidhjen e ripohimit</string>
     <string name="settings_text_message_sent_wrong_code">Kodi i verifikimit s’është i saktë.</string>
     <string name="uploads_media_title">MEDIA</string>
@@ -2475,10 +2468,6 @@
     <string name="a11y_device_manager_device_type_mobile">Celular</string>
     <string name="device_manager_sessions_other_description">Për sigurinë më të mirë, verifikoni sesionet tuaja dhe dilni nga çfarëdo sesioni që s’e njihni, ose s’e përdorni më.</string>
     <string name="device_manager_sessions_other_title">Sesione të tjera</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">U hoq %d mesazh</item>
-        <item quantity="other">U hoqë %d mesazhe</item>
-    </plurals>
     <string name="live_location_labs_promotion_switch_title">Aktivizoni tregim vendndodhjeje</string>
     <string name="live_location_labs_promotion_description">Ju lutemi, kini parasysh: kjo është një veçori në zhvillim, që përdor një sendërtim të përkohshëm. Kjo do të thotë se s’do të jeni në gjendje të fshini historikun e vendndodhjeve tuaja dhe përdoruesit e përparuar do të jenë në gjendje të shohin historikun e vendndodhjeve tuaja, edhe pasi të keni ndalur dhënien “live” për këtë dhomë të vendndodhjes tuaj.</string>
     <string name="live_location_labs_promotion_title">Tregim “live” vendndodhjeje</string>

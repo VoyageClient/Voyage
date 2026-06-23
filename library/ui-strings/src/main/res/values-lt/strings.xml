@@ -694,11 +694,6 @@
     <string name="a11y_device_manager_device_type_desktop">Stalinis kompiuteris</string>
     <string name="a11y_device_manager_device_type_web">Naršyklė</string>
     <string name="a11y_device_manager_device_type_mobile">Mobilus</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d žinutė pašalinta</item>
-        <item quantity="few">%d žinutės pašalintos</item>
-        <item quantity="other">%d žinučių pašalinta</item>
-    </plurals>
     <string name="live_location_labs_promotion_switch_title">Įjungti vietos bendrinimą</string>
     <string name="live_location_labs_promotion_description">Atkreipkite dėmesį, kad tai yra laboratorinė funkcija, kuri įgyvendinama laikinai. Tai reiškia, kad negalėsite ištrinti savo buvimo vietos istorijos, o pažengę naudotojai galės matyti jūsų buvimo vietos istoriją net tada, kai nustosite bendrinti savo tiesioginę buvimo vietą su šiuo kambariu.</string>
     <string name="live_location_labs_promotion_title">Tiesioginės buvimo vietos bendrinimas</string>
@@ -1487,7 +1482,6 @@
     <string name="malformed_message">Neteisingai suformuotas įvykis, negalima rodyti</string>
     <string name="event_redacted_by_admin_reason">Įvykis moderuotas kambario admino</string>
     <string name="event_redacted_by_user_reason">Naudotojo ištrintas įvykis</string>
-    <string name="event_redacted">Žinutė pašalinta</string>
     <string name="reactions">Reakcijos</string>
     <string name="message_view_reaction">Peržiūrėti reakcijas</string>
     <string name="message_add_reaction">Pridėti reakciją</string>
@@ -2016,8 +2010,6 @@
     <string name="settings_other_third_party_notices">Kiti trečiųjų šalių pranešimai</string>
     <string name="settings_sdk_version">Matrix SDK versija</string>
     <string name="create_room_settings_section">Kambario nustatymai</string>
-    <string name="settings_show_redacted_summary">Rodyti pašalintų žinučių vietoje užrašą</string>
-    <string name="settings_show_redacted">Rodyti pašalintas žinutes</string>
     <string name="keys_backup_settings_delete_confirm_message">ištrinti iš serverio atsarginę šifravimo raktų kopiją\? Atkūrimo rakto nebegalėsite naudoti užšifruotai žinučių istorijai skaityti.</string>
     <string name="keys_backup_settings_delete_confirm_title">Ištrinti atsarginę kopiją</string>
     <string name="keys_backup_settings_checking_backup_state">Tikrinama atsarginės kopijos būsena</string>

@@ -1207,16 +1207,12 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="verification_cannot_access_other_session">Használja a visszaállítási eljárást</string>
     <string name="verification_use_passphrase">Ha nem ér el létező munkamenetet</string>
     <string name="enter_secret_storage_invalid">A tárolóban nem található jelszó/kulcs</string>
-    <string name="message_action_item_redact">Eltávolítás…</string>
     <string name="share_confirm_room">El szeretné ezt a csatolmányt küldeni ide: %1$s\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Kép küldése eredeti méretben</item>
         <item quantity="other">Képek küldése eredeti méretben</item>
     </plurals>
-    <string name="delete_event_dialog_title">Eltávolítás megerősítése</string>
-    <string name="delete_event_dialog_content">Biztos hogy eltávolítja ezt az eseményt\? Megjegyzés: ha eltávolítja vagy megváltoztatja a szoba nevét vagy a témáját ez a változtatás érvényét vesztheti.</string>
     <string name="delete_event_dialog_reason_checkbox">Ok megadása</string>
-    <string name="delete_event_dialog_reason_hint">Ok a kitakaráshoz</string>
     <string name="event_redacted_by_user_reason_with_reason">Az eseményt a felhasználó törölte, ezért: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Az eseményt a szoba adminisztrátora moderálta, ezért: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">A kulcsok már frissek!</string>
@@ -1341,8 +1337,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
         <item quantity="other">Meghívó elküldve neki: %1$s és még %2$d helyre</item>
     </plurals>
     <string name="invite_users_to_room_failure">Felhasználókat nem tudtuk meghívni. Ellenőrizd azokat a felhasználókat akiket meg szeretnél hívni és próbáld újra.</string>
-    <string name="event_redacted">Üzenet eltávolítva</string>
-    <string name="settings_show_redacted_summary">Helykitöltő mutatása a törölt szövegek helyett</string>
     <string name="settings_discovery_confirm_mail_not_clicked">E-mailt küldtünk ide: %s, először ellenőrizd és kattints a megerősítő hivatkozásra</string>
     <string name="uploads_media_title">MÉDIA</string>
     <string name="uploads_files_title">FÁJLOK</string>
@@ -1350,7 +1344,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="login_signin_matrix_id_title">Bejelentkezés Matrix-azonosítóval</string>
     <string name="disconnect_identity_server_dialog_content">Bontja a kapcsolatot ezzel az azonosító-kiszolgálóval\? %s\?</string>
     <string name="identity_server_set_alternative_submit">Küldés</string>
-    <string name="settings_show_redacted">Törölt üzenetek megmutatása</string>
     <string name="settings_text_message_sent_wrong_code">Az ellenőrző kód nem helyes.</string>
     <string name="uploads_media_no_result">Ebben a szobában nincsenek média fájlok</string>
     <string name="uploads_files_no_result">Ebben a szobában nincsenek fájlok</string>
@@ -2432,10 +2425,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="auth_reset_password_error_unverified">Az e-mail-cím nem lett hitelesítve, nézze meg a beérkező leveleit</string>
     <string name="labs_enable_element_call_permission_shortcuts_summary">Element Call kisalkalmazás kamera és mikrofon használatának automatikus engedélyezése</string>
     <string name="labs_enable_element_call_permission_shortcuts">Element Call jogosultságok engedélyezése</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d üzenet eltávolítva</item>
-        <item quantity="other">%d üzenet eltávolítva</item>
-    </plurals>
     <string name="live_location_description">Élő földrajzi helyzet</string>
     <string name="live_location_share_location_item_share">Tartózkodási hely megosztása</string>
     <string name="live_location_not_enough_permission_dialog_description">Az élő helymegosztáshoz ebben a szobában megfelelő jogosultságokra van szükséged.</string>

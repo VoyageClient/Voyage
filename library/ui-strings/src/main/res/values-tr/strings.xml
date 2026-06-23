@@ -890,9 +890,6 @@
     <string name="navigate_to_room_when_already_in_the_room">Zaten bu odayı görüntülüyorsunuz!</string>
     <string name="settings_other_third_party_notices">Diğer üçüncü taraf bildirimleri</string>
     <string name="settings_sdk_version">Matrix SDK Sürümü</string>
-    <string name="settings_show_redacted_summary">Silinen mesajlar için bir yer tutucu göster</string>
-    <string name="settings_show_redacted">Silinen mesajları göster</string>
-    <string name="event_redacted">Mesaj silindi</string>
     <string name="secure_backup_setup">Güvenli Yedeklemeyi Ayarlayın</string>
     <string name="secure_backup_banner_setup_line2">Şifrelenmiş mesajlara ve verilere erişimi kaybetmeye karşı koruma sağlayın</string>
     <string name="settings_chat_effects_title">Sohbet efektlerini göster</string>

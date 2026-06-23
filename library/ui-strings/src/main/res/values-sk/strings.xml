@@ -902,9 +902,6 @@
     <string name="message_add_reaction">Pridať reakciu</string>
     <string name="message_view_reaction">Zobraziť reakcie</string>
     <string name="reactions">Reakcie</string>
-    <string name="event_redacted">Odstránená správa</string>
-    <string name="settings_show_redacted">Zobrazovať odstránené správy</string>
-    <string name="settings_show_redacted_summary">Namiesto odstránených správ sa zobrazí prázdna položka</string>
     <string name="event_redacted_by_user_reason">Udalosť odstránená používateľom</string>
     <string name="event_redacted_by_admin_reason">Udalosť moderovaná správcom</string>
     <string name="malformed_message">Nesprávne vytvorená udalosť, nie je možné zobraziť</string>
@@ -1124,7 +1121,6 @@
     <string name="room_message_placeholder">Správa…</string>
     <string name="finish">Koniec</string>
     <string name="refresh">Obnoviť</string>
-    <string name="message_action_item_redact">Odstrániť…</string>
     <string name="qr_code_scanned_by_other_no">Nie</string>
     <string name="qr_code_scanned_by_other_yes">Áno</string>
     <string name="trusted">Dôveryhodné</string>
@@ -1348,7 +1344,6 @@
     <string name="bootstrap_finish_title">Hotovo!</string>
     <string name="message_key">Kľúč správy</string>
     <string name="verification_cancelled">Overovanie zrušené</string>
-    <string name="delete_event_dialog_title">Potvrdiť odstránenie</string>
     <string name="settings_account_data">Údaje o účte</string>
     <string name="settings_dev_tools">Vývojárske nástroje</string>
     <string name="a11y_qr_code_for_verification">QR kód</string>
@@ -1945,7 +1940,6 @@
     <string name="e2e_use_keybackup">Odomknúť históriu zašifrovaných správ</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Kľúče sú už aktualizované!</string>
     <string name="delete_event_dialog_reason_checkbox">Uviesť dôvod</string>
-    <string name="delete_event_dialog_content">Ste si istí, že chcete odstrániť (vymazať) túto udalosť\? Všimnite si: ak vymažete zmenu názvu miestnosti alebo zmenu témy, môžete tak vrátiť zodpovedajúcu zmenu.</string>
     <string name="send_images_and_video_with_original_size">Odoslať médiá s pôvodnou veľkosťou</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">Odoslať video s pôvodnou veľkosťou</item>
@@ -2272,7 +2266,6 @@
     <string name="share_by_text">Zdieľať pomocou textu</string>
     <string name="bootstrap_crosssigning_progress_initializing">Zverejňovanie vytvorených kľúčov totožnosti</string>
     <string name="event_redacted_by_user_reason_with_reason">Udalosť vymazaná používateľom, dôvod: %1$s</string>
-    <string name="delete_event_dialog_reason_hint">Dôvod úpravy</string>
     <string name="rendering_event_error_exception">${app_name} sa stretol s problémom pri vykresľovaní obsahu udalosti s id \'%1$s\'</string>
     <string name="sent_a_reaction">Reagoval/a: %s</string>
     <string name="settings_developer_mode_fail_fast_summary">${app_name} môže padať častejšie, keď sa vyskytne neočakávaná chyba</string>
@@ -2439,11 +2432,6 @@
     <string name="direct_room_encryption_enabled_tile_description_future">Správy v tejto miestnosti sú šifrované od vás až k príjemcovi.</string>
     <string name="create_room_action_go">Spustiť</string>
     <string name="ftue_auth_reset_password_email_subtitle">%s vám pošle overovací odkaz</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d správa odstránená</item>
-        <item quantity="few">%d správy odstránené</item>
-        <item quantity="other">%d správ odstránených</item>
-    </plurals>
     <string name="live_location_share_location_item_share">Zdieľať polohu</string>
     <string name="live_location_not_enough_permission_dialog_description">Musíte mať príslušné oprávnenia na zdieľanie polôh v reálnom čase v tejto miestnosti.</string>
     <string name="live_location_not_enough_permission_dialog_title">Nemáte oprávnenie na zdieľanie polohy v reálnom čase</string>

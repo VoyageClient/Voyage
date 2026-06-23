@@ -199,4 +199,19 @@
     <string name="room_permissions_kick_users" translatable="false">Kick users</string>
     <string name="command_description_kick_user" translatable="false">Kicks user with given id from this room</string>
     <string name="crash_report_copy_prompt" translatable="false">The application has crashed last time. Would you like to copy the crash report?</string>
+
+    <string name="action_redact" translatable="false">Redact</string>
+    <string name="message_action_item_redact" translatable="false">Redact…</string>
+    <string name="event_redacted" translatable="false">Message redacted</string>
+    <string name="settings_show_redacted" translatable="false">Show redacted messages</string>
+    <string name="settings_show_redacted_summary" translatable="false">Show a placeholder for redacted messages</string>
+    <string name="redact_event_dialog_title" translatable="false">Confirm redaction</string>
+    <string name="redact_event_dialog_content" translatable="false">Are you sure you wish to redact this event? Note that if you redact a room name or topic change, it could undo the change.</string>
+    <string name="redact_event_dialog_reason_hint" translatable="false">Reason for redacting</string>
+    <string name="settings_skip_redaction_confirmation" translatable="false">Skip redaction confirmation</string>
+    <string name="settings_skip_redaction_confirmation_summary" translatable="false">Redact messages immediately without asking for confirmation</string>
+    <plurals name="room_redacted_messages">
+        <item quantity="one">%d message redacted</item>
+        <item quantity="other">%d messages redacted</item>
+    </plurals>
 </resources>

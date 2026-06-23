@@ -243,7 +243,6 @@
     <string name="verification_profile_warning">Advarsel</string>
     <string name="room_member_profile_sessions_section_title">Sesjoner</string>
     <string name="qr_code_scanned_by_other_yes">Ja</string>
-    <string name="delete_event_dialog_title">Bekreft fjerning</string>
     <string name="notification_listening_for_events">Lytter etter hendelser</string>
     <string name="send_bug_report_include_logs">Send loggbøker</string>
     <plurals name="room_title_members">
@@ -349,7 +348,6 @@
     <string name="a11y_qr_code_for_verification">QR-kode</string>
     <string name="qr_code_scanned_by_other_no">Nei</string>
     <string name="settings_dev_tools">Utviklerverktøy</string>
-    <string name="message_action_item_redact">Fjern …</string>
     <string name="notification_noisy_notifications">Bråkete notifikasjoner</string>
     <string name="notification_silent_notifications">Stille notifikasjoner</string>
     <string name="title_activity_keys_backup_setup">Sikkerhetskopiering av nøkler</string>
@@ -480,9 +478,6 @@
     <string name="identity_server_not_defined">Du bruker ikke noen identitetstjenere</string>
     <string name="room_list_people_empty_title">Samtaler</string>
     <string name="message_add_reaction">Legg til reaksjon</string>
-    <string name="event_redacted">Meldingen ble slettet</string>
-    <string name="settings_show_redacted">Vis fjernede meldinger</string>
-    <string name="settings_show_redacted_summary">Vis en stattholder for fjernede meldinger</string>
     <string name="settings_sdk_version">Matrix SDK-versjon</string>
     <string name="send_file_step_encrypting_file">Krypterer filen …</string>
     <string name="room_directory_search_hint">Navn eller ID (#example:matrix.org)</string>

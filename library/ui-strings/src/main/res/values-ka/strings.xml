@@ -915,8 +915,6 @@
     <string name="room_list_filter_people">ადამიანები</string>
     <string name="title_activity_emoji_reaction_picker">რეაქციები</string>
     <string name="reactions">რეაქციები</string>
-    <string name="event_redacted">შეტყობინება წაშლილია</string>
-    <string name="settings_show_redacted_summary">წაშლილი შეტყობინებების სივრცის ჩვენება</string>
     <string name="event_redacted_by_admin_reason">ოთახის ადმინისტრატორის მიერ მოდერირებული მოვლენა</string>
     <string name="create_new_room">ახალი ოთახის შექმნა</string>
     <string name="create_new_space">ახალი სივრცის შექმნა</string>
@@ -1016,7 +1014,6 @@
     <string name="room_list_rooms_empty_body">თქვენი ოთახები აქ გამოჩნდება. შეეხეთ + ღილაკს ქვედა მარჯვენა კუთხეში, რომ მოძებნოთ არსებული ან დაიწყოთ ახალი.</string>
     <string name="message_add_reaction">რეაქციის დამატება</string>
     <string name="message_view_reaction">რეაქციების ნახვა</string>
-    <string name="settings_show_redacted">წაშლილი შეტყობინებების ჩვენება</string>
     <string name="event_redacted_by_user_reason">მომხმარებლის მიერ წაშლილი მოვლენა</string>
     <string name="malformed_message">არასწორი მოვლენა, ჩვენება შეუძლებელია</string>
     <string name="error_no_network">ქსელი არაა. გთხოვთ, შეამოწმოთ თქვენი ინტერნეტ კავშირი.</string>
@@ -1531,11 +1528,8 @@
     <string name="verification_cannot_access_other_session">გამოიყენეთ აღდგენის პაროლი ან გასაღები</string>
     <string name="verification_use_passphrase">თუ ვერ შეხვალთ არსებულ სესიაში</string>
     <string name="enter_secret_storage_invalid">შეიძლება ვერ იპოვოთ საიდუმლოებები საცავში</string>
-    <string name="message_action_item_redact">წაშლა…</string>
     <string name="send_images_and_video_with_original_size">გაგზავნეთ მედია ორიგინალი ზომით</string>
-    <string name="delete_event_dialog_title">დადასტურება წაშლა</string>
     <string name="delete_event_dialog_reason_checkbox">მოიცავს მიზეზს</string>
-    <string name="delete_event_dialog_reason_hint">გაუქმების მიზეზი</string>
     <string name="event_redacted_by_user_reason_with_reason">მომხმარებელმა წაშალა მოვლენა, მიზეზი: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">გასაღებები უკვე განახლებულია!</string>
     <string name="settings_key_requests">გასაღებების მოთხოვნები</string>
@@ -2062,7 +2056,6 @@
 \n
 \nგაფრთხილდით, შეიძლება გამოიწვიოს გაუთვალისწინებელი ქცევა.</string>
     <string name="share_confirm_room">გსურთ ეს დანართი გაგზავნოთ %1$s\?</string>
-    <string name="delete_event_dialog_content">დარწმუნებული ხართ, რომ გსურთ წაშალოთ ეს მოვლენა\? გაითვალისწინეთ, რომ თუ წაშლით ოთახის სახელს ან თემის ცვლილებას, შესაძლოა გაუქმდეს ცვლილება.</string>
     <string name="event_redacted_by_admin_reason_with_reason">ოთახის ადმინისტრატორმა მოდერაციაში გაუშვა მოვლენა, მიზეზი: %1$s</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_nightly_build_update">მიიღეთ უახლესი ვერსია (შენიშვნა: შესაძლოა გქონდეთ სირთულეები შესვლასთან დაკავშირებით)</string>
@@ -2432,10 +2425,6 @@
     <string name="settings_troubleshoot_test_current_gateway">მიმდინარე კარიბჭე: %s</string>
     <string name="live_location_labs_promotion_title">ცოცხალი ადგილმდებარეობის გაზიარება</string>
     <string name="live_location_labs_promotion_switch_title">ადგილმდებარეობის გაზიარების ჩართვა</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d შეტყობინება წაშლილია</item>
-        <item quantity="other">%d შეტყობინებები წაშლილია</item>
-    </plurals>
     <string name="device_manager_sessions_other_title">სხვა სესიები</string>
     <string name="a11y_device_manager_device_type_mobile">მობილური</string>
     <string name="a11y_device_manager_device_type_web">ვებ</string>

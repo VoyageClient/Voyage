@@ -355,8 +355,6 @@
     <string name="reply">Err</string>
     <string name="global_retry">Ɛreḍ tikkelt-nniḍen</string>
     <string name="room_list_rooms_empty_title">Tixxamin</string>
-    <string name="event_redacted">Izen yettwakksen</string>
-    <string name="settings_show_redacted_summary">Sken-d iznan yettwakksen</string>
     <string name="action_change">Beddel</string>
     <string name="fab_menu_create_room">Tixxamin</string>
     <string name="fab_menu_create_chat">Iznan usligen</string>
@@ -436,7 +434,6 @@
     <string name="reset_cross_signing">Ales awennez n tsura</string>
     <string name="qr_code_scanned_by_other_yes">Ih</string>
     <string name="qr_code_scanned_by_other_no">Uhu</string>
-    <string name="delete_event_dialog_title">Sentem tukksa</string>
     <string name="refresh">Smiren</string>
     <string name="new_session">Anekcam amaynut. D kečč/kemm\?</string>
     <string name="finish">Fakk</string>
@@ -587,7 +584,6 @@
     <string name="verification_conclusion_ok_self_notice">Tiɣimit-ik·im tamaynut dayen tettwasenqed tura. Ɣur-s anekcum ɣer yiznan yettwawgelhen, iseqdac-nniḍen daɣen ad asen-d-tban tettwattkal.</string>
     <string name="settings_hs_admin_e2e_disabled">Anedbal-ik·im n uqeddac issens awgelhen seg yixef ɣer yixef s wudem amezwer deg texxamin tusligin &amp; yiznan usriden.</string>
     <string name="room_member_profile_sessions_section_title">Tiɣimiyin</string>
-    <string name="delete_event_dialog_content">S tidet tebɣiḍ ad tekkseḍ aneḍru-a\? Err deg uqerru-k·m ma yella tekkseḍ asnifel n yisem neɣ asentel n texxamt, yemzer asnifel-a ad yettusefsex.</string>
     <string name="or_other_mx_capable_client">neɣ amsaɣ-nniḍen n Matrix yemṣadan d uzmul amdigan</string>
     <string name="command_description_discard_session">Ḥettem tiɣimit n ugraw ara d-yeffɣen akka tura deg texxamt tawgelhant ad tettwakkes</string>
     <string name="confirm_your_identity">Sentem timagit-ik·im s usenqed n yinekcam-a seg yiwet gar tɣimiyin-inek·inem-nniḍen, serreḥ-as ad tekcem ɣer yiznan yettwawgelhen.</string>
@@ -1237,7 +1233,6 @@
     <string name="room_list_rooms_empty_body">Tixxamin-inek·inem ad d-ttwaskanent da</string>
     <string name="message_add_reaction">Rnu asedmar</string>
     <string name="message_view_reaction">Wali isedmaren</string>
-    <string name="settings_show_redacted">Sken-d iznan yettwakksen</string>
     <string name="event_redacted_by_user_reason">Yettewekkes uneḍru sɣur aseqdac</string>
     <string name="event_redacted_by_admin_reason">Aneḍru yellan s lmendad n unedbal n texxamt</string>
     <string name="malformed_message">Aneḍru ur nemsil ara, ulamek ara d-yettwaskan</string>
@@ -1435,14 +1430,12 @@
     <string name="verification_cannot_access_other_session">Seqdec tafyirt tuffirt n tririt neɣ tasarut</string>
     <string name="verification_use_passphrase">Ma yella ur tezmireḍ ara ad tkecmeḍ ɣer tɣimit i yellan</string>
     <string name="enter_secret_storage_invalid">Ur nessaweḍ ara ad naf tuffirin deg uklas</string>
-    <string name="message_action_item_redact">Kkes…</string>
     <string name="share_confirm_room">Tebqiḍ ad tazneḍ taceqquft-a yaddan i %1$s\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Azen tugna s teɣzi taneẓlit</item>
         <item quantity="other">Azen tuniwin s teɣzi taneẓlit</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Rnu taɣzint</string>
-    <string name="delete_event_dialog_reason_hint">Taɣzint n tukksa</string>
     <string name="event_redacted_by_user_reason_with_reason">Yettewekkes uneḍru sɣur aseqdac, taɣzint: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Aneḍru yella-d s lmendad n unedbal n texxamt, taɣzint: %1$s</string>
     <string name="e2e_use_keybackup">Serreḥ i umazray n yiznan yettwawgelhen</string>

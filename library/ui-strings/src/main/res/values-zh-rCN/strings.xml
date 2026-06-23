@@ -889,9 +889,6 @@
     <string name="room_list_catchup_empty_body">你没有未读消息</string>
     <string name="room_list_people_empty_body">你的私聊消息将显示在此处。点击右下角的 + 开始一些对话。</string>
     <string name="room_list_rooms_empty_body">你的房间将显示在此处。点击右下角的 + 来找到现有的房间或者创建你自己的房间。</string>
-    <string name="event_redacted">消息已移除</string>
-    <string name="settings_show_redacted">显示已移除消息</string>
-    <string name="settings_show_redacted_summary">对已移除消息显示占位符</string>
     <string name="event_redacted_by_admin_reason">事件被房间管理员删除</string>
     <string name="malformed_message">格式错误事件，无法显示</string>
     <string name="error_no_network">无网络。请检查你的网络连接。</string>
@@ -1280,15 +1277,11 @@
     <string name="verification_cannot_access_other_session">使用恢复口令词组或密钥</string>
     <string name="verification_use_passphrase">如果你无法访问已有会话</string>
     <string name="enter_secret_storage_invalid">无法在存储中找到秘密</string>
-    <string name="message_action_item_redact">移除……</string>
     <string name="share_confirm_room">你想要发送此附件到 %1$s 吗？</string>
     <plurals name="send_images_with_original_size">
         <item quantity="other">发送原始尺寸图片</item>
     </plurals>
-    <string name="delete_event_dialog_title">确认移除</string>
-    <string name="delete_event_dialog_content">你确定要移除（删除）此事件吗？注意，如果删除房间名称或话题的更改，更改会被撤销。</string>
     <string name="delete_event_dialog_reason_checkbox">附加理由</string>
-    <string name="delete_event_dialog_reason_hint">删除理由</string>
     <string name="event_redacted_by_user_reason_with_reason">事件被用户删除，理由：%1$s</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">密钥请求</string>
@@ -2181,9 +2174,6 @@
     <string name="a11y_location_share_pin_on_map">地图上选定位置的固定标记</string>
     <string name="poll_no_votes_cast">无投票</string>
     <string name="ftue_auth_email_verification_title">验证你的电子邮件</string>
-    <plurals name="room_removed_messages">
-        <item quantity="other">%d 条消息已移除</item>
-    </plurals>
     <string name="live_location_labs_promotion_switch_title">启用位置共享</string>
     <string name="live_location_labs_promotion_title">实时位置共享</string>
     <string name="settings_troubleshoot_test_current_endpoint_failed">找不到端点。</string>

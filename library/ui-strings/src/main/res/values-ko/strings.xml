@@ -825,8 +825,6 @@
     <string name="settings_emails_and_phone_numbers_title">이메일과 전화번호</string>
     <string name="settings_show_emoji_keyboard_summary">메시지 입력란에 이모지 키보드 버튼을 추가합니다</string>
     <string name="settings_show_emoji_keyboard">이모지 키보드 표시</string>
-    <string name="settings_show_redacted_summary">삭제된 메시지를 대화에 표시합니다</string>
-    <string name="settings_show_redacted">삭제된 메시지 표시</string>
     <string name="settings_notification_emails_no_emails">알림과 함께 이메일을 받으려면 Matrix 계정에 이메일을 연결해주세요</string>
     <string name="settings_notification_emails_category">이메일 알림</string>
     <string name="settings_notification_other">기타</string>
@@ -847,7 +845,6 @@
     <string name="denied_permission_generic">이 작업을 수행할 수 있는 일부 권한이 없습니다. 시스템 설정에서 권한을 허용해주세요.</string>
     <string name="action_play">재생</string>
     <string name="denied_permission_voice_message">음성 메시지를 보내려면 마이크 권한을 허용해주세요.</string>
-    <string name="event_redacted">삭제된 메시지</string>
     <string name="action_copy">복사</string>
     <string name="unignore">차단 해제</string>
     <string name="no_ignored_users">차단한 사용자가 없습니다</string>

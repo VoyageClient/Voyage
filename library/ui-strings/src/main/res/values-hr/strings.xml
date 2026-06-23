@@ -637,7 +637,6 @@
     <string name="keys_backup_setup_step2_button_title">Postavi rečeničnu lozinku</string>
     <string name="keys_backup_setup_creating_backup">Izrada sigurnosne kopije</string>
     <string name="keys_backup_setup_step1_recovery_key_alternative">Alternativno, zaštitite Vašu sigurnosnu kopiju ključem za obnovu i pohranite ga na sigurno.</string>
-    <string name="event_redacted">Poruka je izbrisana</string>
     <string name="a11y_close_keys_backup_banner">Zatvori natpis o pričuvnim ključevima</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Sve poruke (bučno)</string>
     <string name="room_list_quick_actions_notifications_all">Sve poruke</string>
@@ -761,8 +760,6 @@
     <string name="keys_backup_setup_step3_button_title_no_passphrase">Napravljena je kopija</string>
     <string name="keys_backup_setup_step3_share_recovery_file">Dijeli</string>
     <string name="keys_backup_setup_step3_save_button_title">Spremi u datoteku</string>
-    <string name="settings_show_redacted">Prikaži izbrisane poruke</string>
-    <string name="settings_show_redacted_summary">Prikaži prazninu umjesto izbrisanih poruka</string>
     <string name="create_room_name_hint">Naziv sobe</string>
     <string name="create_room_public_title">Javna</string>
     <string name="create_room_public_description">Bilo tko moći će se pridružiti sobi</string>
@@ -785,9 +782,6 @@
     <string name="preference_voice_and_video">Glas i video</string>
     <string name="preference_root_help_about">Pomoć i o aplikaciji</string>
     <string name="bottom_action_people_x">Izravne poruke</string>
-    <string name="message_action_item_redact">Ukloni…</string>
-    <string name="delete_event_dialog_title">Potvrda uklanjanja</string>
-    <string name="delete_event_dialog_content">Jeste li sigurni da želite ukloniti (izbrisati) ovaj događaj\? Ukoliko izbrišete naziv sobe ili promjenu teme, to može poništiti promjenu.</string>
     <string name="notice_avatar_url_changed_by_you">Ti si promijenio svoj avatar</string>
     <string name="notice_avatar_url_changed">%1$s je promijenio svoj avatar</string>
     <string name="notice_room_remove_by_you">Ti si maknuo %1$s</string>

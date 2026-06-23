@@ -459,9 +459,6 @@
     <string name="settings_troubleshoot_test_bg_restricted_title">バックグラウンド制限の確認</string>
     <string name="edit">編集</string>
     <string name="reply">返信</string>
-    <string name="event_redacted">メッセージを削除しました</string>
-    <string name="settings_show_redacted">削除済のメッセージを表示</string>
-    <string name="settings_show_redacted_summary">削除されたメッセージに関する通知を表示</string>
     <string name="event_redacted_by_user_reason">ユーザーによって削除されたイベント</string>
     <string name="create_new_room">新しいルームを作成</string>
     <string name="action_change">変更</string>
@@ -538,9 +535,6 @@
     <string name="no_connectivity_to_the_server_indicator_airplane">機内モードが有効です</string>
     <string name="settings_dev_tools">開発者ツール</string>
     <string name="settings_account_data">アカウントデータ</string>
-    <string name="message_action_item_redact">削除…</string>
-    <string name="delete_event_dialog_title">削除の確認</string>
-    <string name="delete_event_dialog_content">このイベントを削除してよろしいですか？ルームの名前やトピックの変更を削除すると、変更が取り消される可能性があります。</string>
     <string name="encryption_enabled">暗号化が有効です</string>
     <string name="encryption_enabled_tile_description">このルーム内でのメッセージはエンドツーエンドで暗号化されます。詳細の確認や認証はユーザーのプロフィールをご確認ください。</string>
     <string name="encryption_not_enabled">暗号化が有効になっていません</string>
@@ -2049,7 +2043,6 @@
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="event_redacted_by_admin_reason_with_reason">ルームの管理者によって削除されています。理由：%1$s</string>
     <string name="event_redacted_by_user_reason_with_reason">ユーザーによって削除されています。理由：%1$s</string>
-    <string name="delete_event_dialog_reason_hint">削除した理由</string>
     <string name="share_confirm_room">この添付ファイルを%1$sに送信しますか？</string>
     <string name="verification_use_passphrase">既存のセッションにアクセスできない場合</string>
     <string name="delete_account_data_warning">%1$sというタイプのアカウントデータを削除しますか？
@@ -2481,9 +2474,6 @@
     <string name="a11y_device_manager_device_type_desktop">デスクトップ</string>
     <string name="a11y_device_manager_device_type_web">ウェブ</string>
     <string name="a11y_device_manager_device_type_mobile">携帯端末</string>
-    <plurals name="room_removed_messages">
-        <item quantity="other">%d件のメッセージを削除しました</item>
-    </plurals>
     <string name="live_location_labs_promotion_switch_title">位置情報の共有を有効にする</string>
     <string name="live_location_labs_promotion_description">注意：これは一時的な実装による試験機能です。位置情報の履歴を削除することはできません。高度なユーザーは、あなたがこのルームで位置情報（ライブ）の共有を停止した後でも、あなたの位置情報の履歴を閲覧することができます。</string>
     <string name="live_location_labs_promotion_title">位置情報（ライブ）の共有</string>

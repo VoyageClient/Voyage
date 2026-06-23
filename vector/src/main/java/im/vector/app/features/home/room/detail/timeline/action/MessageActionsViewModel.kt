@@ -466,8 +466,8 @@ class MessageActionsViewModel @AssistedInject constructor(
                             EventSharedAction.Redact(
                                     eventId,
                                     askForReason = informationData.senderId != session.myUserId,
-                                    dialogTitleRes = CommonStrings.delete_event_dialog_title,
-                                    dialogDescriptionRes = CommonStrings.delete_event_dialog_content
+                                    dialogTitleRes = CommonStrings.redact_event_dialog_title,
+                                    dialogDescriptionRes = CommonStrings.redact_event_dialog_content
                             )
                     )
                 }

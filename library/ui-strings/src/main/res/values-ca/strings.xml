@@ -868,7 +868,6 @@
     <string name="room_error_not_found">No s\'ha trobat aquesta sala. Assegura\'t que existeixi.</string>
     <string name="settings_security_pin_code_notifications_summary_on">Mostra detalls com per exemple noms de sala i contingut dels missatges.</string>
     <string name="invite_users_to_room_failure">No hem pogut convidar els usuaris. Comprova els usuaris que vols convidar i torna-ho a provar.</string>
-    <string name="delete_event_dialog_content">Estàs segur que vols eliminar aquest esdeveniment\? Tingues en compte que, si suprimeixes un nom de sala o es canvia el tema, es podria revertir el canvi.</string>
     <string name="room_settings_enable_encryption_dialog_content">Una vegada activat, el xifrat d\'una sala no es pot desactivar. El servidor no pot llegir els missatges enviats en una sala xifrada, només els poden llegir els participants. L\'activació del xifrat pot fer que molts bots i enllaços no funcionin correctament.</string>
     <string name="room_profile_section_more_notifications">Notificacions</string>
     <string name="direct_room_profile_not_encrypted_subtitle">Els missatges d\'aquí NO estan xifrats d\'extrem a extrem.</string>
@@ -1015,8 +1014,6 @@
     <string name="create_room_settings_section">Configuració de la sala</string>
     <string name="create_room_name_section">Nom de la sala</string>
     <string name="room_preview_no_preview_join">Aquesta sala no es pot previsualitzar. Vols unir-t\'hi\?</string>
-    <string name="settings_show_redacted">Mostra missatges eliminats</string>
-    <string name="event_redacted">Missatge eliminat</string>
     <string name="error_user_already_logged_in">Sembla que t\'estàs intentant connectar a un servidor local diferent. Vols tancar la sessió\?</string>
     <string name="identity_server_not_defined">No estàs utilitzant cap servidor d\'identitat</string>
     <string name="secure_backup_setup">Configura còpia de seguretat segura</string>
@@ -1211,7 +1208,6 @@
     <string name="login_terms_title">Accepta els termes per a continuar</string>
     <string name="settings_discovery_disconnect_with_bound_pid">Estàs compartint les adreces de correu electrònic o números de telèfon amb el servidor d\'identitat %1$s. Per parar de compartir-les t\'has de tornar a connectar a %2$s.</string>
     <string name="message_view_edit_history">Visualitza l\'històric d\'edició</string>
-    <string name="settings_show_redacted_summary">Indica els missatges eliminats</string>
     <string name="bootstrap_migration_backup_recovery_key">Clau de recuperació de la còpia de seguretat de claus</string>
     <string name="bootstrap_migration_use_recovery_key">utilitzar la clau de recuperació de còpia de seguretat de claus</string>
     <string name="use_recovery_key">Utilitza clau de recuperació</string>
@@ -1448,13 +1444,11 @@
     <string name="event_redacted_by_user_reason_with_reason">Esdeveniment eliminat per un usuari, motiu: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Esdeveniment moderat per un administrador de sala, motiu: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">Afegeix un motiu</string>
-    <string name="delete_event_dialog_title">Confirma l\'eliminació</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Envia la imatge a mida real</item>
         <item quantity="other">Envia les imatges a mida real</item>
     </plurals>
     <string name="share_confirm_room">Vols enviar aquest fitxer adjunt a %1$s\?</string>
-    <string name="message_action_item_redact">Elimina…</string>
     <string name="enter_secret_storage_invalid">No s\'han pogut trobar els secrets a la memòria</string>
     <string name="verification_use_passphrase">Si no pots accedir a una sessió existent</string>
     <string name="verification_cannot_access_other_session">Utilitza una frase de recuperació o una clau</string>
@@ -1773,7 +1767,6 @@
     <string name="choose_locale_loading_locales">Carregant idiomes disponibles…</string>
     <string name="choose_locale_other_locales_title">Altres idiomes disponibles</string>
     <string name="choose_locale_current_locale_title">Idioma actual</string>
-    <string name="delete_event_dialog_reason_hint">Motiu de l\'eliminació</string>
     <string name="verification_profile_device_verified_because">Aquesta sessió és de confiança per a missatges segurs ja que %1$s (%2$s) l\'ha verificat:</string>
     <string name="bootstrap_progress_compute_curve_key">Obtenint clau de corba</string>
     <string name="create_room_dm_failure">No s\'ha pogut crear el xat. Comprova els usuaris que vols convidar i torna-ho a provar.</string>
@@ -2437,10 +2430,6 @@
     <string name="font_size_section_manually">Tria manualment</string>
     <string name="font_size_section_auto">Automàtica</string>
     <string name="font_size_title">Tria la mida de la lletra</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d missatge eliminat</item>
-        <item quantity="other">%d missatges eliminats</item>
-    </plurals>
     <string name="live_location_share_location_item_share">Comparteix ubicació</string>
     <string name="live_location_not_enough_permission_dialog_description">No tens els permisos adequats per poder compartir la ubicació en directe en aquesta sala.</string>
     <string name="ftue_auth_password_reset_confirmation">Restabliment de contrasenya</string>

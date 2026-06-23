@@ -1309,8 +1309,8 @@ class TimelineFragment :
                         activity = requireActivity(),
                         askForReason = action.askForReason,
                         confirmationRes = action.dialogDescriptionRes,
-                        positiveRes = CommonStrings.action_remove,
-                        reasonHintRes = CommonStrings.delete_event_dialog_reason_hint,
+                        positiveRes = CommonStrings.action_redact,
+                        reasonHintRes = CommonStrings.redact_event_dialog_reason_hint,
                         titleRes = action.dialogTitleRes
                 ) { reason ->
                     timelineViewModel.handle(RoomDetailAction.RedactAction(action.eventId, reason))
@@ -1753,7 +1753,11 @@ class TimelineFragment :
                 showSnackWithMessage(getString(CommonStrings.copied_to_clipboard))
             }
             is EventSharedAction.Redact -> {
-                promptConfirmationToRedactEvent(action)
+                if (vectorPreferences.skipRedactionConfirmation()) {
+                    timelineViewModel.handle(RoomDetailAction.RedactAction(action.eventId, reason = null))
+                } else {
+                    promptConfirmationToRedactEvent(action)
+                }
             }
             is EventSharedAction.Forward -> {
                 onForwardActionClicked(action)

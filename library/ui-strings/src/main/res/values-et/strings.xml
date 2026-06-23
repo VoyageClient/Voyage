@@ -466,9 +466,6 @@
     <string name="action_agree">Nõus</string>
     <string name="message_add_reaction">Lisa reaktsioon</string>
     <string name="reactions">Reageerimised</string>
-    <string name="event_redacted">Sõnum on kustutatud</string>
-    <string name="settings_show_redacted">Näita kustutatud sõnumeid</string>
-    <string name="settings_show_redacted_summary">Näita kustutatud sõnumite asemel kohatäidet</string>
     <string name="event_redacted_by_user_reason">Kasutaja kustutas sündmuse</string>
     <string name="event_redacted_by_admin_reason">Jututoa haldur on sündmust modereerinud</string>
     <string name="malformed_message">Vigaselt vormindatud sündmus ja kuvamine pole seetõttu võimalik</string>
@@ -1509,16 +1506,12 @@
     <string name="verification_cannot_access_other_session">Kasuta taastamiseks mõeldud paroolifraasi või võtit</string>
     <string name="verification_use_passphrase">Kui sa ei pääse ligi olemasolevale sessioonile</string>
     <string name="enter_secret_storage_invalid">Ei leia turvahoidlast vajalikke andmeid</string>
-    <string name="message_action_item_redact">Eemalda…</string>
     <string name="share_confirm_room">Kas sa soovid seda manust saata kasutajale %1$s\?</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Saada pilt algupärases suuruses</item>
         <item quantity="other">Saada pildid algupärases suuruses</item>
     </plurals>
-    <string name="delete_event_dialog_title">Kinnita eemaldamine</string>
-    <string name="delete_event_dialog_content">Kas sa oled kindel et soovid eemaldada (kustutada) seda sündmust\? Pane tähele, et see muutus võib tagasi pöörduda, kui muudad hiljem jututoa nime või teema nime.</string>
     <string name="delete_event_dialog_reason_checkbox">Lisa põhjus</string>
-    <string name="delete_event_dialog_reason_hint">Kustutamise põhjus</string>
     <string name="event_redacted_by_user_reason_with_reason">Kasutaja kustutas sündmuse, põhjusena %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Jututoa haldur on sündmust modereerinud, põhjusena %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Krüptovõtmed on juba uuendatud!</string>
@@ -2384,10 +2377,6 @@
     <string name="send_your_first_msg_to_invite">Saada oma esimene sõnum kutsudes %s vestlusesse</string>
     <string name="direct_room_encryption_enabled_tile_description_future">See vestlus saab olema läbivalt krüptitud.</string>
     <string name="create_room_action_go">Mine</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d sõnum on eemaldatud</item>
-        <item quantity="other">%d sõnumit on eemaldatud</item>
-    </plurals>
     <string name="live_location_share_location_item_share">Jaga asukohta</string>
     <string name="live_location_not_enough_permission_dialog_description">Selles jututoas asukoha jagamiseks peavad sul olema vastavad õigused.</string>
     <string name="live_location_not_enough_permission_dialog_title">Sul pole vajalikke õigusi asukoha jagamiseks reaalajas</string>

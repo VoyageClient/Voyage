@@ -1192,9 +1192,7 @@
     <string name="no_connectivity_to_the_server_indicator_airplane">Modo Avión Activado</string>
     <string name="settings_dev_tools">Herramientas de desarrollo</string>
     <string name="settings_account_data">Datos de cuenta</string>
-    <string name="message_action_item_redact">Eliminar…</string>
     <string name="delete_event_dialog_reason_checkbox">Razón</string>
-    <string name="delete_event_dialog_reason_hint">Razón para redactar</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="refresh">Refrescar</string>
     <string name="new_session">Nuevo inicio de sesión detectado . ¿Has sido tú\?</string>
@@ -1222,8 +1220,6 @@
     <string name="settings_phone_numbers">Numeros telefonicos</string>
     <string name="settings_emails_and_phone_numbers_title">Correos y numeros telefonicos</string>
     <string name="settings_emails_and_phone_numbers_summary">Administra las direcciones de correo y/o números telefónicos relacionados a tu cuenta de Matrix</string>
-    <string name="settings_show_redacted">Mostrar mensajes eliminados</string>
-    <string name="settings_show_redacted_summary">Indicar marca de mensaje eliminado</string>
     <string name="uploads_files_title">ARCHIVOS</string>
     <string name="uploads_files_no_result">No se han subido archivos a la sala</string>
     <string name="change_password_summary">Establecer una nueva contraseña…</string>
@@ -1272,7 +1268,6 @@
     <string name="secure_backup_banner_setup_line1">Copia de seguridad segura</string>
     <string name="secure_backup_banner_setup_line2">Protéjase contra la pérdida de acceso a mensajes y datos cifrados</string>
     <string name="secure_backup_setup">Configurar copia de seguridad segura</string>
-    <string name="event_redacted">Mensaje borrado</string>
     <string name="create_room_federation_error">Se ha creado la sala, pero algunas invitaciones no se han enviado por el siguiente motivo:
 \n
 \n%s</string>
@@ -1439,8 +1434,6 @@
         <item quantity="one">Enviar imagen con el tamaño original</item>
         <item quantity="other">Envía imágenes con el tamaño original</item>
     </plurals>
-    <string name="delete_event_dialog_title">Confirmar eliminación</string>
-    <string name="delete_event_dialog_content">¿Está seguro de que desea eliminar (eliminar) este evento\? Tenga en cuenta que si elimina el nombre de una sala o el cambio de tema, podría deshacer el cambio.</string>
     <string name="event_redacted_by_user_reason_with_reason">Evento eliminado por el usuario, motivo: %1$s</string>
     <string name="event_redacted_by_admin_reason_with_reason">Evento moderado por el administrador de la sala, motivo: %1$s</string>
     <string name="settings_key_requests">Solicitudes clave</string>
@@ -2414,10 +2407,6 @@
     <string name="a11y_device_manager_device_type_web">Web</string>
     <string name="a11y_device_manager_device_type_mobile">Móvil</string>
     <string name="labs_enable_element_call_permission_shortcuts_summary">Auto aprovar widgets de Element Call y dar permisos de cámara y micrófono</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d mensaje borrado</item>
-        <item quantity="other">%d mensajes borrados</item>
-    </plurals>
     <string name="live_location_description">Ubicación en tiempo real</string>
     <string name="live_location_share_location_item_share">Compartir ubicación</string>
     <string name="live_location_not_enough_permission_dialog_description">Debes tener el permiso correspondiente para compartir ubicaciones en esta sala.</string>

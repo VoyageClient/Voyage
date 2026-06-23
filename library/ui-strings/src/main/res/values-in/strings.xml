@@ -1304,9 +1304,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="malformed_message">Peristiwa salah, tidak dapat ditampilkan</string>
     <string name="event_redacted_by_admin_reason">Peristiwa dihapus oleh admin ruangan</string>
     <string name="event_redacted_by_user_reason">Peristiwa dihapus oleh pengguna</string>
-    <string name="settings_show_redacted_summary">Tampilkan tempat penampung untuk pesan terhapus</string>
-    <string name="settings_show_redacted">Tampilkan pesan terhapus</string>
-    <string name="event_redacted">Pesan dihapus</string>
     <string name="reactions">Reaksi</string>
     <string name="message_view_reaction">Tampilkan Reaksi</string>
     <string name="message_add_reaction">Tambah Reaksi</string>
@@ -1989,10 +1986,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Kunci telah mutakhir!</string>
     <string name="event_redacted_by_admin_reason_with_reason">Peristiwa dimoderasi oleh admin ruangan, alasannya: %1$s</string>
     <string name="event_redacted_by_user_reason_with_reason">Peristiwa dihapus oleh pengguna, alasannya: %1$s</string>
-    <string name="delete_event_dialog_reason_hint">Alasan untuk menghapus</string>
     <string name="delete_event_dialog_reason_checkbox">Sertakan alasannya</string>
-    <string name="delete_event_dialog_content">Apakah Anda yakin untuk menghapus peristiwa ini\? Perhatikan bahwa jika Anda menghapus sebuah nama ruangan atau perubahan topik, itu dapat merubah perubahannya.</string>
-    <string name="delete_event_dialog_title">Konfirmasi Penghapusan</string>
     <string name="send_images_and_video_with_original_size">Kirim media dengan ukuran asli</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="other">Kirim video dengan ukuran asli</item>
@@ -2001,7 +1995,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
         <item quantity="other">Kirim gambar dengan ukuran asli</item>
     </plurals>
     <string name="share_confirm_room">Apakah Anda ingin mengirim lampiran ini ke %1$s\?</string>
-    <string name="message_action_item_redact">Hapus…</string>
     <string name="enter_secret_storage_invalid">Tidak dapat menemukan rahasia di penyimpanan</string>
     <string name="verification_use_passphrase">Jika Anda tidak dapat mengakses sesi yang sudah ada</string>
     <string name="a11y_trust_level_trusted">Peringatan tingkat kepercayaan</string>
@@ -2352,9 +2345,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="create_room_action_go">Mulai</string>
     <string name="ftue_auth_password_reset_email_confirmation_subtitle">Ikuti petunjuk yang terkirim ke %s</string>
     <string name="ftue_auth_email_verification_subtitle">Ikuti petunjuk yang terkirim ke %s</string>
-    <plurals name="room_removed_messages">
-        <item quantity="other">%d pesan dihapus</item>
-    </plurals>
     <string name="live_location_share_location_item_share">Bagikan lokasi</string>
     <string name="live_location_not_enough_permission_dialog_description">Anda harus mempunyai izin yang diperlukan untuk membagikan lokasi di ruangan ini.</string>
     <string name="live_location_not_enough_permission_dialog_title">Anda tidak memiliki izin untuk membagikan lokasi</string>

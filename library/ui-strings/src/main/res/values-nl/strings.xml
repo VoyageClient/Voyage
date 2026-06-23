@@ -926,7 +926,6 @@
     <string name="recovery_passphrase">Herstelwachtwoordzin</string>
     <string name="verification_cancelled">Verificatie geannuleerd</string>
     <string name="settings_key_requests">Sleutelverzoeken</string>
-    <string name="delete_event_dialog_title">Verwijderen Bevestigen</string>
     <string name="settings_account_data">Accountgegevens</string>
     <string name="settings_dev_tools">Ontwikkelaarsgereedschap</string>
     <string name="a11y_qr_code_for_verification">QR-code</string>
@@ -1007,7 +1006,6 @@
     <string name="feedback">Feedback</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Token registreren</string>
     <string name="settings_push_rules">Push-regels</string>
-    <string name="event_redacted">Bericht verwijderd</string>
     <string name="secure_backup_banner_setup_line1">Beveiligde Backup</string>
     <string name="active_widgets_title">Actieve widgets</string>
     <string name="notification_ticker_text_dm">%1$s: %2$s</string>
@@ -1062,7 +1060,6 @@
     <string name="settings_troubleshoot_title">Problemen oplossen</string>
     <string name="finish">Beëindigen</string>
     <string name="refresh">Verversen</string>
-    <string name="message_action_item_redact">Verwijderen…</string>
     <string name="qr_code_scanned_by_other_no">Nee</string>
     <string name="qr_code_scanned_by_other_yes">Ja</string>
     <string name="trusted">Vertrouwd</string>
@@ -1410,8 +1407,6 @@
 \n%s</string>
     <string name="create_room_topic_section">Kameronderwerp (optioneel)</string>
     <string name="create_new_space">Nieuwe space aanmaken</string>
-    <string name="settings_show_redacted_summary">Geeft een plaatsvervangende melding weer voor verwijderde berichten.</string>
-    <string name="settings_show_redacted">Verwijderde berichten weergeven</string>
     <string name="secure_backup_setup">Beveiligde back-up instellen</string>
     <string name="secure_backup_banner_setup_line2">Beveiliging tegen verlies van toegang tot versleutelde berichten en gegevens</string>
     <string name="recovery_key_export_saved">De herstelsleutel is opgeslagen.</string>
@@ -1844,9 +1839,7 @@
     <string name="keys_backup_restore_success_title_already_up_to_date">Sleutels zijn al up-to-date!</string>
     <string name="event_redacted_by_admin_reason_with_reason">Gebeurtenis gemodereerd door kamer beheerder, reden: %1$s</string>
     <string name="event_redacted_by_user_reason_with_reason">Gebeurtenis verwijderd door persoon, reden: %1$s</string>
-    <string name="delete_event_dialog_reason_hint">Reden voor redigeren</string>
     <string name="delete_event_dialog_reason_checkbox">Geef een reden op</string>
-    <string name="delete_event_dialog_content">Weet je zeker dat je deze gebeurtenis wil verwijderen (wissen)\? Houd er rekening mee dat als je een kamer naam of onderwerpwijziging verwijdert, de wijziging ongedaan kan worden gemaakt.</string>
     <string name="send_images_and_video_with_original_size">Media versturen in het originele formaat</string>
     <plurals name="send_videos_with_original_size">
         <item quantity="one">Stuur video in het originele formaat</item>
@@ -2393,10 +2386,6 @@
     <string name="send_your_first_msg_to_invite">Stuur je eerste bericht om %s uit te nodigen om te chatten</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Berichten in deze chat worden eind-tot-eind versleuteld.</string>
     <string name="create_room_action_go">Ga</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d bericht verwijderd</item>
-        <item quantity="other">%d berichten verwijderd</item>
-    </plurals>
     <string name="live_location_share_location_item_share">Deel locatie</string>
     <string name="live_location_not_enough_permission_dialog_description">Je moet de juiste rechten hebben om de live locatie in deze kamer te delen.</string>
     <string name="live_location_not_enough_permission_dialog_title">Je hebt geen toestemming om de live locatie te delen</string>

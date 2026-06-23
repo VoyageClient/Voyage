@@ -626,7 +626,6 @@
     <string name="settings_troubleshoot_title">പ്രശ്‌നപരിഹാരം</string>
     <string name="topic_prefix">"വിഷയം: "</string>
     <string name="refresh">പുതുക്കുക</string>
-    <string name="message_action_item_redact">നീക്കംചെയ്യൂ…</string>
     <string name="qr_code_scanned_by_other_no">ഇല്ല</string>
     <string name="qr_code_scanned_by_other_yes">അതെ</string>
     <string name="trusted">വിശ്വസനീയമാണ്</string>

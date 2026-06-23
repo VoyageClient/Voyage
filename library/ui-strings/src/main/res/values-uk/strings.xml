@@ -528,7 +528,6 @@
     <string name="title_activity_keys_backup_setup">Резервна копія ключа</string>
     <string name="title_activity_keys_backup_restore">Використати резервну копію ключа</string>
     <string name="room_list_people_empty_body">Тут з\'явиться список бесід з вашими особистими повідомленнями. Торкніться + внизу праворуч щоб розпочати бесіду.</string>
-    <string name="event_redacted">Повідомлення вилучено</string>
     <string name="fab_menu_create_chat">Особисті повідомлення</string>
     <string name="bottom_action_people_x">Особисті повідомлення</string>
     <string name="room_filtering_footer_create_new_direct_message">Надіслати нове особисте повідомлення</string>
@@ -612,12 +611,10 @@
     <string name="invite_friends_rich_title">🔐️ Приєднуйтесь до мене в ${app_name}</string>
     <string name="invite_friends_text">Привіт! Спілкуймося в ${app_name}: %s</string>
     <string name="invite_friends">Запросити друзів</string>
-    <string name="settings_show_redacted_summary">Показувати заглушку на місці видалених повідомлень</string>
     <string name="settings_general_title">Загальні</string>
     <string name="send_suggestion_failed">Не вдалось надіслати пропозицію (%s)</string>
     <string name="send_suggestion_report_placeholder">Опишіть вашу пропозицію тут</string>
     <string name="send_suggestion_content">Залиште вашу пропозицію внизу.</string>
-    <string name="settings_show_redacted">Показувати видалені повідомлення</string>
     <string name="settings_send_message_with_enter_summary">Натискання Enter на програмній клавіатурі надсилатиме повідомлення замість перенесення рядка</string>
     <string name="settings_send_message_with_enter">Надсилати повідомлення натисканням Enter</string>
     <string name="room_profile_section_more_settings">Налаштування кімнати</string>
@@ -1020,7 +1017,6 @@
     <string name="settings_security_pin_code_notifications_summary_on">Показувати такі подробиці, як назви кімнат та вміст повідомлень.</string>
     <string name="create_room_topic_section">Тема кімнати (необов\'язково)</string>
     <string name="create_room_topic_hint">Тема</string>
-    <string name="delete_event_dialog_content">Ви впевнені, що хочете вилучити (видалити) цю подію\? Зауважте, що, якщо ви видалите назву кімнати або зміните тему, це може скасувати зміну.</string>
     <string name="room_created_summary_no_topic_creation_text">%s щоб люди знали, про що ця кімната.</string>
     <string name="add_a_topic_link_text">Додати тему</string>
     <string name="topic_prefix">"Тема: "</string>
@@ -1082,7 +1078,6 @@
 \n
 \nВи впевнені, що бажаєте продовжити\?</string>
     <string name="signed_out_title">Ви вийшли</string>
-    <string name="message_action_item_redact">Вилучити…</string>
     <string name="send_a_sticker">Наліпка</string>
     <string name="terms_description_for_integration_manager">Використовувати боти, мости, віджети та пакунки наліпок</string>
     <string name="no_connectivity_to_the_server_indicator">Зв\'язок із сервером втрачено</string>
@@ -1874,7 +1869,6 @@
     <string name="login_wait_for_email_notice">Ми щойно надіслали листа на %1$s
 \nНатисніть на посилання, яке він містить, щоб продовжити створення облікового запису.</string>
     <string name="login_signup_cancel_confirmation_content">Ваш обліковий запис ще не створено. Зупинити процес реєстрації\?</string>
-    <string name="delete_event_dialog_title">Підтвердити вилучення</string>
     <string name="settings_key_requests">Запити ключів</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="a11y_start_camera">Увімкнути камеру</string>
@@ -1941,7 +1935,6 @@
     <string name="verification_cancelled">Перевірку скасовано</string>
     <string name="verify_cancelled_notice">Перевірку скасовано. Ви можете розпочати її повторно.</string>
     <string name="event_redacted_by_admin_reason_with_reason">Подію змінено адміністратором кімнати, причина: %1$s</string>
-    <string name="delete_event_dialog_reason_hint">Причина редагування</string>
     <string name="delete_event_dialog_reason_checkbox">Вказати причину</string>
     <string name="send_images_and_video_with_original_size">Надіслати медіа в оригінальному розмірі</string>
     <plurals name="send_videos_with_original_size">
@@ -2483,12 +2476,6 @@
     <string name="send_your_first_msg_to_invite">Надішліть своє перше повідомлення, щоб запросити %s до бесіди</string>
     <string name="direct_room_encryption_enabled_tile_description_future">Повідомлення в цій бесіді будуть захищені наскрізним шифруванням.</string>
     <string name="create_room_action_go">Уперед</string>
-    <plurals name="room_removed_messages">
-        <item quantity="one">%d повідомлення вилучене</item>
-        <item quantity="few">%d повідомлення вилучені</item>
-        <item quantity="many">%d повідомлень вилучені</item>
-        <item quantity="other">%d повідомлень вилучені</item>
-    </plurals>
     <string name="live_location_share_location_item_share">Поділитися місцем перебування</string>
     <string name="live_location_not_enough_permission_dialog_description">Ви повинні мати відповідні дозволи, щоб ділитися місцем перебування наживо в цій кімнаті.</string>
     <string name="live_location_not_enough_permission_dialog_title">Ви не маєте дозволу ділитися поточним місцем перебування</string>

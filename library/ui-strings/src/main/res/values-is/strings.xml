@@ -759,7 +759,6 @@
     <string name="send_file_step_compressing_image">Þjappa mynd…</string>
     <string name="send_file_step_sending_file">Sendi skrá (%1$s / %2$s)</string>
     <string name="send_file_step_encrypting_file">Dulrita skrá…</string>
-    <string name="settings_show_redacted">Sýna fjarlægð skilaboð</string>
     <string name="room_list_catchup_empty_body">Þú átt engin fleiri ólesin skilaboð</string>
     <string name="invited_by">Boðið af %s</string>
     <string name="send_you_invite">Sendi þér boð</string>
@@ -780,7 +779,6 @@
     <string name="ftue_auth_carousel_secure_title">Eigðu samtölin þín.</string>
     <string name="disconnect_identity_server">Aftengja auðkennisþjón</string>
     <string name="send_feedback_space_title">Umsagnir um svæði</string>
-    <string name="settings_show_redacted_summary">Birta frátökutákn fyrir fjarlægð skilaboð</string>
     <string name="closed_poll_option_description">Niðurstöður birtast einungis eftir að þú hefur lokað könnuninni</string>
     <string name="open_poll_option_description">Kjósendur sjá niðurstöðurnar þegar þeir hafa kosið</string>
     <plurals name="poll_total_vote_count_after_ended">
@@ -1035,8 +1033,6 @@
     <string name="finish">Ljúka</string>
     <string name="verification_cancelled">Hætt við staðfestingu</string>
     <string name="refresh">Endurlesa</string>
-    <string name="delete_event_dialog_title">Staðfesta fjarlægingu</string>
-    <string name="message_action_item_redact">Fjarlægja…</string>
     <string name="no_connectivity_to_the_server_indicator">Tenging við netþjón hefur rofnað</string>
     <string name="qr_code_scanned_by_other_no">Nei</string>
     <string name="qr_code_scanned_by_other_yes">Já</string>
@@ -1182,7 +1178,6 @@
     <string name="fab_menu_create_room">Spjallrásir</string>
     <string name="please_wait">Bíddu aðeins…</string>
     <string name="create_new_room">Búa til nýja spjallrás</string>
-    <string name="event_redacted">Skilaboðum eytt</string>
     <string name="room_list_rooms_empty_title">Spjallrásir</string>
     <string name="room_list_people_empty_title">Samtöl</string>
     <string name="global_retry">Reyna aftur</string>

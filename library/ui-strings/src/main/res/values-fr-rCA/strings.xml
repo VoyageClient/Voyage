@@ -46,12 +46,8 @@
     <string name="keys_backup_restore_success_title_already_up_to_date">Les clés sont déjà à jour !</string>
     <string name="event_redacted_by_admin_reason_with_reason">Évènement modéré par l’administrateur du salon, motif : %1$s</string>
     <string name="event_redacted_by_user_reason_with_reason">Évènement supprimé par l’utilisateur, motif : %1$s</string>
-    <string name="delete_event_dialog_reason_hint">Motif de la suppression</string>
     <string name="delete_event_dialog_reason_checkbox">Fournir un motif</string>
-    <string name="delete_event_dialog_content">Voulez-vous vraiment supprimer cet évènement \? Notez que si vous supprimez un changement de nom ou de sujet du salon, cela pourrait annuler le changement.</string>
-    <string name="delete_event_dialog_title">Confirmer la suppression</string>
     <string name="share_confirm_room">Voulez-vous envoyer cette pièce jointe à %1$s \?</string>
-    <string name="message_action_item_redact">Supprimer…</string>
     <string name="enter_secret_storage_invalid">Impossible de trouver les secrets dans le stockage</string>
     <string name="verification_use_passphrase">Si vous n’avez pas accès à une session existante</string>
     <string name="verification_cannot_access_other_session">Utiliser une phrase secrète ou une clé de récupération</string>
@@ -358,9 +354,6 @@
     <string name="malformed_message">Évènement malformé, affichage impossible</string>
     <string name="event_redacted_by_admin_reason">Évènement modéré par l’administrateur du salon</string>
     <string name="event_redacted_by_user_reason">Évènement supprimé par l’utilisateur</string>
-    <string name="settings_show_redacted_summary">Afficher un remplaçant pour les messages supprimés</string>
-    <string name="settings_show_redacted">Afficher les messages supprimés</string>
-    <string name="event_redacted">Message supprimé</string>
     <string name="reactions">Réactions</string>
     <string name="message_view_reaction">Voir les réactions</string>
     <string name="message_add_reaction">Ajouter une réaction</string>

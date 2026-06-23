@@ -523,8 +523,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="direct_room_encryption_enabled_tile_description">Ziņas šajā tērzēšanā ir nodrošinātas ar pilnīgu šifrēšanu.</string>
     <string name="encryption_enabled">Šifrēšana iespējota</string>
     <string name="new_session">Jauna pieteikšanās. Tas biji Tu\?</string>
-    <string name="delete_event_dialog_content">Vai tiešām noņemt (izdzēst) šo notikumu\? Jāņem vērā, ka, ja tika izdzēsts istabas nosaukums vai mainīts temats, tas var atdarīt izmaiņas.</string>
-    <string name="delete_event_dialog_title">Apstipriniet dzēšanu</string>
     <string name="qr_code_scanned_by_other_no">Nē</string>
     <string name="qr_code_scanned_by_other_yes">Jā</string>
     <string name="a11y_qr_code_for_verification">QR kods</string>
@@ -645,7 +643,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="fab_menu_create_chat">Tiešās ziņas</string>
     <string name="fab_menu_create_room">Istabas</string>
     <string name="room_preview_no_preview">Šo istabu nevar priekšskatīt</string>
-    <string name="event_redacted">Ziņa ir dzēsta</string>
     <string name="reactions">Reakcijas</string>
     <string name="title_activity_emoji_reaction_picker">Reakcijas</string>
     <string name="room_list_rooms_empty_title">Istabas</string>
@@ -953,9 +950,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="verify_new_session_compromized">Konts varētu būt iesaistīts drošības pārkāpumā</string>
     <string name="verify_new_session_was_not_me">Tas nebiju es</string>
     <string name="verify_new_session_notice">Izmantojiet šo sesiju jaunās sesijas verifikācijai, tādējādi dodot piekļuvi šifrētām ziņām.</string>
-    <string name="delete_event_dialog_reason_hint">Labošanas iemesls</string>
     <string name="delete_event_dialog_reason_checkbox">Iekļaut iemeslu</string>
-    <string name="message_action_item_redact">Dzēst…</string>
     <string name="verification_use_passphrase">Ja nevar piekļūt esošai sesijai</string>
     <string name="verification_cannot_access_other_session">Izmantot atkopšanas paroles vārdkopu vai atslēgu</string>
     <string name="verification_open_other_to_verify">Izmantojiet citu sesiju šis sesijas verifikācijai, tādējādi dodot piekļuvi šifrētām ziņām.</string>
@@ -1202,8 +1197,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="malformed_message">Malformēts notikums, nevar parādīt</string>
     <string name="event_redacted_by_admin_reason">Notikumu pārvalda administrators</string>
     <string name="event_redacted_by_user_reason">Lietotājs izdzēsa notikumu</string>
-    <string name="settings_show_redacted_summary">Rādīt vietu priekš izdzēstām ziņām</string>
-    <string name="settings_show_redacted">Rādīt izdzēstās ziņas</string>
     <string name="message_view_reaction">Apskatīt reakcijas</string>
     <string name="message_add_reaction">Pievienot reakciju</string>
     <string name="action_agree">Piekrist</string>
@@ -2698,11 +2691,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="device_manager_session_rename">Pārdēvēt sesiju</string>
     <string name="unifiedpush_getdistributors_dialog_title">Izvēlēties, kā saņemt paziņojumus</string>
     <string name="unifiedpush_distributor_fcm_fallback">Google pakalpojumi</string>
-    <plurals name="room_removed_messages">
-        <item quantity="zero">Noņemtas %d ziņu</item>
-        <item quantity="one">Noņemta %d ziņa</item>
-        <item quantity="other">Noņemtas %d ziņas</item>
-    </plurals>
     <string name="device_manager_verification_status_detail_current_session_unverified">Jāapliecina pašreizējā sesija paplašinātai drošajai ziņapmaiņai.</string>
     <string name="tooltip_attachment_contact">Atvērt kontaktus</string>
     <string name="a11y_device_manager_device_type_mobile">Tālrunis</string>

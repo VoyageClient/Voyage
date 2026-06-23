@@ -135,7 +135,6 @@
     <string name="username">Brûkersnamme</string>
     <string name="logout">Ofmelde</string>
     <string name="phone_book_perform_lookup">Matrix-kontakten sykje</string>
-    <string name="message_action_item_redact">Fuortsmite…</string>
     <string name="share_confirm_room">Wolle jo dizze bylage nei %1$s ferstjoere\?</string>
     <string name="send_attachment">Bylage ferstjoere</string>
     <string name="settings_text_message_sent_wrong_code">De ferifikaasjekoade is net jildich.</string>
@@ -176,8 +175,6 @@
     <string name="create_new_room">Nije keamer meitsje</string>
     <string name="malformed_message">Net krekt foarme evenemint, kin net toand wurde</string>
     <string name="event_redacted_by_user_reason">Barren troch brûker fuortsmiten</string>
-    <string name="settings_show_redacted">Fuortsmiten berjochten toane</string>
-    <string name="event_redacted">Berjocht fuortsmiten</string>
     <string name="reactions">Reaksjes</string>
     <string name="create_room_public_description">Elkenien kin dizze keamer binnen gean</string>
     <string name="create_room_public_title">Iepenbier</string>

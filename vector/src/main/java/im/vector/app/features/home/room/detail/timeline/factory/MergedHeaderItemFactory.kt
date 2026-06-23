@@ -281,7 +281,7 @@ class MergedHeaderItemFactory @Inject constructor(
         return when {
             type == EventType.STATE_ROOM_MEMBER -> CommonPlurals.membership_changes
             type == EventType.STATE_ROOM_SERVER_ACL -> CommonPlurals.notice_room_server_acl_changes
-            event.isRedacted() -> CommonPlurals.room_removed_messages
+            event.isRedacted() -> CommonPlurals.room_redacted_messages
             else -> null
         }
     }
