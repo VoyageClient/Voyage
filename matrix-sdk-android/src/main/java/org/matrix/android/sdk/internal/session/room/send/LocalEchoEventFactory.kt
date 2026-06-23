@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.session.room.send
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import androidx.exifinterface.media.ExifInterface
 import org.matrix.android.sdk.api.extensions.ensureNotEmpty
@@ -556,14 +555,12 @@ internal class LocalEchoEventFactory @Inject constructor(
         val mediaDataRetriever = MediaMetadataRetriever()
         val (width, height) = try {
             mediaDataRetriever.setDataSource(context, attachment.queryUri)
-            // Use frame to calculate height and width as we are sure to get the right ones.
-            // Mirror ThumbnailExtractor (see 462722ec2a): pull the closest sync frame at t=0
-            // rather than a representative middle frame.
-            val firstFrame: Bitmap? = mediaDataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-            (firstFrame?.width ?: 0) to (firstFrame?.height ?: 0)
+            val rawW = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt() ?: 0
+            val rawH = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt() ?: 0
+            val rotation = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+            val swap = rotation == 90 || rotation == 270
+            (if (swap) rawH else rawW) to (if (swap) rawW else rawH)
         } finally {
-            // Always release the native handle, even if setDataSource or frame extraction
-            // throws — otherwise we leak the underlying decoder.
             mediaDataRetriever.release()
         }
 
