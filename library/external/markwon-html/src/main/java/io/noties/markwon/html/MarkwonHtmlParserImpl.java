@@ -226,6 +226,11 @@ public class MarkwonHtmlParserImpl extends MarkwonHtmlParser {
     public void reset() {
         inlineTags.clear();
         currentBlock = HtmlTagImpl.BlockImpl.root();
+        // This parser instance is reused across renders. Without clearing these, state from the
+        // previously rendered message leaks in: a leftover previousIsBlock=true makes the next
+        // message's first inline element (e.g. an <img> emoticon) gain a spurious leading newline.
+        previousIsBlock = false;
+        isInsidePreTag = false;
     }
 
 
