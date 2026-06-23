@@ -55,7 +55,6 @@ import im.vector.app.features.media.VectorAttachmentViewerViewModel
 import im.vector.app.features.onboarding.OnboardingViewModel
 import im.vector.app.features.poll.create.CreatePollViewModel
 import im.vector.app.features.qrcode.QrCodeScannerViewModel
-import im.vector.app.features.rageshake.BugReportViewModel
 import im.vector.app.features.reactions.EmojiSearchResultViewModel
 import im.vector.app.features.room.RequireActiveMembershipViewModel
 import im.vector.app.features.roomdirectory.RoomDirectoryViewModel
@@ -446,11 +445,6 @@ interface MavericksViewModelModule {
     @IntoMap
     @MavericksViewModelKey(EmojiSearchResultViewModel::class)
     fun emojiSearchResultViewModelFactory(factory: EmojiSearchResultViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey(BugReportViewModel::class)
-    fun bugReportViewModelFactory(factory: BugReportViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap

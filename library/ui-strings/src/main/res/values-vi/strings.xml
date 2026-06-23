@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="send_bug_report_rage_shake">Lắc điện thoại để báo cáo lỗi</string>
-    <string name="send_bug_report_alert_message">Có vẻ bạn đang lắc điện thoại một cách tức giận. Bạn có muốn mở màn hình báo cáo lỗi không\?</string>
     <string name="send_bug_report_placeholder">Miêu tả vấn đề của bạn ở đây</string>
     <string name="send_bug_report_description_in_english">Nếu có thể, vui lòng viết miêu tả bằng tiếng Anh.</string>
     <string name="send_bug_report_description">Vui lòng miêu tả lỗi. Bạn đã làm gì\? Bạn mong điều gì xảy ra\? Điều gì đã xảy ra\?</string>
-    <string name="send_bug_report">Báo lỗi</string>
     <string name="send_bug_report_include_screenshot">Gửi ảnh chụp màn hình</string>
     <string name="send_bug_report_include_key_share_history">Gửi lịch sử yêu cầu chia sẻ khóa</string>
     <string name="rooms_header">Phòng</string>
@@ -80,7 +77,6 @@
     <string name="title_activity_keys_backup_restore">Sử dụng Sao lưu Khóa</string>
     <string name="title_activity_keys_backup_setup">Sao lưu khóa</string>
     <string name="title_activity_choose_sticker">Gửi nhãn dán</string>
-    <string name="title_activity_bug_report">Báo lỗi</string>
     <string name="title_activity_settings">Cài đặt</string>
     <string name="notification_noisy_notifications">Thông báo có âm thanh</string>
     <string name="notification_silent_notifications">Thông báo yên lặng</string>
@@ -110,8 +106,6 @@
     <string name="logout">Đăng xuất</string>
     <string name="username">Tên người dùng</string>
     <string name="join_room">Vào phòng</string>
-    <string name="send_bug_report_failed">Gửi báo cáo lỗi thất bại (%s)</string>
-    <string name="send_bug_report_sent">Bản báo cáo lỗi đã được gửi thành công</string>
     <string name="login_error_bad_json">JSON không hợp lệ</string>
     <string name="login_error_ssl_other">Lỗi SSL.</string>
     <string name="login_error_ssl_peer_unverified">Lỗi SSL: danh tính của đối tác chưa được kiểm chứng.</string>
@@ -119,8 +113,6 @@
     <string name="ignore_request_short_label">Kệ</string>
     <string name="share_without_verifying_short_label">Chia sẻ</string>
     <string name="start_verification">Bắt đầu kiểm chứng</string>
-    <string name="send_bug_report_app_crashed">Chương trình đã gặp sự cố lần trước. Bạn có muốn mở trang tường thuật sự cố không\?</string>
-    <string name="send_bug_report_progress">Tiến độ (%s%%)</string>
     <string name="send_bug_report_include_crash_logs">Gửi nhật ký dừng đột ngột</string>
     <string name="send_bug_report_include_logs">Gửi log</string>
     <string name="auth_submit">Gửi</string>
@@ -758,9 +750,6 @@
     <string name="devices_details_device_name">Cập nhật Tên công khai</string>
     <string name="devices_details_name_title">Tên công khai</string>
     <string name="devices_details_id_title">ID</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} thu thập dữ liệu khuyết danh để giúp chúng tôi cải thiện app.</string>
-    <string name="settings_opt_in_of_analytics">Gửi dữ liệu phân tích</string>
-    <string name="settings_analytics">Phân tích</string>
     <string name="reset_secure_backup_warning">Điều này sẽ thay thế Chìa khóa hoặc Chuỗi ký tự hiện tại.</string>
     <string name="reset_secure_backup_title">Tạo Chìa khóa An toàn mới hoặc đặt Chuỗi từ An toàn để bảo vệ sao lưu hiện hữu.</string>
     <string name="settings_secure_backup_section_info">Sao lưu các chìa khóa giải mã trên server của bạn để đảm bảo không mất dữ liệu và tin nhắn mã hóa.</string>
@@ -1618,10 +1607,6 @@
     <string name="devices_other_devices">Các phiên khác</string>
     <string name="devices_current_device">Phiên hiện tại</string>
     <string name="settings">Cài đặt</string>
-    <string name="rageshake_detected">Lắc phát hiện!</string>
-    <string name="settings_rageshake_detection_threshold_summary">Lắc điện thoại để kiểm tra ngưỡng phát hiện</string>
-    <string name="settings_rageshake_detection_threshold">Ngưỡng phát hiện</string>
-    <string name="settings_rageshake">Rageshake</string>
     <string name="settings_developer_mode_summary">Chế độ nhà phát triển kích hoạt các tính năng ẩn và cũng có thể làm cho ứng dụng kém ổn định hơn. Chỉ dành cho các nhà phát triển!</string>
     <string name="settings_developer_mode">Chế độ nhà phát triển</string>
     <string name="settings_advanced_settings">Cài đặt nâng cao</string>
@@ -2128,16 +2113,13 @@
     <string name="settings_labs_show_hidden_events_in_timeline">Hiện các sự kiện ẩn trong dòng thời gian</string>
     <string name="give_feedback">Đưa phản hồi</string>
     <string name="feedback_failed">Gửi phản hồi thất bại (%s)</string>
-    <string name="feedback_sent">Cảm ơn, phản hồi của bạn đã được gửi thành công</string>
     <string name="you_may_contact_me">Bạn có thể liên hệ với tôi nếu bạn có bất kỳ câu hỏi tiếp theo nào</string>
     <string name="send_feedback_space_info">Bạn đang sử dụng phiên bản beta của Space. Phản hồi của bạn sẽ giúp thông báo cho các phiên bản tiếp theo. Nền tảng và tên người dùng của bạn sẽ được ghi nhận để giúp chúng tôi sử dụng phản hồi của bạn càng nhiều càng tốt.</string>
     <string name="feedback">Phản hồi</string>
     <string name="send_feedback_space_title">Phản hồi Space</string>
     <string name="send_suggestion_failed">Đề xuất không được gửi (%s)</string>
-    <string name="send_suggestion_sent">Cảm ơn, gợi ý đã được gửi thành công</string>
     <string name="send_suggestion_report_placeholder">Mô tả đề xuất của bạn ở đây</string>
     <string name="send_suggestion_content">Vui lòng viết gợi ý của bạn dưới đây.</string>
-    <string name="send_suggestion">Đưa gợi ý</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Token đăng ký</string>
     <string name="preference_system_settings">Cài đặt hệ thống</string>
     <string name="preference_versions">Phiên bản</string>

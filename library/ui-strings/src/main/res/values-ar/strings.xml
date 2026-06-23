@@ -173,7 +173,6 @@
     <string name="black_theme">السمة السوداء</string>
     <string name="notification_listening_for_events">يستمع للأحداث</string>
     <string name="title_activity_settings">الإعدادات</string>
-    <string name="title_activity_bug_report">أبلِغ عن علة</string>
     <string name="ok">حسنا</string>
     <string name="action_cancel">ألغِ</string>
     <string name="action_save">احفظ</string>
@@ -207,9 +206,6 @@
     <string name="send_bug_report_description">رجاءً صِف المشكلة. ما الذي فعلته؟ ما الذي توقعت حدوثه؟ ما الذي حدث؟</string>
     <string name="send_bug_report_placeholder">صِف المشكلة هنا</string>
     <string name="send_bug_report_logs_description">لنقدر على تحليل المشاكل، ستُرسل السجلات من هذا العميل مع بلاغ العلة هذا. سوف لن يُنشر بلاغ العلة (وذلك يشمل السجلات ولقطات الشاشة) لعموم الناس. إن أردت إرسال النص أعلاه فقط، رجاءً أزل تأشير:</string>
-    <string name="send_bug_report_app_crashed">انهار التطبيق في آخر مرة. أتريد إرسال بلاغ انهيار؟</string>
-    <string name="send_bug_report_sent">أُرسل بلاغ العلة بنجاح</string>
-    <string name="send_bug_report_failed">فشل إرسال بلاغ العلة (%s)</string>
     <string name="username">اسم المستخدم</string>
     <string name="logout">خروج</string>
     <string name="option_send_files">أرسِل ملفات</string>
@@ -338,9 +334,6 @@
     <string name="action_quick_reply">ردّ سريع</string>
     <string name="bottom_action_people">الأشخاص</string>
     <string name="home_filter_placeholder_home">ابحث في الغرف</string>
-    <string name="send_bug_report">بلاغ علة</string>
-    <string name="send_bug_report_alert_message">يبدو أنك تهزّ الهاتف وأنت مُحبط. أتريد إرسال بلاغ علة؟</string>
-    <string name="send_bug_report_progress">التقدم (%s٪)</string>
     <string name="loading">يحمّل…</string>
     <plurals name="room_title_members">
         <item quantity="zero">لا أعضاء</item>
@@ -361,7 +354,6 @@
         <item quantity="other">%d رسالة جديدة</item>
     </plurals>
     <string name="low_priority_header">أولوية منخفضة</string>
-    <string name="send_bug_report_rage_shake">هزّ الجهاز بجنون يُرسل بلاغًا بعلة</string>
     <string name="notification_noisy_notifications">الإخطارات المزعجة</string>
     <string name="notification_silent_notifications">الإخطارات الصامتة</string>
     <string name="later">لاحقا</string>
@@ -444,7 +436,6 @@
     <string name="settings_pin_unread_messages">ثبّت الغرف التي فيها رسائل غير مقروءة</string>
     <string name="settings_inline_url_preview">فعّل معاينات العناوين ضمن السياق مبدئيا</string>
     <string name="settings_vibrate_on_mention">هُزّ الجهاز عند الإشارة إليّ</string>
-    <string name="settings_analytics">التحاليل</string>
     <string name="devices_details_last_seen_format">‏⁨%1$s⁩ في ⁨%2$s⁩</string>
     <string name="devices_delete_dialog_title">تخويل</string>
     <string name="settings_logged_in">والج كَ‍</string>
@@ -496,8 +487,6 @@
     <string name="settings_set_sync_timeout">انتهت مهلة طلب المزامنة</string>
     <string name="settings_deactivate_account_section">ألغِ تنشيط الحساب</string>
     <string name="settings_deactivate_my_account">ألغِ تنشيط حسابي</string>
-    <string name="settings_opt_in_of_analytics">أرسِل بيانات التحاليل</string>
-    <string name="settings_opt_in_of_analytics_summary">يجمع Element التحاليل بشكل مجهّل فيتيح لنا ذلك تحسين التطبيق.</string>
     <string name="widget_integration_missing_parameter">ثمة معامل مطلوب ناقص.</string>
     <string name="dialog_user_consent_content">لمتابعة استخدام خادوم المنزل ⁨%1$s⁩ عليك مراجعة الشروط والقوانين والموافقة عليها.</string>
     <string name="dialog_user_consent_submit">سأراجعها الآن</string>
@@ -769,7 +758,6 @@
     <string name="verification_conclusion_not_secure">ليس آمن</string>
     <string name="create_space_in_progress">ينشئ فضاءً…</string>
     <string name="send_suggestion_failed">فشل إرسال الاقتراح (%s)</string>
-    <string name="send_suggestion_sent">شكرًا، أُرسل اقتراحك</string>
     <string name="send_suggestion_report_placeholder">صِف اقتراحك</string>
     <string name="send_suggestion_content">اكتب اقتراحك أدناه.</string>
     <string name="preference_system_settings">إعدادات النظام</string>
@@ -1148,7 +1136,6 @@
 \nيستلم مديرو الدمج بيانات التكوين ويمكنهم تعديل الأدوات وإرسال دعوات للغرف وتعيين مستويات الصلاحيات نيابة عنك.</string>
     <string name="settings_discovery_category">استكشاف</string>
     <string name="preference_root_legals">قانوني</string>
-    <string name="send_suggestion">تقديم إقتراح</string>
     <string name="settings_advanced_settings">إعدادات متقدمة</string>
     <string name="sign_out_failed_dialog_message">لا يمكن الوصول إلى خادم المنزل. إذا قمت بتسجيل الخروج على أي حال، فلن يتم مسح هذا الجهاز من قائمة أجهزتك، قد ترغب في إزالته باستخدام عميل آخر.</string>
     <string name="sign_out_anyway">تسجيل الخروج على أي حال</string>

@@ -260,15 +260,9 @@
     <string name="send_bug_report_include_logs">Protokolle senden</string>
     <string name="send_bug_report_include_crash_logs">Absturzberichte übermitteln</string>
     <string name="send_bug_report_include_screenshot">Bildschirmfoto übermitteln</string>
-    <string name="send_bug_report">Problem melden</string>
     <string name="send_bug_report_description">Bitte beschreibe das Problem. Was hast du genau gemacht\? Was sollte passieren\? Was ist tatsächlich passiert\?</string>
     <string name="send_bug_report_placeholder">Problembeschreibung</string>
     <string name="send_bug_report_logs_description">Um Probleme diagnostizieren zu können, werden Protokolle der Anwendung zusammen mit dem Fehlerbericht übermittelt. Dieser Fehlerbericht wird, inklusive der Protokolle und des Bildschirmfotos, nicht öffentlich sichtbar sein. Wenn du nur den oben eingegebenen Text senden möchtest, entferne die Häkchen:</string>
-    <string name="send_bug_report_alert_message">Du scheinst dein Telefon frustriert zu schütteln. Möchtest du das Fenster zum Senden eines Fehlerberichts öffnen\?</string>
-    <string name="send_bug_report_sent">Dein Fehlerbericht wurde erfolgreich übermittelt</string>
-    <string name="send_bug_report_failed">Der Fehlerbericht konnte nicht übermittelt werden (%s)</string>
-    <string name="send_bug_report_progress">Fortschritt (%s%%)</string>
-    <string name="send_bug_report_app_crashed">Die Anwendung ist während der letzten Benutzung abgestürzt. Möchtest du den Fehler melden\?</string>
     <string name="join_room">Raum betreten</string>
     <string name="username">Benutzername</string>
     <string name="logout">Abmelden</string>
@@ -473,8 +467,6 @@
     <string name="option_take_photo">Foto aufnehmen</string>
     <string name="option_take_video">Video aufnehmen</string>
     <string name="settings_labs_native_camera">Systemeigene Kamera verwenden</string>
-    <string name="settings_analytics">Anonymisierte Analysedaten</string>
-    <string name="title_activity_bug_report">Fehlerbericht</string>
     <string name="command_error">Befehlsfehler</string>
     <string name="unrecognized_command">Unbekanntes Kommando: %s</string>
     <string name="notification_off">Aus</string>
@@ -493,7 +485,6 @@
     <string name="has_been_banned">Du wurdest von %2$s aus %1$s verbannt</string>
     <string name="reason_colon">Grund: %1$s</string>
     <string name="room_settings_add_homescreen_shortcut">Zum Startbildschirm hinzufügen</string>
-    <string name="send_bug_report_rage_shake">Schütteln, um einen Fehler zu melden</string>
     <string name="list_members">Mitglieder</string>
     <plurals name="room_title_members">
         <item quantity="one">%d Mitglied</item>
@@ -528,8 +519,6 @@
 \nMöchtest du welche hinzufügen\?</string>
     <string name="settings_deactivate_account_section">Konto deaktivieren</string>
     <string name="settings_deactivate_my_account">Mein Konto deaktivieren</string>
-    <string name="settings_opt_in_of_analytics">Sende Analysedaten</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} sammelt anonyme Analysedaten um uns zu helfen, die App zu verbessern.</string>
     <string name="widget_integration_missing_parameter">Ein benötigter Parameter fehlt.</string>
     <string name="dialog_user_consent_content">Um %1$s weiter zu verwenden, musst die Geschäftsbedingungen begutachten und ihnen zustimmen.</string>
     <string name="dialog_user_consent_submit">Jetzt prüfen</string>
@@ -872,7 +861,6 @@
     <string name="preference_voice_and_video">Sprache und Video</string>
     <string name="preference_root_help_about">Hilfe und Über</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Token registrieren</string>
-    <string name="send_suggestion">Mache einen Vorschlag</string>
     <string name="send_suggestion_content">Bitte schreibe unten deine Anmerkungen.</string>
     <string name="send_suggestion_report_placeholder">Beschreibe hier deine Anmerkung</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Versteckte Ereignisse in der Zeitleiste anzeigen</string>
@@ -890,7 +878,6 @@
     <string name="creating_direct_room">Raum erstellen …</string>
     <string name="message_view_edit_history">Bearbeitungsverlauf anzeigen</string>
     <string name="import_e2e_keys_from_file">E2E-Schlüssel aus der Datei \"%1$s\" importieren.</string>
-    <string name="send_suggestion_sent">Vielen Dank, der Vorschlag wurde erfolgreich gesendet</string>
     <string name="send_suggestion_failed">Der Vorschlag konnte nicht gesendet werden (%s)</string>
     <string name="send_file_step_sending_thumbnail">Miniaturbild wird gesendet (%1$s / %2$s)</string>
     <string name="send_file_step_sending_file">Datei wird gesendet (%1$s / %2$s)</string>
@@ -1159,10 +1146,6 @@
     <string name="settings_advanced_settings">Erweiterte Einstellungen</string>
     <string name="settings_developer_mode">Entwicklermodus</string>
     <string name="settings_developer_mode_summary">Der Entwicklermodus aktiviert versteckte Funktionen und kann die Anwendung weniger stabil machen. Nur für Entwickler!</string>
-    <string name="settings_rageshake">Wutschütteln</string>
-    <string name="settings_rageshake_detection_threshold">Erkennungsschwelle</string>
-    <string name="settings_rageshake_detection_threshold_summary">Schüttel dein Telefon, um die Erkennungsschwelle zu testen</string>
-    <string name="rageshake_detected">Schütteln erkannt!</string>
     <string name="settings">Einstellungen</string>
     <string name="devices_current_device">Aktuelle Sitzung</string>
     <string name="devices_other_devices">Andere Sitzungen</string>
@@ -1982,7 +1965,6 @@
     <string name="public_space">Öffentlicher Space</string>
     <string name="give_feedback">Rückmeldung geben</string>
     <string name="feedback_failed">Fehler beim Senden vom Feedback (%s)</string>
-    <string name="feedback_sent">Dein Feedback wurde erfolgreich versandt. Danke!</string>
     <string name="you_may_contact_me">Mich bei Fragen kontaktieren</string>
     <string name="feedback">Feedback</string>
     <string name="send_feedback_space_title">Spaces Feedback</string>

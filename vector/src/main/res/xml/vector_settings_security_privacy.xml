@@ -120,18 +120,6 @@
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
-        android:key="SETTINGS_ANALYTICS_PREFERENCE_KEY"
-        android:title="@string/settings_analytics">
-
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="false"
-            android:key="SETTINGS_USER_ANALYTICS_CONSENT_KEY"
-            android:summary="@string/settings_opt_in_of_analytics_summary"
-            android:title="@string/settings_opt_in_of_analytics" />
-
-    </im.vector.app.core.preference.VectorPreferenceCategory>
-
-    <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_SECURITY_OTHER_CATEGORY"
         android:title="@string/settings_other">
 

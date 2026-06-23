@@ -25,9 +25,6 @@ class SettingsSecurityRobot {
         pressBack()
          */
 
-        clickOnPreference(CommonStrings.settings_opt_in_of_analytics)
-        Espresso.pressBack()
-
         clickOnPreference(CommonStrings.settings_ignored_users)
         Espresso.pressBack()
     }

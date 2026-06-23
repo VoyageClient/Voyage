@@ -85,7 +85,6 @@
     <string name="notification_silent_notifications">Stille meldiengn</string>
 
     <string name="title_activity_settings">Instelliengn</string>
-    <string name="title_activity_bug_report">Foutmeldienge</string>
     <string name="title_activity_choose_sticker">Verstuurt e sticker</string>
     <string name="title_activity_keys_backup_setup">Sleuterback-up</string>
     <string name="title_activity_keys_backup_restore">Sleuterback-up gebruukn</string>

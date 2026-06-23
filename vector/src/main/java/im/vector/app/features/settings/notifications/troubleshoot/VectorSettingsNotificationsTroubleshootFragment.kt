@@ -29,7 +29,6 @@ import im.vector.app.core.utils.startNotificationSettingsIntent
 import im.vector.app.databinding.FragmentSettingsNotificationsTroubleshootBinding
 import im.vector.app.features.notifications.NotificationActionIds
 import im.vector.app.features.push.NotificationTroubleshootTestManagerFactory
-import im.vector.app.features.rageshake.BugReporter
 import im.vector.app.features.settings.VectorSettingsFragmentInteractionListener
 import im.vector.app.features.settings.troubleshoot.NotificationTroubleshootTestManager
 import im.vector.app.features.settings.troubleshoot.TroubleshootTest
@@ -42,7 +41,6 @@ import javax.inject.Inject
 class VectorSettingsNotificationsTroubleshootFragment :
         VectorBaseFragment<FragmentSettingsNotificationsTroubleshootBinding>() {
 
-    @Inject lateinit var bugReporter: BugReporter
     @Inject lateinit var testManagerFactory: NotificationTroubleshootTestManagerFactory
     @Inject lateinit var actionIds: NotificationActionIds
 
@@ -64,10 +62,6 @@ class VectorSettingsNotificationsTroubleshootFragment :
         val dividerItemDecoration = DividerItemDecoration(view.context, layoutManager.orientation)
         views.troubleshootTestRecyclerView.addItemDecoration(dividerItemDecoration)
 
-        views.troubleshootSummButton.debouncedClicks {
-            bugReporter.openBugReportScreen(requireActivity())
-        }
-
         views.troubleshootRunButton.debouncedClicks {
             testManager?.retry(TroubleshootTest.TestParameters(testStartForActivityResult, testStartForPermissionResult))
         }
@@ -83,7 +77,6 @@ class VectorSettingsNotificationsTroubleshootFragment :
                 when (troubleshootTestManager.diagStatus) {
                     TroubleshootTest.TestStatus.NOT_STARTED -> {
                         views.toubleshootSummDescription.text = null
-                        views.troubleshootSummButton.visibility = View.GONE
                         views.troubleshootRunButton.visibility = View.VISIBLE
                     }
                     TroubleshootTest.TestStatus.RUNNING,
@@ -95,7 +88,6 @@ class VectorSettingsNotificationsTroubleshootFragment :
                                 currentTestIndex,
                                 size
                         )
-                        views.troubleshootSummButton.visibility = View.GONE
                         views.troubleshootRunButton.visibility = View.GONE
                     }
                     TroubleshootTest.TestStatus.FAILED -> {
@@ -106,12 +98,10 @@ class VectorSettingsNotificationsTroubleshootFragment :
                         } else {
                             views.toubleshootSummDescription.text = getString(CommonStrings.settings_troubleshoot_diagnostic_failure_status_no_quickfix)
                         }
-                        views.troubleshootSummButton.visibility = View.VISIBLE
                         views.troubleshootRunButton.visibility = View.VISIBLE
                     }
                     TroubleshootTest.TestStatus.SUCCESS -> {
                         views.toubleshootSummDescription.text = getString(CommonStrings.settings_troubleshoot_diagnostic_success_status)
-                        views.troubleshootSummButton.visibility = View.VISIBLE
                         views.troubleshootRunButton.visibility = View.VISIBLE
                     }
                 }

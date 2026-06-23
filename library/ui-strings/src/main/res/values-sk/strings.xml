@@ -213,15 +213,9 @@
     <string name="send_bug_report_include_logs">Odoslať záznamy</string>
     <string name="send_bug_report_include_crash_logs">Odoslať záznamy o zlyhaní</string>
     <string name="send_bug_report_include_screenshot">Odoslať snímku obrazovky</string>
-    <string name="send_bug_report">Nahlásiť chybu</string>
     <string name="send_bug_report_description">Prosím, Napíšte text hlásenia. Čo ste práve robili? Čo ste očakávali? Čo sa v skutočnosti udialo?</string>
     <string name="send_bug_report_placeholder">Tu popíšte váš problém</string>
     <string name="send_bug_report_logs_description">Za účelom diagnostiky problémov budú spolu s týmto hlásením o chybe odoslané záznamy z tohto klienta. Toto hlásenie o chybe, vrátane záznamov a snímku obrazovky, nebude verejne viditeľné. Ak chcete radšej odoslať len vyššie uvedený text, zrušte označenie:</string>
-    <string name="send_bug_report_alert_message">Zdá sa, že v zlosti trasiete zariadením. Chceli by ste odoslať hlásenie o chybe?</string>
-    <string name="send_bug_report_app_crashed">Posledné spustenie aplikácie skončilo pádom. Chceli by ste odoslať hlásenie o chybe?</string>
-    <string name="send_bug_report_sent">Hlásenie o chybe bolo úspešne odoslané</string>
-    <string name="send_bug_report_failed">Hlásenie o chybe sa nepodarilo odoslať (%s)</string>
-    <string name="send_bug_report_progress">Priebeh (%s%%)</string>
     <string name="join_room">Vstúpiť do miestnosti</string>
     <string name="username">Meno používateľa</string>
     <string name="logout">Odhlásiť sa</string>
@@ -419,10 +413,8 @@
     <string name="start_verification">Spustiť overenie</string>
     <string name="notification_noisy_notifications">Hlasné oznámenia</string>
     <string name="notification_silent_notifications">Tiché oznámenia</string>
-    <string name="title_activity_bug_report">Hlásenie o chybe</string>
     <string name="option_take_photo">Poslať fotku</string>
     <string name="option_take_video">Poslať video</string>
-    <string name="settings_analytics">Štatistika</string>
     <string name="settings_labs_native_camera">Používať vstavaný fotoaparát a kameru</string>
     <string name="command_error">Chybný príkaz</string>
     <string name="unrecognized_command">Nerozpoznaný príkaz: %s</string>
@@ -442,7 +434,6 @@
     <string name="has_been_removed">Používateľ %2$s vás vykázal z miestnosti %1$s</string>
     <string name="has_been_banned">Používateľ %2$s vám zakázal vstúpiť do miestnosti %1$s</string>
     <string name="reason_colon">Dôvod: %1$s</string>
-    <string name="send_bug_report_rage_shake">Oznámiť chybu zatrasením zariadenia</string>
     <plurals name="membership_changes">
         <item quantity="one">1 zmena členstva</item>
         <item quantity="few">%d zmeny členstva</item>
@@ -483,8 +474,6 @@
 \nChcete si nejaké pridať teraz\?</string>
     <string name="settings_deactivate_account_section">Deaktivovať účet</string>
     <string name="settings_deactivate_my_account">Deaktivovať môj účet</string>
-    <string name="settings_opt_in_of_analytics">Odosielať analytické údaje</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} zbiera anonymné analytické údaje, čo nám umožňuje aplikáciu ďalej zlepšovať.</string>
     <string name="widget_integration_missing_parameter">Chýba zadanie povinného argumentu.</string>
     <string name="dialog_user_consent_content">Ak chcete aj naďalej používať domovský server %1$s , mali by ste si prečítať a odsúhlasiť zmluvné podmienky.</string>
     <string name="dialog_user_consent_submit">Prečítať teraz</string>
@@ -955,10 +944,8 @@
     <string name="preference_voice_and_video">Zvuk a video</string>
     <string name="preference_root_help_about">Pomoc a o aplikácii</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Zaregistrovať token</string>
-    <string name="send_suggestion">Poslať návrh</string>
     <string name="send_suggestion_content">Nižšie napíšte obsah návrhu.</string>
     <string name="send_suggestion_report_placeholder">Popíšte váš návrh</string>
-    <string name="send_suggestion_sent">Ďakujeme, váš návrh bol úspešne odoslaný</string>
     <string name="send_suggestion_failed">Návrh sa nepodarilo odoslať (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Zobrazovať skryté udalosti na časovej osy</string>
     <string name="bottom_action_people_x">Priame konverzácie</string>
@@ -1377,10 +1364,8 @@
         <item quantity="few">%1$d osoby</item>
         <item quantity="other">%1$d osôb</item>
     </plurals>
-    <string name="rageshake_detected">Zistené otrasy!</string>
     <string name="login_a11y_choose_matrix_org">Vybrať matrix.org</string>
     <string name="content_reported_title">Obsah nahlásený</string>
-    <string name="settings_rageshake">Zúrivé trasenie</string>
     <string name="create_spaces_just_me">Iba ja</string>
     <string name="disclaimer_title">Riot je teraz Element!</string>
     <string name="login_wait_for_email_title">Skontrolujte prosím svoj e-mail</string>
@@ -2005,8 +1990,6 @@
 \nOverenie bude uložené lokálne a zdieľané v budúcej verzii aplikácie.</string>
     <string name="room_profile_section_admin">Akcie správcu</string>
     <string name="autocomplete_limited_results">Zobrazujú sa len prvé výsledky, zadajte ďalšie písmená…</string>
-    <string name="settings_rageshake_detection_threshold_summary">Zatraste telefónom a otestujte prah detekcie</string>
-    <string name="settings_rageshake_detection_threshold">Prahová hodnota detekcie</string>
     <string name="permalink_malformed">Váš odkaz matrix.to bol nesprávne vytvorený</string>
     <string name="soft_logout_sso_not_same_user_error">Aktuálna relácia je pre používateľa %1$s a vy ste zadali poverenia pre používateľa %2$s. Toto nie je podporované aplikáciou ${app_name}.
 \nNajprv vymažte údaje a potom sa znovu prihláste na inom účte.</string>
@@ -2088,7 +2071,6 @@
     <string name="send_file_step_compressing_video">Kompresia videa %d%%</string>
     <string name="user_invites_you">%s vás pozval</string>
     <string name="you_may_contact_me">V prípade ďalších otázok ma môžete kontaktovať</string>
-    <string name="feedback_sent">Ďakujeme, vaša spätná väzba bola úspešne odoslaná</string>
     <string name="error_failed_to_join_room">Ospravedlňujeme sa, pri pokuse o pripojenie došlo k chybe: %s</string>
     <string name="command_description_upgrade_room">Aktualizuje miestnosť na novšiu verziu</string>
     <string name="it_may_take_some_time">Buďte prosím trpezliví, môže to chvíľu trvať.</string>

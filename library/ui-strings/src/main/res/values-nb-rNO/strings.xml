@@ -4,7 +4,6 @@
     <string name="dark_theme">Mørkt tema</string>
     <string name="black_theme">Svart tema</string>
     <string name="title_activity_settings">Innstillinger</string>
-    <string name="title_activity_bug_report">Feilrapport</string>
     <string name="title_activity_choose_sticker">Send et klistremerke</string>
     <string name="are_you_sure">Er du sikker\?</string>
     <string name="loading">Laster…</string>
@@ -42,8 +41,6 @@
     <string name="low_priority_header">Lavprioritet</string>
     <string name="no_result_placeholder">Ingen treff</string>
     <string name="rooms_header">Rom</string>
-    <string name="send_bug_report">Meld fra om en bug</string>
-    <string name="send_bug_report_progress">Fremgang (%s%%)</string>
     <string name="join_room">Bli med i rommet</string>
     <string name="username">Brukernavn</string>
     <string name="logout">Logg ut</string>
@@ -88,8 +85,6 @@
     <string name="settings_cryptography">Kryptografi</string>
     <string name="settings_contact">Lokale kontakter</string>
     <string name="settings_send_typing_notifs">Send varsler om at du skriver</string>
-    <string name="settings_analytics">Analyser</string>
-    <string name="settings_opt_in_of_analytics">Send analytiske data</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Offentlig navn</string>
     <string name="devices_details_last_seen_title">Sist sett</string>
@@ -261,7 +256,6 @@
     <string name="room_settings_all_messages">Alle meldinger</string>
     <string name="settings_olm_version">olm-versjon</string>
     <string name="settings_deactivate_account_section">Deaktiver kontoen</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} samler inn anonyme statistikker for å hjelpe oss med å forbedre programmet.</string>
     <string name="devices_details_last_seen_format">%1$s @ %2$s</string>
     <string name="settings_integration_manager">Integreringsbehandler</string>
     <string name="room_settings_room_read_history_rules_pref_dialog_title">Hvem kan lese historikken\?</string>
@@ -386,11 +380,6 @@
     <string name="send_bug_report_description_in_english">Om mulig, vennligst beskriv på engelsk.</string>
     <string name="send_bug_report_placeholder">Forklar problemet ditt her</string>
     <string name="send_bug_report_logs_description">For å diagnotisere feil, logger fra denne klienten vil bli sendt med denne feilmeldingen. Feilmeldingen, som inkluderer loggene og skjermdumper, blir ikke offentlig synlig. Hvis du foretrekker å bare sende teksten over, vennligst fjern merkene fra boksene:</string>
-    <string name="send_bug_report_alert_message">Det ser ut som du rister på telefonen i frustrasjon. Har du lyst til å åpne feilrapporteringsskjermen\?</string>
-    <string name="send_bug_report_app_crashed">Applikasjonen kræsjet sist gang. Har du lyst til å åpne kræsjskjermen\?</string>
-    <string name="send_bug_report_rage_shake">Sinnarist for å rapportere feil</string>
-    <string name="send_bug_report_sent">Feilrapport har blitt sendt</string>
-    <string name="send_bug_report_failed">feilrapporten feilet å sendes (%s)</string>
     <string name="hs_url">Hjemmetjener URL</string>
     <string name="option_send_voice">Send lydopptak</string>
     <string name="action_play">Spill av</string>
@@ -495,7 +484,6 @@
     <string name="settings_show_redacted">Vis fjernede meldinger</string>
     <string name="settings_show_redacted_summary">Vis en stattholder for fjernede meldinger</string>
     <string name="settings_sdk_version">Matrix SDK-versjon</string>
-    <string name="send_suggestion">Send inn et forslag</string>
     <string name="send_file_step_encrypting_file">Krypterer filen …</string>
     <string name="room_directory_search_hint">Navn eller ID (#example:matrix.org)</string>
     <string name="message_view_edit_history">Vis redigeringshistorikk</string>
@@ -731,7 +719,6 @@
     <string name="navigate_to_room_when_already_in_the_room">Du ser allerede på dette rommet!</string>
     <string name="send_suggestion_content">Vennligst skriv ditt forslag nedenfor.</string>
     <string name="send_suggestion_report_placeholder">Beskriv ditt forslag her</string>
-    <string name="send_suggestion_sent">Takk, forslaget er sendt</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Vis fullstendig historie i krypterte rom</string>
     <string name="send_file_step_encrypting_thumbnail">Krypterer miniatyrbilde…</string>
     <string name="downloaded_file">Filen %1$s er lastet ned!</string>
@@ -865,7 +852,6 @@
 \nLogg på igjen for å få tilgang til kontodataene og meldingene dine.</string>
     <string name="soft_logout_clear_data_dialog_e2e_warning_content">Du mister tilgangen til sikre meldinger med mindre du logger på for å gjenopprette krypteringsnøklene.</string>
     <string name="devices_other_devices">Andre økter</string>
-    <string name="rageshake_detected">Riste oppdaget!</string>
     <string name="settings_developer_mode_fail_fast_summary">${app_name} kan krasje oftere når en uventet feil oppstår</string>
     <string name="create_room_alias_already_in_use">Denne adressen er allerede i bruk</string>
     <string name="create_room_alias_empty">Oppgi romadresse</string>

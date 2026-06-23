@@ -380,17 +380,10 @@
     <string name="logout">সাইন আউট</string>
     <string name="username">ব্যবহারকারীর নাম</string>
     <string name="join_room">রুমে যোগদান</string>
-    <string name="send_bug_report_progress">উন্নতি (%s%%)</string>
-    <string name="send_bug_report_failed">বাগ রিপোর্ট পাঠানো ব্যর্থ হয়েছে (%s)</string>
-    <string name="send_bug_report_sent">বাগ রিপোর্ট সফলভাবে পাঠানো হয়েছে</string>
-    <string name="send_bug_report_rage_shake">বাগ রিপোর্ট করার জন্য জোরে ঝাঁকান</string>
-    <string name="send_bug_report_app_crashed">অ্যাপ্লিকেশন শেষ সময় ক্র্যাশ হয়েছে। আপনি ক্র্যাশ রিপোর্ট স্ক্রিনটি খুলতে চান\?</string>
-    <string name="send_bug_report_alert_message">আপনি হতাশায় ফোন কম্পন করা বলে মনে হচ্ছে। আপনি বাগ রিপোর্ট স্ক্রিন খুলতে চান\?</string>
     <string name="send_bug_report_logs_description">সমস্যাগুলির নির্ণয়ের জন্য, এই ক্লায়েন্ট থেকে লগগুলি এই বাগ রিপোর্টটি পাঠানো হবে। লগ এবং স্ক্রিনশট সহ এই বাগ রিপোর্টটি সর্বজনীনভাবে দৃশ্যমান হবে না। আপনি যদি শুধুমাত্র উপরের পাঠ্যটি পাঠাতে চান তবে অনুগ্রহ করে আনটিক করুন:</string>
     <string name="send_bug_report_placeholder">এখানে আপনার সমস্যা বর্ণনা করুন</string>
     <string name="send_bug_report_description_in_english">যদি সম্ভব হয়, ইংরেজি বিবরণ লিখুন।</string>
     <string name="send_bug_report_description">বাগ বর্ণনা করুন। আপনি কি করেছিলেন\? আপনি কি ঘটতে আশা করেন\? আসলে কি ঘটেছে\?</string>
-    <string name="send_bug_report">বাগ রিপোর্ট</string>
     <string name="send_bug_report_include_screenshot">স্ক্রিনশট পাঠান</string>
     <string name="send_bug_report_include_crash_logs">ক্র্যাশ লগগুলি পাঠান</string>
     <string name="send_bug_report_include_logs">লগগুলি পাঠান</string>
@@ -480,9 +473,6 @@
     <string name="devices_details_device_name">সর্বজনীন নাম আপডেট করুন</string>
     <string name="devices_details_name_title">সর্বজনীন নাম</string>
     <string name="devices_details_id_title">আইডি</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} আমাদের অ্যাপ্লিকেশন উন্নত করার অনুমতি দেওয়ার জন্য বেনামী বিশ্লেষণ সংগ্রহ করে।</string>
-    <string name="settings_opt_in_of_analytics">বিশ্লেষণ তথ্য পাঠান</string>
-    <string name="settings_analytics">বৈশ্লেষিক ন্যায়</string>
 
     <string name="settings_discovery_manage">আপনার আবিষ্কারের সেটিংস পরিচালনা করুন।</string>
     <string name="settings_discovery_category">আবিষ্কার</string>
@@ -588,7 +578,6 @@
     <string name="title_activity_keys_backup_restore">কী ব্যাকআপ ব্যবহার করুন</string>
     <string name="title_activity_keys_backup_setup">কী ব্যাকআপ</string>
     <string name="title_activity_choose_sticker">একটি স্টিকার পাঠান</string>
-    <string name="title_activity_bug_report">বাগ রিপোর্ট</string>
     <string name="title_activity_settings">সেটিংস</string>
     <string name="notification_silent_notifications">নীরব বিজ্ঞপ্তিগুলি</string>
     <string name="notification_noisy_notifications">সশব্দ বিজ্ঞপ্তিগুলি</string>

@@ -259,15 +259,9 @@
     <string name="send_bug_report_include_logs">Enviar registros</string>
     <string name="send_bug_report_include_crash_logs">Enviar registros de fallas</string>
     <string name="send_bug_report_include_screenshot">Enviar captura de pantalla</string>
-    <string name="send_bug_report">Informe de Error</string>
     <string name="send_bug_report_description">Por favor describe el error. ¿Qué hiciste? ¿Qué esperabas que sucediera? ¿Qué sucedió realmente?</string>
     <string name="send_bug_report_placeholder">Describe tu problema aquí</string>
     <string name="send_bug_report_logs_description">Para diagnosticar problemas, los registros de este cliente se enviarán junto con este informe de error. Este informe, incluidos los registros y la captura de pantalla, no será visible públicamente. Si prefieres enviar solo el texto anterior, por favor desmarca:</string>
-    <string name="send_bug_report_alert_message">Parece que estás agitando el teléfono con frustración. ¿Te gustaría enviar un informe de error?</string>
-    <string name="send_bug_report_sent">El informe de error ha sido enviado con éxito</string>
-    <string name="send_bug_report_failed">No se pudo enviar el informe de error (%s)</string>
-    <string name="send_bug_report_progress">Progreso (%s%%)</string>
-    <string name="send_bug_report_app_crashed">La aplicación falló en la última sesión. ¿Te gustaría enviar un informe de error\?</string>
     <string name="join_room">Unirse a la Sala</string>
     <string name="username">Nombre de usuario</string>
     <string name="logout">Cerrar sesión</string>
@@ -452,14 +446,12 @@
     <string name="notification_listening_for_events">Captando eventos</string>
     <string name="notification_noisy_notifications">Notificaciones ruidosas</string>
     <string name="notification_silent_notifications">Notificaciones silenciosas</string>
-    <string name="title_activity_bug_report">Informe de error</string>
     <string name="option_take_photo">Tomar foto</string>
     <string name="option_take_video">Tomar vídeo</string>
     <string name="settings_notification_ringtone">Sonido de notificación</string>
     <string name="settings_containing_my_display_name">Mensajes que contienen mi nombre público</string>
     <string name="settings_containing_my_user_name">Mensajes que contienen mi nombre de usuario</string>
     <string name="settings_12_24_timestamps">Mostrar marcas temporales en formato de 12 horas</string>
-    <string name="settings_analytics">Análisis de Estadísticas</string>
     <string name="widget_delete_message_confirmation">¿Seguro que quieres eliminar el widget de esta sala\?</string>
     <string name="widget_integration_unable_to_create">No es posible crear el componente.</string>
     <string name="widget_integration_failed_to_send_request">El envío de la solicitud falló.</string>
@@ -492,7 +484,6 @@
     <string name="has_been_removed">Has sido expulsado de %1$s por %2$s</string>
     <string name="has_been_banned">Has sido vetado de %1$s por %2$s</string>
     <string name="reason_colon">Motivo: %1$s</string>
-    <string name="send_bug_report_rage_shake">Agitar con rabia para reportar un error</string>
     <string name="list_members">Listar miembros</string>
     <plurals name="room_title_members">
         <item quantity="one">%d miembro</item>
@@ -544,8 +535,6 @@
     <string name="e2e_re_request_encryption_key_dialog_content">Por favor, inicia ${app_name} en otro dispositivo que pueda descifrar el mensaje para que pueda enviar las claves a esta sesión.</string>
     <string name="error_no_external_application_found">Lo sentimos, no se encontró ninguna aplicación externa para completar esta acción.</string>
     <string name="e2e_re_request_encryption_key">Volver a solicitar las claves de cifrado de tus otras sesiones.</string>
-    <string name="settings_opt_in_of_analytics">Enviar datos de análisis de estadísticas</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} recopila análisis de estadísticas anónimas para permitirnos mejorar la aplicación.</string>
     <string name="send_bug_report_description_in_english">Si es posible, por favor escribe la descripción en inglés.</string>
     <string name="command_description_emote">Muestra la acción</string>
     <string name="command_description_ban_user">Veta al usuario con la ID dada</string>
@@ -857,7 +846,6 @@
     <string name="settings_preferences">Preferencias</string>
     <string name="settings_security_and_privacy">Seguridad &amp; Privacidad</string>
     <string name="preference_voice_and_video">Voz &amp; Video</string>
-    <string name="send_suggestion">Haz una sugerencia</string>
     <string name="send_suggestion_content">Por favor escriba su sugerencia a continuación.</string>
     <string name="send_suggestion_report_placeholder">Describa su sugerencia aquí</string>
     <string name="none">Ninguno</string>
@@ -922,7 +910,6 @@
     <string name="push_gateway_item_format">Formato:</string>
     <string name="preference_root_help_about">Ayuda y Acerca de</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Registrar token</string>
-    <string name="send_suggestion_sent">Gracias, la sugerencia ha sido enviada correctamente</string>
     <string name="send_suggestion_failed">El envio de la sugerencia ha fallado (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Mostrar eventos ocultos en la línea de tiempo</string>
     <string name="bottom_action_people_x">Mensajes Directos</string>
@@ -1116,10 +1103,6 @@
     <string name="notification_initial_sync">Sincronización inicial…</string>
     <string name="settings_advanced_settings">Opciones Avanzadas</string>
     <string name="settings_developer_mode">Modo Desarrollador</string>
-    <string name="settings_rageshake">Agitar</string>
-    <string name="settings_rageshake_detection_threshold">Sensibilidad</string>
-    <string name="settings_rageshake_detection_threshold_summary">Agite su dispositivo para probar la sensibilidad</string>
-    <string name="rageshake_detected">Sacudida detectada!</string>
     <string name="settings">Ajustes</string>
     <string name="devices_current_device">Sesión Actual</string>
     <string name="devices_other_devices">Otras Sesiones</string>
@@ -1854,7 +1837,6 @@
     <string name="attachment_viewer_item_x_of_y">%1$d de %2$d</string>
     <string name="error_file_too_big_simple">El archivo es muy grande como para subirlo.</string>
     <string name="feedback_failed">Ha ocurrido un error al enviar reacción (%s)</string>
-    <string name="feedback_sent">Gracias, tu reacción ha sido enviada satisfactoriamente</string>
     <string name="give_feedback">Dar una reacción</string>
     <string name="room_preview_no_preview_join">Esta sala no tiene una vista previa. Quieres unirte a ella\?</string>
     <string name="room_preview_not_found">Esta sala no es accesible en este momento.

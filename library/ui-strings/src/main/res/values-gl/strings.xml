@@ -227,7 +227,6 @@
     <string name="notification_noisy_notifications">Notificacións con son</string>
     <string name="notification_silent_notifications">Notificacións silenciosas</string>
     <string name="title_activity_settings">Configuración</string>
-    <string name="title_activity_bug_report">Informar de erros</string>
     <string name="loading">Cargando…</string>
     <string name="ok">Aceptar</string>
     <string name="action_cancel">Cancelar</string>
@@ -270,15 +269,9 @@
     <string name="send_bug_report_include_logs">Enviar informes</string>
     <string name="send_bug_report_include_crash_logs">Enviar informes de fallos</string>
     <string name="send_bug_report_include_screenshot">Enviar captura de pantalla</string>
-    <string name="send_bug_report">Informe de fallos</string>
     <string name="send_bug_report_description">Describa o fallo. Que é o que fixo? Que agardaba que pasase? Que foi o que pasou?</string>
     <string name="send_bug_report_placeholder">Describa o problema aquí</string>
     <string name="send_bug_report_logs_description">Coa finalidade de comprender os problemas, hanse de enviar os rexistros que xerou esta aplicación co informe de erros. Se só quixera que se enviase o texto de enriba, desmarque:</string>
-    <string name="send_bug_report_alert_message">Semella que o móbil o ten anoxado. Quere enviar un informe de erros?</string>
-    <string name="send_bug_report_app_crashed">A última vez o aplicativo tivo un erro. Quere enviar un informe dese erro?</string>
-    <string name="send_bug_report_sent">Enviouse o informe de erros correctamente</string>
-    <string name="send_bug_report_failed">Houbo un problema enviando o informe de erros (%s)</string>
-    <string name="send_bug_report_progress">Progreso (%s%%)</string>
     <string name="join_room">Unirse a sala</string>
     <string name="username">Nome de usuario</string>
     <string name="logout">Saír</string>
@@ -340,9 +333,6 @@
     <string name="settings_always_show_timestamps">Mostrar sempre marcas de tempo</string>
     <string name="settings_12_24_timestamps">Mostrar marcas de tempo con formato 12-horas</string>
     <string name="settings_deactivate_my_account">Desactivar a miña conta</string>
-    <string name="settings_analytics">Analytics</string>
-    <string name="settings_opt_in_of_analytics">Enviar datos de análises</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} recolle información analítica anónima para permitirnos mellorar o aplicativo.</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Nome</string>
     <string name="devices_details_device_name">Nome do dispositivo</string>

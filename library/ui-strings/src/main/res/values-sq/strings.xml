@@ -223,7 +223,6 @@
     <string name="notification_noisy_notifications">Njoftime të zhurmshme</string>
     <string name="notification_silent_notifications">Njoftime të heshtura</string>
     <string name="title_activity_settings">Rregullime</string>
-    <string name="title_activity_bug_report">Njoftim të metash</string>
     <string name="loading">Po ngarkohet…</string>
     <string name="ok">OK</string>
     <string name="action_cancel">Anuloje</string>
@@ -263,10 +262,7 @@
     <string name="send_bug_report_include_logs">Dërgo regjistra</string>
     <string name="send_bug_report_include_crash_logs">Dërgoni regjistrime vithisjesh</string>
     <string name="send_bug_report_include_screenshot">Dërgo foto ekrani</string>
-    <string name="send_bug_report">Njoftoni një të metë</string>
     <string name="send_bug_report_placeholder">Përshkruani këtu problemin tuaj</string>
-    <string name="send_bug_report_sent">Njoftimi i të metës u dërgua me sukses</string>
-    <string name="send_bug_report_progress">Ecuri (%s%%)</string>
     <string name="join_room">Hyni Në Dhomë</string>
     <string name="username">Emër përdoruesi</string>
     <string name="hs_url">URL shërbyesi Home</string>
@@ -376,8 +372,6 @@
     <string name="settings_preview_media_before_sending">Parashiheni median përpara dërgimit</string>
     <string name="settings_deactivate_account_section">Çaktivizoje llogarinë</string>
     <string name="settings_deactivate_my_account">Çaktivizoje llogarinë time</string>
-    <string name="settings_analytics">Analiza</string>
-    <string name="settings_opt_in_of_analytics">Dërgo të dhëna analitike</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Emër Publik</string>
     <string name="devices_details_device_name">Përditësoni Emër Publik</string>
@@ -496,9 +490,6 @@
     <string name="notification_listening_for_events">Po përgjohet për akte</string>
     <string name="bottom_action_favourites">Të parapëlqyer</string>
     <string name="send_bug_report_description">Ju lutemi, përshkruajeni të metën. Ç’po bënit? Ç’prisnit të ndodhte? Ç’ndodhi në fakt?</string>
-    <string name="send_bug_report_alert_message">Duket se po përplasni telefonin nga inati. Do të donit të hapej skena për njoftim të metash?</string>
-    <string name="send_bug_report_app_crashed">Herën e fundit aplikacioni u vithis. Do të donit të hapej skena e raportimit të vithisjeve?</string>
-    <string name="send_bug_report_failed">Dështoi dërgimi i njoftimit të të metës (%s)</string>
     <string name="logout">Dilni</string>
     <string name="option_send_voice">Dërgoni mesazh zanor</string>
     <string name="auth_reset_password_error_unauthorized">Verifikimi i adresës email dështoi: sigurohuni se keni klikuar lidhjen te email-i</string>
@@ -583,7 +574,6 @@
     <string name="settings_send_typing_notifs_summary">Lejojuni përdoruesve të tjerë të dinë se po shtypni.</string>
     <string name="settings_send_markdown_summary">Formatojini mesazhet duke përdorur sintaksën Markdown përpara se të dërgohen. Kjo lejon formatim të thelluar, f.v., përdorimi i yllthit për ta shfaqur tekstin me të pjerrëta.</string>
     <string name="settings_show_join_leave_messages_summary">Nuk prek ftesat, heqjet dhe dëbimet.</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name}-i grumbullon të dhëna analitike anonime që të na lejojë ta përmirësojmë aplikacionin.</string>
     <string name="settings_unignore_user">Të shfaqen krejt mesazhet prej %s\?</string>
     <string name="settings_labs_native_camera_summary">Nis kamerën e sistemit, në vend se skenën e kamerës vetjake.</string>
     <string name="command_description_emote">Shfaq veprimin</string>
@@ -865,10 +855,8 @@
     <string name="push_gateway_item_format">Format:</string>
     <string name="preference_voice_and_video">Zë &amp; Video</string>
     <string name="preference_root_help_about">Ndihmë &amp; Mbi</string>
-    <string name="send_suggestion">Bëni një sugjerim</string>
     <string name="send_suggestion_content">Ju lutemi, shkruajeni sugjerimin tuaj më poshtë.</string>
     <string name="send_suggestion_report_placeholder">Përshkruani këtu sugjerimin tuaj</string>
-    <string name="send_suggestion_sent">Faleminderit, sugjerimi u dërgua me sukses</string>
     <string name="send_suggestion_failed">S’u arrit të dërgohej sugjerimi (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Shfaq te rrjedha kohore akte të fshehura</string>
     <string name="settings_integration_manager">Përgjegjës integrimesh</string>
@@ -1151,9 +1139,6 @@
     <string name="settings_advanced_settings">Rregullime të mëtejshme</string>
     <string name="settings_developer_mode">Mënyra zhvillues</string>
     <string name="settings_developer_mode_summary">Mënyra zhvillim aktivizon veçori të fshehura dhe mundet gjithashtu ta bëjë aplikacionin më pak të qëndrueshëm. Vetëm për zhvilluesit!</string>
-    <string name="settings_rageshake_detection_threshold">Prag pikasjeje</string>
-    <string name="settings_rageshake_detection_threshold_summary">Tundeni telefonin tuaj që të testoni prag pikasjeje</string>
-    <string name="rageshake_detected">U zbulua tundje!</string>
     <string name="settings">Rregullime</string>
     <string name="devices_current_device">Sesioni i tanishëm</string>
     <string name="devices_other_devices">Shfaq sesione të tjera</string>
@@ -1965,7 +1950,6 @@
     <string name="invite_to_space">Ftojeni te %s</string>
     <string name="give_feedback">Jepni Përshtypje</string>
     <string name="feedback_failed">Dështoi dërgimi i përshtypjeve (%s)</string>
-    <string name="feedback_sent">Faleminderit, përshtypjet tuaja u dërguan me sukses</string>
     <string name="you_may_contact_me">Mund të lidheni me mua, nëse keni ndonjë pyetje më tej</string>
     <string name="send_feedback_space_info">Po përdorni një version beta të hapësirave. Përshtypjet tuaja do të ndihmojnë në përmirësimin e versioneve të ardhshëm. Platforma dhe emri juaj i përdoruesit do të mbahen shënim, për të na ndihmuar të përdoren përshtypjet tuaja sa më shumë që të jetë e mundur.</string>
     <string name="feedback">Përshtypje</string>
@@ -2257,7 +2241,6 @@
     <string name="thread_list_title">Rrjedha</string>
     <string name="thread_timeline_title">Rrjedhë</string>
     <string name="room_threads_filter">Filtroni Rrjedha në dhomë</string>
-    <string name="send_bug_report_rage_shake">“Rage shake” që të njoftoni një të metë</string>
     <string name="action_thread_copy_link_to_thread">Kopjoje lidhjen te rrjedha</string>
     <string name="action_thread_view_in_room">Shiheni në dhomë</string>
     <string name="action_view_threads">Shihni Rrjedha</string>

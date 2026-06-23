@@ -218,7 +218,6 @@
     <string name="notification_listening_for_events">正在監聽事件</string>
     <string name="call_notification_hangup">掛斷</string>
     <string name="title_activity_settings">設定</string>
-    <string name="title_activity_bug_report">錯誤回報</string>
     <string name="action_cancel">取消</string>
     <string name="ok">確定</string>
     <string name="action_leave">離開</string>
@@ -259,16 +258,9 @@
     <string name="send_bug_report_include_logs">傳送紀錄檔</string>
     <string name="send_bug_report_include_crash_logs">傳送當機紀錄</string>
     <string name="send_bug_report_include_screenshot">傳送螢幕截圖</string>
-    <string name="send_bug_report">回報錯誤</string>
     <string name="send_bug_report_description">請描述此錯誤。您做了什麼？本來預期應該發生什麼？以及實際發生什麼？</string>
     <string name="send_bug_report_placeholder">請在這裡描述您的問題</string>
     <string name="send_bug_report_logs_description">為了診斷問題，將會隨錯誤回報一起送出客戶端紀錄。這份錯誤回報（包含紀錄檔與螢幕截圖）將不會公開。如果您只想送出上方的文字，請取消勾選：</string>
-    <string name="send_bug_report_alert_message">您似乎在無奈地搖晃手機。 要回報錯誤報告嗎？</string>
-    <string name="send_bug_report_app_crashed">應用程式上次當掉了，您想要開啟錯誤回報畫面嗎？</string>
-    <string name="send_bug_report_rage_shake">透過大力搖晃回報錯誤</string>
-    <string name="send_bug_report_sent">已成功送出錯誤回報</string>
-    <string name="send_bug_report_failed">無法送出此錯誤回報（%s）</string>
-    <string name="send_bug_report_progress">進度（%s%%）</string>
     <string name="join_room">加入聊天室</string>
     <string name="username">使用者名稱</string>
     <string name="logout">登出</string>
@@ -406,9 +398,6 @@
     <string name="settings_vibrate_on_mention">提及使用者時震動</string>
     <string name="settings_deactivate_account_section">停用帳號</string>
     <string name="settings_deactivate_my_account">停用我的帳號</string>
-    <string name="settings_analytics">分析資料</string>
-    <string name="settings_opt_in_of_analytics">傳送分析資料</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} 會收集匿名分析資訊，讓我們可改進此應用程式。</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">公開名稱</string>
     <string name="devices_details_device_name">更新公開名稱</string>
@@ -857,10 +846,8 @@
     <string name="preference_voice_and_video">語音與視訊</string>
     <string name="preference_root_help_about">說明與協助</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">註冊權杖</string>
-    <string name="send_suggestion">提出建議</string>
     <string name="send_suggestion_content">請在下面編寫您的建議。</string>
     <string name="send_suggestion_report_placeholder">在此描述您的建議</string>
-    <string name="send_suggestion_sent">感謝，建議已成功傳送</string>
     <string name="send_suggestion_failed">無法傳送建議（%s）</string>
     <string name="settings_labs_show_hidden_events_in_timeline">在時間軸中顯示隱藏的事件</string>
     <string name="bottom_action_people_x">私人訊息</string>
@@ -1136,10 +1123,6 @@
     <string name="settings_advanced_settings">進階設定</string>
     <string name="settings_developer_mode">開發者模式</string>
     <string name="settings_developer_mode_summary">可透過開發者模式開啟隱藏功能，但可能會造成應用程式較不穩定。僅供開發者使用！</string>
-    <string name="settings_rageshake">憤怒搖晃</string>
-    <string name="settings_rageshake_detection_threshold">偵測門檻</string>
-    <string name="settings_rageshake_detection_threshold_summary">搖晃您的手機即可測試偵測門檻</string>
-    <string name="rageshake_detected">偵測到搖晃！</string>
     <string name="settings">設定</string>
     <string name="devices_current_device">目前的工作階段</string>
     <string name="devices_other_devices">其他工作階段</string>
@@ -1939,7 +1922,6 @@
     <string name="invite_to_space">邀請至 %s</string>
     <string name="give_feedback">給予回饋</string>
     <string name="feedback_failed">無法傳送回饋（%s）</string>
-    <string name="feedback_sent">謝謝，您的回饋已成功傳送</string>
     <string name="you_may_contact_me">如果您有任何後續的問題，歡迎聯絡我</string>
     <string name="send_feedback_space_info">您正在使用聊天空間的 Beta 測試版本。您的回饋有助於改善未來的版本。我們將會紀錄您的平台與使用者名稱以協助我們使用您的回饋。</string>
     <string name="feedback">回饋</string>

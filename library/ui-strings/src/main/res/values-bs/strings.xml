@@ -10,7 +10,6 @@
     <string name="notification_noisy_notifications">Glasne notifikacije</string>
     <string name="notification_silent_notifications">Nečujne notifikiacije</string>
     <string name="title_activity_settings">Postavke</string>
-    <string name="title_activity_bug_report">Izvještaj o Greški</string>
     <string name="ok">OK</string>
     <string name="action_cancel">Otkaži</string>
     <string name="action_save">Snimi</string>
@@ -48,15 +47,9 @@
     <string name="send_bug_report_include_logs">Pošaljite zapise</string>
     <string name="send_bug_report_include_crash_logs">Pošaljite keš zapise</string>
     <string name="send_bug_report_include_screenshot">Pošalji sliku ekrana</string>
-    <string name="send_bug_report">Izvještaj o graški</string>
     <string name="send_bug_report_description">Molimo opišite grešku. Šta ste uradili? Šta ste očekivali da će se dogoditi? Što se zapravo dogodilo?</string>
     <string name="send_bug_report_placeholder">Opišite svoj problem ovde</string>
     <string name="send_bug_report_logs_description">Da bi dijagnosticirali probleme, zapisi ovog klijenta bit će poslani s ovim izvještajem o greški. Ako želite poslati samo gore navedeni tekst, uklonite oznaku:</string>
-    <string name="send_bug_report_alert_message">Čini se da frustrirani. Želite li poslati izvještaj o pogrešci?</string>
-    <string name="send_bug_report_app_crashed">Aplikacija se srušila posljednji put. Želite li poslati izvještaj o rušenju?</string>
-    <string name="send_bug_report_sent">Izvješće o greški je uspješno poslano</string>
-    <string name="send_bug_report_failed">Izvještaj o greški nije uspješno poslan (%s)</string>
-    <string name="send_bug_report_progress">Napredak (%s%%)</string>
     <string name="join_room">Pridruži se u sobu</string>
     <string name="username">Korisničko ime</string>
     <string name="logout">Odjavi se</string>
@@ -175,7 +168,6 @@ Da li ste sigurani?</string>
     <string name="settings_pin_unread_messages">Prikačite sobe sa nepročitanim porukama</string>
     <string name="settings_always_show_timestamps">Uvijek prikažite vremenske oznake poruka</string>
     <string name="settings_12_24_timestamps">Prikaži vremenske oznake u 12-satnom obliku (npr. 14:30)</string>
-    <string name="settings_analytics">Analiza</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Ime</string>
     <string name="devices_details_device_name">Ime uređaja</string>

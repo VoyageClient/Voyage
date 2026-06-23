@@ -61,7 +61,6 @@
     <string name="dark_theme">어두운 테마</string>
     <string name="black_theme">검정 테마</string>
     <string name="title_activity_settings">설정</string>
-    <string name="title_activity_bug_report">버그 신고</string>
     <string name="title_activity_choose_sticker">스티커 보내기</string>
     <string name="loading">불러오는 중…</string>
     <string name="ok">네</string>
@@ -99,12 +98,9 @@
     <string name="send_bug_report_include_logs">로그 보내기</string>
     <string name="send_bug_report_include_crash_logs">충돌 로그 보내기</string>
     <string name="send_bug_report_include_screenshot">스크린샷 보내기</string>
-    <string name="send_bug_report">버그 신고하기</string>
     <string name="send_bug_report_description">버그에 대해 설명해주세요. 무엇을 했나요? 어떤 일이 일어나길 바라고 한 건가요? 실제로는 어떤 일이 일어났나요?</string>
     <string name="send_bug_report_description_in_english">가능하다면, 영어로 설명해주세요.</string>
     <string name="send_bug_report_placeholder">여기에 문제를 설명해주세요</string>
-    <string name="send_bug_report_sent">버그 보고서를 보내는데 성공했습니다</string>
-    <string name="send_bug_report_failed">버그 보고서를 보내는데 실패했습니다 (%s)</string>
     <string name="logout">로그아웃</string>
     <string name="hs_url">홈서버 URL</string>
     <string name="search">검색</string>
@@ -126,7 +122,6 @@
     <string name="done">완료</string>
     <string name="action_sign_out_confirmation_simple">정말 로그아웃하시겠습니까\?</string>
     <string name="action_mark_room_read">읽음으로 표시</string>
-    <string name="send_bug_report_app_crashed">최근에 애플리케이션이 충돌한 것 같습니다. 충돌 보고서를 열까요\?</string>
     <string name="username">사용자 이름</string>
     <string name="option_send_voice">음성 보내기</string>
     <string name="no_sticker_application_dialog_content">스티커팩이 하나도 없습니다.
@@ -149,9 +144,6 @@
     <string name="direct_chats_header">대화</string>
     <string name="matrix_only_filter">Matrix 연락처만</string>
     <string name="send_bug_report_logs_description">문제를 진단하기 위해, 이 클라이언트의 로그는 버그 보고서와 함께 전송됩니다. 이 버그 보고서에는 로그와 스크린샷이 포함되면 공개적으로 표시되지 않습니다. 위의 텍스트만 보내려면 다음을 선택 해제하세요:</string>
-    <string name="send_bug_report_alert_message">좌절감에 휴대 전화를 흔들고 있는 것 같네요. 버그 보고서 화면을 열어보겠습니까\?</string>
-    <string name="send_bug_report_rage_shake">분노의 흔들기로 버그 신고하기</string>
-    <string name="send_bug_report_progress">진행 (%s%%)</string>
     <string name="join_room">방 들어가기</string>
     <string name="error_no_external_application_found">죄송합니다, 이 작업을 완료하기 위한 외부 애플리케이션이 없습니다.</string>
     <string name="auth_login_sso">통합 인증으로 로그인</string>
@@ -356,9 +348,6 @@
     <string name="settings_send_message_with_enter_summary">가상 키보드의 엔터 버튼으로 줄 바꿈을 하는 대신 메시지를 보냅니다</string>
     <string name="settings_deactivate_account_section">계정 비활성화</string>
     <string name="settings_deactivate_my_account">내 계정 비활성화</string>
-    <string name="settings_analytics">정보 분석</string>
-    <string name="settings_opt_in_of_analytics">정보 분석 데이터 보내기</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name}은 애플리케이션을 개선할 수 있도록 익명의 분석을 수집합니다.</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">공개 이름</string>
     <string name="devices_details_device_name">공개 이름 업데이트</string>
@@ -704,10 +693,8 @@
     <string name="preference_voice_and_video">음성 &amp; 영상</string>
     <string name="preference_root_help_about">도움 &amp; 정보</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">등록 토큰</string>
-    <string name="send_suggestion">제안하기</string>
     <string name="send_suggestion_content">아래에 당신의 제안을 적어주세요.</string>
     <string name="send_suggestion_report_placeholder">여기에 당신의 제안을 설명</string>
-    <string name="send_suggestion_sent">감사합니다, 제안을 성공적으로 보냈습니다</string>
     <string name="send_suggestion_failed">제안을 보내는 데 실패함 (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">타임라인에서 숨겨진 이벤트 보이기</string>
     <string name="bottom_action_people_x">다이렉트 메시지</string>

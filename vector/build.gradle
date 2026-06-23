@@ -272,7 +272,6 @@ dependencies {
     implementation 'com.github.tapadoo:alerter:7.2.4'
 
     // Shake detection
-    implementation 'com.squareup:seismic:1.0.3'
 
     // Image Loading
     implementation libs.github.bigImageViewer

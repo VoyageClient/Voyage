@@ -26,7 +26,6 @@
     <string name="no_result_placeholder">Tidak ada hasil</string>
     <string name="send_bug_report_include_logs">Kirim log</string>
     <string name="send_bug_report_placeholder">Deskripsikan kendala Anda di sini</string>
-    <string name="send_bug_report_sent">Laporan kutu telah berhasil dikirimkan</string>
     <string name="logout">Keluar</string>
     <string name="hs_url">URL Homeserver</string>
     <string name="search">Cari</string>
@@ -44,8 +43,6 @@
     <string name="low_priority_header">Prioritas rendah</string>
     <string name="matrix_only_filter">Hanya kontak Matrix</string>
     <string name="rooms_header">Ruangan</string>
-    <string name="send_bug_report">Laporan kutu</string>
-    <string name="send_bug_report_app_crashed">Aplikasi mogok saat terakhir digunakan. Apakah Anda ingin membuka halaman laporan kemogokan\?</string>
     <string name="join_room">Bergabung ke Ruangan</string>
     <string name="auth_login">Masuk</string>
     <string name="option_send_files">Kirim file</string>
@@ -82,9 +79,6 @@
     <string name="send_bug_report_include_screenshot">Kirim tampilan layar</string>
     <string name="send_bug_report_description">Mohon uraikan kutu tersebut. Apa yang Anda lakukan\? Apa yang Anda harapkan terjadi\? Apa yang sebenarnya terjadi\?</string>
     <string name="send_bug_report_logs_description">Catatan dari klien akan dikirim bersama laporan gangguan ini untuk mendalami kendala yang Anda temukan. Laporan gangguan ini, termasuk catatan dan tangkapan layar, tidak akan terlihat secara umum. Jika Anda hanya ingin mengirimkan tulisan di atas, silakan hapus centang:</string>
-    <string name="send_bug_report_alert_message">Sepertinya Anda mengguncang ponsel akibat emosi. Apakah Anda ingin membuka halaman laporan kutu\?</string>
-    <string name="send_bug_report_failed">Pengiriman laporan kutu gagal (%s)</string>
-    <string name="send_bug_report_progress">Kemajuan (%s%%)</string>
     <string name="username">Nama Pengguna</string>
     <string name="auth_invalid_login_param">Nama pengguna dan/atau kata sandi salah</string>
     <string name="auth_reset_password_error_unauthorized">Verifikasi alamat email gagal: pastikan tautan yang termuat di email telah diklik</string>
@@ -100,13 +94,11 @@
     <string name="black_theme">Tema Hitam</string>
     <string name="notification_noisy_notifications">Pemberitahuan berisik</string>
     <string name="notification_silent_notifications">Pemberitahuan diam</string>
-    <string name="title_activity_bug_report">Laporan Gangguan</string>
     <string name="title_activity_choose_sticker">Kirimkan Sticker</string>
     <string name="loading">Memuat…</string>
     <string name="action_download">Unduh</string>
     <string name="system_alerts_header">Peringatan Sistem</string>
     <string name="send_bug_report_description_in_english">Mohon deskripsikan dengan bahasa Inggris apabila memungkinkan.</string>
-    <string name="send_bug_report_rage_shake">Guncang perangkat untuk laporan gangguan</string>
     <string name="option_send_voice">Kirim Pesan Suara</string>
     <string name="option_send_sticker">Kirim Sticker</string>
     <string name="option_take_photo">Ambil foto</string>
@@ -322,9 +314,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_preview_media_before_sending">Pratinjau media sebelum dikirim</string>
     <string name="settings_deactivate_account_section">Nonaktifkan akun</string>
     <string name="settings_deactivate_my_account">Nonaktifkan akun saya</string>
-    <string name="settings_analytics">Analitik</string>
-    <string name="settings_opt_in_of_analytics">Kirim data analitik</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} mengumpulkan data analitik anonim dalam upaya kami meningkatkan aplikasi.</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Nama</string>
     <string name="devices_details_device_name">Nama Perangkat</string>
@@ -1157,8 +1146,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Tampilkan riwayat lengkap di ruangan terenkripsi</string>
     <string name="give_feedback">Beri Masukan</string>
     <string name="feedback_failed">Masukan gagal dikirim (%s)</string>
-    <string name="send_suggestion_sent">Terima kasih, saran Anda telah dikirim</string>
-    <string name="feedback_sent">Terima kasih, masukan Anda telah dikirim</string>
     <string name="you_may_contact_me">Anda dapat menghubungi saya jika Anda memiliki pertanyaan lanjutan</string>
     <string name="send_feedback_space_info">Anda menggunakan space versi beta. Masukan Anda akan membantu menginformasikan versi berikutnya. Platform dan nama pengguna Anda akan dicatat untuk membantu kami menggunakan masukan Anda sebanyak yang kami bisa.</string>
     <string name="feedback">Masukan</string>
@@ -1166,7 +1153,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="send_suggestion_failed">Saran gagal dikirim (%s)</string>
     <string name="send_suggestion_report_placeholder">Jelaskan saran Anda di sini</string>
     <string name="send_suggestion_content">Masukkan saran Anda di bawah.</string>
-    <string name="send_suggestion">Buat saran</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Daftar token</string>
     <string name="preference_root_help_about">Bantuan &amp; Tentang</string>
     <string name="preference_voice_and_video">Suara &amp; Video</string>
@@ -1481,10 +1467,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="devices_other_devices">Sesi lainnya</string>
     <string name="devices_current_device">Sesi saat ini</string>
     <string name="settings">Pengaturan</string>
-    <string name="rageshake_detected">Goyangan terdeteksi!</string>
-    <string name="settings_rageshake_detection_threshold_summary">Goyangkan ponsel Anda untuk menguji ambang deteksi</string>
-    <string name="settings_rageshake_detection_threshold">Ambang deteksi</string>
-    <string name="settings_rageshake">Rageshake</string>
     <string name="settings_developer_mode_summary">Mode pengembang akan mengaktifkan fitur tersembunyi dan mungkin juga membuat aplikasinya kurang stabil. Untuk pengembang saja!</string>
     <string name="settings_developer_mode">Mode pengembang</string>
     <string name="settings_advanced_settings">Pengaturan Lanjutan</string>

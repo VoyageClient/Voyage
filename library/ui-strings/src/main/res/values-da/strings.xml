@@ -82,15 +82,9 @@
     <string name="send_bug_report_include_logs">Send logfiler</string>
     <string name="send_bug_report_include_crash_logs">Send crashlogfiler</string>
     <string name="send_bug_report_include_screenshot">Send screenshot</string>
-    <string name="send_bug_report">Fejlmelding</string>
     <string name="send_bug_report_description">Beskriv venligst fejlen. Hvad gjorde du? Hvad forventede du ville ske? Hvad skete der rent faktisk?</string>
     <string name="send_bug_report_placeholder">Beskriv dit problem her</string>
     <string name="send_bug_report_logs_description">For at diagnosticere problemer vil logs fra denne klient blive sendt sammen med fejlrapporten. Hvis du vil foretrække kun at sende teksten foroven, bedes du fjerne fluebenet:</string>
-    <string name="send_bug_report_alert_message">Du lader til at ryste din telefon i frustration. Vil du sende en fejlmeddelelse?</string>
-    <string name="send_bug_report_app_crashed">Programmet crashede sidst. Vil du sende en crash rapport?</string>
-    <string name="send_bug_report_sent">Fejlrapporten lykkedes med at blive sendt</string>
-    <string name="send_bug_report_failed">Fejlmeddelelsen kunne ikke sendes (%s)</string>
-    <string name="send_bug_report_progress">Fremskridt (%s%%)</string>
     <string name="join_room">Forbind til Rum</string>
     <string name="username">Brugernavn</string>
     <string name="logout">Log ud</string>
@@ -154,7 +148,6 @@ Er du sikker?</string>
     <string name="ssl_cert_not_trust">Dette kan betyde at nogen med onde hensigter opsnapper din trafik eller at din telefon ikke stoler på certifikatet som serveren sendte.</string>
     <string name="ssl_cert_new_account_expl">Hvis serveradministratoren har sagt det er forventeligt skal du sikre dig at fingeraftrykket forneden passer med det fingeraftryk de har oplyst.</string>
     <string name="ssl_unexpected_existing_expl">Certifikatet har ændret sig fra det din telefon stolede på. Dette er HØJST USÆDVANLIGT. Det anbefales at du IKKE ACCEPTERE dette nye certifikat.</string>
-    <string name="title_activity_bug_report">Nug rapport</string>
     <string name="ssl_expected_existing_expl">Certifikatet er ændret fra et tidligere betroet, til et der ikke er betroet. Serveren kan have fornyet sit certifikat. Kontakt server administratoren for det forventede fingeraftryk.</string>
     <string name="ssl_only_accept">Accepter kun certifikatet hvis server administratoren har publiceret et fingeraftryk der matcher det ovenstående.</string>
     <string name="loading">Loader…</string>

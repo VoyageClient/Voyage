@@ -102,24 +102,6 @@ class VectorFileLogger @Inject constructor(
     }
 
     /**
-     * Adds our own log files to the provided list of files.
-     *
-     * @return The list of files with logs.
-     */
-    fun getLogFiles(): List<File> {
-        return tryOrNull("## getLogFiles() failed") {
-            fileHandler
-                    ?.flush()
-                    ?.let { 0 until logRotationCount }
-                    ?.mapNotNull { index ->
-                        File(cacheDirectory, "$fileNamePrefix.${index}.txt")
-                                .takeIf { it.exists() }
-                    }
-        }
-                .orEmpty()
-    }
-
-    /**
      * Log an Throwable.
      *
      * @param throwable the throwable to log

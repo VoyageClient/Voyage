@@ -16,7 +16,6 @@ import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
-import im.vector.app.features.rageshake.BugReporter
 import im.vector.app.features.session.SessionListener
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.ui.UiStateRepository
@@ -41,7 +40,6 @@ interface SingletonEntryPoint {
 
     fun errorFormatter(): ErrorFormatter
 
-    fun bugReporter(): BugReporter
 
     fun vectorPreferences(): VectorPreferences
 

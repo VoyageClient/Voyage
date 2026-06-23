@@ -187,7 +187,6 @@
     <string name="black_theme">زمینهٔ سیاه</string>
     <string name="notification_listening_for_events">در حال گوش دادن به رویدادها</string>
     <string name="title_activity_settings">تنظیمات</string>
-    <string name="title_activity_bug_report">گزارش اشکال</string>
     <string name="loading">در حال بارگذاری…</string>
     <string name="ok">قبول</string>
     <string name="action_cancel">لغو</string>
@@ -214,7 +213,6 @@
     <string name="low_priority_header">اولویت پایین</string>
     <string name="direct_chats_header">گفتگوها</string>
     <string name="rooms_header">اتاق‌ها</string>
-    <string name="send_bug_report">گزارش اشکال</string>
     <string name="join_room">پیوستن به اتاق</string>
     <string name="username">نام کاربری</string>
     <string name="logout">خروج از حساب</string>
@@ -248,12 +246,6 @@
     <string name="send_bug_report_description_in_english">ترجیحاً توضیحات را به زبان انگلیسی بنویسید.</string>
     <string name="send_bug_report_placeholder">مشکل خود را اینجا شرح دهید</string>
     <string name="send_bug_report_logs_description">برای کمک به اشکال‌یابی، رخدادنگارهای مربوط به این دستگاه به همراه گزارش اشکال ارسال خواهند شد. البته گزارش اشکال شما و پیوست‌های آن به صورت عمومی منتشر نمی‌شوند. می‌توانید با برداشتن علامت گزینه‌های زیر، اطلاعات کمتری را ارسال نمایید:</string>
-    <string name="send_bug_report_alert_message">به نظر می‌رسد دارید گوشی خود را به دلیل کار نکردن تکان می‌دهید! آیا می‌خواهید یک اشکال در برنامه گزارش نمایید؟</string>
-    <string name="send_bug_report_app_crashed">برنامه آخرین بار با خطا بسته شد. آیا می‌خواهید یک اشکال در برنامه گزارش نمایید؟</string>
-    <string name="send_bug_report_rage_shake">تکان دادن محکم گوشی برای گزارش اشکال</string>
-    <string name="send_bug_report_sent">گزارش اشکال با موفقیت ارسال شد</string>
-    <string name="send_bug_report_failed">امکان ارسال گزارش اشکال وجود نداشت، دوباره تلاش کنید (%s)</string>
-    <string name="send_bug_report_progress">پیشرفت (%s%%)</string>
     <string name="hs_url">نشانی کارساز خانگی</string>
     <string name="option_send_voice">ارسال صدا</string>
     <string name="option_send_files">ارسال پرونده‌ها</string>
@@ -431,10 +423,8 @@
     <string name="settings_security_and_privacy">امنیت و محرمانگی</string>
     <string name="preference_voice_and_video">صدا و تصویر</string>
     <string name="preference_root_help_about">راهنما و درباره</string>
-    <string name="send_suggestion">پیشنهاد دهید</string>
     <string name="send_suggestion_content">لطفا پیشنهادتان را در زیر بنویسید.</string>
     <string name="send_suggestion_report_placeholder">پیشنهادتان را این‌جا شرح دهید</string>
-    <string name="send_suggestion_sent">ممنون. پیشنهاد با موفّقیت فرستاده شد</string>
     <string name="send_suggestion_failed">فرستادن پیشنهاد شکست خورد (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">نمایش رویدادهای نهفته در خط زمانی</string>
     <string name="bottom_action_people_x">پیام‌های مستقیم</string>
@@ -465,8 +455,6 @@
     <string name="login_server_other_text">تنظیمات پیش‌رفته و سفارشی</string>
     <string name="settings_advanced_settings">تنظیمات پیش‌رفته</string>
     <string name="settings_developer_mode">حالت توسعه‌دهنده</string>
-    <string name="settings_rageshake">تکان دادن</string>
-    <string name="rageshake_detected">تکان تشخیص داده شد!</string>
     <string name="devices_other_devices">دیگر نشست‌ها</string>
     <string name="room_profile_section_more_notifications">آگاهی‌ها</string>
     <string name="settings_category_timeline">خط زمانی</string>
@@ -859,8 +847,6 @@
     <string name="bug_report_error_too_short">شرح بیش از حد کوتاه است</string>
     <string name="notification_initial_sync">همگام‌سازی نخستین…</string>
     <string name="settings_developer_mode_summary">حالت توسعه‌دهنده ویژگی‌های پنهان را فعّال کرده و همچنین ممکن است پایداری برنامه را کاهش دهد. فقط برای توسعه‌دهنگان!</string>
-    <string name="settings_rageshake_detection_threshold">آستانهٔ تشخیص</string>
-    <string name="settings_rageshake_detection_threshold_summary">برای آزمودن آستانهٔ تشخیص، تلفنتان را تکان دهید</string>
     <string name="devices_current_device">نشست جاری</string>
     <string name="autocomplete_limited_results">فقط نمایش نخستین نتایج. حرف‌های بیش‌تری بنویسید…</string>
     <string name="settings_developer_mode_fail_fast_title">شکست سریع</string>
@@ -1615,9 +1601,6 @@
     <string name="devices_details_name_title">نام عمومی</string>
     <string name="devices_details_device_name">به‌روزرسانی نام عمومی</string>
     <string name="devices_details_id_title">شناسه</string>
-    <string name="settings_opt_in_of_analytics_summary">المنت اطلاعاتی را جمع آوری می کند و با ارسال آنان به صورت ناشناس به ما امکان بهبود برنامه را می‌دهد.</string>
-    <string name="settings_opt_in_of_analytics">ارسال داده های تجزیه و تحلیل</string>
-    <string name="settings_analytics">تجزیه و تحلیل</string>
     <string name="identity_server_error_binding_error">تخصیص شکست خورد.</string>
     <string name="disconnect_identity_server_dialog_content">قطع اتّصال از کارساز هویت %s؟</string>
     <string name="room_member_open_or_create_dm">پیام مستقیم</string>
@@ -1965,7 +1948,6 @@
     <string name="invite_to_space">دعوت به %s</string>
     <string name="give_feedback">دادن بازخورد</string>
     <string name="feedback_failed">فرستادن بازخورد شکست خورد (%s)</string>
-    <string name="feedback_sent">سپاس! بازخوردتان با موفّقیت فرستاده شد</string>
     <string name="send_feedback_space_info">دارید از نگارشی آزمایشی از فضاها استفاده می‌کنید. بازخوردتان در شکل‌دهی به نگارش‌های آتی کمک خواهد کرد. برای کمک به استفادهٔ هرچه بیش‌تر از بازخوردتان، بن‌سازه و نام کاربریتان یادداشت خواهد شد.</string>
     <string name="feedback">بازخورد</string>
     <string name="directory_add_a_new_server_error_already_added">این کارساز در حال حاضر در فهرست موجود است</string>

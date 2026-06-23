@@ -7,7 +7,6 @@
     <string name="notification_noisy_notifications">Lûdsmeldingen</string>
     <string name="notification_silent_notifications">Stille meldingen</string>
     <string name="title_activity_settings">Ynstellingen</string>
-    <string name="title_activity_bug_report">Flatermelding</string>
     <string name="title_activity_choose_sticker">Ferstjoer in stikker</string>
     <string name="title_activity_keys_backup_setup">Kaaireservekopy</string>
     <string name="title_activity_keys_backup_restore">Kaaireservekopy brûke</string>
@@ -70,7 +69,6 @@
     <string name="send_bug_report_include_logs">Lochboek ferstjoere</string>
     <string name="send_bug_report_include_crash_logs">Ungeloklochboek ferstjoere</string>
     <string name="send_bug_report_include_screenshot">Skermôfdruk ferstjoere</string>
-    <string name="send_bug_report">Flater melde</string>
     <string name="send_bug_report_description">Beskriuw de flater. Wat hawwe jo dien\? Wat ferwachten jo dat der barre soe\? Wat is der echt bard\?</string>
     <string name="send_bug_report_description_in_english">Beskriuw it probleem yn it Ingelsk, wannear mooglik.</string>
     <string name="send_bug_report_placeholder">Beskriuw hjir jo probleem</string>
@@ -184,7 +182,6 @@
     <string name="create_room_public_description">Elkenien kin dizze keamer binnen gean</string>
     <string name="create_room_public_title">Iepenbier</string>
     <string name="settings_preferences">Foarkarren</string>
-    <string name="send_suggestion">Suggestje dwaan</string>
     <string name="action_join">Meidwaan</string>
     <string name="action_remove">Fuortsmite</string>
     <string name="_continue">Trochgean</string>
@@ -352,7 +349,6 @@
     <string name="settings_discovery_category">Untdekke</string>
     <string name="settings_general_title">Algemien</string>
     <string name="settings_pin_unread_messages">Keamers mei net lézen berjochten festsette</string>
-    <string name="settings_rageshake">Lilkensskodzje</string>
     <string name="settings_developer_mode_summary">De ûntwikkelersmodus jout ûnsichtbere funksjes frij, en kin de applikaasje minder stabyl meitsje. Allinnich foar ûntwikkelers!</string>
     <string name="settings_developer_mode">Untwikkelersmodus</string>
     <string name="report_content_inappropriate">Dit is ûnfoech</string>
@@ -441,7 +437,6 @@
     <string name="notice_room_server_acl_updated_title">%s hat de server-ACL’s foar dizze keamer wizige.</string>
     <string name="notice_avatar_url_changed_by_you">Jo hawwe jo profylôfbylding wizige</string>
     <string name="send_suggestion_failed">Koe de suggestje net ferstjoere (%s)</string>
-    <string name="send_suggestion_sent">Tankewol, it ferstjoeren fan de suggestje is slagge</string>
     <string name="send_suggestion_report_placeholder">Skriuw jo suggestje hjir</string>
     <string name="send_suggestion_content">Skriuw jo suggestje hjirûnder.</string>
     <string name="push_gateway_item_format">Formaat:</string>
@@ -618,12 +613,7 @@
     <string name="option_send_voice">Spraakberjocht ferstjoere</string>
     <string name="hs_client_url">Thússerver API-URL</string>
     <string name="hs_url">Thússerver-URL</string>
-    <string name="send_bug_report_failed">It oanjaan fan in flater yn dizze applikaasje is net slagge (%s)</string>
-    <string name="send_bug_report_sent">It oanjaan fan in flater yn dizze applikaasje is slagge</string>
     <string name="join_room">Keamer binnen gean</string>
-    <string name="send_bug_report_progress">Foarútgong (%s%%)</string>
-    <string name="send_bug_report_app_crashed">Dizze applikaasje is de lêste kear fêstrûn. Wolle jo dit melde\?</string>
-    <string name="send_bug_report_alert_message">It liket der op dat jo út lilkens mei jo telefoan skodzje. Wolle jo in probleem melde\?</string>
     <string name="spaces_header">Romten</string>
     <string name="settings_room_directory_show_all_rooms_summary">Alle petearen yn de list toane, ek petearen mei ynhâld foar folwoeksenen.</string>
     <string name="settings_room_directory_show_all_rooms">Petearen mei ynhâld foar folwoeksenen toane</string>
@@ -811,7 +801,6 @@
     <string name="no_sticker_application_dialog_content">Jo hawwe op dit stuit gjin stikkerpakketten ynskeakele.
 \n
 \nWolle jo der no in pear tafoegje\?</string>
-    <string name="send_bug_report_rage_shake">Skodzje om in probleem te melden</string>
     <string name="send_bug_report_logs_description">Om it probleem ûndersykje te kinnen, wurde lochboeken fan dizze kliïnt mei de flatermelding ferstjoerd. Dizze flatermelding, ynklusyf de lochboeken en skermôfdruk, sille net iepenbier sichtber weze. As jo leaver allinnich de boppesteande tekst ferstjoere, helje dan it finkje fuort:</string>
     <string name="send_bug_report_include_key_share_history">Kaaidielfersykskiednis ferstjoere</string>
     <string name="failed_to_remove_widget">Widget fuortsmite mislearre</string>

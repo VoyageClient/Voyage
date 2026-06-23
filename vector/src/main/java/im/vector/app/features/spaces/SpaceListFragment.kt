@@ -190,8 +190,4 @@ class SpaceListFragment :
     override fun onAddSpaceSelected() {
         viewModel.handle(SpaceListAction.AddSpace)
     }
-
-    override fun sendFeedBack() {
-        homeActivitySharedActionViewModel.post(HomeActivitySharedAction.SendSpaceFeedBack)
-    }
 }

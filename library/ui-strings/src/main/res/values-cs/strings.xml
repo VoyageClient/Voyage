@@ -248,7 +248,6 @@
     <string name="action_invite">Pozvat</string>
     <string name="notification_noisy_notifications">Hlasitá oznámení</string>
     <string name="notification_silent_notifications">Tichá oznámení</string>
-    <string name="title_activity_bug_report">Hlášení chyby</string>
     <string name="notification_listening_for_events">Naslouchám událostem</string>
     <string name="action_quote">Citovat</string>
     <string name="later">Později</string>
@@ -276,14 +275,8 @@
     <string name="send_bug_report_include_logs">Odeslat záznamy</string>
     <string name="send_bug_report_include_crash_logs">Odeslat záznamy o selhání</string>
     <string name="send_bug_report_include_screenshot">Odeslat snímek obrazovky</string>
-    <string name="send_bug_report">Ohlásit chybu</string>
     <string name="send_bug_report_placeholder">Zde popište svůj problém</string>
     <string name="send_bug_report_logs_description">Za účelem diagnostiky problémů budou logy tohoto klienta odeslány s touto zprávou o chybě. Tato zpráva o chybě včetně logů a snímku obrazovky nebude veřejně viditelná. Pokud byste raději poslali pouze text výše, prosím odznačte:</string>
-    <string name="send_bug_report_alert_message">Vypadá to, že třesete telefonem z důvodu nespokojenosti. Přejete si podat hlášení o chybě?</string>
-    <string name="send_bug_report_app_crashed">Aplikace minule spadla. Přejete si otevřít okno pro nahlášení chyby\?</string>
-    <string name="send_bug_report_sent">Hlášení o chybě bylo úspešně odesláno</string>
-    <string name="send_bug_report_failed">Odeslat hlášení o chybě se nezdařilo (%s)</string>
-    <string name="send_bug_report_progress">Průběh (%s%%)</string>
     <string name="join_room">Vstoupit do místnosti</string>
     <string name="username">Uživatelské jméno</string>
     <string name="logout">Odhlásit se</string>
@@ -311,7 +304,6 @@
     <string name="system_alerts_header">Systémová upozornění</string>
     <string name="send_bug_report_description">Popište prosím chybu. Co jste udělali\? Co jste očekávali, že se stane\? Co se ve skutečnosti stalo\?</string>
     <string name="send_bug_report_description_in_english">Pokud je to možné, prosím, napište popis anglicky.</string>
-    <string name="send_bug_report_rage_shake">Třesením oznámit chybu</string>
     <string name="option_send_voice">Odeslat hlasovou zprávu</string>
     <string name="option_send_sticker">Odeslat nálepku</string>
     <string name="no_sticker_application_dialog_content">Momentálně nemáte žádné aktivní nálepkové sady. 
@@ -558,9 +550,6 @@
     <string name="settings_deactivate_my_account">Deaktivovat můj účet</string>
     <string name="settings_discovery_category">Objevování</string>
     <string name="settings_discovery_manage">Správa vašich nastavení pro objevování.</string>
-    <string name="settings_analytics">Analýza</string>
-    <string name="settings_opt_in_of_analytics">Odeslat analytická data</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} sbírá anonymní analytická data pro vylepšení aplikace.</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Veřejné jméno</string>
     <string name="devices_details_device_name">Aktualizovat veřejné jméno</string>
@@ -948,10 +937,8 @@
     <string name="preference_voice_and_video">Hlas a video</string>
     <string name="preference_root_help_about">Nápověda a O aplikaci</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Registrovat token</string>
-    <string name="send_suggestion">Poslat návrh</string>
     <string name="send_suggestion_content">Prosím, zapište svůj návrh níže.</string>
     <string name="send_suggestion_report_placeholder">Popište svůj návrh tady</string>
-    <string name="send_suggestion_sent">Děkujeme, návrh byl úspěšně odeslán</string>
     <string name="send_suggestion_failed">Odeslání návrhu selhalo (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Ukázat skryté události v časovém sledu</string>
     <string name="bottom_action_people_x">Přímé zprávy</string>
@@ -1182,10 +1169,6 @@
     <string name="settings_advanced_settings">Pokročilá nastavení</string>
     <string name="settings_developer_mode">Vývojářský režim</string>
     <string name="settings_developer_mode_summary">Vývojářský režim aktivuje skryté funkce a může tak učinit aplikaci méně stabilní. Jen pro vývojáře!</string>
-    <string name="settings_rageshake">Rageshake</string>
-    <string name="settings_rageshake_detection_threshold">Práh detekce</string>
-    <string name="settings_rageshake_detection_threshold_summary">Pro test prahu detekce zatřeste svým telefonem</string>
-    <string name="rageshake_detected">Zatřesení detekováno!</string>
     <string name="settings">Nastavení</string>
     <string name="devices_current_device">Nynější relace</string>
     <string name="devices_other_devices">Jiné relace</string>
@@ -2013,7 +1996,6 @@
     <string name="invite_to_space">Pozvat do %s</string>
     <string name="give_feedback">Poskytněte zpětnou vazbu</string>
     <string name="feedback_failed">Zpětnou vazbu se nepodařilo odeslat (%s)</string>
-    <string name="feedback_sent">Děkujeme, vaše zpětná vazba byla úspěšně odeslána</string>
     <string name="you_may_contact_me">V případě dalších dotazů se na mě můžete obrátit</string>
     <string name="send_feedback_space_info">Používáte beta verzi prostorů. Vaše zpětná vazba pomůže při tvorbě dalších verzí. Vaše platforma a uživatelské jméno budou zaznamenány, abychom mohli vaši zpětnou vazbu co nejlépe využít.</string>
     <string name="feedback">Zpětná vazba</string>

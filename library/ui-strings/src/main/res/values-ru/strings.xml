@@ -274,15 +274,9 @@
     <string name="send_bug_report_include_logs">Отправить логи</string>
     <string name="send_bug_report_include_crash_logs">Отправить журналы ошибок</string>
     <string name="send_bug_report_include_screenshot">Отправить снимок экрана</string>
-    <string name="send_bug_report">Сообщить об ошибке</string>
     <string name="send_bug_report_description">Пожалуйста опишите ошибку. Что вы делали\? Что вы хотели получить\? Что на самом деле произошло\?</string>
     <string name="send_bug_report_placeholder">Опишите проблему здесь</string>
     <string name="send_bug_report_logs_description">Для диагностики проблемы журналы работы приложения будут приложены к отчету об ошибке. Этот отчет, включая журналы и скриншот, не будет доступен публично. Если вы предпочитаете отправить только текст, то снимите отметку:</string>
-    <string name="send_bug_report_alert_message">Вы, наверное, трясете телефон в отчаянии. Хотите открыть экран отчета об ошибке\?</string>
-    <string name="send_bug_report_sent">Отчет об ошибке успешно отправлен</string>
-    <string name="send_bug_report_failed">Сбой отправки отчета об ошибке (%s)</string>
-    <string name="send_bug_report_progress">Прогресс (%s%%)</string>
-    <string name="send_bug_report_app_crashed">В прошлый раз приложение некорректно завершило работу. Хотите отправить отчёт о сбое\?</string>
     <string name="join_room">Войти в Комнату</string>
     <string name="username">Псевдоним</string>
     <string name="logout">Выйти</string>
@@ -486,9 +480,7 @@
     <string name="notification_silent_notifications">Беззвучные уведомления</string>
     <string name="option_take_photo">Сделать фото</string>
     <string name="option_take_video">Снять видео</string>
-    <string name="settings_analytics">Аналитика</string>
     <string name="settings_labs_native_camera">Использовать встроенную камеру</string>
-    <string name="title_activity_bug_report">Сообщить об ошибке</string>
     <string name="command_error">Ошибка команды</string>
     <string name="unrecognized_command">Нераспознанная команда: %s</string>
     <string name="notification_off">Выкл</string>
@@ -507,7 +499,6 @@
     <string name="has_been_removed">Вас выгнал %2$s из %1$s</string>
     <string name="has_been_banned">Вас заблокировал %2$s в %1$s</string>
     <string name="reason_colon">Причина: %1$s</string>
-    <string name="send_bug_report_rage_shake">Встряхните устройство, чтобы сообщить об ошибке</string>
     <string name="list_members">Участники</string>
     <plurals name="notification_unread_notified_messages_in_room_rooms">
         <item quantity="one">%d комната</item>
@@ -554,8 +545,6 @@
 \nДобавить сейчас\?</string>
     <string name="settings_deactivate_account_section">Деактивация учётной записи</string>
     <string name="settings_deactivate_my_account">Деактивировать мою учётную запись</string>
-    <string name="settings_opt_in_of_analytics">Отправка аналитических данных</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} собирает анонимную аналитику для улучшения приложения.</string>
     <string name="widget_integration_missing_parameter">Обязательный параметр отсутствует.</string>
     <string name="dialog_user_consent_content">Для продолжения использования %1$s вы должны ознакомиться и согласиться с условиями и правилами использования этого домашнего сервера.</string>
     <string name="dialog_user_consent_submit">Посмотреть сейчас</string>
@@ -913,10 +902,8 @@
     <string name="preference_voice_and_video">Голос и видео</string>
     <string name="preference_root_help_about">Помощь и информация</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Регистрационный токен</string>
-    <string name="send_suggestion">Оставить отзыв</string>
     <string name="send_suggestion_content">Пожалуйста, напишите ваше предложение ниже.</string>
     <string name="send_suggestion_report_placeholder">Опишите ваше предложение здесь</string>
-    <string name="send_suggestion_sent">Спасибо, предложение было успешно отправлено</string>
     <string name="send_suggestion_failed">Не удалось отправить предложение (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Показать скрытые события в ленте сообщений</string>
     <string name="bottom_action_people_x">Личные сообщения</string>
@@ -1321,10 +1308,6 @@
     <string name="login_signin_matrix_id_error_invalid_matrix_id">Это недопустимый идентификатор пользователя. Ожидаемый формат: \'@user:homeserver.org\'</string>
     <string name="autodiscover_well_known_error">Не удалось найти действительный домашний сервер. Пожалуйста, проверьте свой идентификатор</string>
     <string name="notification_initial_sync">Начальная синхронизация…</string>
-    <string name="settings_rageshake">Яростное встряхивание</string>
-    <string name="settings_rageshake_detection_threshold">Порог обнаружения</string>
-    <string name="settings_rageshake_detection_threshold_summary">Встряхните телефон, чтобы проверить порог обнаружения</string>
-    <string name="rageshake_detected">Обнаружено встряхивание!</string>
     <string name="autocomplete_limited_results">Показываем только первые результаты, наберите больше букв…</string>
     <string name="settings_developer_mode_fail_fast_title">Раннее падение</string>
     <string name="settings_developer_mode_fail_fast_summary">${app_name} может падать чаще, когда происходит непредвиденная ошибка</string>
@@ -2050,7 +2033,6 @@
     <string name="send_file_step_compressing_image">Сжатие изображения…</string>
     <string name="give_feedback">Оставить отзыв</string>
     <string name="feedback_failed">Не удалось отправить отзыв (%s)</string>
-    <string name="feedback_sent">Спасибо, ваш отзыв успешно отправлен</string>
     <string name="you_may_contact_me">Вы можете связаться со мной, если у вас есть дополнительные вопросы</string>
     <string name="send_feedback_space_info">Вы используете бета-версию пространств. Ваши отзывы помогут при разработке следующих версий. Ваша платформа и имя пользователя будут отмечены, чтобы мы могли максимально использовать ваш отзыв.</string>
     <string name="feedback">Отзыв</string>

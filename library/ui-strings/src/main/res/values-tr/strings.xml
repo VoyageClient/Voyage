@@ -7,7 +7,6 @@
     <string name="notification_noisy_notifications">Sesli bildirimler</string>
     <string name="notification_silent_notifications">Sessiz bildirimler</string>
     <string name="title_activity_settings">Ayarlar</string>
-    <string name="title_activity_bug_report">Hata raporu</string>
     <string name="loading">Yükleniyor…</string>
     <string name="ok">Tamam</string>
     <string name="action_cancel">İptal</string>
@@ -49,17 +48,10 @@
     <string name="send_bug_report_include_logs">Sistem günlüğünü (log) gönder</string>
     <string name="send_bug_report_include_crash_logs">Çökme günlüğünü (crash log) gönder</string>
     <string name="send_bug_report_include_screenshot">Ekran görüntüsünü gönder</string>
-    <string name="send_bug_report">Hata Bildir</string>
     <string name="send_bug_report_description">Lütfen hatayı tanımlayın. Ne yaptınız? Ne olmasını beklediniz? Ne oldu?</string>
     <string name="send_bug_report_description_in_english">Mümkünse, lütfen yapacağınız açıklamayı İngilizce yazın.</string>
     <string name="send_bug_report_placeholder">Sorunu açıklayın</string>
     <string name="send_bug_report_logs_description">Sorunları teşhis etmek için bu istemciden gelen sistem günlüğü (log) hata raporu ile gönderilecek. Bu hata raporu -sistem günlüğü ve ekran görüntülere dahil- halka açık bir şekilde görünür olmayacaktır. Eğer sadece alttaki yazıları göndermek istiyorsanız, lütfen şunun işaretini kaldırın:</string>
-    <string name="send_bug_report_alert_message">Telefonunu yılgınlıkla sallıyor gibi görünüyorsun. Hata raporu göndermek ister misin\?</string>
-    <string name="send_bug_report_app_crashed">Uygulama en son çökmüştü, hata raporu göndermek ister misiniz\?</string>
-    <string name="send_bug_report_rage_shake">Hata bildirmek için telefonu sallayın</string>
-    <string name="send_bug_report_sent">Hata raporu başarılı bir şekilde gönderildi</string>
-    <string name="send_bug_report_failed">Hata raporu gönderilemedi (%s)</string>
-    <string name="send_bug_report_progress">İlerleme (%%%s)</string>
     <string name="join_room">Odaya Katıl</string>
     <string name="username">Kullanıcı adı</string>
     <string name="logout">Çıkış yap</string>
@@ -308,9 +300,6 @@
     <string name="settings_preview_media_before_sending">Medyayı göndermeden önce önizleme göster</string>
     <string name="settings_deactivate_account_section">Hesabı devre dışı bırak</string>
     <string name="settings_deactivate_my_account">Hesabımı devre dışı bırak</string>
-    <string name="settings_analytics">Analitik</string>
-    <string name="settings_opt_in_of_analytics">Analitik verilerini gönder</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} uygulamayı geliştirmemiz için anonim analitik veriler toplar.</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Görünür Ad</string>
     <string name="devices_details_device_name">Görünür Adı Güncelle</string>
@@ -890,9 +879,7 @@
     <string name="send_file_step_sending_thumbnail">Küçük resim gönderiliyor (%1$s / %2$s)</string>
     <string name="send_file_step_encrypting_thumbnail">Küçük resim şifreleniyor…</string>
     <string name="bottom_action_people_x">Direkt mesajlar</string>
-    <string name="send_suggestion_sent">Teşekkürler, öneri başarıyla gönderildi</string>
     <string name="send_suggestion_report_placeholder">Önerinizi buraya yazınız</string>
-    <string name="send_suggestion">Öneri yap</string>
     <string name="preference_root_help_about">Yardım ve Hakkında</string>
     <string name="preference_voice_and_video">Ses ve görüntü</string>
     <string name="push_gateway_item_app_display_name">uygulama_görüntüleme_ismi:</string>
@@ -1467,10 +1454,6 @@
     <string name="devices_other_devices">Diğer oturumlar</string>
     <string name="devices_current_device">Geçerli oturum</string>
     <string name="settings">Ayarlar</string>
-    <string name="rageshake_detected">Sarsıntı tespit edildi!</string>
-    <string name="settings_rageshake_detection_threshold_summary">Algılama eşiğini test etmek için telefonunuzu sallayın</string>
-    <string name="settings_rageshake_detection_threshold">Algılama eşiği</string>
-    <string name="settings_rageshake">Öfke sarsılması</string>
     <string name="settings_developer_mode_summary">Geliştirici modu, gizli özellikleri etkinleştirir ve ayrıca uygulamayı daha az kararlı hale getirebilir. Sadece geliştiriciler için!</string>
     <string name="settings_developer_mode">Geliştirici modu</string>
     <string name="settings_advanced_settings">Gelişmiş Ayarlar</string>
@@ -1580,7 +1563,6 @@
     <string name="send_file_step_compressing_image">Görüntü sıkıştırılıyor…</string>
     <string name="give_feedback">Geri bildirimde bulunun</string>
     <string name="feedback_failed">Geri bildirim gönderilemedi (%s)</string>
-    <string name="feedback_sent">Teşekkürler, geri bildiriminiz başarıyla gönderildi</string>
     <string name="you_may_contact_me">Herhangi bir takip sorunuz varsa benimle iletişime geçebilirsiniz</string>
     <string name="send_feedback_space_info">"Alanların beta sürümünü kullanıyorsunuz. Geri bildiriminiz sonraki sürümleri bilgilendirmeye yardımcı olacaktır.  Platformunuz ve kullanıcı adınız, geri bildiriminizi elimizden geldiğince kullanmamıza yardımcı olmak için not edilecektir."</string>
     <string name="feedback">Geri bildirim</string>

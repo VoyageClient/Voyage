@@ -38,7 +38,6 @@
     <string name="light_theme">Oq tema</string>
     <string name="system_theme">Tizim tanlovi boʻyicha</string>
     <string name="sign_out_bottom_sheet_warning_no_backup">Agar hozir chiqsangiz shifrlangan xabarlaringizni yoʻqotasiz</string>
-    <string name="title_activity_bug_report">Xatolik toʻgʻrisida xabar berish</string>
     <string name="send_bug_report_include_logs">Loglarni joʻnatish</string>
     <string name="no_more_results">Boshqa natijalar yoʻq</string>
     <string name="no_result_placeholder">Natija yoʻq</string>

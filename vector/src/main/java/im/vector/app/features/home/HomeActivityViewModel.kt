@@ -23,11 +23,6 @@ import im.vector.app.core.pushers.PushersManager
 import im.vector.app.core.pushers.RegisterUnifiedPushUseCase
 import im.vector.app.core.pushers.UnregisterUnifiedPushUseCase
 import im.vector.app.core.session.EnsureSessionSyncingUseCase
-import im.vector.app.features.analytics.AnalyticsConfig
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsType
-import im.vector.app.features.analytics.plan.Signup
-import im.vector.app.features.analytics.store.AnalyticsStore
 import im.vector.app.features.home.room.list.home.release.ReleaseNotesPreferencesStore
 import im.vector.app.features.login.ReAuthHelper
 import im.vector.app.features.onboarding.AuthenticationDescription
@@ -41,11 +36,8 @@ import im.vector.app.features.voicebroadcast.recording.usecase.StopOngoingVoiceB
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.auth.UIABaseAuth
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
@@ -74,11 +66,8 @@ class HomeActivityViewModel @AssistedInject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val rawService: RawService,
         private val reAuthHelper: ReAuthHelper,
-        private val analyticsStore: AnalyticsStore,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val vectorPreferences: VectorPreferences,
-        private val analyticsTracker: AnalyticsTracker,
-        private val analyticsConfig: AnalyticsConfig,
         private val releaseNotesPreferencesStore: ReleaseNotesPreferencesStore,
         private val stopOngoingVoiceBroadcastUseCase: StopOngoingVoiceBroadcastUseCase,
         private val pushersManager: PushersManager,
@@ -119,7 +108,7 @@ class HomeActivityViewModel @AssistedInject constructor(
         observeInitialSync()
         checkSessionPushIsOn()
         observeCrossSigningReset()
-        observeAnalytics()
+        promptForNotifications()
         observeReleaseNotes()
         initThreadsMigration()
         viewModelScope.launch { stopOngoingVoiceBroadcastUseCase.execute() }
@@ -170,44 +159,8 @@ class HomeActivityViewModel @AssistedInject constructor(
         }
     }
 
-    private fun observeAnalytics() {
-        if (analyticsConfig.isEnabled) {
-            analyticsStore.didAskUserConsentFlow
-                    .onEach { didAskUser ->
-                        Timber.v("DidAskUserConsent: $didAskUser")
-                        if (!didAskUser) {
-                            _viewEvents.post(HomeActivityViewEvents.ShowAnalyticsOptIn)
-                        } else {
-                            _viewEvents.post(HomeActivityViewEvents.ShowNotificationDialog)
-                        }
-                    }
-                    .launchIn(viewModelScope)
-
-            when (val recentAuthentication = initialState.authenticationDescription) {
-                is AuthenticationDescription.Register -> {
-                    viewModelScope.launch {
-                        analyticsStore.onUserGaveConsent {
-                            analyticsTracker.capture(Signup(authenticationType = recentAuthentication.type.toAnalyticsType()))
-                        }
-                    }
-                }
-                AuthenticationDescription.Login -> {
-                    // do nothing
-                }
-                null -> {
-                    // do nothing
-                }
-            }
-        } else {
-            _viewEvents.post(HomeActivityViewEvents.ShowNotificationDialog)
-        }
-    }
-
-    private suspend fun AnalyticsStore.onUserGaveConsent(action: () -> Unit) {
-        userConsentFlow
-                .takeWhile { !it }
-                .onCompletion { action() }
-                .collect()
+    private fun promptForNotifications() {
+        _viewEvents.post(HomeActivityViewEvents.ShowNotificationDialog)
     }
 
     private fun cleanupFiles() {

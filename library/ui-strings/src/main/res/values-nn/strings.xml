@@ -48,7 +48,6 @@
     <string name="notification_noisy_notifications">Bråkete varsel</string>
     <string name="notification_silent_notifications">Stille varsel</string>
     <string name="title_activity_settings">Innstillingar</string>
-    <string name="title_activity_bug_report">Feilrapport</string>
     <string name="title_activity_choose_sticker">Send eit klistremerke</string>
     <string name="loading">Lastar…</string>
     <string name="ok">Greitt</string>
@@ -89,17 +88,10 @@
     <string name="send_bug_report_include_logs">Send loggar</string>
     <string name="send_bug_report_include_crash_logs">Send krasjrapportar</string>
     <string name="send_bug_report_include_screenshot">Send skjermbilde</string>
-    <string name="send_bug_report">Rapporter om feil</string>
     <string name="send_bug_report_description">Beskriv feilen. Kva gjorde du\? Kva forventa du skulle hende\? Kva hendte\?</string>
     <string name="send_bug_report_description_in_english">Om mogleg, skriv beskrivelsen på engelsk.</string>
     <string name="send_bug_report_placeholder">Beskriv problemet ditt her</string>
     <string name="send_bug_report_logs_description">For å diagnostisere feil, vil loggar frå denne klienten bli sendt med i feilrapporten. Denne feilrapporten inklusiv loggar, skjermbilete vil ikkje vere offentleg. Fjern avkryssinga om du berre vil sende teksten ovanfor:</string>
-    <string name="send_bug_report_alert_message">Det verkar som du ristar mobilen i vonbrot. Ønskjer du å opne skjerm for feilrapport \?</string>
-    <string name="send_bug_report_app_crashed">Programmet krasja sist gong. Ønskjer du å opne skjerm for feilrapport \?</string>
-    <string name="send_bug_report_rage_shake">Rist i sinne for å rapportera feil</string>
-    <string name="send_bug_report_sent">Feilrapporten vart sendt</string>
-    <string name="send_bug_report_failed">Fekk ikkje til å senda feilrapporten (%s)</string>
-    <string name="send_bug_report_progress">Framgang (%s%%)</string>
     <string name="join_room">Gå inn i romet</string>
     <string name="username">Brukarnamn</string>
     <string name="logout">Logg ut</string>
@@ -237,9 +229,6 @@
     <string name="settings_preview_media_before_sending">Førehandsvis medium før avsending</string>
     <string name="settings_deactivate_account_section">Deaktiver konto</string>
     <string name="settings_deactivate_my_account">Deaktiver kontoen min</string>
-    <string name="settings_analytics">Statistikk</string>
-    <string name="settings_opt_in_of_analytics">Send statistikkdata</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} samlar anonym statistikk inn for å forbetra applikasjonen.</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Offentleg namn</string>
     <string name="devices_details_device_name">Oppdater offentleg namn</string>

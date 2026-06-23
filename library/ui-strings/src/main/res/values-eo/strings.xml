@@ -183,7 +183,6 @@
     <string name="notification_noisy_notifications">Laŭtaj sciigoj</string>
     <string name="notification_silent_notifications">Silentaj sciigoj</string>
     <string name="title_activity_settings">Agordoj</string>
-    <string name="title_activity_bug_report">Erar-raporto</string>
     <string name="title_activity_choose_sticker">Sendi glumarkon</string>
     <string name="loading">Enlegante…</string>
     <string name="ok">Bone</string>
@@ -201,7 +200,6 @@
     <string name="action_delete">Forigi</string>
     <string name="action_rename">Alinomi</string>
     <string name="report_content">Raporti Enhavon</string>
-    <string name="send_bug_report">Raporti eraron</string>
     <string name="or">aŭ</string>
     <string name="action_invite">Inviti</string>
     <string name="action_quick_reply">Rapida respondo</string>
@@ -251,9 +249,6 @@
     <string name="send_bug_report_description">Bonvolu priskribi la eraron. Kion vi faris\? Kion vi atendis\? Kio tamen vere okazis\?</string>
     <string name="send_bug_report_description_in_english">Se tio eblas, bonvolu priskribi per la angla lingvo.</string>
     <string name="send_bug_report_placeholder">Priskribu vian problemon ĉi tie</string>
-    <string name="send_bug_report_sent">Sukcese sendis la erar-raporton</string>
-    <string name="send_bug_report_failed">Malsukcesis sendi la erar-raporton (%s)</string>
-    <string name="send_bug_report_progress">Progreso (%s%%)</string>
     <string name="join_room">Aliĝi al ĉambro</string>
     <string name="username">Uzantonomo</string>
     <string name="logout">Elsaluti</string>
@@ -361,9 +356,6 @@
 \nĈu vi certe volas daŭrigi\?</string>
     <string name="create_room_dm_failure">Ni ne povis krei vian individuan ĉambron. Bonvolu kontroli la invitotajn uzantojn kaj reprovi.</string>
     <string name="send_bug_report_logs_description">Por diagnozi problemojn, protokolo de ĉi tiu kliento sendiĝos kune kun ĉi tiu erar-raporto. Ĉi tiu erar-raporto, inkluzive la protokolon kaj la ekrankopion, ne estos publike videbla. Se vi preferus sendi nur la ĉi-supran tekston, bonvolu malmarki:</string>
-    <string name="send_bug_report_alert_message">Ŝajnas, ke vi kolere skuas la telefonon. Ĉu vi volas malfermi la erar-raportilon\?</string>
-    <string name="send_bug_report_app_crashed">La aplikaĵo lastatempe fiaskis. Ĉu vi volas malfermi la fiasko-raportilon\?</string>
-    <string name="send_bug_report_rage_shake">Kolere skuu por raporti eraron</string>
     <string name="login_error_invalid_home_server">Bonvolu enigi validan URL-on</string>
     <string name="login_error_no_homeserver_found">Ĉi tio ne estas valida adreso de servilo de Matrix</string>
     <string name="login_error_homeserver_not_found">Ne povas atingi hejmservilon je ĉi tiu URL, bonvolu kontroli ĝin</string>
@@ -498,10 +490,7 @@
     <string name="autocomplete_limited_results">Montras nur la unuajn rezultojn; tajpu pliajn literojn…</string>
     <string name="devices_other_devices">Aliaj salutaĵoj</string>
     <string name="devices_current_device">Nuna salutaĵo</string>
-    <string name="rageshake_detected">Skuado estas rekonita!</string>
     <string name="settings">Agordoj</string>
-    <string name="settings_rageshake_detection_threshold_summary">Skuu vian telefonon por elprovi la sojlon de rekono</string>
-    <string name="settings_rageshake_detection_threshold">Sojlo de rekono</string>
     <string name="settings_developer_mode_summary">La programista reĝimo aktivigas kaŝitajn funkciojn, kaj povus malstabiligi la aplikaĵon. Nur por programistoj!</string>
     <string name="settings_developer_mode">Programista reĝimo</string>
     <string name="settings_advanced_settings">Altnivelaj agordoj</string>
@@ -736,10 +725,8 @@
     <string name="settings_labs_show_complete_history_in_encrypted_room">Montri plenan historion en ĉifritaj ĉambroj</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Montri kaŝitajn okazojn en historio</string>
     <string name="send_suggestion_failed">Malsukcesis sendi la proponon (%s)</string>
-    <string name="send_suggestion_sent">Dankon, la propono sukcese sendiĝis</string>
     <string name="send_suggestion_report_placeholder">Priskribu vian proponon ĉi tie</string>
     <string name="send_suggestion_content">Bonvolu skribi vian proponon sube.</string>
-    <string name="send_suggestion">Fari proponon</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Registri ĵetonon</string>
     <string name="preference_root_help_about">Helpo ⳤ prio</string>
     <string name="preference_voice_and_video">Voĉo ⳤ vido</string>
@@ -1129,9 +1116,6 @@
     <string name="devices_details_device_name">Ĝisdatigi publikan nomon</string>
     <string name="devices_details_name_title">Publika nomo</string>
     <string name="devices_details_id_title">Identigilo</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} kolektas sennomajn analizojn por helpi al ni plibonigi la aplikaĵon.</string>
-    <string name="settings_opt_in_of_analytics">Sendi datumojn de analizo</string>
-    <string name="settings_analytics">Analizo</string>
     <string name="settings_discovery_manage">Administri viajn agordojn de trovado.</string>
     <string name="settings_discovery_category">Trovado</string>
     <string name="settings_deactivate_my_account">Malŝalti mian konton</string>
@@ -1316,7 +1300,6 @@
     <string name="failed_to_add_widget">Malsukcesis aldoni fenestraĵon</string>
     <string name="action_reset">Restarigi</string>
     <string name="initialize_cross_signing">Pretigi delegajn subskribojn</string>
-    <string name="settings_rageshake">Kolera skuado</string>
     <string name="login_server_url_form_modular_notice">Enigu la adreson de tiu servilo aŭ «Modular Element», kiun vi volas uzi</string>
     <string name="login_server_url_form_modular_text">Pagenda gastigado por organizaĵoj</string>
     <string name="login_server_other_title">Alia</string>
@@ -1811,7 +1794,6 @@
     <string name="send_file_step_compressing_image">Densigante bildon…</string>
     <string name="give_feedback">Prikomenti</string>
     <string name="feedback_failed">Malsukcesis sendi la prikomentojn (%s)</string>
-    <string name="feedback_sent">Dankon, viaj prikomentoj sendiĝis sukcese</string>
     <string name="room_settings_room_access_restricted_description">Ĉiu ajn en spaco kun ĉi tiu ĉambro povas ĝin trovi kaj aliĝi. Nur administrantoj de ĉi tiu ĉambro povas ĝin spacigi.</string>
     <string name="room_settings_room_access_restricted_title">Nur spacanoj</string>
     <string name="room_settings_room_access_public_description">Ĉiu ajn povas trovi kaj aliĝi la ĉambron</string>

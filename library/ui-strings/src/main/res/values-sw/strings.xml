@@ -249,7 +249,6 @@
     <string name="notification_noisy_notifications">Arifa za kelele</string>
     <string name="notification_silent_notifications">Arifa za kimya</string>
     <string name="title_activity_settings">Mipangilio</string>
-    <string name="title_activity_bug_report">Ripoti ya hitilafu</string>
     <string name="title_activity_choose_sticker">Tuma kibandiko</string>
     <string name="title_activity_keys_backup_setup">Hifadhi Nakala muhimu</string>
     <string name="title_activity_keys_backup_restore">Tumia Nakala Muhimu Ulizohifadhi</string>

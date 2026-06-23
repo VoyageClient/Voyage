@@ -23,7 +23,6 @@ sealed interface HomeActivityViewEvents : VectorViewEvents {
 
     data class OnCrossSignedInvalidated(val userItem: MatrixItem.UserItem) : HomeActivityViewEvents
     object PromptToEnableSessionPush : HomeActivityViewEvents
-    object ShowAnalyticsOptIn : HomeActivityViewEvents
     object ShowNotificationDialog : HomeActivityViewEvents
     object ShowReleaseNotes : HomeActivityViewEvents
     object NotifyUserForThreadsMigration : HomeActivityViewEvents

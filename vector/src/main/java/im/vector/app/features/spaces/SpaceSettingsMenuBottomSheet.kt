@@ -24,7 +24,6 @@ import im.vector.app.databinding.BottomSheetSpaceSettingsBinding
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.navigation.Navigator
-import im.vector.app.features.rageshake.BugReporter
 import im.vector.app.features.roomprofile.RoomProfileActivity
 import im.vector.app.features.spaces.leave.SpaceLeaveAdvancedActivity
 import im.vector.app.features.spaces.manage.ManageType
@@ -44,7 +43,6 @@ class SpaceSettingsMenuBottomSheet : VectorBaseBottomSheetDialogFragment<BottomS
 
     @Inject lateinit var navigator: Navigator
     @Inject lateinit var avatarRenderer: AvatarRenderer
-    @Inject lateinit var bugReporter: BugReporter
 
     private val spaceArgs: SpaceBottomSheetSettingsArgs by args()
 

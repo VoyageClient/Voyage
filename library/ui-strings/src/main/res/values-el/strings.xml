@@ -59,7 +59,6 @@
     <string name="notification_noisy_notifications">Ηχητικές ειδοποιήσεις</string>
     <string name="notification_silent_notifications">Αθόρυβες ειδοποιήσεις</string>
     <string name="title_activity_settings">Ρυθμίσεις</string>
-    <string name="title_activity_bug_report">Αναφορά σφάλματος</string>
     <string name="loading">Φόρτωση…</string>
     <string name="action_save">Αποθήκευση</string>
     <string name="encrypted_message">Κρυπτογραφημένο μήνυμα</string>
@@ -91,14 +90,8 @@
     <string name="no_result_placeholder">Δεν βρέθηκαν αποτελέσματα</string>
     <string name="rooms_header">Δωμάτια</string>
     <string name="send_bug_report_include_crash_logs">Αποστολή καταγραφών σφαλμάτων</string>
-    <string name="send_bug_report">Αναφορά σφάλματος</string>
     <string name="send_bug_report_description_in_english">Εφόσον είναι δυνατό, παρακαλώ γράψτε την περιγραφή στα αγγλικά.</string>
     <string name="send_bug_report_placeholder">Περιγράψτε το πρόβλημά σας εδώ</string>
-    <string name="send_bug_report_alert_message">Φαίνεται να κουνάτε το τηλέφωνο από εκνευρισμό. Θέλετε να ανοίξετε την οθόνη αναφοράς σφάλματος;</string>
-    <string name="send_bug_report_rage_shake">Κουνήστε το τηλέφωνο για αναφορά σφάλματος</string>
-    <string name="send_bug_report_sent">Η αναφορά σφάλματος εστάλη επιτυχώς</string>
-    <string name="send_bug_report_failed">Η αποστολή της αναφοράς σφάλματος απέτυχε (%s)</string>
-    <string name="send_bug_report_progress">Πρόοδος (%s%%)</string>
     <string name="username">Όνομα χρήστη</string>
     <string name="logout">Αποσύνδεση</string>
     <string name="search">Αναζήτηση</string>
@@ -134,8 +127,6 @@
     <string name="settings_send_markdown">Μορφοποίηση Markdown</string>
     <string name="settings_deactivate_account_section">Απενεργοποίηση λογαριασμού</string>
     <string name="settings_deactivate_my_account">Απενεργοποίηση του λογαριασμού μου</string>
-    <string name="settings_analytics">Στατιστικά χρήσης</string>
-    <string name="settings_opt_in_of_analytics">Αποστολή στατιστικών χρήσης</string>
     <string name="devices_details_id_title">Αναγνωριστικό</string>
     <string name="devices_details_name_title">Όνομα</string>
     <string name="devices_details_device_name">Όνομα συσκευής</string>
@@ -302,7 +293,6 @@
     <string name="option_send_voice">Αποστολή φωνής</string>
     <string name="hs_url">Διέυθυνση URL Ιδιαίτερου Διακομιστή</string>
     <string name="join_room">Είσοδος στο δωμάτιο</string>
-    <string name="send_bug_report_app_crashed">Η εφαργμογή διακόπηκε απότομα προηγουμένως. Θα θέλατε να ανοίξετε την οθόνη αναφοράς σφάλματος;</string>
     <string name="send_bug_report_include_screenshot">Αποστολή στιγμιότυπου οθόνης</string>
     <string name="send_bug_report_include_key_share_history">Αποστολή ιστορικού αιτήσεων αποστολής κλειδιού</string>
     <string name="no_more_results">Δεν υπάρχουν άλλα αποτελέσματα</string>

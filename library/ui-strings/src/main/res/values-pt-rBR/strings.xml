@@ -260,15 +260,9 @@
     <string name="send_bug_report_include_logs">Enviar logs</string>
     <string name="send_bug_report_include_crash_logs">Enviar logs de crashes</string>
     <string name="send_bug_report_include_screenshot">Enviar captura de tela</string>
-    <string name="send_bug_report">Reportar bug</string>
     <string name="send_bug_report_description">Por favor descreva o bug. O que você fez\? O que você esperava que acontecesse\? O que na verdade aconteceu\?</string>
     <string name="send_bug_report_placeholder">Descreva seu problema aqui</string>
     <string name="send_bug_report_logs_description">A fim de diagnosticar problemas, logs deste cliente serão enviados com este reporte de bug. Este reporte de bug, incluindo os logs e a captura de tela, não será visível publicamente. Se você prefere somente enviar o texto acima, por favor desmarque:</string>
-    <string name="send_bug_report_alert_message">Você parece estar agitando o telefone em frustração. Você gostaria de abrir a tela de reporte de bug\?</string>
-    <string name="send_bug_report_sent">O reporte de bug foi enviado com sucesso</string>
-    <string name="send_bug_report_failed">O envio do reporte de bug falhou (%s)</string>
-    <string name="send_bug_report_progress">Progresso (%s%%)</string>
-    <string name="send_bug_report_app_crashed">O aplicativo crashou da última vez. Você gostaria de abrir a tela de reporte de crash\?</string>
     <string name="join_room">Entrar na Sala</string>
     <string name="username">Nome de Usuário</string>
     <string name="logout">Sair</string>
@@ -453,7 +447,6 @@
     <string name="notification_listening_for_events">À escuta por eventos</string>
     <string name="notification_noisy_notifications">Notificações barulhentas</string>
     <string name="notification_silent_notifications">Notificações silenciosas</string>
-    <string name="title_activity_bug_report">Reporte de bug</string>
     <string name="loading">Carregando…</string>
     <string name="option_take_photo">Tirar foto</string>
     <string name="option_take_video">Tirar vídeo</string>
@@ -466,7 +459,6 @@
     <string name="settings_inline_url_preview">Previsualização de URL inline</string>
     <string name="settings_12_24_timestamps">Mostrar timestamps em formato de 12 horas</string>
     <string name="settings_vibrate_on_mention">Vibrar ao mencionar um usuário</string>
-    <string name="settings_analytics">Analítica</string>
     <string name="widget_delete_message_confirmation">Você tem certeza que você quer deletar o widget desta sala\?</string>
     <string name="widget_integration_unable_to_create">Incapaz de criar widget.</string>
     <string name="widget_integration_failed_to_send_request">Falha para enviar requisição.</string>
@@ -520,7 +512,6 @@
         <item quantity="other">%d widgets ativos</item>
     </plurals>
     <string name="avatar">Avatar</string>
-    <string name="send_bug_report_rage_shake">Agitar com raiva para reportar bug</string>
     <string name="title_activity_choose_sticker">Enviar um sticker</string>
     <string name="action_download">Fazer Download</string>
     <string name="system_alerts_header">Alertas de Sistema</string>
@@ -540,8 +531,6 @@
     <string name="settings_preview_media_before_sending">Previsualizar mídia antes de enviar</string>
     <string name="settings_deactivate_account_section">Desativar conta</string>
     <string name="settings_deactivate_my_account">Desativar minha conta</string>
-    <string name="settings_opt_in_of_analytics">Enviar dados de analítica</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} coleta analítica anônima para nos permitir melhorar o aplicativo.</string>
     <string name="widget_integration_missing_parameter">Um parâmetro requerido está faltando.</string>
     <string name="command_description_emote">Exibe ação</string>
     <string name="command_description_ban_user">Bane o usuário com a id dada</string>
@@ -977,10 +966,8 @@
     <string name="preference_voice_and_video">Voz &amp; Vídeo</string>
     <string name="preference_root_help_about">Ajuda &amp; Sobre</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Registrar token</string>
-    <string name="send_suggestion">Fazer uma sugestão</string>
     <string name="send_suggestion_content">Por favor escreva sua sugestão abaixo.</string>
     <string name="send_suggestion_report_placeholder">Descreva sua sugestão aqui</string>
-    <string name="send_suggestion_sent">Obrigado, a sugestão tem sido enviada com sucesso</string>
     <string name="send_suggestion_failed">A sugestão falhou para ser enviada (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Mostrar eventos escondidos em timeline</string>
     <string name="bottom_action_people_x">Mensagens Diretas</string>
@@ -1233,10 +1220,6 @@
     <string name="settings_advanced_settings">Configurações avançadas</string>
     <string name="settings_developer_mode">Modo desenvolvedor</string>
     <string name="settings_developer_mode_summary">O modo desenvolvedor ativa funcionalidades escondidas e também pode fazer o aplicativo menos estável. Para desenvolvedores somente!</string>
-    <string name="settings_rageshake">Rageshake</string>
-    <string name="settings_rageshake_detection_threshold">Limiar de detecção</string>
-    <string name="settings_rageshake_detection_threshold_summary">Agite seu telefone para testar o limiar de detecção</string>
-    <string name="rageshake_detected">Agitação detectada!</string>
     <string name="settings">Configurações</string>
     <string name="devices_current_device">Sessão atual</string>
     <string name="devices_other_devices">Outras sessões</string>
@@ -1894,7 +1877,6 @@
     <string name="send_file_step_compressing_image">Comprimindo imagem…</string>
     <string name="give_feedback">Dar Feedback</string>
     <string name="feedback_failed">O feedback falhou para ser enviado (%s)</string>
-    <string name="feedback_sent">Obrigado, seu feedback tem sido enviado com sucesso</string>
     <string name="you_may_contact_me">Vocês podem me contactar se vocês tiverem quaisquer perguntas subsequentes</string>
     <string name="send_feedback_space_info">Você está usando uma versão beta de espaços. Seu feedback vai ajudar a informar as próximas versões. Sua plataforma e nome de usuária(o) vão ser anotados para nos ajudar a usar o seu feedback tanto quanto nós pudermos.</string>
     <string name="feedback">Feedback</string>

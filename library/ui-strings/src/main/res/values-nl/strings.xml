@@ -121,15 +121,9 @@
     <string name="send_bug_report_include_logs">Logboek versturen</string>
     <string name="send_bug_report_include_crash_logs">Crash-logboek versturen</string>
     <string name="send_bug_report_include_screenshot">Schermafdruk versturen</string>
-    <string name="send_bug_report">Probleem melden</string>
     <string name="send_bug_report_description">Beschrijf de fout. Wat heb je gedaan\? Wat verwachtte je dat er zou gebeuren\? Wat is er echt gebeurd\?</string>
     <string name="send_bug_report_placeholder">Beschrijf hier jouw probleem</string>
     <string name="send_bug_report_logs_description">Om het probleem te kunnen onderzoeken worden logboeken van deze cliënt met de foutmelding verstuurd. Deze foutmelding, inclusief de logboeken en schermafdruk, zullen niet openbaar zichtbaar zijn. Indien je liever alleen de bovenstaande tekst verstuurt, haal dan het vinkje weg:</string>
-    <string name="send_bug_report_alert_message">Het ziet er naar uit dat je de telefoon in frustratie schudt. Wil je een probleem melden\?</string>
-    <string name="send_bug_report_sent">De foutmelding is verzonden</string>
-    <string name="send_bug_report_failed">Versturen van foutmelding is mislukt (%s)</string>
-    <string name="send_bug_report_progress">Voortgang (%s%%)</string>
-    <string name="send_bug_report_app_crashed">De toepassing is de vorige keer gecrasht. Wil je dit melden\?</string>
     <string name="join_room">Deelnemen aan kamer</string>
     <string name="username">Inlognaam</string>
     <string name="logout">Afmelden</string>
@@ -326,12 +320,10 @@
     <string name="room_add_matrix_apps">Matrix-apps toevoegen</string>
     <string name="notification_noisy_notifications">Belangrijke meldingen</string>
     <string name="notification_silent_notifications">Stille meldingen</string>
-    <string name="title_activity_bug_report">Foutmelding</string>
     <string name="option_take_photo">Foto maken</string>
     <string name="option_take_video">Video maken</string>
     <string name="settings_containing_my_display_name">Berichten die mijn weergavenaam bevatten</string>
     <string name="settings_containing_my_user_name">Berichten die mijn inlognaam bevatten</string>
-    <string name="settings_analytics">Statistische gegevens</string>
     <string name="settings_labs_native_camera">Systeemcamera gebruiken</string>
     <string name="you_added_a_new_device">Je hebt een nieuwe sessie ‘%s’ toegevoegd, die versleutelingssleutels aanvraagt.</string>
     <string name="your_unverified_device_requesting">Jouw ongeverifieerde sessie ‘%s’ vraagt versleutelingssleutels aan.</string>
@@ -342,7 +334,6 @@
     <string name="notification_noisy">Lawaaierig</string>
     <string name="encrypted_message">Versleuteld bericht</string>
     <string name="loading">Laden…</string>
-    <string name="send_bug_report_rage_shake">Schudden om een probleem te melden</string>
     <plurals name="membership_changes">
         <item quantity="one">%d verandering in lidmaatschap</item>
         <item quantity="other">%d veranderingen in lidmaatschap</item>
@@ -389,8 +380,6 @@
 \nWil je er nu een paar toevoegen\?</string>
     <string name="settings_deactivate_account_section">Account deactiveren</string>
     <string name="settings_deactivate_my_account">Mijn account deactiveren</string>
-    <string name="settings_opt_in_of_analytics">Statistische gegevens (analytics) versturen</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} verzamelt anonieme statistische gegevens (analytics) om het voor ons mogelijk te maken om de app te verbeteren.</string>
     <string name="widget_integration_missing_parameter">Er ontbreekt een vereiste parameter.</string>
     <string name="dialog_user_consent_content">Om de %1$s-server verder te blijven gebruiken, dien je de voorwaarden te lezen en ermee akkoord te gaan.</string>
     <string name="dialog_user_consent_submit">Nu doorlezen</string>
@@ -971,8 +960,6 @@
     <string name="create_room_encryption_title">Versleuteling inschakelen</string>
     <string name="devices_other_devices">Andere sessies</string>
     <string name="devices_current_device">Huidige sessie</string>
-    <string name="rageshake_detected">Schudden gedetecteerd!</string>
-    <string name="settings_rageshake_detection_threshold">Gevoeligheidsdrempel</string>
     <string name="settings_developer_mode">Ontwikkelaarsmodus</string>
     <string name="settings_advanced_settings">Geavanceerde instellingen</string>
     <string name="notification_initial_sync">Initiële synchronisatie…</string>
@@ -1102,7 +1089,6 @@
     <string name="sent_a_video">Video.</string>
     <string name="settings_developer_mode_fail_fast_title">Snel falen</string>
     <string name="settings">Instellingen</string>
-    <string name="settings_rageshake">Schudden</string>
     <string name="soft_logout_signin_password_hint">Wachtwoord</string>
     <string name="login_signup_cancel_confirmation_title">Waarschuwing</string>
     <string name="login_signup_submit">Volgende</string>
@@ -1397,15 +1383,12 @@
     <string name="settings_labs_show_hidden_events_in_timeline">Verborgen gebeurtenissen op de tijdlijn weergeven</string>
     <string name="give_feedback">Geef feedback</string>
     <string name="feedback_failed">De feedback kan niet worden verzonden (%s)</string>
-    <string name="feedback_sent">Bedankt, je feedback is succesvol verzonden</string>
     <string name="you_may_contact_me">Je kan contact met mij opnemen als je vervolgvragen hebt</string>
     <string name="send_feedback_space_info">Je gebruikt een bètaversie van spaces. Jouw feedback zal helpen bij het informeren van de volgende versies. Jouw platform en inlognaam worden genoteerd om ons te helpen jouw feedback zoveel mogelijk te gebruiken.</string>
     <string name="send_feedback_space_title">Spaces feedback</string>
     <string name="send_suggestion_failed">De suggestie kan niet worden verzonden (%s)</string>
-    <string name="send_suggestion_sent">Bedankt, de suggestie is succesvol verzonden</string>
     <string name="send_suggestion_report_placeholder">Beschrijf hier jouw suggestie</string>
     <string name="send_suggestion_content">Schrijf hieronder jouw suggestie.</string>
-    <string name="send_suggestion">Een voorstel doen</string>
     <string name="preference_system_settings">Systeeminstellingen</string>
     <string name="preference_versions">Versies</string>
     <string name="preference_help_summary">Hulp bij het gebruik van ${app_name}</string>
@@ -1979,7 +1962,6 @@
     <string name="settings_developer_mode_show_info_on_screen_title">Foutopsporingsinformatie op het scherm weergeven</string>
     <string name="settings_developer_mode_fail_fast_summary">${app_name} kan vaker crashen als er een onverwachte fout optreedt</string>
     <string name="autocomplete_limited_results">Laat alleen de eerste resultaten zien, typ meer letters…</string>
-    <string name="settings_rageshake_detection_threshold_summary">Schud je telefoon om de detectiedrempel te testen</string>
     <string name="settings_developer_mode_summary">De ontwikkelaarsmodus activeert verborgen functies en kan de applicatie ook minder stabiel maken. Alleen voor ontwikkelaars!</string>
     <string name="bug_report_error_too_short">De beschrijving is te kort</string>
     <string name="permalink_malformed">Jouw matrix.to link is onjuist opgemaakt</string>

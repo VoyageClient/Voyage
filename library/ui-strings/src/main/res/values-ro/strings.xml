@@ -302,7 +302,6 @@
     <string name="sign_out_bottom_sheet_warning_no_backup">Dacă vă deconectați acum, veți pierde mesajele criptate</string>
     <string name="title_activity_keys_backup_restore">Folosește cheia de rezervă</string>
     <string name="title_activity_keys_backup_setup">Copia cheii de criptare</string>
-    <string name="title_activity_bug_report">Raport de erori</string>
     <string name="backup">Backup</string>
     <string name="are_you_sure">Ești sigur \?</string>
     <string name="sign_out_bottom_sheet_warning_backup_not_active">Backup-ul cheii de criptare ar trebui să fie activ pe toate dispozitivele tale, pentru a evita pierderea mesajelor tale criptate.</string>

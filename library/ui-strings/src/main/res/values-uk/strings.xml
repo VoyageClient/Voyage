@@ -144,7 +144,6 @@
     <string name="black_theme">OLED Тема</string>
     <string name="notification_listening_for_events">Стеження за подіями</string>
     <string name="title_activity_settings">Налаштування</string>
-    <string name="title_activity_bug_report">Звіт про ваду</string>
     <string name="ok">Гаразд</string>
     <string name="action_cancel">Скасувати</string>
     <string name="action_save">Зберегти</string>
@@ -182,15 +181,9 @@
     <string name="send_bug_report_include_logs">Надіслати журнали</string>
     <string name="send_bug_report_include_crash_logs">Надіслати журнали помилок</string>
     <string name="send_bug_report_include_screenshot">Надіслати знімок екрана</string>
-    <string name="send_bug_report">Повідомити про ваду</string>
     <string name="send_bug_report_description">Опишіть ваду. Що ви робили\? Виконання якої дії очікували\? Що сталося натомість\?</string>
     <string name="send_bug_report_placeholder">Опишіть свою проблему</string>
     <string name="send_bug_report_logs_description">Для визначення проблеми, журнали з цього клієнта буде долучено до звіту про ваду. Цей звіт, включно з журналами та знімком екрана, не буде доступний публічно. Якщо ви не хочете надсилати журнали, приберіть позначку:</string>
-    <string name="send_bug_report_alert_message">Здається, ви трясете телефон від фрустрації. Бажаєте надіслати звіт про помилку?</string>
-    <string name="send_bug_report_app_crashed">При останньому запуску застосунок закрився з помилкою. Бажаєте надіслати звіт про помилку?</string>
-    <string name="send_bug_report_sent">Звіт про помилку вдало надіслано</string>
-    <string name="send_bug_report_failed">Не вдалося надіслати звіт про помилку (%s)</string>
-    <string name="send_bug_report_progress">Прогрес (%s%%)</string>
     <string name="join_room">Увійти до Кімнати</string>
     <string name="username">Ім\'я користувача</string>
     <string name="logout">Вийти</string>
@@ -299,7 +292,6 @@
     <string name="settings_pin_unread_messages">Закріплювати кімнати з новими повідомленнями</string>
     <string name="settings_always_show_timestamps">Показувати час надсилання для всіх повідомлень</string>
     <string name="settings_12_24_timestamps">Показувати час надсилання у 12-годинному форматі</string>
-    <string name="settings_analytics">Телеметрія</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Ім\'я</string>
     <string name="devices_details_device_name">Назва Пристрою</string>
@@ -398,7 +390,6 @@
     <string name="command_error">Помилка виконання команди</string>
     <string name="unrecognized_command">Команду %s не розпізнано</string>
     <string name="loading">Завантаження…</string>
-    <string name="send_bug_report_rage_shake">Струснути пристрій, щоб повідомити про ваду</string>
     <plurals name="membership_changes">
         <item quantity="one">%d зміна  членства</item>
         <item quantity="few">%d зміни членства</item>
@@ -431,7 +422,6 @@
     <string name="settings_vibrate_on_mention">Вібрація при згадуванні користувача</string>
     <string name="settings_deactivate_account_section">Деактивація облікового запису</string>
     <string name="settings_deactivate_my_account">Деактивувати мій обліковий запис</string>
-    <string name="settings_opt_in_of_analytics">Надсилання аналітичних даних</string>
     <string name="e2e_re_request_encryption_key_dialog_content">Щоб надіслати ключ на цей пристрій, запустіть ${app_name} на іншому пристрої, що може розшифрувати повідомлення.</string>
     <string name="error_no_external_application_found">Вибачте, жодного зовнішнього застосунку не знайдено для виконання цієї дії.</string>
     <string name="option_send_voice">Надіслати голосове повідомлення</string>
@@ -446,7 +436,6 @@
     </plurals>
     <string name="settings_inline_url_preview">Попередній перегляд посилань</string>
     <string name="settings_preview_media_before_sending">Попередній перегляд медіа перед надсиланням</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} збирає анонімну аналітику, щоб ми могли вдосконалювати цей застосунок.</string>
     <string name="encryption_export_notice">Будь ласка, створіть пароль для шифрування ключів що експортуються. Вам знадобиться ввести такий самий пароль для імпорту цих ключів.</string>
     <string name="passphrase_create_passphrase">Створіть пароль</string>
     <string name="passphrase_passphrase_does_not_match">Паролі мають збігатися</string>
@@ -596,7 +585,6 @@
     <string name="room_profile_section_more_uploads">Завантаження</string>
     <string name="command_description_discard_session_not_handled">Підтримується тільки в зашифрованих кімнатах</string>
     <string name="create_new_room">Створити нову кімнату</string>
-    <string name="send_suggestion">Надати пропозицію</string>
     <string name="settings_developer_mode">Режим розробника</string>
     <string name="settings_advanced_settings">Додаткові налаштування</string>
     <string name="settings_notification_advanced">Розширені налаштування сповіщень</string>
@@ -627,7 +615,6 @@
     <string name="settings_show_redacted_summary">Показувати заглушку на місці видалених повідомлень</string>
     <string name="settings_general_title">Загальні</string>
     <string name="send_suggestion_failed">Не вдалось надіслати пропозицію (%s)</string>
-    <string name="send_suggestion_sent">Дякуємо, вашу пропозицію було успішно надіслано</string>
     <string name="send_suggestion_report_placeholder">Опишіть вашу пропозицію тут</string>
     <string name="send_suggestion_content">Залиште вашу пропозицію внизу.</string>
     <string name="settings_show_redacted">Показувати видалені повідомлення</string>
@@ -1269,10 +1256,6 @@
     <string name="downloaded_file">Файл %1$s було звантажено!</string>
     <string name="send_file_step_sending_file">Надсилання файлу (%1$s / %2$s)</string>
     <string name="send_file_step_encrypting_file">Шифрування файлу…</string>
-    <string name="rageshake_detected">Струс виявлено!</string>
-    <string name="settings_rageshake_detection_threshold_summary">Струсніть пристроєм, щоб перевірити поріг чутливості</string>
-    <string name="settings_rageshake_detection_threshold">Поріг чутливості</string>
-    <string name="settings_rageshake">Лютоcтрус</string>
     <string name="settings_developer_mode_summary">Режим розробника вмикає приховані функції та може зробити застосунок менш стабільним. Лише для розробників!</string>
     <string name="settings_discovery_consent_action_revoke">Відкликати згоду</string>
     <string name="settings_discovery_consent_action_give_consent">Погодитися</string>
@@ -1627,7 +1610,6 @@
     <string name="send_file_step_encrypting_thumbnail">Шифрування мініатюри…</string>
     <string name="send_file_step_idle">Очікування…</string>
     <string name="feedback_failed">Не вдалося надіслати відгук (%s)</string>
-    <string name="feedback_sent">Спасибі, відгук успішно надіслано</string>
     <string name="send_feedback_space_title">Відгук про Простори</string>
     <string name="feedback">Відгук</string>
     <string name="push_gateway_item_format">Формат:</string>

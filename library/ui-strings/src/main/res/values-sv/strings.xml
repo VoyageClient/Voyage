@@ -228,7 +228,6 @@
     <string name="notification_noisy_notifications">Högljudda aviseringar</string>
     <string name="notification_silent_notifications">Tysta aviseringar</string>
     <string name="title_activity_settings">Inställningar</string>
-    <string name="title_activity_bug_report">Buggrapport</string>
     <string name="title_activity_choose_sticker">Skicka en dekal</string>
     <string name="title_activity_keys_backup_setup">Säkerhetskopiering av nycklar</string>
     <string name="title_activity_keys_backup_restore">Använd nyckelsäkerhetskopiering</string>
@@ -291,17 +290,10 @@
     <string name="send_bug_report_include_logs">Skicka loggar</string>
     <string name="send_bug_report_include_crash_logs">Skicka kraschloggar</string>
     <string name="send_bug_report_include_screenshot">Skicka skärmdump</string>
-    <string name="send_bug_report">Rapportera bugg</string>
     <string name="send_bug_report_description">Vänligen beskriv buggen. Vad gjorde du\? Vad förväntade du dig skulle hända\? Vad hände istället\?</string>
     <string name="send_bug_report_description_in_english">Om möjligt, skriv vänligen beskrivningen på engelska.</string>
     <string name="send_bug_report_placeholder">Beskriv ditt problem här</string>
     <string name="send_bug_report_logs_description">För att diagnostisera problemet kommer loggar från den här klienten att skickas med den här buggrapporten. Denna buggrapport, inklusive loggarna och skärmdumpen, kommer att vara publikt synlig. Om du skulle föredra att endast skicka texten ovan, vänligen avmarkera:</string>
-    <string name="send_bug_report_alert_message">Du verkar skaka din telefon i frustration. Vill du skicka en buggrapport\?</string>
-    <string name="send_bug_report_app_crashed">Appen kraschade senaste gången. Vill du skicka en buggrapport\?</string>
-    <string name="send_bug_report_rage_shake">Raseriskaka för att rapportera bugg</string>
-    <string name="send_bug_report_sent">Buggrapporten har skickats framgångsrikt</string>
-    <string name="send_bug_report_failed">Sändning av buggrapporten misslyckades (%s)</string>
-    <string name="send_bug_report_progress">Framsteg (%s%%)</string>
     <string name="join_room">Gå med i rummet</string>
     <string name="username">Användarnamn</string>
     <string name="logout">Logga ut</string>
@@ -389,10 +381,8 @@
     <string name="create_new_room">Skapa ett nytt rum</string>
     <string name="fab_menu_create_room">Rum</string>
     <string name="fab_menu_create_chat">Direktmeddelanden</string>
-    <string name="send_suggestion">Ge ett förslag</string>
     <string name="send_suggestion_content">Vänligen skriv ditt förslag nedan.</string>
     <string name="send_suggestion_report_placeholder">Beskriv ditt förslag här</string>
-    <string name="send_suggestion_sent">Tack, ditt förslag har skickats framgångsrikt</string>
     <string name="send_suggestion_failed">Förslaget misslyckades att skickas (%s)</string>
     <string name="bottom_action_people_x">Direktmeddelanden</string>
     <string name="room_filtering_filter_hint">Filtrera konversationer…</string>
@@ -966,9 +956,6 @@
 \nVänligen rensa först data, och logga sen in på ett annat konto.</string>
     <string name="settings_developer_mode">Utvecklarläge</string>
     <string name="settings_developer_mode_summary">Utvecklarläget aktiverar dolda funktioner och kan också göra appen mindre stabil. Endast för utvecklare!</string>
-    <string name="settings_rageshake">Raseriskakning</string>
-    <string name="settings_rageshake_detection_threshold">Detektionsgräns</string>
-    <string name="settings_rageshake_detection_threshold_summary">Skaka din mobil för att testa detektionsgränsen</string>
     <string name="devices_current_device">Nuvarande session</string>
     <string name="devices_other_devices">Andra sessioner</string>
     <string name="settings_developer_mode_fail_fast_title">Misslyckas snabbt</string>
@@ -1055,9 +1042,6 @@
     <string name="settings_show_avatar_display_name_changes_messages">Visa kontohändelser</string>
     <string name="settings_vibrate_on_mention">Vibrera när en användare nämns</string>
     <string name="reset_secure_backup_warning">Detta kommer att ersätta din nuvarande nyckel eller fras.</string>
-    <string name="settings_analytics">Statistik</string>
-    <string name="settings_opt_in_of_analytics">Skicka statistikdata</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} samlar in anonym statistik för att låta oss förbättra appen.</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Publikt namna</string>
     <string name="devices_details_device_name">Uppdatera publikt namn</string>
@@ -1411,7 +1395,6 @@
     <string name="permalink_malformed">Din matrix.to-länk var felformaterad</string>
     <string name="bug_report_error_too_short">Beskrivningen är för kort</string>
     <string name="notification_initial_sync">Inledande synk…</string>
-    <string name="rageshake_detected">Skakning upptäckt!</string>
     <string name="settings">Inställningar</string>
     <string name="create_room_encryption_title">Aktivera kryptering</string>
     <string name="verification_conclusion_warning">Obetrodd inloggning</string>
@@ -1976,7 +1959,6 @@
     <string name="invite_to_space">Bjud in till %s</string>
     <string name="give_feedback">Ge återkoppling</string>
     <string name="feedback_failed">Din återkoppling misslyckades att skickas (%s)</string>
-    <string name="feedback_sent">Tack, din återkoppling har skickats framgångsrikt</string>
     <string name="you_may_contact_me">Ni kan kontakta mig om ni har några fler frågor</string>
     <string name="send_feedback_space_info">Du använder en betaversion av utrymmen. Din återkoppling kommer att hjälpa till att utveckla nästa version. Din plattform och ditt användarnamn kommer att noteras för att hjälpa oss att få så mycket användning för din återkoppling som vi kan.</string>
     <string name="feedback">Återkoppling</string>

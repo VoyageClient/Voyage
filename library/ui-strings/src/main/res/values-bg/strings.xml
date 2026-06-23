@@ -197,7 +197,6 @@
 \nСигурни ли сте\?</string>
     <string name="room_one_user_is_typing">%s пише…</string>
     <string name="room_two_users_are_typing">%1$s и %2$s пишат…</string>
-    <string name="title_activity_bug_report">Съобщаване за грешка</string>
     <string name="loading">Зареждане…</string>
     <string name="ok">ОК</string>
     <string name="action_cancel">Откажи</string>
@@ -238,15 +237,9 @@
     <string name="send_bug_report_include_logs">Изпращане на логове</string>
     <string name="send_bug_report_include_crash_logs">Изпращане на логове за забивания</string>
     <string name="send_bug_report_include_screenshot">Изпращане на снимка на екрана</string>
-    <string name="send_bug_report">Съобщи за грешка</string>
     <string name="send_bug_report_description">Моля, опишете грешката. Какво направихте? Какво очаквахте да стане? Какво стана всъщност?</string>
     <string name="send_bug_report_placeholder">Опишете своя проблем тук</string>
     <string name="send_bug_report_logs_description">За да се диагностицират проблемите, логовете от този клиент ще бъдат изпратени с този доклад за грешки. Докладът, заедно с логовете и скрийншота, няма да са видими публично. Ако предпочитате да изпратите само текста по-горе, моля, премахнете отметката:</string>
-    <string name="send_bug_report_alert_message">Изглежда, разклащате недоволно телефона. Искате ли да изпратите съобщение за грешка\?</string>
-    <string name="send_bug_report_app_crashed">Приложението спря да работи последния път. Искате ли да отворите екрана за изпращане на грешки?</string>
-    <string name="send_bug_report_rage_shake">Силно разклащане на телефона за изпращане на грешка</string>
-    <string name="send_bug_report_sent">Съобщението за грешка беше изпратено успешно</string>
-    <string name="send_bug_report_failed">Неуспешно изпращане на съобщението за грешка (%s)</string>
     <string name="join_room">Влез в стая</string>
     <string name="username">Потребителско име</string>
     <string name="logout">Отписване</string>
@@ -264,7 +257,6 @@
     <string name="auth_forgot_password">Забравена парола?</string>
     <string name="auth_recaptcha_message">Този Home сървър би искал да се увери, че не сте робот</string>
     <string name="auth_reset_password_error_unauthorized">Неуспешно потвърждаване на имейл адреса: уверете се, че сте кликнали върху връзката в имейла</string>
-    <string name="send_bug_report_progress">Напредък (%s%%)</string>
     <string name="login_error_invalid_home_server">Въведете валиден URL адрес</string>
     <string name="login_error_bad_json">Грешно формиран JSON</string>
     <string name="login_error_not_json">Не съдържаше валиден JSON</string>
@@ -337,7 +329,6 @@
     <string name="settings_inline_url_preview">URL прегледи в чата</string>
     <string name="settings_always_show_timestamps">Показване часа за всички съобщения</string>
     <string name="settings_12_24_timestamps">Показване на часа в 12-часов формат</string>
-    <string name="settings_analytics">Статистика</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Публично име</string>
     <string name="devices_details_device_name">Обнови публичното име</string>
@@ -484,8 +475,6 @@
 \nДобавете сега\?</string>
     <string name="settings_deactivate_account_section">Деактивиране на акаунт</string>
     <string name="settings_deactivate_my_account">Деактивирай акаунта ми</string>
-    <string name="settings_opt_in_of_analytics">Изпращане на статистически данни</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} събира анонимни статистики за да ни помогне да подобрим приложението.</string>
     <string name="widget_integration_missing_parameter">Липсва задължителен параметър.</string>
     <string name="dialog_user_consent_content">За да продължите да използвате %1$s трябва да прегледате и да се съгласите с правилата и условията.</string>
     <string name="dialog_user_consent_submit">Прегледай сега</string>
@@ -834,10 +823,8 @@
     <string name="preference_voice_and_video">Глас и Видео</string>
     <string name="preference_root_help_about">Помощ и Относно</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Регистрирай токен</string>
-    <string name="send_suggestion">Изпрати предложение</string>
     <string name="send_suggestion_content">Напишете предложението си долу.</string>
     <string name="send_suggestion_report_placeholder">Опишете предложението тук</string>
-    <string name="send_suggestion_sent">Благодаря! Предложението ви беше изпратено</string>
     <string name="send_suggestion_failed">Предложението не беше изпратено (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Показвай скрити събития в чата</string>
     <string name="bottom_action_people_x">Директни съобщения</string>
@@ -1115,10 +1102,6 @@
     <string name="settings_advanced_settings">Разширени настройки</string>
     <string name="settings_developer_mode">Режим за разработчици</string>
     <string name="settings_developer_mode_summary">Режима за разработчици активира скрити функции, но може да направи приложението по-нестабилно. Предназначено само за разработчици!</string>
-    <string name="settings_rageshake">Разклащане за съобщение за грешка</string>
-    <string name="settings_rageshake_detection_threshold">Праг на задействане</string>
-    <string name="settings_rageshake_detection_threshold_summary">Разклатете телефона си за да проверите прага на задействане</string>
-    <string name="rageshake_detected">Беше открито разклащане!</string>
     <string name="settings">Настройки</string>
     <string name="devices_current_device">Текущо устройство</string>
     <string name="devices_other_devices">Други устройства</string>

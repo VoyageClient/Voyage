@@ -209,15 +209,9 @@
     <string name="send_bug_report_include_logs">Lähetä lokit</string>
     <string name="send_bug_report_include_crash_logs">Lähetä kaatumislokit</string>
     <string name="send_bug_report_include_screenshot">Lähetä näytönkaappauskuva</string>
-    <string name="send_bug_report">Ilmoita virheestä</string>
     <string name="send_bug_report_description">Kuvaile virhettä. Mitä teit? Mitä odotit tapahtuvan? Mitä tapahtui?</string>
     <string name="send_bug_report_placeholder">Kuvaile ongelmaa</string>
     <string name="send_bug_report_logs_description">Ongelman diagnosointia varten sovelluksen lokit lähetetään virheilmoituksen mukana. Tämä virheilmoitus, sisältäen lähetetyt lokit ja kuvankaappauksen, eivät ole julkisesti nähtävissä. Jos haluat lähettää vain ylläolevan tekstin, poista valinta:</string>
-    <string name="send_bug_report_alert_message">Huomaan, että ravistelet puhelintasi tuskissasi. Haluaisitko lähettää virheilmoituksen\?</string>
-    <string name="send_bug_report_sent">Virheraportti lähetettiin</string>
-    <string name="send_bug_report_failed">Virheraporttia ei voitu lähettää (%s)</string>
-    <string name="send_bug_report_progress">Lähetetään (%s%%)</string>
-    <string name="send_bug_report_app_crashed">Sovellus kaatui viime kerralla. Haluatko tehdä kaatumisesta virheilmoituksen\?</string>
     <string name="join_room">Liity huoneeseen</string>
     <string name="username">Käyttäjätunnus</string>
     <string name="logout">Kirjaudu ulos</string>
@@ -403,14 +397,12 @@
     <string name="notification_listening_for_events">Kuunnellaan tapahtumia</string>
     <string name="notification_noisy_notifications">Äänekkäät ilmoitukset</string>
     <string name="notification_silent_notifications">Hiljaiset ilmoitukset</string>
-    <string name="title_activity_bug_report">Virheraportti</string>
     <string name="option_take_photo">Ota kuva</string>
     <string name="option_take_video">Kaappaa video</string>
     <string name="settings_notification_ringtone">Ilmoitusääni</string>
     <string name="settings_containing_my_display_name">Viesti sisältää nimeni</string>
     <string name="settings_containing_my_user_name">Viesti sisältää käyttäjänimeni</string>
     <string name="settings_12_24_timestamps">Näytä aikaleimat 12 tunnin muodossa</string>
-    <string name="settings_analytics">Analytiikka</string>
     <string name="widget_delete_message_confirmation">Haluatko varmasti poistaa sovelman tästä huoneesta\?</string>
     <string name="widget_integration_unable_to_create">Sovelmaa ei voitu luoda.</string>
     <string name="widget_integration_failed_to_send_request">Pyynnön lähetys epäonnistui.</string>
@@ -453,8 +445,6 @@
     <string name="settings_show_join_leave_messages">Näytä liittymiset ja poistumiset</string>
     <string name="settings_show_avatar_display_name_changes_messages">Näytä tilin tapahtumat</string>
     <string name="settings_preview_media_before_sending">Esikatsele media ennen lähettämistä</string>
-    <string name="settings_opt_in_of_analytics">Lähetä analytiikkatietoja</string>
-    <string name="send_bug_report_rage_shake">Ravista ilmoittaaksesi virheestä</string>
     <string name="settings_deactivate_account_section">Poista tili pysyvästi</string>
     <string name="settings_deactivate_my_account">Poista tili pysyvästi</string>
     <string name="deactivate_account_title">Poista tili pysyvästi</string>
@@ -578,7 +568,6 @@
     <string name="settings_show_read_receipts_summary">Paina lukukuittauksesta nähdäksesi tarkemman listan.</string>
     <string name="settings_show_join_leave_messages_summary">Ei vaikuta kutsuihin, poistamisiin ja porttikieltoihin.</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Sisältää hahmokuvat ja näyttönimien vaihdot.</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} kerää anonyymiä analytiikkaa sovelluksen parantamiseksi.</string>
     <string name="encryption_export_notice">Luo salalause salataksesi viedyt avaimet. Tarvitset saman salalauseen avainten tuomiseen.</string>
     <string name="encryption_message_recovery">Salattujen viestien palautus</string>
     <string name="encryption_settings_manage_message_recovery_summary">Hallitse avainten varmuuskopiointia</string>
@@ -811,10 +800,8 @@
     <string name="settings_general_title">Yleiset</string>
     <string name="preference_voice_and_video">Ääni ja video</string>
     <string name="preference_root_help_about">Tietoa sovelluksesta</string>
-    <string name="send_suggestion">Tee ehdotus</string>
     <string name="send_suggestion_content">Kirjoita ehdotuksesi alle.</string>
     <string name="send_suggestion_report_placeholder">Kuvaile ehdotuksesi tässä</string>
-    <string name="send_suggestion_sent">Kiitos, ehdotus on lähetetty</string>
     <string name="send_suggestion_failed">Ehdotuksen lähettäminen epäonnistui (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Näytä piilotetut tapahtumat aikajanalla</string>
     <string name="bottom_action_people_x">Yksityisviestit</string>
@@ -1128,10 +1115,6 @@
     <string name="notification_initial_sync">Synkronoidaan tietoja ensimmäistä kertaa…</string>
     <string name="settings_developer_mode">Kehittäjäasetukset</string>
     <string name="settings_developer_mode_summary">Kehittäjäasetuksissa on piilotettuja ominaisuuksia, jotka voivat myös tehdä sovelluksesta epävakaan. Vain kehittäjille!</string>
-    <string name="settings_rageshake">Ravistus</string>
-    <string name="settings_rageshake_detection_threshold">Tunnistusraja</string>
-    <string name="settings_rageshake_detection_threshold_summary">Ravista puhelintasi testataksesi tunnistusrajan</string>
-    <string name="rageshake_detected">Ravistus tunnistettu!</string>
     <string name="autocomplete_limited_results">Näytetään vain ensimmäiset tulokset, kirjoita lisää kirjaimia…</string>
     <string name="settings_developer_mode_fail_fast_summary">${app_name} voi kaatuilla tavallista useammin odottamattomien virheiden vuoksi</string>
     <string name="command_description_shrug">Lisää ¯\\_(ツ)_/¯ tavallisen viestin alkuun</string>
@@ -1711,7 +1694,6 @@
     <string name="send_file_step_compressing_image">Pakataan kuvaa…</string>
     <string name="give_feedback">Anna palautetta</string>
     <string name="feedback_failed">Palautteen lähetys epäonnistui (%s)</string>
-    <string name="feedback_sent">Kiitos, palautteesi on lähetetty onnistuneesti</string>
     <string name="you_may_contact_me">Voitte olla yhteydessä minuun, jos teillä on lisäkysymyksiä</string>
     <string name="feedback">Palaute</string>
     <string name="send_feedback_space_title">Palaute avaruuksista</string>

@@ -24,7 +24,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.SwitchPreference
 import androidx.recyclerview.widget.RecyclerView
-import com.airbnb.mvrx.fragmentViewModel
 import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,11 +46,7 @@ import im.vector.app.core.utils.openFileSelection
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.DialogImportE2eKeysBinding
 import im.vector.app.databinding.DialogImportE2eKeysProgressBinding
-import im.vector.app.features.analytics.AnalyticsConfig
 import im.vector.app.features.analytics.plan.MobileScreen
-import im.vector.app.features.analytics.ui.consent.AnalyticsConsentViewActions
-import im.vector.app.features.analytics.ui.consent.AnalyticsConsentViewModel
-import im.vector.app.features.analytics.ui.consent.AnalyticsConsentViewState
 import im.vector.app.features.crypto.keys.KeysExporter
 import im.vector.app.features.crypto.keys.KeysImporter
 import im.vector.app.features.crypto.keysbackup.settings.KeysBackupManageActivity
@@ -89,14 +84,12 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var keysImporter: KeysImporter
     @Inject lateinit var rawService: RawService
     @Inject lateinit var navigator: Navigator
-    @Inject lateinit var analyticsConfig: AnalyticsConfig
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var buildMeta: BuildMeta
 
     override var titleRes = CommonStrings.settings_security_and_privacy
     override val preferenceXmlRes = R.xml.vector_settings_security_privacy
 
-    private val analyticsConsentViewModel: AnalyticsConsentViewModel by fragmentViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,14 +144,6 @@ class VectorSettingsSecurityPrivacyFragment :
 
     private val openPinCodeSettingsPref by lazy {
         findPreference<VectorPreference>("SETTINGS_SECURITY_PIN")!!
-    }
-
-    private val analyticsCategory by lazy {
-        findPreference<VectorPreferenceCategory>("SETTINGS_ANALYTICS_PREFERENCE_KEY")!!
-    }
-
-    private val analyticsConsent by lazy {
-        findPreference<VectorSwitchPreference>("SETTINGS_USER_ANALYTICS_CONSENT_KEY")!!
     }
 
     private val incognitoKeyboardPref by lazy {
@@ -278,9 +263,6 @@ class VectorSettingsSecurityPrivacyFragment :
         // Refresh Key Management section
         refreshKeysManagementSection()
 
-        // Analytics
-        setUpAnalytics()
-
         // Incognito Keyboard
         setUpIncognitoKeyboard()
 
@@ -320,32 +302,7 @@ class VectorSettingsSecurityPrivacyFragment :
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        observeAnalyticsState()
-    }
-
-    private fun observeAnalyticsState() {
-        analyticsConsentViewModel.onEach(AnalyticsConsentViewState::userConsent) {
-            analyticsConsent.isChecked = it
-        }
-    }
-
-    private fun setUpAnalytics() {
-        analyticsCategory.isVisible = analyticsConfig.isEnabled
-
-        analyticsConsent.setOnPreferenceChangeListener { _, newValue ->
-            val newValueBool = newValue as? Boolean ?: false
-            if (newValueBool) {
-                // User wants to enable analytics, display the opt in screen
-                navigator.openAnalyticsOptIn(requireContext())
-            } else {
-                // Just disable analytics
-                analyticsConsentViewModel.handle(AnalyticsConsentViewActions.SetUserConsent(false))
-            }
-            true
-        }
-    }
+        super.onViewCreated(view, savedInstanceState)    }
 
     private fun setUpIncognitoKeyboard() {
         incognitoKeyboardPref.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O

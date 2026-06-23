@@ -85,17 +85,12 @@
     <string name="invitations_header">招待中</string>
     <string name="low_priority_header">低優先度</string>
     <string name="direct_chats_header">会話</string>
-    <string name="send_bug_report">不具合を報告</string>
     <string name="send_bug_report_description">不具合の内容と状況の説明をお願いします。何をしましたか？何が起こるべきでしたか？実際に起こった事象は何でしょうか？</string>
     <string name="send_bug_report_placeholder">ここに不具合の内容を記述してください</string>
     <string name="send_bug_report_include_screenshot">スクリーンショットの画像を送信</string>
     <string name="send_bug_report_include_crash_logs">クラッシュ時のログを送信</string>
     <string name="send_bug_report_include_logs">ログを送信</string>
     <string name="send_bug_report_logs_description">開発者が問題を診断するために、このクライアントのログがバグレポートと一緒に送信されます。バグレポートは、ログとスクリーンショットを含めて、公開されることはありません。上記の説明文だけを送信したい場合は、以下のチェックを解除してください。</string>
-    <string name="send_bug_report_alert_message">あなたは不満で端末を振っているようです。バグレポートの画面を開きますか？</string>
-    <string name="send_bug_report_app_crashed">前回アプリケーションは正常に停止しませんでした。クラッシュ報告の画面を開きますか？</string>
-    <string name="send_bug_report_sent">バグレポートを送信しました</string>
-    <string name="send_bug_report_failed">バグレポートの送信に失敗しました（%s）</string>
     <string name="join_room">ルームに参加</string>
     <string name="search">検索</string>
     <string name="option_send_files">ファイルを送信</string>
@@ -127,7 +122,6 @@
     <string name="view_source">ソースコードを表示</string>
     <string name="or">または</string>
     <string name="dialog_title_confirmation">確認</string>
-    <string name="send_bug_report_progress">送信中（%s%%）</string>
     <string name="action_remove">削除</string>
     <string name="action_join">参加</string>
     <string name="room_do_not_have_permission_to_post">このルームで発言する権限がありません。</string>
@@ -280,7 +274,6 @@
     <string name="encryption_export_room_keys">ルームの暗号鍵をエクスポート</string>
     <string name="notification_noisy_notifications">通知（音量大）</string>
     <string name="notification_silent_notifications">通知（サイレント）</string>
-    <string name="title_activity_bug_report">バグレポート</string>
     <string name="room_participants_power_level_prompt">このユーザーにあなたと同じ権限レベルを与えようとしています。この変更は取り消せません。
 \nよろしいですか？</string>
     <string name="ssl_trust">信頼する</string>
@@ -303,7 +296,6 @@
     <string name="settings_home_display">ホーム画面</string>
     <string name="settings_pin_missed_notifications">逃した通知があるルームをピン止め</string>
     <string name="settings_pin_unread_messages">未読メッセージがあるルームをピン止め</string>
-    <string name="settings_analytics">分析</string>
     <string name="encryption_information_decryption_error">復号エラー</string>
     <string name="encryption_information_device_key">セッションキー</string>
     <string name="encryption_information_not_verified">未認証</string>
@@ -333,7 +325,6 @@
     <string name="has_been_removed">%2$sによって%1$sから追放されました</string>
     <string name="has_been_banned">%2$sによって%1$sからブロックされました</string>
     <string name="reason_colon">理由：%1$s</string>
-    <string name="send_bug_report_rage_shake">端末を振って不具合を報告</string>
     <plurals name="membership_changes">
         <item quantity="other">%d個のメンバーシップの変更</item>
     </plurals>
@@ -364,8 +355,6 @@
     <string name="settings_preview_media_before_sending">送信の前にメディアをプレビュー</string>
     <string name="settings_deactivate_account_section">アカウントを無効化</string>
     <string name="settings_deactivate_my_account">自分のアカウントを無効化</string>
-    <string name="settings_opt_in_of_analytics">分析データを送信</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name}はアプリを改善するため、匿名の分析データを収集します。</string>
     <plurals name="notification_unread_notified_messages">
         <item quantity="other">%d件の通知された未読メッセージ</item>
     </plurals>
@@ -1216,13 +1205,11 @@
     <string name="settings_labs_show_complete_history_in_encrypted_room">暗号化されたルームで完全な履歴を表示</string>
     <string name="give_feedback">フィードバックを送信</string>
     <string name="feedback_failed">フィードバックの送信に失敗しました（%s）</string>
-    <string name="feedback_sent">ありがとうございます。フィードバックを正常に送信しました</string>
     <string name="you_may_contact_me">追加で確認が必要な事項がある場合は、連絡可</string>
     <string name="feedback">フィードバック</string>
     <string name="send_feedback_space_info">現在「スペース」のベータ版を使用しています。あなたのフィードバックは今後のバージョンに反映されます。ご意見を最大限に参考にさせていただくため、あなたのプラットフォームとユーザー名を記録させていただきます。</string>
     <string name="send_feedback_space_title">スペースについてのフィードバック</string>
     <string name="send_suggestion_failed">提案の送信に失敗しました（%s）</string>
-    <string name="send_suggestion_sent">ありがとうございます。提案を送信しました</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">トークンの登録</string>
     <string name="push_gateway_item_app_display_name">アプリケーションの表示名：</string>
     <string name="push_gateway_item_app_id">App ID：</string>
@@ -1344,7 +1331,6 @@
     <string name="room_filtering_footer_title">お探しのものが見つかりませんか？</string>
     <string name="send_suggestion_report_placeholder">提案をここに書いてください</string>
     <string name="send_suggestion_content">意見・感想を聞かせてください。</string>
-    <string name="send_suggestion">提案する</string>
     <string name="push_gateway_item_format">フォーマット：</string>
     <string name="push_gateway_item_url">URL：</string>
     <string name="push_gateway_item_device_name">セッションの表示名：</string>
@@ -1425,7 +1411,6 @@
     <string name="sent_a_file">ファイル</string>
     <string name="sent_an_audio_file">音声</string>
     <string name="sent_an_image">画像。</string>
-    <string name="settings_rageshake">イライラシェイク</string>
     <string name="login_signup_cancel_confirmation_title">警告</string>
     <string name="login_reset_password_cancel_confirmation_title">警告</string>
     <string name="login_reset_password_success_title">成功しました！</string>
@@ -1622,9 +1607,6 @@
     <string name="settings_discovery_hide_identity_server_policy_title">IDサーバーの運営方針を表示しない</string>
     <string name="settings_discovery_show_identity_server_policy_title">IDサーバーの運営方針を表示</string>
     <string name="change_password_summary">アカウントの新しいパスワードを設定…</string>
-    <string name="rageshake_detected">シェイクを検出しました！</string>
-    <string name="settings_rageshake_detection_threshold_summary">電話を振って、しきい値を試してください</string>
-    <string name="settings_rageshake_detection_threshold">検出のしきい値</string>
     <string name="settings_developer_mode_fail_fast_summary">予期しないエラーが生じた際に、${app_name}はより頻繁にクラッシュする可能性があります</string>
     <string name="settings_developer_mode_fail_fast_title">素早くクラッシュ</string>
     <string name="settings_developer_mode_summary">開発者モードは隠された機能を有効にするため、アプリケーションが不安定になる恐れがあります。開発者向けです！</string>

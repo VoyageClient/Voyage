@@ -90,7 +90,6 @@ class VectorApplication :
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var pinLocker: PinLocker
     @Inject lateinit var invitesAcceptor: InvitesAcceptor
-    @Inject lateinit var autoRageShaker: AutoRageShaker
     @Inject lateinit var decryptionFailureTracker: DecryptionFailureTracker
     @Inject lateinit var vectorFileLogger: VectorFileLogger
     @Inject lateinit var vectorAnalytics: VectorAnalytics
@@ -133,7 +132,6 @@ class VectorApplication :
                 )
         )
         invitesAcceptor.initialize()
-        autoRageShaker.initialize()
         decryptionFailureTracker.start()
         vectorUncaughtExceptionHandler.activate()
 

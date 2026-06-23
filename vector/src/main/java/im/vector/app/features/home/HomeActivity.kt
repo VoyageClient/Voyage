@@ -38,6 +38,7 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.pushers.UnifiedPushHelper
 import im.vector.app.core.utils.PerfTrace
+import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.ActivityHomeBinding
@@ -64,7 +65,7 @@ import im.vector.app.features.permalink.PermalinkHandler.Companion.USER_LINK_PRE
 import im.vector.app.features.popup.DefaultVectorAlert
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
-import im.vector.app.features.rageshake.ReportType
+import im.vector.app.features.rageshake.BugReporter
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorSettingsActivity
@@ -122,6 +123,7 @@ class HomeActivity :
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by viewModel()
 
     @Inject lateinit var vectorUncaughtExceptionHandler: VectorUncaughtExceptionHandler
+    @Inject lateinit var bugReporter: BugReporter
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var shortcutsHandler: ShortcutsHandler
@@ -230,7 +232,6 @@ class HomeActivity :
                         is HomeActivitySharedAction.AddSpace -> createSpaceResultLauncher.launch(SpaceCreationActivity.newIntent(this))
                         is HomeActivitySharedAction.ShowSpaceSettings -> showSpaceSettings(sharedAction.spaceId)
                         is HomeActivitySharedAction.OpenSpaceInvite -> openSpaceInvite(sharedAction.spaceId)
-                        HomeActivitySharedAction.SendSpaceFeedBack -> bugReporter.openBugReportScreen(this, ReportType.SPACE_BETA_FEEDBACK)
                         HomeActivitySharedAction.OnCloseSpace -> onCloseSpace()
                     }
                 }
@@ -258,7 +259,6 @@ class HomeActivity :
                     navigator.requestSelfSessionVerification(this)
                 }
                 is HomeActivityViewEvents.OnCrossSignedInvalidated -> handleCrossSigningInvalidated(it)
-                HomeActivityViewEvents.ShowAnalyticsOptIn -> handleShowAnalyticsOptIn()
                 HomeActivityViewEvents.ShowNotificationDialog -> handleShowNotificationDialog()
                 HomeActivityViewEvents.ShowReleaseNotes -> handleShowReleaseNotes()
                 HomeActivityViewEvents.NotifyUserForThreadsMigration -> handleNotifyUserForThreadsMigration()
@@ -314,10 +314,6 @@ class HomeActivity :
 
     private fun onCloseSpace() {
         views.drawerLayout.openDrawer(GravityCompat.START)
-    }
-
-    private fun handleShowAnalyticsOptIn() {
-        navigator.openAnalyticsOptIn(this)
     }
 
     /**
@@ -592,9 +588,12 @@ class HomeActivity :
             vectorUncaughtExceptionHandler.clearAppCrashStatus()
 
             MaterialAlertDialogBuilder(this)
-                    .setMessage(CommonStrings.send_bug_report_app_crashed)
+                    .setMessage(CommonStrings.crash_report_copy_prompt)
                     .setCancelable(false)
-                    .setPositiveButton(CommonStrings.yes) { _, _ -> bugReporter.openBugReportScreen(this) }
+                    .setPositiveButton(CommonStrings.yes) { _, _ ->
+                        bugReporter.getCrashDescription()?.let { copyToClipboard(this, it) }
+                        bugReporter.deleteCrashFile()
+                    }
                     .setNegativeButton(CommonStrings.no) { _, _ -> bugReporter.deleteCrashFile() }
                     .show()
         }
@@ -626,14 +625,6 @@ class HomeActivity :
 
     override fun handleMenuItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.menu_home_suggestion -> {
-                bugReporter.openBugReportScreen(this, ReportType.SUGGESTION)
-                true
-            }
-            R.id.menu_home_report_bug -> {
-                bugReporter.openBugReportScreen(this, ReportType.BUG_REPORT)
-                true
-            }
             R.id.menu_home_init_sync_legacy -> {
                 // Configure the SDK
                 initialSyncStrategy = InitialSyncStrategy.Legacy

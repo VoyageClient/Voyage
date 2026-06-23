@@ -199,10 +199,6 @@
     <string name="devices_other_devices">Autres sessions</string>
     <string name="devices_current_device">Cette session</string>
     <string name="settings">Paramètres</string>
-    <string name="rageshake_detected">Secousse détectée !</string>
-    <string name="settings_rageshake_detection_threshold_summary">Secouez votre téléphone pour tester le seuil de détection</string>
-    <string name="settings_rageshake_detection_threshold">Seuil de détection</string>
-    <string name="settings_rageshake">Secouer de frustration</string>
     <string name="settings_developer_mode_summary">Le mode développeur active des fonctionnalités cachées et peut rendre l’application moins stable. Réservé aux développeurs !</string>
     <string name="settings_developer_mode">Mode développeur</string>
     <string name="settings_advanced_settings">Paramètres avancés</string>
@@ -314,10 +310,8 @@
     <string name="settings_labs_show_complete_history_in_encrypted_room">Afficher l’historique dans les salons chiffrés</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Afficher les évènements cachés dans les discussions</string>
     <string name="send_suggestion_failed">Échec d’envoi de la suggestion (%s)</string>
-    <string name="send_suggestion_sent">Merci, la suggestion a bien été envoyée</string>
     <string name="send_suggestion_report_placeholder">Décrivez votre suggestion ici</string>
     <string name="send_suggestion_content">Saisissez votre suggestion ci-dessous.</string>
-    <string name="send_suggestion">Faire une suggestion</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Inscrire le jeton</string>
     <string name="preference_root_help_about">Aide et à propos</string>
     <string name="preference_voice_and_video">Voix et vidéo</string>
@@ -394,8 +388,6 @@
     <string name="no_sticker_application_dialog_content">Vous n’avez aucun jeu d\'autocollants activé pour le moment.
 \n
 \nVoulez-vous en ajouter\?</string>
-    <string name="send_bug_report_app_crashed">L’application s’est arrêtée anormalement la dernière fois. Souhaitez-vous ouvrir l’écran de rapport d’anomalie\?</string>
-    <string name="send_bug_report_alert_message">Vous semblez secouer le téléphone avec agacement. Souhaitez-vous ouvrir soumettre un rapport d’anomalie\?</string>
     <string name="send_bug_report_description">Veuillez décrire l’erreur. Qu’avez-vous fait\? Quel était le comportement attendu\? Que s’est-il réellement passé\?</string>
     <string name="action_sign_out_confirmation_simple">Voulez-vous vraiment vous déconnecter\?</string>
     <string name="are_you_sure">Êtes-vous sûr·e\?</string>
@@ -1013,9 +1005,6 @@
     <string name="devices_details_device_name">Mettre à jour le nom public</string>
     <string name="devices_details_name_title">Nom public</string>
     <string name="devices_details_id_title">Identifiant</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} collecte des données statistiques anonymes pour nous permettre d’améliorer l’application.</string>
-    <string name="settings_opt_in_of_analytics">Envoyer des statistiques d’utilisation</string>
-    <string name="settings_analytics">Statistiques d’utilisation</string>
     <string name="settings_troubleshoot_test_battery_quickfix">Ignorer l’optimisation</string>
     <string name="settings_troubleshoot_test_battery_failed">Si un utilisateur laisse un appareil débranché et immobile pour une longue durée, avec l’écran éteint, l’appareil entre en mode veille.. Cela empêche les applications d’accéder au réseau et reporte leurs tâches, synchronisations et alarmes standard.</string>
     <string name="settings_troubleshoot_test_battery_success">${app_name} n’est pas affecté par l’optimisation de la batterie.</string>
@@ -1414,14 +1403,9 @@
     <string name="logout">Se déconnecter</string>
     <string name="username">Nom d’utilisateur</string>
     <string name="join_room">Rejoindre le salon</string>
-    <string name="send_bug_report_progress">Avancement (%s %%)</string>
-    <string name="send_bug_report_failed">L’envoi du rapport d’anomalie a échoué (%s)</string>
-    <string name="send_bug_report_sent">Le rapport d’anomalie a bien été envoyé</string>
-    <string name="send_bug_report_rage_shake">Secouer avec agacement pour signaler une anomalie</string>
     <string name="send_bug_report_logs_description">Afin de diagnostiquer les problèmes, les journaux de ce client seront envoyés avec ce rapport d’erreur. Ce rapport d’erreur, y compris les journaux et la capture d’écran, ne seront pas visibles publiquement. Si vous préférez envoyer le texte ci-dessus uniquement, veuillez décocher :</string>
     <string name="send_bug_report_placeholder">Décrivez votre problème ici</string>
     <string name="send_bug_report_description_in_english">Si possible, veuillez écrire la description en anglais.</string>
-    <string name="send_bug_report">Rapporter une erreur</string>
     <string name="send_bug_report_include_screenshot">Envoyer une capture d’écran</string>
     <string name="send_bug_report_include_key_share_history">Inclure l’historique d’échange de clés</string>
     <string name="send_bug_report_include_crash_logs">Envoyer les journaux d’erreur</string>
@@ -1634,7 +1618,6 @@
     <string name="title_activity_keys_backup_restore">Utiliser la sauvegarde de clé</string>
     <string name="title_activity_keys_backup_setup">Sauvegarde de clé</string>
     <string name="title_activity_choose_sticker">Envoyer un autocollant</string>
-    <string name="title_activity_bug_report">Rapport d’anomalie</string>
     <string name="title_activity_settings">Paramètres</string>
     <string name="notification_silent_notifications">Notifications muettes</string>
     <string name="notification_noisy_notifications">Notifications sonores</string>
@@ -1977,7 +1960,6 @@
     <string name="create_spaces_room_public_header">De quoi allez-vous parler dans %s\?</string>
     <string name="give_feedback">Envoyer des remarques</string>
     <string name="feedback_failed">L’envoi des remarques a échoué (%s)</string>
-    <string name="feedback_sent">Merci, vos remarques ont bien été envoyées</string>
     <string name="you_may_contact_me">Vous pouvez me contacter si vous avez des questions</string>
     <string name="send_feedback_space_info">Vous utilisez une version bêta des espaces. Vos remarques aideront à concevoir les prochaines versions. Votre plateforme et votre nom d’utilisateur seront marqués pour nous aider à utiliser vos remarques autant que possible.</string>
     <string name="feedback">Remarques</string>

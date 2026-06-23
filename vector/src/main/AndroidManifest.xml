@@ -110,9 +110,6 @@
             android:theme="@style/Theme.Vector.Black.Transparent"
             tools:ignore="Instantiatable" />
         <activity
-            android:name=".features.rageshake.BugReportActivity"
-            android:label="@string/title_activity_bug_report" />
-        <activity
             android:name=".features.settings.VectorSettingsActivity"
             android:label="@string/title_activity_settings"
             android:windowSoftInputMode="adjustResize" />

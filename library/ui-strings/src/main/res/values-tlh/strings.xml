@@ -28,7 +28,6 @@
     <string name="action_rename">pongqa\'</string>
     <string name="or">ghap</string>
     <string name="action_invite">ruSvep ngeH</string>
-    <string name="title_activity_bug_report">Qagh ja\'</string>
 
     <string name="action_quick_reply">nom jang</string>
     <string name="action_open">poSmoH</string>
@@ -57,7 +56,6 @@
     <string name="send_bug_report_include_screenshot">jIH mIllogh ngeH</string>
     <string name="send_bug_report_description_in_english">qItchugh, DI\'vI\' Hol yIlo\'!</string>
     <string name="send_bug_report_placeholder">naDev qay\'wI\' yIDel!</string>
-    <string name="send_bug_report_progress">Ser (%s%%)</string>
 
 
     <string name="join_room">pa\' muv</string>
@@ -77,14 +75,9 @@
     <string name="direct_chats_header">ja\'chuq</string>
     <string name="room_tombstone_continuation_link">naDev ja\'chuqqa\'</string>
     <string name="room_tombstone_continuation_description">pa\'vamDaq ja\'chuqqa\'</string>
-    <string name="send_bug_report">Qagh ja\'</string>
     <string name="send_bug_report_description">Qagh yIDel! nuq DanID? nuq DapIH? qaS nuq?</string>
     <string name="send_bug_report_logs_description">Qagh tu\'meH, janvamvo\' Qagh De\' ghajboghQonoSmey ngeHlu\'. Qaghvam De\', QonoS, jIH mIllogh je leghlaHbe\' vay\'. Dung ngutlhmey neH ngeH DaneHchugh, \'aplo\'vam yISIj:</string>
-    <string name="send_bug_report_alert_message">bImoghtaHvIS janlIj Datevlaw\'. Qagh ja\' DaneH\'a\'?</string>
-    <string name="send_bug_report_rage_shake">Qagh ja\'meH bImoghtaHvIS tav</string>
 
-    <string name="send_bug_report_sent">Qagh ja\'lu\'chu\'!</string>
-    <string name="send_bug_report_failed">Qagh ja\'lu\'be\' (%s)</string>
     <string name="option_send_files">De\'\'ay\' ngeH</string>
     <string name="no_sticker_application_dialog_content">DaH ngamwI\' vey Dalo\'taHbe\'.
 

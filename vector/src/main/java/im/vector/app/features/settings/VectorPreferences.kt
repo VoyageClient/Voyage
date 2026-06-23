@@ -13,7 +13,6 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.annotation.BoolRes
 import androidx.core.content.edit
-import com.squareup.seismic.ShakeDetector
 import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
@@ -205,9 +204,6 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM = "SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM"
         const val SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB = "SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB"
 
-        // Rageshake
-        const val SETTINGS_USE_RAGE_SHAKE_KEY = "SETTINGS_USE_RAGE_SHAKE_KEY"
-        const val SETTINGS_RAGE_SHAKE_DETECTION_THRESHOLD_KEY = "SETTINGS_RAGE_SHAKE_DETECTION_THRESHOLD_KEY"
 
         // Security
         const val SETTINGS_SECURITY_USE_FLAG_SECURE = "SETTINGS_SECURITY_USE_FLAG_SECURE"
@@ -307,7 +303,6 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_DEVELOPER_MODE_FAIL_FAST_PREFERENCE_KEY,
                 SETTINGS_ENABLE_MEMORY_LEAK_ANALYSIS_KEY,
 
-                SETTINGS_USE_RAGE_SHAKE_KEY,
                 SETTINGS_SECURITY_USE_FLAG_SECURE,
                 SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY,
 
@@ -979,33 +974,6 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE,
                 getDefault(im.vector.app.config.R.bool.settings_presence_user_always_appears_offline_default)
         )
-    }
-
-    /**
-     * Update the rage shake enabled status.
-     *
-     * @param isEnabled true to enable rage shake.
-     */
-    fun setRageshakeEnabled(isEnabled: Boolean) {
-        defaultPrefs.edit {
-            putBoolean(SETTINGS_USE_RAGE_SHAKE_KEY, isEnabled)
-        }
-    }
-
-    /**
-     * Tells if the rage shake is used.
-     *
-     * @return true if the rage shake is used
-     */
-    fun useRageshake(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_USE_RAGE_SHAKE_KEY, true)
-    }
-
-    /**
-     * Get the rage shake sensitivity.
-     */
-    fun getRageshakeSensitivity(): Int {
-        return defaultPrefs.getInt(SETTINGS_RAGE_SHAKE_DETECTION_THRESHOLD_KEY, ShakeDetector.SENSITIVITY_MEDIUM)
     }
 
     /**

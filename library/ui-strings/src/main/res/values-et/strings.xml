@@ -228,7 +228,6 @@
     <string name="notification_noisy_notifications">Lärmakad teavitused</string>
     <string name="notification_silent_notifications">Vaiksed teavitused</string>
     <string name="title_activity_settings">Seadistused</string>
-    <string name="title_activity_bug_report">Veateade</string>
     <string name="title_activity_choose_sticker">Saada kleeps</string>
     <string name="title_activity_keys_backup_setup">Võtmete varundus</string>
     <string name="title_activity_keys_backup_restore">Kasuta võtmete varundust</string>
@@ -292,17 +291,10 @@
     <string name="send_bug_report_include_logs">Saada logikirjed</string>
     <string name="send_bug_report_include_crash_logs">Saada kokkujooksmise logikirjed</string>
     <string name="send_bug_report_include_screenshot">Saada ekraanipilt</string>
-    <string name="send_bug_report">Teata veast</string>
     <string name="send_bug_report_description">Palun kirjelda viga. Mida sa tegid\? Mida sa eeldasid, et juhtub\? Mis tegelikult juhtus\?</string>
     <string name="send_bug_report_description_in_english">Kui võimalik, siis palun koosta kirjeldus inglise keeles.</string>
     <string name="send_bug_report_placeholder">Kirjelda siin tekkinud probleemi</string>
     <string name="send_bug_report_logs_description">Vigade põhjuse leidmiseks sadetakse koos veakirjeldusega ka selle seadme logikirjed. See veakirjeldus, sealhulgas logikirjed ja ekraanipilt, ei saa olema avalikult leitav. Kui sa siiski soovid saata vaid ülalpool näidatud teksti, siis palun eemalda järgnev valik:</string>
-    <string name="send_bug_report_alert_message">Ma märkan, et pahameelega raputad oma telefoni. Kas sa tahaksid saata veateate\?</string>
-    <string name="send_bug_report_app_crashed">See rakendus jooksis viimati kokku. Kas sa tahaksid saata selle kohta veateate\?</string>
-    <string name="send_bug_report_rage_shake">Veateate saatmiseks raputa väga kõvasti</string>
-    <string name="send_bug_report_sent">Veateate saatmine õnnestus</string>
-    <string name="send_bug_report_failed">Veateate saatmine ei õnnestunud (%s)</string>
-    <string name="send_bug_report_progress">Saatmise kulg (%s%%)</string>
     <string name="join_room">Liitu jututoaga</string>
     <string name="username">Kasutajanimi</string>
     <string name="logout">Logi välja</string>
@@ -383,10 +375,8 @@
     <string name="deactivate_account_delete_checkbox">Minu konto kustutamisel palun unusta minu saadetud sõnumid (Hoiatus: seetõttu näevad tulevased kasutajad poolikuid vestlusi)</string>
     <string name="message_view_reaction">Näita reageerimisi</string>
     <string name="create_new_room">Loo uus jututuba</string>
-    <string name="send_suggestion">Tee ettepanek</string>
     <string name="send_suggestion_content">Palun kirjuta oma ettepaneku järgnevale väljale.</string>
     <string name="send_suggestion_report_placeholder">Kirjelda oma ettepanekut siin</string>
-    <string name="send_suggestion_sent">Tänud, ettepaneku saatmine õnnestus</string>
     <string name="send_suggestion_failed">Ettepaneku saatmine ei õnnestunud (%s)</string>
     <string name="room_filtering_filter_hint">Sõelu vestlustest…</string>
     <string name="room_filtering_footer_title">Kas sa ei leia seda, mida otsisid\?</string>
@@ -896,9 +886,6 @@
     <string name="settings_deactivate_my_account">Eemalda minu konto kasutusest</string>
     <string name="settings_discovery_category">Leia kasutajaid</string>
     <string name="settings_discovery_manage">Halda kasutajate otsingu seadistusi.</string>
-    <string name="settings_analytics">Analüütika</string>
-    <string name="settings_opt_in_of_analytics">Saada arendajatele analüütikat</string>
-    <string name="settings_opt_in_of_analytics_summary">Võimaldamaks meil rakendust parandada kogub ${app_name} anonüümset teavet rakenduse kasutuse kohta.</string>
     <string name="devices_details_id_title">Seadme tunnus</string>
     <string name="devices_details_name_title">Avalik nimi</string>
     <string name="devices_details_device_name">Uuenda avalikku nime</string>
@@ -1221,10 +1208,6 @@
     <string name="permalink_malformed">Sinu matrix.to link oli vigane</string>
     <string name="settings_developer_mode">Arendusrežiim</string>
     <string name="settings_developer_mode_summary">Arendusrežiimis on võimalik kasutada varjatud töövahendeid ning võib rakenduse teha ebastabiilsemaks. Soovitame vaid arendajatele!</string>
-    <string name="settings_rageshake">Seadme tõsine raputamine</string>
-    <string name="settings_rageshake_detection_threshold">Tuvastamise lävi</string>
-    <string name="settings_rageshake_detection_threshold_summary">Läve testimiseks raputa oma nutiseadet</string>
-    <string name="rageshake_detected">Raputamine tuvastatud!</string>
     <string name="settings">Seadistused</string>
     <string name="devices_current_device">Praegune sessioon</string>
     <string name="devices_other_devices">Muud sessioonid</string>
@@ -1976,7 +1959,6 @@
     <string name="invite_to_space">Kutse kogukonnakeskusesse %s</string>
     <string name="give_feedback">Jaga tagasisidet</string>
     <string name="feedback_failed">Tagasiside saatmine ei õnnestunud (%s)</string>
-    <string name="feedback_sent">Tänud, sinu tagasiside saatmine õnnestus</string>
     <string name="you_may_contact_me">Kui sul on lisaküsimusi, siis vastan neile hea meelega</string>
     <string name="send_feedback_space_info">Sa kasutad kogukonnakeskuste beetaversiooni. Sinu saadetud teabe alusel saame teha parandusi selle järgmistes versioonides. Saadetud info parimaks kasutamiseks lisame sinna ka sinu kasutatava operatsioonisüsteemi nime ja sinu kasutajanime.</string>
     <string name="feedback">Tagasiside</string>

@@ -126,7 +126,6 @@
     <string name="option_take_photo_video">ഫോട്ടോ അല്ലെങ്കിൽ വീഡിയോ എടുക്കൂ</string>
     <string name="option_send_sticker">സ്റ്റിക്കർ അയയ്ക്കൂ</string>
     <string name="option_send_files">ഫയലുകൾ അയയ്ക്കൂ</string>
-    <string name="send_bug_report_progress">പുരോഗതി (%s%%)</string>
     <string name="send_bug_report_placeholder">നിങ്ങളുടെ പ്രശ്നം ഇവിടെ വിവരിക്കുക</string>
     <string name="rooms_header">മുറികൾ</string>
     <string name="dialog_title_confirmation">ഉറപ്പാക്കൽ</string>
@@ -139,7 +138,6 @@
     <string name="auth_forgot_password">രഹസ്യവാക്ക് മറന്നോ\?</string>
     <string name="option_send_voice">ശബ്ദം അയയ്ക്കൂ</string>
     <string name="hs_url">ഹോം സെർവർ URL</string>
-    <string name="send_bug_report">ബഗ്ഗ് റിപ്പോർട്ട് ചെയ്യൂ</string>
 
     <string name="home_filter_placeholder_home">മുറി നാമങ്ങൾ ഫിൽറ്റർ ചെയ്യൂ</string>
     <string name="title_activity_keys_backup_setup">കീ ബാക്കപ്പ്</string>
@@ -529,7 +527,6 @@
     <string name="settings_password">രഹസ്യവാക്ക്</string>
     <string name="devices_delete_dialog_title">പ്രാമാണീകരണം</string>
     <string name="devices_details_id_title">ID</string>
-    <string name="settings_analytics">അനലിറ്റിക്സ്</string>
     <string name="settings_discovery_category">കണ്ടെത്തൽ</string>
     <string name="settings_cryptography">ക്രിപ്റ്റോഗ്രഫി</string>
     <string name="settings_integrations">സംയോജകങ്ങൾ</string>
@@ -613,7 +610,6 @@
     <string name="call_notification_hangup">മാറ്റിവയ്ക്കുക</string>
     <string name="report_content">ഉള്ളടക്കം റിപ്പോർട്ടുചെയ്യുക</string>
     <string name="view_source">ഉറവിടം കാണുക</string>
-    <string name="title_activity_bug_report">ബഗ് റിപ്പോർട്ട്</string>
     <string name="event_status_a11y_failed">പരാജയപ്പെട്ടു</string>
     <string name="event_status_a11y_sent">അയച്ചു</string>
     <string name="event_status_a11y_sending">അയയ്ക്കുന്നു</string>
@@ -641,7 +637,6 @@
     <string name="direct_room_profile_section_more_leave">വിടുക</string>
     <string name="room_profile_section_security">സുരക്ഷ</string>
     <string name="sent_a_poll">പോൾ</string>
-    <string name="settings_rageshake">രാഗേഷേക്ക്</string>
     <string name="soft_logout_signin_password_hint">രഹസ്യവാക്ക്</string>
     <string name="login_signup_cancel_confirmation_title">മുന്നറിയിപ്പ്</string>
     <string name="login_signup_password_hint">രഹസ്യവാക്ക്</string>

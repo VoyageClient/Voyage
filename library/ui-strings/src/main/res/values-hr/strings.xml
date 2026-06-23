@@ -7,7 +7,6 @@
     <string name="notification_noisy_notifications">Bučne obavijesti</string>
     <string name="notification_silent_notifications">Tihe obavijesti</string>
     <string name="title_activity_settings">Postavke</string>
-    <string name="title_activity_bug_report">Izvješće o grešci</string>
     <string name="title_activity_choose_sticker">Pošalji naljepnicu</string>
     <string name="title_activity_keys_backup_setup">Pričuvni ključevi</string>
     <string name="title_activity_keys_backup_restore">Koristi pričuvne ključeve</string>
@@ -70,17 +69,10 @@
     <string name="send_bug_report_include_logs">Pošalji zapise</string>
     <string name="send_bug_report_include_crash_logs">Pošalji zapise o rušenju</string>
     <string name="send_bug_report_include_screenshot">Pošalji sliku zaslona</string>
-    <string name="send_bug_report">Prijavi grešku</string>
     <string name="send_bug_report_description">Opišite grešku. Što ste uradili\? Što ste očekivali da će se dogoditi\? Što se zapravo dogodilo\?</string>
     <string name="send_bug_report_description_in_english">Ako je moguće, opišite na engleskom.</string>
     <string name="send_bug_report_placeholder">Ovdje opišite Vaš problem</string>
     <string name="send_bug_report_logs_description">Kako bi se dijagnosticirali problemi, zapisi iz ove aplikacije bit će poslani zajedno s ovom prijavom greške. Prijava greške, zapisi i slika zaslona neće biti javno vidljivi. Ako biste željeli poslati samo tekst, uklonite kvačicu:</string>
-    <string name="send_bug_report_alert_message">Čini se da usred razočaranja tresete telefonom. Želite li otvoriti zaslon za prijavu grešaka\?</string>
-    <string name="send_bug_report_app_crashed">Zadnji se puta aplikacija srušila. Želite li otvoriti zaslon za prijavu rušenja\?</string>
-    <string name="send_bug_report_rage_shake">Jako drmanje za prijavu greške</string>
-    <string name="send_bug_report_sent">Prijava greške je uspješno poslana</string>
-    <string name="send_bug_report_failed">Prijava greške nije poslana (%s)</string>
-    <string name="send_bug_report_progress">Tijek (%s%%)</string>
     <string name="join_room">Pridruži se u sobu</string>
     <string name="username">Korisničko ime</string>
     <string name="logout">Odjavi se</string>
@@ -324,9 +316,6 @@
     <string name="settings_deactivate_my_account">Deaktiviraj moj račun</string>
     <string name="settings_discovery_category">Pronalaženje</string>
     <string name="settings_discovery_manage">Upravljajte Vašim postavkama za pronalaženje.</string>
-    <string name="settings_analytics">Analitika</string>
-    <string name="settings_opt_in_of_analytics">Pošalji analitičke podatke</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} skuplja anonimnu analitiku kako bi se unaprijedila aplikacija.</string>
     <string name="devices_details_id_title">Identitet</string>
     <string name="devices_details_name_title">Javno ime</string>
     <string name="devices_details_device_name">Promijeni javno ime</string>
@@ -532,7 +521,6 @@
     <string name="a11y_create_menu_close">Zatvori izbornik za izradu soba…</string>
     <string name="a11y_create_direct_message">Započni novi izravni razgovor</string>
     <string name="a11y_create_room">Izradi novu sobu</string>
-    <string name="settings_rageshake">Gnjevno drmanje</string>
     <string name="settings_integrations_summary">Koristite upravitelja integracijama kako biste rukovali botovima, mostovima, grafičkim elementima i paketima naljepnica.
 \nUpravitelji integracijama primaju konfiguracijske podatke i mogu mijenjati grafičke elemente, slati pozivnice za pridruživanje u sobe i postavljati razine upravljanja u Vaše ime.</string>
     <string name="room_settings_room_read_history_rules_pref_title">Čitljivost sobne povijesti</string>

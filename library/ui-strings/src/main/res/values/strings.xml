@@ -311,7 +311,6 @@
 
     <!-- titles -->
     <string name="title_activity_settings">Settings</string>
-    <string name="title_activity_bug_report">Bug report</string>
     <string name="title_activity_choose_sticker">Send a sticker</string>
     <string name="title_activity_keys_backup_setup">Key Backup</string>
     <string name="title_activity_keys_backup_restore">Use Key Backup</string>
@@ -492,18 +491,11 @@
     <string name="send_bug_report_include_crash_logs">Send crash logs</string>
     <string name="send_bug_report_include_key_share_history">Send key share requests history</string>
     <string name="send_bug_report_include_screenshot">Send screenshot</string>
-    <string name="send_bug_report">Report bug</string>
     <string name="send_bug_report_description">Please describe the bug. What did you do? What did you expect to happen? What actually happened?</string>
     <string name="send_bug_report_description_in_english">If possible, please write the description in English.</string>
     <string name="send_bug_report_placeholder">Describe your problem here</string>
     <string name="send_bug_report_logs_description">In order to diagnose problems, logs from this client will be sent with this bug report. This bug report, including the logs and the screenshot, will not be publicly visible. If you would prefer to only send the text above, please untick:</string>
-    <string name="send_bug_report_alert_message">You seem to be shaking the phone in frustration. Would you like to open the bug report screen?</string>
-    <string name="send_bug_report_app_crashed">The application has crashed last time. Would you like to open the crash report screen?</string>
-    <string name="send_bug_report_rage_shake">Rage shake to report bug</string>
 
-    <string name="send_bug_report_sent">The bug report has been successfully sent</string>
-    <string name="send_bug_report_failed">The bug report failed to be sent (%s)</string>
-    <string name="send_bug_report_progress">Progress (%s%%)</string>
 
     <string name="join_room">Join Room</string>
     <string name="username">Username</string>
@@ -1007,10 +999,7 @@
     <string name="settings_external_account_management">Your account details are managed separately at %1$s.</string>
 
     <!-- analytics -->
-    <string name="settings_analytics">Analytics</string>
-    <string name="settings_opt_in_of_analytics">Send analytics data</string>
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
-    <string name="settings_opt_in_of_analytics_summary">${app_name} collects anonymous analytics to allow us to improve the application.</string>
 
     <string name="analytics_opt_in_title">Help improve ${app_name}</string>
     <!-- The template will be replaced by the value of the resource analytics_opt_in_content_link -->
@@ -1697,10 +1686,8 @@
 
     <string name="settings_troubleshoot_test_endpoint_registration_quick_fix">Reset notification method</string>
 
-    <string name="send_suggestion">Make a suggestion</string>
     <string name="send_suggestion_content">Please write your suggestion below.</string>
     <string name="send_suggestion_report_placeholder">Describe your suggestion here</string>
-    <string name="send_suggestion_sent">Thanks, the suggestion has been successfully sent</string>
     <string name="send_suggestion_failed">The suggestion failed to be sent (%s)</string>
 
     <string name="beta_title_bottom_sheet_action">BETA</string>
@@ -1708,7 +1695,6 @@
     <string name="feedback">Feedback</string>
     <string name="send_feedback_space_info">You’re using a beta version of spaces. Your feedback will help inform the next versions. Your platform and username will be noted to help us use your feedback as much as we can.</string>
     <string name="you_may_contact_me">You may contact me if you have any follow up questions</string>
-    <string name="feedback_sent">Thanks, your feedback has been successfully sent</string>
     <string name="feedback_failed">The feedback failed to be sent (%s)</string>
     <string name="give_feedback" tools:ignore="UnusedResources">Give Feedback</string>
     <string name="give_feedback_threads">Give Feedback</string>
@@ -2185,10 +2171,6 @@
     <string name="settings_advanced_settings">Advanced settings</string>
     <string name="settings_developer_mode">Developer mode</string>
     <string name="settings_developer_mode_summary">The developer mode activates hidden features and may also make the application less stable. For developers only!</string>
-    <string name="settings_rageshake">Rageshake</string>
-    <string name="settings_rageshake_detection_threshold">Detection threshold</string>
-    <string name="settings_rageshake_detection_threshold_summary">Shake your phone to test the detection threshold</string>
-    <string name="rageshake_detected">Shake detected!</string>
     <string name="settings">Settings</string>
     <string name="devices_current_device">Current session</string>
     <string name="devices_other_devices">Other sessions</string>

@@ -193,6 +193,5 @@ class NewSpaceSummaryController @Inject constructor(
         fun onToggleExpand(spaceSummary: RoomSummary)
         fun onAddSpaceSelected()
         fun onTagSelected(tagName: String?)
-        fun sendFeedBack()
     }
 }

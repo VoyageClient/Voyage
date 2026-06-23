@@ -103,17 +103,10 @@
     <string name="logout">Atsijungti</string>
     <string name="username">Slapyvardis</string>
     <string name="join_room">Jungtis prie kambario</string>
-    <string name="send_bug_report_progress">Progresas (%s%%)</string>
-    <string name="send_bug_report_failed">Nepavyko išsiųsti pranešimo apie klaidą (%s)</string>
-    <string name="send_bug_report_sent">Pranešimas apie klaidą sėkmingai išsiųstas</string>
-    <string name="send_bug_report_rage_shake">Piktai purtykite telefoną kad pranešti apie klaidą</string>
-    <string name="send_bug_report_app_crashed">Paskutinį kartą programa sugedo. Ar norite atidaryti sutrikimo ataskaitos ekraną\?</string>
-    <string name="send_bug_report_alert_message">Atrodo, kad nusivylę purtote telefoną. Ar norėtumėte atidaryti pranešimo apie klaidas ekraną\?</string>
     <string name="send_bug_report_logs_description">Norint diagnozuoti problemas, kartu su šiuo pranešimu apie klaidą bus siunčiami šio kliento žurnalai. Ši klaidos ataskaita, įskaitant žurnalus ir ekrano nuotrauką, nebus viešai matoma. Jei pageidaujate siųsti tik pirmiau pateiktą tekstą, panaikinkite žymėjimą:</string>
     <string name="send_bug_report_placeholder">Apibūdinkite savo problemą čia</string>
     <string name="send_bug_report_description_in_english">Jei įmanoma, aprašymą rašykite anglų kalba.</string>
     <string name="send_bug_report_description">Aprašykite klaidą. Ką padarėte\? Ko tikėjotės, kad įvyks\? Kas iš tikrųjų nutiko\?</string>
-    <string name="send_bug_report">Pranešti apie klaidą</string>
     <string name="send_bug_report_include_screenshot">Siųsti ekrano nuotrauką</string>
     <string name="send_bug_report_include_key_share_history">Siųsti raktų bendrinimo užklausų istoriją</string>
     <string name="send_bug_report_include_crash_logs">Siųsti sutrikimų žurnalus</string>
@@ -211,7 +204,6 @@
     <string name="sign_out_bottom_sheet_warning_backing_up">Atliekama atsarginė raktų kopija. Jei dabar atsijungsite, neteksite prieigos prie užšifruotų žinučių.</string>
     <string name="sign_out_bottom_sheet_warning_no_backup">Jei dabar atsijungsite, prarasite užšifruotas žinutes</string>
     <string name="title_activity_choose_sticker">Siųsti lipduką</string>
-    <string name="title_activity_bug_report">Pranešti apie klaidą</string>
     <string name="title_activity_settings">Nustatymai</string>
     <string name="notification_silent_notifications">Tylūs pranešimai</string>
     <string name="notification_noisy_notifications">Garsūs pranešimai</string>
@@ -1445,15 +1437,12 @@
     <string name="give_feedback_threads">Pateikti atsiliepimą</string>
     <string name="give_feedback" tools:ignore="UnusedResources">Pateikti atsiliepimą</string>
     <string name="feedback_failed">Atsiliepimo nepavyko išsiųsti (%s)</string>
-    <string name="feedback_sent">Ačiū, jūsų atsiliepimas sėkmingai išsiųstas</string>
     <string name="you_may_contact_me">Jei turite papildomų klausimų, galite susisiekti su manimi</string>
     <string name="feedback">Atsiliepimas</string>
     <string name="beta_title_bottom_sheet_action">BETA</string>
     <string name="send_suggestion_failed">Pasiūlymo nepavyko išsiųsti (%s)</string>
-    <string name="send_suggestion_sent">Ačiū, pasiūlymas sėkmingai išsiųstas</string>
     <string name="send_suggestion_report_placeholder">Aprašykite savo pasiūlymą čia</string>
     <string name="send_suggestion_content">Žemiau parašykite savo pasiūlymą.</string>
-    <string name="send_suggestion">Pateikti pasiūlymą</string>
     <string name="preference_versions">Versijos</string>
     <string name="preference_help_summary">Gaukite pagalbos naudojant ${app_name}</string>
     <string name="preference_help_title">Pagalba ir parama</string>
@@ -1920,11 +1909,8 @@
     <string name="account_email_already_used_error">Šis el. pašto adresas jau naudojamas.</string>
     <string name="account_email_validation_message">Patikrinkite savo el. paštą ir spustelėkite jame esančią nuorodą. Kai tai padarysite, spauskite tęsti.</string>
     <string name="analytics_opt_in_title">Padėkite tobulinti ${app_name}</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} renka anoniminę analizę, kad galėtume tobulinti programą.</string>
     <string name="settings_select_language">Pasirinkti kalbą</string>
     <string name="settings_interface_language">Kalba</string>
-    <string name="settings_opt_in_of_analytics">Siųsti analitikos duomenis</string>
-    <string name="settings_analytics">Analitika</string>
     <string name="settings_discovery_manage">Tvarkyti atradimo nustatymus.</string>
     <string name="settings_discovery_category">Atradimas</string>
     <string name="settings_deactivate_my_account">Deaktyvuoti mano paskyrą</string>

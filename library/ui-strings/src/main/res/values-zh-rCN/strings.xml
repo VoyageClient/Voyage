@@ -202,7 +202,6 @@
     <string name="dialog_title_warning">警告</string>
     <string name="send_bug_report_description">请描述你遇到的问题。你做了什么？你期望发生什么？实际上发生了什么？</string>
     <string name="send_bug_report_placeholder">在这里描述你的问题</string>
-    <string name="send_bug_report_progress">进度（%s%%）</string>
     <string name="hs_url">家服务器 URL</string>
     <string name="auth_login">登录</string>
     <string name="auth_submit">提交</string>
@@ -245,7 +244,6 @@
     <string name="action_close">关闭</string>
     <string name="dialog_title_confirmation">确认</string>
     <string name="send_bug_report_include_crash_logs">发送崩溃日志</string>
-    <string name="send_bug_report_app_crashed">上次启动后本应用发生了崩溃。是否打开崩溃报告页面？</string>
     <string name="option_take_photo_video">拍摄照片或视频</string>
     <string name="auth_recaptcha_message">此家服务器想确认你不是机器人</string>
     <string name="auth_reset_password_error_unauthorized">电子邮件地址验证失败：请确保你已点击邮件中的链接</string>
@@ -316,10 +314,7 @@
     <string name="permalink">永久链接</string>
     <string name="action_rename">重命名</string>
     <string name="report_content">举报内容</string>
-    <string name="send_bug_report">问题反馈</string>
     <string name="send_bug_report_logs_description">为分析此问题，本客户端的日志将会随此问题反馈发送。本问题反馈，包括日志与截图，将不会被公开显示。若你希望仅发送上面的文字，请取消选择：</string>
-    <string name="send_bug_report_sent">问题反馈发送成功</string>
-    <string name="send_bug_report_failed">问题反馈发送失败（%s）</string>
     <string name="login_error_bad_json">异常的 JSON</string>
     <string name="permissions_rationale_popup_title">信息</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} 需要权限以访问你的摄像机和麦克风来进行视频通话。
@@ -343,7 +338,6 @@
     <string name="room_settings_set_main_address">设置为主要地址</string>
     <string name="room_settings_unset_main_address">取消设置为主要地址</string>
     <string name="ok">确认</string>
-    <string name="send_bug_report_alert_message">你似乎沮丧地摇了摇手机。你想打开问题反馈界面吗？</string>
     <string name="ssl_unexpected_existing_expl">证书已从一个先前受你的手机信任的证书更改为另一个。这高度反常。建议你不要接受此新证书。</string>
     <string name="ssl_expected_existing_expl">证书已从曾受信任的证书更改为不受信任的证书。服务器可能已更新其证书，请联系管理员并核对服务器的指纹。</string>
     <string name="ssl_only_accept">请仅在服务器管理员发布了与上述指纹匹配的指纹的情况下接受该证书。</string>
@@ -419,7 +413,6 @@
     <string name="you_added_a_new_device">你添加了一个新会话“%s”，它正在请求加密密钥。</string>
     <string name="your_unverified_device_requesting">你的未验证会话“%s”正在请求加密密钥。</string>
     <string name="start_verification">开始验证</string>
-    <string name="title_activity_bug_report">错误报告</string>
     <string name="option_take_photo">拍摄照片</string>
     <string name="option_take_video">拍摄视频</string>
     <string name="settings_labs_native_camera">使用原生相机</string>
@@ -429,7 +422,6 @@
     <string name="encrypted_message">已加密消息</string>
     <string name="notification_noisy_notifications">响铃通知</string>
     <string name="notification_silent_notifications">静默通知</string>
-    <string name="settings_analytics">数据分析</string>
     <string name="notification_noisy">响铃</string>
     <string name="loading">正在加载……</string>
     <string name="room_participants_ban_prompt_msg">封禁用户会把他们移出此房间并阻止他们再次加入。</string>
@@ -441,7 +433,6 @@
     <plurals name="room_new_messages_notification">
         <item quantity="other">%d 条新消息</item>
     </plurals>
-    <string name="send_bug_report_rage_shake">摇一摇快捷反馈问题</string>
     <plurals name="membership_changes">
         <item quantity="other">%d个成员状态变动</item>
     </plurals>
@@ -468,8 +459,6 @@
     <string name="notification_unread_notified_messages_in_room">%1$s 条在 %2$s 中</string>
     <string name="settings_deactivate_account_section">停用账户</string>
     <string name="settings_deactivate_my_account">停用我的账户</string>
-    <string name="settings_opt_in_of_analytics">发送数据分析数据</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name}收集匿名数据分析以允许我们改进应用。</string>
     <string name="deactivate_account_title">停用账户</string>
     <string name="deactivate_account_content">这将使你的账户永远不再可用。你将无法登录，也不能使用相同的用户 ID 重新注册。你的账户将退出所有已加入的房间，你在身份服务器上的账户信息也会被删除。&lt;b&gt;此操作是不可逆的。&lt;/b&gt;
 \n
@@ -916,10 +905,8 @@
     <string name="settings_other_third_party_notices">其它第三方通知</string>
     <string name="navigate_to_room_when_already_in_the_room">你已经在查看此房间！</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">注册令牌</string>
-    <string name="send_suggestion">提出建议</string>
     <string name="send_suggestion_content">请在下方写下你的建议。</string>
     <string name="send_suggestion_report_placeholder">请在此描述你的建议</string>
-    <string name="send_suggestion_sent">谢谢，建议已成功发送</string>
     <string name="send_suggestion_failed">建议发送失败 (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">在时间线上显示隐藏事件</string>
     <string name="bottom_action_people_x">私聊消息</string>
@@ -1165,10 +1152,6 @@
     <string name="settings_advanced_settings">高级设置</string>
     <string name="settings_developer_mode">开发者模式</string>
     <string name="settings_developer_mode_summary">开发者模式激活隐藏的功能，也可能使应用不稳定。仅供开发者使用！</string>
-    <string name="settings_rageshake">愤怒摇动（Rageshake）</string>
-    <string name="settings_rageshake_detection_threshold">检测阈值</string>
-    <string name="settings_rageshake_detection_threshold_summary">摇动手机以测试检测阈值</string>
-    <string name="rageshake_detected">检测到摇动！</string>
     <string name="settings">设置</string>
     <string name="devices_current_device">当前会话</string>
     <string name="devices_other_devices">其它会话</string>
@@ -1896,7 +1879,6 @@
     <string name="send_file_step_compressing_image">正在压缩图片……</string>
     <string name="give_feedback">提供反馈</string>
     <string name="feedback_failed">反馈发送失败（%s）</string>
-    <string name="feedback_sent">感谢，你的反馈已成功送达</string>
     <string name="you_may_contact_me">如果你有任何后续问题，可以联系我</string>
     <string name="send_feedback_space_info">你正在使用空间的测试版。你的反馈将有助于改善下一版本。我们将会记录你的平台和用户名以帮助我们尽我们所能多发挥你的反馈的作用。</string>
     <string name="feedback">反馈</string>

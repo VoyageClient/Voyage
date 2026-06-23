@@ -242,15 +242,9 @@
     <string name="send_bug_report_include_logs">Nosūtīt žurnālus</string>
     <string name="send_bug_report_include_crash_logs">Nosūtīt avāriju žurnālus</string>
     <string name="send_bug_report_include_screenshot">Nosūtīt ekrānuzņēmumu</string>
-    <string name="send_bug_report">Ziņot par kļūdu</string>
     <string name="send_bug_report_description">Lūgums aprakstīt kļūdu. Kāda darbība tika veikta\? Kāds bija sagaidāmais iznākums\? Kas tieši notika\?</string>
     <string name="send_bug_report_placeholder">Šeit ir jāapraksta sarežģījums</string>
     <string name="send_bug_report_logs_description">Lai noteiktu nepilnības, žurnāli no šī klienta tiks nosūtīti kopā ar šo kļūdas ziņojumu. Tas, ieskaitot žurnālus un ekrānuzņēmumu, nebūs publiski redzams. Ja vēlies nosūtīt tikai augstāk esošo tekstu, lūgums noņemt ķeksīti:</string>
-    <string name="send_bug_report_alert_message">Šķiet, ka tālrunis tiek kratīts neapmierinātības dēļ. Vai atvērt kļūdu ziņojumu skatu\?</string>
-    <string name="send_bug_report_app_crashed">Šī programma iepriekš \"salūza\". Vai vēlies iesniegt paziņojumu par kļūdu?</string>
-    <string name="send_bug_report_sent">Ziņojums par kļūdu tika veiksmīgi nosūtīts</string>
-    <string name="send_bug_report_failed">Ziņojumu par kļūdu neizdevās nosūtīt (%s)</string>
-    <string name="send_bug_report_progress">Progress (%s%%)</string>
     <string name="join_room">Pievienoties istabai</string>
     <string name="username">Lietotājvārds</string>
     <string name="logout">Atteikties</string>
@@ -266,7 +260,6 @@
     <string name="notification_listening_for_events">Uztver notikumus</string>
     <string name="notification_noisy_notifications">Skaņas paziņojumi</string>
     <string name="notification_silent_notifications">Klusi paziņojumi</string>
-    <string name="title_activity_bug_report">Ziņojums par kļūdu</string>
     <string name="loading">Ielādējas…</string>
     <string name="option_take_photo">Uzņemt foto</string>
     <string name="option_take_video">Uzņemt video</string>
@@ -374,7 +367,6 @@
     <string name="settings_always_show_timestamps">Vienmēr rādīt ziņu laiku</string>
     <string name="settings_12_24_timestamps">Rādīt ziņu laiku 12 stundu formātā (piem. 12:12pm)</string>
     <string name="settings_vibrate_on_mention">Trīcēt, kad piemin lietotāju</string>
-    <string name="settings_analytics">Analītika</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Vārds</string>
     <string name="devices_details_device_name">Ierīces nosaukums</string>
@@ -413,7 +405,6 @@
     <string name="room_settings_room_internal_id">Šīs istabas iekšējais ID</string>
     <string name="room_settings_labs_pref_title">Izmēģinājumu lauciņš</string>
     <string name="room_settings_labs_warning_message">Šīs ir eksperimentālas funkcijas, kuras var radīt pārsteidzošus rezultātus! Lietot ar piesardzību.</string>
-    <string name="send_bug_report_rage_shake">Sparīgi kratīt ierīci, lai ziņotu par kļūdu</string>
     <plurals name="membership_changes">
         <item quantity="zero">%d biedru izmaiņu</item>
         <item quantity="one">%d biedru izmaiņa</item>
@@ -639,10 +630,8 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="send_file_step_idle">Gaida…</string>
     <string name="bottom_action_people_x">Tiešās ziņas</string>
     <string name="send_suggestion_failed">Ieteikumu neizdevās nosūtīt (%s)</string>
-    <string name="send_suggestion_sent">Paldies, ieteikums ir veiksmīgi nosūtīts</string>
     <string name="send_suggestion_report_placeholder">Šeit ir jāapraksta savs ieteikums</string>
     <string name="send_suggestion_content">Lūgums rakstīt savu ieteikumu zemāk.</string>
-    <string name="send_suggestion">Ieteikumi</string>
     <string name="preference_root_help_about">Palīdzība un par lietotni</string>
     <string name="settings_security_and_privacy">Drošība un privātums</string>
     <string name="settings_general_title">Vispārīgi</string>
@@ -695,7 +684,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_settings_room_read_history_dialog_subtitle">Izmaiņas attiecībā uz to, kas var lasīt vēsturi, attieksies tikai uz nākamajiem ziņojumiem šajā telpā. Esošās vēstures redzamība nemainīsies.</string>
     <string name="settings_password">Parole</string>
     <string name="disabled_integration_dialog_title">Integrācijas ir atspējotas</string>
-    <string name="settings_opt_in_of_analytics">Sūtīt analītikas datus</string>
     <string name="settings_deactivate_account_section">Deaktivizēt kontu</string>
     <string name="settings_secure_backup_section_info">Nodrošinieties pret piekļuves zaudēšanu šifrētām ziņām un datiem, dublējot šifrēšanas atslēgas savā serverī.</string>
     <string name="settings_secure_backup_setup">Iestatīt drošu rezerves dublēšanu</string>
@@ -1385,7 +1373,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_alias_published_alias_add_manually_submit">Publicēt</string>
     <string name="room_alias_published_alias_add_manually">Publicēt jaunu adresi manuāli</string>
     <string name="room_alias_published_alias_main">Šī ir galvenā adrese</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} apkopo anonīmu analītiku, lai ļautu mums uzlabot aplikāciju.</string>
     <string name="reset_secure_backup_warning">Šis aizvietos esošo atslēgu vai vārdkopu.</string>
     <string name="reset_secure_backup_title">Izveidot jaunu drošības atslēgu vai iestatīt jaunu drošības vārdkopu esošajai rezerves kopijai.</string>
     <string name="settings_secure_backup_enter_to_setup">Iestatīt uz šīs ierīces</string>
@@ -1478,10 +1465,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_server_version">Servera versija</string>
     <string name="settings_server_name">Servera nosaukums</string>
     <string name="settings_developer_mode_fail_fast_title">Neizdoties-ātri</string>
-    <string name="rageshake_detected">Kratīšana detektēta!</string>
-    <string name="settings_rageshake_detection_threshold_summary">Kratiet telefonu, lai pārbaudītu detektēšanas slieksni</string>
-    <string name="settings_rageshake_detection_threshold">Detektēšanas slieksnis</string>
-    <string name="settings_rageshake">Sparīga kratīšana</string>
     <string name="settings_developer_mode_summary">Izstrādātāja režīms aktivizē slēptās funkcijas un var arī padarīt lietojumprogrammu mazāk stabilu. Tikai izstrādātājiem!</string>
     <string name="settings_developer_mode">Izstrādātāja režīms</string>
     <string name="bug_report_error_too_short">Apraksts ir pārāk īss</string>
@@ -1857,7 +1840,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="send_file_step_compressing_image">Kompresē bildi…</string>
     <string name="give_feedback">Sniedziet atsauksmes</string>
     <string name="feedback_failed">Atsauksmi neizdevās nosūtīt (%s)</string>
-    <string name="feedback_sent">Paldies, atsauksme tika veiksmīgi nosūtīta</string>
     <string name="you_may_contact_me">Ar mani var sazināties, ja ir jebkādi papildjautājumi</string>
     <string name="send_feedback_space_info">Tiek izmantota vietu beta versija. Atsauksmes palīdzēs uzlabot nākamās versijas. Izmantotā sistēma un lietotājvārds tiks pierakstīts, lai mēs varētu pēc iespējas labāk izmantot atsauksmes.</string>
     <string name="feedback">Atsauksmes</string>

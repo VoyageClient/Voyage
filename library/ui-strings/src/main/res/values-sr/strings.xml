@@ -236,7 +236,6 @@
     <string name="notification_noisy_notifications">Бучна обавештења</string>
     <string name="notification_silent_notifications">Тиха обавештења</string>
     <string name="title_activity_settings">Поставке</string>
-    <string name="title_activity_bug_report">Пријава грешке</string>
     <string name="title_activity_choose_sticker">Пошаљи налепницу</string>
     <string name="title_activity_keys_backup_setup">Резервна копија кључева</string>
     <string name="title_activity_keys_backup_restore">Користи резервну копију кључева</string>
@@ -306,15 +305,8 @@
     <string name="none">Ништа</string>
     <string name="backup">Резервна копија</string>
     <string name="enter_secret_storage_passphrase_or_key">Употребите %1$s или %2$s да наставите.</string>
-    <string name="rageshake_detected">Дрмусање детектовано!</string>
-    <string name="settings_rageshake_detection_threshold_summary">Протресите телефон да испробамо праг осетљивости</string>
-    <string name="settings_rageshake_detection_threshold">Праг осетљивости</string>
-    <string name="settings_rageshake">Бесно дрмусање</string>
     <string name="search">Тражи</string>
     <string name="hs_url">УРЛ домаћег сервера</string>
-    <string name="send_bug_report_progress">Напредак (%s%%)</string>
-    <string name="send_bug_report_rage_shake">Дрмусање за пријаву грешке</string>
-    <string name="send_bug_report">Пријави грешку</string>
     <string name="send_bug_report_include_screenshot">Шаљи снимак екрана</string>
     <string name="send_bug_report_include_crash_logs">Слање записника грешке</string>
     <string name="send_bug_report_include_logs">Слање записника</string>
@@ -367,10 +359,6 @@
     <string name="sound_device_speaker">Звучници</string>
     <string name="sound_device_phone">Телефон</string>
     <string name="option_send_voice">Пошаљи гласовну поруку</string>
-    <string name="send_bug_report_failed">Извештај о грешци није успео да се пошаље (%s)</string>
-    <string name="send_bug_report_sent">Извештај о грешци је успешно послан</string>
-    <string name="send_bug_report_app_crashed">Апликација се последњи пут срушила. Да ли желите да отворите екран за пријаву грешке\?</string>
-    <string name="send_bug_report_alert_message">Изгледа да мрдате телефон из фрустрације. Да ли желите да отворите екран за извештавање о грешкама\?</string>
     <string name="send_bug_report_description_in_english">Ако је могуће, молим вас напишите опис на енглеском језику.</string>
     <string name="settings_room_directory_show_all_rooms_summary">Прикажи све собе у директорију собе, укључујући собе са експлицитним садржајем.</string>
     <string name="settings_room_directory_show_all_rooms">Прикажи собе са експлицитним садржајем</string>

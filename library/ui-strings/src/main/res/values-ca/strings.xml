@@ -228,7 +228,6 @@
     <string name="notification_noisy_notifications">Notificacions amb so</string>
     <string name="notification_silent_notifications">Notificacions silencioses</string>
     <string name="title_activity_settings">Configuració</string>
-    <string name="title_activity_bug_report">Informe d\'errors</string>
     <string name="ok">D\'acord</string>
     <string name="action_cancel">Cancel·la</string>
     <string name="action_save">Desa</string>
@@ -266,15 +265,9 @@
     <string name="send_bug_report_include_logs">Envia els registres</string>
     <string name="send_bug_report_include_crash_logs">Envia els registres de fallada</string>
     <string name="send_bug_report_include_screenshot">Envia una captura de pantalla</string>
-    <string name="send_bug_report">Informa d\'un error</string>
     <string name="send_bug_report_description">Descriu l\'error. Què has fet\? Què esperaves que passés\? Què ha passat realment\?</string>
     <string name="send_bug_report_placeholder">Descriu el problema aquí</string>
     <string name="send_bug_report_logs_description">Per tal de diagnosticar problemes, els registres d\'aquest client s\'enviaran juntament amb l\'informe d\'errors. Aquest informe d\'errors, així com també els registres i la captura de pantalla, no seran visibles públicament. Si prefereixes enviar només el text de dalt, desmarca:</string>
-    <string name="send_bug_report_alert_message">Sembla que estàs sacsejant el telèfon amb frustració. Vols enviar un informe d\'errors\?</string>
-    <string name="send_bug_report_app_crashed">En l\'última execució l\'aplicació ha fallat. Vols obrir la pantalla d\'informe de fallada\?</string>
-    <string name="send_bug_report_sent">L\'informe d\'errors s\'ha enviat correctament</string>
-    <string name="send_bug_report_failed">No s\'ha pogut enviar l\'informe d\'errors (%s)</string>
-    <string name="send_bug_report_progress">En curs (%s%%)</string>
     <string name="join_room">Uneix-te a la sala</string>
     <string name="username">Nom d\'usuari</string>
     <string name="logout">Tanca la sessió</string>
@@ -389,7 +382,6 @@
     <string name="settings_always_show_timestamps">Mostra sempre l\'hora a tots els missatges</string>
     <string name="settings_12_24_timestamps">Mostra l\'hora en el format de 12 hores</string>
     <string name="settings_vibrate_on_mention">Vibra quan mencionin un usuari</string>
-    <string name="settings_analytics">Analítiques</string>
     <string name="devices_details_id_title">ID</string>
     <string name="devices_details_name_title">Nom</string>
     <string name="devices_details_device_name">Actualitza el nom públic</string>
@@ -492,7 +484,6 @@
     <string name="reason_colon">Raó: %1$s</string>
     <string name="loading">Carregant…</string>
     <string name="room_settings_all_messages">Tots els missatges</string>
-    <string name="send_bug_report_rage_shake">Sacseja el dispositiu amb ràbia per informar d\'un error</string>
     <string name="list_members">Membres</string>
     <plurals name="room_title_members">
         <item quantity="one">%d membre</item>
@@ -539,8 +530,6 @@
     <string name="settings_preview_media_before_sending">Mostra el contingut multimèdia abans d\'enviar-lo</string>
     <string name="settings_deactivate_account_section">Desactivar el compte</string>
     <string name="settings_deactivate_my_account">Desactivar el meu compte</string>
-    <string name="settings_opt_in_of_analytics">Envia dades d\'anàlisi</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} recopila dades d\'anàlisi anònimes per tal de permetre millorar l\'aplicació.</string>
     <string name="encryption_export_notice">Crea una frase per xifrar les claus exportades. Hauràs d\'introduir la mateixa frase per poder importar les claus.</string>
     <string name="passphrase_create_passphrase">Crea frase de pas</string>
     <string name="passphrase_passphrase_does_not_match">La frase no coincideix</string>
@@ -1019,10 +1008,8 @@
     <string name="direct_room_encryption_enabled_tile_description">Els missatges d\'aquest xat estan xifrats d\'extrem a extrem.</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Mostra els esdeveniments amagats a la cronologia</string>
     <string name="send_suggestion_failed">No s\'ha pogut enviat el suggeriment (%s)</string>
-    <string name="send_suggestion_sent">Gràcies, el suggeriment s\'ha enviat correctament</string>
     <string name="send_suggestion_report_placeholder">Descriu el teu suggeriment aquí</string>
     <string name="send_suggestion_content">Escriu el teu suggeriment a sota.</string>
-    <string name="send_suggestion">Fes un suggeriment</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Token de registre</string>
     <string name="settings_other_third_party_notices">Altres avisos de tercers</string>
     <string name="create_room_settings_section">Configuració de la sala</string>
@@ -1490,10 +1477,6 @@
     <string name="devices_other_devices">Altres sessions</string>
     <string name="devices_current_device">Sessió actual</string>
     <string name="settings">Configuració</string>
-    <string name="rageshake_detected">Sacseig detectat!</string>
-    <string name="settings_rageshake_detection_threshold_summary">Sacseja el teu mòbil per provar el llindar de detecció</string>
-    <string name="settings_rageshake_detection_threshold">Llindar de detecció</string>
-    <string name="settings_rageshake">Sacseig de ràbia</string>
     <string name="settings_developer_mode_summary">El mode desenvolupador activa altres funcionalitats ocultes i també pot ser que faci l\'aplicació menys estable. Només per a desenvolupadors!</string>
     <string name="settings_developer_mode">Mode desenvolupador</string>
     <string name="notification_initial_sync">Sincronització inicial…</string>
@@ -2248,7 +2231,6 @@
     <string name="give_feedback_threads">Envia comentaris</string>
     <string name="give_feedback" tools:ignore="UnusedResources">Envia comentaris</string>
     <string name="feedback_failed">No s\'han pogut enviar els teus comentaris (%s)</string>
-    <string name="feedback_sent">Gràcies, els teus comentaris s\'han enviat correctament</string>
     <string name="feedback">Comentaris</string>
     <string name="send_feedback_space_title">Comentaris sobre els espais</string>
     <string name="beta_title_bottom_sheet_action">BETA</string>

@@ -249,17 +249,10 @@
     <string name="logout">ອອກຈາກລະບົບ</string>
     <string name="username">ຊື່ຜູ້ໃຊ້</string>
     <string name="join_room">ເຂົ້າຮ່ວມຫ້ອງ</string>
-    <string name="send_bug_report_progress">ຄວາມຄືບໜ້າ (%s%%)</string>
-    <string name="send_bug_report_failed">ບໍ່ສາມາດສົ່ງລາຍງານຂໍ້ຜິດພາດໄດ້ (%s)</string>
-    <string name="send_bug_report_sent">ໄດ້ສົ່ງລາຍງານຂໍ້ຜິດພາດໄປແລ້ວ</string>
-    <string name="send_bug_report_rage_shake">ສັ່ນເພື່ອລາຍງານຂໍ້ຜິດພາດ</string>
-    <string name="send_bug_report_app_crashed">ແອັບພລິເຄຊັນໄດ້ຂັດຂ້ອງໃນຄັ້ງທີ່ຜ່ານມາ. ທ່ານຕ້ອງການເປີດໜ້າຈໍລາຍງານການຂັດຂ້ອງບໍ\?</string>
-    <string name="send_bug_report_alert_message">ເບິ່ງຄືວ່າທ່ານກຳລັງສັ່ນໂທລະສັບດ້ວຍຄວາມຫງຸດຫງິດ. ທ່ານຕ້ອງການເປີດໜ້າຈໍລາຍງານຂໍ້ຜິດພາດບໍ\?</string>
     <string name="send_bug_report_logs_description">ເພື່ອວິນິດໄສບັນຫາ, ບັນທຶກຈາກລູກຄ້ານີ້ຈະຖືກສົ່ງພ້ອມກັບບົດລາຍງານຂໍ້ຜິດພາດນີ້. ລາຍງານຂໍ້ຜິດພາດນີ້, ລວມທັງບັນທຶກ ແລະພາບໜ້າຈໍ, ຈະບໍ່ປາກົດໃຫ້ສາທາລະນະເຫັນໄດ້. ຖ້າທ່ານຕ້ອງການພຽງແຕ່ສົ່ງຂໍ້ຄວາມຂ້າງເທິງ, ກະລຸນາ ຢາກົດເລືອກ:</string>
     <string name="send_bug_report_placeholder">ອະທິບາຍບັນຫາຂອງທ່ານຢູ່ບ່ອນນີ້</string>
     <string name="send_bug_report_description_in_english">ຖ້າເປັນໄປໄດ້, ກະລຸນາຂຽນຄໍາອະທິບາຍເປັນພາສາອັງກິດ.</string>
     <string name="send_bug_report_description">ກະລຸນາອະທິບາຍຂໍ້ບົກພ່ອງ. ທ່ານເຮັດຫຍັງລົງໄປ\?ທ່ານຄາດວ່າຈະມີຫຍັງເກີດຂຶ້ນ\? ທີ່ຈິງແລ້ວເກີດຫຍັງຂຶ້ນ\?</string>
-    <string name="send_bug_report">ລາຍງານຂໍ້ຜິດພາດ</string>
     <string name="send_bug_report_include_screenshot">ສົ່ງຮູບໜ້າຈໍ</string>
     <string name="send_bug_report_include_key_share_history">ສົ່ງປະຫວັດການຮ້ອງຂໍການແບ່ງປັນທີ່ສໍາຄັນ</string>
     <string name="send_bug_report_include_crash_logs">ສົ່ງບັນທຶກການຂັດຂ້ອງ</string>
@@ -362,7 +355,6 @@
     <string name="title_activity_keys_backup_restore">ໃຊ້ ກະເເຈສຳນອງ</string>
     <string name="title_activity_keys_backup_setup">ສໍາຮອງກະແຈ</string>
     <string name="title_activity_choose_sticker">ສົ່ງສະຕິກເກີ</string>
-    <string name="title_activity_bug_report">ລາຍງານຂໍ້ຜິດພາດ</string>
     <string name="title_activity_settings">ການຕັ້ງຄ່າ</string>
     <string name="notification_silent_notifications">ການແຈ້ງເຕືອນສຽງງຽບ</string>
     <string name="notification_noisy_notifications">ການແຈ້ງເຕືອນສຽງລົບກວນ</string>
@@ -614,17 +606,14 @@
     <string name="give_feedback_threads">ໃຫ້ຄໍາຄິດເຫັນ</string>
     <string name="give_feedback" tools:ignore="UnusedResources">ໃຫ້ຄໍາຄິດເຫັນ</string>
     <string name="feedback_failed">ສົ່ງຄຳຕິຊົມບໍ່ສຳເລັດ (%s)</string>
-    <string name="feedback_sent">ຂໍຂອບໃຈ, ຄໍາຄຶດຄໍາເຫັນຂອງທ່ານໄດ້ຖືກສົ່ງສໍາເລັດແລ້ວ</string>
     <string name="you_may_contact_me">ທ່ານສາມາດຕິດຕໍ່ຂ້ອຍໄດ້ ຖ້າທ່ານມີຄໍາຖາມຕິດຕາມ</string>
     <string name="send_feedback_space_info">ທ່ານກຳລັງໃຊ້ພື້ນທີ່ເວີຊັ້ນເບຕ້າ. ຄໍາຕິຊົມຂອງທ່ານຈະຊ່ວຍແຈ້ງໃຫ້ເວີຊັ້ນຕໍ່ໄປຊາບ. ເເພລັດຟອມແລະຊື່ຜູ້ໃຊ້ຂອງທ່ານຈະຖືກບັນທຶກໄວ້ເພື່ອຊ່ວຍໃຫ້ພວກເຮົາໃຊ້ຄໍາຕິຊົມຂອງທ່ານເທົ່າທີ່ພວກເຮົາສາມາດເຮັດໄດ້.</string>
     <string name="feedback">ຄໍາຕິຊົມ</string>
     <string name="send_feedback_space_title">ຄຳຕິຊົມຂອງພື້ນທີ່</string>
     <string name="beta_title_bottom_sheet_action">ເບຕ້າ</string>
     <string name="send_suggestion_failed">ສົ່ງຄຳແນະນຳບໍ່ສຳເລັດ (%s)</string>
-    <string name="send_suggestion_sent">ຂອບໃຈ, ຄຳແນະນຳໄດ້ສົ່ງສຳເລັດແລ້ວ</string>
     <string name="send_suggestion_report_placeholder">ອະທິບາຍຄໍາແນະນໍາຂອງທ່ານທີ່ນີ້</string>
     <string name="send_suggestion_content">ກະລຸນາຂຽນຄໍາແນະນໍາຂອງທ່ານຂ້າງລຸ່ມນີ້.</string>
-    <string name="send_suggestion">ໃຫ້ຄໍາແນະນໍາ</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">ລົງທະບຽນ token</string>
     <string name="preference_system_settings">ການຕັ້ງຄ່າລະບົບ</string>
     <string name="preference_versions">ເວີຊັ້ນ</string>
@@ -777,9 +766,6 @@
 \n
 \nທ່ານສາມາດອ່ານເງື່ອນໄຂທັງໝົດຂອງພວກເຮົາໄດ້ %s.</string>
     <string name="analytics_opt_in_title">ຊ່ວຍປັບປຸງ ${app_name}</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} ລວບລວມການວິເຄາະທີ່ບໍ່ເປີດເຜີຍຊື່ເພື່ອໃຫ້ພວກເຮົາປັບປຸງແອັບພລິເຄຊັນ.</string>
-    <string name="settings_opt_in_of_analytics">ສົ່ງຂໍ້ມູນການວິເຄາະ</string>
-    <string name="settings_analytics">ການວິເຄາະ</string>
     <string name="settings_discovery_manage">ຈັດການການຕັ້ງຄ່າການຄົ້ນພົບຂອງທ່ານ.</string>
     <string name="settings_discovery_category">ການຄົ້ນພົບ</string>
     <string name="settings_deactivate_my_account">ປິດການນຳໃຊ້ບັນຊີຂອງຂ້ອຍ</string>
@@ -1712,10 +1698,6 @@
     <string name="devices_other_devices">ລະບົບອື່ນໆ</string>
     <string name="devices_current_device">ລະບົບປະຈຸບັນ</string>
     <string name="settings">ການຕັ້ງຄ່າ</string>
-    <string name="rageshake_detected">ກວດພົບການສັ່ນ!</string>
-    <string name="settings_rageshake_detection_threshold_summary">ສັ່ນໂທລະສັບຂອງທ່ານເພື່ອທົດສອບເກນການກວດຫາ</string>
-    <string name="settings_rageshake_detection_threshold">ການກວດຫາ</string>
-    <string name="settings_rageshake">Rageshake</string>
     <string name="settings_developer_mode_summary">ໂໝດຜູ້ພັດທະນາເປີດໃຊ້ຄຸນສົມບັດທີ່ເຊື່ອງໄວ້ ແລະ ອາດຈະເຮັດໃຫ້ແອັບພລິເຄຊັນມີຄວາມໝັ້ນຄົງໜ້ອຍລົງ. ສໍາລັບນັກພັດທະນາເທົ່ານັ້ນ!</string>
     <string name="settings_developer_mode">ຮູບແບບນັກພັດທະນາ</string>
     <string name="settings_advanced_settings">ຕັ້ງຄ່າຂັ້ນສູງ</string>

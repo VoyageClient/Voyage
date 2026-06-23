@@ -9,7 +9,6 @@
     <string name="notification_silent_notifications">Tiha obaveštenja</string>
 
     <string name="title_activity_settings">Podešavanja</string>
-    <string name="title_activity_bug_report">Prijava bug-a</string>
     <string name="title_activity_choose_sticker">Pošalji nalepnicu</string>
     <string name="title_activity_keys_backup_setup">Rezervna kopija ključeva</string>
     <string name="title_activity_keys_backup_restore">Koristi rezervnu kopiju ključeva</string>
@@ -74,7 +73,6 @@
     <string name="auth_invalid_login_param">Pogrešno korisničko ime i/ili lozinka</string>
     <string name="view_source">Vidi izvor</string>
     <string name="report_content">Prijavi sadržaj</string>
-    <string name="send_bug_report_progress">Napredak (%s%%)</string>
 
     <string name="join_room">Priključi se sobi</string>
     <string name="search">Pretraži</string>

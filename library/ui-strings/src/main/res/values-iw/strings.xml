@@ -64,7 +64,6 @@
     <string name="title_activity_keys_backup_restore">השתמש במפתח גיבוי</string>
     <string name="title_activity_keys_backup_setup">גיבוי מפתח</string>
     <string name="title_activity_choose_sticker">שלח מדבקה</string>
-    <string name="title_activity_bug_report">דיווח תקלות</string>
     <string name="title_activity_settings">הגדרות</string>
     <string name="notification_silent_notifications">התראות שקטות</string>
     <string name="notification_noisy_notifications">התראות רועשות</string>
@@ -88,16 +87,10 @@
     <string name="logout">יציאה</string>
     <string name="username">שם משתמש</string>
     <string name="join_room">הצטרף אל חדר</string>
-    <string name="send_bug_report_failed">לא ניתן היה לשלוח את דוח הבאג (%s)</string>
-    <string name="send_bug_report_sent">דוח הבאג נשלח בהצלחה</string>
-    <string name="send_bug_report_rage_shake">טלטול זעם כדי לדווח על באג</string>
-    <string name="send_bug_report_app_crashed">היישום התרסק בפעם האחרונה. האם ברצונך לפתוח את מסך דוח הקריסה\?</string>
-    <string name="send_bug_report_alert_message">נראה שאתה מטלטל את הטלפון בתסכול. האם ברצונך לפתוח את מסך דוח הבאג\?</string>
     <string name="send_bug_report_logs_description">על מנת לאבחן בעיות, יומני הלקוח יישלחו עם דוח הבאג הזה. דוח באגים זה, כולל היומנים וצילום המסך, לא יהיה גלוי לציבור. אם אתה מעדיף לשלוח רק את הטקסט למעלה, בטל את הסימון:</string>
     <string name="send_bug_report_placeholder">תאר את הבעיה שלך כאן</string>
     <string name="send_bug_report_description_in_english">אם אפשר, אנא כתוב את התיאור באנגלית.</string>
     <string name="send_bug_report_description">אנא תאר את הבאג. מה עשית\? מה ציפית שיקרה\? מה באמת קרה\?</string>
-    <string name="send_bug_report">דווח על באג</string>
     <string name="send_bug_report_include_screenshot">שלח צילום מסך</string>
     <string name="send_bug_report_include_key_share_history">שלח היסטוריית בקשות לשיתוף מפתח</string>
     <string name="send_bug_report_include_crash_logs">שלח יומני תקלות</string>
@@ -761,10 +754,6 @@
     <string name="devices_other_devices">פעולות אחרות</string>
     <string name="devices_current_device">פעולה נוכחית</string>
     <string name="settings">הגדרות</string>
-    <string name="rageshake_detected">טלטלה זוהתה!</string>
-    <string name="settings_rageshake_detection_threshold_summary">טלטל את הטלפון שלך כדי לבדוק את סף הזיהוי</string>
-    <string name="settings_rageshake_detection_threshold">סף איתור</string>
-    <string name="settings_rageshake">ראג\'שייק</string>
     <string name="settings_developer_mode_summary">מצב המפתח מפעיל תכונות נסתרות ועשוי גם להפוך את היישום לפחות יציב. למפתחים בלבד!</string>
     <string name="settings_developer_mode">מצב מפתח</string>
     <string name="settings_advanced_settings">הגדרות מתקדמות</string>
@@ -1027,10 +1016,8 @@
     <string name="settings_labs_show_complete_history_in_encrypted_room">הצג היסטוריה מלאה בחדרים מוצפנים</string>
     <string name="settings_labs_show_hidden_events_in_timeline">הצג אירועים מוסתרים בציר הזמן</string>
     <string name="send_suggestion_failed">ההצעה לא נשלחה (%s)</string>
-    <string name="send_suggestion_sent">תודה, ההצעה נשלחה בהצלחה</string>
     <string name="send_suggestion_report_placeholder">תאר כאן את הצעתך</string>
     <string name="send_suggestion_content">אנא כתוב את הצעתך למטה.</string>
-    <string name="send_suggestion">תן הצעה</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">הרשמת אסימון</string>
     <string name="preference_root_help_about">עזרה ואודות</string>
     <string name="preference_voice_and_video">קול ווידאו</string>
@@ -1197,7 +1184,6 @@
     <string name="room_settings_permissions_subtitle">צפה ועדכן את התפקידים הנדרשים לשינוי חלקים שונים בחדר.</string>
     <string name="room_settings_permissions_title">הרשאות חדרים</string>
     <string name="room_participants_leave_private_warning">חדר זה אינו ציבורי. לא תוכל להצטרף שוב ללא הזמנה.</string>
-    <string name="send_bug_report_progress">(%%%s)התקדמות</string>
     <string name="bottom_action_people">אנשים</string>
     <string name="bottom_action_favourites">מועדפים</string>
     <string name="system_theme">ברירת מחדל מערכת</string>
@@ -1283,9 +1269,6 @@
     <string name="devices_details_device_name">עדכן שם ציבורי</string>
     <string name="devices_details_name_title">שם ציבורי</string>
     <string name="devices_details_id_title">תעודת זהות</string>
-    <string name="settings_opt_in_of_analytics_summary">אלמנט אוסף ניתוח אנונימי כדי לאפשר לנו לשפר את היישום.</string>
-    <string name="settings_opt_in_of_analytics">שלח נתוני ניתוח</string>
-    <string name="settings_analytics">ניתוח נתונים</string>
     <string name="settings_discovery_manage">נהל את הגדרות הגילוי שלך.</string>
     <string name="settings_discovery_category">תַגלִית</string>
     <string name="settings_deactivate_my_account">הפוך את המשתמש שלי ללא פעיל</string>
@@ -2016,7 +1999,6 @@
     <string name="send_file_step_compressing_image">דוחס תמונה …</string>
     <string name="give_feedback">תן משוב</string>
     <string name="feedback_failed">שליחת המשוב נכשלה (%s)</string>
-    <string name="feedback_sent">תודה, המשוב שלך נשלח בהצלחה</string>
     <string name="you_may_contact_me">אתה יכול לצור איתי קשר במידה ויהיו לך שאלות המשך</string>
     <string name="send_feedback_space_info">הינך משתמש בגירסת נסיון של מרחבים. המשוב שלך ישמש לעידכון גהגרסאות הבאות. פרטי המערכת ושם המשתמש ירשמו כדי שנוכל להשתמש במשוב שלך בצורה מיטבית.</string>
     <string name="feedback">משוב</string>

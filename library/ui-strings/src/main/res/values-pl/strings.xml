@@ -94,15 +94,9 @@
     <string name="send_bug_report_include_logs">Wyślij dzienniki</string>
     <string name="send_bug_report_include_crash_logs">Wyślij dzienniki awarii</string>
     <string name="send_bug_report_include_screenshot">Wyślij zrzut ekranu</string>
-    <string name="send_bug_report">Zgłoś błąd</string>
     <string name="send_bug_report_description">Opisz błąd. Co zrobiłeś? Co powinno się wydarzyć? Co się stało?</string>
     <string name="send_bug_report_placeholder">Opisz swój problem tutaj</string>
     <string name="send_bug_report_logs_description">W celu zdiagnozowania problemów, logi z tego klienta zostaną wysłane wraz z tym raportem o błędzie. Ten raport o błędzie, w tym dzienniki i zrzut ekranu, nie będzie publicznie widoczny. Jeśli wolisz wysłać tylko powyższy tekst, odznacz:</string>
-    <string name="send_bug_report_alert_message">Wygląda na to, że potrząsasz telefonem ze zdenerwowania. Czy chcesz otworzyć ekran zgłaszania błędu\?</string>
-    <string name="send_bug_report_app_crashed">Przy wcześniejszym użyciu aplikacja napotkała błąd. Czy chcesz zgłosić raport o nieoczekiwanym zamknięciu\?</string>
-    <string name="send_bug_report_sent">Pomyślnie zgłoszono błąd</string>
-    <string name="send_bug_report_failed">Nie udało się zgłosić błędu (%s)</string>
-    <string name="send_bug_report_progress">Postęp (%s%%)</string>
     <string name="join_room">Dołącz do pokoju</string>
     <string name="username">Nazwa użytkownika</string>
     <string name="logout">Wyloguj</string>
@@ -253,9 +247,7 @@
     <string name="notification_listening_for_events">Nasłuchiwanie zdarzeń</string>
     <string name="notification_noisy_notifications">Głośne powiadomienia</string>
     <string name="notification_silent_notifications">Ciche powiadomienia</string>
-    <string name="title_activity_bug_report">Zgłoś błąd</string>
     <string name="loading">Wczytywanie…</string>
-    <string name="send_bug_report_rage_shake">Potrząśnij wściekle, aby zgłosić błąd</string>
     <string name="option_take_photo">Zrób zdjęcie</string>
     <string name="option_take_video">Nagraj film</string>
     <string name="login_error_bad_json">Uszkodzony JSON</string>
@@ -305,7 +297,6 @@
     <string name="settings_inline_url_preview">Podgląd zawartości URL</string>
     <string name="settings_12_24_timestamps">Pokaż czas w formacie 12-godzinnym</string>
     <string name="settings_vibrate_on_mention">Wibruj gdy ktoś wspomni o Tobie</string>
-    <string name="settings_analytics">Analityka</string>
     <string name="settings_home_server">Serwer domowy</string>
     <string name="settings_identity_server">Serwer tożsamości</string>
     <string name="account_email_validation_message">Sprawdź pocztę e-mail i kliknij odnośnik, który zawiera. Gdy to zrobisz, kliknij przycisk Kontynuuj.</string>
@@ -324,8 +315,6 @@
     <string name="settings_notifications_targets">Cele powiadomień</string>
     <string name="settings_deactivate_account_section">Dezaktywuj konto</string>
     <string name="settings_deactivate_my_account">Dezaktywuj moje konto</string>
-    <string name="settings_opt_in_of_analytics">Wysyłaj dane analityczne</string>
-    <string name="settings_opt_in_of_analytics_summary">${app_name} zbiera anonimowe informacje które pozwolą ulepszyć aplikację.</string>
     <string name="encryption_export_e2e_room_keys">Eksportuj klucze E2E pokoju</string>
     <string name="encryption_import_e2e_room_keys">Importuj klucze E2E pokoju</string>
     <string name="encryption_import_room_keys">Importuj klucze pokoju</string>
@@ -820,7 +809,6 @@
     <string name="push_gateway_item_url">Url:</string>
     <string name="push_gateway_item_format">Format:</string>
     <string name="settings_troubleshoot_test_token_registration_quick_fix">Zarejestruj token</string>
-    <string name="send_suggestion_sent">Dziękujemy, sugestia została pomyślnie wysłana</string>
     <string name="send_suggestion_failed">Wysłanie sugestii nie powiodło się (%s)</string>
     <string name="settings_labs_show_hidden_events_in_timeline">Wyświetl ukryte wydarzenia na linii czasowej</string>
     <string name="edited_suffix">(edytowano)</string>
@@ -1002,10 +990,6 @@
     <string name="permalink_malformed">Link matrix.to został zdeformowany</string>
     <string name="bug_report_error_too_short">Opis zbyt krótki</string>
     <string name="notification_initial_sync">Synchronizacja wstępna…</string>
-    <string name="settings_rageshake">Wściekłe potrząśnięcie</string>
-    <string name="settings_rageshake_detection_threshold">Próg detekcji</string>
-    <string name="settings_rageshake_detection_threshold_summary">Potrząśnij telefonem aby wypróbować próg detekcji</string>
-    <string name="rageshake_detected">Potrząśnięcie wykryte!</string>
     <string name="devices_current_device">Bieżąca sesja</string>
     <string name="devices_other_devices">Inne sesje</string>
     <string name="autocomplete_limited_results">Wyświetlanie jedynie początkowych wyników, wprowadź więcej znaków…</string>
@@ -1165,7 +1149,6 @@
     <string name="change_identity_server">Zmień serwer tożsamości</string>
     <string name="attachment_type_camera">Aparat</string>
     <string name="message_ignore_user">Ignoruj użytkownika</string>
-    <string name="send_suggestion">Złóż sugestię</string>
     <string name="settings_developer_mode_summary">Tryb programisty aktywuje ukryte funkcje i może również spowodować, że aplikacja będzie mniej stabilna. Tylko dla programistów!</string>
     <string name="room_profile_not_encrypted_subtitle">Wiadomości w tym pokoju nie są szyfrowane end-to-end.</string>
     <string name="room_profile_section_more_uploads">Przesłane pliki</string>
@@ -1993,7 +1976,6 @@
     <string name="send_file_step_compressing_image">Kompresowanie obrazu…</string>
     <string name="give_feedback">Przekaż opinię</string>
     <string name="feedback_failed">Nie udało się przesłać opinii (%s)</string>
-    <string name="feedback_sent">Dziękujemy, Twoja opinia została wysłana</string>
     <string name="you_may_contact_me">Możesz się ze mną skontaktować, jeśli masz jakiekolwiek pytania</string>
     <string name="send_feedback_space_info">Używasz przestrzeni w wersji beta. Ta opinia pomoże nam w tworzeniu kolejnych wersji. Twoja platforma i nazwa użytkownika zostaną odnotowane, abyśmy mogli w pełni wykorzystać Twoje sugestie.</string>
     <string name="send_feedback_space_title">Prześlij opinię o przestrzeniach</string>

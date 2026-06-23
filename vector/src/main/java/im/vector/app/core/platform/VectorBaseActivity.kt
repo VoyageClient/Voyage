@@ -77,9 +77,6 @@ import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
 import im.vector.app.features.pin.PinMode
 import im.vector.app.features.pin.UnlockedActivity
-import im.vector.app.features.rageshake.BugReportActivity
-import im.vector.app.features.rageshake.BugReporter
-import im.vector.app.features.rageshake.RageShake
 import im.vector.app.features.session.SessionListener
 import im.vector.app.features.settings.FontScalePreferences
 import im.vector.app.features.settings.FontScalePreferencesImpl
@@ -158,9 +155,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     private lateinit var configurationViewModel: ConfigurationViewModel
 
     @Inject lateinit var sessionListener: SessionListener
-    @Inject lateinit var bugReporter: BugReporter
     @Inject lateinit var pinLocker: PinLocker
-    @Inject lateinit var rageShake: RageShake
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var fontScalePreferences: FontScalePreferences
     @Inject lateinit var vectorLocale: VectorLocaleProvider
@@ -450,11 +445,6 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             analyticsTracker.screen(MobileScreen(screenName = it))
         }
         configurationViewModel.onActivityResumed()
-
-        if (this !is BugReportActivity && vectorPreferences.useRageshake()) {
-
-            rageShake.start()
-        }
         debugReceiver.register(this)
         mdmService.registerListener(this) {
             // Just log that a change occurred.
@@ -503,14 +493,12 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         super.onPause()
         Timber.i("onPause Activity ${javaClass.simpleName}")
 
-        rageShake.stop()
         debugReceiver.unregister(this)
         mdmService.unregisterListener(this)
     }
 
     private val onMultiWindowModeChangedListener = Consumer<MultiWindowModeChangedInfo> {
         Timber.w("onMultiWindowModeChanged. isInMultiWindowMode: ${it.isInMultiWindowMode}")
-        bugReporter.inMultiWindowMode = it.isInMultiWindowMode
     }
 
     /* ==========================================================================================
