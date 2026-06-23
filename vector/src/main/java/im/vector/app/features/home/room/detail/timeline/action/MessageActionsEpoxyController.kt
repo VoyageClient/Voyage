@@ -20,6 +20,7 @@ import im.vector.app.core.epoxy.bottomsheet.bottomSheetMessagePreviewItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetQuickReactionsItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetSendStateItem
 import im.vector.app.core.error.ErrorFormatter
+import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.AvatarRenderer
@@ -28,9 +29,12 @@ import im.vector.app.features.home.room.detail.timeline.format.EventDetailsForma
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
+import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
+import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.location.INITIAL_MAP_ZOOM_IN_TIMELINE
 import im.vector.app.features.location.UrlMapProvider
 import im.vector.app.features.location.toLocationData
@@ -45,6 +49,8 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.events.model.isLocationMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import javax.inject.Inject
@@ -67,7 +73,22 @@ class MessageActionsEpoxyController @Inject constructor(
         private val locationPinProvider: LocationPinProvider,
         private val activeSessionHolder: ActiveSessionHolder,
         private val mediaContentRevealManager: MediaContentRevealManager,
+        private val richMessageBodyRenderer: RichMessageBodyRenderer,
+        private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
+        private val htmlCompressor: VectorHtmlCompressor,
 ) : TypedEpoxyController<MessageActionState>() {
+
+    // The compressed HTML for a non-redacted text message whose body contains a table, so the
+    // long-press preview can render real tables instead of the flattened plaintext a TextView shows.
+    private fun computeTableHtml(timelineEvent: org.matrix.android.sdk.api.session.room.timeline.TimelineEvent?): String? {
+        timelineEvent ?: return null
+        if (timelineEvent.root.isRedacted()) return null
+        val content = timelineEvent.getVectorLastMessageContent()
+        // m.text, m.notice and m.emote all carry a formatted_body that may hold a table.
+        if (content !is MessageContentWithFormattedBody || content.format != MessageFormat.FORMAT_MATRIX_HTML) return null
+        val html = content.formattedBody?.takeIf { it.isNotBlank() } ?: return null
+        return htmlCompressor.compress(html).takeIf { it.contains("<table", ignoreCase = true) }
+    }
 
     var listener: MessageActionsEpoxyControllerListener? = null
 
@@ -99,6 +120,9 @@ class MessageActionsEpoxyController @Inject constructor(
             bodyDetails(host.eventDetailsFormatter.format(state.timelineEvent()?.root)?.toEpoxyCharSequence())
             time(formattedDate)
             locationUiData(locationUiData)
+            tableHtml(host.computeTableHtml(state.timelineEvent()))
+            richBodyRenderer(host.richMessageBodyRenderer)
+            htmlPostProcessors(arrayOf(host.pillsPostProcessorFactory.create(state.roomId)))
         }
 
         // Send state

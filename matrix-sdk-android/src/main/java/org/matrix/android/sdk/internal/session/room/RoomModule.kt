@@ -20,6 +20,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import org.commonmark.Extension
+import org.commonmark.ext.gfm.tables.TablesExtension
 import org.commonmark.ext.maths.MathsExtension
 import org.commonmark.node.BlockQuote
 import org.commonmark.parser.Parser
@@ -160,7 +161,7 @@ internal abstract class RoomModule {
 
     @Module
     companion object {
-        private val extensions: List<Extension> = listOf(MathsExtension.create())
+        private val extensions: List<Extension> = listOf(MathsExtension.create(), TablesExtension.create())
 
         @Provides
         @JvmStatic

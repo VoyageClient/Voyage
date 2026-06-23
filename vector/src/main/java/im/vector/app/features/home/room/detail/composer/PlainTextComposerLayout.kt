@@ -8,7 +8,9 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.text.Editable
 import android.text.Spannable
@@ -36,9 +38,12 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
+import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
+import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.shouldHideMediaPreview
@@ -81,6 +86,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @Inject lateinit var noticeEventFormatter: NoticeEventFormatter
     @Inject lateinit var eventHtmlRenderer: EventHtmlRenderer
+    @Inject lateinit var htmlCompressor: VectorHtmlCompressor
+    @Inject lateinit var richMessageBodyRenderer: RichMessageBodyRenderer
     @Inject lateinit var dimensionConverter: DimensionConverter
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var pillsPostProcessorFactory: PillsPostProcessor.Factory
@@ -135,6 +142,14 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             // Pre-Lollipop: RoundedCornerImageView clips via canvas path instead.
             views.composerRelatedMessageImage.setCornerRadii(imageCornerRadius, imageCornerRadius, imageCornerRadius, imageCornerRadius)
         }
+
+        // Fade the capped preview into the composer's surface background (matches the reply header's
+        // fade-out) rather than clipping content with a trailing ellipsis.
+        val surfaceColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface)
+        views.composerRelatedMessageFade.background = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(Color.TRANSPARENT, surfaceColor)
+        )
 
         collapse()
 
@@ -315,6 +330,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             else -> messageContent.body
         }
         var formattedBody: CharSequence? = null
+        var renderedTable = false
         // m.text, m.notice and m.emote all carry a formatted_body; render it so HTML-only bodies
         // (common for bot m.notice messages) aren't shown blank or as raw markup.
         val isFormattableText = messageContent?.msgType == MessageType.MSGTYPE_TEXT ||
@@ -322,15 +338,23 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 messageContent?.msgType == MessageType.MSGTYPE_EMOTE
         if (isFormattableText && messageContent is MessageContentWithFormattedBody &&
                 messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
-            val parser = Parser.builder().build()
-
-            val bodyToParse = messageContent.formattedBody?.let {
-                ContentUtils.extractUsefulTextFromHtmlReply(it)
-            } ?: ContentUtils.extractUsefulTextFromReply(messageContent.body)
-
-            val document = parser.parse(bodyToParse)
-            formattedBody = eventHtmlRenderer.render(document, pillsPostProcessor)
+            val htmlToRender = messageContent.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+            val compressed = htmlToRender?.let { htmlCompressor.compress(it) }
+            if (compressed != null && compressed.contains("<table", ignoreCase = true)) {
+                renderRichTablePreview(compressed, pillsPostProcessor)
+                renderedTable = true
+            } else {
+                val parser = Parser.builder().build()
+                val bodyToParse = htmlToRender ?: ContentUtils.extractUsefulTextFromReply(messageContent.body)
+                val document = parser.parse(bodyToParse)
+                formattedBody = eventHtmlRenderer.render(document, pillsPostProcessor)
+            }
         }
+        if (!renderedTable) {
+            views.composerRelatedMessageRichContainer.isVisible = false
+            views.composerRelatedMessageRichContainer.removeAllViews()
+        }
+        views.composerRelatedMessageContent.isVisible = !renderedTable
         views.composerRelatedMessageContent.text = (formattedBody ?: nonFormattedBody)
         // Muted grey for non-message notices and m.notice messages (which render grey in the
         // timeline), normal text colour for everything else.
@@ -367,6 +391,20 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             }
             views.composerRelatedMessageImage.isVisible = isImageVisible
         }
+    }
+
+    // Render a table-containing reply/edit preview as real tables via the timeline's renderer,
+    // instead of the single-line TextView that would collapse the cells into unreadable plaintext.
+    private fun renderRichTablePreview(compressed: String, pillsPostProcessor: PillsPostProcessor) {
+        views.composerRelatedMessageRichContainer.isVisible = true
+        richMessageBodyRenderer.render(
+                container = views.composerRelatedMessageRichContainer,
+                segments = HtmlBodySegmenter.segment(compressed),
+                postProcessors = arrayOf(pillsPostProcessor),
+                movementMethod = null,
+                onClick = {},
+                onLongClick = { false },
+        )
     }
 
     private fun getAudioContentBodyText(messageContent: MessageAudioContent): String {

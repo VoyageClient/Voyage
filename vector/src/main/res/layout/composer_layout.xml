@@ -57,19 +57,52 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="@tools:sample/first_names" />
 
-        <TextView
-            android:id="@+id/composerRelatedMessageContent"
-            style="@style/Widget.Vector.TextView.Body"
+        <!-- Caps the preview height and fades long content out (text, tables, location notice, …)
+             instead of clipping it with an ugly trailing ellipsis. -->
+        <com.ruesga.rview.widget.ExpandableViewLayout
+            android:id="@+id/composerRelatedMessageExpandable"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="?vctr_message_text_color"
-            app:layout_constrainedHeight="true"
+            android:scrollbars="none"
+            app:expanded="false"
+            app:allowExpand="false"
+            app:maxHeight="@dimen/reply_text_max_height"
             app:layout_constraintEnd_toEndOf="@id/composerRelatedMessageTitle"
             app:layout_constraintStart_toStartOf="@id/composerRelatedMessageTitle"
-            app:layout_constraintTop_toBottomOf="@id/composerRelatedMessageImage"
-            tools:text="@tools:sample/lorem/random"  />
+            app:layout_constraintTop_toBottomOf="@id/composerRelatedMessageImage">
+
+            <LinearLayout
+                android:id="@+id/composerRelatedMessageColumn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/composerRelatedMessageContent"
+                    style="@style/Widget.Vector.TextView.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?vctr_message_text_color"
+                    tools:text="@tools:sample/lorem/random" />
+
+                <!-- Hosts table-containing reply/edit previews, rendered as real tables rather than
+                     the flattened plaintext a single TextView would show. -->
+                <LinearLayout
+                    android:id="@+id/composerRelatedMessageRichContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="gone" />
+
+            </LinearLayout>
+
+            <View
+                android:id="@+id/composerRelatedMessageFade"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/reply_fade_out_height"
+                android:layout_gravity="bottom" />
+        </com.ruesga.rview.widget.ExpandableViewLayout>
 
         <ImageView
             android:id="@+id/composerRelatedMessageActionIcon"
@@ -120,7 +153,7 @@
             android:layout_height="0dp"
             app:barrierDirection="bottom"
             app:barrierMargin="8dp"
-            app:constraint_referenced_ids="composerRelatedMessageContent,composerRelatedMessageActionIcon"
+            app:constraint_referenced_ids="composerRelatedMessageExpandable,composerRelatedMessageActionIcon"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 

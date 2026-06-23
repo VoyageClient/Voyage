@@ -92,16 +92,34 @@
                 but it also makes it align better for RTL texts in RTL locales - at least
                 until the user pill is touched...
             -->
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/replyTextView"
-                style="@style/Widget.Vector.TextView.Body"
+            <LinearLayout
+                android:id="@+id/replyContentColumn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="0dp"
-                android:textColor="?vctr_content_primary"
+                android:orientation="vertical"
                 android:layout_gravity="left"
-                tools:text="@sample/messages.json/data/message"
-                tools:ignore="RtlHardcoded" />
+                tools:ignore="RtlHardcoded">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/replyTextView"
+                    style="@style/Widget.Vector.TextView.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    android:textColor="?vctr_content_primary" />
+
+                <!-- Hosts table-containing replies, rendered as real tables (RichMessageBodyRenderer)
+                     rather than the flattened plaintext a single TextView would show. Inside the
+                     expandable so it shares the same height cap + fade-out as long text. -->
+                <LinearLayout
+                    android:id="@+id/replyRichContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="gone" />
+
+            </LinearLayout>
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/reply_fade_out_height"

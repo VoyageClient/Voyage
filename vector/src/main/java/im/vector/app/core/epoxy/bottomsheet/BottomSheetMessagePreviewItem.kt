@@ -6,7 +6,9 @@
  */
 package im.vector.app.core.epoxy.bottomsheet
 
+import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.text.method.MovementMethod
 import android.util.TypedValue
@@ -14,6 +16,7 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -31,8 +34,12 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.action.LocationUiData
 import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
+import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
+import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -78,6 +85,15 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
     @EpoxyAttribute
     var movementMethod: MovementMethod? = null
 
+    @EpoxyAttribute
+    var tableHtml: String? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var richBodyRenderer: RichMessageBodyRenderer? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var htmlPostProcessors: Array<EventHtmlRenderer.PostProcessor> = emptyArray()
+
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var userClicked: ClickListener? = null
 
@@ -108,13 +124,43 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             }
         }
         holder.imagePreview.isVisible = data != null
+        // Fade the capped preview into the bottom sheet's surface background, matching the reply
+        // header / composer previews, rather than clipping with a trailing ellipsis.
+        if (holder.bodyFade.background == null) {
+            val surfaceColor = ThemeUtils.getColor(holder.bodyFade.context, com.google.android.material.R.attr.colorSurface)
+            holder.bodyFade.background = GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    intArrayOf(Color.TRANSPARENT, surfaceColor)
+            )
+        }
         holder.body.movementMethod = movementMethod
         holder.body.text = body.charSequence
         holder.bodyDetails.setTextOrHide(bodyDetails?.charSequence)
         body.charSequence.findPillsAndProcess(coroutineScope) { it.bind(holder.body) }
         holder.timestamp.setTextOrHide(time)
 
-        holder.body.isVisible = locationUiData == null
+        // Render a table-containing body as real tables instead of the flattened plaintext the body
+        // TextView would show.
+        val renderer = richBodyRenderer
+        val table = tableHtml
+        val showTable = table != null && renderer != null && locationUiData == null
+        if (showTable) {
+            holder.richBody.isVisible = true
+            renderer!!.render(
+                    container = holder.richBody,
+                    segments = HtmlBodySegmenter.segment(table!!),
+                    postProcessors = htmlPostProcessors,
+                    movementMethod = movementMethod,
+                    onClick = {},
+                    onLongClick = { false },
+                    noticeStyle = true,
+            )
+        } else {
+            holder.richBody.isVisible = false
+            holder.richBody.removeAllViews()
+        }
+
+        holder.body.isVisible = locationUiData == null && !showTable
         holder.mapViewContainer.isVisible = locationUiData != null
         locationUiData?.let { safeLocationUiData ->
             GlideApp.with(holder.staticMapImageView)
@@ -139,6 +185,8 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         val avatar by bind<ImageView>(R.id.bottom_sheet_message_preview_avatar)
         val sender by bind<TextView>(R.id.bottom_sheet_message_preview_sender)
         val body by bind<TextView>(R.id.bottom_sheet_message_preview_body)
+        val richBody by bind<LinearLayout>(R.id.bottom_sheet_message_preview_rich_body)
+        val bodyFade by bind<View>(R.id.bottom_sheet_message_preview_fade)
         val bodyDetails by bind<TextView>(R.id.bottom_sheet_message_preview_body_details)
         val timestamp by bind<TextView>(R.id.bottom_sheet_message_preview_timestamp)
         val imagePreview by bind<RoundedCornerImageView>(R.id.bottom_sheet_message_preview_image)

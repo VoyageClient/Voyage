@@ -67,25 +67,58 @@
         tools:src="@tools:sample/backgrounds/scenic"
         tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/bottom_sheet_message_preview_body"
-        style="@style/Widget.Vector.TextView.Body"
+    <!-- Caps the preview height and fades long content (text or tables) out instead of clipping it
+         with a trailing ellipsis, matching the reply header / composer previews. -->
+    <com.ruesga.rview.widget.ExpandableViewLayout
+        android:id="@+id/bottom_sheet_message_preview_expandable"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
         android:layout_marginBottom="4dp"
-        android:ellipsize="end"
-        android:maxLines="3"
-        android:textColor="?vctr_content_secondary"
-        android:textIsSelectable="false"
-        android:textAlignment="viewStart"
+        android:scrollbars="none"
+        app:expanded="false"
+        app:allowExpand="false"
+        app:maxHeight="@dimen/reply_text_max_height"
         app:layout_constraintBottom_toTopOf="@id/bottom_sheet_message_preview_body_details"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/bottom_sheet_message_preview_avatar"
         app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_image"
-        app:layout_goneMarginBottom="4dp"
-        tools:text="Quis harum id autem cumque consequatur laboriosam aliquam sed. Sint accusamus dignissimos nobis ullam earum debitis aspernatur. Sint accusamus dignissimos nobis ullam earum debitis aspernatur." />
+        app:layout_goneMarginBottom="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/bottom_sheet_message_preview_body"
+                style="@style/Widget.Vector.TextView.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?vctr_content_secondary"
+                android:textIsSelectable="false"
+                android:textAlignment="viewStart"
+                tools:text="Quis harum id autem cumque consequatur laboriosam aliquam sed. Sint accusamus dignissimos nobis ullam earum debitis aspernatur. Sint accusamus dignissimos nobis ullam earum debitis aspernatur." />
+
+            <!-- Hosts table-containing message previews, rendered as real tables rather than the
+                 flattened plaintext a single TextView would show. -->
+            <LinearLayout
+                android:id="@+id/bottom_sheet_message_preview_rich_body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/bottom_sheet_message_preview_fade"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/reply_fade_out_height"
+            android:layout_gravity="bottom" />
+    </com.ruesga.rview.widget.ExpandableViewLayout>
 
     <TextView
         android:id="@+id/bottom_sheet_message_preview_body_details"
@@ -100,9 +133,9 @@
         android:visibility="gone"
         android:textAlignment="viewStart"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_body"
-        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_body"
-        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_body"
+        app:layout_constraintEnd_toEndOf="@id/bottom_sheet_message_preview_expandable"
+        app:layout_constraintStart_toStartOf="@id/bottom_sheet_message_preview_expandable"
+        app:layout_constraintTop_toBottomOf="@id/bottom_sheet_message_preview_expandable"
         tools:text="1080 x 1024 - 43s - 12kB"
         tools:visibility="visible" />
 

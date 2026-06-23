@@ -40,6 +40,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
+import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
@@ -103,7 +104,7 @@ class InReplyToView @JvmOverloads constructor(
             PreviewReplyUiState.NoReply -> renderHidden()
             is PreviewReplyUiState.ReplyLoading -> renderLoading()
             is PreviewReplyUiState.Error -> renderError(newState)
-            is PreviewReplyUiState.InReplyTo -> renderReplyTo(newState, retriever, roomInformationData, movementMethod, coroutineScope)
+            is PreviewReplyUiState.InReplyTo -> renderReplyTo(newState, retriever, roomInformationData, movementMethod, coroutineScope, itemLongClickListener)
         }
 
         setOnLongClickListener(itemLongClickListener)
@@ -152,6 +153,10 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
         views.replyThumbnailView.isVisible = false
         views.replyAttachmentPill.isVisible = false
+        views.expandableReplyView.isVisible = true
+        views.replyTextView.isVisible = true
+        views.replyRichContainer.isVisible = false
+        views.replyRichContainer.removeAllViews()
         renderFadeOut(null)
     }
 
@@ -190,6 +195,7 @@ class InReplyToView @JvmOverloads constructor(
             roomInformationData: MessageInformationData,
             movementMethod: MovementMethod?,
             coroutineScope: CoroutineScope,
+            itemLongClickListener: OnLongClickListener?,
     ) {
         hideViews()
         isVisible = true
@@ -208,7 +214,7 @@ class InReplyToView @JvmOverloads constructor(
                 // Files / voice / audio render as a non-interactive pill mirroring the timeline.
                 is MessageFileContent -> renderAttachmentPill(R.drawable.ic_paperclip, content.getFileName())
                 is MessageAudioContent -> renderAudioContent(content)
-                is MessageContentWithFormattedBody -> renderTextContent(content, retriever, movementMethod, coroutineScope)
+                is MessageContentWithFormattedBody -> renderTextContent(content, retriever, movementMethod, coroutineScope, itemLongClickListener)
                 else -> renderFallback(state.event, retriever)
             }
         }
@@ -223,13 +229,15 @@ class InReplyToView @JvmOverloads constructor(
             content: MessageContentWithFormattedBody,
             retriever: ReplyPreviewRetriever,
             movementMethod: MovementMethod?,
-            coroutineScope: CoroutineScope
+            coroutineScope: CoroutineScope,
+            itemLongClickListener: OnLongClickListener?,
     ) {
         views.replyTextView.isVisible = true
 
         // Quoted notices/system messages render muted (secondary), matching the timeline. Not italic
         // — this fork removed notice italics.
-        val baseColorAttr = if (content.msgType == MessageType.MSGTYPE_NOTICE) {
+        val isNotice = content.msgType == MessageType.MSGTYPE_NOTICE
+        val baseColorAttr = if (isNotice) {
             im.vector.lib.ui.styles.R.attr.vctr_content_secondary
         } else {
             im.vector.lib.ui.styles.R.attr.vctr_content_primary
@@ -239,6 +247,14 @@ class InReplyToView @JvmOverloads constructor(
         // If the replied-to event is itself a reply, strip its quoted portion so we render only its
         // own message (a reply-chain shouldn't nest the grandparent's quote inside the preview).
         val formattedBody = content.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+
+        if (formattedBody != null) {
+            val compressed = retriever.htmlCompressor.compress(formattedBody)
+            if (compressed.contains("<table", ignoreCase = true)) {
+                renderRichTableContent(compressed, retriever, movementMethod, isNotice, itemLongClickListener)
+                return
+            }
+        }
 
         val text = if (formattedBody != null) {
             val compressed = retriever.htmlCompressor.compress(formattedBody)
@@ -266,6 +282,31 @@ class InReplyToView @JvmOverloads constructor(
         // multi-line fade over a single-line reply.
         views.replyTextView.text = text
         markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
+    }
+
+    // A reply to a message that contains a table: render the full body (text + real tables) into the
+    // rich container via the same renderer the timeline uses, instead of the single TextView whose
+    // table cells would otherwise collapse into unreadable plaintext.
+    private fun renderRichTableContent(
+            compressed: String,
+            retriever: ReplyPreviewRetriever,
+            movementMethod: MovementMethod?,
+            isNotice: Boolean,
+            itemLongClickListener: OnLongClickListener?,
+    ) {
+        // Keep the expandable host (and its fade-out) visible; just swap the text view for the
+        // rich container so a long table fades out the same way long text does.
+        views.replyTextView.isVisible = false
+        views.replyRichContainer.isVisible = true
+        retriever.richMessageBodyRenderer.render(
+                container = views.replyRichContainer,
+                segments = HtmlBodySegmenter.segment(compressed),
+                postProcessors = arrayOf(retriever.pillsPostProcessor),
+                movementMethod = movementMethod,
+                onClick = { onClick(it) },
+                onLongClick = { itemLongClickListener?.onLongClick(it) ?: false },
+                noticeStyle = isNotice,
+        )
     }
 
     private fun renderImageThumbnailContent(

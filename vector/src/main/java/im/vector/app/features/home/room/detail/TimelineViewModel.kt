@@ -58,6 +58,7 @@ import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
+import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
@@ -166,6 +167,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val spanUtils: SpanUtils,
         private val imageContentRenderer: ImageContentRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
+        private val richMessageBodyRenderer: RichMessageBodyRenderer,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -197,6 +199,7 @@ class TimelineViewModel @AssistedInject constructor(
             htmlRenderer,
             spanUtils,
             imageContentRenderer,
+            richMessageBodyRenderer,
     )
 
     // Slot to keep a pending action during permission request
