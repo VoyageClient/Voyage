@@ -14,6 +14,8 @@ import android.graphics.Paint
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.request.transition.Transition
@@ -23,10 +25,12 @@ class BlurFadeOutDrawable(
         private val image: Drawable,
         private val blurBitmap: Bitmap,
         private val durationMs: Long,
-) : Drawable(), Drawable.Callback {
+) : Drawable(), Drawable.Callback, Runnable {
 
     private val startMs = SystemClock.uptimeMillis()
     private val blurPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val handler = Handler(Looper.getMainLooper())
+    private var scheduled = false
 
     init {
         // Own the wrapped drawable's callback so an animated child's frame invalidations are
@@ -46,17 +50,40 @@ class BlurFadeOutDrawable(
             blurPaint.alpha = alpha
             canvas.drawBitmap(blurBitmap, null, bounds, blurPaint)
         }
-        invalidateSelf()
+        // Do NOT call invalidateSelf() here. If the callback is null (drawable momentarily
+        // detached while RecyclerView relayouts) the call is a no-op, and nothing ever
+        // reschedules it — permanently stuck. The Handler loop below drives redraws instead.
+    }
+
+    override fun run() {
+        scheduled = false
+        if (SystemClock.uptimeMillis() - startMs < durationMs) {
+            invalidateSelf()
+            scheduleNext()
+        }
+    }
+
+    private fun scheduleNext() {
+        if (!scheduled && SystemClock.uptimeMillis() - startMs < durationMs) {
+            scheduled = true
+            handler.postDelayed(this, FRAME_INTERVAL_MS)
+        }
     }
 
     override fun onBoundsChange(bounds: Rect) {
         super.onBoundsChange(bounds)
         image.bounds = bounds
+        if (isVisible && !bounds.isEmpty) scheduleNext()
     }
 
     override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
         image.setVisible(visible, restart)
-        return super.setVisible(visible, restart)
+        val changed = super.setVisible(visible, restart)
+        if (visible) scheduleNext() else {
+            scheduled = false
+            handler.removeCallbacks(this)
+        }
+        return changed
     }
 
     override fun setAlpha(alpha: Int) { image.alpha = alpha }
@@ -68,6 +95,10 @@ class BlurFadeOutDrawable(
     override fun invalidateDrawable(who: Drawable) = invalidateSelf()
     override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) = scheduleSelf(what, `when`)
     override fun unscheduleDrawable(who: Drawable, what: Runnable) = unscheduleSelf(what)
+
+    companion object {
+        private const val FRAME_INTERVAL_MS = 16L
+    }
 }
 
 class BlurFadeOutTransitionFactory(private val durationMs: Long) : TransitionFactory<Drawable> {
