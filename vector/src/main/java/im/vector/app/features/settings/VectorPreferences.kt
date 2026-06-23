@@ -64,7 +64,6 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_LABS_PREFERENCE_KEY = "SETTINGS_LABS_PREFERENCE_KEY"
         const val SETTINGS_LABS_NEW_APP_LAYOUT_KEY = "SETTINGS_LABS_NEW_APP_LAYOUT_KEY"
         const val SETTINGS_LABS_DEFERRED_DM_KEY = "SETTINGS_LABS_DEFERRED_DM_KEY"
-        const val SETTINGS_LABS_RICH_TEXT_EDITOR_KEY = "SETTINGS_LABS_RICH_TEXT_EDITOR_KEY"
         const val SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY = "SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY"
         const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
         const val SETTINGS_QUICK_REACTIONS_KEY = "SETTINGS_QUICK_REACTIONS_KEY"
@@ -1332,12 +1331,6 @@ class VectorPreferences @Inject constructor(
 
     fun compactQuickReactions(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_COMPACT_QUICK_REACTIONS_KEY, false)
-    }
-
-    // The wysiwyg composer is backed by a Rust/uniffi native lib we can't support down to KitKat.
-    // Hard-off everywhere so the legacy plain-text compose/render paths are always used.
-    fun isRichTextEditorEnabled(): Boolean {
-        return false
     }
 
     fun isVoiceBroadcastEnabled(): Boolean {

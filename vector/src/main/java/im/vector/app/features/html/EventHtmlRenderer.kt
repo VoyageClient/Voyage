@@ -38,7 +38,6 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.settings.VectorPreferences
-import io.element.android.wysiwyg.view.spans.InlineCodeSpan
 import im.vector.app.features.themes.ThemeUtils
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -188,7 +187,6 @@ class EventHtmlRenderer @Inject constructor(
             val text = SpannableStringBuilder(textView.text.toSpannable())
             val length = textView.length()
             val spans = arrayOf(
-                    InlineCodeSpan::class.java,
                     EmphasisSpan::class.java,
                     CustomTypefaceSpan::class.java,
                     StrongEmphasisSpan::class.java,
@@ -308,8 +306,6 @@ class EventHtmlRenderer @Inject constructor(
 class MatrixHtmlPluginConfigure @Inject constructor(
         private val colorProvider: ColorProvider,
         private val resources: Resources,
-        private val vectorPreferences: VectorPreferences,
-        private val dimensionConverter: DimensionConverter,
 ) : HtmlPlugin.HtmlConfigure {
 
     override fun configureHtml(plugin: HtmlPlugin) {
@@ -318,7 +314,7 @@ class MatrixHtmlPluginConfigure @Inject constructor(
                 .addHandler(FontTagHandler())
                 .addHandler(ParagraphHandler(DimensionConverter(resources)))
                 .addHandler(MxReplyTagHandler())
-                .addHandler(CodePostProcessorTagHandler(vectorPreferences, dimensionConverter))
+                .addHandler(CodePostProcessorTagHandler())
                 .addHandler(CodePreTagHandler())
                 .addHandler(CodeTagHandler())
                 .addHandler(SpanHandler(colorProvider))

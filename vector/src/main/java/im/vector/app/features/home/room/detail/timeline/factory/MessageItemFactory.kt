@@ -169,9 +169,6 @@ class MessageItemFactory @Inject constructor(
         textRendererFactory.create(roomId)
     }
 
-    private val useRichTextEditorStyle: Boolean
-        get() = vectorPreferences.isRichTextEditorEnabled()
-
     fun create(params: TimelineItemFactoryParams): VectorEpoxyModel<*>? {
         val event = params.event
         val highlight = params.isHighlighted
@@ -863,7 +860,6 @@ class MessageItemFactory @Inject constructor(
                 .previewUrlRetriever(callback?.getPreviewUrlRetriever())
                 .imageContentRenderer(imageContentRenderer)
                 .previewUrlCallback(callback)
-                .useRichTextEditorStyle(useRichTextEditorStyle)
                 .noticeStyle(noticeStyle)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .attributes(attributes)

@@ -25,7 +25,6 @@ def glide = "4.16.0"
 def bigImageViewer = "1.8.1"
 def jjwt = "0.11.5"
 def vanniktechEmoji = "0.16.0"
-def sentry = "8.31.0"
 def fragment = "1.6.2"
 // Testing
 def mockk = "1.13.11"
@@ -94,9 +93,6 @@ ext.libs = [
                 'hiltAndroidTesting'      : "com.google.dagger:hilt-android-testing:$dagger",
                 'hiltCompiler'            : "com.google.dagger:hilt-compiler:$dagger"
         ],
-        element     : [
-                'wysiwyg'                 : "io.element.android:wysiwyg:2.41.1-classic"
-        ],
         squareup    : [
                 'moshi'                  : "com.squareup.moshi:moshi:$moshi",
                 'moshiKt'                : "com.squareup.moshi:moshi-kotlin:$moshi",
@@ -159,9 +155,6 @@ ext.libs = [
         ],
         apache      : [
                 'commonsImaging'         : "org.apache.commons:commons-imaging:1.0-alpha3"
-        ],
-        sentry: [
-                'sentryAndroid'         : "io.sentry:sentry-android:$sentry"
         ],
         tests       : [
                 'kluent'                 : "org.amshove.kluent:kluent-android:1.73",

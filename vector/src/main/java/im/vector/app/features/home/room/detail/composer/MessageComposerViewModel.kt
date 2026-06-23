@@ -247,8 +247,7 @@ class MessageComposerViewModel @AssistedInject constructor(
      * The text we pre-fill the composer with when editing [timelineEvent].
      */
     private fun computeEditableContent(timelineEvent: TimelineEvent): CharSequence {
-        val formatted = vectorPreferences.isRichTextEditorEnabled()
-        val richContent = timelineEvent.getTextEditableContent(formatted)
+        val richContent = timelineEvent.getTextEditableContent(formatted = false)
         // For our own greentext-formatted output, the HTML body would put a green span in
         // the editor — visually inconsistent with the rest of the composer. Fall back to
         // the plain body (the user's `>line`-shaped text) so editing happens against the

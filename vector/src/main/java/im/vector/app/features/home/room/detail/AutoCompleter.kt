@@ -32,20 +32,15 @@ import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
-import io.element.android.wysiwyg.EditorEditText
-import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toEveryoneInRoomMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.api.util.toRoomAliasMatrixItem
-import timber.log.Timber
 
 class AutoCompleter @AssistedInject constructor(
         @Assisted val roomId: String,
         @Assisted val isInThreadTimeline: Boolean,
-        private val session: Session,
         private val avatarRenderer: AvatarRenderer,
         private val commandAutocompletePolicy: CommandAutocompletePolicy,
         autocompleteCommandPresenterFactory: AutocompleteCommandPresenter.Factory,
@@ -54,9 +49,6 @@ class AutoCompleter @AssistedInject constructor(
         private val autocompleteEmojiPresenter: AutocompleteEmojiPresenter,
         private val vectorPreferences: VectorPreferences,
 ) {
-
-    private val permalinkService: PermalinkService
-        get() = session.permalinkService()
 
     private lateinit var autocompleteMemberPresenter: AutocompleteMemberPresenter
 
@@ -119,14 +111,10 @@ class AutoCompleter @AssistedInject constructor(
                 .with(backgroundDrawable)
                 .with(object : AutocompleteCallback<Command> {
                     override fun onPopupItemClicked(editable: Editable, item: Command): Boolean {
-                        if (editText is EditorEditText) {
-                            editText.replaceTextSuggestion(item.command)
-                        } else {
-                            editable.clear()
-                            editable
-                                    .append(item.command)
-                                    .append(" ")
-                        }
+                        editable.clear()
+                        editable
+                                .append(item.command)
+                                .append(" ")
                         return true
                     }
 
@@ -181,8 +169,6 @@ class AutoCompleter @AssistedInject constructor(
     }
 
     private fun setupEmojis(backgroundDrawable: Drawable, editText: EditText) {
-        // Rich text editor is not yet supported
-        if (editText is EditorEditText) return
         if (!vectorPreferences.isEmojiAutocompleteEnabled()) return
 
         autocompletes += Autocomplete.on<String>(editText)
@@ -219,39 +205,7 @@ class AutoCompleter @AssistedInject constructor(
     }
 
     private fun insertMatrixItem(editText: EditText, editable: Editable, firstChar: Char, matrixItem: MatrixItem) =
-            if (editText is EditorEditText) {
-                insertMatrixItemIntoRichTextEditor(editText, matrixItem)
-            } else {
-                insertMatrixItemIntoEditable(editText, editable, firstChar, matrixItem)
-            }
-
-    private fun insertMatrixItemIntoRichTextEditor(editorEditText: EditorEditText, matrixItem: MatrixItem) {
-        if (matrixItem is MatrixItem.EveryoneInRoomItem) {
-            editorEditText.replaceTextSuggestion(matrixItem.displayName)
-            // Note: not using editorEditText.insertAtRoomMentionAtSuggestion() since we want to keep the existing look and feel of the mention for @room.
-            return
-        }
-
-        val permalink = permalinkService.createPermalink(matrixItem.id)
-
-        if (permalink == null) {
-            Timber.e(NullPointerException("Cannot autocomplete as permalink is null"))
-            return
-        }
-
-        val linkText = when (matrixItem) {
-            is MatrixItem.RoomAliasItem,
-            is MatrixItem.RoomItem,
-            is MatrixItem.SpaceItem,
-            is MatrixItem.UserItem ->
-                matrixItem.id
-            is MatrixItem.EveryoneInRoomItem,
-            is MatrixItem.EventItem ->
-                matrixItem.getBestName()
-        }
-
-        editorEditText.insertMentionAtSuggestion(url = permalink, text = linkText)
-    }
+            insertMatrixItemIntoEditable(editText, editable, firstChar, matrixItem)
 
     private fun insertMatrixItemIntoEditable(editText: EditText, editable: Editable, firstChar: Char, matrixItem: MatrixItem) {
         // Detect last firstChar and remove it

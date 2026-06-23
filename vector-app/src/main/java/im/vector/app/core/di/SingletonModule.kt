@@ -36,7 +36,6 @@ import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.VectorAnalytics
 import im.vector.app.features.analytics.errors.ErrorTracker
 import im.vector.app.features.analytics.impl.DefaultVectorAnalytics
-import im.vector.app.features.analytics.metrics.VectorPlugins
 import im.vector.app.features.configuration.VectorCustomEventTypesProvider
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.CompileTimeAutoAcceptInvites
@@ -144,7 +143,6 @@ import javax.inject.Singleton
     fun providesMatrixConfiguration(
             vectorPreferences: VectorPreferences,
             vectorRoomDisplayNameFallbackProvider: VectorRoomDisplayNameFallbackProvider,
-            vectorPlugins: VectorPlugins,
             vectorCustomEventTypesProvider: VectorCustomEventTypesProvider,
             mdmService: MdmService,
     ): MatrixConfiguration {
@@ -153,8 +151,6 @@ import javax.inject.Singleton
                 roomDisplayNameFallbackProvider = vectorRoomDisplayNameFallbackProvider,
                 threadMessagesEnabledDefault = vectorPreferences.areThreadMessagesEnabled(),
                 networkInterceptors = emptyList(),
-                metricPlugins = vectorPlugins.plugins(),
-                cryptoAnalyticsPlugin = vectorPlugins.cryptoMetricPlugin,
                 customEventTypesProvider = vectorCustomEventTypesProvider,
                 clientPermalinkBaseUrl = mdmService.getData(MdmData.PermalinkBaseUrl),
                 syncConfig = SyncConfig(

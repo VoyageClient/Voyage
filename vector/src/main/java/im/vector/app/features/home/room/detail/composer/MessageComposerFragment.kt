@@ -23,8 +23,6 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.text.buildSpannedString
-import androidx.core.view.isGone
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -52,9 +50,7 @@ import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.databinding.FragmentComposerBinding
 import im.vector.app.features.VectorFeatures
-import im.vector.app.features.analytics.errors.ErrorTracker
 import im.vector.app.features.attachments.AttachmentType
-import im.vector.app.features.attachments.AttachmentTypeSelectorBottomSheet
 import im.vector.app.features.attachments.AttachmentTypeSelectorSharedAction
 import im.vector.app.features.attachments.AttachmentTypeSelectorSharedActionViewModel
 import im.vector.app.features.attachments.AttachmentTypeSelectorView
@@ -72,9 +68,6 @@ import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.RoomDetailAction.VoiceBroadcastAction
 import im.vector.app.features.home.room.detail.TimelineViewModel
 import im.vector.app.features.home.room.detail.composer.link.SetLinkFragment
-import im.vector.app.features.home.room.detail.composer.link.SetLinkSharedAction
-import im.vector.app.features.home.room.detail.composer.link.SetLinkSharedActionViewModel
-import im.vector.app.features.home.room.detail.composer.mentions.PillDisplayHandler
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
@@ -97,7 +90,6 @@ import im.vector.app.features.media.MediaContentRevealManager
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.util.MatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
@@ -120,11 +112,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var session: Session
     @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
-    @Inject lateinit var errorTracker: ErrorTracker
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
-
-    private val permalinkService: PermalinkService
-        get() = session.permalinkService()
 
     private val roomId: String get() = withState(timelineViewModel) { it.roomId }
 
@@ -156,15 +144,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private lateinit var sharedActionViewModel: MessageSharedActionViewModel
     private val attachmentViewModel: AttachmentTypeSelectorViewModel by fragmentViewModel()
     private val attachmentActionsViewModel: AttachmentTypeSelectorSharedActionViewModel by viewModels()
-    private val setLinkActionsViewModel: SetLinkSharedActionViewModel by viewModels()
 
-    private val composer: MessageComposerView get() {
-        return if (vectorPreferences.isRichTextEditorEnabled()) {
-            views.richTextComposerLayout
-        } else {
-            views.composerLayout
-        }
-    }
+    private val composer: MessageComposerView get() = views.composerLayout
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentComposerBinding {
         return FragmentComposerBinding.inflate(inflater, container, false)
@@ -186,9 +167,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             composer.sendButton.visibility = View.GONE
         }
 
-        views.composerLayout.isGone = vectorPreferences.isRichTextEditorEnabled()
-        views.richTextComposerLayout.isVisible = vectorPreferences.isRichTextEditorEnabled()
-        views.richTextComposerLayout.setOnErrorListener(errorTracker::trackError)
+        views.composerLayout.isVisible = true
 
         messageComposerViewModel.observeViewEvents {
             when (it) {
@@ -236,14 +215,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 .onEach { onTypeSelected(it.attachmentType) }
                 .launchIn(lifecycleScope)
 
-        setLinkActionsViewModel.stream()
-                .onEach { when (it) {
-                    is SetLinkSharedAction.Insert -> views.richTextComposerLayout.insertLink(it.link, it.text)
-                    is SetLinkSharedAction.Set -> views.richTextComposerLayout.setLink(it.link)
-                    SetLinkSharedAction.Remove -> views.richTextComposerLayout.removeLink()
-                } }
-                .launchIn(lifecycleScope)
-
         messageComposerViewModel.stateFlow.map { it.isFullScreen }
                 .distinctUntilChanged()
                 .onEach { isFullScreen ->
@@ -286,7 +257,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     override fun invalidate() = withState(
             timelineViewModel, messageComposerViewModel, attachmentViewModel
-    ) { mainState, messageComposerState, attachmentState ->
+    ) { mainState, messageComposerState, _ ->
         if (mainState.tombstoneEvent != null) return@withState
 
         (composer as? View)?.isVisible = messageComposerState.isComposerVisible
@@ -297,12 +268,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             recorderClaimsSlot -> View.INVISIBLE
             else -> View.GONE
         }
-        (composer as? RichTextComposerLayout)?.also {
-            val isTextFormattingEnabled = attachmentState.isTextFormattingEnabled
-            it.isTextFormattingEnabled = isTextFormattingEnabled
-            it.richTextEditText?.let { editText -> autoCompleters[editText]?.setEnabled(isTextFormattingEnabled) }
-            autoCompleters[it.plainTextEditText]?.setEnabled(!isTextFormattingEnabled)
-        }
     }
 
     private fun setupBottomSheet() {
@@ -312,9 +277,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             topOffset = 22
             useScrimView = true
             scrimViewTranslationZ = 8
-            minCollapsedHeight = {
-                (composer as? RichTextComposerLayout)?.estimateCollapsedHeight() ?: -1
-            }
+            minCollapsedHeight = { -1 }
             isDraggable = false
             callback = object : ExpandingBottomSheetBehavior.Callback {
                 override fun onStateChanged(state: ExpandingBottomSheetBehavior.State) {
@@ -327,14 +290,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         else -> return
                     }
 
-                    (composer as? RichTextComposerLayout)?.setFullScreen(setFullScreen, true)
-
                     messageComposerViewModel.handle(MessageComposerAction.SetFullScreen(setFullScreen))
                 }
 
-                override fun onSlidePositionChanged(view: View, yPosition: Float) {
-                    (composer as? RichTextComposerLayout)?.notifyIsBeingDragged(yPosition)
-                }
+                override fun onSlidePositionChanged(view: View, yPosition: Float) = Unit
             }
         }
     }
@@ -343,12 +302,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val composerEditText = composer.editText
         composerEditText.setHint(CommonStrings.room_message_placeholder)
 
-        (composer as? RichTextComposerLayout)?.let {
-            it.richTextEditText?.let { editText -> initAutoCompleter(editText) }
-            initAutoCompleter(it.plainTextEditText)
-        } ?: run {
-            initAutoCompleter(composer.editText)
-        }
+        initAutoCompleter(composer.editText)
 
         observerUserTyping()
 
@@ -382,30 +336,26 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
         composer.callback = object : Callback {
             override fun onAddAttachment() {
-                if (vectorPreferences.isRichTextEditorEnabled()) {
-                    AttachmentTypeSelectorBottomSheet.show(childFragmentManager)
-                } else {
-                    if (!::attachmentTypeSelector.isInitialized) {
-                        attachmentTypeSelector = AttachmentTypeSelectorView(vectorBaseActivity, vectorBaseActivity.layoutInflater, this@MessageComposerFragment)
-                        attachmentTypeSelector.setAttachmentVisibility(
-                                AttachmentType.LOCATION,
-                                vectorFeatures.isLocationSharingEnabled(),
-                        )
-                        // No maplibre below API 21: keep the entry visible but dimmed and inert.
-                        attachmentTypeSelector.setAttachmentEnabled(
-                                AttachmentType.LOCATION,
-                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP,
-                        )
-                        attachmentTypeSelector.setAttachmentVisibility(
-                                AttachmentType.POLL, !isThreadTimeLine()
-                        )
-                        attachmentTypeSelector.setAttachmentVisibility(
-                                AttachmentType.VOICE_BROADCAST,
-                                vectorPreferences.isVoiceBroadcastEnabled(), // TODO check user permission
-                        )
-                    }
-                    attachmentTypeSelector.show(composer.attachmentButton)
+                if (!::attachmentTypeSelector.isInitialized) {
+                    attachmentTypeSelector = AttachmentTypeSelectorView(vectorBaseActivity, vectorBaseActivity.layoutInflater, this@MessageComposerFragment)
+                    attachmentTypeSelector.setAttachmentVisibility(
+                            AttachmentType.LOCATION,
+                            vectorFeatures.isLocationSharingEnabled(),
+                    )
+                    // No maplibre below API 21: keep the entry visible but dimmed and inert.
+                    attachmentTypeSelector.setAttachmentEnabled(
+                            AttachmentType.LOCATION,
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP,
+                    )
+                    attachmentTypeSelector.setAttachmentVisibility(
+                            AttachmentType.POLL, !isThreadTimeLine()
+                    )
+                    attachmentTypeSelector.setAttachmentVisibility(
+                            AttachmentType.VOICE_BROADCAST,
+                            vectorPreferences.isVoiceBroadcastEnabled(), // TODO check user permission
+                    )
                 }
+                attachmentTypeSelector.show(composer.attachmentButton)
             }
 
             override fun onExpandOrCompactChange() {
@@ -444,13 +394,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             override fun onSetLink(isTextSupported: Boolean, initialLink: String?) {
                 SetLinkFragment.show(isTextSupported, initialLink, childFragmentManager)
             }
-        }
-        (composer as? RichTextComposerLayout)?.pillDisplayHandler = PillDisplayHandler(
-                roomId = roomId,
-                getRoom = timelineViewModel::getRoom,
-                getMember = timelineViewModel::getMember,
-        ) { matrixItem: MatrixItem ->
-            PillImageSpan(glideRequests, avatarRenderer, requireContext(), matrixItem)
         }
     }
 
@@ -901,34 +844,26 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             composer.editText.setSelection(Command.EMOTE.command.length + 1)
         } else {
             val roomMember = timelineViewModel.getMember(userId)
-            if ((composer as? RichTextComposerLayout)?.isTextFormattingEnabled == true) {
-                // Rich text editor is enabled so we need to use its APIs
-                permalinkService.createPermalink(userId)?.let { url ->
-                    (composer as RichTextComposerLayout).insertMention(url, userId)
-                    composer.editText.append(" ")
-                }
-            } else {
-                val displayName = sanitizeDisplayName(roomMember?.displayName ?: userId)
-                val span = PillImageSpan(
-                        glideRequests,
-                        avatarRenderer,
-                        requireContext(),
-                        MatrixItem.UserItem(userId, displayName, roomMember?.avatarUrl),
-                ).also { it.bind(composer.editText) }
-                val pill = buildSpannedString {
-                    append(displayName)
-                    setPillSpan(span, 0, displayName.length)
-                    append(" ")
-                }
-                if (startToCompose && displayName.startsWith("/")) {
-                    // Ensure displayName will not be interpreted as a Slash command
-                    composer.editText.append("\\")
-                }
-                // Always use EditText.getText().insert for adding pills as TextView.append doesn't appear
-                // to upgrade to BufferType.Spannable as hinted at in the docs:
-                // https://developer.android.com/reference/android/widget/TextView#append(java.lang.CharSequence)
-                composer.editText.text.insert(composer.editText.selectionStart, pill)
+            val displayName = sanitizeDisplayName(roomMember?.displayName ?: userId)
+            val span = PillImageSpan(
+                    glideRequests,
+                    avatarRenderer,
+                    requireContext(),
+                    MatrixItem.UserItem(userId, displayName, roomMember?.avatarUrl),
+            ).also { it.bind(composer.editText) }
+            val pill = buildSpannedString {
+                append(displayName)
+                setPillSpan(span, 0, displayName.length)
+                append(" ")
             }
+            if (startToCompose && displayName.startsWith("/")) {
+                // Ensure displayName will not be interpreted as a Slash command
+                composer.editText.append("\\")
+            }
+            // Always use EditText.getText().insert for adding pills as TextView.append doesn't appear
+            // to upgrade to BufferType.Spannable as hinted at in the docs:
+            // https://developer.android.com/reference/android/widget/TextView#append(java.lang.CharSequence)
+            composer.editText.text.insert(composer.editText.selectionStart, pill)
         }
         focusComposerAndShowKeyboard()
     }

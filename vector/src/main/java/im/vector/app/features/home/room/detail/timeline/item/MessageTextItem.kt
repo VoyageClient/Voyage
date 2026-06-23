@@ -35,7 +35,6 @@ import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
-import io.element.android.wysiwyg.EditorStyledTextView
 import io.noties.markwon.MarkwonPlugin
 import org.matrix.android.sdk.api.extensions.orFalse
 
@@ -65,9 +64,6 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var markwonPlugins: (List<MarkwonPlugin>)? = null
-
-    @EpoxyAttribute
-    var useRichTextEditorStyle: Boolean = false
 
     @EpoxyAttribute
     var noticeStyle: Boolean = false
@@ -113,7 +109,6 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         val richBodyRendererLocal = richBodyRenderer
         if (segments != null && richBodyRendererLocal != null) {
             holder.plainMessageView?.isVisible = false
-            holder.richMessageView?.isVisible = false
             val container = holder.requireRichBodyContainer()
             container.isVisible = true
             super.bind(holder)
@@ -130,13 +125,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             renderSendState(container, null)
             return
         }
-        if (useRichTextEditorStyle) {
-            holder.plainMessageView?.isVisible = false
-        } else {
-            holder.richMessageView?.isVisible = false
-        }
         holder.richBodyContainer?.isVisible = false
-        val messageView: AppCompatTextView = if (useRichTextEditorStyle) holder.requireRichMessageView() else holder.requirePlainMessageView()
+        val messageView: AppCompatTextView = holder.requirePlainMessageView()
         messageView.isVisible = true
         if (useBigFont) {
             messageView.textSize = 44F
@@ -208,7 +198,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     override fun needsFooterReservation(): Boolean = bodySegments == null
 
     override fun reserveFooterSpace(holder: Holder, width: Int, height: Int) {
-        val footeredView = holder.footeredMessageView(useRichTextEditorStyle) ?: return
+        val footeredView = holder.footeredMessageView() ?: return
         footeredView.footerWidth = width
         footeredView.footerHeight = height
         footeredView.getAppCompatTextView().requestLayout()
@@ -218,11 +208,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
         val previewUrlView by bind<PreviewUrlView>(R.id.messageUrlPreview)
-        private val richMessageStub by bind<ViewStub>(R.id.richMessageTextViewStub)
         private val plainMessageStub by bind<ViewStub>(R.id.plainMessageTextViewStub)
         private val richBodyContainerStub by bind<ViewStub>(R.id.richBodyContainerStub)
-        var richMessageView: EditorStyledTextView? = null
-            private set
         var plainMessageView: AppCompatTextView? = null
             private set
         var richBodyContainer: LinearLayout? = null
@@ -234,26 +221,14 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             return view
         }
 
-        fun requireRichMessageView(): AppCompatTextView {
-            val view = richMessageView ?: richMessageStub.inflate().findViewById<EditorStyledTextView>(R.id.messageTextView).also {
-                // Required to ensure that `inlineCodeBgHelper` and `codeBlockBgHelper` are initialized
-                it.updateStyle(
-                        styleConfig = it.styleConfig,
-                        mentionDisplayHandler = null,
-                )
-            }
-            richMessageView = view
-            return view
-        }
-
         fun requirePlainMessageView(): AppCompatTextView {
             val view = plainMessageView ?: plainMessageStub.inflate().findViewById(R.id.messageTextView)
             plainMessageView = view
             return view
         }
 
-        fun footeredMessageView(useRich: Boolean): AbstractFooteredTextView? {
-            return (if (useRich) richMessageView else plainMessageView) as? AbstractFooteredTextView
+        fun footeredMessageView(): AbstractFooteredTextView? {
+            return plainMessageView as? AbstractFooteredTextView
         }
     }
 

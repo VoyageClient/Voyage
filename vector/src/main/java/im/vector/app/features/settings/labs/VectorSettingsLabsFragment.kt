@@ -93,13 +93,6 @@ class VectorSettingsLabsFragment :
             pref.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && vectorFeatures.isVoiceBroadcastEnabled()
         }
 
-        // The rich text editor relies on a native lib we don't support down to KitKat: keep the
-        // toggle visible but greyed out and forced off.
-        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_LABS_RICH_TEXT_EDITOR_KEY)?.let { pref ->
-            pref.isEnabled = false
-            pref.isChecked = false
-        }
-
         configureUnreadNotificationsAsTabPreference()
         configureEnableClientInfoRecordingPreference()
     }

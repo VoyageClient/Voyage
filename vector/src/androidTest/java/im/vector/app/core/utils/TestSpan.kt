@@ -14,7 +14,6 @@ import android.text.Spanned
 import android.text.style.StrikethroughSpan
 import androidx.core.text.getSpans
 import im.vector.app.features.html.HtmlCodeSpan
-import io.element.android.wysiwyg.view.spans.InlineCodeSpan
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.slot
@@ -51,7 +50,6 @@ private fun Any.readTags(): SpanTags {
             if ((this as HtmlCodeSpan).isBlock) "code block" else "inline code"
         StrongEmphasisSpan::class -> "bold"
         EmphasisSpan::class, CustomTypefaceSpan::class -> "italic"
-        InlineCodeSpan::class -> "inline code"
         StrikethroughSpan::class -> "strikethrough"
         LinkSpan::class -> "link"
         else -> if (this::class.qualifiedName!!.startsWith("android.widget")) {

@@ -210,9 +210,6 @@ dependencies {
     // Opus Encoder
     implementation project(':library:external:libopus')
 
-    // WYSIWYG Editor
-    implementation libs.element.wysiwyg
-
     // Log
     api libs.jakewharton.timber
 
@@ -303,7 +300,6 @@ dependencies {
 
     // Analytics
     implementation 'com.posthog:posthog-android:3.2.0'
-    implementation libs.sentry.sentryAndroid
 
     // UnifiedPush
     implementation 'com.github.UnifiedPush:android-connector:2.1.1'
