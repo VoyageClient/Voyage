@@ -23,6 +23,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
+import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -63,6 +64,7 @@ import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
 import org.matrix.android.sdk.api.session.room.timeline.isPoll
 import org.matrix.android.sdk.api.session.room.timeline.isRootThread
 import org.matrix.android.sdk.api.session.room.timeline.isSticker
+import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 
@@ -81,6 +83,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val vectorPreferences: VectorPreferences,
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
+        private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -212,11 +215,15 @@ class MessageActionsViewModel @AssistedInject constructor(
                     EventType.MESSAGE,
                     EventType.STICKER -> {
                         val messageContent: MessageContent? = timelineEvent.getVectorLastMessageContent()
+                        val isReply = messageContent?.relatesTo?.inReplyTo?.eventId != null
                         if (messageContent is MessageTextContent && messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
+                            // Strip the legacy reply fallback ("In reply to" / "> <@user> …") that
+                            // outdated clients embed in the body, so the preview shows only the message.
                             val html = messageContent.formattedBody
                                     ?.takeIf { it.isNotBlank() }
+                                    ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
                                     ?.let { htmlCompressor.compress(it) }
-                                    ?: messageContent.body
+                                    ?: messageContent.body.let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
 
                             eventHtmlRenderer.get().render(html, pillsPostProcessor)
                         } else if (messageContent is MessageVerificationRequestContent) {
@@ -228,7 +235,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                             // long-press preview's map (buildLocationUiData) is gated to Lollipop+.
                             noticeEventFormatter.formatLocationNotice(timelineEvent.root, timelineEvent.senderInfo.disambiguatedDisplayName)
                         } else {
-                            messageContent?.body
+                            messageContent?.body?.let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
                         }
                     }
                     EventType.STATE_ROOM_NAME,
