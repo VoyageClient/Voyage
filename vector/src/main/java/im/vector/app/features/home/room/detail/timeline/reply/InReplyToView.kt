@@ -76,6 +76,10 @@ class InReplyToView @JvmOverloads constructor(
     var delegate: TimelineEventController.InReplyToClickCallback? = null
     var sourceEventId: String? = null
 
+    // Clicking the reply while its host message is still sending only has a local-echo id to jump
+    // back to, which fails the later jump-to-bottom. Stay inert until the message is sent.
+    var sourceIsSent: Boolean = true
+
     init {
         setupView()
     }
@@ -113,6 +117,7 @@ class InReplyToView @JvmOverloads constructor(
     }
 
     override fun onClick(v: View?) {
+        if (!sourceIsSent) return
         state.repliedToEventId?.let { delegate?.onRepliedToEventClicked(sourceEventId, it) }
     }
 

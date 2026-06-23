@@ -74,6 +74,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS = "SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS"
         const val SETTINGS_SINGLE_OVERVIEW = "SETTINGS_SINGLE_OVERVIEW"
         const val SETTINGS_JUMP_TO_BOTTOM_ON_SEND = "SETTINGS_JUMP_TO_BOTTOM_ON_SEND"
+        const val SETTINGS_JUMP_BACK_TO_REPLY_SOURCE = "SETTINGS_JUMP_BACK_TO_REPLY_SOURCE"
         private const val SETTINGS_COLLAPSED_ROOM_SECTIONS = "SETTINGS_COLLAPSED_ROOM_SECTIONS"
         const val SETTINGS_LABS_NEW_SESSION_MANAGER_KEY = "SETTINGS_LABS_NEW_SESSION_MANAGER_KEY"
         const val SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY = "SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY"
@@ -1247,6 +1248,10 @@ class VectorPreferences @Inject constructor(
 
     fun jumpToBottomOnSend(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_JUMP_TO_BOTTOM_ON_SEND, false)
+    }
+
+    fun jumpBackToReplySource(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_JUMP_BACK_TO_REPLY_SOURCE, true)
     }
 
     fun isRoomSectionCollapsed(sectionName: String): Boolean {

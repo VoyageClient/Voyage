@@ -153,6 +153,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             }
             holder.replyToView?.delegate = inReplyToClickCallback
             holder.replyToView?.sourceEventId = attributes.informationData.eventId
+            holder.replyToView?.sourceIsSent = attributes.informationData.sendState.isSent()
         }
     }
 

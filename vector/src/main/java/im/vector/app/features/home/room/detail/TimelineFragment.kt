@@ -755,11 +755,20 @@ class TimelineFragment :
         }
     }
 
+    private fun shouldJumpToReplySource(sourceEventId: String): Boolean {
+        if (!vectorPreferences.jumpBackToReplySource()) return false
+        val sourcePosition = timelineEventController.searchPositionOfEvent(sourceEventId) ?: return false
+        // The timeline is reverse-laid-out, so smaller positions sit nearer the bottom. Only stop
+        // at the reply source if it's below the current viewport (off-screen toward the bottom);
+        // if it's already visible or above us, a plain jump-to-bottom is what's wanted.
+        return sourcePosition < layoutManager.findFirstVisibleItemPosition()
+    }
+
     private fun setupJumpToBottomView() {
         views.jumpToBottomView.visibility = View.INVISIBLE
         views.jumpToBottomView.debouncedClicks {
             val sourceId = replyJumpSourceEventId
-            if (sourceId != null) {
+            if (sourceId != null && shouldJumpToReplySource(sourceId)) {
                 replyJumpSourceEventId = null
                 timelineViewModel.handle(RoomDetailAction.NavigateToEvent(sourceId, highlight = true))
             } else {

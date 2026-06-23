@@ -172,6 +172,8 @@
 
     <string name="settings_jump_to_bottom_on_send" translatable="false">Jump to bottom on send</string>
     <string name="settings_jump_to_bottom_on_send_summary" translatable="false">Scroll to the latest message after sending one.</string>
+    <string name="settings_jump_back_to_reply_source" translatable="false">Jump back to reply source</string>
+    <string name="settings_jump_back_to_reply_source_summary" translatable="false">After tapping a reply to view the original message, the jump-to-latest button first returns you to the reply you came from.</string>
 
     <string name="room_list_overview_title" translatable="false">Overview</string>
     <string name="normal_priority_header" translatable="false">Rooms</string>

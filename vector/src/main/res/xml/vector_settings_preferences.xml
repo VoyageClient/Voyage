@@ -231,6 +231,12 @@
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
+            android:key="SETTINGS_JUMP_BACK_TO_REPLY_SOURCE"
+            android:summary="@string/settings_jump_back_to_reply_source_summary"
+            android:title="@string/settings_jump_back_to_reply_source" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
             android:key="SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS"
             android:summary="@string/settings_include_space_members_as_rooms_summary"
             android:title="@string/settings_include_space_members_as_rooms" />
