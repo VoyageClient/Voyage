@@ -40,6 +40,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisi
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityStateChangedListener
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventsGroups
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
+import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.item.BasedMergedItem
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem_
@@ -498,7 +499,9 @@ class TimelineEventController @Inject constructor(
         }
         updateUTDStates(event, params.nextEvent)
         val eventModel = timelineItemFactory.create(params).also {
-            it.id(event.localId)
+            // Stable across the local-echo → synced-event swap so Epoxy rebinds in place (see
+            // areItemsTheSame in TimelineEventDiffUtilCallback) instead of flashing the bubble out.
+            it.id(event.timelineStableId())
             it.setOnVisibilityStateChanged(TimelineEventVisibilityStateChangedListener(callback, event))
         }
         val isCacheable = (eventModel !is ItemWithEvents || eventModel.isCacheable()) && !params.isHighlighted

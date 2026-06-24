@@ -26,7 +26,9 @@ class TimelineEventDiffUtilCallback(
     override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         val oldItem = oldList[oldItemPosition]
         val newItem = newList[newItemPosition]
-        return oldItem.localId == newItem.localId
+        // Not localId: a local echo and the synced event that replaces it have different localIds but
+        // the same stable id, so they are treated as one item (in-place rebind, no remove/insert flash).
+        return oldItem.timelineStableId() == newItem.timelineStableId()
     }
 
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {

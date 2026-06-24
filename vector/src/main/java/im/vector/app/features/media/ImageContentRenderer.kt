@@ -268,8 +268,12 @@ class ImageContentRenderer @Inject constructor(
             // Local-echo video — load the content URI directly so Glide can use a
             // ParcelFileDescriptor and run VideoBitmapDecoder to extract a frame as the thumbnail.
             // The InputStream-based path used below only decodes still images.
+            // frame(0): pin to t=0 (OPTION_CLOSEST_SYNC) to match the upload worker's thumbnail
+            // (ThumbnailExtractor uses getFrameAtTime(0, …)); Glide's default representative frame
+            // otherwise differs, so the poster visibly jumps when the server thumbnail swaps in.
             glideRequests
                     .load(android.net.Uri.parse(data.url))
+                    .frame(0)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
         } else if (data.elementToDecrypt != null || isLocalContentUri) {
             // Encrypted image, or local-echo content URI — go through our custom data loader so

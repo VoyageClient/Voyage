@@ -52,6 +52,16 @@ object TimelineDisplayableEvents {
             EventType.BEACON_LOCATION_DATA.values
 }
 
+/**
+ * A key that stays constant across the local-echo → synced-event swap, so the list rebinds the
+ * bubble in place instead of removing and re-inserting it (which flashes the message out for a beat).
+ * A local echo and the event the homeserver echoes back share the same transaction id; every other
+ * event falls back to its event id.
+ */
+fun TimelineEvent.timelineStableId(): String {
+    return root.unsignedData?.transactionId?.takeIf { it.isNotEmpty() } ?: eventId
+}
+
 fun TimelineEvent.isRoomConfiguration(roomCreatorUserId: String?): Boolean {
     return root.isStateEvent() && when (root.getClearType()) {
         EventType.STATE_ROOM_GUEST_ACCESS,

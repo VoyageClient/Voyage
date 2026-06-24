@@ -564,7 +564,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             mediaDataRetriever.release()
         }
 
-        val thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment)?.let {
+        val thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment, withBlurHash = false)?.let {
             ThumbnailInfo(
                     width = it.width,
                     height = it.height,

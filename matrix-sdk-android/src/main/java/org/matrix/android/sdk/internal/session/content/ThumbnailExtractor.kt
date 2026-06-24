@@ -41,18 +41,23 @@ internal class ThumbnailExtractor @Inject constructor(
             val blurHash: String?,
     )
 
-    fun extractThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
+    /**
+     * @param withBlurHash when false the (expensive) blurhash is not computed. The local-echo path
+     * only needs the thumbnail dimensions, so skipping it keeps the message from being held back for
+     * seconds while the frame is encoded — the blurhash is recomputed by the upload worker anyway.
+     */
+    fun extractThumbnail(attachment: ContentAttachmentData, withBlurHash: Boolean = true): ThumbnailData? {
         return if (attachment.type == ContentAttachmentData.Type.VIDEO) {
-            extractVideoThumbnail { setDataSource(context, attachment.queryUri) }
+            extractVideoThumbnail(withBlurHash) { setDataSource(context, attachment.queryUri) }
         } else {
             null
         }
     }
 
     fun extractVideoThumbnailFromFile(file: File): ThumbnailData? =
-            extractVideoThumbnail { setDataSource(file.absolutePath) }
+            extractVideoThumbnail(withBlurHash = true) { setDataSource(file.absolutePath) }
 
-    private fun extractVideoThumbnail(setSource: MediaMetadataRetriever.() -> Unit): ThumbnailData? {
+    private fun extractVideoThumbnail(withBlurHash: Boolean, setSource: MediaMetadataRetriever.() -> Unit): ThumbnailData? {
         var thumbnailData: ThumbnailData? = null
         val mediaMetadataRetriever = MediaMetadataRetriever()
         try {
@@ -60,8 +65,7 @@ internal class ThumbnailExtractor @Inject constructor(
             mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { thumbnail ->
                 val outputStream = ByteArrayOutputStream()
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-                val (xc, yc) = blurHashComponents(thumbnail.width, thumbnail.height)
-                val blurHash = tryOrNull { BlurHash.encode(thumbnail, xc, yc) }
+                val blurHash = if (withBlurHash) encodeBlurHash(thumbnail) else null
                 thumbnailData = ThumbnailData(
                         width = thumbnail.width,
                         height = thumbnail.height,
@@ -81,6 +85,31 @@ internal class ThumbnailExtractor @Inject constructor(
             mediaMetadataRetriever.release()
         }
         return thumbnailData
+    }
+
+    // BlurHash.encode is O(width * height) with a trig term per pixel, so encoding a full-resolution
+    // video frame can take tens of seconds on slow devices. The hash is a 4x3-ish blur, so downscale
+    // first — same as the image path (UploadContentWorker.BLURHASH_DECODE_MAX).
+    private fun encodeBlurHash(frame: Bitmap): String? = tryOrNull {
+        val largest = maxOf(frame.width, frame.height)
+        val source = if (largest <= BLURHASH_MAX_DIMENSION) {
+            frame
+        } else {
+            val scale = BLURHASH_MAX_DIMENSION.toFloat() / largest
+            val width = (frame.width * scale).toInt().coerceAtLeast(1)
+            val height = (frame.height * scale).toInt().coerceAtLeast(1)
+            Bitmap.createScaledBitmap(frame, width, height, true)
+        }
+        try {
+            val (xc, yc) = blurHashComponents(source.width, source.height)
+            BlurHash.encode(source, xc, yc)
+        } finally {
+            if (source !== frame) source.recycle()
+        }
+    }
+
+    companion object {
+        private const val BLURHASH_MAX_DIMENSION = 128
     }
 }
 
