@@ -45,7 +45,7 @@
         <item name="vctr_unsent_message_text_color">?colorError</item>
         <item name="vctr_message_text_color">@color/element_content_primary_light</item>
         <item name="vctr_notice_text_color">#FF61708b</item>
-        <item name="vctr_encrypting_message_text_color">@color/palette_element_green</item>
+        <item name="vctr_encrypting_message_text_color">?colorAccent</item>
         <item name="vctr_sending_message_text_color">@color/element_content_secondary_light</item>
         <item name="vctr_markdown_block_background_color">#FFEEEEEE</item>
         <item name="code_block_bg_color">#19000000</item>

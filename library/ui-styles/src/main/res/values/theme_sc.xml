@@ -34,7 +34,7 @@
         <item name="vctr_unsent_message_text_color">?colorError</item>
         <item name="vctr_message_text_color">?vctr_content_primary</item>
         <item name="vctr_notice_text_color">?vctr_content_primary</item>
-        <item name="vctr_encrypting_message_text_color">@color/accent_sc</item>
+        <item name="vctr_encrypting_message_text_color">?colorAccent</item>
         <item name="vctr_sending_message_text_color">?vctr_content_secondary</item>
         <item name="vctr_markdown_block_background_color">@android:color/black</item>
         <item name="vctr_spoiler_background_color">#FFFFFFFF</item>
