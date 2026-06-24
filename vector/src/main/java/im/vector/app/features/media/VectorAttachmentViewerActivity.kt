@@ -37,6 +37,8 @@ import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.shareMedia
+import im.vector.app.features.share.ForwardPayloadHolder
+import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentCommands
@@ -49,6 +51,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -376,6 +379,27 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 )
             }
         }
+    }
+
+    override fun onForward() {
+        val timelineEvent = currentSourceProvider?.getTimelineEventAtPosition(currentPosition) ?: return
+        val baseContent = timelineEvent.getLastEditNewContent() ?: timelineEvent.root.getClearContent().orEmpty()
+        @Suppress("UNCHECKED_CAST")
+        val forwardContent = coerceWholeDoublesToLongs(baseContent - "m.relates_to") as Map<String, Any?>
+        val payloadId = ForwardPayloadHolder.put(forwardContent)
+        startActivity(IncomingShareActivity.forwardIntent(this, timelineEvent.root.getClearType(), payloadId))
+    }
+
+    // Whole-number numeric fields decode from JSON as Double; re-serializing emits e.g. "w":1080.0
+    // which Synapse rejects (M_BAD_JSON). Round-trip them back to Long.
+    private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
+        is Double -> if (value.isFinite() && value % 1.0 == 0.0 &&
+                value >= Long.MIN_VALUE.toDouble() && value <= Long.MAX_VALUE.toDouble()) {
+            value.toLong()
+        } else value
+        is Map<*, *> -> value.mapValues { coerceWholeDoublesToLongs(it.value) }
+        is List<*> -> value.map { coerceWholeDoublesToLongs(it) }
+        else -> value
     }
 
     override fun onDownload() {

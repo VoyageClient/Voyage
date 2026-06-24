@@ -40,6 +40,9 @@ class AttachmentOverlayView @JvmOverloads constructor(
         views.overlayDownloadButton.setOnClickListener {
             interactionListener?.onDownload()
         }
+        views.overlayForwardButton.setOnClickListener {
+            interactionListener?.onForward()
+        }
         views.overlayPlayPauseButton.setOnClickListener {
             interactionListener?.onPlayPause(!isPlaying)
         }

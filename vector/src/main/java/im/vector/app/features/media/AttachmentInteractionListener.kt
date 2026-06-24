@@ -11,6 +11,7 @@ interface AttachmentInteractionListener {
     fun onDismiss()
     fun onShare()
     fun onDownload()
+    fun onForward()
     fun onPlayPause(play: Boolean)
     fun videoSeekTo(percent: Int)
 }
