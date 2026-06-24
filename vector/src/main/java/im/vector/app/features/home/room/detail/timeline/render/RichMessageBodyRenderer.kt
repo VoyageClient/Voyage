@@ -129,6 +129,7 @@ class RichMessageBodyRenderer @Inject constructor(
                 topMargin = dim.dpToPx(6)
                 bottomMargin = dim.dpToPx(6)
             }
+            allowShrink = !vectorPreferences.isTableLineWrappingDisabled()
             isHorizontalScrollBarEnabled = true
             isFillViewport = false
             scrollBarSize = dim.dpToPx(10)

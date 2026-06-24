@@ -217,4 +217,7 @@
         <item quantity="one">%d message redacted</item>
         <item quantity="other">%d messages redacted</item>
     </plurals>
+
+    <string name="settings_animate_room_avatars_title">Animate room avatars</string>
+    <string name="settings_animate_room_avatars_summary">Play animated avatars instead of showing a still frame</string>
 </resources>

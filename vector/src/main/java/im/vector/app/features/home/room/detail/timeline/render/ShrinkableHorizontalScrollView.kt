@@ -26,6 +26,10 @@ import kotlin.math.abs
  */
 class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(context) {
 
+    // Shrinking relies on cells re-wrapping to taller rows. With single-line cells it would just
+    // clip trailing characters, so callers disable it and we scroll instead.
+    var allowShrink: Boolean = true
+
     private val shrinkFactor: Float = 0.25f
     private val touchSlop: Int = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
@@ -58,7 +62,7 @@ class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(co
         val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
         child.measure(unbounded, heightMeasureSpec)
         val natural = child.measuredWidth
-        if (natural > available && natural <= (available / (1f - shrinkFactor)).toInt()) {
+        if (allowShrink && natural > available && natural <= (available / (1f - shrinkFactor)).toInt()) {
             child.isShrinkAllColumns = true
         } else {
             child.isShrinkAllColumns = false

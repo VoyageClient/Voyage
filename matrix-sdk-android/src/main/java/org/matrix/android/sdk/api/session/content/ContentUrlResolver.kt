@@ -57,9 +57,10 @@ interface ContentUrlResolver {
      * @param width the desired width
      * @param height the desired height
      * @param method the desired method (METHOD_CROP or METHOD_SCALE)
+     * @param animated if true, request an animated thumbnail (animated=true) when the source is animated.
      * @return the URL to access the described resource, or null if the url is invalid.
      */
-    fun resolveThumbnail(contentUrl: String?, width: Int, height: Int, method: ThumbnailMethod): String?
+    fun resolveThumbnail(contentUrl: String?, width: Int, height: Int, method: ThumbnailMethod, animated: Boolean = false): String?
 
     fun requiresAuthentication(resolvedUrl: String): Boolean
 

@@ -69,15 +69,16 @@ internal class DefaultContentUrlResolver @Inject constructor(
                 }
     }
 
-    override fun resolveThumbnail(contentUrl: String?, width: Int, height: Int, method: ContentUrlResolver.ThumbnailMethod): String? {
+    override fun resolveThumbnail(contentUrl: String?, width: Int, height: Int, method: ContentUrlResolver.ThumbnailMethod, animated: Boolean): String? {
         return contentUrl
                 // do not allow non-mxc content URLs
                 ?.takeIf { it.isMxcUrl() }
                 ?.let {
+                    val animatedParam = if (animated) "&animated=true" else ""
                     resolve(
                             contentUrl = it,
                             toThumbnail = true,
-                            params = "?width=$width&height=$height&method=${method.value}"
+                            params = "?width=$width&height=$height&method=${method.value}$animatedParam"
                     )
                 }
     }

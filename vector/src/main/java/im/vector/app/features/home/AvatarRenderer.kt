@@ -38,6 +38,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import jp.wasabeef.glide.transformations.BlurTransformation
 import jp.wasabeef.glide.transformations.ColorFilterTransformation
@@ -56,6 +57,7 @@ class AvatarRenderer @Inject constructor(
         private val matrixItemColorProvider: MatrixItemColorProvider,
         private val dimensionConverter: DimensionConverter,
         private val stringProvider: StringProvider,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     companion object {
@@ -302,7 +304,10 @@ class AvatarRenderer @Inject constructor(
 
     private fun resolvedUrl(avatarUrl: String?): String? {
         return activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
-                ?.resolveThumbnail(avatarUrl, THUMBNAIL_SIZE, THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE)
+                ?.resolveThumbnail(
+                        avatarUrl, THUMBNAIL_SIZE, THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE,
+                        animated = vectorPreferences.animateRoomAvatars()
+                )
     }
 
     /**

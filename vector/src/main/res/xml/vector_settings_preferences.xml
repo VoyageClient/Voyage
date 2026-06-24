@@ -183,10 +183,16 @@
             android:title="@string/settings_show_avatar_display_name_changes_messages" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
             android:summary="@string/settings_autoplay_animated_images_summary"
             android:title="@string/settings_autoplay_animated_images_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ANIMATE_ROOM_AVATARS"
+            android:summary="@string/settings_animate_room_avatars_summary"
+            android:title="@string/settings_animate_room_avatars_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_VIBRATE_ON_MENTION_KEY"
