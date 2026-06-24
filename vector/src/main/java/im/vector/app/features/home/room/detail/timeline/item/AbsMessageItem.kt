@@ -145,15 +145,17 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         // Replies (SchildiChat-style preview rendered in all layouts)
         if (holder.replyToView != null) {
             replyViewUpdater.replyView = holder.replyToView
+            holder.replyToView?.delegate = inReplyToClickCallback
+            // Stamp the source event before addListener (which renders the current state synchronously):
+            // ReplyViewUpdater matches on sourceEventId to drop stale async updates onto a reused view.
+            holder.replyToView?.sourceEventId = attributes.informationData.eventId
+            holder.replyToView?.sourceIsSent = attributes.informationData.sendState.isSent()
             val safeReplyPreviewRetriever = replyPreviewRetriever
             if (safeReplyPreviewRetriever == null) {
                 holder.replyToView?.isVisible = false
             } else {
                 safeReplyPreviewRetriever.addListener(attributes.informationData.eventId, replyViewUpdater)
             }
-            holder.replyToView?.delegate = inReplyToClickCallback
-            holder.replyToView?.sourceEventId = attributes.informationData.eventId
-            holder.replyToView?.sourceIsSent = attributes.informationData.sendState.isSent()
         }
     }
 
@@ -186,8 +188,13 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         var replyView: InReplyToView? = null
 
         override fun onStateUpdated(state: PreviewReplyUiState) {
+            val view = replyView ?: return
+            // A rebind (notifyItemChanged) doesn't unbind the previous model, so its updater stays
+            // registered with a replyView that RecyclerView may later reuse for another message. Ignore
+            // the update unless the view still hosts this event, else one reply flashes another's preview.
+            if (view.sourceEventId != attributes.informationData.eventId) return
             replyPreviewRetriever?.let {
-                replyView?.render(
+                view.render(
                         state,
                         it,
                         attributes.informationData,
