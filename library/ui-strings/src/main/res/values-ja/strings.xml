@@ -752,8 +752,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">%1$sの招待を受け入れました。理由：%2$s</string>
     <string name="notice_room_server_acl_updated_title_by_you">このルームのサーバーのアクセス制御リストを変更しました。</string>
     <string name="notice_room_server_acl_set_title_by_you">このルームのサーバーアクセス制御リストを設定しました。</string>
-    <string name="notice_direct_room_update_by_you">ここをアップグレードしました。</string>
-    <string name="notice_room_update_by_you">このルームをアップグレードしました。</string>
     <string name="notice_ended_call_by_you">通話を終了しました。</string>
     <string name="notice_answered_call_by_you">電話に出ました。</string>
     <string name="notice_call_candidates_by_you">通話を設定するためにデータを送信しました。</string>
@@ -787,8 +785,6 @@
     <string name="notice_room_server_acl_set_allowed">・%sに一致するサーバーは許可されています。</string>
     <string name="notice_room_server_acl_set_banned">・%sに一致するサーバーはブロックされています。</string>
     <string name="notice_room_server_acl_set_title">%sがこのルームのサーバーアクセス制御リストを設定しました。</string>
-    <string name="notice_direct_room_update">%sがここをアップグレードしました。</string>
-    <string name="notice_room_update">%sがこのルームをアップグレードしました。</string>
     <string name="notice_made_future_direct_room_visibility_by_you">今後のメッセージを「%1$s」閲覧可能に設定しました。</string>
     <string name="notice_made_future_room_visibility_by_you">今後のルームの履歴を「%1$s」閲覧可能に設定しました。</string>
     <string name="notice_made_future_direct_room_visibility">%1$sが今後のメッセージを「%2$s」閲覧可能に設定しました。</string>

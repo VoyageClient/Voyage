@@ -25,7 +25,6 @@
     <string name="notice_room_visibility_joined">همهٔ اعضای اتاق، از زمان پیوستنشان.</string>
     <string name="notice_room_visibility_shared">همهٔ اعضای اتاق.</string>
     <string name="notice_room_visibility_world_readable">هرکسی.</string>
-    <string name="notice_room_update">%s این اتاق را ارتقا داد.</string>
     <string name="notice_avatar_changed_too">(چهرک نیز تغییر کرد)</string>
     <string name="notice_room_name_removed">%1$s نام اتاق را پاک کرد</string>
     <string name="notice_room_topic_removed">%1$s موضوع اتاق را پاک کرد</string>
@@ -109,7 +108,6 @@
     <string name="notice_answered_call_by_you">تماس را پاسخ دادید.</string>
     <string name="notice_ended_call_by_you">به تماس پایان دادید.</string>
     <string name="notice_made_future_room_visibility_by_you">تاریخچهٔ آتی اتاق را برای %1$s نمایان کردید</string>
-    <string name="notice_room_update_by_you">این اتاق را ارتقا دادید.</string>
     <string name="notice_room_name_removed_by_you">نام اتاق را برداشتید</string>
     <string name="notice_room_topic_removed_by_you">موضوع اتاق را برداشتید</string>
     <string name="notice_room_avatar_removed">%1$s چهرک اتاق را برداشت</string>
@@ -166,8 +164,6 @@
     <string name="notice_direct_room_third_party_revoked_invite">%1$s دعوت %2$s را پس گرفت</string>
     <string name="notice_direct_room_third_party_invite_by_you">%1$s را دعوت کردید</string>
     <string name="notice_direct_room_third_party_invite">%1$s، %2$s را دعوت کرد</string>
-    <string name="notice_direct_room_update_by_you">این‌جا را ارتقا دادید.</string>
-    <string name="notice_direct_room_update">%s این‌جا را ارتقا داد.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">پیام‌های آینده را برای %1$s نمایان کردید</string>
     <string name="notice_made_future_direct_room_visibility">%1$s پیام‌های آینده را برای %2$s نمایان کرد</string>
     <string name="notice_direct_room_leave_by_you">اتاق را ترک کردید</string>

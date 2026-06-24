@@ -54,8 +54,6 @@
     <string name="notice_room_visibility_joined">meṛṛa iɛeggalen n texamt, segmi ara d-rnun.</string>
     <string name="notice_room_visibility_shared">meṛṛa iɛeggalen n texxamt.</string>
     <string name="notice_room_visibility_world_readable">yal yiwen.</string>
-    <string name="notice_room_update">%s ileqqem taxxamt-a.</string>
-    <string name="notice_room_update_by_you">Tleqqmeḍ taxxamt-a.</string>
     <string name="notice_avatar_changed_too">(avatar daɣen ibeddel)</string>
     <string name="notice_room_name_removed">%1$s yekkes isem n texxamt</string>
     <string name="notice_room_name_removed_by_you">Tekkseḍ isem n texxamt</string>

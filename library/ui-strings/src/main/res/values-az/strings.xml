@@ -25,7 +25,6 @@
     <string name="notice_room_visibility_joined">bütün otaq üzvləri, qoşulduğu andan.</string>
     <string name="notice_room_visibility_shared">bütün otaq üzvləri.</string>
     <string name="notice_room_visibility_world_readable">hər kəs.</string>
-    <string name="notice_room_update">%s bu otağı təkmilləşdirdi.</string>
     <string name="notice_avatar_changed_too">(avatar da dəyişdirilib)</string>
     <string name="notice_room_name_removed">%1$s otaq adını sildi</string>
     <string name="notice_room_topic_removed">%1$s otaq mövzusunu sildi</string>
@@ -95,9 +94,6 @@
     <string name="notice_room_server_acl_set_banned">• %s ilə uyğunlaşan serverlər qadağan edilib.</string>
     <string name="notice_room_server_acl_set_title_by_you">Bu otaq üçün server ACL-lərini təyin etdiniz.</string>
     <string name="notice_room_server_acl_set_title">%s bu otaq üçün server ACL-lərini təyin etdi.</string>
-    <string name="notice_direct_room_update_by_you">Burada təkmilləşdirdiniz.</string>
-    <string name="notice_direct_room_update">%s burada təkmilləşdi.</string>
-    <string name="notice_room_update_by_you">Bu otağı təkmilləşdirdiniz.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Gələcək mesajları %1$s üçün görünən etdiniz</string>
     <string name="notice_made_future_direct_room_visibility">%1$s gələcək mesajları %2$s üçün görünən etdi</string>
     <string name="notice_made_future_room_visibility_by_you">Gələcək otaq tarixçəsini %1$s üçün görünən etdiniz</string>

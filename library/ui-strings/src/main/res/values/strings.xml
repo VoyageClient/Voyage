@@ -69,10 +69,6 @@
     <string name="notice_room_visibility_joined">all room members, from the point they joined.</string>
     <string name="notice_room_visibility_shared">all room members.</string>
     <string name="notice_room_visibility_world_readable">anyone.</string>
-    <string name="notice_room_update">%s upgraded this room.</string>
-    <string name="notice_room_update_by_you">You upgraded this room.</string>
-    <string name="notice_direct_room_update">%s upgraded here.</string>
-    <string name="notice_direct_room_update_by_you">You upgraded here.</string>
     <string name="notice_room_server_acl_set_title">%s set the server ACLs for this room.</string>
     <string name="notice_room_server_acl_set_title_by_you">You set the server ACLs for this room.</string>
     <string name="notice_room_server_acl_set_banned">• Servers matching %s are banned.</string>

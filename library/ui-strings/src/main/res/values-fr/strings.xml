@@ -54,7 +54,6 @@
 \nImportation des salons que vous avez quittés</string>
     <string name="initial_sync_start_importing_account_data">Synchronisation initiale :
 \nImportation des données du compte</string>
-    <string name="notice_room_update">%s a mis à niveau ce salon.</string>
     <string name="event_status_sending_message">Envoi du message…</string>
     <string name="notice_room_third_party_revoked_invite">%1$s a révoqué l’invitation de %2$s à rejoindre le salon</string>
     <string name="notice_room_invite_no_invitee_with_reason">Invitation de %1$s. Raison : %2$s</string>
@@ -84,9 +83,6 @@
     <string name="notice_end_to_end_ok">%1$s a activé le chiffrement de bout en bout.</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s a activé le chiffrement de bout en bout (algorithme %2$s inconnu).</string>
     <string name="notice_room_created">%1$s a créé le salon</string>
-    <string name="notice_direct_room_update_by_you">Vous avez mis cet endroit à niveau.</string>
-    <string name="notice_direct_room_update">%s a mis cet endroit à niveau.</string>
-    <string name="notice_room_update_by_you">Vous avez mis à niveau ce salon.</string>
     <string name="notice_room_remove_by_you">Vous avez expulsé %1$s</string>
     <string name="notice_room_reject_by_you">Vous avez rejeté l’invitation</string>
     <string name="notice_direct_room_leave_by_you">Vous avez quitté le salon</string>

@@ -68,7 +68,6 @@
     <string name="notice_avatar_changed_too">(аватар је такође промењен)</string>
     <string name="notice_room_server_acl_allow_is_empty">🎉 Свим серверима је забрањено учествовање! Ова соба се више не може користити.</string>
     <string name="notice_room_server_acl_updated_no_change">Без измене.</string>
-    <string name="notice_room_update_by_you">Надоградили сте ову собу.</string>
     <string name="notice_made_future_room_visibility_by_you">Учинили сте да од сада, историјат буде видљив за %1$s</string>
     <string name="notice_made_future_room_visibility">%1$s учини да од сада, историјат буде видљив за %2$s</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Учинили сте да будуће поруке буду видљиве за %1$s</string>
@@ -170,9 +169,6 @@
     <string name="notice_room_server_acl_set_banned">• Сервери који садрже %s су забрањени.</string>
     <string name="notice_room_server_acl_set_title_by_you">Поставили сте АЦЛ сервера за ову собу.</string>
     <string name="notice_room_server_acl_set_title">%s постави АЦЛ сервера за ову собу.</string>
-    <string name="notice_direct_room_update_by_you">Надоградили сте овде.</string>
-    <string name="notice_direct_room_update">%s надогради овде.</string>
-    <string name="notice_room_update">%s надогради ову собу.</string>
     <string name="notice_placed_video_call">%s упути видео позив.</string>
     <string name="notice_room_name_changed_by_you">Изменили сте назив собе у: %1$s</string>
     <string name="notice_room_name_changed">%1$s измени назив собе у: %2$s</string>

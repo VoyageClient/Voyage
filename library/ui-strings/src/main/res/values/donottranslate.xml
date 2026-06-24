@@ -226,4 +226,12 @@
 
     <string name="settings_override_dm_display_title" translatable="false">Force display name and avatar for group DMs</string>
     <string name="settings_override_dm_display_summary" translatable="false">When a direct message has several people, show the name and avatar of the contact it is a DM with.</string>
+
+    <string name="room_tombstone_banner_message" translatable="false">This room has been tombstoned and is no longer in active use.</string>
+    <string name="room_tombstone_banner_message_with_replacement" translatable="false">This room has been tombstoned and is no longer in active use. A replacement room is available, would you like to join it?</string>
+    <string name="room_tombstone_banner_join_action" translatable="false">Join</string>
+    <string name="command_description_tombstone" translatable="false">Mark the current room as discontinued, optionally pointing to a replacement room</string>
+
+    <string name="notice_room_update" translatable="false">%s tombstoned this room.</string>
+    <string name="notice_room_update_by_you" translatable="false">You tombstoned this room.</string>
 </resources>

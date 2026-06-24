@@ -45,8 +45,46 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tombstoneBanner"
             tools:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/tombstoneBanner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="?vctr_system"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="4dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/tombstoneBannerText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingVertical="8dp"
+                android:textColor="?vctr_content_secondary"
+                android:textSize="14sp"
+                tools:text="@string/room_tombstone_banner_message_with_replacement" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tombstoneBannerJoinButton"
+                style="@style/Widget.Vector.Button.TextButton.Dialog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/room_tombstone_banner_join_action"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+        </LinearLayout>
 
         <im.vector.app.features.sync.widget.SyncStateView
             android:id="@+id/syncStateView"

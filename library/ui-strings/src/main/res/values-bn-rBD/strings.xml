@@ -686,8 +686,6 @@
     <string name="notice_room_name_removed_by_you">আপনি কক্ষের নাম সরিয়েছেন</string>
     <string name="notice_room_name_removed">%1$s কক্ষের নাম সরিয়েছে</string>
     <string name="notice_avatar_changed_too">(আবতারটিও পরিবর্তন করা হয়েছিল)</string>
-    <string name="notice_room_update_by_you">আপনি এই কক্ষটি আপগ্রেড করেছেন।</string>
-    <string name="notice_room_update">%s এই কক্ষটিকে আপগ্রেড করেছে।</string>
     <string name="notice_room_visibility_world_readable">যে কেউ।</string>
     <string name="notice_room_visibility_shared">সমস্ত কক্ষের সদস্য।</string>
     <string name="notice_room_visibility_joined">কক্ষের সমস্ত সদস্য, যখন থেকে তারা যোগদান করেছিল।</string>

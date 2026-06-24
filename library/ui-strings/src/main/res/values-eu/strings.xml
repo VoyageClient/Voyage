@@ -53,7 +53,6 @@
 \nUtzitako gelak inportatzen</string>
     <string name="initial_sync_start_importing_account_data">Hasierako sinkronizazioa:
 \nKontuaren datuak inportatzen</string>
-    <string name="notice_room_update">%s erabiltzaileak gela hau eguneratu du.</string>
     <string name="event_status_sending_message">Mezua bidaltzen…</string>
     <string name="notice_room_third_party_revoked_invite">%1$s erabiltzaileak %2$s gelara elkartzeko gonbidapena indargabetu du</string>
     <string name="notice_room_invite_no_invitee_with_reason">%1$s erabiltzailearen gonbidapena. Arrazoia: %2$s</string>

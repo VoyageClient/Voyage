@@ -54,7 +54,6 @@
 \n正在导入已离开的房间</string>
     <string name="initial_sync_start_importing_account_data">初始化同步：
 \n正在导入账户数据</string>
-    <string name="notice_room_update">%s 升级了此房间。</string>
     <string name="event_status_sending_message">正在发送消息……</string>
     <string name="notice_room_third_party_revoked_invite">%1$s 撤回了对 %2$s 加入房间的邀请</string>
     <string name="notice_room_invite_no_invitee_with_reason">%1$s 的邀请。理由：%2$s</string>
@@ -107,7 +106,6 @@
     <string name="notice_answered_call_by_you">你已接听通话。</string>
     <string name="notice_ended_call_by_you">你已结束通话。</string>
     <string name="notice_made_future_room_visibility_by_you">你已让未来的房间历史对 %1$s 可见</string>
-    <string name="notice_room_update_by_you">你升级了此房间。</string>
     <string name="notice_room_name_removed_by_you">你移除了房间名称</string>
     <string name="notice_room_topic_removed_by_you">你移除了房间话题</string>
     <string name="notice_room_avatar_removed">%1$s 移除了房间头像</string>
@@ -158,8 +156,6 @@
     <string name="notice_direct_room_third_party_revoked_invite">%1$s 撤回了对 %2$s 的邀请</string>
     <string name="notice_direct_room_third_party_invite_by_you">你邀请了 %1$s</string>
     <string name="notice_direct_room_third_party_invite">%1$s 邀请了 %2$s</string>
-    <string name="notice_direct_room_update_by_you">你升级了这里。</string>
-    <string name="notice_direct_room_update">%s升级了这里。</string>
     <string name="notice_made_future_direct_room_visibility_by_you">你使未来的消息对 %1$s 可见</string>
     <string name="notice_made_future_direct_room_visibility">%1$s 使未来的消息对 %2$s 可见</string>
     <string name="notice_direct_room_leave_by_you">你离开了房间</string>

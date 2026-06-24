@@ -278,10 +278,6 @@
     <string name="notice_room_server_acl_set_allowed">• %s മായി പൊരുത്തപ്പെടുന്ന സെർവർ അനുവദനീയമാണ്.</string>
     <string name="notice_room_server_acl_set_title_by_you">ഈ മുറിക്കായി നിങ്ങൾ സെർവർ ACL-കൾ സജ്ജമാക്കി.</string>
     <string name="notice_room_server_acl_set_title">%s ഈ മുറിക്കായി സെർവർ ACL-കൾ സജ്ജമാക്കി.</string>
-    <string name="notice_direct_room_update_by_you">നിങ്ങൾ ഇവിടെ നവീകരിച്ചു.</string>
-    <string name="notice_direct_room_update">%s ഇവിടെ നവീകരിച്ചു.</string>
-    <string name="notice_room_update_by_you">നിങ്ങൾ ഈ മുറി നവീകരിച്ചു.</string>
-    <string name="notice_room_update">%s ഈ മുറി നവീകരിച്ചു.</string>
     <string name="notice_room_visibility_world_readable">ആർക്കും.</string>
     <string name="notice_room_visibility_shared">എല്ലാ മുറി അംഗങ്ങളും.</string>
     <string name="notice_room_visibility_joined">എല്ലാ മുറി അംഗങ്ങളും, അവർ ചേർന്ന സമയം മുതൽ.</string>

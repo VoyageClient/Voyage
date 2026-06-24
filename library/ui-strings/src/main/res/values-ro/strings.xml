@@ -75,10 +75,6 @@
     <string name="notice_room_name_removed_by_you">Ați înlăturat numele camerei</string>
     <string name="notice_room_name_removed">%1$s a înlăturat numele camerei</string>
     <string name="notice_avatar_changed_too">(avatarul a fost schimbat deasemenea)</string>
-    <string name="notice_direct_room_update_by_you">Ați actualizat aici.</string>
-    <string name="notice_direct_room_update">%s a actualizat aici.</string>
-    <string name="notice_room_update_by_you">Ați actualizat această cameră.</string>
-    <string name="notice_room_update">%s a actualizat această cameră.</string>
     <string name="a11y_rule_notify_noisy">Notificați cu sunet</string>
     <string name="room_list_quick_actions_notifications_all_noisy">Toate mesajele (zgomotos)</string>
     <string name="settings_noisy_notifications_preferences">Configurează notificările zgomotoase</string>

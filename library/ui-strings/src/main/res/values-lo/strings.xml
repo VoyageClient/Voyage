@@ -522,10 +522,6 @@
     <string name="notice_room_server_acl_set_banned">• ເຊີບເວີທີ່ກົງກັບ %s ຖືກຫ້າມ.</string>
     <string name="notice_room_server_acl_set_title_by_you">ທ່ານຕັ້ງ ACLs ເຊີບເວີສໍາລັບຫ້ອງນີ້.</string>
     <string name="notice_room_server_acl_set_title">%s ຕັ້ງ ACL ຂອງເຊີບເວີສຳລັບຫ້ອງນີ້.</string>
-    <string name="notice_direct_room_update_by_you">ທ່ານໄດ້ຍົກລະດັບຢູ່ທີ່ນີ້.</string>
-    <string name="notice_direct_room_update">%s ຍົກລະດັບຢູ່ບ່ອນນີ້ແລ້ວ.</string>
-    <string name="notice_room_update_by_you">ທ່ານໄດ້ຍົກລະດັບຫ້ອງນີ້.</string>
-    <string name="notice_room_update">%s ໄດ້ຍົກລະດັບຫ້ອງນີ້ແລ້ວ.</string>
     <string name="notice_room_visibility_world_readable">ຜູ້ໃດຜູ້ຫນຶ່ງ.</string>
     <string name="notice_room_visibility_shared">ສະມາຊິກຫ້ອງທັງຫມົດ.</string>
     <string name="notice_room_visibility_joined">ສະມາຊິກຫ້ອງທັງຫມົດ, ຈາກຈຸດທີ່ເຂົາເຈົ້າເຂົ້າຮ່ວມ.</string>

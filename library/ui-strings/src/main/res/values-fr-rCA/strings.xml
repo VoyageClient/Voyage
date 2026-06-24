@@ -1733,10 +1733,6 @@
     <string name="notice_room_server_acl_set_banned">• Les serveurs correspondant à %s sont interdits.</string>
     <string name="notice_room_server_acl_set_title_by_you">Vous avez paramétré les ACL pour ce salon.</string>
     <string name="notice_room_server_acl_set_title">%s paramètre les autorisations étendues (ACL) du serveur pour ce salon.</string>
-    <string name="notice_direct_room_update_by_you">Vous avez mis cet endroit à niveau.</string>
-    <string name="notice_direct_room_update">%s a mis cet endroit à niveau.</string>
-    <string name="notice_room_update_by_you">Vous avez mis à niveau ce salon.</string>
-    <string name="notice_room_update">%s a mis à niveau ce salon.</string>
     <string name="notice_room_visibility_world_readable">n’importe qui.</string>
     <string name="notice_room_visibility_shared">tous les membres du salon.</string>
     <string name="notice_room_visibility_joined">tous les membres du salon, depuis qu’ils l’ont rejoint.</string>

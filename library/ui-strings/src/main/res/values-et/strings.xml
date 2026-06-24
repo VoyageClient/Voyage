@@ -23,7 +23,6 @@
     <string name="notice_room_visibility_joined">kõikidele jututoa liikmetele alates liitumise hetkest.</string>
     <string name="notice_room_visibility_shared">kõikidele jututoa liikmetele.</string>
     <string name="notice_room_visibility_world_readable">kõikidele.</string>
-    <string name="notice_room_update">%s uuendas seda jututuba.</string>
     <string name="notice_avatar_changed_too">(samuti sai tunnuspilt muudetud)</string>
     <string name="notice_room_name_removed">%1$s eemaldas jututoa nime</string>
     <string name="notice_room_topic_removed">%1$s eemaldas jututoa teema</string>
@@ -107,7 +106,6 @@
     <string name="notice_answered_call_by_you">Sa vastasid kõnele.</string>
     <string name="notice_ended_call_by_you">Sa lõpetasid kõne.</string>
     <string name="notice_made_future_room_visibility_by_you">Sa seadistasid, et tulevane jututoa ajalugu on nähtav kasutajale %1$s</string>
-    <string name="notice_room_update_by_you">Sa uuendasid seda jututuba.</string>
     <string name="notice_room_name_removed_by_you">Sa eemaldasid jututoa nime</string>
     <string name="notice_room_topic_removed_by_you">Sa eemaldasid jututoa teema</string>
     <string name="notice_room_avatar_removed">%1$s eemaldas jututoa tunnuspildi</string>
@@ -166,8 +164,6 @@
     <string name="notice_direct_room_third_party_revoked_invite">%1$s võttis tagasi jututoaga liitumise kutse kasutajalt %2$s</string>
     <string name="notice_direct_room_third_party_invite_by_you">Sina saatsid kutse kasutajale %1$s</string>
     <string name="notice_direct_room_third_party_invite">%1$s saatis kutse kasutajale %2$s</string>
-    <string name="notice_direct_room_update_by_you">Sa uuendasid seda jututuba.</string>
-    <string name="notice_direct_room_update">%s uuendas seda jututuba.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Sina seadistasid, et tulevased jututoa sõnumid on nähtavad kasutajale %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s seadistas, et tulevased jututoa sõnumid on nähtavad kasutajale %2$s</string>
     <string name="notice_direct_room_leave_by_you">Sina lahkusid jututoast</string>

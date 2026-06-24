@@ -67,6 +67,7 @@ sealed interface ParsedCommand {
     data class JoinSpace(val spaceIdOrAlias: String) : ParsedCommand
     data class LeaveRoom(val roomId: String) : ParsedCommand
     data class UpgradeRoom(val newVersion: String) : ParsedCommand
+    data class Tombstone(val replacementRoomId: String, val body: String) : ParsedCommand
     object JumpToStart : ParsedCommand
     data class JumpToEvent(val eventId: String) : ParsedCommand
     data class JumpToDate(val date: String) : ParsedCommand

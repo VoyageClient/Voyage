@@ -1762,10 +1762,6 @@
     <string name="notice_room_server_acl_set_banned">• שרתים התואמים %s אסורים.</string>
     <string name="notice_room_server_acl_set_title_by_you">אתה מגדיר את ה-ACL של השרת עבור החדר הזה.</string>
     <string name="notice_room_server_acl_set_title">%s הגדר את ה-ACL של השרת עבור החדר הזה.</string>
-    <string name="notice_direct_room_update_by_you">שדרגת כאן.</string>
-    <string name="notice_direct_room_update">%s שודרג כאן.</string>
-    <string name="notice_room_update_by_you">שדרגת את החדר הזה.</string>
-    <string name="notice_room_update">%s שידרג/ה חדר זה.</string>
     <string name="notice_room_visibility_world_readable">כל אחד.</string>
     <string name="notice_room_visibility_shared">כל חברי החדר.</string>
     <string name="notice_room_visibility_joined">כל חברי החדר, מהרגע שבו הצטרפו.</string>

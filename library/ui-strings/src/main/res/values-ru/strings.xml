@@ -54,7 +54,6 @@
 \nИмпорт покинутых комнат</string>
     <string name="initial_sync_start_importing_account_data">Начальная синхронизация:
 \nИмпорт данных учётной записи</string>
-    <string name="notice_room_update">%s обновил эту комнату.</string>
     <string name="event_status_sending_message">Отправка сообщения…</string>
     <string name="notice_room_third_party_revoked_invite">%1$s отозвал приглашение %2$s присоединиться к комнате</string>
     <string name="notice_room_invite_no_invitee_with_reason">Приглашение %1$s. Причина: %2$s</string>
@@ -107,7 +106,6 @@
     <string name="notice_answered_call_by_you">Вы ответили на звонок.</string>
     <string name="notice_ended_call_by_you">Вы закончили звонок.</string>
     <string name="notice_made_future_room_visibility_by_you">Вы сделали будущую историю комнаты видимой для %1$s</string>
-    <string name="notice_room_update_by_you">Вы обновили эту комнату.</string>
     <string name="notice_room_name_removed_by_you">Вы удалили название комнаты</string>
     <string name="notice_room_topic_removed_by_you">Вы удалили тему комнаты</string>
     <string name="notice_room_third_party_invite_by_you">Вы отправили %1$s приглашение в эту комнату</string>
@@ -178,8 +176,6 @@
     <string name="notice_direct_room_join">%1$s вошел(ла)</string>
     <string name="notice_direct_room_created_by_you">Вы создали обсуждение</string>
     <string name="notice_direct_room_created">%1$s создал(а) обсуждение</string>
-    <string name="notice_direct_room_update_by_you">Вы обновили эту комнату.</string>
-    <string name="notice_direct_room_update">%s обновил(а) эту комнату.</string>
     <plurals name="room_displayname_four_and_more_members">
         <item quantity="one">%1$s, %2$s, %3$s и %4$d другой</item>
         <item quantity="few">%1$s, %2$s, %3$s и %4$d других</item>

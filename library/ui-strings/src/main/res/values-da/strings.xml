@@ -219,10 +219,6 @@ Er du sikker?</string>
     <string name="notice_room_server_acl_updated_no_change">Ingen ændring.</string>
     <string name="notice_room_server_acl_set_title_by_you">Du satte serverens ACLer for dette rum.</string>
     <string name="notice_room_server_acl_set_title">%s satte serverens ACLer for dette rum.</string>
-    <string name="notice_direct_room_update_by_you">Du opgraderede her.</string>
-    <string name="notice_direct_room_update">%s opgraderede her.</string>
-    <string name="notice_room_update_by_you">Du opgraderede dette rum.</string>
-    <string name="notice_room_update">%s opgraderede dette rum.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Du gjorde fremtidige beskeder synlige for %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s gjorde fremtidige beskeder synlige for %2$s</string>
     <string name="notice_made_future_room_visibility_by_you">Du gjorde den fremtidige historik for rummet synlig for %1$s</string>

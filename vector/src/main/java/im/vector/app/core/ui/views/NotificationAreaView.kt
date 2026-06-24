@@ -23,9 +23,7 @@ import im.vector.app.databinding.ViewNotificationAreaBinding
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
-import me.saket.bettermovementmethod.BetterLinkMovementMethod
 import org.matrix.android.sdk.api.failure.MatrixError
-import org.matrix.android.sdk.api.session.events.model.Event
 import timber.log.Timber
 
 /**
@@ -66,7 +64,6 @@ class NotificationAreaView @JvmOverloads constructor(
             is State.Hidden -> renderHidden()
             is State.NoPermissionToPost -> renderNoPermissionToPost()
             is State.UnsupportedAlgorithm -> renderUnsupportedAlgorithm(newState)
-            is State.Tombstone -> renderTombstone()
             is State.ResourceLimitExceededError -> renderResourceLimitExceededError(newState)
         }
     }
@@ -137,21 +134,6 @@ class NotificationAreaView @JvmOverloads constructor(
         setBackgroundColor(ContextCompat.getColor(context, backgroundColor))
     }
 
-    private fun renderTombstone() {
-        visibility = View.VISIBLE
-        views.roomNotificationIcon.setImageResource(R.drawable.ic_warning_badge)
-        val message = span {
-            +resources.getString(CommonStrings.room_tombstone_versioned_description)
-            +"\n"
-            span(resources.getString(CommonStrings.room_tombstone_continuation_link)) {
-                textDecorationLine = "underline"
-                onClick = { delegate?.onTombstoneEventClicked() }
-            }
-        }
-        views.roomNotificationMessage.movementMethod = BetterLinkMovementMethod.getInstance()
-        views.roomNotificationMessage.text = message
-    }
-
     private fun renderDefault() {
         visibility = View.GONE
     }
@@ -179,9 +161,6 @@ class NotificationAreaView @JvmOverloads constructor(
         // View will be Gone
         object Hidden : State()
 
-        // The room is dead
-        data class Tombstone(val tombstoneEvent: Event) : State()
-
         // Resource limit exceeded error will be displayed (only hard for the moment)
         data class ResourceLimitExceededError(val isSoft: Boolean, val matrixError: MatrixError) : State()
     }
@@ -190,7 +169,6 @@ class NotificationAreaView @JvmOverloads constructor(
      * An interface to delegate some actions to another object.
      */
     interface Delegate {
-        fun onTombstoneEventClicked()
         fun onMisconfiguredEncryptionClicked()
     }
 }

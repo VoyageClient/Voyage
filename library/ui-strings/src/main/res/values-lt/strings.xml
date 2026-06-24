@@ -53,8 +53,6 @@
     <string name="notice_room_name_removed_by_you">Jūs pašalinote kambario pavadinimą</string>
     <string name="notice_room_name_removed">%1$s pašalino kambario pavadinimą</string>
     <string name="notice_room_server_acl_allow_is_empty">🎉 Visiem serveriam yra uždrausta dalyvauti! Šiuo kambariu nebegalima naudotis.</string>
-    <string name="notice_room_update_by_you">Jūs atnaujinote šį kambarį.</string>
-    <string name="notice_room_update">%s atnaujino šį kambarį.</string>
     <string name="notice_room_visibility_world_readable">bet kas.</string>
     <string name="notice_room_visibility_shared">Visi kambario dalyviai.</string>
     <string name="notice_room_visibility_invited">Visi kambario dalyviai, nuo tada, kai jie yra pakviesti.</string>
@@ -478,7 +476,6 @@
     <string name="room_error_access_unauthorized">Jums neleidžiama prisijungti prie šio kambario</string>
     <string name="create_room">Sukurti kambarį</string>
     <string name="explore_rooms">Naršyti kambarius</string>
-    <string name="notice_direct_room_update_by_you">Jūs atnaujinote čia.</string>
     <string name="auth_reset_password_error_unverified">El. paštas nepatvirtintas, patikrinkite savo pašto dėžutę</string>
     <string name="auth_reset_password_error_unauthorized">Nepavyko patvirtinti el. pašto adreso: įsitikinkite, kad paspaudėte el. laiške esančią nuorodą</string>
     <string name="auth_recaptcha_message">Šis namų serveris norėtų įsitikinti, kad nesate robotas</string>
@@ -1304,7 +1301,6 @@
     <string name="room_permissions_enable_room_encryption">Įjungti kambario šifravimą</string>
     <string name="room_permissions_change_room_name">Keisti kambario pavadinimą</string>
     <string name="room_permissions_change_history_visibility">Keisti istorijos matomumą</string>
-    <string name="notice_direct_room_update">%s atnaujino čia.</string>
     <string name="login_a11y_captcha_container">Atlikite captcha iššūkį</string>
     <string name="login_a11y_choose_other">Pasirinkti pasirinktinį namų serverį</string>
     <string name="login_a11y_choose_modular">Pasirinkti Element Matrix Services</string>

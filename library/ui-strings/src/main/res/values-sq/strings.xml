@@ -39,7 +39,6 @@
     <string name="notice_display_name_removed">%1$s hoqi emrin e tij në ekran (%2$s)</string>
     <string name="notice_room_topic_removed">%1$s hoqi temën e dhomës</string>
     <string name="notice_room_third_party_invite">%1$s dërgoi një ftesë për %2$s që të marrë pjesë në dhomë</string>
-    <string name="notice_room_update">%s e përmirësoi këtë dhomë.</string>
     <string name="initial_sync_start_importing_account">Njëkohësimi fillestar:
 \nPo importohet llogaria…</string>
     <string name="initial_sync_start_importing_account_crypto">Njëkohësimi fillestar:
@@ -109,7 +108,6 @@
     <string name="notice_answered_call_by_you">Iu përgjigjët thirrjes.</string>
     <string name="notice_ended_call_by_you">E përfunduat thirrjen.</string>
     <string name="notice_made_future_room_visibility_by_you">E bëtë historikun e ardhshëm të dhomë të dukshëm për %1$s</string>
-    <string name="notice_room_update_by_you">Përmirësuat këtë dhomë.</string>
     <string name="notice_room_name_removed_by_you">Hoqët emrin e dhomës</string>
     <string name="notice_room_topic_removed_by_you">Hoqët temën e dhomës</string>
     <string name="notice_room_avatar_removed">%1$s hoqi avatarin e dhomës</string>
@@ -166,8 +164,6 @@
     <string name="notice_direct_room_third_party_revoked_invite">%1$s shfuqizoi ftesën për %2$s</string>
     <string name="notice_direct_room_third_party_invite_by_you">Ftuat %1$s</string>
     <string name="notice_direct_room_third_party_invite">%1$s ftoi %2$s</string>
-    <string name="notice_direct_room_update_by_you">U përmirësuat këtu.</string>
-    <string name="notice_direct_room_update">%s këtu u përmirësua.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">I bëtë mesazhet e ardhshëm të dukshëm për %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s i bëri mesazhet e ardhshëm të dukshëm për %2$s</string>
     <string name="notice_direct_room_leave_by_you">Dolët nga dhoma</string>

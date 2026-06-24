@@ -535,10 +535,6 @@
     <string name="notice_room_server_acl_set_banned">• Netþjónar sem samsvara %s eru bannaðir.</string>
     <string name="notice_room_server_acl_set_title_by_you">Þú stilltir ACL á netþjóni fyrir þessa spjallrás.</string>
     <string name="notice_room_server_acl_set_title">%s stillti ACL á netþjóni fyrir þessa spjallrás.</string>
-    <string name="notice_direct_room_update_by_you">Þú uppfærðir hér.</string>
-    <string name="notice_direct_room_update">%s uppfærði hér.</string>
-    <string name="notice_room_update_by_you">Þú uppfærðir þessa spjallrás.</string>
-    <string name="notice_room_update">%s uppfærði þessa spjallrás.</string>
     <string name="notice_made_future_direct_room_visibility">%1$s gerði skilaboð héðan í frá sýnileg fyrir %2$s</string>
     <string name="notice_made_future_room_visibility_by_you">Þú gerðir ferilskrá spjallrásar héðan í frá sýnilega fyrir %1$s</string>
     <string name="notice_ended_call_by_you">Þú laukst símtalinu.</string>

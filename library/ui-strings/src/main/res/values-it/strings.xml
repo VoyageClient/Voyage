@@ -54,7 +54,6 @@
 \nImportazione stanze abbandonate</string>
     <string name="initial_sync_start_importing_account_data">Sincronizzazione iniziale:
 \nImportazione dati account</string>
-    <string name="notice_room_update">%s ha aggiornato questa stanza.</string>
     <string name="event_status_sending_message">Invio messaggio in corso …</string>
     <string name="notice_room_third_party_revoked_invite">%1$s ha revocato l\'invito a %2$s per entrare alla stanza</string>
     <string name="notice_room_invite_no_invitee_with_reason">Invito di %1$s. Motivo: %2$s</string>
@@ -109,7 +108,6 @@
     <string name="notice_answered_call_by_you">Hai risposto alla chiamata.</string>
     <string name="notice_ended_call_by_you">Hai terminato la chiamata.</string>
     <string name="notice_made_future_room_visibility_by_you">Hai reso visibile la futura cronologia della stanza a %1$s</string>
-    <string name="notice_room_update_by_you">Hai aggiornato questa stanza.</string>
     <string name="notice_room_name_removed_by_you">Hai rimosso il nome della stanza</string>
     <string name="notice_room_topic_removed_by_you">Hai rimosso l\'argomento della stanza</string>
     <string name="notice_room_avatar_removed">%1$s ha rimosso l\'avatar della stanza</string>
@@ -166,8 +164,6 @@
     <string name="notice_direct_room_third_party_revoked_invite">%1$s ha revocato l\'invito a %2$s</string>
     <string name="notice_direct_room_third_party_invite_by_you">Hai invitato %1$s</string>
     <string name="notice_direct_room_third_party_invite">%1$s ha invitato %2$s</string>
-    <string name="notice_direct_room_update_by_you">Hai aggiornato la stanza.</string>
-    <string name="notice_direct_room_update">%s ha aggiornato la stanza.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Hai reso visibili i messaggi futuri a %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s ha reso visibili i messaggi futuri a %2$s</string>
     <string name="notice_direct_room_leave_by_you">Sei uscito/a dalla stanza</string>

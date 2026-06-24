@@ -54,7 +54,6 @@
 \nElhagyott szobák importálása</string>
     <string name="initial_sync_start_importing_account_data">Kiinduló szinkronizáció:
 \nFiók adatok importálása</string>
-    <string name="notice_room_update">%s fejlesztette ezt a szobát.</string>
     <string name="event_status_sending_message">Üzenet küldése…</string>
     <string name="notice_room_third_party_revoked_invite">%1$s visszavonta %2$s meghívóját, hogy csatlakozzon a szobához</string>
     <string name="notice_room_invite_no_invitee_with_reason">%1$s meghívója. Indok: %2$s</string>
@@ -129,9 +128,6 @@
     <string name="notice_room_avatar_removed">%1$s eltávolította a szoba profilképét</string>
     <string name="notice_room_topic_removed_by_you">Ön eltávolította a szoba témáját</string>
     <string name="notice_room_name_removed_by_you">Ön eltávolította a szoba nevét</string>
-    <string name="notice_direct_room_update_by_you">Ön fejlesztette ezt a szobát.</string>
-    <string name="notice_direct_room_update">%s fejlesztette a szobát.</string>
-    <string name="notice_room_update_by_you">Ön fejlesztette ezt a szobát.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Ön láthatóvá tette a jövőbeli üzeneteket %1$s</string>
     <string name="notice_made_future_room_visibility_by_you">Ön láthatóvá tette a jövőbeli szobaelőzményeket %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s láthatóvá tette a jövőbeli üzeneteket %2$s</string>

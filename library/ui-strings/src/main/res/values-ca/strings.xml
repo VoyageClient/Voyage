@@ -39,8 +39,6 @@
     <string name="room_displayname_room_invite">Invitació de sala</string>
     <string name="room_displayname_two_members">%1$s i %2$s</string>
     <string name="room_displayname_empty_room">Sala buida</string>
-    <string name="notice_direct_room_update">%s s\'ha actualitzat aquí.</string>
-    <string name="notice_direct_room_update_by_you">Ho has actualitzat aquí.</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">Has activat el xifrat d\'extrem a extrem (algorisme %1$s no reconegut).</string>
     <string name="notice_end_to_end_unknown_algorithm">%1$s ha activat el xifrat d\'extrem a extrem (algorisme %2$s no reconegut).</string>
     <string name="notice_end_to_end_ok_by_you">Has activat el xifrat d\'extrem a extrem.</string>
@@ -145,8 +143,6 @@
     <string name="notice_room_avatar_removed">%1$s ha eliminat la foto de la sala</string>
     <string name="notice_room_topic_removed_by_you">Has eliminat el tema de la sala</string>
     <string name="notice_room_name_removed_by_you">Has eliminat el nom de la sala</string>
-    <string name="notice_room_update_by_you">Has actualitzat aquesta sala.</string>
-    <string name="notice_room_update">%s ha actualitzat aquesta sala.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Has establert la visibilitat dels missatges futurs a %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s ha establert la visibilitat dels missatges futurs a %2$s</string>
     <string name="notice_made_future_room_visibility_by_you">Has establert la visibilitat de l\'històric de la sala (a partir d\'ara) a %1$s</string>

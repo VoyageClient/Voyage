@@ -70,10 +70,6 @@
     <string name="notice_room_server_acl_set_allowed">• Servidores con %s están permitidos.</string>
     <string name="notice_room_server_acl_set_title_by_you">Estableceches os ACLs do servidor para esta sala.</string>
     <string name="notice_room_server_acl_set_title">%s estableceu os ACLs do servidor para esta sala.</string>
-    <string name="notice_direct_room_update">%s actualizou aquí.</string>
-    <string name="notice_direct_room_update_by_you">Actualizaches aquí.</string>
-    <string name="notice_room_update_by_you">Actualizaches esta sala.</string>
-    <string name="notice_room_update">%s actualizou esta sala.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Fixeches visibles as mensaxes futuras para %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s fixo visibles as mensaxes futuras para %2$s</string>
     <string name="notice_made_future_room_visibility_by_you">Fixeches visible no futuro o historial da sala para %1$s</string>

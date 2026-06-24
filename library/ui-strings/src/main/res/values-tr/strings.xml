@@ -1124,11 +1124,8 @@
     <string name="notice_room_name_removed">%1$s oda ismini kaldırdı</string>
     <string name="notice_avatar_changed_too">(avatar da değiştirildi)</string>
     <string name="notice_room_server_acl_updated_no_change">Değişiklik yok.</string>
-    <string name="notice_room_update_by_you">Bu odayı geliştirdiniz.</string>
-    <string name="notice_room_update">%s bu odayı geliştirdi.</string>
     <string name="notice_widget_modified">%1$s %2$s widgetını düzenledi</string>
     <string name="notice_widget_removed">%1$s %2$s widgetını kaldırdı</string>
-    <string name="notice_direct_room_update">%s burada yükseltildi.</string>
     <string name="notice_room_visibility_world_readable">birisi.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Gelecek mesajları %1$s için görünür yaptınız.</string>
     <string name="notice_made_future_direct_room_visibility">%1$s, gelecek mesajları %2$s için görünür hale getirdi.</string>
@@ -1143,7 +1140,6 @@
     <string name="notice_room_server_acl_set_banned">• %s ile eşleşen sunucular yasaklandı.</string>
     <string name="notice_room_server_acl_set_title_by_you">Bu oda için sunucu EKL\'lerini ayarladınız.</string>
     <string name="notice_room_server_acl_set_title">%s bu oda için sunucu EKL\'lerini ayarladı.</string>
-    <string name="notice_direct_room_update_by_you">Burada yükselttiniz.</string>
     <string name="notice_room_visibility_joined">tüm oda üyeleri, katıldıkları andan itibaren.</string>
     <string name="notice_room_visibility_invited">tüm oda üyeleri, davet edildikleri andan itibaren.</string>
     <string name="room_settings_none">Hiçbiri</string>

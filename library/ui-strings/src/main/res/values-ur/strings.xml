@@ -54,8 +54,6 @@
     <string name="notice_display_name_changed_from_by_you">آپنے اپنا نمائشی نام %1$s سے %2$s پر بدلا ہے</string>
     <string name="notice_display_name_changed_to">%1$s نے اپنا نمائشی نام %2$s پر بدلا</string>
     <string name="notice_room_visibility_world_readable">کوئی بھی۔</string>
-    <string name="notice_room_update">%s نے کمرے کو ارتقاء دیا۔</string>
-    <string name="notice_room_update_by_you">آپنے کمرے کو ارتقاء دیا۔</string>
     <string name="notice_room_server_acl_updated_title_by_you">آپنے خادم کے ف۔ت۔ر (ACL) اس کمرے کیلئے بدل دئے۔</string>
     <string name="notice_room_topic_removed_by_you">آپنے کمرے کا موضوع ہٹا دیا</string>
     <string name="explore_rooms">کمرے دریافت کریں</string>
@@ -81,7 +79,6 @@
     <string name="notice_made_future_direct_room_visibility">%1$s نے مستقبلی پیغامات %2$s کیلئے مرئی بنائے</string>
     <string name="notice_made_future_direct_room_visibility_by_you">آپنے مستقبلی پیغامات %1$s کیلئے مرئی بنائے</string>
     <string name="notice_room_visibility_invited">کمرے کے تمام اراکین، جب سے انکو مدعو کیا گیا۔</string>
-    <string name="notice_direct_room_update">%s نے ادھر ارتقاء دیا۔</string>
     <string name="notice_room_server_acl_set_title">%s نے خادم کے ف۔ت۔ر (ACL) اس کمرے کیلئے مقرر کردئے۔</string>
     <string name="notice_room_server_acl_set_allowed">• %s سے مطابقہ خوادم اجازت یافتہ ہیں۔</string>
     <string name="notice_room_server_acl_set_ip_literals_allowed">• ج۔پ (IP) حرفیات سے مطابقہ خوادم اجازت یافتہ ہیں۔</string>
@@ -124,7 +121,6 @@
     <string name="notice_call_candidates">%s نے مکالمہ مرتب کرنے کیلئے بیانات بھیجے۔</string>
     <string name="notice_room_visibility_joined">کمرے کے تمام اراکین، جب سے وہ شامل ہوئے۔</string>
     <string name="notice_room_visibility_shared">کمرے کے تمام اراکین۔</string>
-    <string name="notice_direct_room_update_by_you">آپنے ادھر ارتقاء دیا۔</string>
     <string name="notice_room_server_acl_set_title_by_you">آپنے خادم کے ف۔ت۔ر (ACL) اس کمرے کیلئے مقرر کردئے۔</string>
     <string name="notice_room_server_acl_set_banned">• %s سے مطابقہ خوادم پر پابندی ہے۔</string>
     <string name="notice_room_server_acl_set_ip_literals_not_allowed">• ج۔پ (IP) حرفیات سے مطابقہ خوادم پر پابندی ہے۔</string>

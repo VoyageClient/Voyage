@@ -30,10 +30,6 @@
     <string name="notice_room_server_acl_set_banned">• %s ਨਾਲ ਮੇਲ ਖਾਂਦੇ ਸਰਵਰ ਪਬੰਦੀਸ਼ੁਦਾ ਹਨ।</string>
     <string name="notice_room_server_acl_set_title_by_you">ਤੁਸੀਂ ਇਸ ਥਾਂ ਲਈ ਸਰਵਰ ACL ਸੈੱਟ ਕੀਤੇ।</string>
     <string name="notice_room_server_acl_set_title">%s ਨੇ ਇਸ ਥਾਂ ਲਈ ਸਰਵਰ ACL ਸੈੱਟ ਕੀਤੇ।</string>
-    <string name="notice_direct_room_update_by_you">ਤੁਸੀਂ ਇੱਥੇ ਅੱਪਗ੍ਰੇਡ ਹੋਏ।</string>
-    <string name="notice_direct_room_update">%s ਨੇ ਇੱਥੇ ਅੱਪਗ੍ਰੇਡ ਕੀਤਾ।</string>
-    <string name="notice_room_update_by_you">ਤੁਸੀਂ ਇਸ ਥਾਂ ਨੂੰ ਅੱਪਗ੍ਰੇਡ ਕੀਤਾ।</string>
-    <string name="notice_room_update">%s ਨੇ ਇਸ ਥਾਂ ਨੂੰ ਅੱਪਗ੍ਰੇਡ ਕੀਤਾ।</string>
     <string name="notice_room_visibility_world_readable">ਕੋਈ ਵੀ।</string>
     <string name="notice_room_visibility_shared">ਥਾਂ ਦੇ ਸਾਰੇ ਜੀ।</string>
     <string name="notice_room_visibility_joined">ਥਾਂ ਦੇ ਸਾਰੇ ਜੀ, ਜਦੋਂ ਤੋਂ ਉਹ ਜੁੜੇ ਹਨ।</string>

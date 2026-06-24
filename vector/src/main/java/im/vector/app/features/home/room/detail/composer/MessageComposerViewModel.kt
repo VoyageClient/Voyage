@@ -71,6 +71,7 @@ import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
@@ -748,6 +749,9 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room)
                         }
+                        is ParsedCommand.Tombstone -> {
+                            handleTombstoneSlashCommand(room, parsedCommand)
+                        }
                         is ParsedCommand.JumpToDate -> {
                             val timestamp = parseJumpToDate(parsedCommand.date)
                             if (timestamp == null) {
@@ -1132,6 +1136,19 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handleChangeRoomNameSlashCommand(room: Room, changeRoomName: ParsedCommand.ChangeRoomName) {
         launchSlashCommandFlowSuspendable(room, changeRoomName) {
             room.stateService().updateName(changeRoomName.name)
+        }
+    }
+
+    private fun handleTombstoneSlashCommand(room: Room, tombstone: ParsedCommand.Tombstone) {
+        launchSlashCommandFlowSuspendable(room, tombstone) {
+            room.stateService().sendStateEvent(
+                    eventType = EventType.STATE_ROOM_TOMBSTONE,
+                    stateKey = "",
+                    body = RoomTombstoneContent(
+                            body = tombstone.body,
+                            replacementRoomId = tombstone.replacementRoomId
+                    ).toContent()
+            )
         }
     }
 

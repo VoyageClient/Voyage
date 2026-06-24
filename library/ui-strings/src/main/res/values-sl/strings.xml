@@ -67,11 +67,7 @@
     <string name="notice_room_invite_no_invitee">Povabilo uporabnika %s</string>
     <string name="notice_call_candidates">%s je poslal(a) podatke za začetek klica.</string>
     <string name="notice_call_candidates_by_you">Poslali ste podatke za začetek klica.</string>
-    <string name="notice_direct_room_update_by_you">Tu ste izvedli nadgradnjo.</string>
     <string name="notice_room_visibility_joined">vsi člani te sobe od trenutka ko so se pridružili.</string>
     <string name="notice_room_visibility_shared">vsi člani sobe.</string>
     <string name="notice_room_visibility_world_readable">kdorkoli.</string>
-    <string name="notice_room_update">%s je nadgradil to sobo.</string>
-    <string name="notice_room_update_by_you">Vi ste nadgradili to sobo.</string>
-    <string name="notice_direct_room_update">%s je tu izvedel(a) nadgradnjo.</string>
 </resources>

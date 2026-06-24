@@ -425,6 +425,28 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.UPGRADE_ROOM)
                     }
                 }
+                Command.TOMBSTONE.matches(slashCommand) -> {
+                    val args = messageParts.drop(1)
+                    val roomIdIndices = args.indices.filter { MatrixPatterns.isRoomId(args[it]) || MatrixPatterns.isRoomAlias(args[it]) }
+                    when {
+                        roomIdIndices.size > 1 -> ParsedCommand.ErrorSyntax(Command.TOMBSTONE)
+                        roomIdIndices.isEmpty() -> ParsedCommand.Tombstone(replacementRoomId = "", body = message.toString())
+                        else -> {
+                            val index = roomIdIndices.single()
+                            val before = args.subList(0, index)
+                            val after = args.subList(index + 1, args.size)
+                            // A replacement room must sit at one end so the reason stays a single run of text
+                            if (before.isNotEmpty() && after.isNotEmpty()) {
+                                ParsedCommand.ErrorSyntax(Command.TOMBSTONE)
+                            } else {
+                                ParsedCommand.Tombstone(
+                                        replacementRoomId = args[index],
+                                        body = (before + after).joinToString(" ")
+                                )
+                            }
+                        }
+                    }
+                }
                 Command.JUMP_TO_START.matches(slashCommand) -> {
                     ParsedCommand.JumpToStart
                 }

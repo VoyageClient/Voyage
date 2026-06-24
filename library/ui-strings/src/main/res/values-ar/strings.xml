@@ -64,8 +64,6 @@
     <string name="notice_answered_call_by_you">أجبتَ على المُكالمة.</string>
     <string name="notice_ended_call_by_you">أنهيتَ المُكالمة.</string>
     <string name="notice_made_future_room_visibility_by_you">لقدت جعلت الغرفة التي سيتم انشائها مرئيًا لـ %1$s</string>
-    <string name="notice_room_update">رقّى %s هذه الغرفة.</string>
-    <string name="notice_room_update_by_you">رقَّيتَ هذه الغرفة.</string>
     <string name="notice_room_name_removed_by_you">أزلتَ اسم الغُرفة</string>
     <string name="notice_room_topic_removed_by_you">أزلتَ موضوع الغُرفة</string>
     <string name="notice_room_avatar_removed">أزالَ %1$s صورة الغُرفة</string>
@@ -103,8 +101,6 @@
     <string name="notice_room_server_acl_set_ip_literals_allowed">الخوادِم المتطابقة من حيث بروتوكول الإنترنت (IP) المستخدم مسموحة.</string>
     <string name="notice_room_server_acl_set_title_by_you">لقد عيَّنت قائمة التحكم بالوصول لهذه الغُرفة.</string>
     <string name="notice_room_server_acl_set_title">عيَّنَ %s قائمة التحكم بالوصول لهذه الغرفة.</string>
-    <string name="notice_direct_room_update_by_you">رقيتَ هُنا.</string>
-    <string name="notice_direct_room_update">رقّى %s هُنا.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">جعلتَ الرسائل المُستقبلية مرئية لـ %1$s</string>
     <string name="notice_made_future_direct_room_visibility">جعلَ %1$s الرسائل المُستقبلية مرئية لـ %2$s</string>
     <string name="notice_direct_room_leave_by_you">غادرتَ الغرفة</string>

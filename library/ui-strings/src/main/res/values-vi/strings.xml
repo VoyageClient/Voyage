@@ -196,10 +196,6 @@
     <string name="notice_room_server_acl_set_banned">• Những máy chủ khớp với %s bị cấm.</string>
     <string name="notice_room_server_acl_set_title_by_you">Bạn đã đặt danh sách máy chủ truy cập cho phòng này.</string>
     <string name="notice_room_server_acl_set_title">%s đã đặt danh sách máy chủ truy cập cho phòng này.</string>
-    <string name="notice_direct_room_update_by_you">Bạn đã nâng cấp ở đây.</string>
-    <string name="notice_direct_room_update">%s đã nâng cấp ở đây.</string>
-    <string name="notice_room_update_by_you">Bạn đã nâng cấp phòng này.</string>
-    <string name="notice_room_update">%s đã nâng cấp phòng này.</string>
     <string name="notice_room_visibility_world_readable">bất kỳ ai.</string>
     <string name="notice_room_visibility_shared">tất cả thành viên phòng.</string>
     <string name="notice_room_visibility_joined">tất cả thành viên phòng, từ lúc họ tham gia.</string>

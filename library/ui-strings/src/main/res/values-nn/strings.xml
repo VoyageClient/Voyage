@@ -39,7 +39,6 @@
     <string name="room_displayname_room_invite">Rominnbjoding</string>
     <string name="room_displayname_two_members">%1$s og %2$s</string>
     <string name="room_displayname_empty_room">Tomt rom</string>
-    <string name="notice_room_update">%s oppgraderte rommet.</string>
     <string name="notice_room_leave_with_reason">%1$s forlot rommet. Grunn: %2$s</string>
     <string name="light_theme">Lyst tema</string>
     <string name="dark_theme">Mørkt tema</string>

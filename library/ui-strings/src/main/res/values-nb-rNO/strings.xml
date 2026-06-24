@@ -1071,8 +1071,6 @@
     <string name="notice_room_third_party_registered_invite_by_you">Du godtok invitasjonen til %1$s</string>
     <string name="notice_direct_room_third_party_invite_by_you">Du inviterte %1$s</string>
     <string name="notice_avatar_changed_too">(avatar ble også endret)</string>
-    <string name="notice_room_update_by_you">Du oppgraderte dette rommet.</string>
-    <string name="notice_room_update">%s oppgraderte dette rommet.</string>
     <string name="notice_made_future_room_visibility_by_you">Du gjorde fremtidig romhistorie synlig for %1$s</string>
     <string name="notice_made_future_room_visibility">%1$s synliggjort fremtidig romhistorie for %2$s</string>
     <string name="notice_ended_call_by_you">Du avsluttet anropet.</string>

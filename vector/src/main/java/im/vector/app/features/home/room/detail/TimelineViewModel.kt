@@ -243,6 +243,7 @@ class TimelineViewModel @AssistedInject constructor(
         timeline.addListener(this)
         observeMembershipChanges()
         observeSummaryState()
+        observeTombstoneState()
         getUnreadState()
         observeSyncState()
         observeDataStore()
@@ -732,7 +733,7 @@ private fun handleSelectStickerAttachment() {
         val isRoomJoined = session.getRoom(roomId)?.roomSummary()?.membership == Membership.JOIN
         if (isRoomJoined) {
             setState { copy(joinUpgradedRoomAsync = Success(roomId)) }
-            _viewEvents.post(RoomDetailViewEvents.OpenRoom(roomId, closeCurrentRoom = true))
+            _viewEvents.post(RoomDetailViewEvents.OpenRoom(roomId, closeCurrentRoom = false))
         } else {
             val viaServers = MatrixPatterns.extractServerNameFromId(state.tombstoneEvent.senderId)
                     ?.let { listOf(it) }
@@ -751,7 +752,7 @@ private fun handleSelectStickerAttachment() {
                     copy(joinUpgradedRoomAsync = result)
                 }
                 if (result is Success) {
-                    _viewEvents.post(RoomDetailViewEvents.OpenRoom(roomId, closeCurrentRoom = true))
+                    _viewEvents.post(RoomDetailViewEvents.OpenRoom(roomId, closeCurrentRoom = false))
                 }
             }
         }
@@ -1383,10 +1384,14 @@ private fun handleSelectStickerAttachment() {
                     setState { copy(asyncInviter = Success(it)) }
                 }
             }
-            room.getStateEvent(EventType.STATE_ROOM_TOMBSTONE, QueryStringValue.IsEmpty)?.also {
-                setState { copy(tombstoneEvent = it) }
-            }
         }
+    }
+
+    private fun observeTombstoneState() {
+        if (room == null) return
+        room.flow()
+                .liveStateEvent(EventType.STATE_ROOM_TOMBSTONE, QueryStringValue.IsEmpty)
+                .setOnEach { copy(tombstoneEvent = it.getOrNull()) }
     }
 
     /**

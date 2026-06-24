@@ -39,7 +39,6 @@
     <string name="notice_room_third_party_invite">%1$s wysłał(a) zaproszenie do %2$s aby dołączył(a) do tego pokoju</string>
     <string name="notice_room_third_party_registered_invite">%1$s zaakceptował(a) zaproszenie dla %2$s</string>
     <string name="notice_crypto_error_unknown_inbound_session_id">Urządzenie nadawcy nie wysłało nam kluczy do tej wiadomości.</string>
-    <string name="notice_room_update">%s zaktualizował(a) ten pokój.</string>
     <string name="initial_sync_start_importing_account">Wstępna synchronizacja:
 \nImportowanie konta…</string>
     <string name="initial_sync_start_importing_account_crypto">Wstępna synchronizacja:
@@ -1599,9 +1598,6 @@
     <string name="notice_room_server_acl_set_allowed">• Dopasowanie serwerów %s jest dozwolone.</string>
     <string name="notice_room_server_acl_set_title_by_you">Ustawiłeś serwer ACL dla tego pokoju.</string>
     <string name="notice_room_server_acl_set_title">%s ustawił(a) serwer ACL dla tego pokoju.</string>
-    <string name="notice_direct_room_update_by_you">Uaktualniłeś tutaj.</string>
-    <string name="notice_direct_room_update">%s uaktualnił(a) tutaj.</string>
-    <string name="notice_room_update_by_you">Uaktualniłeś ten pokój.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Ustawiłeś przyszłe wiadomości widoczne dla %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s ustawił przyszłe wiadomości widoczne dla %2$s</string>
     <string name="notice_made_future_room_visibility_by_you">Udostępniłeś przyszłą historię pokoju dla %1$s</string>

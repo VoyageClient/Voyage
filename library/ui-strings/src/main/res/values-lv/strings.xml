@@ -1272,8 +1272,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="notice_room_server_acl_set_banned">• Serveri, kuri atbilst %s ir nobanoti.</string>
     <string name="notice_room_server_acl_set_title_by_you">Tu šai istabai iestatīji servera ACL.</string>
     <string name="notice_room_server_acl_set_title">%s iestatīja servera ACL šai istabai.</string>
-    <string name="notice_direct_room_update_by_you">Tu atjaunināji šeit.</string>
-    <string name="notice_direct_room_update">%s atjaunināti šeit.</string>
     <string name="system_alerts_header">Sistēmas brīdinājumi</string>
     <string name="action_unpublish">Nepublicēt</string>
     <string name="call_notification_hangup">Nolikt</string>
@@ -1435,8 +1433,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="sign_out_bottom_sheet_warning_no_backup">Tu zaudēsi savas šifrētās ziņas, ja tagad atteiksies</string>
     <string name="title_activity_keys_backup_restore">Izmantot Atslēgu Dublējumu</string>
     <string name="title_activity_keys_backup_setup">Atslēgu rezerves kopija</string>
-    <string name="notice_room_update_by_you">Tu atjaunināji šo istabu.</string>
-    <string name="notice_room_update">%s atjaunināja šo istabu.</string>
     <string name="recovery_passphrase">Atkopšanas paroles vārdkopa</string>
     <string name="e2e_use_keybackup">Atbloķēt šifrēto ziņu vēsturi</string>
     <string name="login_default_session_public_name">${app_name} Android</string>

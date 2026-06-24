@@ -369,7 +369,6 @@
     <string name="notice_placed_video_call_by_you">Έχετε ξεκινήσει μία βιντεοκλήση.</string>
     <string name="notice_made_future_room_visibility_by_you">Το μελλοντικό ιστορικό του δωματίου θα είναι εμφανή στο χρήστη %1$s</string>
     <string name="notice_placed_voice_call_by_you">Έχετε ξεκινησει μία κλήση.</string>
-    <string name="notice_room_update">Ο χρήστης %s αναβάθμισε αυτό το δωμάτιο.</string>
     <string name="notice_room_server_acl_set_banned">Η εύρεση server που περιλαμβάνει %s είναι απεκλεισμένη.</string>
     <string name="notice_room_server_acl_updated_banned">"•  Οι servers οπού περιλαμβάνουν %s είναι τώρα απεκλεισμένοι."</string>
     <string name="qr_code_login_confirm_security_code">Επιβεβαίωση</string>
@@ -383,9 +382,6 @@
     <string name="notice_call_candidates_by_you">Απέστειλες δεδομένα ώστε να ξεκινήσει η κλήση.</string>
     <string name="notice_answered_call_by_you">Απάντησες στην κλήση.</string>
     <string name="notice_made_future_direct_room_visibility">Ο χρήστης %1$s έκανε τα μελλοντικά μηνύματα διαθέσιμα στον χρήστη %2$s</string>
-    <string name="notice_room_update_by_you">Έχετε αναβαθμίσει αυτό το δωμάτιο.</string>
-    <string name="notice_direct_room_update">%s αναβαθμίστηκε εδώ.</string>
-    <string name="notice_direct_room_update_by_you">Αναβαθμίστηκες εδώ.</string>
     <string name="notice_room_server_acl_set_title">%s όρισε τα ACLs αυτού του server σε αυτό το δωμάτιο.</string>
     <string name="notice_room_server_acl_set_title_by_you">Έχεις ορίσει το ACL του server για αυτό το δωμάτιο.</string>
     <string name="notice_room_server_acl_set_ip_literals_not_allowed">"•  Οι servers που περιλαμβάνονται αυτή την IP είναι απεκλεισμένοι."</string>

@@ -54,7 +54,6 @@
 \nИмпортиране на стаи, които съм напуснал</string>
     <string name="initial_sync_start_importing_account_data">Начална синхронизация.
 \nИмпортиране на данни за профила</string>
-    <string name="notice_room_update">%s обнови тази стая.</string>
     <string name="event_status_sending_message">Изпращане на съобщение…</string>
     <string name="notice_room_third_party_revoked_invite">%1$s оттегли поканата за присъединяване на %2$s към стаята</string>
     <string name="notice_room_invite_no_invitee_with_reason">поканата на %1$s. Причина: %2$s</string>
@@ -149,9 +148,6 @@
     <string name="notice_room_avatar_removed">%1$s премахна снимката на стаята</string>
     <string name="notice_room_topic_removed_by_you">Премахнахте темата на стаята</string>
     <string name="notice_room_name_removed_by_you">Премахнахте името на стаята</string>
-    <string name="notice_direct_room_update_by_you">Обновихте чата.</string>
-    <string name="notice_direct_room_update">%s обнови чата.</string>
-    <string name="notice_room_update_by_you">Обновихте стаята.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Направихте бъдещите съобщения видими за %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s направи бъдещите съобщения видими за %2$s</string>
     <string name="notice_made_future_room_visibility_by_you">Направихте бъдещата история на стаята видима за %1$s</string>

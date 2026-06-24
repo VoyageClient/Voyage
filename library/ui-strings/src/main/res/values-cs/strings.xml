@@ -39,7 +39,6 @@
     <string name="room_displayname_room_invite">Pozvání do místnosti</string>
     <string name="room_displayname_two_members">%1$s a %2$s</string>
     <string name="room_displayname_empty_room">Prázdná místnost</string>
-    <string name="notice_room_update">%s aktualizoval(a) tuto místnost.</string>
     <string name="notice_room_third_party_revoked_invite">%1$s zrušil(a) pozvánku do místnosti pro %2$s</string>
     <string name="initial_sync_start_importing_account">Úvodní synchronizace:
 \nImportuji účet…</string>
@@ -86,7 +85,6 @@
     <string name="notice_answered_call_by_you">Přijali jste hovor.</string>
     <string name="notice_ended_call_by_you">Ukončili jste hovor.</string>
     <string name="notice_made_future_room_visibility_by_you">Zpřístupnili jste budoucí historii místnosti pro %1$s</string>
-    <string name="notice_room_update_by_you">Aktualizovali jste tuto místnost.</string>
     <string name="notice_room_name_removed_by_you">Odstranili jste jméno místnosti</string>
     <string name="notice_room_topic_removed_by_you">Odstranili jste téma místnosti</string>
     <string name="notice_room_avatar_removed">%1$s odstranili obrázek místnosti</string>
@@ -170,8 +168,6 @@
     <string name="notice_direct_room_third_party_revoked_invite">%1$s zrušili pozvání pro %2$s</string>
     <string name="notice_direct_room_third_party_invite_by_you">Pozvali jste %1$s</string>
     <string name="notice_direct_room_third_party_invite">%1$s pozvali %2$s</string>
-    <string name="notice_direct_room_update_by_you">Provedli jste zde aktualizaci.</string>
-    <string name="notice_direct_room_update">%s zde provedl(a) aktualizaci.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Zpřístupnili jste budoucí zprávy pro %1$s</string>
     <string name="notice_made_future_direct_room_visibility">%1$s zpřístupnil(a) budoucí zprávy pro %2$s</string>
     <string name="notice_direct_room_leave_by_you">Odešli jste z místnosti</string>

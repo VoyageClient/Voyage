@@ -54,7 +54,6 @@
 \nVerlaten kamers worden geïmporteerd</string>
     <string name="initial_sync_start_importing_account_data">Initiële synchronisatie:
 \nAccountgegevens worden geïmporteerd</string>
-    <string name="notice_room_update">%s heeft deze kamer geüpgraded.</string>
     <string name="event_status_sending_message">Bericht wordt verstuurd…</string>
     <string name="notice_room_third_party_revoked_invite">%1$s heeft de uitnodiging voor %2$s om deelnemer te worden van de kamer ingetrokken</string>
     <string name="notice_room_invite_no_invitee_with_reason">Uitnodiging van %1$s. Reden: %2$s</string>
@@ -817,7 +816,6 @@
     <string name="notice_room_avatar_removed">%1$s heeft de kameravatar verwijderd</string>
     <string name="notice_room_topic_removed_by_you">Je hebt het kameronderwerp verwijderd</string>
     <string name="notice_room_name_removed_by_you">Je hebt de kamernaam verwijderd</string>
-    <string name="notice_room_update_by_you">Je hebt de kamer geüpgraded.</string>
     <string name="notice_call_candidates_by_you">Je verstuurde data om het gesprek op te zetten.</string>
     <string name="notice_call_candidates">%s verstuurde data om het gesprek op te zetten.</string>
     <string name="notice_placed_voice_call_by_you">Je hebt een audiogesprek geopend.</string>
@@ -873,8 +871,6 @@
     <string name="notice_room_server_acl_updated_banned">• Servers die overeenkomen met %s zijn nu verbannen.</string>
     <string name="notice_room_server_acl_set_allowed">• Servers die overeenkomen met %s zijn toegestaan.</string>
     <string name="notice_room_server_acl_set_banned">• Servers die overeenkomen met %s zijn verbannen.</string>
-    <string name="notice_direct_room_update_by_you">Je hebt hier geüpgraded.</string>
-    <string name="notice_direct_room_update">%s heeft hier geüpgraded.</string>
     <string name="notice_made_future_room_visibility_by_you">Je hebt toekomstige kamergeschiedenis zichtbaar gemaakt voor %1$s</string>
     <string name="voice_message_n_seconds_warning_toast">%1$ds over</string>
     <string name="direct_room_created_summary_item">%s is toegetreden.</string>

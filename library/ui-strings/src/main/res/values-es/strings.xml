@@ -56,7 +56,6 @@
     <string name="notice_room_ban_with_reason">%1$s ha baneado a %2$s. Razón: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s ha aceptado la invitación para %2$s. Razón: %3$s</string>
     <string name="notice_room_canonical_alias_unset">%1$s ha eliminado la dirección principal para esta sala.</string>
-    <string name="notice_room_update">%s ha actualizado la sala.</string>
     <string name="initial_sync_start_importing_account_crypto">Sincronización inicial:
 \nImportando criptografía</string>
     <string name="initial_sync_start_importing_account_joined_rooms">Sincronización Inicial:
@@ -108,7 +107,6 @@
     <string name="notice_answered_call_by_you">Respondiste la llamada.</string>
     <string name="notice_ended_call_by_you">Terminaste la llamada.</string>
     <string name="notice_made_future_room_visibility_by_you">Hiciste visible el futuro historial de la %1$s</string>
-    <string name="notice_room_update_by_you">Has actualizado esta sala.</string>
     <string name="notice_room_name_removed_by_you">Quitaste el nombre de la sala</string>
     <string name="notice_room_topic_removed_by_you">Quitaste el tema de la sala</string>
     <string name="notice_room_avatar_removed">%1$s eliminó el avatar de la sala</string>
@@ -159,7 +157,6 @@
     <string name="notice_direct_room_leave_with_reason_by_you">Te has ido. Razón: %1$s</string>
     <string name="notice_direct_room_third_party_revoked_invite_by_you">Has revocado la invitación de %1$s</string>
     <string name="notice_direct_room_third_party_invite_by_you">Has invitado a %1$s</string>
-    <string name="notice_direct_room_update_by_you">Has actualizado aquí.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">Has hecho futuros mensajes visibles a %1$s</string>
     <string name="notice_direct_room_leave_by_you">Has dejado la sala</string>
     <string name="notice_direct_room_join_by_you">Te uniste</string>
@@ -171,7 +168,6 @@
     <string name="notice_direct_room_join_with_reason">%1$s se ha unido. Razón: %2$s</string>
     <string name="notice_direct_room_third_party_revoked_invite">%1$s ha revocado la invitación de %2$s</string>
     <string name="notice_direct_room_third_party_invite">%1$s ha invitado %2$s</string>
-    <string name="notice_direct_room_update">%s ha actualizado aquí.</string>
     <string name="notice_made_future_direct_room_visibility">%1$s ha hecho futuros mensajes visibles a %2$s</string>
     <string name="notice_direct_room_leave">%1$s ha salido de la sala</string>
     <string name="notice_direct_room_join">%1$s se ha unido</string>

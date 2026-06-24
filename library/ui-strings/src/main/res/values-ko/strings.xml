@@ -25,7 +25,6 @@
     <string name="notice_room_visibility_joined">방 참여자 모두, 다만 들어온 시점부터.</string>
     <string name="notice_room_visibility_shared">방 참여자 모두.</string>
     <string name="notice_room_visibility_world_readable">누구나.</string>
-    <string name="notice_room_update">%s님이 방을 업그레이드했습니다.</string>
     <string name="notice_avatar_changed_too">(아바타도 변경됨)</string>
     <string name="notice_room_name_removed">%1$s님이 방 이름을 삭제했습니다</string>
     <string name="notice_room_topic_removed">%1$s님이 방 주제를 삭제했습니다</string>
@@ -897,9 +896,6 @@
     <string name="notice_display_name_changed_from_by_you">표시 이름을 %1$s에서 %2$s(으)로 변경했습니다</string>
     <string name="notice_room_server_acl_set_title_by_you">서버 접근제어목록을 설정했습니다.</string>
     <string name="notice_room_server_acl_set_title">%s님이 서버 접근제어목록을 설정했습니다.</string>
-    <string name="notice_direct_room_update_by_you">이곳을 업그레이드했습니다.</string>
-    <string name="notice_direct_room_update">%s님이 이곳을 업그레이드했습니다.</string>
-    <string name="notice_room_update_by_you">방을 업그레이드했습니다.</string>
     <string name="notice_made_future_direct_room_visibility_by_you">이 시점 이후 메시지를 %1$s님이 볼 수 있도록 공개했습니다</string>
     <string name="notice_made_future_direct_room_visibility">%1$s님이 이 시점 이후 메시지를 %2$s님이 볼 수 있도록 공개했습니다</string>
     <string name="notice_made_future_room_visibility_by_you">이 시점 이후 방 기록을 %1$s님이 볼 수 있도록 공개했습니다</string>

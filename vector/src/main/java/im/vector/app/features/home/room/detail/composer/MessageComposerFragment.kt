@@ -257,9 +257,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     override fun invalidate() = withState(
             timelineViewModel, messageComposerViewModel, attachmentViewModel
-    ) { mainState, messageComposerState, _ ->
-        if (mainState.tombstoneEvent != null) return@withState
-
+    ) { _, messageComposerState, _ ->
         (composer as? View)?.isVisible = messageComposerState.isComposerVisible
         val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() &&
                 messageComposerState.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Recording

@@ -85,7 +85,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_ENCRYPTION -> formatRoomEncryptionEvent(event, senderName)
             EventType.STATE_ROOM_WIDGET,
             EventType.STATE_ROOM_WIDGET_LEGACY -> formatWidgetEvent(event, senderName)
-            EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName, isDm)
+            EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName)
             EventType.STATE_ROOM_POWER_LEVELS -> formatRoomPowerLevels(event, senderName)
             EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
             EventType.CALL_INVITE,
@@ -195,7 +195,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.CALL_HANGUP,
             EventType.CALL_REJECT,
             EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
-            EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName, isDm)
+            EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName)
             EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
             VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
             else -> {
@@ -269,13 +269,12 @@ class NoticeEventFormatter @Inject constructor(
         }
     }
 
-    private fun formatRoomTombstoneEvent(event: Event, senderName: String?, isDm: Boolean): CharSequence? {
-        return if (event.isSentByCurrentUser()) {
-            sp.getString(if (isDm) CommonStrings.notice_direct_room_update_by_you else CommonStrings.notice_room_update_by_you)
-        } else {
-            sp.getString(if (isDm) CommonStrings.notice_direct_room_update else CommonStrings.notice_room_update, senderName)
-        }
-    }
+    private fun formatRoomTombstoneEvent(event: Event, senderName: String?): CharSequence? =
+            if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_room_update_by_you)
+            } else {
+                sp.getString(CommonStrings.notice_room_update, senderName)
+            }
 
     private fun formatRoomTopicEvent(event: Event, senderName: String?): CharSequence? {
         val content = event.content.toModel<RoomTopicContent>() ?: return null

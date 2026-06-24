@@ -440,10 +440,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="notice_room_server_acl_set_banned">• Server yang cocok dengan %s dilarangkan.</string>
     <string name="notice_room_server_acl_set_title_by_you">Anda mengatur ACL server untuk ruangan ini.</string>
     <string name="notice_room_server_acl_set_title">%s mengatur ACL server untuk ruangan ini.</string>
-    <string name="notice_direct_room_update_by_you">Anda meningkatkan di sini.</string>
-    <string name="notice_direct_room_update">%s meningkatkan di sini.</string>
-    <string name="notice_room_update_by_you">Anda meningkatkan ruangan ini.</string>
-    <string name="notice_room_update">%s meningkatkan ruangan ini.</string>
     <string name="notice_room_visibility_world_readable">siapa saja.</string>
     <string name="notice_room_visibility_shared">semua anggota ruangan.</string>
     <string name="notice_room_visibility_joined">semua anggota ruangan, sejak mereka bergabung.</string>

@@ -186,6 +186,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
@@ -204,6 +205,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachme
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
+import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -829,13 +831,29 @@ class TimelineFragment :
 
     private fun setupNotificationView() {
         views.notificationAreaView.delegate = object : NotificationAreaView.Delegate {
-            override fun onTombstoneEventClicked() {
-                timelineViewModel.handle(RoomDetailAction.JoinAndOpenReplacementRoom)
-            }
-
             override fun onMisconfiguredEncryptionClicked() {
                 timelineViewModel.handle(RoomDetailAction.OnClickMisconfiguredEncryption)
             }
+        }
+    }
+
+    private fun renderTombstoneBanner(tombstoneEvent: Event?) {
+        if (tombstoneEvent == null) {
+            views.tombstoneBanner.isVisible = false
+            return
+        }
+        val replacementRoomId = tombstoneEvent.getClearContent().toModel<RoomTombstoneContent>()?.replacementRoomId
+        views.tombstoneBanner.isVisible = true
+        views.tombstoneBannerText.setText(
+                if (replacementRoomId.isNullOrEmpty()) {
+                    CommonStrings.room_tombstone_banner_message
+                } else {
+                    CommonStrings.room_tombstone_banner_message_with_replacement
+                }
+        )
+        views.tombstoneBannerJoinButton.isVisible = !replacementRoomId.isNullOrEmpty()
+        views.tombstoneBannerJoinButton.debouncedClicks {
+            timelineViewModel.handle(RoomDetailAction.JoinAndOpenReplacementRoom)
         }
     }
 
@@ -1188,28 +1206,24 @@ class TimelineFragment :
             timelineEventController.update(mainState)
             lazyLoadedViews.inviteView(false)?.isVisible = false
 
-            if (mainState.tombstoneEvent == null) {
-                views.composerContainer.isInvisible = !messageComposerState.isComposerVisible
-                views.voiceMessageRecorderContainer.isVisible =
-                        messageComposerState.isVoiceMessageRecorderVisible && vectorPreferences.isVoiceMessageButtonEnabled()
-                syncVoiceRecorderStackMargin(messageComposerState)
-                when (messageComposerState.canSendMessage) {
-                    CanSendStatus.Allowed -> {
-                        NotificationAreaView.State.Hidden
-                    }
-                    CanSendStatus.NoPermission -> {
-                        NotificationAreaView.State.NoPermissionToPost
-                    }
-                    is CanSendStatus.UnSupportedE2eAlgorithm -> {
-                        NotificationAreaView.State.UnsupportedAlgorithm(mainState.isAllowedToSetupEncryption)
-                    }
-                }.let {
-                    views.notificationAreaView.render(it)
+            views.composerContainer.isInvisible = !messageComposerState.isComposerVisible
+            views.voiceMessageRecorderContainer.isVisible =
+                    messageComposerState.isVoiceMessageRecorderVisible && vectorPreferences.isVoiceMessageButtonEnabled()
+            syncVoiceRecorderStackMargin(messageComposerState)
+            when (messageComposerState.canSendMessage) {
+                CanSendStatus.Allowed -> {
+                    NotificationAreaView.State.Hidden
                 }
-            } else {
-                views.hideComposerViews()
-                views.notificationAreaView.render(NotificationAreaView.State.Tombstone(mainState.tombstoneEvent))
+                CanSendStatus.NoPermission -> {
+                    NotificationAreaView.State.NoPermissionToPost
+                }
+                is CanSendStatus.UnSupportedE2eAlgorithm -> {
+                    NotificationAreaView.State.UnsupportedAlgorithm(mainState.isAllowedToSetupEncryption)
+                }
+            }.let {
+                views.notificationAreaView.render(it)
             }
+            renderTombstoneBanner(mainState.tombstoneEvent)
 
             if (summary.isDirect && summary.isEncrypted && summary.joinedMembersCount == 1 && summary.invitedMembersCount == 0) {
                 views.hideComposerViews()

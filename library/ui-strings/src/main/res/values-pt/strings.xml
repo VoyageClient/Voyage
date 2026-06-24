@@ -39,7 +39,6 @@
     <string name="room_displayname_room_invite">Convite para sala</string>
     <string name="room_displayname_two_members">%1$s e %2$s</string>
     <string name="room_displayname_empty_room">Sala vazia</string>
-    <string name="notice_room_update">%s fez o upgrade da sala.</string>
     <string name="title_activity_settings">Definições</string>
     <string name="ok">OK</string>
     <string name="action_cancel">Cancelar</string>

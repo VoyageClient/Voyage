@@ -122,8 +122,6 @@
     <string name="notice_room_server_acl_set_allowed">• Servers dy’t oerienkomme mei %s binne tastien.</string>
     <string name="notice_room_server_acl_set_title_by_you">Jo hawwe de ACL’s foar dizze keamer ynsteld.</string>
     <string name="notice_room_server_acl_set_title">%s hat de ACL’s foar dizze keamer ynsteld.</string>
-    <string name="notice_room_update_by_you">Jo hawwe dizze keamer opwurdearre.</string>
-    <string name="notice_room_update">%s hat dizze keamer opwurdearre.</string>
     <string name="notice_room_visibility_shared">alle dielnimmers oan it petear.</string>
     <string name="notice_room_visibility_joined">alle dielnimmers, fan it momint ôf dat se de keamer ynkaam binne.</string>
     <string name="notice_room_visibility_invited">alle dielnimmers oan it petear, fan it momint ôf dat se útnûge binne.</string>
@@ -306,8 +304,6 @@
     <string name="notice_room_name_removed">%1$s hat de petearnamme fuortsmiten</string>
     <string name="notice_room_remove_with_reason">%1$s hat %2$s der útskopt. Reden: %3$s</string>
     <string name="notice_room_remove_with_reason_by_you">Jo hawwe %1$s der útskopt. Reden: %2$s</string>
-    <string name="notice_direct_room_update_by_you">Jo hawwe hjir bywurke.</string>
-    <string name="notice_direct_room_update">%s is hjir fernijd.</string>
     <string name="notice_placed_voice_call_by_you">Jo hawwe in audiopetear iepene.</string>
     <string name="choose_locale_loading_locales">Beskikbere talen ophelje…</string>
     <string name="choose_locale_other_locales_title">Oare beskikbere talen</string>
