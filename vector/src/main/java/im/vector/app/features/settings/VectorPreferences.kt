@@ -1135,7 +1135,7 @@ class VectorPreferences @Inject constructor(
     }
 
     fun prefSpacesShowAllRoomInHome(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_PREF_SPACE_SHOW_ALL_ROOM_IN_HOME, false)
+        return defaultPrefs.getBoolean(SETTINGS_PREF_SPACE_SHOW_ALL_ROOM_IN_HOME, true)
     }
 
     /*
