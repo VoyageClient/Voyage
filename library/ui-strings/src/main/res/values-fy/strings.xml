@@ -400,7 +400,6 @@
     <string name="room_alias_local_address_title">Lokaal adres</string>
     <string name="room_settings_room_access_private_title">Privee</string>
     <string name="room_settings_room_access_public_title">Iepenbier</string>
-    <string name="room_settings_room_access_entry_knock">Elkenien kin by dizze keamer oanklopje, leden kinne dan akseptearje of wegerje</string>
     <string name="no_ignored_users">Jo hawwe gjin brûkers negearre</string>
     <string name="settings_ignored_users">Negearre brûkers</string>
     <string name="preference_voice_and_video">Stim &amp; fideo</string>

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.list
 
+import android.content.res.ColorStateList
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewGroup
@@ -15,10 +16,12 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import com.google.android.material.button.MaterialButton
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -47,6 +50,7 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
 
     @EpoxyAttribute var buttonLabel: String? = null
     @EpoxyAttribute var errorLabel: String? = null
+    @EpoxyAttribute var destructiveButton: Boolean = false
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var itemLongClickListener: View.OnLongClickListener? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var itemClickListener: ClickListener? = null
@@ -55,6 +59,8 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.rootView.onClick(itemClickListener)
+        holder.rootView.isClickable = itemClickListener != null
+        holder.rootView.isLongClickable = itemLongClickListener != null
         holder.rootView.setOnLongClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             itemLongClickListener?.onLongClick(it) ?: false
@@ -84,6 +90,14 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
 
         holder.suggestedTag.visibility = if (suggested) View.VISIBLE else View.GONE
         holder.joinButton.text = buttonLabel
+        if (destructiveButton) {
+            val errorColor = ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorError)
+            holder.joinButton.setTextColor(errorColor)
+            (holder.joinButton as? MaterialButton)?.apply {
+                strokeColor = ColorStateList.valueOf(errorColor)
+                rippleColor = ColorStateList.valueOf(ColorUtils.setAlphaComponent(errorColor, 0x33))
+            }
+        }
 
         if (loading) {
             holder.joinButtonLoading.isVisible = true

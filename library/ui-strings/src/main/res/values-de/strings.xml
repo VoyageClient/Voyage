@@ -1855,7 +1855,6 @@
     <string name="room_settings_guest_access_title">Gästen erlauben beizutreten</string>
     <string name="suggested_header">Vorgeschlagene Räume</string>
     <string name="spaces_header">Spaces</string>
-    <string name="room_settings_room_access_entry_knock">Jeder kann im Raum anklopfen, Mitglieder können dann zustimmen oder ablehnen</string>
     <string name="invite_people_to_your_space_desc">Momentan bist nur du hier. Mit anderen Leuten wird %s noch viel besser.</string>
     <string name="invite_to_space_with_name_desc">Sie wird in der Lage sein, %s zu durchsuchen</string>
     <string name="invite_just_to_this_room_desc">Sie wird kein Teil von %s sein</string>

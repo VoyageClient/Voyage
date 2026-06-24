@@ -1735,7 +1735,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_settings_room_access_private_description">Tikai ielūgtās personas var atrast un pievienoties</string>
     <string name="room_settings_room_access_private_invite_only_title">Privāts (tikai ielūgumiem)</string>
     <string name="room_settings_room_access_entry_unknown">Nav zināmi piekļuves iestatījumi (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Ikviens var pieklauvēt istabai, dalībnieki var tad pieņemt vai noraidīt</string>
     <string name="room_alias_publish_to_directory_error">Nav iespējams iegūt pašreizējās telpas direktorija redzamību (%1$s).</string>
     <string name="space_settings_alias_subtitle">Skati un pārvaldi adreses šajā vietā.</string>
     <string name="room_settings_access_rules_pref_dialog_title">Kurš var piekļūt\?</string>

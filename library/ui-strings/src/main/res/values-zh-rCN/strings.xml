@@ -1875,7 +1875,6 @@
     <string name="room_settings_room_access_private_description">仅有被邀请的人才能找到并加入</string>
     <string name="room_settings_room_access_private_title">私有</string>
     <string name="room_settings_room_access_entry_unknown">未知的访问设置（%s）</string>
-    <string name="room_settings_room_access_entry_knock">任何人都可以要求加入房间，成员可以接受或拒绝</string>
     <string name="room_settings_guest_access_title">允许访客加入</string>
     <string name="use_as_default_and_do_not_ask_again">设置为默认值，并不再询问</string>
     <string name="option_always_ask">总是询问</string>

@@ -63,6 +63,7 @@ import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.home.room.detail.AutoCompleter
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.RoomDetailAction.VoiceBroadcastAction
@@ -178,6 +179,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
                 is MessageComposerViewEvents.AnimateSendButtonVisibility -> handleSendButtonVisibilityChanged(it)
                 is MessageComposerViewEvents.OpenRoomMemberProfile -> openRoomMemberProfile(it.userId)
+                is MessageComposerViewEvents.OpenRoomLink -> navigator.openMatrixToBottomSheet(requireActivity(), it.link, OriginOfMatrixTo.LINK)
                 is MessageComposerViewEvents.VoicePlaybackOrRecordingFailure -> {
                     if (it.throwable is VoiceFailure.UnableToRecord) {
                         onCannotRecord()

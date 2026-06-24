@@ -1860,7 +1860,6 @@
     <string name="room_settings_room_access_private_description">Seules les personnes invitées peuvent le trouver et le rejoindre</string>
     <string name="room_settings_room_access_private_title">Privé</string>
     <string name="room_settings_room_access_entry_unknown">Paramètre d’accès inconnu (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Tout le monde peut frapper à la porte du salon, les membres peuvent accepter ou rejeter la demande</string>
     <string name="room_settings_guest_access_title">Permettre l’accès aux visiteurs</string>
     <string name="spaces_header">Espaces</string>
     <string name="suggested_header">Salons recommandés</string>

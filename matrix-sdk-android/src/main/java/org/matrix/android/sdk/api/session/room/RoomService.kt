@@ -92,6 +92,18 @@ interface RoomService {
     )
 
     /**
+     * Knock on a room (request to join a room whose join rule is "knock").
+     * @param roomIdOrAlias the roomId or the room alias of the room to knock on
+     * @param reason optional reason shown to the room members reviewing the request
+     * @param viaServers the servers to attempt to knock through. One of the servers must be participating in the room.
+     */
+    suspend fun knock(
+            roomIdOrAlias: String,
+            reason: String? = null,
+            viaServers: List<String> = emptyList()
+    )
+
+    /**
      * Leave the room, or reject an invitation.
      * @param roomId the roomId of the room to leave
      * @param reason optional reason for leaving the room

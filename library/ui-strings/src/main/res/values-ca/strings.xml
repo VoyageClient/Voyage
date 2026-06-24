@@ -1848,7 +1848,6 @@
     <string name="room_settings_room_access_private_title">Privat</string>
     <string name="room_settings_room_access_public_title">Públic</string>
     <string name="room_settings_room_access_private_description">Només els convidats poden trobar-la i unir-s\'hi</string>
-    <string name="room_settings_room_access_entry_knock">Qualsevol pot demanar entrar a la sala, els participants poden acceptar-ho o rebutjar-ho</string>
     <string name="room_settings_guest_access_title">Permet que els convidats s\'uneixin</string>
     <string name="suggested_header">Sales suggerides</string>
     <string name="settings_notification_emails_enable_for_email">Activa les notificacions per correu de %s</string>

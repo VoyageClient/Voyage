@@ -7,6 +7,7 @@
 
 package im.vector.app.features.roomdirectory.roompreview
 
+import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
@@ -117,6 +118,7 @@ class RoomPreviewViewModel @AssistedInject constructor(
                                 roomAlias = peekResult.alias ?: initialState.roomAlias,
                                 roomTopic = peekResult.topic,
                                 homeServers = newHomeServers,
+                                joinRule = peekResult.joinRule,
                                 peekingState = Success(PeekingState.FOUND)
                         )
                     }
@@ -166,7 +168,8 @@ class RoomPreviewViewModel @AssistedInject constructor(
                     } else {
                         setState {
                             copy(
-                                    roomType = roomSummary.roomType
+                                    roomType = roomSummary.roomType,
+                                    isKnocked = roomSummary.membership == Membership.KNOCK
                             )
                         }
                     }
@@ -196,6 +199,38 @@ class RoomPreviewViewModel @AssistedInject constructor(
         when (action) {
             is RoomPreviewAction.Join -> handleJoinRoom()
             RoomPreviewAction.JoinThirdParty -> handleJoinRoomThirdParty()
+            is RoomPreviewAction.Knock -> handleKnockRoom(action.reason)
+            RoomPreviewAction.CancelKnock -> handleCancelKnock()
+        }
+    }
+
+    private fun handleKnockRoom(reason: String?) = withState { state ->
+        if (state.knockState is Loading) return@withState
+        setState { copy(knockState = Loading(), lastError = null) }
+        viewModelScope.launch {
+            try {
+                session.roomService().knock(
+                        roomIdOrAlias = state.roomAlias ?: state.roomId,
+                        reason = reason,
+                        viaServers = state.homeServers
+                )
+                setState { copy(knockState = Success(Unit), isKnocked = true) }
+            } catch (failure: Throwable) {
+                setState { copy(knockState = Fail(failure), lastError = failure) }
+            }
+        }
+    }
+
+    private fun handleCancelKnock() = withState { state ->
+        if (state.knockState is Loading) return@withState
+        setState { copy(knockState = Loading(), lastError = null) }
+        viewModelScope.launch {
+            try {
+                session.roomService().leaveRoom(state.roomId)
+                setState { copy(knockState = Success(Unit), isKnocked = false) }
+            } catch (failure: Throwable) {
+                setState { copy(knockState = Fail(failure), lastError = failure) }
+            }
         }
     }
 

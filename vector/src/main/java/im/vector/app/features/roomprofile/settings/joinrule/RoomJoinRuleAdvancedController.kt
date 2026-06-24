@@ -80,6 +80,24 @@ class RoomJoinRuleAdvancedController @Inject constructor(
             }
         }
 
+        // Ask to join (knock)
+        if (choices.firstOrNull { it.rule == RoomJoinRules.KNOCK } != null) {
+            RoomJoinRuleRadioAction(
+                    roomJoinRule = RoomJoinRules.KNOCK,
+                    description = stringProvider.getString(
+                            if (state.isSpace) CommonStrings.room_settings_space_access_knock_description
+                            else CommonStrings.room_settings_room_access_knock_description
+                    ),
+                    title = stringProvider.getString(CommonStrings.room_settings_room_access_knock_title),
+                    isSelected = state.currentRoomJoinRules == RoomJoinRules.KNOCK
+            ).toRadioBottomSheetItem().let {
+                it.listener {
+                    interactionListener?.didSelectRule(RoomJoinRules.KNOCK)
+                }
+                add(it)
+            }
+        }
+
         // Public
         RoomJoinRuleRadioAction(
                 roomJoinRule = RoomJoinRules.PUBLIC,

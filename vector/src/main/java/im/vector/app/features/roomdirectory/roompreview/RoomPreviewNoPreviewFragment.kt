@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.text.toSpannable
 import androidx.core.view.isVisible
+import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.Success
 import com.airbnb.mvrx.args
@@ -42,6 +43,7 @@ import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.util.MatrixItem
 import javax.inject.Inject
@@ -70,6 +72,11 @@ class RoomPreviewNoPreviewFragment :
                 .allowBack()
 
         views.roomPreviewNoPreviewJoin.commonClicked = { roomPreviewViewModel.handle(RoomPreviewAction.Join) }
+        views.roomPreviewNoPreviewRequestToJoin.commonClicked = {
+            val reason = views.roomPreviewNoPreviewKnockMessage.text.toString().trim().takeIf { it.isNotEmpty() }
+            roomPreviewViewModel.handle(RoomPreviewAction.Knock(reason))
+        }
+        views.roomPreviewNoPreviewCancelKnock.debouncedClicks { roomPreviewViewModel.handle(RoomPreviewAction.CancelKnock) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -181,6 +188,36 @@ class RoomPreviewNoPreviewFragment :
                 views.roomPreviewNoPreviewJoin.isVisible = true
                 renderState(bestName, state.matrixItem().hideAvatarIfInvite(state), state.roomTopic)
                 views.roomPreviewNoPreviewLabel.isVisible = false
+            }
+        }
+
+        renderKnockControls(state)
+    }
+
+    private fun renderKnockControls(state: RoomPreviewViewState) {
+        val knockButtonState = when (state.knockState) {
+            is Loading -> ButtonStateView.State.Loading
+            is Fail -> ButtonStateView.State.Error
+            else -> ButtonStateView.State.Button
+        }
+        views.roomPreviewNoPreviewRequestToJoin.render(knockButtonState)
+
+        if (state.isKnocked) {
+            views.roomPreviewNoPreviewJoin.isVisible = false
+            views.roomPreviewNoPreviewRequestToJoin.isVisible = false
+            views.roomPreviewNoPreviewKnockMessage.isVisible = false
+            views.roomPreviewNoPreviewCancelKnock.isVisible = true
+            views.roomPreviewNoPreviewCancelKnock.isEnabled = state.knockState !is Loading
+            views.roomPreviewNoPreviewLabel.isVisible = false
+        } else {
+            views.roomPreviewNoPreviewCancelKnock.isVisible = false
+            val isKnockRoom = state.joinRule == RoomJoinRules.KNOCK
+            val canRequestToJoin = isKnockRoom || (state.peekingState as? Success)?.invoke() == PeekingState.NO_ACCESS
+            views.roomPreviewNoPreviewRequestToJoin.isVisible = canRequestToJoin
+            views.roomPreviewNoPreviewKnockMessage.isVisible = canRequestToJoin
+            // A plain join on a knock room would be rejected, so hide it in favour of asking to join.
+            if (isKnockRoom) {
+                views.roomPreviewNoPreviewJoin.isVisible = false
             }
         }
     }

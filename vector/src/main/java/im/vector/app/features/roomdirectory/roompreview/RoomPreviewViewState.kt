@@ -12,6 +12,7 @@ import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.features.roomdirectory.JoinState
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -34,6 +35,9 @@ data class RoomPreviewViewState(
         val homeServers: List<String> = emptyList(),
         // Current state of the room in preview
         val roomJoinState: JoinState = JoinState.NOT_JOINED,
+        val joinRule: RoomJoinRules? = null,
+        val isKnocked: Boolean = false,
+        val knockState: Async<Unit> = Uninitialized,
         // Last error of join room request
         val lastError: Throwable? = null,
 

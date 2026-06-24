@@ -2033,7 +2033,6 @@
     <string name="room_settings_room_access_private_description">Только приглашенные люди могут найти и присоединиться</string>
     <string name="room_settings_room_access_private_title">Приватный</string>
     <string name="room_settings_room_access_entry_unknown">Неизвестная настройка доступа (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Любой может постучаться в комнату, а участники могут принять или отклонить его</string>
     <string name="space_settings_alias_subtitle">Просмотреть и управлять адресами этого пространства.</string>
     <string name="room_settings_guest_access_title">Разрешить гостям присоединяться</string>
     <string name="use_as_default_and_do_not_ask_again">Использовать по умолчанию и больше не спрашивать</string>

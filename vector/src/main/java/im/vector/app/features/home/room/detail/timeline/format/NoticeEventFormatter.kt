@@ -676,7 +676,7 @@ class NoticeEventFormatter @Inject constructor(
         }
     }
 
-    private fun buildProfileNotice(event: Event, senderName: String?, eventContent: RoomMemberContent?, prevEventContent: RoomMemberContent?): String {
+    private fun buildProfileNotice(event: Event, senderName: String?, eventContent: RoomMemberContent?, prevEventContent: RoomMemberContent?): String? {
         val displayText = StringBuilder()
         // Check display name has been changed
         if (eventContent?.displayName != prevEventContent?.displayName) {
@@ -717,6 +717,12 @@ class NoticeEventFormatter @Inject constructor(
             displayText.append(displayAvatarText)
         }
         if (displayText.isEmpty()) {
+            // A repeated knock (re-request to join) makes no real change. Only the first knock is a
+            // membership transition shown as a notice; hide the rest as debug events instead of
+            // spamming "made no changes".
+            if (eventContent?.membership == Membership.KNOCK) {
+                return null
+            }
             displayText.append(
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_member_no_changes_by_you)
@@ -740,6 +746,17 @@ class NoticeEventFormatter @Inject constructor(
         return when (eventContent?.membership) {
             Membership.INVITE -> {
                 when {
+                    prevEventContent?.membership == Membership.KNOCK -> {
+                        // Accepting a knock is implemented as inviting the knocker.
+                        when {
+                            event.isSentByCurrentUser() ->
+                                sp.getString(CommonStrings.notice_room_knock_accepted_by_you, targetDisplayName)
+                            event.stateKey == currentUserId ->
+                                sp.getString(CommonStrings.notice_room_knock_accepted_you, senderDisplayName)
+                            else ->
+                                sp.getString(CommonStrings.notice_room_knock_accepted, senderDisplayName, targetDisplayName)
+                        }
+                    }
                     eventContent.thirdPartyInvite != null -> {
                         val userWhoHasAccepted = eventContent.thirdPartyInvite?.signed?.mxid ?: event.stateKey
                         val threePidDisplayName = eventContent.thirdPartyInvite?.displayName ?: ""
@@ -823,6 +840,13 @@ class NoticeEventFormatter @Inject constructor(
                                     sp.getString(CommonStrings.notice_room_reject_with_reason, senderDisplayName, reason)
                                 } ?: sp.getString(CommonStrings.notice_room_reject, senderDisplayName)
                             }
+                        Membership.KNOCK ->
+                            // The user withdrew their own request to join.
+                            if (event.isSentByCurrentUser()) {
+                                sp.getString(CommonStrings.notice_room_knock_cancelled_by_you)
+                            } else {
+                                sp.getString(CommonStrings.notice_room_knock_cancelled, senderDisplayName)
+                            }
                         else ->
                             eventContent.safeReason?.let { reason ->
                                 if (event.isSentByCurrentUser()) {
@@ -884,6 +908,13 @@ class NoticeEventFormatter @Inject constructor(
                                     sp.getString(CommonStrings.notice_room_unban_with_reason, senderDisplayName, targetDisplayName, reason)
                                 } ?: sp.getString(CommonStrings.notice_room_unban, senderDisplayName, targetDisplayName)
                             }
+                        Membership.KNOCK ->
+                            // A moderator declined the request to join (kicking the knocker).
+                            if (event.isSentByCurrentUser()) {
+                                sp.getString(CommonStrings.notice_room_knock_denied_by_you, targetDisplayName)
+                            } else {
+                                sp.getString(CommonStrings.notice_room_knock_denied, senderDisplayName, targetDisplayName)
+                            }
                         else -> null
                     }
                 }
@@ -900,12 +931,12 @@ class NoticeEventFormatter @Inject constructor(
             Membership.KNOCK ->
                 if (event.isSentByCurrentUser()) {
                     eventContent.safeReason?.let { reason ->
-                        sp.getString(CommonStrings.notice_room_remove_with_reason_by_you, targetDisplayName, reason)
-                    } ?: sp.getString(CommonStrings.notice_room_remove_by_you, targetDisplayName)
+                        sp.getString(CommonStrings.notice_room_knock_with_reason_by_you, reason)
+                    } ?: sp.getString(CommonStrings.notice_room_knock_by_you)
                 } else {
                     eventContent.safeReason?.let { reason ->
-                        sp.getString(CommonStrings.notice_room_remove_with_reason, senderDisplayName, targetDisplayName, reason)
-                    } ?: sp.getString(CommonStrings.notice_room_remove, senderDisplayName, targetDisplayName)
+                        sp.getString(CommonStrings.notice_room_knock_with_reason, senderDisplayName, reason)
+                    } ?: sp.getString(CommonStrings.notice_room_knock, senderDisplayName)
                 }
             else -> null
         }

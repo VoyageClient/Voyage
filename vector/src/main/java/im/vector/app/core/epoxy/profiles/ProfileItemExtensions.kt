@@ -34,6 +34,7 @@ fun EpoxyController.buildProfileAction(
         action: ClickListener? = null,
         @DrawableRes accessory: Int = 0,
         accessoryMatrixItem: MatrixItem? = null,
+        notificationBadge: Boolean = false,
         avatarRenderer: AvatarRenderer? = null
 ) {
     profileActionItem {
@@ -44,6 +45,7 @@ fun EpoxyController.buildProfileAction(
         editable(editable)
         editableRes?.let { editableRes(editableRes) }
         destructive(destructive)
+        notificationBadgeVisible(notificationBadge)
         title(title)
         accessoryRes(accessory)
         accessoryMatrixItem(accessoryMatrixItem)

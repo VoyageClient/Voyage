@@ -2148,7 +2148,6 @@
     <string name="room_settings_room_access_private_description">Nájsť a pripojiť sa môžu len pozvaní ľudia</string>
     <string name="room_settings_room_access_private_invite_only_title">Súkromné (len pre pozvaných)</string>
     <string name="room_settings_room_access_entry_unknown">Neznáme nastavenie prístupu (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Ktokoľvek môže zaklopať na miestnosť, členovia ho potom môžu prijať alebo odmietnuť</string>
     <string name="room_alias_publish_to_directory_error">Nie je možné načítať viditeľnosť aktuálneho adresára miestnosti (%1$s).</string>
     <string name="room_alias_publish_to_directory">Zverejniť túto miestnosť verejnosti v adresári miestností %1$s\?</string>
     <string name="room_alias_local_address_empty">Pre túto miestnosť nie sú žiadne miestne adresy</string>

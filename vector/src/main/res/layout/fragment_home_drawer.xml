@@ -123,11 +123,40 @@
         android:id="@+id/homeDrawerGroupListContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/homeDrawerBottomSeparator"
+        app:layout_constraintBottom_toTopOf="@id/homeDrawerPendingRequestsDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/homeDrawerHeaderSeparator" />
+
+    <View
+        android:id="@+id/homeDrawerPendingRequestsDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?vctr_list_separator_on_surface"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/homeDrawerPendingRequestsView"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/homeDrawerPendingRequestsView"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:drawablePadding="12dp"
+        android:gravity="center_vertical"
+        android:minHeight="52dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/pending_join_requests_drawer_entry"
+        android:textColor="?vctr_content_primary"
+        android:visibility="gone"
+        app:drawableStartCompat="@drawable/ic_room_profile_knock_requests"
+        app:drawableTint="?vctr_content_secondary"
+        app:layout_constraintBottom_toTopOf="@id/homeDrawerBottomSeparator"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingPrefix"
+        tools:visibility="visible" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/homeDrawerAccountList"

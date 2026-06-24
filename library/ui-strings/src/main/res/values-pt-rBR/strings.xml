@@ -1849,7 +1849,6 @@
     <string name="room_settings_room_access_private_description">Somente pessoas convidadas podem encontrar e entrar</string>
     <string name="room_settings_room_access_private_title">Privada</string>
     <string name="room_settings_room_access_entry_unknown">Configuração de acesso desconhecida (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Qualquer pessoa pode bater na porta na sala, membros podem então aceitar ou rejeitar</string>
     <string name="room_settings_guest_access_title">Permitir que visitantes entrem</string>
     <string name="use_as_default_and_do_not_ask_again">Usar como default e não perguntar de novo</string>
     <string name="option_always_ask">Sempre perguntar</string>

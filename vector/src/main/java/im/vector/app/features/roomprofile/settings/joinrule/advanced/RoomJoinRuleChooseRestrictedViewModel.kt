@@ -92,10 +92,12 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
             }
 
             val homeServerCapabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
+            val roomVersion = room.roomVersionService().getRoomVersion()
             var safeRule: RoomJoinRules = joinRulesContent?.joinRules ?: RoomJoinRules.INVITE
             // server is not really checking that, just to be sure let's check
             val restrictedSupportedByThisVersion = homeServerCapabilities
-                    .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_RESTRICTED, room.roomVersionService().getRoomVersion())
+                    .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_RESTRICTED, roomVersion) ||
+                    HomeServerCapabilities.roomVersionAtLeast(roomVersion, HomeServerCapabilities.ROOM_VERSION_RESTRICTED)
             if (safeRule == RoomJoinRules.RESTRICTED &&
                     !restrictedSupportedByThisVersion) {
                 safeRule = RoomJoinRules.INVITE
@@ -104,17 +106,19 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
             val restrictedSupport = homeServerCapabilities.isFeatureSupported(HomeServerCapabilities.ROOM_CAP_RESTRICTED)
             val couldUpgradeToRestricted = restrictedSupport == HomeServerCapabilities.RoomCapabilitySupport.SUPPORTED
 
-            val choices = if (restrictedSupportedByThisVersion || couldUpgradeToRestricted) {
-                listOf(
-                        RoomJoinRules.INVITE.toOption(false),
-                        RoomJoinRules.RESTRICTED.toOption(!restrictedSupportedByThisVersion),
-                        RoomJoinRules.PUBLIC.toOption(false)
-                )
-            } else {
-                listOf(
-                        RoomJoinRules.INVITE.toOption(false),
-                        RoomJoinRules.PUBLIC.toOption(false)
-                )
+            val knockSupportedByThisVersion = homeServerCapabilities
+                    .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_KNOCK, roomVersion) ||
+                    HomeServerCapabilities.roomVersionAtLeast(roomVersion, HomeServerCapabilities.ROOM_VERSION_KNOCK)
+
+            val choices = buildList {
+                add(RoomJoinRules.INVITE.toOption(false))
+                if (restrictedSupportedByThisVersion || couldUpgradeToRestricted) {
+                    add(RoomJoinRules.RESTRICTED.toOption(!restrictedSupportedByThisVersion))
+                }
+                if (knockSupportedByThisVersion) {
+                    add(RoomJoinRules.KNOCK.toOption(false))
+                }
+                add(RoomJoinRules.PUBLIC.toOption(false))
             }
 
             setState {
@@ -134,7 +138,9 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
                         unknownRestricted = unknownAllowedOrRooms,
                         restrictedSupportedByThisVersion = restrictedSupportedByThisVersion,
                         upgradeNeededForRestricted = !restrictedSupportedByThisVersion && couldUpgradeToRestricted,
-                        restrictedVersionNeeded = homeServerCapabilities.versionOverrideForFeature(HomeServerCapabilities.ROOM_CAP_RESTRICTED)
+                        restrictedVersionNeeded = homeServerCapabilities.versionOverrideForFeature(HomeServerCapabilities.ROOM_CAP_RESTRICTED),
+                        knockSupportedByThisVersion = knockSupportedByThisVersion,
+                        isSpace = roomSummary.roomType == RoomType.SPACE
                 )
             }
         }
@@ -185,8 +191,8 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
                 when (state.currentRoomJoinRules) {
                     RoomJoinRules.PUBLIC -> room.stateService().setJoinRulePublic()
                     RoomJoinRules.INVITE -> room.stateService().setJoinRuleInviteOnly()
+                    RoomJoinRules.KNOCK -> room.stateService().setJoinRuleKnock()
                     RoomJoinRules.RESTRICTED -> room.stateService().setJoinRuleRestricted(state.updatedAllowList.map { it.id })
-                    RoomJoinRules.KNOCK,
                     RoomJoinRules.PRIVATE,
                     null -> {
                         throw UnsupportedOperationException()

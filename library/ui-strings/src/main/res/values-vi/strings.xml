@@ -557,7 +557,6 @@
     <string name="room_settings_room_access_private_invite_only_title">Riêng tư (dành cho người được mời)</string>
     <string name="room_settings_room_access_private_title">Riêng tư</string>
     <string name="room_settings_room_access_entry_unknown">Thiết lập tiếp cận không được nhận dạng (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Bất kỳ ai cũng có thể gõ phòng, thành viên có thể chấp thuận hoặc từ chối</string>
     <string name="room_settings_read_history_entry_members_only_joined">Chỉ dành cho thành viên (từ thời điểm tham gia)</string>
     <string name="room_settings_read_history_entry_members_only_invited">Chỉ dành cho thành viên (từ thời điểm được mời)</string>
     <string name="room_settings_read_history_entry_members_only_option_time_shared">Chỉ dành cho thành viên (từ thời điểm chọn thiết lập này)</string>

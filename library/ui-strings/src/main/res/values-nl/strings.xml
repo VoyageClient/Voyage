@@ -1440,7 +1440,6 @@
     <string name="room_settings_room_access_private_description">Alleen uitgenodigde mensen kunnen vinden en deelnemen</string>
     <string name="room_settings_room_access_private_invite_only_title">Privé (alleen op uitnodiging)</string>
     <string name="room_settings_room_access_entry_unknown">Onbekende toegangsinstelling (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Iedereen kan bij deze kamer aankloppen, leden kunnen dan accepteren of weigeren</string>
     <string name="room_alias_publish_to_directory_error">Kan de zichtbaarheid van de huidige kamerdirectory niet ophalen (%1$s).</string>
     <string name="room_alias_publish_to_directory">Deze kamer openbaar publiceren in de kamerdirectory van %1$s\?</string>
     <string name="room_alias_action_unpublish">Publicatie van dit adres ongedaan maken</string>

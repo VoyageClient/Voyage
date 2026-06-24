@@ -189,6 +189,10 @@ internal class DefaultStateService @AssistedInject constructor(
         updateJoinRule(RoomJoinRules.INVITE, null)
     }
 
+    override suspend fun setJoinRuleKnock() {
+        updateJoinRule(RoomJoinRules.KNOCK, null)
+    }
+
     override suspend fun setJoinRuleRestricted(allowList: List<String>) {
         // we need to compute correct via parameters and check if PL are correct
         val allowEntries = allowList.map { spaceId ->

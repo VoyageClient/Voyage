@@ -1872,7 +1872,6 @@
     <string name="room_settings_room_access_private_description">僅被邀請的人可以找到並加入</string>
     <string name="room_settings_room_access_private_title">私密</string>
     <string name="room_settings_room_access_entry_unknown">存取設定未知（%s）</string>
-    <string name="room_settings_room_access_entry_knock">任何人都可以要求加入聊天室，成員可以接受或拒絕</string>
     <string name="room_settings_guest_access_title">允許訪客加入</string>
     <string name="spaces_header">聊天空間</string>
     <string name="suggested_header">建議的聊天室</string>

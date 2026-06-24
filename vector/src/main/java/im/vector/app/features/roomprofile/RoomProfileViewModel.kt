@@ -68,6 +68,7 @@ class RoomProfileViewModel @AssistedInject constructor(
         observeRoomSummary(flowRoom)
         observeRoomCreateContent(flowRoom)
         observeBannedRoomMembers(flowRoom)
+        observeKnockingRoomMembers(flowRoom)
         observePermissions()
         observePowerLevels()
         observeCryptoSettings(flowRoom)
@@ -158,6 +159,13 @@ class RoomProfileViewModel @AssistedInject constructor(
         flowRoom.liveRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.BAN) })
                 .execute {
                     copy(bannedMembership = it)
+                }
+    }
+
+    private fun observeKnockingRoomMembers(flowRoom: FlowRoom) {
+        flowRoom.liveRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.KNOCK) })
+                .execute {
+                    copy(knockRequests = it)
                 }
     }
 

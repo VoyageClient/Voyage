@@ -70,7 +70,7 @@ class MergedHeaderItemFactory @Inject constructor(
         return when {
             isStartOfRoomCreationSummary(event, nextEvent) ->
                 buildRoomCreationMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-            isStartOfSameTypeEventsSummary(event, nextEvent, addDaySeparator) ->
+            isStartOfSameTypeEventsSummary(event, nextEvent, partialState, addDaySeparator) ->
                 buildSameTypeEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
             isStartOfRedactedEventsSummary(event, items, currentPosition, partialState, addDaySeparator) ->
                 buildRedactedEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
@@ -119,8 +119,14 @@ class MergedHeaderItemFactory @Inject constructor(
     private fun isStartOfSameTypeEventsSummary(
             event: TimelineEvent,
             nextEvent: TimelineEvent?,
+            partialState: TimelineEventController.PartialState,
             addDaySeparator: Boolean,
     ): Boolean {
+        // Hidden/debug events (e.g. repeated knocks) must not start nor join a membership-changes merge;
+        // they are compacted separately as a "hidden events" summary instead.
+        if (timelineEventVisibilityHelper.isHiddenEvent(event, partialState.rootThreadEventId, partialState.isFromThreadTimeline())) {
+            return false
+        }
         return event.root.getClearType() in mergeableEventTypes &&
                 (nextEvent?.root?.getClearType() != event.root.getClearType() || addDaySeparator)
     }

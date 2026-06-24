@@ -46,6 +46,7 @@ class RoomProfileController @Inject constructor(
         fun onLearnMoreClicked()
         fun onEnableEncryptionClicked()
         fun onMemberListClicked()
+        fun onKnockRequestsClicked()
         fun onBannedMemberListClicked()
         fun onNotificationsClicked()
         fun onPollHistoryClicked()
@@ -248,6 +249,17 @@ class RoomProfileController @Inject constructor(
                 accessory = R.drawable.ic_shield_warning.takeIf { hasWarning } ?: 0,
                 action = { callback?.onMemberListClicked() }
         )
+
+        val knockRequestsCount = data.knockRequests.invoke()?.size ?: 0
+        if (knockRequestsCount > 0) {
+            buildProfileAction(
+                    id = "knock_requests",
+                    title = stringProvider.getQuantityString(CommonPlurals.room_profile_section_more_knock_requests, knockRequestsCount, knockRequestsCount),
+                    icon = R.drawable.ic_room_profile_knock_requests,
+                    notificationBadge = true,
+                    action = { callback?.onKnockRequestsClicked() }
+            )
+        }
 
         if (data.bannedMembership.invoke()?.isNotEmpty() == true) {
             buildProfileAction(

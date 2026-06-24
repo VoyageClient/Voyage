@@ -1125,7 +1125,6 @@
     <string name="room_settings_read_history_entry_members_only_joined">Members only (since they joined)</string>
 
     <!-- Room settings: "Who can access this room?" (access rule) -->
-    <string name="room_settings_room_access_entry_knock">Anyone can knock on the room, members can then accept or reject</string>
     <string name="room_settings_room_access_entry_unknown">Unknown access setting (%s)</string>
     <string name="room_settings_room_access_private_title">Private</string>
     <string name="room_settings_room_access_private_invite_only_title">Private (Invite Only)</string>

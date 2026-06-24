@@ -166,6 +166,15 @@ data class HomeServerCapabilities(
         const val MAX_UPLOAD_FILE_SIZE_UNKNOWN = -1L
         const val ROOM_CAP_KNOCK = "knock"
         const val ROOM_CAP_RESTRICTED = "restricted"
+
+        // Lowest stable room versions that support these join rules, per the spec feature matrix.
+        // Used as a fallback when the homeserver does not advertise org.matrix.msc3244.room_capabilities.
+        const val ROOM_VERSION_KNOCK = 7
+        const val ROOM_VERSION_RESTRICTED = 9
+
+        fun roomVersionAtLeast(roomVersion: String?, minVersion: Int): Boolean {
+            return (roomVersion?.toIntOrNull() ?: return false) >= minVersion
+        }
     }
 
     fun getLogoutDeviceURL(deviceId: String): String? {

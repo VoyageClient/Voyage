@@ -32,6 +32,7 @@ import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import org.matrix.android.sdk.api.session.events.model.EventType
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -97,7 +98,13 @@ class MessageActionsEpoxyController @Inject constructor(
         // Message preview
         val date = state.timelineEvent()?.root?.originServerTs
         val formattedDate = dateFormatter.format(date, DateFormatKind.MESSAGE_DETAIL)
-        val body = state.messageBody.linkify(host.listener)
+        // Don't linkify membership notices: their text can contain a raw matrix id (e.g. a knock from a
+        // user with no display name) that would otherwise render as a spurious clickable link.
+        val body = if (state.timelineEvent()?.root?.getClearType() == EventType.STATE_ROOM_MEMBER) {
+            state.messageBody
+        } else {
+            state.messageBody.linkify(host.listener)
+        }
         val bindingOptions = spanUtils.getBindingOptions(body)
         val locationUiData = buildLocationUiData(state)
 

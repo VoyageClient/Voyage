@@ -168,10 +168,15 @@ class CreateRoomFragment :
     override fun selectVisibility() = withState(viewModel) { state ->
         // If restricted is supported and the user is in the context of a parent space
         // then show restricted option.
-        val allowed = if (state.supportsRestricted && state.parentSpaceId != null) {
-            listOf(RoomJoinRules.INVITE, RoomJoinRules.PUBLIC, RoomJoinRules.RESTRICTED)
-        } else {
-            listOf(RoomJoinRules.INVITE, RoomJoinRules.PUBLIC)
+        val allowed = buildList {
+            add(RoomJoinRules.INVITE)
+            if (state.supportsRestricted && state.parentSpaceId != null) {
+                add(RoomJoinRules.RESTRICTED)
+            }
+            if (state.supportsKnock) {
+                add(RoomJoinRules.KNOCK)
+            }
+            add(RoomJoinRules.PUBLIC)
         }
         RoomJoinRuleBottomSheet.newInstance(
                 state.roomJoinRules,

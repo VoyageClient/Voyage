@@ -35,6 +35,7 @@ import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.InitialSyncStrategy
 import org.matrix.android.sdk.api.session.sync.initialSyncStrategy
 import org.matrix.android.sdk.api.session.sync.model.InvitedRoomSync
+import org.matrix.android.sdk.api.session.sync.model.KnockedRoomSync
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
 import org.matrix.android.sdk.api.session.sync.model.RoomSync
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
@@ -107,6 +108,7 @@ internal class RoomSyncHandler @Inject constructor(
     sealed class HandlingStrategy {
         data class JOINED(val data: Map<String, RoomSync>) : HandlingStrategy()
         data class INVITED(val data: Map<String, InvitedRoomSync>) : HandlingStrategy()
+        data class KNOCKED(val data: Map<String, KnockedRoomSync>) : HandlingStrategy()
         data class LEFT(val data: Map<String, RoomSync>) : HandlingStrategy()
     }
 
@@ -119,6 +121,7 @@ internal class RoomSyncHandler @Inject constructor(
     ) {
         handleRoomSync(realm, HandlingStrategy.JOINED(roomsSyncResponse.join), isInitialSync, aggregator, reporter)
         handleRoomSync(realm, HandlingStrategy.INVITED(roomsSyncResponse.invite), isInitialSync, aggregator, reporter)
+        handleRoomSync(realm, HandlingStrategy.KNOCKED(roomsSyncResponse.knock), isInitialSync, aggregator, reporter)
         handleRoomSync(realm, HandlingStrategy.LEFT(roomsSyncResponse.leave), isInitialSync, aggregator, reporter)
 
         // post room sync validation
@@ -158,6 +161,11 @@ internal class RoomSyncHandler @Inject constructor(
             is HandlingStrategy.INVITED ->
                 handlingStrategy.data.mapWithProgress(reporter, InitialSyncStep.ImportingAccountInvitedRooms, 0.1f) {
                     handleInvitedRoom(realm, it.key, it.value, insertType, syncLocalTimeStampMillis, aggregator)
+                }
+
+            is HandlingStrategy.KNOCKED ->
+                handlingStrategy.data.mapWithProgress(reporter, InitialSyncStep.ImportingAccountInvitedRooms, 0.1f) {
+                    handleKnockedRoom(realm, it.key, it.value, insertType, syncLocalTimeStampMillis, aggregator)
                 }
 
             is HandlingStrategy.LEFT -> {
@@ -334,6 +342,38 @@ internal class RoomSyncHandler @Inject constructor(
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.INVITE)
         roomSummaryUpdater.update(realm, roomId, Membership.INVITE, updateMembers = true, inviterId = inviterEvent?.senderId, aggregator = aggregator)
         unRequestedForwardManager.onInviteReceived(roomId, inviterEvent?.senderId.orEmpty(), clock.epochMillis())
+        return roomEntity
+    }
+
+    private fun handleKnockedRoom(
+            realm: Realm,
+            roomId: String,
+            roomSync: KnockedRoomSync,
+            insertType: EventInsertType,
+            syncLocalTimestampMillis: Long,
+            aggregator: SyncResponsePostTreatmentAggregator
+    ): RoomEntity {
+        Timber.v("Handle knocked sync for room $roomId")
+        val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
+        val roomEntity = RoomEntity.getOrCreate(realm, roomId)
+        aggregator.spaceHierarchyChanged = true
+        roomEntity.membership = Membership.KNOCK
+        if (roomSync.knockState != null && roomSync.knockState.events.isNotEmpty()) {
+            roomSync.knockState.events.forEach { event ->
+                if (event.stateKey == null || event.type == null) {
+                    return@forEach
+                }
+                val ageLocalTs = syncLocalTimestampMillis - (event.unsignedData?.age ?: 0)
+                val eventEntity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs).copyToRealmOrIgnore(realm, insertType)
+                CurrentStateEventEntity.getOrCreate(realm, roomId, event.stateKey, event.type).apply {
+                    eventId = eventEntity.eventId
+                    root = eventEntity
+                }
+                roomMemberEventHandler.handle(realm, roomId, event, isInitialSync)
+            }
+        }
+        roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.KNOCK)
+        roomSummaryUpdater.update(realm, roomId, Membership.KNOCK, updateMembers = true, aggregator = aggregator)
         return roomEntity
     }
 

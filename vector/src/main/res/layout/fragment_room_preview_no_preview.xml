@@ -143,6 +143,43 @@
                     app:bsv_loaded_image_src="@drawable/ic_tick"
                     app:bsv_use_flat_button="false" />
 
+                <EditText
+                    android:id="@+id/roomPreviewNoPreviewKnockMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_vertical_margin"
+                    android:hint="@string/room_preview_knock_message_hint"
+                    android:importantForAutofill="no"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:gravity="top|start"
+                    android:maxLines="3"
+                    android:minLines="2"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <im.vector.app.core.platform.ButtonStateView
+                    android:id="@+id/roomPreviewNoPreviewRequestToJoin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_vertical_margin"
+                    android:layout_marginBottom="@dimen/layout_vertical_margin"
+                    android:minWidth="120dp"
+                    android:visibility="gone"
+                    app:bsv_button_text="@string/room_preview_request_to_join"
+                    app:bsv_loaded_image_src="@drawable/ic_tick"
+                    app:bsv_use_flat_button="false"
+                    tools:visibility="visible" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/roomPreviewNoPreviewCancelKnock"
+                    style="@style/Widget.Vector.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/layout_vertical_margin"
+                    android:text="@string/room_preview_cancel_knock"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

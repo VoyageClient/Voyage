@@ -1386,7 +1386,6 @@
     <string name="room_settings_room_access_private_title">Приватна</string>
     <string name="space_type_private">Приватний</string>
     <string name="room_settings_room_access_entry_unknown">Невідоме налаштування доступу (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Будь-хто може попроситися до кімнати, учасники можуть прийняти або відхилити</string>
     <string name="join_anyway">Усе одно приєднатися</string>
     <string name="create_space">Створити простір</string>
     <string name="join_space">Приєднатися до Простору</string>

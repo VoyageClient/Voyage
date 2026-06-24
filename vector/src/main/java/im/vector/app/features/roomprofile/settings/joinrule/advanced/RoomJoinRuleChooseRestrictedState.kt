@@ -35,6 +35,8 @@ data class RoomJoinRuleChooseRestrictedState(
         val upgradeNeededForRestricted: Boolean = false,
         val restrictedSupportedByThisVersion: Boolean = false,
         val restrictedVersionNeeded: String? = null,
+        val knockSupportedByThisVersion: Boolean = false,
+        val isSpace: Boolean = false,
         val didSwitchToReplacementRoom: Boolean = false
 ) : MavericksState {
     constructor(args: RoomProfileArgs) : this(roomId = args.roomId)

@@ -29,6 +29,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import javax.inject.Inject
 
@@ -61,6 +62,7 @@ class MatrixToRoomSpaceFragment :
             }
             is Success -> {
                 views.matrixToCardContentVisibility.isVisible = true
+                views.matrixToCardKnockMessage.isVisible = false
                 when (val peek = item.invoke()) {
                     is RoomInfoResult.FullInfo -> {
                         val matrixItem = peek.roomItem
@@ -97,7 +99,10 @@ class MatrixToRoomSpaceFragment :
                             Membership.LEAVE,
                             Membership.NONE -> {
                                 views.matrixToCardMainButton.isVisible = true
-                                views.matrixToCardMainButton.button.text = getString(joinTextRes)
+                                val isKnock = peek.joinRule == RoomJoinRules.KNOCK
+                                views.matrixToCardMainButton.button.text =
+                                        getString(if (isKnock) CommonStrings.room_preview_request_to_join else joinTextRes)
+                                views.matrixToCardKnockMessage.isVisible = isKnock
                                 views.matrixToCardSecondaryButton.isVisible = false
                             }
                             Membership.INVITE -> {
@@ -194,6 +199,9 @@ class MatrixToRoomSpaceFragment :
                     Membership.LEAVE -> {
                         if (info.roomType == RoomType.SPACE) {
                             sharedViewModel.handle(MatrixToAction.JoinSpace(info.roomItem.id, info.viaServers))
+                        } else if (info.joinRule == RoomJoinRules.KNOCK && info.membership != Membership.INVITE) {
+                            val reason = views.matrixToCardKnockMessage.text.toString().trim().takeIf { it.isNotEmpty() }
+                            sharedViewModel.handle(MatrixToAction.KnockRoom(info.roomItem.id, info.viaServers, reason))
                         } else {
                             sharedViewModel.handle(MatrixToAction.JoinRoom(info.roomItem.id, info.viaServers))
                         }

@@ -68,6 +68,14 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
     }
 
     /**
+     * Show a divider at the top of the banner, used to separate it from a header (e.g. the tombstone
+     * banner) displayed directly above.
+     */
+    fun setTopDividerVisible(visible: Boolean) {
+        views.pinnedMessagesTopDivider.isVisible = visible
+    }
+
+    /**
      * Select which pinned message the banner shows, e.g. driven by the timeline scroll position.
      */
     fun setSelectedEventId(eventId: String?) {

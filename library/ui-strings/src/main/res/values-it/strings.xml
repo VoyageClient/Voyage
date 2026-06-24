@@ -1899,7 +1899,6 @@
     <string name="room_settings_room_access_private_description">Solo le persone invitate possono trovarla ed entrare</string>
     <string name="room_settings_room_access_private_title">Privata</string>
     <string name="room_settings_room_access_entry_unknown">Impostazione di accesso sconosciuta (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Chiunque può chiedere di poter entrare, poi i membri decidono se accettare o rifiutare</string>
     <string name="room_settings_guest_access_title">Permetti l\'ingresso agli ospiti</string>
     <string name="spaces_header">Spazi</string>
     <string name="suggested_header">Stanze suggerite</string>

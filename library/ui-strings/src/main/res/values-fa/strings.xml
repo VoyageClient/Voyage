@@ -1909,7 +1909,6 @@
     <string name="room_settings_room_access_private_description">فقط افراد دعوت شده می‌توانند اتاق را یافته و بپیوندند</string>
     <string name="room_settings_room_access_private_title">خصوصی</string>
     <string name="room_settings_room_access_entry_unknown">تنظیم دسترسی ناشناخته (%s)</string>
-    <string name="room_settings_room_access_entry_knock">هرکسی می تواند درخواست ورود به اتاق را بدهد، سپس اعضا می توانند قبول یا رد کنند</string>
     <string name="room_settings_guest_access_title">مجوز پیوستن مهمان به اتاق</string>
     <string name="suggested_header">اتاق‌های پیشنهادی</string>
     <string name="space_manage_rooms_and_spaces">مدیریت اتاق‌ها و فضاها</string>

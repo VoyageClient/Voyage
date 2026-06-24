@@ -1786,7 +1786,6 @@
     <string name="room_settings_room_access_private_description">Nur invititoj povas trovi kaj aliĝi</string>
     <string name="room_settings_room_access_private_title">Privata</string>
     <string name="room_settings_room_access_entry_unknown">Nekonata agordo de aliro (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Ĉiu ajn povas frapi al la ĉambro, aliaj ĉambranoj poste povas akcepti au rifuzi</string>
     <string name="room_alias_local_address_title">Lokaj adresoj</string>
     <string name="room_alias_address_hint">Nova publikigita adreso (ekz. #kromnomo:servilo)</string>
     <string name="room_alias_address_empty">Neniuj aliaj adresoj ankoraŭ publikiĝis.</string>

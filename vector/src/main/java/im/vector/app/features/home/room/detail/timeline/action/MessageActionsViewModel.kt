@@ -250,7 +250,10 @@ class MessageActionsViewModel @AssistedInject constructor(
                     EventType.CALL_CANDIDATES,
                     EventType.CALL_HANGUP,
                     EventType.CALL_ANSWER -> {
+                        // A null notice (e.g. a repeated knock that is hidden as a debug event) falls back
+                        // to the debug line so the long-press / reply preview is not blank.
                         noticeEventFormatter.format(timelineEvent, room?.roomSummary()?.isDirect.orFalse())
+                                ?: noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
                     }
                     in EventType.POLL_START.values -> {
                         (timelineEvent.getVectorLastMessageContent() as? MessagePollContent)?.getBestPollCreationInfo()?.question?.getBestQuestion()

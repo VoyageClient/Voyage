@@ -51,6 +51,15 @@ class RoomJoinRuleController @Inject constructor(
                         },
                         title = stringProvider.getString(CommonStrings.room_settings_room_access_restricted_title),
                         isSelected = state.currentRoomJoinRule == RoomJoinRules.RESTRICTED
+                ),
+                RoomJoinRuleRadioAction(
+                        roomJoinRule = RoomJoinRules.KNOCK,
+                        description = stringProvider.getString(
+                                if (state.isSpace) CommonStrings.room_settings_space_access_knock_description
+                                else CommonStrings.room_settings_room_access_knock_description
+                        ),
+                        title = stringProvider.getString(CommonStrings.room_settings_room_access_knock_title),
+                        isSelected = state.currentRoomJoinRule == RoomJoinRules.KNOCK
                 )
         ).filter { state.allowedJoinedRules.map { it.rule }.contains(it.roomJoinRule) }
     }

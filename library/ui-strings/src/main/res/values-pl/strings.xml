@@ -1642,7 +1642,6 @@
     <string name="room_settings_room_access_private_invite_only_title">Prywatny (Tylko z zaproszeniem)</string>
     <string name="room_settings_room_access_private_title">Prywatny</string>
     <string name="room_settings_room_access_entry_unknown">Nieznane ustawienie dostępu (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Każdy może zapukać do pokoju, członkowie mogą akceptować lub odrzucić</string>
     <string name="space_settings_alias_subtitle">Zobacz i zarządzaj adresami tej przestrzeni.</string>
     <string name="space_settings_alias_title">Adresy Przestrzeni</string>
     <string name="room_settings_guest_access_title">Zezwalaj gościom na dołączanie</string>

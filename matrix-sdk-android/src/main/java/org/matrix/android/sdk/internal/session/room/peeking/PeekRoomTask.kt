@@ -25,6 +25,8 @@ import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibilityContent
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomNameContent
 import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
@@ -87,7 +89,8 @@ internal class DefaultPeekRoomTask @Inject constructor(
                     viaServers = serverList,
                     roomType = strippedState.roomType,
                     someMembers = null,
-                    isPublic = strippedState.worldReadable
+                    isPublic = strippedState.worldReadable,
+                    joinRule = strippedState.joinRule?.let { rule -> RoomJoinRules.values().firstOrNull { it.value == rule } }
             )
         }
 
@@ -178,6 +181,12 @@ internal class DefaultPeekRoomTask @Inject constructor(
                     ?.toModel<RoomCreateContent>()
                     ?.type
 
+            val joinRule = stateEvents
+                    .lastOrNull { it.type == EventType.STATE_ROOM_JOIN_RULES && it.stateKey == "" }
+                    ?.content
+                    ?.toModel<RoomJoinRulesContent>()
+                    ?.joinRules
+
             return PeekResult.Success(
                     roomId = roomId,
                     alias = alias,
@@ -188,7 +197,8 @@ internal class DefaultPeekRoomTask @Inject constructor(
                     roomType = roomType,
                     viaServers = serverList,
                     someMembers = someMembers,
-                    isPublic = historyVisibility == RoomHistoryVisibility.WORLD_READABLE
+                    isPublic = historyVisibility == RoomHistoryVisibility.WORLD_READABLE,
+                    joinRule = joinRule
             )
         } catch (failure: Throwable) {
             // Would be M_FORBIDDEN if cannot peek :/

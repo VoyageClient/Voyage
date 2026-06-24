@@ -51,6 +51,7 @@ import org.matrix.android.sdk.internal.session.room.delete.DeleteLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.membership.RoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
@@ -67,6 +68,7 @@ internal class DefaultRoomService @Inject constructor(
         private val createLocalRoomTask: CreateLocalRoomTask,
         private val deleteLocalRoomTask: DeleteLocalRoomTask,
         private val joinRoomTask: JoinRoomTask,
+        private val knockRoomTask: KnockRoomTask,
         private val markAllRoomsReadTask: MarkAllRoomsReadTask,
         private val updateBreadcrumbsTask: UpdateBreadcrumbsTask,
         private val roomIdByAliasTask: GetRoomIdByAliasTask,
@@ -221,6 +223,10 @@ internal class DefaultRoomService @Inject constructor(
             thirdPartySigned: SignInvitationResult
     ) {
         joinRoomTask.execute(JoinRoomTask.Params(roomId, reason, thirdPartySigned = thirdPartySigned))
+    }
+
+    override suspend fun knock(roomIdOrAlias: String, reason: String?, viaServers: List<String>) {
+        knockRoomTask.execute(KnockRoomTask.Params(roomIdOrAlias, reason, viaServers))
     }
 
     override suspend fun leaveRoom(roomId: String, reason: String?) {

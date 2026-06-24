@@ -298,6 +298,20 @@ internal interface RoomAPI {
     ): JoinRoomResponse
 
     /**
+     * Knock on the given room (request to join).
+     *
+     * @param roomIdOrAlias the room id or alias
+     * @param viaServers the servers to attempt to knock on the room through
+     * @param params the request body, may contain an optional reason
+     */
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "knock/{roomIdOrAlias}")
+    suspend fun knock(
+            @Path("roomIdOrAlias") roomIdOrAlias: String,
+            @Query("server_name") viaServers: List<String>,
+            @Body params: JsonDict,
+    ): JoinRoomResponse
+
+    /**
      * Leave the given room.
      *
      * @param roomId the room id

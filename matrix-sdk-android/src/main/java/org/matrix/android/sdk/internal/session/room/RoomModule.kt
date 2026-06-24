@@ -84,6 +84,8 @@ import org.matrix.android.sdk.internal.session.room.membership.admin.DefaultMemb
 import org.matrix.android.sdk.internal.session.room.membership.admin.MembershipAdminTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultInviteTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultJoinRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultKnockRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.DefaultLeaveRoomTask
@@ -264,6 +266,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindJoinRoomTask(task: DefaultJoinRoomTask): JoinRoomTask
+
+    @Binds
+    abstract fun bindKnockRoomTask(task: DefaultKnockRoomTask): KnockRoomTask
 
     @Binds
     abstract fun bindLeaveRoomTask(task: DefaultLeaveRoomTask): LeaveRoomTask

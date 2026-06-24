@@ -67,6 +67,8 @@ import im.vector.app.features.roomprofile.RoomProfileViewModel
 import im.vector.app.features.roomprofile.alias.RoomAliasViewModel
 import im.vector.app.features.roomprofile.alias.detail.RoomAliasBottomSheetViewModel
 import im.vector.app.features.roomprofile.banned.RoomBannedMemberListViewModel
+import im.vector.app.features.roomdirectory.pendingrequests.PendingJoinRequestsViewModel
+import im.vector.app.features.roomprofile.knock.RoomKnockRequestsViewModel
 import im.vector.app.features.roomprofile.members.RoomMemberListViewModel
 import im.vector.app.features.roomprofile.notifications.RoomNotificationSettingsViewModel
 import im.vector.app.features.roomprofile.permissions.RoomPermissionsViewModel
@@ -400,6 +402,16 @@ interface MavericksViewModelModule {
     @IntoMap
     @MavericksViewModelKey(RoomBannedMemberListViewModel::class)
     fun roomBannedMemberListViewModelFactory(factory: RoomBannedMemberListViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
+    @MavericksViewModelKey(RoomKnockRequestsViewModel::class)
+    fun roomKnockRequestsViewModelFactory(factory: RoomKnockRequestsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
+    @MavericksViewModelKey(PendingJoinRequestsViewModel::class)
+    fun pendingJoinRequestsViewModelFactory(factory: PendingJoinRequestsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap

@@ -840,6 +840,7 @@ class TimelineFragment :
     private fun renderTombstoneBanner(tombstoneEvent: Event?) {
         if (tombstoneEvent == null) {
             views.tombstoneBanner.isVisible = false
+            views.pinnedMessagesBanner.setTopDividerVisible(false)
             return
         }
         val replacementRoomId = tombstoneEvent.getClearContent().toModel<RoomTombstoneContent>()?.replacementRoomId
@@ -855,6 +856,8 @@ class TimelineFragment :
         views.tombstoneBannerJoinButton.debouncedClicks {
             timelineViewModel.handle(RoomDetailAction.JoinAndOpenReplacementRoom)
         }
+        // The pinned banner sits directly below; add a divider between the two when both are shown.
+        views.pinnedMessagesBanner.setTopDividerVisible(views.pinnedMessagesBanner.isVisible)
     }
 
     @SuppressLint("RestrictedApi")

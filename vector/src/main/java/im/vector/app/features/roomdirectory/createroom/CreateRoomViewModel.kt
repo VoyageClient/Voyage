@@ -72,9 +72,16 @@ class CreateRoomViewModel @AssistedInject constructor(
 
         val parentSpaceId = initialState.parentSpaceId ?: spaceStateHandler.getSafeActiveSpaceId()
 
-        val restrictedSupport = session.homeServerCapabilitiesService().getHomeServerCapabilities()
-                .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_RESTRICTED)
-        val createRestricted = restrictedSupport == HomeServerCapabilities.RoomCapabilitySupport.SUPPORTED
+        val homeServerCapabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
+        val createDefaultRoomVersion = homeServerCapabilities.roomVersions?.defaultRoomVersion
+        val restrictedSupport = homeServerCapabilities.isFeatureSupported(HomeServerCapabilities.ROOM_CAP_RESTRICTED)
+        val createRestricted = restrictedSupport == HomeServerCapabilities.RoomCapabilitySupport.SUPPORTED ||
+                HomeServerCapabilities.roomVersionAtLeast(createDefaultRoomVersion, HomeServerCapabilities.ROOM_VERSION_RESTRICTED)
+
+        val createKnock = (createDefaultRoomVersion?.let {
+            homeServerCapabilities.isFeatureSupported(HomeServerCapabilities.ROOM_CAP_KNOCK, it)
+        } ?: false) ||
+                HomeServerCapabilities.roomVersionAtLeast(createDefaultRoomVersion, HomeServerCapabilities.ROOM_VERSION_KNOCK)
 
         val defaultJoinRules = if (parentSpaceId != null && createRestricted) {
             RoomJoinRules.RESTRICTED
@@ -97,6 +104,7 @@ class CreateRoomViewModel @AssistedInject constructor(
             copy(
                     parentSpaceId = parentSpaceId,
                     supportsRestricted = createRestricted,
+                    supportsKnock = createKnock,
                     roomJoinRules = defaultJoinRules,
                     parentSpaceSummary = parentSpaceId?.let { session.getRoomSummary(it) },
                     defaultRoomVersion = defaultRoomVersion,
@@ -223,8 +231,15 @@ class CreateRoomViewModel @AssistedInject constructor(
                         isEncrypted = adminE2EByDefault
                 )
             }
+            RoomJoinRules.KNOCK -> {
+                copy(
+                        roomJoinRules = RoomJoinRules.KNOCK,
+                        // Reset any error in the form about alias
+                        asyncCreateRoomRequest = Uninitialized,
+                        isEncrypted = adminE2EByDefault
+                )
+            }
 //            RoomJoinRules.INVITE,
-//            RoomJoinRules.KNOCK,
 //            RoomJoinRules.PRIVATE,
             else -> {
                 // default to invite
@@ -307,7 +322,17 @@ class CreateRoomViewModel @AssistedInject constructor(
                                 )
                             }
                         }
-//                        RoomJoinRules.KNOCK      ->
+                        RoomJoinRules.KNOCK -> {
+                            // No dedicated preset for knock; start from a private chat and override the join rule.
+                            visibility = RoomDirectoryVisibility.PRIVATE
+                            preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
+                            initialStates.add(
+                                    CreateRoomStateEvent(
+                                            type = EventType.STATE_ROOM_JOIN_RULES,
+                                            content = mapOf("join_rule" to RoomJoinRules.KNOCK.value)
+                                    )
+                            )
+                        }
 //                        RoomJoinRules.PRIVATE    ->
 //                        RoomJoinRules.INVITE
                         else -> {

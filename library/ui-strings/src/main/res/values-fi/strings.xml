@@ -2197,7 +2197,6 @@
     <string name="ftue_auth_carousel_workplace_body">${app_name} toimii mainiosti työpaikallakin. Siihen luottavat maailman turvallisimmat organisaatiot.</string>
     <string name="directory_add_a_new_server_error_already_added">Tämä palvelin on jo luettelossa</string>
     <string name="directory_add_a_new_server_error">Tätä palvelinta tai sen huoneluetteloa ei löydy</string>
-    <string name="room_settings_room_access_entry_knock">Kuka vain voi koputtaa huoneeseen ja jäsenet voivat sen jälkeen hyväksyä tai hylätä</string>
     <string name="room_alias_unpublish_confirmation">Poista osoitteen \"%1$s\" julkaiseminen\?</string>
     <string name="room_settings_room_notifications_encryption_notice">Huomaa, että maininnat ja avainsanailmoitukset eivät ole käytössä salausta käyttävissä huoneissa mobiililaitteilla.</string>
     <string name="settings_enable_direct_share_title">Ota suora jako käyttöön</string>

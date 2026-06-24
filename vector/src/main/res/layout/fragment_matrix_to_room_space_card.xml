@@ -222,6 +222,24 @@
             app:layout_goneMarginStart="25dp"
             tools:text="7 people you may know" />
 
+        <EditText
+            android:id="@+id/matrixToCardKnockMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/room_preview_knock_message_hint"
+            android:importantForAutofill="no"
+            android:inputType="textMultiLine|textCapSentences"
+            android:maxLines="3"
+            android:minLines="2"
+            android:gravity="top|start"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/knownMember1"
+            app:layout_constraintWidth_max="400dp"
+            tools:visibility="visible" />
+
         <im.vector.app.core.platform.ButtonStateView
             android:id="@+id/matrixToCardMainButton"
             android:layout_width="0dp"
@@ -233,7 +251,8 @@
             app:bsv_use_flat_button="false"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/knownMember1"
+            app:layout_constraintTop_toBottomOf="@id/matrixToCardKnockMessage"
+            app:layout_goneMarginTop="16dp"
             app:layout_constraintWidth_max="400dp" />
 
         <!--        <Button-->

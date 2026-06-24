@@ -264,6 +264,10 @@ class RoomProfileFragment :
         roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomMembers)
     }
 
+    override fun onKnockRequestsClicked() {
+        roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenKnockRequests)
+    }
+
     override fun onBannedMemberListClicked() {
         roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenBannedRoomMembers)
     }

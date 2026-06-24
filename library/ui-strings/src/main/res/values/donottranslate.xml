@@ -250,4 +250,39 @@
     <string name="create_room_initial_state_invalid" translatable="false">Invalid JSON: expected an array of state events.</string>
 
     <string name="space_view_timeline" translatable="false">View</string>
+
+    <string name="room_settings_room_access_knock_title" translatable="false">Ask to join</string>
+    <string name="room_settings_room_access_knock_description" translatable="false">People need to ask to join and can be accepted or denied.</string>
+    <string name="room_settings_space_access_knock_description" translatable="false">People need to ask to join and can be accepted or denied.</string>
+
+    <string name="notice_room_knock" translatable="false">%1$s asked to join</string>
+    <string name="notice_room_knock_by_you" translatable="false">You asked to join</string>
+    <string name="notice_room_knock_with_reason" translatable="false">%1$s asked to join: %2$s</string>
+    <string name="notice_room_knock_with_reason_by_you" translatable="false">You asked to join: %1$s</string>
+    <string name="notice_room_knock_accepted" translatable="false">%1$s accepted %2$s\'s request to join</string>
+    <string name="notice_room_knock_accepted_by_you" translatable="false">You accepted %1$s\'s request to join</string>
+    <string name="notice_room_knock_accepted_you" translatable="false">%1$s accepted your request to join</string>
+    <string name="notice_room_knock_denied" translatable="false">%1$s declined %2$s\'s request to join</string>
+    <string name="notice_room_knock_denied_by_you" translatable="false">You declined %1$s\'s request to join</string>
+    <string name="notice_room_knock_cancelled" translatable="false">%1$s cancelled their request to join</string>
+    <string name="notice_room_knock_cancelled_by_you" translatable="false">You cancelled your request to join</string>
+
+    <plurals name="room_profile_section_more_knock_requests">
+        <item quantity="one">%d join request</item>
+        <item quantity="other">%d join requests</item>
+    </plurals>
+    <string name="room_knock_requests_title" translatable="false">Join requests</string>
+    <string name="room_knock_requests_empty" translatable="false">Nobody is asking to join right now.</string>
+    <string name="room_knock_request_accept" translatable="false">Accept</string>
+    <string name="room_knock_request_decline" translatable="false">Decline</string>
+    <string name="room_knock_request_accepted" translatable="false">Accepted %1$s</string>
+    <string name="room_knock_request_declined" translatable="false">Declined %1$s</string>
+
+    <string name="pending_join_requests_title" translatable="false">Pending requests</string>
+    <string name="pending_join_requests_empty" translatable="false">You have no pending join requests.</string>
+    <string name="pending_join_requests_drawer_entry" translatable="false">Pending requests</string>
+
+    <string name="room_preview_request_to_join" translatable="false">Ask to join</string>
+    <string name="room_preview_knock_message_hint" translatable="false">Message (optional)</string>
+    <string name="room_preview_cancel_knock" translatable="false">Cancel request</string>
 </resources>

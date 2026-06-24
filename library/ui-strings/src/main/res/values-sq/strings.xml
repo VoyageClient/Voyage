@@ -1897,7 +1897,6 @@
     <string name="room_settings_room_access_private_description">Vetëm personat e ftuar mund ta gjejnë dhe hyjnë në të</string>
     <string name="room_settings_room_access_private_title">Private</string>
     <string name="room_settings_room_access_entry_unknown">Rregullim i panjohur hyrjesh (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Në dhomë mund të trokasë cilido, anëtarët mandej mund ta pranojnë ose jo</string>
     <string name="room_settings_guest_access_title">Lejo vizitorë të hyjnë</string>
     <string name="spaces_header">Hapësira</string>
     <string name="suggested_header">Dhoma të Këshilluara</string>

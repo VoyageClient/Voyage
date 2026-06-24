@@ -100,7 +100,13 @@ data class RoomStrippedState(
          * The current membership of this user in the room. Usually leave if the room is fetched over federation.
          */
         @Json(name = "membership")
-        val membership: String?
+        val membership: String?,
+
+        /**
+         * Optional. The join rule of the room (MSC3266), e.g. "public", "invite", "knock", "restricted".
+         */
+        @Json(name = "join_rule")
+        val joinRule: String? = null
 ) {
     /**
      * Return the canonical alias, or the first alias from the list of aliases, or null.

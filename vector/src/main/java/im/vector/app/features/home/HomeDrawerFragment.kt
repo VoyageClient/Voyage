@@ -38,6 +38,7 @@ import im.vector.app.features.home.accountswitcher.AccountSwitcherAdapter
 import im.vector.app.features.home.accountswitcher.AccountSwitcherEntry
 import im.vector.app.features.onboarding.OnboardingActivity
 import im.vector.app.features.permalink.PermalinkFactory
+import im.vector.app.features.roomdirectory.pendingrequests.PendingJoinRequestsActivity
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.spaces.SpaceListFragment
@@ -45,6 +46,8 @@ import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import javax.inject.Inject
@@ -65,6 +68,7 @@ class HomeDrawerFragment :
 
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
     private lateinit var accountAdapter: AccountSwitcherAdapter
+    private var hasPendingJoinRequests = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentHomeDrawerBinding {
         return FragmentHomeDrawerBinding.inflate(inflater, container, false)
@@ -143,6 +147,19 @@ class HomeDrawerFragment :
             sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
             navigator.openDebug(requireActivity())
         }
+
+        views.homeDrawerPendingRequestsView.debouncedClicks {
+            sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
+            startActivity(PendingJoinRequestsActivity.newIntent(requireContext()))
+        }
+        session.roomService()
+                .getRoomSummariesLive(roomSummaryQueryParams { memberships = listOf(Membership.KNOCK) })
+                .observeK(viewLifecycleOwner) { summaries ->
+                    hasPendingJoinRequests = !summaries.isNullOrEmpty()
+                    val showPending = hasPendingJoinRequests && !views.homeDrawerAccountList.isVisible
+                    views.homeDrawerPendingRequestsView.isVisible = showPending
+                    views.homeDrawerPendingRequestsDivider.isVisible = showPending
+                }
     }
 
     private fun setupAccountSwitcher() {
@@ -167,6 +184,10 @@ class HomeDrawerFragment :
     private fun setSwitcherExpanded(expanded: Boolean) {
         views.homeDrawerAccountList.isVisible = expanded
         views.homeDrawerGroupListContainer.isVisible = !expanded
+        // The pending-requests entry belongs to the spaces list; hide it while the account switcher is up.
+        val showPending = hasPendingJoinRequests && !expanded
+        views.homeDrawerPendingRequestsView.isVisible = showPending
+        views.homeDrawerPendingRequestsDivider.isVisible = showPending
         views.homeDrawerAccountSwitcherToggle.setImageResource(
                 if (expanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
         )

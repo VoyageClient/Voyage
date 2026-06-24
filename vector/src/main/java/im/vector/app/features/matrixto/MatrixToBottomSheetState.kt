@@ -13,6 +13,7 @@ import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.util.MatrixItem
 
 data class MatrixToBottomSheetState(
@@ -42,7 +43,8 @@ sealed class RoomInfoResult {
             val membership: Membership,
             val roomType: String?,
             val viaServers: List<String>?,
-            val isPublic: Boolean
+            val isPublic: Boolean,
+            val joinRule: RoomJoinRules? = null
     ) : RoomInfoResult()
 
     data class PartialInfo(

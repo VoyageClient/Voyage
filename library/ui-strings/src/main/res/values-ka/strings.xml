@@ -1758,7 +1758,6 @@
     <string name="room_alias_publish_to_directory_error">ამჟამინდელი ოთახის დირექტორიის ხილვადობის მიღება ვერ მოხერხდა (%1$s).</string>
     <string name="room_settings_read_history_entry_members_only_option_time_shared">მხოლოდ წევრები (ამ ვარიანტის არჩევის მომენტიდან)</string>
     <string name="room_settings_read_history_entry_members_only_joined">მხოლოდ წევრები (მაშინ როცა ისინი შეუერთდნენ)</string>
-    <string name="room_settings_room_access_entry_knock">ნებისმიერს შეუძლია ოთახში დაკაკუნება, შემდეგ წევრები შეძლებენ მის მიღებას ან უარყოფას</string>
     <string name="room_settings_room_access_entry_unknown">უცნობი წვდომის პარამეტრი (%s)</string>
     <string name="room_settings_room_access_private_description">მხოლოდ მოწვეული ადამიანები შეძლებენ მოძებნონ და შეუერთდნენ</string>
     <string name="room_settings_room_access_public_description">ნებისმიერ ადამიანს შეუძლია იპოვოს ოთახი და შეუერთდეს</string>

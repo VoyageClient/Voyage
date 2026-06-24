@@ -58,6 +58,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
             eventIdToHighlight: String?,
             rootThreadEventId: String?,
             isFromThreadTimeline: Boolean,
+            excludeHiddenEvents: Boolean = false,
             predicateToStop: PredicateToStopSearch
     ): List<TimelineEvent> {
         if (index >= timelineEvents.size - 1) {
@@ -89,7 +90,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
                     highlightedEventId = eventIdToHighlight,
                     isFromThreadTimeline = isFromThreadTimeline,
                     rootThreadEventId = rootThreadEventId
-            )
+            ) && !(excludeHiddenEvents && isHiddenEvent(it, rootThreadEventId, isFromThreadTimeline))
         }
         return if (filteredSimilarEvents.size < minSize) emptyList() else filteredSimilarEvents
     }
@@ -116,7 +117,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
         return prevSub
                 .reversed()
                 .let {
-                    nextEventsUntil(it, 0, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline, object : PredicateToStopSearch {
+                    nextEventsUntil(it, 0, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline, excludeHiddenEvents = true, predicateToStop = object : PredicateToStopSearch {
                         override fun shouldStopSearch(oldEvent: Event, newEvent: Event): Boolean {
                             return oldEvent.getClearType() != newEvent.getClearType()
                         }
@@ -153,7 +154,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
         return prevDisplayableEvents
                 .reversed()
                 .let {
-                    nextEventsUntil(it, 0, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline, object : PredicateToStopSearch {
+                    nextEventsUntil(it, 0, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline, predicateToStop = object : PredicateToStopSearch {
                         override fun shouldStopSearch(oldEvent: Event, newEvent: Event): Boolean {
                             return !newEvent.isRedacted()
                         }
@@ -266,6 +267,9 @@ class TimelineEventVisibilityHelper @Inject constructor(
             val diff = computeMembershipDiff()
             if ((diff.isJoin || diff.isPart) && !userPreferencesProvider.shouldShowJoinLeaves()) return true
             if ((diff.isAvatarChange || diff.isDisplaynameChange) && !userPreferencesProvider.shouldShowAvatarDisplayNameChanges()) return true
+            // A repeated knock (re-request to join, no membership change) is a debug event: hidden by
+            // default, only the first knock is a real membership transition that gets displayed.
+            if (diff.isRepeatedKnock) return true
         }
 
         if (userPreferencesProvider.areThreadMessagesEnabled() && !isFromThreadTimeline && root.isThread()) {
@@ -315,11 +319,14 @@ class TimelineEventVisibilityHelper @Inject constructor(
         val isDisplaynameChange = isProfileChanged && content?.displayName != prevContent?.displayName
         val isAvatarChange = isProfileChanged && content?.avatarUrl !== prevContent?.avatarUrl
 
+        val isRepeatedKnock = !isMembershipChanged && content?.membership == Membership.KNOCK
+
         return MembershipDiff(
                 isJoin = isJoin,
                 isPart = isPart,
                 isDisplaynameChange = isDisplaynameChange,
-                isAvatarChange = isAvatarChange
+                isAvatarChange = isAvatarChange,
+                isRepeatedKnock = isRepeatedKnock
         )
     }
 
@@ -327,6 +334,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
             val isJoin: Boolean,
             val isPart: Boolean,
             val isDisplaynameChange: Boolean,
-            val isAvatarChange: Boolean
+            val isAvatarChange: Boolean,
+            val isRepeatedKnock: Boolean
     )
 }

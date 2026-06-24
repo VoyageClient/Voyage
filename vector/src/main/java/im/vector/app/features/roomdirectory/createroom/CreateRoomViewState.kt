@@ -36,6 +36,7 @@ data class CreateRoomViewState(
         val parentSpaceId: String?,
         val parentSpaceSummary: RoomSummary? = null,
         val supportsRestricted: Boolean = false,
+        val supportsKnock: Boolean = false,
         val aliasLocalPart: String? = null,
         val isSubSpace: Boolean = false,
         val openAfterCreate: Boolean = true

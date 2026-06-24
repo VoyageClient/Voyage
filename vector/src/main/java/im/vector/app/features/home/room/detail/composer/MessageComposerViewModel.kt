@@ -985,7 +985,14 @@ class MessageComposerViewModel @AssistedInject constructor(
             try {
                 session.roomService().joinRoom(command.roomAlias, command.reason, emptyList())
             } catch (failure: Throwable) {
-                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
+                // Couldn't join directly (e.g. invite-only or knock/ask-to-join): open the room's
+                // matrix.to sheet, which offers Join / Ask to join as appropriate.
+                val link = tryOrNull { session.permalinkService().createPermalink(command.roomAlias) }
+                if (link != null) {
+                    _viewEvents.post(MessageComposerViewEvents.OpenRoomLink(link))
+                } else {
+                    _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
+                }
                 return@launch
             }
             session.getRoomSummary(command.roomAlias)

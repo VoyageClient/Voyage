@@ -878,7 +878,6 @@
     </plurals>
     <string name="decide_which_spaces_can_access">Veldu hvaða svæði hafa aðgang að þessari spjallrás. Ef svæði er valið geta meðlimir þess fundið og tekið þátt í spjallrásinni.</string>
     <string name="room_settings_room_access_restricted_description">Hver sem er á svæði með þessari spjallrás getur fundið hana og tekið þátt í henni. Aðeins stjórnendur spjallrásarinnar geta bætt henni í svæði.</string>
-    <string name="room_settings_room_access_entry_knock">Hver sem er getur látið vita af sér á spjallrásinni, meðlimir geta þá samþykkt eða hafnað</string>
     <string name="room_alias_publish_to_directory_error">Mistókst að fá sýnileika spjallrásar á spjallrásaskrá (%1$s).</string>
     <string name="space_you_know_that_contains_this_room">Svæði sem þú veist að innihalda þessa spjallrás</string>
     <string name="decide_who_can_find_and_join">Veldu hverjir geta fundið spjallrásina og tekið þátt.</string>

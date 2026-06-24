@@ -1331,7 +1331,6 @@
     <string name="room_settings_room_access_private_invite_only_title">Özel (Yalnızca Davetli)</string>
     <string name="room_settings_room_access_private_title">Özel</string>
     <string name="room_settings_room_access_entry_unknown">Bilinmeyen erişim ayarı (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Herkes odayı çalabilir, üyeler daha sonra kabul edebilir veya reddedebilir</string>
     <string name="room_alias_local_address_subtitle">Kullanıcıların bu odayı ev sunucunuz (%1$s) aracılığıyla bulabilmesi için bu odanın adreslerini ayarlayın</string>
     <string name="room_alias_address_hint">Yeni yayınlanan adres (ör. #kullaniciadi:sunucu)</string>
     <string name="space_settings_alias_subtitle">Bu alanın adreslerini görün ve yönetin.</string>

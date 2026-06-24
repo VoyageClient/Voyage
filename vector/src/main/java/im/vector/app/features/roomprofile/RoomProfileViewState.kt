@@ -20,6 +20,7 @@ data class RoomProfileViewState(
         val roomSummary: Async<RoomSummary> = Uninitialized,
         val roomCreateContent: Async<RoomCreateContent> = Uninitialized,
         val bannedMembership: Async<List<RoomMemberSummary>> = Uninitialized,
+        val knockRequests: Async<List<RoomMemberSummary>> = Uninitialized,
         val actionPermissions: ActionPermissions = ActionPermissions(),
         val isLoading: Boolean = false,
         val isUsingUnstableRoomVersion: Boolean = false,

@@ -35,5 +35,10 @@ data class RoomsSyncResponse(
         /**
          * Left rooms. The rooms that the user has left or been banned from: keys are rooms ids.
          */
-        @Json(name = "leave") val leave: Map<String, RoomSync> = emptyMap()
+        @Json(name = "leave") val leave: Map<String, RoomSync> = emptyMap(),
+
+        /**
+         * Knocked rooms. The rooms that the user has knocked on (requested to join): keys are rooms ids.
+         */
+        @Json(name = "knock") val knock: Map<String, KnockedRoomSync> = emptyMap()
 )

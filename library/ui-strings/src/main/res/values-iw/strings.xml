@@ -2222,7 +2222,6 @@
     <string name="room_settings_room_access_private_invite_only_title">פרטי (מוזמן בלבד)</string>
     <string name="room_settings_room_access_private_title">פרטי</string>
     <string name="room_settings_room_access_entry_unknown">הגדרת גישה לא ידועה (%s)</string>
-    <string name="room_settings_room_access_entry_knock">כל אחד יכול לדפוק לחדר, ואז החברים יכולים לקבל או לדחות</string>
     <string name="space_settings_alias_subtitle">סדר כתובות במרחב זה.</string>
     <string name="space_settings_alias_title">מרחב כתובות</string>
     <string name="room_settings_guest_access_title">אפשר לאורחים להצטרף</string>

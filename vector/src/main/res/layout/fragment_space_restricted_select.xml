@@ -43,7 +43,7 @@
                         android:layout_height="wrap_content"
                         android:paddingTop="8dp"
                         android:text="@string/decide_which_spaces_can_access"
-                        android:textAppearance="@style/Widget.Vector.TextView.Subtitle"
+                        android:textAppearance="@style/TextAppearance.Vector.Subtitle"
                         android:textColor="?vctr_content_secondary" />
                 </LinearLayout>
 

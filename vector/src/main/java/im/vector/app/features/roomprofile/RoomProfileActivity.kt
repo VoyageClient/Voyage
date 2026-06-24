@@ -24,6 +24,7 @@ import im.vector.app.features.room.RequireActiveMembershipViewEvents
 import im.vector.app.features.room.RequireActiveMembershipViewModel
 import im.vector.app.features.roomprofile.alias.RoomAliasFragment
 import im.vector.app.features.roomprofile.banned.RoomBannedMemberListFragment
+import im.vector.app.features.roomprofile.knock.RoomKnockRequestsFragment
 import im.vector.app.features.roomprofile.members.RoomMemberListFragment
 import im.vector.app.features.roomprofile.notifications.RoomNotificationSettingsFragment
 import im.vector.app.features.roomprofile.permissions.RoomPermissionsFragment
@@ -103,6 +104,7 @@ class RoomProfileActivity :
                         RoomProfileSharedAction.OpenRoomPolls -> openRoomPolls()
                         RoomProfileSharedAction.OpenPinnedMessages -> openPinnedMessages()
                         RoomProfileSharedAction.OpenRoomUploads -> openRoomUploads()
+                        RoomProfileSharedAction.OpenKnockRequests -> openKnockRequests()
                         RoomProfileSharedAction.OpenBannedRoomMembers -> openBannedRoomMembers()
                         RoomProfileSharedAction.OpenRoomNotificationSettings -> openRoomNotificationSettings()
                     }
@@ -156,6 +158,10 @@ class RoomProfileActivity :
 
     private fun openRoomMembers() {
         addFragmentToBackstack(views.simpleFragmentContainer, RoomMemberListFragment::class.java, roomProfileArgs)
+    }
+
+    private fun openKnockRequests() {
+        addFragmentToBackstack(views.simpleFragmentContainer, RoomKnockRequestsFragment::class.java, roomProfileArgs)
     }
 
     private fun openBannedRoomMembers() {

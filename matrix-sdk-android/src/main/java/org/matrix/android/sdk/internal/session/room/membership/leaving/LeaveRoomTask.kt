@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -52,7 +53,8 @@ internal class DefaultLeaveRoomTask @Inject constructor(
 
     private suspend fun leaveRoom(roomId: String, reason: String?) {
         val roomSummary = roomSummaryDataSource.getRoomSummary(roomId)
-        if (roomSummary?.membership?.isActive() == false) {
+        // Knock is not an "active" membership but leaving it is how a pending request to join is retracted.
+        if (roomSummary?.membership?.isActive() == false && roomSummary.membership != Membership.KNOCK) {
             Timber.v("Room $roomId is not joined so can't be left")
             return
         }

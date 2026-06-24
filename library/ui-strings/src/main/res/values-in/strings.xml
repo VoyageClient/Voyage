@@ -857,7 +857,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_settings_room_access_private_invite_only_title">Pribadi (Undangan Saja)</string>
     <string name="room_settings_room_access_private_title">Pribadi</string>
     <string name="room_settings_room_access_entry_unknown">Pengaturan akses yang tidak diketahui (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Siapa saja dapat mengetuk ruangan, anggota kemudian dapat menerima atau menolak</string>
     <string name="room_alias_publish_to_directory_error">Tidak dapat mengambil visibilitas direktori ruangan saat ini (%1$s).</string>
     <string name="room_alias_publish_to_directory">Publikasikan ruangan ini ke publik di direktori ruangan %1$s\?</string>
     <string name="room_alias_action_unpublish">Batalkan publikasi alamat ini</string>

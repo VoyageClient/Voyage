@@ -55,6 +55,9 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
     var editable: Boolean = true
 
     @EpoxyAttribute
+    var notificationBadgeVisible: Boolean = false
+
+    @EpoxyAttribute
     var destructive: Boolean = false
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
@@ -105,6 +108,8 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
             holder.secondaryAccessory.isVisible = false
         }
 
+        holder.notificationBadge.isVisible = notificationBadgeVisible
+
         if (editableRes != 0 && editable) {
             val tintColorSecondary = if (destructive) {
                 titleTintColor
@@ -125,5 +130,6 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
         val subtitle by bind<TextView>(R.id.actionSubtitle)
         val editable by bind<ImageView>(R.id.actionEditable)
         val secondaryAccessory by bind<ImageView>(R.id.actionSecondaryAccessory)
+        val notificationBadge by bind<android.view.View>(R.id.actionNotificationBadge)
     }
 }

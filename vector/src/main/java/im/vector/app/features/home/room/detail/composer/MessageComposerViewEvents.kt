@@ -32,6 +32,11 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
 
     data class OpenRoomMemberProfile(val userId: String) : MessageComposerViewEvents()
 
+    /**
+     * A /join that couldn't join directly: open the room's matrix.to sheet (Join / Ask to join).
+     */
+    data class OpenRoomLink(val link: String) : MessageComposerViewEvents()
+
     // TODO Remove
     object SlashCommandNotImplemented : SendMessageResult()
 

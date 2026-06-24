@@ -1113,7 +1113,6 @@
     <string name="room_settings_room_access_private_description">招待した人のみが検索し、参加できます</string>
     <string name="room_settings_room_access_private_title">非公開</string>
     <string name="room_settings_room_access_entry_unknown">不明のアクセス設定（%s）</string>
-    <string name="room_settings_room_access_entry_knock">誰でもルームにノックができ、メンバーがその参加を承認または拒否できます</string>
     <string name="room_alias_publish_to_directory_error">現在のルームディレクトリーの見え方を取得できません（%1$s）。</string>
     <string name="room_alias_publish_to_directory">このルームを%1$sのルームディレクトリーに公開しますか？</string>
     <string name="room_alias_action_unpublish">このアドレスを非公開にする</string>

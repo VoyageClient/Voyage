@@ -998,7 +998,6 @@
     <string name="settings_troubleshoot_test_fcm_failed_account_missing_quick_fix">أضف حسابًا</string>
     <string name="room_settings_room_access_private_description">يمكن للمدعووين فقط العثور على الغرفة والانضمام إليها</string>
     <string name="room_settings_room_access_entry_unknown">إعداد نفاذ مجهول (%s)</string>
-    <string name="room_settings_room_access_entry_knock">يمكن لأي شخص طلب الانضمام لهذه الغرفة ليحدد الأعضاء إن كانوا سيقبلونهم أو يرفضونهم</string>
     <string name="room_alias_publish_to_directory">أتريد نشر هذه الغرفة للعلن في دليل %1$s؟</string>
     <string name="room_alias_action_unpublish">ألغ نشر هذا العنوان</string>
     <string name="room_alias_action_publish">انشر هذا العنوان</string>

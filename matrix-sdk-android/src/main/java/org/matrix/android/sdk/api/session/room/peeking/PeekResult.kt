@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.peeking
 
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.util.MatrixItem
 
 sealed class PeekResult {
@@ -29,7 +30,8 @@ sealed class PeekResult {
             val roomType: String?,
             val viaServers: List<String>,
             val someMembers: List<MatrixItem.UserItem>?,
-            val isPublic: Boolean
+            val isPublic: Boolean,
+            val joinRule: RoomJoinRules? = null
     ) : PeekResult()
 
     data class PeekingNotAllowed(

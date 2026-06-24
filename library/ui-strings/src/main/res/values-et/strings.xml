@@ -1908,7 +1908,6 @@
     <string name="room_settings_room_access_private_description">Jututuba saab leida ja sellega liituda vaid kutsete alusel</string>
     <string name="room_settings_room_access_private_title">Privaatne</string>
     <string name="room_settings_room_access_entry_unknown">Tundmatu seadistus ligipääsuks (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Kõik võivad jututoa uksele koputada ning senised liikmed saavad uut liitumist lubada või keelata</string>
     <string name="room_settings_guest_access_title">Luba külalistel liituda</string>
     <string name="spaces_header">Kogukonnad</string>
     <string name="suggested_header">Soovitatud jututoad</string>

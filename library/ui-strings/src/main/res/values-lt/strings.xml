@@ -2033,7 +2033,6 @@
     <string name="room_settings_room_access_private_invite_only_title">Privatus (tik su kvietimais)</string>
     <string name="room_settings_room_access_private_title">Privatus</string>
     <string name="room_settings_room_access_entry_unknown">Nežinomas prieigos nustatymas (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Bet kas gali pasibelsti į kambarį, o nariai gali priimti arba atmesti</string>
     <string name="room_settings_read_history_entry_members_only_joined">Tik nariai (nuo jų prisijungimo)</string>
     <string name="room_settings_read_history_entry_members_only_invited">Tik nariai (nuo jų pakvietimo)</string>
     <string name="room_settings_read_history_entry_members_only_option_time_shared">Tik nariai (nuo šios parinkties pasirinkimo momento)</string>

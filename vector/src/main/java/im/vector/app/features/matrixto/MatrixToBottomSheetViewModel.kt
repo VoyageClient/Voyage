@@ -143,7 +143,8 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                                     membership = knownRoom?.membership ?: Membership.NONE,
                                     roomType = peekResult.roomType,
                                     viaServers = peekResult.viaServers.takeIf { it.isNotEmpty() } ?: permalinkData.viaParameters,
-                                    isPublic = peekResult.isPublic
+                                    isPublic = peekResult.isPublic,
+                                    joinRule = peekResult.joinRule
                             ).also {
                                 peekResult.someMembers?.let { checkForKnownMembers(it) }
                             }
@@ -245,6 +246,7 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
             }
             is MatrixToAction.JoinSpace -> handleJoinSpace(action)
             is MatrixToAction.JoinRoom -> handleJoinRoom(action)
+            is MatrixToAction.KnockRoom -> handleKnockRoom(action)
             is MatrixToAction.OpenSpace -> {
                 _viewEvents.post(MatrixToViewEvents.NavigateToSpace(action.spaceID))
             }
@@ -307,6 +309,29 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
             } finally {
                 setState {
                     // we can hide this button has we will navigate out
+                    copy(startChattingState = Uninitialized)
+                }
+            }
+        }
+    }
+
+    private fun handleKnockRoom(action: MatrixToAction.KnockRoom) {
+        setState {
+            copy(startChattingState = Loading())
+        }
+        viewModelScope.launch {
+            try {
+                session.roomService().knock(
+                        roomIdOrAlias = action.roomIdOrAlias,
+                        reason = action.reason,
+                        viaServers = action.viaServers?.take(3) ?: emptyList()
+                )
+                // No confirmation popup: dismissing the sheet communicates that the request was sent.
+                _viewEvents.post(MatrixToViewEvents.Dismiss)
+            } catch (failure: Throwable) {
+                _viewEvents.post(MatrixToViewEvents.ShowModalError(errorFormatter.toHumanReadable(failure)))
+            } finally {
+                setState {
                     copy(startChattingState = Uninitialized)
                 }
             }

@@ -1873,7 +1873,6 @@
     <string name="room_settings_room_access_private_description">Bara personer som bjuds in kan hitta och gå med</string>
     <string name="room_settings_room_access_private_title">Privat</string>
     <string name="room_settings_room_access_entry_unknown">Okänd åtkomstinställning (%s)</string>
-    <string name="room_settings_room_access_entry_knock">Vem som helst kan knacka på, och medlemmar kan då acceptera eller avvisa</string>
     <string name="room_settings_guest_access_title">Tillåt gäster att gå med</string>
     <string name="spaces_header">Utrymmen</string>
     <string name="suggested_header">Föreslagna rum</string>
