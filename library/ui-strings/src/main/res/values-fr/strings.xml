@@ -269,7 +269,6 @@
     <string name="search_hint">Rechercher</string>
     <string name="search_members_hint">Filtrer les membres du salon</string>
     <string name="search_no_results">Aucun résultat</string>
-    <string name="settings_profile_picture">Image de profil</string>
     <string name="settings_display_name">Nom affiché</string>
     <string name="settings_add_email_address">Ajouter une adresse électronique</string>
     <string name="settings_add_phone_number">Ajouter un numéro de téléphone</string>
@@ -2271,7 +2270,6 @@
     <string name="ftue_personalize_complete_title">Ça a l’air correct !</string>
     <string name="ftue_personalize_lets_go">Allons-y</string>
     <string name="ftue_profile_picture_subtitle">C’est le moment de mettre un visage sur ce nom</string>
-    <string name="ftue_profile_picture_title">Ajouter une photo de profil</string>
     <string name="ftue_display_name_entry_footer">Vous pourrez le changer plus tard</string>
     <string name="ftue_display_name_entry_title">Nom d’affichage</string>
     <string name="ftue_display_name_title">Choisissez un nom d’affichage</string>
@@ -2796,7 +2794,6 @@
     <string name="settings_crypto_version">Version de cryptographie</string>
     <string name="action_proceed_to_reset">Faire la réinitialisation</string>
     <string name="notice_display_name_changed_to">%1$s a modifié son nom d’affichage en %2$s</string>
-    <string name="avatar_of_user">Image de profile de l’utilisateur %1$s</string>
     <string name="avatar_of_room">Avatar du salon %1$s</string>
     <string name="avatar_of_space">Avatar de l’espace %1$s</string>
     <string name="confirm_your_identity_after_update">La messagerie sécurisée a été améliorée avec la dernière mise-à-jour. Veuillez re-vérifier votre appareil.</string>

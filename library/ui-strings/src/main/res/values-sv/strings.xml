@@ -391,7 +391,6 @@
     <string name="enter_secret_storage_invalid">Kan inte hitta hemligheter i lagringen</string>
     <string name="settings_when_rooms_are_upgraded">När rum uppgraderas</string>
     <string name="command_description_discard_session_not_handled">Stöds endast I krypterade rum</string>
-    <string name="settings_profile_picture">Profilbild</string>
     <string name="settings_display_name">Visningsnamn</string>
     <string name="settings_containing_my_display_name">Meddelanden som innehåller mitt visningsnamn</string>
     <string name="settings_user_settings">Användarinställningar</string>
@@ -2277,7 +2276,6 @@
     <string name="ftue_personalize_complete_title">Ser bra ut!</string>
     <string name="ftue_personalize_lets_go">Nu kör vi</string>
     <string name="ftue_profile_picture_subtitle">Dags att lägga till ett ansikte till namnet</string>
-    <string name="ftue_profile_picture_title">Lägg till en profilbild</string>
     <string name="ftue_display_name_entry_footer">Du kan ändra detta senare</string>
     <string name="ftue_display_name_entry_title">Visningsnamn</string>
     <string name="ftue_display_name_title">Välj ett visningsnamn</string>
@@ -2795,7 +2793,6 @@
     <string name="settings_crypto_version">Kryptoversion</string>
     <string name="settings_notification_error_on_update">Ett fel uppstod när du uppdaterade dina aviseringsinställningar. Var god försök igen.</string>
     <string name="action_proceed_to_reset">Fortsätt till återställning</string>
-    <string name="avatar_of_user">Profilbild för användaren %1$s</string>
     <string name="avatar_of_room">Avatar för rummet %1$s</string>
     <string name="avatar_of_space">Avatar för utrymmet %1$s</string>
     <string name="notice_display_name_changed_to">%1$s bytte sitt visningsnamn till %2$s</string>

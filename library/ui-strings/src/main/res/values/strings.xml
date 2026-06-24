@@ -752,7 +752,6 @@
 
     <!-- Vector Settings -->
 
-    <string name="settings_profile_picture">Profile Picture</string>
     <string name="settings_display_name">Display Name</string>
     <string name="settings_add_email_address">Add email address</string>
     <string name="settings_phone_number_empty">No phone number has been added to your account</string>
@@ -1382,8 +1381,6 @@
     <string name="avatar">Avatar</string>
     <string name="avatar_of_space">Avatar of space %1$s</string>
     <string name="avatar_of_room">Avatar of room %1$s</string>
-    <string name="avatar_of_user">Profile picture of user %1$s</string>
-
     <!-- Consent modal -->
     <string name="dialog_user_consent_content">To continue using the %1$s homeserver you must review and agree to the terms and conditions.</string>
     <string name="dialog_user_consent_submit">Review now</string>
@@ -1980,7 +1977,6 @@
     <string name="ftue_display_name_entry_title">Display Name</string>
     <string name="ftue_display_name_entry_footer">You can change this later</string>
 
-    <string name="ftue_profile_picture_title">Add a profile picture</string>
     <string name="ftue_profile_picture_subtitle">Time to put a face to the name</string>
     <string name="ftue_personalize_lets_go">Let\'s go</string>
     <string name="ftue_personalize_complete_title">Looking good!</string>

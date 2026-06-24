@@ -337,7 +337,6 @@
     <string name="ssl_unexpected_existing_expl">证书已从一个先前受你的手机信任的证书更改为另一个。这高度反常。建议你不要接受此新证书。</string>
     <string name="ssl_expected_existing_expl">证书已从曾受信任的证书更改为不受信任的证书。服务器可能已更新其证书，请联系管理员并核对服务器的指纹。</string>
     <string name="ssl_only_accept">请仅在服务器管理员发布了与上述指纹匹配的指纹的情况下接受该证书。</string>
-    <string name="settings_profile_picture">用户资料图片</string>
     <string name="settings_third_party_notices">第三方通知</string>
     <string name="settings_contacts_phonebook_country">通讯录国家</string>
     <string name="devices_details_id_title">ID</string>
@@ -2231,7 +2230,6 @@
     <string name="ftue_personalize_skip_this_step">跳过此步</string>
     <string name="ftue_personalize_complete_subtitle">随时前往设置以更新你的用户资料</string>
     <string name="ftue_profile_picture_subtitle">是时候给名称加一张脸了</string>
-    <string name="ftue_profile_picture_title">添加用户资料图片</string>
     <string name="ftue_auth_email_resend_email">重发电子邮件</string>
     <string name="ftue_auth_email_verification_footer">没有收到电子邮件？</string>
     <string name="ftue_auth_email_verification_subtitle">跟随发送到%s的说明</string>
@@ -2681,7 +2679,6 @@
     <string name="thread_list_not_available">你的家服务器还不支持列出消息列。</string>
     <string name="avatar_of_space">空间%1$s的头像</string>
     <string name="avatar_of_room">房间%1$s的头像</string>
-    <string name="avatar_of_user">用户%1$s的用户资料图片</string>
     <string name="settings_acceptable_use_policy">可接受的使用政策</string>
     <string name="direct_room_encryption_enabled_waiting_users">正在等待用户加入${app_name}</string>
     <string name="verification_request_waiting_for_recovery">正从安全密钥或短语验证……</string>

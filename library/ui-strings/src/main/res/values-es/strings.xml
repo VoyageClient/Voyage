@@ -322,7 +322,6 @@
     <string name="search_hint">Buscar</string>
     <string name="search_members_hint">Filtrar miembros de la sala</string>
     <string name="search_no_results">No hay resultados</string>
-    <string name="settings_profile_picture">Imagen de Perfil</string>
     <string name="settings_display_name">Nombre Público</string>
     <string name="settings_add_email_address">Añadir dirección de correo electrónico</string>
     <string name="settings_add_phone_number">Añadir número telefónico</string>
@@ -2166,7 +2165,6 @@
     <string name="ftue_personalize_submit">Guardar y continuar</string>
     <string name="ftue_personalize_complete_subtitle">Tus preferencias han sido guardadas.</string>
     <string name="ftue_personalize_lets_go">Vámonos</string>
-    <string name="ftue_profile_picture_title">Añadir una foto de perfil</string>
     <string name="ftue_display_name_entry_footer">Puedes cambiar esto más tarde</string>
     <string name="ftue_display_name_entry_title">Nombre público</string>
     <string name="ftue_display_name_title">Escoger un nombre público</string>
@@ -2537,5 +2535,4 @@
     <string name="settings_crypto_version">Versión de criptografía</string>
     <string name="notice_display_name_changed_to">%1$s cambió su nombre público a %2$s</string>
     <string name="settings_external_account_management_title">Cuenta</string>
-    <string name="avatar_of_user">Foto de perfil del usuario %1$s</string>
 </resources>

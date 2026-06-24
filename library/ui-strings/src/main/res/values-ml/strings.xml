@@ -220,7 +220,6 @@
     <string name="settings_add_phone_number">ഫോൺ നമ്പർ ചേർക്കുക</string>
     <string name="settings_add_email_address">ഈ - മെയിൽ വിലാസം ചേർക്കുക</string>
     <string name="settings_display_name">പ്രദർശന നാമം</string>
-    <string name="settings_profile_picture">പ്രൊഫൈൽ ചിത്രം</string>
     <string name="room_settings_all_messages">എല്ലാ സന്ദേശങ്ങളും</string>
 
     <string name="search_no_results">ഫലങ്ങളൊന്നുമില്ല</string>

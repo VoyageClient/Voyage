@@ -393,7 +393,6 @@
     <string name="search_no_results">Žádné výsledky</string>
     <string name="room_settings_all_messages">Všechny zprávy</string>
     <string name="room_settings_add_homescreen_shortcut">Přidat na domovskou obrazovku</string>
-    <string name="settings_profile_picture">Obrázek profilu</string>
     <string name="settings_display_name">Zobrazované jméno</string>
     <string name="settings_add_email_address">Přidat e-mailovou adresu</string>
     <string name="settings_add_phone_number">Přidat telefonní číslo</string>
@@ -2321,7 +2320,6 @@
     <string name="ftue_personalize_complete_title">Vypadá to dobře!</string>
     <string name="ftue_personalize_lets_go">Jdeme na to</string>
     <string name="ftue_profile_picture_subtitle">Je na čase dát jménu tvář</string>
-    <string name="ftue_profile_picture_title">Přidat profilový obrázek</string>
     <string name="ftue_display_name_entry_footer">Později to můžete změnit</string>
     <string name="ftue_display_name_entry_title">Zobrazované jméno</string>
     <string name="ftue_display_name_title">Zvolte si zobrazované jméno</string>
@@ -2852,7 +2850,6 @@
     <string name="action_proceed_to_reset">Přejít k obnovení</string>
     <string name="settings_crypto_version">Verze šifrování</string>
     <string name="notice_display_name_changed_to">%1$s změnil(a) své zobrazované jméno na %2$s</string>
-    <string name="avatar_of_user">Profilový obrázek uživatele %1$s</string>
     <string name="avatar_of_room">Avatar místnosti %1$s</string>
     <string name="avatar_of_space">Avatar prostoru %1$s</string>
     <string name="confirm_your_identity_after_update">Nejnovější aktualizace vylepšila zabezpečené zasílání zpráv. Znovu ověřte své zařízení.</string>

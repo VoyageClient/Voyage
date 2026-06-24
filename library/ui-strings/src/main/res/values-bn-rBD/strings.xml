@@ -283,7 +283,6 @@
     <string name="settings_add_phone_number">যোগ করুন ফোন নম্বর</string>
     <string name="settings_add_email_address">যোগ করুন ইমেইল এর ঠিকানা</string>
     <string name="settings_display_name">প্রদশনীয় নাম</string>
-    <string name="settings_profile_picture">নথির ছবি</string>
     <string name="room_settings_add_homescreen_shortcut">ঘরের পর্দার ছোটোখাটো যোগ করুন</string>
     <string name="room_settings_all_messages">সব বার্তাগুলি</string>
 

@@ -575,7 +575,6 @@
     <string name="room_settings_add_homescreen_shortcut">მთავარ ეკრანზე დამატება</string>
     <string name="shortcut_disabled_reason_room_left">ოთახი დატოვებულია!</string>
     <string name="shortcut_disabled_reason_sign_out">სესია გასულია!</string>
-    <string name="settings_profile_picture">პროფილის სურათი</string>
     <string name="settings_display_name">სახელი</string>
     <string name="settings_add_phone_number">ტელეფონის ნომრის დამატება</string>
     <string name="settings_app_info_link_title">აპლიკაციის ინფორმაცია</string>
@@ -713,7 +712,6 @@
     <string name="invited">მოწვეული</string>
     <string name="reason_colon">მიზეზი: %1$s</string>
     <string name="avatar">ავატარი</string>
-    <string name="avatar_of_user">მომხმარებლის %1$s პროფილის სურათი</string>
     <string name="dialog_user_consent_submit">ახლა გადახედეთ</string>
     <string name="deactivate_account_title">ანგარიშის დეაქტივაცია</string>
     <string name="deactivate_account_submit">ანგარიშის დეაქტივაცია</string>
@@ -1337,7 +1335,6 @@
     <string name="ftue_auth_email_verification_subtitle">გაიარეთ ინსტრუქცია, რომელიც გაიგზავნა %s</string>
     <string name="ftue_auth_email_verification_footer">არ მიგიღიათ ელფოსტა\?</string>
     <string name="ftue_auth_password_reset_confirmation">პაროლის გადატვირთვა</string>
-    <string name="ftue_profile_picture_title">დაამატეთ პროფილის სურათი</string>
     <string name="ftue_profile_picture_subtitle">დროა სახე სახელს მიაბათ</string>
     <string name="ftue_personalize_submit">შენახვა და გაგრძელება</string>
     <string name="ftue_personalize_skip_this_step">გამოტოვეთ ეს ნაბიჯი</string>

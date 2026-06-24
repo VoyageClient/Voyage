@@ -323,7 +323,6 @@
     <string name="search_hint">Cerca</string>
     <string name="search_members_hint">Cerca tra i membri della stanza</string>
     <string name="search_no_results">Nessun risultato</string>
-    <string name="settings_profile_picture">Immagine del profilo</string>
     <string name="settings_display_name">Nome visualizzato</string>
     <string name="settings_add_email_address">Aggiungi indirizzo email</string>
     <string name="settings_add_phone_number">Aggiungi numero di telefono</string>
@@ -2269,7 +2268,6 @@
     <string name="ftue_personalize_complete_title">Stai bene!</string>
     <string name="ftue_personalize_lets_go">Andiamo</string>
     <string name="ftue_profile_picture_subtitle">È ora di dare una faccia al nome</string>
-    <string name="ftue_profile_picture_title">Aggiungi un\'immagine del profilo</string>
     <string name="ftue_display_name_entry_footer">Puoi cambiarlo in seguito</string>
     <string name="ftue_display_name_entry_title">Nome da mostrare</string>
     <string name="ftue_display_name_title">Scegli un nome da mostrare</string>
@@ -2790,7 +2788,6 @@
     <string name="confirm_your_identity_after_update">La messaggistica sicura è stata migliorata con l\'aggiornamento più recente. Ri-verifica il tuo dispositivo.</string>
     <string name="verification_profile_other_device_untrust_info">Finché l\'utente si fida di questa sessione, i messaggi inviati da e verso essa sono contrassegnati da avvisi.</string>
     <string name="crosssigning_verify_after_update">App aggiornata</string>
-    <string name="avatar_of_user">Immagine del profilo dell\'utente %1$s</string>
     <string name="avatar_of_room">Avatar della stanza %1$s</string>
     <string name="avatar_of_space">Avatar dello spazio %1$s</string>
     <string name="sign_out_anyway">Disconnetti comunque</string>

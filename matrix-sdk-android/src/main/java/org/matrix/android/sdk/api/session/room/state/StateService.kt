@@ -68,6 +68,23 @@ interface StateService {
     suspend fun deleteAvatar()
 
     /**
+     * Update the current user's display name for this room only (the self m.room.member event).
+     * Pass the account-wide display name to remove the per-room personalization.
+     */
+    suspend fun updateMyRoomDisplayName(displayName: String?)
+
+    /**
+     * Upload an avatar and set it as the current user's avatar for this room only (the self m.room.member event).
+     */
+    suspend fun updateMyRoomAvatar(avatarUri: Uri, fileName: String)
+
+    /**
+     * Set the current user's avatar for this room only (the self m.room.member event).
+     * Pass the account-wide avatar url (or null) to remove the per-room personalization.
+     */
+    suspend fun resetMyRoomAvatar(avatarUrl: String?)
+
+    /**
      * Send a state event to the room.
      * @param eventType The type of event to send.
      * @param stateKey The state_key for the state to send. Can be an empty string.

@@ -292,6 +292,10 @@ class RoomProfileFragment :
         roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomUploads)
     }
 
+    override fun onPersonalizationClicked() {
+        roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomPersonalization)
+    }
+
     override fun createShortcut() {
         // Ask the view model to prepare it...
         roomProfileViewModel.handle(RoomProfileAction.CreateShortcut)

@@ -1242,7 +1242,6 @@
     <string name="settings_phone_number_empty">Neniu telefonnumero aldoniĝis al via konto</string>
     <string name="settings_add_email_address">Aldoni retpoŝtadreson</string>
     <string name="settings_display_name">Prezenta nomo</string>
-    <string name="settings_profile_picture">Profilbildo</string>
     <string name="search_banned_user_hint">Filtri forbaritajn uzantojn</string>
     <string name="ssl_only_accept">Akceptu la atestilon nur se administranto de la servilo publikigis fingrospuron akordan kun tiu ĉi-supre.</string>
     <string name="ssl_expected_existing_expl">La atestilo ŝanĝiĝis de antaŭe fidata al alia, nefidata. Eble la servilo renovigis sian atestilon. Kontaktu la administranton de la servilo por ricevi la ĝustan fingrospuron.</string>

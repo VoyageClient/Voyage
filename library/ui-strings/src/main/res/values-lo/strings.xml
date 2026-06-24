@@ -63,7 +63,6 @@
     <string name="settings_phone_number_empty">ບໍ່ມີເບີໂທລະສັບທີ່ຖືກເພີ່ມໃສ່ບັນຊີຂອງທ່ານ</string>
     <string name="settings_add_email_address">ເພີ່ມທີ່ຢູ່ອີເມວ</string>
     <string name="settings_display_name">ສະແດງຊື່</string>
-    <string name="settings_profile_picture">ຮູບໂປຣໄຟລ໌</string>
     <string name="shortcut_disabled_reason_sign_out">ໄດ້ອອກຈາກລະບົບແລ້ວ!</string>
     <string name="shortcut_disabled_reason_room_left">ອອກຈາກຫ້ອງແລ້ວ!</string>
     <string name="room_settings_add_homescreen_shortcut">ເພີ່ມໃສ່ໜ້າຈໍຫຼັກ</string>
@@ -1945,7 +1944,6 @@
     <string name="ftue_personalize_complete_title">ທ່ານພ້ອມແລ້ວ!</string>
     <string name="ftue_personalize_lets_go">ໄປກັນເລີຍ</string>
     <string name="ftue_profile_picture_subtitle">ທ່ານສາມາດປ່ຽນອັນນີ້ໄດ້ທຸກເວລາ.</string>
-    <string name="ftue_profile_picture_title">ເພີ່ມຮູບໂປຣໄຟລ໌</string>
     <string name="ftue_display_name_entry_footer">ທ່ານສາມາດປ່ຽນອັນນີ້ໃນພາຍຫຼັງ</string>
     <string name="ftue_display_name_entry_title">ຊື່ສະແດງ</string>
     <string name="bootstrap_crosssigning_save_cloud">ສຳເນົາໃສ່ບ່ອນຈັດເກັບຂໍ້ມູນຄລາວສ່ວນຕົວຂອງທ່ານ</string>

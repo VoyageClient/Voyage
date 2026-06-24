@@ -1072,7 +1072,6 @@
     <string name="settings_add_phone_number">Ajouter un numéro de téléphone</string>
     <string name="settings_phone_number_empty">Aucun numéro de téléphone n’a été ajouté à votre compte</string>
     <string name="settings_display_name">Nom affiché</string>
-    <string name="settings_profile_picture">Image de profil</string>
     <string name="room_settings_add_homescreen_shortcut">Ajouter à l’écran d’accueil</string>
     <string name="room_settings_all_messages">Notification pour chaque message</string>
     <string name="search_no_results">Aucun résultat</string>

@@ -22,26 +22,32 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import org.matrix.android.sdk.api.query.QueryStateEventValue
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
+import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesAllowEntry
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
+import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.state.StateService
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.Optional
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevelsLive
 
 internal class DefaultStateService @AssistedInject constructor(
         @Assisted private val roomId: String,
+        @UserId private val userId: String,
         private val stateEventDataSource: StateEventDataSource,
         private val sendStateTask: SendStateTask,
         private val fileUploader: FileUploader,
@@ -178,6 +184,31 @@ internal class DefaultStateService @AssistedInject constructor(
                 eventType = EventType.STATE_ROOM_AVATAR,
                 body = emptyMap(),
                 stateKey = ""
+        )
+    }
+
+    override suspend fun updateMyRoomDisplayName(displayName: String?) {
+        sendMyRoomMemberContent { copy(displayName = displayName) }
+    }
+
+    override suspend fun updateMyRoomAvatar(avatarUri: Uri, fileName: String) {
+        val response = fileUploader.uploadFromUri(avatarUri, fileName, MimeTypes.Jpeg)
+        sendMyRoomMemberContent { copy(avatarUrl = response.contentUri) }
+    }
+
+    override suspend fun resetMyRoomAvatar(avatarUrl: String?) {
+        sendMyRoomMemberContent { copy(avatarUrl = avatarUrl) }
+    }
+
+    private suspend fun sendMyRoomMemberContent(transform: RoomMemberContent.() -> RoomMemberContent) {
+        val currentContent = getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(userId))
+                ?.content
+                ?.toModel<RoomMemberContent>()
+                ?: RoomMemberContent(membership = Membership.JOIN)
+        sendStateEvent(
+                eventType = EventType.STATE_ROOM_MEMBER,
+                body = currentContent.transform().toContent(),
+                stateKey = userId
         )
     }
 

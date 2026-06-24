@@ -217,7 +217,6 @@
     <string name="search_no_results">결과 없음</string>
     <string name="room_settings_all_messages">모든 메시지</string>
     <string name="room_settings_add_homescreen_shortcut">홈 화면에 단축 아이콘 추가</string>
-    <string name="settings_profile_picture">프로필 사진</string>
     <string name="settings_display_name">표시 이름</string>
     <string name="settings_add_email_address">이메일 주소 추가</string>
     <string name="settings_add_phone_number">전화번호 추가</string>

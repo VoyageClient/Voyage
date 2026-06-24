@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_ROOM_PERSONALIZATION_CATEGORY_KEY"
+        android:title="@string/room_personalization_title">
+
+        <im.vector.app.core.preference.UserAvatarPreference
+            android:key="SETTINGS_ROOM_PERSONALIZATION_AVATAR_KEY"
+            android:title="@string/avatar" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_ROOM_PERSONALIZATION_DISPLAY_NAME_KEY"
+            android:persistent="false"
+            android:title="@string/settings_display_name" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+</androidx.preference.PreferenceScreen>

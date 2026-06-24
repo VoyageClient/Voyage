@@ -337,7 +337,6 @@
     <string name="search_hint">Поиск</string>
     <string name="search_members_hint">Фильтр списка пользователей</string>
     <string name="search_no_results">Нет результатов</string>
-    <string name="settings_profile_picture">Аватар</string>
     <string name="settings_display_name">Отображаемое имя</string>
     <string name="settings_add_email_address">Добавить электронный адрес</string>
     <string name="settings_add_phone_number">Добавить телефон</string>
@@ -2327,7 +2326,6 @@
     </plurals>
     <string name="ftue_personalize_lets_go">Поехали!</string>
     <string name="ftue_profile_picture_subtitle">Его можно изменить позже</string>
-    <string name="ftue_profile_picture_title">Добавить аватар</string>
     <string name="ftue_display_name_entry_footer">Вы сможете изменить это позже</string>
     <string name="ftue_display_name_entry_title">Отображаемое имя</string>
     <string name="ftue_display_name_title">Выберите отображаемое имя</string>
@@ -2871,7 +2869,6 @@
     <string name="pill_message_in_unknown_room">Сообщение в комнате</string>
     <string name="pill_message_unknown_room_or_space">Комната/Пространство</string>
     <string name="settings_external_account_management_title">Учётная запись</string>
-    <string name="avatar_of_user">Аватар профиля пользователя %1$s</string>
     <string name="secure_backup_reset_danger_warning">Продолжайте, только если вы уверены, что ваш ключ утерян, а доступ к другим активным устройствам отсустствует.</string>
     <string name="verification_profile_other_device_untrust_info">Пока пользователь не верифицировал эту сессию, отправленные и полученные сообщения отмечаются предупреждениями.</string>
     <string name="verification_request_was_sent">Запрос на верификацию отправлен. Откройте приложение на одном из активных устройств и подтвердите эту сессию.</string>

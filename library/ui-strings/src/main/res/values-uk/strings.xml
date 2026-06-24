@@ -244,7 +244,6 @@
     <string name="search_hint">Пошук</string>
     <string name="search_members_hint">Фільтр переліку користувачів</string>
     <string name="search_no_results">Тут порожньо</string>
-    <string name="settings_profile_picture">Аватар</string>
     <string name="settings_display_name">Псевдонім</string>
     <string name="settings_add_email_address">Додати адресу е-пошти</string>
     <string name="settings_add_phone_number">Додати номер телефону</string>
@@ -2365,7 +2364,6 @@
     <string name="ftue_personalize_complete_title">Все чудово!</string>
     <string name="ftue_personalize_lets_go">Поїхали</string>
     <string name="ftue_profile_picture_subtitle">Час вказати ім’я</string>
-    <string name="ftue_profile_picture_title">Додати зображення профілю</string>
     <string name="ftue_display_name_entry_footer">Ви можете змінити його пізніше</string>
     <string name="ftue_display_name_entry_title">Псевдонім</string>
     <string name="ftue_display_name_title">Оберіть псевдонім</string>
@@ -2908,7 +2906,6 @@
     <string name="action_proceed_to_reset">Перейти до скидання</string>
     <string name="settings_crypto_version">Криптоверсія</string>
     <string name="notice_display_name_changed_to">%1$s змінює своє ім\'я на %2$s</string>
-    <string name="avatar_of_user">Зображення профілю користувача %1$s</string>
     <string name="avatar_of_room">Аватар кімнати %1$s</string>
     <string name="avatar_of_space">Аватар простору %1$s</string>
     <string name="confirm_your_identity_after_update">В останньому оновленні було вдосконалено захищений обмін повідомленнями. Перевірте свій пристрій ще раз.</string>

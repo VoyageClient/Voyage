@@ -125,7 +125,6 @@
     <string name="action_remove">削除</string>
     <string name="action_join">参加</string>
     <string name="room_do_not_have_permission_to_post">このルームで発言する権限がありません。</string>
-    <string name="settings_profile_picture">プロフィール画像</string>
     <string name="settings_display_name">表示名</string>
     <string name="settings_add_email_address">メールアドレスを追加</string>
     <string name="settings_add_phone_number">電話番号を追加</string>
@@ -2202,7 +2201,6 @@
     <string name="ftue_personalize_submit">保存して続行</string>
     <string name="ftue_personalize_complete_subtitle">設定画面からいつでもプロフィールを更新できます</string>
     <string name="ftue_profile_picture_subtitle">表示名にプロフィール画像を追加しましょう</string>
-    <string name="ftue_profile_picture_title">プロフィール画像を追加</string>
     <string name="ftue_display_name_entry_footer">これは後から変更できます</string>
     <string name="ftue_display_name_entry_title">表示名</string>
     <string name="a11y_location_share_option_pinned_icon">この位置情報を共有</string>

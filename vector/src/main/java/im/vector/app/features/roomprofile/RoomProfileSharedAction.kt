@@ -19,6 +19,7 @@ sealed class RoomProfileSharedAction : VectorSharedAction {
     object OpenRoomPolls : RoomProfileSharedAction()
     object OpenPinnedMessages : RoomProfileSharedAction()
     object OpenRoomUploads : RoomProfileSharedAction()
+    object OpenRoomPersonalization : RoomProfileSharedAction()
     object OpenRoomMembers : RoomProfileSharedAction()
     object OpenKnockRequests : RoomProfileSharedAction()
     object OpenBannedRoomMembers : RoomProfileSharedAction()

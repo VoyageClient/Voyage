@@ -9,6 +9,7 @@ package im.vector.app.core.dialogs
 
 import android.app.Activity
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -99,7 +100,7 @@ class GalleryOrCameraDialogHelper(
         Gallery
     }
 
-    fun show(withDeleteOption: Boolean = false) {
+    fun show(withDeleteOption: Boolean = false, @StringRes deleteActionTitle: Int = CommonStrings.action_delete) {
         val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(CommonStrings.attachment_type_dialog_title)
                 .setItems(
@@ -113,7 +114,7 @@ class GalleryOrCameraDialogHelper(
                 .setPositiveButton(CommonStrings.action_cancel, null)
                 .apply {
                     if (withDeleteOption) {
-                        setNeutralButton(CommonStrings.action_delete) { _, _ -> listener.onImageDeleted() }
+                        setNeutralButton(deleteActionTitle) { _, _ -> listener.onImageDeleted() }
                     }
                 }
                 .show()

@@ -323,7 +323,6 @@
     <string name="search_hint">Pesquisar</string>
     <string name="search_members_hint">Filtrar membros de sala</string>
     <string name="search_no_results">Nenhum resultado</string>
-    <string name="settings_profile_picture">Imagem de Perfil</string>
     <string name="settings_display_name">Nome de Exibição</string>
     <string name="settings_add_email_address">Adicionar endereço de email</string>
     <string name="settings_add_phone_number">Adicionar número de telefone</string>
@@ -2277,7 +2276,6 @@
     <string name="ftue_personalize_complete_title">Tá com uma cara boa!</string>
     <string name="ftue_personalize_lets_go">Vamo lá</string>
     <string name="ftue_profile_picture_subtitle">Hora de colocar um rosto ao nome</string>
-    <string name="ftue_profile_picture_title">Adicione uma imagem de perfil</string>
     <string name="ftue_display_name_entry_footer">Você pode mudar isto mais tarde</string>
     <string name="ftue_display_name_entry_title">Nome de Exibição</string>
     <string name="ftue_display_name_title">Escolha um nome de exibição</string>
@@ -2745,7 +2743,6 @@
     <string name="crosssigning_verify_after_update">Aplicação actualizada</string>
     <string name="settings_crypto_version">Versão criptográfica</string>
     <string name="sign_out_failed_dialog_message">Não foi possível contatar o servidorcasa. Se ainda assim terminar sessão, este dispositivo não será apagado da sua lista de dispositivos, poderá querer removê-lo utilizando outro cliente.</string>
-    <string name="avatar_of_user">Imagem de perfil do usuário %1$s</string>
     <string name="started_a_voice_broadcast">Iniciou uma emissão de voz</string>
     <string name="room_profile_section_more_polls">Histórico de enquetes</string>
     <string name="verification_verify_with_another_device">Verificar com outro dispositivo</string>

@@ -332,7 +332,6 @@
     <string name="search_members_hint">Filtra els participants de la sala</string>
     <string name="search_no_results">No hi ha resultats</string>
     <string name="room_settings_add_homescreen_shortcut">Afegeix a la pantalla d\'inici</string>
-    <string name="settings_profile_picture">Foto de perfil</string>
     <string name="settings_display_name">Àlies</string>
     <string name="settings_add_email_address">Afegeix una adreça de correu electrònic</string>
     <string name="settings_add_phone_number">Afegeix un número de telèfon</string>
@@ -2114,7 +2113,6 @@
     <string name="ftue_personalize_lets_go">Som-hi</string>
     <string name="ftue_profile_picture_subtitle">És hora de posar cara al nom</string>
     <string name="ftue_display_name_entry_footer">Ho podràs canviar després</string>
-    <string name="ftue_profile_picture_title">Afegeix foto de perfil</string>
     <string name="ftue_display_name_entry_title">Àlies</string>
     <string name="labs_auto_report_uisi_desc">El sistema enviarà automàticament registres quan es produeixi un error de desxifrat</string>
     <string name="labs_auto_report_uisi">Informa automàticament d\'errors de desxifrat.</string>

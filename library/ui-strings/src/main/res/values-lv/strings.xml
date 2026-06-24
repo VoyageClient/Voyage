@@ -321,7 +321,6 @@
     <string name="search_no_results">Rezultātu nav</string>
     <string name="room_settings_all_messages">Visas ziņas</string>
     <string name="room_settings_add_homescreen_shortcut">Pievienot sākumekrānam</string>
-    <string name="settings_profile_picture">Profila attēls</string>
     <string name="settings_display_name">Attēlojamais vārds</string>
     <string name="settings_add_email_address">Pievienot epasta adresi</string>
     <string name="settings_add_phone_number">Pievienot tālruņa numuru</string>
@@ -2088,7 +2087,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_external_account_management">Konta informācija ir pārvaldāma atsevišķi %1$s.</string>
     <string name="avatar_of_space">Vietas %1$s attēls</string>
     <string name="avatar_of_room">Istabas %1$s attēls</string>
-    <string name="avatar_of_user">Lietotāja %1$s profila attēls</string>
     <string name="push_gateway_item_enabled">Iespējots:</string>
     <string name="reply_in_thread">Atbildēt pavedienā</string>
     <string name="push_gateway_item_device_id">Sesijas identifikators:</string>
@@ -2254,7 +2252,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="give_feedback_threads">Sniegt atsauksmi</string>
     <string name="labs_allow_extended_logging_summary">Izvērsti žurnāla ieraksti palīdzēs izstrādātājiem, nodrošinot vairāk ierakstu, kad tiek sūtīts RageShake. Pat ja iespējots, lietotne neieraksta ziņu saturu vai jebkādu citu privātu informāciju.</string>
     <string name="ftue_account_created_subtitle">Konts %s tikai izveidots</string>
-    <string name="ftue_profile_picture_title">Pievienot profila attēlu</string>
     <string name="login_splash_create_account">Izveidot kontu</string>
     <string name="voice_message_release_to_send_toast">Pieturēt, lai ierakstītu, atlaist, lai nosūtītu</string>
     <string name="attachment_type_poll">Aptauja</string>

@@ -187,7 +187,6 @@
     <string name="search_hint">Zoeken</string>
     <string name="search_members_hint">Gespreksleden filteren</string>
     <string name="search_no_results">Geen resultaten</string>
-    <string name="settings_profile_picture">Profielfoto</string>
     <string name="settings_display_name">Naam</string>
     <string name="settings_add_email_address">E-mailadres toevoegen</string>
     <string name="settings_add_phone_number">Telefoonnummer toevoegen</string>
@@ -2265,7 +2264,6 @@
     <string name="ftue_personalize_complete_title">Ziet er goed uit!</string>
     <string name="ftue_personalize_lets_go">Laten we beginnen</string>
     <string name="ftue_profile_picture_subtitle">Tijd om een gezicht bij je naam te voegen</string>
-    <string name="ftue_profile_picture_title">Voeg een profielfoto toe</string>
     <string name="ftue_display_name_entry_footer">Je kunt dit later wijzigen</string>
     <string name="ftue_display_name_entry_title">Weergavenaam</string>
     <string name="ftue_display_name_title">Kies een weergavenaam</string>

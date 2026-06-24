@@ -149,7 +149,6 @@
     <string name="search_hint">Szukaj</string>
     <string name="search_members_hint">Filtruj członków pokoju</string>
     <string name="search_no_results">Brak wyników</string>
-    <string name="settings_profile_picture">Obraz profilowy</string>
     <string name="settings_display_name">Wyświetlana nazwa</string>
     <string name="settings_add_email_address">Dodaj adres e-mail</string>
     <string name="settings_add_phone_number">Dodaj numer telefonu</string>
@@ -2225,7 +2224,6 @@
     <string name="ftue_personalize_complete_title">Dobrze wyglądasz!</string>
     <string name="ftue_personalize_lets_go">Chodźmy</string>
     <string name="ftue_profile_picture_subtitle">Pora nadać tej nazwie jakąś twarz</string>
-    <string name="ftue_profile_picture_title">Dodaj obraz profilu</string>
     <string name="ftue_display_name_entry_footer">Możesz zmienić ją później</string>
     <string name="room_message_autocomplete_notification">Powiadomienie pokoju</string>
     <string name="ftue_display_name_entry_title">Wyświetlana nazwa</string>
@@ -2907,7 +2905,6 @@
         <item quantity="other">%1$d zaznaczono</item>
     </plurals>
     <string name="notice_display_name_changed_to">%1$s zmienił swoją wyświetlaną nazwę na %2$s</string>
-    <string name="avatar_of_user">Zdjęcie profilowe użytkownika %1$s</string>
     <string name="avatar_of_room">Awatar pokoju %1$s</string>
     <string name="avatar_of_space">Awatar przestrzeni %1$s</string>
     <string name="confirm_your_identity_after_update">Bezpieczne wysyłanie wiadomości zostało usprawnione z najnowszą aktualizacją. Zweryfikuj swoje urządzenie ponownie.</string>

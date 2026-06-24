@@ -1161,7 +1161,6 @@
     <string name="settings_phone_number_empty">Prie jūsų paskyros nepridėtas joks telefono numeris</string>
     <string name="settings_add_email_address">Pridėti el. pašto adresą</string>
     <string name="settings_display_name">Rodomas vardas</string>
-    <string name="settings_profile_picture">Profilio nuotrauka</string>
     <string name="shortcut_disabled_reason_sign_out">Sesija buvo atjungta!</string>
     <string name="search_space_two_parents">%1$s ir %2$s</string>
     <string name="search_no_results">Nėra rezultatų</string>
@@ -1387,7 +1386,6 @@
     <string name="ftue_personalize_complete_title">Atrodo gerai!</string>
     <string name="ftue_personalize_lets_go">Pirmyn</string>
     <string name="ftue_profile_picture_subtitle">Laikas prie vardo pridėti veidą</string>
-    <string name="ftue_profile_picture_title">Pridėti profilio nuotrauką</string>
     <string name="ftue_display_name_entry_footer">Jūs tai galite pakeisti vėliau</string>
     <string name="ftue_display_name_entry_title">Rodomas vardas</string>
     <string name="ftue_display_name_title">Pasirinkite rodomą vardą</string>

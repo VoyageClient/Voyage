@@ -133,7 +133,6 @@
     <string name="search_members_hint">Sía meðlimi spjallrásar</string>
     <string name="search_no_results">Engar niðurstöður</string>
     <string name="room_settings_all_messages">Öll skilaboð</string>
-    <string name="settings_profile_picture">Notandamynd</string>
     <string name="settings_display_name">Birtingarnafn</string>
     <string name="settings_add_email_address">Bæta við tölvupóstfangi</string>
     <string name="settings_add_phone_number">Bæta við símanúmeri</string>
@@ -1859,7 +1858,6 @@
     <string name="ftue_personalize_complete_title">Nú ertu tilbúin(n)!</string>
     <string name="ftue_personalize_lets_go">Hefjumst handa</string>
     <string name="ftue_profile_picture_subtitle">Þú getur breytt þessu hvenær sem er</string>
-    <string name="ftue_profile_picture_title">Bættu við auðkennismynd</string>
     <string name="ftue_display_name_entry_footer">Þú getur breytt þessu síðar</string>
     <string name="ftue_display_name_entry_title">Birtingarnafn</string>
     <string name="ftue_display_name_title">Veldu birtingarnafn</string>

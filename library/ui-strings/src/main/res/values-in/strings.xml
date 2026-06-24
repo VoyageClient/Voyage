@@ -155,7 +155,6 @@
     <string name="search_no_results">Tidak ada hasil</string>
     <string name="room_settings_all_messages">Semua pesan</string>
     <string name="room_settings_add_homescreen_shortcut">Tambahkan ke Layar Utama</string>
-    <string name="settings_profile_picture">Gambar Profil</string>
     <string name="settings_display_name">Nama Layar</string>
     <string name="settings_add_email_address">Tambahkan alamat email</string>
     <string name="settings_add_phone_number">Tambahkan nomor telepon</string>
@@ -2235,7 +2234,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="ftue_personalize_complete_title">Kelihatan bagus!</string>
     <string name="ftue_personalize_lets_go">Ayo</string>
     <string name="ftue_profile_picture_subtitle">Saatnya pasang wajah pada nama</string>
-    <string name="ftue_profile_picture_title">Tambahkan sebuah foto profil</string>
     <string name="ftue_display_name_entry_footer">Anda dapat mengubahnya nanti</string>
     <string name="ftue_display_name_entry_title">Nama Tampilan</string>
     <string name="ftue_display_name_title">Pilih nama tampilan</string>
@@ -2742,7 +2740,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_crypto_version">Versi kripto</string>
     <string name="action_proceed_to_reset">Lanjutkan mengatur ulang</string>
     <string name="notice_display_name_changed_to">%1$s mengubah nama tampilannya ke %2$s</string>
-    <string name="avatar_of_user">Foto profil pengguna %1$s</string>
     <string name="avatar_of_room">Avatar ruangan %1$s</string>
     <string name="avatar_of_space">Avatar space %1$s</string>
     <string name="confirm_your_identity_after_update">Perpesanan aman telah ditingkatkan dengan pembaruan terkini. Silakan verifikasi ulang perangkat Anda.</string>

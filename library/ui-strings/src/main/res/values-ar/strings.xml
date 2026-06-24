@@ -237,7 +237,6 @@
     <string name="ssl_fingerprint_hash">البصمة (⁨%s⁩):</string>
     <string name="ssl_could_not_verify">تعذّر التحقق من معرّف الخادوم البعيد.</string>
     <string name="search_no_results">لا نتائج</string>
-    <string name="settings_profile_picture">صورة اللاحة</string>
     <string name="settings_display_name">اسم العرض</string>
     <string name="settings_add_email_address">أضِف بريدا إلكترونيا</string>
     <string name="settings_add_phone_number">أضِف رقم هاتف</string>
@@ -839,7 +838,6 @@
     <string name="ftue_personalize_complete_title">كل شيئ جاهز!</string>
     <string name="ftue_personalize_lets_go">لننطلق</string>
     <string name="ftue_profile_picture_subtitle">يمكنك تغييرها في أي وقت.</string>
-    <string name="ftue_profile_picture_title">أضف صورة لللاحة</string>
     <string name="ftue_display_name_entry_footer">يمكنك تغييره لاحقًا</string>
     <string name="ftue_display_name_entry_title">الاسم العلني</string>
     <string name="ftue_display_name_title">اختر الاسم العلني</string>

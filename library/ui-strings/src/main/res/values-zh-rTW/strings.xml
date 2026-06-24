@@ -346,7 +346,6 @@
     <string name="search_no_results">沒有結果</string>
     <string name="room_settings_all_messages">所有訊息</string>
     <string name="room_settings_add_homescreen_shortcut">新增到主畫面</string>
-    <string name="settings_profile_picture">大頭照</string>
     <string name="settings_display_name">顯示名稱</string>
     <string name="settings_add_email_address">新增電子郵件地址</string>
     <string name="settings_add_phone_number">新增電話號碼</string>
@@ -2233,7 +2232,6 @@
     <string name="ftue_personalize_complete_title">看起來真棒！</string>
     <string name="ftue_personalize_lets_go">開始吧</string>
     <string name="ftue_profile_picture_subtitle">是時候為名字加上臉了</string>
-    <string name="ftue_profile_picture_title">新增大頭照</string>
     <string name="ftue_display_name_entry_footer">您可以在稍後變更這個</string>
     <string name="ftue_display_name_entry_title">顯示名稱</string>
     <string name="ftue_display_name_title">選擇顯示名稱</string>
@@ -2740,7 +2738,6 @@
     <string name="action_proceed_to_reset">繼續重設</string>
     <string name="settings_crypto_version">加密版本</string>
     <string name="notice_display_name_changed_to">%1$s 變更了他們的顯示名稱為 %2$s</string>
-    <string name="avatar_of_user">使用者 %1$s 的個人資料照片</string>
     <string name="avatar_of_room">聊天室 %1$s 的大頭貼</string>
     <string name="avatar_of_space">聊天空間 %1$s 的大頭貼</string>
     <string name="confirm_your_identity_after_update">最新更新改善了安全訊息傳遞。請重新驗證您的裝置。</string>

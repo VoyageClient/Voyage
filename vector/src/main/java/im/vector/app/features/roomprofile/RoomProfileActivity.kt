@@ -28,6 +28,7 @@ import im.vector.app.features.roomprofile.knock.RoomKnockRequestsFragment
 import im.vector.app.features.roomprofile.members.RoomMemberListFragment
 import im.vector.app.features.roomprofile.notifications.RoomNotificationSettingsFragment
 import im.vector.app.features.roomprofile.permissions.RoomPermissionsFragment
+import im.vector.app.features.roomprofile.personalization.RoomPersonalizationFragment
 import im.vector.app.features.roomprofile.pinned.RoomPinnedMessagesFragment
 import im.vector.app.features.roomprofile.polls.RoomPollsFragment
 import im.vector.app.features.roomprofile.settings.RoomSettingsFragment
@@ -104,6 +105,7 @@ class RoomProfileActivity :
                         RoomProfileSharedAction.OpenRoomPolls -> openRoomPolls()
                         RoomProfileSharedAction.OpenPinnedMessages -> openPinnedMessages()
                         RoomProfileSharedAction.OpenRoomUploads -> openRoomUploads()
+                        RoomProfileSharedAction.OpenRoomPersonalization -> openRoomPersonalization()
                         RoomProfileSharedAction.OpenKnockRequests -> openKnockRequests()
                         RoomProfileSharedAction.OpenBannedRoomMembers -> openBannedRoomMembers()
                         RoomProfileSharedAction.OpenRoomNotificationSettings -> openRoomNotificationSettings()
@@ -142,6 +144,10 @@ class RoomProfileActivity :
 
     private fun openRoomUploads() {
         addFragmentToBackstack(views.simpleFragmentContainer, RoomUploadsFragment::class.java, roomProfileArgs)
+    }
+
+    private fun openRoomPersonalization() {
+        addFragmentToBackstack(views.simpleFragmentContainer, RoomPersonalizationFragment::class.java, roomProfileArgs)
     }
 
     private fun openRoomSettings() {

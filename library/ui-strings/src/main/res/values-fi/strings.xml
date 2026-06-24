@@ -271,7 +271,6 @@
     <string name="search_hint">Etsi</string>
     <string name="search_members_hint">Etsi huoneen jäsenistä</string>
     <string name="search_no_results">Ei tuloksia</string>
-    <string name="settings_profile_picture">Profiilikuva</string>
     <string name="settings_display_name">Nimi</string>
     <string name="settings_add_email_address">Lisää sähköpostiosoite</string>
     <string name="settings_add_phone_number">Lisää puhelinnumero</string>
@@ -1931,7 +1930,6 @@
     <string name="ftue_personalize_complete_title">Kaikki valmista!</string>
     <string name="ftue_personalize_lets_go">Menoksi</string>
     <string name="ftue_profile_picture_subtitle">Voit vaihtaa tämän milloin tahansa.</string>
-    <string name="ftue_profile_picture_title">Lisää profiilikuva</string>
     <string name="ftue_display_name_entry_footer">Voit vaihtaa tämän myöhemmin</string>
     <string name="ftue_display_name_entry_title">Näyttönimi</string>
     <string name="ftue_display_name_title">Valitse näyttönimi</string>
@@ -2351,7 +2349,6 @@
     <string name="settings_secure_backup_section_info">Suojaudu salattuihin viesteihin ja tietoihin pääsyn menettämiseltä varmuuskopioimalla salausavaimesi palvelimellesi.</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">Suojaudu salattuihin viesteihin ja tietoihin pääsyn menettämiseltä varmuuskopioimalla salausavaimesi palvelimellesi.</string>
     <string name="secure_backup_banner_setup_line2">Suojaudu salattuihin viesteihin ja tietoihin pääsyn menettämiseltä</string>
-    <string name="avatar_of_user">Käyttäjän %1$s profiilikuva</string>
     <string name="command_description_devtools">Avaa kehittäjätyökalujen ruutu</string>
     <string name="settings_external_account_management_title">Tili</string>
     <string name="settings_crypto_version">Kryptografian versio</string>

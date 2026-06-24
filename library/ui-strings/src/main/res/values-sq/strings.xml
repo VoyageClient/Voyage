@@ -317,7 +317,6 @@
     <string name="search_no_results">S’ka përfundime</string>
     <string name="room_settings_all_messages">Krejt mesazhet</string>
     <string name="room_settings_add_homescreen_shortcut">Shtoje te skena Kreu</string>
-    <string name="settings_profile_picture">Foto Profili</string>
     <string name="settings_display_name">Emër në Ekran</string>
     <string name="settings_add_email_address">Shtoni adresë email</string>
     <string name="settings_add_phone_number">Shtoni numër telefoni</string>
@@ -2266,7 +2265,6 @@
     <string name="ftue_personalize_complete_title">Kaq qe!</string>
     <string name="ftue_personalize_lets_go">Shkojmë</string>
     <string name="ftue_profile_picture_subtitle">Erdh koha t’i jepet surrat emrit</string>
-    <string name="ftue_profile_picture_title">Shtoni një foto profili</string>
     <string name="ftue_display_name_entry_footer">Këtë mund ta ndryshoni më vonë</string>
     <string name="ftue_display_name_entry_title">Emër Në Ekran</string>
     <string name="ftue_display_name_title">Zgjidhni një emër për në ekran</string>
@@ -2783,7 +2781,6 @@
     <string name="action_proceed_to_reset">Vazhdo me rikthimin te parazgjedhjet</string>
     <string name="settings_crypto_version">Version kriptografie</string>
     <string name="notice_display_name_changed_to">%1$s ndërroi emrin e vet në ekran në %2$s</string>
-    <string name="avatar_of_user">Foto profili i përdoruesit %1$s</string>
     <string name="avatar_of_room">Avatar i dhomës %1$s</string>
     <string name="avatar_of_space">Avatar i hapësirës %1$s</string>
     <string name="confirm_your_identity_after_update">Shkëmbimi i siguruar i mesazheve është përmirësuar me përditësimin më të ri. Ju lutemi, riverifikoni pajisjen tuaj.</string>

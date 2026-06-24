@@ -539,7 +539,6 @@
     <string name="ssl_fingerprint_hash">Adsil umḍin (%s):</string>
     <string name="ssl_could_not_verify">D awezɣi ad nsenqed timagit n uqeddac agemmaḍ.</string>
 
-    <string name="settings_profile_picture">Tawlaft n umaɣnu</string>
     <string name="settings_add_email_address">Rnu tansa n yimayl</string>
     <string name="settings_app_info_link_title">Talɣut n usnas</string>
     <string name="settings_troubleshoot_diagnostic">Tasleḍt n usellek</string>

@@ -295,7 +295,6 @@
     <string name="action_disconnect">قطع اتصال</string>
     <string name="action_decline">نپذیرفتن</string>
     <string name="search_members_hint">پالایش اعضای اتاق</string>
-    <string name="settings_profile_picture">عکس نمایه</string>
     <string name="settings_display_name">نام نمایشی</string>
     <string name="settings_add_email_address">افزودن نشانی رایانامه</string>
     <string name="settings_add_phone_number">افزودن شماره تلفن</string>
@@ -2278,7 +2277,6 @@
     <string name="ftue_personalize_lets_go">بزن بریم</string>
     <string name="ftue_profile_picture_subtitle">زمان گذاشتن صورتی روی نام است</string>
     <string name="ftue_display_name_title">گزینش نامی نمایشی</string>
-    <string name="ftue_profile_picture_title">افزودن یک تصویر نمایه</string>
     <string name="ftue_display_name_entry_footer">می‌توانید بعدها تغییرش دهید</string>
     <string name="ftue_display_name_entry_title">نام نمایشی</string>
     <string name="ftue_account_created_subtitle">حسابتان %s ایجاد شد</string>
@@ -2796,7 +2794,6 @@
     <string name="action_proceed_to_reset">ادامه برای بازنشانی</string>
     <string name="settings_crypto_version">نگارش Crypto</string>
     <string name="notice_display_name_changed_to">%1$s نام نمایشیش را به %2$s تغییر داد</string>
-    <string name="avatar_of_user">نگارهٔ نمایهٔ کاربر %1$s</string>
     <string name="avatar_of_room">چهرک اتاق %1$s</string>
     <string name="avatar_of_space">چهرک فضای %1$s</string>
     <string name="confirm_your_identity_after_update">پیام‌رسانی امن با جدیدترین به‌روز رسانی بهبود یافته است. لطفاً افزاره‌تان را دوباره تأیید کنید.</string>

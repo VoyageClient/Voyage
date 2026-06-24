@@ -52,6 +52,7 @@ class RoomProfileController @Inject constructor(
         fun onPollHistoryClicked()
         fun onPinnedMessagesClicked()
         fun onUploadsClicked()
+        fun onPersonalizationClicked()
         fun createShortcut()
         fun onSettingsClicked()
         fun onLeaveRoomClicked()
@@ -289,6 +290,12 @@ class RoomProfileController @Inject constructor(
                 title = stringProvider.getString(CommonStrings.room_profile_section_more_uploads),
                 icon = R.drawable.ic_room_profile_uploads,
                 action = { callback?.onUploadsClicked() }
+        )
+        buildProfileAction(
+                id = "personalization",
+                title = stringProvider.getString(CommonStrings.room_profile_section_more_personalization),
+                icon = R.drawable.ic_room_profile_personalization,
+                action = { callback?.onPersonalizationClicked() }
         )
         if (shortcutCreator.canCreateShortcut()) {
             buildProfileAction(

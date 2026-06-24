@@ -917,7 +917,6 @@
     <string name="settings_phone_number_empty">Chưa có số điện thoại trong tài khoản của bạn</string>
     <string name="settings_add_email_address">Thêm địa chỉ thư điện tử</string>
     <string name="settings_display_name">Tên hiển thị</string>
-    <string name="settings_profile_picture">Hình đại diện</string>
     <string name="room_settings_add_homescreen_shortcut">Thêm vào màn hình Home</string>
     <string name="room_settings_none">Không</string>
     <string name="room_settings_mention_and_keyword_only">Được đề cập và đúng từ khóa</string>
@@ -2188,7 +2187,6 @@
     <string name="ftue_personalize_submit">Lưu và tiếp tục</string>
     <string name="ftue_personalize_complete_subtitle">Vào cài đặt mỗi khi cần cập nhật hồ sơ</string>
     <string name="ftue_personalize_complete_title">Trông rất tuyệt!</string>
-    <string name="ftue_profile_picture_title">Thêm ảnh hồ sơ</string>
     <string name="ftue_display_name_entry_footer">Bạn có thể đổi lại sau</string>
     <string name="ftue_display_name_entry_title">Tên hiển thị</string>
     <string name="ftue_display_name_title">Chọn tên hiển thị</string>
@@ -2287,7 +2285,6 @@
     <string name="invites_empty_message">Đây là nơi chứa các yêu cầu và lời mời mới.</string>
     <string name="avatar_of_space">Ảnh đại diện cho space %1$s</string>
     <string name="avatar_of_room">Ảnh đại diện cho phòng %1$s</string>
-    <string name="avatar_of_user">Ảnh đại diện cho người dùng %1$s</string>
     <string name="command_description_devtools">Mở màn hình công cụ cho nhà phát triển</string>
     <string name="attachment_type_selector_gallery">Thư viện ảnh</string>
     <string name="settings_troubleshoot_test_endpoint_registration_title">Đăng ký điểm cuối</string>

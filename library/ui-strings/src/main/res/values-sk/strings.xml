@@ -276,7 +276,6 @@
     <string name="search_hint">Hľadať</string>
     <string name="search_members_hint">Filtrovať členov v miestnosti</string>
     <string name="search_no_results">Žiadne výsledky</string>
-    <string name="settings_profile_picture">Obrázok v profile</string>
     <string name="settings_display_name">Zobrazované meno</string>
     <string name="settings_add_email_address">Pridať emailovú adresu</string>
     <string name="settings_add_phone_number">Pridať telefónne číslo</string>
@@ -2322,7 +2321,6 @@
     <string name="ftue_personalize_complete_title">Vyzerá to dobre!</string>
     <string name="ftue_personalize_lets_go">Poďme na to</string>
     <string name="ftue_profile_picture_subtitle">Je čas priradiť k menu aj tvár</string>
-    <string name="ftue_profile_picture_title">Pridať profilový obrázok</string>
     <string name="ftue_display_name_entry_footer">Neskôr to môžete zmeniť</string>
     <string name="ftue_display_name_entry_title">Zobrazované meno</string>
     <string name="ftue_display_name_title">Vyberte si zobrazované meno</string>
@@ -2852,7 +2850,6 @@
     <string name="action_proceed_to_reset">Pokračovať v obnovení</string>
     <string name="settings_crypto_version">Krypto verzia</string>
     <string name="notice_display_name_changed_to">%1$s zmenil/a svoje zobrazované meno na %2$s</string>
-    <string name="avatar_of_user">Profilový obrázok používateľa %1$s</string>
     <string name="avatar_of_room">Obrázok miestnosti %1$s</string>
     <string name="avatar_of_space">Obrázok priestoru %1$s</string>
     <string name="confirm_your_identity_after_update">Najnovšou aktualizáciou sa zlepšilo bezpečné zasielanie správ. Overte prosím znova svoje zariadenie.</string>

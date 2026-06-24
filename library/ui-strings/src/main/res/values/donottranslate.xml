@@ -285,4 +285,12 @@
     <string name="room_preview_request_to_join" translatable="false">Ask to join</string>
     <string name="room_preview_knock_message_hint" translatable="false">Message (optional)</string>
     <string name="room_preview_cancel_knock" translatable="false">Cancel request</string>
+
+    <string name="settings_profile_picture" translatable="false">Avatar</string>
+    <string name="avatar_of_user" translatable="false">Avatar of user %1$s</string>
+    <string name="ftue_profile_picture_title" translatable="false">Add an avatar</string>
+
+    <string name="room_profile_section_more_personalization" translatable="false">Personalization</string>
+    <string name="room_personalization_title" translatable="false">Your appearance in this room</string>
+    <string name="room_personalization_reset" translatable="false">Reset</string>
 </resources>

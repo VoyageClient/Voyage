@@ -260,7 +260,6 @@
     <string name="search_hint">Keresés</string>
     <string name="search_members_hint">Szobatagok szűrése</string>
     <string name="search_no_results">Nincs találat</string>
-    <string name="settings_profile_picture">Profilkép</string>
     <string name="settings_display_name">Megjelenítendő név</string>
     <string name="settings_add_email_address">E-mail- cím hozzáadása</string>
     <string name="settings_add_phone_number">Telefonszám hozzáadása</string>
@@ -2274,7 +2273,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="ftue_personalize_complete_title">Jónak tűnik!</string>
     <string name="ftue_personalize_lets_go">Gyerünk</string>
     <string name="ftue_profile_picture_subtitle">Itt az ideje egy profilképet adni a fiókhoz</string>
-    <string name="ftue_profile_picture_title">Profilkép hozzáadása</string>
     <string name="ftue_display_name_entry_footer">Ezt később meg lehet változtatni</string>
     <string name="ftue_display_name_entry_title">Megjelenítendő név</string>
     <string name="ftue_display_name_title">Válassz egy megjelenítendő nevet</string>
@@ -2809,7 +2807,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="sign_out_anyway">Kijelentkezés mindenképp</string>
     <string name="notice_display_name_changed_to">%1$s megváltoztatta a megjelenítendő nevét erre: %2$s</string>
     <string name="settings_acceptable_use_policy">Elfogadható házirend</string>
-    <string name="avatar_of_user">%1$s felhasználó profilképe</string>
     <string name="avatar_of_room">Szoba profilképe %1$s</string>
     <string name="verification_verify_identity">Hitelesítse személyazonosságát a titkosított üzenetekhez való hozzáféréshez, és bizonyítsa személyazonosságát mások számára.</string>
     <string name="verification_not_found">Az hitelesítési kérelem nem található. Lehet, hogy törölték, vagy egy másik munkamenetben már kezelte.</string>

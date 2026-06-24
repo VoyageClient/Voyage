@@ -561,7 +561,6 @@
     <string name="settings_notification_ringtone">Notifikaasjelûd</string>
     <string name="settings_troubleshoot_test_device_settings_title">Sesjeynstellingen.</string>
     <string name="settings_troubleshoot_diagnostic_running_status">Oan it útfieren… (%1$d fan %2$d)</string>
-    <string name="settings_profile_picture">Profylôfbylding</string>
     <string name="search_no_results">Gjin resultaten</string>
     <string name="search_hint">Sykje</string>
     <string name="room_permissions_change_permissions">Permisjes wizigje</string>
