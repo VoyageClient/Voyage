@@ -16,6 +16,15 @@ New strings always go into `library/ui-strings/src/main/res/values/donottranslat
 
 Default to no comment when writing code. Only write one when the WHY is non-obvious (hidden constraint, upstream-bug workaround, surprising behavior). Don't narrate what the code does or restate the diff in code comments. Identifiers and types already say what; comments are only for what they can't. No multi-paragraph kdoc on internal helpers. Note that this does not apply to dialogue, please do describe what changes you are making.
 
+# Home / room-list layouts
+
+There are TWO room-list layouts, gated by `SETTINGS_LABS_NEW_APP_LAYOUT_KEY` (`isNewAppLayoutEnabled()`):
+
+- Legacy (flag off): `HomeDetailFragment` → `RoomListFragment` → `RoomListViewModel` + `RoomListSectionBuilder` (sectioned list, e.g. People/DMs, Rooms, Favourites).
+- New (flag on): `NewHomeDetailFragment` → `HomeRoomListFragment` → `HomeRoomListViewModel` (single filtered list).
+
+Any change to room-list behavior (display, sorting, refresh, item rendering) MUST be implemented for BOTH paths, or it will silently do nothing on whichever layout the user runs. Don't assume one layout.
+
 # Building
 
 The command you should use to build or install should always be ./gradlew :vector-app:installFdroidDebug so please do not use anything else.

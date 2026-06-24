@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.list
 
+import android.content.SharedPreferences
 import androidx.lifecycle.MutableLiveData
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Fail
@@ -34,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -90,8 +92,17 @@ class RoomListViewModel @AssistedInject constructor(
         NONE
     }
 
+    // Realm-backed paged lists don't rebind on in-place field changes, so toggling the forced DM
+    // display needs an explicit recompute + section rebuild to reflect immediately.
+    private val overrideDisplayPrefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == VectorPreferences.SETTINGS_OVERRIDE_DM_DISPLAY_KEY) {
+            refreshRoomSummaryDisplayThenSections()
+        }
+    }
+
     init {
         observeMembershipChanges()
+        vectorPreferences.subscribeToChanges(overrideDisplayPrefListener)
 
         spaceStateHandler.getSelectedSpaceFlow()
                 .distinctUntilChanged()
@@ -138,6 +149,20 @@ class RoomListViewModel @AssistedInject constructor(
 
     val sections: List<RoomsSection> by lazy {
         roomListSectionBuilder.buildSections(initialState.displayMode)
+    }
+
+    override fun onCleared() {
+        vectorPreferences.unsubscribeToChanges(overrideDisplayPrefListener)
+        super.onCleared()
+    }
+
+    private fun refreshRoomSummaryDisplayThenSections() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                session.roomService().refreshJoinedRoomSummaryDisplay(null)
+            }
+            roomListSectionBuilder.refreshSections()
+        }
     }
 
     override fun handle(action: RoomListAction) {

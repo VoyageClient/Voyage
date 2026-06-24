@@ -74,12 +74,25 @@ class RoomListSectionBuilder(
 
     private var displayMode: RoomListDisplayMode = RoomListDisplayMode.NOTIFICATIONS
 
+    private val activeSpaceAwareQueries = mutableListOf<RoomListViewModel.ActiveSpaceQueryUpdater>()
+
     private fun collapseKeyFor(sectionName: String) = "${displayMode.name}|$sectionName"
+
+    /**
+     * Rebuild every section's paged list from the current data, reusing the space/tag query the
+     * section is already showing. Used to reflect a setting change (e.g. forced DM display) that
+     * only alters how summaries are computed, which a Realm paged list won't pick up on its own.
+     */
+    fun refreshSections() {
+        val selectedSpaceId = spaceStateHandler.getCurrentSpace()?.roomId
+        val selectedTag = tagFilterStateHandler.getSelectedTag()
+        activeSpaceAwareQueries.forEach { it.updateForSpaceId(selectedSpaceId, selectedTag) }
+    }
 
     fun buildSections(mode: RoomListDisplayMode): List<RoomsSection> {
         displayMode = mode
         val sections = mutableListOf<RoomsSection>()
-        val activeSpaceAwareQueries = mutableListOf<RoomListViewModel.ActiveSpaceQueryUpdater>()
+        activeSpaceAwareQueries.clear()
         when (mode) {
             RoomListDisplayMode.PEOPLE -> {
                 // 4 sections Invites / Fav / Dms / Low Priority
