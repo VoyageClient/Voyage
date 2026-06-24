@@ -45,7 +45,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:actionTitle="@string/add_space"
-        app:betaAction="true"
         app:leftIcon="@drawable/ic_fab_add"
         app:tint="?vctr_content_primary"
         app:titleTextColor="?vctr_content_primary"

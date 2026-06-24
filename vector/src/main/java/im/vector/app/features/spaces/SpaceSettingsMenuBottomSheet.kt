@@ -75,6 +75,11 @@ class SpaceSettingsMenuBottomSheet : VectorBaseBottomSheetDialogFragment<BottomS
             interactionListener?.onShareSpaceSelected(spaceArgs.spaceId)
         }
 
+        views.viewSpaceTimeline.views.bottomSheetActionClickableZone.debouncedClicks {
+            dismiss()
+            navigator.openRoom(requireContext(), spaceArgs.spaceId)
+        }
+
         views.showMemberList.views.bottomSheetActionClickableZone.debouncedClicks {
             navigator.openRoomProfile(requireContext(), spaceArgs.spaceId, RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_MEMBERS)
         }

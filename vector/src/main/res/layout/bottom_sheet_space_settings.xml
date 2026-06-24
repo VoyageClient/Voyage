@@ -91,6 +91,15 @@
 
 
     <im.vector.app.core.ui.views.BottomSheetActionButton
+        android:id="@+id/viewSpaceTimeline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:actionTitle="@string/space_view_timeline"
+        app:leftIcon="@drawable/ic_show_media"
+        app:tint="?vctr_content_secondary"
+        app:titleTextColor="?vctr_content_primary" />
+
+    <im.vector.app.core.ui.views.BottomSheetActionButton
         android:id="@+id/showMemberList"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -127,7 +136,6 @@
         app:leftIcon="@drawable/ic_fab_add"
         app:tint="?vctr_content_secondary"
         app:titleTextColor="?vctr_content_primary"
-        app:betaAction="true"
         tools:actionDescription="" />
 
     <im.vector.app.core.ui.views.BottomSheetActionButton
