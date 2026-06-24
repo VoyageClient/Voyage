@@ -25,37 +25,56 @@ class TimelineMediaSizeProvider @Inject constructor(
         set(value) {
             field?.removeOnLayoutChangeListener(layoutListener)
             field = value
+            viewportWidth = 0
+            viewportHeight = 0
             cachedSize = null
             value?.addOnLayoutChangeListener(layoutListener)
+            // addOnLayoutChangeListener only reports future passes; if the view is re-attached already
+            // laid out, seed from its current bounds so we don't fall back to display metrics forever.
+            value?.takeIf { it.width > 0 && it.height > 0 }?.let { adoptBounds(it.width, it.height) }
         }
 
+    // The viewport the caps are derived from. Written only on the main thread (layout listener /
+    // setter); read on the background model-build thread via cachedSize, hence @Volatile.
+    private var viewportWidth = 0
+    private var viewportHeight = 0
+
+    @Volatile
     private var cachedSize: Pair<Int, Int>? = null
 
-    // Drop the cache when the RecyclerView is resized (e.g. first layout pass, rotation) so a
-    // pre-layout 0-size measurement is never kept.
-    private val layoutListener = View.OnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-        if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
-            cachedSize = null
+    // Models are built on a background thread, so getMaxSize() must not read the live RecyclerView
+    // bounds there: with adjustResize the list height shrinks while the keyboard is up (e.g. when
+    // sending), and a transient/shrunk read would get baked into the size and stick. Instead the
+    // cap is recomputed here, on the main thread, from each committed layout pass.
+    private val layoutListener = View.OnLayoutChangeListener { _, left, top, right, bottom, _, _, _, _ ->
+        adoptBounds(right - left, bottom - top)
+    }
+
+    private fun adoptBounds(width: Int, height: Int) {
+        if (width <= 0 || height <= 0) return
+        if (width != viewportWidth) {
+            // First layout, or a width change (rotation / split-screen resize → new configuration):
+            // take the new bounds wholesale.
+            viewportWidth = width
+            viewportHeight = height
+        } else if (height > viewportHeight) {
+            // Same width, taller pass (e.g. keyboard dismissed): grow the cap. We keep the tallest
+            // height seen for this width so the keyboard shrinking the list never shrinks media.
+            viewportHeight = height
+        } else {
+            return
         }
+        cachedSize = computeMaxSize(viewportWidth, viewportHeight)
     }
 
     fun getMaxSize(): Pair<Int, Int> {
         cachedSize?.let { return it }
-        val computed = computeMaxSize()
-        // Only cache once the RecyclerView has actually been laid out. Caching a pre-layout 0-size
-        // would stick permanently and collapse every sized image to 0 height (integer division in
-        // ImageContentRenderer.processSize), while unsized images still render.
-        if ((recyclerView?.width ?: 0) > 0 && (recyclerView?.height ?: 0) > 0) {
-            cachedSize = computed
-        }
-        return computed
+        // Not laid out yet: fall back to the display size so media built during the initial pass gets
+        // a sensible cap instead of 0. Don't cache it — the layout listener installs the real size.
+        return computeMaxSize(resources.displayMetrics.widthPixels, resources.displayMetrics.heightPixels)
     }
 
-    private fun computeMaxSize(): Pair<Int, Int> {
-        // Fall back to the display size before the RecyclerView is measured, so images built during
-        // the initial pass get a sensible max instead of 0.
-        val width = (recyclerView?.width ?: 0).takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
-        val height = (recyclerView?.height ?: 0).takeIf { it > 0 } ?: resources.displayMetrics.heightPixels
+    private fun computeMaxSize(width: Int, height: Int): Pair<Int, Int> {
         val maxImageWidth: Int
         val maxImageHeight: Int
         // landscape / portrait
