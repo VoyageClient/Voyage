@@ -102,7 +102,7 @@ class AccountSwitcherAdapter(
                 val cached = accountInfoCache.avatarFileFor(entry.sessionId).takeIf { it.exists() && it.length() > 0 }
                 avatarRenderer.render(matrixItem, cached?.let { Uri.fromFile(it) }, avatar)
             }
-            displayName.text = entry.displayName ?: entry.userId
+            displayName.text = entry.displayName?.takeIf { it.isNotBlank() } ?: entry.userId
             userId.text = entry.homeServerHost?.let { "${entry.userId} — $it" } ?: entry.userId
             activeMark.isVisible = entry.isActive
             logout.isVisible = !entry.isActive

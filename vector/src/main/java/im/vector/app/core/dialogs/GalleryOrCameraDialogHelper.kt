@@ -9,6 +9,7 @@ package im.vector.app.core.dialogs
 
 import android.app.Activity
 import android.net.Uri
+import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -42,6 +43,7 @@ class GalleryOrCameraDialogHelper(
 ) {
     interface Listener {
         fun onImageReady(uri: Uri?)
+        fun onImageDeleted() = Unit
     }
 
     private val activity
@@ -97,8 +99,8 @@ class GalleryOrCameraDialogHelper(
         Gallery
     }
 
-    fun show() {
-        MaterialAlertDialogBuilder(activity)
+    fun show(withDeleteOption: Boolean = false) {
+        val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(CommonStrings.attachment_type_dialog_title)
                 .setItems(
                         arrayOf(
@@ -109,7 +111,16 @@ class GalleryOrCameraDialogHelper(
                     onAvatarTypeSelected(if (which == 0) Type.Camera else Type.Gallery)
                 }
                 .setPositiveButton(CommonStrings.action_cancel, null)
+                .apply {
+                    if (withDeleteOption) {
+                        setNeutralButton(CommonStrings.action_delete) { _, _ -> listener.onImageDeleted() }
+                    }
+                }
                 .show()
+        if (withDeleteOption) {
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+                    .setTextColor(colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorError))
+        }
     }
 
     private fun onAvatarTypeSelected(type: Type) {

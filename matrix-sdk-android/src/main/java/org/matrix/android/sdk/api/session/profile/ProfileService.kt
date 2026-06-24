@@ -58,6 +58,12 @@ interface ProfileService {
     suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String)
 
     /**
+     * Remove the avatar for this user.
+     * @param userId the userId to delete the avatar of
+     */
+    suspend fun deleteAvatar(userId: String)
+
+    /**
      * Return the current avatarUrl for this user.
      * @param userId the userId param to look for
      *

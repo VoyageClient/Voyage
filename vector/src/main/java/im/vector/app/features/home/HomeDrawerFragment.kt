@@ -85,7 +85,7 @@ class HomeDrawerFragment :
             val user = optionalUser?.getOrNull()
             if (user != null) {
                 avatarRenderer.render(user.toMatrixItem(), views.homeDrawerHeaderAvatarView)
-                views.homeDrawerUsernameView.text = user.displayName
+                views.homeDrawerUsernameView.text = user.displayName?.takeIf { it.isNotBlank() } ?: user.userId
                 views.homeDrawerUserIdView.text = user.userId
                 // Keep the switcher's active row in sync with profile edits when the panel is up.
                 if (views.homeDrawerAccountList.isVisible) refreshAccountList()

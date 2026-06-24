@@ -84,6 +84,8 @@ class VectorSettingsGeneralFragment :
 
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
+    private var currentAvatarUrl: String? = null
+
     private val mUserSettingsCategory by lazy {
         findPreference<PreferenceCategory>(VectorPreferences.SETTINGS_USER_SETTINGS_PREFERENCE_KEY)!!
     }
@@ -147,6 +149,7 @@ class VectorSettingsGeneralFragment :
                 .unwrap()
                 .distinctUntilChangedBy { user -> user.avatarUrl }
                 .onEach {
+                    currentAvatarUrl = it.avatarUrl
                     mUserAvatarPreference.refreshAvatar(it)
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -171,7 +174,7 @@ class VectorSettingsGeneralFragment :
         // Avatar
         mUserAvatarPreference.let {
             it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                galleryOrCameraDialogHelper.show()
+                galleryOrCameraDialogHelper.show(withDeleteOption = !currentAvatarUrl.isNullOrBlank())
                 false
             }
         }
@@ -375,12 +378,35 @@ class VectorSettingsGeneralFragment :
         }
     }
 
+    override fun onImageDeleted() {
+        deleteAvatar()
+    }
+
     private fun uploadAvatar(uri: Uri) {
         displayLoadingView()
 
         lifecycleScope.launch {
             val result = runCatching {
                 session.profileService().updateAvatar(session.myUserId, uri, getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
+            }
+            if (!isAdded) return@launch
+
+            result.fold(
+                    onSuccess = { hideLoadingView() },
+                    onFailure = {
+                        hideLoadingView()
+                        displayErrorDialog(it)
+                    }
+            )
+        }
+    }
+
+    private fun deleteAvatar() {
+        displayLoadingView()
+
+        lifecycleScope.launch {
+            val result = runCatching {
+                session.profileService().deleteAvatar(session.myUserId)
             }
             if (!isAdded) return@launch
 
