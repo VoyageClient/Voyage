@@ -702,7 +702,7 @@ class TimelineFragment :
 
     private fun renderPinnedMessagesBanner(state: RoomDetailViewState) {
         val pinnedEvents = state.pinnedEvents
-        if (!vectorPreferences.showPinnedMessagesBanner() || pinnedEvents.isEmpty()) {
+        if (isThreadTimeLine() || !vectorPreferences.showPinnedMessagesBanner() || pinnedEvents.isEmpty()) {
             views.pinnedMessagesBanner.isVisible = false
             return
         }
