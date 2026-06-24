@@ -43,8 +43,9 @@ class StateView @JvmOverloads constructor(context: Context, attrs: AttributeSet?
 
     var state: State = State.Empty()
         set(newState) {
-            if (newState != state) {
+            if (newState != field) {
                 update(newState)
+                field = newState
             }
         }
 
