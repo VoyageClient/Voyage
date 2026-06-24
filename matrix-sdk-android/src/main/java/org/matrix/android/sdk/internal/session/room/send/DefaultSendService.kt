@@ -267,7 +267,9 @@ internal class DefaultSendService @AssistedInject constructor(
 
     override fun cancelAllFailedMessages() {
         taskExecutor.executorScope.launch {
-            localEchoRepository.getAllFailedEventsToResend(roomId).forEach { event ->
+            // Not getAllFailedEventsToResend: that filters to resendable message echoes, which drops
+            // redaction echoes and leaves them stuck UNDELIVERED (red room warning, only cleared by cache wipe).
+            localEchoRepository.getAllEventsWithStates(roomId, SendState.HAS_FAILED_STATES).forEach { event ->
                 cancelSend(event.eventId)
             }
         }

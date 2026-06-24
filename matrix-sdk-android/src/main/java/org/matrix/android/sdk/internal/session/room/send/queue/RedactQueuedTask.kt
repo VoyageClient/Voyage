@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.send.queue
 
-import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
@@ -37,7 +36,10 @@ internal class RedactQueuedTask(
     }
 
     override fun onTaskFailed() {
-        localEchoRepository.updateSendState(redactionLocalEchoId, roomId, SendState.UNDELIVERED)
+        // A redaction echo is a fake aggregation event with no retry UX; surfacing it as UNDELIVERED
+        // leaves a stuck red room warning the user can't clear. Drop it, like reactions/redactions in
+        // SendEventQueuedTask. The optimistic local prune of the target stays until next cache reload.
+        localEchoRepository.deleteFailedEchoAsync(roomId, redactionLocalEchoId)
     }
 
     override fun isCancelled(): Boolean {
