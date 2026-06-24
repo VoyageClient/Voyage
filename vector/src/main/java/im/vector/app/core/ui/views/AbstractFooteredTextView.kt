@@ -40,9 +40,16 @@ interface AbstractFooteredTextView {
         get() = footerState.footerWidth
         set(value) { footerState.footerWidth = value }
 
+    // When set (non-bubble layout), a message containing a block code span stretches to the full
+    // available width so the code background runs to the edge instead of hugging the longest line.
+    var fullWidthBlockCode: Boolean
+        get() = footerState.fullWidthBlockCode
+        set(value) { footerState.fullWidthBlockCode = value }
+
     class FooterState {
         var footerHeight: Int = 0
         var footerWidth: Int = 0
+        var fullWidthBlockCode: Boolean = false
 
         // Some Rect to use during draw, since we should not alloc it during draw
         val testBounds = Rect()
@@ -97,6 +104,7 @@ interface AbstractFooteredTextView {
         val forceNewlineFooter: Boolean
         // For italic text, we need some extra space due to a wrap_content bug: https://stackoverflow.com/q/4353836
         val addItalicPadding: Boolean
+        val hasBlockCode: Boolean
 
         if (text is Spannable || text is Spanned) {
             val span = text.toSpanned()
@@ -104,9 +112,11 @@ interface AbstractFooteredTextView {
             val lastLineCodeSpans = span.getSpans<HtmlCodeSpan>(lastLineStart)
             forceNewlineFooter = lastLineCodeSpans.any { it.isBlock }
             addItalicPadding = span.getSpans<EmphasisSpan>().isNotEmpty()
+            hasBlockCode = span.getSpans<HtmlCodeSpan>().any { it.isBlock }
         } else {
             forceNewlineFooter = false
             addItalicPadding = false
+            hasBlockCode = false
         }
 
         // Is there space for a horizontal footer?
@@ -143,6 +153,12 @@ interface AbstractFooteredTextView {
         // Safety margin: getLineWidth() can under-report the last glyph's advance, which clips it once we
         // shrink the view to the measured line width.
         newWidth += ceil(2 * resources.displayMetrics.density).toInt()
+
+        // Outside bubbles, stretch a block-code message to the full available width so its background
+        // reaches the edge rather than only wrapping the longest line.
+        if (footerState.fullWidthBlockCode && hasBlockCode) {
+            newWidth = max(newWidth, ceil(widthLimit).toInt())
+        }
 
         Pair(newWidth, newHeight)
     }

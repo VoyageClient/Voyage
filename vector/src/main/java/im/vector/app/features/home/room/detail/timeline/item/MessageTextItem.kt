@@ -26,6 +26,7 @@ import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
@@ -128,6 +129,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         holder.richBodyContainer?.isVisible = false
         val messageView: AppCompatTextView = holder.requirePlainMessageView()
         messageView.isVisible = true
+        (messageView as? AbstractFooteredTextView)?.fullWidthBlockCode =
+                attributes.informationData.messageLayout is TimelineMessageLayout.Default
         if (useBigFont) {
             messageView.textSize = 44F
         } else {

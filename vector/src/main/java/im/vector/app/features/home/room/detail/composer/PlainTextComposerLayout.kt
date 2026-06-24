@@ -347,10 +347,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             if (compressed != null && compressed.contains("<table", ignoreCase = true)) {
                 renderRichTablePreview(compressed, pillsPostProcessor)
                 renderedTable = true
+            } else if (compressed != null) {
+                // Render the HTML string (not a pre-parsed commonmark Node) so the root-tag
+                // post-processor runs and code blocks / nested tags render, as in the timeline.
+                formattedBody = eventHtmlRenderer.render(compressed, pillsPostProcessor)
             } else {
                 val parser = Parser.builder().build()
-                val bodyToParse = htmlToRender ?: ContentUtils.extractUsefulTextFromReply(messageContent.body)
-                val document = parser.parse(bodyToParse)
+                val document = parser.parse(ContentUtils.extractUsefulTextFromReply(messageContent.body))
                 formattedBody = eventHtmlRenderer.render(document, pillsPostProcessor)
             }
         }
