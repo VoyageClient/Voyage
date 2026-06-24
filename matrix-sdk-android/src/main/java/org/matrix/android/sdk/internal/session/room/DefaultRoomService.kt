@@ -139,6 +139,26 @@ internal class DefaultRoomService @Inject constructor(
         }
     }
 
+    override fun refreshJoinedRoomSummaryDisplay(roomId: String?) {
+        val roomSummaries = if (roomId == null) {
+            getRoomSummaries(roomSummaryQueryParams {
+                memberships = listOf(Membership.JOIN)
+            })
+        } else {
+            listOfNotNull(
+                    getRoomSummary(roomId)?.takeIf { it.membership == Membership.JOIN }
+            )
+        }
+
+        if (roomSummaries.isNotEmpty()) {
+            monarchy.runTransactionSync { realm ->
+                roomSummaries.forEach {
+                    roomSummaryUpdater.refreshDisplay(realm, it.roomId)
+                }
+            }
+        }
+    }
+
     override fun getRoomSummariesLive(
             queryParams: RoomSummaryQueryParams,
             sortOrder: RoomSortOrder

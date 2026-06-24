@@ -87,6 +87,12 @@ internal class RoomSummaryUpdater @Inject constructor(
         }
     }
 
+    fun refreshDisplay(realm: Realm, roomId: String) {
+        val roomSummaryEntity = RoomSummaryEntity.getOrNull(realm, roomId) ?: return
+        roomSummaryEntity.setDisplayName(roomDisplayNameResolver.resolve(realm, roomId))
+        roomSummaryEntity.avatarUrl = roomAvatarResolver.resolve(realm, roomId)
+    }
+
     fun update(
             realm: Realm,
             roomId: String,

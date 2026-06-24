@@ -59,7 +59,12 @@ internal class RoomAvatarResolver @Inject constructor(
         if (roomDisplayNameFallbackProvider.shouldOverrideDirectChatDisplay()) {
             val directUserId = RoomSummaryEntity.where(realm, roomId).findFirst()?.directUserId
             if (!directUserId.isNullOrBlank()) {
-                return RoomMemberHelper(realm, roomId).getLastRoomMember(directUserId)?.avatarUrl
+                // Only override once the member's avatar has actually been fetched, otherwise fall
+                // through to the default algorithm rather than forcing a blank avatar.
+                val directAvatarUrl = RoomMemberHelper(realm, roomId).getLastRoomMember(directUserId)?.avatarUrl
+                if (!directAvatarUrl.isNullOrBlank()) {
+                    return directAvatarUrl
+                }
             }
         }
 

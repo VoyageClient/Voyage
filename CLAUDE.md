@@ -22,6 +22,8 @@ The command you should use to build or install should always be ./gradlew :vecto
 
 # Debugging on device
 
+The installed fdroid-debug package is `im.voyage.app.debug` (NOT `im.vector.app.debug`). Use that for `am start`, `pidof`, logcat filters, etc.
+
 The app takes ~45 seconds to start. When launching it (e.g. to read logs after an install), always wait at least 45s before checking for output.
 
 NEVER take device screenshots (no `adb screencap`, no `adb exec-out screencap`, no driving the UI to capture a screen) unless the user explicitly asks for one in that message. To verify behaviour, prefer reading logcat; let the user drive the UI and trigger flows themselves.

@@ -80,9 +80,12 @@ internal class RoomDisplayNameResolver @Inject constructor(
             val directUserId = RoomSummaryEntity.where(realm, roomId).findFirst()?.directUserId
             if (!directUserId.isNullOrBlank()) {
                 val roomMembers = RoomMemberHelper(realm, roomId)
-                val directName = roomMembers.getLastRoomMember(directUserId)
-                        ?.let { resolveRoomMemberName(it, roomMembers) }
-                return (directName?.takeIf { it.isNotBlank() } ?: directUserId).toRoomName()
+                val directMember = roomMembers.getLastRoomMember(directUserId)
+                // Only override once the member's display name has actually been fetched, otherwise
+                // fall through to the default algorithm rather than showing the raw user id.
+                if (!directMember?.displayName.isNullOrBlank()) {
+                    return resolveRoomMemberName(directMember!!, roomMembers).toRoomName()
+                }
             }
         }
 

@@ -302,4 +302,13 @@ interface RoomService {
      * This is useful for refreshing summary content with encrypted messages after receiving new room keys.
      */
     fun refreshJoinedRoomSummaryPreviews(roomId: String?)
+
+    /**
+     * Recompute the RoomSummary display name and avatar for the given @param roomId.
+     * If the roomId is null, all joined rooms are updated.
+     *
+     * This is useful after changing a client-side setting that influences how they are computed,
+     * such as forcing the contact display for group DMs.
+     */
+    fun refreshJoinedRoomSummaryDisplay(roomId: String?)
 }

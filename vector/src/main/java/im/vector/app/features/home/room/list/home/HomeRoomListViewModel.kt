@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.list.home
 
+import android.content.SharedPreferences
 import android.widget.ImageView
 import androidx.paging.PagedList
 import com.airbnb.mvrx.MavericksViewModelFactory
@@ -31,6 +32,7 @@ import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -41,7 +43,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.RoomTagQueryFilter
@@ -104,12 +108,70 @@ class HomeRoomListViewModel @AssistedInject constructor(
         )
     }
 
+    private val directMemberLoadRequestedRoomIds = mutableSetOf<String>()
+
+    // Realm-backed paged lists don't rebind on in-place field changes, so toggling the forced DM
+    // display needs an explicit recompute + paged-list rebuild to reflect immediately.
+    private val overrideDisplayPrefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key == VectorPreferences.SETTINGS_OVERRIDE_DM_DISPLAY_KEY) {
+            refreshRoomSummaryDisplayThenList()
+        }
+    }
+
     init {
         observeOrderPreferences()
         observeInvites()
         observeRecents()
         observeFilterTabs()
         observeSpaceChanges()
+        observeDirectRoomsForMemberLoading()
+        vectorPreferences.subscribeToChanges(overrideDisplayPrefListener)
+    }
+
+    override fun onCleared() {
+        vectorPreferences.unsubscribeToChanges(overrideDisplayPrefListener)
+        super.onCleared()
+    }
+
+    private fun refreshRoomSummaryDisplayThenList() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                session.roomService().refreshJoinedRoomSummaryDisplay(null)
+            }
+            // Rebuild the paged list so the recomputed names/avatars rebind.
+            filteredPagedRoomSummariesLive.queryParams = filteredPagedRoomSummariesLive.queryParams
+        }
+    }
+
+    // The forced DM display reads the direct user's per-room member event. When that member hasn't
+    // been lazy-loaded yet, fetch the room member list (per-room API) so the name/avatar can resolve
+    // without relying on the federated profile lookup, which may be disabled.
+    private fun observeDirectRoomsForMemberLoading() {
+        if (!vectorPreferences.overrideDirectChatDisplay()) return
+        session.flow()
+                .liveRoomSummaries(
+                        roomSummaryQueryParams {
+                            memberships = listOf(Membership.JOIN)
+                        },
+                        RoomSortOrder.ACTIVITY
+                )
+                .onEach { summaries ->
+                    summaries.asSequence()
+                            .filter { it.isDirect && it.directUserId != null }
+                            .filter { directMemberLoadRequestedRoomIds.add(it.roomId) }
+                            .forEach { summary -> loadDirectMemberIfMissing(summary.roomId, summary.directUserId!!) }
+                }
+                .launchIn(viewModelScope)
+    }
+
+    private fun loadDirectMemberIfMissing(roomId: String, directUserId: String) {
+        viewModelScope.launch {
+            val room = session.getRoom(roomId) ?: return@launch
+            val member = room.membershipService().getRoomMember(directUserId)
+            if (member?.displayName.isNullOrBlank() && member?.avatarUrl.isNullOrBlank()) {
+                tryOrNull { room.membershipService().loadRoomMembersIfNeeded() }
+            }
+        }
     }
 
     private fun observeSpaceChanges() {
