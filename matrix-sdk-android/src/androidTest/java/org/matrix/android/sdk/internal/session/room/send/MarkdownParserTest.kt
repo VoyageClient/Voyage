@@ -17,6 +17,8 @@
 package org.matrix.android.sdk.internal.session.room.send
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.commonmark.ext.subsupstrike.SubSupStrikeExtension
+import org.commonmark.ext.underline.UnderlineExtension
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 import org.junit.Assert.assertEquals
@@ -48,9 +50,12 @@ class MarkdownParserTest : InstrumentedTest {
      * Create the same parser than in the RoomModule
      */
     private val markdownParser = MarkdownParser(
-            Parser.builder().build(),
-            Parser.builder().build(),
-            HtmlRenderer.builder().softbreak("<br />").build(),
+            Parser.builder().extensions(listOf(SubSupStrikeExtension.create())).build(),
+            Parser.builder().extensions(listOf(SubSupStrikeExtension.create())).build(),
+            HtmlRenderer.builder()
+                    .extensions(listOf(SubSupStrikeExtension.create(), UnderlineExtension.create()))
+                    .softbreak("<br />")
+                    .build(),
             TextPillsUtils(
                     MentionLinkSpecComparator(),
                     TestPermalinkService()
@@ -125,12 +130,8 @@ class MarkdownParserTest : InstrumentedTest {
         "_italic_".let { markdownParser.parse(it).expect(it, "<em>italic</em>") }
     }
 
-    /**
-     * Note: the test is not passing, it does not work on Element Web neither
-     */
     @Test
-    @Ignore("This test will be ignored until it is fixed")
-    fun parseStrike_not_passing() {
+    fun parseStrike() {
         testType(
                 name = "strike",
                 markdownPattern = "~~",
@@ -139,13 +140,67 @@ class MarkdownParserTest : InstrumentedTest {
     }
 
     @Test
-    @Ignore("This test will be ignored until it is fixed")
     fun parseStrikeNewLines() {
         testTypeNewLines(
                 name = "strike",
                 markdownPattern = "~~",
                 htmlExpectedTag = "del"
         )
+    }
+
+    @Test
+    fun parseUnderline() {
+        // Discord-style: __text__ is underline, not bold.
+        testType(
+                name = "underline",
+                markdownPattern = "__",
+                htmlExpectedTag = "u"
+        )
+    }
+
+    @Test
+    fun parseUnderlineNewLines() {
+        testTypeNewLines(
+                name = "underline",
+                markdownPattern = "__",
+                htmlExpectedTag = "u"
+        )
+    }
+
+    @Test
+    fun parseSubscript() {
+        // Pandoc-style: ~text~ is subscript.
+        testType(
+                name = "sub",
+                markdownPattern = "~",
+                htmlExpectedTag = "sub"
+        )
+    }
+
+    @Test
+    fun parseSuperscript() {
+        // Pandoc-style: ^text^ is superscript.
+        testType(
+                name = "sup",
+                markdownPattern = "^",
+                htmlExpectedTag = "sup"
+        )
+    }
+
+    @Test
+    fun parseUnderlineItalic() {
+        // Discord-style: ___text___ is underline + italic.
+        "___underline italic___".let { markdownParser.parse(it).expect(it, "<em><u>underline italic</u></em>") }
+    }
+
+    @Test
+    fun parseSingleUnderscoreStaysItalic() {
+        "_italic_".let { markdownParser.parse(it).expect(it, "<em>italic</em>") }
+    }
+
+    @Test
+    fun parseDoubleAsteriskStaysBold() {
+        "**bold**".let { markdownParser.parse(it).expect(it, "<strong>bold</strong>") }
     }
 
     @Test

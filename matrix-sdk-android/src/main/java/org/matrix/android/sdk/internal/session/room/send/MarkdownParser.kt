@@ -36,7 +36,7 @@ internal class MarkdownParser @Inject constructor(
         private val textPillsUtils: TextPillsUtils
 ) {
 
-    private val mdSpecialChars = "[`_\\-*>.\\[\\]#~$]".toRegex()
+    private val mdSpecialChars = "[`_\\-*>.\\[\\]#~$^]".toRegex()
 
     /**
      * Parses some input text and produces html.

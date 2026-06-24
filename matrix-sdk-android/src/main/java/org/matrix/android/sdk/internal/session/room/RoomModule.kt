@@ -22,6 +22,8 @@ import dagger.Provides
 import org.commonmark.Extension
 import org.commonmark.ext.gfm.tables.TablesExtension
 import org.commonmark.ext.maths.MathsExtension
+import org.commonmark.ext.subsupstrike.SubSupStrikeExtension
+import org.commonmark.ext.underline.UnderlineExtension
 import org.commonmark.node.BlockQuote
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
@@ -161,7 +163,12 @@ internal abstract class RoomModule {
 
     @Module
     companion object {
-        private val extensions: List<Extension> = listOf(MathsExtension.create(), TablesExtension.create())
+        private val extensions: List<Extension> = listOf(
+                MathsExtension.create(),
+                TablesExtension.create(),
+                SubSupStrikeExtension.create(),
+                UnderlineExtension.create()
+        )
 
         @Provides
         @JvmStatic
@@ -191,6 +198,7 @@ internal abstract class RoomModule {
             // The simple parser disables all blocks but quotes.
             // Inline parsing(bold, italic, etc) is also enabled and is not easy to disable in commonmark currently.
             return Parser.builder()
+                    .extensions(listOf(SubSupStrikeExtension.create()))
                     .enabledBlockTypes(setOf(BlockQuote::class.java))
                     .build()
         }
