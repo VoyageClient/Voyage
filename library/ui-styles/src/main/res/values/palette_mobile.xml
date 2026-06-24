@@ -49,6 +49,22 @@
     <color name="element_name_07">@color/palette_prune</color>
     <color name="element_name_08">@color/palette_kiwi</color>
 
+    <!-- element-web's current username/avatar palette (Compound decorative 1-6). Distinct light/dark
+         values; MatrixItemColorProvider picks the set matching the active theme. -->
+    <color name="element_name_ew_light_01">#005f00</color>
+    <color name="element_name_ew_light_02">#00548c</color>
+    <color name="element_name_ew_light_03">#822198</color>
+    <color name="element_name_ew_light_04">#5d26cd</color>
+    <color name="element_name_ew_light_05">#9f0850</color>
+    <color name="element_name_ew_light_06">#9b2200</color>
+
+    <color name="element_name_ew_dark_01">#56c02c</color>
+    <color name="element_name_ew_dark_02">#21bacd</color>
+    <color name="element_name_ew_dark_03">#d991de</color>
+    <color name="element_name_ew_dark_04">#ad9cfe</color>
+    <color name="element_name_ew_dark_05">#fe84a2</color>
+    <color name="element_name_ew_dark_06">#f6913d</color>
+
     <!-- Also create alias for rooms -->
     <color name="element_room_01">@color/palette_verde</color>
     <color name="element_room_02">@color/palette_azure</color>

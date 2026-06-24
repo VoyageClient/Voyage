@@ -51,6 +51,9 @@
     <string name="settings_render_blockquotes_as_greentext_title" translatable="false">Replace blockquotes with greentext</string>
     <string name="settings_render_blockquotes_as_greentext_summary" translatable="false">When typing &gt; at the start of a line, send the message as greentext instead of a blockquote.</string>
 
+    <string name="settings_uglier_username_colors_title" translatable="false">Uglier username color palette</string>
+    <string name="settings_uglier_username_colors_summary" translatable="false">Color usernames and default avatars with element-web\'s current palette and hashing, which replaced the nicer one used before 2023.</string>
+
     <string name="command_description_notice" translatable="false">Sends the given message as a notice</string>
 
     <string name="command_description_jump_to_start" translatable="false">Jump to the first event in this room.</string>

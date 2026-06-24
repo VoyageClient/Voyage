@@ -128,6 +128,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
         private const val SETTINGS_LABS_ENABLE_LATEX_MATHS = "SETTINGS_LABS_ENABLE_LATEX_MATHS"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
+        private const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         const val SETTINGS_ANIMATE_ROOM_AVATARS = "SETTINGS_ANIMATE_ROOM_AVATARS"
@@ -398,6 +399,10 @@ class VectorPreferences @Inject constructor(
 
     fun renderBlockquotesAsGreentext(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT, false)
+    }
+
+    fun useUglierUsernameColors(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_UGLIER_USERNAME_COLORS_KEY, false)
     }
 
     fun failFast(): Boolean {
