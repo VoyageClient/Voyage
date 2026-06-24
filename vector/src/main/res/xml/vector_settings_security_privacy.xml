@@ -52,6 +52,31 @@
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
+    <!-- ************ PGP (OpenKeychain) section ************ -->
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_PGP_PREFERENCE_KEY"
+        android:title="@string/settings_pgp_category">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_PGP_ENABLED_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_pgp_enable_summary"
+            android:title="@string/settings_pgp_enable_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PGP_MY_KEY_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_pgp_my_key_none"
+            android:title="@string/settings_pgp_my_key_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PGP_OVERRIDES_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_pgp_overrides_summary"
+            android:title="@string/settings_pgp_overrides_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
     <!-- devices list entry point -->
     <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_DEVICES_LIST_PREFERENCE_KEY"

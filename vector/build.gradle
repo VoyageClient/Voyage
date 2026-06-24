@@ -194,6 +194,10 @@ dependencies {
     implementation "androidx.transition:transition:1.4.1"
     implementation libs.androidx.biometric
 
+    // PGP via OpenKeychain (OpenPGP API, AIDL-based, works down to API 19).
+    // Vendored as source under library/external/openpgp-api (Apache-2.0).
+    implementation project(':library:external:openpgp-api')
+
     api "org.threeten:threetenbp:1.4.0:no-tzdb"
     api "com.gabrielittner.threetenbp:lazythreetenbp:0.16.0"
 

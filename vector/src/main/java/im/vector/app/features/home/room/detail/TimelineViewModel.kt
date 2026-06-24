@@ -52,10 +52,15 @@ import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.raw.wellknown.CryptoConfig
+import im.vector.app.features.pgp.PgpDecryptor
+import im.vector.app.features.pgp.PgpKeyStore
+import im.vector.app.features.pgp.PgpRoomEncryptor
+import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.raw.wellknown.getOutboundSessionKeySharingStrategyOrDefault
 import im.vector.app.features.raw.wellknown.withElementWellKnown
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
@@ -168,6 +173,10 @@ class TimelineViewModel @AssistedInject constructor(
         private val imageContentRenderer: ImageContentRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
+        private val pgpServiceManager: PgpServiceManager,
+        private val pgpKeyStore: PgpKeyStore,
+        private val pgpDecryptor: PgpDecryptor,
+        private val pgpRoomEncryptor: PgpRoomEncryptor,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -185,6 +194,7 @@ class TimelineViewModel @AssistedInject constructor(
 
     // Same lifecycle than the ViewModel (survive to screen rotation)
     val previewUrlRetriever = PreviewUrlRetriever(session, viewModelScope, buildMeta)
+    val pgpDecryptionRetriever = PgpDecryptionRetriever(viewModelScope, pgpServiceManager, pgpKeyStore)
     val replyPreviewRetriever = ReplyPreviewRetriever(
             vectorPreferences,
             initialState.roomId,
@@ -200,6 +210,7 @@ class TimelineViewModel @AssistedInject constructor(
             spanUtils,
             imageContentRenderer,
             richMessageBodyRenderer,
+            pgpDecryptor,
     )
 
     // Slot to keep a pending action during permission request
@@ -847,19 +858,44 @@ private fun handleSelectStickerAttachment() {
     }
 
     private fun handleSendMedia(action: RoomDetailAction.SendMedia) {
-        if (room == null) return
+        val room = this.room ?: return
+        val caption = action.captionText?.takeIf { it.isNotBlank() }
         viewModelScope.launch(Dispatchers.IO) {
-            room.sendService().sendMedias(
-                    attachments = action.attachments,
-                    compressBeforeSending = action.compressBeforeSending,
-                    roomIds = emptySet(),
-                    rootThreadEventId = initialState.rootThreadEventId,
-                    replyToEvent = action.replyToEvent,
-                    captionText = action.captionText,
-                    captionFormattedText = action.captionFormattedText,
-                    autoMarkdown = action.autoMarkdown,
-            )
+            // In PGP mode, only the caption (body/formatted_body) is encrypted — the media itself
+            // can't be (it's a plain mxc upload). Untriggered when there's no caption.
+            if (caption != null && pgpRoomEncryptor.isRoomPgpActive(room)) {
+                when (val outcome = pgpRoomEncryptor.encryptForRoom(room, caption, action.captionFormattedText)) {
+                    is PgpRoomEncryptor.Outcome.Encrypted ->
+                        sendMediasWithCaption(room, action, outcome.armoredBody, outcome.armoredFormatted)
+                    else -> {
+                        // Couldn't encrypt the caption: send the (unencryptable) media without it
+                        // rather than leaking the caption as plaintext, and say why.
+                        val reason = when (outcome) {
+                            PgpRoomEncryptor.Outcome.NoRecipients -> stringProvider.getString(CommonStrings.pgp_no_recipient_keys)
+                            is PgpRoomEncryptor.Outcome.Error -> stringProvider.getString(CommonStrings.pgp_encrypt_failed, outcome.message)
+                            else -> stringProvider.getString(CommonStrings.pgp_no_key_configured)
+                        }
+                        _viewEvents.post(RoomDetailViewEvents.ShowMessage(reason))
+                        sendMediasWithCaption(room, action, null, null)
+                    }
+                }
+            } else {
+                sendMediasWithCaption(room, action, action.captionText, action.captionFormattedText)
+            }
         }
+    }
+
+    private fun sendMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia, captionText: CharSequence?, captionFormattedText: String?) {
+        room.sendService().sendMedias(
+                attachments = action.attachments,
+                compressBeforeSending = action.compressBeforeSending,
+                roomIds = emptySet(),
+                rootThreadEventId = initialState.rootThreadEventId,
+                replyToEvent = action.replyToEvent,
+                captionText = captionText,
+                captionFormattedText = captionFormattedText,
+                autoMarkdown = if (captionText === action.captionText) action.autoMarkdown else false,
+        )
     }
 
     private fun handleEventVisible(action: RoomDetailAction.TimelineEventTurnsVisible) {

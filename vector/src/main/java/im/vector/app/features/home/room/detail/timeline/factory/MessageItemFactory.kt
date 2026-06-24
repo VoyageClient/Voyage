@@ -35,6 +35,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MessageInformationDataFactory
 import im.vector.app.features.home.room.detail.timeline.helper.MessageItemAttributesFactory
+import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.BaseEventItem
@@ -68,6 +69,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
+import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.location.INITIAL_MAP_ZOOM_IN_TIMELINE
 import im.vector.app.features.location.UrlMapProvider
@@ -156,6 +158,7 @@ class MessageItemFactory @Inject constructor(
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
+        private val pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor,
 ) {
 
     // TODO inject this properly?
@@ -705,6 +708,29 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
     ): VectorEpoxyModel<*>? {
+        // PGP-over-plaintext: replace the armored body with the decrypted plaintext (or a
+        // placeholder while OpenKeychain works / on failure). The lock badge is rendered
+        // separately in the shield slot — this only touches the bubble text.
+        if (informationData.isPgp) {
+            // Prefer the encrypted formatted_body: once decrypted it's the rendered HTML the sender
+            // intended (the body only carries the markdown source). Goes through the retriever under a
+            // distinct cache key so it doesn't collide with the body and invalidation stays targeted to
+            // this event. Only a clean armored block qualifies — QuickMedia's formatted_body is the
+            // body's ciphertext re-encoded with <br>/<mx-reply>, which can't decrypt; fall back to body.
+            val formattedArmored = messageContent.matrixFormattedBody
+                    ?.takeIf { PgpUtils.bodyContainsPgp(it) && !it.contains("<br") && !it.contains("<mx-reply") }
+            val retriever = callback?.getPgpDecryptionRetriever()
+            if (formattedArmored != null && retriever != null) {
+                val armored = PgpUtils.extractArmoredBlock(formattedArmored) ?: formattedArmored
+                val state = retriever.getOrRequest(informationData.eventId, armored, cacheKey = informationData.eventId + PGP_FORMATTED_CACHE_SUFFIX)
+                if (state is PgpDecryptionRetriever.State.Decrypted) {
+                    return buildFormattedTextItem(state.text, informationData, highlight, callback, attributes)
+                }
+            }
+            buildPgpBody(messageContent.body, informationData, callback)?.let { pgpBody ->
+                return buildMessageTextItem(pgpBody, false, informationData, highlight, callback, attributes)
+            }
+        }
         val matrixFormattedBody = messageContent.matrixFormattedBody
         val replyToContent = messageContent.relatesTo?.inReplyTo
         return if (matrixFormattedBody != null) {
@@ -714,6 +740,24 @@ class MessageItemFactory @Inject constructor(
             // replied-to preview is rendered separately by InReplyToView.
             val body = if (replyToContent?.eventId != null) ContentUtils.extractUsefulTextFromReply(messageContent.body) else messageContent.body
             buildMessageTextItem(body, false, informationData, highlight, callback, attributes)
+        }
+    }
+
+    // Returns the text to show for a PGP message, or null to fall through to normal rendering
+    // (auto-decrypt disabled -> show the raw armored body as-is).
+    private fun buildPgpBody(
+            body: String,
+            informationData: MessageInformationData,
+            callback: TimelineEventController.Callback?,
+    ): CharSequence? {
+        val retriever = callback?.getPgpDecryptionRetriever() ?: return null
+        val armored = PgpUtils.extractArmoredBlock(body) ?: body
+        return when (val state = retriever.getOrRequest(informationData.eventId, armored)) {
+            null -> null
+            is PgpDecryptionRetriever.State.Decrypted -> state.text
+            is PgpDecryptionRetriever.State.Pending -> stringProvider.getString(CommonStrings.pgp_decrypting)
+            is PgpDecryptionRetriever.State.NeedsInteraction -> stringProvider.getString(CommonStrings.encrypted_message)
+            is PgpDecryptionRetriever.State.Failed -> stringProvider.getString(CommonStrings.pgp_decryption_failed)
         }
     }
 
@@ -807,12 +851,17 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
     ): Pair<EpoxyCharSequence, BindingOptions>? {
         if (body.isEmpty()) return null
-        val initialBody: CharSequence = if (formattedBody != null) {
-            val compressed = htmlCompressor.compress(formattedBody)
+        // PGP: a captioned media's caption may be an armored block — show the decrypted plaintext
+        // (and ignore the armored formatted_body).
+        val pgpCaption = pgpDecryptor.peekDecryptedBody(body)
+        val effectiveBody = pgpCaption ?: body
+        val effectiveFormatted = if (pgpCaption != null) null else formattedBody
+        val initialBody: CharSequence = if (effectiveFormatted != null) {
+            val compressed = htmlCompressor.compress(effectiveFormatted)
             val raw = htmlRenderer.get().render(compressed, pillsPostProcessor) as? Spanned
-            raw?.trimUncoveredWhitespace() ?: body
+            raw?.trimUncoveredWhitespace() ?: effectiveBody
         } else {
-            body
+            effectiveBody
         }
         val rendered = textRenderer.render(initialBody)
         val bindingOptions = spanUtils.getBindingOptions(rendered)
@@ -1005,5 +1054,6 @@ class MessageItemFactory @Inject constructor(
         private val IMG_TAG_REGEX = Regex("<img\\b[^>]*>", RegexOption.IGNORE_CASE)
         private const val OBJECT_REPLACEMENT_CHAR = '￼'
         private const val OBJECT_REPLACEMENT_STRING = "￼"
+        private const val PGP_FORMATTED_CACHE_SUFFIX = " fmt"
     }
 }

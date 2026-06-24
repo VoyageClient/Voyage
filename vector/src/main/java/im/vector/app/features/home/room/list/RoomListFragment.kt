@@ -51,6 +51,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orTrue
@@ -74,6 +75,8 @@ class RoomListFragment :
         NotifsFabMenuView.Listener {
 
     @Inject lateinit var pagedControllerFactory: RoomSummaryPagedControllerFactory
+    @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var footerController: RoomListFooterController
     @Inject lateinit var userPreferencesProvider: UserPreferencesProvider
@@ -143,6 +146,19 @@ class RoomListFragment :
         sharedActionViewModel
                 .stream()
                 .onEach { handleQuickActions(it) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Re-render last-message previews once a PGP body finishes decrypting. Forced: the room
+        // summaries are unchanged, so a plain requestModelBuild() would diff to a no-op and the
+        // preview would stay as the raw armored ciphertext.
+        pgpDecryptor.updates
+                .sample(300)
+                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Flip the room-list PGP lock the moment the global/per-room toggle changes.
+        pgpKeyStore.changes
+                .onEach { adapterInfosList.forEach { info -> (info.contentEpoxyController as? RoomSummaryPagedController)?.requestForcedRebuild() } }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         roomListViewModel.onEach(RoomListViewState::roomMembershipChanges) { ms ->

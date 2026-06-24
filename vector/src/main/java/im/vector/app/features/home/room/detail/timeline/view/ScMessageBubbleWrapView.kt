@@ -226,7 +226,11 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         }
 
         if (attributes.informationData.messageLayout.showsE2eDecorationInFooter()) {
-            views.bubbleFooterMessageE2EDecoration.renderE2EDecoration(attributes.informationData.e2eDecoration)
+            if (attributes.informationData.isPgp) {
+                views.bubbleFooterMessageE2EDecoration.renderPgpLock()
+            } else {
+                views.bubbleFooterMessageE2EDecoration.renderE2EDecoration(attributes.informationData.e2eDecoration)
+            }
         }
 
         return true
@@ -519,7 +523,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
 
         val e2eWidth: Int
         val e2eHeight: Int
-        if (informationData?.e2eDecoration in listOf(null, E2EDecoration.NONE)) {
+        if (informationData?.isPgp != true && informationData?.e2eDecoration in listOf(null, E2EDecoration.NONE)) {
             e2eWidth = 0
             e2eHeight = 0
         } else {

@@ -19,6 +19,7 @@ package im.vector.app.features.home.room.detail.timeline.reply
 
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
@@ -71,6 +72,7 @@ class ReplyPreviewRetriever(
         val spanUtils: SpanUtils,
         val imageContentRenderer: ImageContentRenderer,
         val richMessageBodyRenderer: RichMessageBodyRenderer,
+        val pgpDecryptor: PgpDecryptor,
 ) {
     private data class ReplyPreviewUiState(
             val latestRepliedToEventId: String?,

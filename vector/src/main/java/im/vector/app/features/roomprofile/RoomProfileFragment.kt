@@ -68,6 +68,7 @@ class RoomProfileFragment :
 
     @Inject lateinit var roomProfileController: RoomProfileController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
 
     private lateinit var headerViews: ViewStubRoomProfileHeaderBinding
@@ -105,6 +106,10 @@ class RoomProfileFragment :
             it.inflate()
         }
         headerViews = ViewStubRoomProfileHeaderBinding.bind(headerView)
+        // Re-render the header/toolbar shield immediately when the PGP toggle changes.
+        pgpKeyStore.changes
+                .onEach { invalidate() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
         setupWaitingView()
         setupToolbar(views.matrixProfileToolbar)
                 .allowBack()
@@ -233,8 +238,9 @@ class RoomProfileFragment :
                 val matrixItem = it.toMatrixItem()
                 avatarRenderer.render(matrixItem, headerViews.roomProfileAvatarView)
                 avatarRenderer.render(matrixItem, views.matrixProfileToolbarAvatarImageView)
-                headerViews.roomProfileDecorationImageView.render(it.roomEncryptionTrustLevel)
-                views.matrixProfileDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
+                val isPgp = pgpKeyStore.isEnabled && !it.isEncrypted && pgpKeyStore.isRoomPgpEnabled(it.roomId)
+                headerViews.roomProfileDecorationImageView.renderRoomShield(it.roomEncryptionTrustLevel, isPgp)
+                views.matrixProfileDecorationToolbarAvatarImageView.renderRoomShield(it.roomEncryptionTrustLevel, isPgp)
                 headerViews.roomProfilePresenceImageView.render(it.isDirect, it.directUserPresence)
                 headerViews.roomProfilePublicImageView.isVisible = it.isPublic && !it.isDirect
                 headerViews.roomProfilePublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)

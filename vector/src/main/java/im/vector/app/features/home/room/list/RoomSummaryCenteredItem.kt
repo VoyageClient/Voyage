@@ -57,6 +57,9 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
     var izPublic: Boolean = false
 
     @EpoxyAttribute
+    var izPgp: Boolean = false
+
+    @EpoxyAttribute
     var unreadNotificationCount: Int = 0
 
     @EpoxyAttribute
@@ -87,7 +90,8 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
         }
         holder.titleView.text = matrixItem.getBestName()
         avatarRenderer.render(matrixItem, holder.avatarImageView)
-        holder.roomAvatarDecorationImageView.render(encryptionTrustLevel)
+        // PGP-on rooms show the padlock in the encryption-shield slot (same place olm rooms show theirs).
+        holder.roomAvatarDecorationImageView.renderRoomShield(encryptionTrustLevel, izPgp)
         holder.roomAvatarPublicDecorationImageView.isVisible = izPublic
         holder.roomAvatarPublicDecorationImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending

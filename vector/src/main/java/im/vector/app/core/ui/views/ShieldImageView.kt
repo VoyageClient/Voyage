@@ -8,12 +8,15 @@
 package im.vector.app.core.ui.views
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.util.AttributeSet
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
@@ -88,8 +91,24 @@ class ShieldImageView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Room-level decoration: the PGP padlock when the room is in PGP-over-plaintext mode, otherwise
+     * the normal encryption shield. Clears any leftover PGP tint first so recycled views (room list)
+     * don't keep a tinted shield.
+     */
+    fun renderRoomShield(roomEncryptionTrustLevel: RoomEncryptionTrustLevel?, isPgp: Boolean) {
+        if (isPgp) {
+            renderPgpLock()
+        } else {
+            ImageViewCompat.setImageTintList(this, null)
+            render(roomEncryptionTrustLevel)
+        }
+    }
+
     fun renderE2EDecoration(decoration: E2EDecoration?) {
         isVisible = true
+        // Clear any PGP lock tint left over on a recycled view.
+        ImageViewCompat.setImageTintList(this, null)
         when (decoration) {
             E2EDecoration.WARN_IN_CLEAR -> {
                 contentDescription = context.getString(CommonStrings.unencrypted)
@@ -119,6 +138,20 @@ class ShieldImageView @JvmOverloads constructor(
                 isVisible = false
             }
         }
+    }
+
+    /**
+     * Shows a padlock in the shield slot for a PGP-over-plaintext message. Tinted at runtime so it
+     * follows the theme on every API level (vector theme-attr fillColor isn't reliable on API 19).
+     */
+    fun renderPgpLock() {
+        isVisible = true
+        contentDescription = context.getString(CommonStrings.encrypted_message)
+        setImageResource(R.drawable.ic_pgp_lock)
+        ImageViewCompat.setImageTintList(
+                this,
+                ColorStateList.valueOf(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+        )
     }
 
     fun renderUser(userVerificationLevel: UserVerificationLevel?, borderLess: Boolean = false) {

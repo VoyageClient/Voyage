@@ -39,6 +39,7 @@ import im.vector.app.features.home.room.list.home.invites.InvitesActivity
 import im.vector.app.features.room.LeaveRoomPrompt
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.sample
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
@@ -53,6 +54,8 @@ class HomeRoomListFragment :
     @Inject lateinit var userPreferencesProvider: UserPreferencesProvider
     @Inject lateinit var headersController: HomeRoomsHeadersController
     @Inject lateinit var roomsController: HomeFilteredRoomsController
+    @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
 
     private val roomListViewModel: HomeRoomListViewModel by fragmentViewModel()
     private lateinit var sharedQuickActionsViewModel: RoomListQuickActionsSharedActionViewModel
@@ -91,6 +94,17 @@ class HomeRoomListFragment :
         sharedQuickActionsViewModel
                 .stream()
                 .onEach(::handleQuickActions)
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Re-render last-message previews once a PGP body finishes decrypting.
+        pgpDecryptor.updates
+                .sample(300)
+                .onEach { roomsController.requestForcedModelBuild() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Flip the room-list PGP lock the moment the global/per-room toggle changes.
+        pgpKeyStore.changes
+                .onEach { roomsController.requestForcedModelBuild() }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         roomListViewModel.observeViewEvents {

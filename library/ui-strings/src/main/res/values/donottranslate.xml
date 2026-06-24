@@ -293,4 +293,34 @@
     <string name="room_profile_section_more_personalization" translatable="false">Personalization</string>
     <string name="room_personalization_title" translatable="false">Your appearance in this room</string>
     <string name="room_personalization_reset" translatable="false">Reset</string>
+
+    <!-- PGP via OpenKeychain -->
+    <string name="pgp_decrypting" translatable="false">Decrypting…</string>
+    <string name="pgp_decryption_failed" translatable="false">Failed to decrypt</string>
+    <string name="command_description_encrypt" translatable="false">Send an encrypted message, or toggle PGP for this room when used with no text</string>
+    <string name="pgp_mode_on" translatable="false">PGP encryption is ON for this room</string>
+    <string name="pgp_mode_off" translatable="false">PGP encryption is OFF for this room</string>
+    <string name="pgp_no_key_configured" translatable="false">Select your PGP key first in Settings → Security &amp; Privacy → PGP</string>
+    <string name="pgp_disabled" translatable="false">PGP is turned off. Enable it in Settings → Security &amp; Privacy → PGP</string>
+    <string name="pgp_encrypt_failed" translatable="false">Could not encrypt: %1$s</string>
+    <string name="pgp_not_in_encrypted_room" translatable="false">PGP is not used in encrypted rooms — this room already uses Matrix encryption</string>
+    <string name="pgp_no_recipient_keys" translatable="false">No other member of this room has a PGP key</string>
+    <string name="pgp_interaction_required" translatable="false">Complete the OpenKeychain prompt, then send again</string>
+    <string name="pgp_view_source_title" translatable="false">PGP source</string>
+    <string name="pgp_view_decrypted_source_title" translatable="false">Decrypted source</string>
+    <string name="settings_pgp_title" translatable="false">PGP (OpenKeychain)</string>
+    <string name="settings_pgp_summary" translatable="false">Encrypt and decrypt messages with OpenKeychain</string>
+    <string name="settings_pgp_category" translatable="false">PGP</string>
+    <string name="settings_pgp_enable_title" translatable="false">Enable PGP</string>
+    <string name="settings_pgp_enable_summary" translatable="false">Encrypt and decrypt messages via OpenKeychain</string>
+    <string name="settings_pgp_my_key_title" translatable="false">My PGP key</string>
+    <string name="settings_pgp_my_key_none" translatable="false">No key selected</string>
+    <string name="settings_pgp_overrides_title" translatable="false">Per-contact key overrides</string>
+    <string name="settings_pgp_overrides_summary" translatable="false">Override the OpenKeychain address used to find a contact\'s key</string>
+    <string name="settings_pgp_add_override" translatable="false">Add override</string>
+    <string name="settings_pgp_overrides_empty" translatable="false">No overrides. Add one when the auto-derived address (user@server) doesn\'t match a contact\'s key.</string>
+    <string name="settings_pgp_override_user_hint" translatable="false">Matrix user ID (e.g. @alice:matrix.org)</string>
+    <string name="settings_pgp_override_address_hint" translatable="false">OpenKeychain address / key email</string>
+    <string name="settings_pgp_not_installed" translatable="false">OpenKeychain is not installed. Install it to use PGP.</string>
+    <string name="settings_pgp_remove_override" translatable="false">Remove</string>
 </resources>

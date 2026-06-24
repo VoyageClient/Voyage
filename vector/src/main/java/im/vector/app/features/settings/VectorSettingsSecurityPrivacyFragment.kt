@@ -16,6 +16,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.LinearLayout
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -53,6 +57,9 @@ import im.vector.app.features.crypto.keysbackup.settings.KeysBackupManageActivit
 import im.vector.app.features.crypto.recover.BootstrapBottomSheet
 import im.vector.app.features.crypto.recover.SetupMode
 import im.vector.app.features.navigation.Navigator
+import im.vector.app.features.pgp.PgpKeyResult
+import im.vector.app.features.pgp.PgpKeyStore
+import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.pin.PinCodeStore
 import im.vector.app.features.pin.PinMode
 import im.vector.app.features.raw.wellknown.getElementWellknown
@@ -86,6 +93,8 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var navigator: Navigator
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var buildMeta: BuildMeta
+    @Inject lateinit var pgpServiceManager: PgpServiceManager
+    @Inject lateinit var pgpKeyStore: PgpKeyStore
 
     override var titleRes = CommonStrings.settings_security_and_privacy
     override val preferenceXmlRes = R.xml.vector_settings_security_privacy
@@ -148,6 +157,19 @@ class VectorSettingsSecurityPrivacyFragment :
 
     private val incognitoKeyboardPref by lazy {
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY)!!
+    }
+
+    // PGP (OpenKeychain)
+    private val pgpEnabledPref by lazy { findPreference<VectorSwitchPreference>("SETTINGS_PGP_ENABLED_KEY")!! }
+    private val pgpMyKeyPref by lazy { findPreference<VectorPreference>("SETTINGS_PGP_MY_KEY_KEY")!! }
+    private val pgpOverridesPref by lazy { findPreference<VectorPreference>("SETTINGS_PGP_OVERRIDES_KEY")!! }
+
+    // OpenKeychain hands back a PendingIntent (key picker) for ACTION_GET_SIGN_KEY_ID; complete it
+    // with the returned data to read the chosen key id.
+    private val pgpKeyPickLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            completePgpKeySelection(result.data!!)
+        }
     }
 
     override fun onCreateRecyclerView(inflater: LayoutInflater, parent: ViewGroup, savedInstanceState: Bundle?): RecyclerView {
@@ -263,6 +285,9 @@ class VectorSettingsSecurityPrivacyFragment :
         // Refresh Key Management section
         refreshKeysManagementSection()
 
+        // PGP (OpenKeychain)
+        setUpPgp()
+
         // Incognito Keyboard
         setUpIncognitoKeyboard()
 
@@ -306,6 +331,134 @@ class VectorSettingsSecurityPrivacyFragment :
 
     private fun setUpIncognitoKeyboard() {
         incognitoKeyboardPref.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+    }
+
+    private fun setUpPgp() {
+        // Switches are not persistent: they're backed by PgpKeyStore (per-account).
+        pgpEnabledPref.isChecked = pgpKeyStore.isEnabled
+        pgpEnabledPref.setOnPreferenceChangeListener { _, newValue ->
+            pgpKeyStore.isEnabled = newValue as Boolean
+            true
+        }
+        refreshPgpMyKeySummary()
+        pgpMyKeyPref.setOnPreferenceClickListener {
+            if (pgpServiceManager.isOpenKeychainInstalled()) {
+                startPgpKeySelection()
+            } else {
+                showPgpNotInstalled()
+            }
+            true
+        }
+        refreshPgpOverridesSummary()
+        pgpOverridesPref.setOnPreferenceClickListener {
+            showPgpOverridesDialog()
+            true
+        }
+    }
+
+    private fun refreshPgpMyKeySummary() {
+        pgpMyKeyPref.summary = if (pgpKeyStore.hasMyKey()) {
+            // OpenKeychain gives "0x<lowercase hex>"; keep the 0x, upper-case the rest.
+            pgpServiceManager.keyIdToHex(pgpKeyStore.myKeyId).let {
+                if (it.startsWith("0x")) "0x" + it.substring(2).uppercase() else it.uppercase()
+            }
+        } else {
+            getString(CommonStrings.settings_pgp_my_key_none)
+        }
+    }
+
+    private fun refreshPgpOverridesSummary() {
+        val count = pgpKeyStore.getOverrides().size
+        pgpOverridesPref.summary = if (count == 0) {
+            getString(CommonStrings.settings_pgp_overrides_summary)
+        } else {
+            getString(CommonStrings.settings_pgp_overrides_title) + " ($count)"
+        }
+    }
+
+    private fun showPgpNotInstalled() {
+        MaterialAlertDialogBuilder(requireContext())
+                .setMessage(CommonStrings.settings_pgp_not_installed)
+                .setPositiveButton(CommonStrings.ok, null)
+                .show()
+    }
+
+    private fun startPgpKeySelection() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            handlePgpKeyResult(pgpServiceManager.requestSignKeyId(null))
+        }
+    }
+
+    private fun completePgpKeySelection(data: Intent) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            handlePgpKeyResult(pgpServiceManager.requestSignKeyId(data))
+        }
+    }
+
+    private fun handlePgpKeyResult(result: PgpKeyResult) {
+        when (result) {
+            is PgpKeyResult.Success -> {
+                pgpKeyStore.myKeyId = result.keyId
+                refreshPgpMyKeySummary()
+            }
+            is PgpKeyResult.NeedsInteraction -> {
+                runCatching {
+                    pgpKeyPickLauncher.launch(IntentSenderRequest.Builder(result.pendingIntent.intentSender).build())
+                }
+            }
+            is PgpKeyResult.Error -> {
+                MaterialAlertDialogBuilder(requireContext())
+                        .setMessage(result.message)
+                        .setPositiveButton(CommonStrings.ok, null)
+                        .show()
+            }
+        }
+    }
+
+    private fun showPgpOverridesDialog() {
+        val overrides = pgpKeyStore.getOverrides()
+        val context = requireContext()
+        val builder = MaterialAlertDialogBuilder(context).setTitle(CommonStrings.settings_pgp_overrides_title)
+        if (overrides.isEmpty()) {
+            builder.setMessage(CommonStrings.settings_pgp_overrides_empty)
+        } else {
+            val entries = overrides.entries.toList()
+            val labels = entries.map { "${it.key}  →  ${it.value}" }.toTypedArray()
+            // Tap an entry to remove it.
+            builder.setItems(labels) { _, which ->
+                pgpKeyStore.removeOverride(entries[which].key)
+                refreshPgpOverridesSummary()
+            }
+        }
+        builder.setPositiveButton(CommonStrings.settings_pgp_add_override) { _, _ -> showAddPgpOverrideDialog() }
+        builder.setNegativeButton(CommonStrings.action_close, null)
+        builder.show()
+    }
+
+    private fun showAddPgpOverrideDialog() {
+        val context = requireContext()
+        val pad = (16 * resources.displayMetrics.density).toInt()
+        val userIdInput = EditText(context).apply { hint = getString(CommonStrings.settings_pgp_override_user_hint) }
+        val addressInput = EditText(context).apply { hint = getString(CommonStrings.settings_pgp_override_address_hint) }
+        val layout = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, pad, pad, 0)
+            addView(userIdInput)
+            addView(addressInput)
+        }
+        MaterialAlertDialogBuilder(context)
+                .setTitle(CommonStrings.settings_pgp_add_override)
+                .setView(layout)
+                .setPositiveButton(CommonStrings.action_add) { _, _ ->
+                    val userId = userIdInput.text.toString().trim()
+                    val address = addressInput.text.toString().trim()
+                    if (userId.isNotEmpty() && address.isNotEmpty()) {
+                        pgpKeyStore.setOverride(userId, address)
+                        refreshPgpOverridesSummary()
+                    }
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
     }
 
     private fun setUpMediaVisibility() {

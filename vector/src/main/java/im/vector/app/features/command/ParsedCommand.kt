@@ -71,4 +71,6 @@ sealed interface ParsedCommand {
     object JumpToStart : ParsedCommand
     data class JumpToEvent(val eventId: String) : ParsedCommand
     data class JumpToDate(val date: String) : ParsedCommand
+    object TogglePgpMode : ParsedCommand
+    data class SendPgpEncrypted(val message: CharSequence) : ParsedCommand
 }

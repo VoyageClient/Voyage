@@ -70,7 +70,8 @@ enum class Command(
     TABLE_FLIP("/tableflip", null, "<message>", CommonStrings.command_description_table_flip, false, true),
     JUMP_TO_START("/jumptostart", null, "", CommonStrings.command_description_jump_to_start, false, false),
     JUMP_TO("/jumpto", null, "<event-id>", CommonStrings.command_description_jump_to, false, false),
-    JUMP_TO_DATE("/jumptodate", null, "<YYYY-MM-DD>", CommonStrings.command_description_jump_to_date, false, false);
+    JUMP_TO_DATE("/jumptodate", null, "<YYYY-MM-DD>", CommonStrings.command_description_jump_to_date, false, false),
+    ENCRYPT("/encrypt", null, "[message]", CommonStrings.command_description_encrypt, false, true);
 
     val allAliases = arrayOf(command, *aliases.orEmpty())
 

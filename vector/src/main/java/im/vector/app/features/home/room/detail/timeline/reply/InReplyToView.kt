@@ -213,7 +213,12 @@ class InReplyToView @JvmOverloads constructor(
             renderRedacted()
         } else {
             renderFadeOut(roomInformationData)
-            when (val content = state.event.getLastMessageContent()) {
+            // PGP: show the decrypted plaintext for the quoted message, like the timeline.
+            val pgpPlain = (state.event.getLastMessageContent() as? MessageContentWithFormattedBody)
+                    ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
+            if (pgpPlain != null) {
+                renderPgpReplyText(pgpPlain)
+            } else when (val content = state.event.getLastMessageContent()) {
                 is MessageImageInfoContent -> renderImageThumbnailContent(content, state.event, retriever)
                 is MessageVideoContent -> renderVideoThumbnailContent(content, state.event, retriever)
                 // Files / voice / audio render as a non-interactive pill mirroring the timeline.
@@ -223,6 +228,12 @@ class InReplyToView @JvmOverloads constructor(
                 else -> renderFallback(state.event, retriever)
             }
         }
+    }
+
+    private fun renderPgpReplyText(text: String) {
+        views.replyTextView.isVisible = true
+        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.text = text
     }
 
     private fun renderRedacted() {

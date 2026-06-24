@@ -47,6 +47,12 @@ class RoomSummaryPagedController(
             }
         }
 
+    // Public passthrough to the protected forced rebuild, so callers (e.g. PGP decryption finishing)
+    // can refresh previews even though the underlying room summaries are unchanged.
+    fun requestForcedRebuild() {
+        requestForcedModelBuild()
+    }
+
     override fun addModels(models: List<EpoxyModel<*>>) {
         if (collapsed) {
             super.addModels(emptyList())

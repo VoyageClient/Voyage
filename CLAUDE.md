@@ -29,6 +29,8 @@ Any change to room-list behavior (display, sorting, refresh, item rendering) MUS
 
 The command you should use to build or install should always be ./gradlew :vector-app:installFdroidDebug so please do not use anything else.
 
+To quickly check that code compiles without building/installing the whole app (no device needed), use ./gradlew :vector:compileDebugKotlin. Note the `:vector` module is NOT flavored, so there is no `compileFdroidDebugKotlin` task there — the flavor (`fdroid`) only exists on `:vector-app`.
+
 # Debugging on device
 
 The installed fdroid-debug package is `im.voyage.app.debug` (NOT `im.vector.app.debug`). Use that for `am start`, `pidof`, logcat filters, etc.

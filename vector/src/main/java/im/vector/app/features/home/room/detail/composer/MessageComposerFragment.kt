@@ -9,9 +9,12 @@ package im.vector.app.features.home.room.detail.composer
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -175,7 +178,12 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.JoinRoomCommandSuccess -> handleJoinedToAnotherRoom(it)
                 is MessageComposerViewEvents.SlashCommandConfirmationRequest -> handleSlashCommandConfirmationRequest(it)
                 is MessageComposerViewEvents.SendMessageResult -> renderSendMessageResult(it)
-                is MessageComposerViewEvents.ShowMessage -> showSnackWithMessage(it.message)
+                is MessageComposerViewEvents.ShowMessage -> {
+                    // ShowMessage is terminal feedback for a send/command that went through
+                    // sendTextMessage (which locked the button); release it (e.g. PGP toggle/errors).
+                    lockSendButton = false
+                    showSnackWithMessage(it.message)
+                }
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
                 is MessageComposerViewEvents.AnimateSendButtonVisibility -> handleSendButtonVisibilityChanged(it)
                 is MessageComposerViewEvents.OpenRoomMemberProfile -> openRoomMemberProfile(it.userId)
@@ -190,6 +198,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 }
                 is MessageComposerViewEvents.InsertUserDisplayName -> insertUserDisplayNameInTextEditor(it.userId)
                 is MessageComposerViewEvents.JumpToEvent -> handleJumpToEvent(it)
+                is MessageComposerViewEvents.LaunchPgpInteraction -> {
+                    lockSendButton = false
+                    launchPgpInteraction(it.pendingIntent)
+                }
             }
         }
 
@@ -631,7 +643,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun showSnackWithMessage(message: String) {
-        view?.showOptimizedSnackbar(message)
+        // Anchor above the composer so PGP/command feedback sits at the bottom and tracks the keyboard.
+        view?.showOptimizedSnackbar(message, anchorView = views.composerLayout.takeIf { it.isVisible })
     }
 
     private fun handleShowRoomUpgradeDialog(roomDetailViewEvents: MessageComposerViewEvents.ShowRoomUpgradeDialog) {
@@ -664,6 +677,19 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             val sendData = AttachmentsPreviewActivity.getOutput(data)
             val keepOriginalSize = AttachmentsPreviewActivity.getKeepOriginalSize(data)
             dispatchSendMedia(sendData, !keepOriginalSize)
+        }
+    }
+
+    // Used for the sign-key passphrase prompt; OpenKeychain caches it, then the user resends.
+    private val pgpInteractionLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) {
+        // No-op: OpenKeychain has cached the passphrase; the user re-triggers the send.
+    }
+
+    private fun launchPgpInteraction(pendingIntent: PendingIntent) {
+        try {
+            pgpInteractionLauncher.launch(IntentSenderRequest.Builder(pendingIntent.intentSender).build())
+        } catch (failure: Throwable) {
+            Timber.w(failure, "Failed to launch OpenKeychain PendingIntent")
         }
     }
 

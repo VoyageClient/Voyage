@@ -51,6 +51,7 @@ import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
 import im.vector.app.features.home.room.detail.timeline.item.TypingItem_
 import im.vector.app.features.home.room.detail.timeline.readreceipts.ReadReceiptsCache
+import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.media.AttachmentData
@@ -146,6 +147,8 @@ class TimelineEventController @Inject constructor(
 
         // Introduce ViewModel scoped component (or Hilt?)
         fun getPreviewUrlRetriever(): PreviewUrlRetriever
+
+        fun getPgpDecryptionRetriever(): PgpDecryptionRetriever
 
         fun getReplyPreviewRetriever(): ReplyPreviewRetriever
 
@@ -320,6 +323,62 @@ class TimelineEventController @Inject constructor(
             }
         }
         if (dirty) requestModelBuild()
+    }
+
+    /**
+     * Batched [invalidateEventCache]: drop every cached model referencing any of [eventIds] in a
+     * single locked pass + a single rebuild. A burst of PGP decrypts would otherwise call
+     * invalidateEventCache once per event — each grabbing the model-build lock (contended with the
+     * background build thread) and each scheduling another full rebuild, which convoys the main
+     * thread into an ANR.
+     */
+    fun invalidateEventCaches(eventIds: Collection<String>) {
+        if (eventIds.isEmpty()) return
+        val ids = eventIds.toHashSet()
+        var dirty = false
+        synchronized(modelCache) {
+            currentSnapshot.forEachIndexed { index, event ->
+                if (index >= modelCache.size) return@forEachIndexed
+                if (modelCache[index] == null) return@forEachIndexed
+                if (event.eventId in ids || event.root.getRelationContent()?.inReplyTo?.eventId in ids) {
+                    modelCache[index] = null
+                    dirty = true
+                }
+            }
+        }
+        if (dirty) requestModelBuild()
+    }
+
+    /**
+     * Drop only the cached models of events that are replies, then rebuild. A reply's preview header
+     * renders the replied-to message's plaintext via the shared PgpDecryptor (peeked at bind time),
+     * so when an off-timeline decrypt finishes only reply items need re-binding — invalidating the
+     * whole cache here would rebuild + rebind every visible item and jank the main thread.
+     */
+    fun invalidateReplyEventCaches() {
+        var dirty = false
+        synchronized(modelCache) {
+            currentSnapshot.forEachIndexed { index, event ->
+                if (index >= modelCache.size) return@forEachIndexed
+                if (modelCache[index] == null) return@forEachIndexed
+                if (event.root.getRelationContent()?.inReplyTo?.eventId != null) {
+                    modelCache[index] = null
+                    dirty = true
+                }
+            }
+        }
+        if (dirty) requestModelBuild()
+    }
+
+    /** Drop every cached model and rebuild. Used after a PGP OpenKeychain interaction so all
+     * visible PGP items re-request decryption. Heavy, so reserved for rare one-shot events. */
+    fun invalidateAllCache() {
+        synchronized(modelCache) {
+            for (i in modelCache.indices) {
+                modelCache[i] = null
+            }
+        }
+        requestModelBuild()
     }
 
     fun update(viewState: RoomDetailViewState) = PerfTrace.time("timeline.controller.update") {

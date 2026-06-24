@@ -27,6 +27,11 @@ import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfRepl
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
+import im.vector.app.features.pgp.PgpKeyStore
+import im.vector.app.features.pgp.PgpResult
+import im.vector.app.features.pgp.PgpServiceManager
+import im.vector.app.features.pgp.PgpUtils
+import org.json.JSONObject
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +49,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.isThread
+import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
@@ -84,6 +90,8 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
+        private val pgpServiceManager: PgpServiceManager,
+        private val pgpKeyStore: PgpKeyStore,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -196,22 +204,23 @@ class MessageActionsViewModel @AssistedInject constructor(
             val nonNullTimelineEvent = timelineEvent() ?: return@onEach
             eventIdFlow.tryEmit(nonNullTimelineEvent.eventId)
             val events = actionsForEvent(nonNullTimelineEvent, permissions)
+            val body = computeMessageBody(nonNullTimelineEvent)
             setState {
                 copy(
                         eventId = nonNullTimelineEvent.eventId,
-                        messageBody = computeMessageBody(nonNullTimelineEvent),
+                        messageBody = body,
                         actions = events
                 )
             }
         }
     }
 
-    private fun computeMessageBody(timelineEvent: TimelineEvent): CharSequence {
+    private suspend fun computeMessageBody(timelineEvent: TimelineEvent): CharSequence {
         return try {
             if (timelineEvent.root.isRedacted()) {
                 noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
             } else {
-                when (timelineEvent.root.getClearType()) {
+                computePgpDecryptedBody(timelineEvent) ?: when (timelineEvent.root.getClearType()) {
                     EventType.MESSAGE,
                     EventType.STICKER -> {
                         val messageContent: MessageContent? = timelineEvent.getVectorLastMessageContent()
@@ -326,16 +335,58 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent) {
+    // Decrypted plaintext for a PGP-over-plaintext message, for the long-press preview; null when
+    // not a PGP message, PGP disabled, or it can't be decrypted (then the raw body is shown).
+    private suspend fun computePgpDecryptedBody(timelineEvent: TimelineEvent): CharSequence? {
+        if (!pgpKeyStore.isEnabled || timelineEvent.isEncrypted()) return null
+        val body = (timelineEvent.getVectorLastMessageContent() as? MessageTextContent)?.body ?: return null
+        if (!PgpUtils.bodyContainsPgp(body)) return null
+        val armored = PgpUtils.extractArmoredBlock(body) ?: return null
+        return (pgpServiceManager.decrypt(armored) as? PgpResult.Success)?.data
+    }
+
+    // Text put on the clipboard by "Copy": the decrypted plaintext for a PGP message, otherwise the
+    // real message with any legacy reply fallback stripped — so a (plaintext or encrypted) reply
+    // copies what's shown, not the quoted "> <@user> …" original (which for a reply to an encrypted
+    // message is a whole armored PGP block).
+    private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent): String {
+        computePgpDecryptedBody(timelineEvent)?.let { return it.toString() }
+        val body = messageContent.body
+        return if (messageContent.relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(body) else body
+    }
+
+    private suspend fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent) {
         add(EventSharedAction.ViewSource(timelineEvent.root.toContentStringWithIndent()))
         if (timelineEvent.isEncrypted() && timelineEvent.root.mxDecryptionResult != null) {
             val decryptedContent = timelineEvent.root.toClearContentStringWithIndent()
                     ?: stringProvider.getString(CommonStrings.encryption_information_decryption_error)
             add(EventSharedAction.ViewDecryptedSource(decryptedContent))
+        } else {
+            // PGP: "View decrypted source" = the event content with body/formatted_body rewritten
+            // to the decrypted plaintext, shown in the same JSON viewer olm events use.
+            pgpDecryptedContentJson(timelineEvent)?.let { add(EventSharedAction.ViewDecryptedSource(it)) }
         }
     }
 
-    private fun ArrayList<EventSharedAction>.addActionsForFailedState(
+    // Full event JSON (matching "View source") but with content.body/formatted_body rewritten to the
+    // decrypted plaintext, mirroring how olm's "View decrypted source" shows the whole clear event.
+    @Suppress("UNCHECKED_CAST")
+    private suspend fun pgpDecryptedContentJson(timelineEvent: TimelineEvent): String? {
+        val plain = computePgpDecryptedBody(timelineEvent)?.toString() ?: return null
+        val eventMap = timelineEvent.root.toContent().toMutableMap()
+        val contentMap = (eventMap["content"] as? Map<String, Any?>)?.toMutableMap() ?: mutableMapOf()
+        contentMap["body"] = plain
+        (contentMap["formatted_body"] as? String)?.let { formatted ->
+            // formatted_body carries its own armored block (the decrypted HTML), not a copy of body.
+            val decryptedFormatted = PgpUtils.extractArmoredBlock(formatted)
+                    ?.let { (pgpServiceManager.decrypt(it) as? PgpResult.Success)?.data }
+            contentMap["formatted_body"] = decryptedFormatted ?: plain
+        }
+        eventMap["content"] = contentMap
+        return JSONObject(eventMap as Map<*, *>).toString(4)
+    }
+
+    private suspend fun ArrayList<EventSharedAction>.addActionsForFailedState(
             timelineEvent: TimelineEvent,
             actionPermissions: ActionPermissions,
             messageContent: MessageContent?,
@@ -351,7 +402,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
         if (canCopy(msgType, messageContent)) {
             // TODO copy images? html? see ClipBoard
-            add(EventSharedAction.Copy(messageContent!!.body))
+            add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!)))
         }
         if (vectorPreferences.developerMode()) {
             add(EventSharedAction.CopyEventId(eventId))
@@ -417,7 +468,7 @@ class MessageActionsViewModel @AssistedInject constructor(
 
             if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard
-                add(EventSharedAction.Copy(messageContent!!.body))
+                add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!)))
             }
 
             if (timelineEvent.canReact() && actionPermissions.canReact) {

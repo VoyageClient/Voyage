@@ -56,6 +56,14 @@ interface SendService {
     ): Cancelable
 
     /**
+     * The formatted (HTML) body the SDK would derive for [text] — the same markdown + mention/pill
+     * rendering [sendTextMessage] applies — or null when the message would be plain. For callers that
+     * must produce the formatted body before sending (e.g. encrypting it), so they reuse the genuine
+     * rendering rather than a divergent parser.
+     */
+    fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String?
+
+    /**
      * Method to send a text message with a formatted body.
      * @param text the text message to send
      * @param formattedText The formatted body using MessageType#FORMAT_MATRIX_HTML

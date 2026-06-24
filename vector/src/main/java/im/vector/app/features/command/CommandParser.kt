@@ -481,6 +481,14 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.JUMP_TO_DATE)
                     }
                 }
+                Command.ENCRYPT.matches(slashCommand) -> {
+                    // "/encrypt" alone toggles PGP for the room; "/encrypt <message>" is a one-off.
+                    if (message.isEmpty()) {
+                        ParsedCommand.TogglePgpMode
+                    } else {
+                        ParsedCommand.SendPgpEncrypted(message = message)
+                    }
+                }
                 Command.CRASH_APP.matches(slashCommand) && vectorPreferences.developerMode() -> {
                     throw RuntimeException("Application crashed from user demand")
                 }

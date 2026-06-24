@@ -51,4 +51,7 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
      * when the command failed to resolve (e.g. unknown event id, no room-create event found).
      */
     data class JumpToEvent(val eventId: String?, val notFoundMessage: String? = null) : MessageComposerViewEvents()
+
+    /** OpenKeychain needs the user (passphrase / key picker) before it can encrypt. */
+    data class LaunchPgpInteraction(val pendingIntent: android.app.PendingIntent) : MessageComposerViewEvents()
 }

@@ -25,6 +25,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.ContextCompat
@@ -143,6 +145,7 @@ import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.reactions.ViewReactionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.readreceipts.DisplayReadReceiptsBottomSheet
+import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
@@ -180,6 +183,7 @@ import im.vector.app.features.widgets.permissions.RoomWidgetPermissionBottomShee
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -226,6 +230,8 @@ class TimelineFragment :
 
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var timelineEventController: TimelineEventController
     @Inject lateinit var permalinkHandler: PermalinkHandler
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
@@ -344,6 +350,53 @@ class TimelineFragment :
         // settles on either the real preview or the unresolved-event explanation.
         processBodyOfReplyToEventUseCase.resolvedReplyTargets
                 .onEach { eventId -> timelineEventController.invalidateEventCache(eventId) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // When a PGP body finishes decrypting (or fails), rebuild just that item so it settles on
+        // the plaintext / placeholder. OpenKeychain may also hand back a PendingIntent (passphrase,
+        // key picker) — launch it, then retry on return.
+        // A room full of PGP messages decrypts in a burst; invalidating per event would grab the
+        // model-build lock (contended with the build thread) and schedule a full rebuild once per
+        // event, convoying the main thread into an ANR. Accumulate eventIds and flush in batches.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val pendingDecrypted = LinkedHashSet<String>()
+            timelineViewModel.pgpDecryptionRetriever.decrypted
+                    .onEach { eventId -> pendingDecrypted.add(eventId) }
+                    // Every rebuild pass costs ~4ms x (events in room) in unavoidable Epoxy enrich
+                    // overhead regardless of how many items actually changed, so the lever is pass
+                    // COUNT, not item count. debounce (not sample) collapses a whole decrypt burst
+                    // into a single batched rebuild once decryption settles, instead of one pass
+                    // every 150ms that pile up on the build thread and jank the main thread.
+                    .debounce(200)
+                    .collect {
+                        val batch = pendingDecrypted.toList()
+                        pendingDecrypted.clear()
+                        timelineEventController.invalidateEventCaches(batch)
+                    }
+        }
+
+        timelineViewModel.pgpDecryptionRetriever.interaction
+                .onEach { pendingIntent -> launchPgpPendingIntent(pendingIntent) }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // When a reply target (or any non-timeline-body) PGP block finishes decrypting, rebuild so
+        // reply headers settle on the plaintext.
+        pgpDecryptor.updates
+                // Only reply-preview headers depend on this shared decryptor (message bodies update
+                // via the retriever path above), so wait for the burst to settle then invalidate
+                // ONLY reply items — invalidateAllCache here rebuilt + rebound every visible item.
+                .debounce(300)
+                .onEach { timelineEventController.invalidateReplyEventCaches() }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Toggling PGP (global enable or this room's send toggle) must immediately update the lock
+        // in the toolbar shield slot and re-evaluate message bubbles, without waiting for a Matrix
+        // state change.
+        pgpKeyStore.changes
+                .onEach {
+                    withState(timelineViewModel) { renderToolbar(it.asyncRoomSummary()) }
+                    timelineEventController.invalidateAllCache()
+                }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         timelineViewModel.onEach(RoomDetailViewState::canShowJumpToReadMarker, RoomDetailViewState::unreadState) { _, _ ->
@@ -624,6 +677,23 @@ class TimelineFragment :
             // User cancelled
         }
         timelineViewModel.pendingEvent = null
+    }
+
+    // OpenKeychain hands back a PendingIntent (passphrase / key picker) when it needs the user
+    // before it can decrypt. After the prompt, retry the unresolved PGP bodies.
+    private val pgpInteractionLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            timelineViewModel.pgpDecryptionRetriever.clearUnresolved()
+            timelineEventController.invalidateAllCache()
+        }
+    }
+
+    private fun launchPgpPendingIntent(pendingIntent: android.app.PendingIntent) {
+        try {
+            pgpInteractionLauncher.launch(IntentSenderRequest.Builder(pendingIntent.intentSender).build())
+        } catch (failure: Throwable) {
+            Timber.w(failure, "Failed to launch OpenKeychain PendingIntent")
+        }
     }
 
     private fun displayPromptForIntegrationManager() {
@@ -1287,7 +1357,10 @@ class TimelineFragment :
                 timelineArgs.threadTimelineArgs?.let {
                     val matrixItem = MatrixItem.RoomItem(it.roomId, it.displayName, it.avatarUrl)
                     avatarRenderer.render(matrixItem, views.includeThreadToolbar.roomToolbarThreadImageView)
-                    views.includeThreadToolbar.roomToolbarThreadShieldImageView.render(it.roomEncryptionTrustLevel)
+                    views.includeThreadToolbar.roomToolbarThreadShieldImageView.renderRoomShield(
+                            it.roomEncryptionTrustLevel,
+                            isPgp = pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(it.roomId),
+                    )
                     views.includeThreadToolbar.roomToolbarThreadSubtitleTextView.text = it.displayName
                 }
                 views.includeThreadToolbar.roomToolbarThreadTitleTextView.text = resources.getText(CommonStrings.thread_timeline_title)
@@ -1307,7 +1380,10 @@ class TimelineFragment :
                     val showPresence = roomSummary.isDirect
                     views.includeRoomToolbar.roomToolbarPresenceImageView.render(showPresence, roomSummary.directUserPresence)
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
-                    shieldView.render(roomSummary.roomEncryptionTrustLevel)
+                    shieldView.renderRoomShield(
+                            roomSummary.roomEncryptionTrustLevel,
+                            isPgp = pgpKeyStore.isEnabled && !roomSummary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(roomSummary.roomId),
+                    )
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
                     views.includeRoomToolbar.roomToolbarPublicImageView.applyThemeShapeColorCompat(android.R.attr.colorBackground)
                 }
@@ -1622,6 +1698,10 @@ class TimelineFragment :
 
     override fun getPreviewUrlRetriever(): PreviewUrlRetriever {
         return timelineViewModel.previewUrlRetriever
+    }
+
+    override fun getPgpDecryptionRetriever(): PgpDecryptionRetriever {
+        return timelineViewModel.pgpDecryptionRetriever
     }
 
     override fun getReplyPreviewRetriever(): ReplyPreviewRetriever {

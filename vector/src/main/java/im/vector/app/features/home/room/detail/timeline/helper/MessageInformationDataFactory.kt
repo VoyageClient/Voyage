@@ -17,6 +17,8 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.home.room.detail.timeline.item.ReferencesInfoData
 import im.vector.app.features.home.room.detail.timeline.item.SendStateDecoration
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayoutFactory
+import im.vector.app.features.pgp.PgpKeyStore
+import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.BubbleThemeUtils
@@ -36,6 +38,9 @@ import org.matrix.android.sdk.api.session.events.model.toValidDecryptedEvent
 import org.matrix.android.sdk.api.session.room.model.ReferencesAggregatedContent
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -60,6 +65,7 @@ class MessageInformationDataFactory @Inject constructor(
         private val reactionsSummaryFactory: ReactionsSummaryFactory,
         private val pollResponseDataFactory: PollResponseDataFactory,
         private val vectorPreferences: VectorPreferences,
+        private val pgpKeyStore: PgpKeyStore,
 ) {
 
     fun create(params: TimelineItemFactoryParams): MessageInformationData {
@@ -80,6 +86,15 @@ class MessageInformationDataFactory @Inject constructor(
 
         val time = dateFormatter.format(event.root.originServerTs, DateFormatKind.MESSAGE_SIMPLE)
         val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root)
+        // PGP-over-plaintext: a non-Matrix-encrypted text body carrying an armored block. Drives
+        // the lock indicator; deliberately not tied to e2eDecoration / room encryption.
+        val pgpContent = event.getVectorLastMessageContent()
+        val pgpText = (pgpContent as? MessageTextContent)?.body
+        // Captioned media: only the caption is PGP, never the media itself.
+        val pgpCaption = (pgpContent as? MessageWithAttachmentContent)?.getCaption()
+        val isPgp = pgpKeyStore.isEnabled &&
+                !event.isEncrypted() &&
+                (PgpUtils.bodyContainsPgp(pgpText) || PgpUtils.bodyContainsPgp(pgpCaption))
         // this is claimed data or not depending on the e2e decoration
         val senderId = event.senderInfo.userId
 
@@ -162,6 +177,7 @@ class MessageInformationDataFactory @Inject constructor(
                 isFirstFromThisSender = isFirstFromThisSender,
                 isLastFromThisSender = isLastFromThisSender,
                 e2eDecoration = e2eDecoration,
+                isPgp = isPgp,
                 sendStateDecoration = sendStateDecoration,
                 messageType = if (event.root.isSticker()) {
                     MessageType.MSGTYPE_STICKER_LOCAL

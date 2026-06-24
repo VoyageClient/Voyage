@@ -52,6 +52,11 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="*/*" />
         </intent>
+
+        <!-- Bind to OpenKeychain for PGP encrypt/decrypt (ignored pre-Android 11) -->
+        <intent>
+            <action android:name="org.openintents.openpgp.IOpenPgpService2" />
+        </intent>
     </queries>
 
     <application android:supportsRtl="true">

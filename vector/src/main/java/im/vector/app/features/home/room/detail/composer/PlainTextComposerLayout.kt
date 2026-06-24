@@ -98,6 +98,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
+    @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
 
     private val views: ComposerLayoutBinding
 
@@ -320,7 +321,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
 
         val messageContent: MessageContent? = event.getVectorLastMessageContent()
+        // PGP: show the decrypted plaintext for the quoted message (and skip HTML rendering of the
+        // armored formatted_body below).
+        val pgpPlain = (messageContent as? MessageContentWithFormattedBody)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
         val nonFormattedBody = when {
+            pgpPlain != null -> pgpPlain
             event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
             messageContent is MessageAudioContent -> getAudioContentBodyText(messageContent)
             messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
@@ -342,7 +347,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val isFormattableText = messageContent?.msgType == MessageType.MSGTYPE_TEXT ||
                 messageContent?.msgType == MessageType.MSGTYPE_NOTICE ||
                 messageContent?.msgType == MessageType.MSGTYPE_EMOTE
-        if (isFormattableText && messageContent is MessageContentWithFormattedBody &&
+        if (pgpPlain == null && isFormattableText && messageContent is MessageContentWithFormattedBody &&
                 messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
             val htmlToRender = messageContent.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
             val compressed = htmlToRender?.let { htmlCompressor.compress(it) }

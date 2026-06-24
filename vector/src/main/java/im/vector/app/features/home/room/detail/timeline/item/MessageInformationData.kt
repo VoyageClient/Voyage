@@ -40,6 +40,9 @@ data class MessageInformationData(
         // forced to the default placeholder.
         val hideAvatars: Boolean = false,
         val e2eDecoration: E2EDecoration = E2EDecoration.NONE,
+        // True when the (non-Matrix-encrypted) message body carries a PGP armored block. Drives
+        // the lock shown in the shield slot — independent of Matrix E2EE.
+        val isPgp: Boolean = false,
         val sendStateDecoration: SendStateDecoration = SendStateDecoration.NONE,
         val isFirstFromThisSender: Boolean = false,
         val isLastFromThisSender: Boolean = false,

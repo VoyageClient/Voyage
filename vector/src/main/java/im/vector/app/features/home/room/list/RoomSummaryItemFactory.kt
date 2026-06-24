@@ -43,7 +43,12 @@ class RoomSummaryItemFactory @Inject constructor(
         private val errorFormatter: ErrorFormatter,
         private val getLatestPreviewableEventUseCase: GetLatestPreviewableEventUseCase,
         private val vectorPreferences: VectorPreferences,
+        private val pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore,
 ) {
+
+    // PGP-send mode is on for this (non-Matrix-encrypted) room: show the lock decoration.
+    private fun isRoomPgpOn(roomSummary: RoomSummary) =
+            pgpKeyStore.isEnabled && !roomSummary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(roomSummary.roomId)
 
     fun create(
             roomSummary: RoomSummary,
@@ -173,6 +178,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .displayMode(displayMode)
             .subtitle(subtitle)
             .izPublic(roomSummary.isPublic)
+            .izPgp(isRoomPgpOn(roomSummary))
             .showPresence(roomSummary.isDirect)
             .userPresence(roomSummary.directUserPresence)
             .matrixItem(roomSummary.toMatrixItem())
@@ -203,6 +209,7 @@ class RoomSummaryItemFactory @Inject constructor(
             // .encryptionTrustLevel(roomSummary.roomEncryptionTrustLevel)
             .displayMode(displayMode)
             .izPublic(roomSummary.isPublic)
+            .izPgp(isRoomPgpOn(roomSummary))
             .showPresence(roomSummary.isDirect)
             .userPresence(roomSummary.directUserPresence)
             .matrixItem(roomSummary.toMatrixItem())

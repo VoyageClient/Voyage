@@ -120,6 +120,15 @@ internal class LocalEchoEventFactory @Inject constructor(
         return TextContent(text.toString())
     }
 
+    /**
+     * The formatted (HTML) body the SDK would derive for [text] — the same markdown + mention/pill
+     * rendering used on a normal send — or null when it would be plain. Lets callers that must
+     * produce the formatted body *before* the SDK sees it (e.g. PGP, which encrypts the body) reuse
+     * the genuine path instead of a divergent parser.
+     */
+    fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? =
+            createTextContent(text, autoMarkdown).formattedText
+
     fun createFormattedTextEvent(roomId: String, textContent: TextContent, msgType: String, additionalContent: Content? = null): Event {
         return createMessageEvent(roomId, textContent.toMessageTextContent(msgType), additionalContent)
     }
@@ -395,10 +404,10 @@ internal class LocalEchoEventFactory @Inject constructor(
         // the original event keeps its own m.in_reply_to relation so clients render the
         // reply header from cached state rather than from a duplicated embedded snapshot.
         val plainBody = replyText.toString()
-        // See createReplyTextContent: keep an explicit formatted body, and only use the markdown
-        // fallback when it genuinely produced formatting (not the plain-text takeFormatted() fallback).
+        // See createReplyTextContent: explicit formatted body wins; otherwise only auto-format when
+        // markdown is on and actually produced formatting (never a PGP armored body).
         val htmlBody = replyTextFormatted
-                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).formattedText
+                ?: if (autoMarkdown && !isPgpArmoredBody(plainBody)) markdownParser.parse(replyText).formattedText else null
         val isFormatted = htmlBody != null
 
         return createMessageEvent(
@@ -460,14 +469,25 @@ internal class LocalEchoEventFactory @Inject constructor(
 
     private data class MediaBodyParts(val body: String, val filename: String?, val format: String?, val formattedBody: String?)
 
+    // A PGP-over-plaintext body (its body/caption is an ASCII-armored block). We must not run such a
+    // body through the markdown formatter — the armored text contains '-' etc. and would be mangled.
+    private fun isPgpArmoredBody(body: String): Boolean =
+            body.contains("-----BEGIN PGP MESSAGE-----") && body.contains("-----END PGP MESSAGE-----")
+
     private fun buildMediaBody(attachment: ContentAttachmentData, fallback: String, captionText: CharSequence?, captionFormattedText: String?, autoMarkdown: Boolean): MediaBodyParts {
         val name = attachment.name ?: fallback
         val plain = captionText?.toString()
         if (plain.isNullOrEmpty()) {
             return MediaBodyParts(body = name, filename = null, format = null, formattedBody = null)
         }
-        val html = captionFormattedText ?: markdownParser.parse(plain, force = true, advanced = autoMarkdown).takeFormatted()
-        val isFormatted = html != plain
+        // A PGP armored caption is never auto-formatted (markdown would mangle the ciphertext); its
+        // formatted_body, if any, is supplied explicitly via captionFormattedText.
+        val html = when {
+            captionFormattedText != null -> captionFormattedText
+            isPgpArmoredBody(plain) -> null
+            else -> markdownParser.parse(plain, force = true, advanced = autoMarkdown).takeFormatted()
+        }
+        val isFormatted = html != null && html != plain
         return MediaBodyParts(
                 body = plain,
                 filename = name,
@@ -750,11 +770,11 @@ internal class LocalEchoEventFactory @Inject constructor(
         // as a hint for clients that haven't fetched the target yet.
         val plainBody = replyText.toString()
         // Honour an explicitly-provided formatted body verbatim (as sendFormattedTextMessage does);
-        // otherwise only treat the markdown fallback as formatting when it actually produced some.
-        // takeFormatted() falls back to the plain text, which made `htmlBody == plainBody` drop a
-        // genuine formatted body whenever it happened to equal the plain text (e.g. literal HTML).
+        // otherwise only auto-format when markdown is on and genuinely produced formatting — a plain
+        // reply must not carry format/formatted_body. A PGP armored body is never auto-formatted
+        // (markdown would mangle the ciphertext); its formatted_body, if any, is supplied explicitly.
         val htmlBody = replyTextFormatted?.toString()
-                ?: markdownParser.parse(replyText, force = true, advanced = autoMarkdown).formattedText
+                ?: if (autoMarkdown && !isPgpArmoredBody(plainBody)) markdownParser.parse(replyText).formattedText else null
         val isFormatted = htmlBody != null
 
         return MessageTextContent(

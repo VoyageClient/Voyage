@@ -11,6 +11,7 @@ import dagger.Lazy
 import im.vector.app.EmojiSpanify
 import im.vector.app.R
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
@@ -44,7 +45,8 @@ class DisplayableEventFormatter @Inject constructor(
         private val drawableProvider: DrawableProvider,
         private val emojiSpanify: EmojiSpanify,
         private val noticeEventFormatter: NoticeEventFormatter,
-        private val htmlRenderer: Lazy<EventHtmlRenderer>
+        private val htmlRenderer: Lazy<EventHtmlRenderer>,
+        private val pgpDecryptor: PgpDecryptor,
 ) {
 
     fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean, unhandledFallback: Boolean = false): CharSequence {
@@ -62,6 +64,10 @@ class DisplayableEventFormatter @Inject constructor(
         return when (timelineEvent.root.getClearType()) {
             EventType.MESSAGE -> {
                 timelineEvent.getVectorLastMessageContent()?.let { messageContent ->
+                    val pgp = (messageContent as? MessageTextContent)?.let { pgpDecryptor.peekDecryptedBody(it.body) }
+                    if (pgp != null) {
+                        return@let simpleFormat(senderName, pgp, appendAuthor)
+                    }
                     when (messageContent.msgType) {
                         MessageType.MSGTYPE_TEXT -> {
                             val body = messageContent.getTextDisplayableContent()

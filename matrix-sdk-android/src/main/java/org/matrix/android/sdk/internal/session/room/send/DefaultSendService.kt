@@ -101,6 +101,10 @@ internal class DefaultSendService @AssistedInject constructor(
                 .let { sendEvent(it) }
     }
 
+    override fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? {
+        return localEchoEventFactory.computeFormattedHtml(text, autoMarkdown)
+    }
+
     override fun sendFormattedTextMessage(text: String, formattedText: String, msgType: String, additionalContent: Content?): Cancelable {
         return localEchoEventFactory.createFormattedTextEvent(roomId, TextContent(text, formattedText), msgType, additionalContent)
                 .also { createLocalEcho(it) }

@@ -35,6 +35,9 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
 import im.vector.app.features.voicebroadcast.VoiceBroadcastHelper
+import im.vector.app.features.pgp.PgpDecryptor
+import im.vector.app.features.pgp.PgpKeyStore
+import im.vector.app.features.pgp.PgpRoomEncryptor
 import im.vector.app.features.voicebroadcast.model.VoiceBroadcast
 import im.vector.app.features.voicebroadcast.model.VoiceBroadcastState
 import im.vector.app.features.voicebroadcast.model.asVoiceBroadcastEvent
@@ -73,6 +76,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
@@ -105,6 +109,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val voiceBroadcastHelper: VoiceBroadcastHelper,
         private val clock: Clock,
         private val getVoiceBroadcastStateEventLiveUseCase: GetVoiceBroadcastStateEventLiveUseCase,
+        private val pgpKeyStore: PgpKeyStore,
+        private val pgpRoomEncryptor: PgpRoomEncryptor,
+        private val pgpDecryptor: PgpDecryptor,
 ) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialState) {
 
     private val room = session.getRoom(initialState.roomId)
@@ -207,6 +214,52 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
+    // Encrypts [text] for the room members who actually have a PGP key (members without one are
+    // silently skipped) plus our own key, then sends the armored block as a plain text message. The
+    // room stays unencrypted at the Matrix level. Errors out if nobody else has a key.
+    /**
+     * Encrypts [text] for the room members who actually have a PGP key (others are silently
+     * skipped) plus our own key, then hands the armored body + its formatted form to [send] (which
+     * does the actual sendText / replyInThread / replyToMessage). The room stays unencrypted at the
+     * Matrix level; errors out if nobody else has a key.
+     */
+    /**
+     * The formatted body to PGP-encrypt alongside the plain body. An explicit formatted body (e.g.
+     * from the rich composer) wins; otherwise we run markdown ourselves so the encrypted
+     * formatted_body carries the rendered HTML — the SDK can't markdown an armored block after the
+     * fact. Returns null when the message is plain (so we don't set format/formatted_body needlessly).
+     */
+    private fun pgpFormattedFor(room: Room, message: CharSequence, explicitFormatted: String?, autoMarkdown: Boolean): String? =
+            explicitFormatted ?: room.sendService().computeFormattedHtml(message, autoMarkdown)
+
+    private fun handlePgpSend(room: Room, text: CharSequence, formattedText: String?, send: suspend (armoredBody: String, armoredFormatted: String?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                when (val outcome = pgpRoomEncryptor.encryptForRoom(room, text, formattedText)) {
+                    is PgpRoomEncryptor.Outcome.Encrypted -> {
+                        send(outcome.armoredBody, outcome.armoredFormatted)
+                        _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                        popDraft(room)
+                    }
+                    PgpRoomEncryptor.Outcome.NotConfigured ->
+                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_key_configured)))
+                    PgpRoomEncryptor.Outcome.NoRecipients ->
+                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
+                    is PgpRoomEncryptor.Outcome.NeedsInteraction -> {
+                        // Sign-key passphrase: let OpenKeychain cache it, then the user resends.
+                        _viewEvents.post(MessageComposerViewEvents.LaunchPgpInteraction(outcome.pendingIntent))
+                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_interaction_required)))
+                    }
+                    is PgpRoomEncryptor.Outcome.Error ->
+                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_encrypt_failed, outcome.message)))
+                }
+            }.onFailure { failure ->
+                Timber.w(failure, "PGP send failed")
+                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_encrypt_failed, failure.localizedMessage.orEmpty())))
+            }
+        }
+    }
+
     private fun handleOnTextChanged(action: MessageComposerAction.OnTextChanged) {
         val needsSendButtonVisibilityUpdate = currentComposerText.isBlank() != action.text.isBlank()
         currentComposerText = SpannableString(action.text)
@@ -248,6 +301,12 @@ class MessageComposerViewModel @AssistedInject constructor(
      * The text we pre-fill the composer with when editing [timelineEvent].
      */
     private fun computeEditableContent(timelineEvent: TimelineEvent): CharSequence {
+        // PGP: edit against the decrypted plaintext (body or caption), not the armored block. The
+        // edited message is on-screen so it's already decrypted in the cache.
+        val pgpSource = (timelineEvent.getVectorLastMessageContent() as? MessageTextContent)?.body
+                ?: (timelineEvent.getVectorLastMessageContent() as? MessageWithAttachmentContent)?.getCaption()
+        pgpSource?.let { pgpDecryptor.peekDecryptedBody(it) }?.let { return it }
+
         val richContent = timelineEvent.getTextEditableContent(formatted = false)
         // For our own greentext-formatted output, the HTML body would put a green span in
         // the editor — visually inconsistent with the rest of the composer. Fall back to
@@ -330,31 +389,107 @@ class MessageComposerViewModel @AssistedInject constructor(
                             isInThreadTimeline = state.isInThreadTimeline()
                     )) {
                         is ParsedCommand.ErrorNotACommand -> {
-                            val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
-                            // The send path runs markdown parsing, a Realm read for the local echo,
-                            // and the synchronous local-echo listener notification — all on the main
-                            // thread by default. Offload to background so the composer feels
-                            // instant; the local echo / timeline update still happens just as fast,
-                            // we just don't block the UI thread while it's being prepared.
-                            offloadSend {
+                            val roomPgpOn = pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(room.roomId) && !room.roomCryptoService().isEncrypted()
+                            if (roomPgpOn) {
+                                // Room is in PGP mode: encrypt the body (and the formatted body, if any,
+                                // separately) — each field carries its own armored block.
+                                handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown)) { armoredBody, armoredFormatted ->
+                                    if (state.rootThreadEventId != null) {
+                                        room.relationService().replyInThread(
+                                                rootThreadEventId = state.rootThreadEventId,
+                                                replyInThreadText = armoredBody,
+                                                formattedText = armoredFormatted,
+                                                autoMarkdown = false,
+                                        )
+                                    } else if (armoredFormatted != null) {
+                                        room.sendService().sendFormattedTextMessage(armoredBody, armoredFormatted)
+                                    } else {
+                                        room.sendService().sendTextMessage(armoredBody, autoMarkdown = false)
+                                    }
+                                }
+                            } else {
+                                val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
+                                // The send path runs markdown parsing, a Realm read for the local echo,
+                                // and the synchronous local-echo listener notification — all on the main
+                                // thread by default. Offload to background so the composer feels
+                                // instant; the local echo / timeline update still happens just as fast,
+                                // we just don't block the UI thread while it's being prepared.
+                                offloadSend {
+                                    if (state.rootThreadEventId != null) {
+                                        room.relationService().replyInThread(
+                                                rootThreadEventId = state.rootThreadEventId,
+                                                replyInThreadText = greentext?.first ?: action.text,
+                                                formattedText = greentext?.second ?: action.formattedText,
+                                                autoMarkdown = greentext == null && action.autoMarkdown,
+                                        )
+                                    } else if (greentext != null) {
+                                        room.sendService().sendFormattedTextMessage(greentext.first, greentext.second)
+                                    } else if (action.formattedText != null) {
+                                        room.sendService().sendFormattedTextMessage(action.text.toString(), action.formattedText)
+                                    } else {
+                                        room.sendService().sendTextMessage(action.text, autoMarkdown = action.autoMarkdown)
+                                    }
+                                }
+
+                                _viewEvents.post(MessageComposerViewEvents.MessageSent)
+                                popDraft(room)
+                            }
+                        }
+                        is ParsedCommand.TogglePgpMode -> {
+                            popDraft(room)
+                            when {
+                                room.roomCryptoService().isEncrypted() ->
+                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_not_in_encrypted_room)))
+                                !pgpKeyStore.isEnabled ->
+                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_disabled)))
+                                !pgpKeyStore.hasMyKey() ->
+                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_key_configured)))
+                                pgpKeyStore.isRoomPgpEnabled(room.roomId) -> {
+                                    // Turning OFF is always allowed.
+                                    pgpKeyStore.setRoomPgpEnabled(room.roomId, false)
+                                    pgpKeyStore.clearRoomRecipientKeyIds(room.roomId)
+                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_mode_off)))
+                                }
+                                else -> {
+                                    // Turning ON: only allow it if at least one other member has a key.
+                                    pgpKeyStore.clearRoomRecipientKeyIds(room.roomId)
+                                    viewModelScope.launch(Dispatchers.IO) {
+                                        runCatching { pgpRoomEncryptor.resolveRoomRecipients(room) }
+                                                .onSuccess { others ->
+                                                    if (others == null) {
+                                                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
+                                                    } else {
+                                                        pgpKeyStore.setRoomPgpEnabled(room.roomId, true)
+                                                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_mode_on)))
+                                                    }
+                                                }
+                                                .onFailure {
+                                                    _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_encrypt_failed, it.localizedMessage.orEmpty())))
+                                                }
+                                    }
+                                }
+                            }
+                        }
+                        is ParsedCommand.SendPgpEncrypted -> {
+                            if (!pgpKeyStore.isEnabled) {
+                                popDraft(room)
+                                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_disabled)))
+                                return@withState
+                            }
+                            handlePgpSend(room, parsedCommand.message, pgpFormattedFor(room, parsedCommand.message, null, action.autoMarkdown)) { armoredBody, armoredFormatted ->
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
-                                            replyInThreadText = greentext?.first ?: action.text,
-                                            formattedText = greentext?.second ?: action.formattedText,
-                                            autoMarkdown = greentext == null && action.autoMarkdown,
+                                            replyInThreadText = armoredBody,
+                                            formattedText = armoredFormatted,
+                                            autoMarkdown = false,
                                     )
-                                } else if (greentext != null) {
-                                    room.sendService().sendFormattedTextMessage(greentext.first, greentext.second)
-                                } else if (action.formattedText != null) {
-                                    room.sendService().sendFormattedTextMessage(action.text.toString(), action.formattedText)
+                                } else if (armoredFormatted != null) {
+                                    room.sendService().sendFormattedTextMessage(armoredBody, armoredFormatted)
                                 } else {
-                                    room.sendService().sendTextMessage(action.text, autoMarkdown = action.autoMarkdown)
+                                    room.sendService().sendTextMessage(armoredBody, autoMarkdown = false)
                                 }
                             }
-
-                            _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                            popDraft(room)
                         }
                         is ParsedCommand.ErrorSyntax -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandError(parsedCommand.command))
@@ -814,12 +949,26 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 messageContent.getCaption().orEmpty()
                             }
                             val newCaption = (editFormatted ?: editText).toString()
+                            val editedEvent = state.sendMode.timelineEvent
                             if (existingCaption != newCaption) {
-                                room.relationService().editMediaCaption(
-                                        state.sendMode.timelineEvent,
-                                        editText,
-                                        editFormatted?.toString(),
-                                )
+                                if (pgpRoomEncryptor.isRoomPgpActive(room) && editText.toString().isNotBlank()) {
+                                    // Encrypt the edited caption rather than leaking it as plaintext.
+                                    val pgpFormatted = pgpFormattedFor(room, editText, editFormatted?.toString(), editAutoMarkdown)
+                                    viewModelScope.launch(Dispatchers.IO) {
+                                        when (val outcome = pgpRoomEncryptor.encryptForRoom(room, editText, pgpFormatted)) {
+                                            is PgpRoomEncryptor.Outcome.Encrypted ->
+                                                room.relationService().editMediaCaption(editedEvent, outcome.armoredBody, outcome.armoredFormatted)
+                                            else ->
+                                                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
+                                        }
+                                    }
+                                } else {
+                                    room.relationService().editMediaCaption(
+                                            editedEvent,
+                                            editText,
+                                            editFormatted?.toString(),
+                                    )
+                                }
                             } else {
                                 Timber.w("Same caption, do not send edition")
                             }
@@ -827,6 +976,23 @@ class MessageComposerViewModel @AssistedInject constructor(
                             // Preserve-if-untouched: the editable text is unchanged from what we loaded, so keep the
                             // original (possibly richer) formatted body rather than re-send a lossy plain version.
                             Timber.w("Edit content untouched, preserving original message")
+                        } else if (pgpRoomEncryptor.isRoomPgpActive(room) && editText.toString().isNotBlank()) {
+                            // Re-encrypt the edited body rather than re-sending it as plaintext.
+                            val pgpFormatted = pgpFormattedFor(room, editText, editFormatted, editAutoMarkdown)
+                            viewModelScope.launch(Dispatchers.IO) {
+                                when (val outcome = pgpRoomEncryptor.encryptForRoom(room, editText, pgpFormatted)) {
+                                    is PgpRoomEncryptor.Outcome.Encrypted ->
+                                        room.relationService().editTextMessage(
+                                                state.sendMode.timelineEvent,
+                                                messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
+                                                outcome.armoredBody,
+                                                outcome.armoredFormatted,
+                                                false,
+                                        )
+                                    else ->
+                                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
+                                }
+                            }
                         } else {
                             val existingBody: String
                             val needsEdit = if (messageContent is MessageContentWithFormattedBody) {
@@ -883,7 +1049,28 @@ class MessageComposerViewModel @AssistedInject constructor(
                             replyRootThreadEventId = rootThreadEventId,
                             autoMarkdown = action.autoMarkdown,
                     )
-                    if (!handledAsCommand) {
+                    if (!handledAsCommand &&
+                            pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(room.roomId) && !room.roomCryptoService().isEncrypted()) {
+                        // PGP-mode reply: encrypt the body, keep the m.relates_to so it still threads/replies.
+                        handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown)) { armoredBody, armoredFormatted ->
+                            state.rootThreadEventId?.let {
+                                room.relationService().replyInThread(
+                                        rootThreadEventId = it,
+                                        replyInThreadText = armoredBody,
+                                        autoMarkdown = false,
+                                        formattedText = armoredFormatted,
+                                        eventReplied = timelineEvent
+                                )
+                            } ?: room.relationService().replyToMessage(
+                                    eventReplied = timelineEvent,
+                                    replyText = armoredBody,
+                                    replyFormattedText = armoredFormatted,
+                                    autoMarkdown = false,
+                                    showInThread = showInThread,
+                                    rootThreadEventId = rootThreadEventId
+                            )
+                        }
+                    } else if (!handledAsCommand) {
                         val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
                         val replyText = greentext?.first ?: action.text
                         val replyFormatted = greentext?.second ?: action.formattedText
@@ -1605,14 +1792,31 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
         val replyTo = withState(this) { (it.sendMode as? SendMode.Reply)?.timelineEvent }
         val caption = currentComposerText.toString().takeIf { it.isNotBlank() }
-        room.sendService().sendMedia(
-                attachment = audioType.toContentAttachmentData(isVoiceMessage = true),
-                compressBeforeSending = false,
-                roomIds = emptySet(),
-                rootThreadEventId = rootThreadEventId,
-                replyToEvent = replyTo,
-                captionText = caption,
-        )
+        val attachment = audioType.toContentAttachmentData(isVoiceMessage = true)
+        val sendVoice = { captionText: CharSequence?, captionFormatted: String? ->
+            room.sendService().sendMedia(
+                    attachment = attachment,
+                    compressBeforeSending = false,
+                    roomIds = emptySet(),
+                    rootThreadEventId = rootThreadEventId,
+                    replyToEvent = replyTo,
+                    captionText = captionText,
+                    captionFormattedText = captionFormatted,
+            )
+        }
+        if (caption != null && pgpRoomEncryptor.isRoomPgpActive(room)) {
+            viewModelScope.launch(Dispatchers.IO) {
+                when (val outcome = pgpRoomEncryptor.encryptForRoom(room, caption)) {
+                    is PgpRoomEncryptor.Outcome.Encrypted -> sendVoice(outcome.armoredBody, outcome.armoredFormatted)
+                    else -> {
+                        _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_recipient_keys)))
+                        sendVoice(null, null)
+                    }
+                }
+            }
+        } else {
+            sendVoice(caption, null)
+        }
         currentComposerText = ""
         finishVoiceDraft(room, resetSendMode = true)
     }
