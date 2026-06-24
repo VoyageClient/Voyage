@@ -47,7 +47,7 @@ abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_tim
     data class Attributes(
             val avatarRenderer: AvatarRenderer,
             val informationData: MessageInformationData,
-            val text: String,
+            val text: CharSequence,
             val itemLongClickListener: View.OnLongClickListener? = null
     )
 

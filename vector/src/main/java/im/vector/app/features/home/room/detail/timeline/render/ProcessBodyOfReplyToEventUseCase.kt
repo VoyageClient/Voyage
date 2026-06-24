@@ -285,7 +285,7 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
         return (timelineEvent?.let { noticeEventFormatter.format(it, isDm) }
                 ?: noticeEventFormatter.format(this, senderId, isDm))
                 ?.toString()
-                ?: "Debug: event type \"${getClearType()}\""
+                ?: noticeEventFormatter.formatDebugOrUnhandled(this).toString()
     }
 
     // Truncate by *visible* character count while keeping the markup well-formed: never cut in

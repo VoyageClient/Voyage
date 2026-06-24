@@ -143,4 +143,44 @@ object EventType {
             else -> false
         }
     }
+
+    private val knownTypes: Set<String> by lazy {
+        buildSet {
+            addAll(
+                    listOf(
+                            PRESENCE, MESSAGE, STICKER, ENCRYPTED, FEEDBACK, TYPING, REDACTION, RECEIPT,
+                            ROOM_KEY, PLUMBING, BOT_OPTIONS, PREVIEW_URLS,
+                            STATE_ROOM_WIDGET_LEGACY, STATE_ROOM_WIDGET, STATE_ROOM_NAME, STATE_ROOM_TOPIC,
+                            STATE_ROOM_AVATAR, STATE_ROOM_MEMBER, STATE_ROOM_THIRD_PARTY_INVITE, STATE_ROOM_CREATE,
+                            STATE_ROOM_JOIN_RULES, STATE_ROOM_GUEST_ACCESS, STATE_ROOM_POWER_LEVELS,
+                            STATE_SPACE_CHILD, STATE_SPACE_PARENT, STATE_ROOM_ALIASES, STATE_ROOM_TOMBSTONE,
+                            STATE_ROOM_CANONICAL_ALIAS, STATE_ROOM_HISTORY_VISIBILITY, STATE_ROOM_RELATED_GROUPS,
+                            STATE_ROOM_PINNED_EVENT, STATE_ROOM_ENCRYPTION, STATE_ROOM_SERVER_ACL,
+                            CALL_INVITE, CALL_CANDIDATES, CALL_ANSWER, CALL_SELECT_ANSWER, CALL_NEGOTIATE,
+                            CALL_REJECT, CALL_HANGUP, CALL_REPLACES,
+                            ROOM_KEY_REQUEST, FORWARDED_ROOM_KEY, REQUEST_SECRET, SEND_SECRET,
+                            KEY_VERIFICATION_REQUEST, KEY_VERIFICATION_START, KEY_VERIFICATION_ACCEPT,
+                            KEY_VERIFICATION_KEY, KEY_VERIFICATION_MAC, KEY_VERIFICATION_CANCEL,
+                            KEY_VERIFICATION_DONE, KEY_VERIFICATION_READY, REACTION,
+                    )
+            )
+            addAll(STATE_ROOM_BEACON_INFO.values)
+            addAll(BEACON_LOCATION_DATA.values)
+            addAll(CALL_ASSERTED_IDENTITY.values)
+            addAll(ELEMENT_CALL_NOTIFY.values)
+            addAll(ROOM_KEY_WITHHELD.values)
+            addAll(POLL_START.values)
+            addAll(POLL_RESPONSE.values)
+            addAll(POLL_END.values)
+        }
+    }
+
+    /**
+     * Whether [type] is an event type known to the Matrix spec/this client. Used to tell a "debug"
+     * event (a recognised type we simply have no rich renderer for) apart from a genuinely unhandled
+     * one, so each can be surfaced differently.
+     */
+    fun isKnownType(type: String): Boolean {
+        return type in knownTypes
+    }
 }

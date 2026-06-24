@@ -11,6 +11,7 @@ import android.os.Build
 import im.vector.app.core.epoxy.TimelineEmptyItem
 import im.vector.app.core.epoxy.TimelineEmptyItem_
 import im.vector.app.core.epoxy.VectorEpoxyModel
+import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.features.analytics.DecryptionFailureTracker
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
 import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
@@ -37,6 +38,7 @@ class TimelineItemFactory @Inject constructor(
         private val verificationConclusionItemFactory: VerificationItemFactory,
         private val decryptionFailureTracker: DecryptionFailureTracker,
         private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper,
+        private val userPreferencesProvider: UserPreferencesProvider,
         private val session: Session,
 ) {
 
@@ -170,8 +172,10 @@ class TimelineItemFactory @Inject constructor(
         // No factory produced a model. When the event is the navigation target (e.g. tapping
         // "In reply to" on a reaction / membership / otherwise unrendered event) it must still
         // appear and carry the selection highlight, so fall back to a default item showing the
-        // event type instead of a zero-height empty item that would swallow the highlight.
-        return if (params.isHighlighted) {
+        // event type instead of a zero-height empty item that would swallow the highlight. The
+        // same fallback surfaces these events as debug items when "show hidden events" is on.
+        val showHidden = userPreferencesProvider.shouldShowHiddenEvents() && !params.isFromThreadTimeline()
+        return if (params.isHighlighted || showHidden) {
             defaultItemFactory.create(params)
         } else {
             buildEmptyItem(

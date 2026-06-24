@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.factory
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MessageInformationDataFactory
 import im.vector.app.features.home.room.detail.timeline.item.DefaultItem
@@ -22,11 +23,12 @@ class DefaultItemFactory @Inject constructor(
         private val avatarSizeProvider: AvatarSizeProvider,
         private val avatarRenderer: AvatarRenderer,
         private val stringProvider: StringProvider,
+        private val noticeEventFormatter: NoticeEventFormatter,
         private val informationDataFactory: MessageInformationDataFactory
 ) {
 
     fun create(
-            text: String,
+            text: CharSequence,
             informationData: MessageInformationData,
             highlight: Boolean,
             callback: TimelineEventController.Callback?
@@ -48,7 +50,9 @@ class DefaultItemFactory @Inject constructor(
     fun create(params: TimelineItemFactoryParams, throwable: Throwable? = null): DefaultItem {
         val event = params.event
         val text = if (throwable == null) {
-            stringProvider.getString(CommonStrings.rendering_event_error_type_of_event_not_handled, event.root.getClearType())
+            // A recognised-but-unrenderable type shows as a debug event; a genuinely unknown type
+            // shows the accent "not handled" notice.
+            noticeEventFormatter.formatDebugOrUnhandled(event.root)
         } else {
             stringProvider.getString(CommonStrings.rendering_event_error_exception, event.root.eventId)
         }

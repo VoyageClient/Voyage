@@ -328,9 +328,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             // The composer preview never shows a map, so location is always the notice text.
             messageContent?.msgType == MessageType.MSGTYPE_LOCATION ->
                 noticeEventFormatter.formatLocationNotice(event.root, event.senderInfo.disambiguatedDisplayName)
-            // Non-message event (membership change, reaction, …): show the notice text.
+            // Non-message event (membership change, reaction, …): show the notice text, falling back
+            // to a debug line (known type) or the accent "not handled" notice (unknown type).
             messageContent == null -> noticeEventFormatter.format(event, isDm = false)
-                    ?: "Debug: event type \"${event.root.getClearType()}\""
+                    ?: noticeEventFormatter.formatDebugOrUnhandled(event.root)
             else -> messageContent.body
         }
         var formattedBody: CharSequence? = null

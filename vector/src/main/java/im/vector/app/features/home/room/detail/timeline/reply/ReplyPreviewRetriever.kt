@@ -297,6 +297,7 @@ class ReplyPreviewRetriever(
                 // Sender information is rendered separately, so omit it from the text.
                 isDm = false,
                 appendAuthor = false,
+                unhandledFallback = true,
         )
     }
 }

@@ -264,9 +264,10 @@ class MessageActionsViewModel @AssistedInject constructor(
                     }
                     else -> {
                         // Reactions, redactions, verification, … — show the same notice text the
-                        // timeline uses, falling back to the raw event type for anything unhandled.
+                        // timeline uses. Anything unrenderable falls back to a debug line (known type)
+                        // or the accent "not handled" notice (unknown type), matching the timeline.
                         noticeEventFormatter.format(timelineEvent, room?.roomSummary()?.isDirect.orFalse())
-                                ?: "Debug: event type \"${timelineEvent.root.getClearType()}\""
+                                ?: noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
                     }
                 }
             }

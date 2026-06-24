@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.format
 
 import im.vector.app.ActiveSessionDataSource
+import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.roomprofile.permissions.RoleFormatter
 import im.vector.app.features.settings.VectorPreferences
@@ -47,6 +48,7 @@ import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetContent
+import me.gujun.android.span.span
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -55,6 +57,7 @@ class NoticeEventFormatter @Inject constructor(
         private val roomHistoryVisibilityFormatter: RoomHistoryVisibilityFormatter,
         private val roleFormatter: RoleFormatter,
         private val vectorPreferences: VectorPreferences,
+        private val colorProvider: ColorProvider,
         private val sp: StringProvider
 ) {
 
@@ -215,6 +218,26 @@ class NoticeEventFormatter @Inject constructor(
     private fun formatDebug(event: Event): CharSequence {
         val threadPrefix = if (event.isThread()) "thread" else ""
         return "Debug: $threadPrefix event type \"${event.getClearType()}\""
+    }
+
+    /**
+     * Fallback text for an event with no dedicated representation. A recognised type renders as a
+     * muted "Debug" line; a genuinely unhandled type renders the accent "not handled" notice. The
+     * colour travels with the text so the timeline, long-press preview and reply preview stay in sync.
+     */
+    fun formatDebugOrUnhandled(event: Event): CharSequence {
+        val type = event.getClearType()
+        return if (EventType.isKnownType(type)) {
+            span {
+                text = formatDebug(event)
+                textColor = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+            }
+        } else {
+            span {
+                text = sp.getString(CommonStrings.rendering_event_error_type_of_event_not_handled, type)
+                textColor = colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorSecondary)
+            }
+        }
     }
 
     private fun formatRoomCreateEvent(event: Event, isDm: Boolean): CharSequence? {

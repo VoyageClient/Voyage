@@ -47,7 +47,7 @@ class DisplayableEventFormatter @Inject constructor(
         private val htmlRenderer: Lazy<EventHtmlRenderer>
 ) {
 
-    fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean): CharSequence {
+    fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean, unhandledFallback: Boolean = false): CharSequence {
         if (timelineEvent.root.isRedacted()) {
             return noticeEventFormatter.formatRedactedEvent(timelineEvent.root)
         }
@@ -149,8 +149,13 @@ class DisplayableEventFormatter @Inject constructor(
                 formatVoiceBroadcastEvent(timelineEvent.root, isDm, senderName)
             }
             else -> {
-                span {
-                    text = noticeEventFormatter.format(timelineEvent, isDm) ?: ""
+                val formatted = noticeEventFormatter.format(timelineEvent, isDm)
+                when {
+                    formatted != null -> span { text = formatted }
+                    // Reply previews want unhandled/debug events to read as they do in the timeline,
+                    // rather than collapsing to an empty header; other callers keep the blank fallback.
+                    unhandledFallback -> noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
+                    else -> span { }
                 }
             }
         }
