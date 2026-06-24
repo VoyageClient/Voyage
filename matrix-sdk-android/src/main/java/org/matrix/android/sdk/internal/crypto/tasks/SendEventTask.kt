@@ -76,6 +76,7 @@ internal class DefaultSendEventTask @Inject constructor(
             }
             Timber.d("Event sent to ${event.roomId} with event id ${response.eventId}")
             localEchoRepository.updateSendState(localId, params.event.roomId, SendState.SENT)
+            localEchoRepository.onEventSent(event.roomId ?: "", localId, response.eventId)
             return response.eventId.also {
                 Timber.d("Event: $it just sent in ${params.event.roomId}")
             }

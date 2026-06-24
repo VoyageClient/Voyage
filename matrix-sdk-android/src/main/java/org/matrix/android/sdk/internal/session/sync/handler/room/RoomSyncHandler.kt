@@ -71,6 +71,7 @@ import org.matrix.android.sdk.internal.session.StreamEventsManager
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.membership.RoomMemberEventHandler
+import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
@@ -100,6 +101,7 @@ internal class RoomSyncHandler @Inject constructor(
         private val liveEventService: Lazy<StreamEventsManager>,
         private val clock: Clock,
         private val unRequestedForwardManager: UnRequestedForwardManager,
+        private val localEchoRepository: LocalEchoRepository,
 ) {
 
     sealed class HandlingStrategy {
@@ -534,6 +536,10 @@ internal class RoomSyncHandler @Inject constructor(
                     Timber.v("Can't find corresponding local echo for tx:$txId")
                 }
             }
+
+            // Fallback when the homeserver omits unsigned.transaction_id: match the remote event id
+            // returned by /send so a stuck local echo gets cleared instead of lingering as a duplicate.
+            localEchoRepository.deleteSentEcho(realm, roomId, event.eventId)
         }
         // Handle deletion of [stuck] local echos if needed
         deleteLocalEchosIfNeeded(insertType, roomEntity, eventList)

@@ -36,6 +36,8 @@ import org.matrix.android.sdk.internal.database.model.EventInsertEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
+import org.matrix.android.sdk.internal.database.model.deleteOnCascade
+import org.matrix.android.sdk.internal.database.query.find
 import org.matrix.android.sdk.internal.database.query.findAllInRoomWithSendStates
 import org.matrix.android.sdk.internal.database.query.where
 import org.matrix.android.sdk.internal.di.SessionDatabase
@@ -58,6 +60,10 @@ internal class LocalEchoRepository @Inject constructor(
         private val timelineEventMapper: TimelineEventMapper,
         private val clock: Clock,
 ) {
+
+    // Maps the remote event id returned by /send to its local echo id. Lets us clear a stuck
+    // local echo even when the homeserver omits unsigned.transaction_id from the /sync echo back.
+    private val sentEchoesByRemoteId = java.util.Collections.synchronizedMap(HashMap<String, String>())
 
     fun createLocalEcho(event: Event) {
         val roomId = event.roomId ?: throw IllegalStateException("You should have set a roomId for your event")
@@ -104,6 +110,36 @@ internal class LocalEchoRepository @Inject constructor(
             sendingEventEntity.sendStateDetails = sendStateDetails
             roomSummaryUpdater.updateSendingInformation(realm, sendingEventEntity.roomId)
         }
+    }
+
+    /**
+     * Called once the homeserver has acknowledged the send and returned the remote event id.
+     * Registers the mapping so a later /sync can drop the local echo, and immediately drops it
+     * if the remote event has already been received (the /sync echo can win the race with /send).
+     */
+    suspend fun onEventSent(roomId: String, localEchoId: String, remoteEventId: String) {
+        sentEchoesByRemoteId[remoteEventId] = localEchoId
+        monarchy.awaitTransaction { realm ->
+            val remoteExists = TimelineEventEntity.where(realm, roomId, remoteEventId).findFirst() != null
+            if (remoteExists) {
+                deleteSentEcho(realm, roomId, remoteEventId)
+            }
+        }
+    }
+
+    /**
+     * If [remoteEventId] corresponds to a previously sent local echo, delete that stuck echo.
+     * Must be called within a Realm transaction. Returns true if an echo was deleted.
+     */
+    fun deleteSentEcho(realm: Realm, roomId: String, remoteEventId: String): Boolean {
+        val localEchoId = sentEchoesByRemoteId.remove(remoteEventId) ?: return false
+        val roomEntity = RoomEntity.where(realm, roomId).findFirst() ?: return false
+        val echo = roomEntity.sendingTimelineEvents.find(localEchoId) ?: return false
+        Timber.v("Remove stuck local echo $localEchoId for synced event $remoteEventId")
+        roomEntity.sendingTimelineEvents.remove(echo)
+        echo.deleteOnCascade(true)
+        roomSummaryUpdater.updateSendingInformation(realm, roomId)
+        return true
     }
 
     suspend fun updateEcho(eventId: String, block: (realm: Realm, eventEntity: EventEntity) -> Unit) {
