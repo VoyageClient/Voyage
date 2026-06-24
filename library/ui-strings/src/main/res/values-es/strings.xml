@@ -816,10 +816,6 @@
     <string name="send_you_invite">Alguien te envió una invitación</string>
     <string name="invited_by">Invitado por %s</string>
     <string name="room_list_catchup_empty_body">No tienes más mensajes sin leer</string>
-    <string name="room_list_people_empty_title">Conversaciones</string>
-    <string name="room_list_people_empty_body">Tus conversaciones se mostrarán aquí. Toque el + en la esquina inferior derecha para comenzar.</string>
-    <string name="room_list_rooms_empty_title">Salas</string>
-    <string name="room_list_rooms_empty_body">Tus salas se mostrarán aquí. Pulsa el botón + abajo en la esquina inferior derecha para buscar o crear salas propias.</string>
     <string name="title_activity_emoji_reaction_picker">Reacciones</string>
     <string name="action_agree">De acuerdo</string>
     <string name="message_add_reaction">Añadir reacción</string>

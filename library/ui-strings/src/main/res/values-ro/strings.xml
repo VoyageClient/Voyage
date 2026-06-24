@@ -119,7 +119,6 @@
     <string name="notice_room_ban">%1$s a interzis accesul lui %2$s</string>
     <string name="space_add_child_title">Adaugă camere</string>
     <string name="fab_menu_create_room">Camere</string>
-    <string name="room_list_rooms_empty_title">Camere</string>
 
     <string name="rooms">Camere</string>
     <plurals name="notification_unread_notified_messages_in_room_rooms">

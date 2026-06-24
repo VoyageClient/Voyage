@@ -474,8 +474,6 @@
     <string name="reactions">പ്രതികരണങ്ങൾ</string>
     <string name="action_agree">സമ്മതിക്കുക</string>
     <string name="title_activity_emoji_reaction_picker">പ്രതികരണങ്ങൾ</string>
-    <string name="room_list_rooms_empty_title">മുറികൾ</string>
-    <string name="room_list_people_empty_title">സംഭാഷണങ്ങൾ</string>
     <string name="global_retry">വീണ്ടും ശ്രമിക്കുക</string>
     <string name="reply">മറുപടി</string>
     <string name="edit">തിരുത്തുക</string>

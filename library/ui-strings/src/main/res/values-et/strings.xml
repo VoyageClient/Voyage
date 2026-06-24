@@ -461,7 +461,6 @@
     <string name="sas_got_it">Selge lugu</string>
     <string name="sas_incoming_request_notif_title">Verifitseerimispäring</string>
     <string name="sas_incoming_request_notif_content">%s soovib verifitseerida sinu sessiooni</string>
-    <string name="room_list_rooms_empty_body">Sinu jututoad kuvatakse siin. Olemasolevate jututubade leidmiseks või uute tegemiseks klõpsi all paremal nurgas asuvat + nuppu.</string>
     <string name="title_activity_emoji_reaction_picker">Reageerimised</string>
     <string name="action_agree">Nõus</string>
     <string name="message_add_reaction">Lisa reaktsioon</string>
@@ -1088,9 +1087,6 @@
     <string name="invited_by">%s saatis kutse</string>
     <string name="room_list_catchup_empty_title">Ei tea… kõik vist on nüüd tehtud!</string>
     <string name="room_list_catchup_empty_body">Sul ei ole rohkem lugemata sõnumeid</string>
-    <string name="room_list_people_empty_title">Vestlused</string>
-    <string name="room_list_people_empty_body">Sinu otsevestlused kuvatakse siin. Vestluse alustamiseks klõpsi all paremal nurgas asuvat + nuppu.</string>
-    <string name="room_list_rooms_empty_title">Jututoad</string>
     <string name="keys_backup_unable_to_get_trust_info">Usaldamiseks vajaliku teabe laadimisel tekkis viga</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">Krüptovõtmete varukoopia andmete laadimisel tekkis viga</string>
     <string name="import_e2e_keys_from_file">Impordi läbiva krüptimise võtmed failist „%1$s“.</string>

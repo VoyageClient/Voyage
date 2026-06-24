@@ -1309,10 +1309,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="message_add_reaction">Tambah Reaksi</string>
     <string name="action_agree">Setuju</string>
     <string name="title_activity_emoji_reaction_picker">Reaksi</string>
-    <string name="room_list_rooms_empty_body">Ruangan Anda akan ditampilkan di sini. Ketuk tombol + di kanan bawah untuk mencari yang ada atau memulai yang baru.</string>
-    <string name="room_list_rooms_empty_title">Ruangan</string>
-    <string name="room_list_people_empty_body">Obrolan pesan langsung Anda akan ditampilkan di sini. Ketuk tombol + di kanan bawah untuk memulai yang baru.</string>
-    <string name="room_list_people_empty_title">Obrolan</string>
     <string name="room_list_catchup_empty_body">Anda tidak mempunyai pesan yang belum dibaca</string>
     <string name="room_list_catchup_empty_title">Anda telah melihat semuanya!</string>
     <string name="invited_by">Diundang oleh %s</string>

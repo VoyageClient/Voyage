@@ -765,10 +765,6 @@
     <string name="message_add_reaction">Aldoni reagon</string>
     <string name="action_agree">Konsenti</string>
     <string name="title_activity_emoji_reaction_picker">Reagoj</string>
-    <string name="room_list_rooms_empty_body">Viaj ĉambroj montriĝos ĉi tie. Tuŝetu al la «+» dekstre sube por trovi jam ekzistantajn, aŭ fari viajn proprajn.</string>
-    <string name="room_list_rooms_empty_title">Ĉambroj</string>
-    <string name="room_list_people_empty_body">Viaj individuaj ĉambroj montriĝos ĉi tie. Tuŝetu la plus-signon sube dekstre por krei iun.</string>
-    <string name="room_list_people_empty_title">Interparoloj</string>
     <string name="room_list_catchup_empty_body">Vi ne havas pliajn nelegitajn mesaĝojn</string>
     <string name="room_list_catchup_empty_title">Vi nenion preterpasis!</string>
     <string name="invited_by">Invitita de %s</string>

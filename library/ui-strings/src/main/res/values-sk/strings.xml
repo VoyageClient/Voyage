@@ -893,10 +893,6 @@
     <string name="invited_by">Pozvaný používateľom %s</string>
     <string name="room_list_catchup_empty_title">Zoznam miestností je prázdny!</string>
     <string name="room_list_catchup_empty_body">Nemáte žiadne neprečítané správy</string>
-    <string name="room_list_people_empty_title">Konverzácie</string>
-    <string name="room_list_people_empty_body">Tu sa budú zobrazovať vaše konverzácie v priamych správach. Ťuknutím na + vpravo dole niektorú z nich spustíte.</string>
-    <string name="room_list_rooms_empty_title">Miestnosti</string>
-    <string name="room_list_rooms_empty_body">Tu sa zobrazia vaše miestnosti. Ťuknutím na + vpravo dole nájdete existujúce miestnosti alebo si môžete založiť vlastnú.</string>
     <string name="title_activity_emoji_reaction_picker">Reakcie</string>
     <string name="action_agree">Súhlasím</string>
     <string name="message_add_reaction">Pridať reakciu</string>

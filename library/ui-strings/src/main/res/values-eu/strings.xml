@@ -684,10 +684,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="invited_by">%s erabiltzaileak gonbidatuta</string>
     <string name="room_list_catchup_empty_title">Egunean zaude!</string>
     <string name="room_list_catchup_empty_body">Ez duzu irakurri gabeko mezu gehiagorik</string>
-    <string name="room_list_people_empty_title">Elkarrizketak</string>
-    <string name="room_list_people_empty_body">Zure mezu zuzenetako elkarrizketak hemen bistaratuko dira</string>
-    <string name="room_list_rooms_empty_title">Gelak</string>
-    <string name="room_list_rooms_empty_body">Zure gelak hemen bistaratuko dira</string>
     <string name="title_activity_emoji_reaction_picker">Erreakzioak</string>
     <string name="action_agree">Ados</string>
     <string name="message_add_reaction">Gehitu erreakzioa</string>

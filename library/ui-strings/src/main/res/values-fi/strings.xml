@@ -762,10 +762,6 @@
     <string name="send_you_invite">Lähetti sinulle kutsun</string>
     <string name="invited_by">%s kutsui</string>
     <string name="room_list_catchup_empty_body">Sinulla ei ole enempää lukemattomia viestejä</string>
-    <string name="room_list_people_empty_title">Keskustelut</string>
-    <string name="room_list_people_empty_body">Yksityisviestisi näytetään tässä. Napauta + oikeasta alakulmasta aloittaaksesi keskustelun.</string>
-    <string name="room_list_rooms_empty_title">Huoneet</string>
-    <string name="room_list_rooms_empty_body">Huoneesi näytetään tässä. Napauta + oikeasta alakulmasta löytääksesi olemassa olevia tai perustaaksesi omiasi.</string>
     <string name="title_activity_emoji_reaction_picker">Reaktiot</string>
     <string name="action_agree">Samaa mieltä</string>
     <string name="message_add_reaction">Lisää reaktio</string>

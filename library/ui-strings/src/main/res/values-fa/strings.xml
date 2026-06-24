@@ -393,10 +393,6 @@
     <string name="invited_by">دعوت‌شده به دست %s</string>
     <string name="room_list_catchup_empty_title">همه‌چی سر جاشه!</string>
     <string name="room_list_catchup_empty_body">هیچ پیام نخواندهٔ دیگری ندارید</string>
-    <string name="room_list_people_empty_title">گفت‌وگوها</string>
-    <string name="room_list_people_empty_body">گفت‌گوهای پیام مستقیمتان این‌جا نشان داده خواهند شد. برای آغاز روی + در پایین سمت چپ بزنید.</string>
-    <string name="room_list_rooms_empty_title">اتاق‌ها</string>
-    <string name="room_list_rooms_empty_body">اتاق‌هایتان این‌جا نشان داده خواهند شد. برای یافتن موارد موجود یا ایجاد خودتان روی + در پایین سمت چپ بزنید.</string>
     <string name="title_activity_emoji_reaction_picker">بازخودها</string>
     <string name="action_agree">موافقت</string>
     <string name="message_add_reaction">افزودن بازخورد</string>

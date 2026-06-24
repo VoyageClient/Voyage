@@ -908,7 +908,6 @@
     <string name="invited_by">მოწვეული %s-ის მიერ</string>
     <string name="room_list_catchup_empty_title">ყველა წაკითხულია!</string>
     <string name="room_list_catchup_empty_body">თქვენ აღარ გაქვთ წაუკითხავი შეტყობინებები</string>
-    <string name="room_list_rooms_empty_title">ოთახები</string>
     <string name="room_list_filter_all">ყველა</string>
     <string name="room_list_filter_unreads">წაუკითხავი</string>
     <string name="room_list_filter_favourites">რჩეულები</string>
@@ -1009,9 +1008,6 @@
     <string name="sas_incoming_request_notif_title">ვერიფიკაციის მოთხოვნა</string>
     <string name="identity_server_not_defined">თქვენ არ იყენებთ იდენტობის სერვერს</string>
     <string name="editing">რედაქტირება მიმდინარეობს</string>
-    <string name="room_list_people_empty_title">საუბრები</string>
-    <string name="room_list_people_empty_body">თქვენი პირადი შეტყობინებების საუბრები აქ გამოჩნდება. შეეხეთ + ღილაკს ქვედა მარჯვენა კუთხეში, რომ დაიწყოთ საუბარი.</string>
-    <string name="room_list_rooms_empty_body">თქვენი ოთახები აქ გამოჩნდება. შეეხეთ + ღილაკს ქვედა მარჯვენა კუთხეში, რომ მოძებნოთ არსებული ან დაიწყოთ ახალი.</string>
     <string name="message_add_reaction">რეაქციის დამატება</string>
     <string name="message_view_reaction">რეაქციების ნახვა</string>
     <string name="event_redacted_by_user_reason">მომხმარებლის მიერ წაშლილი მოვლენა</string>

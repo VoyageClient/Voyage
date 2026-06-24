@@ -1105,10 +1105,6 @@
     <string name="message_add_reaction">הוסף תגובה</string>
     <string name="action_agree">מסכים</string>
     <string name="title_activity_emoji_reaction_picker">תגובות</string>
-    <string name="room_list_rooms_empty_body">החדרים שלך יוצגו כאן. יש ללחוץ על + שמאל מלמטה כדי למצוא את הקיים או לפתוח כאלו משלך.</string>
-    <string name="room_list_rooms_empty_title">חדרים</string>
-    <string name="room_list_people_empty_body">שיחות ההודעה הישירה שלך יוצגו כאן. יש ללחוץ על + משמאל למטה כדי לפתוח כאלה.</string>
-    <string name="room_list_people_empty_title">שיחות</string>
     <string name="room_list_catchup_empty_body">אין לך יותר הודעות שלא נקראו</string>
     <string name="room_list_catchup_empty_title">כולכם נתפסתם!</string>
     <string name="invited_by">הוזמן על ידי%s</string>

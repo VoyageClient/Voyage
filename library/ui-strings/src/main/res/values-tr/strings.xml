@@ -644,10 +644,6 @@
     <string name="invited_by">%s seni davet etti</string>
     <string name="room_list_catchup_empty_title">Her şey tamam!</string>
     <string name="room_list_catchup_empty_body">Hiç okunmamış mesajınız bulunmuyor</string>
-    <string name="room_list_people_empty_title">Tartışmalar</string>
-    <string name="room_list_people_empty_body">Direkt mesajların burada görülecek. Yeni bir tane başlatmak için aşağıdan + ya tıkla.</string>
-    <string name="room_list_rooms_empty_title">Odalar</string>
-    <string name="room_list_rooms_empty_body">Odalar burada görünecek. Mevcut odaları görmek ya da kendi odanızı kurmak için aşağıdan + butonuna tıklayın.</string>
     <string name="title_activity_emoji_reaction_picker">Tepkiler</string>
     <string name="action_agree">Onaylıyorum</string>
     <string name="message_add_reaction">Bir Tepki Ekle</string>

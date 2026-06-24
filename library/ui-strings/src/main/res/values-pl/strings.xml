@@ -514,7 +514,6 @@
     <string name="keys_backup_setup_step3_button_title">Zrobione</string>
     <string name="edit">Edytuj</string>
     <string name="reply">Odpowiedz</string>
-    <string name="room_list_rooms_empty_title">Pokoje</string>
     <string name="message_add_reaction">Dodaj reakcję</string>
     <string name="create_new_room">Utwórz nowy pokój</string>
     <string name="fab_menu_create_chat">Wiadomości bezpośrednie</string>
@@ -523,7 +522,6 @@
     <string name="create_room_public_title">Publiczny</string>
     <string name="create_room_public_description">Każdy będzie mógł dołączyć do tego pokoju</string>
     <string name="global_retry">Ponów</string>
-    <string name="room_list_people_empty_title">Rozmowy</string>
     <string name="action_change">Zmień</string>
     <string name="change_room_directory_network">Zmień sieć</string>
     <string name="fab_menu_create_room">Pokoje</string>
@@ -794,8 +792,6 @@
     <string name="settings_troubleshoot_test_bing_settings_failed">Niektóre powiadomienia są wyłączone w osobistej konfiguracji.</string>
     <string name="settings_troubleshoot_test_play_services_success">Usługi Google Play są aktualne.</string>
     <string name="sas_got_it">Rozumiem</string>
-    <string name="room_list_people_empty_body">Twoje rozmowy bezpośrednie będą wyświetlane tutaj. Naciśnij przycisk + żeby rozpocząć nową.</string>
-    <string name="room_list_rooms_empty_body">Twoje pokoje będą wyświetlane tutaj. Naciśnij przycisk + znajdujący się na dole po prawej, aby znaleźć istniejące pokoje bądź utworzyć nowe.</string>
     <string name="malformed_message">Nieprawidłowe zdarzenie, nie można wyświetlić</string>
     <string name="keys_backup_unable_to_get_trust_info">Wystąpił błąd podczas otrzymywania zaufanych informacji</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">Wystąpił błąd podczas uzyskiwania danych kluczy kopii zapasowej</string>

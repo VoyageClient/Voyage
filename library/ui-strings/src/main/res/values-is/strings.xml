@@ -1178,8 +1178,6 @@
     <string name="fab_menu_create_room">Spjallrásir</string>
     <string name="please_wait">Bíddu aðeins…</string>
     <string name="create_new_room">Búa til nýja spjallrás</string>
-    <string name="room_list_rooms_empty_title">Spjallrásir</string>
-    <string name="room_list_people_empty_title">Samtöl</string>
     <string name="global_retry">Reyna aftur</string>
     <string name="reply">Svara</string>
     <string name="edit">Breyta</string>

@@ -354,7 +354,6 @@
     <string name="edit">Ẓreg</string>
     <string name="reply">Err</string>
     <string name="global_retry">Ɛreḍ tikkelt-nniḍen</string>
-    <string name="room_list_rooms_empty_title">Tixxamin</string>
     <string name="action_change">Beddel</string>
     <string name="fab_menu_create_room">Tixxamin</string>
     <string name="fab_menu_create_chat">Iznan usligen</string>
@@ -565,7 +564,6 @@
     <string name="keys_backup_recovery_code_error_decrypt">Aḥraz ue yezmir ara ad yekkes awgelhen s tsarut-a n uɛeddi: ttxil-k·m sefqed ma d tasarut n uɛeddi tameɣtut i teskecmeḍ.</string>
     <string name="keys_backup_banner_recover_line1">Ur ttamdal ara akk iznan iwgelhanen</string>
     <string name="keys_backup_banner_recover_line2">Aḥraz n tsarut n useqdac</string>
-    <string name="room_list_people_empty_title">Idiwenniyen</string>
     <string name="title_activity_emoji_reaction_picker">Tisedmirin</string>
     <string name="reactions">Tisedmirin</string>
     <string name="create_room_public_title">Azayez</string>
@@ -1229,8 +1227,6 @@
     <string name="send_you_invite">Yuzen-ak·am-d tinubga</string>
     <string name="room_list_catchup_empty_title">Tettwafem akken ma tellam!</string>
     <string name="room_list_catchup_empty_body">Ur tesɛiḍ ara iznan-nniḍen ur nettwaɣra ara</string>
-    <string name="room_list_people_empty_body">Idiwenniyen-inek·inem n yizen usrid ad d-ttwaskanen da</string>
-    <string name="room_list_rooms_empty_body">Tixxamin-inek·inem ad d-ttwaskanent da</string>
     <string name="message_add_reaction">Rnu asedmar</string>
     <string name="message_view_reaction">Wali isedmaren</string>
     <string name="event_redacted_by_user_reason">Yettewekkes uneḍru sɣur aseqdac</string>

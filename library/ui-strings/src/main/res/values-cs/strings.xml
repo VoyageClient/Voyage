@@ -893,10 +893,6 @@
     <string name="invited_by">%s Vás pozval</string>
     <string name="room_list_catchup_empty_title">To je všechno!</string>
     <string name="room_list_catchup_empty_body">Nemáte již žádné nepřečtené zprávy</string>
-    <string name="room_list_people_empty_title">Konverzace</string>
-    <string name="room_list_people_empty_body">Tady budou zobrazeny Vaše přímé konverzace. Pro novou zprávu klepněte na + vpravo dole.</string>
-    <string name="room_list_rooms_empty_title">Místnosti</string>
-    <string name="room_list_rooms_empty_body">Tady budou zobrazeny Vaše místnosti. K vyhledání existujících místností nebo založení nové klepněte na + vpravo dole.</string>
     <string name="title_activity_emoji_reaction_picker">Reakce</string>
     <string name="action_agree">Souhlasit</string>
     <string name="message_add_reaction">Přidat reakci</string>

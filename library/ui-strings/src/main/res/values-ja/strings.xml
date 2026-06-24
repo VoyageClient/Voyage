@@ -1237,10 +1237,6 @@
     <string name="message_add_reaction">リアクションを追加</string>
     <string name="action_agree">同意</string>
     <string name="title_activity_emoji_reaction_picker">リアクション</string>
-    <string name="room_list_rooms_empty_body">ルームがここに表示されます。右下の＋をタップすると、既存のルームを検索するか、自分のルームを開始できます。</string>
-    <string name="room_list_people_empty_body">ダイレクトメッセージの会話がここに表示されます。右下の＋をタップして開始します。</string>
-    <string name="room_list_rooms_empty_title">ルーム</string>
-    <string name="room_list_people_empty_title">会話</string>
     <string name="room_list_catchup_empty_body">未読メッセージはありません</string>
     <string name="room_list_catchup_empty_title">未読はありません！</string>
     <string name="sas_incoming_request_notif_content">%sがセッションの認証を要求しています</string>

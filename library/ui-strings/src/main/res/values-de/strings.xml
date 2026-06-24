@@ -820,9 +820,6 @@
     <string name="invited_by">Eingeladen von %s</string>
     <string name="room_list_catchup_empty_title">Du bist auf dem neuesten Stand!</string>
     <string name="room_list_catchup_empty_body">Du hast keine weiteren, ungelesenen Nachrichten</string>
-    <string name="room_list_people_empty_title">Unterhaltungen</string>
-    <string name="room_list_rooms_empty_title">Räume</string>
-    <string name="room_list_rooms_empty_body">Deine Räume werden hier angezeigt. Drück auf das + unten rechts, um bestehende zu durchstöbern oder neue zu eröffnen.</string>
     <string name="title_activity_emoji_reaction_picker">Reaktionen</string>
     <string name="action_agree">Zustimmen</string>
     <string name="message_add_reaction">Reaktion hinzufügen</string>
@@ -845,7 +842,6 @@
     <string name="settings_integration_manager">Integrationsmanager</string>
     <string name="key_share_request">Schlüsselaustausch anfragen</string>
     <string name="keys_backup_setup_override_backup_prompt_description">Es sieht so aus, als hättest du bereits ein Setup-Schlüssel-Backup von einer anderen Sitzung. Möchtest du es durch das, was du gerade erstellt hast, ersetzen\?</string>
-    <string name="room_list_people_empty_body">Deine direkten Konversationen werden hier angezeigt. Drück auf das + unten rechts, um eine zu beginnen.</string>
     <string name="malformed_message">Fehlerhaftes Ereignis, kann nicht angezeigt werden</string>
     <string name="keys_backup_unable_to_get_trust_info">Beim Abrufen der Vertrauensinformationen ist ein Fehler aufgetreten</string>
     <string name="keys_backup_unable_to_get_keys_backup_data">Beim Abrufen der Schlüsselsicherungsdaten ist ein Fehler aufgetreten</string>

@@ -757,8 +757,6 @@
     <string name="global_retry">重试</string>
     <string name="send_you_invite">向你发送邀请</string>
     <string name="invited_by">由 %s 邀请</string>
-    <string name="room_list_people_empty_title">对话</string>
-    <string name="room_list_rooms_empty_title">房间</string>
     <string name="title_activity_emoji_reaction_picker">回应</string>
     <string name="action_agree">同意</string>
     <string name="message_add_reaction">添加回应</string>
@@ -887,8 +885,6 @@
     <string name="error_user_already_logged_in">你似乎正在试图连接到另一个家服务器。你想要登出吗？</string>
     <string name="room_list_catchup_empty_title">你已经跟上了！</string>
     <string name="room_list_catchup_empty_body">你没有未读消息</string>
-    <string name="room_list_people_empty_body">你的私聊消息将显示在此处。点击右下角的 + 开始一些对话。</string>
-    <string name="room_list_rooms_empty_body">你的房间将显示在此处。点击右下角的 + 来找到现有的房间或者创建你自己的房间。</string>
     <string name="event_redacted_by_admin_reason">事件被房间管理员删除</string>
     <string name="malformed_message">格式错误事件，无法显示</string>
     <string name="error_no_network">无网络。请检查你的网络连接。</string>

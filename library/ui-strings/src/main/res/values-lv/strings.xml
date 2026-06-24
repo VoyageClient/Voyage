@@ -645,8 +645,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="room_preview_no_preview">Šo istabu nevar priekšskatīt</string>
     <string name="reactions">Reakcijas</string>
     <string name="title_activity_emoji_reaction_picker">Reakcijas</string>
-    <string name="room_list_rooms_empty_title">Istabas</string>
-    <string name="room_list_people_empty_title">Sarunas</string>
     <string name="reply">Atbildēt</string>
     <string name="edit">Labot</string>
     <string name="sas_got_it">Sapratu</string>
@@ -1079,7 +1077,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
 \n%s</string>
     <string name="create_room_public_description">Jebkurš varēs pievienoties istabai</string>
     <string name="create_new_room">Izveidot jaunu istabu</string>
-    <string name="room_list_rooms_empty_body">Šeit tiks attēlotas istabas. Jāpiesit + apakšējā labajā stūrī, lai atrastu esošas vai izveidotu kādu jaunu.</string>
     <string name="global_retry">Atkārtot</string>
     <string name="identity_server_not_defined">Tu neizmanto nevienu identitāšu serveri</string>
     <string name="keys_backup_recovery_code_error_decrypt">Rezerves kopiju nevarēja atšifrēt ar šo atkopšanās atslēgu: lūgums pārliecināties, ka ir ievadīta pareizā atkopšanas atslēga.</string>
@@ -1200,7 +1197,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="message_view_reaction">Apskatīt reakcijas</string>
     <string name="message_add_reaction">Pievienot reakciju</string>
     <string name="action_agree">Piekrist</string>
-    <string name="room_list_people_empty_body">Šeit tiks attēlotas tiešās saziņas sarunas. Jāpiesit + apakšējā labajā stūrī, lai uzsāktu sarunu.</string>
     <string name="room_list_catchup_empty_title">Viss panākts!</string>
     <string name="invited_by">%s uzaicināja</string>
     <string name="sas_error_unknown">Nezināma Kļūda</string>

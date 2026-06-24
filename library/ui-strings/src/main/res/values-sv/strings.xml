@@ -376,8 +376,6 @@
 \nMeddelandesynlighet I Matrix är likt e-post. Att vi glömmer dina meddelanden betyder att meddelanden du har skickat inte kommer delas med nya eller oregistrerade användare, men registrerade användare som redan har tillgång till dessa meddelanden kommer fortfarande ha tillgång till deras exemplar.</string>
     <string name="room_list_catchup_empty_title">Du är ikapp!</string>
     <string name="room_list_catchup_empty_body">Du har inga olästa meddelanden kvar</string>
-    <string name="room_list_rooms_empty_title">Rum</string>
-    <string name="room_list_rooms_empty_body">Dina rum kommer att visas här. Tryck på + nere till höger för att hitta existerande eller starta några egna.</string>
     <string name="create_new_room">Skapa ett nytt rum</string>
     <string name="fab_menu_create_room">Rum</string>
     <string name="fab_menu_create_chat">Direktmeddelanden</string>
@@ -717,7 +715,6 @@
     <string name="keys_backup_settings_delete_confirm_message">Radera dina säkerhetskopierade krypteringsnycklar från servern\? Du kommer inte längre kunna använda din återställningsnyckel för att läsa krypterad meddelandehistorik.</string>
     <string name="secure_backup_banner_setup_line2">Skydda dig mot att tappa åtkomst till krypterade meddelanden och data</string>
     <string name="keys_backup_banner_update_line1">Nya säkra meddelandenycklar</string>
-    <string name="room_list_people_empty_body">Dina direktmeddelandekonversationer kommer att visas här. Tryck på + nere till höger för att starta några.</string>
     <string name="import_e2e_keys_from_file">Importera krypteringsnycklar från filen \"%1$s\".</string>
     <string name="send_file_step_encrypting_file">Krypterar fil…</string>
     <string name="send_file_step_sending_file">Skickar fil (%1$s / %2$s)</string>
@@ -1224,7 +1221,6 @@
     <string name="global_retry">Försök igen</string>
     <string name="send_you_invite">Skickade en inbjudan till dig</string>
     <string name="invited_by">Inbjuden av %s</string>
-    <string name="room_list_people_empty_title">Konversationer</string>
     <string name="title_activity_emoji_reaction_picker">Reaktioner</string>
     <string name="action_agree">Acceptera</string>
     <string name="message_add_reaction">Lägg till reaktion</string>

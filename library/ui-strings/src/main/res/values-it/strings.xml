@@ -817,10 +817,6 @@
     <string name="send_you_invite">Ti ha inviato un invito</string>
     <string name="invited_by">Invitato/a da %s</string>
     <string name="room_list_catchup_empty_body">Non hai più messaggi non letti</string>
-    <string name="room_list_people_empty_title">Conversazioni</string>
-    <string name="room_list_people_empty_body">Le tue conversazioni dirette verranno mostrate qui. Tocca il pulsante + in basso a destra per iniziarne qualcuna.</string>
-    <string name="room_list_rooms_empty_title">Stanze</string>
-    <string name="room_list_rooms_empty_body">Le tue stanze verranno mostrate qui. Tocca il pulsante + in basso a destra per trovare quelle esistenti o crearne di nuove.</string>
     <string name="title_activity_emoji_reaction_picker">Reazioni</string>
     <string name="action_agree">D\'accordo</string>
     <string name="message_add_reaction">Aggiungi reazione</string>

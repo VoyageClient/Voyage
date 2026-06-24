@@ -600,7 +600,6 @@
     <string name="room_settings_room_notifications_notify_me">Gửi thông báo tới tôi cho</string>
     <string name="room_settings_topic">Chủ đề</string>
     <string name="spaces">Không gian</string>
-    <string name="room_list_rooms_empty_body">Phòng chat của bạn được hiển thị ở đây. Bạn có thể tạo mới phòng chat hoặc tham gia các phòng cộng đồng hiện có.</string>
     <string name="login_server_title">Chọn một máy chủ</string>
     <string name="login_splash_submit">Hãy bắt đầu</string>
     <string name="login_splash_text3">Mở rộng và tùy chỉnh trải nghiệm của bạn</string>
@@ -1738,9 +1737,6 @@
     <string name="message_add_reaction">Thêm phản ứng</string>
     <string name="action_agree">Đồng ý</string>
     <string name="title_activity_emoji_reaction_picker">Phản ứng</string>
-    <string name="room_list_rooms_empty_title">Phòng</string>
-    <string name="room_list_people_empty_body">Các cuộc hội thoại tin nhắn trực tiếp của bạn sẽ được hiển thị tại đây. Nhấp vào dấu + dưới cùng bên phải để bắt đầu.</string>
-    <string name="room_list_people_empty_title">Các cuộc hội thoại</string>
     <string name="error_user_already_logged_in">Có vẻ như bạn đang cố gắng kết nối với một homeserver khác. Bạn có muốn đăng xuất không\?</string>
     <string name="identity_server_not_defined">Bạn không sử dụng bất kỳ máy chủ định danh nào</string>
     <string name="sas_error_unknown">Lỗi không xác định</string>

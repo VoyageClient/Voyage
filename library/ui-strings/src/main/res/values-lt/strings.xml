@@ -1490,10 +1490,6 @@
     <string name="room_list_filter_favourites">Parankiniai</string>
     <string name="room_list_filter_unreads">Neperskaityti</string>
     <string name="room_list_filter_all">Visi</string>
-    <string name="room_list_rooms_empty_body">Čia bus rodomi jūsų kambariai. Bakstelėkite \"+\" apačioje dešinėje, kad rastumėte esamus kambarius arba pradėtumėte kurti savo.</string>
-    <string name="room_list_rooms_empty_title">Kambariai</string>
-    <string name="room_list_people_empty_body">Jūsų tiesioginių žinučių pokalbiai bus rodomi čia. Bakstelėkite \"+\" apačioje dešinėje, kad pradėtumėte keletą.</string>
-    <string name="room_list_people_empty_title">Pokalbiai</string>
     <string name="room_list_catchup_empty_body">Neturite daugiau neperskaitytų žinučių</string>
     <string name="room_list_catchup_empty_title">Jūs viską pasivijote!</string>
     <string name="invited_by">Pakvietė %s</string>

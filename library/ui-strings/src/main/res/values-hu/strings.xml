@@ -756,10 +756,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="invited_by">Meghívta: %s</string>
     <string name="room_list_catchup_empty_title">Minden megvan!</string>
     <string name="room_list_catchup_empty_body">Nincs olvasatlan üzeneted</string>
-    <string name="room_list_people_empty_title">Beszélgetések</string>
-    <string name="room_list_people_empty_body">A közvetlen beszélgetéseidet itt láthatod. Koppints a + -ra jobbra lent, hogy indíts egyet.</string>
-    <string name="room_list_rooms_empty_title">Szobák</string>
-    <string name="room_list_rooms_empty_body">A szobáidat itt láthatod. Koppints a + -ra jobbra lent a meglévők kereséséhez vagy egy saját indításához.</string>
     <string name="title_activity_emoji_reaction_picker">Reakciók</string>
     <string name="action_agree">Egyetértek</string>
     <string name="message_add_reaction">Reakció hozzáadása</string>

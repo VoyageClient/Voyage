@@ -668,10 +668,6 @@
     <string name="message_view_reaction">ເບິ່ງການໂຕ້ຕອບ</string>
     <string name="message_add_reaction">ເພີ່ມປະຕິກິລິຍາ</string>
     <string name="title_activity_emoji_reaction_picker">ປະຕິກິລິຍາ</string>
-    <string name="room_list_rooms_empty_body">ຫ້ອງຂອງທ່ານຈະຖືກສະແດງຢູ່ທີ່ນີ້. ແຕະ + ຂວາລຸ່ມເພື່ອຊອກຫາອັນທີ່ມີຢູ່ແລ້ວ ຫຼື ເລີ່ມຕົ້ນໂດຍທ່ານເອງ.</string>
-    <string name="room_list_rooms_empty_title">ຫ້ອງ</string>
-    <string name="room_list_people_empty_body">ການສົນທະນາທາງຂໍ້ຄວາມໂດຍກົງຂອງທ່ານຈະຖືກສະແດງຢູ່ທີ່ນີ້. ແຕະ + ຂວາລຸ່ມເພື່ອເລີ່ມຕົ້ນ.</string>
-    <string name="room_list_people_empty_title">ການສົນທະນາ</string>
     <string name="settings_send_message_with_enter_summary">ປຸ່ມEnter ຂອງແປ້ນພິມຈະສົ່ງຂໍ້ຄວາມແທນການເພີ່ມຕົວແບ່ງແຖວ</string>
     <string name="settings_send_message_with_enter">ສົ່ງຂໍ້ຄວາມດ້ວຍການກົດ enter</string>
     <string name="settings_preview_media_before_sending">ເບິ່ງຕົວຢ່າງສື່ກ່ອນສົ່ງ</string>

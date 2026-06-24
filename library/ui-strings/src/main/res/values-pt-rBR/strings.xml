@@ -918,10 +918,6 @@
     <string name="invited_by">Convidada(o) por %s</string>
     <string name="room_list_catchup_empty_title">Você está em dia!</string>
     <string name="room_list_catchup_empty_body">Você não tem mais nenhuma mensagem não-lida</string>
-    <string name="room_list_people_empty_title">Conversas</string>
-    <string name="room_list_people_empty_body">Suas conversas de mensagem direta vão ser exibidas aqui. Toque no + à direita fundo para começar algumas.</string>
-    <string name="room_list_rooms_empty_title">Salas</string>
-    <string name="room_list_rooms_empty_body">Suas salas vão ser exibidas aqui. Toque no + à direita fundo para encontrar umas existentes ou começar algumas propriamente suas.</string>
     <string name="title_activity_emoji_reaction_picker">Reações</string>
     <string name="action_agree">Concordo</string>
     <string name="message_add_reaction">Adicionar Reação</string>

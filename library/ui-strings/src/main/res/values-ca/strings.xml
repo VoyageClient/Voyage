@@ -822,10 +822,6 @@
     <string name="invited_by">Convidat per %s</string>
     <string name="room_list_catchup_empty_title">Estàs al dia!</string>
     <string name="room_list_catchup_empty_body">No tens més missatges sense llegir</string>
-    <string name="room_list_people_empty_title">Xats</string>
-    <string name="room_list_people_empty_body">Els teus xats directes es mostraran aquí. Clica el + de la part inferior dreta per crear-ne algun.</string>
-    <string name="room_list_rooms_empty_title">Sales</string>
-    <string name="room_list_rooms_empty_body">Les teves sales es mostraran aquí. Clica el + de la part inferior dreta per buscar-ne d\'existents o per crear-ne una.</string>
     <string name="title_activity_emoji_reaction_picker">Reaccions</string>
     <string name="action_agree">Confirmar</string>
     <string name="message_add_reaction">Afegir reacció</string>

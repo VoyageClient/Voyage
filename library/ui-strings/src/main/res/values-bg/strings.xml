@@ -778,10 +778,6 @@
     <string name="invited_by">Покана от %s</string>
     <string name="room_list_catchup_empty_title">Наваксали сте с всичко!</string>
     <string name="room_list_catchup_empty_body">Няма повече непрочетени съобщения</string>
-    <string name="room_list_people_empty_title">Кореспонденции</string>
-    <string name="room_list_people_empty_body">Вашите директни кореспонденции се показват тук</string>
-    <string name="room_list_rooms_empty_title">Стаи</string>
-    <string name="room_list_rooms_empty_body">Вашите стаи се показват тук</string>
     <string name="title_activity_emoji_reaction_picker">Реакции</string>
     <string name="action_agree">Съгласен съм</string>
     <string name="message_add_reaction">Добави реакция</string>

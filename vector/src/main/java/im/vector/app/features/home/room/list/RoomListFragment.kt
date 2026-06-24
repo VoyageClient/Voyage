@@ -498,21 +498,10 @@ class RoomListFragment :
                             message = getString(CommonStrings.room_list_catchup_empty_body)
                     )
                 }
-                RoomListDisplayMode.PEOPLE ->
-                    StateView.State.Empty(
-                            title = getString(CommonStrings.room_list_people_empty_title),
-                            image = ContextCompat.getDrawable(requireContext(), R.drawable.empty_state_dm),
-                            isBigImage = true,
-                            message = getString(CommonStrings.room_list_people_empty_body)
-                    )
+                RoomListDisplayMode.PEOPLE,
                 RoomListDisplayMode.ROOMS,
                 RoomListDisplayMode.ALL ->
-                    StateView.State.Empty(
-                            title = getString(CommonStrings.room_list_rooms_empty_title),
-                            image = ContextCompat.getDrawable(requireContext(), R.drawable.empty_state_room),
-                            isBigImage = true,
-                            message = getString(CommonStrings.room_list_rooms_empty_body)
-                    )
+                    StateView.State.Empty()
                 RoomListDisplayMode.FILTERED ->
                     // Always display the content in this mode, because if the footer
                     StateView.State.Content

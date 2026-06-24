@@ -445,7 +445,6 @@
     <string name="navigate_to_room_when_already_in_the_room">Jo binne dizze keamer al oan it besjen!</string>
     <string name="message_view_reaction">Reaksjes besjen</string>
     <string name="message_add_reaction">Reaksje tafoegje</string>
-    <string name="room_list_rooms_empty_title">Keamers</string>
     <string name="invited_by">Utnûge troch %s</string>
     <string name="send_you_invite">Hat jo in útnûging stjoerd</string>
     <string name="global_retry">Opnij probearje</string>

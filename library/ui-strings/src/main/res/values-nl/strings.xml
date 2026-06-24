@@ -730,10 +730,6 @@
     <string name="invited_by">Uitgenodigd door %s</string>
     <string name="room_list_catchup_empty_title">Je bent helemaal bij!</string>
     <string name="room_list_catchup_empty_body">Je hebt geen ongelezen berichten meer</string>
-    <string name="room_list_people_empty_title">Gesprekken</string>
-    <string name="room_list_people_empty_body">Jouw directe gesprekken zullen hier worden weergegeven. Gebruik de + knop rechts onder om een gesprek te starten.</string>
-    <string name="room_list_rooms_empty_title">Kamers</string>
-    <string name="room_list_rooms_empty_body">Jouw kamers zullen hier worden weergegeven. Gebruik de + knop rechtsonder om een bestaande kamer te openen of een nieuwe aan te maken.</string>
     <string name="title_activity_emoji_reaction_picker">Reacties</string>
     <string name="action_agree">Bevestigen</string>
     <string name="message_add_reaction">Reactie Toevoegen</string>

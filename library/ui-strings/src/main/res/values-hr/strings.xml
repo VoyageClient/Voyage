@@ -457,10 +457,6 @@
     <string name="invited_by">Pozvan/a od %s</string>
     <string name="room_list_catchup_empty_title">Sve ste pročitali!</string>
     <string name="room_list_catchup_empty_body">Više nemate nepročitanih poruka</string>
-    <string name="room_list_people_empty_title">Razgovori</string>
-    <string name="room_list_people_empty_body">Poruke Vaših izravnih razgovora ovdje će biti prikazane</string>
-    <string name="room_list_rooms_empty_title">Sobe</string>
-    <string name="room_list_rooms_empty_body">Ovdje će biti prikazane Vaše sobe</string>
     <string name="title_activity_emoji_reaction_picker">Reakcije</string>
     <string name="action_agree">Složi se</string>
     <string name="message_add_reaction">Dodaj reakciju</string>

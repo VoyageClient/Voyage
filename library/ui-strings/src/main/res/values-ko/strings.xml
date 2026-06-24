@@ -648,10 +648,6 @@
     <string name="invited_by">%s 님이 초대했습니다</string>
     <string name="room_list_catchup_empty_title">모두 읽었습니다!</string>
     <string name="room_list_catchup_empty_body">더 이상 읽지 않은 메시지가 없습니다</string>
-    <string name="room_list_people_empty_title">대화</string>
-    <string name="room_list_people_empty_body">다이렉트 메시지 대화가 여기에 표시됩니다.</string>
-    <string name="room_list_rooms_empty_title">방</string>
-    <string name="room_list_rooms_empty_body">방이 여기 표시됩니다.</string>
     <string name="title_activity_emoji_reaction_picker">리액션</string>
     <string name="action_agree">동의</string>
     <string name="message_add_reaction">리액션 추가</string>

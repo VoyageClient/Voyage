@@ -923,10 +923,6 @@
     <string name="navigate_to_room_when_already_in_the_room">أنت تستعرض هذه الغرفة سلفًا!</string>
     <string name="error_no_network">منفصل عن الشبكة. تحقق من اتصالك.</string>
     <string name="event_redacted_by_admin_reason">حدث تم تغيره من مدير الغرفة.</string>
-    <string name="room_list_rooms_empty_body">ستعرض غرفك هنا. لانضمام لغرفة أو لإنشاء واحدة اضغط زر +.</string>
-    <string name="room_list_people_empty_body">ستعرض رسائلك المباشرة هنا. لبدأ محادثات جديدة اضغط زر +.</string>
-    <string name="room_list_people_empty_title">المحادثات</string>
-    <string name="room_list_rooms_empty_title">الغُرف</string>
     <string name="room_list_catchup_empty_body">جميع الريائل مقروءة</string>
     <string name="invited_by">دعاه %s</string>
     <string name="send_you_invite">أرسلَ لك طلبًا</string>

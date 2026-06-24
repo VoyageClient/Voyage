@@ -858,10 +858,6 @@
     <string name="invited_by">Приглашен %s</string>
     <string name="room_list_catchup_empty_title">Вы в теме!</string>
     <string name="room_list_catchup_empty_body">У вас больше нет непрочитанных сообщений</string>
-    <string name="room_list_people_empty_title">Беседы</string>
-    <string name="room_list_people_empty_body">Здесь будут отображаться ваши личные сообщения. Нажмите «+» в правом нижнем углу, чтобы начать беседу.</string>
-    <string name="room_list_rooms_empty_title">Комнаты</string>
-    <string name="room_list_rooms_empty_body">Здесь будут отображаться ваши комнаты. Нажмите + в правом нижнем углу, чтобы найти существующие комнаты или создать свою.</string>
     <string name="title_activity_emoji_reaction_picker">Реакции</string>
     <string name="action_agree">Принять</string>
     <string name="message_add_reaction">Отреагировать</string>

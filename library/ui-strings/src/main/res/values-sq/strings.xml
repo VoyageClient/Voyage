@@ -815,10 +815,6 @@
     <string name="invited_by">Ftuar nga %s</string>
     <string name="room_list_catchup_empty_title">S’keni më!</string>
     <string name="room_list_catchup_empty_body">S’keni më mesazhe të palexuar</string>
-    <string name="room_list_people_empty_title">Biseda</string>
-    <string name="room_list_people_empty_body">Biseda përmes mesazhesh të drejtpërdrejta do të shfaqen këtu. Prekni + poshtë djathtas, që të nisni një të tillë.</string>
-    <string name="room_list_rooms_empty_title">Dhoma</string>
-    <string name="room_list_rooms_empty_body">Dhomat tuaja do të shfaqen këtu. Prekni + poshtë djathtas që të gjeni të tilla ekzistuese ose që të nisni një tuajën.</string>
     <string name="title_activity_emoji_reaction_picker">Reagime</string>
     <string name="action_agree">Pajtohem</string>
     <string name="message_add_reaction">Shtoni Reagim</string>
