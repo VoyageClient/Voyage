@@ -1400,8 +1400,8 @@ class MessageComposerViewModel @AssistedInject constructor(
         return result
     }
 
-    // Programmatic commands target a user, so each mention pill resolves to its matrix id; everything
-    // else keeps the pill spans so display commands can render them as proper mention links.
+    // Programmatic commands target a user or room, so each mention pill resolves to its matrix id;
+    // everything else keeps the pill spans so display commands can render them as proper mention links.
     private fun resolveComposerMentions(text: CharSequence): CharSequence {
         return if (commandParser.getCommand(text) in mentionIdCommands) {
             mapPillSegments(text, onText = { it }, onPill = { id, _ -> id })
@@ -1457,6 +1457,12 @@ class MessageComposerViewModel @AssistedInject constructor(
             Command.INVITE,
             Command.CREATE_SPACE,
             Command.WHOIS,
+            Command.JOIN_ROOM,
+            Command.PART,
+            Command.LEAVE_ROOM,
+            Command.TOMBSTONE,
+            Command.ADD_TO_SPACE,
+            Command.JOIN_SPACE,
     )
 
     /**
