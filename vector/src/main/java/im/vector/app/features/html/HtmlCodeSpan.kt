@@ -40,8 +40,13 @@ class HtmlCodeSpan(private val theme: MarkwonTheme, var isBlock: Boolean) : Metr
         }
     }
 
+    // No leading margin: for inline code this would reserve theme.codeBlockMargin on every wrapped
+    // line (Android sums the margins of all leading-margin spans on a line, so several inline-code
+    // runs wrap the text extremely early); for block code it would shift the running margin that
+    // Android feeds to other spans on the line, offsetting an enclosing blockquote's stripe. The
+    // background is drawn regardless in drawLeadingMargin.
     override fun getLeadingMargin(first: Boolean): Int {
-        return theme.codeBlockMargin
+        return 0
     }
 
     override fun drawLeadingMargin(

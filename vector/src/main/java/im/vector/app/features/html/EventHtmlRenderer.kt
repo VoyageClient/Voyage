@@ -57,6 +57,7 @@ import io.noties.markwon.inlineparser.HtmlInlineProcessor
 import io.noties.markwon.inlineparser.MarkwonInlineParser
 import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin
 import me.gujun.android.span.style.CustomTypefaceSpan
+import org.commonmark.node.BlockQuote
 import org.commonmark.node.Emphasis
 import org.commonmark.node.Node
 import org.commonmark.parser.Parser
@@ -164,6 +165,19 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
+    // Indent blockquotes to line up with the reply preview bar (8dp text margin, 2dp stripe) rather
+    // than Markwon's wider default. Overrides the shared BlockQuote span factory, which both the
+    // HTML <blockquote> handler and the markdown blockquote node resolve, leaving theme.blockMargin
+    // (used by lists) alone.
+    private val blockQuotePlugin = object : AbstractMarkwonPlugin() {
+        override fun configureSpansFactory(builder: MarkwonSpansFactory.Builder) {
+            val density = context.resources.displayMetrics.density
+            val stripeWidth = (4 * density).toInt()
+            val margin = (8 * density).toInt()
+            builder.setFactory(BlockQuote::class.java) { _, _ -> QuoteMarginSpan(stripeWidth, margin) }
+        }
+    }
+
     private val cleanUpIntermediateCodePlugin = object : AbstractMarkwonPlugin() {
         override fun afterSetText(textView: TextView) {
             super.afterSetText(textView)
@@ -217,6 +231,7 @@ class EventHtmlRenderer @Inject constructor(
             .usePlugin(removeLeadingNewlineForInlineElement)
             .usePlugin(glidePlugin)
             .usePlugin(codeThemePlugin)
+            .usePlugin(blockQuotePlugin)
             .apply {
                 if (vectorPreferences.latexMathsIsEnabled()) {
                     // If latex maths is enabled in app preferences, reformat it so Markwon recognises it
