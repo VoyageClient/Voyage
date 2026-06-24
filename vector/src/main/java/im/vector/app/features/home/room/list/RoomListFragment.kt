@@ -162,7 +162,13 @@ class RoomListFragment :
     }
 
     private fun refreshCollapseStates() {
-        val sectionsCount = adapterInfosList.count { !it.sectionHeaderAdapter.roomsSectionData.isHidden }
+        // A still-loading section may yet become visible, so count it as present when deciding
+        // collapsability. Otherwise every section reads as hidden during load, is deemed
+        // non-collapsable, and is force-expanded — flashing the saved-collapsed sections open
+        // until their data streams in.
+        val sectionsCount = adapterInfosList.count {
+            !it.sectionHeaderAdapter.roomsSectionData.isHidden || it.sectionHeaderAdapter.roomsSectionData.isLoading
+        }
         roomListViewModel.sections.forEachIndexed { index, roomsSection ->
             val actualBlock = adapterInfosList[index]
             val isRoomSectionCollapsable = sectionsCount > 1
