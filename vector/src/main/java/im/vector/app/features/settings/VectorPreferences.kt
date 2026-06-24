@@ -109,6 +109,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_INTERFACE_LANGUAGE_PREFERENCE_KEY = "SETTINGS_INTERFACE_LANGUAGE_PREFERENCE_KEY"
         const val SETTINGS_INTERFACE_TEXT_SIZE_KEY = "SETTINGS_INTERFACE_TEXT_SIZE_KEY"
         const val SETTINGS_INTERFACE_BUBBLE_KEY = "SETTINGS_INTERFACE_BUBBLE_KEY"
+        const val SETTINGS_OVERRIDE_DM_DISPLAY_KEY = "SETTINGS_OVERRIDE_DM_DISPLAY_KEY"
         const val SETTINGS_SHOW_URL_PREVIEW_KEY = "SETTINGS_SHOW_URL_PREVIEW_KEY"
         private const val SETTINGS_SEND_READ_RECEIPT_KEY = "SETTINGS_SEND_READ_RECEIPT_KEY"
         private const val SETTINGS_SEND_TYPING_NOTIF_KEY = "SETTINGS_SEND_TYPING_NOTIF_KEY"
@@ -975,6 +976,14 @@ class VectorPreferences @Inject constructor(
         // Any bubble style (Element or SchildiChat) implies bubble media sizing.
         return defaultPrefs.getString(im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_KEY, im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE) !=
                 im.vector.app.features.themes.BubbleThemeUtils.BUBBLE_STYLE_NONE
+    }
+
+    /**
+     * Tells if direct rooms with no explicit name/avatar should be rendered using the display name
+     * and avatar of the user the room is a DM with.
+     */
+    fun overrideDirectChatDisplay(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_OVERRIDE_DM_DISPLAY_KEY, true)
     }
 
     /**

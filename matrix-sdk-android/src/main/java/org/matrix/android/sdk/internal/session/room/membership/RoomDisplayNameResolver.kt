@@ -76,6 +76,16 @@ internal class RoomDisplayNameResolver @Inject constructor(
             return name.toRoomName()
         }
 
+        if (roomDisplayNameFallbackProvider.shouldOverrideDirectChatDisplay()) {
+            val directUserId = RoomSummaryEntity.where(realm, roomId).findFirst()?.directUserId
+            if (!directUserId.isNullOrBlank()) {
+                val roomMembers = RoomMemberHelper(realm, roomId)
+                val directName = roomMembers.getLastRoomMember(directUserId)
+                        ?.let { resolveRoomMemberName(it, roomMembers) }
+                return (directName?.takeIf { it.isNotBlank() } ?: directUserId).toRoomName()
+            }
+        }
+
         val roomMembers = RoomMemberHelper(realm, roomId)
         val activeMembers = roomMembers.queryActiveRoomMembersEvent().findAll()
 

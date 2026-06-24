@@ -29,6 +29,13 @@ interface RoomDisplayNameFallbackProvider {
      * Return the list of user ids to ignore when computing the room display name.
      */
     fun excludedUserIds(roomId: String): List<String>
+
+    /**
+     * When true, a direct room with no explicit name/avatar is rendered using the display name and
+     * avatar of the user the room is a DM with (as recorded in m.direct), even for group DMs.
+     */
+    fun shouldOverrideDirectChatDisplay(): Boolean = false
+
     fun getNameForRoomInvite(): String
     fun getNameForEmptyRoom(isDirect: Boolean, leftMemberNames: List<String>): String
     fun getNameFor1member(name: String): String

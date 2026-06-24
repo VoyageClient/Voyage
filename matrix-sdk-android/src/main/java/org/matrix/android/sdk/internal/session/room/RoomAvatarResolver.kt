@@ -55,6 +55,14 @@ internal class RoomAvatarResolver @Inject constructor(
         if (!roomAvatarUrl.isNullOrEmpty()) {
             return roomAvatarUrl
         }
+
+        if (roomDisplayNameFallbackProvider.shouldOverrideDirectChatDisplay()) {
+            val directUserId = RoomSummaryEntity.where(realm, roomId).findFirst()?.directUserId
+            if (!directUserId.isNullOrBlank()) {
+                return RoomMemberHelper(realm, roomId).getLastRoomMember(directUserId)?.avatarUrl
+            }
+        }
+
         // detect if it is a room with no more than 2 members (i.e. an alone or a 1:1 chat)
         val isDirectRoom = RoomSummaryEntity.where(realm, roomId).findFirst()?.isDirect.orFalse()
 

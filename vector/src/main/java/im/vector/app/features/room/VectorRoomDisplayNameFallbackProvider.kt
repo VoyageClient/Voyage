@@ -10,6 +10,7 @@ package im.vector.app.features.room
 import android.content.Context
 import im.vector.app.config.Config
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.provider.RoomDisplayNameFallbackProvider
@@ -20,7 +21,12 @@ import javax.inject.Provider
 class VectorRoomDisplayNameFallbackProvider @Inject constructor(
         private val context: Context,
         private val activeSessionHolder: Provider<ActiveSessionHolder>,
+        private val vectorPreferences: Provider<VectorPreferences>,
 ) : RoomDisplayNameFallbackProvider {
+
+    override fun shouldOverrideDirectChatDisplay(): Boolean {
+        return vectorPreferences.get().overrideDirectChatDisplay()
+    }
 
     override fun excludedUserIds(roomId: String): List<String> {
         if (!Config.SUPPORT_FUNCTIONAL_MEMBERS) return emptyList()
