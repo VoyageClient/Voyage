@@ -188,6 +188,35 @@ class CreateRoomController @Inject constructor(
                 switchChecked(viewState.disableFederation)
                 listener { value -> host.listener?.setDisableFederation(value) }
             }
+
+            buildRoomVersion(viewState, enableFormElement)
+
+            if (viewState.canOverrideOwnPowerLevel) {
+                buildProfileAction(
+                        id = "powerLevel",
+                        title = stringProvider.getString(CommonStrings.create_room_power_level_title),
+                        subtitle = viewState.myPowerLevelOverride?.toString(),
+                        divider = false,
+                        editable = true,
+                        action = { if (enableFormElement) host.listener?.selectMyPowerLevel() }
+                )
+            }
+
+            if (viewState.isDeveloperMode) {
+                buildProfileAction(
+                        id = "initialState",
+                        title = stringProvider.getString(CommonStrings.create_room_initial_state_title),
+                        subtitle = if (viewState.initialStateJsonInvalid) {
+                            stringProvider.getString(CommonStrings.create_room_initial_state_invalid)
+                        } else {
+                            viewState.initialStateJson.takeIf { it.isNotBlank() }
+                        },
+                        destructive = viewState.initialStateJsonInvalid,
+                        divider = false,
+                        editable = true,
+                        action = { if (enableFormElement) host.listener?.editInitialState() }
+                )
+            }
         }
         formSubmitButtonItem {
             id("submit")
@@ -195,6 +224,20 @@ class CreateRoomController @Inject constructor(
             buttonTitleId(CommonStrings.create_room_action_create)
             buttonClickListener { host.listener?.submit() }
         }
+    }
+
+    private fun buildRoomVersion(viewState: CreateRoomViewState, enableFormElement: Boolean) {
+        val host = this
+        if (viewState.availableRoomVersions.size < 2) return
+
+        buildProfileAction(
+                id = "roomVersion",
+                title = stringProvider.getString(CommonStrings.create_room_version_title),
+                subtitle = viewState.roomVersion ?: viewState.defaultRoomVersion,
+                divider = false,
+                editable = true,
+                action = { if (enableFormElement) host.listener?.selectRoomVersion() }
+        )
     }
 
     interface Listener {
@@ -207,6 +250,9 @@ class CreateRoomController @Inject constructor(
         fun setIsEncrypted(isEncrypted: Boolean)
         fun toggleShowAdvanced()
         fun setDisableFederation(disableFederation: Boolean)
+        fun selectRoomVersion()
+        fun selectMyPowerLevel()
+        fun editInitialState()
         fun submit()
     }
 }

@@ -21,6 +21,9 @@ sealed class CreateRoomAction : VectorViewModelAction {
 
     object ToggleShowAdvanced : CreateRoomAction()
     data class DisableFederation(val disableFederation: Boolean) : CreateRoomAction()
+    data class SetRoomVersion(val version: String) : CreateRoomAction()
+    data class SetMyPowerLevel(val powerLevel: Int?) : CreateRoomAction()
+    data class SetInitialStateJson(val json: String) : CreateRoomAction()
 
     object Create : CreateRoomAction()
     object Reset : CreateRoomAction()

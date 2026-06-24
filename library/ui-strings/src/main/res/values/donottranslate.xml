@@ -239,4 +239,13 @@
 
     <string name="notice_room_update" translatable="false">%s tombstoned this room.</string>
     <string name="notice_room_update_by_you" translatable="false">You tombstoned this room.</string>
+
+    <string name="create_room_version_title" translatable="false">Room version</string>
+    <string name="create_room_power_level_title" translatable="false">My power level</string>
+    <string name="create_room_power_level_hint" translatable="false">Power level (e.g. 100)</string>
+    <string name="create_room_power_level_summary" translatable="false">Override your own power level in the new room. Leave empty for the default.</string>
+    <string name="create_room_initial_state_title" translatable="false">Override initial state</string>
+    <string name="create_room_initial_state_hint" translatable="false">[{"type": "…", "state_key": "", "content": {…}}]</string>
+    <string name="create_room_initial_state_summary" translatable="false">Arbitrary state events sent on room creation. Takes precedence over preset, overridden by name and topic.</string>
+    <string name="create_room_initial_state_invalid" translatable="false">Invalid JSON: expected an array of state events.</string>
 </resources>

@@ -10,6 +10,8 @@ package im.vector.app.features.roomdirectory.createroom
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.InputType
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,8 +28,10 @@ import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
+import im.vector.app.R
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.databinding.FragmentCreateRoomBinding
 import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.navigation.Navigator
@@ -195,6 +199,60 @@ class CreateRoomFragment :
 
     override fun setDisableFederation(disableFederation: Boolean) {
         viewModel.handle(CreateRoomAction.DisableFederation(disableFederation))
+    }
+
+    override fun selectRoomVersion() {
+        withState(viewModel) { state ->
+            val versions = state.availableRoomVersions
+            val checked = versions.indexOf(state.roomVersion ?: state.defaultRoomVersion).coerceAtLeast(0)
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(CommonStrings.create_room_version_title)
+                    .setSingleChoiceItems(versions.toTypedArray(), checked) { dialog, which ->
+                        viewModel.handle(CreateRoomAction.SetRoomVersion(versions[which]))
+                        dialog.dismiss()
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
+    }
+
+    override fun selectMyPowerLevel() {
+        withState(viewModel) { state ->
+            val layout = layoutInflater.inflate(R.layout.dialog_base_edit_text, null)
+            val views = DialogBaseEditTextBinding.bind(layout)
+            views.editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED
+            views.editText.hint = getString(CommonStrings.create_room_power_level_hint)
+            views.editText.setText(state.myPowerLevelOverride?.toString().orEmpty())
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(CommonStrings.create_room_power_level_title)
+                    .setView(layout)
+                    .setPositiveButton(CommonStrings.ok) { _, _ ->
+                        viewModel.handle(CreateRoomAction.SetMyPowerLevel(views.editText.text?.toString()?.trim()?.toIntOrNull()))
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
+    }
+
+    override fun editInitialState() {
+        withState(viewModel) { state ->
+            val layout = layoutInflater.inflate(R.layout.dialog_base_edit_text, null)
+            val views = DialogBaseEditTextBinding.bind(layout)
+            views.editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            views.editText.gravity = Gravity.TOP or Gravity.START
+            views.editText.setLines(10)
+            views.editText.isVerticalScrollBarEnabled = true
+            views.editText.hint = getString(CommonStrings.create_room_initial_state_hint)
+            views.editText.setText(state.initialStateJson)
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(CommonStrings.create_room_initial_state_title)
+                    .setView(layout)
+                    .setPositiveButton(CommonStrings.ok) { _, _ ->
+                        viewModel.handle(CreateRoomAction.SetInitialStateJson(views.editText.text?.toString().orEmpty()))
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
     }
 
     override fun submit() {

@@ -20,10 +20,12 @@ import im.vector.app.SpaceStateHandler
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
+import com.squareup.moshi.Types
 import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.plan.CreatedRoom
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
+import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
@@ -32,6 +34,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasError
 import org.matrix.android.sdk.api.session.room.failure.CreateRoomFailure
@@ -42,7 +45,9 @@ import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesAllowEntry
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
+import org.matrix.android.sdk.api.session.room.model.create.CreateRoomStateEvent
 import org.matrix.android.sdk.api.session.room.model.create.RestrictedRoomPreset
+import org.matrix.android.sdk.api.util.MatrixJsonParser
 import timber.log.Timber
 
 class CreateRoomViewModel @AssistedInject constructor(
@@ -50,6 +55,7 @@ class CreateRoomViewModel @AssistedInject constructor(
         private val session: Session,
         private val rawService: RawService,
         spaceStateHandler: SpaceStateHandler,
+        private val vectorPreferences: VectorPreferences,
         private val analyticsTracker: AnalyticsTracker
 ) : VectorViewModel<CreateRoomViewState, CreateRoomAction, CreateRoomViewEvents>(initialState) {
 
@@ -76,12 +82,27 @@ class CreateRoomViewModel @AssistedInject constructor(
             RoomJoinRules.INVITE
         }
 
+        val roomVersions = session.homeServerCapabilitiesService().getHomeServerCapabilities().roomVersions
+        val defaultRoomVersion = roomVersions?.defaultRoomVersion
+        // Offer every integer version from 1 up to the highest the server supports; never offer a newer one.
+        val maxVersion = roomVersions?.supportedVersion.orEmpty()
+                .mapNotNull { it.version.toIntOrNull() }
+                .plusElement(defaultRoomVersion?.toIntOrNull() ?: 0)
+                .maxOrNull()
+                ?.coerceAtLeast(1)
+                ?: 1
+        val availableRoomVersions = (1..maxVersion).map { it.toString() }
+
         setState {
             copy(
                     parentSpaceId = parentSpaceId,
                     supportsRestricted = createRestricted,
                     roomJoinRules = defaultJoinRules,
-                    parentSpaceSummary = parentSpaceId?.let { session.getRoomSummary(it) }
+                    parentSpaceSummary = parentSpaceId?.let { session.getRoomSummary(it) },
+                    defaultRoomVersion = defaultRoomVersion,
+                    roomVersion = defaultRoomVersion,
+                    availableRoomVersions = availableRoomVersions,
+                    isDeveloperMode = vectorPreferences.developerMode()
             )
         }
     }
@@ -130,6 +151,15 @@ class CreateRoomViewModel @AssistedInject constructor(
             CreateRoomAction.Reset -> doReset()
             CreateRoomAction.ToggleShowAdvanced -> toggleShowAdvanced()
             is CreateRoomAction.DisableFederation -> disableFederation(action)
+            is CreateRoomAction.SetRoomVersion -> setState {
+                val newState = copy(roomVersion = action.version)
+                // Drop any self power level override if the new version no longer allows it (v12+ immutable creators)
+                if (newState.canOverrideOwnPowerLevel) newState else newState.copy(myPowerLevelOverride = null)
+            }
+            is CreateRoomAction.SetMyPowerLevel -> setState { copy(myPowerLevelOverride = action.powerLevel) }
+            is CreateRoomAction.SetInitialStateJson -> setState {
+                copy(initialStateJson = action.json, initialStateJsonInvalid = false)
+            }
         }
     }
 
@@ -141,10 +171,15 @@ class CreateRoomViewModel @AssistedInject constructor(
 
     private fun toggleShowAdvanced() {
         setState {
+            val hiding = showAdvanced
             copy(
                     showAdvanced = !showAdvanced,
-                    // Reset to false if advanced is hidden
-                    disableFederation = disableFederation && !showAdvanced
+                    // Reset advanced options when the section is hidden
+                    disableFederation = disableFederation && !hiding,
+                    roomVersion = if (hiding) defaultRoomVersion else roomVersion,
+                    myPowerLevelOverride = if (hiding) null else myPowerLevelOverride,
+                    initialStateJson = if (hiding) "" else initialStateJson,
+                    initialStateJsonInvalid = false
             )
         }
     }
@@ -226,6 +261,15 @@ class CreateRoomViewModel @AssistedInject constructor(
             return@withState
         }
 
+        val customInitialStates = if (state.isDeveloperMode && state.initialStateJson.isNotBlank()) {
+            parseInitialStateJson(state.initialStateJson) ?: run {
+                setState { copy(initialStateJsonInvalid = true) }
+                return@withState
+            }
+        } else {
+            emptyList()
+        }
+
         setState {
             copy(asyncCreateRoomRequest = Loading())
         }
@@ -286,6 +330,32 @@ class CreateRoomViewModel @AssistedInject constructor(
                     if (shouldEncrypt) {
                         enableEncryption()
                     }
+
+                    // Advanced: room version
+                    state.roomVersion?.takeIf { it != state.defaultRoomVersion }?.let {
+                        roomVersion = it
+                    }
+
+                    // Advanced (developer): arbitrary initial state events.
+                    // If the user also set their own power level, merge it into a power_levels event present in the
+                    // custom initial state (our value wins), otherwise apply it via powerLevelContentOverride.
+                    val myLevel = state.myPowerLevelOverride?.takeIf { state.canOverrideOwnPowerLevel }
+                    val hasCustomPowerLevels = customInitialStates.any { it.type == EventType.STATE_ROOM_POWER_LEVELS }
+
+                    if (myLevel != null && !hasCustomPowerLevels) {
+                        powerLevelContentOverride = (powerLevelContentOverride ?: PowerLevelsContent())
+                                .setUserPowerLevel(session.myUserId, myLevel)
+                    }
+
+                    if (customInitialStates.isNotEmpty()) {
+                        initialStates.addAll(
+                                if (myLevel != null && hasCustomPowerLevels) {
+                                    customInitialStates.map { it.withMyPowerLevelMerged(session.myUserId, myLevel) }
+                                } else {
+                                    customInitialStates
+                                }
+                        )
+                    }
                 }
 
         // TODO Should this be non-cancellable?
@@ -315,6 +385,20 @@ class CreateRoomViewModel @AssistedInject constructor(
                         _viewEvents.post(CreateRoomViewEvents.Failure(failure))
                     }
             )
+        }
+    }
+
+    private fun CreateRoomStateEvent.withMyPowerLevelMerged(userId: String, level: Int): CreateRoomStateEvent {
+        if (type != EventType.STATE_ROOM_POWER_LEVELS) return this
+        @Suppress("UNCHECKED_CAST")
+        val users = (content["users"] as? Map<String, Any>).orEmpty().toMutableMap().apply { put(userId, level) }
+        return copy(content = content.toMutableMap().apply { put("users", users) })
+    }
+
+    private fun parseInitialStateJson(json: String): List<CreateRoomStateEvent>? {
+        return tryOrNull {
+            val type = Types.newParameterizedType(List::class.java, CreateRoomStateEvent::class.java)
+            MatrixJsonParser.getMoshi().adapter<List<CreateRoomStateEvent>>(type).fromJson(json)
         }
     }
 }
