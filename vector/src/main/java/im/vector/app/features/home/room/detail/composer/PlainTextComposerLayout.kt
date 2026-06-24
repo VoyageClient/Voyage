@@ -45,6 +45,7 @@ import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.PillsPostProcessor
+import im.vector.app.features.html.expandPillSpans
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
@@ -171,7 +172,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
 
         views.sendButton.setOnClickListener {
-            val textMessage = text?.toSpannable() ?: ""
+            val textMessage = text?.toSpannable()?.expandPillSpans() ?: ""
             callback?.onSendMessage(textMessage)
         }
 

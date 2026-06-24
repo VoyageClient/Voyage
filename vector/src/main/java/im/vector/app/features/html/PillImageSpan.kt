@@ -18,6 +18,7 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.text.Editable
 import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.TextPaint
 import android.text.TextUtils
@@ -219,6 +220,26 @@ fun Spannable.setPillSpan(span: PillImageSpan, start: Int, end: Int) {
     } else {
         setSpan(span, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
+}
+
+// Inverse of setPillSpan's collapse: restore each pill's display name under its span so the sent
+// body carries real text (e.g. "@room") instead of the bare placeholder char, while keeping the
+// span in place so user mentions are still turned into permalinks on send.
+fun CharSequence.expandPillSpans(): CharSequence {
+    if (this !is Spanned) return this
+    val spans = getSpans(0, length, PillImageSpan::class.java)
+    if (spans.isEmpty()) return this
+    val builder = SpannableStringBuilder(this)
+    spans.sortedByDescending { builder.getSpanStart(it) }.forEach { span ->
+        val start = builder.getSpanStart(span)
+        val end = builder.getSpanEnd(span)
+        if (start in 0 until end) {
+            val name = span.matrixItem.getBestName()
+            builder.replace(start, end, name)
+            builder.setSpan(span, start, start + name.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+    }
+    return builder
 }
 
 /**

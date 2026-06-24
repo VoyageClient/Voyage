@@ -1458,7 +1458,7 @@ class MessageComposerViewModel @AssistedInject constructor(
      * `<font color="#789922">…</font>` block (lines joined with `<br />`). Non-`>` lines pass
      * through verbatim. Every original newline becomes a `<br />` so blank lines survive.
      * Plain body is the user-typed text unchanged. Returns null when off, when there are no `>`
-     * lines, or when the rich-text editor already provided HTML.
+     * lines, or when a formatted body was already supplied.
      */
     private fun maybeBuildGreentextRuns(text: CharSequence, formattedText: String?): Pair<String, String>? {
         if (!vectorPreferences.renderBlockquotesAsGreentext()) return null
