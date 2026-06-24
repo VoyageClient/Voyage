@@ -50,6 +50,20 @@
             android:title="@string/settings_sc_bubble_appearance"
             app:fragment="im.vector.app.features.settings.VectorSettingsBubbleAppearanceFragment" />
 
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="circle"
+            android:entries="@array/avatar_shape_entries"
+            android:entryValues="@array/avatar_shape_values"
+            android:key="SETTINGS_AVATAR_SHAPE_KEY"
+            android:title="@string/settings_avatar_shape_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_UGLIER_USERNAME_COLORS_KEY"
+            android:summary="@string/settings_uglier_username_colors_summary"
+            android:title="@string/settings_uglier_username_colors_title" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
@@ -152,12 +166,6 @@
             android:key="SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY"
             android:summary="@string/settings_timeline_disable_table_wrap_summary"
             android:title="@string/settings_timeline_disable_table_wrap" />
-
-        <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="false"
-            android:key="SETTINGS_UGLIER_USERNAME_COLORS_KEY"
-            android:summary="@string/settings_uglier_username_colors_summary"
-            android:title="@string/settings_uglier_username_colors_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_12_24_TIMESTAMPS_KEY"

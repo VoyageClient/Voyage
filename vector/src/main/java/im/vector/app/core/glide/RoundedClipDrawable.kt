@@ -27,12 +27,13 @@ import android.graphics.drawable.Drawable
  * Masking is done with an anti-aliased [PorterDuff.Mode.DST_IN] pass inside a layer, so the edges
  * stay smooth on KitKat too.
  *
- * @param cornerRadiusPx corner radius; ignored when [oval] is true.
+ * @param cornerPercent corner radius as a fraction of the shorter side, so the rounding looks the
+ *   same at any avatar size; ignored when [oval] is true.
  * @param oval when true the content is clipped to an oval/circle filling the bounds.
  */
 class RoundedClipDrawable(
         private val wrapped: Drawable,
-        private val cornerRadiusPx: Float,
+        private val cornerPercent: Float,
         private val oval: Boolean,
 ) : Drawable(), Drawable.Callback, Animatable {
 
@@ -52,7 +53,8 @@ class RoundedClipDrawable(
         if (oval) {
             maskPath.addOval(rectF, Path.Direction.CW)
         } else {
-            maskPath.addRoundRect(rectF, cornerRadiusPx, cornerRadiusPx, Path.Direction.CW)
+            val radius = minOf(rectF.width(), rectF.height()) * cornerPercent
+            maskPath.addRoundRect(rectF, radius, radius, Path.Direction.CW)
         }
         maskDirty = false
     }

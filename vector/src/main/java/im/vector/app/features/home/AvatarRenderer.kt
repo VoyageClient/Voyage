@@ -22,7 +22,6 @@ import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.target.Target
@@ -34,10 +33,12 @@ import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
+import im.vector.app.core.glide.RoundedCornersPercent
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import jp.wasabeef.glide.transformations.BlurTransformation
@@ -62,6 +63,9 @@ class AvatarRenderer @Inject constructor(
 
     companion object {
         private const val THUMBNAIL_SIZE = 250
+        // Rounded-square corner radius as a fraction of the avatar's shorter side, so the rounding
+        // looks the same whether the avatar is a tiny read receipt or a large profile header.
+        private const val ROUNDED_CORNER_PERCENT = 0.20f
     }
 
     @UiThread
@@ -74,13 +78,25 @@ class AvatarRenderer @Inject constructor(
         )
     }
 
-    // Clips avatars to a circle (or rounded square for spaces) for animated drawables / placeholders
-    // too — a cross-version replacement for clipToOutline (API 21+). Static images are already shaped
-    // by Glide's CircleCrop/RoundedCorners transforms and pass through untouched.
+    // Clips avatars to the configured shape (circle / rounded square / square) for animated drawables
+    // and placeholders too — a cross-version replacement for clipToOutline (API 21+). Static images are
+    // already shaped by the Glide transforms below and pass through untouched.
     private fun avatarTarget(imageView: ImageView, matrixItem: MatrixItem): DrawableImageViewTarget {
-        val isSpace = matrixItem is MatrixItem.SpaceItem
-        val cornerPx = if (isSpace) dimensionConverter.dpToPx(8).toFloat() else 0f
-        return ClippedDrawableImageViewTarget(imageView, cornerPx, oval = !isSpace)
+        val oval = shapeFor(matrixItem) == AvatarShape.CIRCLE
+        return ClippedDrawableImageViewTarget(imageView, cornerPercent(matrixItem), oval = oval)
+    }
+
+    // Spaces always render as rounded squares, regardless of the avatar-shape setting.
+    private fun shapeFor(matrixItem: MatrixItem): AvatarShape =
+            if (matrixItem is MatrixItem.SpaceItem) AvatarShape.ROUNDED else vectorPreferences.avatarShape()
+
+    private fun cornerPercent(matrixItem: MatrixItem): Float =
+            if (shapeFor(matrixItem) == AvatarShape.ROUNDED) ROUNDED_CORNER_PERCENT else 0f
+
+    private fun avatarTransform(matrixItem: MatrixItem): Transformation<Bitmap> = when (shapeFor(matrixItem)) {
+        AvatarShape.CIRCLE -> CircleCrop()
+        AvatarShape.ROUNDED -> MultiTransformation(CenterCrop(), RoundedCornersPercent(ROUNDED_CORNER_PERCENT))
+        AvatarShape.SQUARE -> CenterCrop()
     }
 
 //    fun renderSpace(matrixItem: MatrixItem, imageView: ImageView) {
@@ -123,7 +139,7 @@ class AvatarRenderer @Inject constructor(
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(localUri?.let { File(localUri.path!!) })
-                .apply(RequestOptions.circleCropTransform())
+                .transform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
                 .into(avatarTarget(imageView, matrixItem))
     }
@@ -140,7 +156,7 @@ class AvatarRenderer @Inject constructor(
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(mappedContact.photoURI)
-                .apply(RequestOptions.circleCropTransform())
+                .transform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
                 .into(avatarTarget(imageView, matrixItem))
     }
@@ -157,7 +173,7 @@ class AvatarRenderer @Inject constructor(
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(profileInfo.fullAvatarUrl)
-                .apply(RequestOptions.circleCropTransform())
+                .transform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
                 .into(avatarTarget(imageView, matrixItem))
     }
@@ -170,16 +186,7 @@ class AvatarRenderer @Inject constructor(
     ) {
         val placeholder = getPlaceholderDrawable(matrixItem)
         glideRequests.loadResolvedUrl(matrixItem.avatarUrl)
-                .let {
-                    when (matrixItem) {
-                        is MatrixItem.SpaceItem -> {
-                            it.transform(MultiTransformation(CenterCrop(), RoundedCorners(dimensionConverter.dpToPx(8))))
-                        }
-                        else -> {
-                            it.apply(RequestOptions.circleCropTransform())
-                        }
-                    }
-                }
+                .transform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
                 .into(target)
     }
@@ -271,7 +278,7 @@ class AvatarRenderer @Inject constructor(
     fun getCachedDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem): Drawable {
         return glideRequests.loadResolvedUrl(matrixItem.avatarUrl)
                 .onlyRetrieveFromCache(true)
-                .apply(RequestOptions.circleCropTransform())
+                .transform(avatarTransform(matrixItem))
                 .submit()
                 .get()
     }
@@ -279,18 +286,17 @@ class AvatarRenderer @Inject constructor(
     @AnyThread
     fun getPlaceholderDrawable(matrixItem: MatrixItem): Drawable {
         val avatarColor = matrixItemColorProvider.getColor(matrixItem)
+        val letter = matrixItem.firstLetterOfDisplayName()
+        // Self-shape the letter avatar (proportional corners) so it matches photo avatars at any size.
         return TextDrawable.builder()
                 .beginConfig()
                 .bold()
                 .endConfig()
                 .let {
-                    when (matrixItem) {
-                        is MatrixItem.SpaceItem -> {
-                            it.buildRoundRect(matrixItem.firstLetterOfDisplayName(), avatarColor, dimensionConverter.dpToPx(8))
-                        }
-                        else -> {
-                            it.buildRound(matrixItem.firstLetterOfDisplayName(), avatarColor)
-                        }
+                    when (shapeFor(matrixItem)) {
+                        AvatarShape.CIRCLE -> it.buildRound(letter, avatarColor)
+                        AvatarShape.ROUNDED -> it.buildRoundRectPercent(letter, avatarColor, ROUNDED_CORNER_PERCENT)
+                        AvatarShape.SQUARE -> it.buildRect(letter, avatarColor)
                     }
                 }
     }

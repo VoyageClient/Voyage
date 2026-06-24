@@ -120,6 +120,14 @@ class VectorSettingsPreferencesFragment :
             }
         }
 
+        findPreference<VectorListPreference>(VectorPreferences.SETTINGS_AVATAR_SHAPE_KEY)!!.let { pref ->
+            pref.setOnPreferenceChangeListener { _, _ ->
+                // Restart so every already-bound avatar picks up the new shape.
+                MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = false))
+                true
+            }
+        }
+
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PREF_SPACE_SHOW_ALL_ROOM_IN_HOME)!!.let { pref ->
             pref.isChecked = vectorPreferences.prefSpacesShowAllRoomInHome()
             pref.setOnPreferenceChangeListener { _, _ ->

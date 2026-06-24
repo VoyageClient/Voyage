@@ -68,6 +68,18 @@
         <item>#B20120</item>
     </string-array>
 
+    <string-array name="avatar_shape_entries" translatable="false">
+        <item>@string/settings_avatar_shape_circle</item>
+        <item>@string/settings_avatar_shape_rounded</item>
+        <item>@string/settings_avatar_shape_square</item>
+    </string-array>
+
+    <string-array name="avatar_shape_values" translatable="false">
+        <item>circle</item>
+        <item>rounded</item>
+        <item>square</item>
+    </string-array>
+
     <string-array name="sc_bubble_style_entries" translatable="false">
         <item>@string/settings_sc_bubble_style_none</item>
         <item>@string/settings_sc_bubble_style_both</item>

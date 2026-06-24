@@ -28,6 +28,12 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import timber.log.Timber
 import javax.inject.Inject
 
+enum class AvatarShape {
+    CIRCLE,
+    ROUNDED,
+    SQUARE,
+}
+
 class VectorPreferences @Inject constructor(
         private val context: Context,
         private val clock: Clock,
@@ -132,6 +138,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         const val SETTINGS_ANIMATE_ROOM_AVATARS = "SETTINGS_ANIMATE_ROOM_AVATARS"
+        const val SETTINGS_AVATAR_SHAPE_KEY = "SETTINGS_AVATAR_SHAPE_KEY"
         const val SETTINGS_MEDIA_PREVIEW_KEY = "SETTINGS_MEDIA_PREVIEW_KEY"
         const val SETTINGS_MEDIA_PREVIEW_SOLID_KEY = "SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
         const val SETTINGS_HIDE_AVATARS_KEY = "SETTINGS_HIDE_AVATARS_KEY"
@@ -839,6 +846,17 @@ class VectorPreferences @Inject constructor(
      */
     fun animateRoomAvatars(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ANIMATE_ROOM_AVATARS, true)
+    }
+
+    /**
+     * Shape applied to room/user/account avatars. Spaces always stay rounded squares.
+     */
+    fun avatarShape(): AvatarShape {
+        return when (defaultPrefs.getString(SETTINGS_AVATAR_SHAPE_KEY, "circle")) {
+            "rounded" -> AvatarShape.ROUNDED
+            "square" -> AvatarShape.SQUARE
+            else -> AvatarShape.CIRCLE
+        }
     }
 
     /**

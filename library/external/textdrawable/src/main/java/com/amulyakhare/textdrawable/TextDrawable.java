@@ -266,6 +266,12 @@ public class TextDrawable extends ShapeDrawable {
         }
 
         @Override
+        public TextDrawable buildRoundRectPercent(String text, int color, float percent) {
+            this.shape = new PercentRoundRectShape(percent);
+            return build(text, color);
+        }
+
+        @Override
         public TextDrawable buildRound(String text, int color) {
             round();
             return build(text, color);
@@ -318,6 +324,28 @@ public class TextDrawable extends ShapeDrawable {
 
         public TextDrawable buildRoundRect(String text, int color, int radius);
 
+        public TextDrawable buildRoundRectPercent(String text, int color, float percent);
+
         public TextDrawable buildRound(String text, int color);
+    }
+
+    /**
+     * Rounded rectangle whose corner radius is a fraction of the shorter side, so the rounding looks
+     * identical at any drawable size (unlike {@link RoundRectShape}, which takes a fixed pixel radius).
+     */
+    private static class PercentRoundRectShape extends RectShape {
+
+        private final float percent;
+
+        PercentRoundRectShape(float percent) {
+            this.percent = percent;
+        }
+
+        @Override
+        public void draw(Canvas canvas, Paint paint) {
+            RectF r = rect();
+            float radius = Math.min(r.width(), r.height()) * percent;
+            canvas.drawRoundRect(r, radius, radius, paint);
+        }
     }
 }

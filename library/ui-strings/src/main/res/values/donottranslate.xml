@@ -224,6 +224,11 @@
     <string name="settings_animate_room_avatars_title">Animate room avatars</string>
     <string name="settings_animate_room_avatars_summary">Play animated avatars instead of showing a still frame</string>
 
+    <string name="settings_avatar_shape_title" translatable="false">Avatar shape</string>
+    <string name="settings_avatar_shape_circle" translatable="false">Circle</string>
+    <string name="settings_avatar_shape_rounded" translatable="false">Square (Rounded)</string>
+    <string name="settings_avatar_shape_square" translatable="false">Square</string>
+
     <string name="settings_override_dm_display_title" translatable="false">Force display name and avatar for group DMs</string>
     <string name="settings_override_dm_display_summary" translatable="false">When a direct message has several people, show the name and avatar of the contact it is a DM with.</string>
 

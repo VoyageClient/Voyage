@@ -10,6 +10,7 @@ package im.vector.app.core.glide
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
+import com.amulyakhare.textdrawable.TextDrawable
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 
 /**
@@ -23,13 +24,16 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget
  */
 class ClippedDrawableImageViewTarget(
         view: ImageView,
-        private val cornerRadiusPx: Float,
+        private val cornerPercent: Float,
         private val oval: Boolean,
 ) : DrawableImageViewTarget(view) {
 
     private fun clip(drawable: Drawable?): Drawable? = when (drawable) {
-        null, is BitmapDrawable -> drawable
-        else -> RoundedClipDrawable(drawable, cornerRadiusPx, oval)
+        // Already-shaped content passes through untouched: BitmapDrawables are shaped by Glide's
+        // transforms, and TextDrawable placeholders shape themselves. Only animated drawables
+        // (GIF / WebP / APNG) actually need runtime clipping here.
+        null, is BitmapDrawable, is TextDrawable -> drawable
+        else -> RoundedClipDrawable(drawable, cornerPercent, oval)
     }
 
     override fun setResource(resource: Drawable?) = super.setResource(clip(resource))
