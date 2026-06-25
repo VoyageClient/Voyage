@@ -12,6 +12,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.view.updateLayoutParams
 import com.bumptech.glide.load.DataSource
@@ -124,9 +125,22 @@ class ImageContentRenderer @Inject constructor(
             crossFade: Boolean = false,
     ) {
         val size = processSize(data, mode)
-        imageView.updateLayoutParams {
-            width = size.width
-            height = size.height
+        if (data.hasKnownDimensions()) {
+            imageView.adjustViewBounds = false
+            imageView.updateLayoutParams {
+                width = size.width
+                height = size.height
+            }
+        } else {
+            // Unknown dimensions (e.g. a sticker whose info has no w/h): wrap the view to the loaded
+            // image, bounded by the max size, so it isn't letterboxed in a max-size box (gaps around it).
+            imageView.adjustViewBounds = true
+            imageView.maxWidth = data.maxWidth
+            imageView.maxHeight = data.maxHeight
+            imageView.updateLayoutParams {
+                width = ViewGroup.LayoutParams.WRAP_CONTENT
+                height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
         }
         // a11y
         imageView.contentDescription = data.filename
@@ -167,6 +181,16 @@ class ImageContentRenderer @Inject constructor(
         private const val BLURHASH_CROSSFADE_MS = 200L
         private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS)
         private const val REVEAL_CROSSFADE_MS = 220
+
+        private val ALPHA_CAPABLE_MIME_TYPES = setOf("image/png", "image/webp", "image/gif", "image/apng")
+
+        /**
+         * Mode to use for a small *preview* (reply header, message-actions sheet, composer reply). Server
+         * thumbnails can bake transparency onto an opaque background, so for stickers / transparent-capable
+         * images we render the full original (STICKER mode) — a preview is a single image, so this is cheap.
+         */
+        fun previewMode(isSticker: Boolean, mimeType: String?): Mode =
+                if (isSticker || mimeType in ALPHA_CAPABLE_MIME_TYPES) Mode.STICKER else Mode.THUMBNAIL
     }
 
     fun clear(imageView: ImageView) {
@@ -318,6 +342,8 @@ class ImageContentRenderer @Inject constructor(
     private fun resolveUrl(data: Data) =
             (activeSessionHolder.getActiveSession().contentUrlResolver().resolveFullSize(data.url)
                     ?: data.url?.takeIf { localFilesHelper.isLocalFile(data.url) && data.allowNonMxcUrls })
+
+    private fun Data.hasKnownDimensions(): Boolean = (width ?: 0) > 0 && (height ?: 0) > 0
 
     private fun processSize(data: Data, mode: Mode): Size {
         val maxImageWidth = data.maxWidth

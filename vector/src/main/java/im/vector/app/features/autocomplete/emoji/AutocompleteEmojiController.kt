@@ -11,13 +11,14 @@ import android.graphics.Typeface
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.EmojiCompatFontProvider
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.autocomplete.AutocompleteClickListener
-import im.vector.app.features.reactions.data.EmojiItem
 import javax.inject.Inject
 
 class AutocompleteEmojiController @Inject constructor(
-        private val fontProvider: EmojiCompatFontProvider
-) : TypedEpoxyController<List<EmojiItem>>() {
+        private val fontProvider: EmojiCompatFontProvider,
+        private val activeSessionHolder: ActiveSessionHolder,
+) : TypedEpoxyController<List<AutocompleteEmojiData>>() {
 
     var emojiTypeface: Typeface? = fontProvider.typeface
 
@@ -27,21 +28,34 @@ class AutocompleteEmojiController @Inject constructor(
         }
     }
 
-    var listener: AutocompleteClickListener<String>? = null
+    var listener: AutocompleteClickListener<AutocompleteEmojiData>? = null
 
-    override fun buildModels(data: List<EmojiItem>?) {
+    override fun buildModels(data: List<AutocompleteEmojiData>?) {
         if (data.isNullOrEmpty()) {
             return
         }
         val host = this
+        val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
         data
                 .take(MAX)
-                .forEach { emojiItem ->
-                    autocompleteEmojiItem {
-                        id(emojiItem.name)
-                        emojiItem(emojiItem)
-                        emojiTypeFace(host.emojiTypeface)
-                        onClickListener { host.listener?.onItemClick(emojiItem.emoji) }
+                .forEachIndexed { index, item ->
+                    when (item) {
+                        is AutocompleteEmojiData.Emoji -> {
+                            autocompleteEmojiItem {
+                                id("emoji_${item.emojiItem.name}_$index")
+                                emojiItem(item.emojiItem)
+                                emojiTypeFace(host.emojiTypeface)
+                                onClickListener { host.listener?.onItemClick(item) }
+                            }
+                        }
+                        is AutocompleteEmojiData.Emote -> {
+                            autocompleteEmoteItem {
+                                id("emote_${item.image.shortcode}_$index")
+                                image(item.image)
+                                resolvedUrl(contentUrlResolver?.resolveThumbnail(item.image.mxcUrl, 96, 96, org.matrix.android.sdk.api.session.content.ContentUrlResolver.ThumbnailMethod.SCALE))
+                                onClickListener { host.listener?.onItemClick(item) }
+                            }
+                        }
                     }
                 }
 

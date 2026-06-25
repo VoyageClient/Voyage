@@ -95,6 +95,15 @@ object PerfTrace {
         }
     }
 
+    /**
+     * Log a single already-measured duration under the [TAG], for spans that don't fit the begin/end
+     * pattern (e.g. a frame interval observed in a scroll callback). No-op when disabled.
+     */
+    fun report(name: String, elapsedMs: Long) {
+        if (!isEnabled) return
+        Timber.tag(TAG).i("%s %dms", name, elapsedMs)
+    }
+
     @PublishedApi
     internal fun beginSection(name: String) {
         // Trace sections must be <= 127 chars; clamp to keep us within the kernel limit.

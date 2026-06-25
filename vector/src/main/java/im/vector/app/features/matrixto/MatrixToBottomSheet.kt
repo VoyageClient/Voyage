@@ -12,6 +12,7 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import com.airbnb.mvrx.Incomplete
@@ -24,6 +25,7 @@ import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetMatrixToCardBinding
 import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
@@ -86,6 +88,12 @@ class MatrixToBottomSheet :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // android:indeterminateTint is API 21+, so tint the spinner to the accent colour here for API 19.
+        val accent = ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorAccent)
+        views.matrixToCardContentLoading.indeterminateDrawable?.mutate()?.let {
+            DrawableCompat.setTint(it, accent)
+        }
 
         viewModel.observeViewEvents {
             when (it) {

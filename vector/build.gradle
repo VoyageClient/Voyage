@@ -316,10 +316,6 @@ dependencies {
 
     implementation project(":library:external:barcodescanner:zxing")
 
-    // Emoji Keyboard
-    api libs.vanniktech.emojiMaterial
-    api libs.vanniktech.emojiGoogle
-
     implementation project(":library:external:dialpad")
 
     // JWT

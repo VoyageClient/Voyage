@@ -1345,16 +1345,27 @@ class VectorPreferences @Inject constructor(
     }
 
     /**
-     * Emojis shown in the message long-press quick-reaction row. User-entered emojis are
-     * whitespace-separated; falls back to the built-in defaults when unset/blank.
+     * Reactions shown in the message long-press quick-reaction row, in order. Stored whitespace-separated.
+     * A missing key falls back to the built-in defaults; an explicitly-set empty value means the user removed
+     * them all (so the row is hidden) — that's why empty and unset are kept distinct.
      */
     fun getQuickReactions(): List<String> {
-        val configured = defaultPrefs.getString(SETTINGS_QUICK_REACTIONS_KEY, null)
-                ?.trim()
-                ?.split(Regex("\\s+"))
-                ?.filter { it.isNotEmpty() }
-                .orEmpty()
-        return configured.ifEmpty { EmojiDataSource.quickEmojis }
+        val raw = defaultPrefs.getString(SETTINGS_QUICK_REACTIONS_KEY, null)
+                ?: return EmojiDataSource.quickEmojis
+        return raw.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    }
+
+    fun setQuickReactions(reactions: List<String>) {
+        defaultPrefs.edit {
+            putString(SETTINGS_QUICK_REACTIONS_KEY, reactions.joinToString(" "))
+        }
+    }
+
+    /** Forget the user's customisation so [getQuickReactions] returns the built-in defaults again. */
+    fun resetQuickReactions() {
+        defaultPrefs.edit {
+            remove(SETTINGS_QUICK_REACTIONS_KEY)
+        }
     }
 
     fun allowUrlPreviewsInEncryptedRooms(): Boolean {

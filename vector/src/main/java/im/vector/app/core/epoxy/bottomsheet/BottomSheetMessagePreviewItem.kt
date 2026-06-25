@@ -117,10 +117,12 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             holder.imagePreview.setCornerRadii(r, r, r, r)
         }
         data?.let {
+            // Full image for transparent-capable content (server thumbnails can bake in a background).
+            val mode = ImageContentRenderer.previewMode(isSticker = false, mimeType = it.mimeType)
             if (hideMedia) {
-                imageContentRenderer?.renderHidden(it, ImageContentRenderer.Mode.THUMBNAIL, holder.imagePreview, hideMediaSolidColor)
+                imageContentRenderer?.renderHidden(it, mode, holder.imagePreview, hideMediaSolidColor)
             } else {
-                imageContentRenderer?.render(it, ImageContentRenderer.Mode.THUMBNAIL, holder.imagePreview)
+                imageContentRenderer?.render(it, mode, holder.imagePreview)
             }
         }
         holder.imagePreview.isVisible = data != null

@@ -26,10 +26,11 @@ fun View.showOptimizedSnackbar(message: String, anchorView: View? = null) {
     } else {
         // The hosting activity applies window insets as padding to its root and CONSUMES them, so the
         // Snackbar — which attaches to the (un-inset) content view — can't offset itself above the
-        // navigation bar / keyboard and ends up drawn off the bottom edge. Re-apply the bottom inset
-        // (system bars + IME) as the Snackbar's bottom margin ourselves.
+        // navigation bar and ends up drawn off the bottom edge. Re-apply the bottom system-bar inset as the
+        // Snackbar's bottom margin ourselves. The IME inset is deliberately excluded: it lingers (stale)
+        // through the keyboard-close animation, which left the Snackbar floating mid-screen.
         val bottomInset = ViewCompat.getRootWindowInsets(this)
-                ?.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+                ?.getInsets(WindowInsetsCompat.Type.systemBars())
                 ?.bottom
                 ?: 0
         if (bottomInset > 0) {

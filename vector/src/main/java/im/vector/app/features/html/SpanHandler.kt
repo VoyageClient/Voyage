@@ -26,8 +26,7 @@ class SpanHandler(private val colorProvider: ColorProvider) : TagHandler() {
                     tag.start(),
                     tag.end()
             )
-        } else {
-            // default thing?
         }
+        ColorTagHandler.applyColors(visitor, tag)
     }
 }

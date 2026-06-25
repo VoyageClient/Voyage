@@ -40,7 +40,9 @@ import javax.inject.Inject
  * Listens to the database for the insertion of any redaction event.
  * As it will actually delete the content, it should be called last in the list of listener.
  */
-internal class RedactionEventProcessor @Inject constructor() : EventInsertLiveProcessor {
+internal class RedactionEventProcessor @Inject constructor(
+        private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.RoomSummaryUpdater,
+) : EventInsertLiveProcessor {
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {
         return eventType == EventType.REDACTION
@@ -88,6 +90,15 @@ internal class RedactionEventProcessor @Inject constructor() : EventInsertLivePr
                 eventToPrune.decryptionErrorCode = null
 
                 handleTimelineThreadSummaryIfNeeded(realm, eventToPrune, isLocalEcho)
+            }
+            typeToPrune == EventType.REACTION -> {
+                // Reactions are aggregated (the relations processor needs the key to remove the chip), so
+                // we keep their content but still flag them redacted, then refresh the preview right away —
+                // otherwise an undone reaction lingers as the room-list preview until the next message.
+                val unsignedData = EventMapper.map(eventToPrune).unsignedData ?: UnsignedData(null, null)
+                val modified = unsignedData.copy(redactedEvent = redactionEvent)
+                eventToPrune.unsignedData = MoshiProvider.providesMoshi().adapter(UnsignedData::class.java).toJson(modified)
+                roomSummaryUpdater.refreshLatestPreviewableEvent(realm, eventToPrune.roomId)
             }
             else -> {
                 Timber.w("Not pruning event (type $typeToPrune)")

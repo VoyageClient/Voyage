@@ -41,6 +41,7 @@ import im.vector.app.core.utils.OnSnapPositionChangeListener
 import im.vector.app.core.utils.SnapOnScrollListener
 import im.vector.app.core.utils.attachSnapHelperWithListener
 import im.vector.app.databinding.FragmentAttachmentsPreviewBinding
+import im.vector.app.features.media.VectorUCropActivity
 import im.vector.app.features.media.createUCropWithDefaultSettings
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonPlurals
@@ -207,6 +208,7 @@ class AttachmentsPreviewFragment :
         val uri = currentAttachment.queryUri
         createUCropWithDefaultSettings(colorProvider, uri, destinationFile.toUri(), currentAttachment.name)
                 .getIntent(requireContext())
+                .apply { setClass(requireContext(), VectorUCropActivity::class.java) }
                 .let { intent -> uCropActivityResultLauncher.launch(intent) }
     }
 

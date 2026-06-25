@@ -29,6 +29,7 @@ import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.settings.font.FontScaleSettingActivity
+import im.vector.app.features.settings.reactions.QuickReactionsSettingsActivity
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
@@ -256,6 +257,12 @@ class VectorSettingsPreferencesFragment :
 
         textSizePreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             startActivity(Intent(activity, FontScaleSettingActivity::class.java))
+            true
+        }
+
+        findPreference<VectorPreference>(VectorPreferences.SETTINGS_QUICK_REACTIONS_KEY)!!
+                .onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            startActivity(QuickReactionsSettingsActivity.newIntent(requireContext()))
             true
         }
     }

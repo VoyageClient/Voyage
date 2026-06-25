@@ -267,6 +267,9 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".features.media.VectorUCropActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".features.attachments.preview.AttachmentsPreviewActivity"
             android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
         <activity android:name=".features.terms.ReviewTermsActivity" />
@@ -277,6 +280,9 @@
 
         <activity android:name=".features.pin.PinActivity" />
         <activity android:name=".features.analytics.ui.consent.AnalyticsOptInActivity" />
+        <activity android:name=".features.imagepack.edit.ImagePackEditActivity" />
+        <activity android:name=".features.imagepack.edit.ImagePackListActivity" />
+        <activity android:name=".features.settings.reactions.QuickReactionsSettingsActivity" />
         <activity android:name=".features.home.room.detail.search.SearchActivity" />
         <activity android:name=".features.usercode.UserCodeActivity" />
 

@@ -15,6 +15,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvide
 import im.vector.app.features.home.room.detail.timeline.helper.MergedTimelineEventVisibilityStateChangedListener
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
 import im.vector.app.features.home.room.detail.timeline.helper.isRoomConfiguration
+import im.vector.app.features.home.room.detail.timeline.helper.timelineMergeGroupType
 import im.vector.app.features.home.room.detail.timeline.item.BasedMergedItem
 import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationItem
 import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationItem_
@@ -41,7 +42,12 @@ class MergedHeaderItemFactory @Inject constructor(
         private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper
 ) {
 
-    private val mergeableEventTypes = listOf(EventType.STATE_ROOM_MEMBER, EventType.STATE_ROOM_SERVER_ACL)
+    private val mergeableEventTypes = listOf(
+            EventType.STATE_ROOM_MEMBER,
+            EventType.STATE_ROOM_SERVER_ACL,
+            EventType.STATE_ROOM_IMAGE_PACK,
+            EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
+    )
     private val collapsedEventIds = linkedSetOf<Long>()
     private val mergeItemCollapseStates = HashMap<Long, Boolean>()
 
@@ -128,7 +134,7 @@ class MergedHeaderItemFactory @Inject constructor(
             return false
         }
         return event.root.getClearType() in mergeableEventTypes &&
-                (nextEvent?.root?.getClearType() != event.root.getClearType() || addDaySeparator)
+                (nextEvent?.root?.timelineMergeGroupType() != event.root.timelineMergeGroupType() || addDaySeparator)
     }
 
     /**
@@ -287,6 +293,8 @@ class MergedHeaderItemFactory @Inject constructor(
         return when {
             type == EventType.STATE_ROOM_MEMBER -> CommonPlurals.membership_changes
             type == EventType.STATE_ROOM_SERVER_ACL -> CommonPlurals.notice_room_server_acl_changes
+            type == EventType.STATE_ROOM_IMAGE_PACK ||
+                    type == EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> CommonPlurals.image_pack_changes
             event.isRedacted() -> CommonPlurals.room_redacted_messages
             else -> null
         }

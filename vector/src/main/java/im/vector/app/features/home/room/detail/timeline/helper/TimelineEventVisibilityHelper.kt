@@ -119,7 +119,7 @@ class TimelineEventVisibilityHelper @Inject constructor(
                 .let {
                     nextEventsUntil(it, 0, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline, excludeHiddenEvents = true, predicateToStop = object : PredicateToStopSearch {
                         override fun shouldStopSearch(oldEvent: Event, newEvent: Event): Boolean {
-                            return oldEvent.getClearType() != newEvent.getClearType()
+                            return oldEvent.timelineMergeGroupType() != newEvent.timelineMergeGroupType()
                         }
                     })
                 }

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:colorBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <ImageView
+        android:id="@+id/imagePackEditThumb"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter"
+        tools:src="@tools:sample/avatars" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/Widget.Vector.TextView.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textColor="?vctr_content_quaternary"
+                tools:ignore="HardcodedText" />
+
+            <EditText
+                android:id="@+id/imagePackEditShortcode"
+                style="@style/Widget.Vector.TextView.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:hint="@string/image_pack_image_shortcode_hint"
+                android:imeOptions="actionDone"
+                android:inputType="text|textNoSuggestions"
+                android:maxLines="1"
+                android:paddingHorizontal="2dp"
+                android:singleLine="true"
+                android:textColor="?vctr_content_primary"
+                tools:text="shortcode" />
+
+            <TextView
+                style="@style/Widget.Vector.TextView.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textColor="?vctr_content_quaternary"
+                tools:ignore="HardcodedText" />
+
+        </LinearLayout>
+
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/imagePackEditUsageRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:flexWrap="wrap"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+
+            <RadioButton
+                android:id="@+id/imagePackEditEmoticon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:text="@string/image_pack_usage_emoticon" />
+
+            <RadioButton
+                android:id="@+id/imagePackEditSticker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:text="@string/image_pack_usage_sticker" />
+
+            <RadioButton
+                android:id="@+id/imagePackEditBoth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/image_pack_usage_both" />
+
+        </com.google.android.flexbox.FlexboxLayout>
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/imagePackEditDelete"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/image_pack_delete"
+        app:srcCompat="@drawable/ic_close_24dp"
+        app:tint="?vctr_content_secondary"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+</LinearLayout>

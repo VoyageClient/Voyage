@@ -28,6 +28,7 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
+import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.RoomAliasesContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
@@ -88,6 +89,8 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName)
             EventType.STATE_ROOM_POWER_LEVELS -> formatRoomPowerLevels(event, senderName)
             EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
+            EventType.STATE_ROOM_IMAGE_PACK,
+            EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> formatImagePackEvent(event, senderName)
             EventType.CALL_INVITE,
             EventType.CALL_CANDIDATES,
             EventType.CALL_HANGUP,
@@ -214,6 +217,31 @@ class NoticeEventFormatter @Inject constructor(
             else -> sp.getString(CommonStrings.notice_room_pinned_changed, senderName)
         }
     }
+
+    private fun formatImagePackEvent(event: Event, senderName: String?): CharSequence? {
+        val current = event.content.toModel<ImagePackContent>()
+        val previous = event.resolvedPrevContent().toModel<ImagePackContent>()
+        // A fully-cleared `{}` event is a delete; otherwise a pack that had no prior state is a creation, and
+        // anything else (including emptying a pack's images) is an edit. `prev_content` is absent on a new
+        // pack and on local echoes, so `hadImages` already reads false there — which is what we want.
+        val isDeleted = event.content.isNullOrEmpty()
+        val hadImages = !previous?.images.isNullOrEmpty()
+        val name = (current?.pack?.displayName ?: previous?.pack?.displayName)?.takeIf { it.isNotBlank() }
+        val byYou = event.isSentByCurrentUser()
+        val keys = when {
+            isDeleted -> ImagePackNoticeKeys(CommonStrings.notice_image_pack_deleted_by_you, CommonStrings.notice_image_pack_deleted, CommonStrings.notice_image_pack_deleted_named_by_you, CommonStrings.notice_image_pack_deleted_named)
+            !hadImages -> ImagePackNoticeKeys(CommonStrings.notice_image_pack_added_by_you, CommonStrings.notice_image_pack_added, CommonStrings.notice_image_pack_added_named_by_you, CommonStrings.notice_image_pack_added_named)
+            else -> ImagePackNoticeKeys(CommonStrings.notice_image_pack_updated_by_you, CommonStrings.notice_image_pack_updated, CommonStrings.notice_image_pack_updated_named_by_you, CommonStrings.notice_image_pack_updated_named)
+        }
+        return when {
+            name != null && byYou -> sp.getString(keys.namedByYou, name)
+            name != null -> sp.getString(keys.named, senderName, name)
+            byYou -> sp.getString(keys.byYou)
+            else -> sp.getString(keys.other, senderName)
+        }
+    }
+
+    private data class ImagePackNoticeKeys(val byYou: Int, val other: Int, val namedByYou: Int, val named: Int)
 
     private fun formatDebug(event: Event): CharSequence {
         val threadPrefix = if (event.isThread()) "thread" else ""

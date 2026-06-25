@@ -17,6 +17,7 @@ package org.matrix.android.sdk.internal.session.room.send.pills
 
 import android.text.SpannableString
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
+import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.MatrixItem
 import java.util.Collections
@@ -48,33 +49,55 @@ internal class TextPillsUtils @Inject constructor(
     }
 
     private fun transformPills(text: CharSequence, template: String): String? {
-        val spannableString = SpannableString.valueOf(text)
+        val spannableString = SpannableString.valueOf(text) ?: return null
         val pills = spannableString
-                ?.getSpans(0, text.length, MatrixItemSpan::class.java)
-                ?.map { MentionLinkSpec(it, spannableString.getSpanStart(it), spannableString.getSpanEnd(it)) }
+                .getSpans(0, text.length, MatrixItemSpan::class.java)
                 // we use the raw text for @room notification instead of a link
-                ?.filterNot { it.span.matrixItem is MatrixItem.EveryoneInRoomItem }
-                ?.toMutableList()
-                ?.takeIf { it.isNotEmpty() }
-                ?: return null
+                .filterNot { it.matrixItem is MatrixItem.EveryoneInRoomItem }
+                .map {
+                    MentionLinkSpec(
+                            replacement = String.format(template, it.matrixItem.id, it.matrixItem.id),
+                            start = spannableString.getSpanStart(it),
+                            end = spannableString.getSpanEnd(it)
+                    )
+                }
+        val emotes = spannableString
+                .getSpans(0, text.length, MatrixEmoteSpan::class.java)
+                .map {
+                    MentionLinkSpec(
+                            replacement = it.toEmoticonHtml(),
+                            start = spannableString.getSpanStart(it),
+                            end = spannableString.getSpanEnd(it)
+                    )
+                }
+
+        val all = (pills + emotes).toMutableList().takeIf { it.isNotEmpty() } ?: return null
 
         // we need to prune overlaps!
-        pruneOverlaps(pills)
+        pruneOverlaps(all)
 
         return buildString {
             var currIndex = 0
-            pills.forEachIndexed { _, (urlSpan, start, end) ->
-                // We want to replace with the pill with a html link
-                // append text before pill
+            all.forEach { (replacement, start, end) ->
+                // append text before the span, then its replacement (emote img or mention pill)
                 append(text, currIndex, start)
-                // append the pill
-                append(String.format(template, urlSpan.matrixItem.id, urlSpan.matrixItem.id))
+                append(replacement)
                 currIndex = end
             }
-            // append text after the last pill
+            // append text after the last span
             append(text, currIndex, text.length)
         }
     }
+
+    private fun MatrixEmoteSpan.toEmoticonHtml(): String {
+        val label = ":$shortcode:".htmlEscape()
+        return """<img data-mx-emoticon src="${mxcUrl.htmlEscape()}" alt="$label" title="$label" height="32" />"""
+    }
+
+    private fun String.htmlEscape(): String = replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
 
     private fun pruneOverlaps(links: MutableList<MentionLinkSpec>) {
         Collections.sort(links, mentionLinkSpecComparator)

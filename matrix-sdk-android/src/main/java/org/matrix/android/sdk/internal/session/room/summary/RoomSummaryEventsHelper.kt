@@ -35,7 +35,9 @@ internal class RoomSummaryEventsHelper @Inject constructor(
                     .plus(matrixConfiguration.customEventTypesProvider?.customPreviewableEventTypes.orEmpty())
                     .map { EventTypeFilter(eventType = it, stateKey = null) },
             filterUseless = true,
-            filterRedacted = false,
+            // Skip redacted events for the room-list preview so an undone reaction (or a deleted last
+            // message) falls back to the previous real content instead of lingering as the preview.
+            filterRedacted = true,
             filterEdits = true
     )
 

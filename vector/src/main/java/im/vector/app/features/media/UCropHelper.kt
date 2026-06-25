@@ -35,8 +35,10 @@ fun createUCropWithDefaultSettings(
                                 setToolbarWidgetColor(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary))
                                 // Background
                                 setRootViewBackgroundColor(colorProvider.getColorFromAttribute(android.R.attr.colorBackground))
-                                // Status bar color (pb in dark mode, icon of the status bar are dark)
-                                setStatusBarColor(colorProvider.getColor(im.vector.lib.ui.styles.R.color.android_status_bar_background_light))
+                                // Dark status bar, matching what the Vector light/dark themes use, so its white
+                                // icons stay legible (the old fixed light grey looked wrong in dark themes). On
+                                // Android 15 this is ignored anyway; VectorUCropActivity handles it there.
+                                setStatusBarColor(colorProvider.getColor(im.vector.lib.ui.styles.R.color.android_status_bar_background_dark))
                                 setActiveControlsWidgetColor(colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorPrimary))
                                 // Hide the logo (does not work)
                                 setLogoColor(Color.TRANSPARENT)

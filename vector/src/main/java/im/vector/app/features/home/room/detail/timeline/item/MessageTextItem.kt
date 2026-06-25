@@ -94,7 +94,11 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     private val previewUrlViewUpdater = PreviewUrlViewUpdater()
 
-    override fun bind(holder: Holder) {
+    override fun bind(holder: Holder) = im.vector.app.core.utils.PerfTrace.time("timeline.bind.text") {
+        bindInternal(holder)
+    }
+
+    private fun bindInternal(holder: Holder) {
         // Preview URL
         previewUrlViewUpdater.previewUrlView = holder.previewUrlView
         previewUrlViewUpdater.imageContentRenderer = imageContentRenderer
@@ -112,17 +116,19 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             holder.plainMessageView?.isVisible = false
             val container = holder.requireRichBodyContainer()
             container.isVisible = true
-            super.bind(holder)
-            richBodyRendererLocal.render(
-                    container = container,
-                    segments = segments,
-                    postProcessors = htmlPostProcessors ?: emptyArray(),
-                    movementMethod = movementMethod,
-                    onClick = { attributes.itemClickListener?.invoke(it) },
-                    onLongClick = { attributes.itemLongClickListener?.onLongClick(it) ?: false },
-                    noticeStyle = noticeStyle,
-                    replyHeader = richReplyHeader,
-            )
+            im.vector.app.core.utils.PerfTrace.time("bind.text.super") { super.bind(holder) }
+            im.vector.app.core.utils.PerfTrace.time("bind.text.richRender") {
+                richBodyRendererLocal.render(
+                        container = container,
+                        segments = segments,
+                        postProcessors = htmlPostProcessors ?: emptyArray(),
+                        movementMethod = movementMethod,
+                        onClick = { attributes.itemClickListener?.invoke(it) },
+                        onLongClick = { attributes.itemLongClickListener?.onLongClick(it) ?: false },
+                        noticeStyle = noticeStyle,
+                        replyHeader = richReplyHeader,
+                )
+            }
             renderSendState(container, null)
             return
         }
@@ -146,10 +152,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
                 it.bind(messageView)
             }
         }
-        activeMessage.let { charSequence ->
-            markwonPlugins?.forEach { plugin -> plugin.beforeSetText(messageView, charSequence as Spanned) }
+        im.vector.app.core.utils.PerfTrace.time("bind.text.beforeText") {
+            activeMessage.let { charSequence ->
+                markwonPlugins?.forEach { plugin -> plugin.beforeSetText(messageView, charSequence as Spanned) }
+            }
         }
-        super.bind(holder)
+        im.vector.app.core.utils.PerfTrace.time("bind.text.super") { super.bind(holder) }
         messageView.movementMethod = movementMethod
         renderSendState(messageView, messageView)
         if (showBlocked) {
@@ -168,8 +176,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             im.vector.lib.ui.styles.R.attr.vctr_content_primary
         }
         messageView.setTextColor(resolveThemeColor(messageView, defaultColorAttr))
-        messageView.setTextWithEmojiSupport(activeMessage, activeOptions)
-        markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
+        im.vector.app.core.utils.PerfTrace.time("bind.text.setText") {
+            messageView.setTextWithEmojiSupport(activeMessage, activeOptions)
+        }
+        im.vector.app.core.utils.PerfTrace.time("bind.text.afterText") {
+            markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
+        }
     }
 
     private fun resolveThemeColor(view: View, attrRes: Int): Int {

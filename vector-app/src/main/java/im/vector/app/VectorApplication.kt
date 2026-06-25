@@ -34,8 +34,6 @@ import com.airbnb.mvrx.Mavericks
 import com.facebook.stetho.Stetho
 import com.gabrielittner.threetenbp.LazyThreeTen
 import com.github.rubensousa.gravitysnaphelper.GravitySnapHelper
-import com.vanniktech.emoji.EmojiManager
-import com.vanniktech.emoji.google.GoogleEmojiProvider
 import dagger.hilt.android.HiltAndroidApp
 import im.vector.app.config.Config
 import im.vector.app.core.debug.LeakDetector
@@ -194,7 +192,6 @@ class VectorApplication :
                 },
                 ContextCompat.RECEIVER_NOT_EXPORTED,
         )
-        EmojiManager.install(GoogleEmojiProvider())
 
         // Initialize MapLibre before inflating mapViews. Its native lib is API 21+; on KitKat maps
         // are never shown (locations render as a text notice), so skip init to avoid loading it.

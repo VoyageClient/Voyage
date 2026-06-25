@@ -50,6 +50,13 @@ import io.noties.markwon.core.spans.StrongEmphasisSpan
 import io.noties.markwon.ext.latex.JLatexMathPlugin
 import io.noties.markwon.ext.latex.JLatexMathTheme
 import io.noties.markwon.html.HtmlPlugin
+import io.noties.markwon.html.tag.EmphasisHandler
+import io.noties.markwon.html.tag.HeadingHandler
+import io.noties.markwon.html.tag.StrikeHandler
+import io.noties.markwon.html.tag.StrongEmphasisHandler
+import io.noties.markwon.html.tag.SubScriptHandler
+import io.noties.markwon.html.tag.SuperScriptHandler
+import io.noties.markwon.html.tag.UnderlineHandler
 import io.noties.markwon.image.AsyncDrawable
 import io.noties.markwon.image.glide.GlideImagesPlugin
 import io.noties.markwon.inlineparser.EntityInlineProcessor
@@ -178,6 +185,15 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
+    // Bind every custom-emoticon span to the TextView after the text is set, so each starts loading its
+    // image and invalidates the view when ready (the span already reserves its size, so no relayout).
+    private val emoticonBinderPlugin = object : AbstractMarkwonPlugin() {
+        override fun afterSetText(textView: TextView) {
+            val text = textView.text as? Spanned ?: return
+            text.getSpans(0, text.length, EmoteImageSpan::class.java).forEach { it.bind(textView) }
+        }
+    }
+
     private val cleanUpIntermediateCodePlugin = object : AbstractMarkwonPlugin() {
         override fun afterSetText(textView: TextView) {
             super.afterSetText(textView)
@@ -198,8 +214,9 @@ class EventHtmlRenderer @Inject constructor(
         override fun afterSetText(textView: TextView) {
             super.afterSetText(textView)
 
-            val text = SpannableStringBuilder(textView.text.toSpannable())
-            val length = textView.length()
+            // Runs on every bind, so only allocate/rewrite when a span actually starts on a newline.
+            val current = textView.text as? Spanned ?: return
+            val length = current.length
             val spans = arrayOf(
                     EmphasisSpan::class.java,
                     CustomTypefaceSpan::class.java,
@@ -207,16 +224,15 @@ class EventHtmlRenderer @Inject constructor(
                     UnderlineSpan::class.java,
                     URLSpan::class.java,
                     StrikethroughSpan::class.java
-            ).map { text.getSpans(0, length, it) }
-                    .toTypedArray()
-                    .plus(text.getSpans(0, length, HtmlCodeSpan::class.java).filter { !it.isBlock }.toTypedArray())
-                    .flatten()
+            ).flatMap { current.getSpans(0, length, it).asList() }
+                    .plus(current.getSpans(0, length, HtmlCodeSpan::class.java).filter { !it.isBlock })
 
-            if (spans.isEmpty()) return
+            if (spans.none { val start = current.getSpanStart(it); start in 0 until length && current[start] == '\n' }) return
 
+            val text = SpannableStringBuilder(current)
             spans.forEach { span ->
                 val start = text.getSpanStart(span)
-                if (text[start] == '\n') {
+                if (start in 0 until text.length && text[start] == '\n') {
                     text.replace(start, start + 1, "")
                 }
             }
@@ -241,6 +257,7 @@ class EventHtmlRenderer @Inject constructor(
             }
             .usePlugin(markwonInlineParserPlugin)
             .usePlugin(italicPlugin)
+            .usePlugin(emoticonBinderPlugin)
             .usePlugin(cleanUpIntermediateCodePlugin)
             .textSetter(PrecomputedFutureTextSetterCompat.create())
             .build()
@@ -278,7 +295,7 @@ class EventHtmlRenderer @Inject constructor(
     }
 
     fun parse(text: String): Node = synchronized(renderLock) {
-        markwon.parse(text)
+        im.vector.app.core.utils.PerfTrace.time("html.markwonParse") { markwon.parse(text) }
     }
 
     /**
@@ -310,9 +327,11 @@ class EventHtmlRenderer @Inject constructor(
 
     private fun renderAndProcess(node: Node, postProcessors: Array<out PostProcessor>): CharSequence = synchronized(renderLock) {
         // Editable so post-processors can collapse pill backing text to a placeholder (see setPillSpan).
-        val renderedText = SpannableStringBuilder(markwon.render(node))
-        postProcessors.forEach {
-            it.afterRender(renderedText)
+        val renderedText = im.vector.app.core.utils.PerfTrace.time("html.markwonRender") { SpannableStringBuilder(markwon.render(node)) }
+        im.vector.app.core.utils.PerfTrace.time("html.postProcess") {
+            postProcessors.forEach {
+                it.afterRender(renderedText)
+            }
         }
         renderedText
     }
@@ -321,6 +340,7 @@ class EventHtmlRenderer @Inject constructor(
 class MatrixHtmlPluginConfigure @Inject constructor(
         private val colorProvider: ColorProvider,
         private val resources: Resources,
+        private val activeSessionHolder: ActiveSessionHolder,
 ) : HtmlPlugin.HtmlConfigure {
 
     override fun configureHtml(plugin: HtmlPlugin) {
@@ -332,6 +352,15 @@ class MatrixHtmlPluginConfigure @Inject constructor(
                 .addHandler(CodePostProcessorTagHandler())
                 .addHandler(CodePreTagHandler())
                 .addHandler(CodeTagHandler())
+                .addHandler(MxEmoticonTagHandler(activeSessionHolder))
                 .addHandler(SpanHandler(colorProvider))
+                // Layer colour over each default handler so it works on any element, not just <font>.
+                .addHandler(ColorTagHandler(StrongEmphasisHandler()))
+                .addHandler(ColorTagHandler(EmphasisHandler()))
+                .addHandler(ColorTagHandler(UnderlineHandler()))
+                .addHandler(ColorTagHandler(StrikeHandler()))
+                .addHandler(ColorTagHandler(SuperScriptHandler()))
+                .addHandler(ColorTagHandler(SubScriptHandler()))
+                .addHandler(ColorTagHandler(HeadingHandler()))
     }
 }

@@ -28,6 +28,10 @@ class VectorSettingsRootFragment :
 
     override fun bindPref() {
         tintIcons()
+        findPreference<VectorPreference>("SETTINGS_IMAGE_PACKS_KEY")?.setOnPreferenceClickListener {
+            startActivity(im.vector.app.features.imagepack.edit.ImagePackListActivity.newIntent(requireContext(), roomId = null))
+            true
+        }
     }
 
     private fun tintIcons() {

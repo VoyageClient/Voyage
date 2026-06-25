@@ -51,6 +51,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithF
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
@@ -343,7 +344,8 @@ class InReplyToView @JvmOverloads constructor(
                 allowNonMxcUrls = false,
                 blurHash = content.info?.blurHash,
         )
-        renderThumbnailContent(data, content.getCaption(), event, retriever)
+        val mode = ImageContentRenderer.previewMode(content is MessageStickerContent, content.mimeType)
+        renderThumbnailContent(data, content.getCaption(), event, retriever, mode)
     }
 
     private fun renderVideoThumbnailContent(
@@ -372,6 +374,7 @@ class InReplyToView @JvmOverloads constructor(
             caption: String?,
             event: TimelineEvent,
             retriever: ReplyPreviewRetriever,
+            mode: ImageContentRenderer.Mode = ImageContentRenderer.Mode.THUMBNAIL,
     ) {
         views.replyThumbnailView.isVisible = true
         if (retriever.shouldHideMediaPreview(event)) {
@@ -379,14 +382,14 @@ class InReplyToView @JvmOverloads constructor(
             // (it would be illegible at this size). Tapping the preview jumps to the source.
             retriever.imageContentRenderer.renderHidden(
                     mediaData,
-                    ImageContentRenderer.Mode.THUMBNAIL,
+                    mode,
                     views.replyThumbnailView,
                     retriever.useSolidColorForHiddenMedia,
             )
         } else {
             retriever.imageContentRenderer.render(
                     mediaData,
-                    ImageContentRenderer.Mode.THUMBNAIL,
+                    mode,
                     views.replyThumbnailView
             )
             views.replyTextView.setTextOrHide(caption)

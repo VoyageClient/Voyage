@@ -58,7 +58,33 @@ internal class DefaultFileService @Inject constructor(
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val clock: Clock,
         @Authenticated private val accessTokenProvider: AccessTokenProvider,
+        private val fileUploader: org.matrix.android.sdk.internal.session.content.FileUploader,
+        private val imageCompressor: org.matrix.android.sdk.internal.session.content.ImageCompressor,
 ) : FileService {
+
+    override suspend fun uploadFile(uri: android.net.Uri, fileName: String?, mimeType: String?): String {
+        return fileUploader.uploadFromUri(uri, fileName, mimeType).contentUri
+    }
+
+    override suspend fun compressImageForUpload(uri: Uri, mimeType: String?, maxDimension: Int): FileService.CompressedImageResult {
+        return withContext(coroutineDispatchers.io) {
+            val workingFile = File.createTempFile("compress", null, context.cacheDir).also { dest ->
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    dest.outputStream().use { input.copyTo(it) }
+                } ?: throw IOException("Cannot open $uri")
+            }
+            val compressed = imageCompressor.compress(workingFile, maxDimension, maxDimension)
+            // Never upload a re-encode that came out larger than the source; delete the temp file we don't keep
+            // (the kept one is a cache file the caller deletes once the upload finishes).
+            if (compressed.file != workingFile && compressed.file.length() >= workingFile.length()) {
+                compressed.file.delete()
+                FileService.CompressedImageResult(Uri.fromFile(workingFile), mimeType)
+            } else {
+                if (compressed.file != workingFile) workingFile.delete()
+                FileService.CompressedImageResult(Uri.fromFile(compressed.file), compressed.mimeType ?: mimeType)
+            }
+        }
+    }
 
     // Legacy folder, will be deleted
     private val legacyFolder = File(sessionCacheDirectory, "MF")

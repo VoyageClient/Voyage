@@ -50,15 +50,18 @@ class BlurFadeOutDrawable(
             blurPaint.alpha = alpha
             canvas.drawBitmap(blurBitmap, null, bounds, blurPaint)
         }
-        // Do NOT call invalidateSelf() here. If the callback is null (drawable momentarily
-        // detached while RecyclerView relayouts) the call is a no-op, and nothing ever
-        // reschedules it — permanently stuck. The Handler loop below drives redraws instead.
+        // Do NOT call invalidateSelf() here (it's a no-op when the callback is momentarily null), but make
+        // sure the Handler loop is running: if a RecyclerView recycle stopped it without a setVisible(true),
+        // being drawn at all means we're on screen and should keep fading instead of freezing mid-transition.
+        scheduleNext()
     }
 
     override fun run() {
         scheduled = false
+        // Always redraw — the tick that crosses durationMs draws the final, blur-free (alpha 0) frame so no
+        // faint residual is left behind. Only keep ticking while the fade is still in progress.
+        invalidateSelf()
         if (SystemClock.uptimeMillis() - startMs < durationMs) {
-            invalidateSelf()
             scheduleNext()
         }
     }
@@ -79,10 +82,11 @@ class BlurFadeOutDrawable(
     override fun setVisible(visible: Boolean, restart: Boolean): Boolean {
         image.setVisible(visible, restart)
         val changed = super.setVisible(visible, restart)
-        if (visible) scheduleNext() else {
-            scheduled = false
-            handler.removeCallbacks(this)
-        }
+        // Keep the fade loop running even when made invisible. Glide pauses/clears requests during a fling and
+        // can flip this drawable invisible mid-fade; tearing the loop down there left the blur frozen on screen
+        // until an unrelated repaint. The loop self-terminates at durationMs, so letting it finish is cheap and
+        // guarantees the blur always reaches alpha 0.
+        if (visible) scheduleNext()
         return changed
     }
 

@@ -30,4 +30,15 @@ object UserAccountDataTypes {
     const val TYPE_OVERRIDE_COLORS = "im.vector.setting.override_colors"
     const val TYPE_LOCAL_NOTIFICATION_SETTINGS = "org.matrix.msc3890.local_notification_settings."
     const val TYPE_RECENT_EMOJI = "io.element.recent_emoji"
+
+    // MSC2545 image packs. Personal pack has no stable id in the redrafted spec; keep using the unstable one.
+    const val TYPE_USER_EMOTES = "im.ponies.user_emotes"
+    const val TYPE_IMAGE_PACK_ROOMS = "m.image_pack.rooms"
+    const val TYPE_IMAGE_PACK_ROOMS_UNSTABLE = "im.ponies.emote_rooms"
+
+    // Frequently-used stickers, mirroring io.element.recent_emoji.
+    const val TYPE_RECENT_STICKERS = "io.element.recent_stickers"
+
+    // Frequently-used custom emoticons (separate from the unicode io.element.recent_emoji).
+    const val TYPE_RECENT_EMOTICONS = "io.element.recent_emoticons"
 }

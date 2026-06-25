@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.helper
 
 import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
@@ -29,6 +30,8 @@ object TimelineDisplayableEvents {
             EventType.STATE_ROOM_HISTORY_VISIBILITY,
             EventType.STATE_ROOM_SERVER_ACL,
             EventType.STATE_ROOM_POWER_LEVELS,
+            EventType.STATE_ROOM_IMAGE_PACK,
+            EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
             EventType.CALL_INVITE,
             EventType.CALL_HANGUP,
             EventType.CALL_ANSWER,
@@ -60,6 +63,17 @@ object TimelineDisplayableEvents {
  */
 fun TimelineEvent.timelineStableId(): String {
     return root.unsignedData?.transactionId?.takeIf { it.isNotEmpty() } ?: eventId
+}
+
+/**
+ * The type used to decide whether consecutive events merge into one summary. The stable and legacy image
+ * pack ids collapse to a single key so a mix of m.room.image_pack / im.ponies.room_emotes events still
+ * groups together as one "image pack changes" summary.
+ */
+fun Event.timelineMergeGroupType(): String = when (getClearType()) {
+    EventType.STATE_ROOM_IMAGE_PACK,
+    EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> EventType.STATE_ROOM_IMAGE_PACK
+    else -> getClearType()
 }
 
 fun TimelineEvent.isRoomConfiguration(roomCreatorUserId: String?): Boolean {

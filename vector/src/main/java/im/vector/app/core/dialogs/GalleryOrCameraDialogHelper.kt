@@ -23,6 +23,7 @@ import im.vector.app.core.utils.PERMISSIONS_FOR_TAKING_PHOTO
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
+import im.vector.app.features.media.VectorUCropActivity
 import im.vector.app.features.media.createUCropWithDefaultSettings
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.multipicker.MultiPicker
@@ -92,6 +93,7 @@ class GalleryOrCameraDialogHelper(
         createUCropWithDefaultSettings(colorProvider, uri, destinationFile.toUri(), fragment.getString(CommonStrings.rotate_and_crop_screen_title))
                 .withAspectRatio(1f, 1f)
                 .getIntent(activity)
+                .apply { setClass(activity, VectorUCropActivity::class.java) }
                 .let { uCropActivityResultLauncher.launch(it) }
     }
 

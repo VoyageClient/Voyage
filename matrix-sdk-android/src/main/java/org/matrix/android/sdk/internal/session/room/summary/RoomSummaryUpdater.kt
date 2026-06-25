@@ -87,6 +87,11 @@ internal class RoomSummaryUpdater @Inject constructor(
         }
     }
 
+    fun refreshLatestPreviewableEvent(realm: Realm, roomId: String) {
+        val roomSummaryEntity = RoomSummaryEntity.getOrNull(realm, roomId) ?: return
+        roomSummaryEntity.latestPreviewableEvent = roomSummaryEventsHelper.getLatestPreviewableEvent(realm, roomId)
+    }
+
     fun refreshDisplay(realm: Realm, roomId: String) {
         val roomSummaryEntity = RoomSummaryEntity.getOrNull(realm, roomId) ?: return
         roomSummaryEntity.setDisplayName(roomDisplayNameResolver.resolve(realm, roomId))

@@ -16,7 +16,6 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.View
-import kotlin.math.abs
 
 /**
  * We want to use a custom view for rendering an emoji.
@@ -37,13 +36,19 @@ class EmojiDrawView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         Trace.beginSection("EmojiDrawView.onDraw")
         super.onDraw(canvas)
-        canvas.save()
-        val space = abs((width - emojiSize) / 2f)
-        if (mLayout != null) {
-            canvas.translate(space, space)
-            mLayout!!.draw(canvas)
+        val layout = mLayout
+        if (layout != null) {
+            canvas.save()
+            val layoutWidth = layout.width.toFloat()
+            val layoutHeight = layout.height.toFloat()
+            // Scale to fit the cell (down only) so wide multi-emoji / text reactions stay inside it.
+            val scale = minOf(1f, width / layoutWidth, height / layoutHeight)
+            canvas.translate(width / 2f, height / 2f)
+            canvas.scale(scale, scale)
+            canvas.translate(-layoutWidth / 2f, -layoutHeight / 2f)
+            layout.draw(canvas)
+            canvas.restore()
         }
-        canvas.restore()
         Trace.endSection()
     }
 
@@ -52,7 +57,12 @@ class EmojiDrawView @JvmOverloads constructor(
 
         var emojiSize = 40
 
+        /** Whether the shared paint has been sized at least once (so a fallback config can skip if so). */
+        var configured = false
+            private set
+
         fun configureTextPaint(context: Context, typeface: Typeface?) {
+            configured = true
             tPaint.isAntiAlias = true
             tPaint.textSize = 24 * context.resources.displayMetrics.density
             tPaint.color = Color.LTGRAY

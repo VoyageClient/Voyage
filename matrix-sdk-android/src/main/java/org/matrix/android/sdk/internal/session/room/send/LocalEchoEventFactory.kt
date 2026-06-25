@@ -485,7 +485,9 @@ internal class LocalEchoEventFactory @Inject constructor(
         val html = when {
             captionFormattedText != null -> captionFormattedText
             isPgpArmoredBody(plain) -> null
-            else -> markdownParser.parse(plain, force = true, advanced = autoMarkdown).takeFormatted()
+            // Parse the CharSequence (not the stringified plain) so emote/mention spans in the caption
+            // are serialized into a formatted body.
+            else -> markdownParser.parse(captionText, force = true, advanced = autoMarkdown).takeFormatted()
         }
         val isFormatted = html != null && html != plain
         return MediaBodyParts(
@@ -773,8 +775,10 @@ internal class LocalEchoEventFactory @Inject constructor(
         // otherwise only auto-format when markdown is on and genuinely produced formatting — a plain
         // reply must not carry format/formatted_body. A PGP armored body is never auto-formatted
         // (markdown would mangle the ciphertext); its formatted_body, if any, is supplied explicitly.
+        // computeFormattedHtml handles both the markdown path and the span-only path (mentions, custom
+        // emotes), so a reply carrying emote/pill spans gets a formatted_body even when markdown is off.
         val htmlBody = replyTextFormatted?.toString()
-                ?: if (autoMarkdown && !isPgpArmoredBody(plainBody)) markdownParser.parse(replyText).formattedText else null
+                ?: if (!isPgpArmoredBody(plainBody)) computeFormattedHtml(replyText, autoMarkdown) else null
         val isFormatted = htmlBody != null
 
         return MessageTextContent(

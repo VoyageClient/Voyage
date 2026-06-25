@@ -256,6 +256,9 @@ class TimelineFragment :
 
     companion object {
         const val MAX_TYPING_MESSAGE_USERS_COUNT = 4
+
+        // ~2 dropped frames at 60fps; gaps this large between scroll callbacks indicate a stall worth logging.
+        private const val SCROLL_JANK_FRAME_MS = 32L
     }
 
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
@@ -1177,6 +1180,28 @@ class TimelineFragment :
         timelineEventController.addModelBuildListener(modelBuildListener)
         views.timelineRecyclerView.adapter = timelineEventController.adapter
 
+        // onScrolled fires ~once per frame during a fling, so a large gap between callbacks is a dropped frame.
+        if (PerfTrace.isEnabled) {
+            views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                private var lastFrameMs = 0L
+                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                    if (newState == RecyclerView.SCROLL_STATE_IDLE) lastFrameMs = 0L
+                }
+
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    val now = android.os.SystemClock.elapsedRealtime()
+                    val previous = lastFrameMs
+                    lastFrameMs = now
+                    if (previous != 0L) {
+                        val gap = now - previous
+                        if (gap >= SCROLL_JANK_FRAME_MS) {
+                            PerfTrace.report("timeline.scroll.jankFrame", gap)
+                        }
+                    }
+                }
+            })
+        }
+
         if (vectorPreferences.swipeToReplyIsEnabled()) {
             val quickReplyHandler = object : RoomMessageTouchHelperCallback.QuickReplayHandler {
                 override fun performQuickReplyOnHolder(model: EpoxyModel<*>) {
@@ -1502,6 +1527,11 @@ class TimelineFragment :
                     })
             if (!isManaged) {
                 when {
+                    // A matrix.to / permalink that we recognise but couldn't resolve (e.g. offline). Opening it in a
+                    // browser doesn't help joining, so surface the error with a retry instead.
+                    isSupportedPermalink(url) -> {
+                        displayPermalinkRetryDialog(url, title)
+                    }
                     url.containsRtLOverride() -> {
                         displayUrlConfirmationDialog(
                                 seenUrl = title.ensureEndsLeftToRight(),
@@ -1534,6 +1564,20 @@ class TimelineFragment :
                 .setPositiveButton(CommonStrings._continue) { _, _ ->
                     openUrlInExternalBrowser(requireContext(), continueTo)
                 }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    private fun isSupportedPermalink(url: String): Boolean {
+        val supportedHosts = resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
+        return session.permalinkService().isPermalinkSupported(supportedHosts, url)
+    }
+
+    private fun displayPermalinkRetryDialog(url: String, title: String) {
+        MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(CommonStrings.dialog_title_error)
+                .setMessage(CommonStrings.permalink_open_failed)
+                .setPositiveButton(CommonStrings.global_retry) { _, _ -> onUrlClicked(url, title) }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
     }
@@ -1973,7 +2017,7 @@ class TimelineFragment :
     }
 
     private fun openEmojiReactionPicker(eventId: String) {
-        emojiActivityResultLauncher.launch(EmojiReactionPickerActivity.intent(requireContext(), eventId))
+        emojiActivityResultLauncher.launch(EmojiReactionPickerActivity.intent(requireContext(), eventId, timelineArgs.roomId))
     }
 
     private fun askConfirmationToEndPoll(eventId: String) {

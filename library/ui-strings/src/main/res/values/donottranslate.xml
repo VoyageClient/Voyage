@@ -111,7 +111,11 @@
     <string name="room_tag_new_hint" translatable="false">Tag name</string>
     <string name="settings_clear_emoji_cache" translatable="false">Clear remote emoji cache</string>
     <string name="settings_quick_reactions" translatable="false">Quick reactions</string>
-    <string name="settings_quick_reactions_summary" translatable="false">Emojis shown when long-pressing a message, separated by spaces. Leave empty for the defaults.</string>
+    <string name="settings_quick_reactions_summary" translatable="false">Reactions shown when long-pressing a message.</string>
+    <string name="quick_reactions_add" translatable="false">Add Reaction</string>
+    <string name="quick_reactions_empty" translatable="false">No quick reactions.</string>
+    <string name="quick_reactions_unsaved_message" translatable="false">You have unsaved changes to your quick reactions. Apply them?</string>
+    <string name="quick_reactions_reset_confirmation" translatable="false">Reset your Quick Reactions back to the default set?</string>
     <string name="settings_compact_quick_reactions" translatable="false">Compact quick reactions</string>
     <string name="settings_compact_quick_reactions_summary" translatable="false">Keep quick reactions on a single row that scrolls horizontally, instead of wrapping onto more rows.</string>
 
@@ -188,6 +192,11 @@
     <plurals name="merged_hidden_events">
         <item quantity="one">%d hidden event</item>
         <item quantity="other">%d hidden events</item>
+    </plurals>
+
+    <plurals name="image_pack_changes" translatable="false">
+        <item quantity="one">%d image pack change</item>
+        <item quantity="other">%d image pack changes</item>
     </plurals>
 
     <string name="import_e2e_keys_progress" translatable="false">Importing room keys…</string>
@@ -323,4 +332,64 @@
     <string name="settings_pgp_override_address_hint" translatable="false">OpenKeychain address / key email</string>
     <string name="settings_pgp_not_installed" translatable="false">OpenKeychain is not installed. Install it to use PGP.</string>
     <string name="settings_pgp_remove_override" translatable="false">Remove</string>
+
+    <!-- Image packs (MSC2545 custom stickers &amp; emoticons) -->
+    <string name="attachment_type_sticker_online" translatable="false">Web Stickers</string>
+    <string name="tooltip_attachment_sticker_online" translatable="false">Web Stickers</string>
+    <string name="attachment_type_selector_sticker_online" translatable="false">Web Stickers</string>
+    <string name="sticker_picker_title" translatable="false">Stickers</string>
+    <string name="sticker_picker_frequently_used" translatable="false">Frequently used</string>
+    <string name="sticker_picker_empty" translatable="false">No stickers available. Add a sticker pack in settings or in a room\'s image packs.</string>
+    <string name="image_pack_settings_title" translatable="false">Image Packs</string>
+    <string name="image_pack_settings_summary" translatable="false">Manage your custom emoticons and stickers</string>
+    <string name="image_pack_account_pack_title" translatable="false">Your packs</string>
+    <string name="image_pack_personal_pack" translatable="false">Personal pack</string>
+    <string name="image_pack_your_personal_pack" translatable="false">Your personal pack</string>
+    <string name="image_pack_room_pack_title" translatable="false">This room\'s packs</string>
+    <string name="image_pack_global_packs_title" translatable="false">Globally enabled packs</string>
+    <string name="image_pack_create" translatable="false">Create pack</string>
+    <string name="image_pack_create_account" translatable="false">Create personal pack</string>
+    <string name="image_pack_create_room" translatable="false">Create Image Pack</string>
+    <string name="image_pack_edit_title" translatable="false">Edit Pack</string>
+    <string name="image_pack_create_title" translatable="false">Create Pack</string>
+    <string name="image_pack_name_hint" translatable="false">Pack name</string>
+    <string name="image_pack_attribution_hint" translatable="false">Attribution (optional)</string>
+    <string name="image_pack_add_image" translatable="false">Add to Pack</string>
+    <string name="notice_image_pack_added_by_you" translatable="false">You added an image pack</string>
+    <string name="notice_image_pack_added" translatable="false">%1$s added an image pack</string>
+    <string name="notice_image_pack_added_named_by_you" translatable="false">You added the image pack \"%1$s\"</string>
+    <string name="notice_image_pack_added_named" translatable="false">%1$s added the image pack \"%2$s\"</string>
+    <string name="notice_image_pack_deleted_by_you" translatable="false">You deleted an image pack</string>
+    <string name="notice_image_pack_deleted" translatable="false">%1$s deleted an image pack</string>
+    <string name="notice_image_pack_deleted_named_by_you" translatable="false">You deleted the image pack \"%1$s\"</string>
+    <string name="notice_image_pack_deleted_named" translatable="false">%1$s deleted the image pack \"%2$s\"</string>
+    <string name="notice_image_pack_updated_by_you" translatable="false">You updated an image pack</string>
+    <string name="notice_image_pack_updated" translatable="false">%1$s updated an image pack</string>
+    <string name="notice_image_pack_updated_named_by_you" translatable="false">You updated the image pack \"%1$s\"</string>
+    <string name="notice_image_pack_updated_named" translatable="false">%1$s updated the image pack \"%2$s\"</string>
+    <string name="image_pack_delete" translatable="false">Delete pack</string>
+    <string name="image_pack_apply" translatable="false">Apply</string>
+    <string name="image_pack_delete_confirm" translatable="false">Delete this pack? This can\'t be undone.</string>
+    <string name="image_pack_unsaved_title" translatable="false">Unsaved changes</string>
+    <string name="image_pack_unsaved_message" translatable="false">You have unsaved changes to this pack. Apply them?</string>
+    <string name="image_pack_unsaved_discard" translatable="false">Discard</string>
+    <string name="image_pack_no_images" translatable="false">No images yet</string>
+    <string name="image_pack_image_shortcode_hint" translatable="false">shortcode</string>
+    <string name="image_pack_usage_emoticon" translatable="false">Emoticon</string>
+    <string name="image_pack_usage_sticker" translatable="false">Sticker</string>
+    <string name="image_pack_usage_both" translatable="false">Both</string>
+    <string name="permalink_open_failed" translatable="false">Couldn\'t open this link. Check your connection and try again.</string>
+    <string name="image_pack_enable_globally" translatable="false">Enable in all rooms</string>
+    <string name="image_pack_uploading" translatable="false">Uploading…</string>
+    <string name="image_pack_no_permission_room" translatable="false">You don\'t have permission to edit packs in this room</string>
+    <string name="image_pack_duplicate_shortcode" translatable="false">Duplicate shortcode \"%1$s\": each shortcode in a pack must be unique</string>
+    <string name="image_pack_invalid_shortcode" translatable="false">Shortcodes may only contain letters, digits, - and _</string>
+    <string name="image_pack_source_account" translatable="false">Your personal pack</string>
+    <string name="image_pack_source_this_room" translatable="false">Pack from this room</string>
+    <string name="image_pack_source_space" translatable="false">Pack from parent space</string>
+    <string name="image_pack_source_global" translatable="false">Pack from another room</string>
+    <string name="image_pack_image_count" translatable="false">%1$d images</string>
+    <string name="image_pack_list_room_title" translatable="false">Emoticons &amp; stickers in this room</string>
+    <string name="image_pack_view_readonly" translatable="false">You don\'t have permission to edit this pack</string>
+    <string name="image_pack_save" translatable="false">Save</string>
 </resources>

@@ -57,6 +57,10 @@ object EventType {
     const val STATE_SPACE_CHILD = "m.space.child"
     const val STATE_SPACE_PARENT = "m.space.parent"
 
+    // MSC2545 image packs (custom emoticons / stickers). Read both ids, write the stable one.
+    const val STATE_ROOM_IMAGE_PACK = "m.room.image_pack"
+    const val STATE_ROOM_IMAGE_PACK_UNSTABLE = "im.ponies.room_emotes"
+
     /**
      * Note that this Event has been deprecated, see
      * - https://matrix.org/docs/spec/client_server/r0.6.1#historical-events

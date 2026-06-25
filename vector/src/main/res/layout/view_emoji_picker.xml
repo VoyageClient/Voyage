@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <im.vector.app.features.reactions.EmojiPickerTabStrip
+            android:id="@+id/emojiPickerTabs"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <View
+            android:id="@+id/emojiPickerTrailingDivider"
+            android:layout_width="1dp"
+            android:layout_height="24dp"
+            android:background="?vctr_list_separator"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/emojiPickerTrailing"
+            android:layout_width="48dp"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackground"
+            android:visibility="gone"
+            app:tint="?vctr_content_secondary"
+            tools:src="@drawable/ic_backspace"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?vctr_list_separator" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/emojiPickerRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical" />
+
+</merge>

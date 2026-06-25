@@ -64,6 +64,11 @@
             android:summary="@string/settings_uglier_username_colors_summary"
             android:title="@string/settings_uglier_username_colors_title" />
 
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_QUICK_REACTIONS_KEY"
+            android:summary="@string/settings_quick_reactions_summary"
+            android:title="@string/settings_quick_reactions" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
@@ -144,12 +149,6 @@
             android:key="SETTINGS_OVERRIDE_DM_DISPLAY_KEY"
             android:summary="@string/settings_override_dm_display_summary"
             android:title="@string/settings_override_dm_display_title" />
-
-        <im.vector.app.core.preference.VectorEditTextPreference
-            android:key="SETTINGS_QUICK_REACTIONS_KEY"
-            android:dialogMessage="@string/settings_quick_reactions_summary"
-            android:summary="@string/settings_quick_reactions_summary"
-            android:title="@string/settings_quick_reactions" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"

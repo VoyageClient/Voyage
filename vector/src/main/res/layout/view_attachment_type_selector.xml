@@ -44,13 +44,23 @@
                 app:tint="?colorPrimary" />
 
             <ImageButton
-                android:id="@+id/attachmentStickersButton"
+                android:id="@+id/attachmentLocalStickersButton"
                 android:layout_width="@dimen/layout_touch_size"
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:contentDescription="@string/attachment_type_sticker"
                 app:srcCompat="@drawable/ic_attachment_sticker"
+                app:tint="?colorPrimary" />
+
+            <ImageButton
+                android:id="@+id/attachmentStickersButton"
+                android:layout_width="@dimen/layout_touch_size"
+                android:layout_height="@dimen/layout_touch_size"
+                android:layout_marginStart="2dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:contentDescription="@string/attachment_type_sticker_online"
+                app:srcCompat="@drawable/ic_attachment_sticker_web"
                 app:tint="?colorPrimary" />
 
             <ImageButton

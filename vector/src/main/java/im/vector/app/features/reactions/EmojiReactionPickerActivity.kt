@@ -18,7 +18,6 @@ import android.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.viewModel
-import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.EmojiCompatFontProvider
 import im.vector.app.R
@@ -26,7 +25,6 @@ import im.vector.app.core.extensions.observeEvent
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.ActivityEmojiReactionPickerBinding
-import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.lib.core.utils.flow.throttleFirst
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
@@ -50,7 +48,12 @@ class EmojiReactionPickerActivity :
 
     override fun getMenuRes() = R.menu.menu_emoji_reaction_picker
 
-    override fun handleMenuItemSelected(item: MenuItem) = false
+    // Finish directly on the toolbar up button. The default routes through the deprecated onBackPressed()
+    // dispatch, which drops rapid taps under Android's predictive-back handling.
+    override fun handleMenuItemSelected(item: MenuItem) = when (item.itemId) {
+        android.R.id.home -> { finish(); true }
+        else -> false
+    }
 
     override fun getBinding() = ActivityEmojiReactionPickerBinding.inflate(layoutInflater)
 
@@ -62,21 +65,8 @@ class EmojiReactionPickerActivity :
     override fun getTitleRes() = CommonStrings.title_activity_emoji_reaction_picker
 
     @Inject lateinit var emojiCompatFontProvider: EmojiCompatFontProvider
-    @Inject lateinit var emojiDataSource: EmojiDataSource
 
     private val searchResultViewModel: EmojiSearchResultViewModel by viewModel()
-
-    private var tabLayoutSelectionListener = object : TabLayout.OnTabSelectedListener {
-        override fun onTabReselected(tab: TabLayout.Tab) {
-        }
-
-        override fun onTabUnselected(tab: TabLayout.Tab) {
-        }
-
-        override fun onTabSelected(tab: TabLayout.Tab) {
-            viewModel.scrollToSection(tab.position)
-        }
-    }
 
     override fun initUiAndData() {
         setupToolbar(views.emojiPickerToolbar)
@@ -89,29 +79,9 @@ class EmojiReactionPickerActivity :
         viewModel = viewModelProvider.get(EmojiChooserViewModel::class.java)
 
         viewModel.eventId = intent.getStringExtra(EXTRA_EVENT_ID)
-        lifecycleScope.launch {
-            val rawData = emojiDataSource.rawData.await()
-            rawData.categories.forEach { category ->
-                val s = category.emojis[0]
-                views.tabs.newTab()
-                        .also { tab ->
-                            tab.text = rawData.emojis[s]!!.emoji
-                            tab.contentDescription = category.name
-                        }
-                        .also { tab ->
-                            views.tabs.addTab(tab)
-                        }
-            }
-        }
-        views.tabs.addOnTabSelectedListener(tabLayoutSelectionListener)
-
-        viewModel.currentSection.observe(this) { section ->
-            section?.let {
-                views.tabs.removeOnTabSelectedListener(tabLayoutSelectionListener)
-                views.tabs.getTabAt(it)?.select()
-                views.tabs.addOnTabSelectedListener(tabLayoutSelectionListener)
-            }
-        }
+        val roomId = intent.getStringExtra(EXTRA_ROOM_ID)
+        searchResultViewModel.handle(EmojiSearchAction.SetRoomId(roomId))
+        viewModel.setRoomId(roomId)
 
         viewModel.navigateEvent.observeEvent(this) {
             if (it == EmojiChooserViewModel.NAVIGATE_FINISH) {
@@ -126,7 +96,6 @@ class EmojiReactionPickerActivity :
 
         views.emojiPickerWholeListFragmentContainer.isVisible = true
         views.emojiPickerFilteredListFragmentContainer.isVisible = false
-        views.tabs.isVisible = true
     }
 
     override fun compatibilityFontUpdate(typeface: Typeface?) {
@@ -141,6 +110,8 @@ class EmojiReactionPickerActivity :
     override fun handlePostCreateMenu(menu: Menu) {
         val searchItem = menu.findItem(R.id.search)
         (searchItem.actionView as? SearchView)?.let { searchView ->
+            // Fill the toolbar width so the field stretches fully between the search icon and the clear (X).
+            searchView.maxWidth = Integer.MAX_VALUE
             searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
                 override fun onMenuItemActionExpand(p0: MenuItem): Boolean {
                     searchView.isIconified = false
@@ -171,7 +142,6 @@ class EmojiReactionPickerActivity :
                     }
                     .launchIn(lifecycleScope)
         }
-        searchItem.expandActionView()
     }
 
     // TODO move to ThemeUtils when core module is created
@@ -188,11 +158,9 @@ class EmojiReactionPickerActivity :
 
     private fun onQueryText(query: String) {
         if (query.isEmpty()) {
-            views.tabs.isVisible = true
             views.emojiPickerWholeListFragmentContainer.isVisible = true
             views.emojiPickerFilteredListFragmentContainer.isVisible = false
         } else {
-            views.tabs.isVisible = false
             views.emojiPickerWholeListFragmentContainer.isVisible = false
             views.emojiPickerFilteredListFragmentContainer.isVisible = true
             searchResultViewModel.handle(EmojiSearchAction.UpdateQuery(query))
@@ -202,11 +170,13 @@ class EmojiReactionPickerActivity :
     companion object {
 
         private const val EXTRA_EVENT_ID = "EXTRA_EVENT_ID"
+        private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
         private const val EXTRA_REACTION_RESULT = "EXTRA_REACTION_RESULT"
 
-        fun intent(context: Context, eventId: String): Intent {
+        fun intent(context: Context, eventId: String, roomId: String? = null): Intent {
             val intent = Intent(context, EmojiReactionPickerActivity::class.java)
             intent.putExtra(EXTRA_EVENT_ID, eventId)
+            intent.putExtra(EXTRA_ROOM_ID, roomId)
             return intent
         }
 

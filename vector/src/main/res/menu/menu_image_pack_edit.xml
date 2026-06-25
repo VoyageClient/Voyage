@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/imagePackMenuDelete"
+        android:icon="@drawable/ic_trash_24"
+        android:title="@string/image_pack_delete"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/imagePackMenuApply"
+        android:icon="@drawable/ic_check_apply_inset"
+        android:title="@string/image_pack_apply"
+        app:showAsAction="always" />
+
+</menu>

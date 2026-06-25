@@ -32,6 +32,8 @@ import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
+import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.events.model.EventType
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
@@ -200,8 +202,8 @@ class MessageActionsEpoxyController @Inject constructor(
             }
         }
 
-        // Quick reactions
-        if (state.canReact() && state.quickStates is Success) {
+        // Quick reactions (hidden entirely — separator included — when the user has removed them all)
+        if (state.canReact() && state.quickStates is Success && state.quickStates().orEmpty().isNotEmpty()) {
             // Separator
             bottomSheetDividerItem {
                 id("reaction_separator")
@@ -212,6 +214,12 @@ class MessageActionsEpoxyController @Inject constructor(
                 fontProvider(host.fontProvider)
                 compact(host.vectorPreferences.compactQuickReactions())
                 texts(state.quickStates()?.map { it.reaction }.orEmpty())
+                resolvedUrls(state.quickStates()?.map { toggle ->
+                    toggle.reaction.takeIf { it.isMxcUrl() }?.let {
+                        host.activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
+                                ?.resolveThumbnail(it, 64, 64, ContentUrlResolver.ThumbnailMethod.SCALE)
+                    }
+                }.orEmpty())
                 selecteds(state.quickStates.invoke().map { it.isSelected })
                 listener(object : BottomSheetQuickReactionsItem.Listener {
                     override fun didSelect(emoji: String, selected: Boolean) {

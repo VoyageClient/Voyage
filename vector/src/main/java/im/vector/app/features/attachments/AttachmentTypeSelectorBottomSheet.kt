@@ -56,6 +56,7 @@ class AttachmentTypeSelectorBottomSheet : VectorBaseBottomSheetDialogFragment<Bo
         super.onViewCreated(view, savedInstanceState)
         views.gallery.debouncedClicks { onAttachmentSelected(AttachmentType.GALLERY) }
         views.stickers.debouncedClicks { onAttachmentSelected(AttachmentType.STICKER) }
+        views.localStickers.debouncedClicks { onAttachmentSelected(AttachmentType.STICKER_LOCAL) }
         views.file.debouncedClicks { onAttachmentSelected(AttachmentType.FILE) }
         views.voiceBroadcast.debouncedClicks { onAttachmentSelected(AttachmentType.VOICE_BROADCAST) }
         views.poll.debouncedClicks { onAttachmentSelected(AttachmentType.POLL) }

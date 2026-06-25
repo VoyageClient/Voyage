@@ -39,6 +39,7 @@ import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
 import im.vector.app.features.analytics.plan.Interaction
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.imagepack.edit.ImagePackListActivity
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
@@ -296,6 +297,10 @@ class RoomProfileFragment :
 
     override fun onUploadsClicked() {
         roomProfileSharedActionViewModel.post(RoomProfileSharedAction.OpenRoomUploads)
+    }
+
+    override fun onImagePacksClicked() {
+        startActivity(ImagePackListActivity.newIntent(requireContext(), roomProfileArgs.roomId))
     }
 
     override fun onPersonalizationClicked() {

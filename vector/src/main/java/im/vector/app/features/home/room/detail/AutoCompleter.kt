@@ -21,6 +21,7 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.features.autocomplete.command.AutocompleteCommandPresenter
 import im.vector.app.features.autocomplete.command.CommandAutocompletePolicy
+import im.vector.app.features.autocomplete.emoji.AutocompleteEmojiData
 import im.vector.app.features.autocomplete.emoji.AutocompleteEmojiPresenter
 import im.vector.app.features.autocomplete.member.AutocompleteMemberItem
 import im.vector.app.features.autocomplete.member.AutocompleteMemberPresenter
@@ -30,8 +31,15 @@ import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.setPillSpan
+import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toEveryoneInRoomMatrixItem
@@ -48,9 +56,11 @@ class AutoCompleter @AssistedInject constructor(
         private val autocompleteRoomPresenter: AutocompleteRoomPresenter,
         private val autocompleteEmojiPresenter: AutocompleteEmojiPresenter,
         private val vectorPreferences: VectorPreferences,
+        private val imagePackProvider: ImagePackProvider,
 ) {
 
     private lateinit var autocompleteMemberPresenter: AutocompleteMemberPresenter
+    private val emoteScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     @AssistedFactory
     interface Factory {
@@ -74,6 +84,9 @@ class AutoCompleter @AssistedInject constructor(
     private lateinit var glideRequests: GlideRequests
     private val autocompletes: MutableSet<Autocomplete<*>> = hashSetOf()
 
+    private val emojiCharPolicy = CharPolicy(TRIGGER_AUTO_COMPLETE_EMOJIS, true)
+    private var emojiAutocomplete: Autocomplete<AutocompleteEmojiData>? = null
+
     fun setup(editText: EditText) {
         this.editText = editText
         glideRequests = GlideApp.with(editText)
@@ -92,6 +105,7 @@ class AutoCompleter @AssistedInject constructor(
 
     fun clear() {
         this.editText = null
+        emoteScope.coroutineContext.cancelChildren()
         autocompleteEmojiPresenter.clear()
         autocompleteRoomPresenter.clear()
         autocompleteCommandPresenter.clear()
@@ -101,6 +115,7 @@ class AutoCompleter @AssistedInject constructor(
             it.dismissPopup()
         }
         autocompletes.clear()
+        emojiAutocomplete = null
     }
 
     private fun setupCommands(backgroundDrawable: Drawable, editText: EditText) {
@@ -171,15 +186,25 @@ class AutoCompleter @AssistedInject constructor(
     private fun setupEmojis(backgroundDrawable: Drawable, editText: EditText) {
         if (!vectorPreferences.isEmojiAutocompleteEnabled()) return
 
-        autocompletes += Autocomplete.on<String>(editText)
+        // Emotes load asynchronously; if they arrive after the popup was dismissed for lack of matches, re-show it.
+        autocompleteEmojiPresenter.onEmotesArrived = { reshowEmojiPopupIfNeeded() }
+
+        // Prime from cache so emotes suggest immediately on room open, before the live flow's first emission.
+        imagePackProvider.cachedEmoticons(roomId).takeIf { it.isNotEmpty() }
+                ?.let { autocompleteEmojiPresenter.updateCustomEmotes(it) }
+        imagePackProvider.getEmoticonsLive(roomId)
+                .onEach { autocompleteEmojiPresenter.updateCustomEmotes(it) }
+                .launchIn(emoteScope)
+
+        emojiAutocomplete = Autocomplete.on<AutocompleteEmojiData>(editText)
                 // needSpaceBefore = true: only trigger when `:` starts a word, so things like
                 // `https://`, `host:port`, `12:30` don't pop the emoji picker per keystroke.
-                .with(CharPolicy(TRIGGER_AUTO_COMPLETE_EMOJIS, true))
+                .with(emojiCharPolicy)
                 .with(autocompleteEmojiPresenter)
                 .with(ELEVATION_DP)
                 .with(backgroundDrawable)
-                .with(object : AutocompleteCallback<String> {
-                    override fun onPopupItemClicked(editable: Editable, item: String): Boolean {
+                .with(object : AutocompleteCallback<AutocompleteEmojiData> {
+                    override fun onPopupItemClicked(editable: Editable, item: AutocompleteEmojiData): Boolean {
                         // Infer that the last ":" before the current cursor position is the original popup trigger
                         var startIndex = editable.subSequence(0, editText.selectionStart).lastIndexOf(":")
                         if (startIndex == -1) {
@@ -192,9 +217,19 @@ class AutoCompleter @AssistedInject constructor(
                             endIndex = editable.length
                         }
 
-                        // Replace the word by its completion
-                        editable.delete(startIndex, endIndex)
-                        editable.insert(startIndex, item)
+                        when (item) {
+                            is AutocompleteEmojiData.Emoji -> {
+                                // Replace the word by its unicode completion
+                                editable.delete(startIndex, endIndex)
+                                editable.insert(startIndex, item.emojiItem.emoji)
+                            }
+                            is AutocompleteEmojiData.Emote -> {
+                                // Discord-style: just fill in the `:shortcode:` text. The literal shortcode is
+                                // converted to the actual emote on send (see EmoteShortcodeProcessor), so the
+                                // composer stays plain text instead of showing an inline image.
+                                editable.replace(startIndex, endIndex, ":${item.image.shortcode}: ")
+                            }
+                        }
                         return true
                     }
 
@@ -202,6 +237,18 @@ class AutoCompleter @AssistedInject constructor(
                     }
                 })
                 .build()
+                .also { autocompletes += it }
+    }
+
+    private fun reshowEmojiPopupIfNeeded() {
+        val editText = editText ?: return
+        val autocomplete = emojiAutocomplete ?: return
+        if (autocomplete.isPopupShowing()) return
+        val text = editText.text
+        val cursor = editText.selectionStart
+        if (cursor >= 0 && emojiCharPolicy.shouldShowPopup(text, cursor)) {
+            autocomplete.showPopup(emojiCharPolicy.getQuery(text))
+        }
     }
 
     private fun insertMatrixItem(editText: EditText, editable: Editable, firstChar: Char, matrixItem: MatrixItem) =

@@ -30,6 +30,7 @@ import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
+import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.VoiceFailure
@@ -112,6 +113,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val pgpKeyStore: PgpKeyStore,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
         private val pgpDecryptor: PgpDecryptor,
+        private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
 ) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialState) {
 
     private val room = session.getRoom(initialState.roomId)
@@ -377,10 +379,18 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
+    @Suppress("NAME_SHADOWING")
     private fun handleSendMessage(room: Room, action: MessageComposerAction.SendMessage) {
         withState { state ->
             analyticsTracker.capture(state.toAnalyticsComposer())
             setState { copy(startsThread = false) }
+            // Tag literal `:shortcode:` text as custom emotes for every send mode (regular, reply, quote, edit).
+            // The rich-text path already carries its own formatted body, so only touch the plain-text path.
+            val action = if (action.formattedText == null) {
+                action.copy(text = emoteShortcodeProcessor.process(room.roomId, action.text))
+            } else {
+                action
+            }
             when (state.sendMode) {
                 is SendMode.Regular -> {
                     when (val parsedCommand = commandParser.parseSlashCommand(
@@ -408,7 +418,8 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     }
                                 }
                             } else {
-                                val greentext = maybeBuildGreentextRuns(action.text, action.formattedText)
+                                val messageText = action.text
+                                val greentext = maybeBuildGreentextRuns(messageText, action.formattedText)
                                 // The send path runs markdown parsing, a Realm read for the local echo,
                                 // and the synchronous local-echo listener notification — all on the main
                                 // thread by default. Offload to background so the composer feels
@@ -418,7 +429,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     if (state.rootThreadEventId != null) {
                                         room.relationService().replyInThread(
                                                 rootThreadEventId = state.rootThreadEventId,
-                                                replyInThreadText = greentext?.first ?: action.text,
+                                                replyInThreadText = greentext?.first ?: messageText,
                                                 formattedText = greentext?.second ?: action.formattedText,
                                                 autoMarkdown = greentext == null && action.autoMarkdown,
                                         )
@@ -427,7 +438,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     } else if (action.formattedText != null) {
                                         room.sendService().sendFormattedTextMessage(action.text.toString(), action.formattedText)
                                     } else {
-                                        room.sendService().sendTextMessage(action.text, autoMarkdown = action.autoMarkdown)
+                                        room.sendService().sendTextMessage(messageText, autoMarkdown = action.autoMarkdown)
                                     }
                                 }
 

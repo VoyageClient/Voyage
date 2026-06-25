@@ -10,16 +10,20 @@ import android.graphics.Typeface
 import androidx.recyclerview.widget.RecyclerView
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.EmojiCompatFontProvider
+import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.autocomplete.emoji.autocompleteEmoteItem
 import im.vector.app.features.reactions.data.EmojiItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
 
 class EmojiSearchResultController @Inject constructor(
         private val stringProvider: StringProvider,
         private val fontProvider: EmojiCompatFontProvider,
+        private val activeSessionHolder: ActiveSessionHolder,
 ) : TypedEpoxyController<EmojiSearchResultViewState>() {
 
     var emojiTypeface: Typeface? = fontProvider.typeface
@@ -51,6 +55,19 @@ class EmojiSearchResultController @Inject constructor(
                 emojiTypeFace(host.emojiTypeface)
                 currentQuery(data.query)
                 onClickListener { host.listener?.onReactionSelected(data.query) }
+            }
+        }
+
+        // Custom emotes (MSC2545) that can be used as image reactions (key = mxc uri).
+        if (data.emoteResults.isNotEmpty()) {
+            val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
+            data.emoteResults.forEach { image ->
+                autocompleteEmoteItem {
+                    id("emote_reaction_${image.shortcode}_${image.mxcUrl}")
+                    image(image)
+                    resolvedUrl(contentUrlResolver?.resolveThumbnail(image.mxcUrl, 96, 96, ContentUrlResolver.ThumbnailMethod.SCALE))
+                    onClickListener { host.listener?.onReactionSelected(image.mxcUrl) }
+                }
             }
         }
 

@@ -15,18 +15,23 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.features.imagepack.ImagePackProvider
+import im.vector.app.features.imagepack.ResolvedImage
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.reactions.data.EmojiItem
 import kotlinx.coroutines.launch
 
 data class EmojiSearchResultViewState(
         val query: String = "",
-        val results: List<EmojiItem> = emptyList()
+        val results: List<EmojiItem> = emptyList(),
+        val emoteResults: List<ResolvedImage> = emptyList(),
+        val roomId: String? = null,
 ) : MavericksState
 
 class EmojiSearchResultViewModel @AssistedInject constructor(
         @Assisted initialState: EmojiSearchResultViewState,
-        private val dataSource: EmojiDataSource
+        private val dataSource: EmojiDataSource,
+        private val imagePackProvider: ImagePackProvider,
 ) :
         VectorViewModel<EmojiSearchResultViewState, EmojiSearchAction, EmptyViewEvents>(initialState) {
 
@@ -40,16 +45,24 @@ class EmojiSearchResultViewModel @AssistedInject constructor(
     override fun handle(action: EmojiSearchAction) {
         when (action) {
             is EmojiSearchAction.UpdateQuery -> updateQuery(action)
+            is EmojiSearchAction.SetRoomId -> setState { copy(roomId = action.roomId) }
         }
     }
 
     private fun updateQuery(action: EmojiSearchAction.UpdateQuery) {
         viewModelScope.launch {
             val results = dataSource.filterWith(action.queryString)
+            val roomId = com.airbnb.mvrx.withState(this@EmojiSearchResultViewModel) { it.roomId }
+            val emotes = if (action.queryString.isBlank()) {
+                emptyList()
+            } else {
+                imagePackProvider.getEmoticons(roomId).filter { it.shortcode.contains(action.queryString, ignoreCase = true) }
+            }
             setState {
                 copy(
                         query = action.queryString,
-                        results = results
+                        results = results,
+                        emoteResults = emotes,
                 )
             }
         }

@@ -39,6 +39,10 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
     @EpoxyAttribute
     lateinit var texts: List<String>
 
+    // Parallel to [texts]: a resolved thumbnail URL for custom-emote (mxc) reactions, null for plain emojis.
+    @EpoxyAttribute
+    var resolvedUrls: List<String?> = emptyList()
+
     @EpoxyAttribute
     lateinit var selecteds: List<Boolean>
 
@@ -59,31 +63,44 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
         holder.wrapContainer.isVisible = !compact
         holder.scroll.isVisible = compact
 
+        val imageSize = DimensionConverter(context.resources).dpToPx(28)
         val ids = IntArray(texts.size)
         texts.forEachIndexed { index, emoji ->
             val selected = selecteds.getOrElse(index) { false }
-            val textView = TextView(ContextThemeWrapper(context, im.vector.lib.ui.styles.R.style.Widget_Vector_TextView_Title), null, 0).apply {
-                id = View.generateViewId()
-                setPadding(padding, padding, padding, padding)
-                typeface = fontProvider.typeface ?: Typeface.DEFAULT
-                text = emoji
-                alpha = if (selected) 0.2f else 1f
-                onClick { listener?.didSelect(emoji, !selected) }
+            val resolvedUrl = resolvedUrls.getOrNull(index)
+            val itemView: View = if (resolvedUrl != null) {
+                // Custom-emote (mxc) reaction: render the image rather than its raw url text.
+                android.widget.ImageView(context).apply {
+                    id = View.generateViewId()
+                    layoutParams = ViewGroup.LayoutParams(imageSize + padding * 2, imageSize + padding * 2)
+                    setPadding(padding, padding, padding, padding)
+                    scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                    alpha = if (selected) 0.2f else 1f
+                    onClick { listener?.didSelect(emoji, !selected) }
+                    im.vector.app.core.glide.GlideApp.with(this).load(resolvedUrl).into(this)
+                }
+            } else {
+                TextView(ContextThemeWrapper(context, im.vector.lib.ui.styles.R.style.Widget_Vector_TextView_Title), null, 0).apply {
+                    id = View.generateViewId()
+                    setPadding(padding, padding, padding, padding)
+                    typeface = fontProvider.typeface ?: Typeface.DEFAULT
+                    text = emoji
+                    alpha = if (selected) 0.2f else 1f
+                    onClick { listener?.didSelect(emoji, !selected) }
+                }
             }
-            holder.addedViews.add(textView)
+            holder.addedViews.add(itemView)
             if (compact) {
                 // Weighted so leftover width is shared evenly (emojis spread out); on overflow there
                 // is no leftover and the row scrolls horizontally instead.
-                textView.gravity = Gravity.CENTER
-                val params = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        1f
-                )
-                holder.row.addView(textView, params)
+                (itemView as? TextView)?.gravity = Gravity.CENTER
+                // Images need an explicit size (WRAP_CONTENT would blow up to the bitmap); text wraps as before.
+                val width = if (itemView is android.widget.ImageView) imageSize + padding * 2 else LinearLayout.LayoutParams.WRAP_CONTENT
+                val height = if (itemView is android.widget.ImageView) imageSize + padding * 2 else LinearLayout.LayoutParams.WRAP_CONTENT
+                holder.row.addView(itemView, LinearLayout.LayoutParams(width, height, 1f))
             } else {
-                holder.wrapContainer.addView(textView)
-                ids[index] = textView.id
+                holder.wrapContainer.addView(itemView)
+                ids[index] = itemView.id
             }
         }
         if (!compact) {
@@ -96,7 +113,7 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
         val flow by bind<Flow>(R.id.reactionsFlowHelper)
         val scroll by bind<HorizontalScrollView>(R.id.reactionsScroll)
         val row by bind<LinearLayout>(R.id.reactionsRow)
-        val addedViews = mutableListOf<TextView>()
+        val addedViews = mutableListOf<View>()
     }
 
     interface Listener {

@@ -112,7 +112,7 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
                 val reactionButton = ReactionButton(holder.view.context)
                 reactionButton.reactedListener = reactionClickListener
                 reactionButton.setTag(R.id.reactionsContainer, reaction.key)
-                reactionButton.blockImages = baseAttributes.informationData.hideMediaReactions
+                reactionButton.blockImages = baseAttributes.informationData.hideMediaReactions && !reaction.addedByMe
                 reactionButton.reactionString = reaction.key
                 reactionButton.reactionCount = reaction.count
                 reactionButton.setChecked(reaction.addedByMe)

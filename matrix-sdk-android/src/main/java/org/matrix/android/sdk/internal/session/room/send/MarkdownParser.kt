@@ -38,6 +38,10 @@ internal class MarkdownParser @Inject constructor(
 
     private val mdSpecialChars = "[`_\\-*>.\\[\\]#~$^]".toRegex()
 
+    private companion object {
+        const val CUSTOM_EMOTICON_MARKER = "data-mx-emoticon"
+    }
+
     /**
      * Parses some input text and produces html.
      * @param text An input CharSequence to be parsed.
@@ -63,7 +67,13 @@ internal class MarkdownParser @Inject constructor(
             htmlText
         }
 
-        return if (isFormattedTextPertinent(source, cleanHtmlText)) {
+        // Custom emotes are serialized as raw <img data-mx-emoticon> HTML, which commonmark passes through
+        // unchanged — so cleanHtmlText == source and the pertinence check below would wrongly conclude no
+        // formatting happened, dumping the HTML into the plain body. Force the formatted body in that case,
+        // keeping the original :shortcode: text (from the span's backing text) as the plain body.
+        val containsCustomEmoticon = source.contains(CUSTOM_EMOTICON_MARKER)
+
+        return if (containsCustomEmoticon || isFormattedTextPertinent(source, cleanHtmlText)) {
             // According to https://matrix.org/docs/spec/client_server/latest#m-room-message-msgtypes:
             // The plain text version of the HTML should be provided in the body.
             // But it caused too many problems so it has been removed in #2002

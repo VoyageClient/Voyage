@@ -203,10 +203,12 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         return if (data != null) {
             val session = activeSessionHolder.getSafeActiveSession()
             val hidden = session != null && shouldHideMediaPreview(event, session, vectorPreferences, mediaContentRevealManager)
+            // Full image for transparent-capable content (server thumbnails can bake in a background).
+            val mode = ImageContentRenderer.previewMode(isSticker = false, mimeType = data.mimeType)
             if (hidden) {
-                imageContentRenderer.renderHidden(data, ImageContentRenderer.Mode.THUMBNAIL, views.composerRelatedMessageImage, vectorPreferences.useSolidColorForHiddenMedia())
+                imageContentRenderer.renderHidden(data, mode, views.composerRelatedMessageImage, vectorPreferences.useSolidColorForHiddenMedia())
             } else {
-                imageContentRenderer.render(data, ImageContentRenderer.Mode.THUMBNAIL, views.composerRelatedMessageImage, crossFade = crossFade)
+                imageContentRenderer.render(data, mode, views.composerRelatedMessageImage, crossFade = crossFade)
             }
             true
         } else {

@@ -237,9 +237,10 @@ internal class JSonViewerEpoxyController(private val context: Context) :
     // The node's value serialized as pretty-printed JSON, excluding its key — so long-pressing
     // "content" copies `{ ... }`, and the root copies the whole event.
     private fun serializedValue(model: JSonViewerModel): String? = try {
+        // org.json escapes every '/' as '\/'; undo it so the copied JSON matches the source exactly.
         when (val o = model.jObject) {
-            is JSONObject -> o.toString(4)
-            is JSONArray -> o.toString(4)
+            is JSONObject -> o.toString(4).replace("\\/", "/")
+            is JSONArray -> o.toString(4).replace("\\/", "/")
             else -> null
         }
     } catch (failure: JSONException) {

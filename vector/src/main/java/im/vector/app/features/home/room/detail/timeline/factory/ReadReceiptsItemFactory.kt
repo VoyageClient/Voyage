@@ -12,17 +12,21 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem_
+import im.vector.app.features.media.shouldHideAvatars
+import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import javax.inject.Inject
 
 class ReadReceiptsItemFactory @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
-        private val session: Session
+        private val session: Session,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     fun create(
             eventId: String,
+            roomId: String,
             readReceipts: List<ReadReceipt>,
             callback: TimelineEventController.Callback?,
             isFromThreadTimeLine: Boolean,
@@ -30,9 +34,11 @@ class ReadReceiptsItemFactory @Inject constructor(
         if (readReceipts.isEmpty()) {
             return null
         }
+        val hideAvatars = shouldHideAvatars(roomId, session, vectorPreferences)
         val readReceiptsData = readReceipts
                 .map {
-                    ReadReceiptData(it.roomMember.userId, it.roomMember.avatarUrl, it.roomMember.displayName, it.originServerTs)
+                    val avatarUrl = it.roomMember.avatarUrl.takeUnless { hideAvatars }
+                    ReadReceiptData(it.roomMember.userId, avatarUrl, it.roomMember.displayName, it.originServerTs)
                 }
                 .sortedByDescending { it.timestamp }
         val threadReadReceiptsSupported = session.homeServerCapabilitiesService().getHomeServerCapabilities().canUseThreadReadReceiptsAndNotifications

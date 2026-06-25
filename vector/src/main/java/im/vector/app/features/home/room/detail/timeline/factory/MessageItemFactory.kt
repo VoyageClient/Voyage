@@ -26,7 +26,7 @@ import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
-import im.vector.app.core.utils.containsOnlyEmojis
+import im.vector.app.core.utils.containsOnlyEmojisAndEmotes
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -62,6 +62,7 @@ import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.html.BodySegment
+import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.HiddenImageSpan
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
@@ -178,7 +179,7 @@ class MessageItemFactory @Inject constructor(
         val callback = params.callback
         event.root.eventId ?: return null
         roomId = event.roomId
-        val informationData = messageInformationDataFactory.create(params)
+        val informationData = im.vector.app.core.utils.PerfTrace.time("create.infoData") { messageInformationDataFactory.create(params) }
         val threadDetails = if (params.isFromThreadTimeline()) null else event.root.threadDetails
 
         if (event.root.isRedacted()) {
@@ -205,11 +206,13 @@ class MessageItemFactory @Inject constructor(
         }
 
         // always hide summary when we are on thread timeline
-        val attributes = messageItemAttributesFactory.create(messageContent, informationData, callback, params.reactionsSummaryEvents, threadDetails)
+        val attributes = im.vector.app.core.utils.PerfTrace.time("create.attributes") {
+            messageItemAttributesFactory.create(messageContent, informationData, callback, params.reactionsSummaryEvents, threadDetails)
+        }
 
         //        val all = event.root.toContent()
         //        val ev = all.toModel<Event>()
-        val messageItem = when (messageContent) {
+        val messageItem = im.vector.app.core.utils.PerfTrace.time("create.build.${messageContent.msgType}") { when (messageContent) {
             is MessageEmoteContent -> buildEmoteMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageTextContent -> buildItemForTextContent(messageContent, informationData, highlight, callback, attributes)
             is MessageImageInfoContent -> buildImageMessageItem(messageContent, informationData, highlight, callback, attributes)
@@ -224,7 +227,7 @@ class MessageItemFactory @Inject constructor(
             is MessageBeaconInfoContent -> liveLocationShareMessageItemFactory.create(event, highlight, attributes)
             is MessageVoiceBroadcastInfoContent -> voiceBroadcastItemFactory.create(params, messageContent, highlight, attributes)
             else -> buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
-        }
+        } }
         return messageItem?.apply {
             layout(informationData.messageLayout.layoutRes)
             (this as? AbsMessageItem<*>)?.let { item ->
@@ -769,13 +772,7 @@ class MessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes,
             noticeStyle: Boolean = false,
     ): MessageTextItem? {
-        // Render the actual body with any embedded legacy `<mx-reply>` stripped — the synthetic
-        // reply header (if any) is rendered in a second Markwon pass and prepended below. This
-        // avoids MxReplyTagHandler's positional surgery on the SpannableBuilder, which mangled
-        // span positions of links / inline code that followed the mx-reply block in a single
-        // combined pass (resulting in literal HTML being shown in the timeline).
-        // The replied-to preview is now rendered by InReplyToView (SchildiChat-style), so here we
-        // only render the bare body with any embedded legacy `<mx-reply>` stripped.
+        // Strip any embedded legacy `<mx-reply>`; the replied-to preview is rendered separately by InReplyToView.
         val bareBody = processBodyOfReplyToEventUseCase.stripExistingMxReply(matrixFormattedBody)
         val compressed = htmlCompressor.compress(bareBody)
         val containsTable = compressed.contains("<table", ignoreCase = true)
@@ -888,11 +885,16 @@ class MessageItemFactory @Inject constructor(
             blockedBody: CharSequence? = null,
     ): MessageTextItem? {
         val renderedBody = textRenderer.render(body)
-        val bindingOptions = spanUtils.getBindingOptions(renderedBody)
-        val linkifiedBody = renderedBody.linkify(callback)
+        val bindingOptions = im.vector.app.core.utils.PerfTrace.time("build.text.bindingOptions") { spanUtils.getBindingOptions(renderedBody) }
+        val linkifiedBody = im.vector.app.core.utils.PerfTrace.time("build.text.linkify") { renderedBody.linkify(callback) }
 
         val blockedRendered = blockedBody?.let { textRenderer.render(it) }
         val blockedLinkified = blockedRendered?.linkify(callback)
+
+        // A message of only emoji and/or custom emotes (+ spaces) renders large, like the emoji-only rule.
+        val emoteRanges = (linkifiedBody as? Spanned)
+                ?.let { spanned -> spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) } }
+                .orEmpty()
 
         return MessageTextItem_()
                 .message(
@@ -902,7 +904,7 @@ class MessageItemFactory @Inject constructor(
                             linkifiedBody
                         }.toEpoxyCharSequence()
                 )
-                .useBigFont(linkifiedBody.length <= MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT * 2 && containsOnlyEmojis(linkifiedBody.toString()))
+                .useBigFont(containsOnlyEmojisAndEmotes(linkifiedBody, emoteRanges, MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT))
                 .bindingOptions(bindingOptions)
                 .markwonPlugins(htmlRenderer.get().plugins)
                 .searchForPills(isFormatted)

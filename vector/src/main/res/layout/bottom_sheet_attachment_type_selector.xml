@@ -21,11 +21,20 @@
             app:titleTextColor="?vctr_content_primary" />
 
         <im.vector.app.core.ui.views.BottomSheetActionButton
-            android:id="@+id/stickers"
+            android:id="@+id/localStickers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:actionTitle="@string/attachment_type_selector_sticker"
             app:leftIcon="@drawable/ic_attachment_sticker"
+            app:tint="?colorPrimary"
+            app:titleTextColor="?vctr_content_primary" />
+
+        <im.vector.app.core.ui.views.BottomSheetActionButton
+            android:id="@+id/stickers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:actionTitle="@string/attachment_type_selector_sticker_online"
+            app:leftIcon="@drawable/ic_attachment_sticker_web"
             app:tint="?colorPrimary"
             app:titleTextColor="?vctr_content_primary" />
 

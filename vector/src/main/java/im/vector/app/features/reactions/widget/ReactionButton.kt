@@ -19,7 +19,6 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
-import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
@@ -28,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.EmojiSpanify
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.databinding.ReactionButtonBinding
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
@@ -98,7 +98,7 @@ class ReactionButton @JvmOverloads constructor(
     private fun applyReactionContent(value: String) {
         if (!value.isMxcUrl()) {
             // Plain emoji / unicode reaction.
-            Glide.with(views.reactionImage).clear(views.reactionImage)
+            GlideApp.with(views.reactionImage).clear(views.reactionImage)
             views.reactionImage.isVisible = false
             views.reactionText.setReactionTextLayoutForEmoji()
             views.reactionText.isVisible = true
@@ -108,12 +108,13 @@ class ReactionButton @JvmOverloads constructor(
         // Image reaction. Show a ❓ placeholder at the exact size the loaded image will occupy
         // so the row doesn't reflow when Glide swaps the bitmap in.
         views.reactionText.setReactionTextLayoutForImagePlaceholder()
-        views.reactionText.text = QUESTION_MARK_EMOJI
+        // Spanify so ❓ renders via EmojiCompat on devices (KitKat) that lack the glyph, instead of tofu.
+        views.reactionText.text = emojiSpanify.spanify(QUESTION_MARK_EMOJI)
         views.reactionText.isVisible = true
         views.reactionImage.isVisible = false
         if (blockImages) {
             // Media hidden for this room: keep the ❓ and don't fetch the image.
-            Glide.with(views.reactionImage).clear(views.reactionImage)
+            GlideApp.with(views.reactionImage).clear(views.reactionImage)
             return
         }
         val resolved = activeSessionHolder.getSafeActiveSession()
@@ -121,11 +122,11 @@ class ReactionButton @JvmOverloads constructor(
                 ?.resolveFullSize(value)
         if (resolved == null) {
             // Malformed mxc or no active session — leave the ❓ visible permanently.
-            Glide.with(views.reactionImage).clear(views.reactionImage)
+            GlideApp.with(views.reactionImage).clear(views.reactionImage)
             return
         }
         val loadSizePx = (IMAGE_SIZE_DP * resources.displayMetrics.density * IMAGE_OVERSAMPLE_FACTOR).toInt()
-        Glide.with(views.reactionImage)
+        GlideApp.with(views.reactionImage)
                 .load(resolved)
                 .override(loadSizePx, loadSizePx)
                 .listener(object : RequestListener<Drawable> {

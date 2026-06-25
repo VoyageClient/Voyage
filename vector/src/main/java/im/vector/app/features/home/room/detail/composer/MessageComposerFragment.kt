@@ -13,6 +13,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
+import android.text.SpannableString
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Build
@@ -28,13 +29,12 @@ import androidx.annotation.RequiresApi
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.parentFragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.vanniktech.emoji.EmojiPopup
+import im.vector.app.features.reactions.EmojiKeyboardController
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.error.fatalError
@@ -59,6 +59,7 @@ import im.vector.app.features.attachments.AttachmentTypeSelectorSharedActionView
 import im.vector.app.features.attachments.AttachmentTypeSelectorView
 import im.vector.app.features.attachments.AttachmentTypeSelectorViewModel
 import im.vector.app.features.attachments.AttachmentsHelper
+import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
@@ -79,7 +80,6 @@ import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.poll.PollMode
-import im.vector.app.features.reactions.data.AccountDataRecentEmoji
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.SharedData
@@ -94,6 +94,8 @@ import im.vector.app.features.media.MediaContentRevealManager
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
+import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.util.MatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
@@ -115,20 +117,16 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var vectorFeatures: VectorFeatures
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var session: Session
-    @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
+    @Inject lateinit var emoteShortcodeProcessor: im.vector.app.features.imagepack.EmoteShortcodeProcessor
+    @Inject lateinit var emojiPickerSectionFactory: im.vector.app.features.reactions.EmojiPickerSectionFactory
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
 
     private val roomId: String get() = withState(timelineViewModel) { it.roomId }
 
     private val autoCompleters: MutableMap<EditText, AutoCompleter> = hashMapOf()
 
-    // vanniktech EmojiPopup themes the pager with EdgeEffect.setColor (API 21+), so it can't run pre-21.
-    private val isEmojiKeyboardSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
-
-    private val emojiPopupLazy = lifecycleAwareLazy {
-        createEmojiPopup()
-    }
-    private val emojiPopup: EmojiPopup by emojiPopupLazy
+    // Custom inline emoji+emote keyboard, works on all API levels (the old vanniktech popup needed API 21+).
+    private var emojiKeyboardController: EmojiKeyboardController? = null
 
     private val glideRequests by lazy {
         GlideApp.with(this)
@@ -165,6 +163,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         setupBottomSheet()
         setupComposer()
         setupEmojiButton()
+        setupStickerPicker()
 
         // Avoid a one-frame flash before renderRegularMode runs.
         if (!vectorPreferences.isVoiceMessageButtonEnabled()) {
@@ -264,6 +263,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     override fun onDestroyView() {
         super.onDestroyView()
 
+        emojiKeyboardController?.destroy()
+        emojiKeyboardController = null
         autoCompleters.values.forEach(AutoCompleter::clear)
         autoCompleters.clear()
         messageComposerViewModel.endAllVoiceActions()
@@ -279,6 +280,32 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             messageComposerState.isSendButtonVisible -> View.VISIBLE
             recorderClaimsSlot -> View.INVISIBLE
             else -> View.GONE
+        }
+    }
+
+    private fun setupStickerPicker() {
+        childFragmentManager.setFragmentResultListener(StickerPickerBottomSheet.RESULT_KEY, viewLifecycleOwner) { _, bundle ->
+            val url = bundle.getString(StickerPickerBottomSheet.BUNDLE_URL) ?: return@setFragmentResultListener
+            val width = bundle.getInt(StickerPickerBottomSheet.BUNDLE_WIDTH)
+            val height = bundle.getInt(StickerPickerBottomSheet.BUNDLE_HEIGHT)
+            val size = bundle.getLong(StickerPickerBottomSheet.BUNDLE_SIZE)
+            // Only send info when we actually know the dimensions; otherwise omit it rather than send zeros.
+            val info = if (width > 0 && height > 0) {
+                ImageInfo(
+                        mimeType = bundle.getString(StickerPickerBottomSheet.BUNDLE_MIME),
+                        width = width,
+                        height = height,
+                        size = size,
+                )
+            } else {
+                null
+            }
+            val content = MessageStickerContent(
+                    body = bundle.getString(StickerPickerBottomSheet.BUNDLE_BODY) ?: "",
+                    info = info,
+                    url = url,
+            )
+            messageComposerViewModel.handle(MessageComposerAction.SendSticker(content))
         }
     }
 
@@ -339,7 +366,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             result
         }
 
-        composer.emojiButton?.isVisible = vectorPreferences.showEmojiKeyboard() && isEmojiKeyboardSupported
+        composer.emojiButton?.isVisible = vectorPreferences.showEmojiKeyboard()
 
         val showKeyboard = withState(timelineViewModel) { it.showKeyboardWhenPresented }
         if (isThreadTimeLine() && showKeyboard) {
@@ -371,7 +398,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             }
 
             override fun onExpandOrCompactChange() {
-                composer.emojiButton?.isVisible = isEmojiKeyboardVisible && isEmojiKeyboardSupported
+                composer.emojiButton?.isVisible = isEmojiKeyboardVisible
             }
 
             override fun onSendMessage(text: CharSequence) = withState(messageComposerViewModel) { state ->
@@ -435,7 +462,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             } else {
                 messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, null, vectorPreferences.isMarkdownEnabled()))
             }
-            if (emojiPopupLazy.isInitialized()) emojiPopup.dismiss()
+            emojiKeyboardController?.dismiss()
             if (vectorPreferences.jumpToBottomOnSend()) {
                 timelineViewModel.handle(RoomDetailAction.JumpToBottom)
             }
@@ -509,47 +536,32 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
     }
 
-    private fun createEmojiPopup(): EmojiPopup {
-        return EmojiPopup(
+    private fun emojiKeyboard(): EmojiKeyboardController {
+        return emojiKeyboardController ?: EmojiKeyboardController(
+                activity = requireActivity(),
                 rootView = views.root,
-                recentEmoji = AccountDataRecentEmoji(recentEmojiDataSource),
-                keyboardAnimationStyle = com.vanniktech.emoji.R.style.emoji_fade_animation_style,
-                onEmojiPopupShownListener = {
+                editText = composer.editText,
+                roomId = roomId,
+                sectionFactory = emojiPickerSectionFactory,
+                scope = viewLifecycleOwner.lifecycleScope,
+                onVisibilityChanged = { visible ->
                     composer.emojiButton?.apply {
-                        contentDescription = getString(CommonStrings.a11y_close_emoji_picker)
-                        setImageResource(R.drawable.ic_keyboard)
+                        contentDescription = getString(if (visible) CommonStrings.a11y_close_emoji_picker else CommonStrings.a11y_open_emoji_picker)
+                        setImageResource(if (visible) R.drawable.ic_keyboard else R.drawable.ic_insert_emoji)
                     }
                 },
-                onEmojiPopupDismissListener = lifecycleAwareDismissAction {
-                    composer.emojiButton?.apply {
-                        contentDescription = getString(CommonStrings.a11y_open_emoji_picker)
-                        setImageResource(R.drawable.ic_insert_emoji)
-                    }
-                },
-                editText = composer.editText
-        )
-    }
-
-    /**
-     *  Ensure dismiss actions only trigger when the fragment is in the started state.
-     *  EmojiPopup by default dismisses onViewDetachedFromWindow, this can cause race conditions with onDestroyView.
-     */
-    private fun lifecycleAwareDismissAction(action: () -> Unit): () -> Unit {
-        return {
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                action()
-            }
-        }
+        ).also { emojiKeyboardController = it }
     }
 
     private fun setupEmojiButton() {
-        if (!isEmojiKeyboardSupported) {
-            // vanniktech EmojiPopup can't run pre-21 (EdgeEffect.setColor); hide the button on KitKat.
-            composer.emojiButton?.isVisible = false
-            return
-        }
         composer.emojiButton?.debouncedClicks {
-            emojiPopup.toggle()
+            emojiKeyboard().toggle()
+        }
+        // Tapping the input returns to normal keyboard typing: dismiss the emoji panel (the soft
+        // keyboard is still open behind it).
+        composer.editText.setOnTouchListener { _, _ ->
+            if (emojiKeyboardController?.isShowing == true) emojiKeyboardController?.dismiss()
+            false
         }
     }
 
@@ -708,8 +720,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun dispatchSendMedia(attachments: List<ContentAttachmentData>, compressBeforeSending: Boolean) = withState(messageComposerViewModel) { state ->
         val replyToEvent = (state.sendMode as? SendMode.Reply)?.timelineEvent
-        val plain = composer.text?.toString().orEmpty()
-        val captionText = plain.takeIf { it.isNotBlank() }
+        // Keep the caption as a spanned CharSequence (and tag literal :shortcode: emotes) so custom
+        // emotes survive into the formatted caption body, instead of stringifying it here.
+        val rawCaption = composer.text ?: ""
+        val captionText: CharSequence? = rawCaption.toString().takeIf { it.isNotBlank() }
+                ?.let { SpannableString(emoteShortcodeProcessor.process(roomId, rawCaption)) }
         val richHtml = composer.formattedText
         val captionFormattedText = richHtml?.takeIf { captionText != null }
         val autoMarkdown = captionText != null && captionFormattedText == null && vectorPreferences.isMarkdownEnabled()
@@ -762,6 +777,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             AttachmentType.GALLERY -> attachmentsHelper.selectGallery(attachmentMediaActivityResultLauncher)
             AttachmentType.VOICE_FILE -> attachmentsHelper.selectVoiceFile(attachmentVoiceFileActivityResultLauncher)
             AttachmentType.STICKER -> timelineViewModel.handle(RoomDetailAction.SelectStickerAttachment)
+            AttachmentType.STICKER_LOCAL -> StickerPickerBottomSheet.show(childFragmentManager, roomId)
             AttachmentType.POLL -> navigator.openCreatePoll(requireContext(), roomId, null, PollMode.CREATE)
             AttachmentType.LOCATION -> {
                 navigator

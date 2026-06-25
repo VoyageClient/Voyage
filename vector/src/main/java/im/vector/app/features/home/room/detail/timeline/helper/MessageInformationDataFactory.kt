@@ -115,17 +115,10 @@ class MessageInformationDataFactory @Inject constructor(
 
         // Determine DM partner so dual-side bubbles can hide both avatars in direct chats.
         val isEffectivelyDirect = roomSummary?.isDirect ?: false
-        var dmOtherMemberId: String? = null
-        if (roomSummary?.isDirect == true && event.root.roomId != null) {
-            val members = session.roomService().getRoom(event.root.roomId!!)
-                    ?.membershipService()
-                    ?.getRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.JOIN) })
-                    ?.map { it.userId }
-                    .orEmpty()
-                    .toSet()
-            if (members.size == 2) {
-                dmOtherMemberId = members.firstOrNull { it != session.myUserId }
-            }
+        val dmOtherMemberId = if (roomSummary?.isDirect == true && event.root.roomId != null) {
+            directMessagePartner(event.root.roomId!!)
+        } else {
+            null
         }
 
         // SendState Decoration
@@ -185,6 +178,24 @@ class MessageInformationDataFactory @Inject constructor(
                     event.root.getMsgType()
                 }
         )
+    }
+
+    // Memoize per room: resolving the DM partner hits Realm, and it's identical for every event in the room.
+    private var cachedDmRoomId: String? = null
+    private var cachedDmPartnerId: String? = null
+
+    private fun directMessagePartner(roomId: String): String? {
+        if (roomId == cachedDmRoomId) return cachedDmPartnerId
+        val members = session.roomService().getRoom(roomId)
+                ?.membershipService()
+                ?.getRoomMembers(roomMemberQueryParams { memberships = listOf(Membership.JOIN) })
+                ?.map { it.userId }
+                .orEmpty()
+                .toSet()
+        val partner = if (members.size == 2) members.firstOrNull { it != session.myUserId } else null
+        cachedDmRoomId = roomId
+        cachedDmPartnerId = partner
+        return partner
     }
 
     private suspend fun getSenderId(event: TimelineEvent) = if (event.isEncrypted()) {

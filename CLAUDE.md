@@ -39,6 +39,12 @@ The app takes ~45 seconds to start. When launching it (e.g. to read logs after a
 
 NEVER take device screenshots (no `adb screencap`, no `adb exec-out screencap`, no driving the UI to capture a screen) unless the user explicitly asks for one in that message. To verify behaviour, prefer reading logcat; let the user drive the UI and trigger flows themselves.
 
+# Reviewing changes
+
+When asked to review, review the entire diff since the last git commit — not just the most recent edit. Go through all of it and check for: dead or unreachable code, stale/unnecessary/narrating comments, bugs and logic errors, and anything that would break on the minimum supported API (currently KitKat / API 19) — verify it genuinely runs there, not just that it compiles. Don't only report problems: if you spot improvements worth making to the changed code, make them.
+
+Also during review, compact overly verbose comments down to the minimal non-obvious WHY. And delete comments that only make sense relative to uncommitted history — i.e. notes explaining a fix for a problem we introduced earlier in this same uncommitted batch, or contrasting against "how this used to be handled" when that prior state was never committed. To an outside observer reading the committed code fresh, such comments are meaningless; the code should read as if it was always written this way.
+
 # Changelog
 
 Never write changelog entries to any file (no `changelog.d/` fragments, no `CHANGES.md` — that towncrier setup predates this fork and is unused). The changelog lives only in the commit message: a concise imperative subject line followed by a body describing the changes. Every body item MUST start with `- ` — NEVER write a paragraph that does not begin with `- `. Put a blank line between each `- ` entry.

@@ -88,11 +88,17 @@ class EventTextRenderer @AssistedInject constructor(
         )
 
         // search for notify everyone text
+        fun isWordChar(c: Char) = c.isLetterOrDigit() || c == '_'
         val foundIndices = mutableListOf<Int>()
         var foundIndex = text.indexOf(MatrixItem.NOTIFY_EVERYONE, 0)
         while (foundIndex >= 0) {
-            foundIndices.add(foundIndex)
-            foundIndex = text.indexOf(MatrixItem.NOTIFY_EVERYONE, foundIndex + MatrixItem.NOTIFY_EVERYONE.length)
+            val end = foundIndex + MatrixItem.NOTIFY_EVERYONE.length
+            val boundaryBefore = foundIndex == 0 || !isWordChar(text[foundIndex - 1])
+            val boundaryAfter = end == text.length || !isWordChar(text[end])
+            if (boundaryBefore && boundaryAfter) {
+                foundIndices.add(foundIndex)
+            }
+            foundIndex = text.indexOf(MatrixItem.NOTIFY_EVERYONE, end)
         }
         // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier indices.
         foundIndices.asReversed().forEach { index ->

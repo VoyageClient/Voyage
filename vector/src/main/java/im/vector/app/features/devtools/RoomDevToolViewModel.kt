@@ -22,7 +22,9 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
-import org.json.JSONObject
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonReader
+import okio.Buffer
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -46,6 +48,31 @@ class RoomDevToolViewModel @AssistedInject constructor(
 
     companion object : MavericksViewModelFactory<RoomDevToolViewModel, RoomDevToolViewState> by hiltMavericksViewModelFactory()
 
+    private val contentAdapter: JsonAdapter<JsonDict> = MatrixJsonParser.getMoshi()
+            .adapter(Types.newParameterizedType(Map::class.java, String::class.java, Any::class.java))
+
+    // Lenient so minor hand-editing of the JSON isn't rejected outright.
+    private fun parseJsonLeniently(text: String): JsonDict? {
+        return contentAdapter.fromJson(JsonReader.of(Buffer().writeUtf8(text)).apply { isLenient = true })
+                ?.let { coerceContent(it) }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun coerceContent(content: JsonDict?): JsonDict? = coerceWholeDoublesToLongs(content) as? JsonDict
+
+    // Moshi's Any adapter parses every JSON number as Double, so re-serializing would emit "w":1080.0 —
+    // Synapse strictly rejects that (M_BAD_JSON "Bad JSON value: float"). Round-trip whole-number Doubles
+    // back to Long. Same fix as MessageActionsViewModel / LocalEchoEventFactory.
+    private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
+        is Double -> if (value.isFinite() && value % 1.0 == 0.0 &&
+                value >= Long.MIN_VALUE.toDouble() && value <= Long.MAX_VALUE.toDouble()) {
+            value.toLong()
+        } else value
+        is Map<*, *> -> value.mapValues { coerceWholeDoublesToLongs(it.value) }
+        is List<*> -> value.map { coerceWholeDoublesToLongs(it) }
+        else -> value
+    }
+
     init {
         session.getRoom(initialState.roomId)
                 ?.flow()
@@ -66,17 +93,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 }
             }
             is RoomDevToolAction.ShowStateEvent -> {
-                val jsonString = MatrixJsonParser.getMoshi()
-                        .adapter(Event::class.java)
-                        .toJson(action.event)
-
-                setState {
-                    copy(
-                            displayMode = RoomDevToolViewState.Mode.StateEventDetail,
-                            selectedEvent = action.event,
-                            selectedEventJson = jsonString
-                    )
-                }
+                showStateEventDetail(action.event)
             }
             RoomDevToolAction.OnBackPressed -> {
                 handleBack()
@@ -84,8 +101,11 @@ class RoomDevToolViewModel @AssistedInject constructor(
             RoomDevToolAction.MenuEdit -> {
                 withState {
                     if (it.displayMode == RoomDevToolViewState.Mode.StateEventDetail) {
-                        // we want to edit it
-                        val content = it.selectedEvent?.content?.let { JSONObject(it).toString(4) } ?: "{\n\t\n}"
+                        // Serialize with Moshi (the same parser used on save) so the content round-trips
+                        // exactly — org.json mangles nested maps and escapes '/', which broke saving.
+                        val content = it.selectedEvent?.content?.let { contentMap ->
+                            contentAdapter.indent("    ").toJson(contentMap)
+                        } ?: "{\n\t\n}"
                         setState {
                             copy(
                                     editedContent = content,
@@ -95,12 +115,20 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     }
                 }
             }
-            is RoomDevToolAction.ShowStateEventType -> {
-                setState {
-                    copy(
-                            displayMode = RoomDevToolViewState.Mode.StateEventListByType,
-                            currentStateType = action.stateEventType
-                    )
+            is RoomDevToolAction.ShowStateEventType -> withState { state ->
+                // A type with a single empty-state-key event has no per-key list worth showing — open its
+                // detail directly. Multiple keys (or a non-empty key) still get the intermediate list.
+                val single = singleEmptyKeyEvent(state, action.stateEventType)
+                if (single != null) {
+                    setState { copy(currentStateType = action.stateEventType) }
+                    showStateEventDetail(single)
+                } else {
+                    setState {
+                        copy(
+                                displayMode = RoomDevToolViewState.Mode.StateEventListByType,
+                                currentStateType = action.stateEventType
+                        )
+                    }
                 }
             }
             RoomDevToolAction.MenuItemSend -> {
@@ -159,9 +187,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 val room = session.getRoom(initialState.roomId)
                         ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.room_error_not_found))
 
-                val adapter = MatrixJsonParser.getMoshi()
-                        .adapter<JsonDict>(Types.newParameterizedType(Map::class.java, String::class.java, Any::class.java))
-                val json = adapter.fromJson(state.editedContent ?: "")
+                val json = parseJsonLeniently(state.editedContent ?: "")
                         ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_content))
 
                 room.stateService().sendStateEvent(
@@ -179,6 +205,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     )
                 }
             } catch (failure: Throwable) {
+                timber.log.Timber.e(failure, "DevToolsDbg: editEventContent failed; content=[${state.editedContent}]")
                 _viewEvents.post(DevToolsViewEvents.ShowAlertMessage(errorFormatter.toHumanReadable(failure)))
                 setState { copy(modalLoading = Fail(failure)) }
             }
@@ -192,9 +219,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 val room = session.getRoom(initialState.roomId)
                         ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.room_error_not_found))
 
-                val adapter = MatrixJsonParser.getMoshi()
-                        .adapter<JsonDict>(Types.newParameterizedType(Map::class.java, String::class.java, Any::class.java))
-                val json = adapter.fromJson(state.sendEventDraft?.content ?: "")
+                val json = parseJsonLeniently(state.sendEventDraft?.content ?: "")
                         ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_content))
 
                 val eventType = state.sendEventDraft?.type
@@ -228,6 +253,32 @@ class RoomDevToolViewModel @AssistedInject constructor(
         }
     }
 
+    private fun showStateEventDetail(event: Event) {
+        // Coerce up front so the source we show (and copy to clipboard) is already correct JSON —
+        // integers, not "size":15394.0 floats from Moshi's Any adapter.
+        val sanitizedEvent = event.copy(
+                content = coerceContent(event.content),
+                prevContent = coerceContent(event.prevContent),
+        )
+        val jsonString = MatrixJsonParser.getMoshi()
+                .adapter(Event::class.java)
+                .toJson(sanitizedEvent)
+        setState {
+            copy(
+                    displayMode = RoomDevToolViewState.Mode.StateEventDetail,
+                    selectedEvent = sanitizedEvent,
+                    selectedEventJson = jsonString
+            )
+        }
+    }
+
+    private fun singleEmptyKeyEvent(state: RoomDevToolViewState, type: String?): Event? {
+        return state.stateEvents.invoke().orEmpty()
+                .filter { it.type == type }
+                .singleOrNull()
+                ?.takeIf { it.stateKey == "" }
+    }
+
     private fun handleBack() = withState {
         when (it.displayMode) {
             RoomDevToolViewState.Mode.Root -> {
@@ -243,11 +294,15 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 }
             }
             RoomDevToolViewState.Mode.StateEventDetail -> {
+                // Mirror the forward skip: if we jumped straight here (single empty-key event), skip the
+                // intermediate list on the way back too.
+                val skipList = singleEmptyKeyEvent(it, it.currentStateType) != null
                 setState {
                     copy(
                             selectedEvent = null,
                             selectedEventJson = null,
-                            displayMode = RoomDevToolViewState.Mode.StateEventListByType
+                            currentStateType = if (skipList) null else currentStateType,
+                            displayMode = if (skipList) RoomDevToolViewState.Mode.StateEventList else RoomDevToolViewState.Mode.StateEventListByType
                     )
                 }
             }

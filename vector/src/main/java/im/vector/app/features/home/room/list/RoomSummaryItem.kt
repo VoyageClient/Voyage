@@ -24,6 +24,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.core.ui.views.PresenceStateImageView
 import im.vector.app.core.ui.views.ShieldImageView
 import im.vector.app.features.displayname.getBestName
@@ -138,6 +139,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
 
     private fun renderForDefaultDisplayMode(holder: Holder) {
         holder.subtitleView.text = lastFormattedEvent.charSequence
+        holder.subtitleView.bindEmoteImageSpans()
         holder.lastEventTimeView.text = lastEventTime
         holder.typingView.setTextOrHide(typingMessage)
         holder.subtitleView.isInvisible = holder.typingView.isVisible

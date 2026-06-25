@@ -26,20 +26,13 @@ object VectorLinkify {
             }
         }
 
-        // Use the framework first, the found span can then be manipulated if needed
-        LinkifyCompat.addLinks(spannable, Linkify.WEB_URLS or Linkify.EMAIL_ADDRESSES or Linkify.PHONE_NUMBERS)
+        // Use the framework first, the found span can then be manipulated if needed.
+        // PHONE_NUMBERS is omitted on purpose: its libphonenumber scan is slow (~20ms/message) with little value.
+        LinkifyCompat.addLinks(spannable, Linkify.WEB_URLS or Linkify.EMAIL_ADDRESSES)
 
         // we might want to modify some matches
         spannable.forEachUrlSpanIndexed { _, urlSpan, start, end ->
             spannable.removeSpan(urlSpan)
-
-            // remove short PN, too much false positive
-            if (urlSpan.url?.startsWith("tel:") == true) {
-                if (end - start > 6) { // Do not match under 7 digit
-                    createdSpans.add(LinkSpec(URLSpan(urlSpan.url), start, end))
-                }
-                return@forEachUrlSpanIndexed
-            }
 
             // include mailto: if found before match
             if (urlSpan.url?.startsWith("mailto:") == true) {
@@ -55,6 +48,12 @@ object VectorLinkify {
             }
 
             // Handle url matches
+
+            // Don't linkify a domain that's really the middle of a longer dotted token: `foo.com.fizzbuzz`
+            // matches only `foo.com` (`.fizzbuzz` isn't a TLD), which would wrongly highlight half of it.
+            if (end + 1 < spannable.length && spannable[end] == '.' && spannable[end + 1].isLetterOrDigit()) {
+                return@forEachUrlSpanIndexed
+            }
 
             // check trailing space
             if (end < spannable.length - 1 && spannable[end] == '/') {

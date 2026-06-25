@@ -18,6 +18,7 @@ import im.vector.app.core.linkify.VectorLinkify
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.SpoilerSpan
 import kotlinx.coroutines.CoroutineScope
@@ -55,7 +56,21 @@ fun CharSequence.linkify(callback: TimelineEventController.UrlClickCallback?): C
         }
     })
     VectorLinkify.addLinks(spannable, true)
+    spannable.removeLinksOverEmotes()
     return spannable
+}
+
+// Linkify can lay a clickable span over an emote's (invisible) alt text; drop those so tapping the emote is inert.
+private fun SpannableStringBuilder.removeLinksOverEmotes() {
+    val emotes = getSpans(0, length, EmoteImageSpan::class.java)
+    if (emotes.isEmpty()) return
+    getSpans(0, length, ClickableSpan::class.java).forEach { link ->
+        val ls = getSpanStart(link)
+        val le = getSpanEnd(link)
+        if (emotes.any { ls < getSpanEnd(it) && getSpanStart(it) < le }) {
+            removeSpan(link)
+        }
+    }
 }
 
 // Better link movement methods fixes the issue when

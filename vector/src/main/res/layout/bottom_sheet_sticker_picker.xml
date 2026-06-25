@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?colorSurface"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/stickerPickerToolbar"
+            style="@style/Widget.Vector.Toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:title="@string/sticker_picker_title" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <im.vector.app.features.reactions.EmojiPickerTabStrip
+        android:id="@+id/stickerPickerTabs"
+        android:layout_width="match_parent"
+        android:layout_height="40dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?vctr_list_separator" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/stickerPickerRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fadeScrollbars="false"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

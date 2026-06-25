@@ -16,7 +16,10 @@ import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
+import android.text.Spanned
+import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
 import im.vector.app.features.voicebroadcast.isLive
 import im.vector.app.features.voicebroadcast.isVoiceBroadcast
@@ -25,6 +28,7 @@ import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.image
 import me.gujun.android.span.span
 import org.commonmark.node.Document
+import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -36,7 +40,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.asMessageAudioEvent
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getTextDisplayableContent
+import org.matrix.android.sdk.api.util.ContentUtils
 import javax.inject.Inject
 
 class DisplayableEventFormatter @Inject constructor(
@@ -47,7 +51,45 @@ class DisplayableEventFormatter @Inject constructor(
         private val noticeEventFormatter: NoticeEventFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val pgpDecryptor: PgpDecryptor,
+        private val imagePackProvider: Lazy<im.vector.app.features.imagepack.ImagePackProvider>,
+        private val activeSessionHolder: Lazy<im.vector.app.core.di.ActiveSessionHolder>,
+        private val vectorPreferences: im.vector.app.features.settings.VectorPreferences,
 ) {
+
+    /**
+     * Build the "Reacted with …" text for a reaction key. Unicode keys render as the emoji; a custom
+     * emote (`mxc://`) key renders as the inline image (resolved by mxc whether or not it's in a known
+     * pack), falling back to ❓ when the image can't be resolved or — matching the timeline — when media is
+     * hidden for the room and the reaction wasn't sent by us (so it's never fetched).
+     */
+    private fun formatReaction(roomId: String?, key: String, reactionSenderId: String?): CharSequence {
+        if (key.isMxcUrl()) {
+            val session = activeSessionHolder.get().getSafeActiveSession()
+            val addedByMe = reactionSenderId != null && reactionSenderId == session?.myUserId
+            val blockMedia = session == null || (!addedByMe && isMediaHiddenInRoom(roomId, session, vectorPreferences))
+            val rendered = if (!blockMedia) {
+                val shortcode = roomId?.let { id -> imagePackProvider.get().getEmoticons(id).firstOrNull { it.mxcUrl == key } }?.shortcode.orEmpty()
+                val html = "<img data-mx-emoticon src=\"$key\" alt=\":$shortcode:\" title=\"$shortcode\" height=\"32\"/>"
+                htmlRenderer.get().render(html).takeIf { (it as? Spanned)?.getSpans(0, it.length, EmoteImageSpan::class.java)?.isNotEmpty() == true }
+            } else {
+                null
+            }
+            return reactionTemplate(rendered ?: emojiSpanify.spanify(QUESTION_MARK_EMOJI))
+        }
+        return emojiSpanify.spanify(stringProvider.getString(CommonStrings.sent_a_reaction, key))
+    }
+
+    // Insert [display] (which may carry emote image spans) into the "Reacted with: %s" template.
+    private fun reactionTemplate(display: CharSequence): CharSequence {
+        val marker = "\u0001"
+        val template = stringProvider.getString(CommonStrings.sent_a_reaction, marker)
+        val idx = template.indexOf(marker)
+        if (idx < 0) return display
+        return android.text.SpannableStringBuilder()
+                .append(template.subSequence(0, idx))
+                .append(display)
+                .append(template.subSequence(idx + marker.length, template.length))
+    }
 
     fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean, unhandledFallback: Boolean = false): CharSequence {
         if (timelineEvent.root.isRedacted()) {
@@ -70,13 +112,12 @@ class DisplayableEventFormatter @Inject constructor(
                     }
                     when (messageContent.msgType) {
                         MessageType.MSGTYPE_TEXT -> {
-                            val body = messageContent.getTextDisplayableContent()
-                            if (messageContent is MessageTextContent && messageContent.matrixFormattedBody.isNullOrBlank().not()) {
-                                val localFormattedBody = htmlRenderer.get().parse(body) as Document
-                                val renderedBody = htmlRenderer.get().render(localFormattedBody) ?: body
-                                simpleFormat(senderName, renderedBody, appendAuthor)
+                            val preview = messageContent.previewText()
+                            if (preview.formattedBody != null) {
+                                // Render the formatted HTML so custom emotes survive as image spans.
+                                simpleFormat(senderName, htmlRenderer.get().render(preview.formattedBody).stripPreviewLinkStyling(), appendAuthor)
                             } else {
-                                simpleFormat(senderName, body, appendAuthor)
+                                simpleFormat(senderName, preview.body, appendAuthor)
                             }
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
@@ -118,8 +159,7 @@ class DisplayableEventFormatter @Inject constructor(
             }
             EventType.REACTION -> {
                 timelineEvent.root.getClearContent().toModel<ReactionContent>()?.relatesTo?.let {
-                    val emojiSpanned = emojiSpanify.spanify(stringProvider.getString(CommonStrings.sent_a_reaction, it.key))
-                    simpleFormat(senderName, emojiSpanned, appendAuthor)
+                    simpleFormat(senderName, formatReaction(timelineEvent.root.roomId, it.key, timelineEvent.root.senderId), appendAuthor)
                 } ?: span { }
             }
             EventType.KEY_VERIFICATION_CANCEL,
@@ -177,7 +217,7 @@ class DisplayableEventFormatter @Inject constructor(
         if (latestEdition != null) {
             return run {
                 val localFormattedBody = htmlRenderer.get().parse(latestEdition) as Document
-                val renderedBody = htmlRenderer.get().render(localFormattedBody) ?: latestEdition
+                val renderedBody = htmlRenderer.get().render(localFormattedBody)?.stripPreviewLinkStyling() ?: latestEdition
                 renderedBody
             }
         }
@@ -198,13 +238,11 @@ class DisplayableEventFormatter @Inject constructor(
                 (event.getClearContent().toModel() as? MessageContent)?.let { messageContent ->
                     when (messageContent.msgType) {
                         MessageType.MSGTYPE_TEXT -> {
-                            val body = messageContent.getTextDisplayableContent()
-                            if (messageContent is MessageTextContent && messageContent.matrixFormattedBody.isNullOrBlank().not()) {
-                                val localFormattedBody = htmlRenderer.get().parse(body) as Document
-                                val renderedBody = htmlRenderer.get().render(localFormattedBody) ?: body
-                                renderedBody
+                            val preview = messageContent.previewText()
+                            if (preview.formattedBody != null) {
+                                htmlRenderer.get().render(preview.formattedBody).stripPreviewLinkStyling()
                             } else {
-                                body
+                                preview.body
                             }
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
@@ -240,7 +278,7 @@ class DisplayableEventFormatter @Inject constructor(
             }
             EventType.REACTION -> {
                 event.getClearContent().toModel<ReactionContent>()?.relatesTo?.let {
-                    emojiSpanify.spanify(stringProvider.getString(CommonStrings.sent_a_reaction, it.key))
+                    formatReaction(event.roomId, it.key, event.senderId)
                 } ?: span { }
             }
             in EventType.POLL_START.values -> {
@@ -266,16 +304,45 @@ class DisplayableEventFormatter @Inject constructor(
         }
     }
 
+    private class PreviewText(val formattedBody: String?, val body: String)
+
+    // Strip the reply fallback so the preview shows the reply's own content, not the quoted message: the
+    // <mx-reply> block from the formatted body, or the legacy "> <@user>" prefix from the plain body.
+    private fun MessageContent.previewText(): PreviewText {
+        val textContent = this as? MessageTextContent
+        val isReply = textContent?.relatesTo?.inReplyTo?.eventId != null
+        val formattedBody = textContent?.matrixFormattedBody?.takeIf { it.isNotBlank() }
+                ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+        val plain = textContent?.body ?: body
+        val previewBody = if (isReply) ContentUtils.extractUsefulTextFromReply(plain) else plain
+        return PreviewText(formattedBody, previewBody)
+    }
+
+    // Previews are plain text: drop link/underline styling so mentions and other <a> tags read as plain
+    // text rather than underlined links.
+    private fun CharSequence.stripPreviewLinkStyling(): CharSequence {
+        val spanned = this as? Spanned ?: return this
+        val clickable = spanned.getSpans(0, spanned.length, android.text.style.ClickableSpan::class.java)
+        val underline = spanned.getSpans(0, spanned.length, android.text.style.UnderlineSpan::class.java)
+        if (clickable.isEmpty() && underline.isEmpty()) return this
+        return android.text.SpannableStringBuilder(spanned).apply {
+            clickable.forEach { removeSpan(it) }
+            underline.forEach { removeSpan(it) }
+        }
+    }
+
     private fun simpleFormat(senderName: String, body: CharSequence, appendAuthor: Boolean): CharSequence {
-        return if (appendAuthor) {
-            span {
-                text = senderName
-                textColor = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)
-            }
-                    .append(": ")
-                    .append(body)
-        } else {
-            body
+        if (!appendAuthor) return body
+        // SpannableStringBuilder (not the gujun span DSL) so [body]'s emote ReplacementSpans are preserved.
+        return android.text.SpannableStringBuilder().apply {
+            val start = length
+            append(senderName)
+            setSpan(
+                    android.text.style.ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)),
+                    start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+            append(": ")
+            append(body)
         }
     }
 
@@ -293,5 +360,9 @@ class DisplayableEventFormatter @Inject constructor(
         } else {
             noticeEventFormatter.format(event, senderName, isDm).orEmpty()
         }
+    }
+
+    companion object {
+        private const val QUESTION_MARK_EMOJI = "❓"
     }
 }

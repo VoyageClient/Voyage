@@ -549,6 +549,9 @@ class TimelineEventController @Inject constructor(
             modelCache[position] = itemCachedData.enrichWithModels(event, nextEvent, position, readReceiptsCache.receiptsByEvent())
         }
         Timber.v("Number of events to rebuild: $numberOfEventsToBuild on ${modelCache.size} total events")
+        if (PerfTrace.isEnabled) {
+            Timber.tag("VectorPerf").i("timeline.buildModels.rebuilt %d/%d", numberOfEventsToBuild, modelCache.size)
+        }
     }
 
     private fun buildCacheItem(params: TimelineItemFactoryParams): CacheItemData {
@@ -557,7 +560,9 @@ class TimelineEventController @Inject constructor(
             return CacheItemData(event.localId, event.root.eventId)
         }
         updateUTDStates(event, params.nextEvent)
-        val eventModel = timelineItemFactory.create(params).also {
+        val eventModel = PerfTrace.time("timeline.item.create.${event.root.getClearType()}") {
+            timelineItemFactory.create(params)
+        }.also {
             // Stable across the local-echo → synced-event swap so Epoxy rebinds in place (see
             // areItemsTheSame in TimelineEventDiffUtilCallback) instead of flashing the bubble out.
             it.id(event.timelineStableId())
@@ -600,6 +605,7 @@ class TimelineEventController @Inject constructor(
         return copy(
                 readReceiptsItem = readReceiptsItemFactory.create(
                         event.eventId,
+                        event.roomId,
                         readReceipts,
                         callback,
                         partialState.isFromThreadTimeline(),

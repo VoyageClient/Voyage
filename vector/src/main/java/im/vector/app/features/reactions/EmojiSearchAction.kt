@@ -11,4 +11,5 @@ import im.vector.app.core.platform.VectorViewModelAction
 
 sealed class EmojiSearchAction : VectorViewModelAction {
     data class UpdateQuery(val queryString: String) : EmojiSearchAction()
+    data class SetRoomId(val roomId: String?) : EmojiSearchAction()
 }
