@@ -39,6 +39,10 @@ The app takes ~45 seconds to start. When launching it (e.g. to read logs after a
 
 NEVER take device screenshots (no `adb screencap`, no `adb exec-out screencap`, no driving the UI to capture a screen) unless the user explicitly asks for one in that message. To verify behaviour, prefer reading logcat; let the user drive the UI and trigger flows themselves.
 
+While debugging, if you are unsure of what could be causing a particular problem, do not make blind guesses unless there is a high likelihood you are correct. You should feel free to make guesses on the first or second attempt, but if you still have not resolved the issue then you should add as much logging as possible to every part of the program to find out the exact cause for something. This is primarily necessary when debugging UI-related problems, and may not be as useful in other contexts.
+
+NEVER remove temporary debug-related logging until either the problem has been resolved, and/or you were asked to review the changes.
+
 # Reviewing changes
 
 When asked to review, review the entire diff since the last git commit — not just the most recent edit. Go through all of it and check for: dead or unreachable code, stale/unnecessary/narrating comments, bugs and logic errors, and anything that would break on the minimum supported API (currently KitKat / API 19) — verify it genuinely runs there, not just that it compiles. Don't only report problems: if you spot improvements worth making to the changed code, make them.
