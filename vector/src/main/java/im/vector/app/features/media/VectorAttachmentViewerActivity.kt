@@ -43,6 +43,7 @@ import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentCommands
 import im.vector.lib.attachmentviewer.AttachmentViewerActivity
+import im.vector.lib.attachmentviewer.MorphImageView
 import im.vector.lib.core.utils.compat.getParcelableArrayListExtraCompat
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
@@ -63,12 +64,17 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             val roomId: String?,
             val eventId: String,
             val sharedTransitionName: String?,
-            // The shared element is a circular avatar; morph the transition image's corners between
-            // circle and square during the transition so it doesn't snap shape at either end.
+            // The shared element is an avatar: morph its image (crop <-> fit) and corner radius between the
+            // avatar's shape (see avatarCornerFraction/avatarSizePx) and the square full-screen image.
             val circularTransition: Boolean = false,
             // The shared element has rounded corners with this pixel radius; animate them away during
             // the enter transition and restore them on return, so corners don't snap at either end.
             val transitionCornerRadiusPx: Int = 0,
+            // Pixel size of the square avatar box, used to drive the crop<->fit morph from the live bounds.
+            val avatarSizePx: Int = 0,
+            // The avatar's corner radius as a fraction of its shorter side (0 = square, 0.2 = rounded,
+            // 0.5 = circle); the corner morph starts/ends here so it matches the avatar's actual shape.
+            val avatarCornerFraction: Float = 0.5f,
     ) : Parcelable
 
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
@@ -105,9 +111,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
         if (supportsSharedElementTransition) {
             if (args.circularTransition) {
-                // The shared element is a circular avatar but the full-screen image is square. Morph the
-                // transition image's corner radius between the two (circle <-> square) in step with the
-                // transition, instead of snapping shape at either end.
+                // Morph the transition image's corner radius between the avatar's actual shape (circle,
+                // rounded square or square) and the square full-screen image, in step with the transition,
+                // instead of snapping shape at either end.
+                transitionCornerFraction = args.avatarCornerFraction
                 imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
                     override fun getOutline(view: View, outline: Outline) {
                         val radius = minOf(view.width, view.height) * transitionCornerFraction
@@ -115,6 +122,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                     }
                 }
                 imageTransitionView.clipToOutline = true
+
+                // The avatar is center-cropped to a square but the full-screen image is fit-center; the
+                // MorphImageView blends the two from its live bounds, in its own onDraw, so the shared-element
+                // framework can't briefly reset the matrix to the avatar's (a top-left flash).
+                (imageTransitionView as? MorphImageView)?.morphAvatarSizePx = args.avatarSizePx
             } else if (args.transitionCornerRadiusPx > 0) {
                 transitionCornerPx = args.transitionCornerRadiusPx.toFloat()
                 imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
@@ -198,10 +210,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     @Suppress("OVERRIDE_DEPRECATION")
     override fun onBackPressed() {
         if (currentPosition == initialIndex) {
-            // show back the transition view
-            // TODO, we should track and update the mapping
-            transitionImageContainer.isVisible = true
-            roundTransitionCornerForClose()
+            prepareSharedElementReturn()
         }
         isAnimatingOut = true
         @Suppress("DEPRECATION")
@@ -214,22 +223,32 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     override fun animateClose() {
         if (currentPosition == initialIndex) {
-            // show back the transition view
-            // TODO, we should track and update the mapping
-            transitionImageContainer.isVisible = true
-            roundTransitionCornerForClose()
+            prepareSharedElementReturn()
         }
         isAnimatingOut = true
         ActivityCompat.finishAfterTransition(this)
     }
 
-    // Round the corners back (square -> circle) as the image shrinks into the avatar.
+    // show back the transition view
+    // TODO, we should track and update the mapping
+    private fun prepareSharedElementReturn() {
+        transitionImageContainer.isVisible = true
+        // Hide the pager so only the morphing surrogate is shown during the return, mirroring the open.
+        // Only when the surrogate actually morphs (shared-element transition, API 21+); otherwise hiding the
+        // pager would just blank the screen as the activity finishes.
+        if (supportsSharedElementTransition && args()?.circularTransition == true) {
+            pager2.isInvisible = true
+        }
+        roundTransitionCornerForClose()
+    }
+
+    // Round the corners back to the avatar's shape as the image shrinks into it.
     private fun roundTransitionCornerForClose() {
         if (!supportsSharedElementTransition) return
         val a = args() ?: return
         val returnTransition = window.sharedElementReturnTransition
         when {
-            a.circularTransition -> animateTransitionCorner(to = CIRCLE_CORNER_FRACTION, transition = returnTransition)
+            a.circularTransition -> animateTransitionCorner(to = a.avatarCornerFraction, transition = returnTransition)
             a.transitionCornerRadiusPx > 0 -> animateTransitionCornerPx(to = a.transitionCornerRadiusPx.toFloat(), transition = returnTransition)
         }
     }
@@ -254,26 +273,30 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         if (transition != null) {
             // There is an entering shared element transition so add a listener to it
             transition.addListener(
-                    onEnd = {
-                        // The listener is also called when we are exiting
-                        // so we use a boolean to avoid reshowing pager at end of dismiss transition
-                        if (!isAnimatingOut) {
-                            transitionImageContainer.isVisible = false
-                            pager2.isInvisible = false
-                        }
-                    },
-                    onCancel = {
-                        if (!isAnimatingOut) {
-                            transitionImageContainer.isVisible = false
-                            pager2.isInvisible = false
-                        }
-                    }
+                    onEnd = { handOffToPager() },
+                    onCancel = { handOffToPager() }
             )
             return true
         }
 
         // If we reach here then we have not added a listener
         return false
+    }
+
+    // Called at the end of the enter transition (and also on exit; the flag guards that). For the avatar
+    // morph the enter transition lands a hair short of fullscreen, so defer the hand-off one frame, letting
+    // the surrogate first draw at its final fullscreen size to match the pager and avoid a few-px snap.
+    private fun handOffToPager() {
+        if (isAnimatingOut) return
+        if (args()?.circularTransition == true) {
+            imageTransitionView.post {
+                transitionImageContainer.isVisible = false
+                pager2.isInvisible = false
+            }
+        } else {
+            transitionImageContainer.isVisible = false
+            pager2.isInvisible = false
+        }
     }
 
     private fun args() = intent.getParcelableExtraCompat<Args>(EXTRA_ARGS)
@@ -435,8 +458,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 sharedTransitionName: String?,
                 circularTransition: Boolean = false,
                 transitionCornerRadiusPx: Int = 0,
+                avatarSizePx: Int = 0,
+                avatarCornerFraction: Float = 0.5f,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
-            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, circularTransition, transitionCornerRadiusPx))
+            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, circularTransition, transitionCornerRadiusPx, avatarSizePx, avatarCornerFraction))
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
                 it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))

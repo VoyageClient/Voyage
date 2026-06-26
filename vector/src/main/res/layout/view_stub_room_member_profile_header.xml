@@ -23,6 +23,7 @@
             android:layout_height="128dp"
             android:layout_marginBottom="16dp"
             android:contentDescription="@string/avatar"
+            android:scaleType="centerCrop"
             android:transitionName="memberProfileAvatarView"
             app:layout_constraintBottom_toTopOf="@id/memberProfileLinearLayout"
             app:layout_constraintEnd_toEndOf="parent"

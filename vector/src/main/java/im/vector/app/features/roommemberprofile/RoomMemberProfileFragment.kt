@@ -84,6 +84,10 @@ class RoomMemberProfileFragment :
 
     private var appBarStateChangeListener: AppBarStateChangeListener? = null
 
+    // The full-screen avatar viewer is launched while the collapsing header may transiently collapse;
+    // re-expand it on the way back so the shared-element return lands on the on-screen avatar.
+    private var expandAppBarOnResume = false
+
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
     }
@@ -353,7 +357,16 @@ class RoomMemberProfileFragment :
     }
 
     private fun onAvatarClicked(view: View, userMatrixItem: MatrixItem) {
+        expandAppBarOnResume = true
         navigator.openBigImageViewer(requireActivity(), view, userMatrixItem)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (expandAppBarOnResume) {
+            expandAppBarOnResume = false
+            views.matrixProfileAppBarLayout.setExpanded(true, false)
+        }
     }
 
     override fun onOverrideColorClicked(): Unit = withState(viewModel) { state ->

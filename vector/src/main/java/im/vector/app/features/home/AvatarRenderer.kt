@@ -65,7 +65,7 @@ class AvatarRenderer @Inject constructor(
         private const val THUMBNAIL_SIZE = 250
         // Rounded-square corner radius as a fraction of the avatar's shorter side, so the rounding
         // looks the same whether the avatar is a tiny read receipt or a large profile header.
-        private const val ROUNDED_CORNER_PERCENT = 0.20f
+        internal const val ROUNDED_CORNER_PERCENT = 0.20f
     }
 
     @UiThread

@@ -114,11 +114,11 @@ interface Navigator {
 
     fun openRoomProfile(context: Context, roomId: String, directAccess: Int? = null)
 
-    fun openBigImageViewer(activity: Activity, sharedElement: View?, matrixItem: MatrixItem) {
-        openBigImageViewer(activity, sharedElement, matrixItem.avatarUrl, matrixItem.getBestName())
-    }
+    fun openBigImageViewer(activity: Activity, sharedElement: View?, matrixItem: MatrixItem)
 
-    fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?)
+    // avatarCornerFraction is the avatar's corner radius as a fraction of its shorter side (0 = square,
+    // 0.5 = circle); the viewer morphs from this shape into the full-screen image. Defaults to circle.
+    fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?, avatarCornerFraction: Float = 0.5f)
 
     fun openAnalyticsOptIn(context: Context)
 

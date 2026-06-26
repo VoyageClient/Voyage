@@ -40,6 +40,8 @@ import im.vector.app.features.crypto.recover.SetupMode
 import im.vector.app.features.crypto.verification.SupportedVerificationMethodsProvider
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.devtools.RoomDevToolActivity
+import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailActivity
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.home.room.detail.search.SearchActivity
@@ -77,6 +79,7 @@ import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import im.vector.app.features.roommemberprofile.RoomMemberProfileActivity
 import im.vector.app.features.roommemberprofile.RoomMemberProfileArgs
 import im.vector.app.features.roomprofile.RoomProfileActivity
+import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.share.SharedData
@@ -103,6 +106,7 @@ import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
 import org.matrix.android.sdk.api.session.terms.TermsService
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
+import org.matrix.android.sdk.api.util.MatrixItem
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -389,7 +393,22 @@ class DefaultNavigator @Inject constructor(
         context.startActivity(RoomProfileActivity.newIntent(context, roomId, directAccess))
     }
 
-    override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?) {
+    override fun openBigImageViewer(activity: Activity, sharedElement: View?, matrixItem: MatrixItem) {
+        openBigImageViewer(activity, sharedElement, matrixItem.avatarUrl, matrixItem.getBestName(), avatarCornerFraction(matrixItem))
+    }
+
+    // Mirror AvatarRenderer's shape choice (spaces are always rounded, otherwise the user's preference) and
+    // express it as a corner fraction of the shorter side, matching RoundedCornersPercent / the morph outline.
+    private fun avatarCornerFraction(matrixItem: MatrixItem): Float {
+        val shape = if (matrixItem is MatrixItem.SpaceItem) AvatarShape.ROUNDED else vectorPreferences.avatarShape()
+        return when (shape) {
+            AvatarShape.CIRCLE -> 0.5f
+            AvatarShape.ROUNDED -> AvatarRenderer.ROUNDED_CORNER_PERCENT
+            AvatarShape.SQUARE -> 0f
+        }
+    }
+
+    override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?, avatarCornerFraction: Float) {
         val avatarUrl = mxcUrl?.takeIf { it.isNotBlank() } ?: return
         // Reuse the timeline media viewer (zoom + download + share) with the avatar as a single entry.
         val imageData = ImageContentRenderer.Data(
@@ -411,6 +430,8 @@ class DefaultNavigator @Inject constructor(
                 inMemoryData = listOf(imageData),
                 sharedTransitionName = sharedElement?.let { ViewCompat.getTransitionName(it) },
                 circularTransition = true,
+                avatarSizePx = sharedElement?.height ?: 0,
+                avatarCornerFraction = avatarCornerFraction,
         )
         val options = sharedElement?.let {
             ActivityOptionsCompat.makeSceneTransitionAnimation(activity, it, ViewCompat.getTransitionName(it) ?: "")

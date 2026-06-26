@@ -81,6 +81,10 @@ class RoomProfileFragment :
 
     private var appBarStateChangeListener: AppBarStateChangeListener? = null
 
+    // The full-screen avatar viewer is launched while the collapsing header may transiently collapse;
+    // re-expand it on the way back so the shared-element return lands on the on-screen avatar.
+    private var expandAppBarOnResume = false
+
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
     }
@@ -215,6 +219,14 @@ class RoomProfileFragment :
     private fun setupRecyclerView() {
         roomProfileController.callback = this
         views.matrixProfileRecyclerView.configureWith(roomProfileController, hasFixedSize = true, disableItemAnimation = true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (expandAppBarOnResume) {
+            expandAppBarOnResume = false
+            views.matrixProfileAppBarLayout.setExpanded(true, false)
+        }
     }
 
     override fun onDestroyView() {
@@ -385,6 +397,7 @@ class RoomProfileFragment :
 
     private fun onAvatarClicked(view: View) = withState(roomProfileViewModel) { state ->
         state.roomSummary()?.toMatrixItem()?.let { matrixItem ->
+            expandAppBarOnResume = true
             navigator.openBigImageViewer(requireActivity(), view, matrixItem)
         }
     }
