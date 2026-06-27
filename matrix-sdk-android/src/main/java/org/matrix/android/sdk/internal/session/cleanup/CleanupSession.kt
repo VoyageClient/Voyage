@@ -16,9 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.cleanup
 
-import io.realm.Realm
-import io.realm.RealmConfiguration
-import kotlinx.coroutines.delay
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
 import org.matrix.android.sdk.internal.crypto.CryptoModule
@@ -46,8 +43,6 @@ internal class CleanupSession @Inject constructor(
         @SessionFilesDirectory private val sessionFiles: File,
         @SessionDownloadsDirectory private val sessionCache: File,
         private val realmKeysUtils: RealmKeysUtils,
-        @SessionDatabase private val realmSessionConfiguration: RealmConfiguration,
-        @CryptoDatabase private val realmCryptoConfiguration: RealmConfiguration,
         @UserMd5 private val userMd5: String
 ) {
 
@@ -60,10 +55,6 @@ internal class CleanupSession @Inject constructor(
     }
 
     suspend fun cleanup() {
-        val sessionRealmCount = Realm.getGlobalInstanceCount(realmSessionConfiguration)
-        val cryptoRealmCount = Realm.getGlobalInstanceCount(realmCryptoConfiguration)
-        Timber.d("Realm instance ($sessionRealmCount - $cryptoRealmCount)")
-
         Timber.d("Cleanup: release session...")
         sessionManager.releaseSession(sessionId)
 
@@ -80,33 +71,8 @@ internal class CleanupSession @Inject constructor(
         realmKeysUtils.clear(SessionModule.getKeyAlias(userMd5))
         realmKeysUtils.clear(CryptoModule.getKeyAlias(userMd5))
 
-        // Wait for all the Realm instance to be released properly. Closing Realm instance is async.
-        // After that we can safely delete the Realm files
-        waitRealmRelease()
-
         Timber.d("Cleanup: clear file system")
         sessionFiles.deleteRecursively()
         sessionCache.deleteRecursively()
-    }
-
-    private suspend fun waitRealmRelease() {
-        var timeToWaitMillis = MAX_TIME_TO_WAIT_MILLIS
-        do {
-            val sessionRealmCount = Realm.getGlobalInstanceCount(realmSessionConfiguration)
-            val cryptoRealmCount = Realm.getGlobalInstanceCount(realmCryptoConfiguration)
-            if (sessionRealmCount > 0 || cryptoRealmCount > 0) {
-                Timber.d("Waiting ${TIME_TO_WAIT_MILLIS}ms for all Realm instance to be closed ($sessionRealmCount - $cryptoRealmCount)")
-                delay(TIME_TO_WAIT_MILLIS)
-                timeToWaitMillis -= TIME_TO_WAIT_MILLIS
-            } else {
-                Timber.d("Finished waiting for all Realm instance to be closed ($sessionRealmCount - $cryptoRealmCount)")
-                timeToWaitMillis = 0
-            }
-        } while (timeToWaitMillis > 0)
-    }
-
-    companion object {
-        private const val MAX_TIME_TO_WAIT_MILLIS = 10_000L
-        private const val TIME_TO_WAIT_MILLIS = 10L
     }
 }

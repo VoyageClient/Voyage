@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,54 +16,50 @@
 
 package org.matrix.android.sdk.internal.session.room.prune
 
-import io.realm.Realm
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
-import org.matrix.android.sdk.internal.database.helper.countInThreadMessages
-import org.matrix.android.sdk.internal.database.helper.findRootThreadEvent
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.EventMapper
-import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
-import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
-import org.matrix.android.sdk.internal.database.model.threads.ThreadSummaryEntity
-import org.matrix.android.sdk.internal.database.query.findWithSenderMembershipEvent
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
+import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import timber.log.Timber
 import javax.inject.Inject
 
 /**
  * Listens to the database for the insertion of any redaction event.
- * As it will actually delete the content, it should be called last in the list of listener.
+ * As it actually deletes the content, it should be called last in the list of processors.
  */
 internal class RedactionEventProcessor @Inject constructor(
-        private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.RoomSummaryUpdater,
+        private val roomSummaryUpdater: SqlRoomSummaryUpdater,
 ) : EventInsertLiveProcessor {
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {
         return eventType == EventType.REDACTION
     }
 
-    override fun process(realm: Realm, event: Event) {
-        pruneEvent(realm, event)
+    override fun process(stores: SessionStores, event: Event) {
+        pruneEvent(stores, event)
     }
 
-    private fun pruneEvent(realm: Realm, redactionEvent: Event) {
+    private fun pruneEvent(stores: SessionStores, redactionEvent: Event) {
         if (redactionEvent.redacts.isNullOrBlank()) {
             return
         }
+        val roomId = redactionEvent.roomId ?: return
 
-        // Check that we know this event
-        EventEntity.where(realm, eventId = redactionEvent.eventId ?: "").findFirst() ?: return
+        // Check that we know the redaction event itself
+        if (stores.event.getDbId(roomId, redactionEvent.eventId ?: "") == null) return
 
         val isLocalEcho = LocalEcho.isLocalEchoId(redactionEvent.eventId ?: "")
         Timber.v("Redact event for ${redactionEvent.redacts} localEcho=$isLocalEcho")
 
-        val eventToPrune = EventEntity.where(realm, eventId = redactionEvent.redacts).findFirst() ?: return
+        val pruneDbId = stores.event.getDbId(roomId, redactionEvent.redacts) ?: return
+        val eventToPrune = stores.event.getById(pruneDbId) ?: return
 
         val typeToPrune = eventToPrune.type
         val stateKey = eventToPrune.stateKey
@@ -71,25 +67,30 @@ internal class RedactionEventProcessor @Inject constructor(
         when {
             allowedKeys.isNotEmpty() -> {
                 val prunedContent = ContentMapper.map(eventToPrune.content)?.filterKeys { key -> allowedKeys.contains(key) }
-                eventToPrune.content = ContentMapper.map(prunedContent)
+                stores.event.updateContentOnly(pruneDbId, ContentMapper.map(prunedContent))
             }
             canPruneEventType(typeToPrune) -> {
                 Timber.d("REDACTION for message ${eventToPrune.eventId}")
                 val unsignedData = EventMapper.map(eventToPrune).unsignedData ?: UnsignedData(null, null)
-
-                // was this event a m.replace
-//                    val contentModel = ContentMapper.map(eventToPrune.content)?.toModel<MessageContent>()
-//                    if (RelationType.REPLACE == contentModel?.relatesTo?.type && contentModel.relatesTo?.eventId != null) {
-//                        eventRelationsAggregationUpdater.handleRedactionOfReplace(eventToPrune, contentModel.relatesTo!!.eventId!!, realm)
-//                    }
-
                 val modified = unsignedData.copy(redactedEvent = redactionEvent)
-                eventToPrune.content = ContentMapper.map(emptyMap())
-                eventToPrune.unsignedData = MoshiProvider.providesMoshi().adapter(UnsignedData::class.java).toJson(modified)
-                eventToPrune.decryptionResultJson = null
-                eventToPrune.decryptionErrorCode = null
-
-                handleTimelineThreadSummaryIfNeeded(realm, eventToPrune, isLocalEcho)
+                stores.event.updatePruned(
+                        id = pruneDbId,
+                        content = ContentMapper.map(emptyMap()),
+                        unsignedData = MoshiProvider.providesMoshi().adapter(UnsignedData::class.java).toJson(modified),
+                )
+                val rootThreadId = eventToPrune.rootThreadEventId
+                if (rootThreadId != null && !isLocalEcho) {
+                    val remaining = stores.event.countThreadReplies(eventToPrune.roomId, rootThreadId)
+                    stores.event.getDbId(eventToPrune.roomId, rootThreadId)?.let { rootDbId ->
+                        if (remaining > 0) {
+                            val latestTimelineId = stores.timelineEvent.latestThreadReplyId(eventToPrune.roomId, rootThreadId)
+                            stores.event.markEventAsRoot(rootDbId, remaining, latestTimelineId)
+                        } else {
+                            // last in-thread message redacted: the root is no longer a thread root
+                            stores.event.unmarkEventAsRoot(rootDbId)
+                        }
+                    }
+                }
             }
             typeToPrune == EventType.REACTION -> {
                 // Reactions are aggregated (the relations processor needs the key to remove the chip), so
@@ -97,52 +98,15 @@ internal class RedactionEventProcessor @Inject constructor(
                 // otherwise an undone reaction lingers as the room-list preview until the next message.
                 val unsignedData = EventMapper.map(eventToPrune).unsignedData ?: UnsignedData(null, null)
                 val modified = unsignedData.copy(redactedEvent = redactionEvent)
-                eventToPrune.unsignedData = MoshiProvider.providesMoshi().adapter(UnsignedData::class.java).toJson(modified)
-                roomSummaryUpdater.refreshLatestPreviewableEvent(realm, eventToPrune.roomId)
+                stores.event.updateUnsignedData(pruneDbId, MoshiProvider.providesMoshi().adapter(UnsignedData::class.java).toJson(modified))
+                roomSummaryUpdater.refreshLatestPreviewableEvent(stores, eventToPrune.roomId)
             }
             else -> {
                 Timber.w("Not pruning event (type $typeToPrune)")
             }
         }
         if (typeToPrune == EventType.STATE_ROOM_MEMBER && stateKey != null) {
-            TimelineEventEntity.findWithSenderMembershipEvent(realm, eventToPrune.eventId).forEach {
-                it.senderName = null
-                it.isUniqueDisplayName = false
-                it.senderAvatar = null
-            }
-        }
-    }
-
-    /**
-     * Invalidates the number of threads in the main timeline thread summary,
-     * with respect to redactions.
-     */
-    private fun handleTimelineThreadSummaryIfNeeded(
-            realm: Realm,
-            eventToPrune: EventEntity,
-            isLocalEcho: Boolean,
-    ) {
-        if (eventToPrune.isThread() && !isLocalEcho) {
-            val roomId = eventToPrune.roomId
-            val rootThreadEvent = eventToPrune.findRootThreadEvent() ?: return
-            val rootThreadEventId = eventToPrune.rootThreadEventId ?: return
-
-            val inThreadMessages = countInThreadMessages(
-                    realm = realm,
-                    roomId = roomId,
-                    rootThreadEventId = rootThreadEventId
-            )
-
-            rootThreadEvent.numberOfThreads = inThreadMessages
-            if (inThreadMessages == 0) {
-                // We should also clear the thread summary list
-                rootThreadEvent.isRootThread = false
-                rootThreadEvent.threadSummaryLatestMessage = null
-                ThreadSummaryEntity
-                        .where(realm, roomId = roomId, rootThreadEventId)
-                        .findFirst()
-                        ?.deleteFromRealm()
-            }
+            stores.timelineEvent.clearSenderInfoForMembershipEvent(eventToPrune.eventId)
         }
     }
 

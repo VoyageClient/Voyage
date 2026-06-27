@@ -480,7 +480,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             audioWaveform: List<Int>?,
             newAttachmentAttributes: NewAttachmentAttributes
     ) {
-        localEchoRepository.updateEcho(eventId) { _, event ->
+        localEchoRepository.updateEcho(eventId) { event ->
             val content: Content? = event.asDomain(castJsonNumbers = true).content
             val messageContent: MessageContent? = content.toModel()
             // Retrieve potential additional content from the original event

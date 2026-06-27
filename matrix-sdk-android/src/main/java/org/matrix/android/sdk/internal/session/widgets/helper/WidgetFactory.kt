@@ -24,17 +24,15 @@ import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.session.widgets.model.WidgetContent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.toMatrixItem
-import org.matrix.android.sdk.internal.database.RealmSessionProvider
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.displayname.DisplayNameResolver
-import org.matrix.android.sdk.internal.session.room.membership.RoomMemberHelper
 import org.matrix.android.sdk.internal.session.user.UserDataSource
 import java.net.URLEncoder
 import javax.inject.Inject
 
 internal class WidgetFactory @Inject constructor(
         private val userDataSource: UserDataSource,
-        private val realmSessionProvider: RealmSessionProvider,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val displayNameResolver: DisplayNameResolver,
         private val urlResolver: ContentUrlResolver,
         @UserId private val userId: String
@@ -48,8 +46,8 @@ internal class WidgetFactory @Inject constructor(
         val senderInfo = if (widgetEvent.senderId == null || widgetEvent.roomId == null) {
             null
         } else {
-            realmSessionProvider.withRealm {
-                val roomMemberHelper = RoomMemberHelper(it, widgetEvent.roomId)
+            run {
+                val roomMemberHelper = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, widgetEvent.roomId)
                 val roomMemberSummaryEntity = roomMemberHelper.getLastRoomMember(widgetEvent.senderId)
                 SenderInfo(
                         userId = widgetEvent.senderId,

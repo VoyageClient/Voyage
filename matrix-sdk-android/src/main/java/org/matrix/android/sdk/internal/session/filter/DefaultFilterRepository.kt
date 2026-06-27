@@ -16,52 +16,39 @@
 
 package org.matrix.android.sdk.internal.session.filter
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.internal.database.model.FilterEntity
-import org.matrix.android.sdk.internal.database.query.get
-import org.matrix.android.sdk.internal.database.query.getOrCreate
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
 internal class DefaultFilterRepository @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) : FilterRepository {
 
     override suspend fun storeSyncFilter(filter: Filter, filterId: String, roomEventFilter: RoomEventFilter) {
-        monarchy.awaitTransaction { realm ->
+        database.awaitDbTransaction(dispatcher) {
             // We manage only one filter for now
-            val filterJson = filter.toJSONString()
-            val roomEventFilterJson = roomEventFilter.toJSONString()
-
-            val filterEntity = FilterEntity.getOrCreate(realm)
-
-            filterEntity.filterBodyJson = filterJson
-            filterEntity.roomEventFilterJson = roomEventFilterJson
-            filterEntity.filterId = filterId
+            stores.filter.upsert(
+                    FilterEntity(
+                            filterBodyJson = filter.toJSONString(),
+                            roomEventFilterJson = roomEventFilter.toJSONString(),
+                            filterId = filterId,
+                    )
+            )
         }
     }
 
-    override suspend fun getStoredSyncFilterBody(): String {
-        return monarchy.awaitTransaction {
-            FilterEntity.getOrCreate(it).filterBodyJson
-        }
-    }
+    override suspend fun getStoredSyncFilterBody(): String =
+            database.awaitDbTransaction(dispatcher) { stores.filter.get()?.filterBodyJson.orEmpty() }
 
-    override suspend fun getStoredSyncFilterId(): String? {
-        return monarchy.awaitTransaction {
-            val id = FilterEntity.get(it)?.filterId
-            if (id.isNullOrBlank()) {
-                null
-            } else {
-                id
-            }
-        }
-    }
+    override suspend fun getStoredSyncFilterId(): String? =
+            database.awaitDbTransaction(dispatcher) { stores.filter.get()?.filterId?.takeIf { it.isNotBlank() } }
 
-    override suspend fun getRoomFilterBody(): String {
-        return monarchy.awaitTransaction {
-            FilterEntity.getOrCreate(it).roomEventFilterJson
-        }
-    }
+    override suspend fun getRoomFilterBody(): String =
+            database.awaitDbTransaction(dispatcher) { stores.filter.get()?.roomEventFilterJson.orEmpty() }
 }

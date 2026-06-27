@@ -16,16 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.room.aggregation.utd
 
-import io.realm.Realm
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.internal.database.model.PollResponseAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.model.PollResponseAggregatedSummaryEntityFields
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import javax.inject.Inject
 
 internal class EncryptedReferenceAggregationProcessor @Inject constructor() {
 
     fun handle(
-            realm: Realm,
+            stores: SessionStores,
             event: Event,
             isLocalEcho: Boolean,
             relatedEventId: String?
@@ -33,27 +31,22 @@ internal class EncryptedReferenceAggregationProcessor @Inject constructor() {
         return if (isLocalEcho || relatedEventId.isNullOrEmpty()) {
             false
         } else {
-            handlePollReference(realm = realm, event = event, relatedEventId = relatedEventId)
+            handlePollReference(stores = stores, event = event, relatedEventId = relatedEventId)
             true
         }
     }
 
     private fun handlePollReference(
-            realm: Realm,
+            stores: SessionStores,
             event: Event,
             relatedEventId: String
     ) {
-        event.eventId?.let { eventId ->
-            val existingRelatedPoll = getPollSummaryWithEventId(realm, relatedEventId)
-            if (eventId !in existingRelatedPoll?.encryptedRelatedEventIds.orEmpty()) {
-                existingRelatedPoll?.encryptedRelatedEventIds?.add(eventId)
-            }
+        val eventId = event.eventId ?: return
+        val annotationId = stores.annotations.findPollAnnotationIdBySourceEvent(relatedEventId) ?: return
+        val poll = stores.annotations.get(annotationId)?.pollResponseSummary ?: return
+        if (eventId !in poll.encryptedRelatedEventIds) {
+            poll.encryptedRelatedEventIds.add(eventId)
+            stores.annotations.upsertPollResponse(annotationId, poll)
         }
-    }
-
-    private fun getPollSummaryWithEventId(realm: Realm, eventId: String): PollResponseAggregatedSummaryEntity? {
-        return realm.where(PollResponseAggregatedSummaryEntity::class.java)
-                .containsValue(PollResponseAggregatedSummaryEntityFields.SOURCE_EVENTS.`$`, eventId)
-                .findFirst()
     }
 }

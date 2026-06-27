@@ -16,25 +16,25 @@
 
 package org.matrix.android.sdk.internal.session.media
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.kotlin.where
-import org.matrix.android.sdk.internal.database.model.PreviewUrlCacheEntity
+import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
 internal interface ClearPreviewUrlCacheTask : Task<Unit, Unit>
 
 internal class DefaultClearPreviewUrlCacheTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) : ClearPreviewUrlCacheTask {
 
     override suspend fun execute(params: Unit) {
-        monarchy.awaitTransaction { realm ->
-            realm.where<PreviewUrlCacheEntity>()
-                    .findAll()
-                    .deleteAllFromRealm()
+        database.awaitDbTransaction(dispatcher) {
+            stores.previewUrlCache.deleteAll()
         }
     }
 }

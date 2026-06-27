@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.crypto.store.db.mapper
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
-import io.realm.RealmList
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CryptoCrossSigningKey
 import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustLevel
 import org.matrix.android.sdk.internal.crypto.store.db.model.KeyInfoEntity
@@ -38,8 +37,8 @@ internal class CrossSigningKeysMapper @Inject constructor(moshi: Moshi) {
     fun update(keyInfo: KeyInfoEntity, cryptoCrossSigningKey: CryptoCrossSigningKey) {
         // update signatures?
         keyInfo.signatures = serializeSignatures(cryptoCrossSigningKey.signatures)
-        keyInfo.usages = cryptoCrossSigningKey.usages?.toTypedArray()?.let { RealmList(*it) }
-                ?: RealmList()
+        keyInfo.usages = cryptoCrossSigningKey.usages?.toTypedArray()?.let { mutableListOf(*it) }
+                ?: mutableListOf()
     }
 
     fun map(userId: String?, keyInfo: KeyInfoEntity?): CryptoCrossSigningKey? {
@@ -61,7 +60,7 @@ internal class CrossSigningKeysMapper @Inject constructor(moshi: Moshi) {
     fun map(keyInfo: CryptoCrossSigningKey): KeyInfoEntity {
         return KeyInfoEntity().apply {
             publicKeyBase64 = keyInfo.unpaddedBase64PublicKey
-            usages = keyInfo.usages?.let { RealmList(*it.toTypedArray()) } ?: RealmList()
+            usages = keyInfo.usages?.let { mutableListOf(*it.toTypedArray()) } ?: mutableListOf()
             signatures = serializeSignatures(keyInfo.signatures)
             // TODO how to handle better, check if same keys?
             // reset trust

@@ -19,7 +19,8 @@ package org.matrix.android.sdk.internal.session.room
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import androidx.paging.PagedList
-import com.zhuinden.monarchy.Monarchy
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.api.session.room.Room
@@ -41,7 +42,6 @@ import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotification
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntityFields
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.alias.DeleteRoomAliasTask
 import org.matrix.android.sdk.internal.session.room.alias.GetRoomIdByAliasTask
@@ -49,7 +49,6 @@ import org.matrix.android.sdk.internal.session.room.create.CreateLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomTask
 import org.matrix.android.sdk.internal.session.room.delete.DeleteLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
-import org.matrix.android.sdk.internal.session.room.membership.RoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
@@ -57,13 +56,13 @@ import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
-import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateBreadcrumbsTask
-import org.matrix.android.sdk.internal.util.fetchCopied
 import javax.inject.Inject
 
 internal class DefaultRoomService @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val createRoomTask: CreateRoomTask,
         private val createLocalRoomTask: CreateLocalRoomTask,
         private val deleteLocalRoomTask: DeleteLocalRoomTask,
@@ -79,7 +78,7 @@ internal class DefaultRoomService @Inject constructor(
         private val roomSummaryDataSource: RoomSummaryDataSource,
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val leaveRoomTask: LeaveRoomTask,
-        private val roomSummaryUpdater: RoomSummaryUpdater
+        private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 ) : RoomService {
 
     override suspend fun createRoom(createRoomParams: CreateRoomParams): String {
@@ -133,9 +132,9 @@ internal class DefaultRoomService @Inject constructor(
         }
 
         if (roomSummaries.isNotEmpty()) {
-            monarchy.runTransactionSync { realm ->
-                roomSummaries.forEach {
-                    roomSummaryUpdater.refreshLatestPreviewContent(realm, it.roomId)
+            kotlinx.coroutines.runBlocking {
+                database.awaitDbTransaction(dispatcher) {
+                    roomSummaries.forEach { roomSummaryUpdater.refreshLatestPreviewableEvent(stores, it.roomId) }
                 }
             }
         }
@@ -153,9 +152,9 @@ internal class DefaultRoomService @Inject constructor(
         }
 
         if (roomSummaries.isNotEmpty()) {
-            monarchy.runTransactionSync { realm ->
-                roomSummaries.forEach {
-                    roomSummaryUpdater.refreshDisplay(realm, it.roomId)
+            kotlinx.coroutines.runBlocking {
+                database.awaitDbTransaction(dispatcher) {
+                    roomSummaries.forEach { roomSummaryUpdater.refreshDisplay(stores, it.roomId) }
                 }
             }
         }
@@ -254,23 +253,13 @@ internal class DefaultRoomService @Inject constructor(
     }
 
     override fun getRoomMember(userId: String, roomId: String): RoomMemberSummary? {
-        val roomMemberEntity = monarchy.fetchCopied {
-            RoomMemberHelper(it, roomId).getLastRoomMember(userId)
-        }
-        return roomMemberEntity?.asDomain()
+        return org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, roomId)
+                .getLastRoomMember(userId)?.asDomain()
     }
 
     override fun getRoomMemberLive(userId: String, roomId: String): LiveData<Optional<RoomMemberSummary>> {
-        val liveData = monarchy.findAllMappedWithChanges(
-                { realm ->
-                    RoomMemberHelper(realm, roomId).queryRoomMembersEvent()
-                            .equalTo(RoomMemberSummaryEntityFields.USER_ID, userId)
-                },
-                { it.asDomain() }
-        )
-        return liveData.map { results ->
-            results.firstOrNull().toOptional()
-        }
+        return database.roomMemberSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
+                .map { stores.roomMember.getByRoomAndUser(roomId, userId)?.asDomain().toOptional() }
     }
 
     override suspend fun getRoomState(roomId: String): List<Event> {

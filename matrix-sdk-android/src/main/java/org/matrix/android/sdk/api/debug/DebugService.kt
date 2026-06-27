@@ -16,17 +16,11 @@
 
 package org.matrix.android.sdk.api.debug
 
-import io.realm.RealmConfiguration
 
 /**
  * Useful methods to access to some private data managed by the SDK.
  */
 interface DebugService {
-    /**
-     * Get all the available Realm Configuration.
-     */
-    fun getAllRealmConfigurations(): List<RealmConfiguration>
-
     /**
      * Get info on DB size.
      */

@@ -22,7 +22,7 @@ import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.RoomAPI
-import org.matrix.android.sdk.internal.session.room.timeline.TimelineEventDataSource
+import org.matrix.android.sdk.internal.session.room.timeline.SqlTimelineEventDataSource
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
 
@@ -37,7 +37,7 @@ internal class DefaultFetchEditHistoryTask @Inject constructor(
         private val roomAPI: RoomAPI,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val cryptoSessionInfoProvider: CryptoSessionInfoProvider,
-        private val eventDataSource: TimelineEventDataSource,
+        private val eventDataSource: SqlTimelineEventDataSource,
 ) : FetchEditHistoryTask {
 
     override suspend fun execute(params: FetchEditHistoryTask.Params): List<Event> {

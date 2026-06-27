@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.matrix.android.sdk.internal.session.pushers
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Realm
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.pushers.PusherState
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.PusherEntity
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
 internal interface RemovePusherTask : Task<RemovePusherTask.Params, Unit> {
@@ -38,19 +36,21 @@ internal interface RemovePusherTask : Task<RemovePusherTask.Params, Unit> {
 
 internal class DefaultRemovePusherTask @Inject constructor(
         private val pushersAPI: PushersAPI,
-        @SessionDatabase private val monarchy: Monarchy,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
+        private val globalErrorReceiver: GlobalErrorReceiver,
 ) : RemovePusherTask {
 
     override suspend fun execute(params: RemovePusherTask.Params) {
-        monarchy.awaitTransaction { realm ->
-            val existingEntity = PusherEntity.where(realm, params.pushKey).findFirst()
-            existingEntity?.state = PusherState.UNREGISTERING
+        database.awaitDbTransaction(dispatcher) {
+            stores.pushers.updateState(params.pushKey, PusherState.UNREGISTERING)
         }
 
-        val existing = Realm.getInstance(monarchy.realmConfiguration).use { realm ->
-            PusherEntity.where(realm, params.pushKey).findFirst()?.asDomain()
-        } ?: throw Exception("No existing pusher")
+        val existingDomain = database.awaitDbTransaction(dispatcher) {
+            stores.pushers.getByPushKey(params.pushKey).firstOrNull()?.asDomain()
+        }
+        val existing = existingDomain ?: throw Exception("No existing pusher")
 
         val deleteBody = JsonPusher(
                 pushKey = params.pushKey,
@@ -67,8 +67,8 @@ internal class DefaultRemovePusherTask @Inject constructor(
         executeRequest(globalErrorReceiver) {
             pushersAPI.setPusher(deleteBody)
         }
-        monarchy.awaitTransaction {
-            PusherEntity.where(it, params.pushKey).findFirst()?.deleteFromRealm()
+        database.awaitDbTransaction(dispatcher) {
+            stores.pushers.deleteByPushKey(params.pushKey)
         }
     }
 }

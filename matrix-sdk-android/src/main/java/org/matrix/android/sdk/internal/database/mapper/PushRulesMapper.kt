@@ -16,7 +16,6 @@
 package org.matrix.android.sdk.internal.database.mapper
 
 import com.squareup.moshi.Types
-import io.realm.RealmList
 import org.matrix.android.sdk.api.session.pushrules.Kind
 import org.matrix.android.sdk.api.session.pushrules.rest.PushCondition
 import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
@@ -94,8 +93,8 @@ internal object PushRulesMapper {
                 ruleId = pushRule.ruleId,
                 pattern = pushRule.pattern,
                 conditions = pushRule.conditions?.let {
-                    RealmList(*pushRule.conditions.map { PushConditionMapper.map(it) }.toTypedArray())
-                } ?: RealmList()
+                    mutableListOf(*pushRule.conditions.map { PushConditionMapper.map(it) }.toTypedArray())
+                } ?: mutableListOf()
         )
     }
 }

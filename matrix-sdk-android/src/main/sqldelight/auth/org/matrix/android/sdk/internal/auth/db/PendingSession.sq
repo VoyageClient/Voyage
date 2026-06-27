@@ -1,0 +1,21 @@
+CREATE TABLE pending_session_entity (
+    home_server_connection_config_json TEXT NOT NULL,
+    client_secret TEXT NOT NULL,
+    send_attempt INTEGER NOT NULL DEFAULT 0,
+    reset_password_data_json TEXT,
+    current_session TEXT,
+    is_registration_started INTEGER NOT NULL DEFAULT 0,
+    current_three_pid_data_json TEXT
+);
+
+selectFirst:
+SELECT *
+FROM pending_session_entity
+LIMIT 1;
+
+insert:
+INSERT INTO pending_session_entity(home_server_connection_config_json, client_secret, send_attempt, reset_password_data_json, current_session, is_registration_started, current_three_pid_data_json)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM pending_session_entity;

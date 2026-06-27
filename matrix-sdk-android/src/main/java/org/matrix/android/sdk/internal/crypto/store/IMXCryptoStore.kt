@@ -428,6 +428,10 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
     fun setMyCrossSigningInfo(info: MXCrossSigningInfo?)
 
     fun getCrossSigningInfo(userId: String): MXCrossSigningInfo?
+
+    /** The ids of all users we have cross-signing info stored for (used to re-check trust in batch). */
+    fun getCrossSigningInfoUserIds(): List<String>
+
     fun getLiveCrossSigningInfo(userId: String): LiveData<Optional<MXCrossSigningInfo>>
 
 //    fun getCrossSigningInfoFlow(userId: String): Flow<Optional<MXCrossSigningInfo>>

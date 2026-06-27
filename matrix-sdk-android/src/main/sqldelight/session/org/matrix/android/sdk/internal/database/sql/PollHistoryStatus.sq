@@ -1,0 +1,24 @@
+-- PollHistoryStatusEntity (PK room_id): backward-pagination bookkeeping for poll history.
+CREATE TABLE poll_history_status (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    current_timestamp_target_backward_ms INTEGER,
+    oldest_timestamp_target_reached_ms INTEGER,
+    oldest_event_id_reached TEXT,
+    most_recent_event_id_reached TEXT,
+    is_end_of_polls_backward INTEGER NOT NULL DEFAULT 0
+);
+
+selectByRoom:
+SELECT * FROM poll_history_status WHERE room_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO poll_history_status(
+    room_id, current_timestamp_target_backward_ms, oldest_timestamp_target_reached_ms,
+    oldest_event_id_reached, most_recent_event_id_reached, is_end_of_polls_backward
+) VALUES (?, ?, ?, ?, ?, ?);
+
+deleteByRoom:
+DELETE FROM poll_history_status WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM poll_history_status;

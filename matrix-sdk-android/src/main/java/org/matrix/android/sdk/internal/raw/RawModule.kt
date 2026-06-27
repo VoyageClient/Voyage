@@ -17,15 +17,17 @@
 
 package org.matrix.android.sdk.internal.raw
 
-import com.zhuinden.monarchy.Monarchy
+import android.content.Context
 import dagger.Binds
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
-import io.realm.RealmConfiguration
+import kotlinx.coroutines.CoroutineDispatcher
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.raw.RawService
-import org.matrix.android.sdk.internal.database.RealmKeysUtils
+import org.matrix.android.sdk.internal.database.global.GlobalSqlDatabase
+import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.GlobalDatabase
 import org.matrix.android.sdk.internal.di.MatrixScope
 import org.matrix.android.sdk.internal.di.Unauthenticated
@@ -36,35 +38,20 @@ internal abstract class RawModule {
 
     @Module
     companion object {
-        private const val DB_ALIAS = "matrix-sdk-global"
-
         @JvmStatic
         @Provides
         @GlobalDatabase
-        fun providesMonarchy(@GlobalDatabase realmConfiguration: RealmConfiguration): Monarchy {
-            return Monarchy.Builder()
-                    .setRealmConfiguration(realmConfiguration)
-                    .build()
+        @MatrixScope
+        fun providesGlobalSqlDatabase(context: Context): GlobalSqlDatabase {
+            return GlobalSqlDatabase(FrameworkSqliteDriver.create(context, "matrix-sdk-global.db", GlobalSqlDatabase.Schema))
         }
 
         @JvmStatic
         @Provides
         @GlobalDatabase
         @MatrixScope
-        fun providesRealmConfiguration(
-                realmKeysUtils: RealmKeysUtils,
-                globalRealmMigration: GlobalRealmMigration
-        ): RealmConfiguration {
-            return RealmConfiguration.Builder()
-                    .apply {
-                        realmKeysUtils.configureEncryption(this, DB_ALIAS)
-                    }
-                    .name("matrix-sdk-global.realm")
-                    .schemaVersion(globalRealmMigration.schemaVersion)
-                    .migration(globalRealmMigration)
-                    .allowWritesOnUiThread(true)
-                    .modules(GlobalRealmModule())
-                    .build()
+        fun providesGlobalDbDispatcher(): CoroutineDispatcher {
+            return newDatabaseDispatcher("matrix-global-db")
         }
 
         @Provides

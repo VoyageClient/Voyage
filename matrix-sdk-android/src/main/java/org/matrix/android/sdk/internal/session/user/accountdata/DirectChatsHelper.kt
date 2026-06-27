@@ -16,29 +16,24 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
-import io.realm.Realm
-import io.realm.RealmConfiguration
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.query.getDirectRooms
-import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.DirectMessagesContent
 import javax.inject.Inject
 
 internal class DirectChatsHelper @Inject constructor(
-        @SessionDatabase private val realmConfiguration: RealmConfiguration
+        private val stores: SessionStores,
 ) {
 
     /**
      * @return a map of userId <-> list of roomId
      */
     fun getLocalDirectMessages(filterRoomId: String? = null): DirectMessagesContent {
-        return Realm.getInstance(realmConfiguration).use { realm ->
-            // Makes sure we have the latest realm updates, this is important as we sent this information to the server.
-            realm.refresh()
-            RoomSummaryEntity.getDirectRooms(realm)
-                    .asSequence()
-                    .filter { it.roomId != filterRoomId && it.directUserId != null && it.membership.isActive() }
-                    .groupByTo(mutableMapOf(), { it.directUserId!! }, { it.roomId })
-        }
+        return stores.roomSummary.directRooms()
+                .asSequence()
+                .filter { (roomId, directUserId, membershipStr) ->
+                    roomId != filterRoomId && directUserId != null && Membership.valueOf(membershipStr).isActive()
+                }
+                .groupByTo(mutableMapOf(), { it.second!! }, { it.first })
     }
 }

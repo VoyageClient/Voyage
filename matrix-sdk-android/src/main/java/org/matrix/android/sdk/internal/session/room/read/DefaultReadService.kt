@@ -18,10 +18,10 @@ package org.matrix.android.sdk.internal.session.room.read
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.zhuinden.monarchy.Monarchy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
@@ -30,23 +30,21 @@ import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.ReadReceiptsSummaryMapper
-import org.matrix.android.sdk.internal.database.model.ReadMarkerEntity
-import org.matrix.android.sdk.internal.database.model.ReadReceiptEntity
-import org.matrix.android.sdk.internal.database.model.ReadReceiptsSummaryEntity
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
+import org.matrix.android.sdk.internal.database.sql.store.isEventRead
 import org.matrix.android.sdk.internal.session.room.accountdata.UpdateRoomAccountDataTask
-import org.matrix.android.sdk.internal.util.awaitTransaction
-import org.matrix.android.sdk.internal.database.query.forMainTimelineWhere
-import org.matrix.android.sdk.internal.database.query.isEventRead
-import org.matrix.android.sdk.internal.database.query.isMarkedUnread
-import org.matrix.android.sdk.internal.database.query.where
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
 
 internal class DefaultReadService @AssistedInject constructor(
         @Assisted private val roomId: String,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
         private val setReadMarkersTask: SetReadMarkersTask,
         private val updateRoomAccountDataTask: UpdateRoomAccountDataTask,
         private val readReceiptsSummaryMapper: ReadReceiptsSummaryMapper,
@@ -74,7 +72,7 @@ internal class DefaultReadService @AssistedInject constructor(
                 publicReadReceipt = public,
         )
         setReadMarkersTask.execute(taskParams)
-        if (isMarkedUnread(monarchy.realmConfiguration, roomId)) {
+        if (stores.roomSummary.get(roomId)?.markedUnread == true) {
             setMarkedUnread(false)
         }
     }
@@ -101,8 +99,8 @@ internal class DefaultReadService @AssistedInject constructor(
     }
 
     override suspend fun setMarkedUnread(markedUnread: Boolean) {
-        monarchy.awaitTransaction { realm ->
-            RoomSummaryEntity.where(realm, roomId).findFirst()?.markedUnread = markedUnread
+        database.awaitDbTransaction(dispatcher) {
+            stores.roomSummary.updateMarkedUnread(roomId, markedUnread)
         }
         updateRoomAccountDataTask.execute(
                 UpdateRoomAccountDataTask.Params(
@@ -114,49 +112,26 @@ internal class DefaultReadService @AssistedInject constructor(
     }
 
     override fun isEventRead(eventId: String): Boolean {
-        val shouldCheckIfReadInEventsThread = homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true
-        return isEventRead(monarchy.realmConfiguration, userId, roomId, eventId, shouldCheckIfReadInEventsThread)
+        return stores.isEventRead(userId, roomId, eventId)
     }
 
     override fun getReadMarkerLive(): LiveData<Optional<String>> {
-        val liveRealmData = monarchy.findAllMappedWithChanges(
-                { ReadMarkerEntity.where(it, roomId) },
-                { it.eventId }
-        )
-        return liveRealmData.map {
-            it.firstOrNull().toOptional()
-        }
+        return database.readMarkerQueries.selectByRoom(roomId).asLiveList(dispatcher)
+                .map { rows -> rows.firstOrNull()?.event_id.toOptional() }
     }
 
     override fun getMyReadReceiptLive(threadId: String?): LiveData<Optional<String>> {
-        val liveRealmData = monarchy.findAllMappedWithChanges(
-                { ReadReceiptEntity.where(it, roomId = roomId, userId = userId, threadId = threadId) },
-                { it.eventId }
-        )
-        return liveRealmData.map {
-            it.firstOrNull().toOptional()
-        }
+        return database.readReceiptQueries.selectReceiptForUserInRoom(roomId, userId, threadId).asLiveList(dispatcher)
+                .map { rows -> rows.firstOrNull()?.event_id.toOptional() }
     }
 
     override fun getUserReadReceipt(userId: String): String? {
-        var eventId: String? = null
-        monarchy.doWithRealm {
-            eventId = ReadReceiptEntity.forMainTimelineWhere(it, roomId = roomId, userId = userId)
-                    .findFirst()
-                    ?.eventId
-        }
-
-        return eventId
+        return database.readReceiptQueries.selectMainTimelineReceiptForUser(roomId, userId).executeAsOneOrNull()?.event_id
     }
 
     override fun getEventReadReceiptsLive(eventId: String): LiveData<List<ReadReceipt>> {
-        val liveRealmData = monarchy.findAllMappedWithChanges(
-                { ReadReceiptsSummaryEntity.where(it, eventId) },
-                { readReceiptsSummaryMapper.map(it) }
-        )
-        return liveRealmData.map {
-            it.firstOrNull().orEmpty()
-        }
+        return database.readReceiptQueries.selectReceiptsForEvent(eventId).asLiveList(dispatcher)
+                .map { stores.readReceipt.getSummary(eventId)?.let { readReceiptsSummaryMapper.map(it) }.orEmpty() }
     }
 
     private fun ReadService.MarkAsReadParams.forceReadMarker(): Boolean {

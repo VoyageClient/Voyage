@@ -82,6 +82,7 @@ class ReplyPreviewRetriever(
     companion object {
         // Delay between attempts to fetch the replied-to event from the server, if it failed.
         private const val RETRY_SERVER_LOOKUP_INTERVAL_MS = 1000 * 30
+        private val IgnoredAuthorException = Exception("Replied-to author is ignored")
     }
 
     private fun TimelineEvent.getCacheId(): String {
@@ -101,10 +102,14 @@ class ReplyPreviewRetriever(
     private val serverRequests = mutableMapOf<String, Long>()
     // eventToRetrieveId-specific locking
     private val retrieveEventLocks = mutableMapOf<String, Any>()
+    // Refreshed once per snapshot; a reply whose author is ignored is shown as unavailable, not their text.
+    @Volatile
+    private var ignoredUserIds: Set<String> = emptySet()
 
     private val threadsEnabled = vectorPreferences.areThreadMessagesEnabled()
 
     fun invalidateEventsFromSnapshot(snapshot: List<TimelineEvent>) {
+        ignoredUserIds = session.userService().getIgnoredUserIds().toSet()
         val snapshotEvents = snapshot.associateBy { it.eventId }
         synchronized(data) {
             for (eventId in lookedUpEvents.keys.toList()) {
@@ -143,8 +148,15 @@ class ReplyPreviewRetriever(
                     null
                 }
             } else {
-                // Nothing changed... but the replied-to event might have been edited or decrypted in the meantime
-                if (repliedToEventId in lookedUpEvents) {
+                val currentState = current.previewReplyUiState
+                if (currentState is PreviewReplyUiState.InReplyTo && currentState.event.root.senderId in ignoredUserIds) {
+                    // The replied-to author has since been ignored: drop the cached preview so it re-renders
+                    // as unavailable (and can resolve again if they're un-ignored).
+                    repliedToEventId?.let { lookedUpEvents.remove(it) }
+                    updateState(eventId, repliedToEventId, PreviewReplyUiState.Error(IgnoredAuthorException, repliedToEventId))
+                    null
+                } else if (repliedToEventId in lookedUpEvents) {
+                    // Nothing changed... but the replied-to event might have been edited or decrypted in the meantime
                     null
                 } else {
                     repliedToEventId
@@ -199,8 +211,11 @@ class ReplyPreviewRetriever(
                         {
                             synchronized(data) {
                                 updateState(eventId, eventIdToRetrieve,
-                                        if (it == null) PreviewReplyUiState.Error(Exception("Event not found"), eventIdToRetrieve)
-                                        else PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, it.senderInfo.disambiguatedDisplayName)
+                                        when {
+                                            it == null -> PreviewReplyUiState.Error(Exception("Event not found"), eventIdToRetrieve)
+                                            it.root.senderId in ignoredUserIds -> PreviewReplyUiState.Error(IgnoredAuthorException, eventIdToRetrieve)
+                                            else -> PreviewReplyUiState.InReplyTo(eventIdToRetrieve, it, it.senderInfo.disambiguatedDisplayName)
+                                        }
                                 )
                             }
                         },

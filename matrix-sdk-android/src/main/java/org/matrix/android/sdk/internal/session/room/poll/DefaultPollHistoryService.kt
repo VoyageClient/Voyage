@@ -19,11 +19,10 @@ package org.matrix.android.sdk.internal.session.room.poll
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
-import com.zhuinden.monarchy.Monarchy
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.realm.kotlin.where
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -34,9 +33,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
-import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntityFields
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
-import org.matrix.android.sdk.internal.database.model.TimelineEventEntityFields
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.util.time.Clock
 
@@ -46,7 +43,9 @@ private const val EVENTS_PAGE_SIZE = 250
 internal class DefaultPollHistoryService @AssistedInject constructor(
         @Assisted private val roomId: String,
         @Assisted private val timelineService: TimelineService,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val clock: Clock,
         private val loadMorePollsTask: LoadMorePollsTask,
         private val getLoadedPollsStatusTask: GetLoadedPollsStatusTask,
@@ -120,35 +119,18 @@ internal class DefaultPollHistoryService @AssistedInject constructor(
     }
 
     private fun getPollStartEventsAfter(timestampMs: Long): LiveData<List<TimelineEvent>> {
-        val eventsLiveData = monarchy.findAllMappedWithChanges(
-                { realm ->
-                    val pollTypes = (EventType.POLL_START.values + EventType.ENCRYPTED).toTypedArray()
-                    realm.where<TimelineEventEntity>()
-                            .equalTo(TimelineEventEntityFields.ROOM_ID, roomId)
-                            .`in`(TimelineEventEntityFields.ROOT.TYPE, pollTypes)
-                            .greaterThan(TimelineEventEntityFields.ROOT.ORIGIN_SERVER_TS, timestampMs)
-                },
-                { result ->
-                    timelineEventMapper.map(result, buildReadReceipts = false)
+        val pollTypes = (EventType.POLL_START.values + EventType.ENCRYPTED)
+        return database.timelineEventQueries.selectByRoomTypesAfterTs(roomId, pollTypes, timestampMs).asLiveList(dispatcher)
+                .map {
+                    stores.timelineEvent.getByRoomTypesAfterTs(roomId, pollTypes, timestampMs)
+                            .map { timelineEventMapper.map(it, buildReadReceipts = false) }
+                            .filter { it.root.getClearType() in EventType.POLL_START.values }
+                            .distinctBy { it.eventId }
                 }
-        )
-
-        return eventsLiveData.map { events ->
-            events.filter { it.root.getClearType() in EventType.POLL_START.values }
-                    .distinctBy { it.eventId }
-        }
     }
 
     private fun getPollHistoryStatus(): LiveData<List<PollHistoryStatusEntity>> {
-        return monarchy.findAllMappedWithChanges(
-                { realm ->
-                    realm.where<PollHistoryStatusEntity>()
-                            .equalTo(PollHistoryStatusEntityFields.ROOM_ID, roomId)
-                },
-                { result ->
-                    // make a copy of the Realm object since it will be used in another transformations
-                    result.copy()
-                }
-        )
+        return database.pollHistoryStatusQueries.selectByRoom(roomId).asLiveList(dispatcher)
+                .map { stores.pollHistory.get(roomId)?.let { listOf(it) }.orEmpty() }
     }
 }

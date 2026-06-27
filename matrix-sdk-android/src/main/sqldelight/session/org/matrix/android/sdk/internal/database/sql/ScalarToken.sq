@@ -1,0 +1,17 @@
+-- ScalarTokenEntity: integration-manager scalar token keyed by server url.
+CREATE TABLE scalar_token (
+    server_url TEXT NOT NULL PRIMARY KEY,
+    token TEXT NOT NULL DEFAULT ''
+);
+
+selectByServerUrl:
+SELECT * FROM scalar_token WHERE server_url = ?;
+
+upsert:
+INSERT OR REPLACE INTO scalar_token(server_url, token) VALUES (?, ?);
+
+deleteByServerUrl:
+DELETE FROM scalar_token WHERE server_url = ?;
+
+deleteAll:
+DELETE FROM scalar_token;

@@ -28,43 +28,48 @@ internal class PendingSessionMapper @Inject constructor(moshi: Moshi) {
     private val resetPasswordDataAdapter = moshi.adapter(ResetPasswordData::class.java)
     private val threePidDataAdapter = moshi.adapter(ThreePidData::class.java)
 
-    fun map(entity: PendingSessionEntity?): PendingSessionData? {
-        if (entity == null) {
-            return null
-        }
-
-        val homeServerConnectionConfig = homeServerConnectionConfigAdapter.fromJson(entity.homeServerConnectionConfigJson)!!
-        val resetPasswordData = entity.resetPasswordDataJson?.let { resetPasswordDataAdapter.fromJson(it) }
-        val threePidData = entity.currentThreePidDataJson?.let { threePidDataAdapter.fromJson(it) }
-
+    fun map(
+            homeServerConnectionConfigJson: String,
+            clientSecret: String,
+            sendAttempt: Int,
+            resetPasswordDataJson: String?,
+            currentSession: String?,
+            isRegistrationStarted: Boolean,
+            currentThreePidDataJson: String?,
+    ): PendingSessionData? {
+        val homeServerConnectionConfig = homeServerConnectionConfigAdapter.fromJson(homeServerConnectionConfigJson) ?: return null
+        val resetPasswordData = resetPasswordDataJson?.let { resetPasswordDataAdapter.fromJson(it) }
+        val threePidData = currentThreePidDataJson?.let { threePidDataAdapter.fromJson(it) }
         return PendingSessionData(
                 homeServerConnectionConfig = homeServerConnectionConfig,
-                clientSecret = entity.clientSecret,
-                sendAttempt = entity.sendAttempt,
+                clientSecret = clientSecret,
+                sendAttempt = sendAttempt,
                 resetPasswordData = resetPasswordData,
-                currentSession = entity.currentSession,
-                isRegistrationStarted = entity.isRegistrationStarted,
-                currentThreePidData = threePidData
+                currentSession = currentSession,
+                isRegistrationStarted = isRegistrationStarted,
+                currentThreePidData = threePidData,
         )
     }
 
-    fun map(sessionData: PendingSessionData?): PendingSessionEntity? {
-        if (sessionData == null) {
-            return null
-        }
-
-        val homeServerConnectionConfigJson = homeServerConnectionConfigAdapter.toJson(sessionData.homeServerConnectionConfig)
-        val resetPasswordDataJson = resetPasswordDataAdapter.toJson(sessionData.resetPasswordData)
-        val currentThreePidDataJson = threePidDataAdapter.toJson(sessionData.currentThreePidData)
-
-        return PendingSessionEntity(
-                homeServerConnectionConfigJson = homeServerConnectionConfigJson,
+    fun toColumns(sessionData: PendingSessionData): Columns {
+        return Columns(
+                homeServerConnectionConfigJson = homeServerConnectionConfigAdapter.toJson(sessionData.homeServerConnectionConfig),
                 clientSecret = sessionData.clientSecret,
                 sendAttempt = sessionData.sendAttempt,
-                resetPasswordDataJson = resetPasswordDataJson,
+                resetPasswordDataJson = resetPasswordDataAdapter.toJson(sessionData.resetPasswordData),
                 currentSession = sessionData.currentSession,
                 isRegistrationStarted = sessionData.isRegistrationStarted,
-                currentThreePidDataJson = currentThreePidDataJson
+                currentThreePidDataJson = threePidDataAdapter.toJson(sessionData.currentThreePidData),
         )
     }
+
+    data class Columns(
+            val homeServerConnectionConfigJson: String,
+            val clientSecret: String,
+            val sendAttempt: Int,
+            val resetPasswordDataJson: String?,
+            val currentSession: String?,
+            val isRegistrationStarted: Boolean,
+            val currentThreePidDataJson: String?,
+    )
 }

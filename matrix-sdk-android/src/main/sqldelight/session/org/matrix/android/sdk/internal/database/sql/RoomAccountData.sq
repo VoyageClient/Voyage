@@ -1,0 +1,30 @@
+-- RoomAccountDataEntity: per-room account data (embedded under a room), keyed by (room_id, type).
+CREATE TABLE room_account_data (
+    room_id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    content_str TEXT,
+    PRIMARY KEY (room_id, type)
+);
+
+CREATE INDEX room_account_data_type ON room_account_data(type);
+
+selectAll:
+SELECT * FROM room_account_data;
+
+selectByRoom:
+SELECT * FROM room_account_data WHERE room_id = ?;
+
+selectByRoomAndType:
+SELECT * FROM room_account_data WHERE room_id = ? AND type = ?;
+
+selectByType:
+SELECT * FROM room_account_data WHERE type = ?;
+
+upsert:
+INSERT OR REPLACE INTO room_account_data(room_id, type, content_str) VALUES (?, ?, ?);
+
+deleteByRoom:
+DELETE FROM room_account_data WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM room_account_data;

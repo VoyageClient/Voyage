@@ -22,11 +22,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import io.mockk.spyk
 import io.mockk.unmockkAll
-import io.mockk.verify
-import io.mockk.verifyOrder
-import io.realm.kotlin.where
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
@@ -34,53 +30,48 @@ import org.amshove.kluent.shouldBeNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.room.model.LocalRoomCreationState
 import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
-import org.matrix.android.sdk.internal.database.awaitNotEmptyResult
-import org.matrix.android.sdk.internal.database.model.CurrentStateEventEntity
-import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.LocalRoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.LocalRoomSummaryEntityFields
-import org.matrix.android.sdk.internal.database.query.copyToRealmOrIgnore
-import org.matrix.android.sdk.internal.database.query.getOrCreate
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
+import org.matrix.android.sdk.internal.database.sqldelight.awaitNotEmptyResult
 import org.matrix.android.sdk.test.fakes.FakeRoomSummaryDataSource
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
 
 private const val A_LOCAL_ROOM_ID = "local.a-local-room-id"
 private const val AN_EXISTING_ROOM_ID = "an-existing-room-id"
 private const val A_ROOM_ID = "a-room-id"
 
 @ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
 internal class DefaultCreateRoomFromLocalRoomTaskTest {
 
-    private val fakeMonarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
     private val createRoomTask = mockk<CreateRoomTask>()
     private val fakeRoomSummaryDataSource = FakeRoomSummaryDataSource()
 
     private val defaultCreateRoomFromLocalRoomTask = DefaultCreateRoomFromLocalRoomTask(
-            monarchy = fakeMonarchy.instance,
+            database = db.database,
+            dispatcher = db.dispatcher,
+            stores = db.stores,
             createRoomTask = createRoomTask,
             roomSummaryDataSource = fakeRoomSummaryDataSource.instance,
     )
 
     @Before
     fun setup() {
-        mockkStatic("org.matrix.android.sdk.internal.database.RealmQueryLatchKt")
-        coJustRun { awaitNotEmptyResult<Any>(realmConfiguration = any(), timeoutMillis = any(), builder = any()) }
-
-        mockkStatic("org.matrix.android.sdk.internal.database.query.EventEntityQueriesKt")
-        coEvery { any<EventEntity>().copyToRealmOrIgnore(fakeMonarchy.fakeRealm.instance, any()) } answers { firstArg() }
-
-        mockkStatic("org.matrix.android.sdk.internal.database.query.CurrentStateEventEntityQueriesKt")
-        every { CurrentStateEventEntity.getOrCreate(fakeMonarchy.fakeRealm.instance, any(), any(), any()) } answers {
-            CurrentStateEventEntity(roomId = arg(2), stateKey = arg(3), type = arg(4))
-        }
+        // The post-creation awaits observe real DB Flows; under runTest's virtual clock the timeout would
+        // fire before the async emission, so short-circuit them (the orchestration is what we assert).
+        mockkStatic("org.matrix.android.sdk.internal.database.sqldelight.DbReactiveKt")
+        coJustRun { awaitNotEmptyResult<Any>(query = any(), timeoutMillis = any(), dispatcher = any()) }
     }
 
     @After
     fun tearDown() {
+        db.close()
         unmockkAll()
     }
 
@@ -89,11 +80,6 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
         // Given
         val aCreateRoomParams = mockk<CreateRoomParams>(relaxed = true)
         givenALocalRoomSummary(aCreateRoomParams = aCreateRoomParams, aCreationState = LocalRoomCreationState.CREATED, aReplacementRoomId = AN_EXISTING_ROOM_ID)
-        val aLocalRoomSummaryEntity = givenALocalRoomSummaryEntity(
-                aCreateRoomParams = aCreateRoomParams,
-                aCreationState = LocalRoomCreationState.CREATED,
-                aReplacementRoomId = AN_EXISTING_ROOM_ID
-        )
 
         // When
         val params = CreateRoomFromLocalRoomTask.Params(A_LOCAL_ROOM_ID)
@@ -102,8 +88,6 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
         // Then
         fakeRoomSummaryDataSource.verifyGetLocalRoomSummary(A_LOCAL_ROOM_ID)
         result shouldBeEqualTo AN_EXISTING_ROOM_ID
-        aLocalRoomSummaryEntity.replacementRoomId shouldBeEqualTo AN_EXISTING_ROOM_ID
-        aLocalRoomSummaryEntity.creationState shouldBeEqualTo LocalRoomCreationState.CREATED
     }
 
     @Test
@@ -111,7 +95,7 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
         // Given
         val aCreateRoomParams = mockk<CreateRoomParams>(relaxed = true)
         givenALocalRoomSummary(aCreateRoomParams = aCreateRoomParams, aReplacementRoomId = null)
-        val aLocalRoomSummaryEntity = givenALocalRoomSummaryEntity(aCreateRoomParams = aCreateRoomParams, aReplacementRoomId = null)
+        givenALocalRoomSummaryEntity()
 
         coEvery { createRoomTask.execute(any()) } returns A_ROOM_ID
 
@@ -121,19 +105,12 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
 
         // Then
         fakeRoomSummaryDataSource.verifyGetLocalRoomSummary(A_LOCAL_ROOM_ID)
-        // CreateRoomTask has been called with the initial CreateRoomParams
         coVerify { createRoomTask.execute(aCreateRoomParams) }
-        // The resulting roomId matches the roomId returned by the createRoomTask
         result shouldBeEqualTo A_ROOM_ID
-        // The room creation state has correctly been updated
-        verifyOrder {
-            aLocalRoomSummaryEntity.creationState = LocalRoomCreationState.CREATING
-            aLocalRoomSummaryEntity.creationState = LocalRoomCreationState.CREATED
+        db.stores.localRoomSummary.get(A_LOCAL_ROOM_ID)!!.let {
+            it.replacementRoomId shouldBeEqualTo A_ROOM_ID
+            it.creationState shouldBeEqualTo LocalRoomCreationState.CREATED
         }
-        // The local room summary has been updated with the created room id
-        verify { aLocalRoomSummaryEntity.replacementRoomId = A_ROOM_ID }
-        aLocalRoomSummaryEntity.replacementRoomId shouldBeEqualTo A_ROOM_ID
-        aLocalRoomSummaryEntity.creationState shouldBeEqualTo LocalRoomCreationState.CREATED
     }
 
     @Test
@@ -141,7 +118,7 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
         // Given
         val aCreateRoomParams = mockk<CreateRoomParams>(relaxed = true)
         givenALocalRoomSummary(aCreateRoomParams = aCreateRoomParams, aReplacementRoomId = null)
-        val aLocalRoomSummaryEntity = givenALocalRoomSummaryEntity(aCreateRoomParams = aCreateRoomParams, aReplacementRoomId = null)
+        givenALocalRoomSummaryEntity()
 
         coEvery { createRoomTask.execute(any()) }.throws(mockk())
 
@@ -151,16 +128,11 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
 
         // Then
         fakeRoomSummaryDataSource.verifyGetLocalRoomSummary(A_LOCAL_ROOM_ID)
-        // CreateRoomTask has been called with the initial CreateRoomParams
         coVerify { createRoomTask.execute(aCreateRoomParams) }
-        // The room creation state has correctly been updated
-        verifyOrder {
-            aLocalRoomSummaryEntity.creationState = LocalRoomCreationState.CREATING
-            aLocalRoomSummaryEntity.creationState = LocalRoomCreationState.FAILURE
+        db.stores.localRoomSummary.get(A_LOCAL_ROOM_ID)!!.let {
+            it.replacementRoomId.shouldBeNull()
+            it.creationState shouldBeEqualTo LocalRoomCreationState.FAILURE
         }
-        // The local room summary has been updated with the created room id
-        aLocalRoomSummaryEntity.replacementRoomId.shouldBeNull()
-        aLocalRoomSummaryEntity.creationState shouldBeEqualTo LocalRoomCreationState.FAILURE
     }
 
     private fun givenALocalRoomSummary(
@@ -170,7 +142,10 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
     ): LocalRoomSummary {
         val aLocalRoomSummary = LocalRoomSummary(
                 roomId = A_LOCAL_ROOM_ID,
-                roomSummary = mockk(relaxed = true),
+                roomSummary = mockk(relaxed = true) {
+                    every { invitedMembersCount } returns 0
+                    every { isEncrypted } returns false
+                },
                 createRoomParams = aCreateRoomParams,
                 creationState = aCreationState,
                 replacementRoomId = aReplacementRoomId,
@@ -179,25 +154,9 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
         return aLocalRoomSummary
     }
 
-    private fun givenALocalRoomSummaryEntity(
-            aCreateRoomParams: CreateRoomParams,
-            aCreationState: LocalRoomCreationState = LocalRoomCreationState.NOT_CREATED,
-            aReplacementRoomId: String? = null
-    ): LocalRoomSummaryEntity {
-        val aLocalRoomSummaryEntity = spyk(LocalRoomSummaryEntity(
-                roomId = A_LOCAL_ROOM_ID,
-                roomSummaryEntity = mockk(relaxed = true),
-                replacementRoomId = aReplacementRoomId,
-        ).apply {
-            createRoomParams = aCreateRoomParams
-            creationState = aCreationState
+    private fun givenALocalRoomSummaryEntity() {
+        db.stores.localRoomSummary.upsert(LocalRoomSummaryEntity(roomId = A_LOCAL_ROOM_ID).apply {
+            creationState = LocalRoomCreationState.NOT_CREATED
         })
-        every {
-            fakeMonarchy.fakeRealm.instance
-                    .where<LocalRoomSummaryEntity>()
-                    .equalTo(LocalRoomSummaryEntityFields.ROOM_ID, A_LOCAL_ROOM_ID)
-                    .findFirst()
-        } returns aLocalRoomSummaryEntity
-        return aLocalRoomSummaryEntity
     }
 }

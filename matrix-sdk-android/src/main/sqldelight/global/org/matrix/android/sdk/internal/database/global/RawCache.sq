@@ -1,0 +1,25 @@
+CREATE TABLE raw_cache_entity (
+    url TEXT NOT NULL PRIMARY KEY,
+    data TEXT NOT NULL,
+    last_updated_timestamp INTEGER NOT NULL DEFAULT 0
+);
+
+selectByUrl:
+SELECT *
+FROM raw_cache_entity
+WHERE url = ?;
+
+selectAll:
+SELECT *
+FROM raw_cache_entity;
+
+upsert:
+INSERT OR REPLACE INTO raw_cache_entity(url, data, last_updated_timestamp)
+VALUES (?, ?, ?);
+
+deleteByUrl:
+DELETE FROM raw_cache_entity
+WHERE url = ?;
+
+deleteAll:
+DELETE FROM raw_cache_entity;

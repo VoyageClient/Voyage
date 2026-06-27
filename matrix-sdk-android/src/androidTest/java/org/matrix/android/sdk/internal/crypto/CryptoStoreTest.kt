@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.crypto
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.Realm
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
@@ -48,7 +47,6 @@ class CryptoStoreTest : InstrumentedTest {
 
     @Before
     fun setup() {
-        Realm.init(context())
     }
 
 //    @Test

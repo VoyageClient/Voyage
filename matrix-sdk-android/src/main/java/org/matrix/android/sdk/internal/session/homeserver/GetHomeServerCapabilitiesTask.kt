@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.homeserver
 
-import com.zhuinden.monarchy.Monarchy
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.auth.data.AuthMetadata
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
@@ -34,7 +34,6 @@ import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreadUnrea
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreads
 import org.matrix.android.sdk.internal.auth.version.isLoginAndRegistrationSupportedBySdk
 import org.matrix.android.sdk.internal.database.model.HomeServerCapabilitiesEntity
-import org.matrix.android.sdk.internal.database.query.getOrCreate
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
@@ -45,7 +44,6 @@ import org.matrix.android.sdk.internal.session.media.AuthenticatedMediaAPI
 import org.matrix.android.sdk.internal.session.media.GetMediaConfigResult
 import org.matrix.android.sdk.internal.session.media.UnauthenticatedMediaAPI
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import org.matrix.android.sdk.internal.wellknown.GetWellknownTask
 import timber.log.Timber
 import java.util.Date
@@ -61,7 +59,9 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
         private val capabilitiesAPI: CapabilitiesAPI,
         private val unauthenticatedMediaAPI: UnauthenticatedMediaAPI,
         private val authenticatedMediaAPI: AuthenticatedMediaAPI,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val getWellknownTask: GetWellknownTask,
         private val configExtractor: IntegrationManagerConfigExtractor,
@@ -74,10 +74,8 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
     override suspend fun execute(params: GetHomeServerCapabilitiesTask.Params) {
         var doRequest = params.forceRefresh
         if (!doRequest) {
-            monarchy.awaitTransaction { realm ->
-                val homeServerCapabilitiesEntity = HomeServerCapabilitiesEntity.getOrCreate(realm)
-                doRequest = homeServerCapabilitiesEntity.lastUpdatedTimestamp + MIN_DELAY_BETWEEN_TWO_REQUEST_MILLIS < Date().time
-            }
+            val lastUpdated = stores.homeServerCapabilities.get()?.lastUpdatedTimestamp ?: 0
+            doRequest = lastUpdated + MIN_DELAY_BETWEEN_TWO_REQUEST_MILLIS < Date().time
         }
 
         if (!doRequest) {
@@ -135,8 +133,8 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
             getWellknownResult: WellknownResult?,
             authMetadata: AuthMetadata?,
     ) {
-        monarchy.awaitTransaction { realm ->
-            val homeServerCapabilitiesEntity = HomeServerCapabilitiesEntity.getOrCreate(realm)
+        database.awaitDbTransaction(dispatcher) {
+            val homeServerCapabilitiesEntity = stores.homeServerCapabilities.get() ?: HomeServerCapabilitiesEntity()
 
             if (getCapabilitiesResult != null) {
                 val capabilities = getCapabilitiesResult.capabilities
@@ -181,7 +179,7 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                 val config = configExtractor.extract(getWellknownResult.wellKnown)
                 if (config != null) {
                     Timber.v("Extracted integration config : $config")
-                    realm.insertOrUpdate(config)
+                    stores.integrationManager.upsertWellknownConfig(config.apiUrl, config.uiUrl)
                 }
                 // Getting the OAuth 2.0 metadata from well-known was in unstable MSC:
                 homeServerCapabilitiesEntity.authenticationIssuer = getWellknownResult.wellKnown.unstableDelegatedAuthConfig?.issuer
@@ -199,6 +197,7 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
             homeServerCapabilitiesEntity.canLoginWithQrCode = canLoginWithQrCode(getCapabilitiesResult, getVersionResult)
 
             homeServerCapabilitiesEntity.lastUpdatedTimestamp = Date().time
+            stores.homeServerCapabilities.upsert(homeServerCapabilitiesEntity)
         }
     }
 

@@ -1,0 +1,102 @@
+-- A user's device-tracking status. Their devices live in device_info (FK user_id) and their
+-- cross-signing in cross_signing_info (same user_id).
+CREATE TABLE crypto_user (
+    user_id TEXT NOT NULL PRIMARY KEY,
+    device_tracking_status INTEGER NOT NULL DEFAULT 0
+);
+
+-- primary_key is "userId|deviceId". The nested TrustLevelEntity is flattened: has_trust_level marks
+-- whether a trust level is present, then the two nullable trust_* columns hold its values.
+CREATE TABLE device_info (
+    primary_key TEXT NOT NULL PRIMARY KEY,
+    device_id TEXT,
+    identity_key TEXT,
+    user_id TEXT,
+    is_blocked INTEGER,
+    algorithm_list_json TEXT,
+    keys_map_json TEXT,
+    signature_map_json TEXT,
+    unsigned_map_json TEXT,
+    has_trust_level INTEGER NOT NULL DEFAULT 0,
+    trust_cross_signed_verified INTEGER,
+    trust_locally_verified INTEGER,
+    first_time_seen_local_ts INTEGER
+);
+
+CREATE INDEX device_info_user_id ON device_info(user_id);
+CREATE INDEX device_info_identity_key ON device_info(identity_key);
+
+CREATE TABLE my_device_last_seen_info (
+    device_id TEXT NOT NULL PRIMARY KEY,
+    display_name TEXT,
+    last_seen_ts INTEGER,
+    last_seen_ip TEXT,
+    last_seen_user_agent TEXT
+);
+
+-- crypto_user
+userSelectByUserId:
+SELECT * FROM crypto_user WHERE user_id = ?;
+
+userSelectAll:
+SELECT * FROM crypto_user;
+
+userInsertIgnore:
+INSERT OR IGNORE INTO crypto_user(user_id) VALUES (?);
+
+userUpsertTracking:
+INSERT OR REPLACE INTO crypto_user(user_id, device_tracking_status) VALUES (?, ?);
+
+userDelete:
+DELETE FROM crypto_user WHERE user_id = ?;
+
+-- device_info
+deviceSelectByPrimaryKey:
+SELECT * FROM device_info WHERE primary_key = ?;
+
+deviceSelectByUserId:
+SELECT * FROM device_info WHERE user_id = ?;
+
+deviceSelectAll:
+SELECT * FROM device_info;
+
+deviceSelectByUserIds:
+SELECT * FROM device_info WHERE user_id IN ?;
+
+deviceSelectByKeysMapContains:
+SELECT * FROM device_info WHERE keys_map_json LIKE ('%' || ? || '%');
+
+deviceSelectByUserIdAndKeysMapContains:
+SELECT * FROM device_info WHERE user_id = ? AND keys_map_json LIKE ('%' || ? || '%');
+
+deviceUpsert:
+INSERT OR REPLACE INTO device_info(primary_key, device_id, identity_key, user_id, is_blocked, algorithm_list_json, keys_map_json, signature_map_json, unsigned_map_json, has_trust_level, trust_cross_signed_verified, trust_locally_verified, first_time_seen_local_ts)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deviceDeleteByPrimaryKey:
+DELETE FROM device_info WHERE primary_key = ?;
+
+deviceDeleteByUserId:
+DELETE FROM device_info WHERE user_id = ?;
+
+-- Reset local trust on my own devices when my cross-signing keys change (only devices that already
+-- have a trust level): cross-signed becomes false, locally-verified true only for the current device.
+deviceResetMyTrust:
+UPDATE device_info
+SET trust_cross_signed_verified = 0,
+    trust_locally_verified = (CASE WHEN device_id = :deviceId THEN 1 ELSE 0 END)
+WHERE user_id = :userId AND has_trust_level = 1;
+
+-- my_device_last_seen_info
+myDeviceSelectAll:
+SELECT * FROM my_device_last_seen_info;
+
+myDeviceSelectByDeviceId:
+SELECT * FROM my_device_last_seen_info WHERE device_id = ?;
+
+myDeviceUpsert:
+INSERT OR REPLACE INTO my_device_last_seen_info(device_id, display_name, last_seen_ts, last_seen_ip, last_seen_user_agent)
+VALUES (?, ?, ?, ?, ?);
+
+myDeviceDeleteAll:
+DELETE FROM my_device_last_seen_info;

@@ -19,7 +19,6 @@ package org.matrix.android.sdk.internal.session.room.send
 import android.content.Context
 import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonClass
-import io.realm.RealmConfiguration
 import org.matrix.android.sdk.api.failure.shouldBeRetried
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -55,7 +54,6 @@ internal class SendEventWorker(context: Context, params: WorkerParameters, sessi
     @Inject lateinit var sendEventTask: SendEventTask
     @Inject lateinit var cryptoService: CryptoService
     @Inject lateinit var cancelSendTracker: CancelSendTracker
-    @SessionDatabase @Inject lateinit var realmConfiguration: RealmConfiguration
 
     override fun injectWith(injector: SessionComponent) {
         injector.inject(this)

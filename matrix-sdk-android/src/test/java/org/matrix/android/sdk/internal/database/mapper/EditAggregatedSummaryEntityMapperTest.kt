@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.database.mapper
 
 import io.mockk.every
 import io.mockk.mockk
-import io.realm.RealmList
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldNotBe
 import org.junit.Test
@@ -30,7 +29,7 @@ class EditAggregatedSummaryEntityMapperTest {
 
     @Test
     fun `test mapping summary entity to model`() {
-        val edits = RealmList<EditionOfEvent>(
+        val edits = mutableListOf<EditionOfEvent>(
                 EditionOfEvent(
                         timestamp = 0L,
                         eventId = "e0",
@@ -71,7 +70,7 @@ class EditAggregatedSummaryEntityMapperTest {
 
         (higherId > lowerId) shouldBeEqualTo true
         val timestamp = 1669288766745L
-        val edits = RealmList<EditionOfEvent>(
+        val edits = mutableListOf<EditionOfEvent>(
                 EditionOfEvent(
                         timestamp = timestamp,
                         eventId = lowerId,

@@ -1,0 +1,41 @@
+-- HomeServerCapabilitiesEntity: single-row (id 0). Booleans are INTEGER 0/1.
+CREATE TABLE home_server_capabilities (
+    id INTEGER NOT NULL PRIMARY KEY,
+    can_change_password INTEGER NOT NULL DEFAULT 1,
+    can_change_display_name INTEGER NOT NULL DEFAULT 1,
+    can_change_avatar INTEGER NOT NULL DEFAULT 1,
+    can_change_3pid INTEGER NOT NULL DEFAULT 1,
+    room_versions_json TEXT,
+    max_upload_file_size INTEGER NOT NULL,
+    last_version_identity_server_supported INTEGER NOT NULL DEFAULT 0,
+    default_identity_server_url TEXT,
+    last_updated_timestamp INTEGER NOT NULL DEFAULT 0,
+    can_use_threading INTEGER NOT NULL DEFAULT 0,
+    can_control_logout_devices INTEGER NOT NULL DEFAULT 0,
+    can_login_with_qr_code INTEGER NOT NULL DEFAULT 0,
+    can_use_thread_read_receipts_and_notifications INTEGER NOT NULL DEFAULT 0,
+    can_remotely_toggle_push_notifications_of_devices INTEGER NOT NULL DEFAULT 0,
+    can_redact_event_with_relations INTEGER NOT NULL DEFAULT 0,
+    external_account_management_url TEXT,
+    external_account_management_supported_actions TEXT,
+    authentication_issuer TEXT,
+    disable_network_constraint INTEGER,
+    can_use_authenticated_media INTEGER NOT NULL DEFAULT 0
+);
+
+selectFirst:
+SELECT * FROM home_server_capabilities LIMIT 1;
+
+upsert:
+INSERT OR REPLACE INTO home_server_capabilities(
+    id, can_change_password, can_change_display_name, can_change_avatar, can_change_3pid,
+    room_versions_json, max_upload_file_size, last_version_identity_server_supported,
+    default_identity_server_url, last_updated_timestamp, can_use_threading, can_control_logout_devices,
+    can_login_with_qr_code, can_use_thread_read_receipts_and_notifications,
+    can_remotely_toggle_push_notifications_of_devices, can_redact_event_with_relations,
+    external_account_management_url, external_account_management_supported_actions,
+    authentication_issuer, disable_network_constraint, can_use_authenticated_media
+) VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM home_server_capabilities;

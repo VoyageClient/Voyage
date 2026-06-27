@@ -2134,6 +2134,12 @@ class TimelineFragment :
         timelineViewModel.handle(RoomDetailAction.RejectInvite)
     }
 
+    override fun onIgnoreSender() = withState(timelineViewModel) { state ->
+        // Ignore the inviter (without rejecting the invite) and leave this screen for the room/DM list.
+        timelineViewModel.handle(RoomDetailAction.IgnoreUser(state.asyncInviter()?.userId))
+        vectorBaseActivity.finish()
+    }
+
     private fun onJumpToReadMarkerClicked() = withState(timelineViewModel) {
         if (it.unreadState is UnreadState.HasUnread) {
             timelineViewModel.handle(RoomDetailAction.NavigateToEvent(it.unreadState.firstUnreadEventId, highlight = false, isFirstUnreadEvent = true))

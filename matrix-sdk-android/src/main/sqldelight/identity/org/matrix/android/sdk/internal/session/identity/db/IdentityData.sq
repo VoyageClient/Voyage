@@ -1,0 +1,32 @@
+-- Singleton: at most one row is ever stored.
+CREATE TABLE identity_data_entity (
+    identity_server_url TEXT,
+    token TEXT,
+    hash_lookup_pepper TEXT,
+    hash_lookup_algorithm TEXT NOT NULL DEFAULT '',
+    user_consent INTEGER NOT NULL DEFAULT 0
+);
+
+selectFirst:
+SELECT *
+FROM identity_data_entity
+LIMIT 1;
+
+insertUrl:
+INSERT INTO identity_data_entity(identity_server_url, token, hash_lookup_pepper, hash_lookup_algorithm, user_consent)
+VALUES (?, NULL, NULL, '', 0);
+
+deleteAll:
+DELETE FROM identity_data_entity;
+
+setToken:
+UPDATE identity_data_entity
+SET token = ?;
+
+setUserConsent:
+UPDATE identity_data_entity
+SET user_consent = ?;
+
+setHashDetails:
+UPDATE identity_data_entity
+SET hash_lookup_pepper = ?, hash_lookup_algorithm = ?;

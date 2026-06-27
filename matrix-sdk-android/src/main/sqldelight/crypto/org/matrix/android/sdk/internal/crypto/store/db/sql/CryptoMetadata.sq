@@ -1,0 +1,69 @@
+-- Singleton row keyed by the current user id. Stores the serialized OlmAccount and global flags.
+CREATE TABLE crypto_metadata (
+    user_id TEXT NOT NULL PRIMARY KEY,
+    device_id TEXT,
+    olm_account_data TEXT,
+    device_sync_token TEXT,
+    global_blacklist_unverified_devices INTEGER NOT NULL DEFAULT 0,
+    global_enable_key_gossiping INTEGER NOT NULL DEFAULT 1,
+    enable_key_forwarding_on_invite INTEGER NOT NULL DEFAULT 0,
+    backup_version TEXT,
+    device_keys_sent_to_server INTEGER NOT NULL DEFAULT 0,
+    x_sign_master_private_key TEXT,
+    x_sign_user_private_key TEXT,
+    x_sign_self_signed_private_key TEXT,
+    key_backup_recovery_key TEXT,
+    key_backup_recovery_key_version TEXT
+);
+
+selectFirst:
+SELECT *
+FROM crypto_metadata
+LIMIT 1;
+
+count:
+SELECT count(*)
+FROM crypto_metadata;
+
+insert:
+INSERT INTO crypto_metadata(user_id, device_id)
+VALUES (?, ?);
+
+updateDeviceId:
+UPDATE crypto_metadata SET device_id = ?;
+
+updateOlmAccountData:
+UPDATE crypto_metadata SET olm_account_data = ?;
+
+updateDeviceSyncToken:
+UPDATE crypto_metadata SET device_sync_token = ?;
+
+updateBackupVersion:
+UPDATE crypto_metadata SET backup_version = ?;
+
+updatePrivateKeys:
+UPDATE crypto_metadata SET x_sign_master_private_key = ?, x_sign_user_private_key = ?, x_sign_self_signed_private_key = ?;
+
+updateMskPrivateKey:
+UPDATE crypto_metadata SET x_sign_master_private_key = ?;
+
+updateSskPrivateKey:
+UPDATE crypto_metadata SET x_sign_self_signed_private_key = ?;
+
+updateUskPrivateKey:
+UPDATE crypto_metadata SET x_sign_user_private_key = ?;
+
+updateRecoveryKey:
+UPDATE crypto_metadata SET key_backup_recovery_key = ?, key_backup_recovery_key_version = ?;
+
+updateGlobalBlacklist:
+UPDATE crypto_metadata SET global_blacklist_unverified_devices = ?;
+
+updateKeyGossiping:
+UPDATE crypto_metadata SET global_enable_key_gossiping = ?;
+
+updateShareKeyOnInvite:
+UPDATE crypto_metadata SET enable_key_forwarding_on_invite = ?;
+
+updateDeviceKeysUploaded:
+UPDATE crypto_metadata SET device_keys_sent_to_server = ?;

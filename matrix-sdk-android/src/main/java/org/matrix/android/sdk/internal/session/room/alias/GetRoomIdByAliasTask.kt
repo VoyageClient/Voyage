@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,13 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.alias
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Realm
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasDescription
 import org.matrix.android.sdk.api.util.Optional
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.query.findByAlias
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -38,15 +35,13 @@ internal interface GetRoomIdByAliasTask : Task<GetRoomIdByAliasTask.Params, Opti
 }
 
 internal class DefaultGetRoomIdByAliasTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
         private val directoryAPI: DirectoryAPI,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
 ) : GetRoomIdByAliasTask {
 
     override suspend fun execute(params: GetRoomIdByAliasTask.Params): Optional<RoomAliasDescription> {
-        val roomId = Realm.getInstance(monarchy.realmConfiguration).use {
-            RoomSummaryEntity.findByAlias(it, params.roomAlias)?.roomId
-        }
+        val roomId = database.roomSummaryQueries.selectByAlias(params.roomAlias, params.roomAlias).executeAsOneOrNull()?.room_id
         return if (roomId != null) {
             Optional.from(RoomAliasDescription(roomId))
         } else if (!params.searchOnServer) {

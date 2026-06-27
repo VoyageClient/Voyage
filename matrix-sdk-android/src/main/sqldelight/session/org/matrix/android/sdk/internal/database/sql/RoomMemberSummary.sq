@@ -1,0 +1,43 @@
+-- RoomMemberSummaryEntity: per-room member summary. membership enum stored as TEXT (membership_str);
+-- the 1-1 userPresenceEntity ref is a nullable FK to user_presence.
+CREATE TABLE room_member_summary (
+    primary_key TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL DEFAULT '',
+    room_id TEXT NOT NULL DEFAULT '',
+    display_name TEXT,
+    avatar_url TEXT,
+    reason TEXT,
+    is_direct INTEGER NOT NULL DEFAULT 0,
+    membership_str TEXT NOT NULL DEFAULT 'NONE',
+    user_presence_user_id TEXT
+);
+
+CREATE INDEX room_member_summary_user_id ON room_member_summary(user_id);
+CREATE INDEX room_member_summary_room_id ON room_member_summary(room_id);
+CREATE INDEX room_member_summary_display_name ON room_member_summary(display_name);
+
+selectByPrimaryKey:
+SELECT * FROM room_member_summary WHERE primary_key = ?;
+
+selectByRoom:
+SELECT * FROM room_member_summary WHERE room_id = ?;
+
+selectByRoomAndMembership:
+SELECT * FROM room_member_summary WHERE room_id = ? AND membership_str IN ?;
+
+selectByRoomAndUser:
+SELECT * FROM room_member_summary WHERE room_id = ? AND user_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO room_member_summary(
+    primary_key, user_id, room_id, display_name, avatar_url, reason, is_direct, membership_str, user_presence_user_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateUserPresence:
+UPDATE room_member_summary SET user_presence_user_id = ? WHERE user_id = ?;
+
+deleteByRoom:
+DELETE FROM room_member_summary WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM room_member_summary;

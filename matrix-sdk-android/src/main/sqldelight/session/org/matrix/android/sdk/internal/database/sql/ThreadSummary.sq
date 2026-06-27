@@ -1,0 +1,61 @@
+-- ThreadSummaryEntity: owned by a room (RoomEntity.threadSummaries and ThreadListPageEntity, both per
+-- room). root/latest thread events referenced by event db id. thread_list_page tracks page existence.
+CREATE TABLE thread_list_page (
+    room_id TEXT NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE thread_summary (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_id TEXT NOT NULL DEFAULT '',
+    root_thread_event_id TEXT,
+    root_thread_event_db_id INTEGER,
+    latest_thread_event_db_id INTEGER,
+    root_thread_sender_name TEXT,
+    latest_thread_sender_name TEXT,
+    root_thread_sender_avatar TEXT,
+    latest_thread_sender_avatar TEXT,
+    root_thread_is_unique_display_name INTEGER NOT NULL DEFAULT 0,
+    is_user_participating INTEGER NOT NULL DEFAULT 0,
+    latest_thread_is_unique_display_name INTEGER NOT NULL DEFAULT 0,
+    number_of_threads INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX thread_summary_room ON thread_summary(room_id);
+CREATE INDEX thread_summary_root ON thread_summary(root_thread_event_id);
+
+selectByRoom:
+SELECT * FROM thread_summary WHERE room_id = ?;
+
+selectByRootEventId:
+SELECT * FROM thread_summary WHERE room_id = ? AND root_thread_event_id = ? LIMIT 1;
+
+insert:
+INSERT INTO thread_summary(
+    room_id, root_thread_event_id, root_thread_event_db_id, latest_thread_event_db_id,
+    root_thread_sender_name, latest_thread_sender_name, root_thread_sender_avatar, latest_thread_sender_avatar,
+    root_thread_is_unique_display_name, is_user_participating, latest_thread_is_unique_display_name, number_of_threads
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteByRoom:
+DELETE FROM thread_summary WHERE room_id = ?;
+
+deleteByRoot:
+DELETE FROM thread_summary WHERE room_id = ? AND root_thread_event_id = ?;
+
+-- thread summaries for a room, most-recent latest-event first (unstable property, matches Realm sort)
+selectByRoomSortedByLatest:
+SELECT thread_summary.* FROM thread_summary
+LEFT JOIN event ON thread_summary.latest_thread_event_db_id = event.id
+WHERE thread_summary.room_id = ? ORDER BY event.origin_server_ts DESC;
+
+upsertPage:
+INSERT OR REPLACE INTO thread_list_page(room_id) VALUES (?);
+
+selectPage:
+SELECT * FROM thread_list_page WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM thread_summary;
+
+deleteAllPages:
+DELETE FROM thread_list_page;

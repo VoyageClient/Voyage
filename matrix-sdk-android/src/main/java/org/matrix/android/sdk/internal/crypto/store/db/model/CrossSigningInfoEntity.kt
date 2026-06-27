@@ -16,18 +16,13 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 import org.matrix.android.sdk.api.session.crypto.crosssigning.KeyUsage
-import org.matrix.android.sdk.internal.extensions.clearWith
 
 internal open class CrossSigningInfoEntity(
-        @PrimaryKey
         var userId: String? = null,
         var wasUserVerifiedOnce: Boolean = false,
-        var crossSigningKeys: RealmList<KeyInfoEntity> = RealmList()
-) : RealmObject() {
+        var crossSigningKeys: MutableList<KeyInfoEntity> = ArrayList()
+) {
 
     companion object
 
@@ -59,7 +54,3 @@ internal open class CrossSigningInfoEntity(
     }
 }
 
-internal fun CrossSigningInfoEntity.deleteOnCascade() {
-    crossSigningKeys.clearWith { it.deleteOnCascade() }
-    deleteFromRealm()
-}

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,66 +15,42 @@
  */
 package org.matrix.android.sdk.internal.session.pushers
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
 import org.matrix.android.sdk.api.session.pushrules.RuleSetKey
+import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import org.matrix.android.sdk.internal.database.mapper.PushRulesMapper
 import org.matrix.android.sdk.internal.database.model.PushRulesEntity
-import org.matrix.android.sdk.internal.database.model.deleteOnCascade
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
-/**
- * Save the push rules in DB.
- */
 internal interface SavePushRulesTask : Task<SavePushRulesTask.Params, Unit> {
     data class Params(val pushRules: GetPushRulesResponse)
 }
 
-internal class DefaultSavePushRulesTask @Inject constructor(@SessionDatabase private val monarchy: Monarchy) : SavePushRulesTask {
+internal class DefaultSavePushRulesTask @Inject constructor(
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
+) : SavePushRulesTask {
 
     override suspend fun execute(params: SavePushRulesTask.Params) {
-        monarchy.awaitTransaction { realm ->
-            // clear current push rules
-            realm.where(PushRulesEntity::class.java)
-                    .findAll()
-                    .forEach { it.deleteOnCascade() }
-
-            val globalRules = params.pushRules.global
-
-            val content = PushRulesEntity(RuleScope.GLOBAL).apply { kind = RuleSetKey.CONTENT }
-            globalRules.content?.forEach { rule ->
-                content.pushRules.add(PushRulesMapper.map(rule))
+        val globalRules = params.pushRules.global
+        database.awaitDbTransaction(dispatcher) {
+            fun save(kind: RuleSetKey, rules: List<PushRule>?) {
+                val entity = PushRulesEntity(RuleScope.GLOBAL).apply { this.kind = kind }
+                rules?.forEach { entity.pushRules.add(PushRulesMapper.map(it)) }
+                stores.pushRules.upsert(entity)
             }
-            realm.insertOrUpdate(content)
-
-            val override = PushRulesEntity(RuleScope.GLOBAL).apply { kind = RuleSetKey.OVERRIDE }
-            globalRules.override?.forEach { rule ->
-                PushRulesMapper.map(rule).also {
-                    override.pushRules.add(it)
-                }
-            }
-            realm.insertOrUpdate(override)
-
-            val rooms = PushRulesEntity(RuleScope.GLOBAL).apply { kind = RuleSetKey.ROOM }
-            globalRules.room?.forEach { rule ->
-                rooms.pushRules.add(PushRulesMapper.map(rule))
-            }
-            realm.insertOrUpdate(rooms)
-
-            val senders = PushRulesEntity(RuleScope.GLOBAL).apply { kind = RuleSetKey.SENDER }
-            globalRules.sender?.forEach { rule ->
-                senders.pushRules.add(PushRulesMapper.map(rule))
-            }
-            realm.insertOrUpdate(senders)
-
-            val underrides = PushRulesEntity(RuleScope.GLOBAL).apply { kind = RuleSetKey.UNDERRIDE }
-            globalRules.underride?.forEach { rule ->
-                underrides.pushRules.add(PushRulesMapper.map(rule))
-            }
-            realm.insertOrUpdate(underrides)
+            save(RuleSetKey.CONTENT, globalRules.content)
+            save(RuleSetKey.OVERRIDE, globalRules.override)
+            save(RuleSetKey.ROOM, globalRules.room)
+            save(RuleSetKey.SENDER, globalRules.sender)
+            save(RuleSetKey.UNDERRIDE, globalRules.underride)
         }
     }
 }

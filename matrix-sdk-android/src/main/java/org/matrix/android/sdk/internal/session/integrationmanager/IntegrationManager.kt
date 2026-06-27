@@ -19,7 +19,8 @@ package org.matrix.android.sdk.internal.session.integrationmanager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import com.zhuinden.monarchy.Monarchy
+import androidx.lifecycle.map
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
@@ -56,7 +57,9 @@ import javax.inject.Inject
 @SessionScope
 internal class IntegrationManager @Inject constructor(
         matrixConfiguration: MatrixConfiguration,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
         private val accountDataDataSource: UserAccountDataDataSource,
         private val widgetFactory: WidgetFactory
@@ -254,10 +257,12 @@ internal class IntegrationManager @Inject constructor(
     }
 
     private fun observeWellknownConfig() {
-        val liveData = monarchy.findAllMappedWithChanges(
-                { it.where(WellknownIntegrationManagerConfigEntity::class.java) },
-                { IntegrationManagerConfig(it.uiUrl, it.apiUrl, IntegrationManagerConfig.Kind.HOMESERVER) }
-        )
+        val liveData = database.wellknownIntegrationManagerConfigQueries.selectAll().asLiveList(dispatcher)
+                .map {
+                    stores.integrationManager.getWellknownConfig()?.let { (apiUrl, uiUrl) ->
+                        listOf(IntegrationManagerConfig(uiUrl, apiUrl, IntegrationManagerConfig.Kind.HOMESERVER))
+                    }.orEmpty()
+                }
         liveData.observeNotNull(lifecycleOwner) {
             val config = it.firstOrNull()
             updateCurrentConfigs(IntegrationManagerConfig.Kind.HOMESERVER, config)

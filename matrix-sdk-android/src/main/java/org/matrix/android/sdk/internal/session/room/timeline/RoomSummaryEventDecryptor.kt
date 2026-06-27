@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -29,8 +29,9 @@ import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import timber.log.Timber
@@ -38,7 +39,9 @@ import javax.inject.Inject
 
 @SessionScope
 internal class RoomSummaryEventDecryptor @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         cryptoCoroutineScope: CoroutineScope,
         private val cryptoService: dagger.Lazy<CryptoService>
@@ -99,21 +102,21 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
         try {
             val result = cryptoService.get().decryptEvent(event, "")
             // now let's persist the result in database
-            monarchy.writeAsync { realm ->
-                val eventEntity = EventEntity.where(realm, event.eventId.orEmpty()).findFirst()
-                eventEntity?.setDecryptionResult(result)
+            val eventId = event.eventId.orEmpty()
+            database.awaitDbTransaction(dispatcher) {
+                stores.event.applyDecryptionResult(eventId, result)
+                stores.eventInsert.setCanBeProcessed(eventId, true)
             }
         } catch (failure: Throwable) {
             Timber.v(failure, "Failed to decrypt event ${event.eventId}")
             // We don't need to get more details, just mark this session in failures
             if (failure is MXCryptoError.Base) {
-                monarchy.writeAsync { realm ->
-                    EventEntity.where(realm, eventId = event.eventId.orEmpty())
-                            .findFirst()
-                            ?.let {
-                                it.decryptionErrorCode = failure.errorType.name
-                                it.decryptionErrorReason = failure.technicalMessage.takeIf { it.isNotEmpty() } ?: failure.detailedErrorDescription
-                            }
+                database.awaitDbTransaction(dispatcher) {
+                    stores.event.applyDecryptionError(
+                            event.eventId.orEmpty(),
+                            failure.errorType.name,
+                            failure.technicalMessage.takeIf { it.isNotEmpty() } ?: failure.detailedErrorDescription,
+                    )
                 }
 
                 if (failure.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID ||

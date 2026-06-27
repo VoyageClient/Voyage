@@ -16,9 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model.livelocation
 
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 
 /**
  * Aggregation info concerning a live location share.
@@ -27,13 +24,12 @@ internal open class LiveLocationShareAggregatedSummaryEntity(
         /**
          * Event id of the event that started the live.
          */
-        @PrimaryKey
         var eventId: String = "",
 
         /**
          * List of event ids used to compute the aggregated summary data.
          */
-        var relatedEventIds: RealmList<String> = RealmList(),
+        var relatedEventIds: MutableList<String> = ArrayList(),
 
         var roomId: String = "",
 
@@ -53,6 +49,6 @@ internal open class LiveLocationShareAggregatedSummaryEntity(
          * @see [org.matrix.android.sdk.api.session.room.model.message.MessageBeaconLocationDataContent]
          */
         var lastLocationContent: String? = null,
-) : RealmObject() {
+) {
     companion object
 }

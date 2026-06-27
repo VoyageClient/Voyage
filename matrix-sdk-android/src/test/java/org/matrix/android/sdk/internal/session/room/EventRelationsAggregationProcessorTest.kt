@@ -18,29 +18,29 @@ package org.matrix.android.sdk.internal.session.room
 
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
-import org.matrix.android.sdk.internal.database.model.EventAnnotationsSummaryEntity
-import org.matrix.android.sdk.internal.database.model.EventAnnotationsSummaryEntityFields
 import org.matrix.android.sdk.test.fakes.FakeClock
-import org.matrix.android.sdk.test.fakes.FakeRealm
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.matrix.android.sdk.test.fakes.FakeStateEventDataSource
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenFindFirst
 import org.matrix.android.sdk.test.fakes.internal.FakeEventEditValidator
 import org.matrix.android.sdk.test.fakes.internal.FakeLiveLocationAggregationProcessor
 import org.matrix.android.sdk.test.fakes.internal.FakePollAggregationProcessor
 import org.matrix.android.sdk.test.fakes.internal.FakeSessionManager
 import org.matrix.android.sdk.test.fakes.internal.session.room.aggregation.utd.FakeEncryptedReferenceAggregationProcessor
+import org.robolectric.RobolectricTestRunner
 
 private const val A_ROOM_ID = "room-id"
 private const val AN_EVENT_ID = "event-id"
 
+@RunWith(RobolectricTestRunner::class)
 internal class EventRelationsAggregationProcessorTest {
 
     private val fakeStateEventDataSource = FakeStateEventDataSource()
@@ -50,7 +50,7 @@ internal class EventRelationsAggregationProcessorTest {
     private val fakeEncryptedReferenceAggregationProcessor = FakeEncryptedReferenceAggregationProcessor()
     private val fakeEventEditValidator = FakeEventEditValidator()
     private val fakeClock = FakeClock()
-    private val fakeRealm = FakeRealm()
+    private val db = FakeSessionDatabase()
 
     private val encryptedEventRelationsAggregationProcessor = EventRelationsAggregationProcessor(
             userId = "userId",
@@ -63,6 +63,11 @@ internal class EventRelationsAggregationProcessorTest {
             editValidator = fakeEventEditValidator.instance,
             clock = fakeClock,
     )
+
+    @After
+    fun tearDown() {
+        db.close()
+    }
 
     @Test
     fun `given an encrypted reference event when process then reference is processed`() {
@@ -80,17 +85,16 @@ internal class EventRelationsAggregationProcessorTest {
         every { anEvent.content } returns encryptedEventContent.toContent()
         val resultOfReferenceProcess = false
         fakeEncryptedReferenceAggregationProcessor.givenHandleReturns(resultOfReferenceProcess)
-        givenEventAnnotationsSummary(roomId = A_ROOM_ID, eventId = AN_EVENT_ID, annotationsSummary = null)
 
         // When
         encryptedEventRelationsAggregationProcessor.process(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = anEvent,
         )
 
         // Then
         fakeEncryptedReferenceAggregationProcessor.verifyHandle(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = anEvent,
                 isLocalEcho = false,
                 relatedEventId = relatedEventId,
@@ -117,16 +121,5 @@ internal class EventRelationsAggregationProcessorTest {
         return EncryptedEventContent(
                 relatesTo = relationContent,
         )
-    }
-
-    private fun givenEventAnnotationsSummary(
-            roomId: String,
-            eventId: String,
-            annotationsSummary: EventAnnotationsSummaryEntity?
-    ) {
-        fakeRealm.givenWhere<EventAnnotationsSummaryEntity>()
-                .givenEqualTo(EventAnnotationsSummaryEntityFields.ROOM_ID, roomId)
-                .givenEqualTo(EventAnnotationsSummaryEntityFields.EVENT_ID, eventId)
-                .givenFindFirst(annotationsSummary)
     }
 }

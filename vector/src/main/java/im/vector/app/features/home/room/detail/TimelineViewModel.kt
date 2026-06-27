@@ -1132,7 +1132,9 @@ private fun handleSelectStickerAttachment() {
             return
         }
 
-        viewModelScope.launch {
+        // Use the session scope, not viewModelScope: ignoring from the invite screen finishes this screen
+        // immediately, and the request must still complete.
+        session.coroutineScope.launch {
             val event = try {
                 session.userService().ignoreUserIds(listOf(action.userId))
                 RoomDetailViewEvents.ActionSuccess(action)

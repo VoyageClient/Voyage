@@ -1,0 +1,52 @@
+-- SpaceChildSummaryEntity / SpaceParentSummaryEntity: rows owned by a space's room_summary (children)
+-- or a room's room_summary (parents). via_servers (RealmList<String>) stored newline-joined; the
+-- referenced child/parent RoomSummaryEntity is an FK by room id.
+CREATE TABLE space_child_summary (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    space_room_id TEXT NOT NULL DEFAULT '',
+    child_order TEXT,
+    auto_join INTEGER,
+    suggested INTEGER,
+    child_room_id TEXT,
+    child_summary_room_id TEXT,
+    via_servers TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX space_child_summary_space ON space_child_summary(space_room_id);
+
+CREATE TABLE space_parent_summary (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_id TEXT NOT NULL DEFAULT '',
+    canonical INTEGER,
+    parent_room_id TEXT,
+    parent_summary_room_id TEXT,
+    via_servers TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX space_parent_summary_room ON space_parent_summary(room_id);
+
+selectChildren:
+SELECT * FROM space_child_summary WHERE space_room_id = ?;
+
+insertChild:
+INSERT INTO space_child_summary(space_room_id, child_order, auto_join, suggested, child_room_id, child_summary_room_id, via_servers)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteChildren:
+DELETE FROM space_child_summary WHERE space_room_id = ?;
+
+selectParents:
+SELECT * FROM space_parent_summary WHERE room_id = ?;
+
+insertParent:
+INSERT INTO space_parent_summary(room_id, canonical, parent_room_id, parent_summary_room_id, via_servers)
+VALUES (?, ?, ?, ?, ?);
+
+deleteParents:
+DELETE FROM space_parent_summary WHERE room_id = ?;
+
+deleteAllChildren:
+DELETE FROM space_child_summary;
+
+deleteAllParents:
+DELETE FROM space_parent_summary;

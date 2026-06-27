@@ -16,16 +16,11 @@
 
 package org.matrix.android.sdk.internal.session.room.location
 
-import io.realm.Realm
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
-import org.matrix.android.sdk.internal.database.model.EventAnnotationsSummaryEntity
-import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
-import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.query.get
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
 import timber.log.Timber
 import javax.inject.Inject
@@ -40,24 +35,21 @@ internal class LiveLocationShareRedactionEventProcessor @Inject constructor() : 
         return eventType == EventType.REDACTION && insertType != EventInsertType.LOCAL_ECHO
     }
 
-    override fun process(realm: Realm, event: Event) {
+    override fun process(stores: SessionStores, event: Event) {
         if (event.redacts.isNullOrBlank() || LocalEcho.isLocalEchoId(event.eventId.orEmpty())) {
             return
         }
 
-        val redactedEvent = EventEntity.where(realm, eventId = event.redacts).findFirst()
-                ?: return
+        val redactedEvent = stores.event.getByEventId(event.redacts) ?: return
 
         if (redactedEvent.type in EventType.STATE_ROOM_BEACON_INFO.values) {
-            val liveSummary = LiveLocationShareAggregatedSummaryEntity.get(realm, eventId = redactedEvent.eventId)
-
+            val liveSummary = stores.liveLocation.get(redactedEvent.eventId)
             if (liveSummary != null) {
                 Timber.d("deleting live summary with id: ${liveSummary.eventId}")
-                liveSummary.deleteFromRealm()
-                val annotationsSummary = EventAnnotationsSummaryEntity.get(realm, eventId = redactedEvent.eventId)
-                if (annotationsSummary != null) {
-                    Timber.d("deleting annotation summary with id: ${annotationsSummary.eventId}")
-                    annotationsSummary.deleteFromRealm()
+                stores.liveLocation.delete(redactedEvent.eventId)
+                stores.annotations.get(redactedEvent.eventId)?.let {
+                    Timber.d("deleting annotation summary with id: ${it.eventId}")
+                    stores.annotations.delete(redactedEvent.eventId)
                 }
             }
         }

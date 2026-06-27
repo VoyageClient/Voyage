@@ -16,8 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.sync
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Realm
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.extensions.measureSpan
 import org.matrix.android.sdk.api.extensions.measureSpannableMetric
@@ -40,29 +39,27 @@ import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.session.SessionListeners
 import org.matrix.android.sdk.internal.session.dispatchTo
 import org.matrix.android.sdk.internal.session.pushrules.ProcessEventForPushTask
-import org.matrix.android.sdk.internal.session.sync.handler.PresenceSyncHandler
 import org.matrix.android.sdk.internal.session.sync.handler.SyncResponsePostTreatmentAggregatorHandler
-import org.matrix.android.sdk.internal.session.sync.handler.UserAccountDataSyncHandler
-import org.matrix.android.sdk.internal.session.sync.handler.room.RoomSyncHandler
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.system.measureTimeMillis
 
 internal class SyncResponseHandler @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val sessionDbDispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         @SessionId private val sessionId: String,
         private val sessionManager: SessionManager,
         private val sessionListeners: SessionListeners,
-        private val roomSyncHandler: RoomSyncHandler,
-        private val userAccountDataSyncHandler: UserAccountDataSyncHandler,
+        private val roomSyncHandler: org.matrix.android.sdk.internal.session.sync.handler.room.SqlRoomSyncHandler,
+        private val userAccountDataSyncHandler: org.matrix.android.sdk.internal.session.sync.handler.SqlUserAccountDataSyncHandler,
+        private val presenceSyncHandler: org.matrix.android.sdk.internal.session.sync.handler.SqlPresenceSyncHandler,
+        private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater,
         private val aggregatorHandler: SyncResponsePostTreatmentAggregatorHandler,
         private val cryptoService: CryptoService,
-        private val tokenStore: SyncTokenStore,
         private val processEventForPushTask: ProcessEventForPushTask,
         private val pushRuleService: PushRuleService,
-        private val presenceSyncHandler: PresenceSyncHandler,
         private val clock: Clock,
         matrixConfiguration: MatrixConfiguration,
 ) {
@@ -73,7 +70,9 @@ internal class SyncResponseHandler @Inject constructor(
             syncResponse: SyncResponse,
             fromToken: String?,
             afterPause: Boolean,
-            reporter: ProgressReporter?
+            reporter: ProgressReporter?,
+            persistToken: Boolean = true,
+            suppressPush: Boolean = false,
     ) {
         val isInitialSync = fromToken == null
 
@@ -124,11 +123,11 @@ internal class SyncResponseHandler @Inject constructor(
             //            threadsAwarenessHandler.fetchRootThreadEventsIfNeeded(syncResponse)
             //        }
 
-            startMonarchyTransaction(syncResponse, isInitialSync, reporter, aggregator)
+            startMonarchyTransaction(syncResponse, isInitialSync, reporter, aggregator, persistToken)
 
             aggregateSyncResponse(aggregator)
 
-            postTreatmentSyncResponse(syncResponse, isInitialSync)
+            postTreatmentSyncResponse(syncResponse, isInitialSync, suppressPush)
 
             markCryptoSyncCompleted(syncResponse, aggregator.cryptoStoreAggregator)
 
@@ -198,62 +197,24 @@ internal class SyncResponseHandler @Inject constructor(
             syncResponse: SyncResponse,
             isInitialSync: Boolean,
             reporter: ProgressReporter?,
-            aggregator: SyncResponsePostTreatmentAggregator
+            aggregator: SyncResponsePostTreatmentAggregator,
+            persistToken: Boolean,
     ) {
-        // Start one big transaction
-        measureSpan("task", "monarchy_transaction") {
-            monarchy.awaitTransaction { realm ->
-                // IMPORTANT nothing should be suspend here as we are accessing the realm instance (thread local)
-                handleRooms(reporter, syncResponse, realm, isInitialSync, aggregator)
-                handleAccountData(reporter, realm, syncResponse)
-                handlePresence(realm, syncResponse)
-
-                tokenStore.saveToken(realm, syncResponse.nextBatch)
-            }
-        }
-    }
-
-    private fun List<SpannableMetricPlugin>.handleRooms(
-            reporter: ProgressReporter?,
-            syncResponse: SyncResponse,
-            realm: Realm,
-            isInitialSync: Boolean,
-            aggregator: SyncResponsePostTreatmentAggregator
-    ) {
-        measureSpan("task", "handle_rooms") {
-            measureTimeMillis {
-                Timber.v("Handle rooms")
-                reportSubtask(reporter, InitialSyncStep.ImportingAccountRoom, 1, 0.8f) {
-                    if (syncResponse.rooms != null) {
-                        roomSyncHandler.handle(realm, syncResponse.rooms, isInitialSync, aggregator, reporter)
+        // Start one big transaction on the session DB dispatcher.
+        measureSpan("task", "sql_session_transaction") {
+            database.awaitDbTransaction(sessionDbDispatcher) {
+                if (syncResponse.rooms != null) {
+                    reportSubtask(reporter, InitialSyncStep.ImportingAccountRoom, 1, 0.8f) {
+                        roomSyncHandler.handle(stores, syncResponse.rooms, isInitialSync, aggregator, reporter)
                     }
                 }
-            }.also {
-                Timber.v("Finish handling rooms in $it ms")
-            }
-        }
-    }
-
-    private fun List<SpannableMetricPlugin>.handleAccountData(reporter: ProgressReporter?, realm: Realm, syncResponse: SyncResponse) {
-        measureSpan("task", "handle_account_data") {
-            measureTimeMillis {
                 reportSubtask(reporter, InitialSyncStep.ImportingAccountData, 1, 0.1f) {
-                    Timber.v("Handle accountData")
-                    userAccountDataSyncHandler.handle(realm, syncResponse.accountData)
+                    userAccountDataSyncHandler.handle(syncResponse.accountData, aggregator)
                 }
-            }.also {
-                Timber.v("Finish handling accountData in $it ms")
-            }
-        }
-    }
-
-    private fun List<SpannableMetricPlugin>.handlePresence(realm: Realm, syncResponse: SyncResponse) {
-        measureSpan("task", "handle_presence") {
-            measureTimeMillis {
-                Timber.v("Handle Presence")
-                presenceSyncHandler.handle(realm, syncResponse.presence)
-            }.also {
-                Timber.v("Finish handling Presence in $it ms")
+                presenceSyncHandler.handle(stores, syncResponse.presence)
+                if (persistToken) {
+                    stores.syncToken.setNextBatch(syncResponse.nextBatch)
+                }
             }
         }
     }
@@ -269,11 +230,11 @@ internal class SyncResponseHandler @Inject constructor(
         }
     }
 
-    private suspend fun List<SpannableMetricPlugin>.postTreatmentSyncResponse(syncResponse: SyncResponse, isInitialSync: Boolean) {
+    private suspend fun List<SpannableMetricPlugin>.postTreatmentSyncResponse(syncResponse: SyncResponse, isInitialSync: Boolean, suppressPush: Boolean) {
         measureSpan("task", "sync_response_post_treatment") {
             measureTimeMillis {
                 syncResponse.rooms?.let {
-                    checkPushRules(it, isInitialSync)
+                    checkPushRules(it, isInitialSync || suppressPush)
                     userAccountDataSyncHandler.synchronizeWithServerIfNeeded(it.invite)
                     dispatchInvitedRoom(it)
                 }
@@ -293,13 +254,12 @@ internal class SyncResponseHandler @Inject constructor(
         }
     }
 
-    private fun handlePostSync(shouldValidateSpaceHierarchy: Boolean) {
+    private suspend fun handlePostSync(shouldValidateSpaceHierarchy: Boolean) {
         // Revalidating the whole space parent/child graph is expensive; only do it when the sync actually
-        // carried changes that can affect it, otherwise message-only syncs pile up writeAsync tasks on
-        // Monarchy's single writer thread and stall room-list updates.
+        // carried changes that can affect it.
         if (!shouldValidateSpaceHierarchy) return
-        monarchy.writeAsync {
-            roomSyncHandler.postSyncSpaceHierarchyHandle(it)
+        database.awaitDbTransaction(sessionDbDispatcher) {
+            roomSummaryUpdater.validateSpaceRelationship(stores)
         }
     }
 

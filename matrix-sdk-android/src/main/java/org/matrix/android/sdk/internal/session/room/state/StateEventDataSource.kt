@@ -18,81 +18,60 @@ package org.matrix.android.sdk.internal.session.room.state
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Realm
-import io.realm.RealmQuery
-import io.realm.kotlin.where
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
-import org.matrix.android.sdk.internal.database.RealmSessionProvider
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.CurrentStateEventEntity
-import org.matrix.android.sdk.internal.database.model.CurrentStateEventEntityFields
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
-import org.matrix.android.sdk.internal.query.QueryStringValueProcessor
+import org.matrix.android.sdk.internal.query.matches
 import javax.inject.Inject
+import org.matrix.android.sdk.internal.database.sql.Current_state_event as CurrentStateEventRow
 
 internal class StateEventDataSource @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
-        private val realmSessionProvider: RealmSessionProvider,
-        private val queryStringValueProcessor: QueryStringValueProcessor
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) {
 
     fun getStateEvent(roomId: String, eventType: String, stateKey: QueryStateEventValue): Event? {
-        return realmSessionProvider.withRealm { realm ->
-            buildStateEventQuery(realm, roomId, setOf(eventType), stateKey).findFirst()?.root?.asDomain()
-        }
+        return query(roomId, setOf(eventType), stateKey).firstOrNull()
     }
 
     fun getStateEventLive(roomId: String, eventType: String, stateKey: QueryStateEventValue): LiveData<Optional<Event>> {
-        val liveData = monarchy.findAllMappedWithChanges(
-                { realm -> buildStateEventQuery(realm, roomId, setOf(eventType), stateKey) },
-                { it.root?.asDomain() }
-        )
-        return liveData.map { results ->
-            results.firstOrNull().toOptional()
-        }
+        return queryLive(roomId, setOf(eventType), stateKey).map { it.firstOrNull().toOptional() }
     }
 
     fun getStateEvents(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): List<Event> {
-        return realmSessionProvider.withRealm { realm ->
-            buildStateEventQuery(realm, roomId, eventTypes, stateKey)
-                    .findAll()
-                    .mapNotNull {
-                        it.root?.asDomain()
-                    }
-        }
+        return query(roomId, eventTypes, stateKey)
     }
 
     fun getStateEventsLive(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>> {
-        val liveData = monarchy.findAllMappedWithChanges(
-                { realm -> buildStateEventQuery(realm, roomId, eventTypes, stateKey) },
-                { it.root?.asDomain() }
-        )
-        return liveData.map { results ->
-            results.filterNotNull()
-        }
+        return queryLive(roomId, eventTypes, stateKey)
     }
 
-    private fun buildStateEventQuery(
-            realm: Realm,
-            roomId: String,
-            eventTypes: Set<String>,
-            stateKey: QueryStateEventValue
-    ): RealmQuery<CurrentStateEventEntity> {
-        return with(queryStringValueProcessor) {
-            realm.where<CurrentStateEventEntity>()
-                    .equalTo(CurrentStateEventEntityFields.ROOM_ID, roomId)
-                    .apply {
-                        if (eventTypes.isNotEmpty()) {
-                            `in`(CurrentStateEventEntityFields.TYPE, eventTypes.toTypedArray())
-                        }
-                    }
-                    // It's OK to cast stateKey as QueryStringValue
-                    .process(CurrentStateEventEntityFields.STATE_KEY, stateKey as QueryStringValue)
-        }
+    private fun query(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): List<Event> {
+        return database.currentStateEventQueries.selectByRoom(roomId).executeAsList()
+                .filter { it.matches(eventTypes, stateKey) }
+                .mapNotNull { it.rootEvent() }
+    }
+
+    private fun queryLive(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>> {
+        return database.currentStateEventQueries.selectByRoom(roomId)
+                .asLiveList(dispatcher)
+                .map { rows -> rows.filter { it.matches(eventTypes, stateKey) }.mapNotNull { it.rootEvent() } }
+    }
+
+    private fun CurrentStateEventRow.rootEvent(): Event? =
+            root_event_id?.let { stores.event.getByEventIdInRoom(room_id, it) }?.asDomain()
+
+    private fun CurrentStateEventRow.matches(eventTypes: Set<String>, stateKey: QueryStateEventValue): Boolean {
+        if (eventTypes.isNotEmpty() && type !in eventTypes) return false
+        return (stateKey as QueryStringValue).matches(state_key)
     }
 }

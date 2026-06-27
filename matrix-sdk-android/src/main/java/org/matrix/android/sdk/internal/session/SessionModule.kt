@@ -18,13 +18,12 @@ package org.matrix.android.sdk.internal.session
 
 import android.content.Context
 import android.os.Build
-import com.zhuinden.monarchy.Monarchy
 import dagger.Binds
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoSet
-import io.realm.RealmConfiguration
+import kotlinx.coroutines.CoroutineDispatcher
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.auth.data.Credentials
@@ -48,8 +47,9 @@ import org.matrix.android.sdk.internal.crypto.secrets.DefaultSharedSecretStorage
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultRedactEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask
 import org.matrix.android.sdk.internal.database.EventInsertLiveObserver
-import org.matrix.android.sdk.internal.database.RealmSessionProvider
-import org.matrix.android.sdk.internal.database.SessionRealmConfigurationFactory
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.di.CacheDirectory
 import org.matrix.android.sdk.internal.di.DeviceId
@@ -207,18 +207,18 @@ internal abstract class SessionModule {
         @Provides
         @SessionDatabase
         @SessionScope
-        fun providesRealmConfiguration(realmConfigurationFactory: SessionRealmConfigurationFactory): RealmConfiguration {
-            return realmConfigurationFactory.create()
+        fun providesSessionSqlDatabase(@SessionFilesDirectory directory: File): SessionSqlDatabase {
+            return SessionSqlDatabase(
+                    FrameworkSqliteDriver.create(File(directory, "session_store.db"), SessionSqlDatabase.Schema)
+            )
         }
 
         @JvmStatic
         @Provides
         @SessionDatabase
         @SessionScope
-        fun providesMonarchy(@SessionDatabase realmConfiguration: RealmConfiguration): Monarchy {
-            return Monarchy.Builder()
-                    .setRealmConfiguration(realmConfiguration)
-                    .build()
+        fun providesSessionDbDispatcher(): CoroutineDispatcher {
+            return newDatabaseDispatcher("matrix-session-db")
         }
 
         @JvmStatic
@@ -382,10 +382,6 @@ internal abstract class SessionModule {
     @Binds
     @IntoSet
     abstract fun bindIdentityService(service: DefaultIdentityService): SessionLifecycleObserver
-
-    @Binds
-    @IntoSet
-    abstract fun bindRealmSessionProvider(provider: RealmSessionProvider): SessionLifecycleObserver
 
     @Binds
     @IntoSet

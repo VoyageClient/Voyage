@@ -1,0 +1,88 @@
+-- PushRulesEntity (one per scope+kind) → push_rule children → push_condition children.
+-- RealmList order is preserved via the *_order columns. kind enum stored as TEXT (kind_str).
+CREATE TABLE push_rules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    scope TEXT NOT NULL DEFAULT '',
+    kind_str TEXT NOT NULL DEFAULT 'CONTENT'
+);
+
+CREATE TABLE push_rule (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    push_rules_id INTEGER NOT NULL,
+    rule_order INTEGER NOT NULL DEFAULT 0,
+    actions_str TEXT,
+    is_default INTEGER NOT NULL DEFAULT 0,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    rule_id TEXT NOT NULL DEFAULT '',
+    pattern TEXT
+);
+
+CREATE INDEX push_rule_parent ON push_rule(push_rules_id);
+
+CREATE TABLE push_condition (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    push_rule_id INTEGER NOT NULL,
+    condition_order INTEGER NOT NULL DEFAULT 0,
+    kind TEXT NOT NULL DEFAULT '',
+    condition_key TEXT,
+    pattern TEXT,
+    iz TEXT
+);
+
+CREATE INDEX push_condition_parent ON push_condition(push_rule_id);
+
+selectRulesByScopeAndKind:
+SELECT * FROM push_rules WHERE scope = ? AND kind_str = ?;
+
+selectAllRules:
+SELECT * FROM push_rules;
+
+selectRuleChildren:
+SELECT * FROM push_rule WHERE push_rules_id = ? ORDER BY rule_order;
+
+selectConditions:
+SELECT * FROM push_condition WHERE push_rule_id = ? ORDER BY condition_order;
+
+selectRuleByScopeAndRuleId:
+SELECT push_rule.*, push_rules.kind_str FROM push_rule
+JOIN push_rules ON push_rule.push_rules_id = push_rules.id
+WHERE push_rules.scope = ? AND push_rule.rule_id = ?
+LIMIT 1;
+
+insertRules:
+INSERT INTO push_rules(scope, kind_str) VALUES (?, ?);
+
+insertRule:
+INSERT INTO push_rule(push_rules_id, rule_order, actions_str, is_default, enabled, rule_id, pattern)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+insertCondition:
+INSERT INTO push_condition(push_rule_id, condition_order, kind, condition_key, pattern, iz)
+VALUES (?, ?, ?, ?, ?, ?);
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+deleteConditionsForRulesScope:
+DELETE FROM push_condition WHERE push_rule_id IN (
+    SELECT push_rule.id FROM push_rule
+    JOIN push_rules ON push_rule.push_rules_id = push_rules.id
+    WHERE push_rules.scope = ? AND push_rules.kind_str = ?
+);
+
+deleteRulesForScope:
+DELETE FROM push_rule WHERE push_rules_id IN (
+    SELECT id FROM push_rules WHERE scope = ? AND kind_str = ?
+);
+
+deleteRulesEntityForScope:
+DELETE FROM push_rules WHERE scope = ? AND kind_str = ?;
+
+deleteAll:
+DELETE FROM push_rules;
+
+deleteAllRules:
+DELETE FROM push_rule;
+
+deleteAllConditions:
+DELETE FROM push_condition;

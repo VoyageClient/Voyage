@@ -25,7 +25,8 @@ internal class ThreadSummaryMapper @Inject constructor() {
 
     fun map(threadSummary: ThreadSummaryEntity): ThreadSummary {
         return ThreadSummary(
-                roomId = threadSummary.room?.firstOrNull()?.roomId.orEmpty(),
+                // The Realm `room` backlink isn't populated on the SQL DTO; fall back to the root event's room.
+                roomId = threadSummary.rootThreadEventEntity?.roomId.orEmpty(),
                 rootEvent = threadSummary.rootThreadEventEntity?.asDomain(),
                 latestEvent = threadSummary.latestThreadEventEntity?.asDomain(),
                 rootEventId = threadSummary.rootThreadEventId.orEmpty(),

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmObject
 
 /**
  * Contain a map between Json filter string and filterId (from Homeserver).
@@ -30,7 +29,7 @@ internal open class FilterEntity(
         // the id server side of the filterBodyJson, can be used instead of filterBodyJson if not blank
         var filterId: String = ""
 
-) : RealmObject() {
+) {
 
     companion object
 }

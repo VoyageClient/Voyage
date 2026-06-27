@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-import io.realm.RealmObject
 import org.matrix.android.sdk.internal.crypto.store.db.deserializeFromRealm
 import org.matrix.android.sdk.internal.crypto.store.db.serializeForRealm
 import org.matrix.olm.OlmOutboundGroupSession
@@ -26,7 +25,7 @@ internal open class OutboundGroupSessionInfoEntity(
         var serializedOutboundSessionData: String? = null,
         var creationTime: Long? = null,
         var shouldShareHistory: Boolean = false
-) : RealmObject() {
+) {
 
     fun getOutboundGroupSession(): OlmOutboundGroupSession? {
         return try {

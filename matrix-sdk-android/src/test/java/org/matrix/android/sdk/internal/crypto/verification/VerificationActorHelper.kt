@@ -211,9 +211,9 @@ internal class VerificationActorHelper {
                 }
             }
             coEvery { sendInRoom(any(), any(), any()) } answers {
-                val type = secondArg<String>()
-                val roomId = thirdArg<String>()
-                val content = arg<Content>(3)
+                val type = firstArg<String>()
+                val roomId = secondArg<String>()
+                val content = thirdArg<Content>()
 
                 val fakeEventId = UUID.randomUUID().toString()
                 transportScope.launch(Dispatchers.IO) {

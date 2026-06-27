@@ -15,17 +15,15 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmList
-import io.realm.RealmObject
 
 internal open class ReferencesAggregatedSummaryEntity(
         var eventId: String = "",
         var content: String? = null,
         // The list of the eventIDs used to build the summary (might be out of sync if chunked received from message chunk)
-        var sourceEvents: RealmList<String> = RealmList(),
+        var sourceEvents: MutableList<String> = ArrayList(),
         // List of transaction ids for local echos
-        var sourceLocalEcho: RealmList<String> = RealmList()
-) : RealmObject() {
+        var sourceLocalEcho: MutableList<String> = ArrayList()
+) {
 
     companion object
 }

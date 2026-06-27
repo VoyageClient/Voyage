@@ -1,0 +1,115 @@
+-- TimelineEventEntity: an event positioned in a chunk timeline. root_event_db_id references event.id;
+-- chunk_id is the owning ChunkEntity (NULL for a room's sendingTimelineEvents). annotations + readReceipts
+-- are looked up by the globally-unique event_id, so they need no extra columns here.
+CREATE TABLE timeline_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    local_id INTEGER NOT NULL DEFAULT 0,
+    event_id TEXT NOT NULL DEFAULT '',
+    room_id TEXT NOT NULL DEFAULT '',
+    chunk_id INTEGER,
+    display_index INTEGER NOT NULL DEFAULT 0,
+    root_event_db_id INTEGER,
+    sender_name TEXT,
+    is_unique_display_name INTEGER NOT NULL DEFAULT 0,
+    sender_avatar TEXT,
+    sender_membership_event_id TEXT,
+    owned_by_thread_chunk INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX timeline_event_event_id ON timeline_event(event_id);
+CREATE INDEX timeline_event_room_id ON timeline_event(room_id);
+CREATE INDEX timeline_event_chunk ON timeline_event(chunk_id);
+CREATE INDEX timeline_event_display_index ON timeline_event(display_index);
+
+selectByChunk:
+SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY display_index DESC;
+
+selectByChunkRange:
+SELECT * FROM timeline_event WHERE chunk_id = ? AND display_index BETWEEN ? AND ? ORDER BY display_index DESC;
+
+selectById:
+SELECT * FROM timeline_event WHERE id = ? LIMIT 1;
+
+selectInChunkByEventId:
+SELECT * FROM timeline_event WHERE chunk_id = ? AND event_id = ? LIMIT 1;
+
+-- latest (highest display index) thread reply for a root, used for the root tile's preview
+selectLatestThreadReplyId:
+SELECT timeline_event.id FROM timeline_event
+JOIN event ON timeline_event.root_event_db_id = event.id
+WHERE timeline_event.room_id = ? AND event.root_thread_event_id = ?
+ORDER BY timeline_event.display_index DESC LIMIT 1;
+
+selectByEventId:
+SELECT * FROM timeline_event WHERE event_id = ? LIMIT 1;
+
+selectByRoom:
+SELECT * FROM timeline_event WHERE room_id = ?;
+
+-- poll-history: events of the given types newer than a timestamp (poll-start + encrypted, filtered in Kotlin)
+selectByRoomTypesAfterTs:
+SELECT timeline_event.* FROM timeline_event
+JOIN event ON timeline_event.root_event_db_id = event.id
+WHERE timeline_event.room_id = ? AND event.type IN ? AND event.origin_server_ts > ?;
+
+selectByRoomAndEventId:
+SELECT * FROM timeline_event WHERE room_id = ? AND event_id = ? LIMIT 1;
+
+selectSendingByRoom:
+SELECT * FROM timeline_event WHERE room_id = ? AND chunk_id IS NULL ORDER BY display_index;
+
+countByChunk:
+SELECT count(*) FROM timeline_event WHERE chunk_id = ?;
+
+maxDisplayIndexForChunk:
+SELECT max(display_index) FROM timeline_event WHERE chunk_id = ?;
+
+minDisplayIndexForChunk:
+SELECT min(display_index) FROM timeline_event WHERE chunk_id = ?;
+
+insert:
+INSERT INTO timeline_event(
+    local_id, event_id, room_id, chunk_id, display_index, root_event_db_id, sender_name,
+    is_unique_display_name, sender_avatar, sender_membership_event_id, owned_by_thread_chunk
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+nextLocalId:
+SELECT coalesce(max(local_id), 0) + 1 FROM timeline_event;
+
+updateChunkId:
+UPDATE timeline_event SET chunk_id = ? WHERE id = ?;
+
+clearSenderInfoByMembershipEvent:
+UPDATE timeline_event SET sender_name = NULL, is_unique_display_name = 0, sender_avatar = NULL
+WHERE sender_membership_event_id = ?;
+
+-- root-thread timeline events for a room (live thread list); caller sorts by latest message ts
+selectRootThreadsForRoom:
+SELECT timeline_event.* FROM timeline_event
+JOIN event ON timeline_event.root_event_db_id = event.id
+WHERE timeline_event.room_id = ? AND event.is_root_thread = 1 AND timeline_event.owned_by_thread_chunk = 0;
+
+-- root-thread timeline events with a pending thread notification
+selectLocalThreadNotificationsForRoom:
+SELECT timeline_event.* FROM timeline_event
+JOIN event ON timeline_event.root_event_db_id = event.id
+WHERE timeline_event.room_id = ? AND event.is_root_thread = 1
+AND event.thread_notification_state_str IN ('NEW_MESSAGE', 'NEW_HIGHLIGHTED_MESSAGE');
+
+deleteById:
+DELETE FROM timeline_event WHERE id = ?;
+
+deleteSendingByRoomAndEventId:
+DELETE FROM timeline_event WHERE room_id = ? AND chunk_id IS NULL AND event_id = ?;
+
+deleteByChunk:
+DELETE FROM timeline_event WHERE chunk_id = ?;
+
+deleteByRoom:
+DELETE FROM timeline_event WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM timeline_event;

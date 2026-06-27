@@ -1,0 +1,21 @@
+-- UserPresenceEntity: presence state per user. presence enum stored as TEXT (presence_str).
+CREATE TABLE user_presence (
+    user_id TEXT NOT NULL PRIMARY KEY,
+    last_active_ago INTEGER,
+    status_message TEXT,
+    is_currently_active INTEGER,
+    avatar_url TEXT,
+    display_name TEXT,
+    presence_str TEXT NOT NULL DEFAULT 'UNAVAILABLE'
+);
+
+selectByUserId:
+SELECT * FROM user_presence WHERE user_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO user_presence(
+    user_id, last_active_ago, status_message, is_currently_active, avatar_url, display_name, presence_str
+) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM user_presence;

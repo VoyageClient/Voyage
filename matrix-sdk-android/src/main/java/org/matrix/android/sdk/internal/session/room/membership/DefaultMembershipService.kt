@@ -17,38 +17,40 @@
 package org.matrix.android.sdk.internal.session.room.membership
 
 import androidx.lifecycle.LiveData
-import com.zhuinden.monarchy.Monarchy
+import androidx.lifecycle.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.realm.Realm
-import io.realm.RealmQuery
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.crypto.CryptoService
+import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
+import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.room.members.MembershipService
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
-import org.matrix.android.sdk.internal.database.helper.findLatestSessionInfo
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.ChunkEntity
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
-import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntityFields
 import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.crypto.model.SessionInfo
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.query.matches
 import org.matrix.android.sdk.internal.di.UserId
-import org.matrix.android.sdk.internal.query.QueryStringValueProcessor
-import org.matrix.android.sdk.internal.query.process
 import org.matrix.android.sdk.internal.session.room.RoomDataSource
 import org.matrix.android.sdk.internal.session.room.membership.admin.MembershipAdminTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.InviteThreePidTask
-import org.matrix.android.sdk.internal.util.fetchCopied
 
 internal class DefaultMembershipService @AssistedInject constructor(
         @Assisted private val roomId: String,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
         private val loadRoomMembersTask: LoadRoomMembersTask,
         private val inviteTask: InviteTask,
         private val inviteThreePidTask: InviteThreePidTask,
@@ -57,7 +59,6 @@ internal class DefaultMembershipService @AssistedInject constructor(
         private val cryptoService: CryptoService,
         @UserId
         private val userId: String,
-        private val queryStringValueProcessor: QueryStringValueProcessor
 ) : MembershipService {
 
     @AssistedFactory
@@ -80,59 +81,32 @@ internal class DefaultMembershipService @AssistedInject constructor(
     }
 
     override fun getRoomMember(userId: String): RoomMemberSummary? {
-        val roomMemberEntity = monarchy.fetchCopied {
-            RoomMemberHelper(it, roomId).getLastRoomMember(userId)
-        }
-        return roomMemberEntity?.asDomain()
+        return SqlRoomMemberHelper(stores, roomId).getLastRoomMember(userId)?.asDomain()
     }
 
     override fun getRoomMembers(queryParams: RoomMemberQueryParams): List<RoomMemberSummary> {
-        return monarchy.fetchAllMappedSync(
-                {
-                    roomMembersQuery(it, queryParams)
-                },
-                {
-                    it.asDomain()
-                }
-        )
+        return roomMembersFiltered(queryParams).map { it.asDomain() }
     }
 
     override fun getRoomMembersLive(queryParams: RoomMemberQueryParams): LiveData<List<RoomMemberSummary>> {
-        return monarchy.findAllMappedWithChanges(
-                {
-                    roomMembersQuery(it, queryParams)
-                },
-                {
-                    it.asDomain()
-                }
-        )
+        return database.roomMemberSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
+                .map { roomMembersFiltered(queryParams).map { entity -> entity.asDomain() } }
     }
 
-    private fun roomMembersQuery(realm: Realm, queryParams: RoomMemberQueryParams): RealmQuery<RoomMemberSummaryEntity> {
-        return with(queryStringValueProcessor) {
-            RoomMemberHelper(realm, roomId).queryRoomMembersEvent()
-                    .process(RoomMemberSummaryEntityFields.USER_ID, queryParams.userId)
-                    .process(RoomMemberSummaryEntityFields.MEMBERSHIP_STR, queryParams.memberships)
-                    .process(RoomMemberSummaryEntityFields.DISPLAY_NAME, queryParams.displayName)
-                    .apply {
-                        if (queryParams.excludeSelf) {
-                            notEqualTo(RoomMemberSummaryEntityFields.USER_ID, userId)
-                        }
-                        if (queryParams.displayNameOrUserId != QueryStringValue.NoCondition) {
-                            beginGroup()
-                            process(RoomMemberSummaryEntityFields.USER_ID, queryParams.displayNameOrUserId)
-                            or()
-                            process(RoomMemberSummaryEntityFields.DISPLAY_NAME, queryParams.displayNameOrUserId)
-                            endGroup()
-                        }
-                    }
+    private fun roomMembersFiltered(queryParams: RoomMemberQueryParams): List<RoomMemberSummaryEntity> {
+        return stores.roomMember.getByRoom(roomId).filter { member ->
+            queryParams.userId.matches(member.userId) &&
+                    (queryParams.memberships.isEmpty() || member.membership in queryParams.memberships) &&
+                    queryParams.displayName.matches(member.displayName) &&
+                    (!queryParams.excludeSelf || member.userId != userId) &&
+                    (queryParams.displayNameOrUserId == QueryStringValue.NoCondition ||
+                            queryParams.displayNameOrUserId.matches(member.userId) ||
+                            queryParams.displayNameOrUserId.matches(member.displayName))
         }
     }
 
     override fun getNumberOfJoinedMembers(): Int {
-        return Realm.getInstance(monarchy.realmConfiguration).use {
-            RoomMemberHelper(it, roomId).getNumberOfJoinedMembers()
-        }
+        return SqlRoomMemberHelper(stores, roomId).getNumberOfJoinedMembers()
     }
 
     override suspend fun ban(userId: String, reason: String?) {
@@ -158,11 +132,19 @@ internal class DefaultMembershipService @AssistedInject constructor(
 
     private suspend fun sendShareHistoryKeysIfNeeded(userId: String) {
         if (!cryptoService.isShareKeysOnInviteEnabled()) return
-        // TODO not sure it's the right way to get the latest messages in a room
-        val sessionInfo = Realm.getInstance(monarchy.realmConfiguration).use {
-            ChunkEntity.findLatestSessionInfo(it, roomId)
-        }
-        cryptoService.sendSharedHistoryKeys(roomId, userId, sessionInfo)
+        cryptoService.sendSharedHistoryKeys(roomId, userId, sessionInfoSet = findLatestSessionInfo())
+    }
+
+    // The megolm sessions of the room's last forward chunk — shared with the invitee (MSC3061).
+    private fun findLatestSessionInfo(): Set<SessionInfo>? {
+        val chunkId = stores.chunk.lastForward(roomId)?.id ?: return null
+        return stores.timelineEvent.getByChunk(chunkId).mapNotNull { timelineEvent ->
+            timelineEvent.root?.asDomain()?.content?.toModel<EncryptedEventContent>()?.let { content ->
+                val sessionId = content.sessionId ?: return@mapNotNull null
+                val senderKey = content.senderKey ?: return@mapNotNull null
+                SessionInfo(sessionId, senderKey)
+            }
+        }.toSet()
     }
 
     override suspend fun invite3pid(threePid: ThreePid) {

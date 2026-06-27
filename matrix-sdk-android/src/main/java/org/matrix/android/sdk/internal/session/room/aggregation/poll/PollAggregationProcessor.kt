@@ -16,10 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.aggregation.poll
 
-import io.realm.Realm
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 
 internal interface PollAggregationProcessor {
     /**
@@ -28,7 +28,7 @@ internal interface PollAggregationProcessor {
      * Returns true if the event is aggregated.
      */
     fun handlePollStartEvent(
-            realm: Realm,
+            stores: SessionStores,
             event: Event
     ): Boolean
 
@@ -38,7 +38,7 @@ internal interface PollAggregationProcessor {
      */
     fun handlePollResponseEvent(
             session: Session,
-            realm: Realm,
+            stores: SessionStores,
             event: Event
     ): Boolean
 
@@ -49,7 +49,7 @@ internal interface PollAggregationProcessor {
     fun handlePollEndEvent(
             session: Session,
             roomPowerLevels: RoomPowerLevels,
-            realm: Realm,
+            stores: SessionStores,
             event: Event
     ): Boolean
 }

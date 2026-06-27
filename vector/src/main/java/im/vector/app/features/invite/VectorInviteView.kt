@@ -30,6 +30,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
     interface Callback {
         fun onAcceptInvite()
         fun onRejectInvite()
+        fun onIgnoreSender()
     }
 
     enum class Mode {
@@ -48,6 +49,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
         views = VectorInviteViewBinding.bind(this)
         views.inviteAcceptView.commonClicked = { callback?.onAcceptInvite() }
         views.inviteRejectView.commonClicked = { callback?.onRejectInvite() }
+        views.inviteIgnoreView.setOnClickListener { callback?.onIgnoreSender() }
     }
 
     fun render(sender: RoomMemberSummary, mode: Mode = Mode.LARGE, changeMembershipState: ChangeMembershipState) {
@@ -57,12 +59,14 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             views.inviteIdentifierView.text = sender.userId
             views.inviteNameView.text = sender.displayName
             views.inviteLabelView.text = context.getString(CommonStrings.send_you_invite)
+            views.inviteIgnoreView.visibility = View.VISIBLE
         } else {
             updateLayoutParams { height = LayoutParams.WRAP_CONTENT }
             views.inviteAvatarView.visibility = View.GONE
             views.inviteIdentifierView.visibility = View.GONE
             views.inviteNameView.visibility = View.GONE
             views.inviteLabelView.text = context.getString(CommonStrings.invited_by, sender.userId)
+            views.inviteIgnoreView.visibility = View.GONE
         }
         InviteButtonStateBinder.bind(views.inviteAcceptView, views.inviteRejectView, changeMembershipState)
     }

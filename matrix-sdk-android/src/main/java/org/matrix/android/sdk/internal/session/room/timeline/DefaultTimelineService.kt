@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.session.room.timeline
 
 import androidx.lifecycle.LiveData
-import com.zhuinden.monarchy.Monarchy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -37,13 +36,10 @@ import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTa
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
-import org.matrix.android.sdk.internal.session.sync.handler.room.ReadReceiptHandler
-import org.matrix.android.sdk.internal.session.sync.handler.room.ThreadsAwarenessHandler
 import org.matrix.android.sdk.internal.util.time.Clock
 
 internal class DefaultTimelineService @AssistedInject constructor(
         @Assisted private val roomId: String,
-        @SessionDatabase private val monarchy: Monarchy,
         private val timelineInput: TimelineInput,
         private val contextOfEventTask: GetContextOfEventTask,
         private val eventDecryptor: TimelineEventDecryptor,
@@ -52,16 +48,17 @@ internal class DefaultTimelineService @AssistedInject constructor(
         private val fetchThreadTimelineTask: FetchThreadTimelineTask,
         private val timelineEventMapper: TimelineEventMapper,
         private val loadRoomMembersTask: LoadRoomMembersTask,
-        private val threadsAwarenessHandler: ThreadsAwarenessHandler,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
-        private val readReceiptHandler: ReadReceiptHandler,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
-        private val timelineEventDataSource: TimelineEventDataSource,
+        private val timelineEventDataSource: SqlTimelineEventDataSource,
         private val clock: Clock,
         private val stateEventDataSource: StateEventDataSource,
         private val localEchoEventFactory: LocalEchoEventFactory,
         private val roomAPI: RoomAPI,
         private val globalErrorReceiver: GlobalErrorReceiver,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val sessionDbDispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
 ) : TimelineService {
 
     @AssistedFactory
@@ -70,26 +67,18 @@ internal class DefaultTimelineService @AssistedInject constructor(
     }
 
     override fun createTimeline(eventId: String?, settings: TimelineSettings): Timeline {
-        return DefaultTimeline(
+        val snapshotLoader = SqlChunkSnapshotLoader(database, sessionDbDispatcher, stores, timelineEventMapper)
+        return SqlTimeline(
                 roomId = roomId,
                 initialEventId = eventId,
                 settings = settings,
-                realmConfiguration = monarchy.realmConfiguration,
                 coroutineDispatchers = coroutineDispatchers,
+                stores = stores,
+                snapshotLoader = snapshotLoader,
                 paginationTask = paginationTask,
-                fetchTokenAndPaginateTask = fetchTokenAndPaginateTask,
-                timelineEventMapper = timelineEventMapper,
-                timelineInput = timelineInput,
-                eventDecryptor = eventDecryptor,
                 fetchThreadTimelineTask = fetchThreadTimelineTask,
-                loadRoomMembersTask = loadRoomMembersTask,
-                readReceiptHandler = readReceiptHandler,
-                getEventTask = contextOfEventTask,
-                threadsAwarenessHandler = threadsAwarenessHandler,
-                lightweightSettingsStorage = lightweightSettingsStorage,
-                clock = clock,
-                stateEventDataSource = stateEventDataSource,
-                localEchoEventFactory = localEchoEventFactory
+                database = database,
+                sessionDispatcher = sessionDbDispatcher,
         )
     }
 

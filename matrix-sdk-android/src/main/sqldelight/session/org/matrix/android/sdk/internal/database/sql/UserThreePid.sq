@@ -1,0 +1,17 @@
+-- UserThreePidEntity: the session account's third-party identifiers (email/msisdn).
+CREATE TABLE user_three_pid (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    medium TEXT NOT NULL DEFAULT '',
+    address TEXT NOT NULL DEFAULT '',
+    validated_at INTEGER NOT NULL DEFAULT 0,
+    added_at INTEGER NOT NULL DEFAULT 0
+);
+
+selectAll:
+SELECT * FROM user_three_pid;
+
+insert:
+INSERT INTO user_three_pid(medium, address, validated_at, added_at) VALUES (?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM user_three_pid;

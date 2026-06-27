@@ -23,7 +23,6 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import androidx.work.WorkerFactory
-import com.zhuinden.monarchy.Monarchy
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.auth.HomeServerHistoryService
@@ -69,7 +68,6 @@ class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
 
     init {
         val appContext = context.applicationContext
-        Monarchy.init(appContext)
         DaggerMatrixComponent.factory().create(appContext, matrixConfiguration).inject(this)
         if (appContext !is Configuration.Provider) {
             val configuration = Configuration.Builder()

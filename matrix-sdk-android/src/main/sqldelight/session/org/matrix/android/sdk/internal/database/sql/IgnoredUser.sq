@@ -1,0 +1,16 @@
+-- IgnoredUserEntity: list of ignored user ids.
+CREATE TABLE ignored_user (
+    user_id TEXT NOT NULL PRIMARY KEY
+);
+
+selectAll:
+SELECT * FROM ignored_user;
+
+insert:
+INSERT OR IGNORE INTO ignored_user(user_id) VALUES (?);
+
+deleteByUserId:
+DELETE FROM ignored_user WHERE user_id = ?;
+
+deleteAll:
+DELETE FROM ignored_user;

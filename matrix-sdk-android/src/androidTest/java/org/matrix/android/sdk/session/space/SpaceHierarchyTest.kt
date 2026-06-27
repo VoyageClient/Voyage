@@ -41,6 +41,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.RestrictedRoomPreset
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
+import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.common.CommonTestHelper.Companion.runSessionTest
@@ -494,7 +495,7 @@ class SpaceHierarchyTest : InstrumentedTest {
                 .toModel<PowerLevelsContent>()
 
         val newPowerLevelsContent = currentPLContent
-                ?.setUserPowerLevel(aliceSession.myUserId, Role.Admin.value)
+                ?.setUserPowerLevel(aliceSession.myUserId, UserPowerLevel.Admin.value)
                 ?.toContent()
 
         room.stateService().sendStateEvent(EventType.STATE_ROOM_POWER_LEVELS, stateKey = "", newPowerLevelsContent!!)
@@ -504,7 +505,7 @@ class SpaceHierarchyTest : InstrumentedTest {
                     .getStateEvent(EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty)
                     ?.content
                     ?.toModel<PowerLevelsContent>()
-                    ?.let { RoomPowerLevels(it) }
+                    ?.let { RoomPowerLevels(it, null) }
             roomPowerLevels!!.isUserAllowedToSend(aliceSession.myUserId, true, EventType.STATE_SPACE_PARENT)
         }
 

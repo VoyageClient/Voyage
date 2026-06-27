@@ -1,0 +1,14 @@
+-- BreadcrumbsEntity: single-row ordered list of recent room ids, stored newline-joined.
+CREATE TABLE breadcrumbs (
+    id INTEGER NOT NULL PRIMARY KEY,
+    recent_room_ids TEXT NOT NULL DEFAULT ''
+);
+
+selectFirst:
+SELECT * FROM breadcrumbs LIMIT 1;
+
+upsert:
+INSERT OR REPLACE INTO breadcrumbs(id, recent_room_ids) VALUES (0, ?);
+
+deleteAll:
+DELETE FROM breadcrumbs;

@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmList
-import io.realm.RealmObject
 
 /**
  * Decorates room summary with space related information.
@@ -37,9 +35,9 @@ internal open class SpaceParentSummaryEntity(
         // Link to the actual space summary if it is known locally
         var parentSummaryEntity: RoomSummaryEntity? = null,
 
-        var viaServers: RealmList<String> = RealmList()
+        var viaServers: MutableList<String> = ArrayList()
 
-) : RealmObject() {
+) {
 
     companion object
 }

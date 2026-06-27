@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,17 +15,12 @@
  */
 package org.matrix.android.sdk.internal.session.user.accountdata
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.RealmList
-import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import org.matrix.android.sdk.internal.database.model.BreadcrumbsEntity
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntityFields
-import org.matrix.android.sdk.internal.database.query.getOrCreate
-import org.matrix.android.sdk.internal.database.query.where
+import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
 /**
@@ -38,32 +33,16 @@ internal interface SaveBreadcrumbsTask : Task<SaveBreadcrumbsTask.Params, Unit> 
 }
 
 internal class DefaultSaveBreadcrumbsTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) : SaveBreadcrumbsTask {
 
     override suspend fun execute(params: SaveBreadcrumbsTask.Params) {
-        monarchy.awaitTransaction { realm ->
-            // Get or create a breadcrumbs entity
-            val entity = BreadcrumbsEntity.getOrCreate(realm)
-
-            // And save the new received list
-            entity.recentRoomIds = RealmList<String>().apply { addAll(params.recentRoomIds) }
-
-            // Update the room summaries
-            // Reset all the indexes...
-            RoomSummaryEntity.where(realm)
-                    .greaterThan(RoomSummaryEntityFields.BREADCRUMBS_INDEX, RoomSummary.NOT_IN_BREADCRUMBS)
-                    .findAll()
-                    .forEach {
-                        it.breadcrumbsIndex = RoomSummary.NOT_IN_BREADCRUMBS
-                    }
-
-            // ...and apply new indexes
-            params.recentRoomIds.forEachIndexed { index, roomId ->
-                RoomSummaryEntity.where(realm, roomId)
-                        .findFirst()
-                        ?.breadcrumbsIndex = index
-            }
+        database.awaitDbTransaction(dispatcher) {
+            stores.breadcrumbs.set(params.recentRoomIds)
+            stores.roomSummary.resetBreadcrumbsIndex()
+            params.recentRoomIds.forEachIndexed { index, roomId -> stores.roomSummary.updateBreadcrumbsIndex(roomId, index) }
         }
     }
 }

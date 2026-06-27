@@ -1,0 +1,25 @@
+-- Singleton: at most one row is ever stored.
+CREATE TABLE content_scanner_info_entity (
+    server_url TEXT,
+    enabled INTEGER
+);
+
+selectFirst:
+SELECT *
+FROM content_scanner_info_entity
+LIMIT 1;
+
+updateServerUrl:
+UPDATE content_scanner_info_entity
+SET server_url = ?;
+
+updateEnabled:
+UPDATE content_scanner_info_entity
+SET enabled = ?;
+
+insert:
+INSERT INTO content_scanner_info_entity(server_url, enabled)
+VALUES (?, ?);
+
+deleteAll:
+DELETE FROM content_scanner_info_entity;

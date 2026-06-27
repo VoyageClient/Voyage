@@ -32,6 +32,10 @@ internal class SyncResponsePostTreatmentAggregator {
 
     val roomsWithMembershipChangesForShieldUpdate = mutableSetOf<String>()
 
+    // Users removed from the ignore list this sync; triggers a non-destructive catch-up sync that
+    // rediscovers invites which were hidden by the server while they were ignored.
+    val unIgnoredUserIds = mutableSetOf<String>()
+
     // Set to true when a sync carries changes that can affect the space parent/child graph (membership
     // transitions, space child/parent, create, power levels, name, DM status). Plain message-only syncs
     // leave it false so we can skip the expensive full hierarchy revalidation.

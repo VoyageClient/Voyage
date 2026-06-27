@@ -19,25 +19,21 @@ package org.matrix.android.sdk.internal.session.identity
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import io.realm.RealmConfiguration
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.session.identity.IdentityService
-import org.matrix.android.sdk.internal.database.RealmKeysUtils
+import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
 import org.matrix.android.sdk.internal.di.AuthenticatedIdentity
 import org.matrix.android.sdk.internal.di.IdentityDatabase
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificate
-import org.matrix.android.sdk.internal.di.UserMd5
 import org.matrix.android.sdk.internal.network.httpclient.addAccessTokenInterceptor
 import org.matrix.android.sdk.internal.network.httpclient.applyMatrixConfiguration
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
-import org.matrix.android.sdk.internal.session.SessionModule
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.identity.data.IdentityStore
-import org.matrix.android.sdk.internal.session.identity.db.IdentityRealmModule
-import org.matrix.android.sdk.internal.session.identity.db.RealmIdentityStore
-import org.matrix.android.sdk.internal.session.identity.db.RealmIdentityStoreMigration
+import org.matrix.android.sdk.internal.session.identity.db.IdentitySqlDatabase
+import org.matrix.android.sdk.internal.session.identity.db.SqlIdentityStore
 import java.io.File
 
 @Module
@@ -65,23 +61,12 @@ internal abstract class IdentityModule {
         @Provides
         @IdentityDatabase
         @SessionScope
-        fun providesIdentityRealmConfiguration(
-                realmKeysUtils: RealmKeysUtils,
-                realmIdentityStoreMigration: RealmIdentityStoreMigration,
+        fun providesIdentitySqlDatabase(
                 @SessionFilesDirectory directory: File,
-                @UserMd5 userMd5: String
-        ): RealmConfiguration {
-            return RealmConfiguration.Builder()
-                    .directory(directory)
-                    .name("matrix-sdk-identity.realm")
-                    .apply {
-                        realmKeysUtils.configureEncryption(this, SessionModule.getKeyAlias(userMd5))
-                    }
-                    .schemaVersion(realmIdentityStoreMigration.schemaVersion)
-                    .migration(realmIdentityStoreMigration)
-                    .allowWritesOnUiThread(true)
-                    .modules(IdentityRealmModule())
-                    .build()
+        ): IdentitySqlDatabase {
+            return IdentitySqlDatabase(
+                    FrameworkSqliteDriver.create(File(directory, "matrix-sdk-identity.db"), IdentitySqlDatabase.Schema)
+            )
         }
     }
 
@@ -93,7 +78,7 @@ internal abstract class IdentityModule {
     abstract fun bindAccessTokenProvider(provider: IdentityAccessTokenProvider): AccessTokenProvider
 
     @Binds
-    abstract fun bindIdentityStore(store: RealmIdentityStore): IdentityStore
+    abstract fun bindIdentityStore(store: SqlIdentityStore): IdentityStore
 
     @Binds
     abstract fun bindEnsureIdentityTokenTask(task: DefaultEnsureIdentityTokenTask): EnsureIdentityTokenTask

@@ -16,10 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.Index
-import io.realm.annotations.PrimaryKey
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -31,12 +27,12 @@ import org.matrix.android.sdk.internal.database.model.presence.UserPresenceEntit
 import org.matrix.android.sdk.internal.session.room.membership.RoomName
 
 internal open class RoomSummaryEntity(
-        @PrimaryKey var roomId: String = "",
+        var roomId: String = "",
         var roomType: String? = null,
-        var parents: RealmList<SpaceParentSummaryEntity> = RealmList(),
-        var children: RealmList<SpaceChildSummaryEntity> = RealmList(),
-        var directParentNames: RealmList<String> = RealmList(),
-) : RealmObject() {
+        var parents: MutableList<SpaceParentSummaryEntity> = ArrayList(),
+        var children: MutableList<SpaceChildSummaryEntity> = ArrayList(),
+        var directParentNames: MutableList<String> = ArrayList(),
+) {
 
     private var displayName: String? = ""
 
@@ -56,6 +52,9 @@ internal open class RoomSummaryEntity(
      */
     private var normalizedDisplayName: String? = ""
 
+    // Exposed so the SQLDelight store can persist the normalized name (used for sorted room-list queries).
+    fun normalizedDisplayName() = normalizedDisplayName
+
     var avatarUrl: String? = ""
         set(value) {
             if (value != field) field = value
@@ -74,13 +73,12 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
-    @Index
     var lastActivityTime: Long? = null
         set(value) {
             if (value != field) field = value
         }
 
-    var heroes: RealmList<String> = RealmList()
+    var heroes: MutableList<String> = ArrayList()
 
     var joinedMembersCount: Int? = 0
         set(value) {
@@ -92,7 +90,6 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
-    @Index
     var isDirect: Boolean = false
         set(value) {
             if (value != field) field = value
@@ -103,7 +100,7 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
-    var otherMemberIds: RealmList<String> = RealmList()
+    var otherMemberIds: MutableList<String> = ArrayList()
 
     var notificationCount: Int = 0
         set(value) {
@@ -140,7 +137,7 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
-    private var tags: RealmList<RoomTagEntity> = RealmList()
+    private var tags: MutableList<RoomTagEntity> = ArrayList()
 
     fun tags(): List<RoomTagEntity> = tags
 
@@ -154,7 +151,7 @@ internal open class RoomSummaryEntity(
                 existingTag.tagOrder = updatedTag.second
             }
         }
-        toDelete.forEach { it.deleteFromRealm() }
+        tags.removeAll(toDelete)
         newTags.forEach { newTag ->
             if (tags.all { it.tagName != newTag.first }) {
                 // we must add it
@@ -169,19 +166,16 @@ internal open class RoomSummaryEntity(
         isServerNotice = newTags.any { it.first == RoomTag.ROOM_TAG_SERVER_NOTICE }
     }
 
-    @Index
     var isFavourite: Boolean = false
         set(value) {
             if (value != field) field = value
         }
 
-    @Index
     var isLowPriority: Boolean = false
         set(value) {
             if (value != field) field = value
         }
 
-    @Index
     var isServerNotice: Boolean = false
         set(value) {
             if (value != field) field = value
@@ -202,7 +196,7 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
-    var aliases: RealmList<String> = RealmList()
+    var aliases: MutableList<String> = ArrayList()
 
     fun updateAliases(newAliases: List<String>) {
         // only update underlying field if there is a diff
@@ -256,7 +250,6 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
-    @Index
     private var membershipStr: String = Membership.NONE.name
 
     var membership: Membership
@@ -269,13 +262,11 @@ internal open class RoomSummaryEntity(
             }
         }
 
-    @Index
     var isHiddenFromUser: Boolean = false
         set(value) {
             if (value != field) field = value
         }
 
-    @Index
     private var versioningStateStr: String = VersioningState.NONE.name
     var versioningState: VersioningState
         get() {

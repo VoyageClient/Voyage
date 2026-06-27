@@ -18,108 +18,61 @@ package org.matrix.android.sdk.internal.session.user
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import androidx.paging.DataSource
-import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Case
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
-import org.matrix.android.sdk.internal.database.RealmSessionProvider
-import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.IgnoredUserEntity
-import org.matrix.android.sdk.internal.database.model.IgnoredUserEntityFields
-import org.matrix.android.sdk.internal.database.model.UserEntity
-import org.matrix.android.sdk.internal.database.model.UserEntityFields
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import javax.inject.Inject
+import org.matrix.android.sdk.internal.database.sql.User as UserRow
 
 internal class UserDataSource @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
-        private val realmSessionProvider: RealmSessionProvider
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) {
 
-    private val realmDataSourceFactory: Monarchy.RealmDataSourceFactory<UserEntity> by lazy {
-        monarchy.createDataSourceFactory { realm ->
-            realm.where(UserEntity::class.java)
-                    .isNotEmpty(UserEntityFields.USER_ID)
-                    .sort(UserEntityFields.DISPLAY_NAME)
-        }
-    }
-
-    private val domainDataSourceFactory: DataSource.Factory<Int, User> by lazy {
-        realmDataSourceFactory.map {
-            it.asDomain()
-        }
-    }
-
-    private val livePagedListBuilder: LivePagedListBuilder<Int, User> by lazy {
-        LivePagedListBuilder(domainDataSourceFactory, PagedList.Config.Builder().setPageSize(100).setEnablePlaceholders(false).build())
-    }
-
-    fun getUser(userId: String): User? {
-        return realmSessionProvider.withRealm {
-            val userEntity = UserEntity.where(it, userId).findFirst()
-            userEntity?.asDomain()
-        }
-    }
+    fun getUser(userId: String): User? = stores.user.getUser(userId)?.let { User(it.userId, it.displayName, it.avatarUrl) }
 
     fun getUserOrDefault(userId: String): User = getUser(userId) ?: User(userId)
 
     fun getUserLive(userId: String): LiveData<Optional<User>> {
-        val liveData = monarchy.findAllMappedWithChanges(
-                { UserEntity.where(it, userId) },
-                { it.asDomain() }
-        )
-        return liveData.map { results ->
-            results.firstOrNull().toOptional()
-        }
+        return database.userQueries.selectByUserId(userId)
+                .asLiveList(dispatcher)
+                .map { rows -> rows.firstOrNull()?.toUser().toOptional() }
     }
 
     fun getUsersLive(): LiveData<List<User>> {
-        return monarchy.findAllMappedWithChanges(
-                { realm ->
-                    realm.where(UserEntity::class.java)
-                            .isNotEmpty(UserEntityFields.USER_ID)
-                            .sort(UserEntityFields.DISPLAY_NAME)
-                },
-                { it.asDomain() }
-        )
+        return database.userQueries.selectAll()
+                .asLiveList(dispatcher)
+                .map { rows -> rows.map { it.toUser() } }
     }
 
     fun getPagedUsersLive(filter: String?, excludedUserIds: Set<String>?): LiveData<PagedList<User>> {
-        realmDataSourceFactory.updateQuery { realm ->
-            val query = realm.where(UserEntity::class.java)
-            if (filter.isNullOrEmpty()) {
-                query.isNotEmpty(UserEntityFields.USER_ID)
-            } else {
-                query
-                        .beginGroup()
-                        .contains(UserEntityFields.DISPLAY_NAME, filter, Case.INSENSITIVE)
-                        .or()
-                        .contains(UserEntityFields.USER_ID, filter)
-                        .endGroup()
-            }
-            excludedUserIds
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.let {
-                        query.not().`in`(UserEntityFields.USER_ID, it.toTypedArray())
-                    }
-            query.sort(UserEntityFields.DISPLAY_NAME)
+        val query = if (filter.isNullOrEmpty()) {
+            database.userQueries.selectAll()
+        } else {
+            database.userQueries.searchByDisplayName(filter, filter)
         }
-        return monarchy.findAllPagedWithChanges(realmDataSourceFactory, livePagedListBuilder)
+        return livePaged(query, pageSize = 100) {
+            query.executeAsList()
+                    .filter { excludedUserIds.isNullOrEmpty() || it.user_id !in excludedUserIds }
+                    .map { it.toUser() }
+        }
     }
 
     fun getIgnoredUsersLive(): LiveData<List<User>> {
-        return monarchy.findAllMappedWithChanges(
-                { realm ->
-                    realm.where(IgnoredUserEntity::class.java)
-                            .isNotEmpty(IgnoredUserEntityFields.USER_ID)
-                            .sort(IgnoredUserEntityFields.USER_ID)
-                },
-                { getUser(it.userId) ?: User(userId = it.userId) }
-        )
+        return database.ignoredUserQueries.selectAll()
+                .asLiveList(dispatcher)
+                .map { ids -> ids.map { getUser(it) ?: User(userId = it) } }
     }
+
+    fun getIgnoredUserIds(): List<String> = database.ignoredUserQueries.selectAll().executeAsList()
+
+    private fun UserRow.toUser() = User(user_id, display_name, avatar_url)
 }

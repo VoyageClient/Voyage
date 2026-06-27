@@ -1,0 +1,44 @@
+CREATE TABLE session_params_entity (
+    session_id TEXT NOT NULL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    credentials_json TEXT NOT NULL,
+    home_server_connection_config_json TEXT NOT NULL,
+    is_token_valid INTEGER NOT NULL DEFAULT 1,
+    login_type TEXT NOT NULL DEFAULT ''
+);
+
+selectById:
+SELECT *
+FROM session_params_entity
+WHERE session_id = ?;
+
+selectAll:
+SELECT *
+FROM session_params_entity;
+
+selectLast:
+SELECT *
+FROM session_params_entity
+ORDER BY rowid DESC
+LIMIT 1;
+
+countById:
+SELECT count(*)
+FROM session_params_entity
+WHERE session_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO session_params_entity(session_id, user_id, credentials_json, home_server_connection_config_json, is_token_valid, login_type)
+VALUES (?, ?, ?, ?, ?, ?);
+
+setTokenInvalid:
+UPDATE session_params_entity
+SET is_token_valid = 0
+WHERE session_id = ?;
+
+deleteById:
+DELETE FROM session_params_entity
+WHERE session_id = ?;
+
+deleteAll:
+DELETE FROM session_params_entity;

@@ -1,0 +1,28 @@
+-- EventInsertEntity: queue of freshly-inserted events awaiting live processing. insertType enum → *_str.
+CREATE TABLE event_insert (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id TEXT NOT NULL DEFAULT '',
+    event_type TEXT NOT NULL DEFAULT '',
+    can_be_processed INTEGER NOT NULL DEFAULT 1,
+    insert_type_str TEXT NOT NULL DEFAULT 'INCREMENTAL_SYNC'
+);
+
+CREATE INDEX event_insert_event_id ON event_insert(event_id);
+
+selectAll:
+SELECT * FROM event_insert;
+
+selectByEventId:
+SELECT * FROM event_insert WHERE event_id = ?;
+
+insert:
+INSERT INTO event_insert(event_id, event_type, can_be_processed, insert_type_str) VALUES (?, ?, ?, ?);
+
+setCanBeProcessed:
+UPDATE event_insert SET can_be_processed = ? WHERE event_id = ?;
+
+deleteByEventId:
+DELETE FROM event_insert WHERE event_id = ?;
+
+deleteAll:
+DELETE FROM event_insert;

@@ -18,64 +18,53 @@ package org.matrix.android.sdk.internal.session.room.aggregation.utd
 
 import io.mockk.every
 import io.mockk.mockk
-import io.realm.RealmList
 import org.amshove.kluent.shouldBeFalse
 import org.amshove.kluent.shouldBeTrue
 import org.amshove.kluent.shouldContain
+import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.internal.database.model.PollResponseAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.model.PollResponseAggregatedSummaryEntityFields
-import org.matrix.android.sdk.test.fakes.FakeRealm
-import org.matrix.android.sdk.test.fakes.givenContainsValue
-import org.matrix.android.sdk.test.fakes.givenFindFirst
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
 
+private const val AN_ANNOTATION_EVENT_ID = "annotation-event-id"
+private const val A_ROOM_ID = "room-id"
+
+@RunWith(RobolectricTestRunner::class)
 internal class EncryptedReferenceAggregationProcessorTest {
 
-    private val fakeRealm = FakeRealm()
+    private val db = FakeSessionDatabase()
 
     private val encryptedReferenceAggregationProcessor = EncryptedReferenceAggregationProcessor()
 
+    @After
+    fun tearDown() {
+        db.close()
+    }
+
     @Test
     fun `given local echo when process then result is false`() {
-        // Given
-        val anEvent = mockk<Event>()
-        val isLocalEcho = true
-        val relatedEventId = "event-id"
-
-        // When
         val result = encryptedReferenceAggregationProcessor.handle(
-                realm = fakeRealm.instance,
-                event = anEvent,
-                isLocalEcho = isLocalEcho,
-                relatedEventId = relatedEventId,
+                stores = db.stores,
+                event = mockk(),
+                isLocalEcho = true,
+                relatedEventId = "event-id",
         )
 
-        // Then
         result.shouldBeFalse()
     }
 
     @Test
     fun `given invalid event id when process then result is false`() {
-        // Given
         val anEvent = mockk<Event>()
-        val isLocalEcho = false
 
-        // When
         val result1 = encryptedReferenceAggregationProcessor.handle(
-                realm = fakeRealm.instance,
-                event = anEvent,
-                isLocalEcho = isLocalEcho,
-                relatedEventId = null,
-        )
+                stores = db.stores, event = anEvent, isLocalEcho = false, relatedEventId = null)
         val result2 = encryptedReferenceAggregationProcessor.handle(
-                realm = fakeRealm.instance,
-                event = anEvent,
-                isLocalEcho = isLocalEcho,
-                relatedEventId = "",
-        )
+                stores = db.stores, event = anEvent, isLocalEcho = false, relatedEventId = "")
 
-        // Then
         result1.shouldBeFalse()
         result2.shouldBeFalse()
     }
@@ -85,49 +74,42 @@ internal class EncryptedReferenceAggregationProcessorTest {
         // Given
         val anEventId = "event-id"
         val anEvent = givenAnEvent(anEventId)
-        val isLocalEcho = false
         val relatedEventId = "related-event-id"
-        val pollResponseAggregatedSummaryEntity = PollResponseAggregatedSummaryEntity(
-                encryptedRelatedEventIds = RealmList(),
-        )
-        fakeRealm.givenWhere<PollResponseAggregatedSummaryEntity>()
-                .givenContainsValue(PollResponseAggregatedSummaryEntityFields.SOURCE_EVENTS.`$`, relatedEventId)
-                .givenFindFirst(pollResponseAggregatedSummaryEntity)
+        givenAPollResponseWithSourceEvent(relatedEventId)
 
         // When
         val result = encryptedReferenceAggregationProcessor.handle(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = anEvent,
-                isLocalEcho = isLocalEcho,
+                isLocalEcho = false,
                 relatedEventId = relatedEventId,
         )
 
         // Then
         result.shouldBeTrue()
-        pollResponseAggregatedSummaryEntity.encryptedRelatedEventIds.shouldContain(anEventId)
+        db.stores.annotations.get(AN_ANNOTATION_EVENT_ID)!!.pollResponseSummary!!.encryptedRelatedEventIds.shouldContain(anEventId)
     }
 
     @Test
     fun `given related event id but no existing related poll when process then result is true and event id is not stored`() {
-        // Given
-        val anEventId = "event-id"
-        val anEvent = givenAnEvent(anEventId)
-        val isLocalEcho = false
-        val relatedEventId = "related-event-id"
-        fakeRealm.givenWhere<PollResponseAggregatedSummaryEntity>()
-                .givenContainsValue(PollResponseAggregatedSummaryEntityFields.SOURCE_EVENTS.`$`, relatedEventId)
-                .givenFindFirst(null)
+        val anEvent = givenAnEvent("event-id")
 
-        // When
         val result = encryptedReferenceAggregationProcessor.handle(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = anEvent,
-                isLocalEcho = isLocalEcho,
-                relatedEventId = relatedEventId,
+                isLocalEcho = false,
+                relatedEventId = "related-event-id",
         )
 
-        // Then
         result.shouldBeTrue()
+    }
+
+    private fun givenAPollResponseWithSourceEvent(sourceEventId: String) {
+        db.stores.annotations.upsertSummary(AN_ANNOTATION_EVENT_ID, A_ROOM_ID)
+        db.stores.annotations.upsertPollResponse(AN_ANNOTATION_EVENT_ID, PollResponseAggregatedSummaryEntity(
+                sourceEvents = mutableListOf(sourceEventId),
+                encryptedRelatedEventIds = mutableListOf(),
+        ))
     }
 
     private fun givenAnEvent(eventId: String): Event {

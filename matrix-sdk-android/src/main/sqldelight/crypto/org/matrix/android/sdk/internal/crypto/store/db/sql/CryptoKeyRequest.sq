@@ -1,0 +1,76 @@
+CREATE TABLE outgoing_key_request (
+    id INTEGER PRIMARY KEY,
+    request_id TEXT,
+    requested_index INTEGER,
+    recipients_data TEXT,
+    requested_info_str TEXT,
+    creation_time_stamp INTEGER,
+    room_id TEXT,
+    megolm_session_id TEXT,
+    request_state_str TEXT NOT NULL DEFAULT 'UNSENT'
+);
+
+CREATE INDEX okr_request_id ON outgoing_key_request(request_id);
+CREATE INDEX okr_room_id ON outgoing_key_request(room_id);
+CREATE INDEX okr_megolm_session_id ON outgoing_key_request(megolm_session_id);
+CREATE INDEX okr_state ON outgoing_key_request(request_state_str);
+
+-- KeyRequestReplyEntity rows, one-to-many under an outgoing_key_request (FK request_id).
+CREATE TABLE key_request_reply (
+    id INTEGER PRIMARY KEY,
+    request_id TEXT NOT NULL,
+    sender_id TEXT,
+    from_device TEXT,
+    event_json TEXT
+);
+
+CREATE INDEX krr_request_id ON key_request_reply(request_id);
+
+-- outgoing_key_request
+okrSelectByRequestId:
+SELECT * FROM outgoing_key_request WHERE request_id = ?;
+
+okrSelectByRoomAndSession:
+SELECT * FROM outgoing_key_request WHERE room_id = ? AND megolm_session_id = ?;
+
+okrSelectAll:
+SELECT * FROM outgoing_key_request;
+
+okrSelectByStates:
+SELECT * FROM outgoing_key_request WHERE request_state_str IN ?;
+
+okrInsert:
+INSERT INTO outgoing_key_request(request_id, requested_index, recipients_data, requested_info_str, creation_time_stamp, room_id, megolm_session_id, request_state_str)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+okrUpdateState:
+UPDATE outgoing_key_request SET request_state_str = ? WHERE request_id = ?;
+
+okrUpdateRequiredIndex:
+UPDATE outgoing_key_request SET requested_index = ? WHERE request_id = ?;
+
+okrDeleteByRequestId:
+DELETE FROM outgoing_key_request WHERE request_id = ?;
+
+okrSelectRequestIdsByState:
+SELECT request_id FROM outgoing_key_request WHERE request_state_str = ?;
+
+okrDeleteByState:
+DELETE FROM outgoing_key_request WHERE request_state_str = ?;
+
+okrSelectRequestIdsOlderThan:
+SELECT request_id FROM outgoing_key_request WHERE creation_time_stamp < ?;
+
+okrDeleteOlderThan:
+DELETE FROM outgoing_key_request WHERE creation_time_stamp < ?;
+
+-- key_request_reply
+krrSelectByRequestId:
+SELECT * FROM key_request_reply WHERE request_id = ?;
+
+krrInsert:
+INSERT INTO key_request_reply(request_id, sender_id, from_device, event_json)
+VALUES (?, ?, ?, ?);
+
+krrDeleteByRequestId:
+DELETE FROM key_request_reply WHERE request_id = ?;

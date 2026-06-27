@@ -29,34 +29,42 @@ internal class SessionParamsMapper @Inject constructor(moshi: Moshi) {
     private val credentialsAdapter = moshi.adapter(Credentials::class.java)
     private val homeServerConnectionConfigAdapter = moshi.adapter(HomeServerConnectionConfig::class.java)
 
-    fun map(entity: SessionParamsEntity?): SessionParams? {
-        if (entity == null) {
-            return null
-        }
-        val credentials = credentialsAdapter.fromJson(entity.credentialsJson)
-        val homeServerConnectionConfig = homeServerConnectionConfigAdapter.fromJson(entity.homeServerConnectionConfigJson)
+    fun map(
+            credentialsJson: String,
+            homeServerConnectionConfigJson: String,
+            isTokenValid: Boolean,
+            loginType: String,
+    ): SessionParams? {
+        val credentials = credentialsAdapter.fromJson(credentialsJson)
+        val homeServerConnectionConfig = homeServerConnectionConfigAdapter.fromJson(homeServerConnectionConfigJson)
         if (credentials == null || homeServerConnectionConfig == null) {
             return null
         }
-        return SessionParams(credentials, homeServerConnectionConfig, entity.isTokenValid, LoginType.fromName(entity.loginType))
+        return SessionParams(credentials, homeServerConnectionConfig, isTokenValid, LoginType.fromName(loginType))
     }
 
-    fun map(sessionParams: SessionParams?): SessionParamsEntity? {
-        if (sessionParams == null) {
-            return null
-        }
+    fun toColumns(sessionParams: SessionParams): Columns? {
         val credentialsJson = credentialsAdapter.toJson(sessionParams.credentials)
         val homeServerConnectionConfigJson = homeServerConnectionConfigAdapter.toJson(sessionParams.homeServerConnectionConfig)
         if (credentialsJson == null || homeServerConnectionConfigJson == null) {
             return null
         }
-        return SessionParamsEntity(
-                sessionParams.credentials.sessionId(),
-                sessionParams.userId,
-                credentialsJson,
-                homeServerConnectionConfigJson,
-                sessionParams.isTokenValid,
-                sessionParams.loginType.name,
+        return Columns(
+                sessionId = sessionParams.credentials.sessionId(),
+                userId = sessionParams.userId,
+                credentialsJson = credentialsJson,
+                homeServerConnectionConfigJson = homeServerConnectionConfigJson,
+                isTokenValid = sessionParams.isTokenValid,
+                loginType = sessionParams.loginType.name,
         )
     }
+
+    data class Columns(
+            val sessionId: String,
+            val userId: String,
+            val credentialsJson: String,
+            val homeServerConnectionConfigJson: String,
+            val isTokenValid: Boolean,
+            val loginType: String,
+    )
 }

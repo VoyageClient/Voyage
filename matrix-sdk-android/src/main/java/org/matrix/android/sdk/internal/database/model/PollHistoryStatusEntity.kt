@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 import org.matrix.android.sdk.internal.session.room.poll.PollConstants
 
 /**
@@ -27,7 +25,6 @@ internal open class PollHistoryStatusEntity(
         /**
          * The related room id.
          */
-        @PrimaryKey
         var roomId: String = "",
 
         /**
@@ -54,7 +51,7 @@ internal open class PollHistoryStatusEntity(
          * Indicate whether all polls in a room have been synced in backward direction.
          */
         var isEndOfPollsBackward: Boolean = false,
-) : RealmObject() {
+) {
 
     companion object
 

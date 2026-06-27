@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 The Matrix.org Foundation C.I.C.
+ * Copyright 2023 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.room.poll
 
-import com.zhuinden.monarchy.Monarchy
 import org.matrix.android.sdk.api.session.room.poll.LoadedPollsStatus
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
-import org.matrix.android.sdk.internal.database.query.getOrCreate
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
+import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 internal interface GetLoadedPollsStatusTask : Task<GetLoadedPollsStatusTask.Params, LoadedPollsStatus> {
@@ -33,14 +34,14 @@ internal interface GetLoadedPollsStatusTask : Task<GetLoadedPollsStatusTask.Para
 }
 
 internal class DefaultGetLoadedPollsStatusTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) : GetLoadedPollsStatusTask {
 
     override suspend fun execute(params: GetLoadedPollsStatusTask.Params): LoadedPollsStatus {
-        return monarchy.awaitTransaction { realm ->
-            val status = PollHistoryStatusEntity
-                    .getOrCreate(realm, params.roomId)
-                    .copy()
+        return database.awaitDbTransaction(dispatcher) {
+            val status = stores.pollHistory.get(params.roomId) ?: PollHistoryStatusEntity(roomId = params.roomId)
             LoadedPollsStatus(
                     canLoadMore = status.isEndOfPollsBackward.not(),
                     daysSynced = status.getNbSyncedDays(params.currentTimestampMs),

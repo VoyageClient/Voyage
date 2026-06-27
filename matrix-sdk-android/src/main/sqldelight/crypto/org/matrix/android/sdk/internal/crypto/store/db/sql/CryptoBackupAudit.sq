@@ -1,0 +1,43 @@
+-- Singleton (primary_key always 0).
+CREATE TABLE keys_backup_data (
+    primary_key INTEGER NOT NULL PRIMARY KEY DEFAULT 0,
+    backup_last_server_hash TEXT,
+    backup_last_server_number_of_keys INTEGER
+);
+
+backupDataSelectFirst:
+SELECT *
+FROM keys_backup_data
+LIMIT 1;
+
+backupDataUpsert:
+INSERT OR REPLACE INTO keys_backup_data(primary_key, backup_last_server_hash, backup_last_server_number_of_keys)
+VALUES (0, ?, ?);
+
+backupDataDeleteAll:
+DELETE FROM keys_backup_data;
+
+CREATE TABLE audit_trail (
+    id INTEGER PRIMARY KEY,
+    age_local_ts INTEGER,
+    type TEXT,
+    content_json TEXT
+);
+
+CREATE INDEX audit_trail_type ON audit_trail(type);
+
+auditInsert:
+INSERT INTO audit_trail(age_local_ts, type, content_json)
+VALUES (?, ?, ?);
+
+auditSelectAll:
+SELECT * FROM audit_trail;
+
+auditSelectAllOrdered:
+SELECT * FROM audit_trail ORDER BY age_local_ts DESC;
+
+auditSelectByTypeOrdered:
+SELECT * FROM audit_trail WHERE type = ? ORDER BY age_local_ts DESC;
+
+auditDeleteOlderThan:
+DELETE FROM audit_trail WHERE age_local_ts < ?;

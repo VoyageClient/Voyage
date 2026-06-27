@@ -1,0 +1,53 @@
+CREATE TABLE withheld_session (
+    id INTEGER PRIMARY KEY,
+    room_id TEXT,
+    algorithm TEXT,
+    session_id TEXT,
+    sender_key TEXT,
+    code_string TEXT,
+    reason TEXT
+);
+
+CREATE INDEX withheld_session_session_id ON withheld_session(session_id);
+CREATE INDEX withheld_session_sender_key ON withheld_session(sender_key);
+
+CREATE TABLE shared_session (
+    id INTEGER PRIMARY KEY,
+    room_id TEXT,
+    algorithm TEXT,
+    session_id TEXT,
+    user_id TEXT,
+    device_id TEXT,
+    device_identity_key TEXT,
+    chain_index INTEGER
+);
+
+CREATE INDEX shared_session_session_id ON shared_session(session_id);
+CREATE INDEX shared_session_user_id ON shared_session(user_id);
+CREATE INDEX shared_session_device_id ON shared_session(device_id);
+CREATE INDEX shared_session_device_identity_key ON shared_session(device_identity_key);
+
+-- withheld_session
+withheldSelectByRoomSession:
+SELECT * FROM withheld_session WHERE room_id = ? AND session_id = ? AND algorithm = ?;
+
+withheldInsert:
+INSERT INTO withheld_session(room_id, algorithm, session_id, sender_key, code_string, reason)
+VALUES (?, ?, ?, ?, ?, ?);
+
+withheldUpdate:
+UPDATE withheld_session SET sender_key = ?, code_string = ?, reason = ?
+WHERE room_id = ? AND session_id = ? AND algorithm = ?;
+
+-- shared_session (room_id / device_identity_key are null-safe matched with IS)
+sharedSelectExact:
+SELECT * FROM shared_session
+WHERE room_id IS ? AND session_id = ? AND algorithm = ? AND user_id = ? AND device_id = ? AND device_identity_key IS ?;
+
+sharedSelectByRoomSession:
+SELECT * FROM shared_session
+WHERE room_id IS ? AND session_id = ? AND algorithm = ?;
+
+sharedInsert:
+INSERT INTO shared_session(room_id, algorithm, session_id, user_id, device_id, device_identity_key, chain_index)
+VALUES (?, ?, ?, ?, ?, ?, ?);

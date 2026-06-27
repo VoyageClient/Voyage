@@ -1,0 +1,17 @@
+-- ReadMarkerEntity: the fully-read marker per room.
+CREATE TABLE read_marker (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    event_id TEXT NOT NULL DEFAULT ''
+);
+
+selectByRoom:
+SELECT * FROM read_marker WHERE room_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO read_marker(room_id, event_id) VALUES (?, ?);
+
+deleteByRoom:
+DELETE FROM read_marker WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM read_marker;

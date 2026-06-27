@@ -16,14 +16,15 @@
 
 package org.matrix.android.sdk.internal.session.room.poll
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
-import org.matrix.android.sdk.internal.database.query.getOrCreate
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
 internal interface SyncPollsTask : Task<SyncPollsTask.Params, Unit> {
@@ -36,7 +37,9 @@ internal interface SyncPollsTask : Task<SyncPollsTask.Params, Unit> {
 }
 
 internal class DefaultSyncPollsTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) : SyncPollsTask {
 
     override suspend fun execute(params: SyncPollsTask.Params) {
@@ -53,9 +56,8 @@ internal class DefaultSyncPollsTask @Inject constructor(
     }
 
     private suspend fun getCurrentPollHistoryStatus(roomId: String): PollHistoryStatusEntity {
-        return monarchy.awaitTransaction { realm ->
-            PollHistoryStatusEntity
-                    .getOrCreate(realm, roomId)
+        return database.awaitDbTransaction(dispatcher) {
+            (stores.pollHistory.get(roomId) ?: PollHistoryStatusEntity(roomId = roomId).also { stores.pollHistory.upsert(it) })
                     .copy()
         }
     }
@@ -82,8 +84,8 @@ internal class DefaultSyncPollsTask @Inject constructor(
             events: List<TimelineEvent>,
             paginationState: Timeline.PaginationState,
     ): LoadStatus {
-        return monarchy.awaitTransaction { realm ->
-            val status = PollHistoryStatusEntity.getOrCreate(realm, roomId)
+        return database.awaitDbTransaction(dispatcher) {
+            val status = stores.pollHistory.get(roomId) ?: PollHistoryStatusEntity(roomId = roomId)
             val mostRecentEvent = events
                     .maxByOrNull { it.root.originServerTs ?: Long.MIN_VALUE }
                     ?.root
@@ -93,6 +95,7 @@ internal class DefaultSyncPollsTask @Inject constructor(
                 // save it for next forward pagination
                 status.mostRecentEventIdReached = mostRecentEventIdReached
             }
+            stores.pollHistory.upsert(status)
 
             val mostRecentTimestamp = mostRecentEvent?.originServerTs
 

@@ -15,8 +15,6 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmList
-import io.realm.RealmObject
 
 /**
  * Keep the latest state of a poll.
@@ -32,8 +30,8 @@ internal open class PollResponseAggregatedSummaryEntity(
         var nbOptions: Int = 0,
 
         // The list of the eventIDs used to build the summary (might be out of sync if chunked received from message chunk)
-        var sourceEvents: RealmList<String> = RealmList(),
-        var sourceLocalEchoEvents: RealmList<String> = RealmList(),
+        var sourceEvents: MutableList<String> = ArrayList(),
+        var sourceLocalEchoEvents: MutableList<String> = ArrayList(),
         // list of related event ids which are encrypted due to decryption failure
-        var encryptedRelatedEventIds: RealmList<String> = RealmList(),
-) : RealmObject()
+        var encryptedRelatedEventIds: MutableList<String> = ArrayList(),
+)

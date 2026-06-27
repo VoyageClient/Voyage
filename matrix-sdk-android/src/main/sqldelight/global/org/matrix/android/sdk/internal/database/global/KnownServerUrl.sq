@@ -1,0 +1,14 @@
+CREATE TABLE known_server_url_entity (
+    url TEXT NOT NULL PRIMARY KEY
+);
+
+selectAll:
+SELECT url
+FROM known_server_url_entity;
+
+insert:
+INSERT OR REPLACE INTO known_server_url_entity(url)
+VALUES (?);
+
+deleteAll:
+DELETE FROM known_server_url_entity;

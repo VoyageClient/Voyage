@@ -1,0 +1,15 @@
+-- WellknownIntegrationManagerConfigEntity: single-row (id 0).
+CREATE TABLE wellknown_integration_manager_config (
+    id INTEGER NOT NULL PRIMARY KEY,
+    api_url TEXT NOT NULL DEFAULT '',
+    ui_url TEXT NOT NULL DEFAULT ''
+);
+
+selectAll:
+SELECT * FROM wellknown_integration_manager_config;
+
+upsert:
+INSERT OR REPLACE INTO wellknown_integration_manager_config(id, api_url, ui_url) VALUES (0, ?, ?);
+
+deleteAll:
+DELETE FROM wellknown_integration_manager_config;

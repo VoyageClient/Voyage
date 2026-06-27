@@ -16,16 +16,17 @@
 
 package org.matrix.android.sdk.internal.session.room.poll
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.poll.LoadedPollsStatus
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
-import org.matrix.android.sdk.internal.database.query.getOrCreate
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.poll.PollConstants.MILLISECONDS_PER_DAY
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
 internal interface LoadMorePollsTask : Task<LoadMorePollsTask.Params, LoadedPollsStatus> {
@@ -39,7 +40,9 @@ internal interface LoadMorePollsTask : Task<LoadMorePollsTask.Params, LoadedPoll
 }
 
 internal class DefaultLoadMorePollsTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
 ) : LoadMorePollsTask {
 
     override suspend fun execute(params: LoadMorePollsTask.Params): LoadedPollsStatus {
@@ -63,8 +66,8 @@ internal class DefaultLoadMorePollsTask @Inject constructor(
     }
 
     private suspend fun updatePollHistoryStatus(params: LoadMorePollsTask.Params): PollHistoryStatusEntity {
-        return monarchy.awaitTransaction { realm ->
-            val status = PollHistoryStatusEntity.getOrCreate(realm, params.roomId)
+        return database.awaitDbTransaction(dispatcher) {
+            val status = stores.pollHistory.get(params.roomId) ?: PollHistoryStatusEntity(roomId = params.roomId)
             val currentTargetTimestampMs = status.currentTimestampTargetBackwardMs
             val lastTargetTimestampMs = status.oldestTimestampTargetReachedMs
             val loadingPeriodMs: Long = MILLISECONDS_PER_DAY * params.loadingPeriodInDays.toLong()
@@ -75,7 +78,7 @@ internal class DefaultLoadMorePollsTask @Inject constructor(
                 // previous load has finished, update the target timestamp
                 status.currentTimestampTargetBackwardMs = lastTargetTimestampMs - loadingPeriodMs
             }
-            // return a copy of the Realm object
+            stores.pollHistory.upsert(status)
             status.copy()
         }
     }
@@ -100,8 +103,8 @@ internal class DefaultLoadMorePollsTask @Inject constructor(
             events: List<TimelineEvent>,
             paginationState: Timeline.PaginationState,
     ): PollHistoryStatusEntity {
-        return monarchy.awaitTransaction { realm ->
-            val status = PollHistoryStatusEntity.getOrCreate(realm, roomId)
+        return database.awaitDbTransaction(dispatcher) {
+            val status = stores.pollHistory.get(roomId) ?: PollHistoryStatusEntity(roomId = roomId)
             val mostRecentEventIdReached = status.mostRecentEventIdReached
 
             if (mostRecentEventIdReached == null) {
@@ -137,7 +140,7 @@ internal class DefaultLoadMorePollsTask @Inject constructor(
                 status.oldestEventIdReached = oldestEventId
             }
 
-            // return a copy of the Realm object
+            stores.pollHistory.upsert(status)
             status.copy()
         }
     }

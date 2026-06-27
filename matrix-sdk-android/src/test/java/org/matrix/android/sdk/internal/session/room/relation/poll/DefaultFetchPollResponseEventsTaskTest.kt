@@ -53,7 +53,6 @@ internal class DefaultFetchPollResponseEventsTaskTest {
         mockkStatic("org.matrix.android.sdk.api.session.events.model.EventKt")
 
         mockkStatic("org.matrix.android.sdk.internal.database.mapper.EventMapperKt")
-        mockkStatic("org.matrix.android.sdk.internal.database.query.EventEntityQueriesKt")
     }
 
     @After

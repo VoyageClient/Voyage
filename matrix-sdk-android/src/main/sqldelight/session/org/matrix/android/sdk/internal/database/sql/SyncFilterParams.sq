@@ -1,0 +1,25 @@
+-- SyncFilterParamsEntity: single-row (id 0). The two RealmList<String> are stored newline-joined;
+-- NULL column means the list was null, distinct from an empty list ('').
+CREATE TABLE sync_filter_params (
+    id INTEGER NOT NULL PRIMARY KEY,
+    lazy_load_members_for_state_events INTEGER,
+    lazy_load_members_for_message_events INTEGER,
+    use_thread_notifications INTEGER,
+    list_of_supported_event_types TEXT,
+    list_of_supported_event_types_has_been_set INTEGER NOT NULL DEFAULT 0,
+    list_of_supported_state_event_types TEXT,
+    list_of_supported_state_event_types_has_been_set INTEGER NOT NULL DEFAULT 0
+);
+
+selectFirst:
+SELECT * FROM sync_filter_params LIMIT 1;
+
+upsert:
+INSERT OR REPLACE INTO sync_filter_params(
+    id, lazy_load_members_for_state_events, lazy_load_members_for_message_events, use_thread_notifications,
+    list_of_supported_event_types, list_of_supported_event_types_has_been_set,
+    list_of_supported_state_event_types, list_of_supported_state_event_types_has_been_set
+) VALUES (0, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM sync_filter_params;

@@ -1,0 +1,26 @@
+-- UserAccountDataEntity: global account data keyed by type.
+CREATE TABLE user_account_data (
+    type TEXT NOT NULL PRIMARY KEY,
+    content_str TEXT
+);
+
+selectAll:
+SELECT * FROM user_account_data;
+
+selectByType:
+SELECT * FROM user_account_data WHERE type = ?;
+
+selectByTypes:
+SELECT * FROM user_account_data WHERE type IN ?;
+
+selectStartingWith:
+SELECT * FROM user_account_data WHERE type LIKE (? || '%');
+
+upsert:
+INSERT OR REPLACE INTO user_account_data(type, content_str) VALUES (?, ?);
+
+deleteByType:
+DELETE FROM user_account_data WHERE type = ?;
+
+deleteAll:
+DELETE FROM user_account_data;

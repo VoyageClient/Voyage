@@ -18,9 +18,6 @@ package org.matrix.android.sdk.internal.crypto.store.db.model
 
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Types
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.Index
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.OutgoingKeyRequest
 import org.matrix.android.sdk.api.session.crypto.OutgoingRoomKeyRequestState
@@ -34,19 +31,19 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.internal.di.MoshiProvider
 
 internal open class OutgoingKeyRequestEntity(
-        @Index var requestId: String? = null,
+        var requestId: String? = null,
         var requestedIndex: Int? = null,
         var recipientsData: String? = null,
         var requestedInfoStr: String? = null,
         var creationTimeStamp: Long? = null,
         // de-normalization for better query (if not have to query all and parse json)
-        @Index var roomId: String? = null,
-        @Index var megolmSessionId: String? = null,
+        var roomId: String? = null,
+        var megolmSessionId: String? = null,
 
-        var replies: RealmList<KeyRequestReplyEntity> = RealmList()
-) : RealmObject() {
+        var replies: MutableList<KeyRequestReplyEntity> = ArrayList()
+) {
 
-    @Index private var requestStateStr: String = OutgoingRoomKeyRequestState.UNSENT.name
+    private var requestStateStr: String = OutgoingRoomKeyRequestState.UNSENT.name
 
     companion object {
 
@@ -130,7 +127,3 @@ internal open class OutgoingKeyRequestEntity(
     }
 }
 
-internal fun OutgoingKeyRequestEntity.deleteOnCascade() {
-    replies.deleteAllFromRealm()
-    deleteFromRealm()
-}

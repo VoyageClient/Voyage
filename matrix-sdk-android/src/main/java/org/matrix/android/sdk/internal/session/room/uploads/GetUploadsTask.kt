@@ -16,8 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.uploads
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Sort
+import org.matrix.android.sdk.internal.database.sql.store.globToSqlLike
+import org.matrix.android.sdk.internal.database.sql.store.toEntity
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.isSticker
@@ -30,15 +30,12 @@ import org.matrix.android.sdk.api.session.room.uploads.GetUploadsResult
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.model.EventEntityFields
 import org.matrix.android.sdk.internal.database.query.TimelineEventFilter
-import org.matrix.android.sdk.internal.database.query.whereType
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.filter.FilterFactory
 import org.matrix.android.sdk.internal.session.room.RoomAPI
-import org.matrix.android.sdk.internal.session.room.membership.RoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.session.sync.SyncTokenStore
 import org.matrix.android.sdk.internal.task.Task
@@ -57,7 +54,8 @@ internal interface GetUploadsTask : Task<GetUploadsTask.Params, GetUploadsResult
 internal class DefaultGetUploadsTask @Inject constructor(
         private val roomAPI: RoomAPI,
         private val tokenStore: SyncTokenStore,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val globalErrorReceiver: GlobalErrorReceiver
 ) : GetUploadsTask {
 
@@ -74,15 +72,10 @@ internal class DefaultGetUploadsTask @Inject constructor(
                     hasMore = false
             )
 
-            var eventsFromRealm = emptyList<Event>()
-            monarchy.doWithRealm { realm ->
-                eventsFromRealm = EventEntity.whereType(realm, EventType.ENCRYPTED, params.roomId)
-                        .like(EventEntityFields.DECRYPTION_RESULT_JSON, TimelineEventFilter.DecryptedContent.URL)
-                        .sort(EventEntityFields.ORIGIN_SERVER_TS, Sort.DESCENDING)
-                        .findAll()
-                        .map { it.asDomain() }
-            }
-            events = eventsFromRealm
+            events = database.eventQueries
+                    .selectEncryptedWithUrlInRoom(params.roomId, EventType.ENCRYPTED, TimelineEventFilter.DecryptedContent.URL.globToSqlLike())
+                    .executeAsList()
+                    .map { it.toEntity().asDomain() }
         } else {
             val since = params.since ?: tokenStore.getLastToken() ?: throw IllegalStateException("No token available")
 
@@ -104,8 +97,8 @@ internal class DefaultGetUploadsTask @Inject constructor(
         val cacheOfSenderInfos = mutableMapOf<String, SenderInfo>()
 
         // Get a snapshot of all room members
-        monarchy.doWithRealm { realm ->
-            val roomMemberHelper = RoomMemberHelper(realm, params.roomId)
+        run {
+            val roomMemberHelper = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, params.roomId)
 
             uploadEvents = events.mapNotNull { event ->
                 val eventId = event.eventId ?: return@mapNotNull null

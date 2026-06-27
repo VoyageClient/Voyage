@@ -1,0 +1,34 @@
+-- RoomEntity: the room row. Its RealmLists (chunks, sendingTimelineEvents, threadSummaries, accountData)
+-- live in child tables keyed by room_id. membership + membersLoadStatus enums stored as TEXT.
+CREATE TABLE room (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    membership_str TEXT NOT NULL DEFAULT 'NONE',
+    members_load_status_str TEXT NOT NULL DEFAULT 'NONE'
+);
+
+selectByRoomId:
+SELECT * FROM room WHERE room_id = ?;
+
+selectAll:
+SELECT * FROM room;
+
+selectByRoomIdAndLoadStatus:
+SELECT room_id FROM room WHERE room_id = ? AND members_load_status_str = ?;
+
+selectByMembership:
+SELECT * FROM room WHERE membership_str IN ?;
+
+upsert:
+INSERT OR REPLACE INTO room(room_id, membership_str, members_load_status_str) VALUES (?, ?, ?);
+
+updateMembership:
+UPDATE room SET membership_str = ? WHERE room_id = ?;
+
+updateMembersLoadStatus:
+UPDATE room SET members_load_status_str = ? WHERE room_id = ?;
+
+deleteByRoomId:
+DELETE FROM room WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM room;

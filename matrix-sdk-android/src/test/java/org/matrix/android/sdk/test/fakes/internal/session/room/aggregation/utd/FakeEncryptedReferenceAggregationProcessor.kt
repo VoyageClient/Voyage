@@ -19,8 +19,8 @@ package org.matrix.android.sdk.test.fakes.internal.session.room.aggregation.utd
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.realm.Realm
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.room.aggregation.utd.EncryptedReferenceAggregationProcessor
 
 internal class FakeEncryptedReferenceAggregationProcessor {
@@ -32,11 +32,11 @@ internal class FakeEncryptedReferenceAggregationProcessor {
     }
 
     fun verifyHandle(
-            realm: Realm,
+            stores: SessionStores,
             event: Event,
             isLocalEcho: Boolean,
             relatedEventId: String?,
     ) {
-        verify { instance.handle(realm, event, isLocalEcho, relatedEventId) }
+        verify { instance.handle(stores, event, isLocalEcho, relatedEventId) }
     }
 }

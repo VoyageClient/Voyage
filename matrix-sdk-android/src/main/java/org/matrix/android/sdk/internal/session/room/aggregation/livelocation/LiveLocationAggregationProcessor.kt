@@ -17,8 +17,6 @@
 package org.matrix.android.sdk.internal.session.room.aggregation.livelocation
 
 import androidx.work.ExistingWorkPolicy
-import io.realm.Realm
-import io.realm.RealmList
 import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -27,8 +25,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoCo
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconLocationDataContent
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.query.findActiveLiveInRoomForUser
-import org.matrix.android.sdk.internal.database.query.getOrCreate
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.WorkManagerProvider
 import org.matrix.android.sdk.internal.util.time.Clock
@@ -50,7 +47,7 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
      * Handle the content of a beacon info.
      * @return true if it has been processed, false if ignored.
      */
-    fun handleBeaconInfo(realm: Realm, event: Event, content: MessageBeaconInfoContent, roomId: String, isLocalEcho: Boolean): Boolean {
+    fun handleBeaconInfo(stores: SessionStores, event: Event, content: MessageBeaconInfoContent, roomId: String, isLocalEcho: Boolean): Boolean {
         if (event.senderId.isNullOrEmpty() || isLocalEcho) {
             return false
         }
@@ -68,11 +65,8 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
             return false
         }
 
-        val aggregatedSummary = LiveLocationShareAggregatedSummaryEntity.getOrCreate(
-                realm = realm,
-                roomId = roomId,
-                eventId = targetEventId
-        )
+        val aggregatedSummary = stores.liveLocation.get(targetEventId)
+                ?: LiveLocationShareAggregatedSummaryEntity(eventId = targetEventId, roomId = roomId)
 
         if (!isLive && !event.eventId.isNullOrEmpty()) {
             // in this case, the received event is a new state event related to the previous one
@@ -88,8 +82,9 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
         aggregatedSummary.endOfLiveTimestampMillis = endOfLiveTimestampMillis
         aggregatedSummary.isActive = isActive
         aggregatedSummary.userId = event.senderId
+        stores.liveLocation.upsert(aggregatedSummary)
 
-        deactivateAllPreviousBeacons(realm, roomId, event.senderId, targetEventId, content.getBestTimestampMillis() ?: 0)
+        deactivateAllPreviousBeacons(stores, roomId, event.senderId, targetEventId, content.getBestTimestampMillis() ?: 0)
 
         if (isActive) {
             scheduleDeactivationAfterTimeout(targetEventId, roomId, endOfLiveTimestampMillis)
@@ -130,7 +125,7 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
      * @return true if it has been processed, false if ignored.
      */
     fun handleBeaconLocationData(
-            realm: Realm,
+            stores: SessionStores,
             event: Event,
             content: MessageBeaconLocationDataContent,
             roomId: String,
@@ -146,11 +141,8 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
             return false
         }
 
-        val aggregatedSummary = LiveLocationShareAggregatedSummaryEntity.getOrCreate(
-                realm = realm,
-                roomId = roomId,
-                eventId = relatedEventId
-        )
+        val aggregatedSummary = stores.liveLocation.get(relatedEventId)
+                ?: LiveLocationShareAggregatedSummaryEntity(eventId = relatedEventId, roomId = roomId)
 
         if (!event.eventId.isNullOrEmpty()) {
             addRelatedEventId(event.eventId, aggregatedSummary)
@@ -163,13 +155,13 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
                 ?.getBestTimestampMillis()
                 ?: 0
 
-        return if (updatedLocationTimestamp.isMoreRecentThan(currentLocationTimestamp)) {
+        val updated = updatedLocationTimestamp.isMoreRecentThan(currentLocationTimestamp)
+        if (updated) {
             Timber.d("updating last location of the summary of id=$relatedEventId")
             aggregatedSummary.lastLocationContent = ContentMapper.map(content.toContent())
-            true
-        } else {
-            false
         }
+        stores.liveLocation.upsert(aggregatedSummary)
+        return updated
     }
 
     private fun addRelatedEventId(
@@ -180,25 +172,27 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
         val updatedEventIds = aggregatedSummary.relatedEventIds.toMutableList().also {
             it.add(eventId)
         }
-        aggregatedSummary.relatedEventIds = RealmList(*updatedEventIds.toTypedArray())
+        aggregatedSummary.relatedEventIds = mutableListOf(*updatedEventIds.toTypedArray())
     }
 
     private fun deactivateAllPreviousBeacons(
-            realm: Realm,
+            stores: SessionStores,
             roomId: String,
             userId: String,
             currentEventId: String,
             currentEventTimestamp: Long
     ) {
-        LiveLocationShareAggregatedSummaryEntity
-                .findActiveLiveInRoomForUser(
-                        realm = realm,
-                        roomId = roomId,
-                        userId = userId,
-                        ignoredEventId = currentEventId,
-                        startOfLiveTimestampThreshold = currentEventTimestamp
-                )
-                .forEach { it.isActive = false }
+        stores.liveLocation.getRunningByRoom(roomId)
+                .filter {
+                    it.userId == userId &&
+                            it.eventId != currentEventId &&
+                            // Realm lessThan excludes null timestamps, so do we
+                            (it.startOfLiveTimestampMillis?.let { ts -> ts < currentEventTimestamp } == true)
+                }
+                .forEach {
+                    it.isActive = false
+                    stores.liveLocation.upsert(it)
+                }
     }
 
     private fun Long.isMoreRecentThan(timestamp: Long) = this > timestamp

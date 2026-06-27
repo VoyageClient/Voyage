@@ -20,59 +20,49 @@ import android.content.Context
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import io.realm.RealmConfiguration
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.auth.HomeServerHistoryService
-import org.matrix.android.sdk.internal.auth.db.AuthRealmMigration
-import org.matrix.android.sdk.internal.auth.db.AuthRealmModule
-import org.matrix.android.sdk.internal.auth.db.RealmPendingSessionStore
-import org.matrix.android.sdk.internal.auth.db.RealmSessionParamsStore
+import org.matrix.android.sdk.internal.auth.db.AuthSqlDatabase
+import org.matrix.android.sdk.internal.auth.db.SqlPendingSessionStore
+import org.matrix.android.sdk.internal.auth.db.SqlSessionParamsStore
 import org.matrix.android.sdk.internal.auth.login.DefaultDirectLoginTask
 import org.matrix.android.sdk.internal.auth.login.DefaultQrLoginTokenTask
 import org.matrix.android.sdk.internal.auth.login.DirectLoginTask
 import org.matrix.android.sdk.internal.auth.login.QrLoginTokenTask
-import org.matrix.android.sdk.internal.database.RealmKeysUtils
+import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.AuthDatabase
+import org.matrix.android.sdk.internal.di.MatrixScope
 import org.matrix.android.sdk.internal.wellknown.WellknownModule
-import java.io.File
 
 @Module(includes = [WellknownModule::class])
 internal abstract class AuthModule {
 
     @Module
     companion object {
-        private const val DB_ALIAS = "matrix-sdk-auth"
+        @JvmStatic
+        @Provides
+        @AuthDatabase
+        @MatrixScope
+        fun providesAuthSqlDatabase(context: Context): AuthSqlDatabase {
+            return AuthSqlDatabase(FrameworkSqliteDriver.create(context, "matrix-sdk-auth.db", AuthSqlDatabase.Schema))
+        }
 
         @JvmStatic
         @Provides
         @AuthDatabase
-        fun providesRealmConfiguration(
-                context: Context,
-                realmKeysUtils: RealmKeysUtils,
-                authRealmMigration: AuthRealmMigration
-        ): RealmConfiguration {
-            val old = File(context.filesDir, "matrix-sdk-auth")
-            if (old.exists()) {
-                old.renameTo(File(context.filesDir, "matrix-sdk-auth.realm"))
-            }
-
-            return RealmConfiguration.Builder()
-                    .apply {
-                        realmKeysUtils.configureEncryption(this, DB_ALIAS)
-                    }
-                    .name("matrix-sdk-auth.realm")
-                    .modules(AuthRealmModule())
-                    .schemaVersion(authRealmMigration.schemaVersion)
-                    .migration(authRealmMigration)
-                    .build()
+        @MatrixScope
+        fun providesAuthDbDispatcher(): CoroutineDispatcher {
+            return newDatabaseDispatcher("matrix-auth-db")
         }
     }
 
     @Binds
-    abstract fun bindSessionParamsStore(store: RealmSessionParamsStore): SessionParamsStore
+    abstract fun bindSessionParamsStore(store: SqlSessionParamsStore): SessionParamsStore
 
     @Binds
-    abstract fun bindPendingSessionStore(store: RealmPendingSessionStore): PendingSessionStore
+    abstract fun bindPendingSessionStore(store: SqlPendingSessionStore): PendingSessionStore
 
     @Binds
     abstract fun bindAuthenticationService(service: DefaultAuthenticationService): AuthenticationService

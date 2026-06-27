@@ -18,63 +18,47 @@ package org.matrix.android.sdk.internal.session.user.accountdata
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Realm
-import io.realm.RealmQuery
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
-import org.matrix.android.sdk.internal.database.RealmSessionProvider
 import org.matrix.android.sdk.internal.database.mapper.AccountDataMapper
 import org.matrix.android.sdk.internal.database.model.UserAccountDataEntity
-import org.matrix.android.sdk.internal.database.model.UserAccountDataEntityFields
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import javax.inject.Inject
+import org.matrix.android.sdk.internal.database.sql.User_account_data as UserAccountDataRow
 
 internal class UserAccountDataDataSource @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
-        private val realmSessionProvider: RealmSessionProvider,
-        private val accountDataMapper: AccountDataMapper
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val accountDataMapper: AccountDataMapper,
 ) {
+    private val queries get() = database.userAccountDataQueries
 
     fun getAccountDataEvent(type: String): UserAccountDataEvent? {
         return getAccountDataEvents(setOf(type)).firstOrNull()
     }
 
     fun getLiveAccountDataEvent(type: String): LiveData<Optional<UserAccountDataEvent>> {
-        return getLiveAccountDataEvents(setOf(type)).map {
-            it.firstOrNull().toOptional()
-        }
+        return getLiveAccountDataEvents(setOf(type)).map { it.firstOrNull().toOptional() }
     }
 
     fun getAccountDataEvents(types: Set<String>): List<UserAccountDataEvent> {
-        return realmSessionProvider.withRealm {
-            accountDataEventsQuery(it, types).findAll().map(accountDataMapper::map)
-        }
+        val rows = if (types.isEmpty()) queries.selectAll().executeAsList() else queries.selectByTypes(types).executeAsList()
+        return rows.map { it.toEvent() }
     }
 
     fun getLiveAccountDataEvents(types: Set<String>): LiveData<List<UserAccountDataEvent>> {
-        return monarchy.findAllMappedWithChanges(
-                { accountDataEventsQuery(it, types) },
-                accountDataMapper::map
-        )
+        val query = if (types.isEmpty()) queries.selectAll() else queries.selectByTypes(types)
+        return query.asLiveList(dispatcher).map { rows -> rows.map { it.toEvent() } }
     }
 
     fun getAccountDataEventsStartWith(type: String): List<UserAccountDataEvent> {
-        return realmSessionProvider.withRealm { realm ->
-            realm
-                    .where(UserAccountDataEntity::class.java)
-                    .beginsWith(UserAccountDataEntityFields.TYPE, type)
-                    .findAll()
-                    .map(accountDataMapper::map)
-        }
+        return queries.selectStartingWith(type).executeAsList().map { it.toEvent() }
     }
 
-    private fun accountDataEventsQuery(realm: Realm, types: Set<String>): RealmQuery<UserAccountDataEntity> {
-        val query = realm.where(UserAccountDataEntity::class.java)
-        if (types.isNotEmpty()) {
-            query.`in`(UserAccountDataEntityFields.TYPE, types.toTypedArray())
-        }
-        return query
-    }
+    private fun UserAccountDataRow.toEvent(): UserAccountDataEvent =
+            accountDataMapper.map(UserAccountDataEntity(type = type, contentStr = content_str))
 }

@@ -17,36 +17,30 @@
 package org.matrix.android.sdk.internal.session.room.threads
 
 import androidx.lifecycle.MutableLiveData
-import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import com.zhuinden.monarchy.Monarchy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.realm.Realm
-import io.realm.Sort
-import io.realm.kotlin.where
 import org.matrix.android.sdk.api.session.room.ResultBoundaries
 import org.matrix.android.sdk.api.session.room.threads.FetchThreadsResult
 import org.matrix.android.sdk.api.session.room.threads.ThreadFilter
 import org.matrix.android.sdk.api.session.room.threads.ThreadLivePageResult
 import org.matrix.android.sdk.api.session.room.threads.ThreadsService
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
-import org.matrix.android.sdk.internal.database.helper.enhanceWithEditions
-import org.matrix.android.sdk.internal.database.helper.findAllThreadsForRoomId
 import org.matrix.android.sdk.internal.database.mapper.ThreadSummaryMapper
-import org.matrix.android.sdk.internal.database.model.threads.ThreadListPageEntity
-import org.matrix.android.sdk.internal.database.model.threads.ThreadSummaryEntity
-import org.matrix.android.sdk.internal.database.model.threads.ThreadSummaryEntityFields
+import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadSummariesTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
-import org.matrix.android.sdk.internal.util.awaitTransaction
 
 internal class DefaultThreadsService @AssistedInject constructor(
         @Assisted private val roomId: String,
         private val fetchThreadTimelineTask: FetchThreadTimelineTask,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        private val stores: SessionStores,
         private val threadSummaryMapper: ThreadSummaryMapper,
         private val fetchThreadSummariesTask: FetchThreadSummariesTask,
 ) : ThreadsService {
@@ -57,42 +51,15 @@ internal class DefaultThreadsService @AssistedInject constructor(
     }
 
     override suspend fun getPagedThreadsList(userParticipating: Boolean, pagedListConfig: PagedList.Config): ThreadLivePageResult {
-        monarchy.awaitTransaction { realm ->
-            realm.where<ThreadListPageEntity>().findAll().deleteAllFromRealm()
+        val livePagedList = livePaged(
+                query = database.threadSummaryQueries.selectByRoomSortedByLatest(roomId),
+                pageSize = pagedListConfig.pageSize,
+        ) {
+            enhanceThreadWithEditions(stores.threadSummary.getByRoomSortedByLatest(roomId).map { threadSummaryMapper.map(it) })
         }
-
-        val realmDataSourceFactory = monarchy.createDataSourceFactory { realm ->
-            realm
-                    .where<ThreadSummaryEntity>().equalTo(ThreadSummaryEntityFields.PAGE.ROOM_ID, roomId)
-                    .sort(ThreadSummaryEntityFields.LATEST_THREAD_EVENT_ENTITY.ORIGIN_SERVER_TS, Sort.DESCENDING)
-        }
-
-        val dataSourceFactory = realmDataSourceFactory.map {
-            threadSummaryMapper.map(it)
-        }
-
+        // Boundary callbacks (front/end/zero loaded) are not reproduced over the snapshot paging source;
+        // the UI falls back to fetchThreadList for "load more".
         val boundaries = MutableLiveData(ResultBoundaries())
-
-        val builder = LivePagedListBuilder(dataSourceFactory, pagedListConfig).also {
-            it.setBoundaryCallback(object : PagedList.BoundaryCallback<ThreadSummary>() {
-                override fun onItemAtEndLoaded(itemAtEnd: ThreadSummary) {
-                    boundaries.postValue(boundaries.value?.copy(endLoaded = true))
-                }
-
-                override fun onItemAtFrontLoaded(itemAtFront: ThreadSummary) {
-                    boundaries.postValue(boundaries.value?.copy(frontLoaded = true))
-                }
-
-                override fun onZeroItemsLoaded() {
-                    boundaries.postValue(boundaries.value?.copy(zeroItemLoaded = true))
-                }
-            })
-        }
-
-        val livePagedList = monarchy.findAllPagedWithChanges(
-                realmDataSourceFactory,
-                builder
-        )
         return ThreadLivePageResult(livePagedList, boundaries)
     }
 
@@ -108,15 +75,26 @@ internal class DefaultThreadsService @AssistedInject constructor(
     }
 
     override suspend fun getAllThreadSummaries(): List<ThreadSummary> {
-        return monarchy.fetchAllMappedSync(
-                { ThreadSummaryEntity.findAllThreadsForRoomId(it, roomId = roomId) },
-                { threadSummaryMapper.map(it) }
-        )
+        return enhanceThreadWithEditions(stores.threadSummary.getByRoomSortedByLatest(roomId).map { threadSummaryMapper.map(it) })
     }
 
     override fun enhanceThreadWithEditions(threads: List<ThreadSummary>): List<ThreadSummary> {
-        return Realm.getInstance(monarchy.realmConfiguration).use {
-            threads.enhanceWithEditions(it, roomId)
+        return threads.map {
+            addEditionIfNeeded(it, enhanceRoot = true)
+            addEditionIfNeeded(it, enhanceRoot = false)
+            it
+        }
+    }
+
+    private fun addEditionIfNeeded(summary: ThreadSummary, enhanceRoot: Boolean) {
+        val eventId = if (enhanceRoot) summary.rootEventId else summary.latestEvent?.eventId ?: return
+        val editedEventId = stores.annotations.get(eventId)?.editSummary?.editions?.lastOrNull()?.eventId ?: return
+        val editedEvent = stores.event.getByEventIdInRoom(roomId, editedEventId) ?: return
+        val editedText = editedEvent.asDomain().getDecryptedTextSummary() ?: "(edited)"
+        if (enhanceRoot) {
+            summary.threadEditions.rootThreadEdition = editedText
+        } else {
+            summary.threadEditions.latestThreadEdition = editedText
         }
     }
 

@@ -1,0 +1,35 @@
+-- LiveLocationShareAggregatedSummaryEntity (PK event_id), also referenced 1-1 from an annotations
+-- summary. related_event_ids (RealmList<String>) stored newline-joined.
+CREATE TABLE live_location_share_aggregated_summary (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    related_event_ids TEXT NOT NULL DEFAULT '',
+    room_id TEXT NOT NULL DEFAULT '',
+    user_id TEXT NOT NULL DEFAULT '',
+    is_active INTEGER,
+    start_of_live_timestamp_millis INTEGER,
+    end_of_live_timestamp_millis INTEGER,
+    last_location_content TEXT
+);
+
+CREATE INDEX live_location_share_room ON live_location_share_aggregated_summary(room_id);
+
+selectByEventId:
+SELECT * FROM live_location_share_aggregated_summary WHERE event_id = ?;
+
+selectByRoom:
+SELECT * FROM live_location_share_aggregated_summary WHERE room_id = ?;
+
+selectRunningByRoom:
+SELECT * FROM live_location_share_aggregated_summary WHERE room_id = ? AND is_active = 1;
+
+upsert:
+INSERT OR REPLACE INTO live_location_share_aggregated_summary(
+    event_id, related_event_ids, room_id, user_id, is_active, start_of_live_timestamp_millis,
+    end_of_live_timestamp_millis, last_location_content
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteByEventId:
+DELETE FROM live_location_share_aggregated_summary WHERE event_id = ?;
+
+deleteAll:
+DELETE FROM live_location_share_aggregated_summary;

@@ -16,15 +16,11 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-import io.realm.RealmObject
-import io.realm.RealmResults
-import io.realm.annotations.LinkingObjects
-import io.realm.annotations.PrimaryKey
 
 internal fun DeviceInfoEntity.Companion.createPrimaryKey(userId: String, deviceId: String) = "$userId|$deviceId"
 
 internal open class DeviceInfoEntity(
-        @PrimaryKey var primaryKey: String = "",
+        var primaryKey: String = "",
         var deviceId: String? = null,
         var identityKey: String? = null,
         var userId: String? = null,
@@ -40,15 +36,9 @@ internal open class DeviceInfoEntity(
          * and new ones. Used for example to detect new unverified login
          */
         var firstTimeSeenLocalTs: Long? = null
-) : RealmObject() {
+) {
 
-    @LinkingObjects("devices")
-    val users: RealmResults<UserEntity>? = null
 
     companion object
 }
 
-internal fun DeviceInfoEntity.deleteOnCascade() {
-    trustLevelEntity?.deleteFromRealm()
-    deleteFromRealm()
-}

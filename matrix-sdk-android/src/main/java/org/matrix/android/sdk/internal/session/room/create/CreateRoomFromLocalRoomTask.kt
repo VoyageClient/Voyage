@@ -16,21 +16,18 @@
 
 package org.matrix.android.sdk.internal.session.room.create
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.failure.CreateRoomFailure
 import org.matrix.android.sdk.api.session.room.model.LocalRoomCreationState
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
-import org.matrix.android.sdk.internal.database.awaitNotEmptyResult
-import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.model.EventEntityFields
-import org.matrix.android.sdk.internal.database.model.LocalRoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntityFields
-import org.matrix.android.sdk.internal.database.query.where
-import org.matrix.android.sdk.internal.database.query.whereRoomId
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
+import org.matrix.android.sdk.internal.database.sqldelight.awaitNotEmptyResult
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.task.Task
@@ -47,13 +44,12 @@ internal interface CreateRoomFromLocalRoomTask : Task<CreateRoomFromLocalRoomTas
 }
 
 internal class DefaultCreateRoomFromLocalRoomTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
         private val createRoomTask: CreateRoomTask,
         private val roomSummaryDataSource: RoomSummaryDataSource,
 ) : CreateRoomFromLocalRoomTask {
-
-    private val realmConfiguration
-        get() = monarchy.realmConfiguration
 
     override suspend fun execute(params: CreateRoomFromLocalRoomTask.Params): String {
         val localRoomSummary = roomSummaryDataSource.getLocalRoomSummary(params.localRoomId)
@@ -105,20 +101,22 @@ internal class DefaultCreateRoomFromLocalRoomTask @Inject constructor(
      */
     private suspend fun waitForRoomEvents(replacementRoomId: String, localRoomSummary: RoomSummary) {
         try {
-            awaitNotEmptyResult(realmConfiguration, TimeUnit.MINUTES.toMillis(1L)) { realm ->
-                realm.where(RoomSummaryEntity::class.java)
-                        .equalTo(RoomSummaryEntityFields.ROOM_ID, replacementRoomId)
-                        .equalTo(RoomSummaryEntityFields.INVITED_MEMBERS_COUNT, localRoomSummary.invitedMembersCount)
-            }
-            awaitNotEmptyResult(realmConfiguration, TimeUnit.MINUTES.toMillis(1L)) { realm ->
-                EventEntity.whereRoomId(realm, replacementRoomId)
-                        .equalTo(EventEntityFields.TYPE, EventType.STATE_ROOM_HISTORY_VISIBILITY)
-            }
+            awaitNotEmptyResult(
+                    query = database.roomSummaryQueries.selectByRoomIdAndInvitedCount(replacementRoomId, localRoomSummary.invitedMembersCount?.toLong()),
+                    timeoutMillis = TimeUnit.MINUTES.toMillis(1L),
+                    dispatcher = dispatcher,
+            )
+            awaitNotEmptyResult(
+                    query = database.eventQueries.selectByRoomAndType(replacementRoomId, EventType.STATE_ROOM_HISTORY_VISIBILITY),
+                    timeoutMillis = TimeUnit.MINUTES.toMillis(1L),
+                    dispatcher = dispatcher,
+            )
             if (localRoomSummary.isEncrypted) {
-                awaitNotEmptyResult(realmConfiguration, TimeUnit.MINUTES.toMillis(1L)) { realm ->
-                    EventEntity.whereRoomId(realm, replacementRoomId)
-                            .equalTo(EventEntityFields.TYPE, EventType.STATE_ROOM_ENCRYPTION)
-                }
+                awaitNotEmptyResult(
+                        query = database.eventQueries.selectByRoomAndType(replacementRoomId, EventType.STATE_ROOM_ENCRYPTION),
+                        timeoutMillis = TimeUnit.MINUTES.toMillis(1L),
+                        dispatcher = dispatcher,
+                )
             }
         } catch (exception: TimeoutCancellationException) {
             updateCreationState(localRoomSummary.roomId, LocalRoomCreationState.FAILURE)
@@ -127,14 +125,24 @@ internal class DefaultCreateRoomFromLocalRoomTask @Inject constructor(
     }
 
     private fun updateCreationState(roomId: String, creationState: LocalRoomCreationState) {
-        monarchy.runTransactionSync { realm ->
-            LocalRoomSummaryEntity.where(realm, roomId).findFirst()?.creationState = creationState
+        runBlocking {
+            database.awaitDbTransaction(dispatcher) {
+                stores.localRoomSummary.get(roomId)?.let {
+                    it.creationState = creationState
+                    stores.localRoomSummary.upsert(it)
+                }
+            }
         }
     }
 
     private fun updateReplacementRoomId(localRoomId: String, replacementRoomId: String) {
-        monarchy.runTransactionSync { realm ->
-            LocalRoomSummaryEntity.where(realm, localRoomId).findFirst()?.replacementRoomId = replacementRoomId
+        runBlocking {
+            database.awaitDbTransaction(dispatcher) {
+                stores.localRoomSummary.get(localRoomId)?.let {
+                    it.replacementRoomId = replacementRoomId
+                    stores.localRoomSummary.upsert(it)
+                }
+            }
         }
     }
 }

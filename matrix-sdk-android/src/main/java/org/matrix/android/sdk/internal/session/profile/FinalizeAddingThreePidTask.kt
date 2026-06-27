@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.profile
 
-import com.zhuinden.monarchy.Monarchy
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.auth.UIABaseAuth
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.failure.Failure
@@ -25,12 +25,10 @@ import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.uia.UiaResult
 import org.matrix.android.sdk.internal.auth.registration.handleUIA
 import org.matrix.android.sdk.internal.database.model.PendingThreePidEntity
-import org.matrix.android.sdk.internal.database.model.PendingThreePidEntityFields
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -45,7 +43,9 @@ internal abstract class FinalizeAddingThreePidTask : Task<FinalizeAddingThreePid
 
 internal class DefaultFinalizeAddingThreePidTask @Inject constructor(
         private val profileAPI: ProfileAPI,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val pendingThreePidMapper: PendingThreePidMapper,
         private val globalErrorReceiver: GlobalErrorReceiver
 ) : FinalizeAddingThreePidTask() {
@@ -55,10 +55,8 @@ internal class DefaultFinalizeAddingThreePidTask @Inject constructor(
             true
         } else {
             // Get the required pending data
-            val pendingThreePids = monarchy.fetchAllMappedSync(
-                    { it.where(PendingThreePidEntity::class.java) },
-                    { pendingThreePidMapper.map(it) }
-            )
+            val pendingThreePids = stores.threePid.getPendingThreePids()
+                    .map { pendingThreePidMapper.map(it) }
                     .firstOrNull { it.threePid == params.threePid }
                     ?: throw IllegalArgumentException("unknown threepid")
 
@@ -93,19 +91,14 @@ internal class DefaultFinalizeAddingThreePidTask @Inject constructor(
         }
 
         if (canCleanup) {
-            cleanupDatabase(params)
+            cleanupDatabase()
         }
     }
 
-    private suspend fun cleanupDatabase(params: Params) {
-        // Delete the pending three pid
-        monarchy.awaitTransaction { realm ->
-            realm.where(PendingThreePidEntity::class.java)
-                    .equalTo(PendingThreePidEntityFields.EMAIL, params.threePid.value)
-                    .or()
-                    .equalTo(PendingThreePidEntityFields.MSISDN, params.threePid.value)
-                    .findAll()
-                    .deleteAllFromRealm()
+    private suspend fun cleanupDatabase() {
+        // Delete the pending three pid. Pending 3pids are transient; clearing all is acceptable here.
+        database.awaitDbTransaction(dispatcher) {
+            stores.threePid.clearPendingThreePids()
         }
     }
 }

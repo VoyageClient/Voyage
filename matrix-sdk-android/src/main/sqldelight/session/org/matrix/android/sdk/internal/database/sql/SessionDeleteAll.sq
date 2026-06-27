@@ -1,0 +1,137 @@
+-- Wipes every session table for clear-cache / logout (SqlClearCacheTask). One DELETE per table; run in a
+-- single transaction. Keep in sync with the tables declared under this directory.
+
+deleteAllBreadcrumbs:
+DELETE FROM breadcrumbs;
+
+deleteAllChunk:
+DELETE FROM chunk;
+
+deleteAllChunkStateEvent:
+DELETE FROM chunk_state_event;
+
+deleteAllCurrentStateEvent:
+DELETE FROM current_state_event;
+
+deleteAllDraft:
+DELETE FROM draft;
+
+deleteAllEditionOfEvent:
+DELETE FROM edition_of_event;
+
+deleteAllEvent:
+DELETE FROM event;
+
+deleteAllEventAnnotationsSummary:
+DELETE FROM event_annotations_summary;
+
+deleteAllEventInsert:
+DELETE FROM event_insert;
+
+deleteAllFilter:
+DELETE FROM filter;
+
+deleteAllHomeServerCapabilities:
+DELETE FROM home_server_capabilities;
+
+deleteAllIgnoredUser:
+DELETE FROM ignored_user;
+
+deleteAllLiveLocationShareAggregatedSummary:
+DELETE FROM live_location_share_aggregated_summary;
+
+deleteAllLocalRoomSummary:
+DELETE FROM local_room_summary;
+
+deleteAllPendingThreePid:
+DELETE FROM pending_three_pid;
+
+deleteAllPollHistoryStatus:
+DELETE FROM poll_history_status;
+
+deleteAllPollResponseAggregatedSummary:
+DELETE FROM poll_response_aggregated_summary;
+
+deleteAllPreviewUrlCache:
+DELETE FROM preview_url_cache;
+
+deleteAllPushCondition:
+DELETE FROM push_condition;
+
+deleteAllPusher:
+DELETE FROM pusher;
+
+deleteAllPushRule:
+DELETE FROM push_rule;
+
+deleteAllPushRules:
+DELETE FROM push_rules;
+
+deleteAllReactionAggregatedSummary:
+DELETE FROM reaction_aggregated_summary;
+
+deleteAllReadMarker:
+DELETE FROM read_marker;
+
+deleteAllReadReceipt:
+DELETE FROM read_receipt;
+
+deleteAllReadReceiptsSummary:
+DELETE FROM read_receipts_summary;
+
+deleteAllReferencesAggregatedSummary:
+DELETE FROM references_aggregated_summary;
+
+deleteAllRoom:
+DELETE FROM room;
+
+deleteAllRoomAccountData:
+DELETE FROM room_account_data;
+
+deleteAllRoomMemberSummary:
+DELETE FROM room_member_summary;
+
+deleteAllRoomSummary:
+DELETE FROM room_summary;
+
+deleteAllRoomTag:
+DELETE FROM room_tag;
+
+deleteAllScalarToken:
+DELETE FROM scalar_token;
+
+deleteAllSpaceChildSummary:
+DELETE FROM space_child_summary;
+
+deleteAllSpaceParentSummary:
+DELETE FROM space_parent_summary;
+
+deleteAllSync:
+DELETE FROM sync;
+
+deleteAllSyncFilterParams:
+DELETE FROM sync_filter_params;
+
+deleteAllThreadListPage:
+DELETE FROM thread_list_page;
+
+deleteAllThreadSummary:
+DELETE FROM thread_summary;
+
+deleteAllTimelineEvent:
+DELETE FROM timeline_event;
+
+deleteAllUser:
+DELETE FROM user;
+
+deleteAllUserAccountData:
+DELETE FROM user_account_data;
+
+deleteAllUserPresence:
+DELETE FROM user_presence;
+
+deleteAllUserThreePid:
+DELETE FROM user_three_pid;
+
+deleteAllWellknownIntegrationManagerConfig:
+DELETE FROM wellknown_integration_manager_config;

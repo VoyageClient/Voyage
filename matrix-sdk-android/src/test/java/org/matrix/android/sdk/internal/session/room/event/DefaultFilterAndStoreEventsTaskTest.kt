@@ -20,35 +20,34 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.amshove.kluent.shouldBeEqualTo
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.database.mapper.toEntity
 import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.model.EventEntityFields
-import org.matrix.android.sdk.internal.database.model.EventInsertType
-import org.matrix.android.sdk.internal.database.query.copyToRealmOrIgnore
 import org.matrix.android.sdk.test.fakes.FakeClock
 import org.matrix.android.sdk.test.fakes.FakeEventDecryptor
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
-import org.matrix.android.sdk.test.fakes.givenFindAll
-import org.matrix.android.sdk.test.fakes.givenIn
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 internal class DefaultFilterAndStoreEventsTaskTest {
 
-    private val fakeMonarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
     private val fakeClock = FakeClock()
     private val fakeEventDecryptor = FakeEventDecryptor()
 
     private val defaultFilterAndStoreEventsTask = DefaultFilterAndStoreEventsTask(
-            monarchy = fakeMonarchy.instance,
+            database = db.database,
+            dispatcher = db.dispatcher,
+            stores = db.stores,
             clock = fakeClock,
             eventDecryptor = fakeEventDecryptor.instance,
     )
@@ -57,16 +56,16 @@ internal class DefaultFilterAndStoreEventsTaskTest {
     fun setup() {
         mockkStatic("org.matrix.android.sdk.api.session.events.model.EventKt")
         mockkStatic("org.matrix.android.sdk.internal.database.mapper.EventMapperKt")
-        mockkStatic("org.matrix.android.sdk.internal.database.query.EventEntityQueriesKt")
     }
 
     @After
     fun tearDown() {
+        db.close()
         unmockkAll()
     }
 
     @Test
-    fun `given a room and list of events when execute then filter in using given predicate and store them in local if needed`() = runTest {
+    fun `given a room and list of events when execute then keep matching or encrypted events and store the missing ones`() = runTest {
         // Given
         val aRoomId = "roomId"
         val anEventId1 = "eventId1"
@@ -83,10 +82,10 @@ internal class DefaultFilterAndStoreEventsTaskTest {
         fakeEventDecryptor.givenDecryptEventAndSaveResultSuccess(event1)
         fakeEventDecryptor.givenDecryptEventAndSaveResultSuccess(event2)
         fakeClock.givenEpoch(123)
-        givenExistingEventEntities(eventIdsToCheck = listOf(anEventId1, anEventId2), existingIds = listOf(anEventId1))
-        val eventEntityToSave = EventEntity(eventId = anEventId2)
-        every { event2.toEntity(any(), any(), any()) } returns eventEntityToSave
-        every { eventEntityToSave.copyToRealmOrIgnore(any(), any()) } returns eventEntityToSave
+        // event1 already stored -> must not be re-inserted
+        db.stores.event.insert(EventEntity(eventId = anEventId1, roomId = aRoomId, type = EventType.ENCRYPTED))
+        // event2 is the only event that gets stored; stub its mapping to a concrete entity
+        every { event2.toEntity(any(), any(), any()) } returns EventEntity(eventId = anEventId2, roomId = aRoomId, type = EventType.MESSAGE)
 
         // When
         defaultFilterAndStoreEventsTask.execute(params)
@@ -94,11 +93,10 @@ internal class DefaultFilterAndStoreEventsTaskTest {
         // Then
         fakeEventDecryptor.verifyDecryptEventAndSaveResult(event1, timeline = "")
         fakeEventDecryptor.verifyDecryptEventAndSaveResult(event2, timeline = "")
-        // Check we save in DB the event2 which is a non stored poll response
-        verify {
-            event2.toEntity(aRoomId, SendState.SYNCED, any())
-            eventEntityToSave.copyToRealmOrIgnore(fakeMonarchy.fakeRealm.instance, EventInsertType.PAGINATION)
-        }
+        // event2 is kept by the predicate and stored; the unencrypted non-matching events are dropped
+        (db.stores.event.getDbId(aRoomId, anEventId2) != null) shouldBeEqualTo true
+        (db.stores.event.getDbId(aRoomId, anEventId3) == null) shouldBeEqualTo true
+        (db.stores.event.getDbId(aRoomId, anEventId4) == null) shouldBeEqualTo true
     }
 
     private fun givenTaskParams(roomId: String, events: List<Event>, predicate: (Event) -> Boolean) = FilterAndStoreEventsTask.Params(
@@ -117,12 +115,5 @@ internal class DefaultFilterAndStoreEventsTaskTest {
         every { event.isEncrypted() } returns isEncrypted
         every { event.getClearType() } returns clearType
         return event
-    }
-
-    private fun givenExistingEventEntities(eventIdsToCheck: List<String>, existingIds: List<String>) {
-        val eventEntities = existingIds.map { EventEntity(eventId = it) }
-        fakeMonarchy.givenWhere<EventEntity>()
-                .givenIn(EventEntityFields.EVENT_ID, eventIdsToCheck)
-                .givenFindAll(eventEntities)
     }
 }

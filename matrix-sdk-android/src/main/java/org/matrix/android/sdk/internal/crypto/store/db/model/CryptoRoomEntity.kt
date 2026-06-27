@@ -16,11 +16,9 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 
 internal open class CryptoRoomEntity(
-        @PrimaryKey var roomId: String? = null,
+        var roomId: String? = null,
         var algorithm: String? = null,
         var shouldEncryptForInvitedMembers: Boolean? = null,
         var blacklistUnverifiedDevices: Boolean = false,
@@ -38,8 +36,7 @@ internal open class CryptoRoomEntity(
         var rotationPeriodMs: Long? = null,
         // How many messages should be sent before changing the session. 100 is the recommended default.
         var rotationPeriodMsgs: Long? = null,
-) :
-        RealmObject() {
+) {
 
     companion object
 }

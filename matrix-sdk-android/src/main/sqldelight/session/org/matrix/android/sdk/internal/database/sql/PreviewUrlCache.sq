@@ -1,0 +1,26 @@
+-- PreviewUrlCacheEntity: cached URL preview metadata keyed by url.
+CREATE TABLE preview_url_cache (
+    url TEXT NOT NULL PRIMARY KEY,
+    url_from_server TEXT,
+    site_name TEXT,
+    title TEXT,
+    description TEXT,
+    mxc_url TEXT,
+    image_width INTEGER,
+    image_height INTEGER,
+    last_updated_timestamp INTEGER NOT NULL DEFAULT 0
+);
+
+selectByUrl:
+SELECT * FROM preview_url_cache WHERE url = ?;
+
+upsert:
+INSERT OR REPLACE INTO preview_url_cache(
+    url, url_from_server, site_name, title, description, mxc_url, image_width, image_height, last_updated_timestamp
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteByUrl:
+DELETE FROM preview_url_cache WHERE url = ?;
+
+deleteAll:
+DELETE FROM preview_url_cache;

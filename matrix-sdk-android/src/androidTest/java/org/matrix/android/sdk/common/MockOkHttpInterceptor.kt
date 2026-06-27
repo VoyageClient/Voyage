@@ -56,7 +56,7 @@ class MockOkHttpInterceptor : TestInterceptor {
         val originalRequest = chain.request()
 
         rules.forEach { rule ->
-            if (originalRequest.url.toString().contains(rule.match)) {
+            if (originalRequest.url().toString().contains(rule.match)) {
                 rule.process(originalRequest)?.let {
                     return it
                 }

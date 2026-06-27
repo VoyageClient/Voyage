@@ -16,10 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.location
 
-import io.realm.RealmConfiguration
-import org.matrix.android.sdk.internal.database.awaitTransaction
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.query.get
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
@@ -36,7 +33,7 @@ internal interface RedactLiveLocationShareTask : Task<RedactLiveLocationShareTas
 }
 
 internal class DefaultRedactLiveLocationShareTask @Inject constructor(
-        @SessionDatabase private val realmConfiguration: RealmConfiguration,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val localEchoEventFactory: LocalEchoEventFactory,
         private val eventSenderProcessor: EventSenderProcessor,
 ) : RedactLiveLocationShareTask {
@@ -59,14 +56,8 @@ internal class DefaultRedactLiveLocationShareTask @Inject constructor(
         }
     }
 
-    private suspend fun getRelatedEventIdsOfLive(beaconInfoEventId: String): List<String> {
-        return awaitTransaction(realmConfiguration) { realm ->
-            val aggregatedSummaryEntity = LiveLocationShareAggregatedSummaryEntity.get(
-                    realm = realm,
-                    eventId = beaconInfoEventId
-            )
-            aggregatedSummaryEntity?.relatedEventIds?.toList() ?: emptyList()
-        }
+    private fun getRelatedEventIdsOfLive(beaconInfoEventId: String): List<String> {
+        return stores.liveLocation.get(beaconInfoEventId)?.relatedEventIds?.toList().orEmpty()
     }
 
     private fun postRedactionWithLocalEcho(eventId: String, roomId: String, reason: String?) {

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmObject
 
 /**
  * This class is used to get notification on new events being inserted. It's to avoid realm getting slow when listening to insert
@@ -30,7 +29,7 @@ internal open class EventInsertEntity(
          * Currently it's set to false after an event with encrypted content has been processed.
          */
         var canBeProcessed: Boolean = true
-) : RealmObject() {
+) {
 
     private var insertTypeStr: String = EventInsertType.INCREMENTAL_SYNC.name
     var insertType: EventInsertType

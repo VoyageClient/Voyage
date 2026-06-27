@@ -16,13 +16,12 @@
 
 package org.matrix.android.sdk.internal.session.space
 
-import io.realm.RealmConfiguration
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.space.JoinSpaceResult
-import org.matrix.android.sdk.internal.database.awaitNotEmptyResult
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntityFields
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sqldelight.awaitNotEmptyResult
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
@@ -42,7 +41,9 @@ internal interface JoinSpaceTask : Task<JoinSpaceTask.Params, JoinSpaceResult> {
 internal class DefaultJoinSpaceTask @Inject constructor(
         private val joinRoomTask: JoinRoomTask,
         @SessionDatabase
-        private val realmConfiguration: RealmConfiguration,
+        private val database: SessionSqlDatabase,
+        @SessionDatabase
+        private val sessionDbDispatcher: CoroutineDispatcher,
         private val roomSummaryDataSource: RoomSummaryDataSource
 ) : JoinSpaceTask {
 
@@ -64,17 +65,12 @@ internal class DefaultJoinSpaceTask @Inject constructor(
 
         Timber.v("## Space: > Wait for post joined sync ${params.roomIdOrAlias} ...")
         try {
-            awaitNotEmptyResult(realmConfiguration, TimeUnit.MINUTES.toMillis(2L)) { realm ->
-                realm.where(RoomSummaryEntity::class.java)
-                        .apply {
-                            if (params.roomIdOrAlias.startsWith("!")) {
-                                equalTo(RoomSummaryEntityFields.ROOM_ID, params.roomIdOrAlias)
-                            } else {
-                                equalTo(RoomSummaryEntityFields.CANONICAL_ALIAS, params.roomIdOrAlias)
-                            }
-                        }
-                        .equalTo(RoomSummaryEntityFields.MEMBERSHIP_STR, Membership.JOIN.name)
+            val query = if (params.roomIdOrAlias.startsWith("!")) {
+                database.roomSummaryQueries.selectByRoomIdAndMembership(params.roomIdOrAlias, Membership.JOIN.name)
+            } else {
+                database.roomSummaryQueries.selectByCanonicalAliasAndMembership(params.roomIdOrAlias, Membership.JOIN.name)
             }
+            awaitNotEmptyResult(query = query, timeoutMillis = TimeUnit.MINUTES.toMillis(2L), dispatcher = sessionDbDispatcher)
         } catch (exception: TimeoutCancellationException) {
             Timber.w("## Space: > Error created with timeout")
             return JoinSpaceResult.PartialSuccess(emptyMap())
@@ -130,7 +126,6 @@ internal class DefaultJoinSpaceTask @Inject constructor(
 // try {
 //    awaitNotEmptyResult(realmConfiguration, TimeUnit.MINUTES.toMillis(1L)) { realm ->
 //        realm.where(RoomEntity::class.java)
-//                .equalTo(RoomEntityFields.ROOM_ID, roomId)
 //    }
 // } catch (exception: TimeoutCancellationException) {
 //    throw CreateRoomFailure.CreatedWithTimeout

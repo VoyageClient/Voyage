@@ -1,0 +1,47 @@
+-- The nested OutboundGroupSessionInfoEntity is flattened into the outbound_* columns.
+CREATE TABLE crypto_room (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    algorithm TEXT,
+    should_encrypt_for_invited_members INTEGER,
+    blacklist_unverified_devices INTEGER NOT NULL DEFAULT 0,
+    should_share_history INTEGER NOT NULL DEFAULT 0,
+    was_encrypted_once INTEGER,
+    rotation_period_ms INTEGER,
+    rotation_period_msgs INTEGER,
+    outbound_serialized_data TEXT,
+    outbound_creation_time INTEGER,
+    outbound_should_share_history INTEGER NOT NULL DEFAULT 0
+);
+
+roomSelectById:
+SELECT * FROM crypto_room WHERE room_id = ?;
+
+roomSelectBlacklistedRoomIds:
+SELECT room_id FROM crypto_room WHERE blacklist_unverified_devices = 1;
+
+roomInsertIgnore:
+INSERT OR IGNORE INTO crypto_room(room_id) VALUES (?);
+
+roomUpdateAlgorithm:
+UPDATE crypto_room SET algorithm = ? WHERE room_id = ?;
+
+roomMarkEncryptedOnce:
+UPDATE crypto_room SET was_encrypted_once = 1 WHERE room_id = ?;
+
+roomUpdateRotation:
+UPDATE crypto_room SET rotation_period_ms = ?, rotation_period_msgs = ? WHERE room_id = ?;
+
+roomUpdateShouldEncrypt:
+UPDATE crypto_room SET should_encrypt_for_invited_members = ? WHERE room_id = ?;
+
+roomUpdateShouldShareHistory:
+UPDATE crypto_room SET should_share_history = ? WHERE room_id = ?;
+
+roomUpdateBlacklist:
+UPDATE crypto_room SET blacklist_unverified_devices = ? WHERE room_id = ?;
+
+roomUpdateOutbound:
+UPDATE crypto_room SET outbound_serialized_data = ?, outbound_creation_time = ?, outbound_should_share_history = ? WHERE room_id = ?;
+
+roomClearOutbound:
+UPDATE crypto_room SET outbound_serialized_data = NULL, outbound_creation_time = NULL WHERE room_id = ?;

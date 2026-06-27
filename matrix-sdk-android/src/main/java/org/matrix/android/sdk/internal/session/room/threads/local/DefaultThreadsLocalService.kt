@@ -17,30 +17,28 @@
 package org.matrix.android.sdk.internal.session.room.threads.local
 
 import androidx.lifecycle.LiveData
-import com.zhuinden.monarchy.Monarchy
+import androidx.lifecycle.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import io.realm.Realm
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.threads.local.ThreadsLocalService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
-import org.matrix.android.sdk.internal.database.helper.findAllLocalThreadNotificationsForRoomId
-import org.matrix.android.sdk.internal.database.helper.findAllThreadsForRoomId
-import org.matrix.android.sdk.internal.database.helper.isUserParticipatingInThread
-import org.matrix.android.sdk.internal.database.helper.mapEventsWithEdition
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
-import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
-import org.matrix.android.sdk.internal.util.awaitTransaction
 
 internal class DefaultThreadsLocalService @AssistedInject constructor(
         @Assisted private val roomId: String,
         @UserId private val userId: String,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
         private val timelineEventMapper: TimelineEventMapper,
 ) : ThreadsLocalService {
 
@@ -49,57 +47,42 @@ internal class DefaultThreadsLocalService @AssistedInject constructor(
         fun create(roomId: String): DefaultThreadsLocalService
     }
 
-    override fun getMarkedThreadNotificationsLive(): LiveData<List<TimelineEvent>> {
-        return monarchy.findAllMappedWithChanges(
-                { TimelineEventEntity.findAllLocalThreadNotificationsForRoomId(it, roomId = roomId) },
-                { timelineEventMapper.map(it) }
-        )
-    }
+    override fun getMarkedThreadNotificationsLive(): LiveData<List<TimelineEvent>> =
+            stores.timelineEvent.getLocalThreadNotificationsForRoomLive(roomId, dispatcher)
+                    .map { entities -> entities.map { timelineEventMapper.map(it) } }
 
-    override fun getMarkedThreadNotifications(): List<TimelineEvent> {
-        return monarchy.fetchAllMappedSync(
-                { TimelineEventEntity.findAllLocalThreadNotificationsForRoomId(it, roomId = roomId) },
-                { timelineEventMapper.map(it) }
-        )
-    }
+    override fun getMarkedThreadNotifications(): List<TimelineEvent> =
+            stores.timelineEvent.getLocalThreadNotificationsForRoom(roomId).map { timelineEventMapper.map(it) }
 
-    override fun getAllThreadsLive(): LiveData<List<TimelineEvent>> {
-        return monarchy.findAllMappedWithChanges(
-                { TimelineEventEntity.findAllThreadsForRoomId(it, roomId = roomId) },
-                { timelineEventMapper.map(it) }
-        )
-    }
+    override fun getAllThreadsLive(): LiveData<List<TimelineEvent>> =
+            stores.timelineEvent.getRootThreadsForRoomLive(roomId, dispatcher)
+                    .map { entities -> entities.map { timelineEventMapper.map(it) }.sortByLatest() }
 
-    override fun getAllThreads(): List<TimelineEvent> {
-        return monarchy.fetchAllMappedSync(
-                { TimelineEventEntity.findAllThreadsForRoomId(it, roomId = roomId) },
-                { timelineEventMapper.map(it) }
-        )
-    }
+    override fun getAllThreads(): List<TimelineEvent> =
+            stores.timelineEvent.getRootThreadsForRoom(roomId).map { timelineEventMapper.map(it) }.sortByLatest()
 
-    override fun isUserParticipatingInThread(rootThreadEventId: String): Boolean {
-        return Realm.getInstance(monarchy.realmConfiguration).use {
-            TimelineEventEntity.isUserParticipatingInThread(
-                    realm = it,
-                    roomId = roomId,
-                    rootThreadEventId = rootThreadEventId,
-                    senderId = userId
-            )
-        }
-    }
+    override fun isUserParticipatingInThread(rootThreadEventId: String): Boolean =
+            stores.event.isUserParticipatingInThread(roomId, rootThreadEventId, userId)
 
-    override fun mapEventsWithEdition(threads: List<TimelineEvent>): List<TimelineEvent> {
-        return Realm.getInstance(monarchy.realmConfiguration).use {
-            threads.mapEventsWithEdition(it, roomId)
-        }
-    }
+    override fun mapEventsWithEdition(threads: List<TimelineEvent>): List<TimelineEvent> =
+            threads.map { timelineEvent ->
+                val editedEventId = stores.annotations.get(timelineEvent.eventId)
+                        ?.editSummary?.editions?.lastOrNull()?.eventId
+                        ?: return@map timelineEvent
+                val editedEvent = stores.event.getByEventIdInRoom(roomId, editedEventId) ?: return@map timelineEvent
+                timelineEvent.root.threadDetails = timelineEvent.root.threadDetails?.copy(
+                        lastRootThreadEdition = editedEvent.asDomain().getDecryptedTextSummary() ?: "(edited)"
+                )
+                timelineEvent
+            }
 
     override suspend fun markThreadAsRead(rootThreadEventId: String) {
-        monarchy.awaitTransaction {
-            EventEntity.where(
-                    realm = it,
-                    eventId = rootThreadEventId
-            ).findFirst()?.threadNotificationState = ThreadNotificationState.NO_NEW_MESSAGE
+        database.awaitDbTransaction(dispatcher) {
+            stores.event.updateThreadNotificationState(rootThreadEventId, ThreadNotificationState.NO_NEW_MESSAGE)
         }
     }
+
+    // The latest-thread-message ref isn't resolved on the SQL DTO yet, so fall back to the root event ts.
+    private fun List<TimelineEvent>.sortByLatest(): List<TimelineEvent> =
+            sortedByDescending { it.root.threadDetails?.lastMessageTimestamp ?: it.root.originServerTs }
 }

@@ -1,0 +1,19 @@
+-- RoomTagEntity: tags applied to a room (embedded under RoomEntity), keyed by (room_id, tag_name).
+CREATE TABLE room_tag (
+    room_id TEXT NOT NULL,
+    tag_name TEXT NOT NULL DEFAULT '',
+    tag_order REAL,
+    PRIMARY KEY (room_id, tag_name)
+);
+
+selectByRoom:
+SELECT * FROM room_tag WHERE room_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO room_tag(room_id, tag_name, tag_order) VALUES (?, ?, ?);
+
+deleteByRoom:
+DELETE FROM room_tag WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM room_tag;

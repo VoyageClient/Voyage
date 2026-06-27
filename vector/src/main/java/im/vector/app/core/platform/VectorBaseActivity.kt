@@ -91,7 +91,6 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.GlobalError
-import org.matrix.android.sdk.api.failure.InitialSyncRequestReason
 import reactivecircus.flowbinding.android.view.clicks
 import timber.log.Timber
 import javax.inject.Inject
@@ -337,31 +336,11 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             is GlobalError.ConsentNotGivenError -> displayConsentNotGivenDialog(globalError)
             is GlobalError.CertificateError -> handleCertificateError(globalError)
             GlobalError.ExpiredAccount -> Unit // TODO Handle account expiration
-            is GlobalError.InitialSyncRequest -> handleInitialSyncRequest(globalError)
         }
     }
 
     private fun displayConsentNotGivenDialog(globalError: GlobalError.ConsentNotGivenError) {
         consentNotGivenHelper.displayDialog(globalError.consentUri, activeSessionHolder.getActiveSession().sessionParams.homeServerHost ?: "")
-    }
-
-    private fun handleInitialSyncRequest(initialSyncRequest: GlobalError.InitialSyncRequest) {
-        MaterialAlertDialogBuilder(this)
-                .setTitle(CommonStrings.initial_sync_request_title)
-                .setMessage(
-                        getString(
-                                CommonStrings.initial_sync_request_content, getString(
-                                when (initialSyncRequest.reason) {
-                                    InitialSyncRequestReason.IGNORED_USERS_LIST_CHANGE -> CommonStrings.initial_sync_request_reason_unignored_users
-                                }
-                        )
-                        )
-                )
-                .setPositiveButton(CommonStrings.ok) { _, _ ->
-                    MainActivity.restartApp(this, MainActivityArgs(clearCache = true))
-                }
-                .setNegativeButton(CommonStrings.later, null)
-                .show()
     }
 
     private fun handleCertificateError(certificateError: GlobalError.CertificateError) {

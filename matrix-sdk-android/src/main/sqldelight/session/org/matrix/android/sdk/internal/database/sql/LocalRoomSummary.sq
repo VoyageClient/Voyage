@@ -1,0 +1,22 @@
+-- LocalRoomSummaryEntity: a not-yet-created local room. creationState enum stored as state_str;
+-- createRoomParams stored as its JSON string. roomSummaryEntity referenced by FK room id.
+CREATE TABLE local_room_summary (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    room_summary_room_id TEXT,
+    replacement_room_id TEXT,
+    state_str TEXT NOT NULL DEFAULT 'NOT_CREATED',
+    create_room_params_str TEXT
+);
+
+selectByRoomId:
+SELECT * FROM local_room_summary WHERE room_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO local_room_summary(room_id, room_summary_room_id, replacement_room_id, state_str, create_room_params_str)
+VALUES (?, ?, ?, ?, ?);
+
+deleteByRoomId:
+DELETE FROM local_room_summary WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM local_room_summary;

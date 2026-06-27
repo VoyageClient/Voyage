@@ -1,0 +1,58 @@
+-- ReadReceiptsSummaryEntity (PK event_id) aggregates ReadReceiptEntity rows. A receipt links to its
+-- summary via event_id (receipt.event_id == summary.event_id). origin_server_ts is REAL (was Double).
+CREATE TABLE read_receipts_summary (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    room_id TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX read_receipts_summary_room ON read_receipts_summary(room_id);
+
+CREATE TABLE read_receipt (
+    primary_key TEXT NOT NULL PRIMARY KEY,
+    event_id TEXT NOT NULL DEFAULT '',
+    room_id TEXT NOT NULL DEFAULT '',
+    user_id TEXT NOT NULL DEFAULT '',
+    thread_id TEXT,
+    origin_server_ts REAL NOT NULL DEFAULT 0.0
+);
+
+CREATE INDEX read_receipt_event ON read_receipt(event_id);
+CREATE INDEX read_receipt_room ON read_receipt(room_id);
+CREATE INDEX read_receipt_user ON read_receipt(user_id);
+
+selectSummary:
+SELECT * FROM read_receipts_summary WHERE event_id = ?;
+
+upsertSummary:
+INSERT OR REPLACE INTO read_receipts_summary(event_id, room_id) VALUES (?, ?);
+
+deleteSummary:
+DELETE FROM read_receipts_summary WHERE event_id = ?;
+
+selectReceiptsForEvent:
+SELECT * FROM read_receipt WHERE event_id = ?;
+
+selectReceiptForUserInRoom:
+SELECT * FROM read_receipt WHERE room_id = ? AND user_id = ? AND thread_id IS ?;
+
+selectMainTimelineReceiptForUser:
+SELECT * FROM read_receipt WHERE room_id = ? AND user_id = ? AND (thread_id = 'main' OR thread_id IS NULL) LIMIT 1;
+
+upsertReceipt:
+INSERT OR REPLACE INTO read_receipt(primary_key, event_id, room_id, user_id, thread_id, origin_server_ts)
+VALUES (?, ?, ?, ?, ?, ?);
+
+deleteReceiptsForEvent:
+DELETE FROM read_receipt WHERE event_id = ?;
+
+deleteSummariesByRoom:
+DELETE FROM read_receipts_summary WHERE room_id = ?;
+
+deleteReceiptsByRoom:
+DELETE FROM read_receipt WHERE room_id = ?;
+
+deleteAllSummaries:
+DELETE FROM read_receipts_summary;
+
+deleteAllReceipts:
+DELETE FROM read_receipt;

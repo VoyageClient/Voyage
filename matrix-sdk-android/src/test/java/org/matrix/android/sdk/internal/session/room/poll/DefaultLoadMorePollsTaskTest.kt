@@ -25,15 +25,14 @@ import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.room.poll.LoadedPollsStatus
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
-import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntityFields
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.matrix.android.sdk.test.fakes.FakeTimeline
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenFindFirst
+import org.robolectric.RobolectricTestRunner
 
 private const val A_ROOM_ID = "room-id"
 
@@ -50,17 +49,21 @@ private const val A_PERIOD_IN_DAYS = 3
 private const val A_PAGE_SIZE = 200
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 internal class DefaultLoadMorePollsTaskTest {
 
-    private val fakeMonarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
     private val fakeTimeline = FakeTimeline()
 
     private val defaultLoadMorePollsTask = DefaultLoadMorePollsTask(
-            monarchy = fakeMonarchy.instance,
+            database = db.database,
+            dispatcher = db.dispatcher,
+            stores = db.stores,
     )
 
     @After
     fun tearDown() {
+        db.close()
         unmockkAll()
     }
 
@@ -69,13 +72,7 @@ internal class DefaultLoadMorePollsTaskTest {
         // Given
         val params = givenTaskParams()
         val oldestEventId = "oldest"
-        val pollHistoryStatus = aPollHistoryStatusEntity(
-                oldestEventIdReached = oldestEventId,
-        )
-        fakeMonarchy.fakeRealm
-                .givenWhere<PollHistoryStatusEntity>()
-                .givenEqualTo(PollHistoryStatusEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenFindFirst(pollHistoryStatus)
+        db.stores.pollHistory.upsert(aPollHistoryStatusEntity(oldestEventIdReached = oldestEventId))
         fakeTimeline.givenRestartWithEventIdSuccess(oldestEventId)
         val anEventId = "event-id"
         val aTimelineEvent = aTimelineEvent(anEventId, AN_EVENT_TIMESTAMP)
@@ -84,9 +81,8 @@ internal class DefaultLoadMorePollsTaskTest {
                 direction = Timeline.Direction.BACKWARDS,
                 count = params.eventsPageSize,
         )
-        val aPaginationState = aPaginationState(hasMoreToLoad = false)
         fakeTimeline.givenGetPaginationStateReturns(
-                paginationState = aPaginationState,
+                paginationState = aPaginationState(hasMoreToLoad = false),
                 direction = Timeline.Direction.BACKWARDS,
         )
         val expectedLoadStatus = LoadedPollsStatus(
@@ -104,10 +100,12 @@ internal class DefaultLoadMorePollsTaskTest {
             fakeTimeline.instance.awaitPaginate(direction = Timeline.Direction.BACKWARDS, count = params.eventsPageSize)
             fakeTimeline.instance.getPaginationState(direction = Timeline.Direction.BACKWARDS)
         }
-        pollHistoryStatus.mostRecentEventIdReached shouldBeEqualTo anEventId
-        pollHistoryStatus.oldestEventIdReached shouldBeEqualTo anEventId
-        pollHistoryStatus.isEndOfPollsBackward shouldBeEqualTo true
-        pollHistoryStatus.oldestTimestampTargetReachedMs shouldBeEqualTo AN_EVENT_TIMESTAMP
+        db.stores.pollHistory.get(A_ROOM_ID)!!.let {
+            it.mostRecentEventIdReached shouldBeEqualTo anEventId
+            it.oldestEventIdReached shouldBeEqualTo anEventId
+            it.isEndOfPollsBackward shouldBeEqualTo true
+            it.oldestTimestampTargetReachedMs shouldBeEqualTo AN_EVENT_TIMESTAMP
+        }
         result shouldBeEqualTo expectedLoadStatus
     }
 
@@ -116,13 +114,7 @@ internal class DefaultLoadMorePollsTaskTest {
         // Given
         val params = givenTaskParams()
         val oldestEventId = "oldest"
-        val pollHistoryStatus = aPollHistoryStatusEntity(
-                oldestEventIdReached = oldestEventId,
-        )
-        fakeMonarchy.fakeRealm
-                .givenWhere<PollHistoryStatusEntity>()
-                .givenEqualTo(PollHistoryStatusEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenFindFirst(pollHistoryStatus)
+        db.stores.pollHistory.upsert(aPollHistoryStatusEntity(oldestEventIdReached = oldestEventId))
         fakeTimeline.givenRestartWithEventIdSuccess(oldestEventId)
         val anEventId = "event-id"
         val aTimelineEvent = aTimelineEvent(anEventId, AN_EVENT_TIMESTAMP)
@@ -131,9 +123,8 @@ internal class DefaultLoadMorePollsTaskTest {
                 direction = Timeline.Direction.BACKWARDS,
                 count = params.eventsPageSize,
         )
-        val aPaginationState = aPaginationState(hasMoreToLoad = true)
         fakeTimeline.givenGetPaginationStateReturns(
-                paginationState = aPaginationState,
+                paginationState = aPaginationState(hasMoreToLoad = true),
                 direction = Timeline.Direction.BACKWARDS,
         )
         val expectedLoadStatus = LoadedPollsStatus(
@@ -151,10 +142,12 @@ internal class DefaultLoadMorePollsTaskTest {
             fakeTimeline.instance.awaitPaginate(direction = Timeline.Direction.BACKWARDS, count = params.eventsPageSize)
             fakeTimeline.instance.getPaginationState(direction = Timeline.Direction.BACKWARDS)
         }
-        pollHistoryStatus.mostRecentEventIdReached shouldBeEqualTo anEventId
-        pollHistoryStatus.oldestEventIdReached shouldBeEqualTo anEventId
-        pollHistoryStatus.isEndOfPollsBackward shouldBeEqualTo false
-        pollHistoryStatus.oldestTimestampTargetReachedMs shouldBeEqualTo AN_EVENT_TIMESTAMP
+        db.stores.pollHistory.get(A_ROOM_ID)!!.let {
+            it.mostRecentEventIdReached shouldBeEqualTo anEventId
+            it.oldestEventIdReached shouldBeEqualTo anEventId
+            it.isEndOfPollsBackward shouldBeEqualTo false
+            it.oldestTimestampTargetReachedMs shouldBeEqualTo AN_EVENT_TIMESTAMP
+        }
         result shouldBeEqualTo expectedLoadStatus
     }
 

@@ -61,6 +61,10 @@ internal class DefaultUserService @Inject constructor(
         return userDataSource.getIgnoredUsersLive()
     }
 
+    override fun getIgnoredUserIds(): List<String> {
+        return userDataSource.getIgnoredUserIds()
+    }
+
     override suspend fun searchUsersDirectory(
             search: String,
             limit: Int,

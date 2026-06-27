@@ -50,9 +50,12 @@ ext.groups = [
                 ],
                 group: [
                         'app.cash.paparazzi',
+                        'app.cash.sqldelight',
+                        'app.cash.sql-psi',
                         'ch.qos.logback',
                         'com.adevinta.android',
                         'com.airbnb.android',
+                        'com.alecstrong.sql.psi',
                         'com.almworks.sqlite4java',
                         'com.arthenica',
                         'com.atlassian.commonmark',

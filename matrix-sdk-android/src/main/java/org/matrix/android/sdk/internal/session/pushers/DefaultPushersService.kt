@@ -16,14 +16,14 @@
 package org.matrix.android.sdk.internal.session.pushers
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import androidx.work.BackoffPolicy
-import com.zhuinden.monarchy.Monarchy
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
 import org.matrix.android.sdk.api.session.pushers.Pusher
 import org.matrix.android.sdk.api.session.pushers.PushersService
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.PusherEntity
-import org.matrix.android.sdk.internal.database.query.where
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.WorkManagerProvider
@@ -38,7 +38,9 @@ import javax.inject.Inject
 
 internal class DefaultPushersService @Inject constructor(
         private val workManagerProvider: WorkManagerProvider,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         @SessionId private val sessionId: String,
         private val getPusherTask: GetPushersTask,
         private val pushGatewayNotifyTask: PushGatewayNotifyTask,
@@ -158,14 +160,12 @@ internal class DefaultPushersService @Inject constructor(
     }
 
     override fun getPushersLive(): LiveData<List<Pusher>> {
-        return monarchy.findAllMappedWithChanges(
-                { realm -> PusherEntity.where(realm) },
-                { it.asDomain() }
-        )
+        return database.pusherQueries.selectAll().asLiveList(dispatcher)
+                .map { stores.pushers.getAll().map { entity -> entity.asDomain() } }
     }
 
     override fun getPushers(): List<Pusher> {
-        return monarchy.fetchAllCopiedSync { PusherEntity.where(it) }.map { it.asDomain() }
+        return stores.pushers.getAll().map { it.asDomain() }
     }
 
     companion object {

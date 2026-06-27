@@ -16,11 +16,12 @@
 
 package org.matrix.android.sdk.internal.session.user
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.internal.database.model.UserEntity
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import javax.inject.Inject
 
 internal interface UserStore {
@@ -29,28 +30,27 @@ internal interface UserStore {
     suspend fun updateDisplayName(userId: String, displayName: String? = null)
 }
 
-internal class RealmUserStore @Inject constructor(@SessionDatabase private val monarchy: Monarchy) : UserStore {
+internal class RealmUserStore @Inject constructor(
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
+) : UserStore {
 
     override suspend fun createOrUpdate(userId: String, displayName: String?, avatarUrl: String?) {
-        monarchy.awaitTransaction {
-            val userEntity = UserEntity(userId, displayName ?: "", avatarUrl ?: "")
-            it.insertOrUpdate(userEntity)
+        database.awaitDbTransaction(dispatcher) {
+            stores.user.upsertUser(UserEntity(userId, displayName ?: "", avatarUrl ?: ""))
         }
     }
 
     override suspend fun updateAvatar(userId: String, avatarUrl: String?) {
-        monarchy.awaitTransaction { realm ->
-            UserEntity.where(realm, userId).findFirst()?.let {
-                it.avatarUrl = avatarUrl ?: ""
-            }
+        database.awaitDbTransaction(dispatcher) {
+            stores.user.getUser(userId)?.let { stores.user.upsertUser(it.apply { this.avatarUrl = avatarUrl ?: "" }) }
         }
     }
 
     override suspend fun updateDisplayName(userId: String, displayName: String?) {
-        monarchy.awaitTransaction { realm ->
-            UserEntity.where(realm, userId).findFirst()?.let {
-                it.displayName = displayName ?: ""
-            }
+        database.awaitDbTransaction(dispatcher) {
+            stores.user.getUser(userId)?.let { stores.user.upsertUser(it.apply { this.displayName = displayName ?: "" }) }
         }
     }
 }

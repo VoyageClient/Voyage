@@ -1,0 +1,38 @@
+-- PusherEntity with the 1-1 PusherDataEntity flattened into data_url/data_format.
+-- state enum stored as TEXT (state_str).
+CREATE TABLE pusher (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    push_key TEXT NOT NULL DEFAULT '',
+    kind TEXT,
+    app_id TEXT NOT NULL DEFAULT '',
+    app_display_name TEXT,
+    device_display_name TEXT,
+    profile_tag TEXT,
+    lang TEXT,
+    data_url TEXT,
+    data_format TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    device_id TEXT,
+    state_str TEXT NOT NULL DEFAULT 'UNREGISTERED'
+);
+
+selectAll:
+SELECT * FROM pusher;
+
+selectByPushKey:
+SELECT * FROM pusher WHERE push_key = ?;
+
+insert:
+INSERT INTO pusher(
+    push_key, kind, app_id, app_display_name, device_display_name, profile_tag, lang,
+    data_url, data_format, enabled, device_id, state_str
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateStateByPushKey:
+UPDATE pusher SET state_str = ? WHERE push_key = ?;
+
+deleteByPushKey:
+DELETE FROM pusher WHERE push_key = ?;
+
+deleteAll:
+DELETE FROM pusher;

@@ -1,0 +1,20 @@
+-- FilterEntity: single-row store of the sync filter (id 0).
+CREATE TABLE filter (
+    id INTEGER NOT NULL PRIMARY KEY,
+    filter_body_json TEXT NOT NULL DEFAULT '',
+    room_event_filter_json TEXT NOT NULL DEFAULT '',
+    filter_id TEXT NOT NULL DEFAULT ''
+);
+
+selectFirst:
+SELECT * FROM filter LIMIT 1;
+
+upsert:
+INSERT OR REPLACE INTO filter(id, filter_body_json, room_event_filter_json, filter_id)
+VALUES (0, ?, ?, ?);
+
+updateFilterId:
+UPDATE filter SET filter_id = ? WHERE id = 0;
+
+deleteAll:
+DELETE FROM filter;

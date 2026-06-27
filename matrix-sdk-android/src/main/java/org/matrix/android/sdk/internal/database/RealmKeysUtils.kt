@@ -18,8 +18,6 @@ package org.matrix.android.sdk.internal.database
 import android.content.Context
 import android.util.Base64
 import androidx.core.content.edit
-import io.realm.Realm
-import io.realm.RealmConfiguration
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.securestorage.SecretStoringUtils
 import timber.log.Timber
@@ -49,7 +47,7 @@ internal class RealmKeysUtils @Inject constructor(
     private val sharedPreferences = context.getSharedPreferences("im.vector.matrix.android.keys", Context.MODE_PRIVATE)
 
     private fun generateKeyForRealm(): ByteArray {
-        val keyForRealm = ByteArray(Realm.ENCRYPTION_KEY_LENGTH)
+        val keyForRealm = ByteArray(64) // was Realm.ENCRYPTION_KEY_LENGTH
         rng.nextBytes(keyForRealm)
         return keyForRealm
     }
@@ -87,12 +85,6 @@ internal class RealmKeysUtils @Inject constructor(
         val encryptedKey = Base64.decode(encryptedB64, Base64.NO_PADDING)
         val b64 = secretStoringUtils.loadSecureSecretBytes(encryptedKey, alias)
         return Base64.decode(b64, Base64.NO_PADDING)
-    }
-
-    fun configureEncryption(realmConfigurationBuilder: RealmConfiguration.Builder, alias: String) {
-        val key = getRealmEncryptionKey(alias)
-
-        realmConfigurationBuilder.encryptionKey(key)
     }
 
     // Expose to handle Realm migration to riotX

@@ -16,46 +16,42 @@
 
 package org.matrix.android.sdk.internal.session.room.location
 
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBe
+import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.internal.database.model.EventAnnotationsSummaryEntity
-import org.matrix.android.sdk.internal.database.model.EventAnnotationsSummaryEntityFields
 import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.model.EventEntityFields
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntityFields
-import org.matrix.android.sdk.test.fakes.FakeRealm
-import org.matrix.android.sdk.test.fakes.givenDelete
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenFindFirst
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
 
 private const val AN_EVENT_ID = "event-id"
 private const val A_REDACTED_EVENT_ID = "redacted-event-id"
+private const val A_ROOM_ID = "room-id"
 
 @ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
 class LiveLocationShareRedactionEventProcessorTest {
 
     private val liveLocationShareRedactionEventProcessor = LiveLocationShareRedactionEventProcessor()
-    private val fakeRealm = FakeRealm()
+    private val db = FakeSessionDatabase()
+
+    @After
+    fun tearDown() {
+        db.close()
+    }
 
     @Test
     fun `given an event when checking if it should be processed then only event of type REDACTED is processed`() {
-        val eventId = AN_EVENT_ID
-        val eventType = EventType.REDACTION
-        val insertType = EventInsertType.INCREMENTAL_SYNC
-
         val result = liveLocationShareRedactionEventProcessor.shouldProcess(
-                eventId = eventId,
-                eventType = eventType,
-                insertType = insertType
+                eventId = AN_EVENT_ID,
+                eventType = EventType.REDACTION,
+                insertType = EventInsertType.INCREMENTAL_SYNC
         )
 
         result shouldBe true
@@ -63,14 +59,10 @@ class LiveLocationShareRedactionEventProcessorTest {
 
     @Test
     fun `given an event when checking if it should be processed then local echo is not processed`() {
-        val eventId = AN_EVENT_ID
-        val eventType = EventType.REDACTION
-        val insertType = EventInsertType.LOCAL_ECHO
-
         val result = liveLocationShareRedactionEventProcessor.shouldProcess(
-                eventId = eventId,
-                eventType = eventType,
-                insertType = insertType
+                eventId = AN_EVENT_ID,
+                eventType = EventType.REDACTION,
+                insertType = EventInsertType.LOCAL_ECHO
         )
 
         result shouldBe false
@@ -79,28 +71,14 @@ class LiveLocationShareRedactionEventProcessorTest {
     @Test
     fun `given a redacted live location share event when processing it then related summaries are deleted from database`() = runTest {
         val event = Event(eventId = AN_EVENT_ID, redacts = A_REDACTED_EVENT_ID)
-        val redactedEventEntity = EventEntity(eventId = A_REDACTED_EVENT_ID, type = EventType.STATE_ROOM_BEACON_INFO.unstable)
-        fakeRealm.givenWhere<EventEntity>()
-                .givenEqualTo(EventEntityFields.EVENT_ID, A_REDACTED_EVENT_ID)
-                .givenFindFirst(redactedEventEntity)
-        val liveSummary = mockk<LiveLocationShareAggregatedSummaryEntity>()
-        every { liveSummary.eventId } returns A_REDACTED_EVENT_ID
-        liveSummary.givenDelete()
-        fakeRealm.givenWhere<LiveLocationShareAggregatedSummaryEntity>()
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.EVENT_ID, A_REDACTED_EVENT_ID)
-                .givenFindFirst(liveSummary)
-        val annotationsSummary = mockk<EventAnnotationsSummaryEntity>()
-        every { annotationsSummary.eventId } returns A_REDACTED_EVENT_ID
-        annotationsSummary.givenDelete()
-        fakeRealm.givenWhere<EventAnnotationsSummaryEntity>()
-                .givenEqualTo(EventAnnotationsSummaryEntityFields.EVENT_ID, A_REDACTED_EVENT_ID)
-                .givenFindFirst(annotationsSummary)
+        db.stores.event.insert(EventEntity(
+                eventId = A_REDACTED_EVENT_ID, roomId = A_ROOM_ID, type = EventType.STATE_ROOM_BEACON_INFO.unstable))
+        db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(eventId = A_REDACTED_EVENT_ID, roomId = A_ROOM_ID))
+        db.stores.annotations.upsertSummary(A_REDACTED_EVENT_ID, A_ROOM_ID)
 
-        liveLocationShareRedactionEventProcessor.process(fakeRealm.instance, event = event)
+        liveLocationShareRedactionEventProcessor.process(db.stores, event = event)
 
-        verify {
-            liveSummary.deleteFromRealm()
-            annotationsSummary.deleteFromRealm()
-        }
+        (db.stores.liveLocation.get(A_REDACTED_EVENT_ID) == null) shouldBe true
+        (db.stores.annotations.get(A_REDACTED_EVENT_ID) == null) shouldBe true
     }
 }

@@ -18,7 +18,7 @@ package org.matrix.android.sdk.internal.session.room.location
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.zhuinden.monarchy.Monarchy
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -30,13 +30,13 @@ import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.LiveLocationShareAggregatedSummaryMapper
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.query.findRunningLiveInRoom
-import org.matrix.android.sdk.internal.database.query.where
 import org.matrix.android.sdk.internal.di.SessionDatabase
 
 internal class DefaultLocationSharingService @AssistedInject constructor(
         @Assisted private val roomId: String,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val sendStaticLocationTask: SendStaticLocationTask,
         private val sendLiveLocationTask: SendLiveLocationTask,
         private val startLiveLocationShareTask: StartLiveLocationShareTask,
@@ -112,20 +112,19 @@ internal class DefaultLocationSharingService @AssistedInject constructor(
     }
 
     override fun getRunningLiveLocationShareSummaries(): LiveData<List<LiveLocationShareAggregatedSummary>> {
-        return monarchy.findAllMappedWithChanges(
-                { LiveLocationShareAggregatedSummaryEntity.findRunningLiveInRoom(it, roomId = roomId) },
-                liveLocationShareAggregatedSummaryMapper
-        )
+        return database.liveLocationShareAggregatedSummaryQueries.selectRunningByRoom(roomId).asLiveList(dispatcher)
+                .map {
+                    stores.liveLocation.getRunningByRoom(roomId)
+                            // findRunningLiveInRoom also required a known user + a last location
+                            .filter { entity -> entity.userId.isNotEmpty() && entity.lastLocationContent != null }
+                            .map { entity -> liveLocationShareAggregatedSummaryMapper.map(entity) }
+                }
     }
 
     override fun getLiveLocationShareSummary(beaconInfoEventId: String): LiveData<Optional<LiveLocationShareAggregatedSummary>> {
-        return monarchy
-                .findAllMappedWithChanges(
-                        { LiveLocationShareAggregatedSummaryEntity.where(it, roomId = roomId, eventId = beaconInfoEventId) },
-                        liveLocationShareAggregatedSummaryMapper
-                )
+        return database.liveLocationShareAggregatedSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
                 .map {
-                    it.firstOrNull().toOptional()
+                    stores.liveLocation.get(beaconInfoEventId)?.let { liveLocationShareAggregatedSummaryMapper.map(it) }.toOptional()
                 }
     }
 }

@@ -17,20 +17,17 @@
 package org.matrix.android.sdk.internal.session.room.location
 
 import io.mockk.unmockkAll
-import io.realm.RealmList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntityFields
 import org.matrix.android.sdk.test.fakes.FakeEventSenderProcessor
 import org.matrix.android.sdk.test.fakes.FakeLocalEchoEventFactory
-import org.matrix.android.sdk.test.fakes.FakeRealm
-import org.matrix.android.sdk.test.fakes.FakeRealmConfiguration
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenFindFirst
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
 
 private const val A_ROOM_ID = "room-id"
 private const val AN_EVENT_ID = "event-id"
@@ -40,21 +37,22 @@ private const val AN_EVENT_ID_3 = "event-id-3"
 private const val A_REASON = "reason"
 
 @ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
 class DefaultRedactLiveLocationShareTaskTest {
 
-    private val fakeRealmConfiguration = FakeRealmConfiguration()
+    private val db = FakeSessionDatabase()
     private val fakeLocalEchoEventFactory = FakeLocalEchoEventFactory()
     private val fakeEventSenderProcessor = FakeEventSenderProcessor()
-    private val fakeRealm = FakeRealm()
 
     private val defaultRedactLiveLocationShareTask = DefaultRedactLiveLocationShareTask(
-            realmConfiguration = fakeRealmConfiguration.instance,
+            stores = db.stores,
             localEchoEventFactory = fakeLocalEchoEventFactory.instance,
             eventSenderProcessor = fakeEventSenderProcessor
     )
 
     @After
     fun tearDown() {
+        db.close()
         unmockkAll()
     }
 
@@ -62,9 +60,7 @@ class DefaultRedactLiveLocationShareTaskTest {
     fun `given parameters when redacting then post redact events and related and creates redact local echos`() = runTest {
         val params = createParams()
         val relatedEventIds = listOf(AN_EVENT_ID_1, AN_EVENT_ID_2, AN_EVENT_ID_3)
-        val aggregatedSummaryEntity = createSummary(relatedEventIds)
-        givenSummaryForId(AN_EVENT_ID, aggregatedSummaryEntity)
-        fakeRealmConfiguration.givenAwaitTransaction<List<String>>(fakeRealm.instance)
+        givenSummaryForId(AN_EVENT_ID, relatedEventIds)
         val redactEvents = givenCreateRedactEventWithLocalEcho(relatedEventIds + AN_EVENT_ID)
         givenPostRedaction(redactEvents)
 
@@ -80,17 +76,12 @@ class DefaultRedactLiveLocationShareTaskTest {
             reason = A_REASON
     )
 
-    private fun createSummary(relatedEventIds: List<String>): LiveLocationShareAggregatedSummaryEntity {
-        return LiveLocationShareAggregatedSummaryEntity(
-                eventId = AN_EVENT_ID,
-                relatedEventIds = RealmList(*relatedEventIds.toTypedArray()),
-        )
-    }
-
-    private fun givenSummaryForId(eventId: String, aggregatedSummaryEntity: LiveLocationShareAggregatedSummaryEntity) {
-        fakeRealm.givenWhere<LiveLocationShareAggregatedSummaryEntity>()
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.EVENT_ID, eventId)
-                .givenFindFirst(aggregatedSummaryEntity)
+    private fun givenSummaryForId(eventId: String, relatedEventIds: List<String>) {
+        db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(
+                eventId = eventId,
+                roomId = A_ROOM_ID,
+                relatedEventIds = mutableListOf(*relatedEventIds.toTypedArray()),
+        ))
     }
 
     private fun givenCreateRedactEventWithLocalEcho(eventIds: List<String>): List<Event> {

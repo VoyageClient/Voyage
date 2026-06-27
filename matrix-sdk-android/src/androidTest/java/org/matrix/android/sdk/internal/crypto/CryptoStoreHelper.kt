@@ -16,12 +16,14 @@
 
 package org.matrix.android.sdk.internal.crypto
 
-import io.realm.RealmConfiguration
+import androidx.test.platform.app.InstrumentationRegistry
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreModule
 import org.matrix.android.sdk.internal.crypto.store.db.mapper.CrossSigningKeysMapper
 import org.matrix.android.sdk.internal.crypto.store.db.mapper.MyDeviceLastSeenInfoEntityMapper
+import org.matrix.android.sdk.internal.crypto.store.db.sql.CryptoSqlDatabase
+import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlCryptoStore
+import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.util.time.DefaultClock
 import kotlin.random.Random
@@ -29,11 +31,11 @@ import kotlin.random.Random
 internal class CryptoStoreHelper {
 
     fun createStore(): IMXCryptoStore {
-        return RealmCryptoStore(
-                realmConfiguration = RealmConfiguration.Builder()
-                        .name("test.realm")
-                        .modules(RealmCryptoStoreModule())
-                        .build(),
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val driver = FrameworkSqliteDriver.create(context, null, CryptoSqlDatabase.Schema)
+        return SqlCryptoStore(
+                database = CryptoSqlDatabase(driver),
+                dispatcher = newDatabaseDispatcher("test-crypto-db-" + Random.nextInt()),
                 crossSigningKeysMapper = CrossSigningKeysMapper(MoshiProvider.providesMoshi()),
                 userId = "userId_" + Random.nextInt(),
                 deviceId = "deviceId_sample",

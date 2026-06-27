@@ -1,0 +1,27 @@
+-- UserEntity: known user profile (display name + avatar) keyed by user id.
+CREATE TABLE user (
+    user_id TEXT NOT NULL PRIMARY KEY,
+    display_name TEXT NOT NULL DEFAULT '',
+    avatar_url TEXT NOT NULL DEFAULT ''
+);
+
+selectByUserId:
+SELECT * FROM user WHERE user_id = ?;
+
+selectByUserIds:
+SELECT * FROM user WHERE user_id IN ?;
+
+searchByDisplayName:
+SELECT * FROM user WHERE display_name LIKE ('%' || ? || '%') OR user_id LIKE ('%' || ? || '%') ORDER BY display_name;
+
+selectAll:
+SELECT * FROM user ORDER BY display_name;
+
+upsert:
+INSERT OR REPLACE INTO user(user_id, display_name, avatar_url) VALUES (?, ?, ?);
+
+deleteByUserId:
+DELETE FROM user WHERE user_id = ?;
+
+deleteAll:
+DELETE FROM user;

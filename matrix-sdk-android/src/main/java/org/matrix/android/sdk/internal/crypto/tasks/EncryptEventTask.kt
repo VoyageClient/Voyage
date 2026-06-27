@@ -20,11 +20,13 @@ import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
 import org.matrix.android.sdk.api.session.crypto.model.MessageVerificationState
+import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
+import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
@@ -85,11 +87,26 @@ internal class DefaultEncryptEventTask @Inject constructor(
             null
         }
 
-        localEchoRepository.updateEcho(localEvent.eventId) { _, localEcho ->
+        localEchoRepository.updateEcho(localEvent.eventId) { localEcho ->
             localEcho.type = EventType.ENCRYPTED
             localEcho.content = ContentMapper.map(modifiedContent)
-            decryptionLocalEcho?.also {
-                localEcho.setDecryptionResult(it)
+            // Set the clear local-echo decryption result directly (the entity is an unmanaged SQL DTO,
+            // so EventEntity.setDecryptionResult()'s assertIsManaged would throw). updateEcho persists
+            // decryption_result_json.
+            decryptionLocalEcho?.also { dr ->
+                localEcho.decryptionResultJson = MoshiProvider.providesMoshi()
+                        .adapter(OlmDecryptionResult::class.java)
+                        .toJson(
+                                OlmDecryptionResult(
+                                        payload = dr.clearEvent,
+                                        senderKey = dr.senderCurve25519Key,
+                                        keysClaimed = dr.claimedEd25519Key?.let { mapOf("ed25519" to it) },
+                                        forwardingCurve25519KeyChain = dr.forwardingCurve25519KeyChain,
+                                        verificationState = dr.messageVerificationState,
+                                )
+                        )
+                localEcho.decryptionErrorCode = null
+                localEcho.decryptionErrorReason = null
             }
         }
         return localEvent.copy(

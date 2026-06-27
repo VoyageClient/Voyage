@@ -16,18 +16,16 @@
 
 package org.matrix.android.sdk.internal.session.room.poll
 
-import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.room.poll.LoadedPollsStatus
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
-import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntityFields
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenFindFirst
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
 
 private const val A_ROOM_ID = "room-id"
 
@@ -42,31 +40,30 @@ private const val A_CURRENT_TIMESTAMP = 1674737619290L
 private const val AN_EVENT_TIMESTAMP = 1674169200000L
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 internal class DefaultGetLoadedPollsStatusTaskTest {
 
-    private val fakeMonarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
 
     private val defaultGetLoadedPollsStatusTask = DefaultGetLoadedPollsStatusTask(
-            monarchy = fakeMonarchy.instance,
+            database = db.database,
+            dispatcher = db.dispatcher,
+            stores = db.stores,
     )
 
     @After
     fun tearDown() {
-        unmockkAll()
+        db.close()
     }
 
     @Test
     fun `given poll history status exists in db with an oldestTimestamp reached when execute then the computed status is returned`() = runTest {
         // Given
         val params = givenTaskParams()
-        val pollHistoryStatus = aPollHistoryStatusEntity(
+        db.stores.pollHistory.upsert(aPollHistoryStatusEntity(
                 isEndOfPollsBackward = false,
                 oldestTimestampReached = AN_EVENT_TIMESTAMP,
-        )
-        fakeMonarchy.fakeRealm
-                .givenWhere<PollHistoryStatusEntity>()
-                .givenEqualTo(PollHistoryStatusEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenFindFirst(pollHistoryStatus)
+        ))
         val expectedStatus = LoadedPollsStatus(
                 canLoadMore = true,
                 daysSynced = 6,
@@ -84,14 +81,10 @@ internal class DefaultGetLoadedPollsStatusTaskTest {
     fun `given poll history status exists in db and no oldestTimestamp reached when execute then the computed status is returned`() = runTest {
         // Given
         val params = givenTaskParams()
-        val pollHistoryStatus = aPollHistoryStatusEntity(
+        db.stores.pollHistory.upsert(aPollHistoryStatusEntity(
                 isEndOfPollsBackward = false,
                 oldestTimestampReached = null,
-        )
-        fakeMonarchy.fakeRealm
-                .givenWhere<PollHistoryStatusEntity>()
-                .givenEqualTo(PollHistoryStatusEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenFindFirst(pollHistoryStatus)
+        ))
         val expectedStatus = LoadedPollsStatus(
                 canLoadMore = true,
                 daysSynced = 0,

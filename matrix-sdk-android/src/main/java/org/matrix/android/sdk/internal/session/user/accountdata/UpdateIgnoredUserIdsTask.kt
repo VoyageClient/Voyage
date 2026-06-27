@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,10 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
-import com.zhuinden.monarchy.Monarchy
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
-import org.matrix.android.sdk.internal.database.model.IgnoredUserEntity
-import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -37,31 +35,22 @@ internal interface UpdateIgnoredUserIdsTask : Task<UpdateIgnoredUserIdsTask.Para
 
 internal class DefaultUpdateIgnoredUserIdsTask @Inject constructor(
         private val accountDataApi: AccountDataAPI,
-        @SessionDatabase private val monarchy: Monarchy,
+        private val stores: SessionStores,
         @UserId private val userId: String,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
 ) : UpdateIgnoredUserIdsTask {
 
     override suspend fun execute(params: UpdateIgnoredUserIdsTask.Params) {
-        // Get current list
-        val ignoredUserIds = monarchy.fetchAllMappedSync(
-                { realm -> realm.where(IgnoredUserEntity::class.java) },
-                { it.userId }
-        ).toMutableSet()
-
+        // Get current list (the actual DB list update happens when the resulting sync is processed)
+        val ignoredUserIds = stores.user.getIgnoredUserIds().toMutableSet()
         val original = ignoredUserIds.toSet()
-
         ignoredUserIds.removeAll { it in params.userIdsToUnIgnore }
         ignoredUserIds.addAll(params.userIdsToIgnore)
-
         if (original == ignoredUserIds) {
             // No change
             return
         }
-
-        val list = ignoredUserIds.toList()
-        val body = IgnoredUsersContent.createWithUserIds(list)
-
+        val body = IgnoredUsersContent.createWithUserIds(ignoredUserIds.toList())
         executeRequest(globalErrorReceiver) {
             accountDataApi.setAccountData(userId, UserAccountDataTypes.TYPE_IGNORED_USER_LIST, body)
         }

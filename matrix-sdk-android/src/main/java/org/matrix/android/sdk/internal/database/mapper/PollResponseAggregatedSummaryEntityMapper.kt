@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.mapper
 
-import io.realm.RealmList
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.PollResponseAggregatedSummary
@@ -40,9 +39,9 @@ internal object PollResponseAggregatedSummaryEntityMapper {
                 aggregatedContent = ContentMapper.map(model.aggregatedContent.toContent()),
                 nbOptions = model.nbOptions,
                 closedTime = model.closedTime,
-                sourceEvents = RealmList<String>().apply { addAll(model.sourceEvents) },
-                sourceLocalEchoEvents = RealmList<String>().apply { addAll(model.localEchos) },
-                encryptedRelatedEventIds = RealmList<String>().apply { addAll(model.encryptedRelatedEventIds) },
+                sourceEvents = ArrayList<String>().apply { addAll(model.sourceEvents) },
+                sourceLocalEchoEvents = ArrayList<String>().apply { addAll(model.localEchos) },
+                encryptedRelatedEventIds = ArrayList<String>().apply { addAll(model.encryptedRelatedEventIds) },
         )
     }
 }

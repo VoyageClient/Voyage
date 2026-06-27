@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmList
-import io.realm.RealmObject
 
 /**
  * This entity stores Sync Filter configuration data, provided by the client.
@@ -26,11 +24,11 @@ internal open class SyncFilterParamsEntity(
         var lazyLoadMembersForStateEvents: Boolean? = null,
         var lazyLoadMembersForMessageEvents: Boolean? = null,
         var useThreadNotifications: Boolean? = null,
-        var listOfSupportedEventTypes: RealmList<String>? = null,
+        var listOfSupportedEventTypes: MutableList<String>? = null,
         var listOfSupportedEventTypesHasBeenSet: Boolean = false,
-        var listOfSupportedStateEventTypes: RealmList<String>? = null,
+        var listOfSupportedStateEventTypes: MutableList<String>? = null,
         var listOfSupportedStateEventTypesHasBeenSet: Boolean = false,
-) : RealmObject() {
+) {
 
     companion object
 }

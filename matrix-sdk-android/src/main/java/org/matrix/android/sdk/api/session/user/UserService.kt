@@ -74,15 +74,19 @@ interface UserService {
     fun getIgnoredUsersLive(): LiveData<List<User>>
 
     /**
-     * Ignore users.
-     * Note: once done, for the change to take effect, you have to request an initial sync.
-     * This may be improved in the future.
+     * Synchronously get the ids of the currently ignored users.
+     */
+    fun getIgnoredUserIds(): List<String>
+
+    /**
+     * Ignore users. Takes effect on the next sync (the timeline and room-list filter ignored senders out
+     * once the updated ignore list is applied); no initial sync is required.
      */
     suspend fun ignoreUserIds(userIds: List<String>)
 
     /**
-     * Un-ignore some users.
-     * Note: once done, for the change to take effect, you have to request an initial sync.
+     * Un-ignore some users. Their previously-hidden content (cached messages, invites, shared-room
+     * backlog) is restored without an initial sync.
      */
     suspend fun unIgnoreUserIds(userIds: List<String>)
 }

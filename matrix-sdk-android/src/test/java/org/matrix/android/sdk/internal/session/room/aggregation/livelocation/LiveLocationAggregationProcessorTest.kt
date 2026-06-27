@@ -19,7 +19,9 @@ package org.matrix.android.sdk.internal.session.room.aggregation.livelocation
 import androidx.work.ExistingWorkPolicy
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldContain
+import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -29,15 +31,10 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoCo
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconLocationDataContent
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntityFields
 import org.matrix.android.sdk.test.fakes.FakeClock
-import org.matrix.android.sdk.test.fakes.FakeRealm
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.matrix.android.sdk.test.fakes.FakeWorkManagerProvider
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenFindAll
-import org.matrix.android.sdk.test.fakes.givenFindFirst
-import org.matrix.android.sdk.test.fakes.givenLessThan
-import org.matrix.android.sdk.test.fakes.givenNotEqualTo
+import org.robolectric.RobolectricTestRunner
 
 private const val A_SESSION_ID = "session_id"
 private const val A_SENDER_ID = "sender_id"
@@ -50,12 +47,12 @@ private const val A_LONGITUDE = 29.24
 private const val A_UNCERTAINTY = 30.0
 private const val A_GEO_URI = "geo:$A_LATITUDE,$A_LONGITUDE;u=$A_UNCERTAINTY"
 
+@RunWith(RobolectricTestRunner::class)
 internal class LiveLocationAggregationProcessorTest {
 
     private val fakeWorkManagerProvider = FakeWorkManagerProvider()
     private val fakeClock = FakeClock()
-    private val fakeRealm = FakeRealm()
-    private val fakeQuery = fakeRealm.givenWhere<LiveLocationShareAggregatedSummaryEntity>()
+    private val db = FakeSessionDatabase()
 
     private val liveLocationAggregationProcessor = LiveLocationAggregationProcessor(
             sessionId = A_SESSION_ID,
@@ -63,13 +60,18 @@ internal class LiveLocationAggregationProcessorTest {
             clock = fakeClock
     )
 
+    @After
+    fun tearDown() {
+        db.close()
+    }
+
     @Test
     fun `given beacon info when it is local echo then it is ignored`() {
         val event = Event(senderId = A_SENDER_ID)
         val beaconInfo = MessageBeaconInfoContent()
 
         val result = liveLocationAggregationProcessor.handleBeaconInfo(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = event,
                 content = beaconInfo,
                 roomId = A_ROOM_ID,
@@ -135,7 +137,7 @@ internal class LiveLocationAggregationProcessorTest {
 
         ignoredInfoEvents.forEach {
             val result = liveLocationAggregationProcessor.handleBeaconInfo(
-                    realm = fakeRealm.instance,
+                    stores = db.stores,
                     event = it.event,
                     content = it.beaconInfo,
                     roomId = A_ROOM_ID,
@@ -159,20 +161,12 @@ internal class LiveLocationAggregationProcessorTest {
         )
         fakeClock.givenEpoch(A_TIMESTAMP + 5000)
         fakeWorkManagerProvider.fakeWorkManager.expectEnqueueUniqueWork()
-        val aggregatedEntity = givenLastSummaryQueryReturns(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
-        val previousEntities = givenActiveSummaryListQueryReturns(
-                listOf(
-                        LiveLocationShareAggregatedSummaryEntity(
-                                eventId = "${AN_EVENT_ID}1",
-                                roomId = A_ROOM_ID,
-                                userId = A_SENDER_ID,
-                                isActive = true
-                        )
-                )
-        )
+        seedSummary(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
+        val previousEventId = "${AN_EVENT_ID}1"
+        seedPreviousActiveBeacon(previousEventId)
 
         val result = liveLocationAggregationProcessor.handleBeaconInfo(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = event,
                 content = beaconInfo,
                 roomId = A_ROOM_ID,
@@ -180,6 +174,7 @@ internal class LiveLocationAggregationProcessorTest {
         )
 
         result shouldBeEqualTo true
+        val aggregatedEntity = db.stores.liveLocation.get(AN_EVENT_ID)!!
         aggregatedEntity.eventId shouldBeEqualTo AN_EVENT_ID
         aggregatedEntity.roomId shouldBeEqualTo A_ROOM_ID
         aggregatedEntity.userId shouldBeEqualTo A_SENDER_ID
@@ -187,9 +182,7 @@ internal class LiveLocationAggregationProcessorTest {
         aggregatedEntity.startOfLiveTimestampMillis shouldBeEqualTo A_TIMESTAMP
         aggregatedEntity.endOfLiveTimestampMillis shouldBeEqualTo A_TIMESTAMP + A_TIMEOUT_MILLIS
         aggregatedEntity.lastLocationContent shouldBeEqualTo null
-        previousEntities.forEach { entity ->
-            entity.isActive shouldBeEqualTo false
-        }
+        db.stores.liveLocation.get(previousEventId)!!.isActive shouldBeEqualTo false
         fakeWorkManagerProvider.fakeWorkManager.verifyEnqueueUniqueWork(
                 workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID),
                 policy = ExistingWorkPolicy.REPLACE
@@ -215,21 +208,12 @@ internal class LiveLocationAggregationProcessorTest {
         )
         fakeClock.givenEpoch(A_TIMESTAMP + 5000)
         fakeWorkManagerProvider.fakeWorkManager.expectCancelUniqueWork()
-        val aggregatedEntity = givenLastSummaryQueryReturns(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
-        val previousEntities = givenActiveSummaryListQueryReturns(
-                listOf(
-                        LiveLocationShareAggregatedSummaryEntity(
-                                eventId = "${AN_EVENT_ID}1",
-                                roomId = A_ROOM_ID,
-                                userId = A_SENDER_ID,
-                                isActive = true
-                        )
-                )
-
-        )
+        seedSummary(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
+        val previousEventId = "${AN_EVENT_ID}1"
+        seedPreviousActiveBeacon(previousEventId)
 
         val result = liveLocationAggregationProcessor.handleBeaconInfo(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = event,
                 content = beaconInfo,
                 roomId = A_ROOM_ID,
@@ -237,6 +221,7 @@ internal class LiveLocationAggregationProcessorTest {
         )
 
         result shouldBeEqualTo true
+        val aggregatedEntity = db.stores.liveLocation.get(AN_EVENT_ID)!!
         aggregatedEntity.eventId shouldBeEqualTo AN_EVENT_ID
         aggregatedEntity.roomId shouldBeEqualTo A_ROOM_ID
         aggregatedEntity.userId shouldBeEqualTo A_SENDER_ID
@@ -244,9 +229,7 @@ internal class LiveLocationAggregationProcessorTest {
         aggregatedEntity.relatedEventIds shouldContain stateEventId
         aggregatedEntity.endOfLiveTimestampMillis shouldBeEqualTo A_TIMESTAMP + A_TIMEOUT_MILLIS
         aggregatedEntity.lastLocationContent shouldBeEqualTo null
-        previousEntities.forEach { entity ->
-            entity.isActive shouldBeEqualTo false
-        }
+        db.stores.liveLocation.get(previousEventId)!!.isActive shouldBeEqualTo false
         fakeWorkManagerProvider.fakeWorkManager.verifyCancelUniqueWork(
                 workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
         )
@@ -258,7 +241,7 @@ internal class LiveLocationAggregationProcessorTest {
         val beaconLocationData = MessageBeaconLocationDataContent()
 
         val result = liveLocationAggregationProcessor.handleBeaconLocationData(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = event,
                 content = beaconLocationData,
                 roomId = A_ROOM_ID,
@@ -291,7 +274,7 @@ internal class LiveLocationAggregationProcessorTest {
 
         ignoredLocationDataEvents.forEach {
             val result = liveLocationAggregationProcessor.handleBeaconLocationData(
-                    realm = fakeRealm.instance,
+                    stores = db.stores,
                     event = it.event,
                     content = it.beaconLocationData,
                     roomId = A_ROOM_ID,
@@ -309,7 +292,7 @@ internal class LiveLocationAggregationProcessorTest {
 
         listOf(null, "").forEach {
             val result = liveLocationAggregationProcessor.handleBeaconLocationData(
-                    realm = fakeRealm.instance,
+                    stores = db.stores,
                     event = event,
                     content = beaconLocationData,
                     roomId = A_ROOM_ID,
@@ -329,14 +312,10 @@ internal class LiveLocationAggregationProcessorTest {
         val lastBeaconLocationContent = MessageBeaconLocationDataContent(
                 unstableTimestampMillis = A_TIMESTAMP
         )
-        val aggregatedEntity = givenLastSummaryQueryReturns(
-                eventId = AN_EVENT_ID,
-                roomId = A_ROOM_ID,
-                beaconLocationContent = lastBeaconLocationContent
-        )
+        seedSummary(eventId = AN_EVENT_ID, roomId = A_ROOM_ID, beaconLocationContent = lastBeaconLocationContent)
 
         val result = liveLocationAggregationProcessor.handleBeaconLocationData(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = event,
                 content = beaconLocationData,
                 roomId = A_ROOM_ID,
@@ -345,7 +324,7 @@ internal class LiveLocationAggregationProcessorTest {
         )
 
         result shouldBeEqualTo false
-        aggregatedEntity.relatedEventIds shouldContain AN_EVENT_ID
+        db.stores.liveLocation.get(AN_EVENT_ID)!!.relatedEventIds shouldContain AN_EVENT_ID
     }
 
     @Test
@@ -359,14 +338,10 @@ internal class LiveLocationAggregationProcessorTest {
         val lastBeaconLocationContent = MessageBeaconLocationDataContent(
                 unstableTimestampMillis = A_TIMESTAMP - 60_000
         )
-        val aggregatedEntity = givenLastSummaryQueryReturns(
-                eventId = AN_EVENT_ID,
-                roomId = A_ROOM_ID,
-                beaconLocationContent = lastBeaconLocationContent
-        )
+        seedSummary(eventId = AN_EVENT_ID, roomId = A_ROOM_ID, beaconLocationContent = lastBeaconLocationContent)
 
         val result = liveLocationAggregationProcessor.handleBeaconLocationData(
-                realm = fakeRealm.instance,
+                stores = db.stores,
                 event = event,
                 content = beaconLocationData,
                 roomId = A_ROOM_ID,
@@ -375,39 +350,33 @@ internal class LiveLocationAggregationProcessorTest {
         )
 
         result shouldBeEqualTo true
+        val aggregatedEntity = db.stores.liveLocation.get(AN_EVENT_ID)!!
         aggregatedEntity.relatedEventIds shouldContain AN_EVENT_ID
         val savedLocationData = ContentMapper.map(aggregatedEntity.lastLocationContent).toModel<MessageBeaconLocationDataContent>()
         savedLocationData?.getBestTimestampMillis() shouldBeEqualTo A_TIMESTAMP
         savedLocationData?.getBestLocationInfo()?.geoUri shouldBeEqualTo A_GEO_URI
     }
 
-    private fun givenLastSummaryQueryReturns(
+    private fun seedSummary(
             eventId: String,
             roomId: String,
             beaconLocationContent: MessageBeaconLocationDataContent? = null
-    ): LiveLocationShareAggregatedSummaryEntity {
-        val result = LiveLocationShareAggregatedSummaryEntity(
+    ) {
+        db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(
                 eventId = eventId,
                 roomId = roomId,
                 lastLocationContent = ContentMapper.map(beaconLocationContent?.toContent())
-        )
-        fakeQuery
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.EVENT_ID, eventId)
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.ROOM_ID, roomId)
-                .givenFindFirst(result)
-        return result
+        ))
     }
 
-    private fun givenActiveSummaryListQueryReturns(
-            summaryList: List<LiveLocationShareAggregatedSummaryEntity>
-    ): List<LiveLocationShareAggregatedSummaryEntity> {
-        fakeQuery
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenNotEqualTo(LiveLocationShareAggregatedSummaryEntityFields.EVENT_ID, AN_EVENT_ID)
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.USER_ID, A_SENDER_ID)
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.IS_ACTIVE, true)
-                .givenLessThan(LiveLocationShareAggregatedSummaryEntityFields.START_OF_LIVE_TIMESTAMP_MILLIS, A_TIMESTAMP)
-                .givenFindAll(summaryList)
-        return summaryList
+    // A previous active beacon from the same user, started earlier than the incoming one, so the SQL
+    // filter (non-null start timestamp < current) selects it for deactivation.
+    private fun seedPreviousActiveBeacon(eventId: String) {
+        db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(
+                eventId = eventId,
+                roomId = A_ROOM_ID,
+                userId = A_SENDER_ID,
+                isActive = true,
+        ).apply { startOfLiveTimestampMillis = A_TIMESTAMP - 1000 })
     }
 }

@@ -16,17 +16,15 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 import org.matrix.android.sdk.api.session.room.model.LocalRoomCreationState
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.toJSONString
 
 internal open class LocalRoomSummaryEntity(
-        @PrimaryKey var roomId: String = "",
+        var roomId: String = "",
         var roomSummaryEntity: RoomSummaryEntity? = null,
         var replacementRoomId: String? = null,
-) : RealmObject() {
+) {
 
     private var stateStr: String = LocalRoomCreationState.NOT_CREATED.name
     var creationState: LocalRoomCreationState

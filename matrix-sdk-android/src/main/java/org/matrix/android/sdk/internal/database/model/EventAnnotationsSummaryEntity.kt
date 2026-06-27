@@ -15,29 +15,18 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
 
 internal open class EventAnnotationsSummaryEntity(
-        @PrimaryKey
         var eventId: String = "",
         var roomId: String? = null,
-        var reactionsSummary: RealmList<ReactionAggregatedSummaryEntity> = RealmList(),
+        var reactionsSummary: MutableList<ReactionAggregatedSummaryEntity> = ArrayList(),
         var editSummary: EditAggregatedSummaryEntity? = null,
         var referencesSummaryEntity: ReferencesAggregatedSummaryEntity? = null,
         var pollResponseSummary: PollResponseAggregatedSummaryEntity? = null,
         var liveLocationShareAggregatedSummary: LiveLocationShareAggregatedSummaryEntity? = null,
-) : RealmObject() {
+) {
 
     companion object
 }
 
-internal fun EventAnnotationsSummaryEntity.deleteOnCascade() {
-    reactionsSummary.deleteAllFromRealm()
-    editSummary?.deleteFromRealm()
-    referencesSummaryEntity?.deleteFromRealm()
-    pollResponseSummary?.deleteFromRealm()
-    deleteFromRealm()
-}

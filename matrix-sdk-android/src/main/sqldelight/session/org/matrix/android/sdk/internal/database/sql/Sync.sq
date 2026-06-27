@@ -1,0 +1,14 @@
+-- SyncEntity: single-row store of the next_batch token (id 0).
+CREATE TABLE sync (
+    id INTEGER NOT NULL PRIMARY KEY,
+    next_batch TEXT
+);
+
+selectFirst:
+SELECT * FROM sync LIMIT 1;
+
+upsert:
+INSERT OR REPLACE INTO sync(id, next_batch) VALUES (0, ?);
+
+deleteAll:
+DELETE FROM sync;

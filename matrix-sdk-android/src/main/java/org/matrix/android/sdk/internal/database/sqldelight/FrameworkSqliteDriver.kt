@@ -1,0 +1,261 @@
+/*
+ * Copyright 2026 Voyage Client
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * Please see LICENSE files in the repository root for full details.
+ */
+
+package org.matrix.android.sdk.internal.database.sqldelight
+
+import android.content.Context
+import android.database.Cursor
+import android.database.sqlite.SQLiteCursor
+import android.database.sqlite.SQLiteCursorDriver
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import android.database.sqlite.SQLiteProgram
+import android.database.sqlite.SQLiteQuery
+import app.cash.sqldelight.Query
+import app.cash.sqldelight.Transacter
+import app.cash.sqldelight.db.QueryResult
+import app.cash.sqldelight.db.SqlCursor
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.db.SqlPreparedStatement
+import app.cash.sqldelight.db.SqlSchema
+import java.io.File
+
+/**
+ * A SQLDelight [SqlDriver] backed directly by the framework `android.database.sqlite` stack —
+ * deliberately without the `androidx.sqlite` wrapper, whose minSdk would otherwise become the floor.
+ * The framework SQLite APIs used here exist since API 1 except [SQLiteDatabase.compileStatement]'s
+ * `executeUpdateDelete` (API 11), which is well below the app's AndroidX floor.
+ *
+ * Typed parameters (notably BLOBs for the crypto store) are bound through a cursor factory rather
+ * than `rawQuery`'s string-only `selectionArgs`.
+ */
+internal class FrameworkSqliteDriver private constructor(
+        private val openHelper: SQLiteOpenHelper?,
+        private val suppliedDatabase: SQLiteDatabase?,
+        private val closeSuppliedDatabase: Boolean,
+) : SqlDriver {
+
+    /** Normal use: own the database lifecycle through an open helper. */
+    constructor(openHelper: SQLiteOpenHelper) : this(openHelper, null, false)
+
+    /** Transient use during onCreate/onUpgrade, bound to the in-progress database (not owned). */
+    private constructor(database: SQLiteDatabase) : this(null, database, false)
+
+    private val database: SQLiteDatabase by lazy { suppliedDatabase ?: openHelper!!.writableDatabase }
+
+    private val transactions = ThreadLocal<Transaction?>()
+    private val listeners = linkedMapOf<String, MutableSet<Query.Listener>>()
+
+    override fun execute(
+            identifier: Int?,
+            sql: String,
+            parameters: Int,
+            binders: (SqlPreparedStatement.() -> Unit)?,
+    ): QueryResult<Long> {
+        val statement = database.compileStatement(sql)
+        try {
+            if (binders != null) {
+                FrameworkProgramBinder(statement).binders()
+            }
+            return QueryResult.Value(statement.executeUpdateDelete().toLong())
+        } finally {
+            statement.close()
+        }
+    }
+
+    override fun <R> executeQuery(
+            identifier: Int?,
+            sql: String,
+            mapper: (SqlCursor) -> QueryResult<R>,
+            parameters: Int,
+            binders: (SqlPreparedStatement.() -> Unit)?,
+    ): QueryResult<R> {
+        val cursor: Cursor = if (binders == null) {
+            database.rawQuery(sql, null)
+        } else {
+            // editTable is only used by the deprecated cursor write-back path, which SQLDelight
+            // never exercises (cursors are read forward then closed), so a placeholder is safe.
+            database.rawQueryWithFactory(BindingCursorFactory(binders), sql, null, "")
+        }
+        return cursor.use { mapper(FrameworkCursor(it)) }
+    }
+
+    override fun newTransaction(): QueryResult<Transacter.Transaction> {
+        val enclosing = transactions.get()
+        val transaction = Transaction(enclosing)
+        transactions.set(transaction)
+        if (enclosing == null) {
+            database.beginTransaction()
+        }
+        return QueryResult.Value(transaction)
+    }
+
+    override fun currentTransaction(): Transacter.Transaction? = transactions.get()
+
+    private inner class Transaction(
+            override val enclosingTransaction: Transacter.Transaction?,
+    ) : Transacter.Transaction() {
+
+        override fun endTransaction(successful: Boolean): QueryResult<Unit> {
+            if (enclosingTransaction == null) {
+                if (successful) {
+                    database.setTransactionSuccessful()
+                }
+                database.endTransaction()
+            }
+            transactions.set(enclosingTransaction as Transaction?)
+            return QueryResult.Value(Unit)
+        }
+    }
+
+    override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
+        synchronized(listeners) {
+            queryKeys.forEach { listeners.getOrPut(it) { linkedSetOf() }.add(listener) }
+        }
+    }
+
+    override fun removeListener(vararg queryKeys: String, listener: Query.Listener) {
+        synchronized(listeners) {
+            queryKeys.forEach { listeners[it]?.remove(listener) }
+        }
+    }
+
+    override fun notifyListeners(vararg queryKeys: String) {
+        val toNotify = synchronized(listeners) {
+            queryKeys.flatMapTo(linkedSetOf()) { listeners[it].orEmpty() }
+        }
+        toNotify.forEach { it.queryResultsChanged() }
+    }
+
+    override fun close() {
+        openHelper?.close()
+        if (closeSuppliedDatabase) suppliedDatabase?.close()
+    }
+
+    companion object {
+        /**
+         * Open a database at an explicit file path (e.g. inside a per-session directory, so it is
+         * removed together with the session on logout). Drops and recreates on a version change,
+         * since migrations are out of scope.
+         */
+        fun create(
+                databaseFile: File,
+                schema: SqlSchema<QueryResult.Value<Unit>>,
+        ): FrameworkSqliteDriver {
+            databaseFile.parentFile?.mkdirs()
+            val database = SQLiteDatabase.openOrCreateDatabase(databaseFile, null)
+            val driver = FrameworkSqliteDriver(null, database, closeSuppliedDatabase = true)
+            val schemaVersion = schema.version.toInt()
+            when (database.version) {
+                0 -> {
+                    schema.create(driver)
+                    database.version = schemaVersion
+                }
+                schemaVersion -> Unit
+                else -> {
+                    dropAllContents(database)
+                    schema.create(driver)
+                    database.version = schemaVersion
+                }
+            }
+            return driver
+        }
+
+        /**
+         * @param name database file name, or null for an in-memory database (useful for tests).
+         */
+        fun create(
+                context: Context,
+                name: String?,
+                schema: SqlSchema<QueryResult.Value<Unit>>,
+        ): FrameworkSqliteDriver {
+            val helper = object : SQLiteOpenHelper(context, name, null, schema.version.toInt()) {
+                override fun onCreate(db: SQLiteDatabase) {
+                    schema.create(FrameworkSqliteDriver(db))
+                }
+
+                // Migrations are out of scope: a version bump drops everything and recreates.
+                override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+                    dropAllContents(db)
+                    schema.create(FrameworkSqliteDriver(db))
+                }
+
+                override fun onDowngrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+                    onUpgrade(db, oldVersion, newVersion)
+                }
+            }
+            return FrameworkSqliteDriver(helper)
+        }
+
+        private fun dropAllContents(db: SQLiteDatabase) {
+            val drops = mutableListOf<String>()
+            db.rawQuery(
+                    "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' AND name != 'android_metadata'",
+                    null,
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    drops.add("DROP ${cursor.getString(0)} IF EXISTS \"${cursor.getString(1)}\"")
+                }
+            }
+            drops.forEach { db.execSQL(it) }
+        }
+    }
+}
+
+/** Binds typed SQLDelight parameters (0-based) onto a framework [SQLiteProgram] (1-based). */
+private class FrameworkProgramBinder(private val program: SQLiteProgram) : SqlPreparedStatement {
+
+    override fun bindBytes(index: Int, bytes: ByteArray?) {
+        if (bytes == null) program.bindNull(index + 1) else program.bindBlob(index + 1, bytes)
+    }
+
+    override fun bindLong(index: Int, long: Long?) {
+        if (long == null) program.bindNull(index + 1) else program.bindLong(index + 1, long)
+    }
+
+    override fun bindDouble(index: Int, double: Double?) {
+        if (double == null) program.bindNull(index + 1) else program.bindDouble(index + 1, double)
+    }
+
+    override fun bindString(index: Int, string: String?) {
+        if (string == null) program.bindNull(index + 1) else program.bindString(index + 1, string)
+    }
+
+    override fun bindBoolean(index: Int, boolean: Boolean?) {
+        if (boolean == null) program.bindNull(index + 1) else program.bindLong(index + 1, if (boolean) 1L else 0L)
+    }
+}
+
+private class BindingCursorFactory(
+        private val binders: SqlPreparedStatement.() -> Unit,
+) : SQLiteDatabase.CursorFactory {
+
+    override fun newCursor(
+            db: SQLiteDatabase?,
+            masterQuery: SQLiteCursorDriver?,
+            editTable: String?,
+            query: SQLiteQuery,
+    ): Cursor {
+        FrameworkProgramBinder(query).binders()
+        return SQLiteCursor(masterQuery, editTable, query)
+    }
+}
+
+private class FrameworkCursor(private val cursor: Cursor) : SqlCursor {
+
+    override fun next(): QueryResult<Boolean> = QueryResult.Value(cursor.moveToNext())
+
+    override fun getString(index: Int): String? = if (cursor.isNull(index)) null else cursor.getString(index)
+
+    override fun getLong(index: Int): Long? = if (cursor.isNull(index)) null else cursor.getLong(index)
+
+    override fun getBytes(index: Int): ByteArray? = if (cursor.isNull(index)) null else cursor.getBlob(index)
+
+    override fun getDouble(index: Int): Double? = if (cursor.isNull(index)) null else cursor.getDouble(index)
+
+    override fun getBoolean(index: Int): Boolean? = if (cursor.isNull(index)) null else cursor.getLong(index) == 1L
+}

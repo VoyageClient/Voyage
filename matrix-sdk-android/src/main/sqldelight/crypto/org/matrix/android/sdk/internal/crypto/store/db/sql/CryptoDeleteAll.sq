@@ -1,0 +1,16 @@
+-- Used by deleteStore() and the credential-mismatch wipe.
+deleteAllMetadata: DELETE FROM crypto_metadata;
+deleteAllOlmSession: DELETE FROM olm_session;
+deleteAllInbound: DELETE FROM olm_inbound_group_session;
+deleteAllRoom: DELETE FROM crypto_room;
+deleteAllUser: DELETE FROM crypto_user;
+deleteAllDevice: DELETE FROM device_info;
+deleteAllMyDevice: DELETE FROM my_device_last_seen_info;
+deleteAllCrossSigning: DELETE FROM cross_signing_info;
+deleteAllKeyInfo: DELETE FROM key_info;
+deleteAllOutgoingRequest: DELETE FROM outgoing_key_request;
+deleteAllKeyRequestReply: DELETE FROM key_request_reply;
+deleteAllWithheld: DELETE FROM withheld_session;
+deleteAllShared: DELETE FROM shared_session;
+deleteAllKeysBackup: DELETE FROM keys_backup_data;
+deleteAllAudit: DELETE FROM audit_trail;

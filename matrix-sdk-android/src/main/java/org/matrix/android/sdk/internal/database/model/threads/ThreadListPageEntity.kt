@@ -16,13 +16,10 @@
 
 package org.matrix.android.sdk.internal.database.model.threads
 
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
 
 internal open class ThreadListPageEntity(
-        @PrimaryKey var roomId: String = "",
-        var threadSummaries: RealmList<ThreadSummaryEntity> = RealmList()
-) : RealmObject() {
+        var roomId: String = "",
+        var threadSummaries: MutableList<ThreadSummaryEntity> = ArrayList()
+) {
     companion object
 }

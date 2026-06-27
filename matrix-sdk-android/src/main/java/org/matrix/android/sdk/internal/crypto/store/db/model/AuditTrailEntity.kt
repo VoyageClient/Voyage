@@ -16,13 +16,11 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-import io.realm.RealmObject
-import io.realm.annotations.Index
 
 internal open class AuditTrailEntity(
         var ageLocalTs: Long? = null,
-        @Index var type: String? = null,
+        var type: String? = null,
         var contentJson: String? = null
-) : RealmObject() {
+) {
     companion object
 }

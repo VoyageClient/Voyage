@@ -15,7 +15,6 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmObject
 import org.matrix.android.sdk.api.session.pushers.PusherState
 
 internal open class PusherEntity(
@@ -29,7 +28,7 @@ internal open class PusherEntity(
         var data: PusherDataEntity? = null,
         var enabled: Boolean = true,
         var deviceId: String? = null,
-) : RealmObject() {
+) {
     private var stateStr: String = PusherState.UNREGISTERED.name
 
     var state: PusherState
@@ -48,7 +47,3 @@ internal open class PusherEntity(
     companion object
 }
 
-internal fun PusherEntity.deleteOnCascade() {
-    data?.deleteFromRealm()
-    deleteFromRealm()
-}

@@ -19,8 +19,8 @@ package org.matrix.android.sdk.internal.session.profile
 
 import android.net.Uri
 import androidx.lifecycle.LiveData
-import com.zhuinden.monarchy.Monarchy
-import io.realm.kotlin.where
+import androidx.lifecycle.map
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
@@ -40,7 +40,9 @@ import javax.inject.Inject
 
 internal class DefaultProfileService @Inject constructor(
         private val taskExecutor: TaskExecutor,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val refreshUserThreePidsTask: RefreshUserThreePidsTask,
         private val getProfileInfoTask: GetProfileInfoTask,
@@ -93,10 +95,7 @@ internal class DefaultProfileService @Inject constructor(
     }
 
     override fun getThreePids(): List<ThreePid> {
-        return monarchy.fetchAllMappedSync(
-                { it.where<UserThreePidEntity>() },
-                { it.asDomain() }
-        )
+        return stores.threePid.getThreePids().map { it.asDomain() }
     }
 
     override fun getThreePidsLive(refreshData: Boolean): LiveData<List<ThreePid>> {
@@ -104,11 +103,8 @@ internal class DefaultProfileService @Inject constructor(
             // Force a refresh of the values
             refreshThreePids()
         }
-
-        return monarchy.findAllMappedWithChanges(
-                { it.where<UserThreePidEntity>() },
-                { it.asDomain() }
-        )
+        return database.userThreePidQueries.selectAll().asLiveList(dispatcher)
+                .map { stores.threePid.getThreePids().map { entity -> entity.asDomain() } }
     }
 
     private fun refreshThreePids() {
@@ -118,17 +114,12 @@ internal class DefaultProfileService @Inject constructor(
     }
 
     override fun getPendingThreePids(): List<ThreePid> {
-        return monarchy.fetchAllMappedSync(
-                { it.where<PendingThreePidEntity>() },
-                { pendingThreePidMapper.map(it).threePid }
-        )
+        return stores.threePid.getPendingThreePids().map { pendingThreePidMapper.map(it).threePid }
     }
 
     override fun getPendingThreePidsLive(): LiveData<List<ThreePid>> {
-        return monarchy.findAllMappedWithChanges(
-                { it.where<PendingThreePidEntity>() },
-                { pendingThreePidMapper.map(it).threePid }
-        )
+        return database.pendingThreePidQueries.selectAll().asLiveList(dispatcher)
+                .map { stores.threePid.getPendingThreePids().map { entity -> pendingThreePidMapper.map(entity).threePid } }
     }
 
     override suspend fun addThreePid(threePid: ThreePid) {

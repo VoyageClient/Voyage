@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 The Matrix.org Foundation C.I.C.
+ * Copyright 2023 The Matrix.org Foundation C.I.C.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,18 @@
 
 package org.matrix.android.sdk.internal.session.room.event
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.EventDecryptor
 import org.matrix.android.sdk.internal.database.mapper.toEntity
-import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
-import org.matrix.android.sdk.internal.database.query.copyToRealmOrIgnore
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import org.matrix.android.sdk.internal.util.time.Clock
 import javax.inject.Inject
 
@@ -41,7 +40,9 @@ internal interface FilterAndStoreEventsTask : Task<FilterAndStoreEventsTask.Para
 }
 
 internal class DefaultFilterAndStoreEventsTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
         private val clock: Clock,
         private val eventDecryptor: EventDecryptor,
 ) : FilterAndStoreEventsTask {
@@ -49,22 +50,19 @@ internal class DefaultFilterAndStoreEventsTask @Inject constructor(
     override suspend fun execute(params: FilterAndStoreEventsTask.Params) {
         val filteredEvents = params.events
                 .map { decryptEventIfNeeded(it) }
-                // we also filter in the encrypted events since it means there was decryption error for them
-                // and they may be decrypted later
+                // also keep encrypted events: they may have had a decryption error and be decrypted later
                 .filter { params.filterPredicate(it) || it.getClearType() == EventType.ENCRYPTED }
-
         addMissingEventsInDB(params.roomId, filteredEvents)
     }
 
     private suspend fun addMissingEventsInDB(roomId: String, events: List<Event>) {
-        monarchy.awaitTransaction { realm ->
-            val eventIdsToCheck = events.mapNotNull { it.eventId }.filter { it.isNotEmpty() }
-            if (eventIdsToCheck.isNotEmpty()) {
-                val existingIds = EventEntity.where(realm, eventIdsToCheck).findAll().toList().map { it.eventId }
-
-                events.filterNot { it.eventId in existingIds }
-                        .map { it.toEntity(roomId = roomId, sendState = SendState.SYNCED, ageLocalTs = computeLocalTs(it)) }
-                        .forEach { it.copyToRealmOrIgnore(realm, EventInsertType.PAGINATION) }
+        database.awaitDbTransaction(dispatcher) {
+            events.forEach { event ->
+                val eventId = event.eventId?.takeIf { it.isNotEmpty() } ?: return@forEach
+                if (stores.event.getDbId(roomId, eventId) != null) return@forEach
+                val entity = event.toEntity(roomId = roomId, sendState = SendState.SYNCED, ageLocalTs = computeLocalTs(event))
+                stores.eventInsert.insert(eventId, entity.type, canBeProcessed = true, insertType = EventInsertType.PAGINATION)
+                stores.event.insert(entity)
             }
         }
     }
@@ -73,9 +71,7 @@ internal class DefaultFilterAndStoreEventsTask @Inject constructor(
         if (event.isEncrypted()) {
             eventDecryptor.decryptEventAndSaveResult(event, timeline = "")
         }
-
         event.ageLocalTs = computeLocalTs(event)
-
         return event
     }
 

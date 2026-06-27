@@ -63,7 +63,6 @@ internal object CryptoMapper {
         entity.isBlocked = deviceInfo.isBlocked
         val deviceInfoTrustLevel = deviceInfo.trustLevel
         if (deviceInfoTrustLevel == null) {
-            entity.trustLevelEntity?.deleteFromRealm()
             entity.trustLevelEntity = null
         } else {
             if (entity.trustLevelEntity == null) {

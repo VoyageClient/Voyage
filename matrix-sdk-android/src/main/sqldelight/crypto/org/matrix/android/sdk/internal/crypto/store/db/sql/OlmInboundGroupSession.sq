@@ -1,0 +1,65 @@
+-- primary_key is "sessionId|senderKey". serialized_olm_inbound_group_session is the pickled session;
+-- inbound_group_session_data_json is the Moshi JSON of InboundGroupSessionData. Both are storage-agnostic
+-- (identical bytes to the Realm version), so exported/imported room keys round-trip unchanged.
+CREATE TABLE olm_inbound_group_session (
+    primary_key TEXT NOT NULL PRIMARY KEY,
+    session_id TEXT,
+    sender_key TEXT,
+    room_id TEXT,
+    inbound_group_session_data_json TEXT,
+    serialized_olm_inbound_group_session TEXT,
+    shared_history INTEGER NOT NULL DEFAULT 0,
+    backed_up INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX olm_inbound_room_id ON olm_inbound_group_session(room_id);
+CREATE INDEX olm_inbound_backed_up ON olm_inbound_group_session(backed_up);
+
+selectByPrimaryKey:
+SELECT *
+FROM olm_inbound_group_session
+WHERE primary_key = ?;
+
+selectByPrimaryKeyAndSharedHistory:
+SELECT *
+FROM olm_inbound_group_session
+WHERE primary_key = ? AND shared_history = ?;
+
+selectAll:
+SELECT *
+FROM olm_inbound_group_session;
+
+selectByRoomId:
+SELECT *
+FROM olm_inbound_group_session
+WHERE room_id = ?;
+
+selectNotBackedUp:
+SELECT *
+FROM olm_inbound_group_session
+WHERE backed_up = 0
+LIMIT ?;
+
+countAll:
+SELECT count(*)
+FROM olm_inbound_group_session;
+
+countBackedUp:
+SELECT count(*)
+FROM olm_inbound_group_session
+WHERE backed_up = 1;
+
+upsert:
+INSERT OR REPLACE INTO olm_inbound_group_session(primary_key, session_id, sender_key, room_id, inbound_group_session_data_json, serialized_olm_inbound_group_session, shared_history, backed_up)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteByPrimaryKey:
+DELETE FROM olm_inbound_group_session
+WHERE primary_key = ?;
+
+markAllNotBackedUp:
+UPDATE olm_inbound_group_session SET backed_up = 0;
+
+markBackedUp:
+UPDATE olm_inbound_group_session SET backed_up = 1
+WHERE primary_key = ?;

@@ -17,39 +17,42 @@
 package org.matrix.android.sdk.internal.session.room.poll
 
 import io.mockk.coVerifyOrder
-import io.mockk.every
 import io.mockk.mockk
+import io.mockk.every
 import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.After
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
-import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntityFields
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.matrix.android.sdk.test.fakes.FakeTimeline
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenFindFirst
+import org.robolectric.RobolectricTestRunner
 
 private const val A_ROOM_ID = "room-id"
 private const val A_TIMESTAMP = 123L
 private const val A_PAGE_SIZE = 200
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 internal class DefaultSyncPollsTaskTest {
 
-    private val fakeMonarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
     private val fakeTimeline = FakeTimeline()
 
     private val defaultSyncPollsTask = DefaultSyncPollsTask(
-            monarchy = fakeMonarchy.instance,
+            database = db.database,
+            dispatcher = db.dispatcher,
+            stores = db.stores,
     )
 
     @After
     fun tearDown() {
+        db.close()
         unmockkAll()
     }
 
@@ -59,14 +62,10 @@ internal class DefaultSyncPollsTaskTest {
         val params = givenTaskParams()
         val mostRecentEventId = "most-recent"
         val oldestEventId = "oldest"
-        val pollHistoryStatus = aPollHistoryStatusEntity(
+        db.stores.pollHistory.upsert(aPollHistoryStatusEntity(
                 mostRecentEventIdReached = mostRecentEventId,
                 oldestEventIdReached = oldestEventId,
-        )
-        fakeMonarchy.fakeRealm
-                .givenWhere<PollHistoryStatusEntity>()
-                .givenEqualTo(PollHistoryStatusEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenFindFirst(pollHistoryStatus)
+        ))
         fakeTimeline.givenRestartWithEventIdSuccess(mostRecentEventId)
         fakeTimeline.givenRestartWithEventIdSuccess(oldestEventId)
         val anEventId = "event-id"
@@ -91,7 +90,7 @@ internal class DefaultSyncPollsTaskTest {
             fakeTimeline.instance.getPaginationState(direction = Timeline.Direction.FORWARDS)
             fakeTimeline.instance.restartWithEventId(oldestEventId)
         }
-        pollHistoryStatus.mostRecentEventIdReached shouldBeEqualTo anEventId
+        db.stores.pollHistory.get(A_ROOM_ID)!!.mostRecentEventIdReached shouldBeEqualTo anEventId
     }
 
     private fun givenTaskParams(): SyncPollsTask.Params {

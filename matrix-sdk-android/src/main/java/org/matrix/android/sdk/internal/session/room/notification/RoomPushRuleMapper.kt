@@ -27,22 +27,14 @@ import org.matrix.android.sdk.api.session.room.notification.RoomNotificationStat
 import org.matrix.android.sdk.internal.database.mapper.PushRulesMapper
 import org.matrix.android.sdk.internal.database.model.PushRuleEntity
 
-internal fun PushRuleEntity.toRoomPushRule(): RoomPushRule? {
-    val kind = parent?.firstOrNull()?.kind
+/** SQLDelight variant: the kind comes from the joined push_rules row, not the Realm LinkingObjects parent. */
+internal fun PushRuleEntity.toRoomPushRule(kind: RuleSetKey?): RoomPushRule? {
     val pushRule = when (kind) {
-        RuleSetKey.OVERRIDE -> {
-            PushRulesMapper.map(this)
-        }
-        RuleSetKey.ROOM -> {
-            PushRulesMapper.mapRoomRule(this)
-        }
+        RuleSetKey.OVERRIDE -> PushRulesMapper.map(this)
+        RuleSetKey.ROOM -> PushRulesMapper.mapRoomRule(this)
         else -> null
     }
-    return if (pushRule == null || kind == null) {
-        null
-    } else {
-        RoomPushRule(kind, pushRule)
-    }
+    return if (pushRule == null || kind == null) null else RoomPushRule(kind, pushRule)
 }
 
 internal fun RoomNotificationState.toRoomPushRule(roomId: String): RoomPushRule? {

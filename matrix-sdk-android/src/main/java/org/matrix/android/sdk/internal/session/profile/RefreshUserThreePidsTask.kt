@@ -16,13 +16,15 @@
 
 package org.matrix.android.sdk.internal.session.profile
 
-import com.zhuinden.monarchy.Monarchy
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.internal.database.model.UserThreePidEntity
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -30,27 +32,26 @@ internal abstract class RefreshUserThreePidsTask : Task<Unit, Unit>
 
 internal class DefaultRefreshUserThreePidsTask @Inject constructor(
         private val profileAPI: ProfileAPI,
-        @SessionDatabase private val monarchy: Monarchy,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
+        private val globalErrorReceiver: GlobalErrorReceiver,
 ) : RefreshUserThreePidsTask() {
 
     override suspend fun execute(params: Unit) {
         val accountThreePidsResponse = executeRequest(globalErrorReceiver) {
             profileAPI.getThreePIDs()
         }
-
         Timber.d("Get ${accountThreePidsResponse.threePids?.size} threePids")
-        // Store the list in DB
-        monarchy.awaitTransaction { realm ->
-            realm.where(UserThreePidEntity::class.java).findAll().deleteAllFromRealm()
-            accountThreePidsResponse.threePids?.forEach {
-                val entity = UserThreePidEntity(
-                        it.medium?.takeIf { med -> med in ThirdPartyIdentifier.SUPPORTED_MEDIUM } ?: return@forEach,
-                        it.address ?: return@forEach,
-                        it.validatedAt.toLong(),
-                        it.addedAt.toLong())
-                realm.insertOrUpdate(entity)
-            }
+        val entities = accountThreePidsResponse.threePids.orEmpty().mapNotNull {
+            UserThreePidEntity(
+                    it.medium?.takeIf { med -> med in ThirdPartyIdentifier.SUPPORTED_MEDIUM } ?: return@mapNotNull null,
+                    it.address ?: return@mapNotNull null,
+                    it.validatedAt.toLong(),
+                    it.addedAt.toLong())
+        }
+        database.awaitDbTransaction(dispatcher) {
+            stores.threePid.replaceThreePids(entities)
         }
     }
 }

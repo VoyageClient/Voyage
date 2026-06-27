@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.tombstone
 
-import io.realm.Realm
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -24,23 +23,23 @@ import org.matrix.android.sdk.api.session.room.model.VersioningState
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
 import javax.inject.Inject
 
 internal class RoomTombstoneEventProcessor @Inject constructor() : EventInsertLiveProcessor {
 
-    override fun process(realm: Realm, event: Event) {
+    override fun process(stores: SessionStores, event: Event) {
         if (event.roomId == null) return
         val createRoomContent = event.getClearContent().toModel<RoomTombstoneContent>()
         if (createRoomContent?.replacementRoomId == null) return
 
-        val predecessorRoomSummary = RoomSummaryEntity.where(realm, event.roomId).findFirst()
+        val predecessorRoomSummary = stores.roomSummary.get(event.roomId)
                 ?: RoomSummaryEntity(event.roomId)
         if (predecessorRoomSummary.versioningState == VersioningState.NONE) {
             predecessorRoomSummary.versioningState = VersioningState.UPGRADED_ROOM_NOT_JOINED
         }
-        realm.insertOrUpdate(predecessorRoomSummary)
+        stores.roomSummary.upsert(predecessorRoomSummary)
     }
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {

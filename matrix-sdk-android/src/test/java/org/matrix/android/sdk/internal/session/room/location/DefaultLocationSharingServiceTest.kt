@@ -16,30 +16,31 @@
 
 package org.matrix.android.sdk.internal.session.room.location
 
+import android.os.Looper
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.After
-import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.room.location.UpdateLiveLocationShareResult
 import org.matrix.android.sdk.api.session.room.model.livelocation.LiveLocationShareAggregatedSummary
 import org.matrix.android.sdk.api.util.Cancelable
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.LiveLocationShareAggregatedSummaryMapper
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntityFields
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
-import org.matrix.android.sdk.test.fakes.givenEqualTo
-import org.matrix.android.sdk.test.fakes.givenIsNotEmpty
-import org.matrix.android.sdk.test.fakes.givenIsNotNull
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 
 private const val A_ROOM_ID = "room_id"
 private const val AN_EVENT_ID = "event_id"
@@ -50,9 +51,10 @@ private const val A_TIMEOUT = 15_000L
 private const val A_REASON = "reason"
 
 @ExperimentalCoroutinesApi
+@RunWith(RobolectricTestRunner::class)
 internal class DefaultLocationSharingServiceTest {
 
-    private val fakeMonarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
     private val sendStaticLocationTask = mockk<SendStaticLocationTask>()
     private val sendLiveLocationTask = mockk<SendLiveLocationTask>()
     private val startLiveLocationShareTask = mockk<StartLiveLocationShareTask>()
@@ -63,7 +65,9 @@ internal class DefaultLocationSharingServiceTest {
 
     private val defaultLocationSharingService = DefaultLocationSharingService(
             roomId = A_ROOM_ID,
-            monarchy = fakeMonarchy.instance,
+            database = db.database,
+            dispatcher = db.dispatcher,
+            stores = db.stores,
             sendStaticLocationTask = sendStaticLocationTask,
             sendLiveLocationTask = sendLiveLocationTask,
             startLiveLocationShareTask = startLiveLocationShareTask,
@@ -73,13 +77,9 @@ internal class DefaultLocationSharingServiceTest {
             liveLocationShareAggregatedSummaryMapper = fakeLiveLocationShareAggregatedSummaryMapper
     )
 
-    @Before
-    fun setUp() {
-        mockkStatic("androidx.lifecycle.Transformations")
-    }
-
     @After
     fun tearDown() {
+        db.close()
         unmockkAll()
     }
 
@@ -139,19 +139,9 @@ internal class DefaultLocationSharingServiceTest {
         val result = defaultLocationSharingService.startLiveLocationShare(A_TIMEOUT)
 
         result shouldBeEqualTo UpdateLiveLocationShareResult.Success(AN_EVENT_ID)
-        val expectedCheckExistingParams = CheckIfExistingActiveLiveTask.Params(
-                roomId = A_ROOM_ID
-        )
-        coVerify { checkIfExistingActiveLiveTask.execute(expectedCheckExistingParams) }
-        val expectedStopParams = StopLiveLocationShareTask.Params(
-                roomId = A_ROOM_ID
-        )
-        coVerify { stopLiveLocationShareTask.execute(expectedStopParams) }
-        val expectedStartParams = StartLiveLocationShareTask.Params(
-                roomId = A_ROOM_ID,
-                timeoutMillis = A_TIMEOUT,
-        )
-        coVerify { startLiveLocationShareTask.execute(expectedStartParams) }
+        coVerify { checkIfExistingActiveLiveTask.execute(CheckIfExistingActiveLiveTask.Params(roomId = A_ROOM_ID)) }
+        coVerify { stopLiveLocationShareTask.execute(StopLiveLocationShareTask.Params(roomId = A_ROOM_ID)) }
+        coVerify { startLiveLocationShareTask.execute(StartLiveLocationShareTask.Params(roomId = A_ROOM_ID, timeoutMillis = A_TIMEOUT)) }
     }
 
     @Test
@@ -163,14 +153,8 @@ internal class DefaultLocationSharingServiceTest {
         val result = defaultLocationSharingService.startLiveLocationShare(A_TIMEOUT)
 
         result shouldBeEqualTo UpdateLiveLocationShareResult.Failure(error)
-        val expectedCheckExistingParams = CheckIfExistingActiveLiveTask.Params(
-                roomId = A_ROOM_ID
-        )
-        coVerify { checkIfExistingActiveLiveTask.execute(expectedCheckExistingParams) }
-        val expectedStopParams = StopLiveLocationShareTask.Params(
-                roomId = A_ROOM_ID
-        )
-        coVerify { stopLiveLocationShareTask.execute(expectedStopParams) }
+        coVerify { checkIfExistingActiveLiveTask.execute(CheckIfExistingActiveLiveTask.Params(roomId = A_ROOM_ID)) }
+        coVerify { stopLiveLocationShareTask.execute(StopLiveLocationShareTask.Params(roomId = A_ROOM_ID)) }
     }
 
     @Test
@@ -181,15 +165,8 @@ internal class DefaultLocationSharingServiceTest {
         val result = defaultLocationSharingService.startLiveLocationShare(A_TIMEOUT)
 
         result shouldBeEqualTo UpdateLiveLocationShareResult.Success(AN_EVENT_ID)
-        val expectedCheckExistingParams = CheckIfExistingActiveLiveTask.Params(
-                roomId = A_ROOM_ID
-        )
-        coVerify { checkIfExistingActiveLiveTask.execute(expectedCheckExistingParams) }
-        val expectedStartParams = StartLiveLocationShareTask.Params(
-                roomId = A_ROOM_ID,
-                timeoutMillis = A_TIMEOUT,
-        )
-        coVerify { startLiveLocationShareTask.execute(expectedStartParams) }
+        coVerify { checkIfExistingActiveLiveTask.execute(CheckIfExistingActiveLiveTask.Params(roomId = A_ROOM_ID)) }
+        coVerify { startLiveLocationShareTask.execute(StartLiveLocationShareTask.Params(roomId = A_ROOM_ID, timeoutMillis = A_TIMEOUT)) }
     }
 
     @Test
@@ -199,10 +176,7 @@ internal class DefaultLocationSharingServiceTest {
         val result = defaultLocationSharingService.stopLiveLocationShare()
 
         result shouldBeEqualTo UpdateLiveLocationShareResult.Success(AN_EVENT_ID)
-        val expectedParams = StopLiveLocationShareTask.Params(
-                roomId = A_ROOM_ID
-        )
-        coVerify { stopLiveLocationShareTask.execute(expectedParams) }
+        coVerify { stopLiveLocationShareTask.execute(StopLiveLocationShareTask.Params(roomId = A_ROOM_ID)) }
     }
 
     @Test
@@ -211,62 +185,60 @@ internal class DefaultLocationSharingServiceTest {
 
         defaultLocationSharingService.redactLiveLocationShare(beaconInfoEventId = AN_EVENT_ID, reason = A_REASON)
 
-        val expectedParams = RedactLiveLocationShareTask.Params(
-                roomId = A_ROOM_ID,
-                beaconInfoEventId = AN_EVENT_ID,
-                reason = A_REASON
-        )
-        coVerify { redactLiveLocationShareTask.execute(expectedParams) }
+        coVerify { redactLiveLocationShareTask.execute(RedactLiveLocationShareTask.Params(roomId = A_ROOM_ID, beaconInfoEventId = AN_EVENT_ID, reason = A_REASON)) }
     }
 
     @Test
     fun `livedata of live summaries is correctly computed`() {
-        val entity = LiveLocationShareAggregatedSummaryEntity()
-        val summary = LiveLocationShareAggregatedSummary(
-                roomId = A_ROOM_ID,
-                userId = "",
-                isActive = true,
-                endOfLiveTimestampMillis = 123,
-                lastLocationDataContent = null
-        )
+        val summary = aSummary()
+        db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(
+                eventId = AN_EVENT_ID, roomId = A_ROOM_ID, userId = "@u:hs", isActive = true, lastLocationContent = "{}"))
+        every { fakeLiveLocationShareAggregatedSummaryMapper.map(any()) } returns summary
 
-        fakeMonarchy.givenWhere<LiveLocationShareAggregatedSummaryEntity>()
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.IS_ACTIVE, true)
-                .givenIsNotEmpty(LiveLocationShareAggregatedSummaryEntityFields.USER_ID)
-                .givenIsNotNull(LiveLocationShareAggregatedSummaryEntityFields.LAST_LOCATION_CONTENT)
-        fakeMonarchy.givenFindAllMappedWithChangesReturns(
-                realmEntities = listOf(entity),
-                mappedResult = listOf(summary),
-                fakeLiveLocationShareAggregatedSummaryMapper
-        )
-
-        val result = defaultLocationSharingService.getRunningLiveLocationShareSummaries().value
+        val result = defaultLocationSharingService.getRunningLiveLocationShareSummaries().awaitValue()
 
         result shouldBeEqualTo listOf(summary)
     }
 
     @Test
     fun `given an event id when getting livedata on corresponding live summary then it is correctly computed`() {
-        val entity = LiveLocationShareAggregatedSummaryEntity()
-        val summary = LiveLocationShareAggregatedSummary(
-                roomId = A_ROOM_ID,
-                userId = "",
-                isActive = true,
-                endOfLiveTimestampMillis = 123,
-                lastLocationDataContent = null
-        )
-        fakeMonarchy.givenWhere<LiveLocationShareAggregatedSummaryEntity>()
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.ROOM_ID, A_ROOM_ID)
-                .givenEqualTo(LiveLocationShareAggregatedSummaryEntityFields.EVENT_ID, AN_EVENT_ID)
-        fakeMonarchy.givenFindAllMappedWithChangesReturns(
-                realmEntities = listOf(entity),
-                mappedResult = listOf(summary),
-                fakeLiveLocationShareAggregatedSummaryMapper
-        )
+        val summary = aSummary()
+        db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(
+                eventId = AN_EVENT_ID, roomId = A_ROOM_ID, userId = "@u:hs", isActive = true, lastLocationContent = "{}"))
+        every { fakeLiveLocationShareAggregatedSummaryMapper.map(any()) } returns summary
 
-        val result = defaultLocationSharingService.getLiveLocationShareSummary(AN_EVENT_ID).value
+        val result = defaultLocationSharingService.getLiveLocationShareSummary(AN_EVENT_ID).awaitValue()
 
         result shouldBeEqualTo summary.toOptional()
+    }
+
+    private fun aSummary() = LiveLocationShareAggregatedSummary(
+            roomId = A_ROOM_ID,
+            userId = "",
+            isActive = true,
+            endOfLiveTimestampMillis = 123,
+            lastLocationDataContent = null
+    )
+
+    private fun <T> LiveData<T>.awaitValue(timeoutMs: Long = 3000): T {
+        var result: Any? = NO_VALUE
+        val observer = Observer<T> { result = it }
+        observeForever(observer)
+        try {
+            val deadline = System.currentTimeMillis() + timeoutMs
+            while (result === NO_VALUE && System.currentTimeMillis() < deadline) {
+                shadowOf(Looper.getMainLooper()).idle()
+                if (result === NO_VALUE) Thread.sleep(10)
+            }
+        } finally {
+            removeObserver(observer)
+        }
+        check(result !== NO_VALUE) { "LiveData did not emit within ${timeoutMs}ms" }
+        @Suppress("UNCHECKED_CAST")
+        return result as T
+    }
+
+    companion object {
+        private val NO_VALUE = Any()
     }
 }

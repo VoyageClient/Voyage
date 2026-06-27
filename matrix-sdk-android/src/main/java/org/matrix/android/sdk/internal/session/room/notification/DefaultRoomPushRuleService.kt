@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,23 +18,25 @@ package org.matrix.android.sdk.internal.session.room.notification
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import com.zhuinden.monarchy.Monarchy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.api.session.room.notification.RoomPushRuleService
-import org.matrix.android.sdk.internal.database.model.PushRuleEntity
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 
 internal class DefaultRoomPushRuleService @AssistedInject constructor(
         @Assisted private val roomId: String,
         private val setRoomNotificationStateTask: SetRoomNotificationStateTask,
-        @SessionDatabase private val monarchy: Monarchy
-) :
-        RoomPushRuleService {
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
+) : RoomPushRuleService {
 
     @AssistedFactory
     interface Factory {
@@ -52,16 +54,10 @@ internal class DefaultRoomPushRuleService @AssistedInject constructor(
     }
 
     private fun getPushRuleForRoom(): LiveData<RoomPushRule?> {
-        val liveData = monarchy.findAllMappedWithChanges(
-                { realm ->
-                    PushRuleEntity.where(realm, scope = RuleScope.GLOBAL, ruleId = roomId)
-                },
-                { result ->
-                    result.toRoomPushRule()
+        return database.pushRulesQueries.selectRuleByScopeAndRuleId(RuleScope.GLOBAL, roomId)
+                .asLiveList(dispatcher)
+                .map { _ ->
+                    stores.pushRules.findRule(RuleScope.GLOBAL, roomId)?.let { (kind, entity) -> entity.toRoomPushRule(kind) }
                 }
-        )
-        return liveData.map { results ->
-            results.firstOrNull()
-        }
     }
 }

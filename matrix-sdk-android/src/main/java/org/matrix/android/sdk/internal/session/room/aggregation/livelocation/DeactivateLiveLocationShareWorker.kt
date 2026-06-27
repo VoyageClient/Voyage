@@ -19,12 +19,11 @@ package org.matrix.android.sdk.internal.session.room.aggregation.livelocation
 import android.content.Context
 import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonClass
-import io.realm.RealmConfiguration
 import org.matrix.android.sdk.api.util.md5
 import org.matrix.android.sdk.internal.SessionManager
-import org.matrix.android.sdk.internal.database.awaitTransaction
-import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
-import org.matrix.android.sdk.internal.database.query.get
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
@@ -53,7 +52,12 @@ internal class DeactivateLiveLocationShareWorker(context: Context, params: Worke
     ) : SessionWorkerParams
 
     @SessionDatabase
-    @Inject lateinit var realmConfiguration: RealmConfiguration
+    @Inject lateinit var database: SessionSqlDatabase
+
+    @SessionDatabase
+    @Inject lateinit var sessionDbDispatcher: kotlinx.coroutines.CoroutineDispatcher
+
+    @Inject lateinit var stores: SessionStores
 
     override fun injectWith(injector: SessionComponent) {
         injector.inject(this)
@@ -74,14 +78,12 @@ internal class DeactivateLiveLocationShareWorker(context: Context, params: Worke
     }
 
     private suspend fun deactivateLiveLocationShare(params: Params) {
-        awaitTransaction(realmConfiguration) { realm ->
+        database.awaitDbTransaction(sessionDbDispatcher) {
             Timber.d("deactivating live with id=${params.eventId}")
-            val aggregatedSummary = LiveLocationShareAggregatedSummaryEntity.get(
-                    realm = realm,
-                    roomId = params.roomId,
-                    eventId = params.eventId
-            )
-            aggregatedSummary?.isActive = false
+            stores.liveLocation.get(params.eventId)?.let {
+                it.isActive = false
+                stores.liveLocation.upsert(it)
+            }
         }
     }
 

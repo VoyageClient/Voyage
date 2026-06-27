@@ -1,0 +1,128 @@
+-- EventAnnotationsSummaryEntity (PK event_id) and its aggregations. reactions are 1-many (ordered);
+-- edit/references/poll are 1-1 keyed by annotation_event_id. RealmList<String> stored newline-joined.
+CREATE TABLE event_annotations_summary (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    room_id TEXT
+);
+
+CREATE INDEX event_annotations_summary_room ON event_annotations_summary(room_id);
+
+CREATE TABLE reaction_aggregated_summary (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    annotation_event_id TEXT NOT NULL,
+    reaction_order INTEGER NOT NULL DEFAULT 0,
+    reaction_key TEXT NOT NULL DEFAULT '',
+    reaction_count INTEGER NOT NULL DEFAULT 0,
+    added_by_me INTEGER NOT NULL DEFAULT 0,
+    first_timestamp INTEGER NOT NULL DEFAULT 0,
+    source_events TEXT NOT NULL DEFAULT '',
+    source_local_echo TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX reaction_aggregated_summary_parent ON reaction_aggregated_summary(annotation_event_id);
+
+CREATE TABLE edition_of_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    annotation_event_id TEXT NOT NULL,
+    edition_order INTEGER NOT NULL DEFAULT 0,
+    event_id TEXT NOT NULL DEFAULT '',
+    timestamp INTEGER NOT NULL DEFAULT 0,
+    is_local_echo INTEGER NOT NULL DEFAULT 0,
+    event_db_id INTEGER
+);
+
+CREATE INDEX edition_of_event_parent ON edition_of_event(annotation_event_id);
+
+CREATE TABLE references_aggregated_summary (
+    annotation_event_id TEXT NOT NULL PRIMARY KEY,
+    event_id TEXT NOT NULL DEFAULT '',
+    content TEXT,
+    source_events TEXT NOT NULL DEFAULT '',
+    source_local_echo TEXT NOT NULL DEFAULT ''
+);
+
+CREATE TABLE poll_response_aggregated_summary (
+    annotation_event_id TEXT NOT NULL PRIMARY KEY,
+    aggregated_content TEXT,
+    closed_time INTEGER,
+    nb_options INTEGER NOT NULL DEFAULT 0,
+    source_events TEXT NOT NULL DEFAULT '',
+    source_local_echo_events TEXT NOT NULL DEFAULT '',
+    encrypted_related_event_ids TEXT NOT NULL DEFAULT ''
+);
+
+-- summary
+selectSummary:
+SELECT * FROM event_annotations_summary WHERE event_id = ?;
+
+selectSummariesForRoom:
+SELECT * FROM event_annotations_summary WHERE room_id = ?;
+
+upsertSummary:
+INSERT OR REPLACE INTO event_annotations_summary(event_id, room_id) VALUES (?, ?);
+
+deleteSummary:
+DELETE FROM event_annotations_summary WHERE event_id = ?;
+
+-- reactions
+selectReactions:
+SELECT * FROM reaction_aggregated_summary WHERE annotation_event_id = ? ORDER BY reaction_order;
+
+insertReaction:
+INSERT INTO reaction_aggregated_summary(annotation_event_id, reaction_order, reaction_key, reaction_count, added_by_me, first_timestamp, source_events, source_local_echo)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteReactions:
+DELETE FROM reaction_aggregated_summary WHERE annotation_event_id = ?;
+
+-- editions
+selectEditions:
+SELECT * FROM edition_of_event WHERE annotation_event_id = ? ORDER BY edition_order;
+
+insertEdition:
+INSERT INTO edition_of_event(annotation_event_id, edition_order, event_id, timestamp, is_local_echo, event_db_id)
+VALUES (?, ?, ?, ?, ?, ?);
+
+deleteEditions:
+DELETE FROM edition_of_event WHERE annotation_event_id = ?;
+
+-- references
+selectReferences:
+SELECT * FROM references_aggregated_summary WHERE annotation_event_id = ?;
+
+upsertReferences:
+INSERT OR REPLACE INTO references_aggregated_summary(annotation_event_id, event_id, content, source_events, source_local_echo)
+VALUES (?, ?, ?, ?, ?);
+
+deleteReferences:
+DELETE FROM references_aggregated_summary WHERE annotation_event_id = ?;
+
+-- poll response
+selectPollResponse:
+SELECT * FROM poll_response_aggregated_summary WHERE annotation_event_id = ?;
+
+-- coarse LIKE on the newline-joined source_events column; callers verify the exact entry in Kotlin
+selectPollResponsesBySourceEventLike:
+SELECT annotation_event_id, source_events FROM poll_response_aggregated_summary WHERE source_events LIKE ('%' || ? || '%');
+
+upsertPollResponse:
+INSERT OR REPLACE INTO poll_response_aggregated_summary(annotation_event_id, aggregated_content, closed_time, nb_options, source_events, source_local_echo_events, encrypted_related_event_ids)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deletePollResponse:
+DELETE FROM poll_response_aggregated_summary WHERE annotation_event_id = ?;
+
+deleteAllSummaries:
+DELETE FROM event_annotations_summary;
+
+deleteAllReactions:
+DELETE FROM reaction_aggregated_summary;
+
+deleteAllEditions:
+DELETE FROM edition_of_event;
+
+deleteAllReferences:
+DELETE FROM references_aggregated_summary;
+
+deleteAllPollResponses:
+DELETE FROM poll_response_aggregated_summary;

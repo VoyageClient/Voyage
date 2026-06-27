@@ -1,0 +1,131 @@
+-- EventEntity: a raw event. Realm does not dedup by eventId (the same eventId may appear in several
+-- chunks), so the PK is a synthetic autoincrement id and event_id is just indexed. Enums (sendState,
+-- threadNotificationState) stored as *_str. thread_summary_latest_timeline_id references timeline_event.id.
+CREATE TABLE event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id TEXT NOT NULL DEFAULT '',
+    room_id TEXT NOT NULL DEFAULT '',
+    type TEXT NOT NULL DEFAULT '',
+    content TEXT,
+    prev_content TEXT,
+    is_useless INTEGER NOT NULL DEFAULT 0,
+    state_key TEXT,
+    origin_server_ts INTEGER,
+    sender TEXT,
+    send_state_details TEXT,
+    age INTEGER,
+    unsigned_data TEXT,
+    redacts TEXT,
+    decryption_result_json TEXT,
+    age_local_ts INTEGER,
+    is_root_thread INTEGER NOT NULL DEFAULT 0,
+    root_thread_event_id TEXT,
+    number_of_threads INTEGER NOT NULL DEFAULT 0,
+    thread_summary_latest_timeline_id INTEGER,
+    is_verification_state_dirty INTEGER,
+    send_state_str TEXT NOT NULL DEFAULT 'UNKNOWN',
+    thread_notification_state_str TEXT NOT NULL DEFAULT 'NO_NEW_MESSAGE',
+    decryption_error_code TEXT,
+    decryption_error_reason TEXT
+);
+
+CREATE INDEX event_event_id ON event(event_id);
+CREATE INDEX event_room_id ON event(room_id);
+CREATE INDEX event_type ON event(type);
+CREATE INDEX event_state_key ON event(state_key);
+CREATE INDEX event_sender ON event(sender);
+CREATE INDEX event_root_thread ON event(root_thread_event_id);
+
+selectById:
+SELECT * FROM event WHERE id = ?;
+
+selectByEventId:
+SELECT * FROM event WHERE event_id = ? LIMIT 1;
+
+selectByEventIdInRoom:
+SELECT * FROM event WHERE room_id = ? AND event_id = ? LIMIT 1;
+
+selectIdByEventIdInRoom:
+SELECT id FROM event WHERE room_id = ? AND event_id = ? LIMIT 1;
+
+insert:
+INSERT INTO event(
+    event_id, room_id, type, content, prev_content, is_useless, state_key, origin_server_ts, sender,
+    send_state_details, age, unsigned_data, redacts, decryption_result_json, age_local_ts, is_root_thread,
+    root_thread_event_id, number_of_threads, thread_summary_latest_timeline_id, is_verification_state_dirty,
+    send_state_str, thread_notification_state_str, decryption_error_code, decryption_error_reason
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateContentById:
+UPDATE event SET content = ?, decryption_result_json = ?, decryption_error_code = ?, decryption_error_reason = ?
+WHERE id = ?;
+
+updateEchoByEventId:
+UPDATE event SET content = ?, send_state_str = ?, send_state_details = ?, decryption_result_json = ?,
+decryption_error_code = ?, decryption_error_reason = ? WHERE room_id = ? AND event_id = ?;
+
+updatePrunedById:
+UPDATE event SET content = ?, unsigned_data = ?, decryption_result_json = NULL,
+decryption_error_code = NULL, decryption_error_reason = NULL WHERE id = ?;
+
+updateContentOnlyById:
+UPDATE event SET content = ? WHERE id = ?;
+
+updateUnsignedDataById:
+UPDATE event SET unsigned_data = ? WHERE id = ?;
+
+-- on-demand decryption success: store the clear result, clear any prior error (content is untouched;
+-- EventMapper derives the clear payload from decryption_result_json)
+updateDecryptionResultByEventId:
+UPDATE event SET decryption_result_json = ?, decryption_error_code = NULL, decryption_error_reason = NULL,
+is_verification_state_dirty = 0 WHERE event_id = ?;
+
+updateDecryptionErrorByEventId:
+UPDATE event SET decryption_error_code = ?, decryption_error_reason = ? WHERE event_id = ?;
+
+updateThreadNotificationStateByEventId:
+UPDATE event SET thread_notification_state_str = ? WHERE event_id = ?;
+
+-- uploads gallery: encrypted media events (decrypted content carries a url), newest first. The pattern
+-- is a SQL LIKE pattern (translated from the legacy glob via globToSqlLike) using '\' as escape char.
+selectEncryptedWithUrlInRoom:
+SELECT * FROM event WHERE room_id = ? AND type = ? AND decryption_result_json LIKE ('%' || ? || '%') ESCAPE '\'
+ORDER BY origin_server_ts DESC;
+
+markVerificationDirtyForSenders:
+UPDATE event SET is_verification_state_dirty = 1
+WHERE sender IN ? AND type = ? AND decryption_result_json IS NOT NULL;
+
+-- distinct thread-reply events (by event_id) for a root; redaction filtered in Kotlin via unsigned_data
+selectThreadRepliesForRoot:
+SELECT event_id, unsigned_data FROM event WHERE room_id = ? AND root_thread_event_id = ? GROUP BY event_id;
+
+selectThreadParticipation:
+SELECT event_id FROM event WHERE room_id = ? AND root_thread_event_id = ? AND sender = ? LIMIT 1;
+
+selectByRoomAndType:
+SELECT event_id FROM event WHERE room_id = ? AND type = ?;
+
+markEventAsRoot:
+UPDATE event SET is_root_thread = 1, number_of_threads = ?, thread_summary_latest_timeline_id = ? WHERE id = ?;
+
+unmarkEventAsRoot:
+UPDATE event SET is_root_thread = 0, number_of_threads = 0, thread_summary_latest_timeline_id = NULL WHERE id = ?;
+
+deleteByEventIdInRoom:
+DELETE FROM event WHERE room_id = ? AND event_id = ?;
+
+updateSendStateInRoom:
+UPDATE event SET send_state_str = ?, send_state_details = ? WHERE room_id = ? AND event_id = ?;
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+deleteById:
+DELETE FROM event WHERE id = ?;
+
+deleteByRoom:
+DELETE FROM event WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM event;

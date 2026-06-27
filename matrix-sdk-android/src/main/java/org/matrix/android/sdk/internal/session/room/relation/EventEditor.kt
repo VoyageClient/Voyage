@@ -163,7 +163,7 @@ internal class EventEditor @Inject constructor(
 
     private fun updateFailedEchoWithEvent(roomId: String, failedEchoEventId: String, editedEvent: Event) {
         val editedEventEntity = editedEvent.toEntity(roomId, SendState.UNSENT, clock.epochMillis())
-        localEchoRepository.updateEchoAsync(failedEchoEventId) { _, entity ->
+        localEchoRepository.updateEchoAsync(failedEchoEventId) { entity ->
             entity.content = editedEventEntity.content
             entity.ageLocalTs = editedEventEntity.ageLocalTs
             entity.age = editedEventEntity.age

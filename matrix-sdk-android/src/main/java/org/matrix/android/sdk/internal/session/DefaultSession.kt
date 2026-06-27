@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.session
 
 import androidx.annotation.MainThread
 import dagger.Lazy
-import io.realm.RealmConfiguration
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -66,11 +65,8 @@ import org.matrix.android.sdk.api.session.widgets.WidgetService
 import org.matrix.android.sdk.api.util.appendParamToUrl
 import org.matrix.android.sdk.internal.auth.SSO_UIA_FALLBACK_PATH
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
-import org.matrix.android.sdk.internal.database.tools.RealmDebugTools
 import org.matrix.android.sdk.internal.di.Authenticated
-import org.matrix.android.sdk.internal.di.ContentScannerDatabase
 import org.matrix.android.sdk.internal.di.CryptoDatabase
-import org.matrix.android.sdk.internal.di.IdentityDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificate
@@ -87,10 +83,6 @@ internal class DefaultSession @Inject constructor(
         @SessionId
         override val sessionId: String,
         override val coroutineDispatchers: MatrixCoroutineDispatchers,
-        @SessionDatabase private val realmConfiguration: RealmConfiguration,
-        @CryptoDatabase private val realmConfigurationCrypto: RealmConfiguration,
-        @IdentityDatabase private val realmConfigurationIdentity: RealmConfiguration,
-        @ContentScannerDatabase private val realmConfigurationContentScanner: RealmConfiguration,
         private val lifecycleObservers: Set<@JvmSuppressWildcards SessionLifecycleObserver>,
         private val sessionListeners: SessionListeners,
         private val roomService: Lazy<RoomService>,
@@ -266,19 +258,6 @@ internal class DefaultSession @Inject constructor(
         }
     }
 
-    override fun getDbUsageInfo() = buildString {
-        append(RealmDebugTools(realmConfiguration).getInfo("Session"))
-        append(RealmDebugTools(realmConfigurationCrypto).getInfo("Crypto"))
-        append(RealmDebugTools(realmConfigurationIdentity).getInfo("Identity"))
-        append(RealmDebugTools(realmConfigurationContentScanner).getInfo("ContentScanner"))
-    }
+    override fun getDbUsageInfo() = "Session store: SQLite (SQLDelight)"
 
-    override fun getRealmConfigurations(): List<RealmConfiguration> {
-        return listOf(
-                realmConfiguration,
-                realmConfigurationCrypto,
-                realmConfigurationIdentity,
-                realmConfigurationContentScanner,
-        )
-    }
 }

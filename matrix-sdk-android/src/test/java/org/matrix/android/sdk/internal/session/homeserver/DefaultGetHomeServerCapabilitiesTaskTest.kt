@@ -11,8 +11,10 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.auth.data.AuthMetadata
 import org.matrix.android.sdk.api.auth.data.DelegatedAuthConfig
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
@@ -24,14 +26,16 @@ import org.matrix.android.sdk.internal.session.integrationmanager.IntegrationMan
 import org.matrix.android.sdk.internal.session.media.AuthenticatedMediaAPI
 import org.matrix.android.sdk.internal.session.media.UnauthenticatedMediaAPI
 import org.matrix.android.sdk.internal.wellknown.GetWellknownTask
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class DefaultGetHomeServerCapabilitiesTaskTest {
 
     private val capabilitiesAPI: CapabilitiesAPI = mockk()
     private val unauthenticatedMediaAPI: UnauthenticatedMediaAPI = mockk()
     private val authenticatedMediaAPI: AuthenticatedMediaAPI = mockk()
-    private val monarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
     private val globalErrorReceiver: GlobalErrorReceiver = mockk(relaxed = true)
     private val getWellknownTask: GetWellknownTask = mockk()
     private val configExtractor: IntegrationManagerConfigExtractor = mockk()
@@ -42,7 +46,9 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
             capabilitiesAPI,
             unauthenticatedMediaAPI,
             authenticatedMediaAPI,
-            monarchy.instance,
+            db.database,
+            db.dispatcher,
+            db.stores,
             globalErrorReceiver,
             getWellknownTask,
             configExtractor,
@@ -51,12 +57,16 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
             authMetadataAPI
     )
 
-    private val homeServerCapabilitiesEntity = HomeServerCapabilitiesEntity()
+    private fun persisted(): HomeServerCapabilitiesEntity = db.stores.homeServerCapabilities.get()!!
 
     @Before
     fun setUp() {
         coEvery { configExtractor.extract(any()) } returns null
-        monarchy.givenWhereReturns(result = homeServerCapabilitiesEntity)
+    }
+
+    @After
+    fun tearDown() {
+        db.close()
     }
 
     private val wellKnownWithoutDelegation = WellknownResult.Prompt(
@@ -104,9 +114,9 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
         task.execute(GetHomeServerCapabilitiesTask.Params(forceRefresh = false))
 
         // Then
-        homeServerCapabilitiesEntity.authenticationIssuer shouldBeEqualTo null
-        homeServerCapabilitiesEntity.externalAccountManagementUrl shouldBeEqualTo null
-        homeServerCapabilitiesEntity.externalAccountManagementSupportedActions shouldBeEqualTo null
+        persisted().authenticationIssuer shouldBeEqualTo null
+        persisted().externalAccountManagementUrl shouldBeEqualTo null
+        persisted().externalAccountManagementSupportedActions shouldBeEqualTo null
     }
 
     @Test
@@ -119,9 +129,9 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
         task.execute(GetHomeServerCapabilitiesTask.Params(forceRefresh = false))
 
         // Then
-        homeServerCapabilitiesEntity.authenticationIssuer shouldBeEqualTo "https://test1"
-        homeServerCapabilitiesEntity.externalAccountManagementUrl shouldBeEqualTo "https://test1/account"
-        homeServerCapabilitiesEntity.externalAccountManagementSupportedActions shouldBeEqualTo null
+        persisted().authenticationIssuer shouldBeEqualTo "https://test1"
+        persisted().externalAccountManagementUrl shouldBeEqualTo "https://test1/account"
+        persisted().externalAccountManagementSupportedActions shouldBeEqualTo null
     }
 
     @Test
@@ -134,9 +144,9 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
         task.execute(GetHomeServerCapabilitiesTask.Params(forceRefresh = false))
 
         // Then
-        homeServerCapabilitiesEntity.authenticationIssuer shouldBeEqualTo "https://test2"
-        homeServerCapabilitiesEntity.externalAccountManagementUrl shouldBeEqualTo "https://test2/account"
-        homeServerCapabilitiesEntity.externalAccountManagementSupportedActions shouldBeEqualTo "org.matrix.device_delete,org.matrix.profile"
+        persisted().authenticationIssuer shouldBeEqualTo "https://test2"
+        persisted().externalAccountManagementUrl shouldBeEqualTo "https://test2/account"
+        persisted().externalAccountManagementSupportedActions shouldBeEqualTo "org.matrix.device_delete,org.matrix.profile"
     }
 
     @Test
@@ -149,8 +159,8 @@ class DefaultGetHomeServerCapabilitiesTaskTest {
         task.execute(GetHomeServerCapabilitiesTask.Params(forceRefresh = false))
 
         // Then
-        homeServerCapabilitiesEntity.authenticationIssuer shouldBeEqualTo "https://test2"
-        homeServerCapabilitiesEntity.externalAccountManagementUrl shouldBeEqualTo null
-        homeServerCapabilitiesEntity.externalAccountManagementSupportedActions shouldBeEqualTo null
+        persisted().authenticationIssuer shouldBeEqualTo "https://test2"
+        persisted().externalAccountManagementUrl shouldBeEqualTo null
+        persisted().externalAccountManagementSupportedActions shouldBeEqualTo null
     }
 }

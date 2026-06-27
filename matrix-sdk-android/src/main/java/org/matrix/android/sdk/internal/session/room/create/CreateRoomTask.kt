@@ -16,8 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.create
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.RealmConfiguration
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.TimeoutCancellationException
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -26,11 +25,10 @@ import org.matrix.android.sdk.api.session.room.failure.CreateRoomFailure
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
-import org.matrix.android.sdk.internal.database.awaitNotEmptyResult
-import org.matrix.android.sdk.internal.database.awaitTransaction
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntityFields
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
+import org.matrix.android.sdk.internal.database.sqldelight.awaitNotEmptyResult
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
@@ -40,7 +38,6 @@ import org.matrix.android.sdk.internal.session.room.read.SetReadMarkersTask
 import org.matrix.android.sdk.internal.session.user.accountdata.DirectChatsHelper
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import org.matrix.android.sdk.internal.util.time.Clock
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -49,12 +46,13 @@ internal interface CreateRoomTask : Task<CreateRoomParams, String>
 
 internal class DefaultCreateRoomTask @Inject constructor(
         private val roomAPI: RoomAPI,
-        @SessionDatabase private val monarchy: Monarchy,
+        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        private val stores: SessionStores,
         private val aliasAvailabilityChecker: RoomAliasAvailabilityChecker,
         private val directChatsHelper: DirectChatsHelper,
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
         private val readMarkersTask: SetReadMarkersTask,
-        @SessionDatabase private val realmConfiguration: RealmConfiguration,
         private val createRoomBodyBuilder: CreateRoomBodyBuilder,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val clock: Clock,
@@ -92,17 +90,17 @@ internal class DefaultCreateRoomTask @Inject constructor(
         val roomId = createRoomResponse.roomId
         // Wait for room to come back from the sync (but it can maybe be in the DB if the sync response is received before)
         try {
-            awaitNotEmptyResult(realmConfiguration, TimeUnit.MINUTES.toMillis(1L)) { realm ->
-                realm.where(RoomSummaryEntity::class.java)
-                        .equalTo(RoomSummaryEntityFields.ROOM_ID, roomId)
-                        .equalTo(RoomSummaryEntityFields.MEMBERSHIP_STR, Membership.JOIN.name)
-            }
+            awaitNotEmptyResult(
+                    query = database.roomSummaryQueries.selectByRoomIdAndMembership(roomId, Membership.JOIN.name),
+                    timeoutMillis = TimeUnit.MINUTES.toMillis(1L),
+                    dispatcher = dispatcher,
+            )
         } catch (exception: TimeoutCancellationException) {
             throw CreateRoomFailure.CreatedWithTimeout(roomId)
         }
 
-        awaitTransaction(realmConfiguration) {
-            RoomSummaryEntity.where(it, roomId).findFirst()?.lastActivityTime = clock.epochMillis()
+        database.awaitDbTransaction(dispatcher) {
+            stores.roomSummary.updateLastActivityTime(roomId, clock.epochMillis())
         }
 
         handleDirectChatCreation(roomId, createRoomBody.getDirectUserId())
@@ -112,11 +110,8 @@ internal class DefaultCreateRoomTask @Inject constructor(
 
     private suspend fun handleDirectChatCreation(roomId: String, otherUserId: String?) {
         otherUserId ?: return // This is not a direct room
-        monarchy.awaitTransaction { realm ->
-            RoomSummaryEntity.where(realm, roomId).findFirst()?.apply {
-                this.directUserId = otherUserId
-                this.isDirect = true
-            }
+        database.awaitDbTransaction(dispatcher) {
+            stores.roomSummary.updateDirectInfo(roomId, isDirect = true, directUserId = otherUserId)
         }
         val directChats = directChatsHelper.getLocalDirectMessages()
         updateUserAccountDataTask.execute(UpdateUserAccountDataTask.DirectChatParams(directMessages = directChats))

@@ -19,7 +19,7 @@ package org.matrix.android.sdk.internal.crypto
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import io.realm.RealmConfiguration
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -61,9 +61,11 @@ import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.StoreSessionsData
 import org.matrix.android.sdk.internal.crypto.keysbackup.tasks.UpdateKeysBackupVersionTask
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreMigration
-import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreModule
+import org.matrix.android.sdk.internal.crypto.store.db.sql.CryptoSqlDatabase
+import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlClearCacheTask
+import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlCryptoStore
+import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.crypto.tasks.ClaimOneTimeKeysForUsersDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultClaimOneTimeKeysForUsersDevice
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultDeleteDeviceTask
@@ -93,13 +95,10 @@ import org.matrix.android.sdk.internal.crypto.tasks.UploadKeysTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadSignaturesTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadSigningKeysTask
 import org.matrix.android.sdk.internal.crypto.verification.DefaultVerificationService
-import org.matrix.android.sdk.internal.database.RealmKeysUtils
 import org.matrix.android.sdk.internal.di.CryptoDatabase
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
-import org.matrix.android.sdk.internal.di.UserMd5
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.cache.ClearCacheTask
-import org.matrix.android.sdk.internal.session.cache.RealmClearCacheTask
 import retrofit2.Retrofit
 import java.io.File
 
@@ -114,23 +113,20 @@ internal abstract class CryptoModule {
         @Provides
         @CryptoDatabase
         @SessionScope
-        fun providesRealmConfiguration(
+        fun providesCryptoSqlDatabase(
                 @SessionFilesDirectory directory: File,
-                @UserMd5 userMd5: String,
-                realmKeysUtils: RealmKeysUtils,
-                realmCryptoStoreMigration: RealmCryptoStoreMigration
-        ): RealmConfiguration {
-            return RealmConfiguration.Builder()
-                    .directory(directory)
-                    .apply {
-                        realmKeysUtils.configureEncryption(this, getKeyAlias(userMd5))
-                    }
-                    .name("crypto_store.realm")
-                    .modules(RealmCryptoStoreModule())
-                    .allowWritesOnUiThread(true)
-                    .schemaVersion(realmCryptoStoreMigration.schemaVersion)
-                    .migration(realmCryptoStoreMigration)
-                    .build()
+        ): CryptoSqlDatabase {
+            return CryptoSqlDatabase(
+                    FrameworkSqliteDriver.create(File(directory, "crypto_store.db"), CryptoSqlDatabase.Schema)
+            )
+        }
+
+        @JvmStatic
+        @Provides
+        @CryptoDatabase
+        @SessionScope
+        fun providesCryptoDbDispatcher(): CoroutineDispatcher {
+            return newDatabaseDispatcher("matrix-crypto-db")
         }
 
         @JvmStatic
@@ -143,8 +139,8 @@ internal abstract class CryptoModule {
         @JvmStatic
         @Provides
         @CryptoDatabase
-        fun providesClearCacheTask(@CryptoDatabase realmConfiguration: RealmConfiguration): ClearCacheTask {
-            return RealmClearCacheTask(realmConfiguration)
+        fun providesClearCacheTask(@CryptoDatabase database: CryptoSqlDatabase): ClearCacheTask {
+            return SqlClearCacheTask(database)
         }
 
         @JvmStatic
@@ -253,10 +249,10 @@ internal abstract class CryptoModule {
     abstract fun bindVerificationService(service: DefaultVerificationService): VerificationService
 
     @Binds
-    abstract fun bindCryptoStore(store: RealmCryptoStore): IMXCryptoStore
+    abstract fun bindCryptoStore(store: SqlCryptoStore): IMXCryptoStore
 
     @Binds
-    abstract fun bindCommonCryptoStore(store: RealmCryptoStore): IMXCommonCryptoStore
+    abstract fun bindCommonCryptoStore(store: SqlCryptoStore): IMXCommonCryptoStore
 
     @Binds
     abstract fun bindSendEventTask(task: DefaultSendEventTask): SendEventTask

@@ -1,0 +1,61 @@
+CREATE TABLE cross_signing_info (
+    user_id TEXT NOT NULL PRIMARY KEY,
+    was_user_verified_once INTEGER NOT NULL DEFAULT 0
+);
+
+-- KeyInfoEntity rows, one-to-many under a user's cross_signing_info (FK cross_signing_user_id).
+-- usages (RealmList<String>) is stored newline-joined; the nested TrustLevelEntity is flattened.
+CREATE TABLE key_info (
+    id INTEGER PRIMARY KEY,
+    cross_signing_user_id TEXT NOT NULL,
+    public_key_base64 TEXT,
+    usages TEXT,
+    signatures TEXT,
+    has_trust_level INTEGER NOT NULL DEFAULT 0,
+    trust_cross_signed_verified INTEGER,
+    trust_locally_verified INTEGER
+);
+
+CREATE INDEX key_info_user ON key_info(cross_signing_user_id);
+
+-- cross_signing_info
+xsignSelectByUserId:
+SELECT * FROM cross_signing_info WHERE user_id = ?;
+
+xsignSelectAll:
+SELECT * FROM cross_signing_info;
+
+xsignSelectAllUserIds:
+SELECT user_id FROM cross_signing_info;
+
+xsignInsertIgnore:
+INSERT OR IGNORE INTO cross_signing_info(user_id) VALUES (?);
+
+xsignSetVerifiedOnce:
+UPDATE cross_signing_info SET was_user_verified_once = 1 WHERE user_id = ?;
+
+xsignDelete:
+DELETE FROM cross_signing_info WHERE user_id = ?;
+
+-- key_info
+keyInfoSelectByUser:
+SELECT * FROM key_info WHERE cross_signing_user_id = ?;
+
+keyInfoInsert:
+INSERT INTO key_info(cross_signing_user_id, public_key_base64, usages, signatures, has_trust_level, trust_cross_signed_verified, trust_locally_verified)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+keyInfoDeleteByUser:
+DELETE FROM key_info WHERE cross_signing_user_id = ?;
+
+keyInfoUpdateTrustByUser:
+UPDATE key_info SET has_trust_level = 1, trust_cross_signed_verified = ?, trust_locally_verified = ?
+WHERE cross_signing_user_id = ?;
+
+keyInfoClearTrustForOthers:
+UPDATE key_info SET has_trust_level = 0, trust_cross_signed_verified = NULL, trust_locally_verified = NULL
+WHERE cross_signing_user_id != ?;
+
+keyInfoUpdateLocalTrustById:
+UPDATE key_info SET has_trust_level = 1, trust_locally_verified = ?
+WHERE id = ?;

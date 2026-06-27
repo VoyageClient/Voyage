@@ -16,24 +16,20 @@
 
 package org.matrix.android.sdk.internal.session.room.read
 
-import com.zhuinden.monarchy.Monarchy
-import io.realm.Realm
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
-import org.matrix.android.sdk.internal.database.query.isEventRead
-import org.matrix.android.sdk.internal.database.query.isReadMarkerMoreRecent
-import org.matrix.android.sdk.internal.database.query.latestEvent
-import org.matrix.android.sdk.internal.database.query.where
+import org.matrix.android.sdk.internal.database.sql.store.isEventRead
+import org.matrix.android.sdk.internal.database.sql.store.isReadMarkerMoreRecent
+import org.matrix.android.sdk.internal.database.sql.store.latestSyncedEventId
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
-import org.matrix.android.sdk.internal.session.sync.handler.room.ReadReceiptHandler
-import org.matrix.android.sdk.internal.session.sync.handler.room.RoomFullyReadHandler
+import org.matrix.android.sdk.internal.session.sync.handler.room.SqlReadReceiptHandler
 import org.matrix.android.sdk.internal.task.Task
-import org.matrix.android.sdk.internal.util.awaitTransaction
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
@@ -60,9 +56,11 @@ internal interface SetReadMarkersTask : Task<SetReadMarkersTask.Params, Unit> {
 private const val READ_MARKER = "m.fully_read"
 
 internal class DefaultSetReadMarkersTask @Inject constructor(
-        @SessionDatabase private val monarchy: Monarchy,
-        private val roomFullyReadHandler: RoomFullyReadHandler,
-        private val readReceiptHandler: ReadReceiptHandler,
+        @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
+        @SessionDatabase private val sessionDbDispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
+        private val roomFullyReadHandler: org.matrix.android.sdk.internal.session.sync.handler.room.SqlRoomFullyReadHandler,
+        private val readReceiptHandler: org.matrix.android.sdk.internal.session.sync.handler.room.SqlReadReceiptHandler,
         @UserId private val userId: String,
         private val readReceiptQueue: ReadReceiptQueue,
         private val clock: Clock,
@@ -87,7 +85,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
         }
         val readReceiptType = if (params.publicReadReceipt) "m.read" else "m.read.private"
 
-        if (fullyReadEventId != null && !isReadMarkerMoreRecent(monarchy.realmConfiguration, params.roomId, fullyReadEventId)) {
+        if (fullyReadEventId != null && !stores.isReadMarkerMoreRecent(params.roomId, fullyReadEventId)) {
             if (LocalEcho.isLocalEchoId(fullyReadEventId)) {
                 Timber.w("Can't set read marker for local event $fullyReadEventId")
             } else {
@@ -95,11 +93,8 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
             }
         }
 
-        val shouldCheckIfReadInEventsThread = readReceiptThreadId != null &&
-                homeServerCapabilitiesService.getHomeServerCapabilities().canUseThreadReadReceiptsAndNotifications
-
         if (readReceiptEventId != null &&
-                !isEventRead(monarchy.realmConfiguration, userId, params.roomId, readReceiptEventId, shouldCheckIfReadInEventsThread)) {
+                !stores.isEventRead(userId, params.roomId, readReceiptEventId)) {
             if (LocalEcho.isLocalEchoId(readReceiptEventId)) {
                 Timber.w("Can't set read receipt for local event $readReceiptEventId")
             } else {
@@ -124,10 +119,7 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
         }
     }
 
-    private fun latestSyncedEventId(roomId: String): String? =
-            Realm.getInstance(monarchy.realmConfiguration).use { realm ->
-                TimelineEventEntity.latestEvent(realm, roomId = roomId, includesSending = false)?.eventId
-            }
+    private fun latestSyncedEventId(roomId: String): String? = stores.latestSyncedEventId(roomId)
 
     private suspend fun updateDatabase(
             roomId: String,
@@ -136,22 +128,18 @@ internal class DefaultSetReadMarkersTask @Inject constructor(
             shouldUpdateRoomSummary: Boolean,
             readReceiptType: String,
     ) {
-        monarchy.awaitTransaction { realm ->
+        database.awaitDbTransaction(sessionDbDispatcher) {
             val readMarkerId = markers[READ_MARKER]
             val readReceiptId = markers[readReceiptType]
             if (readMarkerId != null) {
-                roomFullyReadHandler.handle(realm, roomId, FullyReadContent(readMarkerId))
+                roomFullyReadHandler.handle(stores, roomId, FullyReadContent(readMarkerId))
             }
             if (readReceiptId != null) {
-                val readReceiptContent = ReadReceiptHandler.createContent(userId, readReceiptId, readReceiptThreadId, clock.epochMillis())
-                readReceiptHandler.handle(realm, roomId, readReceiptContent, false, null)
+                val readReceiptContent = SqlReadReceiptHandler.createContent(userId, readReceiptId, readReceiptThreadId, clock.epochMillis())
+                readReceiptHandler.handle(stores, roomId, readReceiptContent, false, null)
             }
             if (shouldUpdateRoomSummary) {
-                val roomSummary = RoomSummaryEntity.where(realm, roomId).findFirst()
-                        ?: return@awaitTransaction
-                roomSummary.notificationCount = 0
-                roomSummary.highlightCount = 0
-                roomSummary.hasUnreadMessages = false
+                stores.roomSummary.clearUnreadCounters(roomId)
             }
         }
     }

@@ -16,13 +16,12 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmObject
 
 internal open class DraftEntity(
         var content: String = "",
         var draftMode: String = MODE_REGULAR,
         var linkedEventId: String = ""
-) : RealmObject() {
+) {
 
     companion object {
         const val MODE_REGULAR = "REGULAR"

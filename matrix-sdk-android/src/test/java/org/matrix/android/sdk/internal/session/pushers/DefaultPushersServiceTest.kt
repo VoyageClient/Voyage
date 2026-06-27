@@ -19,22 +19,26 @@ package org.matrix.android.sdk.internal.session.pushers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import org.junit.After
+import org.junit.runner.RunWith
 import org.matrix.android.sdk.test.fakes.FakeAddPusherTask
 import org.matrix.android.sdk.test.fakes.FakeGetPushersTask
-import org.matrix.android.sdk.test.fakes.FakeMonarchy
 import org.matrix.android.sdk.test.fakes.FakeRemovePusherTask
+import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.matrix.android.sdk.test.fakes.FakeTaskExecutor
 import org.matrix.android.sdk.test.fakes.FakeTogglePusherTask
 import org.matrix.android.sdk.test.fakes.FakeWorkManagerConfig
 import org.matrix.android.sdk.test.fakes.FakeWorkManagerProvider
 import org.matrix.android.sdk.test.fakes.internal.FakePushGatewayNotifyTask
 import org.matrix.android.sdk.test.fixtures.PusherFixture
+import org.robolectric.RobolectricTestRunner
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
 class DefaultPushersServiceTest {
 
     private val workManagerProvider = FakeWorkManagerProvider()
-    private val monarchy = FakeMonarchy()
+    private val db = FakeSessionDatabase()
     private val sessionId = ""
     private val getPushersTask = FakeGetPushersTask()
     private val pushGatewayNotifyTask = FakePushGatewayNotifyTask()
@@ -46,7 +50,9 @@ class DefaultPushersServiceTest {
 
     private val pushersService = DefaultPushersService(
             workManagerProvider.instance,
-            monarchy.instance,
+            db.database,
+            db.dispatcher,
+            db.stores,
             sessionId,
             getPushersTask,
             pushGatewayNotifyTask,
@@ -56,6 +62,11 @@ class DefaultPushersServiceTest {
             taskExecutor.instance,
             fakeWorkManagerConfig,
     )
+
+    @After
+    fun tearDown() {
+        db.close()
+    }
 
     @Test
     fun `when togglePusher, then execute task`() = runTest {

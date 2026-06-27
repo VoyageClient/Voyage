@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import io.realm.RealmObject
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 
 internal open class HomeServerCapabilitiesEntity(
@@ -40,7 +39,7 @@ internal open class HomeServerCapabilitiesEntity(
         var authenticationIssuer: String? = null,
         var disableNetworkConstraint: Boolean? = null,
         var canUseAuthenticatedMedia: Boolean = false,
-) : RealmObject() {
+) {
 
     companion object
 }

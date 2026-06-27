@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.api.session
 
 import androidx.annotation.MainThread
-import io.realm.RealmConfiguration
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.data.SessionParams
@@ -326,8 +325,4 @@ interface Session {
      */
     fun getDbUsageInfo(): String
 
-    /**
-     * Debug API, return the list of all RealmConfiguration used by this session.
-     */
-    fun getRealmConfigurations(): List<RealmConfiguration>
 }

@@ -1,0 +1,146 @@
+-- RoomSummaryEntity. RealmList<String> fields (heroes, other_member_ids, aliases, direct_parent_names)
+-- are stored newline-joined. Enums stored as their *_str columns. latest_previewable_event and
+-- direct_user_presence are FK references (event_id / user_id). Child lists (tags, drafts, parents,
+-- children) live in room_tag / draft / space_parent_summary / space_child_summary keyed by room_id.
+CREATE TABLE room_summary (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    room_type TEXT,
+    display_name TEXT,
+    normalized_display_name TEXT,
+    avatar_url TEXT,
+    name TEXT,
+    topic TEXT,
+    latest_previewable_event_id TEXT,
+    last_activity_time INTEGER,
+    heroes TEXT NOT NULL DEFAULT '',
+    joined_members_count INTEGER,
+    invited_members_count INTEGER,
+    is_direct INTEGER NOT NULL DEFAULT 0,
+    direct_user_id TEXT,
+    other_member_ids TEXT NOT NULL DEFAULT '',
+    notification_count INTEGER NOT NULL DEFAULT 0,
+    highlight_count INTEGER NOT NULL DEFAULT 0,
+    thread_notification_count INTEGER NOT NULL DEFAULT 0,
+    thread_highlight_count INTEGER NOT NULL DEFAULT 0,
+    read_marker_id TEXT,
+    has_unread_messages INTEGER NOT NULL DEFAULT 0,
+    marked_unread INTEGER NOT NULL DEFAULT 0,
+    is_favourite INTEGER NOT NULL DEFAULT 0,
+    is_low_priority INTEGER NOT NULL DEFAULT 0,
+    is_server_notice INTEGER NOT NULL DEFAULT 0,
+    breadcrumbs_index INTEGER NOT NULL DEFAULT -1,
+    canonical_alias TEXT,
+    aliases TEXT NOT NULL DEFAULT '',
+    flat_aliases TEXT NOT NULL DEFAULT '',
+    is_encrypted INTEGER NOT NULL DEFAULT 0,
+    e2e_algorithm TEXT,
+    encryption_event_ts INTEGER,
+    room_encryption_trust_level_str TEXT,
+    inviter_id TEXT,
+    direct_user_presence_user_id TEXT,
+    has_failed_sending INTEGER NOT NULL DEFAULT 0,
+    flatten_parent_ids TEXT,
+    membership_str TEXT NOT NULL DEFAULT 'NONE',
+    is_hidden_from_user INTEGER NOT NULL DEFAULT 0,
+    versioning_state_str TEXT NOT NULL DEFAULT 'NONE',
+    join_rules_str TEXT,
+    direct_parent_names TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX room_summary_last_activity_time ON room_summary(last_activity_time);
+CREATE INDEX room_summary_is_direct ON room_summary(is_direct);
+CREATE INDEX room_summary_is_favourite ON room_summary(is_favourite);
+CREATE INDEX room_summary_is_low_priority ON room_summary(is_low_priority);
+CREATE INDEX room_summary_is_server_notice ON room_summary(is_server_notice);
+CREATE INDEX room_summary_membership ON room_summary(membership_str);
+CREATE INDEX room_summary_is_hidden ON room_summary(is_hidden_from_user);
+CREATE INDEX room_summary_versioning_state ON room_summary(versioning_state_str);
+
+selectByRoomId:
+SELECT * FROM room_summary WHERE room_id = ?;
+
+selectAll:
+SELECT * FROM room_summary;
+
+selectByAlias:
+SELECT * FROM room_summary WHERE canonical_alias = ? OR flat_aliases LIKE ('%|' || ? || '%') LIMIT 1;
+
+selectByRoomIdAndMembership:
+SELECT room_id FROM room_summary WHERE room_id = ? AND membership_str = ?;
+
+selectByCanonicalAliasAndMembership:
+SELECT room_id FROM room_summary WHERE canonical_alias = ? AND membership_str = ?;
+
+selectByRoomIdAndInvitedCount:
+SELECT room_id FROM room_summary WHERE room_id = ? AND invited_members_count = ?;
+
+selectDirectRooms:
+SELECT room_id, direct_user_id, membership_str FROM room_summary WHERE is_direct = 1;
+
+selectRoomMembershipInfo:
+SELECT room_id, membership_str, other_member_ids FROM room_summary;
+
+selectRoomIdsWithPreviewFromSenders:
+SELECT rs.room_id FROM room_summary rs
+JOIN event e ON e.room_id = rs.room_id AND e.event_id = rs.latest_previewable_event_id
+WHERE e.sender IN ?;
+
+selectInviteRoomIdsByInviters:
+SELECT room_id FROM room_summary WHERE membership_str = ? AND inviter_id IN ?;
+
+updateHiddenFromUser:
+UPDATE room_summary SET is_hidden_from_user = ? WHERE room_id = ?;
+
+upsert:
+INSERT OR REPLACE INTO room_summary(
+    room_id, room_type, display_name, normalized_display_name, avatar_url, name, topic,
+    latest_previewable_event_id, last_activity_time, heroes, joined_members_count, invited_members_count,
+    is_direct, direct_user_id, other_member_ids, notification_count, highlight_count,
+    thread_notification_count, thread_highlight_count, read_marker_id, has_unread_messages, marked_unread,
+    is_favourite, is_low_priority, is_server_notice, breadcrumbs_index, canonical_alias, aliases,
+    flat_aliases, is_encrypted, e2e_algorithm, encryption_event_ts, room_encryption_trust_level_str,
+    inviter_id, direct_user_presence_user_id, has_failed_sending, flatten_parent_ids, membership_str,
+    is_hidden_from_user, versioning_state_str, join_rules_str, direct_parent_names
+) VALUES (
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?
+);
+
+updateEncryptionTrustLevel:
+UPDATE room_summary SET room_encryption_trust_level_str = ? WHERE room_id = ?;
+
+updateDirectInfo:
+UPDATE room_summary SET is_direct = ?, direct_user_id = ? WHERE room_id = ?;
+
+updateLastActivityTime:
+UPDATE room_summary SET last_activity_time = ? WHERE room_id = ?;
+
+updateDirectUserPresence:
+UPDATE room_summary SET direct_user_presence_user_id = ? WHERE direct_user_id = ?;
+
+insertEmptyIfAbsent:
+INSERT OR IGNORE INTO room_summary(room_id) VALUES (?);
+
+updateTagFlags:
+UPDATE room_summary SET is_favourite = ?, is_low_priority = ?, is_server_notice = ? WHERE room_id = ?;
+
+updateReadMarkerId:
+UPDATE room_summary SET read_marker_id = ? WHERE room_id = ?;
+
+updateMarkedUnread:
+UPDATE room_summary SET marked_unread = ? WHERE room_id = ?;
+
+clearUnreadCounters:
+UPDATE room_summary SET notification_count = 0, highlight_count = 0, has_unread_messages = 0 WHERE room_id = ?;
+
+resetBreadcrumbsIndex:
+UPDATE room_summary SET breadcrumbs_index = -1 WHERE breadcrumbs_index > -1;
+
+updateBreadcrumbsIndex:
+UPDATE room_summary SET breadcrumbs_index = ? WHERE room_id = ?;
+
+deleteByRoomId:
+DELETE FROM room_summary WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM room_summary;

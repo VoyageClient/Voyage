@@ -24,6 +24,7 @@ import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.session.sync.FetchUnignoredContentTask
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.toMutable
@@ -42,6 +43,8 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         private val updateTrustWorkerDataRepository: UpdateTrustWorkerDataRepository,
         private val workManagerProvider: WorkManagerProvider,
         private val roomShieldSummaryUpdater: ShieldSummaryUpdater,
+        // Lazy breaks the SyncResponseHandler -> this -> FetchUnignoredContentTask -> SyncResponseHandler cycle.
+        private val fetchUnignoredContentTask: dagger.Lazy<FetchUnignoredContentTask>,
         @SessionId private val sessionId: String,
 ) {
     suspend fun handle(aggregator: SyncResponsePostTreatmentAggregator) {
@@ -49,6 +52,14 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         updateDirectUserIds(aggregator.directChatsToCheck)
         fetchAndUpdateUsers(aggregator.userIdsToFetch)
         handleRefreshRoomShieldsForRooms(aggregator.roomsWithMembershipChangesForShieldUpdate)
+        fetchUnignoredContentIfNeeded(aggregator.unIgnoredUserIds)
+    }
+
+    private suspend fun fetchUnignoredContentIfNeeded(unIgnoredUserIds: Set<String>) {
+        if (unIgnoredUserIds.isEmpty()) return
+        tryOrNull("Unable to recover content after un-ignore") {
+            fetchUnignoredContentTask.get().execute(FetchUnignoredContentTask.Params(unIgnoredUserIds.toList()))
+        }
     }
 
     private fun cleanupEphemeralFiles(ephemeralFilesToDelete: List<String>) {

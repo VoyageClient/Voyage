@@ -1,0 +1,32 @@
+-- CurrentStateEventEntity: current room state, keyed by (room_id, type, state_key). The root
+-- EventEntity is referenced by root_event_id (FK into event by event_id within the room).
+CREATE TABLE current_state_event (
+    room_id TEXT NOT NULL,
+    type TEXT NOT NULL DEFAULT '',
+    state_key TEXT NOT NULL DEFAULT '',
+    event_id TEXT NOT NULL DEFAULT '',
+    root_event_id TEXT,
+    PRIMARY KEY (room_id, type, state_key)
+);
+
+CREATE INDEX current_state_event_room ON current_state_event(room_id);
+CREATE INDEX current_state_event_type ON current_state_event(type);
+
+selectByRoom:
+SELECT * FROM current_state_event WHERE room_id = ?;
+
+selectByRoomAndType:
+SELECT * FROM current_state_event WHERE room_id = ? AND type = ?;
+
+selectOne:
+SELECT * FROM current_state_event WHERE room_id = ? AND type = ? AND state_key = ?;
+
+upsert:
+INSERT OR REPLACE INTO current_state_event(room_id, type, state_key, event_id, root_event_id)
+VALUES (?, ?, ?, ?, ?);
+
+deleteByRoom:
+DELETE FROM current_state_event WHERE room_id = ?;
+
+deleteAll:
+DELETE FROM current_state_event;

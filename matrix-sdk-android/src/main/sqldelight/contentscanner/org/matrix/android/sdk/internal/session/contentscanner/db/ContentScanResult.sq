@@ -1,0 +1,39 @@
+CREATE TABLE content_scan_result_entity (
+    media_url TEXT,
+    scan_status_string TEXT,
+    human_readable_message TEXT,
+    scan_date_timestamp INTEGER,
+    scanner_url TEXT
+);
+
+CREATE INDEX content_scan_result_media_url ON content_scan_result_entity(media_url);
+
+-- scanner_url IS ? is null-safe, matching Realm's equalTo(SCANNER_URL, value) including the null case.
+selectByMediaAndScanner:
+SELECT *
+FROM content_scan_result_entity
+WHERE media_url = ? AND scanner_url IS ?
+LIMIT 1;
+
+selectByMedia:
+SELECT *
+FROM content_scan_result_entity
+WHERE media_url = ?
+LIMIT 1;
+
+insert:
+INSERT INTO content_scan_result_entity(media_url, scan_status_string, human_readable_message, scan_date_timestamp, scanner_url)
+VALUES (?, ?, ?, ?, ?);
+
+updateState:
+UPDATE content_scan_result_entity
+SET scan_status_string = ?
+WHERE media_url = ? AND scanner_url IS ?;
+
+updateResult:
+UPDATE content_scan_result_entity
+SET scan_status_string = ?, scan_date_timestamp = ?, human_readable_message = ?
+WHERE media_url = ? AND scanner_url IS ?;
+
+deleteAll:
+DELETE FROM content_scan_result_entity;

@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
-apply plugin: 'realm-android'
+apply plugin: 'app.cash.sqldelight'
 apply plugin: "org.jetbrains.dokka"
 
 if (project.hasProperty("coverage")) {
@@ -17,7 +17,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.realm:realm-gradle-plugin:10.19.0"
+        classpath "app.cash.sqldelight:gradle-plugin:2.0.2"
     }
 }
 
@@ -156,6 +156,45 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
+// SQLDelight databases. Each maps to one of the legacy Realm databases and is driven by the
+// custom FrameworkSqliteDriver (raw android.database.sqlite, no androidx.sqlite floor). The
+// dialect is pinned to the lowest SQLDelight offers (3.18); .sq files are authored within the
+// SQLite 3.6 feature set so the schema runs on very old Android.
+sqldelight {
+    databases {
+        GlobalSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.database.global"
+            srcDirs.setFrom("src/main/sqldelight/global")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        AuthSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.auth.db"
+            srcDirs.setFrom("src/main/sqldelight/auth")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        IdentitySqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.session.identity.db"
+            srcDirs.setFrom("src/main/sqldelight/identity")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        ContentScannerSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.session.contentscanner.db"
+            srcDirs.setFrom("src/main/sqldelight/contentscanner")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        CryptoSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.crypto.store.db.sql"
+            srcDirs.setFrom("src/main/sqldelight/crypto")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        SessionSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.database.sql"
+            srcDirs.setFrom("src/main/sqldelight/session")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+    }
+}
+
 dependencies {
     implementation libs.jetbrains.coroutinesCore
     implementation libs.jetbrains.coroutinesAndroid
@@ -191,9 +230,13 @@ dependencies {
     implementation libs.vanniktech.blurhash
 
     // Database
-    implementation 'com.github.Zhuinden:realm-monarchy:0.7.1'
 
-    kapt project(":library:external:realmfieldnameshelper")
+    // Paging 2 — public API exposes PagedList; was previously pulled in transitively via realm-monarchy.
+    implementation libs.androidx.pagingRuntimeKtx
+
+    // SQLDelight (replacing Realm). runtime = generated-code support; coroutines-extensions = asFlow/mapToList.
+    implementation "app.cash.sqldelight:runtime:2.0.2"
+    implementation "app.cash.sqldelight:coroutines-extensions:2.0.2"
 
     // Shared Preferences
     implementation libs.androidx.preferenceKtx
