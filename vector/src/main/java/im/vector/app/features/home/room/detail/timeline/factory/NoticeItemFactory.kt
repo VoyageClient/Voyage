@@ -36,7 +36,9 @@ class NoticeItemFactory @Inject constructor(
                     params.callback?.onEventLongClicked(informationData, null, view) ?: false
                 },
                 readReceiptsCallback = params.callback,
-                avatarClickListener = { params.callback?.onAvatarClicked(informationData) }
+                avatarClickListener = { params.callback?.onAvatarClicked(informationData) },
+                reactionPillCallback = params.callback,
+                reactionsSummaryEvents = params.reactionsSummaryEvents,
         )
         return NoticeItem_()
                 .leftGuideline(avatarSizeProvider.leftGuideline)

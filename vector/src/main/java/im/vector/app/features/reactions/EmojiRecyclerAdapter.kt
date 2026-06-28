@@ -10,6 +10,7 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.text.Layout
 import android.text.StaticLayout
+import androidx.emoji2.text.EmojiCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -215,19 +216,39 @@ class EmojiRecyclerAdapter @Inject constructor() :
 
         private fun getStaticLayoutForEmoji(emoji: String): StaticLayout {
             return staticLayoutCache.getOrPut(emoji) {
-                // Lay out at the text's natural width (single line) so multi-emoji / text reactions
-                // ("👌😂", "hello") aren't wrapped/clipped; EmojiDrawView scales them down to fit the cell.
-                val width = kotlin.math.ceil(EmojiDrawView.tPaint.measureText(emoji)).toInt().coerceAtLeast(EmojiDrawView.emojiSize)
+                // Process through EmojiCompat so the grid uses the bundled font like the composer does (else
+                // it falls back to the system font). No-op when EmojiCompat isn't loaded (e.g. Twemoji mode).
+                val source = emojiCompatProcess(emoji)
+                // Single-line natural width so multi-glyph reactions aren't wrapped/clipped (EmojiDrawView
+                // scales to fit). Measure the PROCESSED source — getDesiredWidth accounts for its spans.
+                val width = kotlin.math.ceil(Layout.getDesiredWidth(source, EmojiDrawView.tPaint)).toInt().coerceAtLeast(EmojiDrawView.emojiSize)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    StaticLayout.Builder.obtain(emoji, 0, emoji.length, EmojiDrawView.tPaint, width)
+                    StaticLayout.Builder.obtain(source, 0, source.length, EmojiDrawView.tPaint, width)
                             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
                             .setLineSpacing(0f, 1f)
                             .setIncludePad(true)
                             .build()
                 } else {
                     @Suppress("DEPRECATION")
-                    StaticLayout(emoji, EmojiDrawView.tPaint, width, Layout.Alignment.ALIGN_NORMAL, 1f, 0f, true)
+                    StaticLayout(source, EmojiDrawView.tPaint, width, Layout.Alignment.ALIGN_NORMAL, 1f, 0f, true)
                 }
+            }
+        }
+
+        private fun emojiCompatProcess(emoji: String): CharSequence {
+            return try {
+                if (EmojiCompat.isConfigured()) {
+                    val emojiCompat = EmojiCompat.get()
+                    if (emojiCompat.loadState == EmojiCompat.LOAD_STATE_SUCCEEDED) {
+                        emojiCompat.process(emoji) ?: emoji
+                    } else {
+                        emoji
+                    }
+                } else {
+                    emoji
+                }
+            } catch (throwable: Throwable) {
+                emoji
             }
         }
     }

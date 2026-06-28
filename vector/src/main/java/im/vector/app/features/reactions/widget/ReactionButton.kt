@@ -7,7 +7,9 @@
 package im.vector.app.features.reactions.widget
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.ContextThemeWrapper
@@ -18,6 +20,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -31,6 +34,7 @@ import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.layoutDirectionCompat
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.TextUtils
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.databinding.ReactionButtonBinding
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import javax.inject.Inject
@@ -85,6 +89,7 @@ class ReactionButton @JvmOverloads constructor(
         context.withStyledAttributes(attrs, im.vector.lib.ui.styles.R.styleable.ReactionButton, defStyleAttr) {
             onDrawable = ContextCompat.getDrawable(context, R.drawable.reaction_rounded_rect_shape)
             offDrawable = ContextCompat.getDrawable(context, R.drawable.reaction_rounded_rect_shape_off)
+            tintOnDrawableFillToAccent()
             getString(im.vector.lib.ui.styles.R.styleable.ReactionButton_emoji)?.let {
                 reactionString = it
             }
@@ -95,6 +100,16 @@ class ReactionButton @JvmOverloads constructor(
 
         setOnClickListener(this)
         setOnLongClickListener(this)
+    }
+
+    // The themed "on" fill is a fixed element-green; recolour the solid (not the stroke) to the accent,
+    // keeping the theme's alpha, so the highlight matches the outline.
+    private fun tintOnDrawableFillToAccent() {
+        val drawable = onDrawable?.mutate() as? GradientDrawable ?: return
+        val themedFill = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_reaction_background_on)
+        val accent = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorPrimary)
+        drawable.setColor(ColorUtils.setAlphaComponent(accent, Color.alpha(themedFill)))
+        onDrawable = drawable
     }
 
     private fun applyReactionContent(value: String) {

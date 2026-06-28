@@ -85,9 +85,13 @@ class StickerPickerBottomSheet :
         views.stickerPickerRecyclerView.pauseImageAnimationsWhileScrolling()
         controller.listener = this
 
-        val frequent = recentStickerDataSource.getRecentStickersSnapshot()
         val packs = ImagePackUsageFilter.stickerPacks(imagePackProvider.getEnabledImagePacks(pickerArgs.roomId))
                 .filter { it.images.isNotEmpty() }
+        val validStickerMxcs = packs.flatMapTo(HashSet()) { pack -> pack.images.map { it.mxcUrl } }
+        // Drop deleted stickers from both the displayed list and the remote recent_stickers account data.
+        recentStickerDataSource.pruneToValidMxcs(validStickerMxcs)
+        val frequent = recentStickerDataSource.getRecentStickersSnapshot()
+                .filter { it.mxcUrl in validStickerMxcs }
 
         controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs))
         setupTabs(frequent, packs, layoutManager)

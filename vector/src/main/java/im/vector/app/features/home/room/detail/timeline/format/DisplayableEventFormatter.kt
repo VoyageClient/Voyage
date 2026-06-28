@@ -326,7 +326,8 @@ class DisplayableEventFormatter @Inject constructor(
         // SpannableStringBuilder (not the gujun span DSL) so [body]'s emote ReplacementSpans are preserved.
         return android.text.SpannableStringBuilder().apply {
             val start = length
-            append(senderName)
+            // Isolate the sender name so an RTL name doesn't flip the whole "Name: message" line to RTL.
+            append(androidx.core.text.BidiFormatter.getInstance().unicodeWrap(senderName))
             setSpan(
                     android.text.style.ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)),
                     start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE

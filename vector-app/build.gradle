@@ -224,24 +224,9 @@ android {
             resValue "string", "app_name", "Voyage - dbg"
             buildConfigField "boolean", "IS_DEBUG_VARIANT", "true"
 
-            // R8 disables ALL code optimization for debuggable builds, so to let optimizeCode below cut
-            // the method/class count (needed to fit Dalvik's 8MB LinearAlloc on ICS) this build must be
-            // non-debuggable. logcat still works; we lose only JDWP debugger attach. BuildConfig.DEBUG
-            // becomes false, which also trims debug-only class loading.
-            debuggable false
-
-            // ICS/Dalvik has a fixed 8MB LinearAlloc (class/method metadata); the unshrunk class set
-            // (notably the huge Hilt components) overflows it. Shrinking alone wasn't enough at the home
-            // screen, so optimization is enabled too to cut the method/class count further. Obfuscation
-            // stays off so crash reports remain readable. R8 runs in compat mode (enableR8.fullMode=false)
-            // and -keepattributes Signature is set so reflection (Moshi/Hilt/Epoxy/Mavericks) survives.
-            postprocessing {
-                removeUnusedCode true
-                removeUnusedResources true
-                obfuscate false
-                optimizeCode true
-                proguardFiles 'proguard-rules.pro'
-            }
+            // Fast iteration: no R8, fully debuggable. Runs on KitKat+; ICS needs installRelease (the
+            // unshrunk class set overflows ICS's 8MB Dalvik LinearAlloc).
+            debuggable true
 
             if (project.hasProperty("coverage")) {
                 testCoverageEnabled = project.coverage == "true"
@@ -250,16 +235,19 @@ android {
 
         release {
             resValue "string", "app_name", "Voyage"
+            // Debug-key signed so installRelease works without the signing.element.* properties; swap to
+            // signingConfigs.release for distribution.
+            signingConfig signingConfigs.debug
+
+            // R8 shrink+optimize cuts the class/method count enough to fit ICS's 8MB Dalvik LinearAlloc.
+            // Obfuscation off (readable crashes); -keepattributes Signature keeps reflection working.
             postprocessing {
-                // FIXME Set to true.
-                removeUnusedCode false
+                removeUnusedCode true
                 removeUnusedResources true
-                // We do not activate obfuscation as it makes it hard then to read crash reports, and it's a bit useless on an open source project :)
                 obfuscate false
                 optimizeCode true
                 proguardFiles 'proguard-rules.pro'
             }
-            // signingConfig signingConfigs.release
         }
     }
 
@@ -348,4 +336,12 @@ dependencies {
     androidTestImplementation libs.androidx.fragmentTesting
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:1.8.21"
     debugImplementation libs.androidx.fragmentTestingManifest
+}
+
+// `:vector-app:install` → the R8-shrunk release variant (the one that runs on ICS). installDebug is
+// the fast unshrunk path for modern devices.
+tasks.register('install') {
+    description = 'Build and install the R8-shrunk release variant (for ICS/KitKat devices).'
+    group = 'install'
+    dependsOn 'installRelease'
 }

@@ -27,7 +27,11 @@ Any change to room-list behavior (display, sorting, refresh, item rendering) MUS
 
 # Building
 
-The command you should use to build or install should always be ./gradlew :vector-app:installDebug so please do not use anything else. (The old `gplay`/`fdroid` product flavors were removed — the fork is F-Droid-only — so there is no longer an `installFdroidDebug` task; the source set merged into `src/main`.)
+Two install variants:
+- `./gradlew :vector-app:installDebug` — fast, unshrunk, debuggable build (package `im.voyage.app.debug`). Runs on KitKat+ and modern devices; prefer it for normal iteration. It does NOT run on ICS (API 14/15): the unshrunk class set overflows Dalvik's 8MB LinearAlloc there.
+- `./gradlew :vector-app:install` (alias for `installRelease`) — the R8-shrunk RELEASE build (package `im.voyage.app`, debug-signed). R8/optimize cuts the class/method count enough to fit ICS's LinearAlloc, so use this for the ICS device. After a layout edit, run with `--no-build-cache` after `rm -rf vector-app/build vector/build` (stale databinding otherwise).
+
+(The old `gplay`/`fdroid` product flavors were removed — the fork is F-Droid-only — so there is no `installFdroidDebug` task; the source set merged into `src/main`.)
 
 To quickly check that code compiles without building/installing the whole app (no device needed), use ./gradlew :vector:compileDebugKotlin.
 

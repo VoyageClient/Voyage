@@ -501,28 +501,16 @@ class TimelineEventController @Inject constructor(
         Timber.v("Preprocess events took $preprocessEventsTiming ms")
         var numberOfEventsToBuild = 0
         val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(readReceiptsCache.receiptsByEvent())
+        // Nearest displayable neighbours, precomputed in O(n) — was a per-event subList scan (O(n²)).
+        val (prevDisplayableEvents, nextDisplayableEvents) = computeDisplayableNeighbours()
         (0 until modelCache.size).forEach { position ->
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
             // Should be build if not cached or if model should be refreshed
             if (modelCache[position] == null || modelCache[position]?.isCacheable(partialState) == false || reactionListFactory.needsRebuild(event)) {
                 val prevEvent = currentSnapshot.prevOrNull(position)
-                val prevDisplayableEvent = currentSnapshot.subList(0, position).lastOrNull {
-                    timelineEventVisibilityHelper.shouldShowEvent(
-                            timelineEvent = it,
-                            highlightedEventId = partialState.highlightedEventId,
-                            isFromThreadTimeline = partialState.isFromThreadTimeline(),
-                            rootThreadEventId = partialState.rootThreadEventId
-                    )
-                }
-                val nextDisplayableEvent = currentSnapshot.subList(position + 1, currentSnapshot.size).firstOrNull {
-                    timelineEventVisibilityHelper.shouldShowEvent(
-                            timelineEvent = it,
-                            highlightedEventId = partialState.highlightedEventId,
-                            isFromThreadTimeline = partialState.isFromThreadTimeline(),
-                            rootThreadEventId = partialState.rootThreadEventId
-                    )
-                }
+                val prevDisplayableEvent = prevDisplayableEvents[position]
+                val nextDisplayableEvent = nextDisplayableEvents[position]
                 val timelineEventsGroup = timelineEventsGroups.getOrNull(event)
                 val params = TimelineItemFactoryParams(
                         event = event,
@@ -552,6 +540,32 @@ class TimelineEventController @Inject constructor(
         if (PerfTrace.isEnabled) {
             Timber.tag("VectorPerf").i("timeline.buildModels.rebuilt %d/%d", numberOfEventsToBuild, modelCache.size)
         }
+    }
+
+    // Nearest displayable event before / after each position, via one forward + one backward pass.
+    private fun computeDisplayableNeighbours(): Pair<Array<TimelineEvent?>, Array<TimelineEvent?>> {
+        val size = currentSnapshot.size
+        val displayable = BooleanArray(size) { position ->
+            timelineEventVisibilityHelper.shouldShowEvent(
+                    timelineEvent = currentSnapshot[position],
+                    highlightedEventId = partialState.highlightedEventId,
+                    isFromThreadTimeline = partialState.isFromThreadTimeline(),
+                    rootThreadEventId = partialState.rootThreadEventId
+            )
+        }
+        val prev = arrayOfNulls<TimelineEvent>(size)
+        var lastDisplayable: TimelineEvent? = null
+        for (position in 0 until size) {
+            prev[position] = lastDisplayable
+            if (displayable[position]) lastDisplayable = currentSnapshot[position]
+        }
+        val next = arrayOfNulls<TimelineEvent>(size)
+        var nextDisplayable: TimelineEvent? = null
+        for (position in size - 1 downTo 0) {
+            next[position] = nextDisplayable
+            if (displayable[position]) nextDisplayable = currentSnapshot[position]
+        }
+        return prev to next
     }
 
     private fun buildCacheItem(params: TimelineItemFactoryParams): CacheItemData {

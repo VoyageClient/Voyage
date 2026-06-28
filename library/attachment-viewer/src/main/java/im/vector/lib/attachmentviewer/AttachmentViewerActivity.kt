@@ -15,6 +15,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -129,7 +130,10 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
             // Pre-21 has no window-insets dispatch, so derive the system bar heights from platform resources;
             // otherwise the overlay (title/actions bar) renders under the translucent status bar.
             topInset = getSystemBarHeightPx("status_bar_height")
-            bottomInset = getSystemBarHeightPx("navigation_bar_height")
+            // Reserve nav-bar space only with an on-screen nav bar: hardware-key devices still report a
+            // navigation_bar_height but show no bar, leaving a gap below the playbar.
+            val hasOnScreenNavBar = !ViewConfiguration.get(this).hasPermanentMenuKey()
+            bottomInset = if (hasOnScreenNavBar) getSystemBarHeightPx("navigation_bar_height") else 0
             overlayView?.updatePadding(top = topInset, bottom = bottomInset)
         }
     }

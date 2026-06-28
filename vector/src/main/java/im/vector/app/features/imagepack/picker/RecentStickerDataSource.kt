@@ -80,6 +80,28 @@ class RecentStickerDataSource @Inject constructor(
         }
     }
 
+    // Drop recents whose sticker was deleted from the packs (they'd render blank).
+    // No-op on empty [validMxcs] (packs not loaded yet) so a transient doesn't wipe the list.
+    fun pruneToValidMxcs(validMxcs: Set<String>) {
+        if (validMxcs.isEmpty()) return
+        coroutineScope.launch {
+            val session = activeSessionHolder.getSafeActiveSession() ?: return@launch
+            writeMutex.withLock {
+                val current = parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_STICKERS)?.content)
+                val kept = current.filter { it.first.mxcUrl in validMxcs }
+                if (kept.size == current.size) return@withLock
+                val payload = kept
+                        .sortedByDescending { it.second }
+                        .take(STORAGE_LIMIT)
+                        .map { listOf(it.first.toStickerContent(), it.second) }
+                session.accountDataService().updateUserAccountData(
+                        UserAccountDataTypes.TYPE_RECENT_STICKERS,
+                        mapOf(CONTENT_KEY to payload)
+                )
+            }
+        }
+    }
+
     private fun read(): List<Pair<ResolvedImage, Int>> {
         val session = activeSessionHolder.getSafeActiveSession() ?: return emptyList()
         return parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_STICKERS)?.content)

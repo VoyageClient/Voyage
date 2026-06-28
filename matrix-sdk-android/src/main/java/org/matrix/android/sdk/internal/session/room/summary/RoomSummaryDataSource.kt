@@ -21,6 +21,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
+import androidx.paging.DataSource
 import androidx.paging.PagedList
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -35,6 +36,7 @@ import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.RoomType
+import java.util.concurrent.atomic.AtomicReference
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.spaceSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
@@ -166,12 +168,23 @@ internal class RoomSummaryDataSource @Inject constructor(
             sortOrder: RoomSortOrder,
     ): UpdatableLivePageResult {
         val boundaries = MutableLiveData(ResultBoundaries())
+        // selectAll() only re-emits on DB writes, so reassigning queryParams/sortOrder must invalidate the
+        // DataSource to re-run the filter — else the list wouldn't refresh until the next sync.
+        val dataSourceRef = AtomicReference<DataSource<Int, RoomSummary>?>(null)
         val result = object : UpdatableLivePageResult {
             override var queryParams: RoomSummaryQueryParams = queryParams
+                set(value) {
+                    field = value
+                    dataSourceRef.get()?.invalidate()
+                }
             override var sortOrder: RoomSortOrder = sortOrder
+                set(value) {
+                    field = value
+                    dataSourceRef.get()?.invalidate()
+                }
             override val liveBoundaries: LiveData<ResultBoundaries> get() = boundaries
             override val livePagedList: LiveData<PagedList<RoomSummary>> =
-                    livePaged(queries.selectAll(), pageSize = pagedListConfig.pageSize) {
+                    livePaged(queries.selectAll(), pageSize = pagedListConfig.pageSize, onDataSourceCreated = { dataSourceRef.set(it) }) {
                         filteredSortedRows(this.queryParams, this.sortOrder).mapNotNull { it.toDomain() }
                                 .also { boundaries.postValue(ResultBoundaries(zeroItemLoaded = it.isEmpty())) }
                     }

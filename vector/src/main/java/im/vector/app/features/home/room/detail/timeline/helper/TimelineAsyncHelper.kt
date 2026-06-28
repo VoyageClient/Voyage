@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.helper
 
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.Process
 
 private const val THREAD_NAME = "Vector-Timeline_Building_Thread"
 
@@ -21,7 +22,9 @@ object TimelineAsyncHelper {
     }
 
     private fun createBackgroundHandler(): Handler {
-        val handlerThread = HandlerThread(THREAD_NAME)
+        // Background priority so model building yields to the UI under CPU contention — on a single-core
+        // device it otherwise starves scrolling/binding.
+        val handlerThread = HandlerThread(THREAD_NAME, Process.THREAD_PRIORITY_BACKGROUND)
         handlerThread.start()
         return Handler(handlerThread.looper)
     }

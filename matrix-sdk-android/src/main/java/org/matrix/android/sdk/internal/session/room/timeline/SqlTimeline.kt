@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -66,6 +67,7 @@ internal class SqlTimeline(
     private var observeJob: Job? = null
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
+    private var annotationsJob: Job? = null
 
     private var threadRootId: String? = null
     private val isThreadTimeline get() = threadRootId != null
@@ -76,6 +78,16 @@ internal class SqlTimeline(
     // chunks are mapped once and reused — the rebuild cost stays bounded as you scroll back.
     private val chunkSnapshotCache = HashMap<Long, List<TimelineEvent>>()
     @Volatile private var builtEvents: List<TimelineEvent> = emptyList()
+
+    // Live timelines render a grow-only window (newest down to [oldestShownEventId]) instead of the whole
+    // loaded chunk at once — building the whole chunk is catastrophic room-open on a single-core device.
+    // Grow-only so there's no forward/backward oscillation. Off for thread timelines (small).
+    private val windowGrowStep = 50
+    private var pendingShowEventId: String? = initialEventId
+    private var oldestShownEventId: String? = null
+    @Volatile private var windowHasMoreOlder: Boolean = false
+    private val isWindowed: Boolean get() = !isThreadTimeline
+    private fun initialWindowCount() = settings.initialSize.coerceAtLeast(1)
 
     override val isLive: Boolean get() = !forwardState.get().hasMoreToLoad
 
@@ -107,6 +119,7 @@ internal class SqlTimeline(
         observeJob?.cancel()
         sendingJob?.cancel()
         ignoredJob?.cancel()
+        annotationsJob?.cancel()
         val rootId = threadRootId
         if (rootId != null) {
             // Drop the temporary thread chunk; keep the scope alive just long enough to commit it.
@@ -122,6 +135,9 @@ internal class SqlTimeline(
 
     override fun restartWithEventId(eventId: String?) {
         timelineScope.launch {
+            // Reset the window: null returns to the newest events; a target grows the window to include it.
+            pendingShowEventId = eventId
+            oldestShownEventId = null
             val seed = eventId?.let { stores.chunk.findChunkIdIncludingEvent(roomId, it) } ?: resolveSeedChunkId()
             seedFrom(seed)
             rebuildSnapshot()
@@ -171,19 +187,29 @@ internal class SqlTimeline(
         observeJob?.cancel()
         sendingJob?.cancel()
         ignoredJob?.cancel()
+        annotationsJob?.cancel()
         loadedChunkIds.clear()
         chunkSnapshotCache.clear()
         if (seedChunkId == null) return
         loadedChunkIds.add(seedChunkId)
+        // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
         observeJob = timelineScope.launch {
-            snapshotLoader.chunkSnapshotFlow(seedChunkId).collect { rebuildSnapshot() }
+            snapshotLoader.chunkSnapshotFlow(seedChunkId).conflate().collect { rebuildSnapshot() }
         }
         sendingJob = timelineScope.launch {
-            snapshotLoader.sendingEventsFlow(roomId).collect { rebuildSnapshot() }
+            snapshotLoader.sendingEventsFlow(roomId).conflate().collect { rebuildSnapshot() }
         }
         // Re-filter the timeline instantly when the ignored-user set changes (ignore/unignore).
         ignoredJob = timelineScope.launch {
             snapshotLoader.ignoredUserIdsFlow().drop(1).collect { rebuildSnapshot() }
+        }
+        // Reactions/edits live in event_annotations_summary, which the chunk flow doesn't watch — rebuild
+        // (clearing the static-chunk cache so history re-reads too) when a summary changes.
+        annotationsJob = timelineScope.launch {
+            snapshotLoader.annotationSummaryChangesFlow(roomId).drop(1).conflate().collect {
+                chunkSnapshotCache.clear()
+                rebuildSnapshot()
+            }
         }
     }
 
@@ -193,20 +219,37 @@ internal class SqlTimeline(
             return
         }
         if (direction == Timeline.Direction.BACKWARDS) {
-            val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) } ?: return
+            if (isWindowed) {
+                val all = computeLoadedEvents()
+                val oldestIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }?.takeIf { it >= 0 }
+                        ?: (initialWindowCount() - 1).coerceAtMost(all.lastIndex)
+                val target = oldestIdx + windowGrowStep
+                // Loaded events still hidden above the window: reveal the next page without a fetch.
+                if (target < all.size) {
+                    oldestShownEventId = all[target].eventId
+                    rebuildSnapshot()
+                    return
+                }
+                // Window already reaches the oldest loaded event: reveal it, then fetch older below.
+                oldestShownEventId = all.lastOrNull()?.eventId
+            }
+            val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) } ?: run {
+                if (isWindowed) rebuildSnapshot()
+                return
+            }
             when {
                 oldest.prev_chunk_id != null -> {
                     extendLoadedChunks(Timeline.Direction.BACKWARDS)
-                    rebuildSnapshot()
+                    revealAfterBackwardFetch()
                 }
                 oldest.prev_token != null -> {
                     paginate(oldest.prev_token, Timeline.Direction.BACKWARDS, count)
                     // The server page is persisted as a new chunk linked into our chain; walk the whole
                     // prev_chunk_id chain so a page that bridges to an existing older chunk is fully picked up.
                     extendLoadedChunks(Timeline.Direction.BACKWARDS)
-                    rebuildSnapshot()
+                    revealAfterBackwardFetch()
                 }
-                else -> updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                else -> if (isWindowed) rebuildSnapshot() else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
             }
         } else {
             val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) } ?: return
@@ -275,7 +318,7 @@ internal class SqlTimeline(
     private fun toPaginationDirection(direction: Timeline.Direction) =
             if (direction == Timeline.Direction.FORWARDS) PaginationDirection.FORWARDS else PaginationDirection.BACKWARDS
 
-    private suspend fun rebuildSnapshot() {
+    private fun computeLoadedEvents(): List<TimelineEvent> {
         val liveChunkId = loadedChunkIds.firstOrNull()
         val chunkEvents = loadedChunkIds.flatMap { chunkId ->
             if (chunkId == liveChunkId) {
@@ -295,10 +338,45 @@ internal class SqlTimeline(
         // Hide ignored users' messages at display time (keep their state events, per the spec). Filtering
         // here — rather than deleting rows — is what makes unignore instant: nothing was ever removed.
         val ignored = stores.user.getIgnoredUserIds().toSet()
-        val events = (sending + chunkEvents).filterNot { it.root.senderId in ignored && it.root.stateKey == null }
+        return (sending + chunkEvents).filterNot { it.root.senderId in ignored && it.root.stateKey == null }
+    }
+
+    // Index 0 is newest (display_index DESC). Keep newest down to [oldestShownEventId], growing the anchor
+    // to include a pending navigation target. Grow-only — never trims.
+    private fun applyWindow(all: List<TimelineEvent>): List<TimelineEvent> {
+        if (!isWindowed || all.isEmpty()) return all
+        pendingShowEventId?.let { id ->
+            val idx = all.indexOfFirst { it.eventId == id }
+            if (idx >= 0) {
+                pendingShowEventId = null
+                val want = (idx + initialWindowCount()).coerceAtMost(all.lastIndex)
+                val current = oldestShownEventId?.let { e -> all.indexOfFirst { it.eventId == e } } ?: -1
+                if (want > current) oldestShownEventId = all[want].eventId
+            }
+        }
+        val oldestIdx = (oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
+                ?.takeIf { it >= 0 } ?: (initialWindowCount() - 1)).coerceIn(0, all.lastIndex)
+        oldestShownEventId = all[oldestIdx].eventId
+        return all.take(oldestIdx + 1)
+    }
+
+    // After loading older events from disk/server, advance the window a page older to reveal them.
+    private suspend fun revealAfterBackwardFetch() {
+        if (isWindowed) {
+            val all = computeLoadedEvents()
+            val oldestIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }?.takeIf { it >= 0 } ?: all.lastIndex
+            oldestShownEventId = all.getOrNull((oldestIdx + windowGrowStep).coerceAtMost(all.lastIndex))?.eventId
+        }
+        rebuildSnapshot()
+    }
+
+    private suspend fun rebuildSnapshot() {
+        val all = computeLoadedEvents()
+        val events = applyWindow(all)
         builtEvents = events
+        windowHasMoreOlder = isWindowed && events.isNotEmpty() && events.last().eventId != all.last().eventId
         refreshPaginationStates()
-        Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size} events")
+        Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events")
         withContext(coroutineDispatchers.main) {
             listeners.forEach { tryOrNull { it.onTimelineUpdated(events) } }
         }
@@ -311,7 +389,8 @@ internal class SqlTimeline(
         // Thread pagination state is driven directly by fetchThreadTimelineTask results in loadMoreThread.
         if (isThreadTimeline) return
         val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) }
-        val moreBackward = oldest != null && (oldest.prev_chunk_id != null || oldest.prev_token != null)
+        val moreBackward = windowHasMoreOlder ||
+                (oldest != null && (oldest.prev_chunk_id != null || oldest.prev_token != null))
         updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = moreBackward) }
 
         val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }

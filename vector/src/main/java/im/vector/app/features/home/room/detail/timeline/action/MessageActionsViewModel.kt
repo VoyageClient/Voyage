@@ -15,7 +15,6 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
-import im.vector.app.core.extensions.canReact
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.platform.EmptyAction
 import im.vector.app.core.platform.EmptyViewEvents
@@ -24,6 +23,8 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
+import im.vector.app.features.imagepack.ImagePackProvider
+import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -41,6 +42,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -92,6 +94,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
         private val pgpServiceManager: PgpServiceManager,
         private val pgpKeyStore: PgpKeyStore,
+        private val imagePackProvider: ImagePackProvider,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -180,7 +183,7 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     private fun observeReactions() {
         if (room == null) return
-        val quickReactions = vectorPreferences.getQuickReactions()
+        val quickReactions = pruneDeletedEmotes(vectorPreferences.getQuickReactions())
         eventIdFlow
                 .flatMapLatest { eventId ->
                     room.flow()
@@ -194,6 +197,19 @@ class MessageActionsViewModel @AssistedInject constructor(
                 .execute {
                     copy(quickStates = it)
                 }
+    }
+
+    // Forget quick-reaction emotes whose image pack no longer has them (they'd render blank / send empty ::).
+    private fun pruneDeletedEmotes(quickReactions: List<String>): List<String> {
+        if (quickReactions.none { it.isMxcUrl() }) return quickReactions
+        val validMxcs = ImagePackUsageFilter.emoticonPacks(imagePackProvider.getEnabledImagePacks(initialState.roomId))
+                .flatMap { it.images }
+                .mapTo(HashSet()) { it.mxcUrl }
+        val pruned = quickReactions.filter { !it.isMxcUrl() || it in validMxcs }
+        if (pruned.size != quickReactions.size) {
+            vectorPreferences.setQuickReactions(pruned)
+        }
+        return pruned
     }
 
     private fun observeTimelineEventState() {
@@ -320,20 +336,22 @@ class MessageActionsViewModel @AssistedInject constructor(
         val msgType = messageContent?.msgType
 
         return arrayListOf<EventSharedAction>().apply {
+            val eventId = timelineEvent.eventId
+            // Recovery actions for local echoes that haven't synced (or have failed) yet.
             when {
                 timelineEvent.root.sendState.hasFailed() -> {
-                    addActionsForFailedState(timelineEvent, actionPermissions, messageContent, msgType)
+                    if (canRetry(timelineEvent, actionPermissions)) add(EventSharedAction.Resend(eventId))
+                    add(EventSharedAction.Remove(eventId))
                 }
                 timelineEvent.root.sendState.isSending() -> {
-                    addActionsForSendingState(timelineEvent)
-                }
-                timelineEvent.root.sendState == SendState.SYNCED -> {
-                    addActionsForSyncedState(timelineEvent, actionPermissions, messageContent, msgType)
+                    if (canCancel(timelineEvent)) add(EventSharedAction.Cancel(timelineEvent, false))
                 }
                 timelineEvent.root.sendState == SendState.SENT -> {
-                    addActionsForSentNotSyncedState(timelineEvent)
+                    timelineEvent.root.eventId?.let { add(EventSharedAction.Cancel(timelineEvent, true)) }
                 }
             }
+            // Then the full action set, regardless of sync/redaction state.
+            addActionsForSyncedState(timelineEvent, actionPermissions, messageContent, msgType)
         }
     }
 
@@ -388,52 +406,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         return JSONObject(eventMap as Map<*, *>).toString(4)
     }
 
-    private suspend fun ArrayList<EventSharedAction>.addActionsForFailedState(
-            timelineEvent: TimelineEvent,
-            actionPermissions: ActionPermissions,
-            messageContent: MessageContent?,
-            msgType: String?
-    ) {
-        val eventId = timelineEvent.eventId
-        if (canRetry(timelineEvent, actionPermissions)) {
-            add(EventSharedAction.Resend(eventId))
-        }
-        add(EventSharedAction.Remove(eventId))
-        if (canEdit(timelineEvent, session.myUserId, actionPermissions)) {
-            add(EventSharedAction.Edit(eventId, timelineEvent.root.getClearType()))
-        }
-        if (canCopy(msgType, messageContent)) {
-            // TODO copy images? html? see ClipBoard
-            add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!)))
-        }
-        if (vectorPreferences.developerMode()) {
-            add(EventSharedAction.CopyEventId(eventId))
-            addViewSourceItems(timelineEvent)
-        }
-    }
-
-    private fun ArrayList<EventSharedAction>.addActionsForSendingState(timelineEvent: TimelineEvent) {
-        // TODO is uploading attachment?
-        if (canCancel(timelineEvent)) {
-            add(EventSharedAction.Cancel(timelineEvent, false))
-        }
-    }
-
-    private fun ArrayList<EventSharedAction>.addActionsForSentNotSyncedState(timelineEvent: TimelineEvent) {
-        // If sent but not synced (synapse stuck at bottom bug)
-        // Still offer action to cancel (will only remove local echo)
-        timelineEvent.root.eventId?.let {
-            add(EventSharedAction.Cancel(timelineEvent, true))
-        }
-        if (vectorPreferences.developerMode()) {
-            add(EventSharedAction.CopyEventId(timelineEvent.eventId))
-        }
-
-        // TODO Can be redacted
-
-        // TODO sent by me or sufficient power level
-    }
-
     private suspend fun ArrayList<EventSharedAction>.addActionsForSyncedState(
             timelineEvent: TimelineEvent,
             actionPermissions: ActionPermissions,
@@ -441,17 +413,17 @@ class MessageActionsViewModel @AssistedInject constructor(
             msgType: String?
     ) {
         val eventId = timelineEvent.eventId
-        if (timelineEvent.root.isRedacted()) {
-            // Redacted (deleted) events get no message actions except replying to them.
-            if (canReply(timelineEvent, messageContent, actionPermissions)) {
-                add(EventSharedAction.Reply(eventId))
-            }
+        // Reply / react / view-reactions are allowed even on redacted events.
+        if (canReply(timelineEvent, messageContent, actionPermissions)) {
+            add(EventSharedAction.Reply(eventId))
+        }
+        if (actionPermissions.canReact) {
+            add(EventSharedAction.AddReaction(eventId))
+        }
+        if (canViewReactions(timelineEvent)) {
+            add(EventSharedAction.ViewReactions(informationData))
         }
         if (!timelineEvent.root.isRedacted()) {
-            if (canReply(timelineEvent, messageContent, actionPermissions)) {
-                add(EventSharedAction.Reply(eventId))
-            }
-
             if (canReplyInThread(timelineEvent, messageContent, actionPermissions)) {
                 add(EventSharedAction.ReplyInThread(eventId, !timelineEvent.isRootThread()))
             }
@@ -471,14 +443,6 @@ class MessageActionsViewModel @AssistedInject constructor(
             if (canCopy(msgType, messageContent)) {
                 // TODO copy images? html? see ClipBoard
                 add(EventSharedAction.Copy(pgpCopyBody(timelineEvent, messageContent!!)))
-            }
-
-            if (timelineEvent.canReact() && actionPermissions.canReact) {
-                add(EventSharedAction.AddReaction(eventId))
-            }
-
-            if (canViewReactions(timelineEvent)) {
-                add(EventSharedAction.ViewReactions(informationData))
             }
 
             if (timelineEvent.hasBeenEdited()) {

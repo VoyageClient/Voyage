@@ -58,10 +58,12 @@ sealed class ActivityOtherThemes(
             R.style.AppTheme_AttachmentsPreview_SC
     )
 
+    // Window translucency comes from the manifest theme; this RUNTIME theme only styles views inflated
+    // afterwards (playbar, loading spinners), so it must be accent-aware rather than the transparent theme.
     object VectorAttachmentsPreview : ActivityOtherThemes(
-            R.style.Theme_Vector_Black_Transparent,
-            R.style.Theme_Vector_Black_Transparent,
-            R.style.Theme_Vector_Black_Transparent,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
             R.style.AppTheme_Transparent_SC,
             R.style.AppTheme_Transparent_SC,
             R.style.AppTheme_Transparent_SC,

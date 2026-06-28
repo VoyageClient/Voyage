@@ -22,10 +22,11 @@ import app.cash.sqldelight.Query
 internal fun <T> livePaged(
         query: Query<*>,
         pageSize: Int = 20,
+        onDataSourceCreated: ((DataSource<Int, T>) -> Unit)? = null,
         fetch: () -> List<T>,
 ): LiveData<PagedList<T>> {
     val factory = object : DataSource.Factory<Int, T>() {
-        override fun create(): DataSource<Int, T> = SnapshotPositionalDataSource(query, fetch())
+        override fun create(): DataSource<Int, T> = SnapshotPositionalDataSource(query, fetch()).also { onDataSourceCreated?.invoke(it) }
     }
     return LivePagedListBuilder(
             factory,

@@ -306,11 +306,10 @@ dependencies {
     // UnifiedPush
     implementation 'com.github.UnifiedPush:android-connector:2.1.1'
 
+    // emoji2 CORE only, pinned to 1.3.0 (last reliably minSdk-14 line). We skip emoji2-bundled (newer
+    // releases bump minSdk to 21/23) and instead bundle our own newer font under assets/emoji2/ loaded via
+    // a custom config — see EmojiCompatWrapper and tools/import_emojis.py.
     implementation "androidx.emoji2:emoji2:1.3.0"
-    // Bundled emoji font (no Google Play Services needed, unlike the downloadable FontRequest config).
-    // emoji2/EmojiCompat works on API 19+; the bundled font asset also gives us a Typeface for the
-    // emoji picker/reactions and a usable glyph source on pre-19 (see EmojiCompatWrapper).
-    implementation "androidx.emoji2:emoji2-bundled:1.3.0"
 
     // QR-code
     // Stick to 3.3.3 because of https://github.com/zxing/zxing/issues/1170

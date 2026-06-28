@@ -62,4 +62,12 @@ internal class SqlChunkSnapshotLoader(
             database.ignoredUserQueries.selectAll()
                     .asFlow()
                     .mapToList(dispatcher)
+
+    /** Emits when any event's annotation summary (reactions/edits/etc) changes — the chunk flow only watches
+     *  timeline_event rows, so it misses these. */
+    fun annotationSummaryChangesFlow(roomId: String): Flow<List<String>> =
+            database.eventAnnotationsSummaryQueries.selectSummariesForRoom(roomId)
+                    .asFlow()
+                    .mapToList(dispatcher)
+                    .map { rows -> rows.map { it.event_id } }
 }

@@ -111,6 +111,28 @@ class RecentEmoteDataSource @Inject constructor(
         }
     }
 
+    // Drop recents whose emote was deleted from the packs (they'd render blank / send an empty `::`).
+    // No-op on empty [validMxcs] (packs not loaded yet) so a transient doesn't wipe the list.
+    fun pruneToValidMxcs(validMxcs: Set<String>) {
+        if (validMxcs.isEmpty()) return
+        coroutineScope.launch {
+            val session = activeSessionHolder.getSafeActiveSession() ?: return@launch
+            writeMutex.withLock {
+                val current = parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOTICONS)?.content)
+                val kept = current.filter { it.first.mxcUrl in validMxcs }
+                if (kept.size == current.size) return@withLock
+                val payload = kept
+                        .sortedByDescending { it.second }
+                        .take(STORAGE_LIMIT)
+                        .map { listOf(listOf(it.first.mxcUrl, it.first.shortcode), it.second) }
+                session.accountDataService().updateUserAccountData(
+                        UserAccountDataTypes.TYPE_RECENT_EMOTICONS,
+                        mapOf(CONTENT_KEY to payload)
+                )
+            }
+        }
+    }
+
     private fun read(): List<Pair<RecentEmote, Int>> {
         val session = activeSessionHolder.getSafeActiveSession() ?: return emptyList()
         return parse(session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_RECENT_EMOTICONS)?.content)

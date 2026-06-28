@@ -7,10 +7,12 @@
 package im.vector.app
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.graphics.Typeface
 import android.os.Build
-import androidx.emoji2.bundled.BundledEmojiCompatConfig
+import android.os.Process
 import androidx.emoji2.text.EmojiCompat
+import androidx.emoji2.text.MetadataRepo
 import im.vector.app.features.emoji.TwemojiProvider
 import timber.log.Timber
 import javax.inject.Inject
@@ -28,26 +30,22 @@ class EmojiCompatWrapper @Inject constructor(
 
     private var initialized = false
 
-    /**
-     * The bundled NotoColorEmojiCompat font (from androidx.emoji2:emoji2-bundled) as a plain Typeface,
-     * for views that draw emoji directly (emoji picker / reactions) rather than going through
-     * EmojiCompat. Available on every API level; loaded from the same asset the bundled config uses.
-     */
+    // Bundled font as a plain Typeface, for views that draw emoji directly (picker / reactions) rather than
+    // via EmojiCompat.
     val emojiTypeface: Typeface? by lazy {
         try {
-            Typeface.createFromAsset(context.assets, BUNDLED_FONT_ASSET)
+            Typeface.createFromAsset(context.assets, FONT_ASSET)
         } catch (throwable: Throwable) {
-            Timber.e(throwable, "Failed to load bundled emoji font")
+            Timber.e(throwable, "Failed to load emoji font")
             null
         }
     }
 
     fun init() {
-        // EmojiCompat hard-gates to API 19 internally: below 19 it installs a no-op helper whose
-        // process() returns the text unchanged, so running it on pre-KitKat does nothing. Skip it there
-        // (pre-KitKat emoji rendering is handled separately) to avoid loading the bundled font for nothing.
+        // EmojiCompat.process() is a hard-coded no-op below API 19, so skip it (pre-KitKat emoji is handled
+        // separately) to avoid loading the font for nothing.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return
-        val config = BundledEmojiCompatConfig(context)
+        val config = AssetFontConfig(context.assets)
                 // Replace all emojis with the bundled font so rendering is consistent across devices.
                 .setReplaceAll(true)
         EmojiCompat.init(config)
@@ -80,8 +78,24 @@ class EmojiCompatWrapper @Inject constructor(
         }
     }
 
+    // Like BundledEmojiCompatConfig, but builds the MetadataRepo from our own (newer) font asset.
+    private class AssetFontConfig(assets: AssetManager) : EmojiCompat.Config(AssetMetadataLoader(assets)) {
+        private class AssetMetadataLoader(private val assets: AssetManager) : EmojiCompat.MetadataRepoLoader {
+            override fun load(loaderCallback: EmojiCompat.MetadataRepoLoaderCallback) {
+                Thread {
+                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
+                    try {
+                        loaderCallback.onLoaded(MetadataRepo.create(assets, FONT_ASSET))
+                    } catch (throwable: Throwable) {
+                        loaderCallback.onFailed(throwable)
+                    }
+                }.apply { isDaemon = true }.start()
+            }
+        }
+    }
+
     companion object {
-        // Asset name shipped by androidx.emoji2:emoji2-bundled (merged into the app assets).
-        private const val BUNDLED_FONT_ASSET = "NotoColorEmojiCompat.ttf"
+        // Bundled by tools/import_emojis.py from androidx.emoji2:emoji2-bundled's font (newer Emoji version).
+        private const val FONT_ASSET = "emoji2/NotoColorEmojiCompat.ttf"
     }
 }

@@ -470,6 +470,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun renderRegularMode(content: CharSequence) {
+        // After sending, popDraft emits Regular("") here; on a slow device the user may have already typed
+        // into the cleared composer, so don't re-apply "" over it. (sendTextMessage does the real clear.)
+        if (content.isBlank() && !composer.text.isNullOrBlank()) return
         autoCompleters.values.forEach(AutoCompleter::exitSpecialMode)
         composer.renderComposerMode(MessageComposerMode.Normal(content))
     }

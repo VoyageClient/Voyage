@@ -86,15 +86,17 @@ class MessageInformationDataFactory @Inject constructor(
 
         val time = dateFormatter.format(event.root.originServerTs, DateFormatKind.MESSAGE_SIMPLE)
         val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root)
-        // PGP-over-plaintext: a non-Matrix-encrypted text body carrying an armored block. Drives
-        // the lock indicator; deliberately not tied to e2eDecoration / room encryption.
-        val pgpContent = event.getVectorLastMessageContent()
-        val pgpText = (pgpContent as? MessageTextContent)?.body
-        // Captioned media: only the caption is PGP, never the media itself.
-        val pgpCaption = (pgpContent as? MessageWithAttachmentContent)?.getCaption()
+        // PGP-over-plaintext lock indicator (not tied to e2eDecoration). Parse content only when PGP is
+        // enabled — otherwise this deserialization runs for every event for nothing.
         val isPgp = pgpKeyStore.isEnabled &&
                 !event.isEncrypted() &&
-                (PgpUtils.bodyContainsPgp(pgpText) || PgpUtils.bodyContainsPgp(pgpCaption))
+                run {
+                    val pgpContent = event.getVectorLastMessageContent()
+                    val pgpText = (pgpContent as? MessageTextContent)?.body
+                    // Captioned media: only the caption is PGP, never the media itself.
+                    val pgpCaption = (pgpContent as? MessageWithAttachmentContent)?.getCaption()
+                    PgpUtils.bodyContainsPgp(pgpText) || PgpUtils.bodyContainsPgp(pgpCaption)
+                }
         // this is claimed data or not depending on the e2e decoration
         val senderId = event.senderInfo.userId
 

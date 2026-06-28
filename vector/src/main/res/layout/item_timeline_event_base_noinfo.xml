@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -19,8 +20,8 @@
         android:id="@+id/messageStartGuideline"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="52dp" />
-        android:layout_marginLeft="52dp"
+        android:layout_marginStart="52dp"
+        android:layout_marginLeft="52dp" />
 
     <FrameLayout
         android:id="@+id/viewStubContainer"
@@ -28,8 +29,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toEndOf="@id/messageStartGuideline">
-        android:layout_toRightOf="@id/messageStartGuideline"
+        android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline">
 
         <ViewStub
             android:id="@+id/messageContentNoticeStub"
@@ -73,6 +74,22 @@
             tools:visibility="visible" />
 
     </FrameLayout>
+
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/reactionsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/viewStubContainer"
+        android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        app:dividerDrawable="@drawable/reaction_divider"
+        app:flexWrap="wrap"
+        app:showDivider="middle"
+        tools:visibility="gone" />
 
     <im.vector.app.core.ui.views.ShieldImageView
         android:id="@+id/messageE2EDecoration"
