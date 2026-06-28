@@ -30,8 +30,6 @@ import im.vector.app.core.utils.PERMISSIONS_FOR_TAKING_PHOTO
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedSnackbar
 import im.vector.app.core.utils.registerForPermissionsResult
-import im.vector.app.features.analytics.plan.MobileScreen
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.contactsbook.ContactsBookFragment
 import im.vector.app.features.qrcode.QrCodeScannerEvents
 import im.vector.app.features.qrcode.QrCodeScannerFragment
@@ -59,7 +57,6 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.StartChat
         views.toolbar.visibility = View.GONE
 
         sharedActionViewModel = viewModelProvider.get(UserListSharedActionViewModel::class.java)
@@ -211,7 +208,6 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
         navigator.openRoom(
                 context = this,
                 roomId = roomId,
-                trigger = ViewRoom.Trigger.MessageUser
         )
         finish()
     }

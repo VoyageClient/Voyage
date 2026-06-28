@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.render
 
 import android.content.Context
+import android.os.Build
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -40,8 +41,10 @@ class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(co
     private val resetAllowAwaken = Runnable { allowAwakenScrollbar = false }
 
     init {
-        scrollBarFadeDuration = SCROLLBAR_FADE_DURATION_MS
-        scrollBarDefaultDelayBeforeFade = SCROLLBAR_DELAY_BEFORE_FADE_MS
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            scrollBarFadeDuration = SCROLLBAR_FADE_DURATION_MS
+            scrollBarDefaultDelayBeforeFade = SCROLLBAR_DELAY_BEFORE_FADE_MS
+        }
         // Prevents the edge glow / overscroll springback from re-awakening the scrollbar after release.
         overScrollMode = OVER_SCROLL_NEVER
     }

@@ -2519,7 +2519,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="error_voice_broadcast_blocked_by_someone_else_message">Kāds cits jau ieraksta balss apraidi. Jāgaida, līdz tā beigsies, lai varētu uzsākt jaunu.</string>
     <string name="stop_voice_broadcast_content">Vai tiešām pārtraukt tiešraides apraidi\? Tas izbeigs apraidi, un istabā būs pieejams viss ieraksts.</string>
     <string name="this_invite_to_this_space_was_sent">Šis uzaicinājums uz šo vietu tika nosūtīts uz %s, kas nav saistīts ar Tavu kontu</string>
-    <string name="labs_enable_latex_maths">Iespējot LaTeX matemātiku</string>
     <string name="create_poll_question_hint">Jautājums vai temats</string>
     <string name="create_poll_empty_question_error">Jautājums nevar būt tukšs</string>
     <plurals name="poll_total_vote_count_before_ended_and_not_voted">

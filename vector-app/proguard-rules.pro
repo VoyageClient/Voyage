@@ -67,6 +67,15 @@
 -keep,includedescriptorclasses class com.facebook.react.bridge.** { *; }
 
 -keepattributes InnerClasses
+# Keep generic signatures so Moshi (and other reflection) can read parameterized types.
+-keepattributes Signature, EnclosingMethod
+
+# Retrofit 2.6.4 predates the R8 full-mode keep rules; full mode strips the generic signatures of
+# types not explicitly kept, so suspend functions lose their Continuation<? super T> signature and
+# Retrofit throws "Class cannot be cast to ParameterizedType". Keep the types whose signatures it reads.
+-keep,allowobfuscation,allowshrinking interface retrofit2.Call
+-keep,allowobfuscation,allowshrinking class retrofit2.Response
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
 
 # JWT dependencies
 -keep class io.jsonwebtoken.** { *; }
@@ -94,3 +103,11 @@
 -dontwarn org.mozilla.javascript.**
 -dontwarn org.slf4j.**
 -dontwarn org.jspecify.annotations.NullMarked
+
+# Conscrypt references platform SSLParametersImpl variants that only exist on specific OS versions.
+-dontwarn com.android.org.conscrypt.SSLParametersImpl
+-dontwarn org.apache.harmony.xnet.provider.jsse.SSLParametersImpl
+
+# Shaded Guava (inside checkerframework) references compile-only j2objc annotations not on the runtime classpath.
+-dontwarn org.checkerframework.com.google.j2objc.annotations.RetainedWith
+-dontwarn org.checkerframework.com.google.j2objc.annotations.Weak

@@ -13,7 +13,7 @@ package im.vector.app.core.utils
  * Custom emotes are supplied as [emoteRanges] — half-open `start until end` index ranges of their image
  * spans — since this core util can't reference the app's span types. Used to render emoji/emote-only (and
  * mixed) messages larger. Code-point heuristic over the emoji Unicode blocks — no external library, works
- * down to API 19.
+ * down to API 14.
  */
 fun containsOnlyEmojisAndEmotes(text: CharSequence, emoteRanges: List<IntRange>, maxUnits: Int): Boolean {
     if (text.isEmpty()) return false

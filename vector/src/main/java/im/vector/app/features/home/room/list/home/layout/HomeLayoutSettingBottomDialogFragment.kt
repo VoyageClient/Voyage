@@ -16,7 +16,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetHomeLayoutSettingsBinding
-import im.vector.app.features.analytics.plan.Interaction
 import im.vector.app.features.home.room.list.home.HomeLayoutPreferencesStore
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -46,11 +45,9 @@ class HomeLayoutSettingBottomDialogFragment : VectorBaseBottomSheetDialogFragmen
         }
 
         views.homeLayoutSettingsRecents.setOnCheckedChangeListener { _, isChecked ->
-            trackRecentsStateEvent(isChecked)
             setRecentsEnabled(isChecked)
         }
         views.homeLayoutSettingsFilters.setOnCheckedChangeListener { _, isChecked ->
-            trackFiltersStateEvent(isChecked)
             setFiltersEnabled(isChecked)
         }
         views.homeLayoutSettingsSortGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -58,38 +55,8 @@ class HomeLayoutSettingBottomDialogFragment : VectorBaseBottomSheetDialogFragmen
         }
     }
 
-    private fun trackRecentsStateEvent(areEnabled: Boolean) {
-        val interactionName = if (areEnabled) {
-            Interaction.Name.MobileAllChatsRecentsEnabled
-        } else {
-            Interaction.Name.MobileAllChatsRecentsDisabled
-        }
-        analyticsTracker.capture(
-                Interaction(
-                        index = null,
-                        interactionType = null,
-                        name = interactionName
-                )
-        )
-    }
-
     private fun setRecentsEnabled(isEnabled: Boolean) = lifecycleScope.launch {
         preferencesStore.setRecentsEnabled(isEnabled)
-    }
-
-    private fun trackFiltersStateEvent(areEnabled: Boolean) {
-        val interactionName = if (areEnabled) {
-            Interaction.Name.MobileAllChatsFiltersEnabled
-        } else {
-            Interaction.Name.MobileAllChatsFiltersDisabled
-        }
-        analyticsTracker.capture(
-                Interaction(
-                        index = null,
-                        interactionType = null,
-                        name = interactionName
-                )
-        )
     }
 
     private fun setFiltersEnabled(isEnabled: Boolean) = lifecycleScope.launch {

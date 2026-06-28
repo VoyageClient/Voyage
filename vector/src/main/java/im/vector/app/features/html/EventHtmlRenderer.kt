@@ -37,7 +37,6 @@ import com.bumptech.glide.request.target.Target
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.DimensionConverter
-import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -47,8 +46,6 @@ import io.noties.markwon.PrecomputedFutureTextSetterCompat
 import io.noties.markwon.core.MarkwonTheme
 import io.noties.markwon.core.spans.EmphasisSpan
 import io.noties.markwon.core.spans.StrongEmphasisSpan
-import io.noties.markwon.ext.latex.JLatexMathPlugin
-import io.noties.markwon.ext.latex.JLatexMathTheme
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.html.tag.EmphasisHandler
 import io.noties.markwon.html.tag.HeadingHandler
@@ -77,7 +74,6 @@ import javax.inject.Singleton
 class EventHtmlRenderer @Inject constructor(
         private val htmlConfigure: MatrixHtmlPluginConfigure,
         private val context: Context,
-        private val vectorPreferences: VectorPreferences,
         private val activeSessionHolder: ActiveSessionHolder
 ) {
 
@@ -115,24 +111,6 @@ class EventHtmlRenderer @Inject constructor(
             Glide.with(context).clear(target)
         }
     })
-
-    private val latexPlugins = listOf(
-            object : AbstractMarkwonPlugin() {
-                override fun processMarkdown(markdown: String): String {
-                    return markdown
-                            .replace(Regex("""<span\s+data-mx-maths="([^"]*)">.*?</span>""")) { matchResult ->
-                                "$$" + matchResult.groupValues[1] + "$$"
-                            }
-                            .replace(Regex("""<div\s+data-mx-maths="([^"]*)">.*?</div>""")) { matchResult ->
-                                "\n$$\n" + matchResult.groupValues[1] + "\n$$\n"
-                            }
-                }
-            },
-            JLatexMathPlugin.create(44F) { builder ->
-                builder.inlinesEnabled(true)
-                builder.theme().inlinePadding(JLatexMathTheme.Padding.symmetric(24, 8))
-            }
-    )
 
     private val markwonInlineParserPlugin =
             MarkwonInlineParserPlugin.create(
@@ -248,13 +226,6 @@ class EventHtmlRenderer @Inject constructor(
             .usePlugin(glidePlugin)
             .usePlugin(codeThemePlugin)
             .usePlugin(blockQuotePlugin)
-            .apply {
-                if (vectorPreferences.latexMathsIsEnabled()) {
-                    // If latex maths is enabled in app preferences, reformat it so Markwon recognises it
-                    // It needs to be in this specific format: https://noties.io/Markwon/docs/v4/ext-latex
-                    latexPlugins.forEach(::usePlugin)
-                }
-            }
             .usePlugin(markwonInlineParserPlugin)
             .usePlugin(italicPlugin)
             .usePlugin(emoticonBinderPlugin)

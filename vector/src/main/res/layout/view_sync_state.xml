@@ -84,6 +84,7 @@
             android:text="@string/no_connectivity_to_the_server_indicator_airplane"
             android:textColor="?colorOnPrimary"
             app:drawableStartCompat="@drawable/ic_airplane_16dp"
+            app:drawableLeftCompat="@drawable/ic_airplane_16dp"
             app:drawableTint="?colorOnPrimary" />
 
     </FrameLayout>

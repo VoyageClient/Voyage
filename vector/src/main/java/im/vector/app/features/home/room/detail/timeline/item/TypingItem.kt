@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import androidx.core.view.ViewCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -38,10 +39,10 @@ abstract class TypingItem : EpoxyModelWithHolder<TypingItem.TypingHolder>() {
 
         val typingUsers = users.take(MAX_TYPING_MESSAGE_USERS_COUNT)
         holder.typingView.apply {
-            animate().cancel()
+            ViewCompat.animate(this).cancel()
             val duration = 100L
             if (typingUsers.isEmpty()) {
-                animate().translationY(height.toFloat())
+                ViewCompat.animate(this).translationY(height.toFloat())
                         .alpha(0f)
                         .setDuration(duration)
                         .withEndAction {

@@ -41,7 +41,6 @@ import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.requestDisablingBatteryOptimization
 import im.vector.app.core.utils.startNotificationSettingsIntent
 import im.vector.app.features.VectorFeatures
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.NotificationPermissionManager
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.settings.BackgroundSyncMode
@@ -98,7 +97,6 @@ class VectorSettingsNotificationFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.SettingsNotifications
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

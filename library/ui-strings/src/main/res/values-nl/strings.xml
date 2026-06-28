@@ -2073,7 +2073,6 @@
     <string name="create_poll_question_title">Poll vraag of onderwerp</string>
     <string name="create_poll_title">Poll maken</string>
     <string name="restart_the_application_to_apply_changes">Start de applicatie opnieuw om de wijziging door te voeren.</string>
-    <string name="labs_enable_latex_maths">LaTeX wiskunde inschakelen</string>
     <string name="link_this_email_with_your_account">%s in Instellingen om uitnodigingen rechtstreeks in ${app_name} te ontvangen.</string>
     <string name="link_this_email_settings_link">Koppel deze e-mail aan je account</string>
     <string name="this_invite_to_this_space_was_sent">Deze uitnodiging voor deze space is verzonden naar %s die niet is gekoppeld aan jouw account</string>

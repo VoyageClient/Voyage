@@ -11,6 +11,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
+import android.util.TypedValue
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -68,8 +69,6 @@ import im.vector.app.core.utils.toast
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.consent.ConsentNotGivenHelper
 import im.vector.app.features.mdm.MdmService
@@ -96,14 +95,6 @@ import timber.log.Timber
 import javax.inject.Inject
 
 abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), MavericksView {
-    /* ==========================================================================================
-     * Analytics
-     * ========================================================================================== */
-
-    protected var analyticsScreenName: MobileScreen.ScreenName? = null
-
-    @Inject lateinit var analyticsTracker: AnalyticsTracker
-
     /* ==========================================================================================
      * View
      * ========================================================================================== */
@@ -218,9 +209,12 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         ThemeUtils.setActivityTheme(this, getOtherThemes())
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP && forceOpaqueWindowBackgroundPreLollipop) {
             // Pre-21 the themed window background can end up transparent (no edge-to-edge backing),
-            // leaving content-less screens see-through. Force a concrete themed background; the attr is
-            // resolved in code (which works pre-21, unlike ?attr inside XML drawables).
-            window.setBackgroundDrawable(ColorDrawable(ThemeUtils.getColor(this, android.R.attr.colorBackground)))
+            // leaving content-less screens see-through. Force a concrete themed background. Resolve the
+            // colour against THIS activity's freshly-applied theme (not ThemeUtils.getColor, whose
+            // app-wide themeReference + attribute-only cache can return a stale light value).
+            val bgValue = TypedValue()
+            theme.resolveAttribute(android.R.attr.colorBackground, bgValue, true)
+            window.setBackgroundDrawable(ColorDrawable(bgValue.data))
         }
         viewModelFactory = activityEntryPoint.viewModelFactory()
         enableEdgeToEdge()
@@ -420,9 +414,6 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     override fun onResume() {
         super.onResume()
         Timber.i("onResume Activity ${javaClass.simpleName}")
-        analyticsScreenName?.let {
-            analyticsTracker.screen(MobileScreen(screenName = it))
-        }
         configurationViewModel.onActivityResumed()
         debugReceiver.register(this)
         mdmService.registerListener(this) {

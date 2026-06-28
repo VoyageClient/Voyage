@@ -18,19 +18,9 @@ sealed interface Analytics {
     object Disabled : Analytics
 
     /**
-     * Analytics integration via PostHog and Sentry.
+     * Analytics integration via Sentry.
      */
     data class Enabled(
-            /**
-             * The PostHog instance url.
-             */
-            val postHogHost: String,
-
-            /**
-             * The PostHog instance API key.
-             */
-            val postHogApiKey: String,
-
             /**
              * A URL to more information about the analytics collection.
              */

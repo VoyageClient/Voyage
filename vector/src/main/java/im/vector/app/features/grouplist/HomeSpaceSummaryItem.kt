@@ -25,6 +25,7 @@ import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import androidx.core.widget.ImageViewCompat
+import im.vector.app.core.extensions.backgroundCompat
 
 @EpoxyModelClass
 abstract class HomeSpaceSummaryItem : VectorEpoxyModel<HomeSpaceSummaryItem.Holder>(R.layout.item_space) {
@@ -46,7 +47,7 @@ abstract class HomeSpaceSummaryItem : VectorEpoxyModel<HomeSpaceSummaryItem.Hold
         holder.groupNameView.text = holder.view.context.getString(CommonStrings.all_chats)
         holder.rootView.isChecked = selected
         holder.rootView.context.resources
-        holder.avatarImageView.background = ContextCompat.getDrawable(holder.view.context, R.drawable.space_home_background)
+        holder.avatarImageView.backgroundCompat = ContextCompat.getDrawable(holder.view.context, R.drawable.space_home_background)
         holder.avatarImageView.setImageResource(R.drawable.ic_space_home)
         ImageViewCompat.setImageTintList(holder.avatarImageView, ColorStateList.valueOf(
                 ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)

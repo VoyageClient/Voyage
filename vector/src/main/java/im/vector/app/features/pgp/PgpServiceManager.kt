@@ -31,7 +31,7 @@ import javax.inject.Singleton
 import kotlin.coroutines.resume
 
 /**
- * Talks to OpenKeychain through the OpenPGP API (AIDL, works down to API 19). The binding is
+ * Talks to OpenKeychain through the OpenPGP API (AIDL, works down to API 14). The binding is
  * kept alive for the whole process and lazily (re)established. All crypto calls are blocking
  * and dispatched on IO; callers should treat them as suspend functions.
  *

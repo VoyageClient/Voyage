@@ -20,7 +20,9 @@
         <item name="android:id">@id/loginFormContainer</item>
         <item name="android:paddingTop">36dp</item>
         <item name="android:paddingStart">36dp</item>
+        <item name="android:paddingLeft">36dp</item>
         <item name="android:paddingEnd">36dp</item>
+        <item name="android:paddingRight">36dp</item>
         <item name="android:orientation">vertical</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

@@ -12,7 +12,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
 import im.vector.app.core.error.ErrorFormatter
-import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
@@ -47,7 +46,6 @@ interface SingletonEntryPoint {
 
     fun pinLocker(): PinLocker
 
-    fun analyticsTracker(): AnalyticsTracker
 
     fun appCoroutineScope(): CoroutineScope
 }

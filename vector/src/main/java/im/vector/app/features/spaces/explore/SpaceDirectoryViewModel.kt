@@ -18,9 +18,6 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
-import im.vector.app.features.analytics.plan.JoinedRoom
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -42,7 +39,6 @@ import timber.log.Timber
 class SpaceDirectoryViewModel @AssistedInject constructor(
         @Assisted val initialState: SpaceDirectoryState,
         private val session: Session,
-        private val analyticsTracker: AnalyticsTracker
 ) : VectorViewModel<SpaceDirectoryState, SpaceDirectoryViewAction, SpaceDirectoryViewEvents>(initialState) {
 
     @AssistedFactory
@@ -420,7 +416,6 @@ class SpaceDirectoryViewModel @AssistedInject constructor(
                 }
 
                 session.getRoomSummary(childId)
-                        ?.let { analyticsTracker.capture(it.toAnalyticsJoinedRoom(JoinedRoom.Trigger.SpaceHierarchy)) }
             }
         }
     }

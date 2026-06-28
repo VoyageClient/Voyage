@@ -50,7 +50,6 @@ import im.vector.app.core.utils.openFileSelection
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.DialogImportE2eKeysBinding
 import im.vector.app.databinding.DialogImportE2eKeysProgressBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.crypto.keys.KeysExporter
 import im.vector.app.features.crypto.keys.KeysImporter
 import im.vector.app.features.crypto.keysbackup.settings.KeysBackupManageActivity
@@ -102,7 +101,6 @@ class VectorSettingsSecurityPrivacyFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.SettingsSecurity
     }
 
     // cryptography

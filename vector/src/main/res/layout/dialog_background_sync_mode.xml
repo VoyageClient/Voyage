@@ -29,6 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
                 android:text="@string/settings_background_fdroid_sync_mode_battery_description"
                 android:textColor="?vctr_content_secondary" />
 
@@ -55,6 +56,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
                 android:text="@string/settings_background_fdroid_sync_mode_real_time_description"
                 android:textColor="?vctr_content_secondary" />
 
@@ -81,6 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
                 android:text="@string/settings_background_fdroid_sync_mode_disabled_description"
                 android:textColor="?vctr_content_secondary" />
 

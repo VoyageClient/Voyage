@@ -27,7 +27,6 @@ import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentIncomingShareBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
@@ -67,7 +66,6 @@ class IncomingShareFragment :
                     navigator.openRoom(
                             context = requireActivity(),
                             roomId = it.roomId,
-                            trigger = ViewRoom.Trigger.MobileLinkShare
                     )
                     requireActivity().finish()
                 }
@@ -139,7 +137,6 @@ class IncomingShareFragment :
             navigator.openRoom(
                     context = it,
                     roomId = viewEvent.roomId,
-                    trigger = ViewRoom.Trigger.MobileLinkShare
             )
             it.finish()
         }

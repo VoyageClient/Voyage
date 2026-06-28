@@ -11,8 +11,6 @@ import android.content.ActivityNotFoundException
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.roomprofile.polls.RoomPollsLoadingError
 import im.vector.app.features.voice.VoiceFailure
-import im.vector.app.features.voicebroadcast.VoiceBroadcastFailure
-import im.vector.app.features.voicebroadcast.VoiceBroadcastFailure.RecordingError
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.failure.Failure
@@ -125,7 +123,6 @@ class DefaultErrorFormatter @Inject constructor(
             is MatrixIdFailure.InvalidMatrixId ->
                 stringProvider.getString(CommonStrings.login_signin_matrix_id_error_invalid_matrix_id)
             is VoiceFailure -> voiceMessageError(throwable)
-            is VoiceBroadcastFailure -> voiceBroadcastMessageError(throwable)
             is RoomPollsLoadingError -> stringProvider.getString(CommonStrings.room_polls_loading_error)
             is ActivityNotFoundException ->
                 stringProvider.getString(CommonStrings.error_no_external_application_found)
@@ -138,18 +135,6 @@ class DefaultErrorFormatter @Inject constructor(
         return when (throwable) {
             is VoiceFailure.UnableToPlay -> stringProvider.getString(CommonStrings.error_voice_message_unable_to_play)
             is VoiceFailure.UnableToRecord -> stringProvider.getString(CommonStrings.error_voice_message_unable_to_record)
-            is VoiceFailure.VoiceBroadcastInProgress -> stringProvider.getString(CommonStrings.error_voice_message_broadcast_in_progress)
-        }
-    }
-
-    private fun voiceBroadcastMessageError(throwable: VoiceBroadcastFailure): String {
-        return when (throwable) {
-            RecordingError.BlockedBySomeoneElse -> stringProvider.getString(CommonStrings.error_voice_broadcast_blocked_by_someone_else_message)
-            RecordingError.NoPermission -> stringProvider.getString(CommonStrings.error_voice_broadcast_permission_denied_message)
-            RecordingError.UserAlreadyBroadcasting -> stringProvider.getString(CommonStrings.error_voice_broadcast_already_in_progress_message)
-            is VoiceBroadcastFailure.ListeningError.UnableToPlay,
-            is VoiceBroadcastFailure.ListeningError.PrepareMediaPlayerError -> stringProvider.getString(CommonStrings.error_voice_broadcast_unable_to_play)
-            is VoiceBroadcastFailure.ListeningError.UnableToDecrypt ->  stringProvider.getString(CommonStrings.error_voice_broadcast_unable_to_decrypt)
         }
     }
 

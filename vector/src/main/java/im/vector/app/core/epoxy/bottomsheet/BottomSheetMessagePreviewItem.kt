@@ -18,6 +18,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -42,6 +43,7 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.util.MatrixItem
+import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * A message preview for bottom sheet.
@@ -107,8 +109,9 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         // blurhash placeholder (Drawable) renders with square corners without this clip.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             // ViewOutlineProvider / clipToOutline are API 21+ (anti-aliased).
-            if (holder.imagePreview.outlineProvider !== ROUNDED_OUTLINE_PROVIDER) {
-                holder.imagePreview.outlineProvider = ROUNDED_OUTLINE_PROVIDER
+            val provider = roundedOutlineProvider()
+            if (holder.imagePreview.outlineProvider !== provider) {
+                holder.imagePreview.outlineProvider = provider
                 holder.imagePreview.clipToOutline = true
             }
         } else {
@@ -130,7 +133,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         // header / composer previews, rather than clipping with a trailing ellipsis.
         if (holder.bodyFade.background == null) {
             val surfaceColor = ThemeUtils.getColor(holder.bodyFade.context, com.google.android.material.R.attr.colorSurface)
-            holder.bodyFade.background = GradientDrawable(
+            holder.bodyFade.backgroundCompat = GradientDrawable(
                     GradientDrawable.Orientation.TOP_BOTTOM,
                     intArrayOf(Color.TRANSPARENT, surfaceColor)
             )
@@ -203,14 +206,16 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
     }
 
     companion object {
-        // lazy so the ViewOutlineProvider subclass (API 21+) is never loaded pre-21.
-        private val ROUNDED_OUTLINE_PROVIDER by lazy {
-            object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, view.resources.displayMetrics)
-                    outline.setRoundRect(0, 0, view.width, view.height, r)
-                }
-            }
-        }
+        private var cachedRoundedOutlineProvider: ViewOutlineProvider? = null
+
+        // The ViewOutlineProvider subclass is API 21+; built lazily so it is never loaded pre-21.
+        @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+        private fun roundedOutlineProvider(): ViewOutlineProvider =
+                cachedRoundedOutlineProvider ?: object : ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: Outline) {
+                        val r = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, view.resources.displayMetrics)
+                        outline.setRoundRect(0, 0, view.width, view.height, r)
+                    }
+                }.also { cachedRoundedOutlineProvider = it }
     }
 }

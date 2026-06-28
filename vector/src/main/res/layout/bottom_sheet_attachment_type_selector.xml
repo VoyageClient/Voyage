@@ -47,14 +47,6 @@
             app:tint="?colorPrimary"
             app:titleTextColor="?vctr_content_primary" />
 
-        <im.vector.app.core.ui.views.BottomSheetActionButton
-            android:id="@+id/voiceBroadcast"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:actionTitle="@string/attachment_type_selector_voice_broadcast"
-            app:leftIcon="@drawable/ic_attachment_voice_broadcast"
-            app:tint="?colorPrimary"
-            app:titleTextColor="?vctr_content_primary" />
 
         <im.vector.app.core.ui.views.BottomSheetActionButton
             android:id="@+id/poll"
@@ -105,6 +97,7 @@
             android:drawablePadding="20dp"
             android:padding="20dp"
             android:paddingStart="28dp"
+            android:paddingLeft="28dp"
             android:text="@string/attachment_type_selector_text_formatting"
             android:textAppearance="@style/TextAppearance.Vector.Subtitle"
             android:textColor="?vctr_content_primary"

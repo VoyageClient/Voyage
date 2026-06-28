@@ -11,8 +11,10 @@
     android:foreground="?attr/selectableItemBackground"
     android:minHeight="64dp"
     android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingTop="8dp"
     android:paddingEnd="@dimen/layout_horizontal_margin"
+    android:paddingRight="@dimen/layout_horizontal_margin"
     android:paddingBottom="8dp"
     tools:viewBindingIgnore="true">
 
@@ -37,6 +39,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:textColor="?colorPrimary"
         app:layout_constrainedWidth="true"
         app:layout_constraintBottom_toTopOf="@id/itemVerificationActionSubTitle"

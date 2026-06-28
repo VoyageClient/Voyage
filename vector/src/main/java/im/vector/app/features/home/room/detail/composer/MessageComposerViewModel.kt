@@ -20,10 +20,6 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsComposer
-import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
-import im.vector.app.features.analytics.plan.JoinedRoom
 import im.vector.app.features.attachments.toContentAttachmentData
 import im.vector.app.features.command.CommandParser
 import im.vector.app.features.command.Command
@@ -34,16 +30,9 @@ import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.VoiceFailure
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
-import im.vector.app.features.voicebroadcast.VoiceBroadcastHelper
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpRoomEncryptor
-import im.vector.app.features.voicebroadcast.model.VoiceBroadcast
-import im.vector.app.features.voicebroadcast.model.VoiceBroadcastState
-import im.vector.app.features.voicebroadcast.model.asVoiceBroadcastEvent
-import im.vector.app.features.voicebroadcast.usecase.GetVoiceBroadcastStateEventLiveUseCase
-import im.vector.app.features.voicebroadcast.voiceBroadcastId
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
@@ -106,10 +95,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val commandParser: CommandParser,
         private val rainbowGenerator: RainbowGenerator,
         private val audioMessageHelper: AudioMessageHelper,
-        private val analyticsTracker: AnalyticsTracker,
-        private val voiceBroadcastHelper: VoiceBroadcastHelper,
         private val clock: Clock,
-        private val getVoiceBroadcastStateEventLiveUseCase: GetVoiceBroadcastStateEventLiveUseCase,
         private val pgpKeyStore: PgpKeyStore,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
         private val pgpDecryptor: PgpDecryptor,
@@ -125,7 +111,6 @@ class MessageComposerViewModel @AssistedInject constructor(
         if (room != null) {
             loadDraftIfAny(room)
             observePowerLevelAndEncryption(room)
-            observeVoiceBroadcast(room)
             subscribeToStateInternal()
         } else {
             onRoomError()
@@ -354,19 +339,6 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun observeVoiceBroadcast(room: Room) {
-        room.stateService().getStateEventLive(VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO, QueryStringValue.Equals(session.myUserId))
-                .asFlow()
-                .map { it.getOrNull()?.asVoiceBroadcastEvent()?.voiceBroadcastId }
-                .flatMapLatest { voiceBroadcastId ->
-                    voiceBroadcastId?.let { getVoiceBroadcastStateEventLiveUseCase.execute(VoiceBroadcast(it, room.roomId)) } ?: flowOf(Optional.empty())
-                }
-                .map { it.getOrNull()?.content?.voiceBroadcastState }
-                .setOnEach {
-                    copy(voiceBroadcastState = it)
-                }
-    }
-
     private fun handleEnterQuoteMode(room: Room, action: MessageComposerAction.EnterQuoteMode) {
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
             setState { copy(sendMode = SendMode.Quote(timelineEvent, currentComposerText)) }
@@ -382,7 +354,6 @@ class MessageComposerViewModel @AssistedInject constructor(
     @Suppress("NAME_SHADOWING")
     private fun handleSendMessage(room: Room, action: MessageComposerAction.SendMessage) {
         withState { state ->
-            analyticsTracker.capture(state.toAnalyticsComposer())
             setState { copy(startsThread = false) }
             // Tag literal `:shortcode:` text as custom emotes for every send mode (regular, reply, quote, edit).
             // The rich-text path already carries its own formatted body, so only touch the plain-text path.
@@ -1194,7 +1165,6 @@ class MessageComposerViewModel @AssistedInject constructor(
                 return@launch
             }
             session.getRoomSummary(command.roomAlias)
-                    ?.also { analyticsTracker.capture(it.toAnalyticsJoinedRoom(JoinedRoom.Trigger.SlashCommand)) }
                     ?.roomId
                     ?.let {
                         _viewEvents.post(MessageComposerViewEvents.JoinRoomCommandSuccess(it))
@@ -1762,10 +1732,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleStartRecordingVoiceMessage(room: Room) {
-        val voiceBroadcastState = withState(this) { it.voiceBroadcastState }
-        if (voiceBroadcastState != null && voiceBroadcastState != VoiceBroadcastState.STOPPED) {
-            _viewEvents.post(MessageComposerViewEvents.VoicePlaybackOrRecordingFailure(VoiceFailure.VoiceBroadcastInProgress))
-        } else {
+        run {
             try {
                 audioMessageHelper.startRecording(room.roomId)
                 setState {
@@ -1921,8 +1888,6 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handleEntersBackground(room: Room, composerText: String) {
         // Always stop all voice actions. It may be playing in timeline or active recording
         val playingAudioContent = audioMessageHelper.stopAllVoiceActions(deleteRecord = false)
-        // TODO remove this when there will be a listening indicator outside of the timeline
-        voiceBroadcastHelper.pausePlayback()
 
         val isVoiceRecording = com.airbnb.mvrx.withState(this) { it.isVoiceRecording }
         if (isVoiceRecording) {

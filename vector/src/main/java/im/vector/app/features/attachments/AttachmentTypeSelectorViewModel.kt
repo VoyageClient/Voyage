@@ -40,7 +40,6 @@ class AttachmentTypeSelectorViewModel @AssistedInject constructor(
         setState {
             copy(
                     isLocationVisible = vectorFeatures.isLocationSharingEnabled(),
-                    isVoiceBroadcastVisible = vectorFeatures.isVoiceBroadcastEnabled(),
                     isTextFormattingEnabled = vectorPreferences.isTextFormattingEnabled(),
             )
         }
@@ -58,7 +57,6 @@ class AttachmentTypeSelectorViewModel @AssistedInject constructor(
 
 data class AttachmentTypeSelectorViewState(
         val isLocationVisible: Boolean = false,
-        val isVoiceBroadcastVisible: Boolean = false,
         val isTextFormattingEnabled: Boolean = false,
 ) : MavericksState
 

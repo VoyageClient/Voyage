@@ -6,8 +6,10 @@
     android:layout_height="wrap_content"
     android:minHeight="72dp"
     android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingTop="8dp"
     android:paddingEnd="@dimen/layout_horizontal_margin"
+    android:paddingRight="@dimen/layout_horizontal_margin"
     android:paddingBottom="8dp"
     tools:viewBindingIgnore="true">
 

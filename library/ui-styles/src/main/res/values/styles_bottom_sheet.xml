@@ -37,6 +37,7 @@
     <!-- BottomSheet style -->
     <style name="BottomSheetItemTextMain">
         <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="fontFamily">sans-serif-medium</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
@@ -48,6 +49,7 @@
 
     <style name="BottomSheetItemTextSecondary">
         <item name="android:fontFamily">sans-serif</item>
+        <item name="fontFamily">sans-serif</item>
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>

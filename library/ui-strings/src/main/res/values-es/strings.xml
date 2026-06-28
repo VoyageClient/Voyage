@@ -2275,7 +2275,6 @@
     <string name="analytics_opt_in_content">Ayúdanos a identificar problemas y a mejorar ${app_name} compartiendo datos de uso anónimos. Para comprender como las personas usan múltiples dispositivos, generaremos un identificador aleatorio, compartido por tus dispositivos.
 \n
 \nPuedes leer todos nuestros términos en %s.</string>
-    <string name="labs_enable_latex_maths">Habilitar matemáticas con LaTeX</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="audio_message_reply_content">%1$s (%2$s)</string>
     <string name="error_audio_message_unable_to_play">Ocurrió un error al reproducir %1$s</string>

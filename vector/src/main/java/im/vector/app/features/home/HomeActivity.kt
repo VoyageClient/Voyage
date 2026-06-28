@@ -44,9 +44,6 @@ import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.ActivityHomeBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
-import im.vector.app.features.analytics.accountdata.AnalyticsAccountDataViewModel
-import im.vector.app.features.analytics.plan.MobileScreen
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.crypto.recover.SetupMode
 import im.vector.app.features.home.room.list.actions.RoomListSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListSharedActionViewModel
@@ -113,9 +110,6 @@ class HomeActivity :
     private lateinit var roomListSharedActionViewModel: RoomListSharedActionViewModel
 
     private val homeActivityViewModel: HomeActivityViewModel by viewModel()
-
-    @Suppress("UNUSED")
-    private val analyticsAccountDataViewModel: AnalyticsAccountDataViewModel by viewModel()
 
     @Suppress("UNUSED")
     private val userColorAccountDataViewModel: UserColorAccountDataViewModel by viewModel()
@@ -186,7 +180,6 @@ class HomeActivity :
 
     private val drawerListener = object : DrawerLayout.SimpleDrawerListener() {
         override fun onDrawerOpened(drawerView: View) {
-            analyticsTracker.screen(MobileScreen(screenName = MobileScreen.ScreenName.Sidebar))
         }
 
         override fun onDrawerStateChanged(newState: Int) {
@@ -206,7 +199,6 @@ class HomeActivity :
         super.onCreate(savedInstanceState)
         isNewAppLayoutEnabled = vectorPreferences.isNewAppLayoutEnabled()
         combinedOverview = vectorPreferences.combinedOverview()
-        analyticsScreenName = MobileScreen.ScreenName.Home
         supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
         sharedActionViewModel = viewModelProvider[HomeSharedActionViewModel::class.java]
         roomListSharedActionViewModel = viewModelProvider[RoomListSharedActionViewModel::class.java]
@@ -669,7 +661,6 @@ class HomeActivity :
 
     private fun launchInviteFriends() {
         activeSessionHolder.getSafeActiveSession()?.permalinkService()?.createPermalink(sharedActionViewModel.session.myUserId)?.let { permalink ->
-            analyticsTracker.screen(MobileScreen(screenName = MobileScreen.ScreenName.InviteFriends))
             val text = getString(CommonStrings.invite_friends_text, permalink)
 
             startSharePlainTextIntent(
@@ -745,8 +736,8 @@ class HomeActivity :
         }
     }
 
-    override fun mxToBottomSheetNavigateToRoom(roomId: String, trigger: ViewRoom.Trigger?) {
-        navigator.openRoom(this, roomId, trigger = trigger)
+    override fun mxToBottomSheetNavigateToRoom(roomId: String) {
+        navigator.openRoom(this, roomId)
     }
 
     override fun mxToBottomSheetSwitchToSpace(spaceId: String) {

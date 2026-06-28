@@ -32,7 +32,6 @@ internal class RoomPollDetailNavigatorTest {
                 eventId = anEventId,
                 buildTask = true,
                 isInviteAlreadyAccepted = false,
-                trigger = null,
         )
 
         // When
@@ -45,7 +44,6 @@ internal class RoomPollDetailNavigatorTest {
                 eventId = anEventId,
                 buildTask = true,
                 isInviteAlreadyAccepted = false,
-                trigger = null,
         )
     }
 }

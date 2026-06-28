@@ -15,6 +15,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.core.extensions.setAttributeTintedImageResource
+import im.vector.app.core.extensions.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat
 import im.vector.app.databinding.ItemPollOptionBinding
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
@@ -46,7 +47,7 @@ class PollOptionView @JvmOverloads constructor(
 
     private fun renderPollSending() {
         views.optionCheckImageView.isVisible = false
-        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(0, 0, 0, 0)
         hideVotes()
         renderVoteSelection(false)
     }
@@ -54,7 +55,7 @@ class PollOptionView @JvmOverloads constructor(
     private fun renderPollEnded(state: PollOptionViewState.PollEnded) {
         views.optionCheckImageView.isVisible = false
         val drawableStart = if (state.isWinner) R.drawable.ic_poll_winner else 0
-        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(drawableStart, 0, 0, 0)
+        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(drawableStart, 0, 0, 0)
         views.optionVoteCountTextView.setTextColor(
                 if (state.isWinner) ThemeUtils.getColor(context, com.google.android.material.R.attr.colorPrimary)
                 else ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
@@ -65,21 +66,21 @@ class PollOptionView @JvmOverloads constructor(
 
     private fun renderPollReady() {
         views.optionCheckImageView.isVisible = true
-        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(0, 0, 0, 0)
         hideVotes()
         renderVoteSelection(false)
     }
 
     private fun renderPollVoted(state: PollOptionViewState.PollVoted) {
         views.optionCheckImageView.isVisible = true
-        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(0, 0, 0, 0)
         showVotes(state.voteCount, state.votePercentage)
         renderVoteSelection(state.isSelected)
     }
 
     private fun renderPollUndisclosed(state: PollOptionViewState.PollUndisclosed) {
         views.optionCheckImageView.isVisible = true
-        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+        views.optionVoteCountTextView.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(0, 0, 0, 0)
         hideVotes()
         renderVoteSelection(state.isSelected)
     }

@@ -10,6 +10,7 @@ package im.vector.app.core.date
 import android.content.Context
 import android.text.format.DateFormat
 import android.text.format.DateUtils
+import im.vector.app.core.extensions.getBestDateTimePatternCompat
 import im.vector.app.core.resources.DateProvider
 import im.vector.app.core.resources.LocaleProvider
 import im.vector.app.core.resources.toTimestamp
@@ -37,9 +38,9 @@ class VectorDateFormatter @Inject constructor(
 
     private val fullDateFormatter by lazy {
         val pattern = if (DateFormat.is24HourFormat(context)) {
-            DateFormat.getBestDateTimePattern(localeProvider.current(), "EEE, d MMM yyyy HH:mm")
+            getBestDateTimePatternCompat(localeProvider.current(), "EEE, d MMM yyyy HH:mm")
         } else {
-            DateFormat.getBestDateTimePattern(localeProvider.current(), "EEE, d MMM yyyy h:mm a")
+            getBestDateTimePatternCompat(localeProvider.current(), "EEE, d MMM yyyy h:mm a")
         }
         DateTimeFormatter.ofPattern(pattern, localeProvider.current())
     }

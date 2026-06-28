@@ -9,7 +9,9 @@
     android:minHeight="40dp"
     android:orientation="horizontal"
     android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingEnd="@dimen/layout_horizontal_margin"
+    android:paddingRight="@dimen/layout_horizontal_margin"
     tools:viewBindingIgnore="true">
 
     <ImageView
@@ -25,7 +27,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginEnd="0dp"
+        android:layout_marginRight="0dp"
         android:layout_weight="1"
         android:textColor="?vctr_content_primary"
         tools:text="Label" />
@@ -36,7 +40,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginEnd="0dp"
+        android:layout_marginRight="0dp"
         android:textColor="?vctr_content_primary"
         tools:text="Value"
         tools:textColor="?colorPrimary" />

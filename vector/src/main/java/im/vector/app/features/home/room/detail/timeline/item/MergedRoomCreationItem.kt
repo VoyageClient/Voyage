@@ -36,6 +36,8 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.util.toMatrixItem
+import im.vector.app.core.extensions.marginEndCompat
+import im.vector.app.core.extensions.textAlignmentCompat
 
 @EpoxyModelClass
 abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.Holder>(R.layout.item_timeline_event_base_noinfo) {
@@ -107,7 +109,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         if (attributes.hasEncryptionEvent) {
             holder.encryptionTile.isVisible = true
             holder.encryptionTile.updateLayoutParams<ConstraintLayout.LayoutParams> {
-                this.marginEnd = leftGuideline
+                this.marginEndCompat = leftGuideline
             }
             if (attributes.isEncryptionAlgorithmSecure) {
                 renderE2ESecureTile(holder)
@@ -152,7 +154,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                 null, null, null
         )
         holder.e2eTitleDescriptionView.text = holder.expandView.resources.getString(description)
-        holder.e2eTitleDescriptionView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        holder.e2eTitleDescriptionView.textAlignmentCompat = View.TEXT_ALIGNMENT_CENTER
     }
 
     private fun renderE2EUnsecureTile(holder: Holder) {

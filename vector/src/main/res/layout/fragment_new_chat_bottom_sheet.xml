@@ -18,6 +18,7 @@
         android:textColor="?vctr_content_primary"
         android:textSize="16sp"
         app:drawableStartCompat="@drawable/ic_chat" />
+        app:drawableLeftCompat="@drawable/ic_chat"
 
     <TextView
         android:id="@+id/create_room"
@@ -32,6 +33,7 @@
         android:textColor="?vctr_content_primary"
         android:textSize="16sp"
         app:drawableStartCompat="@drawable/ic_room_add" />
+        app:drawableLeftCompat="@drawable/ic_room_add"
 
     <TextView
         android:id="@+id/explore_rooms"
@@ -46,5 +48,6 @@
         android:textColor="?vctr_content_primary"
         android:textSize="16sp"
         app:drawableStartCompat="@drawable/ic_room_explore" />
+        app:drawableLeftCompat="@drawable/ic_room_explore"
 
 </LinearLayout>

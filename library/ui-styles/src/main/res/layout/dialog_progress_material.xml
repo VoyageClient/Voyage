@@ -13,8 +13,10 @@
         android:baselineAligned="false"
         android:orientation="horizontal"
         android:paddingStart="8dp"
+        android:paddingLeft="8dp"
         android:paddingTop="10dp"
         android:paddingEnd="8dp"
+        android:paddingRight="8dp"
         android:paddingBottom="10dp">
 
         <ProgressBar
@@ -23,6 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
             android:max="10000" />
 
         <TextView

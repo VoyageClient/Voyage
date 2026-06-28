@@ -23,6 +23,8 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.platform.CheckableView
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.core.extensions.marginStartCompat
 
 /**
  * Children must override getViewType().
@@ -53,12 +55,12 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
     override fun bind(holder: H) {
         super.bind(holder)
         holder.leftGuideline.updateLayoutParams<RelativeLayout.LayoutParams> {
-            this.marginStart = leftGuideline
+            this.marginStartCompat = leftGuideline
         }
         // The highlighted_message_background selector references theme attributes (?colorPrimary,
         // ?vctr_header_background) which don't resolve inside a drawable on pre-21, so build the
         // highlight in code where ThemeUtils resolves them on every API.
-        holder.checkableBackground.background = if (highlighted) {
+        holder.checkableBackground.backgroundCompat = if (highlighted) {
             buildHighlightDrawable(holder.checkableBackground.context)
         } else {
             null

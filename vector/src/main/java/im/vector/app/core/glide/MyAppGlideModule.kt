@@ -27,6 +27,10 @@ class MyAppGlideModule : AppGlideModule() {
         builder.setLogLevel(Log.ERROR)
     }
 
+    // zjupure's webpdecoder ships both an annotation @GlideModule and a legacy manifest GlideModule;
+    // with the annotation processor active, parsing the manifest too would register it twice.
+    override fun isManifestParsingEnabled(): Boolean = false
+
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {
         registry.append(
                 ImageContentRenderer.Data::class.java,
@@ -39,10 +43,11 @@ class MyAppGlideModule : AppGlideModule() {
                 AvatarPlaceholderModelLoaderFactory(context)
         )
         registry.prepend(InputStream::class.java, Drawable::class.java, SvgDecoder())
-        // Animated WebP / APNG / GIF via penfeizhou — see AnimatedDrawableDecoder. Registered for
-        // both ByteBuffer (disk cache) and InputStream (the timeline's custom data loader) so every
-        // animated source reaches penfeizhou rather than Glide's bundled decoders, which miss some
-        // animated WebP/APNG headers and fall back to a single still frame.
+        // APNG via penfeizhou — see AnimatedDrawableDecoder. Registered for both ByteBuffer (disk
+        // cache) and InputStream (the timeline's custom data loader) so every source reaches
+        // penfeizhou rather than Glide's bundled decoders, which miss some APNG headers and fall back
+        // to a single still frame. WebP (all variants) is owned by zjupure's libwebp decoder, which
+        // this prepend sits ahead of — so APNG is matched here and WebP falls through to zjupure.
         val byteBufferAnimated = AnimatedDrawableDecoder()
         registry.prepend(ByteBuffer::class.java, Drawable::class.java, byteBufferAnimated)
         registry.prepend(InputStream::class.java, Drawable::class.java, AnimatedStreamDrawableDecoder(byteBufferAnimated))

@@ -21,8 +21,6 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import com.squareup.moshi.Types
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.CreatedRoom
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
 import im.vector.app.features.settings.VectorPreferences
@@ -56,7 +54,6 @@ class CreateRoomViewModel @AssistedInject constructor(
         private val rawService: RawService,
         spaceStateHandler: SpaceStateHandler,
         private val vectorPreferences: VectorPreferences,
-        private val analyticsTracker: AnalyticsTracker
 ) : VectorViewModel<CreateRoomViewState, CreateRoomAction, CreateRoomViewEvents>(initialState) {
 
     @AssistedFactory
@@ -387,7 +384,6 @@ class CreateRoomViewModel @AssistedInject constructor(
         viewModelScope.launch {
             runCatching { session.roomService().createRoom(createRoomParams) }.fold(
                     { roomId ->
-                        analyticsTracker.capture(CreatedRoom(isDM = createRoomParams.isDirect.orFalse()))
                         if (state.parentSpaceId != null) {
                             // add it as a child
                             try {

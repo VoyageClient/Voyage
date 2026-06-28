@@ -26,7 +26,6 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.core.utils.FirstItemUpdatedObserver
 import im.vector.app.databinding.FragmentRoomListBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.home.room.list.RoomListAnimator
 import im.vector.app.features.home.room.list.RoomListListener
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsBottomSheet
@@ -229,7 +228,6 @@ class HomeRoomListFragment :
                 context = requireActivity(),
                 roomId = event.roomSummary.roomId,
                 isInviteAlreadyAccepted = isInviteAlreadyAccepted,
-                trigger = ViewRoom.Trigger.RoomList
         )
     }
 

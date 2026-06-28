@@ -10,6 +10,7 @@ package im.vector.app.features.reactions
 import android.app.Activity
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -65,7 +66,11 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
         // display height, otherwise (screenHeight - rect.bottom) goes negative and is never detected.
         val metrics = android.util.DisplayMetrics()
         @Suppress("DEPRECATION")
-        activity.windowManager.defaultDisplay.getRealMetrics(metrics)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            activity.windowManager.defaultDisplay.getRealMetrics(metrics)
+        } else {
+            activity.windowManager.defaultDisplay.getMetrics(metrics)
+        }
         val screenHeight = metrics.heightPixels
         val keyboardHeight = screenHeight - rect.bottom
         // Keyboard closed: what's left below the visible frame is just the bottom system bar.

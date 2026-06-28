@@ -15,7 +15,6 @@ import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.util.Pair
 import androidx.fragment.app.FragmentActivity
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.crypto.recover.SetupMode
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
@@ -50,7 +49,6 @@ interface Navigator {
             eventId: String? = null,
             buildTask: Boolean = false,
             isInviteAlreadyAccepted: Boolean = false,
-            trigger: ViewRoom.Trigger? = null
     )
 
     sealed class PostSwitchSpaceAction {
@@ -120,7 +118,6 @@ interface Navigator {
     // 0.5 = circle); the viewer morphs from this shape into the full-screen image. Defaults to circle.
     fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?, avatarCornerFraction: Float = 0.5f)
 
-    fun openAnalyticsOptIn(context: Context)
 
     fun openPinCode(
             context: Context,

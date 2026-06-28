@@ -21,8 +21,6 @@ import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventF
 import im.vector.app.features.home.room.list.usecase.GetLatestPreviewableEventUseCase
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.voicebroadcast.isLive
-import im.vector.app.features.voicebroadcast.model.asVoiceBroadcastEvent
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
@@ -143,8 +141,6 @@ class RoomSummaryItemFactory @Inject constructor(
         }
 
         val typingMessage = typingHelper.getTypingMessage(roomSummary.typingUsers)
-                // Skip typing while there is a live voice broadcast
-                .takeUnless { latestEvent?.root?.asVoiceBroadcastEvent()?.isLive.orFalse() }
                 .orEmpty()
 
         return if (subtitle.isBlank() && displayMode == RoomListDisplayMode.FILTERED) {

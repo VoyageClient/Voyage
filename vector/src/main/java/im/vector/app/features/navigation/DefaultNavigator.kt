@@ -16,6 +16,7 @@ import android.view.Window
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.app.TaskStackBuilder
 import androidx.core.util.Pair
@@ -28,10 +29,6 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.error.fatalError
 import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.features.VectorFeatures
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsViewRoom
-import im.vector.app.features.analytics.plan.ViewRoom
-import im.vector.app.features.analytics.ui.consent.AnalyticsOptInActivity
 import im.vector.app.features.createdirect.CreateDirectRoomActivity
 import im.vector.app.features.crypto.keysbackup.settings.KeysBackupManageActivity
 import im.vector.app.features.crypto.keysbackup.setup.KeysBackupSetupActivity
@@ -119,7 +116,6 @@ class DefaultNavigator @Inject constructor(
         private val supportedVerificationMethodsProvider: SupportedVerificationMethodsProvider,
         private val features: VectorFeatures,
         private val coroutineScope: CoroutineScope,
-        private val analyticsTracker: AnalyticsTracker,
         private val debugNavigator: DebugNavigator,
 ) : Navigator {
 
@@ -151,20 +147,10 @@ class DefaultNavigator @Inject constructor(
             eventId: String?,
             buildTask: Boolean,
             isInviteAlreadyAccepted: Boolean,
-            trigger: ViewRoom.Trigger?
     ) {
         if (sessionHolder.getSafeActiveSession()?.getRoom(roomId) == null) {
             fatalError("Trying to open an unknown room $roomId", vectorPreferences.failFast())
             return
-        }
-
-        trigger?.let {
-            analyticsTracker.capture(
-                    sessionHolder.getActiveSession().getRoomSummary(roomId).toAnalyticsViewRoom(
-                            trigger = trigger,
-                            selectedSpace = spaceStateHandler.getCurrentSpace()
-                    )
-            )
         }
 
         val args = TimelineArgs(roomId = roomId, eventId = eventId, isInviteAlreadyAccepted = isInviteAlreadyAccepted)
@@ -436,11 +422,7 @@ class DefaultNavigator @Inject constructor(
         val options = sharedElement?.let {
             ActivityOptionsCompat.makeSceneTransitionAnimation(activity, it, ViewCompat.getTransitionName(it) ?: "")
         }
-        activity.startActivity(intent, options?.toBundle())
-    }
-
-    override fun openAnalyticsOptIn(context: Context) {
-        context.startActivity(Intent(context, AnalyticsOptInActivity::class.java))
+        ActivityCompat.startActivity(activity, intent, options?.toBundle())
     }
 
     override fun openTerms(
@@ -525,7 +507,7 @@ class DefaultNavigator @Inject constructor(
             options?.invoke(pairs)
 
             val bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(activity, *pairs.toTypedArray()).toBundle()
-            activity.startActivity(intent, bundle)
+            ActivityCompat.startActivity(activity, intent, bundle)
         }
     }
 

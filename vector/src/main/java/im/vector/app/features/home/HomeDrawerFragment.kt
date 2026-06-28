@@ -33,7 +33,6 @@ import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentHomeDrawerBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.accountswitcher.AccountSwitcherAdapter
 import im.vector.app.features.home.accountswitcher.AccountSwitcherEntry
 import im.vector.app.features.onboarding.OnboardingActivity
@@ -115,7 +114,6 @@ class HomeDrawerFragment :
 
         views.homeDrawerInviteFriendButton.debouncedClicks {
             permalinkFactory.createPermalinkOfCurrentUser()?.let { permalink ->
-                analyticsTracker.screen(MobileScreen(screenName = MobileScreen.ScreenName.InviteFriends))
                 val text = getString(CommonStrings.invite_friends_text, permalink)
 
                 startSharePlainTextIntent(

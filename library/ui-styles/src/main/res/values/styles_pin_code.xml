@@ -18,6 +18,7 @@
     <style name="PinCodeNextButtonStyle" parent="Widget.Vector.Button">
         <item name="android:textSize">18sp</item>
         <item name="android:backgroundTint">@android:color/transparent</item>
+        <item name="backgroundTint">@android:color/transparent</item>
         <item name="android:layout_marginBottom">24dp</item>
     </style>
 

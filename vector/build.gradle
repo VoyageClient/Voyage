@@ -194,7 +194,7 @@ dependencies {
     implementation "androidx.transition:transition:1.4.1"
     implementation libs.androidx.biometric
 
-    // PGP via OpenKeychain (OpenPGP API, AIDL-based, works down to API 19).
+    // PGP via OpenKeychain (OpenPGP API, AIDL-based, works down to API 14).
     // Vendored as source under library/external/openpgp-api (Apache-2.0).
     implementation project(':library:external:openpgp-api')
 
@@ -217,11 +217,7 @@ dependencies {
     // Log
     api libs.jakewharton.timber
 
-    // Debug
-    api 'com.facebook.stetho:stetho:1.6.0'
-
     // Analytics
-    api 'com.github.matrix-org:matrix-analytics-events:0.23.0'
 
     api libs.google.phonenumber
 
@@ -251,7 +247,6 @@ dependencies {
     implementation libs.google.material
     implementation project(":library:external:span")
     implementation libs.markwon.core
-    implementation libs.markwon.extLatex
     implementation libs.markwon.imageGlide
     implementation libs.markwon.inlineParser
     // Vendored fork of markwon-html (see library/external/markwon-html) carrying the
@@ -260,10 +255,11 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.17.2'
     implementation 'com.googlecode.htmlcompressor:htmlcompressor:1.5.2'
     implementation 'me.saket:better-link-movement-method:2.2.0'
-    implementation 'com.google.android.flexbox:flexbox:3.0.0'
+    // api (not implementation): these custom views appear in :vector layouts whose view-binding base
+    // classes are generated/compiled in :vector-app, so :vector-app needs them on its compile classpath.
+    api 'com.google.android.flexbox:flexbox:3.0.0'
     implementation libs.androidx.autoFill
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
-    implementation 'com.github.hyuwah:DraggableView:1.0.0'
 
     // Custom Tab
     implementation 'androidx.browser:browser:1.5.0'
@@ -287,13 +283,18 @@ dependencies {
     implementation libs.github.glide
     kapt libs.github.glideCompiler
     implementation libs.vanniktech.blurhash
-    // Animated image decoders wired manually in MyAppGlideModule. We pull the individual decoders
-    // directly instead of the `glide-plugin` umbrella: its GlideModule hard-references the AVIF
-    // decoder, which drags in org.aomedia libavif (native, API 21+) that we don't support on KitKat.
+    // APNG via penfeizhou (pure Java). We pull the individual decoder directly instead of the
+    // `glide-plugin` umbrella: its GlideModule hard-references the AVIF decoder, which drags in
+    // org.aomedia libavif (native, API 21+) that we don't support on KitKat.
     implementation 'com.github.penfeizhou.android.animation:apng:3.0.5'
-    implementation 'com.github.penfeizhou.android.animation:awebp:3.0.5'
+    // WebP (static + animated, incl. lossless/alpha) via zjupure's native libwebp decoder.
+    // penfeizhou's pure-Java WebP path decodes every frame through BitmapFactory, which can't read
+    // VP8L/VP8X (lossless/alpha) below API 18 — so transparent WebP rendered blank on ICS. zjupure
+    // bundles libwebp (minSdk 14) and decodes natively. Its @GlideModule WebpGlideLibraryModule is
+    // picked up by the Glide annotation processor.
+    implementation 'com.github.zjupure:webpdecoder:2.7.4.16.0'
     // No penfeizhou gif: it decodes LZW in a native lib that fails to load on KitKat. GIFs are
-    // handled by Glide's built-in pure-Java decoder instead (see AnimatedDrawableDecoder).
+    // handled by Glide's built-in pure-Java decoder instead.
     // SVG rendering
     implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'com.github.yalantis:ucrop:2.2.8'
@@ -302,21 +303,20 @@ dependencies {
     implementation libs.dagger.hilt
     kapt libs.dagger.hiltCompiler
 
-    // Analytics
-    implementation 'com.posthog:posthog-android:3.2.0'
-
     // UnifiedPush
     implementation 'com.github.UnifiedPush:android-connector:2.1.1'
 
     implementation "androidx.emoji2:emoji2:1.3.0"
+    // Bundled emoji font (no Google Play Services needed, unlike the downloadable FontRequest config).
+    // emoji2/EmojiCompat works on API 19+; the bundled font asset also gives us a Typeface for the
+    // emoji picker/reactions and a usable glyph source on pre-19 (see EmojiCompatWrapper).
+    implementation "androidx.emoji2:emoji2-bundled:1.3.0"
 
     // QR-code
     // Stick to 3.3.3 because of https://github.com/zxing/zxing/issues/1170
     implementation 'com.google.zxing:core:3.3.3'
 
-    implementation project(":library:external:barcodescanner:zxing")
-
-    implementation project(":library:external:dialpad")
+    api project(":library:external:barcodescanner:zxing")
 
     // JWT
     api libs.jsonwebtoken.jjwtApi

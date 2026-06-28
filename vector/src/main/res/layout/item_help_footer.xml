@@ -28,6 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
+        android:layout_marginLeft="12dp"
         android:gravity="start"
         android:maxWidth="240dp"
         android:textColor="?vctr_content_secondary"

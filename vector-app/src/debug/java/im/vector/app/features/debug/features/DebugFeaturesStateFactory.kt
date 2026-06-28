@@ -76,11 +76,6 @@ class DebugFeaturesStateFactory @Inject constructor(
                                 key = DebugFeatureKeys.newAppLayoutEnabled,
                                 factory = VectorFeatures::isNewAppLayoutFeatureEnabled
                         ),
-                        createBooleanFeature(
-                                label = "Enable Voice Broadcast",
-                                key = DebugFeatureKeys.voiceBroadcastEnabled,
-                                factory = VectorFeatures::isVoiceBroadcastEnabled
-                        ),
                 )
         )
     }

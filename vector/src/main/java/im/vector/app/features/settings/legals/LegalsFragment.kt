@@ -21,7 +21,6 @@ import im.vector.app.core.utils.FirstThrottler
 import im.vector.app.core.utils.displayInWebView
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.FragmentGenericRecyclerBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.discovery.ServerPolicy
 import im.vector.app.features.settings.VectorSettingsUrls
 import im.vector.lib.strings.CommonStrings
@@ -44,7 +43,6 @@ class LegalsFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.SettingsLegals
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

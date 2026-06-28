@@ -2126,7 +2126,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="analytics_opt_in_title">Bantu buat ${app_name} lebih baik</string>
     <string name="action_enable">Aktifkan</string>
     <string name="restart_the_application_to_apply_changes">Mulai ulang aplikasi ini untuk menerapkan perubahan.</string>
-    <string name="labs_enable_latex_maths">Aktifkan matematika LaTeX</string>
     <string name="room_error_access_unauthorized">Anda tidak diperbolehkan untuk bergabung ke ruangan ini</string>
     <string name="labs_auto_report_uisi_desc">Sistem Anda akan mengirimkan catatan secara otomatis ketika sebuah kesalahan dekripsi terjadi</string>
     <string name="tooltip_attachment_poll">Buat poll</string>

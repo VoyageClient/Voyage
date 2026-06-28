@@ -25,6 +25,10 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import com.google.android.material.shape.MaterialShapeDrawable
 import im.vector.app.R
+import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.core.extensions.layoutDirectionCompat
+import im.vector.app.core.extensions.marginEndCompat
+import im.vector.app.core.extensions.marginStartCompat
 import im.vector.app.core.resources.DefaultLocaleProvider
 import im.vector.app.core.resources.getLayoutDirectionFromCurrentLocale
 import im.vector.app.core.utils.DimensionConverter
@@ -69,10 +73,10 @@ class MessageBubbleView @JvmOverloads constructor(
                 View.LAYOUT_DIRECTION_LTR
             }
         }
-        views.informationBottom.layoutDirection = layoutDirectionToSet
-        views.messageThreadSummaryContainer.layoutDirection = layoutDirectionToSet
-        views.bubbleWrapper.layoutDirection = layoutDirectionToSet
-        views.bubbleView.layoutDirection = currentLayoutDirection
+        views.informationBottom.layoutDirectionCompat =layoutDirectionToSet
+        views.messageThreadSummaryContainer.layoutDirectionCompat =layoutDirectionToSet
+        views.bubbleWrapper.layoutDirectionCompat =layoutDirectionToSet
+        views.bubbleView.layoutDirectionCompat =currentLayoutDirection
 
         bubbleDrawable = MaterialShapeDrawable()
         rippleMaskDrawable = MaterialShapeDrawable()
@@ -90,7 +94,7 @@ class MessageBubbleView @JvmOverloads constructor(
                         rippleMaskDrawable
                 )
             } else {
-                background = bubbleDrawable
+                backgroundCompat = bubbleDrawable
             }
         }
     }
@@ -164,17 +168,17 @@ class MessageBubbleView @JvmOverloads constructor(
     private fun TimelineMessageLayout.Bubble.setMargins() = apply {
         if (isIncoming) {
             views.messageEndGuideline.updateLayoutParams<LayoutParams> {
-                marginEnd = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_end)
+                marginEndCompat = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_end)
             }
             views.messageStartGuideline.updateLayoutParams<LayoutParams> {
-                marginStart = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_start)
+                marginStartCompat = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_start)
             }
         } else {
             views.messageEndGuideline.updateLayoutParams<LayoutParams> {
-                marginEnd = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_start)
+                marginEndCompat = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_start)
             }
             views.messageStartGuideline.updateLayoutParams<LayoutParams> {
-                marginStart = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_end)
+                marginStartCompat = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_end)
             }
         }
     }

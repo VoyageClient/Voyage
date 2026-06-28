@@ -28,6 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         app:layout_constraintStart_toEndOf="@id/recommendationShieldImageView"
         app:layout_constraintTop_toTopOf="@id/recommendationShieldImageView"
         tools:text="@string/device_manager_unverified_sessions_title" />

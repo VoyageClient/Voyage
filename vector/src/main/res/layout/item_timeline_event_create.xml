@@ -19,6 +19,7 @@
         android:minHeight="80dp"
         android:padding="16dp"
         app:drawableStartCompat="@drawable/ic_warning_badge"
+        app:drawableLeftCompat="@drawable/ic_warning_badge"
         tools:text="This room is continuation…" />
 
 </FrameLayout>

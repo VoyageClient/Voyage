@@ -2025,7 +2025,6 @@
     <string name="location_activity_title_preview">Ubicació</string>
     <string name="location_activity_title_static_sharing">Comparteix ubicació</string>
     <string name="restart_the_application_to_apply_changes">Reinicia l\'aplicació per aplicar els canvis.</string>
-    <string name="labs_enable_latex_maths">Activa format matemàtic amb LaTeX</string>
     <string name="link_this_email_settings_link">Enllaça aquesta adreça de correu electrònic al teu compte</string>
     <string name="audio_message_file_size">(%1$s)</string>
     <string name="audio_message_reply_content">%1$s (%2$s)</string>

@@ -7,6 +7,7 @@
 
 package im.vector.app.core.utils
 
+import android.os.Build
 import android.os.SystemClock
 import android.os.Trace
 import timber.log.Timber
@@ -106,13 +107,18 @@ object PerfTrace {
 
     @PublishedApi
     internal fun beginSection(name: String) {
-        // Trace sections must be <= 127 chars; clamp to keep us within the kernel limit.
-        Trace.beginSection(if (name.length > 127) name.substring(0, 127) else name)
+        // android.os.Trace is API 18+; tracing is simply skipped below.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // Trace sections must be <= 127 chars; clamp to keep us within the kernel limit.
+            Trace.beginSection(if (name.length > 127) name.substring(0, 127) else name)
+        }
     }
 
     @PublishedApi
     internal fun endSection(elapsedMs: Long, name: String) {
-        Trace.endSection()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            Trace.endSection()
+        }
         if (elapsedMs >= LOG_THRESHOLD_MS) {
             Timber.tag(TAG).i("%s %dms", name, elapsedMs)
         }

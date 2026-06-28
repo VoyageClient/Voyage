@@ -279,7 +279,6 @@
             android:supportsPictureInPicture="true" />
 
         <activity android:name=".features.pin.PinActivity" />
-        <activity android:name=".features.analytics.ui.consent.AnalyticsOptInActivity" />
         <activity android:name=".features.imagepack.edit.ImagePackEditActivity" />
         <activity android:name=".features.imagepack.edit.ImagePackListActivity" />
         <activity android:name=".features.settings.reactions.QuickReactionsSettingsActivity" />

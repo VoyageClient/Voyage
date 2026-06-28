@@ -16,6 +16,7 @@ import android.widget.LinearLayout
 import androidx.core.view.children
 import com.google.android.material.button.MaterialButton
 import im.vector.app.R
+import im.vector.app.core.extensions.textAlignmentCompat
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.auth.data.SsoIdentityProvider
 
@@ -68,11 +69,11 @@ class SocialLoginButtonsView @JvmOverloads constructor(context: Context, attrs: 
             // Put a default sign in with sso button
             MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
                 transformationMethod = null
-                textAlignment = View.TEXT_ALIGNMENT_CENTER
+                textAlignmentCompat = View.TEXT_ALIGNMENT_CENTER
             }.let {
                 it.text = if (hasOidcCompatibilityFlow) context.getString(CommonStrings.login_continue)
                     else getButtonTitle(context.getString(CommonStrings.login_social_sso))
-                it.textAlignment = View.TEXT_ALIGNMENT_CENTER
+                it.textAlignmentCompat = View.TEXT_ALIGNMENT_CENTER
                 it.setOnClickListener {
                     listener?.onProviderSelected(null)
                 }
@@ -107,7 +108,7 @@ class SocialLoginButtonsView @JvmOverloads constructor(context: Context, attrs: 
                             // TODO Use iconUrl
                             MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle).apply {
                                 transformationMethod = null
-                                textAlignment = View.TEXT_ALIGNMENT_CENTER
+                                textAlignmentCompat = View.TEXT_ALIGNMENT_CENTER
                             }
                         }
                     }

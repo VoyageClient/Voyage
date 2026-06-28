@@ -9,10 +9,12 @@ package im.vector.app.features.settings
 import android.content.Context
 import android.content.SharedPreferences
 import android.media.RingtoneManager
+import android.os.Build
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.annotation.BoolRes
 import androidx.core.content.edit
+import im.vector.lib.core.utils.compat.use
 import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
@@ -83,7 +85,6 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_COLLAPSED_ROOM_SECTIONS = "SETTINGS_COLLAPSED_ROOM_SECTIONS"
         const val SETTINGS_LABS_NEW_SESSION_MANAGER_KEY = "SETTINGS_LABS_NEW_SESSION_MANAGER_KEY"
         const val SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY = "SETTINGS_LABS_CLIENT_INFO_RECORDING_KEY"
-        const val SETTINGS_LABS_VOICE_BROADCAST_KEY = "SETTINGS_LABS_VOICE_BROADCAST_KEY"
         const val SETTINGS_CRYPTOGRAPHY_PREFERENCE_KEY = "SETTINGS_CRYPTOGRAPHY_PREFERENCE_KEY"
         const val SETTINGS_CRYPTOGRAPHY_DIVIDER_PREFERENCE_KEY = "SETTINGS_CRYPTOGRAPHY_DIVIDER_PREFERENCE_KEY"
         const val SETTINGS_CRYPTOGRAPHY_MANAGE_PREFERENCE_KEY = "SETTINGS_CRYPTOGRAPHY_MANAGE_PREFERENCE_KEY"
@@ -132,9 +133,9 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_VIBRATE_ON_MENTION_KEY = "SETTINGS_VIBRATE_ON_MENTION_KEY"
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
-        private const val SETTINGS_LABS_ENABLE_LATEX_MATHS = "SETTINGS_LABS_ENABLE_LATEX_MATHS"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         private const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
+        const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         const val SETTINGS_ANIMATE_ROOM_AVATARS = "SETTINGS_ANIMATE_ROOM_AVATARS"
@@ -400,16 +401,26 @@ class VectorPreferences @Inject constructor(
         return defaultPrefs.getBoolean(SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB, false)
     }
 
-    fun latexMathsIsEnabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_LABS_ENABLE_LATEX_MATHS, false)
-    }
-
     fun renderBlockquotesAsGreentext(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT, false)
     }
 
     fun useUglierUsernameColors(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_UGLIER_USERNAME_COLORS_KEY, false)
+    }
+
+    // Below KitKat there is no usable system emoji font and EmojiCompat is a no-op, so bundled
+    // Twemoji sprites are the only way to show emoji and the toggle is forced on.
+    fun useTwemoji(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT ||
+                defaultPrefs.getBoolean(SETTINGS_USE_TWEMOJI_KEY, false)
+    }
+
+    // commit=true: the caller restarts the process right after, before an async apply() would flush.
+    fun setUseTwemoji(enabled: Boolean) {
+        defaultPrefs.edit(commit = true) {
+            putBoolean(SETTINGS_USE_TWEMOJI_KEY, enabled)
+        }
     }
 
     fun failFast(): Boolean {
@@ -1076,7 +1087,10 @@ class VectorPreferences @Inject constructor(
     }
 
     fun isVoiceMessageButtonEnabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON, true)
+        // Voice-message recording (waveform + MediaCodec/libopus) is gated to KitKat+ on this fork; below
+        // that the composer never shows the recorder, so its classes aren't loaded on ICS.
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
+                defaultPrefs.getBoolean(SETTINGS_ENABLE_VOICE_MESSAGE_BUTTON, true)
     }
 
     fun isPerfLoggingEnabled(): Boolean {
@@ -1382,14 +1396,6 @@ class VectorPreferences @Inject constructor(
 
     fun compactQuickReactions(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_COMPACT_QUICK_REACTIONS_KEY, false)
-    }
-
-    fun isVoiceBroadcastEnabled(): Boolean {
-        return vectorFeatures.isVoiceBroadcastEnabled() &&
-                defaultPrefs.getBoolean(
-                        SETTINGS_LABS_VOICE_BROADCAST_KEY,
-                        getDefault(im.vector.app.config.R.bool.settings_labs_enable_voice_broadcast_default)
-                )
     }
 
     fun showIpAddressInSessionManagerScreens(): Boolean {

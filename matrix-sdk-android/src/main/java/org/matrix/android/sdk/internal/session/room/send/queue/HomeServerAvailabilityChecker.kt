@@ -30,11 +30,15 @@ internal class HomeServerAvailabilityChecker(val sessionParams: SessionParams) {
         val port = sessionParams.homeServerConnectionConfig.homeServerUriBase.port.takeIf { it != -1 } ?: 80
         val timeout = 30_000
         try {
-            Socket().use { socket ->
+            // Socket implements Closeable only on API 19+, so kotlin's `use` is unavailable; close explicitly.
+            val socket = Socket()
+            try {
                 val inetAddress: InetAddress = InetAddress.getByName(host)
                 val inetSocketAddress = InetSocketAddress(inetAddress, port)
                 socket.connect(inetSocketAddress, timeout)
                 return true
+            } finally {
+                socket.close()
             }
         } catch (e: IOException) {
             Timber.v("## EventSender isHostAvailable failure ${e.localizedMessage}")

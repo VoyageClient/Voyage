@@ -7,7 +7,9 @@
     android:background="?android:colorBackground"
     android:minHeight="64dp"
     android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingEnd="@dimen/layout_horizontal_margin"
+    android:paddingRight="@dimen/layout_horizontal_margin"
     tools:viewBindingIgnore="true">
 
     <ImageView
@@ -15,6 +17,7 @@
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:importantForAccessibility="no"
         android:scaleType="center"
         app:layout_constraintBottom_toBottomOf="parent"

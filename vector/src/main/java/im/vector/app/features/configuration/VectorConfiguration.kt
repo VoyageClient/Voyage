@@ -66,13 +66,23 @@ class VectorConfiguration @Inject constructor(
 
             configuration.fontScale = fontScalePreferences.getResolvedFontScaleValue().scale
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                setLocaleForApi24(configuration, locale)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    setLocaleForApi24(configuration, locale)
+                } else {
+                    configuration.setLocale(locale)
+                }
+                configuration.setLayoutDirection(locale)
+                return context.createConfigurationContext(configuration)
             } else {
-                configuration.setLocale(locale)
+                // setLocale/setLayoutDirection/createConfigurationContext are API 17+; pre-17 mutate
+                // the existing context's resources config instead.
+                @Suppress("DEPRECATION")
+                configuration.locale = locale
+                @Suppress("DEPRECATION")
+                context.resources.updateConfiguration(configuration, context.resources.displayMetrics)
+                return context
             }
-            configuration.setLayoutDirection(locale)
-            return context.createConfigurationContext(configuration)
         } catch (e: Exception) {
             Timber.e(e, "## getLocalisedContext() failed")
         }

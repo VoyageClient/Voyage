@@ -121,11 +121,25 @@ class VectorLocale @Inject constructor(
      * @param resourceId the string resource id
      * @return the localized string
      */
+    @Suppress("DEPRECATION")
     private fun getString(context: Context, locale: Locale, resourceId: Int): String {
         val config = Configuration(context.resources.configuration)
-        config.setLocale(locale)
         return try {
-            context.createConfigurationContext(config).getText(resourceId).toString()
+            // Configuration.setLocale + createConfigurationContext are API 17+; pre-17 mutate the
+            // resources' config, read the string, then restore.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                config.setLocale(locale)
+                context.createConfigurationContext(config).getText(resourceId).toString()
+            } else {
+                config.locale = locale
+                val res = context.resources
+                val metrics = res.displayMetrics
+                val original = Configuration(res.configuration)
+                res.updateConfiguration(config, metrics)
+                val value = res.getText(resourceId).toString()
+                res.updateConfiguration(original, metrics)
+                value
+            }
         } catch (e: Exception) {
             Timber.e(e, "## getString() failed")
             // use the default one

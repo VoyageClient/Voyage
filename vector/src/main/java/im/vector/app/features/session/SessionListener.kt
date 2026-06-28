@@ -11,8 +11,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import im.vector.app.core.extensions.postLiveEvent
 import im.vector.app.core.utils.LiveEvent
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toListOfPerformanceTimer
 import kotlinx.coroutines.cancelChildren
 import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.session.Session
@@ -22,7 +20,6 @@ import javax.inject.Singleton
 
 @Singleton
 class SessionListener @Inject constructor(
-        private val analyticsTracker: AnalyticsTracker
 ) : Session.Listener {
 
     private val _globalErrorLiveData = MutableLiveData<LiveEvent<GlobalError>>()
@@ -34,9 +31,6 @@ class SessionListener @Inject constructor(
     }
 
     override fun onStatisticsEvent(session: Session, statisticEvent: StatisticEvent) {
-        statisticEvent.toListOfPerformanceTimer().forEach {
-            analyticsTracker.capture(it)
-        }
     }
 
     override fun onSessionStopped(session: Session) {

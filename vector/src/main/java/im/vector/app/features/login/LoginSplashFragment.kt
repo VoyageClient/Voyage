@@ -17,7 +17,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.databinding.FragmentLoginSplashBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.failure.Failure
@@ -39,7 +38,6 @@ class LoginSplashFragment :
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        analyticsScreenName = MobileScreen.ScreenName.Welcome
         super.onCreate(savedInstanceState)
     }
 

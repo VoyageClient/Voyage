@@ -25,7 +25,6 @@ import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.utils.onPermissionDeniedSnackbar
 import im.vector.app.databinding.ActivitySimpleBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.matrixto.MatrixToBottomSheet
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.qrcode.QrCodeScannerEvents
@@ -138,8 +137,8 @@ class UserCodeActivity : VectorBaseActivity<ActivitySimpleBinding>(),
         }
     }
 
-    override fun mxToBottomSheetNavigateToRoom(roomId: String, trigger: ViewRoom.Trigger?) {
-        navigator.openRoom(this, roomId, trigger = trigger)
+    override fun mxToBottomSheetNavigateToRoom(roomId: String) {
+        navigator.openRoom(this, roomId)
     }
 
     override fun mxToBottomSheetSwitchToSpace(spaceId: String) {}

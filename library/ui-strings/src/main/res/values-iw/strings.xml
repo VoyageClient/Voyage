@@ -2342,7 +2342,6 @@
     <string name="upgrade_room_warning">שדרוג חדר הוא פעולה מתקדמת ומומלץ לרוב כאשר החדר אינו יציב עקב באגים, תכונות חסרות או פרצות אבטחה.
 \nזה בדרך כלל משפיע רק על אופן עיבוד החדר בשרת.</string>
     <string name="upgrade_room_for_restricted">כל מי שנמצא ב%s יוכל למצוא או להצטרף לחדר- אין צורך להזמין משתתפים. ניתן לשנות את הגדרות החדר בכל זמן.</string>
-    <string name="labs_enable_latex_maths">להפעיל LaTeX מתמטי</string>
     <string name="link_this_email_settings_link">שייך את הדואר האלקטרוני לחשבונך</string>
     <string name="identity_server_consent_dialog_content_3">כדי לגלות אנשי קשר קיימים, עליך לשלוח פרטי איש קשר (אימייל ומספרי טלפון) לשרת הזהות שלך. אנו משייכים את הנתונים שלך לפני השליחה לצורך פרטיות.</string>
     <string name="threads_notice_migration_message">אנחנו מתקרבים לשחרור גרסת ביטא ציבורית לשרשורים.

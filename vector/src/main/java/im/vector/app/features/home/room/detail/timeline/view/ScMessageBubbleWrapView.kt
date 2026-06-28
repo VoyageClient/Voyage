@@ -29,6 +29,12 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.core.extensions.layoutDirectionCompat
+import im.vector.app.core.extensions.marginEndCompat
+import im.vector.app.core.extensions.marginStartCompat
+import im.vector.app.core.extensions.removeRuleCompat
+import im.vector.app.core.extensions.setPaddingRelativeCompat
 import im.vector.app.core.resources.DefaultLocaleProvider
 import im.vector.app.core.resources.getLayoutDirectionFromCurrentLocale
 import im.vector.app.core.ui.views.BubbleDependentView
@@ -254,10 +260,10 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         val bubbleStartAlignWidth = views.informationBottom.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_tail_size)
         if (messageLayout.reverseBubble) {
             // Align reactions container to bubble
-            views.informationBottom.setPaddingRelative(0, 0, bubbleStartAlignWidth, 0)
+            views.informationBottom.setPaddingRelativeCompat(0, 0, bubbleStartAlignWidth, 0)
         } else {
             // Align reactions container to bubble
-            views.informationBottom.setPaddingRelative(bubbleStartAlignWidth, 0, 0, 0)
+            views.informationBottom.setPaddingRelativeCompat(bubbleStartAlignWidth, 0, 0, 0)
         }
     }
 
@@ -304,7 +310,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                 } else {
                     base
                 }
-                bubbleView.background = ScBubbleBackgroundDrawable(
+                bubbleView.backgroundCompat =ScBubbleBackgroundDrawable(
                         fillColor = color,
                         cornerRadius = messageLayout.bubbleAppearance.getBubbleRadiusPx(bubbleView.context).toFloat(),
                         tailWidth = bubbleView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_tail_size).toFloat(),
@@ -369,10 +375,10 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                 if (bubbleDependentView.allowFooterOverlay(holder, this)) {
                     footerLayoutParams.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.viewStubContainer)
                     footerLayoutParams.addRule(alignEnd, R.id.viewStubContainer)
-                    footerLayoutParams.removeRule(alignStart)
-                    footerLayoutParams.removeRule(RelativeLayout.BELOW)
-                    footerLayoutParams.removeRule(endOf)
-                    footerLayoutParams.removeRule(startOf)
+                    footerLayoutParams.removeRuleCompat(alignStart)
+                    footerLayoutParams.removeRuleCompat(RelativeLayout.BELOW)
+                    footerLayoutParams.removeRuleCompat(endOf)
+                    footerLayoutParams.removeRuleCompat(startOf)
                     if (bubbleDependentView.needsFooterReservation()) {
                         // Remove style used when not having reserved space
                         removeFooterOverlayStyle()
@@ -392,20 +398,20 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                         bubbleDependentView.allowFooterBelow(holder) -> {
                             footerLayoutParams.addRule(RelativeLayout.BELOW, R.id.viewStubContainer)
                             footerLayoutParams.addRule(alignEnd, R.id.viewStubContainer)
-                            footerLayoutParams.removeRule(alignStart)
-                            footerLayoutParams.removeRule(RelativeLayout.ALIGN_BOTTOM)
-                            footerLayoutParams.removeRule(endOf)
-                            footerLayoutParams.removeRule(startOf)
-                            footerLayoutParams.removeRule(RelativeLayout.START_OF)
+                            footerLayoutParams.removeRuleCompat(alignStart)
+                            footerLayoutParams.removeRuleCompat(RelativeLayout.ALIGN_BOTTOM)
+                            footerLayoutParams.removeRuleCompat(endOf)
+                            footerLayoutParams.removeRuleCompat(startOf)
+                            footerLayoutParams.removeRuleCompat(RelativeLayout.START_OF)
                         }
                         messageLayout.reverseBubble -> /* force footer on the left / at the start */ {
                             footerLayoutParams.addRule(RelativeLayout.START_OF, R.id.viewStubContainer)
                             footerLayoutParams.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.viewStubContainer)
-                            footerLayoutParams.removeRule(alignEnd)
-                            footerLayoutParams.removeRule(alignStart)
-                            footerLayoutParams.removeRule(endOf)
-                            footerLayoutParams.removeRule(startOf)
-                            footerLayoutParams.removeRule(RelativeLayout.BELOW)
+                            footerLayoutParams.removeRuleCompat(alignEnd)
+                            footerLayoutParams.removeRuleCompat(alignStart)
+                            footerLayoutParams.removeRuleCompat(endOf)
+                            footerLayoutParams.removeRuleCompat(startOf)
+                            footerLayoutParams.removeRuleCompat(RelativeLayout.BELOW)
                             // Reverse margins
                             footerMarginStartDp = views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_reverse_margin_start)
                             footerMarginEndDp = views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_reverse_margin_end)
@@ -413,11 +419,11 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                         else -> /* footer on the right / at the end */ {
                             footerLayoutParams.addRule(endOf, R.id.viewStubContainer)
                             footerLayoutParams.addRule(RelativeLayout.ALIGN_BOTTOM, R.id.viewStubContainer)
-                            footerLayoutParams.removeRule(startOf)
-                            footerLayoutParams.removeRule(alignEnd)
-                            footerLayoutParams.removeRule(alignStart)
-                            footerLayoutParams.removeRule(RelativeLayout.BELOW)
-                            footerLayoutParams.removeRule(RelativeLayout.START_OF)
+                            footerLayoutParams.removeRuleCompat(startOf)
+                            footerLayoutParams.removeRuleCompat(alignEnd)
+                            footerLayoutParams.removeRuleCompat(alignStart)
+                            footerLayoutParams.removeRuleCompat(RelativeLayout.BELOW)
+                            footerLayoutParams.removeRuleCompat(RelativeLayout.START_OF)
                         }
                     }
                     removeFooterOverlayStyle()
@@ -435,22 +441,22 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             if (messageLayout.isPseudoBubble) {
                 // We need to align the non-bubble member name view to pseudo bubbles
                 if (messageLayout.reverseBubble) {
-                    views.messageMemberNameView.setPaddingRelative(shortPadding, 0, longPadding, 0)
+                    views.messageMemberNameView.setPaddingRelativeCompat(shortPadding, 0, longPadding, 0)
                 } else {
-                    views.messageMemberNameView.setPaddingRelative(longPadding, 0, shortPadding, 0)
+                    views.messageMemberNameView.setPaddingRelativeCompat(longPadding, 0, shortPadding, 0)
                 }
             }
         } else { // no bubbles
-            bubbleView.background = null
-            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginStart = 0
-            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginEnd = 0
+            bubbleView.backgroundCompat =null
+            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginStartCompat =0
+            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginEndCompat =0
             bubbleView.setPadding(0, 0, 0, 0)
             views.messageMemberNameView.setPadding(0, 0, 0, 0)
         }
 
         (views.bubbleView.layoutParams as FrameLayout.LayoutParams).gravity = if (messageLayout.reverseBubble) Gravity.END else Gravity.START
         setFlatRtl(views.reactionsContainer, if (messageLayout.reverseBubble) reverseDirection else defaultDirection, defaultDirection)
-        views.messageThreadSummaryContainer.layoutDirection = if (messageLayout.reverseBubble) reverseDirection else defaultDirection
+        views.messageThreadSummaryContainer.layoutDirectionCompat =if (messageLayout.reverseBubble) reverseDirection else defaultDirection
         // Layout is broken if bubbleView is RTL (for some reason, Android uses left/end padding for right/start as well...)
         setFlatRtl(views.bubbleView, View.LAYOUT_DIRECTION_LTR, defaultDirection)
     }
@@ -465,7 +471,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         views.bubbleFootView.setBackgroundResource(messageLayout.bubbleAppearance.timestampOverlay)
         tintFooter(ThemeUtils.getColor(views.bubbleFootView.context, im.vector.lib.ui.styles.R.attr.timestamp_overlay_fg))
         val padding = views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_overlay_padding)
-        views.bubbleFootView.setPaddingRelative(
+        views.bubbleFootView.setPaddingRelativeCompat(
                 padding,
                 padding,
                 // compensate from inner view padding on the other side
@@ -475,9 +481,9 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
     }
 
     private fun removeFooterOverlayStyle() {
-        views.bubbleFootView.background = null
+        views.bubbleFootView.backgroundCompat =null
         tintFooter(ThemeUtils.getColor(views.bubbleFootView.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
-        views.bubbleFootView.setPaddingRelative(
+        views.bubbleFootView.setPaddingRelativeCompat(
                 0,
                 views.bubbleFootView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_footer_noverlay_padding_top),
                 0,
@@ -513,10 +519,10 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             readReceiptWidth = 0
             readReceiptHeight = 0
         } else {
-            readReceiptWidth = views.bubbleFooterReadReceipt.maxWidth +
+            readReceiptWidth = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) views.bubbleFooterReadReceipt.maxWidth else 0) +
                     views.bubbleFooterReadReceipt.paddingLeft +
                     views.bubbleFooterReadReceipt.paddingRight
-            readReceiptHeight = views.bubbleFooterReadReceipt.maxHeight +
+            readReceiptHeight = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) views.bubbleFooterReadReceipt.maxHeight else 0) +
                     views.bubbleFooterReadReceipt.paddingTop +
                     views.bubbleFooterReadReceipt.paddingBottom
         }
@@ -606,12 +612,12 @@ fun getBubbleTimeLocation(messageLayout: TimelineMessageLayout.ScBubble): String
 }
 
 fun setFlatRtl(layout: ViewGroup, direction: Int, childDirection: Int, depth: Int = 1) {
-    layout.layoutDirection = direction
+    layout.layoutDirectionCompat =direction
     for (child in layout.children) {
         if (depth > 1 && child is ViewGroup) {
             setFlatRtl(child, direction, childDirection, depth - 1)
         } else {
-            child.layoutDirection = childDirection
+            child.layoutDirectionCompat =childDirection
         }
     }
 }

@@ -9,5 +9,6 @@
     android:text="@string/event_redacted"
     android:textColor="?vctr_content_tertiary"
     app:drawableStartCompat="@drawable/ic_trash_16"
+    app:drawableLeftCompat="@drawable/ic_trash_16"
     app:drawableTint="?vctr_content_tertiary"
     tools:viewBindingIgnore="true" />

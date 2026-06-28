@@ -13,6 +13,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.core.view.ViewCompat
+import im.vector.app.core.extensions.marginStartCompat
 import im.vector.app.features.home.AvatarRenderer
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -35,9 +37,9 @@ class TypingMessageAvatar @JvmOverloads constructor(
         removeAllViews()
         for ((index, value) in typingUsers.withIndex()) {
             val avatar = ImageView(context)
-            avatar.id = View.generateViewId()
+            avatar.id = ViewCompat.generateViewId()
             val layoutParams = MarginLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            if (index != 0) layoutParams.marginStart = typingAvatarSize / OVERLAP_FACT0R
+            if (index != 0) layoutParams.marginStartCompat = typingAvatarSize / OVERLAP_FACT0R
             layoutParams.width = typingAvatarSize
             layoutParams.height = typingAvatarSize
             avatar.layoutParams = layoutParams

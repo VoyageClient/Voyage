@@ -21,13 +21,16 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="52dp" />
+        android:layout_marginLeft="52dp"
 
     <View
         android:id="@+id/messageEndGuideline"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_marginEnd="52dp" />
+        android:layout_marginRight="52dp"
 
     <FrameLayout
         android:id="@+id/viewStubContainer"
@@ -38,7 +41,9 @@
         android:layout_marginTop="2dp"
         android:layout_marginBottom="2dp"
         android:layout_toStartOf="@id/messageEndGuideline"
+        android:layout_toLeftOf="@id/messageEndGuideline"
         android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
         android:background="@drawable/rounded_rect_shape_8"
         android:padding="8dp">
 
@@ -72,6 +77,7 @@
         android:layout_alignTop="@id/viewStubContainer"
         android:layout_marginTop="4dp"
         android:layout_toStartOf="@id/viewStubContainer"
+        android:layout_toLeftOf="@id/viewStubContainer"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -81,7 +87,9 @@
         android:layout_height="14dp"
         android:layout_alignTop="@id/viewStubContainer"
         android:layout_marginStart="2dp"
+        android:layout_marginLeft="2dp"
         android:layout_toEndOf="@id/viewStubContainer"
+        android:layout_toRightOf="@id/viewStubContainer"
         android:contentDescription="@string/a11y_error_message_not_sent"
         app:srcCompat="@drawable/ic_warning_badge"
         android:visibility="gone"
@@ -93,6 +101,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/viewStubContainer"
         android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
         android:orientation="vertical">
 
         <com.google.android.flexbox.FlexboxLayout
@@ -100,6 +109,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:layout_marginBottom="4dp"
             app:dividerDrawable="@drawable/reaction_divider"
             app:flexWrap="wrap"

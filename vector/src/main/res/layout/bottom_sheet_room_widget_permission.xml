@@ -14,7 +14,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginLeft="@dimen/layout_horizontal_margin"
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
+        android:layout_marginRight="@dimen/layout_horizontal_margin"
         android:layout_marginBottom="8dp"
         android:text="@string/room_widget_permission_title"
         android:textColor="?vctr_content_primary"
@@ -26,7 +28,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginLeft="@dimen/layout_horizontal_margin"
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
+        android:layout_marginRight="@dimen/layout_horizontal_margin"
         android:layout_marginBottom="8dp"
         android:text="@string/room_widget_permission_added_by"
         android:textColor="?vctr_content_secondary" />
@@ -35,8 +39,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginLeft="@dimen/layout_horizontal_margin"
         android:layout_marginTop="@dimen/layout_vertical_margin"
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
+        android:layout_marginRight="@dimen/layout_horizontal_margin"
         android:orientation="horizontal">
 
         <ImageView
@@ -51,6 +57,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -83,8 +90,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginLeft="@dimen/layout_horizontal_margin"
         android:layout_marginTop="@dimen/layout_vertical_margin_big"
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
+        android:layout_marginRight="@dimen/layout_horizontal_margin"
         android:layout_marginBottom="8dp"
         android:textColor="?vctr_content_secondary"
         tools:text="@string/room_widget_permission_shared_info_title" />
@@ -102,6 +111,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/layout_vertical_margin"
+            android:layout_marginRight="@dimen/layout_vertical_margin"
             android:text="@string/action_decline"
             android:textAllCaps="true" />
 
@@ -111,6 +121,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/layout_vertical_margin"
+            android:layout_marginRight="@dimen/layout_vertical_margin"
             android:minWidth="160dp"
             android:text="@string/_continue"
             android:textAllCaps="true" />

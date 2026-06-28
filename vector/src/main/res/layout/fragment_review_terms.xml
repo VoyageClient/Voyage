@@ -23,8 +23,10 @@
         android:gravity="center_vertical|end"
         android:orientation="horizontal"
         android:paddingStart="16dp"
+        android:paddingLeft="16dp"
         android:paddingTop="@dimen/layout_vertical_margin"
         android:paddingEnd="16dp"
+        android:paddingRight="16dp"
         android:paddingBottom="@dimen/layout_vertical_margin"
         app:layout_constraintBottom_toBottomOf="parent">
 
@@ -34,6 +36,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             android:text="@string/action_decline" />
 
         <Button

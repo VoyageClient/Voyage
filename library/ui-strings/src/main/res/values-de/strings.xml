@@ -2144,7 +2144,6 @@
         <item quantity="other">%1$d Stimmen</item>
     </plurals>
     <string name="restart_the_application_to_apply_changes">Starte die Anwendung neu, damit die Änderung wirksam wird.</string>
-    <string name="labs_enable_latex_maths">LaTeX-Mathematik aktivieren</string>
     <string name="link_this_email_with_your_account">%s in den Einstellungen, um Einladungen direkt in ${app_name} zu erhalten.</string>
     <string name="this_invite_to_this_space_was_sent">Diese Einladung zu diesem Raum wurde an %s gesendet, der nicht mit deinem Konto verbunden ist</string>
     <string name="labs_auto_report_uisi_desc">Das System sendet automatisch Protokolle, wenn ein Fehler bei der Entschlüsselung auftritt</string>

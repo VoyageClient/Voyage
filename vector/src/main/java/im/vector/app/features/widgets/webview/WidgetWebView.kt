@@ -44,14 +44,18 @@ fun WebView.setupForWidget(activity: Activity,
     // Allow use of Local Storage
     settings.domStorageEnabled = true
 
-    @Suppress("DEPRECATION")
-    settings.allowFileAccessFromFileURLs = true
-    @Suppress("DEPRECATION")
-    settings.allowUniversalAccessFromFileURLs = true
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+        @Suppress("DEPRECATION")
+        settings.allowFileAccessFromFileURLs = true
+        @Suppress("DEPRECATION")
+        settings.allowUniversalAccessFromFileURLs = true
+    }
 
     settings.displayZoomControls = false
 
-    settings.mediaPlaybackRequiresUserGesture = false
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        settings.mediaPlaybackRequiresUserGesture = false
+    }
 
     // Permission requests
     webChromeClient = object : WebChromeClient() {

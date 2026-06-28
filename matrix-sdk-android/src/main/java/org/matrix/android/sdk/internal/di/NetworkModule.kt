@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.di
 
-import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -51,12 +50,6 @@ internal object NetworkModule {
 
     @Provides
     @JvmStatic
-    fun providesStethoInterceptor(): StethoInterceptor {
-        return StethoInterceptor()
-    }
-
-    @Provides
-    @JvmStatic
     fun providesCurlLoggingInterceptor(): CurlLoggingInterceptor {
         return CurlLoggingInterceptor()
     }
@@ -67,7 +60,6 @@ internal object NetworkModule {
     @Unauthenticated
     fun providesOkHttpClient(
             matrixConfiguration: MatrixConfiguration,
-            stethoInterceptor: StethoInterceptor,
             timeoutInterceptor: TimeOutInterceptor,
             userAgentInterceptor: UserAgentInterceptor,
             httpLoggingInterceptor: HttpLoggingInterceptor,
@@ -93,11 +85,6 @@ internal object NetworkModule {
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(60, TimeUnit.SECONDS)
                 .writeTimeout(60, TimeUnit.SECONDS)
-                .apply {
-                    if (BuildConfig.DEBUG) {
-                        addNetworkInterceptor(stethoInterceptor)
-                    }
-                }
                 .addInterceptor(timeoutInterceptor)
                 .addInterceptor(userAgentInterceptor)
                 .addInterceptor(httpLoggingInterceptor)

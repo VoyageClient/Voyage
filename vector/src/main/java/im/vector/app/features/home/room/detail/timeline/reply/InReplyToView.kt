@@ -40,6 +40,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
@@ -62,6 +63,7 @@ import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.util.ContentUtils
 import timber.log.Timber
 import kotlin.math.roundToInt
+import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * A View to render a replied-to event.
@@ -234,7 +236,7 @@ class InReplyToView @JvmOverloads constructor(
     private fun renderPgpReplyText(text: String) {
         views.replyTextView.isVisible = true
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-        views.replyTextView.text = text
+        views.replyTextView.text = text.withEmojis()
     }
 
     private fun renderRedacted() {
@@ -297,7 +299,7 @@ class InReplyToView @JvmOverloads constructor(
         // Set synchronously (not via PrecomputedTextCompat future): the async path measured the
         // ExpandableViewLayout before the text landed, leaving a recycled view stuck showing the
         // multi-line fade over a single-line reply.
-        views.replyTextView.text = text
+        views.replyTextView.text = text.withEmojis()
         markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
     }
 
@@ -455,7 +457,7 @@ class InReplyToView @JvmOverloads constructor(
             // A real two-stop transparent->bg gradient (top transparent, bottom opaque) gives a
             // gradual fade; for transparent bubbles we resolve the effective colour over the chat bg.
             val effective = calculateEffectiveColor(bgColor, chatBgColor)
-            fadeView.background = GradientDrawable(
+            fadeView.backgroundCompat = GradientDrawable(
                     GradientDrawable.Orientation.TOP_BOTTOM,
                     intArrayOf(Color.TRANSPARENT, effective)
             )

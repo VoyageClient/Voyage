@@ -24,10 +24,7 @@ buildscript {
         classpath libs.gradle.gradlePlugin
         classpath libs.gradle.kotlinPlugin
         classpath libs.gradle.hiltPlugin
-        classpath 'com.google.firebase:firebase-appdistribution-gradle:4.0.0'
-        classpath 'com.google.gms:google-services:4.3.15'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:4.0.0.2929'
-        classpath 'com.google.android.gms:oss-licenses-plugin:0.10.6'
         classpath "com.likethesalad.android:stem-plugin:2.9.0"
         classpath 'org.owasp:dependency-check-gradle:8.2.1'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:1.8.10"
@@ -130,18 +127,28 @@ allprojects {
             force 'com.squareup.okhttp3:logging-interceptor:3.12.13'
             force 'com.github.bumptech.glide:okhttp3-integration:4.11.0'
 
-            // appcompat 1.7 / core 1.14+ / fragment 1.7+ raised their minSdk to 21; transitive
-            // deps (notably maplibre) pull them back up, which would put API-21-only AndroidX on
-            // KitKat's core UI paths. Pin the whole stack to its last minSdk-19 line.
+            // AndroidX raised its floor 14→19 in Oct 2023 (and 19→21 in 2024). To run on ICS
+            // (API 14) every AndroidX artifact must stay on its last minSdk-14 release; transitive
+            // deps (notably maplibre) otherwise pull newer minSdk-19/21 versions onto core UI paths.
+            // appcompat 1.6.1 / fragment 1.6.2 / activity 1.8.2 / material 1.11 are already the last
+            // minSdk-14 line; core 1.13 / lifecycle 2.7 / transition 1.5 / viewpager2 1.1 went to 19,
+            // so step those back. (browser has no minSdk-14 release → tools:overrideLibrary instead.)
             force 'androidx.appcompat:appcompat:1.6.1'
             force 'androidx.appcompat:appcompat-resources:1.6.1'
-            force 'androidx.core:core:1.13.1'
-            force 'androidx.core:core-ktx:1.13.1'
+            force 'androidx.core:core:1.12.0'
+            force 'androidx.core:core-ktx:1.12.0'
             force 'androidx.fragment:fragment:1.6.2'
             force 'androidx.fragment:fragment-ktx:1.6.2'
             force 'androidx.fragment:fragment-testing-manifest:1.6.2'
             force 'androidx.activity:activity:1.8.2'
             force 'androidx.activity:activity-ktx:1.8.2'
+            force 'androidx.transition:transition:1.4.1'
+            force 'androidx.viewpager2:viewpager2:1.0.0'
+            eachDependency { details ->
+                if (details.requested.group == 'androidx.lifecycle') {
+                    details.useVersion '2.6.2'
+                }
+            }
         }
     }
 

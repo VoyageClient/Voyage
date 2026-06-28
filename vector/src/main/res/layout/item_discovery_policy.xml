@@ -26,7 +26,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingStart="0dp"
+        android:paddingLeft="0dp"
         android:paddingEnd="8dp"
+        android:paddingRight="8dp"
         android:textColor="?vctr_content_primary"
         android:textStyle="bold"
         tools:text="Copyright" />
@@ -37,7 +39,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:paddingStart="0dp"
+        android:paddingLeft="0dp"
         android:paddingEnd="8dp"
+        android:paddingRight="8dp"
         android:textColor="?android:textColorLink"
         tools:text="https://element.io/copyright" />
 

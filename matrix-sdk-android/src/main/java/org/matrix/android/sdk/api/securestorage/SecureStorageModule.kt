@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.securestorage
 
 import android.content.Context
+import android.os.Build
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -30,7 +31,14 @@ internal abstract class SecureStorageModule {
     @Module
     companion object {
         @Provides
-        fun provideKeyStore(): KeyStore = KeyStore.getInstance("AndroidKeyStore").also { it.load(null) }
+        fun provideKeyStore(buildVersionSdkIntProvider: BuildVersionSdkIntProvider): KeyStore {
+            return if (buildVersionSdkIntProvider.isAtLeast(Build.VERSION_CODES.JELLY_BEAN_MR2)) {
+                KeyStore.getInstance("AndroidKeyStore").also { it.load(null) }
+            } else {
+                // AndroidKeyStore is API 18+; on ICS fall back to a software keystore so the DI graph builds.
+                KeyStore.getInstance(KeyStore.getDefaultType()).also { it.load(null, null) }
+            }
+        }
 
         @Provides
         fun provideSecretStoringUtils(

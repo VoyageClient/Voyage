@@ -2096,7 +2096,6 @@
     <string name="legals_application_title">${app_name} politiko</string>
     <string name="threads_beta_enable_notice_title">Fadenoj Betao</string>
     <string name="thread_list_not_available">Via hejma servilo ankoraŭ ne subtenas montri la liston de fadenoj.</string>
-    <string name="labs_enable_latex_maths">Ebligi LaTeX-matematikon</string>
     <string name="labs_auto_report_uisi">Aŭtomate Raporti pri Malĉifraj Eraroj.</string>
     <string name="restart_the_application_to_apply_changes">Rekomencu la aplikaĵon por ke la ŝanĝo ekvalidu.</string>
     <string name="device_manager_session_rename_description">Propraj sesiaj nomoj povas helpi vin rekoni viajn aparatojn pli facile.</string>

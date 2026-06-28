@@ -15,6 +15,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
+import androidx.core.view.ViewCompat
 import androidx.core.view.marginStart
 import androidx.core.view.marginTop
 import im.vector.app.R
@@ -62,7 +63,7 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
                 width = contentContainerView.measuredWidth + timeViewMeasuredWidthWithMargins
                 height = contentContainerView.measuredHeight
             } else if (textLineCount > 1 && lastLineWidth + timeViewMeasuredWidthWithMargins
-                    < contentContainerView.measuredWidth - contentContainerView.paddingEnd) {
+                    < contentContainerView.measuredWidth - ViewCompat.getPaddingEnd(contentContainerView)) {
                 width = contentContainerView.measuredWidth
                 height = contentContainerView.measuredHeight
             } else {

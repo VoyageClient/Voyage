@@ -12,6 +12,7 @@
 
     <style name="Widget.Vector.Button.CallToAction" parent="Widget.Vector.Button">
         <item name="android:backgroundTint">@color/button_background_tint_selector</item>
+        <item name="backgroundTint">@color/button_background_tint_selector</item>
         <item name="android:textColor">@android:color/white</item>
     </style>
 

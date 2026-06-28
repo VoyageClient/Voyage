@@ -24,7 +24,6 @@ import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentRoomMemberListBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.lib.strings.CommonStrings
@@ -52,7 +51,6 @@ class RoomMemberListFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.RoomMembers
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

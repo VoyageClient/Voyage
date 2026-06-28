@@ -26,7 +26,6 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentPublicRoomsBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.permalink.NavigationInterceptor
 import im.vector.app.features.permalink.PermalinkFactory
 import im.vector.app.features.permalink.PermalinkHandler
@@ -143,7 +142,6 @@ class PublicRoomsFragment :
                     navigator.openRoom(
                             context = requireActivity(),
                             roomId = publicRoom.roomId,
-                            trigger = ViewRoom.Trigger.RoomDirectory
                     )
                 }
                 else -> {

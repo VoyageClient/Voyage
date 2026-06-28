@@ -1,12 +1,12 @@
-# Platform support (KitKat / API 19)
+# Platform support (Ice Cream Sandwich / API 14)
 
-This is a fork that targets KitKat (API 19). Any new feature or code you add MUST run on API 19 — either natively or with an explicit fallback. Never introduce an unconditional dependency on an API that didn't exist at 19 without guarding it.
+This is a fork that targets Ice Cream Sandwich (API 14). Any new feature or code you add MUST run on API 14 — either natively or with an explicit fallback. Never introduce an unconditional dependency on an API that didn't exist at 14 without guarding it.
 
-- Before using a platform API, check its `@RequiresApi` / added-in level. If it's above 19, gate it with `Build.VERSION.SDK_INT` and provide a working path for API 19. A feature that silently no-ops on 19 is not acceptable unless that degradation is deliberate and documented in the code comment.
-- Prefer AndroidX/compat wrappers (e.g. `ContextCompat`, `ViewCompat`, `HtmlCompat`) and desugared `java.time`/NIO over raw framework calls, since those already backport behavior to 19.
-- Where it costs little, write code so it also works below 19 (down to the lowest the dependency allows) — choose the broadest-compatible API rather than the newest convenient one.
-- Don't bump `minSdk`, and don't pull in a library whose own `minSdk` exceeds 19.
-- When a feature genuinely can't work on 19, the higher-API branch must be isolated behind a version check and the 19 branch must still leave the app usable.
+- Before using a platform API, check its `@RequiresApi` / added-in level. If it's above 14, gate it with `Build.VERSION.SDK_INT` and provide a working path for API 14. A feature that silently no-ops on 14 is not acceptable unless that degradation is deliberate and documented in the code comment.
+- Prefer AndroidX/compat wrappers (e.g. `ContextCompat`, `ViewCompat`, `HtmlCompat`) and desugared `java.time`/NIO over raw framework calls, since those already backport behavior to 14.
+- Where it costs little, write code so it also works below 14 (down to the lowest the dependency allows) — choose the broadest-compatible API rather than the newest convenient one.
+- Don't bump `minSdk`, and don't pull in a library whose own `minSdk` exceeds 14. AndroidX raised its floor 14→19 in Oct 2023 (and 19→21 in 2024), so any new AndroidX artifact must stay on its last minSdk-14 release; the `resolutionStrategy.force` block in the root `build.gradle` pins the stack accordingly.
+- When a feature genuinely can't work on 14, the higher-API branch must be isolated behind a version check and the 14 branch must still leave the app usable.
 
 # Strings
 
@@ -27,9 +27,9 @@ Any change to room-list behavior (display, sorting, refresh, item rendering) MUS
 
 # Building
 
-The command you should use to build or install should always be ./gradlew :vector-app:installFdroidDebug so please do not use anything else.
+The command you should use to build or install should always be ./gradlew :vector-app:installDebug so please do not use anything else. (The old `gplay`/`fdroid` product flavors were removed — the fork is F-Droid-only — so there is no longer an `installFdroidDebug` task; the source set merged into `src/main`.)
 
-To quickly check that code compiles without building/installing the whole app (no device needed), use ./gradlew :vector:compileDebugKotlin. Note the `:vector` module is NOT flavored, so there is no `compileFdroidDebugKotlin` task there — the flavor (`fdroid`) only exists on `:vector-app`.
+To quickly check that code compiles without building/installing the whole app (no device needed), use ./gradlew :vector:compileDebugKotlin.
 
 # Debugging on device
 
@@ -45,7 +45,7 @@ NEVER remove temporary debug-related logging until either the problem has been r
 
 # Reviewing changes
 
-When asked to review, review the entire diff since the last git commit — not just the most recent edit. Go through all of it and check for: dead or unreachable code, stale/unnecessary/narrating comments, bugs and logic errors, and anything that would break on the minimum supported API (currently KitKat / API 19) — verify it genuinely runs there, not just that it compiles. Don't only report problems: if you spot improvements worth making to the changed code, make them.
+When asked to review, review the entire diff since the last git commit — not just the most recent edit. Go through all of it and check for: dead or unreachable code, stale/unnecessary/narrating comments, bugs and logic errors, and anything that would break on the minimum supported API (currently Ice Cream Sandwich / API 14) — verify it genuinely runs there, not just that it compiles. Don't only report problems: if you spot improvements worth making to the changed code, make them.
 
 Also during review, compact overly verbose comments down to the minimal non-obvious WHY. And delete comments that only make sense relative to uncommitted history — i.e. notes explaining a fix for a problem we introduced earlier in this same uncommitted batch, or contrasting against "how this used to be handled" when that prior state was never committed. To an outside observer reading the committed code fresh, such comments are meaningless; the code should read as if it was always written this way.
 

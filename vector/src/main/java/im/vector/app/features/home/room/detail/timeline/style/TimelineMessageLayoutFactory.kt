@@ -15,7 +15,6 @@ import im.vector.app.core.resources.isRTL
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.BubbleThemeUtils
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -54,9 +53,6 @@ class TimelineMessageLayoutFactory @Inject constructor(
         // Can't be rendered in bubbles, so get back to default layout
         private val MSG_TYPES_WITHOUT_BUBBLE_LAYOUT = setOf(
                 MessageType.MSGTYPE_VERIFICATION_REQUEST
-        )
-        private val EVENT_TYPES_WITHOUT_SC_BUBBLE_LAYOUT = setOf(
-                STATE_ROOM_VOICE_BROADCAST_INFO,
         )
 
         // Use the bubble layout but without borders
@@ -238,9 +234,6 @@ class TimelineMessageLayoutFactory @Inject constructor(
     }
 
     private fun TimelineEvent.shouldNeverUseScLayout(): Boolean {
-        if (root.getClearType() in EVENT_TYPES_WITHOUT_SC_BUBBLE_LAYOUT) {
-            return true
-        }
         val messageContent = getLastMessageContent()
         return messageContent?.msgType in MSG_TYPES_WITHOUT_BUBBLE_LAYOUT
     }

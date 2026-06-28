@@ -13,6 +13,8 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
+import im.vector.app.core.extensions.marginEndCompat
+import im.vector.app.core.extensions.marginStartCompat
 import im.vector.app.R
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewPinnedMessagesBannerBinding
@@ -129,8 +131,8 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
         for (i in 0 until barCount) {
             val bar = View(context)
             val params = LayoutParams(barWidth, barHeight).apply {
-                marginStart = barMargin
-                marginEnd = barMargin
+                marginStartCompat = barMargin
+                marginEndCompat = barMargin
                 gravity = Gravity.CENTER_VERTICAL
             }
             bar.layoutParams = params

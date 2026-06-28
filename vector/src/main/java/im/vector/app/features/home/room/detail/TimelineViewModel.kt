@@ -24,22 +24,15 @@ import im.vector.app.R
 import im.vector.app.SpaceStateHandler
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
-import im.vector.app.core.extensions.isVoiceBroadcast
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.mvrx.runCatchingToAsync
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.BehaviorDataSource
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.DecryptionFailureTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
-import im.vector.app.features.analytics.plan.CreatedRoom
-import im.vector.app.features.analytics.plan.JoinedRoom
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
 import im.vector.app.features.crypto.verification.SupportedVerificationMethodsProvider
-import im.vector.app.features.home.room.detail.RoomDetailAction.VoiceBroadcastAction
 import im.vector.app.features.home.room.detail.error.RoomNotFound
 import im.vector.app.features.home.room.detail.location.RedactLiveLocationShareEventUseCase
 import im.vector.app.features.home.room.detail.pinned.GetPinnedEventsUseCase
@@ -74,7 +67,6 @@ import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorDataStore
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.voicebroadcast.VoiceBroadcastHelper
 import im.vector.lib.core.utils.flow.chunk
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -149,8 +141,6 @@ class TimelineViewModel @AssistedInject constructor(
         private val stickerPickerActionHandler: StickerPickerActionHandler,
         private val typingHelper: TypingHelper,
         private val directRoomHelper: DirectRoomHelper,
-        private val analyticsTracker: AnalyticsTracker,
-        private val decryptionFailureTracker: DecryptionFailureTracker,
         private val notificationDrawerManager: NotificationDrawerManager,
         private val locationSharingServiceConnection: LocationSharingServiceConnection,
         private val stopLiveLocationShareUseCase: StopLiveLocationShareUseCase,
@@ -159,7 +149,6 @@ class TimelineViewModel @AssistedInject constructor(
         buildMeta: BuildMeta,
         timelineFactory: TimelineFactory,
         private val spaceStateHandler: SpaceStateHandler,
-        private val voiceBroadcastHelper: VoiceBroadcastHelper,
         private val voteToPollUseCase: VoteToPollUseCase,
         private val getPinnedEventsUseCase: GetPinnedEventsUseCase,
         private val recentEmojiDataSource: RecentEmojiDataSource,
@@ -535,7 +524,6 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.ReRequestKeys -> handleReRequestKeys(action)
             is RoomDetailAction.TapOnFailedToDecrypt -> handleTapOnFailedToDecrypt(action)
             is RoomDetailAction.SelectStickerAttachment -> handleSelectStickerAttachment()
-            is VoiceBroadcastAction -> handleVoiceBroadcastAction(action)
             is RoomDetailAction.OpenIntegrationManager -> handleOpenIntegrationManager()
             is RoomDetailAction.ManageIntegrations -> handleManageIntegrations()
             is RoomDetailAction.RemoveWidget -> handleDeleteWidget(action.widgetId)
@@ -599,32 +587,6 @@ private fun handleSelectStickerAttachment() {
         viewModelScope.launch {
             val viewEvent = stickerPickerActionHandler.handle()
             _viewEvents.post(viewEvent)
-        }
-    }
-
-    private fun handleVoiceBroadcastAction(action: VoiceBroadcastAction) {
-        if (room == null) return
-        viewModelScope.launch {
-            when (action) {
-                VoiceBroadcastAction.Recording.Start -> {
-                    voiceBroadcastHelper.pausePlayback()
-                    voiceBroadcastHelper.startVoiceBroadcast(room.roomId).fold(
-                            { _viewEvents.post(RoomDetailViewEvents.ActionSuccess(action)) },
-                            { _viewEvents.post(RoomDetailViewEvents.ActionFailure(action, it)) },
-                    )
-                }
-                VoiceBroadcastAction.Recording.Pause -> voiceBroadcastHelper.pauseVoiceBroadcast(room.roomId)
-                VoiceBroadcastAction.Recording.Resume -> {
-                    voiceBroadcastHelper.pausePlayback()
-                    voiceBroadcastHelper.resumeVoiceBroadcast(room.roomId)
-                }
-                VoiceBroadcastAction.Recording.Stop -> _viewEvents.post(RoomDetailViewEvents.DisplayPromptToStopVoiceBroadcast)
-                VoiceBroadcastAction.Recording.StopConfirmed -> voiceBroadcastHelper.stopVoiceBroadcast(room.roomId)
-                is VoiceBroadcastAction.Listening.PlayOrResume -> voiceBroadcastHelper.playOrResumePlayback(action.voiceBroadcast)
-                VoiceBroadcastAction.Listening.Pause -> voiceBroadcastHelper.pausePlayback()
-                VoiceBroadcastAction.Listening.Stop -> voiceBroadcastHelper.stopPlayback()
-                is VoiceBroadcastAction.Listening.SeekTo -> voiceBroadcastHelper.seekTo(action.voiceBroadcast, action.positionMillis, action.duration)
-            }
         }
     }
 
@@ -824,9 +786,6 @@ private fun handleSelectStickerAttachment() {
                         redactLiveLocationShareEventUseCase.execute(event.root, room, action.reason)
                     }
                 }
-                event.isVoiceBroadcast() -> {
-                    room.sendService().redactEvent(event.root, action.reason, listOf(RelationType.REFERENCE))
-                }
                 else -> {
                     room.sendService().redactEvent(event.root, action.reason)
                 }
@@ -934,21 +893,10 @@ private fun handleSelectStickerAttachment() {
         viewModelScope.launch {
             try {
                 session.roomService().joinRoom(initialState.roomId)
-                trackRoomJoined()
             } catch (throwable: Throwable) {
                 _viewEvents.post(RoomDetailViewEvents.Failure(throwable, showInDialog = true))
             }
         }
-    }
-
-    private fun trackRoomJoined() {
-        if (room == null) return
-        val trigger = if (initialState.isInviteAlreadyAccepted) {
-            JoinedRoom.Trigger.Invite
-        } else {
-            JoinedRoom.Trigger.Timeline
-        }
-        analyticsTracker.capture(room.roomSummary().toAnalyticsJoinedRoom(trigger))
     }
 
     private fun handleOpenOrDownloadFile(action: RoomDetailAction.DownloadOrOpen) {
@@ -1318,7 +1266,6 @@ private fun handleSelectStickerAttachment() {
                             }
                             LocalRoomCreationState.CREATED -> {
                                 room.localRoomSummary()?.let {
-                                    analyticsTracker.capture(CreatedRoom(isDM = it.roomSummary?.isDirect.orFalse()))
                                     _viewEvents.post(RoomDetailViewEvents.OpenRoom(it.replacementRoomId!!, true))
                                 }
                             }

@@ -29,7 +29,6 @@ internal class AttachmentTypeSelectorViewModelTest {
     fun setUp() {
         // Disable all features by default
         fakeVectorFeatures.givenLocationSharing(isEnabled = false)
-        fakeVectorFeatures.givenVoiceBroadcast(isEnabled = false)
         fakeVectorPreferences.givenTextFormatting(isEnabled = false)
     }
 
@@ -55,22 +54,6 @@ internal class AttachmentTypeSelectorViewModelTest {
                         listOf(
                                 initialState.copy(
                                         isLocationVisible = true
-                                ),
-                        )
-                )
-                .finish()
-    }
-
-    @Test
-    fun `given voice broadcast is enabled, then voice broadcast option is visible`() {
-        fakeVectorFeatures.givenVoiceBroadcast(isEnabled = true)
-
-        createViewModel()
-                .test()
-                .assertStates(
-                        listOf(
-                                initialState.copy(
-                                        isVoiceBroadcastVisible = true
                                 ),
                         )
                 )

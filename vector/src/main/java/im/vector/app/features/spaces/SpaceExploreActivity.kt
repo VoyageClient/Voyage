@@ -21,7 +21,6 @@ import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivitySimpleBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.matrixto.MatrixToBottomSheet
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.navigation.Navigator
@@ -95,7 +94,6 @@ class SpaceExploreActivity : VectorBaseActivity<ActivitySimpleBinding>(), Matrix
                     navigator.openRoom(
                             context = this,
                             roomId = it.roomId,
-                            trigger = ViewRoom.Trigger.SpaceHierarchy
                     )
                 }
                 is SpaceDirectoryViewEvents.NavigateToMxToBottomSheet -> {
@@ -127,8 +125,8 @@ class SpaceExploreActivity : VectorBaseActivity<ActivitySimpleBinding>(), Matrix
         }
     }
 
-    override fun mxToBottomSheetNavigateToRoom(roomId: String, trigger: ViewRoom.Trigger?) {
-        navigator.openRoom(this, roomId, trigger = trigger)
+    override fun mxToBottomSheetNavigateToRoom(roomId: String) {
+        navigator.openRoom(this, roomId)
     }
 
     override fun mxToBottomSheetSwitchToSpace(spaceId: String) {

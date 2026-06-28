@@ -18,8 +18,6 @@ import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityThreadsBinding
 import im.vector.app.features.MainActivity
-import im.vector.app.features.analytics.extensions.toAnalyticsInteraction
-import im.vector.app.features.analytics.plan.Interaction
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.TimelineFragment
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
@@ -91,7 +89,6 @@ class ThreadsActivity : VectorBaseActivity<ActivityThreadsBinding>() {
      * One usage of that is from the Threads Activity
      */
     fun navigateToThreadTimeline(threadTimelineArgs: ThreadTimelineArgs) {
-        analyticsTracker.capture(Interaction.Name.MobileThreadListThreadItem.toAnalyticsInteraction())
         val commonOption: (FragmentTransaction) -> Unit = {
             it.setCustomAnimations(
                     im.vector.lib.ui.styles.R.anim.animation_slide_in_right,

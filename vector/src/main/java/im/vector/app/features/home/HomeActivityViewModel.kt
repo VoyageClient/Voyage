@@ -32,7 +32,6 @@ import im.vector.app.features.raw.wellknown.isSecureBackupRequired
 import im.vector.app.features.raw.wellknown.withElementWellKnown
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.voicebroadcast.recording.usecase.StopOngoingVoiceBroadcastUseCase
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -69,7 +68,6 @@ class HomeActivityViewModel @AssistedInject constructor(
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val vectorPreferences: VectorPreferences,
         private val releaseNotesPreferencesStore: ReleaseNotesPreferencesStore,
-        private val stopOngoingVoiceBroadcastUseCase: StopOngoingVoiceBroadcastUseCase,
         private val pushersManager: PushersManager,
         private val registerUnifiedPushUseCase: RegisterUnifiedPushUseCase,
         private val unregisterUnifiedPushUseCase: UnregisterUnifiedPushUseCase,
@@ -111,7 +109,6 @@ class HomeActivityViewModel @AssistedInject constructor(
         promptForNotifications()
         observeReleaseNotes()
         initThreadsMigration()
-        viewModelScope.launch { stopOngoingVoiceBroadcastUseCase.execute() }
     }
 
     private fun registerUnifiedPushIfNeeded() {

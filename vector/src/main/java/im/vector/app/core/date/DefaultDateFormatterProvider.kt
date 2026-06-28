@@ -8,7 +8,7 @@
 package im.vector.app.core.date
 
 import android.content.Context
-import android.text.format.DateFormat
+import im.vector.app.core.extensions.getBestDateTimePatternCompat
 import im.vector.app.core.resources.LocaleProvider
 import org.threeten.bp.format.DateTimeFormatter
 import javax.inject.Inject
@@ -20,12 +20,12 @@ class DefaultDateFormatterProvider @Inject constructor(
         DateFormatterProvider {
 
     override val dateWithMonthFormatter: DateTimeFormatter by lazy {
-        val pattern = DateFormat.getBestDateTimePattern(localeProvider.current(), "d MMMMM")
+        val pattern = getBestDateTimePatternCompat(localeProvider.current(), "d MMMMM")
         DateTimeFormatter.ofPattern(pattern)
     }
 
     override val dateWithYearFormatter: DateTimeFormatter by lazy {
-        val pattern = DateFormat.getBestDateTimePattern(localeProvider.current(), "d MMM y")
+        val pattern = getBestDateTimePatternCompat(localeProvider.current(), "d MMM y")
         DateTimeFormatter.ofPattern(pattern)
     }
 }

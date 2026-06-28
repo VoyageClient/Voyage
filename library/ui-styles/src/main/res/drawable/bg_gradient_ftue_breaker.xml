@@ -13,7 +13,7 @@
             <gradient
                 android:angle="90"
                 android:endColor="@android:color/transparent"
-                android:startColor="?android:colorBackground" />
+                android:startColor="@color/element_background_dark" />
         </shape>
     </item>
 </layer-list>

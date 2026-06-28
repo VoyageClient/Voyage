@@ -14,24 +14,19 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Build
-import android.os.Handler
-import android.os.HandlerThread
 import android.os.StrictMode
 import android.util.Log
 import android.view.Gravity
 import androidx.core.content.ContextCompat
-import androidx.core.provider.FontRequest
-import androidx.core.provider.FontsContractCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.multidex.MultiDex
+import im.vector.app.core.dex.MultiDexLoader
 import androidx.recyclerview.widget.SnapHelper
 import com.airbnb.epoxy.Carousel
 import com.airbnb.epoxy.EpoxyAsyncUtil
 import com.airbnb.epoxy.EpoxyController
 import com.airbnb.mvrx.Mavericks
-import com.facebook.stetho.Stetho
 import com.gabrielittner.threetenbp.LazyThreeTen
 import com.github.rubensousa.gravitysnaphelper.GravitySnapHelper
 import dagger.hilt.android.HiltAndroidApp
@@ -40,9 +35,6 @@ import im.vector.app.core.debug.LeakDetector
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.pushers.FcmHelper
 import im.vector.app.core.resources.BuildMeta
-import im.vector.app.features.analytics.DecryptionFailureTracker
-import im.vector.app.features.analytics.VectorAnalytics
-import im.vector.app.features.analytics.plan.SuperProperties
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.invite.InvitesAcceptor
 import im.vector.app.features.lifecycle.VectorActivityLifecycleCallbacks
@@ -78,6 +70,7 @@ class VectorApplication :
     @Inject lateinit var vectorConfiguration: VectorConfiguration
     @Inject lateinit var emojiCompatFontProvider: EmojiCompatFontProvider
     @Inject lateinit var emojiCompatWrapper: EmojiCompatWrapper
+    @Inject lateinit var twemojiProvider: im.vector.app.features.emoji.TwemojiProvider
     @Inject lateinit var vectorUncaughtExceptionHandler: VectorUncaughtExceptionHandler
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
@@ -88,17 +81,13 @@ class VectorApplication :
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var pinLocker: PinLocker
     @Inject lateinit var invitesAcceptor: InvitesAcceptor
-    @Inject lateinit var decryptionFailureTracker: DecryptionFailureTracker
     @Inject lateinit var vectorFileLogger: VectorFileLogger
-    @Inject lateinit var vectorAnalytics: VectorAnalytics
     @Inject lateinit var matrix: Matrix
     @Inject lateinit var fcmHelper: FcmHelper
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var leakDetector: LeakDetector
     @Inject lateinit var vectorLocale: VectorLocale
 
-    // font thread handler
-    private var fontThreadHandler: Handler? = null
 
     private val powerKeyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent) {
@@ -110,8 +99,12 @@ class VectorApplication :
     }
 
     override fun onCreate() {
+        if (MultiDexLoader.isLoaderProcess(this)) {
+            // Loader process: skip Hilt and all app init (its dexes/components aren't available here).
+            return
+        }
         enableStrictModeIfNeeded()
-        // KitKat can't inflate <vector> drawables natively (android:src/setImageResource); let
+        // Pre-Lollipop can't inflate <vector> drawables natively (android:src/setImageResource); let
         // AppCompat load them through VectorDrawableCompat instead. Must run before any inflation.
         androidx.appcompat.app.AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         super.onCreate()
@@ -121,16 +114,7 @@ class VectorApplication :
         val perfMarker = im.vector.app.core.utils.PerfTrace.mark("app.onCreate")
         de.spiritcroc.matrixsdk.StaticScSdkHelper.scSdkPreferenceProvider = vectorPreferences
         appContext = this
-        vectorAnalytics.init()
-        vectorAnalytics.updateSuperProperties(
-                SuperProperties(
-                        appPlatform = SuperProperties.AppPlatform.EA,
-                        cryptoSDK = SuperProperties.CryptoSDK.Rust,
-                        cryptoSDKVersion = Matrix.getCryptoVersion(longFormat = false)
-                )
-        )
         invitesAcceptor.initialize()
-        decryptionFailureTracker.start()
         vectorUncaughtExceptionHandler.activate()
 
         if (buildMeta.isDebug) {
@@ -138,9 +122,6 @@ class VectorApplication :
         }
         Timber.plant(vectorFileLogger)
 
-        if (buildMeta.isDebug) {
-            Stetho.initializeWithDefaults(this)
-        }
         logInfo()
         LazyThreeTen.init(this)
         Mavericks.initialize(debugMode = false)
@@ -148,19 +129,27 @@ class VectorApplication :
         configureEpoxy()
 
         registerActivityLifecycleCallbacks(VectorActivityLifecycleCallbacks(popupAlertManager))
-        val fontRequest = FontRequest(
-                "com.google.android.gms.fonts",
-                "com.google.android.gms",
-                "Noto Color Emoji Compat",
-                R.array.com_google_android_gms_fonts_certs
-        )
-        @Suppress("DEPRECATION")
-        FontsContractCompat.requestFont(this, fontRequest, emojiCompatFontProvider, getFontThreadHandler())
         vectorLocale.init()
         ThemeUtils.init(this)
         vectorConfiguration.applyToApplicationContext()
 
-        emojiCompatWrapper.init(fontRequest)
+        // Shared entry point for emoji rendering across all message-text surfaces (see withEmojis()).
+        im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify = emojiCompatWrapper
+        if (twemojiProvider.enabled) {
+            // Twemoji draws emoji from bundled sprites (forced below KitKat, opt-in above) and bypasses
+            // EmojiCompat, so don't init it or load its 10MB font. The reaction picker uses the sprites too.
+            im.vector.app.features.reactions.EmojiDrawView.twemojiResolver = twemojiProvider::bitmapForEmoji
+            Thread { twemojiProvider.warmUp() }.start()
+        } else {
+            emojiCompatWrapper.init()
+            // Feed the bundled emoji Typeface to the font provider so the emoji picker / reactions render
+            // emoji without Google Play Services (the old downloadable FontRequest is dead on F-Droid).
+            // The bundled font is a CBDT colour font the platform only rasterises on API 21+, and
+            // EmojiCompat no-ops below 19, so this path only makes sense on KitKat+.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                emojiCompatFontProvider.typeface = emojiCompatWrapper.emojiTypeface
+            }
+        }
 
         notificationUtils.createNotificationChannels()
 
@@ -248,8 +237,12 @@ class VectorApplication :
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
-        MultiDex.install(this)
-        // KitKat's stock JCE providers lack a working AES/GCM (BouncyCastle rejects GCMParameterSpec)
+        if (MultiDexLoader.installOrDelegate(this)) {
+            // We are the throwaway ":multidex" loader process — secondary dexes aren't loaded, so
+            // don't touch anything that lives in one (Conscrypt below, Hilt in onCreate).
+            return
+        }
+        // Pre-Lollipop stock JCE providers lack a working AES/GCM (BouncyCastle rejects GCMParameterSpec)
         // and don't enable TLS 1.2 by default. Conscrypt backfills both; install it first so secure
         // storage and OkHttp pick it up. Harmless to skip on API 21+ where the platform is fine.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
@@ -260,19 +253,10 @@ class VectorApplication :
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        // The :multidex loader process (and any process where onCreate returned early) never ran Hilt,
+        // so the injected fields are unset — don't touch them on a config change there.
+        if (!::vectorConfiguration.isInitialized) return
         vectorConfiguration.onConfigurationChanged()
-    }
-
-    private fun getFontThreadHandler(): Handler {
-        return fontThreadHandler ?: createFontThreadHandler().also {
-            fontThreadHandler = it
-        }
-    }
-
-    private fun createFontThreadHandler(): Handler {
-        val handlerThread = HandlerThread("Vector-fonts")
-        handlerThread.start()
-        return Handler(handlerThread.looper)
     }
 
     private fun initMemoryLeakAnalysis() {

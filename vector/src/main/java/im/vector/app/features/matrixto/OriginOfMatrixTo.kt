@@ -7,8 +7,6 @@
 
 package im.vector.app.features.matrixto
 
-import im.vector.app.features.analytics.plan.JoinedRoom
-import im.vector.app.features.analytics.plan.ViewRoom
 
 enum class OriginOfMatrixTo {
     LINK,
@@ -17,26 +15,4 @@ enum class OriginOfMatrixTo {
     SPACE_EXPLORE,
     ROOM_LIST,
     USER_CODE
-}
-
-fun OriginOfMatrixTo.toJoinedRoomTrigger(): JoinedRoom.Trigger? {
-    return when (this) {
-        OriginOfMatrixTo.LINK -> JoinedRoom.Trigger.MobilePermalink
-        OriginOfMatrixTo.NOTIFICATION -> JoinedRoom.Trigger.Notification
-        OriginOfMatrixTo.TIMELINE -> JoinedRoom.Trigger.Timeline
-        OriginOfMatrixTo.SPACE_EXPLORE -> JoinedRoom.Trigger.SpaceHierarchy
-        OriginOfMatrixTo.ROOM_LIST -> JoinedRoom.Trigger.RoomDirectory
-        OriginOfMatrixTo.USER_CODE -> null
-    }
-}
-
-fun OriginOfMatrixTo.toViewRoomTrigger(): ViewRoom.Trigger? {
-    return when (this) {
-        OriginOfMatrixTo.LINK -> ViewRoom.Trigger.MobilePermalink
-        OriginOfMatrixTo.NOTIFICATION -> ViewRoom.Trigger.Notification
-        OriginOfMatrixTo.TIMELINE -> ViewRoom.Trigger.Timeline
-        OriginOfMatrixTo.SPACE_EXPLORE -> ViewRoom.Trigger.SpaceHierarchy
-        OriginOfMatrixTo.ROOM_LIST -> ViewRoom.Trigger.RoomDirectory
-        OriginOfMatrixTo.USER_CODE -> null
-    }
 }

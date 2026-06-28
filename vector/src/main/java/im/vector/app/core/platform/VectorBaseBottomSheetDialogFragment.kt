@@ -28,12 +28,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.EntryPointAccessors
 import im.vector.app.core.di.ActivityEntryPoint
-import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.extensions.toMvRxBundle
 import im.vector.app.core.utils.DimensionConverter
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.MobileScreen
-import io.github.hyuwah.draggableviewlib.Utils
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -44,14 +40,6 @@ import timber.log.Timber
  * Add Mavericks capabilities, handle DI and bindings.
  */
 abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomSheetDialogFragment(), MavericksView {
-    /* ==========================================================================================
-     * Analytics
-     * ========================================================================================== */
-
-    protected var analyticsScreenName: MobileScreen.ScreenName? = null
-
-    protected lateinit var analyticsTracker: AnalyticsTracker
-
     /* ==========================================================================================
      * View
      * ========================================================================================== */
@@ -125,17 +113,12 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
     override fun onAttach(context: Context) {
         val activityEntryPoint = EntryPointAccessors.fromActivity(vectorBaseActivity, ActivityEntryPoint::class.java)
         viewModelFactory = activityEntryPoint.viewModelFactory()
-        val singletonEntryPoint = context.singletonEntryPoint()
-        analyticsTracker = singletonEntryPoint.analyticsTracker()
         super.onAttach(context)
     }
 
     override fun onResume() {
         super.onResume()
         Timber.i("onResume BottomSheet ${javaClass.simpleName}")
-        analyticsScreenName?.let {
-            analyticsTracker.screen(MobileScreen(screenName = it))
-        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -163,7 +146,7 @@ abstract class VectorBaseBottomSheetDialogFragment<VB : ViewBinding> : BottomShe
 
     protected fun setPeekHeightAsScreenPercentage(@FloatRange(from = 0.0, to = 1.0) percentage: Float) {
         context?.let {
-            val screenHeight = Utils.getScreenHeight(it)
+            val screenHeight = it.resources.displayMetrics.heightPixels
             bottomSheetBehavior?.setPeekHeight((screenHeight * percentage).toInt(), true)
         }
     }

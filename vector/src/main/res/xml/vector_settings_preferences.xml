@@ -64,6 +64,12 @@
             android:summary="@string/settings_uglier_username_colors_summary"
             android:title="@string/settings_uglier_username_colors_title" />
 
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_USE_TWEMOJI_KEY"
+            android:summary="@string/settings_use_twemoji_summary"
+            android:title="@string/settings_use_twemoji_title" />
+
         <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_QUICK_REACTIONS_KEY"
             android:summary="@string/settings_quick_reactions_summary"

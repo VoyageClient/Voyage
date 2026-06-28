@@ -121,23 +121,20 @@ class MessageActionsViewModel @AssistedInject constructor(
                 }
             }
 
-            // Seed action permissions so reactions / edit / etc. appear without waiting for
-            // the LiveData-backed liveRoomPowerLevels to round-trip through the main thread
-            // (otherwise redact for your own messages appears immediately via the own-sender
-            // short circuit while reactions / edit pop in a beat later). Reading power levels
-            // can take 50-150ms on first access; running it on Dispatchers.IO lets the sheet
-            // open instantly with permissions arriving a frame or two later via setState.
+            // Seed action permissions synchronously so reactions / edit / redact / etc. are present in
+            // the very first state, instead of the sheet first rendering with the all-false defaults
+            // (no react/edit) and the real permissions popping in a beat later. getRoomPowerLevels() is
+            // a synchronous in-memory read once the room state is loaded — which it is by the time a
+            // message can be long-pressed — so this doesn't block on I/O in practice.
             if (room != null) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    val initial = room.stateService().getRoomPowerLevels()
-                    val permissions = ActionPermissions(
-                            canSendMessage = initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
-                            canReact = initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
-                            canRedact = initial.isUserAbleToRedact(session.myUserId),
-                            canPinUnpin = initial.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
-                    )
-                    setState { copy(actionPermissions = permissions) }
-                }
+                val initial = room.stateService().getRoomPowerLevels()
+                val permissions = ActionPermissions(
+                        canSendMessage = initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
+                        canReact = initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
+                        canRedact = initial.isUserAbleToRedact(session.myUserId),
+                        canPinUnpin = initial.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
+                )
+                setState { copy(actionPermissions = permissions) }
             }
 
             observeEvent()
@@ -203,14 +200,19 @@ class MessageActionsViewModel @AssistedInject constructor(
         onEach(MessageActionState::timelineEvent, MessageActionState::actionPermissions) { timelineEvent, permissions ->
             val nonNullTimelineEvent = timelineEvent() ?: return@onEach
             eventIdFlow.tryEmit(nonNullTimelineEvent.eventId)
-            val events = actionsForEvent(nonNullTimelineEvent, permissions)
-            val body = computeMessageBody(nonNullTimelineEvent)
-            setState {
-                copy(
-                        eventId = nonNullTimelineEvent.eventId,
-                        messageBody = body,
-                        actions = events
-                )
+            // computeMessageBody runs the Markwon HTML render (tens to hundreds of ms on a slow device);
+            // keep it off the main thread so the sheet opens/animates immediately instead of holding the
+            // "-" preview placeholder while the main thread blocks on the render.
+            viewModelScope.launch(Dispatchers.Default) {
+                val events = actionsForEvent(nonNullTimelineEvent, permissions)
+                val body = computeMessageBody(nonNullTimelineEvent)
+                setState {
+                    copy(
+                            eventId = nonNullTimelineEvent.eventId,
+                            messageBody = body,
+                            actions = events
+                    )
+                }
             }
         }
     }

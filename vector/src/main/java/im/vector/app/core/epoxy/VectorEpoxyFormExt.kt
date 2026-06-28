@@ -10,11 +10,12 @@ package im.vector.app.core.epoxy
 import android.text.TextWatcher
 import android.widget.CompoundButton
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 
 fun VectorEpoxyHolder.setValueOnce(textInputEditText: TextInputEditText, value: String?) {
-    if (view.isAttachedToWindow) {
+    if (ViewCompat.isAttachedToWindow(view)) {
         // the view is attached to the window
         // So it is a rebind of new data and you could ignore it assuming this is text that was already inputted into the view.
         // Downside is if you ever wanted to programmatically change the content of the edit text while it is on screen you would not be able to
@@ -24,7 +25,7 @@ fun VectorEpoxyHolder.setValueOnce(textInputEditText: TextInputEditText, value: 
 }
 
 fun VectorEpoxyHolder.setValueOnce(switchView: SwitchMaterial, switchChecked: Boolean, listener: CompoundButton.OnCheckedChangeListener) {
-    if (view.isAttachedToWindow) {
+    if (ViewCompat.isAttachedToWindow(view)) {
         // the view is attached to the window
         // So it is a rebind of new data and you could ignore it assuming this is value that was already inputted into the view.
     } else {

@@ -787,7 +787,6 @@
     <string name="login_error_homeserver_not_found">Næ ekki að tengjast heimaþjóni á þessari slóð, athugaðu slóðina</string>
     <string name="create_poll_question_hint">Spurning eða viðfangsefni</string>
     <string name="restart_the_application_to_apply_changes">Endurræstu forritið til að breytingin taki gildi.</string>
-    <string name="labs_enable_latex_maths">Virkja LaTeX-stærðfræði</string>
     <string name="link_this_email_settings_link">Tengja þetta tölvupóstfang við notandaaðganginn þinn</string>
     <plurals name="message_reaction_show_more">
         <item quantity="one">%1$d til viðbótar</item>

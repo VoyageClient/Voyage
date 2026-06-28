@@ -11,7 +11,6 @@ import android.os.Bundle
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.preference.VectorPreference
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.lib.strings.CommonStrings
 
 @AndroidEntryPoint
@@ -23,7 +22,6 @@ class VectorSettingsRootFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.Settings
     }
 
     override fun bindPref() {

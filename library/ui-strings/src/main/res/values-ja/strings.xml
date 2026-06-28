@@ -1597,7 +1597,6 @@
     <string name="labs_auto_report_uisi_desc">復号エラーが生じた際に、自動的にログを送信</string>
     <string name="labs_auto_report_uisi">復号エラーを自動で報告。</string>
     <string name="restart_the_application_to_apply_changes">変更を有効にするにはアプリケーションの再起動が必要です。</string>
-    <string name="labs_enable_latex_maths">LaTeXによる数学表記を有効にする</string>
     <string name="room_settings_room_notifications_notify_me">以下の場合に通知</string>
     <string name="upgrade_room_for_restricted_note">アップグレードすると、このルームの新しいバージョンが作成されます。今ある全てのメッセージは、アーカイブしたルームに残ります。</string>
     <string name="room_settings_access_rules_pref_dialog_title">誰がアクセスできますか？</string>

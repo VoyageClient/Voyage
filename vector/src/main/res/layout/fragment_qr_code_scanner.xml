@@ -51,6 +51,7 @@
         android:layout_height="34dp"
         android:layout_marginTop="2dp"
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
+        android:layout_marginRight="@dimen/layout_horizontal_margin"
         android:backgroundTint="?colorSurface"
         android:elevation="0dp"
         android:insetLeft="0dp"

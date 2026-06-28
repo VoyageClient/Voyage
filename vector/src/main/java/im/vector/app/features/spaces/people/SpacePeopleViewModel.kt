@@ -17,8 +17,6 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.CreatedRoom
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +30,6 @@ class SpacePeopleViewModel @AssistedInject constructor(
         @Assisted val initialState: SpacePeopleViewState,
         private val rawService: RawService,
         private val session: Session,
-        private val analyticsTracker: AnalyticsTracker
 ) : VectorViewModel<SpacePeopleViewState, SpacePeopleViewAction, SpacePeopleViewEvents>(initialState) {
 
     @AssistedFactory
@@ -78,7 +75,6 @@ class SpacePeopleViewModel @AssistedInject constructor(
 
             try {
                 val roomId = session.roomService().createRoom(roomParams)
-                analyticsTracker.capture(CreatedRoom(isDM = roomParams.isDirect.orFalse()))
                 _viewEvents.post(SpacePeopleViewEvents.OpenRoom(roomId))
                 setState { copy(createAndInviteState = Success(roomId)) }
             } catch (failure: Throwable) {

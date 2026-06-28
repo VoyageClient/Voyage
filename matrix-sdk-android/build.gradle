@@ -250,7 +250,6 @@ dependencies {
 
     // Logging
     implementation libs.jakewharton.timber
-    implementation 'com.facebook.stetho:stetho-okhttp3:1.6.0'
 
     // Video compression uses the platform MediaCodec/MediaMuxer stack directly (works on KitKat,
     // no native deps) — see VideoCompressor.
@@ -263,6 +262,7 @@ dependencies {
     implementation libs.google.phonenumber
 
     implementation project(':library:external:libce')
+    implementation project(':library:external:libopus')
 
     testImplementation libs.tests.junit
     // Note: version sticks to 1.9.2 due to https://github.com/mockk/mockk/issues/281

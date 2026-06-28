@@ -23,7 +23,6 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import java.io.IOException
 import java.lang.reflect.Type
-import javax.annotation.CheckReturnValue
 
 /**
  * A JsonAdapter factory for polymorphic types. This is useful when the type is not known before
@@ -127,7 +126,6 @@ internal class RuntimeJsonAdapterFactory<T>(
          * JSON object.
          * @param fallbackType alternative Type to try in case of the serialization fails
          */
-        @CheckReturnValue
         fun <T> of(baseType: Class<T>, labelKey: String, fallbackType: Class<out T>): RuntimeJsonAdapterFactory<T> {
             require(baseType != Any::class.java) { "The base type must not be Object. Consider using a marker interface." }
             return RuntimeJsonAdapterFactory(baseType, labelKey, fallbackType)

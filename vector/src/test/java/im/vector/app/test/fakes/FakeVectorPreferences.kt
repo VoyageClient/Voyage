@@ -18,6 +18,11 @@ class FakeVectorPreferences {
 
     val instance = mockk<VectorPreferences>(relaxUnitFun = true)
 
+    init {
+        // Fork-added pref the room-list path reads unconditionally; default to its prod value.
+        every { instance.overrideDirectChatDisplay() } returns true
+    }
+
     fun givenUseCompleteNotificationFormat(value: Boolean) {
         every { instance.useCompleteNotificationFormat() } returns value
     }
@@ -77,7 +82,4 @@ class FakeVectorPreferences {
         verify { instance.setIpAddressVisibilityInDeviceManagerScreens(isVisible) }
     }
 
-    fun givenIsVoiceBroadcastEnabled(isEnabled: Boolean) {
-        every { instance.isVoiceBroadcastEnabled() } returns isEnabled
-    }
 }

@@ -8,7 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.format
 
 import dagger.Lazy
-import im.vector.app.EmojiSpanify
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.features.pgp.PgpDecryptor
@@ -20,10 +20,6 @@ import android.text.Spanned
 import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.media.isMediaHiddenInRoom
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
-import im.vector.app.features.voicebroadcast.isLive
-import im.vector.app.features.voicebroadcast.isVoiceBroadcast
-import im.vector.app.features.voicebroadcast.model.asVoiceBroadcastEvent
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.image
 import me.gujun.android.span.span
@@ -47,7 +43,6 @@ class DisplayableEventFormatter @Inject constructor(
         private val stringProvider: StringProvider,
         private val colorProvider: ColorProvider,
         private val drawableProvider: DrawableProvider,
-        private val emojiSpanify: EmojiSpanify,
         private val noticeEventFormatter: NoticeEventFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val pgpDecryptor: PgpDecryptor,
@@ -74,9 +69,9 @@ class DisplayableEventFormatter @Inject constructor(
             } else {
                 null
             }
-            return reactionTemplate(rendered ?: emojiSpanify.spanify(QUESTION_MARK_EMOJI))
+            return reactionTemplate(rendered ?: QUESTION_MARK_EMOJI.withEmojis())
         }
-        return emojiSpanify.spanify(stringProvider.getString(CommonStrings.sent_a_reaction, key))
+        return stringProvider.getString(CommonStrings.sent_a_reaction, key).withEmojis()
     }
 
     // Insert [display] (which may carry emote image spans) into the "Reacted with: %s" template.
@@ -130,9 +125,6 @@ class DisplayableEventFormatter @Inject constructor(
                             when {
                                 (messageContent as? MessageAudioContent)?.voiceMessageIndicator == null -> {
                                     simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_an_audio_file), appendAuthor)
-                                }
-                                timelineEvent.root.asMessageAudioEvent().isVoiceBroadcast() -> {
-                                    simpleFormat(senderName, stringProvider.getString(CommonStrings.started_a_voice_broadcast), appendAuthor)
                                 }
                                 else -> {
                                     simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_a_voice_message), appendAuthor)
@@ -190,9 +182,6 @@ class DisplayableEventFormatter @Inject constructor(
             }
             in EventType.ELEMENT_CALL_NOTIFY.values -> {
                 simpleFormat(senderName, stringProvider.getString(CommonStrings.call_unsupported), appendAuthor)
-            }
-            VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> {
-                formatVoiceBroadcastEvent(timelineEvent.root, isDm, senderName)
             }
             else -> {
                 val formatted = noticeEventFormatter.format(timelineEvent, isDm)
@@ -332,7 +321,8 @@ class DisplayableEventFormatter @Inject constructor(
     }
 
     private fun simpleFormat(senderName: String, body: CharSequence, appendAuthor: Boolean): CharSequence {
-        if (!appendAuthor) return body
+        val emojiBody = body.withEmojis()
+        if (!appendAuthor) return emojiBody
         // SpannableStringBuilder (not the gujun span DSL) so [body]'s emote ReplacementSpans are preserved.
         return android.text.SpannableStringBuilder().apply {
             val start = length
@@ -342,23 +332,7 @@ class DisplayableEventFormatter @Inject constructor(
                     start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
             append(": ")
-            append(body)
-        }
-    }
-
-    private fun formatVoiceBroadcastEvent(event: Event, isDm: Boolean, senderName: String): CharSequence {
-        return if (event.asVoiceBroadcastEvent()?.isLive == true) {
-            span {
-                drawableProvider.getDrawable(R.drawable.ic_voice_broadcast, colorProvider.getColor(im.vector.lib.ui.styles.R.color.palette_vermilion))?.let {
-                    image(it)
-                    +" "
-                }
-                span(stringProvider.getString(CommonStrings.voice_broadcast_live_broadcast)) {
-                    textColor = colorProvider.getColor(im.vector.lib.ui.styles.R.color.palette_vermilion)
-                }
-            }
-        } else {
-            noticeEventFormatter.format(event, senderName, isDm).orEmpty()
+            append(emojiBody)
         }
     }
 

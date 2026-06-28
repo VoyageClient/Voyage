@@ -18,8 +18,6 @@ import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentInvitesBinding
-import im.vector.app.features.analytics.plan.MobileScreen
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.home.room.list.RoomListListener
 import im.vector.app.features.notifications.NotificationDrawerManager
 import kotlinx.coroutines.flow.launchIn
@@ -42,7 +40,6 @@ class InvitesFragment : VectorBaseFragment<FragmentInvitesBinding>(), RoomListLi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.Invites
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -100,7 +97,6 @@ class InvitesFragment : VectorBaseFragment<FragmentInvitesBinding>(), RoomListLi
                 context = requireActivity(),
                 roomId = roomSummary.roomId,
                 isInviteAlreadyAccepted = isInviteAlreadyAccepted,
-                trigger = ViewRoom.Trigger.RoomList // #6508
         )
         if (shouldCloseInviteView) {
             requireActivity().finish()

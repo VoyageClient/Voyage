@@ -15,7 +15,9 @@
         android:gravity="center"
         android:importantForAccessibility="no"
         android:paddingStart="4dp"
+        android:paddingLeft="4dp"
         android:paddingEnd="4dp"
+        android:paddingRight="4dp"
         android:textColor="?vctr_content_primary"
         tools:text="999+" />
 
@@ -24,7 +26,9 @@
         android:layout_width="@dimen/item_event_message_state_size"
         android:layout_height="@dimen/item_event_message_state_size"
         android:layout_marginStart="2dp"
+        android:layout_marginLeft="2dp"
         android:layout_marginEnd="-6dp"
+        android:layout_marginRight="-6dp"
         android:adjustViewBounds="true"
         android:importantForAccessibility="no"
         android:padding="1dp"
@@ -37,6 +41,7 @@
         android:layout_width="@dimen/item_event_message_state_size"
         android:layout_height="@dimen/item_event_message_state_size"
         android:layout_marginEnd="-6dp"
+        android:layout_marginRight="-6dp"
         android:adjustViewBounds="true"
         android:background="@drawable/pill_receipt"
         android:importantForAccessibility="no"

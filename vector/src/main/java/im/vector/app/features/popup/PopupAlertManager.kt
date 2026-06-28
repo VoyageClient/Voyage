@@ -20,7 +20,6 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.features.MainActivity
-import im.vector.app.features.analytics.ui.consent.AnalyticsOptInActivity
 import im.vector.app.features.home.room.list.home.release.ReleaseNotesActivity
 import im.vector.app.features.pin.PinActivity
 import im.vector.app.features.signout.hard.SignedOutActivity
@@ -31,6 +30,7 @@ import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
+import im.vector.app.core.extensions.importantForAccessibilityCompat
 
 /**
  * Responsible of displaying important popup alerts on top of the screen.
@@ -147,7 +147,12 @@ class PopupAlertManager @Inject constructor(
 
     private fun displayNextIfPossible() {
         val currentActivity = weakCurrentActivity?.get()
-        if (currentActivity == null || currentActivity.isDestroyed) {
+        val activityGone = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            currentActivity?.isDestroyed == true
+        } else {
+            currentActivity?.isFinishing == true
+        }
+        if (currentActivity == null || activityGone) {
             // will retry later
             return
         }
@@ -299,7 +304,7 @@ class PopupAlertManager @Inject constructor(
     /* a11y */
     private fun handleAccessibility(activity: Activity, giveFocus: Boolean) {
         activity.window.decorView.findViewById<View>(com.tapadoo.alerter.R.id.llAlertBackground)?.let { alertView ->
-            alertView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            alertView.importantForAccessibilityCompat = View.IMPORTANT_FOR_ACCESSIBILITY_YES
 
             // Add close action for a11y (same action than swipe). User can select the action by swiping on the screen vertically,
             // and double tap to perform the action
@@ -335,7 +340,6 @@ class PopupAlertManager @Inject constructor(
                 activity !is MainActivity &&
                 activity !is PinActivity &&
                 activity !is SignedOutActivity &&
-                activity !is AnalyticsOptInActivity &&
                 activity !is ReleaseNotesActivity &&
                 activity is VectorBaseActivity<*> &&
                 alert.shouldBeDisplayedIn.invoke(activity)

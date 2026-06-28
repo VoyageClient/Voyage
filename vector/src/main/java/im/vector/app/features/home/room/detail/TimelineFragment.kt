@@ -107,9 +107,6 @@ import im.vector.app.core.utils.startInstallFromSourceIntent
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentTimelineBinding
 import im.vector.app.features.VectorFeatures
-import im.vector.app.features.analytics.extensions.toAnalyticsInteraction
-import im.vector.app.features.analytics.plan.Interaction
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
@@ -219,6 +216,7 @@ import timber.log.Timber
 import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
+import im.vector.app.core.extensions.backgroundCompat
 
 @AndroidEntryPoint
 class TimelineFragment :
@@ -294,7 +292,6 @@ class TimelineFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.Room
         galleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(this)
         setFragmentResultListener(MigrateRoomBottomSheet.REQUEST_KEY) { _, bundle ->
             bundle.getString(MigrateRoomBottomSheet.BUNDLE_KEY_REPLACEMENT_ROOM)?.let { replacementRoomId ->
@@ -449,7 +446,6 @@ class TimelineFragment :
                     navigator.openBigImageViewer(requireActivity(), it.view, item)
                 }
                 RoomDetailViewEvents.RoomReplacementStarted -> handleRoomReplacement()
-                RoomDetailViewEvents.DisplayPromptToStopVoiceBroadcast -> displayPromptToStopVoiceBroadcast()
                 is RoomDetailViewEvents.RevokeFilePermission -> revokeFilePermission(it)
             }
         }
@@ -648,7 +644,11 @@ class TimelineFragment :
 
     private fun openFile(action: RoomDetailViewEvents.OpenFile) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndTypeAndNormalize(action.uri, action.mimeType)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                setDataAndTypeAndNormalize(action.uri, action.mimeType)
+            } else {
+                setDataAndType(action.uri, action.mimeType)
+            }
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
 
@@ -723,7 +723,12 @@ class TimelineFragment :
 
     override fun onDestroyView() {
         voiceRecorderStackLayoutListener?.let {
-            views.composerContainer.viewTreeObserver.removeOnGlobalLayoutListener(it)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                views.composerContainer.viewTreeObserver.removeOnGlobalLayoutListener(it)
+            } else {
+                @Suppress("DEPRECATION")
+                views.composerContainer.viewTreeObserver.removeGlobalOnLayoutListener(it)
+            }
         }
         voiceRecorderStackLayoutListener = null
         lazyLoadedViews.unBind()
@@ -1053,7 +1058,7 @@ class TimelineFragment :
                     if (userIsMentioned) im.vector.lib.ui.styles.R.color.palette_vermilion else im.vector.lib.ui.styles.R.color.palette_gray_200
             )
             DrawableCompat.setTint(badgeDrawable, color)
-            badgeFrameLayout.background = badgeDrawable
+            badgeFrameLayout.backgroundCompat = badgeDrawable
         } else {
             badgeFrameLayout.isVisible = false
         }
@@ -1446,7 +1451,6 @@ class TimelineFragment :
 
     private fun displayRoomDetailActionFailure(result: RoomDetailViewEvents.ActionFailure) {
         @StringRes val titleResId = when (result.action) {
-            RoomDetailAction.VoiceBroadcastAction.Recording.Start -> CommonStrings.error_voice_broadcast_unauthorized_title
             else -> CommonStrings.dialog_title_error
         }
         MaterialAlertDialogBuilder(requireActivity())
@@ -2074,7 +2078,6 @@ class TimelineFragment :
             startsThread: Boolean = false,
             showKeyboard: Boolean = false,
     ) = withState(timelineViewModel) { state ->
-        analyticsTracker.capture(Interaction.Name.MobileRoomThreadSummaryItem.toAnalyticsInteraction())
         context?.let {
             val roomThreadDetailArgs = ThreadTimelineArgs(
                     startsThread = startsThread,
@@ -2113,7 +2116,6 @@ class TimelineFragment :
      * using the ThreadsActivity.
      */
     private fun navigateToThreadList() = withState(timelineViewModel) { state ->
-        analyticsTracker.capture(Interaction.Name.MobileRoomThreadListButton.toAnalyticsInteraction())
         context?.let {
             val roomThreadDetailArgs = ThreadTimelineArgs(
                     roomId = timelineArgs.roomId,
@@ -2152,20 +2154,6 @@ class TimelineFragment :
     private fun onViewWidgetsClicked() {
         RoomWidgetsBottomSheet.newInstance()
                 .show(childFragmentManager, "ROOM_WIDGETS_BOTTOM_SHEET")
-    }
-
-    private fun displayPromptToStopVoiceBroadcast() {
-        ConfirmationDialogBuilder
-                .show(
-                        activity = requireActivity(),
-                        askForReason = false,
-                        confirmationRes = CommonStrings.stop_voice_broadcast_content,
-                        positiveRes = CommonStrings.action_stop,
-                        reasonHintRes = 0,
-                        titleRes = CommonStrings.stop_voice_broadcast_dialog_title
-                ) {
-                    timelineViewModel.handle(RoomDetailAction.VoiceBroadcastAction.Recording.StopConfirmed)
-                }
     }
 
     private fun revokeFilePermission(revokeFilePermission: RoomDetailViewEvents.RevokeFilePermission) {

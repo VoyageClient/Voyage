@@ -33,7 +33,6 @@ import im.vector.app.features.crypto.recover.BootstrapCrossSigningTask
 import im.vector.app.features.crypto.recover.Params
 import im.vector.app.features.crypto.recover.SetupMode
 import im.vector.app.features.home.HomeActivity
-import im.vector.app.ui.robot.AnalyticsRobot
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -112,9 +111,6 @@ class VerifySessionPassphraseTest : VerificationTestBase() {
         val userId: String = existingSession!!.myUserId
 
         uiTestBase.login(userId = userId, password = password, homeServerUrl = homeServerUrl)
-
-        val analyticsRobot = AnalyticsRobot()
-        analyticsRobot.optOut()
 
         waitUntilActivityVisible<HomeActivity> {
             waitUntilViewVisible(withId(R.id.roomListContainer))

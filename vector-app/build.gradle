@@ -1,8 +1,6 @@
 import com.android.build.OutputFile
 
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.firebase.appdistribution'
-apply plugin: 'com.google.android.gms.oss-licenses-plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'kotlin-kapt'
@@ -67,25 +65,6 @@ def getVersionCode() {
     }
 }
 
-def getNightlyUniversalApkPath() {
-    def taskNames = gradle.getStartParameter().taskNames.toString()
-    if(taskNames.contains("Nightly")) {
-        return "vector-app/build/outputs/apk/gplay/nightly/vector-gplay-universal-nightly.apk"
-    } else {
-        return ""
-    }
-}
-
-def getFirebaseAppId() {
-//    def taskNames = gradle.getStartParameter().taskNames.toString()
-//    if(taskNames.contains("RustCryptoNightly")) {
-//        return "1:912726360885:android:94fb99347eaa36d100427c"
-//    } else if (taskNames.contains("KotlinCryptoNightly")) {
-        return "1:912726360885:android:efd8545af52a9f9300427c"
-//    } else {
-//        return ""
-//    }
-}
 static def gitRevision() {
     def cmd = "git rev-parse --short=8 HEAD"
     return cmd.execute().text.trim()
@@ -99,15 +78,6 @@ static def gitRevisionDate() {
 static def gitBranchName() {
     def cmd = "git rev-parse --abbrev-ref HEAD"
     return cmd.execute().text.trim()
-}
-
-// For Google Play build, build on any other branch than main will have a "-dev" suffix
-static def getGplayVersionSuffix() {
-    if (gitBranchName() == "main") {
-        return ""
-    } else {
-        return "-dev"
-    }
 }
 
 static def gitTag() {
@@ -159,8 +129,15 @@ android {
         // Other branches (main, features, etc.) will have version code based on application version.
         versionCode project.getVersionCode()
 
-        // Required for sonar analysis
-        versionName "${versionMajor}.${versionMinor}.${versionPatch}-sonar"
+        versionName "${versionMajor}.${versionMinor}.${versionPatch}${getFdroidVersionSuffix()}"
+
+        buildConfigField "String", "SHORT_FLAVOR_DESCRIPTION", "\"F\""
+        buildConfigField "String", "FLAVOR_DESCRIPTION", "\"FDroid\""
+
+        // Decoupled from BuildConfig.DEBUG (which is tied to `debuggable`): lets the debug build keep
+        // debuggable=false for R8 optimisation while still enabling debug-only behaviour (Timber logcat
+        // tree, debug menus). Overridden to true in the debug build type below.
+        buildConfigField "boolean", "IS_DEBUG_VARIANT", "false"
 
         // Generate a random app task affinity
         manifestPlaceholders = [appTaskAffinitySuffix: "H_${gitRevision()}"]
@@ -232,12 +209,6 @@ android {
             storeFile file('./signature/debug.keystore')
             storePassword 'android'
         }
-        nightly {
-            keyAlias System.env.ELEMENT_ANDROID_NIGHTLY_KEYID ?: project.property("signing.element.nightly.keyId")
-            keyPassword System.env.ELEMENT_ANDROID_NIGHTLY_KEYPASSWORD ?: project.property("signing.element.nightly.keyPassword")
-            storeFile file('./signature/nightly.keystore')
-            storePassword System.env.ELEMENT_ANDROID_NIGHTLY_STOREPASSWORD ?: project.property("signing.element.nightly.storePassword")
-        }
         release {
             keyAlias project.property("signing.element.keyId")
             keyPassword project.property("signing.element.keyPassword")
@@ -251,6 +222,26 @@ android {
             applicationIdSuffix ".debug"
             signingConfig signingConfigs.debug
             resValue "string", "app_name", "Voyage - dbg"
+            buildConfigField "boolean", "IS_DEBUG_VARIANT", "true"
+
+            // R8 disables ALL code optimization for debuggable builds, so to let optimizeCode below cut
+            // the method/class count (needed to fit Dalvik's 8MB LinearAlloc on ICS) this build must be
+            // non-debuggable. logcat still works; we lose only JDWP debugger attach. BuildConfig.DEBUG
+            // becomes false, which also trims debug-only class loading.
+            debuggable false
+
+            // ICS/Dalvik has a fixed 8MB LinearAlloc (class/method metadata); the unshrunk class set
+            // (notably the huge Hilt components) overflows it. Shrinking alone wasn't enough at the home
+            // screen, so optimization is enabled too to cut the method/class count further. Obfuscation
+            // stays off so crash reports remain readable. R8 runs in compat mode (enableR8.fullMode=false)
+            // and -keepattributes Signature is set so reflection (Moshi/Hilt/Epoxy/Mavericks) survives.
+            postprocessing {
+                removeUnusedCode true
+                removeUnusedResources true
+                obfuscate false
+                optimizeCode true
+                proguardFiles 'proguard-rules.pro'
+            }
 
             if (project.hasProperty("coverage")) {
                 testCoverageEnabled = project.coverage == "true"
@@ -269,79 +260,6 @@ android {
                 proguardFiles 'proguard-rules.pro'
             }
             // signingConfig signingConfigs.release
-        }
-
-        nightly {
-            initWith release
-            applicationIdSuffix ".nightly"
-            versionNameSuffix "-nightly"
-            // Just override the background color of the launcher icon for the nightly build.
-            // We need to copy paste this block, this is not done automatically by `initWith release`
-            postprocessing {
-                // FIXME Set to true.
-                removeUnusedCode false
-                removeUnusedResources true
-                // We do not activate obfuscation as it makes it hard then to read crash reports, and it's a bit useless on an open source project :)
-                obfuscate false
-                optimizeCode true
-                proguardFiles 'proguard-rules.pro'
-            }
-            matchingFallbacks = ['release']
-            signingConfig signingConfigs.nightly
-            firebaseAppDistribution {
-                artifactType = "APK"
-                // We upload the universal APK to fix this error:
-                // "App Distribution found more than 1 output file for this variant.
-                // Please contact firebase-support@google.com for help using APK splits with App Distribution."
-                artifactPath = "$rootDir/${getNightlyUniversalApkPath()}"
-                // This file will be generated by the GitHub action
-                releaseNotesFile = "CHANGES_NIGHTLY.md"
-                groups = "external-testers"
-                // This should not be required, but if I do not add the appId, I get this error:
-                // "App Distribution halted because it had a problem uploading the APK: [404] Requested entity was not found."
-                appId = "${getFirebaseAppId()}"
-            }
-        }
-    }
-
-    sourceSets {
-        nightly {
-            java.srcDirs += "src/release/java"
-        }
-    }
-
-    flavorDimensions = ["store"]
-
-    productFlavors {
-        gplay {
-            apply plugin: 'com.google.gms.google-services'
-            afterEvaluate {
-                tasks.matching { it.name.contains("GoogleServices") && !it.name.contains("Gplay") }*.enabled = false
-            }
-
-            dimension "store"
-            isDefault = true
-            versionName "${versionMajor}.${versionMinor}.${versionPatch}${getGplayVersionSuffix()}"
-            buildConfigField "String", "SHORT_FLAVOR_DESCRIPTION", "\"G\""
-            buildConfigField "String", "FLAVOR_DESCRIPTION", "\"GooglePlay\""
-        }
-
-        fdroid {
-            dimension "store"
-            versionName "${versionMajor}.${versionMinor}.${versionPatch}${getFdroidVersionSuffix()}"
-            buildConfigField "String", "SHORT_FLAVOR_DESCRIPTION", "\"F\""
-            buildConfigField "String", "FLAVOR_DESCRIPTION", "\"FDroid\""
-        }
-
-    }
-
-    variantFilter { variant ->
-        def names = variant.flavors*.name
-        def buildType = variant.buildType.name
-        // There is no nightly for fdroid
-        if (names.contains("fdroid") && buildType == "nightly") {
-            // Gradle ignores any variants that satisfy the conditions above.
-            setIgnore(true)
         }
     }
 
@@ -399,28 +317,11 @@ dependencies {
     // CoordinatorLayout (used by the debug activities) previously leaked in via the vanniktech emoji
     // library's api dependency on material; declare it directly now that vanniktech emoji is removed.
     implementation libs.google.material
-    // Conscrypt (minSdk 9) backfills AES/GCM + TLS 1.2 on KitKat where the platform providers fail.
+    // Conscrypt (minSdk 9) backfills AES/GCM + TLS 1.2 below Lollipop where the platform providers fail.
     implementation 'org.conscrypt:conscrypt-android:2.5.3'
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "androidx.sharetarget:sharetarget:1.2.0"
 
-    gplayImplementation "com.google.android.gms:play-services-location:21.3.0"
-    // UnifiedPush gplay flavor only
-    gplayImplementation platform(libs.google.firebaseBom)
-    gplayImplementation(libs.google.messaging) {
-        exclude group: 'com.google.firebase', module: 'firebase-core'
-        exclude group: 'com.google.firebase', module: 'firebase-analytics'
-        exclude group: 'com.google.firebase', module: 'firebase-measurement-connector'
-    }
-
-    // Nightly
-    // API-only library
-    gplayImplementation libs.google.appdistributionApi
-    // Full SDK implementation
-    nightlyImplementation libs.google.appdistribution
-
-    // OSS License, gplay flavor only
-    gplayImplementation 'com.google.android.gms:play-services-oss-licenses:17.1.0'
     kapt libs.dagger.hiltCompiler
     ksp libs.airbnb.epoxyProcessor
 
@@ -447,5 +348,4 @@ dependencies {
     androidTestImplementation libs.androidx.fragmentTesting
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:1.8.21"
     debugImplementation libs.androidx.fragmentTestingManifest
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.10'
 }

@@ -13,9 +13,6 @@ import android.content.Intent
 import androidx.core.app.RemoteInput
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
-import im.vector.app.features.analytics.plan.JoinedRoom
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.session.coroutineScope
 import im.vector.lib.core.utils.timer.Clock
@@ -38,7 +35,6 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
 
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
-    @Inject lateinit var analyticsTracker: AnalyticsTracker
     @Inject lateinit var clock: Clock
     @Inject lateinit var actionIds: NotificationActionIds
     @Inject lateinit var vectorPreferences: VectorPreferences
@@ -82,7 +78,6 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                 session.coroutineScope.launch {
                     tryOrNull {
                         session.roomService().joinRoom(room.roomId)
-                        analyticsTracker.capture(room.roomSummary().toAnalyticsJoinedRoom(JoinedRoom.Trigger.Notification))
                     }
                 }
             }

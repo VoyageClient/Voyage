@@ -20,6 +20,7 @@ import androidx.core.view.setPadding
 import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.tintBackground
 import im.vector.app.databinding.ViewLocationSharingOptionBinding
+import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * Custom view to display a location sharing option.
@@ -66,7 +67,7 @@ class LocationSharingOptionView @JvmOverloads constructor(
         val description = typedArray.getString(im.vector.lib.ui.styles.R.styleable.LocationSharingOptionView_locShareIconDescription)
 
         iconView.setImageDrawable(icon)
-        iconView.background = background
+        iconView.backgroundCompat = background
         iconView.tintBackground(backgroundTint)
         iconView.setPadding(padding)
         iconView.contentDescription = description

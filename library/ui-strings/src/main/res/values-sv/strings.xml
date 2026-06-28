@@ -2172,7 +2172,6 @@
     <string name="tooltip_attachment_gallery">Skicka bilder och video</string>
     <string name="tooltip_attachment_photo">Öppna kameran</string>
     <string name="restart_the_application_to_apply_changes">Starta om appen för att ändringen ska börja gälla.</string>
-    <string name="labs_enable_latex_maths">Aktivera LaTeX-matte</string>
     <string name="labs_auto_report_uisi_desc">Ditt system kommer automatiskt att skicka loggar när det misslyckas att avkryptera</string>
     <string name="labs_auto_report_uisi">Rapportera avkrypteringsfel automatiskt.</string>
     <string name="room_member_override_nick_color">Åsidosätt visningsnamnsfärg</string>

@@ -12,6 +12,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.core.content.FileProvider
 import androidx.core.database.getStringOrNull
+import im.vector.lib.core.utils.compat.use
 import timber.log.Timber
 import java.io.File
 import java.util.UUID

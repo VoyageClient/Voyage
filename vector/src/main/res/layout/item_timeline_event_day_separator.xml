@@ -11,7 +11,9 @@
         android:layout_height="1dp"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:background="?vctr_content_tertiary" />
 
     <TextView
@@ -22,7 +24,9 @@
         android:layout_gravity="center"
         android:background="?android:colorBackground"
         android:paddingStart="24dp"
+        android:paddingLeft="24dp"
         android:paddingEnd="24dp"
+        android:paddingRight="24dp"
         android:textColor="?vctr_content_tertiary"
         tools:text="@tools:sample/date/day_of_week" />
 

@@ -24,8 +24,6 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.utils.toast
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -35,14 +33,6 @@ import reactivecircus.flowbinding.android.view.clicks
 import timber.log.Timber
 
 abstract class VectorSettingsBaseFragment : PreferenceFragmentCompat(), MavericksView {
-    /* ==========================================================================================
-     * Analytics
-     * ========================================================================================== */
-
-    protected var analyticsScreenName: MobileScreen.ScreenName? = null
-
-    protected lateinit var analyticsTracker: AnalyticsTracker
-
     /* ==========================================================================================
      * Activity
      * ========================================================================================== */
@@ -99,15 +89,11 @@ abstract class VectorSettingsBaseFragment : PreferenceFragmentCompat(), Maverick
         super.onAttach(context)
         session = singletonEntryPoint.activeSessionHolder().getActiveSession()
         errorFormatter = singletonEntryPoint.errorFormatter()
-        analyticsTracker = singletonEntryPoint.analyticsTracker()
     }
 
     override fun onResume() {
         super.onResume()
         Timber.i("onResume Fragment ${javaClass.simpleName}")
-        analyticsScreenName?.let {
-            analyticsTracker.screen(MobileScreen(screenName = it))
-        }
         vectorActivity.supportActionBar?.setTitle(titleRes)
         // find the view from parent activity
         mLoadingView = vectorActivity.findViewById(R.id.vector_settings_spinner_views)

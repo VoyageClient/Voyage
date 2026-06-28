@@ -70,10 +70,19 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
 
     private val unknownSessionsFailure = mutableMapOf<String, MutableSet<Event>>()
 
+    private var newSessionListenerAdded = false
+
     init {
         scope.launch {
-            cryptoService.get().addNewSessionListener(newSessionListener)
+            // Resolve the crypto service lazily, on the first message, instead of eagerly here.
+            // This coroutine runs on the crypto thread; resolving the dagger.Lazy now would build the
+            // crypto subgraph concurrently with the session graph still being constructed on another
+            // thread, deadlocking on the shared @SessionScope DoubleCheck locks.
             for (request in channel) {
+                if (!newSessionListenerAdded) {
+                    newSessionListenerAdded = true
+                    cryptoService.get().addNewSessionListener(newSessionListener)
+                }
                 when (request) {
                     is Message.DecryptEvent -> handleDecryptEvent(request.event)
                     is Message.NewSessionImported -> handleNewSessionImported(request.sessionId)

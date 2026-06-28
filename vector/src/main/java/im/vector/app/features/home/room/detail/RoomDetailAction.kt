@@ -10,7 +10,6 @@ package im.vector.app.features.home.room.detail
 import android.net.Uri
 import android.view.View
 import im.vector.app.core.platform.VectorViewModelAction
-import im.vector.app.features.voicebroadcast.model.VoiceBroadcast
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -98,22 +97,4 @@ sealed class RoomDetailAction : VectorViewModelAction {
 
     // Live Location
     object StopLiveLocationSharing : RoomDetailAction()
-
-
-    sealed class VoiceBroadcastAction : RoomDetailAction() {
-        sealed class Recording : VoiceBroadcastAction() {
-            object Start : Recording()
-            object Pause : Recording()
-            object Resume : Recording()
-            object Stop : Recording()
-            object StopConfirmed : Recording()
-        }
-
-        sealed class Listening : VoiceBroadcastAction() {
-            data class PlayOrResume(val voiceBroadcast: VoiceBroadcast) : Listening()
-            object Pause : Listening()
-            object Stop : Listening()
-            data class SeekTo(val voiceBroadcast: VoiceBroadcast, val positionMillis: Int, val duration: Int) : Listening()
-        }
-    }
 }

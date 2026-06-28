@@ -22,6 +22,7 @@ import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
 import app.cash.sqldelight.db.SqlSchema
+import org.matrix.android.sdk.internal.util.use
 import java.io.File
 
 /**

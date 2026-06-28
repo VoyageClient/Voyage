@@ -32,6 +32,7 @@
         android:layout_height="32dp"
         android:layout_marginVertical="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:background="@drawable/circle"
         android:backgroundTint="?vctr_content_quaternary"
         android:padding="3dp"

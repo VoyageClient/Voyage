@@ -19,6 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="13dp"
+        android:layout_marginLeft="13dp"
         android:orientation="vertical">
 
         <TextView
@@ -45,8 +46,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:paddingStart="0dp"
+            android:paddingLeft="0dp"
             android:paddingTop="4dp"
             android:paddingEnd="16dp"
+            android:paddingRight="16dp"
             android:paddingBottom="4dp"
             android:text="@string/action_learn_more"
             android:textColor="?android:textColorPrimary"

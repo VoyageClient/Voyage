@@ -19,6 +19,7 @@
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_marginStart="12dp"
+        android:layout_marginLeft="12dp"
         android:layout_marginTop="4dp"
         android:background="@drawable/bg_avatar_border"
         android:contentDescription="@string/avatar"
@@ -31,6 +32,7 @@
         android:layout_height="12dp"
         android:layout_width="0dp"
         android:layout_toEndOf="@id/messageStartGuideline" />
+        android:layout_toRightOf="@id/messageStartGuideline"
 
     <TextView
         android:id="@+id/messageMemberNameView"
@@ -39,9 +41,13 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/additionalTopSpace"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_marginStart="12dp"
+        android:layout_marginLeft="12dp"
         android:layout_marginEnd="4dp"
+        android:layout_marginRight="4dp"
         android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
         android:ellipsize="end"
         android:maxLines="1"
         android:textAlignment="viewStart"
@@ -60,13 +66,16 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_marginEnd="64dp" />
+        android:layout_marginRight="64dp"
 
     <Space
         android:id="@+id/decorationSpace"
         android:layout_width="4dp"
         android:layout_height="8dp"
         android:layout_toEndOf="@id/messageStartGuideline" />
+        android:layout_toRightOf="@id/messageStartGuideline"
 
     <im.vector.app.core.ui.views.ShieldImageView
         android:id="@+id/messageE2EDecoration"
@@ -74,6 +83,7 @@
         android:layout_height="16dp"
         android:layout_alignTop="@id/bubbleWrapper"
         android:layout_alignEnd="@id/decorationSpace"
+        android:layout_alignRight="@id/decorationSpace"
         android:layout_marginTop="7dp"
         android:elevation="2dp"
         android:visibility="gone"
@@ -85,7 +95,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/messageMemberNameView"
         android:layout_toStartOf="@id/messageEndGuideline"
+        android:layout_toLeftOf="@id/messageEndGuideline"
         android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
         android:addStatesFromChildren="true"
         android:clipChildren="false"
         android:clipToPadding="false">
@@ -95,7 +107,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="0dp"
+            android:layout_marginLeft="0dp"
             android:layout_marginEnd="0dp"
+            android:layout_marginRight="0dp"
             android:addStatesFromChildren="true"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -129,6 +143,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
                 android:layout_marginBottom="4dp"
                 android:textColor="?vctr_content_tertiary"
                 android:textSize="10sp"
@@ -145,8 +160,11 @@
         android:layout_height="@dimen/item_event_message_state_size"
         android:layout_alignBottom="@id/bubbleWrapper"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginBottom="4dp"
         android:contentDescription="@string/event_status_a11y_sending"
         app:srcCompat="@drawable/ic_sending_message"
@@ -160,8 +178,11 @@
         android:layout_height="@dimen/item_event_message_state_size"
         android:layout_alignBottom="@id/bubbleWrapper"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:layout_marginBottom="4dp"
         android:indeterminateTint="?vctr_content_secondary"
         android:visibility="gone"
@@ -177,7 +198,9 @@
         android:layout_marginTop="2dp"
         android:layout_marginBottom="2dp"
         android:layout_toStartOf="@id/messageEndGuideline"
+        android:layout_toLeftOf="@id/messageEndGuideline"
         android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
         android:addStatesFromChildren="true"
         android:orientation="vertical">
 
@@ -206,7 +229,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/informationBottom"
         android:layout_toStartOf="@id/messageEndGuideline"
+        android:layout_toLeftOf="@id/messageEndGuideline"
         android:layout_toEndOf="@id/messageStartGuideline"
+        android:layout_toRightOf="@id/messageStartGuideline"
         android:contentDescription="@string/room_threads_filter">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -220,8 +245,10 @@
             android:maxWidth="496dp"
             android:minWidth="144dp"
             android:paddingStart="13dp"
+            android:paddingLeft="13dp"
             android:paddingTop="8dp"
             android:paddingEnd="13dp"
+            android:paddingRight="13dp"
             android:paddingBottom="8dp"
             android:visibility="gone"
             tools:visibility="visible">

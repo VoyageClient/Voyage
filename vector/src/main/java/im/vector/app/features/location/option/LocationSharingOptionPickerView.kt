@@ -16,6 +16,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import im.vector.app.databinding.ViewLocationSharingOptionPickerBinding
+import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * Custom view to display the location sharing option picker.
@@ -68,7 +69,7 @@ class LocationSharingOptionPickerView @JvmOverloads constructor(
                 outValue,
                 true
         )
-        binding.root.background = ContextCompat.getDrawable(
+        binding.root.backgroundCompat = ContextCompat.getDrawable(
                 context,
                 outValue.resourceId
         )

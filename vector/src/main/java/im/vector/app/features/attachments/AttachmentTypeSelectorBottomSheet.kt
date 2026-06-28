@@ -18,6 +18,7 @@ import com.airbnb.mvrx.parentFragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.extensions.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetAttachmentTypeSelectorBinding
 import im.vector.app.features.home.room.detail.TimelineViewModel
@@ -40,10 +41,9 @@ class AttachmentTypeSelectorBottomSheet : VectorBaseBottomSheetDialogFragment<Bo
     override fun invalidate() = withState(viewModel, timelineViewModel) { viewState, timelineState ->
         super.invalidate()
         views.location.isVisible = viewState.isLocationVisible
-        views.voiceBroadcast.isVisible = viewState.isVoiceBroadcastVisible
         views.poll.isVisible = !timelineState.isThreadTimeline()
         views.textFormatting.isChecked = viewState.isTextFormattingEnabled
-        views.textFormatting.setCompoundDrawablesRelativeWithIntrinsicBounds(
+        views.textFormatting.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat(
                 if (viewState.isTextFormattingEnabled) {
                     R.drawable.ic_text_formatting
                 } else {
@@ -58,7 +58,6 @@ class AttachmentTypeSelectorBottomSheet : VectorBaseBottomSheetDialogFragment<Bo
         views.stickers.debouncedClicks { onAttachmentSelected(AttachmentType.STICKER) }
         views.localStickers.debouncedClicks { onAttachmentSelected(AttachmentType.STICKER_LOCAL) }
         views.file.debouncedClicks { onAttachmentSelected(AttachmentType.FILE) }
-        views.voiceBroadcast.debouncedClicks { onAttachmentSelected(AttachmentType.VOICE_BROADCAST) }
         views.poll.debouncedClicks { onAttachmentSelected(AttachmentType.POLL) }
         views.location.debouncedClicks { onAttachmentSelected(AttachmentType.LOCATION) }
         views.camera.debouncedClicks { onAttachmentSelected(AttachmentType.CAMERA) }

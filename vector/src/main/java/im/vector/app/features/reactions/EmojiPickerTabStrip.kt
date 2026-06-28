@@ -79,9 +79,17 @@ class EmojiPickerTabStrip @JvmOverloads constructor(
                     GlideApp.with(icon).load(section.tabImageUrl).into(icon)
                 }
                 else -> {
-                    icon.isVisible = false
-                    glyph.isVisible = true
-                    glyph.text = section.tabGlyph
+                    val sprite = section.tabGlyph?.let { EmojiDrawView.twemojiResolver?.invoke(it) }
+                    if (sprite != null) {
+                        glyph.isVisible = false
+                        icon.isVisible = true
+                        ImageViewCompat.setImageTintList(icon, null)
+                        icon.setImageBitmap(sprite)
+                    } else {
+                        icon.isVisible = false
+                        glyph.isVisible = true
+                        glyph.text = section.tabGlyph
+                    }
                 }
             }
             tab.contentDescription = section.name

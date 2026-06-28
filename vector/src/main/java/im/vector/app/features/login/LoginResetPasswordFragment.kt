@@ -20,7 +20,6 @@ import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.hidePassword
 import im.vector.app.core.extensions.toReducedUrl
 import im.vector.app.databinding.FragmentLoginResetPasswordBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -40,7 +39,6 @@ class LoginResetPasswordFragment :
     private var showWarning = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        analyticsScreenName = MobileScreen.ScreenName.ForgotPassword
         super.onCreate(savedInstanceState)
     }
 

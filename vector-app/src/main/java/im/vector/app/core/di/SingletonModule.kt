@@ -32,10 +32,6 @@ import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.AndroidSystemSettingsProvider
 import im.vector.app.core.utils.SystemSettingsProvider
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.VectorAnalytics
-import im.vector.app.features.analytics.errors.ErrorTracker
-import im.vector.app.features.analytics.impl.DefaultVectorAnalytics
 import im.vector.app.features.configuration.VectorCustomEventTypesProvider
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.CompileTimeAutoAcceptInvites
@@ -78,15 +74,6 @@ import javax.inject.Singleton
 
     @Binds
     abstract fun bindNavigator(navigator: DefaultNavigator): Navigator
-
-    @Binds
-    abstract fun bindVectorAnalytics(analytics: DefaultVectorAnalytics): VectorAnalytics
-
-    @Binds
-    abstract fun bindErrorTracker(analytics: DefaultVectorAnalytics): ErrorTracker
-
-    @Binds
-    abstract fun bindAnalyticsTracker(analytics: DefaultVectorAnalytics): AnalyticsTracker
 
     @Binds
     abstract fun bindErrorFormatter(formatter: DefaultErrorFormatter): ErrorFormatter
@@ -215,7 +202,7 @@ import javax.inject.Singleton
     @Provides
     @Singleton
     fun providesBuildMeta(context: Context) = BuildMeta(
-            isDebug = BuildConfig.DEBUG,
+            isDebug = BuildConfig.IS_DEBUG_VARIANT,
             applicationId = BuildConfig.APPLICATION_ID,
             applicationName = context.getString(R.string.app_name),
             lowPrivacyLoggingEnabled = Config.LOW_PRIVACY_LOG_ENABLE,

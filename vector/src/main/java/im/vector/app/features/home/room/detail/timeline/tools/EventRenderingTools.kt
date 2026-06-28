@@ -14,6 +14,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import androidx.core.text.toSpannable
+import im.vector.app.EmojiSpanify
 import im.vector.app.core.linkify.VectorLinkify
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.isValidUrl
@@ -27,6 +28,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.permalinks.MatrixLinkify
 import org.matrix.android.sdk.api.session.permalinks.MatrixPermalinkSpan
+
+// Set once at app start so the shared message-text helpers can apply emoji without injecting
+// EmojiSpanify at every (often non-DI epoxy / custom-view) call site. EmojiSpanify is a stateless singleton.
+@Volatile
+var messageEmojiSpanify: EmojiSpanify? = null
+
+/** Replace emoji in this text with the app's emoji rendering (Twemoji sprites / emoji2 / system font). */
+fun CharSequence.withEmojis(): CharSequence = messageEmojiSpanify?.spanify(this) ?: this
 
 fun CharSequence.findPillsAndProcess(scope: CoroutineScope, processBlock: (PillImageSpan) -> Unit) {
     scope.launch(Dispatchers.Main) {

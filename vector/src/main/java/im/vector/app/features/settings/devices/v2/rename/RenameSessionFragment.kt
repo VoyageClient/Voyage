@@ -7,6 +7,7 @@
 
 package im.vector.app.features.settings.devices.v2.rename
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -61,15 +62,21 @@ class RenameSessionFragment :
     }
 
     private fun showKeyboard() {
-        val focusChangeListener = object : ViewTreeObserver.OnWindowFocusChangeListener {
-            override fun onWindowFocusChanged(hasFocus: Boolean) {
-                if (hasFocus) {
-                    views.renameSessionEditText.showKeyboard(andRequestFocus = true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            val focusChangeListener = object : ViewTreeObserver.OnWindowFocusChangeListener {
+                override fun onWindowFocusChanged(hasFocus: Boolean) {
+                    if (hasFocus) {
+                        views.renameSessionEditText.showKeyboard(andRequestFocus = true)
+                    }
+                    views.renameSessionEditText.viewTreeObserver.removeOnWindowFocusChangeListener(this)
                 }
-                views.renameSessionEditText.viewTreeObserver.removeOnWindowFocusChangeListener(this)
+            }
+            views.renameSessionEditText.viewTreeObserver.addOnWindowFocusChangeListener(focusChangeListener)
+        } else {
+            views.renameSessionEditText.post {
+                views.renameSessionEditText.showKeyboard(andRequestFocus = true)
             }
         }
-        views.renameSessionEditText.viewTreeObserver.addOnWindowFocusChangeListener(focusChangeListener)
     }
 
     private fun initSaveButton() {

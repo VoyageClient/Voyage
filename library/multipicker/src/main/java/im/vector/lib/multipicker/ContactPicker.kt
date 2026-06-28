@@ -13,6 +13,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.ContactsContract
 import androidx.core.database.getIntOrNull
+import im.vector.lib.core.utils.compat.use
 import androidx.core.database.getStringOrNull
 import im.vector.lib.multipicker.entity.MultiPickerContactType
 import im.vector.lib.multipicker.utils.getColumnIndexOrNull

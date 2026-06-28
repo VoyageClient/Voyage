@@ -11,6 +11,7 @@ package im.vector.lib.attachmentviewer
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
+import android.os.Build
 import android.graphics.Rect
 import android.view.MotionEvent
 import android.view.View
@@ -82,20 +83,23 @@ class SwipeToDismissHandler(
     }
 
     private fun animateTranslation(translationTo: Float) {
-        swipeView.animate()
+        val animator = swipeView.animate()
                 .translationY(translationTo)
                 .setDuration(ANIMATION_DURATION)
                 .setInterpolator(AccelerateInterpolator())
-                .setUpdateListener { onSwipeViewMove(swipeView.translationY, translationLimit) }
-                .setAnimatorEndListener {
-                    if (translationTo != 0f) {
-                        onDismiss()
-                    }
-
-                    // remove the update listener, otherwise it will be saved on the next animation execution:
-                    swipeView.animate().setUpdateListener(null)
-                }
-                .start()
+        // ViewPropertyAnimator.setUpdateListener is API 19+; pre-19 the per-frame swipe callback is skipped.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            animator.setUpdateListener { onSwipeViewMove(swipeView.translationY, translationLimit) }
+        }
+        animator.setAnimatorEndListener {
+            if (translationTo != 0f) {
+                onDismiss()
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                // remove the update listener, otherwise it will be saved on the next animation execution:
+                swipeView.animate().setUpdateListener(null)
+            }
+        }.start()
     }
 }
 

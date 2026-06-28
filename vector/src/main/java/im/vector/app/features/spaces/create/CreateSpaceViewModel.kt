@@ -21,8 +21,6 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.Interaction
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,7 +38,6 @@ class CreateSpaceViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val createSpaceViewModelTask: CreateSpaceViewModelTask,
         private val errorFormatter: ErrorFormatter,
-        private val analyticsTracker: AnalyticsTracker,
 ) : VectorViewModel<CreateSpaceState, CreateSpaceAction, CreateSpaceEvents>(initialState) {
 
     private val identityService = session.identityService()
@@ -344,13 +341,6 @@ class CreateSpaceViewModel @AssistedInject constructor(
         }
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                analyticsTracker.capture(
-                        Interaction(
-                                index = null,
-                                interactionType = null,
-                                name = Interaction.Name.MobileSpaceCreationValidated
-                        )
-                )
                 val alias = if (state.spaceType == SpaceType.Public) {
                     state.aliasLocalPart
                 } else null

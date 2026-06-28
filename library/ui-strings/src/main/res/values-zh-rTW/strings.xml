@@ -2124,7 +2124,6 @@
     <string name="analytics_opt_in_title">協助改善 ${app_name}</string>
     <string name="action_enable">啟用</string>
     <string name="restart_the_application_to_apply_changes">重新啟動應用程式以讓變更生效。</string>
-    <string name="labs_enable_latex_maths">啟用 LaTeX 數學</string>
     <string name="room_error_access_unauthorized">您未被允許加入此聊天室</string>
     <string name="tooltip_attachment_poll">建立投票</string>
     <string name="tooltip_attachment_contact">開啟通訊錄</string>

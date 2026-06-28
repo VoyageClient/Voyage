@@ -20,7 +20,6 @@ import im.vector.app.features.home.room.list.home.HomeRoomListAction
 import im.vector.app.features.home.room.list.home.HomeRoomListViewModel
 import im.vector.app.features.home.room.list.home.HomeRoomListViewState
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
-import im.vector.app.test.fakes.FakeAnalyticsTracker
 import im.vector.app.test.fakes.FakeDrawableProvider
 import im.vector.app.test.fakes.FakeHomeLayoutPreferencesStore
 import im.vector.app.test.fakes.FakeSession
@@ -60,7 +59,6 @@ class RoomsListViewModelTest {
     var rule = InstantTaskExecutorRule()
 
     private val fakeSession = FakeSession()
-    private val fakeAnalyticsTracker = FakeAnalyticsTracker()
     private val fakeStringProvider = FakeStringProvider()
     private val fakeDrawableProvider = FakeDrawableProvider()
     private val fakeSpaceStateHandler = FakeSpaceStateHandler()
@@ -198,7 +196,6 @@ class RoomsListViewModelTest {
                 preferencesStore = fakeHomeLayoutPreferencesStore.instance,
                 stringProvider = fakeStringProvider.instance,
                 drawableProvider = fakeDrawableProvider.instance,
-                analyticsTracker = fakeAnalyticsTracker,
                 vectorPreferences = fakeVectorPreferences.instance,
         ).also {
             viewModel = it

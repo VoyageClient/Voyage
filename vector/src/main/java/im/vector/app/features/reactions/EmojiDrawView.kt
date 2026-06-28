@@ -8,9 +8,13 @@
 package im.vector.app.features.reactions
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Trace
 import android.text.StaticLayout
 import android.text.TextPaint
@@ -32,10 +36,30 @@ class EmojiDrawView @JvmOverloads constructor(
         }
 
     var emoji: String? = null
+        set(value) {
+            field = value
+            bitmap = value?.let { twemojiResolver?.invoke(it) }
+        }
+
+    private var bitmap: Bitmap? = null
+
+    private val bitmapDest = Rect()
 
     override fun onDraw(canvas: Canvas) {
-        Trace.beginSection("EmojiDrawView.onDraw")
+        val tracing = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        if (tracing) Trace.beginSection("EmojiDrawView.onDraw")
         super.onDraw(canvas)
+        val sprite = bitmap
+        if (sprite != null) {
+            // Match the inset the text glyph had in the cell rather than filling it edge to edge.
+            val size = (minOf(width, height) * SPRITE_SCALE).toInt()
+            val left = (width - size) / 2
+            val top = (height - size) / 2
+            bitmapDest.set(left, top, left + size, top + size)
+            canvas.drawBitmap(sprite, null, bitmapDest, bitmapPaint)
+            if (tracing) Trace.endSection()
+            return
+        }
         val layout = mLayout
         if (layout != null) {
             canvas.save()
@@ -49,11 +73,18 @@ class EmojiDrawView @JvmOverloads constructor(
             layout.draw(canvas)
             canvas.restore()
         }
-        Trace.endSection()
+        if (tracing) Trace.endSection()
     }
 
     companion object {
         val tPaint = TextPaint()
+
+        private val bitmapPaint = Paint(Paint.FILTER_BITMAP_FLAG)
+
+        private const val SPRITE_SCALE = 0.7f
+
+        /** Resolves an emoji glyph to a Twemoji sprite, or null when Twemoji is off / unavailable. */
+        var twemojiResolver: ((String) -> Bitmap?)? = null
 
         var emojiSize = 40
 

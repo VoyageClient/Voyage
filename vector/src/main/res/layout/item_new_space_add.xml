@@ -15,7 +15,9 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:layout_marginEnd="26dp"
+        android:layout_marginRight="26dp"
         android:background="?attr/vctr_system"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -25,6 +27,7 @@
         android:layout_height="42dp"
         android:layout_gravity="center"
         android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginLeft="@dimen/layout_horizontal_margin"
         android:background="@drawable/rounded_rect_shape_8"
         android:backgroundTint="#4D8D97A5"
         android:duplicateParentState="true"
@@ -41,7 +44,9 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/layout_horizontal_margin"
+        android:layout_marginLeft="@dimen/layout_horizontal_margin"
         android:layout_marginEnd="@dimen/layout_horizontal_margin"
+        android:layout_marginRight="@dimen/layout_horizontal_margin"
         android:ellipsize="end"
         android:maxLines="1"
         android:text="@string/create_space"

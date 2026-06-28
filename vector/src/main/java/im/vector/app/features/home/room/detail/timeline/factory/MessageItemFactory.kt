@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.factory
 
+import android.os.Build
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -69,6 +70,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovement
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -82,8 +84,6 @@ import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
-import im.vector.app.features.voicebroadcast.isVoiceBroadcast
-import im.vector.app.features.voicebroadcast.model.MessageVoiceBroadcastInfoContent
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
@@ -155,7 +155,6 @@ class MessageItemFactory @Inject constructor(
         private val urlMapProvider: UrlMapProvider,
         private val liveLocationShareMessageItemFactory: LiveLocationShareMessageItemFactory,
         private val pollItemViewStateFactory: PollItemViewStateFactory,
-        private val voiceBroadcastItemFactory: VoiceBroadcastItemFactory,
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
@@ -225,7 +224,6 @@ class MessageItemFactory @Inject constructor(
             is MessageEndPollContent -> buildEndedPollItem(event.getRelationContent()?.eventId, informationData, highlight, callback, attributes)
             is MessageLocationContent -> buildLocationItem(messageContent, informationData, highlight, attributes)
             is MessageBeaconInfoContent -> liveLocationShareMessageItemFactory.create(event, highlight, attributes)
-            is MessageVoiceBroadcastInfoContent -> voiceBroadcastItemFactory.create(params, messageContent, highlight, attributes)
             else -> buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
         } }
         return messageItem?.apply {
@@ -410,11 +408,6 @@ class MessageItemFactory @Inject constructor(
             highlight: Boolean,
             attributes: AbsMessageItem.Attributes
     ): BaseEventItem<*>? {
-        // Do not display voice broadcast messages
-        if (params.event.root.asMessageAudioEvent().isVoiceBroadcast()) {
-            return noticeItemFactory.create(params)
-        }
-
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
         val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
@@ -533,7 +526,9 @@ class MessageItemFactory @Inject constructor(
             informationData: MessageInformationData,
             highlight: Boolean,
             attributes: AbsMessageItem.Attributes,
-    ) = if (messageContent.voiceMessageIndicator != null) {
+            // Voice messages (waveform UI) are KitKat+; below that, render as a plain audio file so the
+            // MessageVoiceItem/waveform classes are never loaded (Dalvik LinearAlloc budget on ICS).
+    ) = if (messageContent.voiceMessageIndicator != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
         buildVoiceMessageItem(params, messageContent, informationData, highlight, attributes)
     } else {
         buildAudioMessageItem(params, messageContent, informationData, highlight, attributes)
@@ -868,7 +863,7 @@ class MessageItemFactory @Inject constructor(
         } else {
             linkified
         }
-        return final.toEpoxyCharSequence() to bindingOptions
+        return final.withEmojis().toEpoxyCharSequence() to bindingOptions
     }
 
 
@@ -898,11 +893,11 @@ class MessageItemFactory @Inject constructor(
 
         return MessageTextItem_()
                 .message(
-                        if (informationData.hasBeenEdited) {
+                        (if (informationData.hasBeenEdited) {
                             annotateWithEdited(linkifiedBody, callback, informationData)
                         } else {
                             linkifiedBody
-                        }.toEpoxyCharSequence()
+                        }).withEmojis().toEpoxyCharSequence()
                 )
                 .useBigFont(containsOnlyEmojisAndEmotes(linkifiedBody, emoteRanges, MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT))
                 .bindingOptions(bindingOptions)
@@ -1007,11 +1002,11 @@ class MessageItemFactory @Inject constructor(
 
         return MessageTextItem_()
                 .message(
-                        if (informationData.hasBeenEdited) {
+                        (if (informationData.hasBeenEdited) {
                             annotateWithEdited(message, callback, informationData)
                         } else {
                             message
-                        }.toEpoxyCharSequence()
+                        }).withEmojis().toEpoxyCharSequence()
                 )
                 .bindingOptions(bindingOptions)
                 .leftGuideline(avatarSizeProvider.leftGuideline)

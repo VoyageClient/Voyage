@@ -16,7 +16,6 @@ import androidx.test.espresso.matcher.ViewMatchers
 import im.vector.app.espresso.tools.waitUntilActivityVisible
 import im.vector.app.espresso.tools.waitUntilViewVisible
 import im.vector.app.features.home.HomeActivity
-import im.vector.app.ui.robot.AnalyticsRobot
 import im.vector.app.ui.robot.OnboardingRobot
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CompletableDeferred
@@ -147,11 +146,6 @@ abstract class VerificationTestBase {
 
     protected fun loginAndClickVerifyToast(userId: String): Session {
         uiTestBase.login(userId = userId, password = password, homeServerUrl = homeServerUrl)
-
-        tryOrNull {
-            val analyticsRobot = AnalyticsRobot()
-            analyticsRobot.optOut()
-        }
 
         waitUntilActivityVisible<HomeActivity> {
             waitUntilViewVisible(ViewMatchers.withId(R.id.roomListContainer))

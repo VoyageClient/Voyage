@@ -15,7 +15,9 @@ class TimelineSettingsFactory @Inject constructor(private val userPreferencesPro
 
     fun create(rootThreadEventId: String?): TimelineSettings {
         return TimelineSettings(
-                initialSize = 30,
+                // Each formatted message costs ~100ms to render on a slow ICS device; a smaller initial
+                // page populates the room faster and the rest paginates in on scroll.
+                initialSize = 15,
                 buildReadReceipts = userPreferencesProvider.shouldShowReadReceipts(),
                 rootThreadEventId = rootThreadEventId,
                 useLiveSenderInfo = userPreferencesProvider.showLiveSenderInfo()

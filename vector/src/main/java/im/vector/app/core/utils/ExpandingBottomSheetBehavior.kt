@@ -489,7 +489,7 @@ class ExpandingBottomSheetBehavior<V : View> : CoordinatorLayout.Behavior<V> {
     }
 
     private fun isLayouting(child: V): Boolean {
-        return child.parent != null && child.parent.isLayoutRequested && child.isAttachedToWindow
+        return child.parent != null && child.parent.isLayoutRequested && ViewCompat.isAttachedToWindow(child)
     }
 
     private fun getTopOffsetForState(state: State): Int {
@@ -640,7 +640,7 @@ class ExpandingBottomSheetBehavior<V : View> : CoordinatorLayout.Behavior<V> {
         }
 
         // Request to apply insets as soon as the view is attached to a window.
-        if (view.isAttachedToWindow) {
+        if (ViewCompat.isAttachedToWindow(view)) {
             ViewCompat.requestApplyInsets(view)
         } else {
             view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
@@ -792,7 +792,7 @@ class ExpandingBottomSheetBehavior<V : View> : CoordinatorLayout.Behavior<V> {
 
             this.targetState = state
             if (!isContinueSettlingRunnablePosted) {
-                view.postOnAnimation(continueSettlingRunnable)
+                ViewCompat.postOnAnimation(view, continueSettlingRunnable)
                 isContinueSettlingRunnablePosted = true
             }
         }

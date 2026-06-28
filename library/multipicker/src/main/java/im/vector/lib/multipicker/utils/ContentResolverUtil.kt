@@ -13,6 +13,7 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
+import im.vector.lib.core.utils.compat.use
 import im.vector.lib.multipicker.entity.MultiPickerAudioType
 import im.vector.lib.multipicker.entity.MultiPickerImageType
 import im.vector.lib.multipicker.entity.MultiPickerVideoType

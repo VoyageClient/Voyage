@@ -10,7 +10,6 @@ package im.vector.app.features.home.room.detail.composer
 import com.airbnb.mvrx.MavericksState
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
-import im.vector.app.features.voicebroadcast.model.VoiceBroadcastState
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import kotlin.random.Random
@@ -60,7 +59,6 @@ data class MessageComposerViewState(
         val startsThread: Boolean = false,
         val sendMode: SendMode = SendMode.Regular("", false),
         val voiceRecordingUiState: VoiceMessageRecorderView.RecordingUiState = VoiceMessageRecorderView.RecordingUiState.Idle,
-        val voiceBroadcastState: VoiceBroadcastState? = null,
         val text: CharSequence? = null,
         val isFullScreen: Boolean = false,
 ) : MavericksState {
@@ -69,12 +67,6 @@ data class MessageComposerViewState(
         VoiceMessageRecorderView.RecordingUiState.Idle -> false
         VoiceMessageRecorderView.RecordingUiState.Draft,
         is VoiceMessageRecorderView.RecordingUiState.Recording -> true
-    }
-
-    val isRecordingVoiceBroadcast = when (voiceBroadcastState) {
-        VoiceBroadcastState.STARTED,
-        VoiceBroadcastState.RESUMED -> true
-        else -> false
     }
 
     val isVoiceMessageIdle = !isVoiceRecording

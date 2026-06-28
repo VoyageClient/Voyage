@@ -27,11 +27,13 @@ import org.matrix.android.sdk.api.session.sync.model.RoomSyncEphemeral
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import timber.log.Timber
 
+// Plain by-type @FromJson (Moshi parses RoomSyncEphemeral with its own adapter, we just wrap it). The
+// JsonAdapter-delegate parameter form is avoided on purpose: R8 full mode rewrites that method's
+// signature and Moshi's reflective AdapterMethodsFactory then rejects it.
 internal class DefaultLazyRoomSyncEphemeralJsonAdapter {
 
     @FromJson
-    fun fromJson(reader: JsonReader, delegate: JsonAdapter<RoomSyncEphemeral>): LazyRoomSyncEphemeral? {
-        val roomSyncEphemeral = delegate.fromJson(reader) ?: return null
+    fun fromJson(roomSyncEphemeral: RoomSyncEphemeral): LazyRoomSyncEphemeral {
         return LazyRoomSyncEphemeral.Parsed(roomSyncEphemeral)
     }
 
@@ -43,12 +45,16 @@ internal class DefaultLazyRoomSyncEphemeralJsonAdapter {
     }
 }
 
+// The delegate adapter is constructor-injected rather than taken as a @FromJson parameter (which R8
+// full mode would rewrite into a signature Moshi rejects); the @FromJson method still needs the raw
+// JsonReader to stream large ephemeral payloads to a file.
 internal class SplitLazyRoomSyncEphemeralJsonAdapter(
         private val roomSyncEphemeralTemporaryStore: RoomSyncEphemeralTemporaryStore,
-        private val syncStrategy: InitialSyncStrategy.Optimized
+        private val syncStrategy: InitialSyncStrategy.Optimized,
+        private val delegate: JsonAdapter<RoomSyncEphemeral>
 ) {
     @FromJson
-    fun fromJson(reader: JsonReader, delegate: JsonAdapter<RoomSyncEphemeral>): LazyRoomSyncEphemeral? {
+    fun fromJson(reader: JsonReader): LazyRoomSyncEphemeral? {
         val path = reader.path
         val roomId = path.substringAfter("\$.rooms.join.").substringBeforeLast(".ephemeral")
 

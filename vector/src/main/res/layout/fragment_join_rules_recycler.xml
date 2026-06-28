@@ -25,7 +25,9 @@
         android:elevation="1dp"
         android:gravity="end"
         android:paddingStart="16dp"
+        android:paddingLeft="16dp"
         android:paddingEnd="16dp"
+        android:paddingRight="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/genericRecyclerView">
 
@@ -35,6 +37,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             android:text="@string/action_cancel" />
 
         <Button

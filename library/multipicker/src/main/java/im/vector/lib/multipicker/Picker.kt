@@ -90,7 +90,7 @@ abstract class Picker<T> {
     protected fun getSelectedUriList(context: Context, data: Intent?): List<Uri> {
         val selectedUriList = mutableListOf<Uri>()
         val dataUri = data?.data
-        val clipData = data?.clipData
+        val clipData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) data?.clipData else null
 
         if (clipData != null) {
             for (i in 0 until clipData.itemCount) {

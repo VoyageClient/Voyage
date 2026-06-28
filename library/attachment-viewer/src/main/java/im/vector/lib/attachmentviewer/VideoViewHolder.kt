@@ -12,6 +12,7 @@ import android.annotation.SuppressLint
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.media.MediaPlayer
+import android.os.Build
 import android.util.Log
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
@@ -162,7 +163,9 @@ class VideoViewHolder constructor(itemView: View) :
                 }
             }
         }).apply {
-            isQuickScaleEnabled = true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                isQuickScaleEnabled = true
+            }
         }
 
         var lastX = 0f

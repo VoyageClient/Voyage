@@ -16,11 +16,13 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.helper.widget.Flow
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.EmojiCompatFontProvider
 import im.vector.app.R
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
@@ -71,7 +73,7 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
             val itemView: View = if (resolvedUrl != null) {
                 // Custom-emote (mxc) reaction: render the image rather than its raw url text.
                 android.widget.ImageView(context).apply {
-                    id = View.generateViewId()
+                    id = ViewCompat.generateViewId()
                     layoutParams = ViewGroup.LayoutParams(imageSize + padding * 2, imageSize + padding * 2)
                     setPadding(padding, padding, padding, padding)
                     scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
@@ -81,10 +83,10 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
                 }
             } else {
                 TextView(ContextThemeWrapper(context, im.vector.lib.ui.styles.R.style.Widget_Vector_TextView_Title), null, 0).apply {
-                    id = View.generateViewId()
+                    id = ViewCompat.generateViewId()
                     setPadding(padding, padding, padding, padding)
                     typeface = fontProvider.typeface ?: Typeface.DEFAULT
-                    text = emoji
+                    text = emoji.withEmojis()
                     alpha = if (selected) 0.2f else 1f
                     onClick { listener?.didSelect(emoji, !selected) }
                 }

@@ -43,11 +43,21 @@ fun Context.isIgnoringBatteryOptimizations(): Boolean {
 }
 
 fun Context.isAirplaneModeOn(): Boolean {
-    return Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) != 0
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        Settings.Global.getInt(contentResolver, Settings.Global.AIRPLANE_MODE_ON, 0) != 0
+    } else {
+        @Suppress("DEPRECATION")
+        Settings.System.getInt(contentResolver, Settings.System.AIRPLANE_MODE_ON, 0) != 0
+    }
 }
 
 fun Context.isAnimationEnabled(): Boolean {
-    return Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+    // ANIMATOR_DURATION_SCALE lives in Settings.Global only since API 17; pre-17 assume animations are on.
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+    } else {
+        true
+    }
 }
 
 /**

@@ -25,7 +25,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="36dp"
             android:paddingStart="36dp"
+            android:paddingLeft="36dp"
             android:paddingEnd="36dp"
+            android:paddingRight="36dp"
             android:text="@string/login_terms_title"
             android:textColor="?vctr_content_primary"
             app:layout_constraintTop_toBottomOf="@id/loginLogo" />
@@ -37,7 +39,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:paddingStart="36dp"
+            android:paddingLeft="36dp"
             android:paddingEnd="36dp"
+            android:paddingRight="36dp"
             android:text="@string/auth_accept_policies"
             android:textColor="?vctr_content_secondary"
             app:layout_constraintTop_toBottomOf="@id/loginTermsTitle" />
@@ -49,7 +53,9 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="16dp"
             android:paddingStart="16dp"
+            android:paddingLeft="16dp"
             android:paddingEnd="16dp"
+            android:paddingRight="16dp"
             app:layout_constraintBottom_toTopOf="@id/loginTermsSubmit"
             app:layout_constraintTop_toBottomOf="@id/loginTermsNotice"
             tools:listitem="@layout/item_policy" />
@@ -60,6 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="36dp"
+            android:layout_marginRight="36dp"
             android:text="@string/action_accept"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />

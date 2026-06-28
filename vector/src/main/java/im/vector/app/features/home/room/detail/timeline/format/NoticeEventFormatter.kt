@@ -10,11 +10,9 @@ package im.vector.app.features.home.room.detail.timeline.format
 import im.vector.app.ActiveSessionDataSource
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.roomprofile.permissions.RoleFormatter
 import im.vector.app.features.settings.VectorPreferences
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
-import im.vector.app.features.voicebroadcast.model.VoiceBroadcastState
-import im.vector.app.features.voicebroadcast.model.asVoiceBroadcastEvent
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
@@ -96,8 +94,8 @@ class NoticeEventFormatter @Inject constructor(
             EventType.CALL_HANGUP,
             EventType.CALL_REJECT,
             EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
-            VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
             EventType.MESSAGE -> formatMessageEvent(event, senderName)
+            STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
             in EventType.STATE_ROOM_BEACON_INFO.values -> formatLocationNotice(event, senderName)
             EventType.CALL_NEGOTIATE,
             EventType.CALL_SELECT_ANSWER,
@@ -200,7 +198,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
             EventType.STATE_ROOM_TOMBSTONE -> formatRoomTombstoneEvent(event, senderName)
             EventType.STATE_ROOM_PINNED_EVENT -> formatRoomPinnedEvent(event, senderName)
-            VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
+            STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
             else -> {
                 Timber.v("Type $type not handled by this formatter")
                 null
@@ -393,6 +391,18 @@ class NoticeEventFormatter @Inject constructor(
                 }
             }
             else -> null
+        }
+    }
+
+    // Voice broadcast recording/playback is removed on this fork; the state events still render as a
+    // plain notice. The content "state" field tells started/ongoing vs stopped.
+    private fun formatVoiceBroadcastEvent(event: Event, senderName: String?): CharSequence {
+        val stopped = (event.getClearContent()?.get("state") as? String) == "stopped"
+        return when {
+            stopped && event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_voice_broadcast_ended_by_you)
+            stopped -> sp.getString(CommonStrings.notice_voice_broadcast_ended, senderName)
+            event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_voice_broadcast_started_by_you)
+            else -> sp.getString(CommonStrings.notice_voice_broadcast_started, senderName)
         }
     }
 
@@ -1016,15 +1026,4 @@ class NoticeEventFormatter @Inject constructor(
                 }
     }
 
-    private fun formatVoiceBroadcastEvent(event: Event, senderName: String?): CharSequence {
-        return if (event.asVoiceBroadcastEvent()?.content?.voiceBroadcastState == VoiceBroadcastState.STOPPED) {
-            if (event.isSentByCurrentUser()) {
-                sp.getString(CommonStrings.notice_voice_broadcast_ended_by_you)
-            } else {
-                sp.getString(CommonStrings.notice_voice_broadcast_ended, senderName)
-            }
-        } else {
-            formatDebug(event)
-        }
-    }
 }

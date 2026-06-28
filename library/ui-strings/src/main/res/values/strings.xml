@@ -3046,7 +3046,6 @@
     <!-- %s will be replaced by the value of link_this_email_settings_link and styled as a link -->
     <string name="link_this_email_with_your_account">%s in Settings to receive invites directly in ${app_name}.</string>
 
-    <string name="labs_enable_latex_maths">Enable LaTeX mathematics</string>
     <string name="restart_the_application_to_apply_changes">Restart the application for the change to take effect.</string>
 
     <string name="labs_enable_msc3061_share_history">MSC3061: Sharing room keys for past messages</string>

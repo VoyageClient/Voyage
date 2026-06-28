@@ -20,6 +20,7 @@ import com.squareup.moshi.Moshi
 import okio.buffer
 import okio.source
 import org.matrix.android.sdk.api.session.sync.InitialSyncStrategy
+import org.matrix.android.sdk.api.session.sync.model.RoomSyncEphemeral
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import timber.log.Timber
@@ -46,7 +47,7 @@ internal class InitialSyncResponseParser @Inject constructor(
         if (!shouldSplit) return moshi
         // Otherwise, we create a new adapter for handling Map of Lazy sync
         return moshi.newBuilder()
-                .add(SplitLazyRoomSyncEphemeralJsonAdapter(roomSyncEphemeralTemporaryStore, syncStrategy))
+                .add(SplitLazyRoomSyncEphemeralJsonAdapter(roomSyncEphemeralTemporaryStore, syncStrategy, moshi.adapter(RoomSyncEphemeral::class.java)))
                 .build()
     }
 }

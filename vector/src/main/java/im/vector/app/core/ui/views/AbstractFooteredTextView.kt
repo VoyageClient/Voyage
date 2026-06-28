@@ -16,6 +16,7 @@ import android.view.View
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.getSpans
 import androidx.core.text.toSpanned
+import im.vector.app.core.extensions.layoutDirectionCompat
 import im.vector.app.features.html.HtmlCodeSpan
 import io.noties.markwon.core.spans.EmphasisSpan
 import kotlin.math.ceil
@@ -71,7 +72,7 @@ interface AbstractFooteredTextView {
         if (lastLine < 0) return Pair(measuredWidth, measuredHeight)
 
         // Let's check if the last line's text has the same RTL behaviour as the layout direction.
-        val viewIsRtl = layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val viewIsRtl = layoutDirectionCompat == View.LAYOUT_DIRECTION_RTL
         val looksLikeRtl = layout.getParagraphDirection(lastLine) == Layout.DIR_RIGHT_TO_LEFT
 
         // Get required width for all lines

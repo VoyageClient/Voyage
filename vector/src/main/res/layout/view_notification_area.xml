@@ -26,7 +26,9 @@
         android:accessibilityLiveRegion="polite"
         android:gravity="start"
         android:paddingStart="4dp"
+        android:paddingLeft="4dp"
         android:paddingEnd="0dp"
+        android:paddingRight="0dp"
         android:textColor="?vctr_content_primary"
         tools:text="@string/room_do_not_have_permission_to_post" />
 

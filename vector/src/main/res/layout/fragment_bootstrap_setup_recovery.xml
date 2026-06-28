@@ -13,8 +13,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:text="@string/bottom_sheet_setup_secure_backup_subtitle"
         android:textColor="?vctr_content_primary" />
 
@@ -78,12 +80,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:layout_marginBottom="16dp"
         android:drawablePadding="4dp"
         android:text="@string/reset_secure_backup_warning"
         android:textColor="?colorError"
         app:drawableStartCompat="@drawable/ic_warning_badge" />
+        app:drawableLeftCompat="@drawable/ic_warning_badge"
 
 </LinearLayout>

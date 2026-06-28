@@ -67,9 +67,6 @@ class DebugVectorFeatures(
     override fun isNewAppLayoutFeatureEnabled(): Boolean = read(DebugFeatureKeys.newAppLayoutEnabled)
             ?: vectorFeatures.isNewAppLayoutFeatureEnabled()
 
-    override fun isVoiceBroadcastEnabled(): Boolean = read(DebugFeatureKeys.voiceBroadcastEnabled)
-            ?: vectorFeatures.isVoiceBroadcastEnabled()
-
     override fun isUnverifiedSessionsAlertEnabled(): Boolean = read(DebugFeatureKeys.unverifiedSessionsAlertEnabled)
             ?: vectorFeatures.isUnverifiedSessionsAlertEnabled()
 
@@ -132,6 +129,5 @@ object DebugFeatureKeys {
     val screenSharing = booleanPreferencesKey("screen-sharing")
     val forceUsageOfOpusEncoder = booleanPreferencesKey("force-usage-of-opus-encoder")
     val newAppLayoutEnabled = booleanPreferencesKey("new-app-layout-enabled")
-    val voiceBroadcastEnabled = booleanPreferencesKey("voice-broadcast-enabled")
     val unverifiedSessionsAlertEnabled = booleanPreferencesKey("unverified-sessions-alert-enabled")
 }

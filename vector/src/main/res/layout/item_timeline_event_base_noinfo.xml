@@ -20,6 +20,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="52dp" />
+        android:layout_marginLeft="52dp"
 
     <FrameLayout
         android:id="@+id/viewStubContainer"
@@ -28,6 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@id/messageStartGuideline">
+        android:layout_toRightOf="@id/messageStartGuideline"
 
         <ViewStub
             android:id="@+id/messageContentNoticeStub"
@@ -79,6 +81,7 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="8dp"
         android:layout_toStartOf="@id/viewStubContainer"
+        android:layout_toLeftOf="@id/viewStubContainer"
         android:visibility="gone"
         tools:visibility="visible" />
 

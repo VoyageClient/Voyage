@@ -22,6 +22,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import androidx.transition.ChangeBounds
 import androidx.transition.Fade
@@ -50,7 +51,7 @@ fun ImageView.setDrawableOrHide(drawableRes: Drawable?) {
 fun View.setAttributeTintedBackground(@DrawableRes drawableRes: Int, @AttrRes tint: Int) {
     val drawable = ContextCompat.getDrawable(context, drawableRes)!!
     DrawableCompat.setTint(drawable, ThemeUtils.getColor(context, tint))
-    background = drawable
+    backgroundCompat = drawable
 }
 
 fun View.tintBackground(@ColorInt tintColor: Int) {
@@ -59,7 +60,7 @@ fun View.tintBackground(@ColorInt tintColor: Int) {
         DrawableCompat.setTint(backgroundDrawable, tintColor)
         backgroundDrawable
     }
-    background = bkg
+    backgroundCompat = bkg
 }
 
 fun ImageView.setAttributeTintedImageResource(@DrawableRes drawableRes: Int, @AttrRes tint: Int) {
@@ -84,7 +85,7 @@ fun View.setAttributeBackground(@AttrRes attributeId: Int) {
  * Inspired from https://stackoverflow.com/a/64597532/1472514. Safer to call the 2 available API.
  */
 fun View.giveAccessibilityFocus() {
-    performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
+    ViewCompat.performAccessibilityAction(this, AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
     sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SELECTED)
 }
 

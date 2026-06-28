@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.render
 
 import android.content.Context
 import android.graphics.Typeface
+import android.os.Build
 import android.text.method.MovementMethod
 import android.util.TypedValue
 import android.view.Gravity
@@ -132,7 +133,9 @@ class RichMessageBodyRenderer @Inject constructor(
             allowShrink = !vectorPreferences.isTableLineWrappingDisabled()
             isHorizontalScrollBarEnabled = true
             isFillViewport = false
-            scrollBarSize = dim.dpToPx(10)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                scrollBarSize = dim.dpToPx(10)
+            }
             isScrollbarFadingEnabled = true
         }
         val table = TableLayout(ctx).apply {

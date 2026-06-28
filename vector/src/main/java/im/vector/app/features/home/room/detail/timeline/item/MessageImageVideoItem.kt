@@ -35,6 +35,7 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import im.vector.app.core.extensions.backgroundCompat
 
 @EpoxyModelClass
 abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Holder>() {
@@ -131,7 +132,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 holder.mediaShowButton.isVisible = false
                 // Render the real content underneath, then fade the dark scrim away to it.
                 imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
-                holder.mediaHiddenScrim.animate()
+                ViewCompat.animate(holder.mediaHiddenScrim)
                         .alpha(0f)
                         .setDuration(SCRIM_FADE_OUT_MS)
                         .withEndAction {
@@ -220,7 +221,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 holder.mediaContentView.setBackgroundResource(messageLayout.bubbleAppearance.imageBorderIncoming)
             }
         } else {
-            holder.mediaContentView.background = null
+            holder.mediaContentView.backgroundCompat = null
         }
     }
 

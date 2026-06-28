@@ -21,7 +21,6 @@ import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.platform.GenericIdArgs
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivitySimpleLoadingBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.spaces.share.ShareSpaceBottomSheet
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
@@ -92,7 +91,6 @@ class SpacePeopleActivity : VectorBaseActivity<ActivitySimpleLoadingBinding>() {
         navigator.openRoom(
                 context = this,
                 roomId = action.roomId,
-                trigger = ViewRoom.Trigger.MobileSpaceMembers
         )
         finish()
     }

@@ -54,6 +54,9 @@
     <string name="settings_uglier_username_colors_title" translatable="false">Uglier username color palette</string>
     <string name="settings_uglier_username_colors_summary" translatable="false">Color usernames and default avatars with element-web\'s current palette and hashing, which replaced the nicer one used before 2023.</string>
 
+    <string name="settings_use_twemoji_title" translatable="false">Use Twemoji</string>
+    <string name="settings_use_twemoji_summary" translatable="false">Draw emojis with the bundled Twemoji font</string>
+
     <string name="command_description_notice" translatable="false">Sends the given message as a notice</string>
 
     <string name="command_description_jump_to_start" translatable="false">Jump to the first event in this room.</string>
@@ -392,4 +395,6 @@
     <string name="image_pack_list_room_title" translatable="false">Emoticons &amp; stickers in this room</string>
     <string name="image_pack_view_readonly" translatable="false">You don\'t have permission to edit this pack</string>
     <string name="image_pack_save" translatable="false">Save</string>
+    <string name="notice_voice_broadcast_started" translatable="false">%1$s started a voice broadcast.</string>
+    <string name="notice_voice_broadcast_started_by_you" translatable="false">You started a voice broadcast.</string>
 </resources>

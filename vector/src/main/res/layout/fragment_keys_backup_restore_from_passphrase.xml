@@ -7,7 +7,9 @@
     android:layout_height="match_parent"
     android:background="?android:colorBackground"
     android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingEnd="@dimen/layout_horizontal_margin">
+    android:paddingRight="@dimen/layout_horizontal_margin"
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

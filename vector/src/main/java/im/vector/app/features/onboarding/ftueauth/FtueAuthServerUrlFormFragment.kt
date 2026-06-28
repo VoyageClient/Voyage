@@ -8,6 +8,7 @@
 package im.vector.app.features.onboarding.ftueauth
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -137,7 +138,12 @@ class FtueAuthServerUrlFormFragment :
                 views.loginServerUrlFormHomeServerUrlTil.error = getString(CommonStrings.login_error_invalid_home_server)
             }
             else -> {
-                views.loginServerUrlFormHomeServerUrl.setText(serverUrl, false /* to avoid completion dialog flicker*/)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    views.loginServerUrlFormHomeServerUrl.setText(serverUrl, false /* to avoid completion dialog flicker*/)
+                } else {
+                    views.loginServerUrlFormHomeServerUrl.setText(serverUrl)
+                    views.loginServerUrlFormHomeServerUrl.dismissDropDown()
+                }
                 viewModel.handle(OnboardingAction.HomeServerChange.SelectHomeServer(serverUrl))
             }
         }

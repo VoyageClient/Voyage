@@ -16,7 +16,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentSpaceCreateChooseTypeBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 
 @AndroidEntryPoint
 class ChooseSpaceTypeFragment :
@@ -29,7 +28,6 @@ class ChooseSpaceTypeFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.CreateSpace
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

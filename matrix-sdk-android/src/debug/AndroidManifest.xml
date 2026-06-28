@@ -1,5 +1,5 @@
 <manifest xmlns:tools="http://schemas.android.com/tools">
     <!-- blurhash-android is minSdk 21; the app force-overrides it too. Needed here so the debug
-         unit-test manifest merge (Robolectric) succeeds against this module's minSdk 19. -->
+         unit-test manifest merge (Robolectric) succeeds against this module's minSdk 14. -->
     <uses-sdk tools:overrideLibrary="com.vanniktech.blurhash" />
 </manifest>

@@ -6,7 +6,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="16dp"
+    android:layout_marginLeft="16dp"
     android:layout_marginEnd="16dp"
+    android:layout_marginRight="16dp"
     android:layout_marginBottom="4dp"
     tools:viewBindingIgnore="true">
 
@@ -17,6 +19,7 @@
         android:layout_height="12dp"
         android:layout_gravity="center"
         android:layout_marginEnd="4dp"
+        android:layout_marginRight="4dp"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -26,11 +29,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:layout_weight="1"
         android:drawablePadding="4dp"
         android:textColor="?vctr_content_secondary"
         android:textStyle="bold"
         app:drawableStartCompat="@drawable/ic_warning_badge"
+        app:drawableLeftCompat="@drawable/ic_warning_badge"
         tools:text="@string/unable_to_send_message" />
 
 </LinearLayout>

@@ -12,18 +12,13 @@ import im.vector.app.core.epoxy.TimelineEmptyItem
 import im.vector.app.core.epoxy.TimelineEmptyItem_
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.resources.UserPreferencesProvider
-import im.vector.app.features.analytics.DecryptionFailureTracker
+import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
-import im.vector.app.features.voicebroadcast.model.isVoiceBroadcast
-import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -36,10 +31,8 @@ class TimelineItemFactory @Inject constructor(
         private val roomCreateItemFactory: RoomCreateItemFactory,
         private val widgetItemFactory: WidgetItemFactory,
         private val verificationConclusionItemFactory: VerificationItemFactory,
-        private val decryptionFailureTracker: DecryptionFailureTracker,
         private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper,
         private val userPreferencesProvider: UserPreferencesProvider,
-        private val session: Session,
 ) {
 
     /**
@@ -93,7 +86,8 @@ class TimelineItemFactory @Inject constructor(
                     // State room create
                     EventType.STATE_ROOM_CREATE -> roomCreateItemFactory.create(params)
                     in EventType.STATE_ROOM_BEACON_INFO.values -> locationItemFactory(params)
-                    VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> messageItemFactory.create(params)
+                    // Voice broadcast playback is removed; surface the state event as a plain notice.
+                    STATE_ROOM_VOICE_BROADCAST_INFO -> noticeItemFactory.create(params)
                     // Unhandled state event types
                     else -> {
                         // Should only happen when shouldShowHiddenEvents() settings is ON
@@ -136,15 +130,9 @@ class TimelineItemFactory @Inject constructor(
                     }
                     // Crypto
                     EventType.ENCRYPTED -> {
-                        val relationContent = event.getRelationContent()
                         when {
                             // Redacted event, let the MessageItemFactory handle it
                             event.root.isRedacted() -> messageItemFactory.create(params)
-                            relationContent?.type == RelationType.REFERENCE -> {
-                                // Hide the decryption error for VoiceBroadcast chunks
-                                val relatedEvent = relationContent.eventId?.let { session.eventService().getEventFromCache(event.roomId, it) }
-                                if (relatedEvent?.isVoiceBroadcast() != true) encryptedItemFactory.create(params) else null
-                            }
                             else -> encryptedItemFactory.create(params)
                         }
                     }
@@ -160,7 +148,6 @@ class TimelineItemFactory @Inject constructor(
                     }
                 }.also {
                     if (it != null && event.isEncrypted() && event.root.mCryptoError != null) {
-                        decryptionFailureTracker.utdDisplayedInTimeline(event)
                     }
                 }
             }

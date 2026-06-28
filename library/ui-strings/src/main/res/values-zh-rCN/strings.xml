@@ -2278,7 +2278,6 @@
 \n%1$s</string>
     <string name="threads_beta_enable_notice_message">消息列有助于使你的对话保持话题并易于跟踪。%s 创建消息列将刷新应用程序。对于某些账户，这可能需要更长的时间。</string>
     <string name="restart_the_application_to_apply_changes">重启应用以使更改生效。</string>
-    <string name="labs_enable_latex_maths">启用 LaTeX 数学</string>
     <string name="audio_message_file_size">（%1$s）</string>
     <string name="audio_message_reply_content">%1$s（%2$s）</string>
     <string name="error_audio_message_unable_to_play">无法播放%1$s</string>

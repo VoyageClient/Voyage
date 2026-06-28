@@ -2156,7 +2156,6 @@
         <item quantity="other">%1$d vota të hedhur. Votoni, që të shihni përfundimet</item>
     </plurals>
     <string name="restart_the_application_to_apply_changes">Që ndryshimi të hyjë në fuqi, rinisni aplikacionin.</string>
-    <string name="labs_enable_latex_maths">Aktivizo elementë LaTeX për matematikë</string>
     <string name="room_error_access_unauthorized">S’keni leje të hyni në këtë dhomë</string>
     <string name="tooltip_attachment_poll">Krijoni anketim</string>
     <string name="tooltip_attachment_contact">Hap kontakte</string>

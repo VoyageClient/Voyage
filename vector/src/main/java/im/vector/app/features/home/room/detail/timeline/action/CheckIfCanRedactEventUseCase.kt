@@ -8,7 +8,6 @@
 package im.vector.app.features.home.room.detail.timeline.action
 
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
@@ -23,7 +22,6 @@ class CheckIfCanRedactEventUseCase @Inject constructor(
                 EventType.MESSAGE,
                 EventType.STICKER,
                 EventType.REACTION,
-                VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO,
         ) +
                 EventType.POLL_START.values +
                 EventType.POLL_END.values +

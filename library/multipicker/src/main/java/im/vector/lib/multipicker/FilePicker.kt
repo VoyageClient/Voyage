@@ -12,6 +12,7 @@ import android.content.Intent
 import android.provider.OpenableColumns
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
+import im.vector.lib.core.utils.compat.use
 import im.vector.lib.multipicker.entity.MultiPickerBaseType
 import im.vector.lib.multipicker.entity.MultiPickerFileType
 import im.vector.lib.multipicker.utils.getColumnIndexOrNull

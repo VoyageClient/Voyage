@@ -321,7 +321,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private fun animateTransitionCorner(to: Float, transition: android.transition.Transition?) {
         cornerAnimator?.cancel()
         cornerAnimator = android.animation.ValueAnimator.ofFloat(transitionCornerFraction, to).apply {
-            duration = transition?.duration?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
+            duration = transition.durationCompat?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
             addUpdateListener {
                 transitionCornerFraction = it.animatedValue as Float
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) imageTransitionView.invalidateOutline()
@@ -333,7 +333,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private fun animateTransitionCornerPx(to: Float, transition: android.transition.Transition?) {
         cornerAnimator?.cancel()
         cornerAnimator = android.animation.ValueAnimator.ofFloat(transitionCornerPx, to).apply {
-            duration = transition?.duration?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
+            duration = transition.durationCompat?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
             addUpdateListener {
                 transitionCornerPx = it.animatedValue as Float
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) imageTransitionView.invalidateOutline()
@@ -469,3 +469,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         }
     }
 }
+
+// Transition.getDuration (and the whole android.transition package) is API 19+.
+private val android.transition.Transition?.durationCompat: Long?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) this?.duration else null

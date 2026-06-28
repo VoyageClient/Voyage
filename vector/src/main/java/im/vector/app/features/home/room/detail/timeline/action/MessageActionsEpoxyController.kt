@@ -10,6 +10,7 @@ import android.os.Build
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Success
 import im.vector.app.EmojiCompatFontProvider
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
@@ -125,7 +126,7 @@ class MessageActionsEpoxyController @Inject constructor(
             hideMediaSolidColor(host.vectorPreferences.useSolidColorForHiddenMedia())
             userClicked { host.listener?.didSelectMenuAction(EventSharedAction.OpenUserProfile(state.informationData.senderId)) }
             bindingOptions(bindingOptions)
-            body(body.toEpoxyCharSequence())
+            body(body.withEmojis().toEpoxyCharSequence())
             bodyDetails(host.eventDetailsFormatter.format(state.timelineEvent()?.root)?.toEpoxyCharSequence())
             time(formattedDate)
             locationUiData(locationUiData)

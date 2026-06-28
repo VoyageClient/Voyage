@@ -15,16 +15,17 @@ import com.github.penfeizhou.animation.apng.APNGDrawable
 import com.github.penfeizhou.animation.apng.decode.APNGParser
 import com.github.penfeizhou.animation.io.ByteBufferReader
 import com.github.penfeizhou.animation.loader.ByteBufferLoader
-import com.github.penfeizhou.animation.webp.WebPDrawable
-import com.github.penfeizhou.animation.webp.decode.WebPParser
 import java.io.InputStream
 import java.nio.ByteBuffer
 
 /**
- * Decodes animated WebP and APNG straight into penfeizhou's FrameAnimationDrawable.
+ * Decodes APNG straight into penfeizhou's FrameAnimationDrawable.
  *
- * Glide's bundled AnimatedImageDecoder doesn't detect every animated WebP — its ImageHeaderParser
- * misses the VP8X / ANIM chunk on some sources. penfeizhou's parsers read those chunks directly.
+ * Glide's bundled AnimatedImageDecoder misses some APNG headers and falls back to a single still
+ * frame; penfeizhou's parser reads the acTL chunk directly.
+ *
+ * WebP (static + animated, all variants) is owned by zjupure's native libwebp decoder, not this one:
+ * penfeizhou decodes every WebP frame through BitmapFactory, which can't read VP8L/VP8X below API 18.
  *
  * GIF is deliberately left to Glide's built-in (pure-Java) StandardGifDecoder: penfeizhou's GIF
  * module decodes LZW in a native lib that fails to load on KitKat (NoClassDefFoundError on GifFrame).
@@ -42,8 +43,7 @@ import java.nio.ByteBuffer
 internal class AnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
 
     override fun handles(source: ByteBuffer, options: Options): Boolean {
-        return runCatching { WebPParser.isAWebP(ByteBufferReader(source.asReadOnlyBuffer())) }.getOrDefault(false) ||
-                runCatching { APNGParser.isAPNG(ByteBufferReader(source.asReadOnlyBuffer())) }.getOrDefault(false)
+        return runCatching { APNGParser.isAPNG(ByteBufferReader(source.asReadOnlyBuffer())) }.getOrDefault(false)
     }
 
     override fun decode(source: ByteBuffer, width: Int, height: Int, options: Options): Resource<Drawable>? {
@@ -51,16 +51,12 @@ internal class AnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
         val loader = object : ByteBufferLoader() {
             override fun getByteBuffer(): ByteBuffer = buffer.asReadOnlyBuffer()
         }
-        val factory: () -> Drawable = when {
-            runCatching { WebPParser.isAWebP(ByteBufferReader(buffer.asReadOnlyBuffer())) }.getOrDefault(false) ->
-                { -> WebPDrawable(loader).apply { setAutoPlay(true) } }
-            runCatching { APNGParser.isAPNG(ByteBufferReader(buffer.asReadOnlyBuffer())) }.getOrDefault(false) ->
-                { -> APNGDrawable(loader).apply { setAutoPlay(true) } }
-            else -> return null
+        if (!runCatching { APNGParser.isAPNG(ByteBufferReader(buffer.asReadOnlyBuffer())) }.getOrDefault(false)) {
+            return null
         }
         return object : Resource<Drawable> {
             override fun getResourceClass(): Class<Drawable> = Drawable::class.java
-            override fun get(): Drawable = factory()
+            override fun get(): Drawable = APNGDrawable(loader).apply { setAutoPlay(true) }
             override fun getSize(): Int = buffer.capacity()
             override fun recycle() = Unit
         }

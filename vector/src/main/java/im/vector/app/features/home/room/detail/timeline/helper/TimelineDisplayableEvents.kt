@@ -7,7 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.helper
 
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
+import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -46,7 +46,7 @@ object TimelineDisplayableEvents {
             EventType.STATE_ROOM_JOIN_RULES,
             EventType.KEY_VERIFICATION_DONE,
             EventType.KEY_VERIFICATION_CANCEL,
-            VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO,
+            STATE_ROOM_VOICE_BROADCAST_INFO,
     ) +
             EventType.POLL_START.values +
             EventType.POLL_END.values +

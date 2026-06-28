@@ -1227,7 +1227,6 @@
     <string name="poll_undisclosed_not_ended">Rezultatai bus matomi pasibaigus apklausai</string>
     <string name="poll_no_votes_cast">Nėra balsų</string>
     <string name="restart_the_application_to_apply_changes">Iš naujo paleiskite programą, kad pakeitimas įsigaliotų.</string>
-    <string name="labs_enable_latex_maths">Įjungti LaTeX matematika</string>
     <string name="link_this_email_with_your_account">%s nustatymuose, kad gautumėte kvietimus tiesiogiai į ${app_name}.</string>
     <string name="this_invite_to_this_space_was_sent">Kvietimas į šią erdvę buvo išsiųstas į %s, kuris nėra susijęs su jūsų paskyra</string>
     <string name="this_invite_to_this_room_was_sent">Kvietimas į šį kambarį buvo išsiųstas į %s, kuris nėra susijęs su jūsų paskyra</string>

@@ -7,7 +7,6 @@
 
 package im.vector.app.features.settings.labs
 
-import android.os.Build
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.widget.TextView
@@ -22,7 +21,6 @@ import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.room.threads.ThreadsManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsBaseFragment
@@ -46,7 +44,6 @@ class VectorSettingsLabsFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.SettingsLabs
     }
 
     override fun bindPref() {
@@ -86,11 +83,6 @@ class VectorSettingsLabsFragment :
                 onNewLayoutPreferenceClicked()
                 true
             }
-        }
-
-        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_LABS_VOICE_BROADCAST_KEY)?.let { pref ->
-            // Voice Broadcast recording is not available on Android < 10
-            pref.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && vectorFeatures.isVoiceBroadcastEnabled()
         }
 
         configureUnreadNotificationsAsTabPreference()

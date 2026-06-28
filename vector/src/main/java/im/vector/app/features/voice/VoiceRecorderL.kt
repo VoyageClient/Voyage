@@ -63,15 +63,19 @@ class VoiceRecorderL(
 
         val recorder = this.audioRecorder ?: return
 
-        if (NoiseSuppressor.isAvailable()) {
-            noiseSuppressor = tryOrNull {
-                NoiseSuppressor.create(recorder.audioSessionId).also { it.enabled = true }
+        // AudioRecord.getAudioSessionId and the NoiseSuppressor/AutomaticGainControl effects are API 16+;
+        // pre-16 simply records without these optional enhancements.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (NoiseSuppressor.isAvailable()) {
+                noiseSuppressor = tryOrNull {
+                    NoiseSuppressor.create(recorder.audioSessionId).also { it.enabled = true }
+                }
             }
-        }
 
-        if (AutomaticGainControl.isAvailable()) {
-            automaticGainControl = tryOrNull {
-                AutomaticGainControl.create(recorder.audioSessionId).also { it.enabled = true }
+            if (AutomaticGainControl.isAvailable()) {
+                automaticGainControl = tryOrNull {
+                    AutomaticGainControl.create(recorder.audioSessionId).also { it.enabled = true }
+                }
             }
         }
     }

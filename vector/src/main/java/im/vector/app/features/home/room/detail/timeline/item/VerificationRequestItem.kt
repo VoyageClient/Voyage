@@ -30,6 +30,7 @@ import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationService
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationState
+import im.vector.app.core.extensions.marginEndCompat
 
 @EpoxyModelClass
 abstract class VerificationRequestItem : AbsBaseMessageItem<VerificationRequestItem.Holder>(R.layout.item_timeline_event_base_state) {
@@ -53,7 +54,7 @@ abstract class VerificationRequestItem : AbsBaseMessageItem<VerificationRequestI
         super.bind(holder)
 
         holder.endGuideline.updateLayoutParams<RelativeLayout.LayoutParams> {
-            this.marginEnd = leftGuideline
+            this.marginEndCompat = leftGuideline
         }
 
         holder.titleView.text = if (attributes.informationData.sentByMe) {

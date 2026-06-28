@@ -2248,7 +2248,6 @@
     <string name="create_poll_question_title">ຄຳຖາມ ຫຼື ຫົວຂໍ້ການສຳຫຼວດ</string>
     <string name="create_poll_title">ສ້າງແບບສຳຫຼວດ</string>
     <string name="restart_the_application_to_apply_changes">ປິດເປີດແອັບພລິເຄຊັນຄືນໃໝ່ ເພື່ອໃຫ້ການປ່ຽນແປງ.</string>
-    <string name="labs_enable_latex_maths">ເປີດໃຊ້ຄະນິດສາດ LaTeX</string>
     <string name="link_this_email_with_your_account">%s ໃນການຕັ້ງຄ່າເພື່ອຮັບຄຳເຊີນໂດຍກົງໃນ ${app_name}.</string>
     <string name="link_this_email_settings_link">ເຊື່ອມຕໍ່ອີເມວນີ້ກັບບັນຊີຂອງທ່ານ</string>
     <string name="this_invite_to_this_space_was_sent">ການເຊີນໄປຫາພື້ນທີ່ນີ້ຖືກສົ່ງໄປຫາ %s ທີ່ບໍ່ກ່ຽວຂ້ອງກັບບັນຊີຂອງທ່ານ</string>

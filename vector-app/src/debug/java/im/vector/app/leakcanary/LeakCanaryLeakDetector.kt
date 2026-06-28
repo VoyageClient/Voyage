@@ -8,11 +8,12 @@
 package im.vector.app.leakcanary
 
 import im.vector.app.core.debug.LeakDetector
-import leakcanary.LeakCanary
 import javax.inject.Inject
 
+// LeakCanary is omitted from this fork: its classes blow the Dalvik 8 MB LinearAlloc budget on the
+// API-14 target. This keeps the debug DI binding intact as a no-op.
 class LeakCanaryLeakDetector @Inject constructor() : LeakDetector {
     override fun enable(enable: Boolean) {
-        LeakCanary.config = LeakCanary.config.copy(dumpHeap = enable)
+        // no-op
     }
 }

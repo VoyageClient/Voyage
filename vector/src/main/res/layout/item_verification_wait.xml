@@ -7,7 +7,9 @@
     android:layout_height="wrap_content"
     android:contentDescription="@string/use_other_session_content_description"
     android:paddingStart="16dp"
+    android:paddingLeft="16dp"
     android:paddingEnd="16dp"
+    android:paddingRight="16dp"
     android:paddingBottom="8dp"
     tools:viewBindingIgnore="true">
 

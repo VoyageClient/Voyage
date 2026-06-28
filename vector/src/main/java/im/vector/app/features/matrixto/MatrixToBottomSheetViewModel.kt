@@ -20,8 +20,6 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +43,6 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val directRoomHelper: DirectRoomHelper,
         private val errorFormatter: ErrorFormatter,
-        private val analyticsTracker: AnalyticsTracker
 ) : VectorViewModel<MatrixToBottomSheetState, MatrixToAction, MatrixToViewEvents>(initialState) {
 
     @AssistedFactory
@@ -263,11 +260,6 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 val joinResult = session.spaceService().joinSpace(joinSpace.spaceID, null, joinSpace.viaServers?.take(3) ?: emptyList())
-                withState { state ->
-                    session.getRoomSummary(joinSpace.spaceID)?.let { summary ->
-                        analyticsTracker.capture(summary.toAnalyticsJoinedRoom(state.origin.toJoinedRoomTrigger()))
-                    }
-                }
                 if (joinResult.isSuccess()) {
                     _viewEvents.post(MatrixToViewEvents.NavigateToSpace(joinSpace.spaceID))
                 } else {
@@ -298,11 +290,6 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                 )
 
                 val roomId = getRoomIdFromRoomIdOrAlias(action.roomIdOrAlias)
-                withState { state ->
-                    session.getRoomSummary(roomId)?.let { summary ->
-                        analyticsTracker.capture(summary.toAnalyticsJoinedRoom(state.origin.toJoinedRoomTrigger()))
-                    }
-                }
                 _viewEvents.post(MatrixToViewEvents.NavigateToRoom(roomId))
             } catch (failure: Throwable) {
                 _viewEvents.post(MatrixToViewEvents.ShowModalError(errorFormatter.toHumanReadable(failure)))

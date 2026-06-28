@@ -69,6 +69,10 @@ class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
     init {
         val appContext = context.applicationContext
         DaggerMatrixComponent.factory().create(appContext, matrixConfiguration).inject(this)
+        // Load the native olm/libce library up front: the crypto Dagger graph constructs OlmUtility in
+        // field initializers (e.g. CrossSigningOlm) before OlmManager is injected anywhere, so without
+        // an explicit early load the first crypto use throws UnsatisfiedLinkError: createUtilityJni.
+        org.matrix.olm.OlmManager()
         if (appContext !is Configuration.Provider) {
             val configuration = Configuration.Builder()
                     .setExecutor(Executors.newCachedThreadPool())

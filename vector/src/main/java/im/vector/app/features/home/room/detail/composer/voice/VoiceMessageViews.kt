@@ -13,6 +13,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -25,6 +26,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlayb
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.lib.strings.CommonStrings
+import im.vector.app.core.extensions.importantForAccessibilityCompat
 
 class VoiceMessageViews(
         private val resources: Resources,
@@ -105,13 +107,12 @@ class VoiceMessageViews(
         views.voiceMessageTimer.isVisible = false
 
         if (resetMic) {
-            views.voiceMessageMicButton
-                    .animate()
+            ViewCompat.animate(views.voiceMessageMicButton)
                     .scaleX(1f)
                     .scaleY(1f)
                     .translationX(0f)
                     .translationY(0f)
-                    .setDuration(150)
+                    .setDuration(150L)
                     .withEndAction {
                         resetMicButtonUi()
                     }
@@ -153,7 +154,7 @@ class VoiceMessageViews(
         views.voiceMessagePlaybackLayout.isVisible = true
         views.voiceMessagePlaybackTimerIndicator.isVisible = false
         views.voicePlaybackControlButton.isVisible = true
-        views.voicePlaybackWaveform.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        views.voicePlaybackWaveform.importantForAccessibilityCompat = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
     fun showRecordingViews() {
@@ -164,7 +165,7 @@ class VoiceMessageViews(
         views.voiceMessagePlaybackTimerIndicator.isVisible = true
         views.voicePlaybackControlButton.isVisible = false
         views.voiceMessageSendButton.isVisible = false
-        views.voicePlaybackWaveform.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+        views.voicePlaybackWaveform.importantForAccessibilityCompat = View.IMPORTANT_FOR_ACCESSIBILITY_YES
         renderToast(resources.getString(CommonStrings.voice_message_tap_to_stop_toast))
     }
 

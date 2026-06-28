@@ -30,7 +30,6 @@ import im.vector.app.core.extensions.validateBackPressed
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.ActivityLoginBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.login.terms.LoginTermsFragment
 import im.vector.app.features.login.terms.LoginTermsFragmentArgument
@@ -80,7 +79,6 @@ open class LoginActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
         get() = views.coordinatorLayout
 
     override fun initUiAndData() {
-        analyticsScreenName = MobileScreen.ScreenName.Login
 
         if (isFirstCreation()) {
             addFirstFragment()
@@ -215,7 +213,6 @@ open class LoginActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
         if (loginViewState.isUserLogged()) {
             if (loginViewState.signMode == SignMode.SignUp) {
                 // change the screen name
-                analyticsScreenName = MobileScreen.ScreenName.Register
             }
             val authDescription = inferAuthDescription(loginViewState)
             val intent = HomeActivity.newIntent(this, firstStartMainActivity = false, authenticationDescription = authDescription)

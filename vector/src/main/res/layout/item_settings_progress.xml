@@ -7,7 +7,9 @@
     android:background="?android:colorBackground"
     android:minHeight="48dp"
     android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingEnd="@dimen/layout_horizontal_margin"
+    android:paddingRight="@dimen/layout_horizontal_margin"
     tools:viewBindingIgnore="true">
 
     <ProgressBar
@@ -16,6 +18,7 @@
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:layout_marginEnd="26dp"
+        android:layout_marginRight="26dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

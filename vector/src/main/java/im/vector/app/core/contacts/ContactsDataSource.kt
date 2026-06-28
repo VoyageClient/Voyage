@@ -13,6 +13,7 @@ import android.provider.ContactsContract
 import androidx.annotation.WorkerThread
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
+import im.vector.lib.core.utils.compat.use
 import im.vector.lib.multipicker.utils.getColumnIndexOrNull
 import timber.log.Timber
 import javax.inject.Inject

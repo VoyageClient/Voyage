@@ -2,11 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- These libraries declare minSdk 21 but we run on 19. The pure-Java/Kotlin ones (emoji,
-         blurhash, vanniktech.ui, glide transforms, posthog, penfeizhou animation, compose
-         transitive) are fine on KitKat. maplibre (location maps) is runtime-gated: on KitKat
-         locations render as a text notice instead of a map, so its native lib is never touched. -->
-    <uses-sdk tools:overrideLibrary="com.vanniktech.blurhash, com.vanniktech.ui, jp.wasabeef.glide.transformations, com.posthog.android, com.github.penfeizhou.animation.apng, com.github.penfeizhou.animation.awebp, com.github.penfeizhou.animation.gif, com.github.penfeizhou.animation.frameanimation, androidx.compose.runtime, androidx.compose.runtime.saveable, androidx.compose.ui, androidx.compose.ui.graphics, androidx.compose.ui.text, androidx.compose.ui.unit, androidx.compose.foundation, androidx.compose.animation, androidx.compose.animation.core, androidx.compose.material, androidx.compose.material.ripple, org.maplibre.android, org.maplibre.android.plugins.annotation, org.maplibre.android.gestures" />
+    <!-- These libraries declare a higher minSdk than our floor (API 14, ICS) but are safe on it.
+         The minSdk-21 set (blurhash, vanniktech.ui, glide transforms, penfeizhou
+         animation, compose transitive) is pure-Java/Kotlin with no version-specific runtime calls;
+         maplibre (location maps) is runtime-gated below API 21 (locations render as a text notice,
+         so its native lib is never touched). The minSdk-16 set (androidx.browser, the markwon
+         markdown stack + its better-link dep, mavericks, lazythreetenbp, the unifiedpush
+         connector) carry the old Jelly-Bean default floor administratively, not real JB-only API
+         calls — they run on ICS (verify on device). browser's Custom Tabs degrade to a plain Intent. -->
+    <uses-sdk tools:overrideLibrary="com.vanniktech.blurhash, com.vanniktech.ui, jp.wasabeef.glide.transformations, com.github.penfeizhou.animation.apng, com.github.penfeizhou.animation.gif, com.github.penfeizhou.animation.frameanimation, androidx.compose.runtime, androidx.compose.runtime.saveable, androidx.compose.ui, androidx.compose.ui.graphics, androidx.compose.ui.text, androidx.compose.ui.unit, androidx.compose.foundation, androidx.compose.animation, androidx.compose.animation.core, androidx.compose.material, androidx.compose.material.ripple, org.maplibre.android, org.maplibre.android.plugins.annotation, org.maplibre.android.gestures, androidx.browser, com.airbnb.mvrx, io.noties.markwon, io.noties.markwon.image.glide, io.noties.markwon.inlineparser, me.saket.bettermovementmethod, com.gabrielittner.threetenbp, org.unifiedpush.android.connector" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Required for long polling account synchronisation in background (background sync flavour path). -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:name="im.vector.app.VectorApplication"
@@ -46,6 +54,16 @@
                 android:resource="@xml/shortcuts" />
         </activity-alias>
 
+        <!-- Legacy-multidex first-launch loader: runs the slow secondary-dex extraction in its own
+             lightweight process so the main process doesn't ANR on Dalvik (API < 21). -->
+        <activity
+            android:name="im.vector.app.core.dex.MultiDexLoaderActivity"
+            android:process=":multidex"
+            android:launchMode="singleTask"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Holo.Light" />
+
 
         <!-- Providers -->
 
@@ -74,6 +92,26 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/sdk_provider_paths" />
         </provider>
+
+        <receiver
+            android:name="im.vector.app.fdroid.receiver.OnApplicationUpgradeOrRebootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name="im.vector.app.fdroid.receiver.AlarmSyncBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <service
+            android:name="im.vector.app.fdroid.service.GuardAndroidService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"
+            tools:ignore="Instantiatable" />
 
     </application>
 

@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.view.ViewCompat
 import androidx.core.view.setMargins
 import im.vector.app.R
 
@@ -53,7 +54,7 @@ class TypingMessageDotsView(context: Context, attrs: AttributeSet) :
 
     private fun obtainCircle(@DrawableRes imageCircle: Int): View {
         val image = AppCompatImageView(context)
-        image.id = View.generateViewId()
+        image.id = ViewCompat.generateViewId()
         val params = MarginLayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         params.setMargins(DEFAULT_DOTS_MARGIN)
         image.layoutParams = params

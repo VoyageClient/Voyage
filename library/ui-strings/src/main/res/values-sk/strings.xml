@@ -1438,7 +1438,6 @@
     <string name="legals_third_party_notices">Knižnice tretích strán</string>
     <string name="preference_help_title">Pomoc a podpora</string>
     <string name="invite_by_username_or_mail">Pozvať pomocou používateľského mena alebo e-mailu</string>
-    <string name="labs_enable_latex_maths">Povoliť matematiku LaTeX</string>
     <string name="restart_the_application_to_apply_changes">Reštartujte aplikáciu, aby sa zmena prejavila.</string>
     <string name="ftue_auth_carousel_control_title">Vy máte všetko pod kontrolou.</string>
     <string name="ftue_auth_carousel_encrypted_title">Bezpečné zasielanie správ.</string>

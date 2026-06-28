@@ -29,9 +29,6 @@ import im.vector.app.core.utils.ensureProtocol
 import im.vector.app.core.utils.ensureTrailingSlash
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.VectorOverrides
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toTrackingValue
-import im.vector.app.features.analytics.plan.UserProperties
 import im.vector.app.features.login.HomeServerConnectionConfigFactory
 import im.vector.app.features.login.LoginConfig
 import im.vector.app.features.login.LoginMode
@@ -79,7 +76,6 @@ class OnboardingViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val homeServerHistoryService: HomeServerHistoryService,
         private val vectorFeatures: VectorFeatures,
-        private val analyticsTracker: AnalyticsTracker,
         private val uriFilenameResolver: UriFilenameResolver,
         private val directLoginUseCase: DirectLoginUseCase,
         private val startAuthenticationFlowUseCase: StartAuthenticationFlowUseCase,
@@ -611,7 +607,6 @@ class OnboardingViewModel @AssistedInject constructor(
         val state = awaitState()
         state.useCase?.let { useCase ->
             session.vectorStore(applicationContext).setUseCase(useCase)
-            analyticsTracker.updateUserProperties(UserProperties(ftueUseCaseSelection = useCase.toTrackingValue()))
         }
         activeSessionHolder.setActiveSession(session)
 

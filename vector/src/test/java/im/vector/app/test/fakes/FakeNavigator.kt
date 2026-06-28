@@ -8,7 +8,6 @@
 package im.vector.app.test.fakes
 
 import android.content.Context
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.navigation.Navigator
 import io.mockk.justRun
 import io.mockk.mockk
@@ -24,9 +23,8 @@ class FakeNavigator {
             eventId: String?,
             buildTask: Boolean,
             isInviteAlreadyAccepted: Boolean,
-            trigger: ViewRoom.Trigger?,
     ) {
-        justRun { instance.openRoom(context, roomId, eventId, buildTask, isInviteAlreadyAccepted, trigger) }
+        justRun { instance.openRoom(context, roomId, eventId, buildTask, isInviteAlreadyAccepted) }
     }
 
     fun verifyOpenRoom(
@@ -35,8 +33,7 @@ class FakeNavigator {
             eventId: String?,
             buildTask: Boolean,
             isInviteAlreadyAccepted: Boolean,
-            trigger: ViewRoom.Trigger?,
     ) {
-        verify { instance.openRoom(context, roomId, eventId, buildTask, isInviteAlreadyAccepted, trigger) }
+        verify { instance.openRoom(context, roomId, eventId, buildTask, isInviteAlreadyAccepted) }
     }
 }

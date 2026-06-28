@@ -56,10 +56,12 @@ class VectorWebViewActivity : VectorBaseActivity<ActivityVectorWebViewBinding>()
             // Allow use of Local Storage
             domStorageEnabled = true
 
-            @Suppress("DEPRECATION")
-            allowFileAccessFromFileURLs = true
-            @Suppress("DEPRECATION")
-            allowUniversalAccessFromFileURLs = true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                @Suppress("DEPRECATION")
+                allowFileAccessFromFileURLs = true
+                @Suppress("DEPRECATION")
+                allowUniversalAccessFromFileURLs = true
+            }
 
             displayZoomControls = false
         }

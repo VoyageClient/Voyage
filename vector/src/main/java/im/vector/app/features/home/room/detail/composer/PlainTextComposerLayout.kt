@@ -38,7 +38,10 @@ import im.vector.app.databinding.ComposerLayoutBinding
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
+import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.html.EventHtmlRenderer
@@ -75,6 +78,7 @@ import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
+import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * Encapsulate the timeline composer UX.
@@ -99,6 +103,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
+    @Inject lateinit var twemojiProvider: TwemojiProvider
 
     private val views: ComposerLayoutBinding
 
@@ -151,12 +156,22 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // Fade the capped preview into the composer's surface background (matches the reply header's
         // fade-out) rather than clipping content with a trailing ellipsis.
         val surfaceColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface)
-        views.composerRelatedMessageFade.background = GradientDrawable(
+        views.composerRelatedMessageFade.backgroundCompat = GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
                 intArrayOf(Color.TRANSPARENT, surfaceColor)
         )
 
         collapse()
+
+        // Render emoji the user types/pastes as Twemoji sprites in the input box (the platform/emoji2
+        // can't on ICS or when Twemoji is forced). setSpan doesn't retrigger text watchers, so no loop.
+        if (twemojiProvider.enabled) {
+            views.composerEditText.addTextChangedListener(object : SimpleTextWatcher() {
+                override fun afterTextChanged(s: Editable) {
+                    twemojiProvider.applyTo(s)
+                }
+            })
+        }
 
         views.composerEditText.callback = object : ComposerEditText.Callback {
             override fun onRichContentSelected(contentUri: Uri): Boolean {
@@ -371,7 +386,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             views.composerRelatedMessageRichContainer.removeAllViews()
         }
         views.composerRelatedMessageContent.isVisible = !renderedTable
-        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, formattedBody ?: nonFormattedBody)
+        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, (formattedBody ?: nonFormattedBody)?.withEmojis())
         // Muted grey for non-message notices and m.notice messages (which render grey in the
         // timeline), normal text colour for everything else.
         val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {

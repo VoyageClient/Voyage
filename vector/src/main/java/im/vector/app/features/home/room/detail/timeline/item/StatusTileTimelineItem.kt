@@ -21,6 +21,8 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.core.extensions.marginEndCompat
+import im.vector.app.core.extensions.textAlignmentCompat
 
 @EpoxyModelClass
 abstract class StatusTileTimelineItem : AbsBaseMessageItem<StatusTileTimelineItem.Holder>(R.layout.item_timeline_event_base_state) {
@@ -37,12 +39,12 @@ abstract class StatusTileTimelineItem : AbsBaseMessageItem<StatusTileTimelineIte
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.endGuideline.updateLayoutParams<RelativeLayout.LayoutParams> {
-            this.marginEnd = leftGuideline
+            this.marginEndCompat = leftGuideline
         }
 
         holder.titleView.text = attributes.title
         holder.descriptionView.text = attributes.description
-        holder.descriptionView.textAlignment = View.TEXT_ALIGNMENT_CENTER
+        holder.descriptionView.textAlignmentCompat = View.TEXT_ALIGNMENT_CENTER
 
         val startDrawable = when (attributes.shieldUIState) {
             ShieldUIState.GREEN -> R.drawable.ic_shield_trusted

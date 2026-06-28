@@ -11,6 +11,7 @@ import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
@@ -36,7 +37,7 @@ abstract class EmojiSearchResultItem : VectorEpoxyModel<EmojiSearchResultItem.Ho
     override fun bind(holder: Holder) {
         super.bind(holder)
         // TODO use query string to highlight the matched query in name and keywords?
-        holder.emojiText.text = emojiItem.emoji
+        holder.emojiText.text = emojiItem.emoji.withEmojis()
         holder.emojiText.typeface = emojiTypeFace ?: Typeface.DEFAULT
         holder.emojiNameText.text = emojiItem.name
         holder.emojiKeywordText.setTextOrHide(emojiItem.keywords.joinToString())

@@ -2272,7 +2272,6 @@
     <string name="room_polls_active">Aktiiviset kyselyt</string>
     <string name="unable_to_decrypt_some_events_in_poll">Salauksen purkamisvirheistä johtuen joitakin ääniä ei ehkä lasketa</string>
     <string name="end_poll_confirmation_description">Tämä estää ihmisiä äänestämästä ja näyttää kyselyn lopulliset tulokset.</string>
-    <string name="labs_enable_latex_maths">Ota LaTeX-matematiikka käyttöön</string>
     <string name="voice_broadcast_recording_time_left">%1$s jäljellä</string>
     <string name="voice_message_release_to_send_toast">Äänitä pitämällä painettuna, lähetä päästämällä</string>
     <string name="upgrade_room_warning">Huoneen päivittäminen on edistynyt toiminto, jota yleensä suositellaan, kun huone on epävakaa virheistä, puuttuvista ominaisuuksita tai tietoturvahaavoittuvuuksista johtuen.

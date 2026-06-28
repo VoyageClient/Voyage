@@ -23,6 +23,7 @@
         android:layout_width="16dp"
         android:layout_height="16dp"
         android:layout_marginStart="9dp"
+        android:layout_marginLeft="9dp"
         app:layout_constraintBottom_toBottomOf="@id/roomPollsLoadMore"
         app:layout_constraintStart_toEndOf="@id/roomPollsLoadMore"
         app:layout_constraintTop_toTopOf="@id/roomPollsLoadMore" />

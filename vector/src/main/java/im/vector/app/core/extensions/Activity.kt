@@ -18,6 +18,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import im.vector.app.R
@@ -122,7 +123,7 @@ fun AppCompatActivity.validateBackPressed(onBackPressed: () -> Unit) {
             onBackPressed()
         } else {
             Timber.e("Application is potentially corrupted by an unknown activity")
-            finishAffinity()
+            ActivityCompat.finishAffinity(this)
         }
     } else {
         onBackPressed()

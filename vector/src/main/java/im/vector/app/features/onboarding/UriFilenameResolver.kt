@@ -10,6 +10,7 @@ package im.vector.app.features.onboarding
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import im.vector.lib.core.utils.compat.use
 import im.vector.lib.multipicker.utils.readStringColumnOrNull
 import javax.inject.Inject
 

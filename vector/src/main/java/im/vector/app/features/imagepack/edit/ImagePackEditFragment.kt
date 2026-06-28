@@ -19,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
+import im.vector.lib.core.utils.compat.use
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
 import com.bumptech.glide.load.MultiTransformation
@@ -58,6 +59,7 @@ import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
 import org.matrix.android.sdk.api.session.room.model.imagepack.resolveUsages
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import javax.inject.Inject
+import im.vector.app.core.extensions.backgroundCompat
 
 // Same rounded-square ratio as space avatars (RoundedCornersPercent), so rounding stays proportional to size.
 private const val ROUNDED_CORNER_PERCENT = 0.20f
@@ -148,7 +150,7 @@ class ImagePackEditFragment :
         views.imagePackAvatarContainer.doOnLayout { container ->
             val radius = container.width * ROUNDED_CORNER_PERCENT
             views.imagePackAvatarImage.setCornerRadii(radius, radius, radius, radius)
-            views.imagePackAvatarContainer.background = android.graphics.drawable.GradientDrawable().apply {
+            views.imagePackAvatarContainer.backgroundCompat = android.graphics.drawable.GradientDrawable().apply {
                 cornerRadius = radius
                 setColor(bgColor)
             }

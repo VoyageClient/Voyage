@@ -4,3 +4,6 @@
 -keep class im.vector.app.Hilt_VectorApplication
 -keep class androidx.multidex.MultiDexApplication
 -keep class androidx.multidex.MultiDex { *; }
+# The legacy-multidex loader runs before secondary dexes are loaded, so it must live in the primary dex.
+-keep class im.vector.app.core.dex.MultiDexLoader { *; }
+-keep class im.vector.app.core.dex.MultiDexLoaderActivity { *; }

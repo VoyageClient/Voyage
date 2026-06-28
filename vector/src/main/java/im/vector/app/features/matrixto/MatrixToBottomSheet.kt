@@ -23,7 +23,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetMatrixToCardBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
@@ -53,7 +52,7 @@ class MatrixToBottomSheet :
     private val viewModel by fragmentViewModel(MatrixToBottomSheetViewModel::class)
 
     interface InteractionListener {
-        fun mxToBottomSheetNavigateToRoom(roomId: String, trigger: ViewRoom.Trigger?)
+        fun mxToBottomSheetNavigateToRoom(roomId: String)
         fun mxToBottomSheetSwitchToSpace(spaceId: String)
     }
 
@@ -98,9 +97,7 @@ class MatrixToBottomSheet :
         viewModel.observeViewEvents {
             when (it) {
                 is MatrixToViewEvents.NavigateToRoom -> {
-                    withState(viewModel) { state ->
-                        interactionListener?.mxToBottomSheetNavigateToRoom(it.roomId, state.origin.toViewRoomTrigger())
-                    }
+                    interactionListener?.mxToBottomSheetNavigateToRoom(it.roomId)
                     dismiss()
                 }
                 MatrixToViewEvents.Dismiss -> dismiss()

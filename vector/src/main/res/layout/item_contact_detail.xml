@@ -17,6 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="60dp"
+        android:layout_marginLeft="60dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="?vctr_content_primary"

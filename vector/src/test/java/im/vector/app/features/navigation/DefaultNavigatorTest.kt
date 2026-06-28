@@ -8,7 +8,6 @@
 package im.vector.app.features.navigation
 
 import im.vector.app.test.fakes.FakeActiveSessionHolder
-import im.vector.app.test.fakes.FakeAnalyticsTracker
 import im.vector.app.test.fakes.FakeContext
 import im.vector.app.test.fakes.FakeDebugNavigator
 import im.vector.app.test.fakes.FakeSpaceStateHandler
@@ -29,7 +28,6 @@ internal class DefaultNavigatorTest {
     private val spaceStateHandler = FakeSpaceStateHandler()
     private val supportedVerificationMethodsProvider = FakeSupportedVerificationMethodsProvider()
     private val features = FakeVectorFeatures()
-    private val analyticsTracker = FakeAnalyticsTracker()
     private val debugNavigator = FakeDebugNavigator()
     private val coroutineScope = CoroutineScope(SupervisorJob())
 
@@ -41,7 +39,6 @@ internal class DefaultNavigatorTest {
             supportedVerificationMethodsProvider.instance,
             features,
             coroutineScope,
-            analyticsTracker,
             debugNavigator,
     )
 

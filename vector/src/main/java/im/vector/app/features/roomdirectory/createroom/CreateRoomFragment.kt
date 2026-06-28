@@ -33,7 +33,6 @@ import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.databinding.FragmentCreateRoomBinding
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.roomdirectory.RoomDirectorySharedAction
 import im.vector.app.features.roomdirectory.RoomDirectorySharedActionViewModel
@@ -299,7 +298,6 @@ class CreateRoomFragment :
                     navigator.openRoom(
                             context = requireActivity(),
                             roomId = roomId,
-                            trigger = ViewRoom.Trigger.Created
                     )
                 }
             }

@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.action
 
-import im.vector.app.features.voicebroadcast.VoiceBroadcastConstants
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import io.mockk.mockk
 import org.amshove.kluent.shouldBe
@@ -30,7 +29,6 @@ class CheckIfCanRedactEventUseCaseTest {
                 EventType.MESSAGE,
                 EventType.STICKER,
                 EventType.REACTION,
-                VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO
         ) +
                 EventType.POLL_START.values +
                 EventType.POLL_END.values +

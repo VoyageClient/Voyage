@@ -34,8 +34,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             android:text="@string/settings_troubleshoot_diagnostic"
             android:textColor="?vctr_content_primary"
             android:textStyle="bold" />
@@ -46,8 +48,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             android:textColor="?vctr_content_secondary"
             tools:text="@string/settings_troubleshoot_diagnostic_running_status" />
 

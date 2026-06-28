@@ -8,6 +8,8 @@
 package im.vector.app.features
 
 import android.app.Activity
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -31,8 +33,6 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.session.SwitchAccountUseCase
 import im.vector.app.core.utils.deleteAllFiles
 import im.vector.app.databinding.ActivityMainBinding
-import im.vector.app.features.analytics.VectorAnalytics
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.core.session.AccountInfoCache
@@ -90,6 +90,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
         private const val EXTRA_INIT_SESSION = "EXTRA_INIT_SESSION"
         private const val EXTRA_ROOM_ID = "EXTRA_ROOM_ID"
         private const val ACTION_ROOM_DETAILS_FROM_SHORTCUT = "ROOM_DETAILS_FROM_SHORTCUT"
+        private const val RESTART_REQUEST_CODE = 0
 
         // Special action to clear cache and/or clear credentials
         fun restartApp(activity: Activity, args: MainActivityArgs) {
@@ -98,6 +99,23 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
 
             intent.putExtra(EXTRA_ARGS, args)
             activity.startActivity(intent)
+        }
+
+        // Full process restart: schedule a fresh launch then kill the process, so Application.onCreate
+        // re-runs. Needed for settings wired once at startup (e.g. the emoji path) that restartApp's
+        // activity-only relaunch wouldn't pick up.
+        fun restartProcess(activity: Activity) {
+            val intent = Intent(activity, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            } else {
+                PendingIntent.FLAG_CANCEL_CURRENT
+            }
+            val pendingIntent = PendingIntent.getActivity(activity, RESTART_REQUEST_CODE, intent, flags)
+            val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + 200, pendingIntent)
+            Runtime.getRuntime().exit(0)
         }
 
         fun getIntentToInitSession(activity: Activity): Intent {
@@ -145,7 +163,6 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var shortcutsHandler: ShortcutsHandler
     @Inject lateinit var pinCodeHelper: PinCodeHelper
     @Inject lateinit var popupAlertManager: PopupAlertManager
-    @Inject lateinit var vectorAnalytics: VectorAnalytics
     @Inject lateinit var lockScreenKeyRepository: LockScreenKeyRepository
     @Inject lateinit var authenticationService: AuthenticationService
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
@@ -220,7 +237,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             startSyncing()
             val roomId = intent.getStringExtra(EXTRA_ROOM_ID)
             if (roomId?.isNotEmpty() == true) {
-                navigator.openRoom(this, roomId, trigger = ViewRoom.Trigger.Shortcut)
+                navigator.openRoom(this, roomId)
             }
             finish()
         } else {
@@ -345,7 +362,6 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             uiStateRepository.reset()
             pinLocker.unlock()
             pinCodeHelper.deletePinCode()
-            vectorAnalytics.onSignOut()
             vectorSessionStore.clear()
             lockScreenKeyRepository.deleteSystemKey()
         }

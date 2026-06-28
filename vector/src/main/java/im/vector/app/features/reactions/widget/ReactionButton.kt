@@ -27,6 +27,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.EmojiSpanify
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.core.extensions.layoutDirectionCompat
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.databinding.ReactionButtonBinding
@@ -77,7 +79,7 @@ class ReactionButton @JvmOverloads constructor(
     init {
         inflate(context, R.layout.reaction_button, this)
         orientation = HORIZONTAL
-        layoutDirection = View.LAYOUT_DIRECTION_LOCALE
+        layoutDirectionCompat = View.LAYOUT_DIRECTION_LOCALE
         views = ReactionButtonBinding.bind(this)
         views.reactionCount.text = TextUtils.formatCountToShortDecimal(reactionCount)
         context.withStyledAttributes(attrs, im.vector.lib.ui.styles.R.styleable.ReactionButton, defStyleAttr) {
@@ -171,7 +173,7 @@ class ReactionButton @JvmOverloads constructor(
             return
         }
         isChecked = !isChecked
-        background = if (isChecked) onDrawable else offDrawable
+        backgroundCompat = if (isChecked) onDrawable else offDrawable
 
         if (isChecked) {
             reactedListener?.onReacted(this)
@@ -194,10 +196,10 @@ class ReactionButton @JvmOverloads constructor(
     fun setChecked(status: Boolean?) {
         if (status!!) {
             isChecked = true
-            background = onDrawable
+            backgroundCompat = onDrawable
         } else {
             isChecked = false
-            background = offDrawable
+            backgroundCompat = offDrawable
         }
     }
 

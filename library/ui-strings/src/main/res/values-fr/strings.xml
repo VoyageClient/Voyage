@@ -2172,7 +2172,6 @@
     <string name="tooltip_attachment_gallery">Envoyer des images et vidéos</string>
     <string name="tooltip_attachment_photo">Ouvrir la caméra</string>
     <string name="restart_the_application_to_apply_changes">Redémarrez l’application pour appliquer les changements.</string>
-    <string name="labs_enable_latex_maths">Activer les mathématiques LaTeX</string>
     <string name="labs_auto_report_uisi_desc">Votre système enverra automatiquement des informations dès qu’une erreur de déchiffrement de message se présente</string>
     <string name="labs_auto_report_uisi">Signalement automatique des erreurs de déchiffrement.</string>
     <string name="room_member_override_nick_color">Outrepasser la couleur du pseudonyme</string>

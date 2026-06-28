@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.content
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -24,6 +25,7 @@ import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
 import android.net.Uri
+import android.os.Build
 import android.os.SystemClock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -37,12 +39,15 @@ import java.nio.ByteBuffer
 import javax.inject.Inject
 
 /**
- * Re-encodes a video to H.264 at a reduced bitrate using the platform [MediaCodec] /
- * [MediaMuxer] stack (works down to KitKat, no native deps). Video is transcoded surface-to-surface
- * (decoder output Surface == encoder input Surface) so we never touch pixels on the CPU; audio is
- * copied through untouched. Every blocking codec call uses a timeout plus an overall stall watchdog
- * so a wedged codec falls back to "keep the original" rather than hanging the upload.
+ * Re-encodes a video to H.264 at a reduced bitrate using the platform [MediaCodec] / [MediaMuxer]
+ * stack. MediaMuxer is API 18+, so below that the original is uploaded unchanged: API 14-15 have no
+ * MediaCodec at all and a software transcode is impractically slow on that hardware, so uncompressed
+ * upload is the deliberate behavior there. Transcode is surface-to-surface (decoder output Surface ==
+ * encoder input Surface) so we never touch pixels on the CPU; audio is copied through untouched. Every
+ * blocking codec call uses a timeout plus an overall stall watchdog so a wedged codec falls back to
+ * "keep the original" rather than hanging the upload.
  */
+@SuppressLint("NewApi")
 internal class VideoCompressor @Inject constructor(
         private val context: Context,
         private val temporaryFileCreator: TemporaryFileCreator,
@@ -53,6 +58,9 @@ internal class VideoCompressor @Inject constructor(
             sourceSize: Long,
             progressListener: ProgressListener?,
     ): VideoCompressionResult = coroutineScope {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            return@coroutineScope VideoCompressionResult.CompressionNotNeeded
+        }
         if (isAlreadyWithinTargets(sourceUri, sourceSize)) {
             Timber.d("Compressing: source already within targets, skipping transcode")
             return@coroutineScope VideoCompressionResult.CompressionNotNeeded
@@ -371,6 +379,7 @@ internal class VideoCompressor @Inject constructor(
     }
 }
 
+@SuppressLint("NewApi")
 private fun MediaExtractor.firstTrackOf(mimePrefix: String): Int? {
     for (i in 0 until trackCount) {
         val mime = getTrackFormat(i).getString(MediaFormat.KEY_MIME).orEmpty()
@@ -379,6 +388,7 @@ private fun MediaExtractor.firstTrackOf(mimePrefix: String): Int? {
     return null
 }
 
+@SuppressLint("NewApi")
 private fun MediaExtractor.sampleFlagsCompat(): Int {
     var flags = 0
     if (sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {

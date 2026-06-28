@@ -6,8 +6,10 @@
     android:layout_height="match_parent"
     android:background="?android:colorBackground"
     android:paddingStart="36dp"
+    android:paddingLeft="36dp"
     android:paddingTop="@dimen/layout_vertical_margin"
     android:paddingEnd="36dp"
+    android:paddingRight="36dp"
     android:paddingBottom="@dimen/layout_vertical_margin">
 
     <!-- Strategy: 5 Spaces are used to spread the remaining space, using weight -->
@@ -96,6 +98,7 @@
             android:layout_width="32dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:importantForAccessibility="no"
             app:srcCompat="@drawable/ic_login_splash_message_circle"
             app:layout_constraintStart_toStartOf="parent"
@@ -109,6 +112,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:gravity="start"
             android:text="@string/login_splash_text1"
             android:textColor="?vctr_content_secondary"
@@ -206,6 +210,7 @@
         android:textColor="?vctr_content_secondary"
         android:visibility="gone"
         app:drawableStartCompat="@drawable/ic_debug_icon"
+        app:drawableLeftCompat="@drawable/ic_debug_icon"
         app:drawableTint="?colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

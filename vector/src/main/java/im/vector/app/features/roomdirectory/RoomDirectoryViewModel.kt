@@ -18,9 +18,6 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.extensions.toAnalyticsJoinedRoom
-import im.vector.app.features.analytics.plan.JoinedRoom
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -39,7 +36,6 @@ class RoomDirectoryViewModel @AssistedInject constructor(
         @Assisted initialState: PublicRoomsViewState,
         vectorPreferences: VectorPreferences,
         private val session: Session,
-        private val analyticsTracker: AnalyticsTracker,
         private val explicitTermFilter: ExplicitTermFilter
 ) : VectorViewModel<PublicRoomsViewState, RoomDirectoryAction, RoomDirectoryViewEvents>(initialState) {
 
@@ -219,7 +215,6 @@ class RoomDirectoryViewModel @AssistedInject constructor(
         viewModelScope.launch {
             try {
                 session.roomService().joinRoom(action.publicRoom.roomId, viaServers = viaServers)
-                analyticsTracker.capture(action.publicRoom.toAnalyticsJoinedRoom(JoinedRoom.Trigger.RoomDirectory))
                 // We do not update the joiningRoomsIds here, because, the room is not joined yet regarding the sync data.
                 // Instead, we wait for the room to be joined
             } catch (failure: Throwable) {

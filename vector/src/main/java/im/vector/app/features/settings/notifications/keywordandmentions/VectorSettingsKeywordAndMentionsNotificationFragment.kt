@@ -16,7 +16,6 @@ import im.vector.app.core.preference.KeywordPreference
 import im.vector.app.core.preference.VectorCheckboxPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.settings.notifications.NotificationIndex
 import im.vector.app.features.settings.notifications.StandardActions
 import im.vector.app.features.settings.notifications.VectorSettingsPushRuleNotificationFragment
@@ -41,7 +40,6 @@ class VectorSettingsKeywordAndMentionsNotificationFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.SettingsMentionsAndKeywords
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

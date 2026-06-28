@@ -19,8 +19,6 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.Interaction
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.notification.GetNotificationCountForSpacesUseCase
@@ -60,7 +58,6 @@ class SpaceListViewModel @AssistedInject constructor(
         private val session: Session,
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
-        private val analyticsTracker: AnalyticsTracker,
         getNotificationCountForSpacesUseCase: GetNotificationCountForSpacesUseCase,
         private val getSpacesUseCase: GetSpacesUseCase,
 ) : VectorViewModel<SpaceListViewState, SpaceListAction, SpaceListViewEvents>(initialState) {
@@ -194,24 +191,11 @@ class SpaceListViewModel @AssistedInject constructor(
     private fun handleSelectSpace(action: SpaceListAction.SelectSpace) = withState { state ->
         val spaceChanged = state.selectedSpace?.roomId != action.spaceSummary?.roomId
         if (spaceChanged || tagFilterStateHandler.getSelectedTag() != null) {
-            val interactionName = if (action.isSubSpace) {
-                Interaction.Name.SpacePanelSwitchSubSpace
-            } else {
-                Interaction.Name.SpacePanelSwitchSpace
-            }
-            analyticsTracker.capture(
-                    Interaction(
-                            index = null,
-                            interactionType = null,
-                            name = interactionName
-                    )
-            )
             setState { copy(selectedSpace = action.spaceSummary) }
             tagFilterStateHandler.setSelectedTag(null)
             spaceStateHandler.setCurrentSpace(action.spaceSummary?.roomId)
             _viewEvents.post(SpaceListViewEvents.CloseDrawer)
         } else {
-            analyticsTracker.capture(Interaction(null, null, Interaction.Name.SpacePanelSelectedSpace))
         }
     }
 

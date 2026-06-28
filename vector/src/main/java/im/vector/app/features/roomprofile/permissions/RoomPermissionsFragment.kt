@@ -21,7 +21,6 @@ import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.roommemberprofile.powerlevel.EditPowerLevelDialogs
 import im.vector.app.features.roomprofile.RoomProfileArgs
@@ -48,7 +47,6 @@ class RoomPermissionsFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.RoomPermissions
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

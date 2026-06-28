@@ -15,8 +15,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginTop="20dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             android:text="@string/re_authentication_default_confirm_text"
             android:textColor="?vctr_content_primary"
             app:layout_constraintBottom_toTopOf="@id/reAuthConfirmButton"
@@ -44,6 +46,7 @@
                 android:inputType="textPassword"
                 android:maxLines="1"
                 android:paddingEnd="48dp"
+                android:paddingRight="48dp"
                 tools:ignore="RtlSymmetry" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -80,8 +83,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
             android:layout_marginTop="20dp"
             android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
             android:layout_marginBottom="20dp"
             android:text="@string/_continue"
             app:layout_constraintBottom_toBottomOf="parent"

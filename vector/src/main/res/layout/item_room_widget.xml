@@ -8,7 +8,9 @@
     android:gravity="center_vertical"
     android:minHeight="64dp"
     android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
     android:paddingEnd="@dimen/layout_horizontal_margin"
+    android:paddingRight="@dimen/layout_horizontal_margin"
     tools:viewBindingIgnore="true">
 
     <ImageView
@@ -27,7 +29,9 @@
         android:id="@+id/roomWidgetName"
         style="@style/BottomSheetItemTextMain"
         android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         app:layout_constraintBottom_toTopOf="@id/roomWidgetUrl"
         app:layout_constraintEnd_toStartOf="@id/roomWidgetEditable"
         app:layout_constraintStart_toEndOf="@id/roomWidgetAvatar"
@@ -40,6 +44,7 @@
         android:id="@+id/roomWidgetUrl"
         style="@style/BottomSheetItemTextSecondary"
         android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/roomWidgetEditable"
         app:layout_constraintStart_toStartOf="@id/roomWidgetName"

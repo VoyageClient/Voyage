@@ -26,6 +26,12 @@ class RoundedCornerImageView @JvmOverloads constructor(
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
     private val preLollipop = Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP
+
+    // Canvas.clipPath() is not supported on a hardware-accelerated canvas before API 18 (it throws
+    // UnsupportedOperationException). On those versions the view must render into a software layer so
+    // draw() receives a software canvas where clipPath works.
+    private val needsSoftwareLayerForClip = Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2
+
     private val radii = FloatArray(8)
     private val clipPath = Path()
     private val bounds = RectF()
@@ -37,8 +43,15 @@ class RoundedCornerImageView @JvmOverloads constructor(
         radii[4] = bottomRight; radii[5] = bottomRight
         radii[6] = bottomLeft; radii[7] = bottomLeft
         hasRadius = topLeft > 0f || topRight > 0f || bottomRight > 0f || bottomLeft > 0f
+        updateSoftwareLayer()
         updatePath()
         invalidate()
+    }
+
+    private fun updateSoftwareLayer() {
+        if (!needsSoftwareLayerForClip) return
+        val desired = if (hasRadius) LAYER_TYPE_SOFTWARE else LAYER_TYPE_NONE
+        if (layerType != desired) setLayerType(desired, null)
     }
 
     private fun updatePath() {

@@ -22,6 +22,7 @@ import android.view.animation.TranslateAnimation
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
@@ -65,7 +66,6 @@ class AttachmentTypeSelectorView(
         views.attachmentVoiceFileButton.configure(AttachmentType.VOICE_FILE)
         views.attachmentPollButton.configure(AttachmentType.POLL)
         views.attachmentLocationButton.configure(AttachmentType.LOCATION)
-        views.attachmentVoiceBroadcast.configure(AttachmentType.VOICE_BROADCAST)
         width = LinearLayout.LayoutParams.MATCH_PARENT
         height = LinearLayout.LayoutParams.WRAP_CONTENT
         animationStyle = 0
@@ -140,7 +140,6 @@ class AttachmentTypeSelectorView(
         AttachmentType.VOICE_FILE -> views.attachmentVoiceFileButton
         AttachmentType.POLL -> views.attachmentPollButton
         AttachmentType.LOCATION -> views.attachmentLocationButton
-        AttachmentType.VOICE_BROADCAST -> views.attachmentVoiceBroadcast
     }
 
     private fun animateWindowInCircular(anchor: View, contentView: View) {
@@ -157,6 +156,7 @@ class AttachmentTypeSelectorView(
         animator.start()
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private fun animateWindowOutCircular(anchor: View, contentView: View) {
         val coordinates = getClickCoordinates(anchor, contentView)
         val animator = ViewAnimationUtils.createCircularReveal(
@@ -230,7 +230,6 @@ class AttachmentTypeSelectorView(
                 AttachmentType.VOICE_FILE -> CommonStrings.tooltip_attachment_voice_file
                 AttachmentType.POLL -> CommonStrings.tooltip_attachment_poll
                 AttachmentType.LOCATION -> CommonStrings.tooltip_attachment_location
-                AttachmentType.VOICE_BROADCAST -> CommonStrings.tooltip_attachment_voice_broadcast
             }
         }
     }

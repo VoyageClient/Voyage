@@ -10,9 +10,6 @@ package im.vector.app
 import androidx.lifecycle.LifecycleOwner
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.utils.BehaviorDataSource
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.UserProperties
-import im.vector.app.features.analytics.plan.ViewRoom
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.ui.UiStateRepository
@@ -46,7 +43,6 @@ class SpaceStateHandlerImpl @Inject constructor(
         private val sessionDataSource: ActiveSessionDataSource,
         private val uiStateRepository: UiStateRepository,
         private val activeSessionHolder: ActiveSessionHolder,
-        private val analyticsTracker: AnalyticsTracker,
         private val vectorPreferences: VectorPreferences,
 ) : SpaceStateHandler {
 
@@ -75,12 +71,6 @@ class SpaceStateHandlerImpl @Inject constructor(
             return
         }
 
-        analyticsTracker.capture(
-                ViewRoom(
-                        isDM = false,
-                        isSpace = true,
-                )
-        )
 
         if (isForwardNavigation) {
             addToBackstack(spaceToLeave, spaceToSet)
@@ -119,20 +109,9 @@ class SpaceStateHandlerImpl @Inject constructor(
                     // sessionDataSource could already return a session while activeSession holder still returns null
                     it.orNull()?.let { session ->
                         setCurrentSpace(uiStateRepository.getSelectedSpace(session.sessionId), session)
-                        observeSyncStatus(session)
                     }
                 }
                 .launchIn(coroutineScope)
-    }
-
-    private fun observeSyncStatus(session: Session) {
-        session.syncService().getSyncRequestStateFlow()
-                .filterIsInstance<SyncRequestState.IncrementalSyncDone>()
-                .map { session.spaceService().getRootSpaceSummaries().size }
-                .distinctUntilChanged()
-                .onEach { spacesNumber ->
-                    analyticsTracker.updateUserProperties(UserProperties(numSpaces = spacesNumber))
-                }.launchIn(session.coroutineScope)
     }
 
     override fun popSpaceBackstack(): String? {

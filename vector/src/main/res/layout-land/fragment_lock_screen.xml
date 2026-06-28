@@ -26,7 +26,9 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:paddingStart="16dp"
+            android:paddingLeft="16dp"
             android:paddingEnd="16dp">
+            android:paddingRight="16dp"
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -298,7 +300,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
+                android:layout_marginLeft="15dp"
                 android:layout_marginEnd="15dp"
+                android:layout_marginRight="15dp"
                 android:text="@string/lockscreen_title"
                 android:theme="@style/LockScreenTitleTextStyle" />
 
@@ -308,7 +312,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
+                android:layout_marginLeft="15dp"
                 android:layout_marginEnd="15dp"
+                android:layout_marginRight="15dp"
                 android:visibility="gone"
                 android:theme="@style/LockScreenTitleTextStyle" />
 

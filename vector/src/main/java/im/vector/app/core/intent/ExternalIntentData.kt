@@ -11,11 +11,20 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.core.util.PatternsCompat.WEB_URL
 
 /**
  * Inspired from Riot code: RoomMediaMessage.java.
  */
+// ClipData.Item(text, htmlText) is API 16+; pre-16 keep the plain-text item and drop the html.
+private fun clipDataItemCompat(text: CharSequence?, htmlText: String?): ClipData.Item =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            ClipData.Item(text, htmlText)
+        } else {
+            ClipData.Item(text)
+        }
+
 sealed class ExternalIntentData {
     /**
      * Constructor for a text message.
@@ -30,7 +39,7 @@ sealed class ExternalIntentData {
             val text: CharSequence? = null,
             val htmlText: String? = null,
             val format: String? = null,
-            val clipDataItem: ClipData.Item = ClipData.Item(text, htmlText),
+            val clipDataItem: ClipData.Item = clipDataItemCompat(text, htmlText),
             val mimeType: String? = if (null == htmlText) ClipDescription.MIMETYPE_TEXT_PLAIN else format
     ) : ExternalIntentData()
 
@@ -79,7 +88,7 @@ fun analyseIntent(intent: Intent): List<ExternalIntentData> {
         }
     }
 
-    val clipData: ClipData? = intent.clipData
+    val clipData: ClipData? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) intent.clipData else null
     var mimeTypes: List<String>? = null
 
     // multiple data

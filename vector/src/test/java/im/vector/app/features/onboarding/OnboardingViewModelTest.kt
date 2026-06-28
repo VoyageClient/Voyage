@@ -21,7 +21,6 @@ import im.vector.app.features.onboarding.RegistrationStateFixture.aRegistrationS
 import im.vector.app.features.onboarding.StartAuthenticationFlowUseCase.StartAuthenticationResult
 import im.vector.app.test.TestBuildVersionSdkIntProvider
 import im.vector.app.test.fakes.FakeActiveSessionHolder
-import im.vector.app.test.fakes.FakeAnalyticsTracker
 import im.vector.app.test.fakes.FakeAuthenticationService
 import im.vector.app.test.fakes.FakeContext
 import im.vector.app.test.fakes.FakeDirectLoginUseCase
@@ -1082,7 +1081,6 @@ class OnboardingViewModelTest {
                 FakeStringProvider().instance,
                 fakeHomeServerHistoryService,
                 fakeVectorFeatures,
-                FakeAnalyticsTracker(),
                 fakeUriFilenameResolver.instance,
                 fakeDirectLoginUseCase.instance,
                 fakeStartAuthenticationFlowUseCase.instance,

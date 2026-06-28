@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.util.BuildVersionSdkIntProvider
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.ObjectInputStream
@@ -38,14 +39,17 @@ import java.math.BigInteger
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.KeyStoreException
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Calendar
 import javax.crypto.Cipher
 import javax.crypto.CipherInputStream
 import javax.crypto.CipherOutputStream
 import javax.crypto.KeyGenerator
+import javax.crypto.Mac
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 import javax.security.auth.x500.X500Principal
@@ -80,6 +84,7 @@ import javax.security.auth.x500.X500Principal
  * Important: Keys stored in the keystore can be wiped out (depends of the OS version, like for example if you
  * add a pin or change the schema); So you might and with a useless pile of bytes.
  */
+@SuppressLint("NewApi") // keystore APIs are gated at runtime via buildVersionSdkIntProvider, which lint can't follow
 class SecretStoringUtils @Inject constructor(
         private val context: Context,
         private val keyStore: KeyStore,
@@ -92,8 +97,18 @@ class SecretStoringUtils @Inject constructor(
         private const val AES_MODE = "AES/GCM/NoPadding"
         private const val RSA_MODE = "RSA/ECB/PKCS1Padding"
 
+        // Pre-KitKat software fallback: AndroidKeyStore is API 18+, KeyPairGeneratorSpec API 18 and
+        // GCMParameterSpec API 19, so below 19 none of the keystore paths work. We instead keep AES +
+        // HMAC key material in app-private storage and use AES/CBC with an encrypt-then-MAC envelope.
+        private const val AES_CBC_MODE = "AES/CBC/PKCS5Padding"
+        private const val HMAC_ALGORITHM = "HmacSHA256"
+        private const val SOFT_KEY_DIR = "ss_software_keys"
+        private const val SOFT_AES_KEY_SIZE = 32
+        private const val SOFT_MAC_KEY_SIZE = 32
+
         private const val FORMAT_API_M: Byte = 0
         private const val FORMAT_1: Byte = 1
+        private const val FORMAT_SOFTWARE: Byte = 2
     }
 
     private val secureRandom = SecureRandom()
@@ -104,11 +119,17 @@ class SecretStoringUtils @Inject constructor(
      */
     @SuppressLint("NewApi")
     fun ensureKey(alias: String): KeyStore.Entry {
-        when {
-            buildVersionSdkIntProvider.get() >= Build.VERSION_CODES.M -> getOrGenerateSymmetricKeyForAliasM(alias)
-            else -> getOrGenerateKeyPairForAlias(alias).privateKey
+        return when {
+            buildVersionSdkIntProvider.get() >= Build.VERSION_CODES.M -> {
+                getOrGenerateSymmetricKeyForAliasM(alias)
+                keyStore.getEntry(alias, null)
+            }
+            buildVersionSdkIntProvider.get() >= Build.VERSION_CODES.KITKAT -> {
+                getOrGenerateKeyPairForAlias(alias).privateKey
+                keyStore.getEntry(alias, null)
+            }
+            else -> KeyStore.SecretKeyEntry(getOrCreateSoftwareKeyMaterial(alias).first)
         }
-        return keyStore.getEntry(alias, null)
     }
 
     /**
@@ -120,6 +141,8 @@ class SecretStoringUtils @Inject constructor(
         } catch (e: KeyStoreException) {
             Timber.e(e)
         }
+        // The pre-KitKat software fallback stores its key material on disk rather than in the keystore.
+        runCatching { softwareKeyFile(keyAlias).delete() }
     }
 
     /**
@@ -135,7 +158,8 @@ class SecretStoringUtils @Inject constructor(
     fun securelyStoreBytes(secret: ByteArray, keyAlias: String): ByteArray {
         return when {
             buildVersionSdkIntProvider.isAtLeast(Build.VERSION_CODES.M) -> encryptBytesM(secret, keyAlias)
-            else -> encryptBytes(secret, keyAlias)
+            buildVersionSdkIntProvider.isAtLeast(Build.VERSION_CODES.KITKAT) -> encryptBytes(secret, keyAlias)
+            else -> encryptBytesSoftware(secret, keyAlias)
         }
     }
 
@@ -150,6 +174,7 @@ class SecretStoringUtils @Inject constructor(
             return when (val format = inputStream.read().toByte()) {
                 FORMAT_API_M -> decryptBytesM(inputStream, keyAlias)
                 FORMAT_1 -> decryptBytes(inputStream, keyAlias)
+                FORMAT_SOFTWARE -> decryptBytesSoftware(inputStream, keyAlias)
                 else -> throw IllegalArgumentException("Unknown format $format")
             }
         }
@@ -158,7 +183,8 @@ class SecretStoringUtils @Inject constructor(
     fun securelyStoreObject(any: Any, keyAlias: String, output: OutputStream) {
         when {
             buildVersionSdkIntProvider.isAtLeast(Build.VERSION_CODES.M) -> saveSecureObjectM(keyAlias, output, any)
-            else -> saveSecureObject(keyAlias, output, any)
+            buildVersionSdkIntProvider.isAtLeast(Build.VERSION_CODES.KITKAT) -> saveSecureObject(keyAlias, output, any)
+            else -> saveSecureObjectSoftware(keyAlias, output, any)
         }
     }
 
@@ -168,6 +194,7 @@ class SecretStoringUtils @Inject constructor(
         return when (val format = inputStream.read().toByte()) {
             FORMAT_API_M -> loadSecureObjectM(keyAlias, inputStream)
             FORMAT_1 -> loadSecureObject(keyAlias, inputStream)
+            FORMAT_SOFTWARE -> loadSecureObjectSoftware(keyAlias, inputStream)
             else -> throw IllegalArgumentException("Unknown format $format")
         }
     }
@@ -180,7 +207,8 @@ class SecretStoringUtils @Inject constructor(
         }
         val cipherAlgorithm = when {
             buildVersionSdkIntProvider.get() >= Build.VERSION_CODES.M -> AES_MODE
-            else -> RSA_MODE
+            buildVersionSdkIntProvider.get() >= Build.VERSION_CODES.KITKAT -> RSA_MODE
+            else -> AES_CBC_MODE
         }
         val cipher = Cipher.getInstance(cipherAlgorithm)
         cipher.init(Cipher.ENCRYPT_MODE, key)
@@ -410,6 +438,95 @@ class SecretStoringUtils @Inject constructor(
         output.init(Cipher.DECRYPT_MODE, privateKeyEntry.privateKey)
 
         return CipherInputStream(encrypted, output).use { it.readBytes() }
+    }
+
+    // --- Pre-KitKat software fallback (no AndroidKeyStore / GCMParameterSpec available) ---
+
+    // AES + HMAC key material kept in app-private storage. No hardware backing is possible below API 18,
+    // so this is software-only; the file is readable only by this app's uid (and root).
+    private fun getOrCreateSoftwareKeyMaterial(alias: String): Pair<SecretKey, SecretKey> {
+        val file = softwareKeyFile(alias)
+        val existing = if (file.exists()) file.readBytes() else null
+        if (existing != null && existing.size == SOFT_AES_KEY_SIZE + SOFT_MAC_KEY_SIZE) {
+            val aes = SecretKeySpec(existing, 0, SOFT_AES_KEY_SIZE, "AES")
+            val mac = SecretKeySpec(existing, SOFT_AES_KEY_SIZE, SOFT_MAC_KEY_SIZE, HMAC_ALGORITHM)
+            return aes to mac
+        }
+        val material = ByteArray(SOFT_AES_KEY_SIZE + SOFT_MAC_KEY_SIZE)
+        secureRandom.nextBytes(material)
+        file.parentFile?.mkdirs()
+        file.writeBytes(material)
+        val aes = SecretKeySpec(material, 0, SOFT_AES_KEY_SIZE, "AES")
+        val mac = SecretKeySpec(material, SOFT_AES_KEY_SIZE, SOFT_MAC_KEY_SIZE, HMAC_ALGORITHM)
+        return aes to mac
+    }
+
+    private fun softwareKeyFile(alias: String): File {
+        val safeAlias = alias.replace(Regex("[^A-Za-z0-9_.-]"), "_")
+        return File(File(context.filesDir, SOFT_KEY_DIR), safeAlias)
+    }
+
+    private fun encryptBytesSoftware(byteArray: ByteArray, keyAlias: String): ByteArray {
+        val (aesKey, macKey) = getOrCreateSoftwareKeyMaterial(keyAlias)
+        val cipher = Cipher.getInstance(AES_CBC_MODE)
+        cipher.init(Cipher.ENCRYPT_MODE, aesKey)
+        val iv = cipher.iv
+        val encrypted = cipher.doFinal(byteArray)
+        val mac = hmac(macKey, iv, encrypted)
+
+        val bos = ByteArrayOutputStream()
+        bos.write(FORMAT_SOFTWARE.toInt())
+        bos.write(iv.size)
+        bos.write(iv)
+        bos.write(mac.size)
+        bos.write(mac)
+        bos.write(encrypted)
+        return bos.toByteArray()
+    }
+
+    // The leading format byte has already been consumed by the caller.
+    private fun decryptBytesSoftware(inputStream: InputStream, keyAlias: String): ByteArray {
+        val (aesKey, macKey) = getOrCreateSoftwareKeyMaterial(keyAlias)
+        val iv = ByteArray(inputStream.read()).also { readFully(inputStream, it) }
+        val mac = ByteArray(inputStream.read()).also { readFully(inputStream, it) }
+        val encrypted = inputStream.readBytes()
+        if (!MessageDigest.isEqual(mac, hmac(macKey, iv, encrypted))) {
+            throw SecurityException("Secure storage MAC mismatch")
+        }
+        val cipher = Cipher.getInstance(AES_CBC_MODE)
+        cipher.init(Cipher.DECRYPT_MODE, aesKey, IvParameterSpec(iv))
+        return cipher.doFinal(encrypted)
+    }
+
+    private fun saveSecureObjectSoftware(keyAlias: String, output: OutputStream, writeObject: Any) {
+        val bos = ByteArrayOutputStream()
+        ObjectOutputStream(bos).use { it.writeObject(writeObject) }
+        output.write(encryptBytesSoftware(bos.toByteArray(), keyAlias))
+    }
+
+    private fun <T> loadSecureObjectSoftware(keyAlias: String, inputStream: InputStream): T? {
+        val plain = decryptBytesSoftware(inputStream, keyAlias)
+        ObjectInputStream(ByteArrayInputStream(plain)).use {
+            val readObject = it.readObject()
+            @Suppress("UNCHECKED_CAST")
+            return readObject as? T
+        }
+    }
+
+    private fun hmac(macKey: SecretKey, vararg parts: ByteArray): ByteArray {
+        val mac = Mac.getInstance(HMAC_ALGORITHM)
+        mac.init(macKey)
+        parts.forEach { mac.update(it) }
+        return mac.doFinal()
+    }
+
+    private fun readFully(input: InputStream, buffer: ByteArray) {
+        var offset = 0
+        while (offset < buffer.size) {
+            val read = input.read(buffer, offset, buffer.size - offset)
+            if (read == -1) throw IOException("Unexpected end of stream")
+            offset += read
+        }
     }
 
     private fun formatMExtract(bis: InputStream): Pair<ByteArray, ByteArray> {

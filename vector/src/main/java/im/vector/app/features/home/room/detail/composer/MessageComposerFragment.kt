@@ -70,7 +70,6 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.home.room.detail.AutoCompleter
 import im.vector.app.features.home.room.detail.RoomDetailAction
-import im.vector.app.features.home.room.detail.RoomDetailAction.VoiceBroadcastAction
 import im.vector.app.features.home.room.detail.TimelineViewModel
 import im.vector.app.features.home.room.detail.composer.link.SetLinkFragment
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
@@ -190,8 +189,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.VoicePlaybackOrRecordingFailure -> {
                     if (it.throwable is VoiceFailure.UnableToRecord) {
                         onCannotRecord()
-                    } else if (it.throwable is VoiceFailure.VoiceBroadcastInProgress) {
-                        displayErrorVoiceBroadcastInProgress()
                     }
                     showErrorInSnackbar(it.throwable)
                 }
@@ -249,11 +246,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 it.isVoiceRecording && requireActivity().isChangingConfigurations -> {
                     // we're rotating, maintain any active recordings
                 }
-                // TODO remove this when there will be a recording indicator outside of the timeline
-                // Pause voice broadcast if the timeline is not shown anymore
-                it.isRecordingVoiceBroadcast && !requireActivity().isChangingConfigurations -> timelineViewModel.handle(VoiceBroadcastAction.Recording.Pause)
                 else -> {
-                    timelineViewModel.handle(VoiceBroadcastAction.Listening.Pause)
                     messageComposerViewModel.handle(MessageComposerAction.OnEntersBackground(composer.getDraftContent().toString()))
                 }
             }
@@ -388,10 +381,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     )
                     attachmentTypeSelector.setAttachmentVisibility(
                             AttachmentType.POLL, !isThreadTimeLine()
-                    )
-                    attachmentTypeSelector.setAttachmentVisibility(
-                            AttachmentType.VOICE_BROADCAST,
-                            vectorPreferences.isVoiceBroadcastEnabled(), // TODO check user permission
                     )
                 }
                 attachmentTypeSelector.show(composer.attachmentButton)
@@ -568,14 +557,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun onCannotRecord() {
         // Update the UI, cancel the animation
         messageComposerViewModel.handle(MessageComposerAction.OnVoiceRecordingUiStateChanged(VoiceMessageRecorderView.RecordingUiState.Idle))
-    }
-
-    private fun displayErrorVoiceBroadcastInProgress() {
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.error_voice_message_broadcast_in_progress)
-                .setMessage(getString(CommonStrings.error_voice_message_broadcast_in_progress_message))
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
     }
 
     private fun handleJoinedToAnotherRoom(action: MessageComposerViewEvents.JoinRoomCommandSuccess) {
@@ -789,7 +770,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                                 locationOwnerId = session.myUserId
                         )
             }
-            AttachmentType.VOICE_BROADCAST -> timelineViewModel.handle(VoiceBroadcastAction.Recording.Start)
         }
     }
 

@@ -15,8 +15,10 @@
         android:background="?attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:paddingStart="12dp"
+        android:paddingLeft="12dp"
         android:paddingTop="8dp"
         android:paddingEnd="12dp"
+        android:paddingRight="12dp"
         android:paddingBottom="8dp"
         android:textColor="?vctr_room_active_widgets_banner_text"
         tools:text="2 active widgets" />
@@ -27,6 +29,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:background="@android:color/transparent"
         android:gravity="center"

@@ -2224,7 +2224,6 @@
     <string name="attachment_type_poll">Опрос</string>
     <string name="create_poll_title">Создать опрос</string>
     <string name="restart_the_application_to_apply_changes">Перезапустите приложение, чтобы изменения вступили в силу.</string>
-    <string name="labs_enable_latex_maths">Математика LaTeX</string>
     <string name="labs_auto_report_uisi_desc">Ваша система будет автоматически отправлять журналы при возникновении ошибки невозможности расшифровки</string>
     <string name="labs_auto_report_uisi">Автоматически сообщать об ошибках расшифровки.</string>
     <string name="encryption_misconfigured">Шифрование неправильно настроено</string>

@@ -9,6 +9,7 @@ package im.vector.app.features.settings
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
@@ -27,7 +28,6 @@ import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.home.ShortcutsHandler
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.settings.font.FontScaleSettingActivity
 import im.vector.app.features.settings.reactions.QuickReactionsSettingsActivity
 import im.vector.app.features.themes.ThemeUtils
@@ -61,7 +61,6 @@ class VectorSettingsPreferencesFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        analyticsScreenName = MobileScreen.ScreenName.SettingsPreferences
     }
 
     override fun onDisplayPreferenceDialog(preference: Preference) {
@@ -134,6 +133,25 @@ class VectorSettingsPreferencesFragment :
             pref.setOnPreferenceChangeListener { _, _ ->
                 MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = false))
                 true
+            }
+        }
+
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_USE_TWEMOJI_KEY)!!.let { pref ->
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                // No usable system emoji font below KitKat: Twemoji is mandatory, so lock the toggle on.
+                pref.isChecked = true
+                pref.isEnabled = false
+            } else {
+                pref.setOnPreferenceChangeListener { _, newValue ->
+                    // The emoji path is wired once in Application.onCreate, so a full process restart is
+                    // needed for the switch to take effect — an activity-only restart wouldn't re-run it.
+                    // Persist synchronously first (the framework's own persist runs only after this
+                    // returns, which is too late once restartProcess kills us), then return false so it
+                    // isn't double-written.
+                    vectorPreferences.setUseTwemoji(newValue as Boolean)
+                    MainActivity.restartProcess(requireActivity())
+                    false
+                }
             }
         }
 

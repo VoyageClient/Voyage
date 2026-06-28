@@ -24,8 +24,6 @@ import dagger.hilt.android.EntryPointAccessors
 import im.vector.app.core.di.ActivityEntryPoint
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.extensions.toMvRxBundle
-import im.vector.app.features.analytics.AnalyticsTracker
-import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.themes.ThemeUtils
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -37,14 +35,6 @@ import timber.log.Timber
  * Add Mavericks capabilities, handle DI and bindings.
  */
 abstract class VectorBaseDialogFragment<VB : ViewBinding> : DialogFragment(), MavericksView {
-    /* ==========================================================================================
-     * Analytics
-     * ========================================================================================== */
-
-    protected var analyticsScreenName: MobileScreen.ScreenName? = null
-
-    protected lateinit var analyticsTracker: AnalyticsTracker
-
     /* ==========================================================================================
      * View
      * ========================================================================================== */
@@ -98,17 +88,12 @@ abstract class VectorBaseDialogFragment<VB : ViewBinding> : DialogFragment(), Ma
     override fun onAttach(context: Context) {
         val activityEntryPoint = EntryPointAccessors.fromActivity(vectorBaseActivity, ActivityEntryPoint::class.java)
         viewModelFactory = activityEntryPoint.viewModelFactory()
-        val singletonEntryPoint = context.singletonEntryPoint()
-        analyticsTracker = singletonEntryPoint.analyticsTracker()
         super.onAttach(context)
     }
 
     override fun onResume() {
         super.onResume()
         Timber.i("onResume BottomSheet ${javaClass.simpleName}")
-        analyticsScreenName?.let {
-            analyticsTracker.screen(MobileScreen(screenName = it))
-        }
     }
 
     override fun onStart() {

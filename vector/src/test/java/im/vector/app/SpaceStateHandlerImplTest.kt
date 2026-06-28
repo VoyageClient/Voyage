@@ -9,7 +9,6 @@ package im.vector.app
 
 import im.vector.app.test.fakes.FakeActiveSessionDataSource
 import im.vector.app.test.fakes.FakeActiveSessionHolder
-import im.vector.app.test.fakes.FakeAnalyticsTracker
 import im.vector.app.test.fakes.FakeSession
 import im.vector.app.test.fakes.FakeUiStateRepository
 import im.vector.app.test.fakes.FakeVectorPreferences
@@ -30,14 +29,12 @@ internal class SpaceStateHandlerImplTest {
     private val sessionDataSource = FakeActiveSessionDataSource()
     private val uiStateRepository = FakeUiStateRepository()
     private val activeSessionHolder = FakeActiveSessionHolder(session)
-    private val analyticsTracker = FakeAnalyticsTracker()
     private val vectorPreferences = FakeVectorPreferences()
 
     private val spaceStateHandler = SpaceStateHandlerImpl(
             sessionDataSource.instance,
             uiStateRepository,
             activeSessionHolder.instance,
-            analyticsTracker,
             vectorPreferences.instance,
     )
 

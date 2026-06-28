@@ -11,6 +11,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.core.database.getStringOrNull
+import im.vector.lib.core.utils.compat.use
 import im.vector.lib.multipicker.utils.getColumnIndexOrNull
 
 fun getFilenameFromUri(context: Context?, uri: Uri): String? {

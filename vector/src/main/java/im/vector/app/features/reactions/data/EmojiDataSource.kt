@@ -11,6 +11,7 @@ import android.graphics.Paint
 import androidx.core.graphics.PaintCompat
 import com.squareup.moshi.Moshi
 import im.vector.app.R
+import im.vector.app.features.emoji.TwemojiProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +22,8 @@ import javax.inject.Singleton
 @Singleton
 class EmojiDataSource @Inject constructor(
         appScope: CoroutineScope,
-        resources: Resources
+        resources: Resources,
+        private val twemojiProvider: TwemojiProvider,
 ) {
     private val paint = Paint()
     val rawData = appScope.async(Dispatchers.IO, CoroutineStart.LAZY) {
@@ -69,7 +71,13 @@ class EmojiDataSource @Inject constructor(
     private val quickReactions = mutableListOf<EmojiItem>()
 
     private fun isEmojiRenderable(emoji: String): Boolean {
-        return PaintCompat.hasGlyph(paint, emoji)
+        // With Twemoji we draw our own sprites, so an emoji is shown iff we bundle it — independent of
+        // whatever the (possibly emoji-less, pre-KitKat) system font can render.
+        return if (twemojiProvider.enabled) {
+            twemojiProvider.hasEmoji(emoji)
+        } else {
+            PaintCompat.hasGlyph(paint, emoji)
+        }
     }
 
     suspend fun filterWith(query: String): List<EmojiItem> {

@@ -2327,7 +2327,6 @@
     <string name="this_invite_to_this_space_was_sent">ეს მოწვევა ამ სივრცეში გაიგზავნა %s-ში, რომელიც არ არის დაკავშირებული თქვენს ანგარიშთან</string>
     <string name="link_this_email_settings_link">დააკავშირეთ ეს ელფოსტის მისამართი თქვენს ანგარიშთან</string>
     <string name="link_this_email_with_your_account">%s პარამეტრებში, რათა მიიღოთ მოწვევები პირდაპირ ${app_name}-ში.</string>
-    <string name="labs_enable_latex_maths">LaTeX მათემატიკის გააქტიურება</string>
     <string name="restart_the_application_to_apply_changes">აპლიკაციის გადატვირთვა ცვლილების ძალაში შესასვლელად.</string>
     <string name="create_poll_title">გამოკითხვის შექმნა</string>
     <string name="create_poll_question_title">გამოკითხვის კითხვა ან თემა</string>
