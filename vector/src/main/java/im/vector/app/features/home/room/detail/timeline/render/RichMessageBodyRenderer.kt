@@ -9,12 +9,14 @@ package im.vector.app.features.home.room.detail.timeline.render
 
 import android.content.Context
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.text.method.MovementMethod
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TableRow
@@ -59,6 +61,12 @@ class RichMessageBodyRenderer @Inject constructor(
             onLongClick: (View) -> Boolean,
             noticeStyle: Boolean = false,
             replyHeader: CharSequence? = null,
+            // Previews (reply header / composer / long-press) are non-interactive: code blocks clip
+            // overflow instead of scrolling, and show no scrollbar.
+            interactive: Boolean = true,
+            // Non-bubble timeline: stretch code blocks to the full row width (the bubble layout hugs
+            // its content instead).
+            fullBleed: Boolean = false,
     ) {
         val ctx = container.context
         val defaultColorAttr = if (noticeStyle) im.vector.lib.ui.styles.R.attr.vctr_content_secondary else im.vector.lib.ui.styles.R.attr.vctr_content_primary
@@ -70,6 +78,7 @@ class RichMessageBodyRenderer @Inject constructor(
             when (segment) {
                 is BodySegment.Html -> container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
                 is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, defaultColorAttr))
+                is BodySegment.Code -> container.addView(buildCodeBlock(ctx, segment.code, interactive, fullBleed, onClick, onLongClick))
             }
         }
     }
@@ -113,6 +122,79 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.setOnClickListener(onClick)
         tv.setOnLongClickListener(onLongClick)
         return tv
+    }
+
+    // Code block, element-web style: a rounded translucent panel with a left line-number gutter and the
+    // monospace code preserving its indentation verbatim. In the timeline ([interactive]) long lines
+    // scroll horizontally; in non-interactive previews they clip (no scroll view / scrollbar) so the
+    // gesture stays with the surrounding long-press / list.
+    private fun buildCodeBlock(
+            ctx: Context,
+            code: String,
+            interactive: Boolean,
+            fullBleed: Boolean,
+            onClick: (View) -> Unit,
+            onLongClick: (View) -> Boolean,
+    ): View {
+        val codeColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+        val gutterColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
+        val lineCount = code.count { it == '\n' } + 1
+
+        val outer = FullBleedLinearLayout(ctx).apply {
+            this.fullBleed = fullBleed
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                topMargin = dim.dpToPx(6)
+                bottomMargin = dim.dpToPx(6)
+            }
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dim.dpToPx(6).toFloat()
+                setColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.code_block_bg_color))
+            }
+            val padH = dim.dpToPx(10)
+            val padV = dim.dpToPx(8)
+            setPadding(padH, padV, padH, padV)
+            setOnClickListener(onClick)
+            setOnLongClickListener(onLongClick)
+        }
+
+        val gutter = AppCompatTextView(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            typeface = Typeface.MONOSPACE
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, CODE_TEXT_SIZE_SP)
+            setTextColor(gutterColor)
+            gravity = Gravity.END
+            setPadding(0, 0, dim.dpToPx(10), 0)
+            text = (1..lineCount).joinToString("\n")
+        }
+
+        val codeView = AppCompatTextView(ctx).apply {
+            typeface = Typeface.MONOSPACE
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, CODE_TEXT_SIZE_SP)
+            setTextColor(codeColor)
+            setHorizontallyScrolling(true)
+            text = code
+            setOnLongClickListener(onLongClick)
+        }
+
+        outer.addView(gutter)
+        if (interactive) {
+            codeView.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+            val scroll = ShrinkableHorizontalScrollView(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                isHorizontalScrollBarEnabled = false
+                isFillViewport = false
+                addView(codeView)
+            }
+            outer.addView(scroll)
+        } else {
+            // Non-interactive: the code fills the remaining width and clips its overflow (the outer
+            // LinearLayout clips children), so there's no scroll view to steal the gesture or draw a bar.
+            codeView.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            outer.addView(codeView)
+        }
+        return outer
     }
 
     private fun buildTable(
@@ -216,5 +298,9 @@ class RichMessageBodyRenderer @Inject constructor(
         val typedValue = TypedValue()
         ctx.theme.resolveAttribute(attrRes, typedValue, true)
         return typedValue.data
+    }
+
+    companion object {
+        private const val CODE_TEXT_SIZE_SP = 14f
     }
 }

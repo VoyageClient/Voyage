@@ -39,8 +39,11 @@ import im.vector.app.databinding.ViewInReplyToBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
+import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
@@ -159,8 +162,9 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.text = null
         // Reset colour in case this recycled view previously rendered a (muted) notice.
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        // A recycled reply must not keep a previous message's full-width-code stretch.
+        views.replyTextView.fullWidthBlockCode = false
         views.replyThumbnailView.isVisible = false
-        views.replyAttachmentPill.isVisible = false
         views.expandableReplyView.isVisible = true
         views.replyTextView.isVisible = true
         views.replyRichContainer.isVisible = false
@@ -208,7 +212,7 @@ class InReplyToView @JvmOverloads constructor(
         hideViews()
         isVisible = true
         views.replyMemberNameView.isVisible = true
-        views.replyMemberNameView.text = state.senderName
+        views.replyMemberNameView.text = state.senderName.withEmojis()
         val senderColor = retriever.getMemberNameColor(state.event)
         views.replyMemberNameView.setTextColor(senderColor)
         views.inReplyToBar.setBackgroundColor(senderColor)
@@ -227,7 +231,12 @@ class InReplyToView @JvmOverloads constructor(
                 // Files / voice / audio render as a non-interactive pill mirroring the timeline.
                 is MessageFileContent -> renderAttachmentPill(R.drawable.ic_paperclip, content.getFileName())
                 is MessageAudioContent -> renderAudioContent(content)
-                is MessageContentWithFormattedBody -> renderTextContent(content, retriever, movementMethod, coroutineScope, itemLongClickListener)
+                is MessageContentWithFormattedBody -> {
+                    // Outside bubbles, stretch a block-code reply to the full timeline width like the
+                    // timeline does; inside a bubble it should hug its content instead.
+                    val fullWidthBlockCode = roomInformationData.messageLayout is TimelineMessageLayout.Default
+                    renderTextContent(content, retriever, movementMethod, coroutineScope, itemLongClickListener, fullWidthBlockCode)
+                }
                 else -> renderFallback(state.event, retriever)
             }
         }
@@ -250,8 +259,10 @@ class InReplyToView @JvmOverloads constructor(
             movementMethod: MovementMethod?,
             coroutineScope: CoroutineScope,
             itemLongClickListener: OnLongClickListener?,
+            fullWidthBlockCode: Boolean,
     ) {
         views.replyTextView.isVisible = true
+        views.replyTextView.fullWidthBlockCode = fullWidthBlockCode
 
         // Quoted notices/system messages render muted (secondary), matching the timeline. Not italic
         // — this fork removed notice italics.
@@ -269,25 +280,30 @@ class InReplyToView @JvmOverloads constructor(
 
         if (formattedBody != null) {
             val compressed = retriever.htmlCompressor.compress(formattedBody)
-            if (compressed.contains("<table", ignoreCase = true)) {
-                renderRichTableContent(compressed, retriever, movementMethod, isNotice, itemLongClickListener)
-                return
+            if (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true)) {
+                val segments = HtmlBodySegmenter.segment(compressed)
+                // Only use the rich container when a real table/code block was extracted; otherwise fall
+                // through so the text keeps its pill / linkify treatment.
+                if (segments.any { it !is BodySegment.Html }) {
+                    renderRichContent(segments, retriever, movementMethod, isNotice, itemLongClickListener)
+                    return
+                }
             }
         }
 
-        val text = if (formattedBody != null) {
+        // Same textRenderer + linkify pipeline as the timeline / composer preview, so a permalink
+        // (matrix.to) resolves to a pill and plain URLs become coloured links instead of raw text.
+        val text = (if (formattedBody != null) {
             val compressed = retriever.htmlCompressor.compress(formattedBody)
             val renderedFormattedBody = retriever.htmlRenderer.render(compressed, retriever.pillsPostProcessor)
             retriever.textRenderer.render(renderedFormattedBody)
         } else {
-            ContentUtils.extractUsefulTextFromReply(content.body)
-        }
+            retriever.textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body))
+        }).linkify(null)
         val markwonPlugins = retriever.htmlRenderer.plugins
 
-        if (formattedBody != null) {
-            text.findPillsAndProcess(coroutineScope) { pillImageSpan ->
-                pillImageSpan.bind(views.replyTextView)
-            }
+        text.findPillsAndProcess(coroutineScope) { pillImageSpan ->
+            pillImageSpan.bind(views.replyTextView)
         }
         text.let { charSequence ->
             if (charSequence is Spanned) {
@@ -303,28 +319,29 @@ class InReplyToView @JvmOverloads constructor(
         markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
     }
 
-    // A reply to a message that contains a table: render the full body (text + real tables) into the
-    // rich container via the same renderer the timeline uses, instead of the single TextView whose
-    // table cells would otherwise collapse into unreadable plaintext.
-    private fun renderRichTableContent(
-            compressed: String,
+    // A reply to a message that contains a table or code block: render the full body into the rich
+    // container via the same renderer the timeline uses, instead of the single TextView where table
+    // cells collapse to plaintext and code wraps/loses its scroll + line numbers.
+    private fun renderRichContent(
+            segments: List<BodySegment>,
             retriever: ReplyPreviewRetriever,
             movementMethod: MovementMethod?,
             isNotice: Boolean,
             itemLongClickListener: OnLongClickListener?,
     ) {
         // Keep the expandable host (and its fade-out) visible; just swap the text view for the
-        // rich container so a long table fades out the same way long text does.
+        // rich container so long content fades out the same way long text does.
         views.replyTextView.isVisible = false
         views.replyRichContainer.isVisible = true
         retriever.richMessageBodyRenderer.render(
                 container = views.replyRichContainer,
-                segments = HtmlBodySegmenter.segment(compressed),
+                segments = segments,
                 postProcessors = arrayOf(retriever.pillsPostProcessor),
                 movementMethod = movementMethod,
                 onClick = { onClick(it) },
                 onLongClick = { itemLongClickListener?.onLongClick(it) ?: false },
                 noticeStyle = isNotice,
+                interactive = false,
         )
     }
 
@@ -405,19 +422,19 @@ class InReplyToView @JvmOverloads constructor(
     }
 
     private fun renderAudioContent(content: MessageAudioContent) {
-        val isVoice = content.voiceMessageIndicator != null
-        val durationMs = content.audioInfo?.duration ?: 0
-        if (isVoice) {
-            renderAttachmentPill(R.drawable.ic_microphone, DateUtils.formatElapsedTime((durationMs / 1000).toLong()))
+        val formattedDuration = DateUtils.formatElapsedTime(((content.audioInfo?.duration ?: 0) / 1000).toLong())
+        if (content.voiceMessageIndicator != null) {
+            renderAttachmentPill(R.drawable.ic_microphone, context.getString(CommonStrings.voice_message_reply_content, formattedDuration))
         } else {
-            renderAttachmentPill(R.drawable.ic_attachment_voice_file, content.getFileName())
+            renderAttachmentPill(R.drawable.ic_attachment_voice_file, context.getString(CommonStrings.audio_message_reply_content, content.body, formattedDuration))
         }
     }
 
     private fun renderAttachmentPill(iconRes: Int, label: String?) {
-        views.replyAttachmentPill.isVisible = true
-        views.replyAttachmentIcon.setImageResource(iconRes)
-        views.replyAttachmentLabel.text = label
+        // Use the same inline pill as the composer / long-press preview so all three match.
+        views.replyTextView.isVisible = true
+        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.text = attachmentPreviewText(context, iconRes, label.orEmpty())
     }
 
     /**

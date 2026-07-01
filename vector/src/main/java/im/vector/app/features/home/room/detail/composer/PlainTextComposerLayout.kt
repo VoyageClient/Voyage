@@ -44,6 +44,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorPr
 import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillImageSpan
@@ -64,7 +65,10 @@ import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.util.toMatrixItem
+import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
+import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
@@ -99,6 +103,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var dimensionConverter: DimensionConverter
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
     @Inject lateinit var pillsPostProcessorFactory: PillsPostProcessor.Factory
+    @Inject lateinit var textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
@@ -330,6 +335,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
 
         val pillsPostProcessor = pillsPostProcessorFactory.create(event.roomId)
+        val textRenderer = textRendererFactory.create(event.roomId)
 
         // switch to expanded bar
         views.composerRelatedMessageTitle.apply {
@@ -344,7 +350,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         val nonFormattedBody = when {
             pgpPlain != null -> pgpPlain
             event.root.isRedacted() -> noticeEventFormatter.formatRedactedEvent(event.root)
-            messageContent is MessageAudioContent -> getAudioContentBodyText(messageContent)
+            messageContent is MessageFileContent -> attachmentPreviewText(context, R.drawable.ic_paperclip, messageContent.getFileName().orEmpty())
+            messageContent is MessageAudioContent -> {
+                val icon = if (messageContent.voiceMessageIndicator != null) R.drawable.ic_microphone else R.drawable.ic_attachment_voice_file
+                attachmentPreviewText(context, icon, getAudioContentBodyText(messageContent))
+            }
             messageContent is MessagePollContent -> messageContent.getBestPollCreationInfo()?.question?.getBestQuestion()
             messageContent is MessageBeaconInfoContent -> resources.getString(CommonStrings.live_location_description)
             messageContent is MessageEndPollContent -> resources.getString(CommonStrings.message_reply_to_ended_poll_preview)
@@ -368,8 +378,13 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
             val htmlToRender = messageContent.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
             val compressed = htmlToRender?.let { htmlCompressor.compress(it) }
-            if (compressed != null && compressed.contains("<table", ignoreCase = true)) {
-                renderRichTablePreview(compressed, pillsPostProcessor)
+            val richSegments = if (compressed != null && (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true))) {
+                HtmlBodySegmenter.segment(compressed).takeIf { segs -> segs.any { it !is BodySegment.Html } }
+            } else {
+                null
+            }
+            if (richSegments != null) {
+                renderRichPreview(richSegments, pillsPostProcessor)
                 renderedTable = true
             } else if (compressed != null) {
                 // Render the HTML string (not a pre-parsed commonmark Node) so the root-tag
@@ -386,7 +401,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             views.composerRelatedMessageRichContainer.removeAllViews()
         }
         views.composerRelatedMessageContent.isVisible = !renderedTable
-        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, (formattedBody ?: nonFormattedBody)?.withEmojis())
+        // Resolve mentions/permalinks (incl. message links -> "Message in Room") into pills for the
+        // preview only; the un-pilled [formattedBody] still feeds the edit box below.
+        val previewBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }
+        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.withEmojis())
         // Muted grey for non-message notices and m.notice messages (which render grey in the
         // timeline), normal text colour for everything else.
         val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {
@@ -426,17 +444,19 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
     }
 
-    // Render a table-containing reply/edit preview as real tables via the timeline's renderer,
-    // instead of the single-line TextView that would collapse the cells into unreadable plaintext.
-    private fun renderRichTablePreview(compressed: String, pillsPostProcessor: PillsPostProcessor) {
+    // Render a table/code-containing reply/edit preview via the timeline's renderer, instead of the
+    // single-line TextView that collapses table cells to plaintext and wraps code (losing scroll +
+    // line numbers).
+    private fun renderRichPreview(segments: List<BodySegment>, pillsPostProcessor: PillsPostProcessor) {
         views.composerRelatedMessageRichContainer.isVisible = true
         richMessageBodyRenderer.render(
                 container = views.composerRelatedMessageRichContainer,
-                segments = HtmlBodySegmenter.segment(compressed),
+                segments = segments,
                 postProcessors = arrayOf(pillsPostProcessor),
                 movementMethod = null,
                 onClick = {},
                 onLongClick = { false },
+                interactive = false,
         )
     }
 

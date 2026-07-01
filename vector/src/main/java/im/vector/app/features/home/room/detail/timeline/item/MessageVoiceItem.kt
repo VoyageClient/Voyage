@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.text.format.DateUtils
 import android.text.method.MovementMethod
@@ -29,9 +28,9 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
+import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
-import androidx.core.view.ViewCompat
 
 @EpoxyModelClass
 abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
@@ -98,7 +97,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
         }
-        ViewCompat.setBackgroundTintList(holder.voicePlaybackLayout, ColorStateList.valueOf(backgroundTint))
+        holder.voicePlaybackLayout.setMediaPillColorCompat(backgroundTint)
 
         MediaCaptionBinder.bind(
                 view = holder.captionView,

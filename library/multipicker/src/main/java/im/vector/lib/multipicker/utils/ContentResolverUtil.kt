@@ -18,6 +18,35 @@ import im.vector.lib.multipicker.entity.MultiPickerAudioType
 import im.vector.lib.multipicker.entity.MultiPickerImageType
 import im.vector.lib.multipicker.entity.MultiPickerVideoType
 
+// The system reports some image types (notably .webp on KitKat) as octet-stream, so the image would
+// be sent as m.file. When the resolver's type isn't an image one, sniff the magic bytes to recover it.
+internal fun recoverImageMimeType(context: Context, uri: Uri): String? {
+    val resolved = context.contentResolver.getType(uri)
+    if (resolved.isMimeTypeImage()) return resolved
+    return sniffImageMime(context, uri) ?: resolved
+}
+
+internal fun sniffImageMime(context: Context, uri: Uri): String? {
+    return runCatching {
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            val head = ByteArray(12)
+            var off = 0
+            while (off < head.size) {
+                val read = input.read(head, off, head.size - off)
+                if (read < 0) break
+                off += read
+            }
+            // WebP is a RIFF container tagged "WEBP".
+            if (off >= 12 && head.matchesAscii(0, "RIFF") && head.matchesAscii(8, "WEBP")) "image/webp" else null
+        }
+    }.getOrNull()
+}
+
+private fun ByteArray.matchesAscii(offset: Int, ascii: String): Boolean {
+    if (offset + ascii.length > size) return false
+    return ascii.indices.all { this[offset + it] == ascii[it].code.toByte() }
+}
+
 internal fun Uri.toMultiPickerImageType(context: Context): MultiPickerImageType? {
     val projection = arrayOf(
             MediaStore.Images.Media.DISPLAY_NAME,
@@ -44,7 +73,7 @@ internal fun Uri.toMultiPickerImageType(context: Context): MultiPickerImageType?
             MultiPickerImageType(
                     name,
                     size,
-                    context.contentResolver.getType(this),
+                    recoverImageMimeType(context, this),
                     this,
                     dims?.width ?: 0,
                     dims?.height ?: 0,

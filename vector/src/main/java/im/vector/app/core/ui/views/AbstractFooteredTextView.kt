@@ -12,6 +12,7 @@ import android.graphics.Rect
 import android.text.Layout
 import android.text.Spannable
 import android.text.Spanned
+import android.text.style.LeadingMarginSpan
 import android.view.View
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.getSpans
@@ -85,12 +86,15 @@ interface AbstractFooteredTextView {
                 max(layout.getLineWidth(i), maxLineWidth)
             }
         }
-        maxLineWidth = min(maxLineWidth, measuredWidth.toFloat())
+        // getLineWidth excludes a LeadingMarginSpan indent (blockquote/list); add it back or the bubble
+        // shrinks into the indent and the content re-wraps, and the footer overlaps the indented text.
+        val leadingMargin = (text as? Spanned)?.let { it.getSpans<LeadingMarginSpan>(0, it.length).maxOfOrNull { span -> span.getLeadingMargin(true) } } ?: 0
+        maxLineWidth = min(maxLineWidth + leadingMargin, measuredWidth.toFloat())
 
         var newWidth = ceil(maxLineWidth).toInt()
         var newHeight = measuredHeight
 
-        val widthLastLine = layout.getLineWidth(lastLine)
+        val widthLastLine = layout.getLineWidth(lastLine) + leadingMargin
 
         // Required width if putting footer in the same line as the last line
         val widthWithHorizontalFooter = (

@@ -94,10 +94,6 @@ internal object MXMegolmExportEncryption {
             throw Exception("Invalid file: too short")
         }
 
-        if (password.isEmpty()) {
-            throw Exception("Empty password is not supported")
-        }
-
         val salt = body.copyOfRange(1, 1 + 16)
         val iv = body.copyOfRange(17, 17 + 16)
         val iterations =
@@ -147,10 +143,6 @@ internal object MXMegolmExportEncryption {
     @Throws(Exception::class)
     @JvmOverloads
     fun encryptMegolmKeyFile(data: String, password: String, kdfRounds: Int = DEFAULT_ITERATION_COUNT): ByteArray {
-        if (password.isEmpty()) {
-            throw Exception("Empty password is not supported")
-        }
-
         val secureRandom = SecureRandom()
 
         val salt = ByteArray(16)
@@ -317,7 +309,11 @@ internal object MXMegolmExportEncryption {
             // it is simpler than the generic algorithm because the expected key length is equal to the mac key length.
             // noticed as dklen/hlen
             val prf = Mac.getInstance("HmacSHA512")
-            prf.init(SecretKeySpec(password.toByteArray(Charsets.UTF_8), "HmacSHA512"))
+            // SecretKeySpec rejects a zero-length key, but an empty password is allowed (optional
+            // passphrase). HMAC pads any key shorter than the block size with zeros, so a single zero
+            // byte derives identically to the empty key — keeping passwordless files interoperable.
+            val passwordBytes = password.toByteArray(Charsets.UTF_8).takeIf { it.isNotEmpty() } ?: ByteArray(1)
+            prf.init(SecretKeySpec(passwordBytes, "HmacSHA512"))
 
             // 512 bits key length
             val uc = ByteArray(64)

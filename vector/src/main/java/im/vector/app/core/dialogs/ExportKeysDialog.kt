@@ -20,25 +20,21 @@ class ExportKeysDialog {
     fun show(activity: Activity, exportKeyDialogListener: ExportKeyDialogListener) {
         val dialogLayout = activity.layoutInflater.inflate(R.layout.dialog_export_e2e_keys, null)
         val views = DialogExportE2eKeysBinding.bind(dialogLayout)
+        // The passphrase is optional in this fork: an empty passphrase exports without encryption.
+        views.exportDialogText.setText(CommonStrings.encryption_export_notice_optional)
         val builder = MaterialAlertDialogBuilder(activity)
                 .setTitle(CommonStrings.encryption_export_room_keys)
                 .setView(dialogLayout)
 
         val textWatcher = object : SimpleTextWatcher() {
             override fun afterTextChanged(s: Editable) {
-                when {
-                    views.exportDialogEt.text.isNullOrEmpty() -> {
-                        views.exportDialogSubmit.isEnabled = false
-                        views.exportDialogTilConfirm.error = null
-                    }
-                    views.exportDialogEt.text.toString() == views.exportDialogEtConfirm.text.toString() -> {
-                        views.exportDialogSubmit.isEnabled = true
-                        views.exportDialogTilConfirm.error = null
-                    }
-                    else -> {
-                        views.exportDialogSubmit.isEnabled = false
-                        views.exportDialogTilConfirm.error = activity.getString(CommonStrings.passphrase_passphrase_does_not_match)
-                    }
+                // Only the two fields matching matters now; empty (= no encryption) is allowed.
+                if (views.exportDialogEt.text.toString() == views.exportDialogEtConfirm.text.toString()) {
+                    views.exportDialogSubmit.isEnabled = true
+                    views.exportDialogTilConfirm.error = null
+                } else {
+                    views.exportDialogSubmit.isEnabled = false
+                    views.exportDialogTilConfirm.error = activity.getString(CommonStrings.passphrase_passphrase_does_not_match)
                 }
             }
         }
@@ -47,6 +43,8 @@ class ExportKeysDialog {
         views.exportDialogEtConfirm.addTextChangedListener(textWatcher)
 
         val exportDialog = builder.show()
+        // Empty passphrase is valid, so allow submitting before anything is typed.
+        views.exportDialogSubmit.isEnabled = true
 
         views.exportDialogSubmit.setOnClickListener {
             exportKeyDialogListener.onPassphrase(views.exportDialogEt.text.toString())

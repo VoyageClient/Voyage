@@ -23,10 +23,12 @@ import android.widget.TextView
 import androidx.core.content.withStyledAttributes
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.children
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.backgroundCompat
@@ -176,6 +178,17 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
             }
         }
 
+        // While media is still uploading, hide the overlaid timestamp: it can't anchor to the
+        // not-yet-laid-out image (so it lands in the wrong spot) and the upload progress bar already
+        // shows status. It reappears on the next bind once the send completes.
+        if (attributes.informationData.sendState.isSending() &&
+                bubbleDependentView.allowFooterOverlay(holder, this) &&
+                !bubbleDependentView.needsFooterReservation()) {
+            hiddenViews.add(views.bubbleFootView)
+            timeView?.let { hiddenViews.add(it) }
+            timeView = null
+        }
+
         // Dual-side bubbles: hide own avatar, and all in direct chats
         if ((!attributes.informationData.messageLayout.showAvatar) ||
                 (contentInBubble && canHideAvatar)) {
@@ -196,7 +209,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         memberNameView?.onClick(attributes.memberClickListener)
         timeView?.visibility = View.VISIBLE
         timeView?.text = attributes.informationData.time
-        memberNameView?.text = attributes.informationData.memberName
+        memberNameView?.text = attributes.informationData.memberName?.withEmojis()
         memberNameView?.setTextColor(attributes.getMemberNameColor())
         if (avatarImageView != null) attributes.avatarRenderer.render(attributes.informationData.matrixItem, avatarImageView)
         avatarImageView?.setOnLongClickListener(attributes.itemLongClickListener)
@@ -437,6 +450,10 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                     footerLayoutParams.rightMargin = footerMarginEndDp
                     views.bubbleMessageMemberNameView.gravity = Gravity.LEFT
                 }
+                // An overlaid footer (media timestamp) is aligned to the content container's edge; for a
+                // media reply that container is as wide as the reply header, so shift the footer onto the
+                // image's right edge instead of the empty gap beside a slim image.
+                anchorOverlayFooterToMedia(bubbleDependentView, holder)
             }
             if (messageLayout.isPseudoBubble) {
                 // We need to align the non-bubble member name view to pseudo bubbles
@@ -459,6 +476,40 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         views.messageThreadSummaryContainer.layoutDirectionCompat =if (messageLayout.reverseBubble) reverseDirection else defaultDirection
         // Layout is broken if bubbleView is RTL (for some reason, Android uses left/end padding for right/start as well...)
         setFlatRtl(views.bubbleView, View.LAYOUT_DIRECTION_LTR, defaultDirection)
+    }
+
+    private fun <H : BaseEventItem.BaseHolder> anchorOverlayFooterToMedia(bubbleDependentView: BubbleDependentView<H>, holder: H) {
+        val footView = views.bubbleFootView
+        footView.translationX = 0f
+        footView.translationY = 0f
+        if (!bubbleDependentView.allowFooterOverlay(holder, this) || bubbleDependentView.needsFooterReservation()) return
+        // Sizes are only known after layout, so shift the (already-positioned) footer onto the media's
+        // bottom-right corner then. translationX/Y are purely visual, so this can't feed a layout loop.
+        footView.doOnLayout {
+            val anchor = bubbleDependentView.footerOverlayAnchorView(holder)
+            val parent = footView.parent as? View
+            if (anchor != null && anchor.width > 0 && anchor.height > 0 && parent != null) {
+                footView.translationX = (leftWithin(anchor, parent) + anchor.width - footView.right).toFloat()
+                footView.translationY = (topWithin(anchor, parent) + anchor.height - footView.bottom).toFloat()
+            } else {
+                footView.translationX = 0f
+                footView.translationY = 0f
+            }
+        }
+    }
+
+    // Left/top edge of [view] expressed in [ancestor]'s coordinate space (sum of offsets up the hierarchy).
+    private fun leftWithin(view: View, ancestor: View): Int = offsetWithin(view, ancestor, horizontal = true)
+    private fun topWithin(view: View, ancestor: View): Int = offsetWithin(view, ancestor, horizontal = false)
+
+    private fun offsetWithin(view: View, ancestor: View, horizontal: Boolean): Int {
+        var offset = 0
+        var current: View = view
+        while (current !== ancestor) {
+            offset += if (horizontal) current.left else current.top
+            current = current.parent as? View ?: break
+        }
+        return offset
     }
 
     private fun tintFooter(color: Int) {
@@ -585,7 +636,16 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         } else {
             0
         }
-        return max(result, bubbleDependentView.getViewStubMinimumWidth(holder))
+        // The guess above uses the *untruncated* name; cap it at the bubble's available width so an
+        // excessively long display name ellipsizes instead of forcing the bubble (and so a narrow code
+        // block / short message) out to the full name width.
+        val res = views.bubbleMessageMemberNameView.resources
+        val density = res.displayMetrics.density
+        val reservedPx = ceil((44f + 8f) * density).toInt() + // avatar + its start margin
+                res.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.item_event_message_state_size) +
+                ceil((16f + 16f) * density).toInt() // send-state margins + bubble horizontal margin
+        val maxNameWidth = (res.displayMetrics.widthPixels - reservedPx).coerceAtLeast(ceil(64f * density).toInt())
+        return max(result.coerceAtMost(maxNameWidth), bubbleDependentView.getViewStubMinimumWidth(holder))
     }
 }
 

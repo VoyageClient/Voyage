@@ -36,7 +36,7 @@ internal class MarkdownParser @Inject constructor(
         private val textPillsUtils: TextPillsUtils
 ) {
 
-    private val mdSpecialChars = "[`_\\-*>.\\[\\]#~$^]".toRegex()
+    private val mdSpecialChars = "[`_\\-*>.\\[\\]#~$^|]".toRegex()
 
     private companion object {
         const val CUSTOM_EMOTICON_MARKER = "data-mx-emoticon"

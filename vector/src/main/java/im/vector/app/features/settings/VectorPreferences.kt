@@ -136,6 +136,9 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         private const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
+        const val SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY = "SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY"
+        const val SETTINGS_CUSTOM_EMOJI_FONT_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_KEY"
+        private const val SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
         const val SETTINGS_ANIMATE_ROOM_AVATARS = "SETTINGS_ANIMATE_ROOM_AVATARS"
@@ -420,6 +423,31 @@ class VectorPreferences @Inject constructor(
     fun setUseTwemoji(enabled: Boolean) {
         defaultPrefs.edit(commit = true) {
             putBoolean(SETTINGS_USE_TWEMOJI_KEY, enabled)
+        }
+    }
+
+    // When on, EmojiCompat/emoji2 is not applied at all, so the system emoji font (incl. a custom one)
+    // is used. Forced off below KitKat (emoji2 is already a no-op and Twemoji is mandatory there), and
+    // mutually exclusive with Twemoji.
+    fun useSystemEmojiFont(): Boolean {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT &&
+                defaultPrefs.getBoolean(SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY, false)
+    }
+
+    fun setUseSystemEmojiFont(enabled: Boolean) {
+        defaultPrefs.edit(commit = true) {
+            putBoolean(SETTINGS_USE_SYSTEM_EMOJI_FONT_KEY, enabled)
+        }
+    }
+
+    // Display name of the imported custom emoji2 font, or null when the built-in font is in use.
+    fun customEmojiFontName(): String? {
+        return defaultPrefs.getString(SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY, null)
+    }
+
+    fun setCustomEmojiFontName(name: String?) {
+        defaultPrefs.edit(commit = true) {
+            if (name == null) remove(SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY) else putString(SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY, name)
         }
     }
 

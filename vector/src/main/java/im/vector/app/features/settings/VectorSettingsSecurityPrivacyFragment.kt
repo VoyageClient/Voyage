@@ -39,7 +39,6 @@ import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.intent.ExternalIntentData
 import im.vector.app.core.intent.analyseIntent
 import im.vector.app.core.intent.getFilenameFromUri
-import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
@@ -662,11 +661,9 @@ class VectorSettingsSecurityPrivacyFragment :
                     .setTitle(CommonStrings.encryption_import_room_keys)
                     .setView(dialogLayout)
 
-            views.dialogE2eKeysPassphraseEditText.addTextChangedListener(object : SimpleTextWatcher() {
-                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                    views.dialogE2eKeysImportButton.isEnabled = !views.dialogE2eKeysPassphraseEditText.text.isNullOrEmpty()
-                }
-            })
+            // The passphrase is optional (files can be exported without one), so keep import enabled
+            // even with an empty field.
+            views.dialogE2eKeysImportButton.isEnabled = true
 
             val importDialog = builder.show()
 

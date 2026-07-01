@@ -17,13 +17,16 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import android.text.Spanned
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
+import android.text.style.URLSpan
 import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.image
 import me.gujun.android.span.span
-import org.commonmark.node.Document
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -49,7 +52,18 @@ class DisplayableEventFormatter @Inject constructor(
         private val imagePackProvider: Lazy<im.vector.app.features.imagepack.ImagePackProvider>,
         private val activeSessionHolder: Lazy<im.vector.app.core.di.ActiveSessionHolder>,
         private val vectorPreferences: im.vector.app.features.settings.VectorPreferences,
+        private val pillsPostProcessorFactory: im.vector.app.features.html.PillsPostProcessor.Factory,
+        private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
 ) {
+
+    private val webUrlRegex = android.util.Patterns.WEB_URL.toRegex()
+
+    // Per-room pill processors, cached so the room list doesn't rebuild them on every summary render.
+    private val pillProcessors = java.util.concurrent.ConcurrentHashMap<String, Pair<im.vector.app.features.html.PillsPostProcessor, im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer>>()
+
+    private fun pillProcessorsFor(roomId: String) = pillProcessors.getOrPut(roomId) {
+        pillsPostProcessorFactory.create(roomId) to textRendererFactory.create(roomId)
+    }
 
     /**
      * Build the "Reacted with …" text for a reaction key. Unicode keys render as the emoji; a custom
@@ -110,9 +124,9 @@ class DisplayableEventFormatter @Inject constructor(
                             val preview = messageContent.previewText()
                             if (preview.formattedBody != null) {
                                 // Render the formatted HTML so custom emotes survive as image spans.
-                                simpleFormat(senderName, htmlRenderer.get().render(preview.formattedBody).stripPreviewLinkStyling(), appendAuthor)
+                                simpleFormat(senderName, renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody), appendAuthor)
                             } else {
-                                simpleFormat(senderName, preview.body, appendAuthor)
+                                simpleFormat(senderName, renderPlainPreview(timelineEvent.root.roomId, preview.body), appendAuthor)
                             }
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
@@ -204,11 +218,7 @@ class DisplayableEventFormatter @Inject constructor(
 
         // There event have been edited
         if (latestEdition != null) {
-            return run {
-                val localFormattedBody = htmlRenderer.get().parse(latestEdition) as Document
-                val renderedBody = htmlRenderer.get().render(localFormattedBody)?.stripPreviewLinkStyling() ?: latestEdition
-                renderedBody
-            }
+            return renderFormattedPreview(event.roomId, latestEdition)
         }
 
         // The event have been redacted
@@ -229,9 +239,9 @@ class DisplayableEventFormatter @Inject constructor(
                         MessageType.MSGTYPE_TEXT -> {
                             val preview = messageContent.previewText()
                             if (preview.formattedBody != null) {
-                                htmlRenderer.get().render(preview.formattedBody).stripPreviewLinkStyling()
+                                renderFormattedPreview(event.roomId, preview.formattedBody)
                             } else {
-                                preview.body
+                                renderPlainPreview(event.roomId, preview.body)
                             }
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
@@ -307,17 +317,70 @@ class DisplayableEventFormatter @Inject constructor(
         return PreviewText(formattedBody, previewBody)
     }
 
-    // Previews are plain text: drop link/underline styling so mentions and other <a> tags read as plain
-    // text rather than underlined links.
-    private fun CharSequence.stripPreviewLinkStyling(): CharSequence {
+    // Render a formatted preview the way the timeline does: mentions/rooms become pills (pillsPostProcessor),
+    // matrix.to message links become "Message in Room" pills (EventTextRenderer), then bare links get coloured.
+    private fun renderFormattedPreview(roomId: String?, formattedBody: String): CharSequence {
+        if (roomId == null) return htmlRenderer.get().render(formattedBody).sanitizeForPreview().colorBareLinks().flattenForPreview()
+        val (pills, textRenderer) = pillProcessorsFor(roomId)
+        return textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).sanitizeForPreview().colorBareLinks().flattenForPreview()
+    }
+
+    // Block-level spans don't render in a one-line preview: a blockquote draws its stripe/indent and a
+    // code block fills a full-width background bar, so drop those (keeping inline content — pills,
+    // emotes, links, inline code, bold/italic). The spoiler span is kept so it stays hidden; its blur
+    // is made to render by giving the room-list TextView a software layer (see RoomSummaryItem).
+    private fun CharSequence.sanitizeForPreview(): CharSequence {
         val spanned = this as? Spanned ?: return this
-        val clickable = spanned.getSpans(0, spanned.length, android.text.style.ClickableSpan::class.java)
-        val underline = spanned.getSpans(0, spanned.length, android.text.style.UnderlineSpan::class.java)
-        if (clickable.isEmpty() && underline.isEmpty()) return this
-        return android.text.SpannableStringBuilder(spanned).apply {
-            clickable.forEach { removeSpan(it) }
-            underline.forEach { removeSpan(it) }
+        val blocks = spanned.getSpans(0, spanned.length, im.vector.app.features.html.QuoteMarginSpan::class.java).toList() +
+                spanned.getSpans(0, spanned.length, im.vector.app.features.html.HtmlCodeSpan::class.java).filter { it.isBlock }
+        if (blocks.isEmpty()) return this
+        val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
+        blocks.forEach { builder.removeSpan(it) }
+        return builder
+    }
+
+    // Plain-text preview: still run the text renderer so a bare permalink / @room pills, then colour links.
+    private fun renderPlainPreview(roomId: String?, plainBody: CharSequence): CharSequence {
+        val resolved = if (roomId == null) plainBody else pillProcessorsFor(roomId).second.render(plainBody)
+        return resolved.colorBareLinks().flattenForPreview()
+    }
+
+    // The room-list / thread preview is a single line, so a block element (blockquote, code, list) must
+    // not break onto its own line below "Name:". Collapse any run of whitespace containing a newline to a
+    // single space, dropping it entirely at the edges, while preserving emote/pill spans.
+    private fun CharSequence.flattenForPreview(): CharSequence {
+        if (indexOf('\n') < 0 && indexOf('\r') < 0) return this
+        val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
+        fun Char.isFlattenable() = this == '\n' || this == '\r' || this == ' ' || this == '\t'
+        var i = 0
+        while (i < builder.length) {
+            if (builder[i] == '\n' || builder[i] == '\r') {
+                var j = i + 1
+                while (j < builder.length && builder[j].isFlattenable()) j++
+                val replacement = if (i == 0 || j >= builder.length) "" else " "
+                builder.replace(i, j, replacement)
+                i += replacement.length
+            } else {
+                i++
+            }
         }
+        return builder
+    }
+
+    // Markwon already colours <a> links and the pill pipeline pills mentions/permalinks; this only adds a
+    // link colour to bare http(s) URLs in plain text. Previews aren't independently tappable, so colour only.
+    private fun CharSequence.colorBareLinks(): CharSequence {
+        if (!contains("://")) return this
+        val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
+        val linkColor = colorProvider.getColorFromAttribute(android.R.attr.textColorLink)
+        webUrlRegex.findAll(builder.toString()).forEach { match ->
+            val start = match.range.first
+            val end = match.range.last + 1
+            val covered = builder.getSpans(start, end, URLSpan::class.java).isNotEmpty() ||
+                    builder.getSpans(start, end, PillImageSpan::class.java).isNotEmpty()
+            if (!covered) builder.setSpan(ForegroundColorSpan(linkColor), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        return builder
     }
 
     private fun simpleFormat(senderName: String, body: CharSequence, appendAuthor: Boolean): CharSequence {

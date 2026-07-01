@@ -29,6 +29,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.net.toUri
@@ -38,6 +39,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.forEach
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.lifecycleScope
@@ -211,6 +213,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
+import org.matrix.android.sdk.api.util.toInvitationMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import java.net.URL
@@ -1370,6 +1373,10 @@ class TimelineFragment :
     private fun FragmentTimelineBinding.hideComposerViews() {
         composerContainer.isVisible = false
         voiceMessageRecorderContainer.isVisible = false
+        // CoordinatorLayout skips a GONE child's onLayoutChild, so the composer's behavior never clears the
+        // bottom inset it reserved on the content view. Drop it so a composer-less screen (invite / read-only
+        // room) fills the full height instead of leaving an empty band where the composer would sit.
+        rootConstraintLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> { bottomMargin = 0 }
     }
 
     private fun renderToolbar(roomSummary: RoomSummary?) {
@@ -1403,7 +1410,7 @@ class TimelineFragment :
                 } else {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = roomSummary.membership == Membership.JOIN
                     views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName
-                    val toolbarMatrixItem = roomSummary.toMatrixItem().let {
+                    val toolbarMatrixItem = roomSummary.toInvitationMatrixItem().let {
                         if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it
                     }
                     avatarRenderer.render(toolbarMatrixItem, views.includeRoomToolbar.roomToolbarAvatarImageView)

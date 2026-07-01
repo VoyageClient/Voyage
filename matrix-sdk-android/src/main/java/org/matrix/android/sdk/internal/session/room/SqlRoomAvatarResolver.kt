@@ -41,9 +41,10 @@ internal class SqlRoomAvatarResolver @Inject constructor(
         if (roomDisplayNameFallbackProvider.shouldOverrideDirectChatDisplay()) {
             val directUserId = summary?.direct_user_id
             if (!directUserId.isNullOrBlank()) {
-                val directAvatarUrl = SqlRoomMemberHelper(stores, roomId).getLastRoomMember(directUserId)?.avatarUrl
-                if (!directAvatarUrl.isNullOrBlank()) {
-                    return directAvatarUrl
+                val directMember = SqlRoomMemberHelper(stores, roomId).getLastRoomMember(directUserId)
+                // Only force the DM target's avatar while they are still in the room (see display-name resolver).
+                if (directMember?.membership?.isActive() == true && !directMember.avatarUrl.isNullOrBlank()) {
+                    return directMember.avatarUrl
                 }
             }
         }

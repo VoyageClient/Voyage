@@ -22,6 +22,11 @@ interface BubbleDependentView<H : VectorEpoxyHolder> {
 
     fun allowFooterOverlay(holder: H, bubbleWrapView: ScMessageBubbleWrapView): Boolean = false
 
+    // The view an overlaid footer should hug the right edge of (the media thumbnail), or null to use the
+    // full content width. A media reply's container is as wide as its (often wider) reply header, so
+    // without this the timestamp lands in the empty gap to the right of a slim image.
+    fun footerOverlayAnchorView(holder: H): android.view.View? = null
+
     // Whether to show the footer aligned below the viewStub - requires enough width!
     fun allowFooterBelow(holder: H): Boolean = true
     fun needsFooterReservation(): Boolean = false

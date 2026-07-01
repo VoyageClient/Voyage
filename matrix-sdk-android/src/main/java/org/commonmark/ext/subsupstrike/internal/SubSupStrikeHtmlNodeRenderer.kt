@@ -7,6 +7,7 @@
 
 package org.commonmark.ext.subsupstrike.internal
 
+import org.commonmark.ext.subsupstrike.Spoiler
 import org.commonmark.ext.subsupstrike.Strikethrough
 import org.commonmark.ext.subsupstrike.Subscript
 import org.commonmark.ext.subsupstrike.Superscript
@@ -22,17 +23,19 @@ internal class SubSupStrikeHtmlNodeRenderer(private val context: HtmlNodeRendere
     override fun getNodeTypes(): Set<Class<out Node>> = setOf(
             Subscript::class.java,
             Superscript::class.java,
-            Strikethrough::class.java
+            Strikethrough::class.java,
+            Spoiler::class.java
     )
 
     override fun render(node: Node) {
-        val tag = when (node) {
-            is Subscript -> "sub"
-            is Superscript -> "sup"
-            is Strikethrough -> "del"
+        val (tag, attributes) = when (node) {
+            is Subscript -> "sub" to emptyMap<String, String>()
+            is Superscript -> "sup" to emptyMap()
+            is Strikethrough -> "del" to emptyMap()
+            is Spoiler -> "span" to mapOf("data-mx-spoiler" to "")
             else -> return
         }
-        html.tag(tag, context.extendAttributes(node, tag, emptyMap<String, String>()))
+        html.tag(tag, context.extendAttributes(node, tag, attributes))
         var child = node.firstChild
         while (child != null) {
             val next = child.next

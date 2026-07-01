@@ -38,6 +38,8 @@
         <item name="timestamp_overlay_bg">@color/timestamp_overlay_bg</item>
         <item name="timestamp_overlay_fg">@color/timestamp_overlay_fg</item>
         <item name="message_highlight_bg_color">@color/accent_sc_alpha25</item>
+        <!-- Match the link colour: without this, text/link press-selection falls back to Material's teal highlighted_text_material (a stray green tint). -->
+        <item name="android:textColorHighlight">@color/palette_links_alpha25</item>
         <item name="vctr_badge_color_border">@color/vctr_badge_color_border_dark</item>
 
         <!-- room message colors -->

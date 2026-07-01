@@ -18,6 +18,7 @@ package org.matrix.android.sdk.api.util
 
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.RoomType
@@ -189,6 +190,20 @@ fun RoomSummary.toMatrixItem() = if (roomType == RoomType.SPACE) {
     MatrixItem.SpaceItem(roomId, displayName, avatarUrl)
 } else {
     MatrixItem.RoomItem(roomId, displayName, avatarUrl)
+}
+
+// A DM invite has no room avatar of its own, so colour/identify it from the other user (a UserItem, tinted by
+// user id) rather than the room (tinted by room id): the inviter for an inbound invite, or the person we
+// invited for an outbound one who hasn't joined yet. Only DM invites are remapped — joined DMs and non-DM
+// rooms keep their own room item so rooms still show their own avatar.
+fun RoomSummary.toInvitationMatrixItem(): MatrixItem {
+    if (!isDirect) return toMatrixItem()
+    val otherUserId = when {
+        membership == Membership.INVITE -> inviterId
+        (invitedMembersCount ?: 0) > 0 -> directUserId
+        else -> null
+    }
+    return otherUserId?.let { MatrixItem.UserItem(it, displayName, avatarUrl) } ?: toMatrixItem()
 }
 
 fun RoomSummary.toRoomAliasMatrixItem() = MatrixItem.RoomAliasItem(canonicalAlias ?: roomId, displayName, avatarUrl)

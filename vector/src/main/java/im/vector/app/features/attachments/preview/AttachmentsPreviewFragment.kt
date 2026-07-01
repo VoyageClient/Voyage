@@ -10,6 +10,7 @@ package im.vector.app.features.attachments.preview
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.os.Build
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -35,6 +36,7 @@ import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.insertBeforeLast
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.OnSnapPositionChangeListener
@@ -83,6 +85,11 @@ class AttachmentsPreviewFragment :
         views.attachmentPreviewerSendButton.debouncedClicks {
             setResultAndFinish()
         }
+        // This activity's theme has no accent variant, so ?colorAccent here is the default (green).
+        // Resolve the configured accent from the application theme so the FAB matches the rest of the UI.
+        views.attachmentPreviewerSendButton.backgroundTintList = ColorStateList.valueOf(
+                ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorAccent)
+        )
     }
 
     private val uCropActivityResultLauncher = registerStartForActivityResult { activityResult ->

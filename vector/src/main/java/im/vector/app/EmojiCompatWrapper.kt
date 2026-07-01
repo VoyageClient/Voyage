@@ -13,8 +13,12 @@ import android.os.Build
 import android.os.Process
 import androidx.emoji2.text.EmojiCompat
 import androidx.emoji2.text.MetadataRepo
+import im.vector.app.features.emoji.CustomEmojiFontStore
 import im.vector.app.features.emoji.TwemojiProvider
+import im.vector.app.features.settings.VectorPreferences
 import timber.log.Timber
+import java.io.File
+import java.io.FileInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,15 +30,21 @@ fun interface EmojiSpanify {
 class EmojiCompatWrapper @Inject constructor(
         private val context: Context,
         private val twemojiProvider: TwemojiProvider,
+        private val vectorPreferences: VectorPreferences,
+        private val customEmojiFontStore: CustomEmojiFontStore,
 ) : EmojiSpanify {
 
     private var initialized = false
 
-    // Bundled font as a plain Typeface, for views that draw emoji directly (picker / reactions) rather than
-    // via EmojiCompat.
+    // Emoji font as a plain Typeface, for views that draw emoji directly (picker / reactions) rather than
+    // via EmojiCompat: the imported custom font if any, else the bundled one (null = system font).
     val emojiTypeface: Typeface? by lazy {
         try {
-            Typeface.createFromAsset(context.assets, FONT_ASSET)
+            when {
+                vectorPreferences.useSystemEmojiFont() -> null
+                customEmojiFontStore.isAvailable() -> Typeface.createFromFile(customEmojiFontStore.fontFile)
+                else -> Typeface.createFromAsset(context.assets, FONT_ASSET)
+            }
         } catch (throwable: Throwable) {
             Timber.e(throwable, "Failed to load emoji font")
             null
@@ -45,8 +55,11 @@ class EmojiCompatWrapper @Inject constructor(
         // EmojiCompat.process() is a hard-coded no-op below API 19, so skip it (pre-KitKat emoji is handled
         // separately) to avoid loading the font for nothing.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return
-        val config = AssetFontConfig(context.assets)
-                // Replace all emojis with the bundled font so rendering is consistent across devices.
+        // System-font mode: don't apply emoji2 at all, so the device's emoji font (incl. a custom one) shows.
+        if (vectorPreferences.useSystemEmojiFont()) return
+        val customFont = customEmojiFontStore.fontFile.takeIf { customEmojiFontStore.isAvailable() }
+        val config = EmojiFontConfig(context.assets, customFont)
+                // Replace all emojis with the bundled (or imported) font so rendering is consistent across devices.
                 .setReplaceAll(true)
         EmojiCompat.init(config)
                 .registerInitCallback(object : EmojiCompat.InitCallback() {
@@ -78,14 +91,21 @@ class EmojiCompatWrapper @Inject constructor(
         }
     }
 
-    // Like BundledEmojiCompatConfig, but builds the MetadataRepo from our own (newer) font asset.
-    private class AssetFontConfig(assets: AssetManager) : EmojiCompat.Config(AssetMetadataLoader(assets)) {
-        private class AssetMetadataLoader(private val assets: AssetManager) : EmojiCompat.MetadataRepoLoader {
+    // Like BundledEmojiCompatConfig, but builds the MetadataRepo from our own (newer) bundled font asset,
+    // or from a user-imported emoji2 font file when one is set.
+    private class EmojiFontConfig(assets: AssetManager, customFont: File?) :
+            EmojiCompat.Config(FontMetadataLoader(assets, customFont)) {
+        private class FontMetadataLoader(private val assets: AssetManager, private val customFont: File?) : EmojiCompat.MetadataRepoLoader {
             override fun load(loaderCallback: EmojiCompat.MetadataRepoLoaderCallback) {
                 Thread {
                     Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
                     try {
-                        loaderCallback.onLoaded(MetadataRepo.create(assets, FONT_ASSET))
+                        val repo = if (customFont != null) {
+                            FileInputStream(customFont).use { MetadataRepo.create(Typeface.createFromFile(customFont), it) }
+                        } else {
+                            MetadataRepo.create(assets, FONT_ASSET)
+                        }
+                        loaderCallback.onLoaded(repo)
                     } catch (throwable: Throwable) {
                         loaderCallback.onFailed(throwable)
                     }

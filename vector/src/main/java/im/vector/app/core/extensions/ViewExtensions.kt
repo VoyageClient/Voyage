@@ -54,6 +54,13 @@ fun View.setAttributeTintedBackground(@DrawableRes drawableRes: Int, @AttrRes ti
     backgroundCompat = drawable
 }
 
+// bg_media_pill is a <shape>; its android:backgroundTint / ViewCompat.setBackgroundTintList only
+// applies on AppCompat widget views, so on a plain layout container pre-21 the pill stays its native
+// black. Set the shape's solid colour directly, which tints on every API level.
+fun View.setMediaPillColorCompat(@ColorInt color: Int) {
+    (background?.mutate() as? GradientDrawable)?.setColor(color)
+}
+
 fun View.tintBackground(@ColorInt tintColor: Int) {
     val bkg = background?.let {
         val backgroundDrawable = DrawableCompat.wrap(background)

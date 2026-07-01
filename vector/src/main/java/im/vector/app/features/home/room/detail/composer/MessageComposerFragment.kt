@@ -136,6 +136,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private var lockSendButton = false
 
+    // Set while clearing the composer for a media send, so the stale sendMode (still holding the sent
+    // caption until popDraft resets it) isn't re-applied over the cleared box. See renderRegularMode.
+    private var suppressStaleComposerRender = false
+
     private lateinit var attachmentsHelper: AttachmentsHelper
     private lateinit var attachmentTypeSelector: AttachmentTypeSelectorView
     private var bottomSheetBehavior: ExpandingBottomSheetBehavior<View>? = null
@@ -470,6 +474,12 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun renderRegularMode(content: CharSequence) {
+        // After a media send we clear the box, but sendMode still holds the just-sent caption until
+        // popDraft resets it — an intermediate state emission would otherwise re-apply it over the
+        // cleared composer. Swallow that one stale non-empty render, then stop once sendMode settles to "".
+        if (suppressStaleComposerRender) {
+            if (content.isBlank()) suppressStaleComposerRender = false else return
+        }
         // After sending, popDraft emits Regular("") here; on a slow device the user may have already typed
         // into the cleared composer, so don't re-apply "" over it. (sendTextMessage does the real clear.)
         if (content.isBlank() && !composer.text.isNullOrBlank()) return
@@ -478,6 +488,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun renderSpecialMode(mode: MessageComposerMode.Special) {
+        // Entering reply/edit/quote means we're past any send-clear; don't keep swallowing renders.
+        suppressStaleComposerRender = false
         val allowCommands = mode is MessageComposerMode.Reply
         autoCompleters.values.forEach { it.enterSpecialMode(allowCommands) }
         composer.renderComposerMode(mode)
@@ -712,17 +724,19 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val richHtml = composer.formattedText
         val captionFormattedText = richHtml?.takeIf { captionText != null }
         val autoMarkdown = captionText != null && captionFormattedText == null && vectorPreferences.isMarkdownEnabled()
+        val resolved = resolveCaptionCommand(state, captionText, captionFormattedText, autoMarkdown)
         timelineViewModel.handle(
                 RoomDetailAction.SendMedia(
                         attachments = attachments,
                         compressBeforeSending = compressBeforeSending,
                         replyToEvent = replyToEvent,
-                        captionText = captionText,
-                        captionFormattedText = captionFormattedText,
-                        autoMarkdown = autoMarkdown,
+                        captionText = resolved.text,
+                        captionFormattedText = resolved.formatted,
+                        autoMarkdown = resolved.autoMarkdown,
                 )
         )
         if (replyToEvent != null || captionText != null) {
+            suppressStaleComposerRender = true
             composer.setTextIfDifferent("")
             composer.renderComposerMode(MessageComposerMode.Normal(""))
             messageComposerViewModel.handle(MessageComposerAction.OnAttachmentsSent)
@@ -794,11 +808,14 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (result.resultCode != Activity.RESULT_OK) return@registerStartForActivityResult
         val data = result.data ?: return@registerStartForActivityResult
 
-        val pendingReplyToEvent = withState(messageComposerViewModel) { (it.sendMode as? SendMode.Reply)?.timelineEvent }
+        val composerState = withState(messageComposerViewModel) { it }
+        val pendingReplyToEvent = (composerState.sendMode as? SendMode.Reply)?.timelineEvent
         val pendingCaption = composer.text?.toString().orEmpty().takeIf { it.isNotBlank() }
         val pendingFormatted = composer.formattedText?.takeIf { pendingCaption != null }
         val pendingAutoMarkdown = pendingCaption != null && pendingFormatted == null && vectorPreferences.isMarkdownEnabled()
+        val resolved = resolveCaptionCommand(composerState, pendingCaption, pendingFormatted, pendingAutoMarkdown)
         if (pendingReplyToEvent != null || pendingCaption != null) {
+            suppressStaleComposerRender = true
             composer.setTextIfDifferent("")
             composer.renderComposerMode(MessageComposerMode.Normal(""))
             messageComposerViewModel.handle(MessageComposerAction.OnAttachmentsSent)
@@ -811,11 +828,31 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         attachments = attachments,
                         compressBeforeSending = false,
                         replyToEvent = pendingReplyToEvent,
-                        captionText = pendingCaption,
-                        captionFormattedText = pendingFormatted,
-                        autoMarkdown = pendingAutoMarkdown,
+                        captionText = resolved.text,
+                        captionFormattedText = resolved.formatted,
+                        autoMarkdown = resolved.autoMarkdown,
                 )
         )
+    }
+
+    /**
+     * In Regular send mode, route a media caption through the slash-command parser: message commands
+     * rewrite the caption, action commands (e.g. /kick) run and drop the caption. Other send modes
+     * (reply/edit/quote) keep the caption literal.
+     */
+    private fun resolveCaptionCommand(
+            state: MessageComposerViewState,
+            caption: CharSequence?,
+            formatted: String?,
+            autoMarkdown: Boolean,
+    ): CaptionCommandResolution.Caption {
+        if (caption == null || state.sendMode !is SendMode.Regular) {
+            return CaptionCommandResolution.Caption(caption, formatted, autoMarkdown)
+        }
+        return when (val outcome = messageComposerViewModel.resolveCaptionCommand(caption, formatted, state.isInThreadTimeline())) {
+            is CaptionCommandResolution.Caption -> outcome
+            CaptionCommandResolution.CommandExecuted -> CaptionCommandResolution.Caption(null, null, false)
+        }
     }
 
     private val attachmentMediaActivityResultLauncher = registerStartForActivityResult {

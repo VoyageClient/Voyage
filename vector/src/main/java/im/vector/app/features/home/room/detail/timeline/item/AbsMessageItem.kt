@@ -24,6 +24,7 @@ import androidx.core.view.updateLayoutParams
 import com.airbnb.epoxy.EpoxyAttribute
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.ui.views.SendStateImageView
 import im.vector.app.features.home.AvatarRenderer
@@ -100,7 +101,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         }
         if (attributes.informationData.messageLayout.showDisplayName) {
             holder.memberNameView.isVisible = true
-            holder.memberNameView.text = attributes.informationData.memberName
+            holder.memberNameView.text = attributes.informationData.memberName?.withEmojis()
             holder.memberNameView.setTextColor(attributes.getMemberNameColor())
             holder.memberNameView.onClick(attributes.memberClickListener)
             holder.memberNameView.setOnLongClickListener(attributes.itemLongClickListener)

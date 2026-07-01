@@ -19,6 +19,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -139,6 +140,11 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             )
         }
         holder.body.movementMethod = movementMethod
+        // The bottom-sheet theme tree doesn't inherit the app theme's textColorHighlight, so give a pressed
+        // link a translucent tint matching the link colour here instead of Material's stray teal default.
+        holder.body.highlightColor = ColorUtils.setAlphaComponent(
+                ThemeUtils.getColor(holder.body.context, android.R.attr.textColorLink), 0x40
+        )
         val safeRenderer = richBodyRenderer
         if (safeRenderer != null) {
             safeRenderer.setTextWithPlugins(holder.body, body.charSequence)
@@ -164,6 +170,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
                     onClick = {},
                     onLongClick = { false },
                     noticeStyle = true,
+                    interactive = false,
             )
         } else {
             holder.richBody.isVisible = false

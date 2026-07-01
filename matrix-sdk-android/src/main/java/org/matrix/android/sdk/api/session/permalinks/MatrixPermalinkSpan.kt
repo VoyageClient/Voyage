@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.api.session.permalinks
 
+import android.text.TextPaint
 import android.text.style.ClickableSpan
 import android.view.View
 import org.matrix.android.sdk.api.session.permalinks.MatrixPermalinkSpan.Callback
@@ -36,5 +37,11 @@ class MatrixPermalinkSpan(
 
     override fun onClick(widget: View) {
         callback?.onUrlClicked(url)
+    }
+
+    // Colour the link but never underline it, matching the app's other link spans.
+    override fun updateDrawState(ds: TextPaint) {
+        ds.color = ds.linkColor
+        ds.isUnderlineText = false
     }
 }

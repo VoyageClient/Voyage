@@ -73,12 +73,13 @@ class EventDetailsFormatter @Inject constructor(
     }
 
     private fun formatForAudioMessage(event: Event): CharSequence? {
-        return event.getClearContent().toModel<MessageAudioContent>()?.audioInfo
-                ?.let { audioInfo ->
-                    listOfNotNull(audioInfo.duration?.asDuration(), audioInfo.size?.asFileSize())
-                            .joinToString(" - ")
-                            .takeIf { it.isNotEmpty() }
-                }
+        val content = event.getClearContent().toModel<MessageAudioContent>() ?: return null
+        val audioInfo = content.audioInfo ?: return null
+        // Voice messages show their duration on the pill, so only the file size remains here.
+        val duration = audioInfo.duration?.asDuration().takeIf { content.voiceMessageIndicator == null }
+        return listOfNotNull(duration, audioInfo.size?.asFileSize())
+                .joinToString(" - ")
+                .takeIf { it.isNotEmpty() }
     }
 
     private fun formatForFileMessage(event: Event): CharSequence? {

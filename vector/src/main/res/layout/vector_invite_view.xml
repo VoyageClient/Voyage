@@ -6,17 +6,35 @@
     android:layout_height="match_parent"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
-    <!-- The content is top-anchored inside this wrap_content container, and the container is centred
-         vertically (top+bottom to parent). So the block sits in the middle of the screen on large
-         devices and stays centred (and fits) on small ones. -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/inviteContent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <!-- fillViewport stretches the wrapper to the viewport so center_vertical centres the block when it
+         fits; when a tall invite (large display name, big font, short/landscape screen) overflows, the
+         wrapper grows past the viewport and the ScrollView scrolls. The ScrollView height is fixed to the
+         parent in LARGE mode (so it can scroll internally) and switched to wrap_content for the SMALL bar
+         in VectorInviteView.render(). -->
+    <ScrollView
+        android:id="@+id/inviteScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+    <!-- The small bottom margin nudges the centred block slightly above the exact middle (which otherwise
+         reads as too low because the toolbar sits above this view); kept modest so it doesn't leave a
+         band-like gap below. -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/inviteContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginBottom="16dp">
 
         <ImageView
             android:id="@+id/inviteAvatarView"
@@ -118,9 +136,12 @@
             android:text="@string/action_ignore"
             app:layout_constraintEnd_toEndOf="@id/inviteAcceptView"
             app:layout_constraintStart_toStartOf="@id/inviteRejectView"
-            app:layout_constraintTop_toBottomOf="@id/inviteRejectView"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/inviteRejectView" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </FrameLayout>
+
+    </ScrollView>
 
 </merge>

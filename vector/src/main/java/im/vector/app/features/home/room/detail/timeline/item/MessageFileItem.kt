@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Paint
 import android.text.method.MovementMethod
@@ -26,8 +25,8 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadSt
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
-import androidx.core.view.ViewCompat
 
 @EpoxyModelClass
 abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
@@ -93,11 +92,16 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quinary)
         }
-        ViewCompat.setBackgroundTintList(holder.mainLayout, ColorStateList.valueOf(backgroundTint))
+        holder.mainLayout.setMediaPillColorCompat(backgroundTint)
         holder.filenameView.onClick(attributes.itemClickListener)
         holder.filenameView.setOnLongClickListener(attributes.itemLongClickListener)
         holder.fileImageWrapper.onClick(attributes.itemClickListener)
         holder.fileImageWrapper.setOnLongClickListener(attributes.itemLongClickListener)
+        // The icon + filename only cover part of the row; make the whole pill (incl. its padding) open
+        // the file, and the full-width row long-pressable, so a press beside the text still works.
+        holder.mainLayout.onClick(attributes.itemClickListener)
+        holder.mainLayout.setOnLongClickListener(attributes.itemLongClickListener)
+        holder.fileLayout.setOnLongClickListener(attributes.itemLongClickListener)
         holder.filenameView.paintFlags = (holder.filenameView.paintFlags or Paint.UNDERLINE_TEXT_FLAG)
 
         MediaCaptionBinder.bind(

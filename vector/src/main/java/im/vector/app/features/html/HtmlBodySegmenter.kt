@@ -15,6 +15,7 @@ import org.jsoup.nodes.TextNode
 sealed class BodySegment {
     data class Html(val html: String) : BodySegment()
     data class Table(val rows: List<TableRowData>) : BodySegment()
+    data class Code(val code: String) : BodySegment()
 }
 
 data class TableRowData(val isHeader: Boolean, val cells: List<TableCellData>)
@@ -25,7 +26,7 @@ enum class Alignment { LEFT, CENTER, RIGHT }
 object HtmlBodySegmenter {
 
     fun segment(html: String): List<BodySegment> {
-        if (!html.contains("<table", ignoreCase = true)) {
+        if (!html.contains("<table", ignoreCase = true) && !html.contains("<pre", ignoreCase = true)) {
             return listOf(BodySegment.Html(html))
         }
         val doc = Jsoup.parseBodyFragment(html)
@@ -33,15 +34,28 @@ object HtmlBodySegmenter {
         val segments = mutableListOf<BodySegment>()
         val currentHtml = StringBuilder()
         for (node in body.childNodes()) {
-            if (node is Element && node.tagName().equals("table", ignoreCase = true)) {
-                flushHtml(segments, currentHtml)
-                segments += BodySegment.Table(parseTable(node))
-            } else {
-                currentHtml.append(node.outerHtml())
+            when {
+                node is Element && node.tagName().equals("table", ignoreCase = true) -> {
+                    flushHtml(segments, currentHtml)
+                    segments += BodySegment.Table(parseTable(node))
+                }
+                node is Element && node.tagName().equals("pre", ignoreCase = true) -> {
+                    flushHtml(segments, currentHtml)
+                    segments += BodySegment.Code(parsePre(node))
+                }
+                else -> currentHtml.append(node.outerHtml())
             }
         }
         flushHtml(segments, currentHtml)
         return segments
+    }
+
+    // wholeText() keeps the original whitespace/newlines (unlike text(), which collapses them), so a
+    // code block's indentation survives. Markdown wraps the code in <pre><code>…</code></pre>; fall
+    // back to the <pre> text if there's no inner <code>. Drop a single trailing newline markdown adds.
+    private fun parsePre(pre: Element): String {
+        val codeEl = pre.selectFirst("code") ?: pre
+        return codeEl.wholeText().removeSuffix("\n")
     }
 
     private fun flushHtml(out: MutableList<BodySegment>, buf: StringBuilder) {

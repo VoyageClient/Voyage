@@ -127,6 +127,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
                         onLongClick = { attributes.itemLongClickListener?.onLongClick(it) ?: false },
                         noticeStyle = noticeStyle,
                         replyHeader = richReplyHeader,
+                        fullBleed = attributes.informationData.messageLayout.let { l ->
+                            // No visible bubble (modern layout, or SC with bubbles turned off): stretch
+                            // code to the row edge. A real/pseudo bubble hugs its content instead.
+                            l is TimelineMessageLayout.Default ||
+                                    (l is TimelineMessageLayout.ScBubble && !l.isRealBubble && !l.isPseudoBubble)
+                        },
                 )
             }
             renderSendState(container, null)

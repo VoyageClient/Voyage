@@ -67,6 +67,7 @@
         <!-- TODO styles? -->
 
         <item name="android:textColorLink">@color/sc_blue</item>
+        <item name="android:textColorHighlight">@color/sc_blue_alpha25</item>
 
         <!-- Menu text color -->
         <item name="android:actionMenuTextColor">?colorSecondary</item>

@@ -7,9 +7,18 @@
 package im.vector.app.core.linkify
 
 import android.text.Spannable
+import android.text.TextPaint
 import android.text.style.URLSpan
 import android.text.util.Linkify
 import androidx.core.text.util.LinkifyCompat
+
+// URLSpan that keeps the link colour but never draws an underline, so autolinked URLs match the rest.
+class NoUnderlineUrlSpan(url: String) : URLSpan(url) {
+    override fun updateDrawState(ds: TextPaint) {
+        ds.color = ds.linkColor
+        ds.isUnderlineText = false
+    }
+}
 
 object VectorLinkify {
     /**
@@ -22,7 +31,7 @@ object VectorLinkify {
         if (keepExistingUrlSpan) {
             // Keep track of existing URLSpans, and mark them as important
             spannable.forEachUrlSpanIndexed { _, urlSpan, start, end ->
-                createdSpans.add(LinkSpec(URLSpan(urlSpan.url), start, end, important = true))
+                createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end, important = true))
             }
         }
 
@@ -39,9 +48,9 @@ object VectorLinkify {
                 val protocolLength = "mailto:".length
                 if (start - protocolLength >= 0 && "mailto:" == spannable.substring(start - protocolLength, start)) {
                     // modify to include the protocol
-                    createdSpans.add(LinkSpec(URLSpan(urlSpan.url), start - protocolLength, end))
+                    createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start - protocolLength, end))
                 } else {
-                    createdSpans.add(LinkSpec(URLSpan(urlSpan.url), start, end))
+                    createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
                 }
 
                 return@forEachUrlSpanIndexed
@@ -58,7 +67,7 @@ object VectorLinkify {
             // check trailing space
             if (end < spannable.length - 1 && spannable[end] == '/') {
                 // modify the span to include the slash
-                val spec = LinkSpec(URLSpan(urlSpan.url + "/"), start, end + 1)
+                val spec = LinkSpec(NoUnderlineUrlSpan(urlSpan.url + "/"), start, end + 1)
                 createdSpans.add(spec)
                 return@forEachUrlSpanIndexed
             }
@@ -74,20 +83,20 @@ object VectorLinkify {
                 }
                 if (isFullyContained != 0) {
                     // In this case we will return false to match, and manually add span if we want?
-                    val span = URLSpan(spannable.substring(start, end - 1))
+                    val span = NoUnderlineUrlSpan(spannable.substring(start, end - 1))
                     val spec = LinkSpec(span, start, end - 1)
                     createdSpans.add(spec)
                     return@forEachUrlSpanIndexed
                 }
             }
 
-            createdSpans.add(LinkSpec(URLSpan(urlSpan.url), start, end))
+            createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
         }
 
         LinkifyCompat.addLinks(spannable, VectorAutoLinkPatterns.GEO_URI.toPattern(), "geo:", arrayOf("geo:"), geoMatchFilter, null)
         spannable.forEachUrlSpanIndexed { _, urlSpan, start, end ->
             spannable.removeSpan(urlSpan)
-            createdSpans.add(LinkSpec(URLSpan(urlSpan.url), start, end))
+            createdSpans.add(LinkSpec(NoUnderlineUrlSpan(urlSpan.url), start, end))
         }
 
         pruneOverlaps(createdSpans)

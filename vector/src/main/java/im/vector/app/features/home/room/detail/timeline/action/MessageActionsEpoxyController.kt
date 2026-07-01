@@ -36,6 +36,8 @@ import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.events.model.EventType
+import im.vector.app.features.html.BodySegment
+import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -84,14 +86,18 @@ class MessageActionsEpoxyController @Inject constructor(
 
     // The compressed HTML for a non-redacted text message whose body contains a table, so the
     // long-press preview can render real tables instead of the flattened plaintext a TextView shows.
+    // Returns the compressed body to render via the rich renderer (real tables, scrollable code blocks)
+    // when it holds a top-level table or code block, else null so the plain preview text is used.
     private fun computeTableHtml(timelineEvent: org.matrix.android.sdk.api.session.room.timeline.TimelineEvent?): String? {
         timelineEvent ?: return null
         if (timelineEvent.root.isRedacted()) return null
         val content = timelineEvent.getVectorLastMessageContent()
-        // m.text, m.notice and m.emote all carry a formatted_body that may hold a table.
+        // m.text, m.notice and m.emote all carry a formatted_body that may hold a table/code block.
         if (content !is MessageContentWithFormattedBody || content.format != MessageFormat.FORMAT_MATRIX_HTML) return null
         val html = content.formattedBody?.takeIf { it.isNotBlank() } ?: return null
-        return htmlCompressor.compress(html).takeIf { it.contains("<table", ignoreCase = true) }
+        val compressed = htmlCompressor.compress(html)
+        if (!compressed.contains("<table", ignoreCase = true) && !compressed.contains("<pre", ignoreCase = true)) return null
+        return compressed.takeIf { HtmlBodySegmenter.segment(it).any { seg -> seg !is BodySegment.Html } }
     }
 
     var listener: MessageActionsEpoxyControllerListener? = null

@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.text.Editable
 import android.util.AttributeSet
+import android.view.ActionMode
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.annotation.RequiresApi
@@ -52,6 +53,28 @@ class ComposerEditText @JvmOverloads constructor(
         )
 
         return ic
+    }
+
+    // Some Android 4.x (TouchWiz) builds throw ArithmeticException: divide by zero inside
+    // Editor.updateShowAsAction while creating the text-selection action mode on long-press. Swallow it
+    // so the selection menu just fails to open instead of crashing the app.
+    override fun startActionMode(callback: ActionMode.Callback?): ActionMode? {
+        return try {
+            super.startActionMode(callback)
+        } catch (e: ArithmeticException) {
+            Timber.w(e, "Suppressed selection ActionMode crash (framework bug)")
+            null
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode? {
+        return try {
+            super.startActionMode(callback, type)
+        } catch (e: ArithmeticException) {
+            Timber.w(e, "Suppressed selection ActionMode crash (framework bug)")
+            null
+        }
     }
 
     /** Set whether the keyboard should disable personalized learning. */

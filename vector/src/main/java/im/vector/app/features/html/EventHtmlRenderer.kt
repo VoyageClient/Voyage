@@ -147,6 +147,8 @@ class EventHtmlRenderer @Inject constructor(
             super.configureTheme(builder)
             builder.codeBlockBackgroundColor(codeBlockBackground)
                     .codeBackgroundColor(codeBlockBackground)
+                    // Links are coloured (textColorLink) but never underlined, to match the autolink path.
+                    .isLinkUnderlined(false)
         }
     }
 
@@ -299,12 +301,44 @@ class EventHtmlRenderer @Inject constructor(
     private fun renderAndProcess(node: Node, postProcessors: Array<out PostProcessor>): CharSequence = synchronized(renderLock) {
         // Editable so post-processors can collapse pill backing text to a placeholder (see setPillSpan).
         val renderedText = im.vector.app.core.utils.PerfTrace.time("html.markwonRender") { SpannableStringBuilder(markwon.render(node)) }
+        collapseBlockQuotePadding(renderedText)
         im.vector.app.core.utils.PerfTrace.time("html.postProcess") {
             postProcessors.forEach {
                 it.afterRender(renderedText)
             }
         }
         renderedText
+    }
+
+    // Senders often pad a blockquote with blank leading/trailing lines (e.g. `<blockquote>\n…\n</blockquote>`).
+    // Browsers collapse that insignificant whitespace, but Markwon keeps it as empty lines inside the quote
+    // stripe, adding vertical padding element-web doesn't show. Drop the trimmable run at each quote's start
+    // and end; the block separators sit outside the span so the quote still stays on its own line, and any
+    // intentional interior blank lines are preserved.
+    private fun collapseBlockQuotePadding(text: SpannableStringBuilder) {
+        val quotes = text.getSpans(0, text.length, QuoteMarginSpan::class.java)
+        if (quotes.isEmpty()) return
+        fun Char.isTrimable() = this == '\n' || this == ' ' || this == '\t'
+        val delete = BooleanArray(text.length)
+        for (quote in quotes) {
+            val start = text.getSpanStart(quote).coerceAtLeast(0)
+            val end = text.getSpanEnd(quote).coerceAtMost(text.length)
+            var lead = start
+            while (lead < end && text[lead].isTrimable()) { delete[lead] = true; lead++ }
+            var trail = end
+            while (trail > lead && text[trail - 1].isTrimable()) { delete[trail - 1] = true; trail-- }
+        }
+        // Delete marked runs back-to-front so lower indices stay valid as the buffer shrinks.
+        var i = text.length
+        while (i > 0) {
+            if (delete[i - 1]) {
+                val runEnd = i
+                while (i > 0 && delete[i - 1]) i--
+                text.delete(i, runEnd)
+            } else {
+                i--
+            }
+        }
     }
 }
 

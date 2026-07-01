@@ -75,6 +75,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:contentDescription="@string/action_send"
+        app:backgroundTint="?colorAccent"
         app:srcCompat="@drawable/ic_send"
         app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerBottomContainer"
         app:layout_constraintEnd_toEndOf="parent"

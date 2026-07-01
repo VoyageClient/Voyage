@@ -37,6 +37,7 @@ import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.imagepack.edit.ImagePackListActivity
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
@@ -242,8 +243,8 @@ class RoomProfileFragment :
                 Timber.w("The room has been left")
                 activity?.finish()
             } else {
-                headerViews.roomProfileNameView.text = it.displayName
-                views.matrixProfileToolbarTitleView.text = it.displayName
+                headerViews.roomProfileNameView.text = it.displayName.withEmojis()
+                views.matrixProfileToolbarTitleView.text = it.displayName.withEmojis()
                 headerViews.roomProfileAliasView.setTextOrHide(it.canonicalAlias)
                 val matrixItem = it.toMatrixItem()
                 avatarRenderer.render(matrixItem, headerViews.roomProfileAvatarView)

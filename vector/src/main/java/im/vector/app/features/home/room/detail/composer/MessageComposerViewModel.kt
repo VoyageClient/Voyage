@@ -351,6 +351,10 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
+    // Reply target to restore after a slash command is run from the reply composer, so the command
+    // executes and clears the text without dropping the reply (nothing was actually sent as a reply).
+    private var replyTargetToRestoreAfterCommand: TimelineEvent? = null
+
     @Suppress("NAME_SHADOWING")
     private fun handleSendMessage(room: Room, action: MessageComposerAction.SendMessage) {
         withState { state ->
@@ -1031,7 +1035,18 @@ class MessageComposerViewModel @AssistedInject constructor(
                             replyRootThreadEventId = rootThreadEventId,
                             autoMarkdown = action.autoMarkdown,
                     )
-                    if (!handledAsCommand &&
+                    if (!handledAsCommand && parsedCommand !is ParsedCommand.ErrorNotACommand) {
+                        // Action command (e.g. /myroomnick, /kick) typed in the reply composer: run it via
+                        // the Regular path (which executes it without sending any text) and keep the reply
+                        // target so the user can still reply — only the composer text is cleared.
+                        replyTargetToRestoreAfterCommand = timelineEvent
+                        setState { copy(sendMode = SendMode.Regular(action.text, fromSharing = false)) }
+                        handleSendMessage(room, action)
+                        // Restore the reply header immediately instead of waiting for the async command's
+                        // popDraft. This withState is queued after the dispatch's, so the command still
+                        // sees Regular mode; the user just never sees the "replying to" preview disappear.
+                        withState { setState { copy(sendMode = SendMode.Reply(timelineEvent, "")) } }
+                    } else if (!handledAsCommand &&
                             pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(room.roomId) && !room.roomCryptoService().isEncrypted()) {
                         // PGP-mode reply: encrypt the body, keep the m.relates_to so it still threads/replies.
                         handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown)) { armoredBody, armoredFormatted ->
@@ -1086,6 +1101,13 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun popDraft(room: Room) = withState {
+        replyTargetToRestoreAfterCommand?.let { replyTarget ->
+            // A slash command was just run from the reply composer: keep replying, clear only the text.
+            replyTargetToRestoreAfterCommand = null
+            setState { copy(sendMode = SendMode.Reply(replyTarget, "")) }
+            viewModelScope.launch { room.draftService().deleteDraft() }
+            return@withState
+        }
         if (it.sendMode is SendMode.Regular && it.sendMode.fromSharing) {
             // If we were sharing, we want to get back our last value from draft
             loadDraftIfAny(room)
@@ -1522,6 +1544,51 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     /**
+     * Resolve a media caption that may itself be a slash command. Message-producing commands
+     * (/plain, /html, /rainbow, /shrug, greentext, …) rewrite the caption body/formatted text that
+     * gets attached to the media; action commands (/kick, /ban, …) are executed here (via the normal
+     * send path, which runs them without sending any text) and [CaptionCommandResolution.CommandExecuted]
+     * is returned so the media is sent with no caption. A caption that isn't a command is returned
+     * unchanged. Only meaningful in the Regular send mode; callers keep the caption literal otherwise.
+     */
+    fun resolveCaptionCommand(caption: CharSequence, formatted: String?, isInThread: Boolean): CaptionCommandResolution {
+        fun literal() = CaptionCommandResolution.Caption(caption, formatted, formatted == null && vectorPreferences.isMarkdownEnabled())
+        fun captionPrefixed(prefix: String, message: CharSequence): CaptionCommandResolution.Caption {
+            val plain = prefixed(prefix, message)
+            val formattedText = if (containsMentionPills(message)) prefixed(prefix, mentionsToHtml(message)) else null
+            return CaptionCommandResolution.Caption(plain, formattedText, false)
+        }
+        return when (val parsed = commandParser.parseSlashCommand(
+                textMessage = resolveComposerMentions(caption),
+                formattedMessage = formatted,
+                isInThreadTimeline = isInThread,
+        )) {
+            is ParsedCommand.ErrorNotACommand -> literal()
+            is ParsedCommand.SendPlainText -> CaptionCommandResolution.Caption(parsed.message, null, false)
+            is ParsedCommand.SendFormattedText -> CaptionCommandResolution.Caption(parsed.message, parsed.formattedMessage, false)
+            // A caption carries no msgtype, so emote/notice fall back to their plain text.
+            is ParsedCommand.SendEmote -> CaptionCommandResolution.Caption(parsed.message, null, false)
+            is ParsedCommand.SendNotice -> CaptionCommandResolution.Caption(parsed.message, null, false)
+            is ParsedCommand.SendRainbow -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowWithMentions(parsed.message), false)
+            is ParsedCommand.SendRainbowEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowWithMentions(parsed.message), false)
+            is ParsedCommand.SendSpoiler -> CaptionCommandResolution.Caption(
+                    "[${stringProvider.getString(CommonStrings.spoiler)}](${parsed.message})",
+                    "<span data-mx-spoiler>${mentionsToHtml(parsed.message)}</span>",
+                    false,
+            )
+            is ParsedCommand.SendShrug -> captionPrefixed("¯\\_(ツ)_/¯", parsed.message)
+            is ParsedCommand.SendLenny -> captionPrefixed("( ͡° ͜ʖ ͡°)", parsed.message)
+            is ParsedCommand.SendTableFlip -> captionPrefixed("(╯°□°）╯︵ ┻━┻", parsed.message)
+            is ParsedCommand.SendGreentext -> buildGreentext(parsed.message).let { (p, f) -> CaptionCommandResolution.Caption(p, f, false) }
+            is ParsedCommand.SendBlockquote -> buildBlockquote(parsed.message).let { (p, f) -> CaptionCommandResolution.Caption(p, f, false) }
+            else -> {
+                handle(MessageComposerAction.SendMessage(caption, formattedText = null, autoMarkdown = false))
+                CaptionCommandResolution.CommandExecuted
+            }
+        }
+    }
+
+    /**
      * Splits the input at the first occurrence of two consecutive newlines: everything before is
      * the styled segment, everything after is appended verbatim. Returns the head lines and the
      * trailing remainder (which may be empty and may itself contain further line breaks).
@@ -1915,6 +1982,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 popDraft(room)
                 MessageComposerViewEvents.SlashCommandResultOk(parsedCommand)
             } catch (failure: Throwable) {
+                replyTargetToRestoreAfterCommand = null
                 MessageComposerViewEvents.SlashCommandResultError(failure)
             }
             _viewEvents.post(event)
@@ -1956,4 +2024,12 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     companion object : MavericksViewModelFactory<MessageComposerViewModel, MessageComposerViewState> by hiltMavericksViewModelFactory()
+}
+
+sealed interface CaptionCommandResolution {
+    /** Caption text/formatted to attach to the media (unchanged input, or a message command's output). */
+    data class Caption(val text: CharSequence?, val formatted: String?, val autoMarkdown: Boolean) : CaptionCommandResolution
+
+    /** The caption was an action command (e.g. /kick) that has been executed; send the media with no caption. */
+    object CommandExecuted : CaptionCommandResolution
 }

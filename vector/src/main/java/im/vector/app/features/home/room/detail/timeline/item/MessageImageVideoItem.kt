@@ -81,10 +81,15 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val messageLayout = baseAttributes.informationData.messageLayout
         val dimensionConverter = DimensionConverter(holder.view.resources)
         val isBubble = messageLayout is TimelineMessageLayout.Bubble
+        // Round the image to the same radius as its surrounding bubble border, else (e.g. SC's 3dp
+        // border vs a hardcoded 8dp image) the corners don't match and leave a gap. Falls back to 8dp
+        // outside bubbles.
+        val cornerPx = (messageLayout as? TimelineMessageLayout.ScBubble)?.bubbleAppearance?.getBubbleRadiusPx(holder.view.context)
+                ?: dimensionConverter.dpToPx(8)
         val imageCornerTransformation = if (isBubble) {
             (messageLayout as TimelineMessageLayout.Bubble).cornersRadius.granularRoundedCorners()
         } else {
-            RoundedCorners(dimensionConverter.dpToPx(8))
+            RoundedCorners(cornerPx)
         }
         // Bubble layout already clips at the MessageBubbleView level. For non-bubble we apply a
         // view-level outline clip too, so animated drawables (FrameAnimationDrawable / animated
@@ -92,7 +97,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         // Transformation and is silently skipped for those.
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             if (!isBubble) {
-                val r = dimensionConverter.dpToPx(8).toFloat()
+                val r = cornerPx.toFloat()
                 holder.imageView.outlineProvider = object : ViewOutlineProvider() {
                     override fun getOutline(view: View, outline: Outline) {
                         outline.setRoundRect(0, 0, view.width, view.height, r)
@@ -112,7 +117,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 val radius = (messageLayout as TimelineMessageLayout.Bubble).cornersRadius
                 holder.imageView.setCornerRadii(radius.topStartRadius, radius.topEndRadius, radius.bottomEndRadius, radius.bottomStartRadius)
             } else {
-                val r = dimensionConverter.dpToPx(8).toFloat()
+                val r = cornerPx.toFloat()
                 holder.imageView.setCornerRadii(r, r, r, r)
             }
         }
@@ -204,6 +209,10 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     override fun allowFooterBelow(holder: Holder): Boolean = false
 
     override fun needsFooterReservation(): Boolean = caption != null
+
+    // No caption: the timestamp overlays the image, so anchor it to the image's right edge (the bubble
+    // can be wider when a reply header is). With a caption the footer overlays the caption instead.
+    override fun footerOverlayAnchorView(holder: Holder): android.view.View? = if (caption == null) holder.imageView else null
 
     override fun reserveFooterSpace(holder: Holder, width: Int, height: Int) {
         (holder.captionView as? AbstractFooteredTextView)?.apply {

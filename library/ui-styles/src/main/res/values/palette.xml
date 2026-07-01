@@ -25,6 +25,7 @@
     <color name="palette_aqua">#2DC2C5</color>
     <color name="palette_prune">#5C56F5</color>
     <color name="palette_links">#0086E6</color>
+    <color name="palette_links_alpha25">#400086E6</color>
 
     <!-- For light themes -->
     <color name="palette_gray_25">#F4F6FA</color>

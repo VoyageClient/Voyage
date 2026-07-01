@@ -10,6 +10,7 @@ package im.vector.app.features.reactions
 import android.app.Activity
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
@@ -155,13 +156,21 @@ class EmojiKeyboardController(
     }
 
     private fun backspace() {
+        // Emulate a hardware Backspace through the key pipeline rather than mutating the Editable
+        // directly: a direct edit makes the IME resync/restart, which flashes the soft keyboard in
+        // behind the panel when the key is held down. The editor's key listener also deletes a whole
+        // grapheme (incl. an emoji surrogate pair), or the current selection, for us.
+        val before = editText.text.length
+        editText.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
+        editText.dispatchKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL))
+        if (editText.text.length != before) return
+
+        // Fallback if the key event didn't land (e.g. the field lost focus): delete directly.
         val end = editText.selectionEnd.coerceAtLeast(0)
         val start = editText.selectionStart.coerceAtLeast(0)
         if (start != end) {
             editText.text.delete(minOf(start, end), maxOf(start, end))
         } else if (end > 0) {
-            // Delete a whole code point, not a single UTF-16 unit — otherwise an emoji (surrogate pair) takes
-            // two taps and shows a broken glyph in between, which reads as a missed tap.
             val text = editText.text
             val deleteFrom = if (end >= 2 && Character.isLowSurrogate(text[end - 1]) && Character.isHighSurrogate(text[end - 2])) end - 2 else end - 1
             text.delete(deleteFrom, end)

@@ -6,13 +6,18 @@
  */
 package im.vector.app.features.home.room.detail.timeline.action
 
+import android.content.Context
+import android.text.format.DateUtils
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success
 import dagger.Lazy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dagger.hilt.android.qualifiers.ApplicationContext
+import im.vector.app.R
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
+import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.extensions.getVectorLastMessageContent
@@ -58,6 +63,8 @@ import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
@@ -81,6 +88,7 @@ import org.matrix.android.sdk.flow.unwrap
  */
 class MessageActionsViewModel @AssistedInject constructor(
         @Assisted private val initialState: MessageActionState,
+        @ApplicationContext private val context: Context,
         private val eventHtmlRenderer: Lazy<EventHtmlRenderer>,
         private val htmlCompressor: VectorHtmlCompressor,
         private val session: Session,
@@ -88,6 +96,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val errorFormatter: ErrorFormatter,
         private val stringProvider: StringProvider,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
+        private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
         private val vectorPreferences: VectorPreferences,
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
@@ -101,6 +110,9 @@ class MessageActionsViewModel @AssistedInject constructor(
     private val room = session.getRoom(initialState.roomId)
     private val pillsPostProcessor by lazy {
         pillsPostProcessorFactory.create(initialState.roomId)
+    }
+    private val textRenderer by lazy {
+        textRendererFactory.create(initialState.roomId)
     }
 
     private val eventIdFlow = MutableStateFlow(initialState.eventId)
@@ -252,17 +264,30 @@ class MessageActionsViewModel @AssistedInject constructor(
                                     ?.let { htmlCompressor.compress(it) }
                                     ?: messageContent.body.let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
 
-                            eventHtmlRenderer.get().render(html, pillsPostProcessor)
+                            textRenderer.render(eventHtmlRenderer.get().render(html, pillsPostProcessor))
                         } else if (messageContent is MessageVerificationRequestContent) {
                             stringProvider.getString(CommonStrings.verification_request)
+                        } else if (messageContent is MessageFileContent) {
+                            attachmentPreviewText(context, R.drawable.ic_paperclip, messageContent.getFileName().orEmpty())
+                        } else if (messageContent is MessageAudioContent) {
+                            val formattedDuration = DateUtils.formatElapsedTime(((messageContent.audioInfo?.duration ?: 0) / 1000).toLong())
+                            if (messageContent.voiceMessageIndicator != null) {
+                                attachmentPreviewText(context, R.drawable.ic_microphone, stringProvider.getString(CommonStrings.voice_message_reply_content, formattedDuration))
+                            } else {
+                                attachmentPreviewText(context, R.drawable.ic_attachment_voice_file, messageContent.getFileName().orEmpty())
+                            }
                         } else if (messageContent is MessageWithAttachmentContent) {
+                            // Image/video: the thumbnail is shown separately, so just the filename here.
                             messageContent.getFileName()
                         } else if (messageContent?.msgType == MessageType.MSGTYPE_LOCATION) {
                             // The text representation of a location is the same on every API; only the
                             // long-press preview's map (buildLocationUiData) is gated to Lollipop+.
                             noticeEventFormatter.formatLocationNotice(timelineEvent.root, timelineEvent.senderInfo.disambiguatedDisplayName)
                         } else {
-                            messageContent?.body?.let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
+                            // Run the text renderer so bare permalinks / @room in a plain body pill too.
+                            messageContent?.body
+                                    ?.let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
+                                    ?.let { textRenderer.render(it) }
                         }
                     }
                     EventType.STATE_ROOM_NAME,

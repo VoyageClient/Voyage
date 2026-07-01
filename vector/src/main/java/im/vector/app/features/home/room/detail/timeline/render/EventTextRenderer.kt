@@ -10,7 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.render
 import android.content.Context
 import android.text.Spannable
 import android.text.SpannableStringBuilder
-import android.util.Patterns
+import android.text.style.URLSpan
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -43,10 +43,11 @@ class EventTextRenderer @AssistedInject constructor(
         fun create(roomId: String?): EventTextRenderer
     }
 
-    // Cached at instance scope — `render()` runs per timeline text event and Patterns.WEB_URL
-    // is a global constant. Allocating a fresh Regex / String[] per call was a measurable
-    // hotspot when scrolling chatty rooms.
-    private val webUrlRegex by lazy { Patterns.WEB_URL.toRegex() }
+    // Cached at instance scope — `render()` runs per timeline text event. Allocating a fresh Regex /
+    // String[] per call was a measurable hotspot when scrolling chatty rooms. Matrix permalinks use a
+    // `…/#/<id>[/<eventId>]` fragment whose `!`, `$`, `:` chars Patterns.WEB_URL truncates (turning a
+    // message link into a room link), so match the whole `#/…` run up to whitespace instead.
+    private val permalinkRegex by lazy { Regex("""https?://[^\s/]+/#/\S+""") }
     private val supportedPermalinkHosts: Array<String> by lazy {
         context.resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
     }
@@ -106,23 +107,54 @@ class EventTextRenderer @AssistedInject constructor(
         }
     }
 
-    private fun addPermalinksSpans(text: Spannable) {
-        // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier match ranges.
-        for (match in webUrlRegex.findAll(text).toList().asReversed()) {
-            val url = text.substring(match.range)
-            val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedPermalinkHosts, url).orFalse()
-            val matrixItem = if (isPermalinkSupported) {
-                when (val permalinkData = PermalinkParser.parse(url)) {
-                    is PermalinkData.UserLink -> permalinkData.toMatrixItem()
-                    is PermalinkData.RoomLink -> permalinkData.toMatrixItem()
-                    else -> null
-                }
-            } else null
+    private data class PillPlacement(val item: MatrixItem, val start: Int, val end: Int)
 
-            if (matrixItem != null) {
-                addPillSpan(text, createPillImageSpan(matrixItem), match.range.first, match.range.last + 1)
-            }
+    private fun addPermalinksSpans(text: Spannable) {
+        val placements = mutableListOf<PillPlacement>()
+        // Links carrying an explicit href (mentions/permalinks rendered as <a>), so labelled links —
+        // whose visible text isn't the URL, e.g. a "Message in …" permalink — resolve too. LinkSpan
+        // extends URLSpan, so this also catches Markwon's links. Skip ranges PillsPostProcessor already
+        // turned into pills (user/room mentions) to avoid pilling them twice.
+        val existingPills = text.getSpans(0, text.length, PillImageSpan::class.java)
+        for (span in text.getSpans(0, text.length, URLSpan::class.java)) {
+            val start = text.getSpanStart(span)
+            val end = text.getSpanEnd(span)
+            if (start < 0 || end < 0) continue
+            if (existingPills.any { text.getSpanStart(it) < end && start < text.getSpanEnd(it) }) continue
+            val item = permalinkToMatrixItem(span.url) ?: continue
+            placements.add(PillPlacement(item, start, end))
         }
+        // Bare permalink URLs that appear as plain visible text (no <a> wrapper), skipping ranges
+        // already covered above.
+        for (match in permalinkRegex.findAll(text)) {
+            // Trim trailing sentence punctuation the greedy match may have swallowed.
+            val rawEnd = match.range.last + 1
+            val end = trimTrailingUrlPunctuation(text, match.range.first, rawEnd)
+            val start = match.range.first
+            if (placements.any { it.start < end && start < it.end }) continue
+            val item = permalinkToMatrixItem(text.substring(start, end)) ?: continue
+            placements.add(PillPlacement(item, start, end))
+        }
+        // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier ranges.
+        placements.sortedByDescending { it.start }.forEach {
+            addPillSpan(text, createPillImageSpan(it.item), it.start, it.end)
+        }
+    }
+
+    private fun permalinkToMatrixItem(url: String): MatrixItem? {
+        val isPermalinkSupported = sessionHolder.getSafeActiveSession()?.permalinkService()?.isPermalinkSupported(supportedPermalinkHosts, url).orFalse()
+        if (!isPermalinkSupported) return null
+        return when (val permalinkData = PermalinkParser.parse(url)) {
+            is PermalinkData.UserLink -> permalinkData.toMatrixItem()
+            is PermalinkData.RoomLink -> permalinkData.toMatrixItem()
+            else -> null
+        }
+    }
+
+    private fun trimTrailingUrlPunctuation(text: CharSequence, start: Int, end: Int): Int {
+        var e = end
+        while (e > start && text[e - 1] in TRAILING_URL_PUNCTUATION) e--
+        return e
     }
 
     private fun createPillImageSpan(matrixItem: MatrixItem) =
@@ -178,4 +210,8 @@ class EventTextRenderer @AssistedInject constructor(
                     }
                 }
             }
+
+    companion object {
+        private const val TRAILING_URL_PUNCTUATION = ".,;:!?)]}>\"'"
+    }
 }

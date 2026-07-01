@@ -55,6 +55,8 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
     fun render(sender: RoomMemberSummary, mode: Mode = Mode.LARGE, changeMembershipState: ChangeMembershipState) {
         if (mode == Mode.LARGE) {
             updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
+            // Fill the parent so the ScrollView can scroll a too-tall invite internally.
+            views.inviteScroll.updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
             avatarRenderer.render(sender.toMatrixItem().let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }, views.inviteAvatarView)
             views.inviteIdentifierView.text = sender.userId
             views.inviteNameView.text = sender.displayName
@@ -62,6 +64,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             views.inviteIgnoreView.visibility = View.VISIBLE
         } else {
             updateLayoutParams { height = LayoutParams.WRAP_CONTENT }
+            views.inviteScroll.updateLayoutParams { height = LayoutParams.WRAP_CONTENT }
             views.inviteAvatarView.visibility = View.GONE
             views.inviteIdentifierView.visibility = View.GONE
             views.inviteNameView.visibility = View.GONE

@@ -7,14 +7,17 @@
 
 package im.vector.app.features.home.room.detail.timeline.tools
 
+import android.content.Context
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ClickableSpan
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.core.text.toSpannable
 import im.vector.app.EmojiSpanify
+import im.vector.app.features.html.AttachmentPillSpan
 import im.vector.app.core.linkify.VectorLinkify
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.isValidUrl
@@ -36,6 +39,17 @@ var messageEmojiSpanify: EmojiSpanify? = null
 
 /** Replace emoji in this text with the app's emoji rendering (Twemoji sprites / emoji2 / system font). */
 fun CharSequence.withEmojis(): CharSequence = messageEmojiSpanify?.spanify(this) ?: this
+
+/**
+ * Build an inline attachment pill (rounded background + icon + label) for a file / voice / audio,
+ * matching the reply header's pill, for the long-press sheet and reply composer where only a TextView
+ * is available.
+ */
+fun attachmentPreviewText(context: Context, @DrawableRes iconRes: Int, label: CharSequence): CharSequence {
+    return SpannableStringBuilder(" ").apply {
+        setSpan(AttachmentPillSpan(context, iconRes, label), 0, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    }
+}
 
 fun CharSequence.findPillsAndProcess(scope: CoroutineScope, processBlock: (PillImageSpan) -> Unit) {
     scope.launch(Dispatchers.Main) {

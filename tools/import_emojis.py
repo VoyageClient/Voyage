@@ -12,7 +12,6 @@ Run from the repo root: python3 tools/import_emojis.py
 
 import argparse
 import hashlib
-import io
 import json
 import os
 import re
@@ -20,7 +19,6 @@ import struct
 import sys
 import urllib.error
 import urllib.request
-import zipfile
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 
@@ -248,12 +246,12 @@ def import_twemoji():
 # --------------------------------------------------------------------------------------------------
 #
 # We deliberately don't depend on androidx.emoji2:emoji2-bundled (its newer releases raise minSdk to
-# 21/23). We keep the emoji2 *core* (KitKat-compatible) and bundle the font from the latest bundled
-# release ourselves. The font MUST stay a CBDT/CBLC (bitmap) colour font — KitKat can't render COLR/
-# sbix — and must carry the emoji2 'meta' table. This refreshes it when a newer one is published.
+# 21/23, and its bundled font lags Unicode). We keep the emoji2 *core* (KitKat-compatible) and bundle
+# the font straight from the noto-emoji repo's main branch, which always serves the newest release
+# (Unicode 17+). The font MUST stay a CBDT/CBLC (bitmap) colour font — KitKat can't render COLR/sbix —
+# and must carry the emoji2 'meta' table; both are still verified below before we overwrite the asset.
 
-EMOJI2_METADATA_URL = "https://dl.google.com/android/maven2/androidx/emoji2/emoji2-bundled/maven-metadata.xml"
-EMOJI2_AAR_URL = "https://dl.google.com/android/maven2/androidx/emoji2/emoji2-bundled/%s/emoji2-bundled-%s.aar"
+EMOJI2_FONT_URL = "https://github.com/googlefonts/noto-emoji/raw/refs/heads/main/fonts/NotoColorEmoji-emojicompat.ttf"
 EMOJI2_FONT_ASSET = os.path.join(REPO_ROOT, "vector/src/main/assets/emoji2/NotoColorEmojiCompat.ttf")
 
 
@@ -263,22 +261,8 @@ def _sfnt_tables(data):
 
 
 def update_emoji2_font():
-    print("Checking emoji2-bundled font for updates...")
-    meta = requests.get(EMOJI2_METADATA_URL).text
-    versions = re.findall(r"<version>([^<]+)</version>", meta)
-    stable = [v for v in versions if re.fullmatch(r"[0-9][0-9.]*", v)]
-    latest = stable[-1] if stable else (versions[-1] if versions else None)
-    if not latest:
-        print("  Could not determine latest version; skipping.")
-        return False
-    print("  latest emoji2-bundled: %s" % latest)
-    aar = requests.get(EMOJI2_AAR_URL % (latest, latest)).content
-    with zipfile.ZipFile(io.BytesIO(aar)) as zf:
-        font_name = next((n for n in zf.namelist() if n.endswith("NotoColorEmojiCompat.ttf")), None)
-        if font_name is None:
-            print("  No NotoColorEmojiCompat.ttf in the aar; skipping.")
-            return False
-        font = zf.read(font_name)
+    print("Downloading latest NotoColorEmoji-emojicompat font from noto-emoji main...")
+    font = requests.get(EMOJI2_FONT_URL).content
 
     tables = _sfnt_tables(font)
     colour = sorted(t for t in tables if t in ("CBDT", "CBLC", "COLR", "CPAL", "sbix"))

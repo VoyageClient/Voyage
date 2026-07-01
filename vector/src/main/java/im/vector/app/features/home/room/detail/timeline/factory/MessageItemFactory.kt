@@ -771,10 +771,13 @@ class MessageItemFactory @Inject constructor(
         val bareBody = processBodyOfReplyToEventUseCase.stripExistingMxReply(matrixFormattedBody)
         val compressed = htmlCompressor.compress(bareBody)
         val containsTable = compressed.contains("<table", ignoreCase = true)
+        val containsCodeBlock = compressed.contains("<pre", ignoreCase = true)
         val renderedBody = (htmlRenderer.get().render(compressed, pillsPostProcessor) as Spanned).trimUncoveredWhitespace()
 
-        val segments = if (containsTable) {
-            HtmlBodySegmenter.segment(compressed)
+        val segments = if (containsTable || containsCodeBlock) {
+            // Only take the rich path when a top-level table/code block was actually extracted; a nested
+            // one stays inline (single Html segment) and keeps the normal footered text rendering.
+            HtmlBodySegmenter.segment(compressed).takeIf { segs -> segs.any { it !is BodySegment.Html } }
         } else {
             null
         }

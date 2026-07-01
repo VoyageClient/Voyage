@@ -17,6 +17,7 @@
 
     <!-- Blue accent for notifications, unread marker, links -->
     <color name="sc_blue">#2196F3</color>
+    <color name="sc_blue_alpha25">#402196F3</color>
 
     <!-- Username/avatar colors -->
     <color name="avatar_fill_sc_1">@color/accent_sc</color>

@@ -50,8 +50,10 @@ internal class SqlRoomDisplayNameResolver @Inject constructor(
             val directUserId = summary?.direct_user_id
             if (!directUserId.isNullOrBlank()) {
                 val directMember = roomMembers.getLastRoomMember(directUserId)
-                if (!directMember?.displayName.isNullOrBlank()) {
-                    return resolveRoomMemberName(directMember!!, roomMembers).toRoomName()
+                // Only force the DM target's name while they are still in the room; once they leave we
+                // fall through to the normal multi-member naming instead of clinging to a stale name.
+                if (directMember?.membership?.isActive() == true && !directMember.displayName.isNullOrBlank()) {
+                    return resolveRoomMemberName(directMember, roomMembers).toRoomName()
                 }
             }
         }

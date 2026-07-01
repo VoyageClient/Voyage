@@ -56,6 +56,14 @@
 
     <string name="settings_use_twemoji_title" translatable="false">Use Twemoji</string>
     <string name="settings_use_twemoji_summary" translatable="false">Draw emojis with the bundled Twemoji font</string>
+    <string name="settings_use_system_emoji_font_title" translatable="false">Use system emoji font</string>
+    <string name="settings_use_system_emoji_font_summary" translatable="false">Don\'t apply the bundled emoji font, so the device\'s own emoji font (including a custom one) is used.</string>
+    <string name="settings_custom_emoji_font_title" translatable="false">Custom emoji font</string>
+    <string name="settings_custom_emoji_font_summary" translatable="false">Replace the bundled emoji font with your own emoji2 (.ttf) font</string>
+    <string name="settings_custom_emoji_font_builtin" translatable="false">Built-in</string>
+    <string name="settings_custom_emoji_font_choose" translatable="false">Choose a .ttf font…</string>
+    <string name="settings_custom_emoji_font_reset" translatable="false">Reset</string>
+    <string name="settings_custom_emoji_font_invalid" translatable="false">Not a usable emoji font: the file is missing the emoji2 metadata that EmojiCompat needs.</string>
 
     <string name="command_description_notice" translatable="false">Sends the given message as a notice</string>
 
@@ -397,4 +405,5 @@
     <string name="image_pack_save" translatable="false">Save</string>
     <string name="notice_voice_broadcast_started" translatable="false">%1$s started a voice broadcast.</string>
     <string name="notice_voice_broadcast_started_by_you" translatable="false">You started a voice broadcast.</string>
+    <string name="encryption_export_notice_optional" translatable="false">Optionally create a passphrase to encrypt the exported keys. If you set one, you will need to enter the same passphrase to import the keys; leave it blank to export without encryption.</string>
 </resources>

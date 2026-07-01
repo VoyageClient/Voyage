@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
+import org.matrix.android.sdk.api.util.toInvitationMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
 
@@ -106,7 +107,7 @@ class RoomSummaryItemFactory @Inject constructor(
             }
         }
 
-        val matrixItem = roomSummary.toMatrixItem()
+        val matrixItem = roomSummary.toInvitationMatrixItem()
                 .let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }
 
         return RoomInvitationItem_()
@@ -177,7 +178,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .izPgp(isRoomPgpOn(roomSummary))
             .showPresence(roomSummary.isDirect)
             .userPresence(roomSummary.directUserPresence)
-            .matrixItem(roomSummary.toMatrixItem())
+            .matrixItem(roomSummary.toInvitationMatrixItem())
             .lastEventTime(latestEventTime)
             .typingMessage(typingMessage)
             .lastFormattedEvent(latestFormattedEvent.toEpoxyCharSequence())
@@ -208,7 +209,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .izPgp(isRoomPgpOn(roomSummary))
             .showPresence(roomSummary.isDirect)
             .userPresence(roomSummary.directUserPresence)
-            .matrixItem(roomSummary.toMatrixItem())
+            .matrixItem(roomSummary.toInvitationMatrixItem())
             .showSelected(showSelected)
             .hasFailedSending(roomSummary.hasFailedSending)
             .unreadNotificationCount(unreadCount)
