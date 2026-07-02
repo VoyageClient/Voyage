@@ -5,7 +5,7 @@
 
     <!-- Background color. Concrete colour (not ?colorPrimary): the system inflates this starting-window
          drawable without a theme on API < 21, where theme-attr refs in drawables aren't supported. -->
-    <item android:drawable="@color/element_accent_light" />
+    <item android:drawable="@color/splash_background" />
 
     <!-- Centered logo -->
     <item>

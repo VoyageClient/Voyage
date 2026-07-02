@@ -7,6 +7,8 @@
     <color name="element_accent_light">@color/palette_element_green</color>
     <color name="element_accent_dark">@color/palette_element_green</color>
 
+    <color name="splash_background">#00BCD4</color>
+
     <color name="element_alert_light">@color/palette_vermilion</color>
     <color name="element_alert_dark">@color/palette_vermilion</color>
 
