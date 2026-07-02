@@ -497,4 +497,66 @@
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
 
+    <!-- "Vibecoder Orange" accent (app-logo colour #DE7356). -->
+    <style name="Theme.Vector.Light.Vibecoder" parent="Theme.Vector.Light">
+        <item name="colorPrimary">#DE7356</item>
+        <item name="colorPrimaryVariant">#DE7356</item>
+        <item name="colorSecondary">#DE7356</item>
+        <item name="colorSecondaryVariant">#DE7356</item>
+        <item name="colorAccent">#DE7356</item>
+        <item name="android:colorAccent">#DE7356</item>
+    </style>
+    <style name="Theme.Vector.Dark.Vibecoder" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">#DE7356</item>
+        <item name="colorPrimaryVariant">#DE7356</item>
+        <item name="colorSecondary">#DE7356</item>
+        <item name="colorSecondaryVariant">#DE7356</item>
+        <item name="colorAccent">#DE7356</item>
+        <item name="android:colorAccent">#DE7356</item>
+    </style>
+    <style name="Theme.Vector.Black.Vibecoder" parent="Theme.Vector.Black">
+        <item name="colorPrimary">#DE7356</item>
+        <item name="colorPrimaryVariant">#DE7356</item>
+        <item name="colorSecondary">#DE7356</item>
+        <item name="colorSecondaryVariant">#DE7356</item>
+        <item name="colorAccent">#DE7356</item>
+        <item name="android:colorAccent">#DE7356</item>
+    </style>
+    <style name="AppTheme.SC.Light.Vibecoder" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/vibecoder_accent_light</item>
+        <item name="android:colorAccent">@color/vibecoder_accent_light</item>
+        <item name="colorAccentPale">@color/vibecoder_accent_light</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+    <style name="AppTheme.SC.Vibecoder" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+    <style name="AppTheme.SC.Dark.Vibecoder" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+    <style name="AppTheme.SC.Colored.Vibecoder" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+    <style name="AppTheme.SC.Dark.Colored.Vibecoder" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+    <style name="AppTheme.AttachmentsPreview.SC.Vibecoder" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
 </resources>

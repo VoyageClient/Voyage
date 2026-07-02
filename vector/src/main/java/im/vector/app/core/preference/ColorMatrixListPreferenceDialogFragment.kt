@@ -94,14 +94,17 @@ class ColorMatrixListPreferenceDialogFragment : PreferenceDialogFragmentCompat()
         val borderColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorOnSurface)
 
         var i = 0
+        var rowIndex = 0
         while (i < entryValues.size && i < entryPreviews.size) {
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
             grid.addView(row)
+            // Fit one extra swatch on the top row only.
+            val rowColumnCount = if (rowIndex == 0) columnCount + 1 else columnCount
             var column = 0
-            while (column < columnCount && i < entryValues.size && i < entryPreviews.size) {
+            while (column < rowColumnCount && i < entryValues.size && i < entryPreviews.size) {
                 val entryValue = entryValues[i].toString()
                 val color = Color.parseColor(entryPreviews[i].toString())
                 val selected = entryValue == value
@@ -131,6 +134,7 @@ class ColorMatrixListPreferenceDialogFragment : PreferenceDialogFragmentCompat()
                 i++
                 column++
             }
+            rowIndex++
         }
         updateSelectedLabel()
     }

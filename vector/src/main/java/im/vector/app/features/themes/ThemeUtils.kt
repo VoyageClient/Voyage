@@ -235,6 +235,7 @@ object ThemeUtils {
                 "blue" -> R.style.AppTheme_SC_Light_Blue
                 "greendark" -> R.style.AppTheme_SC_Light_GreenDark
                 "element" -> R.style.AppTheme_SC_Light_Element
+                "vibecoder" -> R.style.AppTheme_SC_Light_Vibecoder
                 else -> resId
             }
             R.style.AppTheme_SC -> when (themeAccent) {
@@ -257,6 +258,7 @@ object ThemeUtils {
                 "blue" -> R.style.AppTheme_SC_Blue
                 "greendark" -> R.style.AppTheme_SC_GreenDark
                 "element" -> R.style.AppTheme_SC_Element
+                "vibecoder" -> R.style.AppTheme_SC_Vibecoder
                 else -> resId
             }
             R.style.AppTheme_SC_Dark -> when (themeAccent) {
@@ -279,6 +281,7 @@ object ThemeUtils {
                 "blue" -> R.style.AppTheme_SC_Dark_Blue
                 "greendark" -> R.style.AppTheme_SC_Dark_GreenDark
                 "element" -> R.style.AppTheme_SC_Dark_Element
+                "vibecoder" -> R.style.AppTheme_SC_Dark_Vibecoder
                 else -> resId
             }
             R.style.AppTheme_SC_Colored -> when (themeAccent) {
@@ -301,6 +304,7 @@ object ThemeUtils {
                 "blue" -> R.style.AppTheme_SC_Colored_Blue
                 "greendark" -> R.style.AppTheme_SC_Colored_GreenDark
                 "element" -> R.style.AppTheme_SC_Colored_Element
+                "vibecoder" -> R.style.AppTheme_SC_Colored_Vibecoder
                 else -> resId
             }
             R.style.AppTheme_SC_Dark_Colored -> when (themeAccent) {
@@ -323,6 +327,7 @@ object ThemeUtils {
                 "blue" -> R.style.AppTheme_SC_Dark_Colored_Blue
                 "greendark" -> R.style.AppTheme_SC_Dark_Colored_GreenDark
                 "element" -> R.style.AppTheme_SC_Dark_Colored_Element
+                "vibecoder" -> R.style.AppTheme_SC_Dark_Colored_Vibecoder
                 else -> resId
             }
             R.style.AppTheme_AttachmentsPreview_SC -> when (themeAccent) {
@@ -345,6 +350,7 @@ object ThemeUtils {
                 "blue" -> R.style.AppTheme_AttachmentsPreview_SC_Blue
                 "greendark" -> R.style.AppTheme_AttachmentsPreview_SC_GreenDark
                 "element" -> R.style.AppTheme_AttachmentsPreview_SC_Element
+                "vibecoder" -> R.style.AppTheme_AttachmentsPreview_SC_Vibecoder
                 else -> resId
             }
             R.style.Theme_Vector_Light -> when (themeAccent) {
@@ -367,6 +373,7 @@ object ThemeUtils {
                 "lava" -> R.style.Theme_Vector_Light_Lava
                 "blue" -> R.style.Theme_Vector_Light_Blue
                 "greendark" -> R.style.Theme_Vector_Light_GreenDark
+                "vibecoder" -> R.style.Theme_Vector_Light_Vibecoder
                 else -> resId
             }
             R.style.Theme_Vector_Dark -> when (themeAccent) {
@@ -389,6 +396,7 @@ object ThemeUtils {
                 "lava" -> R.style.Theme_Vector_Dark_Lava
                 "blue" -> R.style.Theme_Vector_Dark_Blue
                 "greendark" -> R.style.Theme_Vector_Dark_GreenDark
+                "vibecoder" -> R.style.Theme_Vector_Dark_Vibecoder
                 else -> resId
             }
             R.style.Theme_Vector_Black -> when (themeAccent) {
@@ -411,6 +419,7 @@ object ThemeUtils {
                 "lava" -> R.style.Theme_Vector_Black_Lava
                 "blue" -> R.style.Theme_Vector_Black_Blue
                 "greendark" -> R.style.Theme_Vector_Black_GreenDark
+                "vibecoder" -> R.style.Theme_Vector_Black_Vibecoder
                 else -> resId
             }
             else -> resId

@@ -24,6 +24,7 @@
     <!-- Order matches SchildiChat's accent grid; Element Green sits on the green row (5-col grid). -->
     <string-array name="sc_accent_color_light_entries" translatable="false">
         <item>@string/sc_accent_red</item>
+        <item>@string/sc_accent_vibecoder</item>
         <item>@string/sc_accent_orange</item>
         <item>@string/sc_accent_amber</item>
         <item>@string/sc_accent_yellow</item>
@@ -47,6 +48,7 @@
 
     <string-array name="sc_accent_color_previews" translatable="false">
         <item>#ff0000</item>
+        <item>#DE7356</item>
         <item>#ff9800</item>
         <item>#ffa000</item>
         <item>#FBC02D</item>
@@ -106,6 +108,7 @@
 
     <string-array name="sc_accent_color_light_values" translatable="false">
         <item>red</item>
+        <item>vibecoder</item>
         <item>orange</item>
         <item>amber</item>
         <item>yellow</item>

@@ -18,6 +18,7 @@
 
     <color name="palette_element_green">#0DBD8B</color>
     <color name="palette_element_orange">#D9B072</color>
+    <color name="palette_vibecoder_orange">#DE7356</color>
     <color name="palette_white">#FFFFFF</color>
     <color name="palette_vermilion">#FF5B55</color>
     <!-- (unused) -->

@@ -145,6 +145,7 @@
     <string name="settings_accent" translatable="false">Accent color</string>
     <string name="color_picker_selected" translatable="false">Selected: %s</string>
     <string name="sc_accent_element" translatable="false">Element Green</string>
+    <string name="sc_accent_vibecoder" translatable="false">Vibecoder Orange</string>
     <string name="sc_accent_greenlight" translatable="false">Lime green</string>
     <string name="sc_accent_amber" translatable="false">Amber</string>
     <string name="sc_accent_bluelight" translatable="false">Light blue</string>
