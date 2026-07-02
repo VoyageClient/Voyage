@@ -743,6 +743,21 @@ class TimelineEventController @Inject constructor(
     }
 
     /**
+     * Like [searchPositionOfEvent], but when the target event has no rendered item (e.g. a hidden state
+     * event, or one merged/aggregated away), fall back to the nearest event that does — so jumping to it
+     * still lands in the right place instead of leaving the timeline blank.
+     */
+    fun searchPositionOfEventOrNearest(eventId: String?): Int? = synchronized(modelCache) {
+        adapterPositionMapping[eventId]?.let { return it }
+        val targetIndex = currentSnapshot.indexOfFirst { it.eventId == eventId }.takeIf { it >= 0 } ?: return null
+        for (distance in 1 until currentSnapshot.size) {
+            currentSnapshot.getOrNull(targetIndex - distance)?.eventId?.let { adapterPositionMapping[it] }?.let { return it }
+            currentSnapshot.getOrNull(targetIndex + distance)?.eventId?.let { adapterPositionMapping[it] }?.let { return it }
+        }
+        return null
+    }
+
+    /**
      * Return the newest timeline event still visible at or below the given adapter position.
      * The timeline is reverse-laid-out, so the smallest adapter position is the newest event.
      */

@@ -45,6 +45,20 @@ internal class RoomDecryptorProvider @Inject constructor(
     }
 
     /**
+     * Fan out a new-session notification to the (global) listeners directly, without instantiating the
+     * room's decryptor. Bulk key import uses this so it doesn't build a decryptor per room just to notify —
+     * the listeners (timeline / room-summary decryptors) retry decryption on their own worker threads.
+     */
+    fun notifyNewSession(roomId: String?, sessionId: String) {
+        newSessionListeners.toList().forEach {
+            try {
+                it.onNewSession(roomId, sessionId)
+            } catch (ignore: Throwable) {
+            }
+        }
+    }
+
+    /**
      * Get a decryptor for a given room and algorithm.
      * If we already have a decryptor for the given room and algorithm, return
      * it. Otherwise try to instantiate it.

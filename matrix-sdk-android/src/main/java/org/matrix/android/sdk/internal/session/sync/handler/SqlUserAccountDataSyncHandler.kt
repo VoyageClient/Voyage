@@ -116,6 +116,9 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
                 stores.roomSummary.get(roomId)?.let { entity ->
                     entity.isDirect = true
                     entity.directUserId = directUserId
+                    // Persist the direct flags before resolving: the resolvers re-read room_summary from
+                    // the DB, so they only pick the DM peer's avatar/name once is_direct is actually stored.
+                    stores.roomSummary.upsert(entity)
                     entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
                     entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
                     stores.roomSummary.upsert(entity)
@@ -126,6 +129,7 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         stores.roomSummary.getAll().filter { it.isDirect && it.roomId !in directRoomIds }.forEach { entity ->
             entity.isDirect = false
             entity.directUserId = null
+            stores.roomSummary.upsert(entity)
             entity.avatarUrl = roomAvatarResolver.resolve(stores, entity.roomId)
             entity.setDisplayName(roomDisplayNameResolver.resolve(stores, entity.roomId))
             stores.roomSummary.upsert(entity)

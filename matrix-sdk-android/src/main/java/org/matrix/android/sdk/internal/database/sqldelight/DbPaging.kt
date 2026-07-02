@@ -18,21 +18,35 @@ import app.cash.sqldelight.Query
  * Build a Paging-2 [PagedList] LiveData backed by a SQLDelight [query]: each time the query's results
  * change, [fetch] is re-run to produce a fresh snapshot and the page list is invalidated. This is the
  * replacement for Monarchy's `findAllPagedWithChanges`.
+ *
+ * The caller's [config] is used verbatim — in particular its placeholder setting. Placeholders keep the
+ * list size stable across invalidations so scroll position survives a sync (and the placeholder rows are
+ * the room list's "loading" indicator); disabling them makes the list re-page from the top on every sync.
  */
 internal fun <T> livePaged(
         query: Query<*>,
-        pageSize: Int = 20,
+        config: PagedList.Config,
         onDataSourceCreated: ((DataSource<Int, T>) -> Unit)? = null,
         fetch: () -> List<T>,
 ): LiveData<PagedList<T>> {
     val factory = object : DataSource.Factory<Int, T>() {
         override fun create(): DataSource<Int, T> = SnapshotPositionalDataSource(query, fetch()).also { onDataSourceCreated?.invoke(it) }
     }
-    return LivePagedListBuilder(
-            factory,
-            PagedList.Config.Builder().setPageSize(pageSize).setEnablePlaceholders(false).setPrefetchDistance(1).build(),
-    ).build()
+    return LivePagedListBuilder(factory, config).build()
 }
+
+/** Convenience overload for callers that only care about page size (no placeholders). */
+internal fun <T> livePaged(
+        query: Query<*>,
+        pageSize: Int = 20,
+        onDataSourceCreated: ((DataSource<Int, T>) -> Unit)? = null,
+        fetch: () -> List<T>,
+): LiveData<PagedList<T>> = livePaged(
+        query = query,
+        config = PagedList.Config.Builder().setPageSize(pageSize).setEnablePlaceholders(false).setPrefetchDistance(1).build(),
+        onDataSourceCreated = onDataSourceCreated,
+        fetch = fetch,
+)
 
 /**
  * A Paging-2 [PositionalDataSource] over an in-memory snapshot, invalidated whenever the backing

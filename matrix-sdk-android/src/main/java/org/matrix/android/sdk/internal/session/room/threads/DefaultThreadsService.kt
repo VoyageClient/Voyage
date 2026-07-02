@@ -53,7 +53,7 @@ internal class DefaultThreadsService @AssistedInject constructor(
     override suspend fun getPagedThreadsList(userParticipating: Boolean, pagedListConfig: PagedList.Config): ThreadLivePageResult {
         val livePagedList = livePaged(
                 query = database.threadSummaryQueries.selectByRoomSortedByLatest(roomId),
-                pageSize = pagedListConfig.pageSize,
+                config = pagedListConfig,
         ) {
             enhanceThreadWithEditions(stores.threadSummary.getByRoomSortedByLatest(roomId).map { threadSummaryMapper.map(it) })
         }

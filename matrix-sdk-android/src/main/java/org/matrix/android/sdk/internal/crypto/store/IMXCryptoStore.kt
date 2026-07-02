@@ -264,6 +264,12 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
     fun storeInboundGroupSessions(sessions: List<MXInboundMegolmSessionWrapper>)
 
     /**
+     * The identity keys ("sessionId|senderKey") of every stored inbound group session. Lightweight —
+     * lets a bulk import skip the per-session existence lookup for keys that are obviously new.
+     */
+    fun getInboundGroupSessionKeys(): Set<String>
+
+    /**
      * Retrieve an inbound group session, filtering shared history.
      *
      * @param sessionId the session identifier.

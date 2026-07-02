@@ -8,10 +8,12 @@
 package org.matrix.android.sdk.internal.database.sql.store
 
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
+import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -61,6 +63,11 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
 
     fun getByEventIdInRoom(roomId: String, eventId: String): EventEntity? =
             queries.selectByEventIdInRoom(roomId, eventId).executeAsOneOrNull()?.toResolvedEntity()
+
+    // Encrypted events in a room still lacking a clear result — used to re-attempt decryption after a key
+    // import, since decryption otherwise only runs at sync/insert time and never re-tries persisted UTDs.
+    fun getUndecryptedEncryptedEvents(roomId: String, type: String): List<Event> =
+            queries.selectUndecryptedEncryptedInRoom(roomId, type).executeAsList().map { it.toEntity().asDomain() }
 
     /** [toEntity] plus the thread-root preview (latest in-thread message), resolved only when set. */
     private fun EventRow.toResolvedEntity(): EventEntity = toEntity().also { entity ->

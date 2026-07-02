@@ -29,6 +29,10 @@ selectAll:
 SELECT *
 FROM olm_inbound_group_session;
 
+selectAllPrimaryKeys:
+SELECT primary_key
+FROM olm_inbound_group_session;
+
 selectByRoomId:
 SELECT *
 FROM olm_inbound_group_session

@@ -36,6 +36,8 @@ import org.matrix.android.sdk.internal.crypto.model.InboundGroupSessionData
 import org.matrix.android.sdk.internal.crypto.model.MXInboundMegolmSessionWrapper
 import org.matrix.android.sdk.internal.crypto.model.OlmSessionWrapper
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
+import org.matrix.android.sdk.internal.crypto.store.db.model.OlmInboundGroupSessionEntity
+import org.matrix.android.sdk.internal.crypto.store.db.model.createPrimaryKey
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.util.JsonCanonicalizer
@@ -737,6 +739,11 @@ internal class MXOlmDevice @Inject constructor(
     fun importInboundGroupSessions(megolmSessionsData: List<MegolmSessionData>): List<MXInboundMegolmSessionWrapper> {
         val sessions = ArrayList<MXInboundMegolmSessionWrapper>(megolmSessionsData.size)
 
+        // Bulk imports (backup restore, exported-keys file) are mostly brand-new sessions. Fetch the set of
+        // already-stored keys once so a new session skips getInboundGroupSession() — which otherwise does a
+        // per-session DB read AND throws+catches a stack-trace-filling MXCryptoError for every miss.
+        val existingSessionKeys = store.getInboundGroupSessionKeys()
+
         for (megolmSessionData in megolmSessionsData) {
             val sessionId = megolmSessionData.sessionId ?: continue
             val senderKey = megolmSessionData.senderKey ?: continue
@@ -750,15 +757,17 @@ internal class MXOlmDevice @Inject constructor(
             }
 
             val candidateOlmInboundGroupSession = candidateSessionToImport.session
-            val existingSessionHolder = tryOrNull { getInboundGroupSession(sessionId, senderKey, roomId) }
+            val existingSessionHolder = if (OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, senderKey) in existingSessionKeys) {
+                tryOrNull { getInboundGroupSession(sessionId, senderKey, roomId) }
+            } else {
+                null
+            }
             val existingSession = existingSessionHolder?.wrapper
 
             if (existingSession == null) {
                 // Session does not already exist, add it
-                Timber.tag(loggerTag.value).d("## importInboundGroupSession() : importing new megolm session $senderKey/$sessionId")
                 sessions.add(candidateSessionToImport)
             } else {
-                Timber.tag(loggerTag.value).e("## importInboundGroupSession() : Update for megolm session $senderKey/$sessionId")
                 val existingFirstKnown = tryOrNull { existingSession.session.firstKnownIndex }
                 val candidateFirstKnownIndex = tryOrNull { candidateSessionToImport.session.firstKnownIndex }
 

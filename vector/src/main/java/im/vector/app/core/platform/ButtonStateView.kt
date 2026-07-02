@@ -45,6 +45,13 @@ class ButtonStateView @JvmOverloads constructor(context: Context, attrs: Attribu
 
         layoutParams = LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
 
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+            // Pre-Lollipop the HW renderer doesn't clip the MaterialButton's shape/shadow to its bounds,
+            // so it bleeds a black outline into the toolbar and smears while scrolling. A software layer
+            // clips and renders the shape correctly.
+            setLayerType(LAYER_TYPE_SOFTWARE, null)
+        }
+
         views.buttonStateRetry.onClick {
             commonClicked?.invoke(it)
             retryClicked?.invoke(it)

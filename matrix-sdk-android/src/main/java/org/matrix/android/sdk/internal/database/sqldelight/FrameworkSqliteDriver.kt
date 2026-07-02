@@ -15,6 +15,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.database.sqlite.SQLiteProgram
 import android.database.sqlite.SQLiteQuery
+import android.database.sqlite.SQLiteStatement
 import app.cash.sqldelight.Query
 import app.cash.sqldelight.Transacter
 import app.cash.sqldelight.db.QueryResult
@@ -46,10 +47,24 @@ internal class FrameworkSqliteDriver private constructor(
     /** Transient use during onCreate/onUpgrade, bound to the in-progress database (not owned). */
     private constructor(database: SQLiteDatabase) : this(null, database, false)
 
-    private val database: SQLiteDatabase by lazy { suppliedDatabase ?: openHelper!!.writableDatabase }
+    private val database: SQLiteDatabase by lazy {
+        (suppliedDatabase ?: openHelper!!.writableDatabase).also {
+            // Enlarge the framework's internal compiled-SQL cache used by rawQuery() (reads).
+            runCatching { it.setMaxSqlCacheSize(SQLiteDatabase.MAX_SQL_CACHE_SIZE) }
+        }
+    }
 
     private val transactions = ThreadLocal<Transaction?>()
     private val listeners = linkedMapOf<String, MutableSet<Query.Listener>>()
+
+    // SQLDelight hands each prepared statement a stable [identifier]; caching the compiled
+    // SQLiteStatement by it avoids recompiling the SQL on every write (huge for bulk inserts like key
+    // import / sync — compileStatement() bypasses the framework's own SQL cache). The cache is
+    // thread-local: writes run on the DB's single-thread dispatcher, so this needs no locking and — unlike
+    // a shared cache guarded per-statement — can't deadlock against a statement's internal DB lock.
+    private val statementCache = object : ThreadLocal<HashMap<Int, SQLiteStatement>>() {
+        override fun initialValue() = HashMap<Int, SQLiteStatement>()
+    }
 
     override fun execute(
             identifier: Int?,
@@ -57,15 +72,20 @@ internal class FrameworkSqliteDriver private constructor(
             parameters: Int,
             binders: (SqlPreparedStatement.() -> Unit)?,
     ): QueryResult<Long> {
-        val statement = database.compileStatement(sql)
-        try {
-            if (binders != null) {
-                FrameworkProgramBinder(statement).binders()
+        // No identifier (e.g. schema DDL) → not reusable, compile once and discard.
+        if (identifier == null) {
+            val statement = database.compileStatement(sql)
+            try {
+                if (binders != null) FrameworkProgramBinder(statement).binders()
+                return QueryResult.Value(statement.executeUpdateDelete().toLong())
+            } finally {
+                statement.close()
             }
-            return QueryResult.Value(statement.executeUpdateDelete().toLong())
-        } finally {
-            statement.close()
         }
+        val statement = statementCache.get()!!.getOrPut(identifier) { database.compileStatement(sql) }
+        statement.clearBindings()
+        if (binders != null) FrameworkProgramBinder(statement).binders()
+        return QueryResult.Value(statement.executeUpdateDelete().toLong())
     }
 
     override fun <R> executeQuery(
@@ -133,11 +153,14 @@ internal class FrameworkSqliteDriver private constructor(
     }
 
     override fun close() {
+        statementCache.get()!!.values.forEach { runCatching { it.close() } }
+        statementCache.remove()
         openHelper?.close()
         if (closeSuppliedDatabase) suppliedDatabase?.close()
     }
 
     companion object {
+
         /**
          * Open a database at an explicit file path (e.g. inside a per-session directory, so it is
          * removed together with the session on logout). Drops and recreates on a version change,

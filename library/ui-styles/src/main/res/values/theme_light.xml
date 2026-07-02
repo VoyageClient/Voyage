@@ -28,6 +28,8 @@
         <item name="vctr_waiting_background_color">@color/vctr_waiting_background_color_light</item>
         <item name="vctr_chat_effect_snow_background">@color/vctr_chat_effect_snow_background_light</item>
         <item name="vctr_toolbar_background">@color/element_background_light</item>
+        <item name="vctr_space_item_background">@drawable/bg_space_item_light</item>
+        <item name="vctr_space_home_background">@drawable/space_home_background_light</item>
         <item name="vctr_message_bubble_inbound">@color/vctr_message_bubble_inbound_light</item>
         <item name="vctr_message_bubble_outbound">@color/vctr_message_bubble_outbound_light</item>
         <!-- SchildiChat message bubble drawables. Outgoing stays neutral here; the accent tint (when enabled) is applied in code. -->

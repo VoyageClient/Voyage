@@ -34,10 +34,16 @@ class ScrollOnHighlightedEventCallback(
 
     private fun scrollIfNeeded() {
         val eventId = scheduledEventId.get() ?: return
-        val positionToScroll = timelineEventController.searchPositionOfEvent(eventId) ?: return
-        recyclerView.stopScroll()
-        layoutManager.scrollToPosition(positionToScroll)
+        val positionToScroll = timelineEventController.searchPositionOfEventOrNearest(eventId) ?: return
         scheduledEventId.set(null)
+        // Epoxy dispatches model-build-finished on a background handler, so scrolling here directly would
+        // call scrollToPosition()/requestLayout() off the main thread — which doesn't reliably schedule a
+        // layout pass, leaving a jump-to-event blank until something else forces one. Post it onto the
+        // RecyclerView's (main) thread so the scroll, and the layout it triggers, actually happen.
+        recyclerView.post {
+            recyclerView.stopScroll()
+            layoutManager.scrollToPosition(positionToScroll)
+        }
     }
 
     fun scheduleScrollTo(eventId: String?) {

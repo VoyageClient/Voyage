@@ -99,37 +99,29 @@ class WidgetActivity : VectorBaseActivity<ActivityWidgetBinding>() {
             }
         }
 
-        // Trust element call widget by default
-        if (widgetArgs.kind == WidgetKind.ELEMENT_CALL && vectorPreferences.labsEnableElementCallPermissionShortcuts()) {
-            if (supportFragmentManager.findFragmentByTag(WIDGET_FRAGMENT_TAG) == null) {
-                addOnPictureInPictureModeChangedListener(pictureInPictureModeChangedInfoConsumer)
-                addFragment(views.fragmentContainer, WidgetFragment::class.java, widgetArgs, WIDGET_FRAGMENT_TAG)
+        permissionViewModel.observeViewEvents {
+            when (it) {
+                is RoomWidgetPermissionViewEvents.Close -> finish()
             }
-        } else {
-            permissionViewModel.observeViewEvents {
-                when (it) {
-                    is RoomWidgetPermissionViewEvents.Close -> finish()
-                }
-            }
+        }
 
-            viewModel.onEach(WidgetViewState::status) { ws ->
-                when (ws) {
-                    WidgetStatus.UNKNOWN -> {
+        viewModel.onEach(WidgetViewState::status) { ws ->
+            when (ws) {
+                WidgetStatus.UNKNOWN -> {
+                }
+                WidgetStatus.WIDGET_NOT_ALLOWED -> {
+                    val dFrag = supportFragmentManager.findFragmentByTag(WIDGET_PERMISSION_FRAGMENT_TAG) as? RoomWidgetPermissionBottomSheet
+                    if (dFrag != null && dFrag.dialog?.isShowing == true && !dFrag.isRemoving) {
+                        return@onEach
+                    } else {
+                        RoomWidgetPermissionBottomSheet
+                                .newInstance(widgetArgs)
+                                .show(supportFragmentManager, WIDGET_PERMISSION_FRAGMENT_TAG)
                     }
-                    WidgetStatus.WIDGET_NOT_ALLOWED -> {
-                        val dFrag = supportFragmentManager.findFragmentByTag(WIDGET_PERMISSION_FRAGMENT_TAG) as? RoomWidgetPermissionBottomSheet
-                        if (dFrag != null && dFrag.dialog?.isShowing == true && !dFrag.isRemoving) {
-                            return@onEach
-                        } else {
-                            RoomWidgetPermissionBottomSheet
-                                    .newInstance(widgetArgs)
-                                    .show(supportFragmentManager, WIDGET_PERMISSION_FRAGMENT_TAG)
-                        }
-                    }
-                    WidgetStatus.WIDGET_ALLOWED -> {
-                        if (supportFragmentManager.findFragmentByTag(WIDGET_FRAGMENT_TAG) == null) {
-                            addFragment(views.fragmentContainer, WidgetFragment::class.java, widgetArgs, WIDGET_FRAGMENT_TAG)
-                        }
+                }
+                WidgetStatus.WIDGET_ALLOWED -> {
+                    if (supportFragmentManager.findFragmentByTag(WIDGET_FRAGMENT_TAG) == null) {
+                        addFragment(views.fragmentContainer, WidgetFragment::class.java, widgetArgs, WIDGET_FRAGMENT_TAG)
                     }
                 }
             }

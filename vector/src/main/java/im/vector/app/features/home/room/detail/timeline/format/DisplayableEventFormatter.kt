@@ -320,9 +320,9 @@ class DisplayableEventFormatter @Inject constructor(
     // Render a formatted preview the way the timeline does: mentions/rooms become pills (pillsPostProcessor),
     // matrix.to message links become "Message in Room" pills (EventTextRenderer), then bare links get coloured.
     private fun renderFormattedPreview(roomId: String?, formattedBody: String): CharSequence {
-        if (roomId == null) return htmlRenderer.get().render(formattedBody).sanitizeForPreview().colorBareLinks().flattenForPreview()
+        if (roomId == null) return htmlRenderer.get().render(formattedBody).sanitizeForPreview().colorBareLinks().flattenForPreview().trimForPreview()
         val (pills, textRenderer) = pillProcessorsFor(roomId)
-        return textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).sanitizeForPreview().colorBareLinks().flattenForPreview()
+        return textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).sanitizeForPreview().colorBareLinks().flattenForPreview().trimForPreview()
     }
 
     // Block-level spans don't render in a one-line preview: a blockquote draws its stripe/indent and a
@@ -332,7 +332,9 @@ class DisplayableEventFormatter @Inject constructor(
     private fun CharSequence.sanitizeForPreview(): CharSequence {
         val spanned = this as? Spanned ?: return this
         val blocks = spanned.getSpans(0, spanned.length, im.vector.app.features.html.QuoteMarginSpan::class.java).toList() +
-                spanned.getSpans(0, spanned.length, im.vector.app.features.html.HtmlCodeSpan::class.java).filter { it.isBlock }
+                spanned.getSpans(0, spanned.length, im.vector.app.features.html.HtmlCodeSpan::class.java).filter { it.isBlock } +
+                // Paragraph vertical padding renders as a blank line above/below in the one-line preview.
+                spanned.getSpans(0, spanned.length, me.gujun.android.span.style.VerticalPaddingSpan::class.java).toList()
         if (blocks.isEmpty()) return this
         val builder = this as? SpannableStringBuilder ?: SpannableStringBuilder(this)
         blocks.forEach { builder.removeSpan(it) }
@@ -342,7 +344,7 @@ class DisplayableEventFormatter @Inject constructor(
     // Plain-text preview: still run the text renderer so a bare permalink / @room pills, then colour links.
     private fun renderPlainPreview(roomId: String?, plainBody: CharSequence): CharSequence {
         val resolved = if (roomId == null) plainBody else pillProcessorsFor(roomId).second.render(plainBody)
-        return resolved.colorBareLinks().flattenForPreview()
+        return resolved.colorBareLinks().flattenForPreview().trimForPreview()
     }
 
     // The room-list / thread preview is a single line, so a block element (blockquote, code, list) must
@@ -365,6 +367,19 @@ class DisplayableEventFormatter @Inject constructor(
             }
         }
         return builder
+    }
+
+    // Strip outer whitespace so the preview doesn't render with leading/trailing padding — the timeline
+    // trims the same way (MessageItemFactory.trimUncoveredWhitespace); flattenForPreview only drops
+    // newline runs, leaving bare leading/trailing spaces/tabs (and it early-returns when there's no
+    // newline at all). subSequence keeps the emote/pill spans.
+    private fun CharSequence.trimForPreview(): CharSequence {
+        fun Char.isTrimable() = this == '\n' || this == '\r' || this == ' ' || this == '\t'
+        var start = 0
+        while (start < length && this[start].isTrimable()) start++
+        var end = length
+        while (end > start && this[end - 1].isTrimable()) end--
+        return if (start == 0 && end == length) this else subSequence(start, end)
     }
 
     // Markwon already colours <a> links and the pill pipeline pills mentions/permalinks; this only adds a

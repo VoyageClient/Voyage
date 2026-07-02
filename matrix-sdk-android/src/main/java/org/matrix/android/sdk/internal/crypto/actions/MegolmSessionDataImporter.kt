@@ -25,7 +25,6 @@ import org.matrix.android.sdk.internal.crypto.MXOlmDevice
 import org.matrix.android.sdk.internal.crypto.MegolmSessionData
 import org.matrix.android.sdk.internal.crypto.OutgoingKeyRequestManager
 import org.matrix.android.sdk.internal.crypto.RoomDecryptorProvider
-import org.matrix.android.sdk.internal.crypto.algorithms.megolm.MXMegolmDecryption
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
@@ -80,39 +79,28 @@ internal class MegolmSessionDataImporter @Inject constructor(
         }.toMap()
 
         megolmSessionsData.forEachIndexed { cpt, megolmSessionData ->
-            val decrypting = roomDecryptorProvider.getOrCreateRoomDecryptor(megolmSessionData.roomId, megolmSessionData.algorithm)
+            val sessionId = megolmSessionData.sessionId
+            val senderKey = megolmSessionData.senderKey
+            val roomId = megolmSessionData.roomId
+            if (sessionId != null && senderKey != null && roomId != null) {
+                importedSession.getOrPut(roomId) { mutableMapOf() }
+                        .getOrPut(senderKey) { mutableListOf() }
+                        .add(sessionId)
+                totalNumbersOfImportedKeys++
 
-            if (null != decrypting) {
-                try {
-                    val sessionId = megolmSessionData.sessionId ?: return@forEachIndexed
-                    val senderKey = megolmSessionData.senderKey ?: return@forEachIndexed
-                    val roomId = megolmSessionData.roomId ?: return@forEachIndexed
-                    Timber.tag(loggerTag.value).v("## importRoomKeys retrieve senderKey ${megolmSessionData.senderKey} sessionId $sessionId")
+                // cancel any outstanding room key requests for this session
+                if (sessionId in requestedSessionIds) {
+                    outgoingKeyRequestManager.postCancelRequestForSessionIfNeeded(sessionId, roomId, senderKey, firstKnownIndexBySessionId[sessionId] ?: 0)
+                }
 
-                    importedSession.getOrPut(roomId) { mutableMapOf() }
-                            .getOrPut(senderKey) { mutableListOf() }
-                            .add(sessionId)
-                    totalNumbersOfImportedKeys++
-
-                    // cancel any outstanding room key requests for this session
-                    if (sessionId in requestedSessionIds) {
-                        Timber.tag(loggerTag.value).d("Imported megolm session $sessionId from backup=$fromBackup in ${megolmSessionData.roomId}")
-                        outgoingKeyRequestManager.postCancelRequestForSessionIfNeeded(
-                                sessionId,
-                                roomId,
-                                senderKey,
-                                firstKnownIndexBySessionId[sessionId] ?: 0
-                        )
-                    }
-
-                    // Have another go at decrypting events sent with this session
-                    when (decrypting) {
-                        is MXMegolmDecryption -> {
-                            decrypting.onNewSession(megolmSessionData.roomId, senderKey, sessionId)
-                        }
-                    }
-                } catch (e: Exception) {
-                    Timber.tag(loggerTag.value).e(e, "## importRoomKeys() : onNewSession failed")
+                // Only pay for the room decryptor + the retry notification for sessions that were actually
+                // (re)imported (firstKnownIndexBySessionId is keyed by the imported wrappers). On a re-import
+                // where nothing changed this is 0 sessions, so we skip 12k+ no-op decryptor lookups/retries —
+                // the real key-import slowness. The retry itself is async (decryptors have their own workers).
+                if (sessionId in firstKnownIndexBySessionId) {
+                    // Fan out to the decryptors directly instead of building a per-room decryptor just to
+                    // call onNewSession — instantiating one MXMegolmDecryption per room was the real cost.
+                    roomDecryptorProvider.notifyNewSession(roomId, sessionId)
                 }
             }
 

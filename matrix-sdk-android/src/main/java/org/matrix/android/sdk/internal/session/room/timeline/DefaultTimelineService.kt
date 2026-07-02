@@ -42,7 +42,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
         @Assisted private val roomId: String,
         private val timelineInput: TimelineInput,
         private val contextOfEventTask: GetContextOfEventTask,
-        private val eventDecryptor: TimelineEventDecryptor,
+        private val eventDecryptorProvider: javax.inject.Provider<TimelineEventDecryptor>,
         private val paginationTask: PaginationTask,
         private val fetchTokenAndPaginateTask: FetchTokenAndPaginateTask,
         private val fetchThreadTimelineTask: FetchThreadTimelineTask,
@@ -77,8 +77,10 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 snapshotLoader = snapshotLoader,
                 paginationTask = paginationTask,
                 fetchThreadTimelineTask = fetchThreadTimelineTask,
+                contextOfEventTask = contextOfEventTask,
                 database = database,
                 sessionDispatcher = sessionDbDispatcher,
+                eventDecryptor = eventDecryptorProvider.get(),
         )
     }
 

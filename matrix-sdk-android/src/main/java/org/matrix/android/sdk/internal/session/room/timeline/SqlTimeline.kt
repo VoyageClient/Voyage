@@ -9,11 +9,13 @@ package org.matrix.android.sdk.internal.session.room.timeline
 
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -52,8 +54,10 @@ internal class SqlTimeline(
         private val snapshotLoader: SqlChunkSnapshotLoader,
         private val paginationTask: PaginationTask,
         private val fetchThreadTimelineTask: FetchThreadTimelineTask,
+        private val contextOfEventTask: GetContextOfEventTask,
         private val database: SessionSqlDatabase,
         private val sessionDispatcher: CoroutineDispatcher,
+        private val eventDecryptor: TimelineEventDecryptor,
 ) : Timeline {
 
     override val timelineID = UUID.randomUUID().toString()
@@ -68,6 +72,13 @@ internal class SqlTimeline(
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
     private var annotationsJob: Job? = null
+    private var decryptedJob: Job? = null
+
+    // Decryption writes the event table, which the timeline_event chunk flow doesn't observe, so a decrypt
+    // completion won't re-map on its own. Coalesce a burst of decryptions (e.g. a key import) into one
+    // cache-clearing rebuild that re-reads the fresh clear content.
+    private val decryptedSignal = Channel<Unit>(Channel.CONFLATED)
+    private val decryptedListener = TimelineEventDecryptor.OnEventDecryptedListener { decryptedSignal.trySend(Unit) }
 
     private var threadRootId: String? = null
     private val isThreadTimeline get() = threadRootId != null
@@ -106,6 +117,18 @@ internal class SqlTimeline(
     override fun start(rootThreadEventId: String?) {
         if (!isStarted.compareAndSet(false, true)) return
         threadRootId = rootThreadEventId ?: settings.rootThreadEventId
+        eventDecryptor.start()
+        eventDecryptor.addOnDecryptedListener(decryptedListener)
+        decryptedJob = timelineScope.launch {
+            for (unused in decryptedSignal) {
+                // Let a decrypt storm (e.g. opening an old room, or a key import) settle before re-mapping,
+                // so the DB thread isn't starved rebuilding after every single event — they surface in batches.
+                delay(DECRYPT_REBUILD_DEBOUNCE_MS)
+                while (decryptedSignal.tryReceive().isSuccess) { /* drain the burst */ }
+                chunkSnapshotCache.clear()
+                rebuildSnapshot()
+            }
+        }
         timelineScope.launch {
             // A thread timeline gets a fresh (empty) thread chunk that the fetch task + sync then populate.
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
@@ -116,10 +139,13 @@ internal class SqlTimeline(
 
     override fun dispose() {
         isStarted.set(false)
+        eventDecryptor.removeOnDecryptedListener(decryptedListener)
+        eventDecryptor.destroy()
         observeJob?.cancel()
         sendingJob?.cancel()
         ignoredJob?.cancel()
         annotationsJob?.cancel()
+        decryptedJob?.cancel()
         val rootId = threadRootId
         if (rootId != null) {
             // Drop the temporary thread chunk; keep the scope alive just long enough to commit it.
@@ -138,7 +164,7 @@ internal class SqlTimeline(
             // Reset the window: null returns to the newest events; a target grows the window to include it.
             pendingShowEventId = eventId
             oldestShownEventId = null
-            val seed = eventId?.let { stores.chunk.findChunkIdIncludingEvent(roomId, it) } ?: resolveSeedChunkId()
+            val seed = eventId?.let { chunkForEvent(it) } ?: resolveSeedChunkId()
             seedFrom(seed)
             rebuildSnapshot()
         }
@@ -163,10 +189,21 @@ internal class SqlTimeline(
 
     override fun getSnapshot(): List<TimelineEvent> = builtEvents
 
-    private fun resolveSeedChunkId(): Long? = when {
+    private suspend fun resolveSeedChunkId(): Long? = when {
         threadRootId != null -> stores.chunk.lastForwardThread(roomId, threadRootId!!)?.id
-        initialEventId != null -> stores.chunk.findChunkIdIncludingEvent(roomId, initialEventId) ?: stores.chunk.lastForward(roomId)?.id
+        initialEventId != null -> chunkForEvent(initialEventId) ?: stores.chunk.lastForward(roomId)?.id
         else -> stores.chunk.lastForward(roomId)?.id
+    }
+
+    // The chunk holding [eventId], fetching its context from the server (which persists a chunk around it)
+    // when it isn't loaded locally — otherwise jumping to a permalink / date result silently fell back to
+    // the live edge, so navigation only worked for already-loaded events.
+    private suspend fun chunkForEvent(eventId: String): Long? {
+        stores.chunk.findChunkIdIncludingEvent(roomId, eventId)?.let { return it }
+        tryOrNull("SqlTimeline $roomId context fetch for $eventId failed") {
+            contextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId))
+        }
+        return stores.chunk.findChunkIdIncludingEvent(roomId, eventId)
     }
 
     /** Clear any stale thread chunk and create a fresh empty one (forward thread chunk). */
@@ -220,24 +257,26 @@ internal class SqlTimeline(
         }
         if (direction == Timeline.Direction.BACKWARDS) {
             if (isWindowed) {
-                val all = computeLoadedEvents()
+                val all = computeLoadedEvents(reuseLiveChunk = true)
                 val oldestIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }?.takeIf { it >= 0 }
                         ?: (initialWindowCount() - 1).coerceAtMost(all.lastIndex)
                 val target = oldestIdx + windowGrowStep
                 // Loaded events still hidden above the window: reveal the next page without a fetch.
                 if (target < all.size) {
                     oldestShownEventId = all[target].eventId
-                    rebuildSnapshot()
+                    rebuildSnapshot(reuseLiveChunk = true)
                     return
                 }
                 // Window already reaches the oldest loaded event: reveal it, then fetch older below.
                 oldestShownEventId = all.lastOrNull()?.eventId
             }
             val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) } ?: run {
-                if (isWindowed) rebuildSnapshot()
+                if (isWindowed) rebuildSnapshot(reuseLiveChunk = true)
                 return
             }
             when {
+                // is_last_backward is the room start: nothing older, whatever a stale prev link says.
+                oldest.is_last_backward != 0L -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
                 oldest.prev_chunk_id != null -> {
                     extendLoadedChunks(Timeline.Direction.BACKWARDS)
                     revealAfterBackwardFetch()
@@ -249,7 +288,7 @@ internal class SqlTimeline(
                     extendLoadedChunks(Timeline.Direction.BACKWARDS)
                     revealAfterBackwardFetch()
                 }
-                else -> if (isWindowed) rebuildSnapshot() else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                else -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
             }
         } else {
             val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) } ?: return
@@ -275,7 +314,11 @@ internal class SqlTimeline(
         if (direction == Timeline.Direction.BACKWARDS) {
             var tail = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) }
             while (true) {
-                val prevId = tail?.prev_chunk_id ?: break
+                // The room start has nothing older: never follow a (possibly corrupt) prev link off an
+                // is_last_backward chunk, or the walk wraps around into the live edge and pulls the whole
+                // history in as "older than the first event".
+                if (tail == null || tail.is_last_backward != 0L) break
+                val prevId = tail.prev_chunk_id ?: break
                 if (prevId in loadedChunkIds) break
                 loadedChunkIds.add(prevId)
                 tail = stores.chunk.getById(prevId)
@@ -283,7 +326,9 @@ internal class SqlTimeline(
         } else {
             var head = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }
             while (true) {
-                val nextId = head?.next_chunk_id ?: break
+                // Symmetrically, the live edge has nothing newer.
+                if (head == null || head.is_last_forward != 0L) break
+                val nextId = head.next_chunk_id ?: break
                 if (nextId in loadedChunkIds) break
                 loadedChunkIds.add(0, nextId)
                 head = stores.chunk.getById(nextId)
@@ -318,14 +363,16 @@ internal class SqlTimeline(
     private fun toPaginationDirection(direction: Timeline.Direction) =
             if (direction == Timeline.Direction.FORWARDS) PaginationDirection.FORWARDS else PaginationDirection.BACKWARDS
 
-    private fun computeLoadedEvents(): List<TimelineEvent> {
+    private fun computeLoadedEvents(reuseLiveChunk: Boolean = false): List<TimelineEvent> {
         val liveChunkId = loadedChunkIds.firstOrNull()
         val chunkEvents = loadedChunkIds.flatMap { chunkId ->
-            if (chunkId == liveChunkId) {
-                // the live/changing chunk is always re-mapped...
+            if (chunkId == liveChunkId && !reuseLiveChunk) {
+                // the live/changing chunk is re-mapped on sync/content changes...
                 snapshotLoader.chunkSnapshot(chunkId).also { chunkSnapshotCache[chunkId] = it }
             } else {
-                // ...older paginated chunks are static; reuse the cached mapping
+                // ...but static history chunks — and the live chunk during a pure backward-scroll reveal
+                // (reuseLiveChunk), which never changes its content — reuse the cached mapping. Re-resolving
+                // a large live chunk on every scroll page was a scroll-lag source.
                 chunkSnapshotCache.getOrPut(chunkId) { snapshotLoader.chunkSnapshot(chunkId) }
             }
         }
@@ -363,23 +410,35 @@ internal class SqlTimeline(
     // After loading older events from disk/server, advance the window a page older to reveal them.
     private suspend fun revealAfterBackwardFetch() {
         if (isWindowed) {
-            val all = computeLoadedEvents()
+            val all = computeLoadedEvents(reuseLiveChunk = true)
             val oldestIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }?.takeIf { it >= 0 } ?: all.lastIndex
             oldestShownEventId = all.getOrNull((oldestIdx + windowGrowStep).coerceAtMost(all.lastIndex))?.eventId
         }
-        rebuildSnapshot()
+        rebuildSnapshot(reuseLiveChunk = true)
     }
 
-    private suspend fun rebuildSnapshot() {
-        val all = computeLoadedEvents()
+    private suspend fun rebuildSnapshot(reuseLiveChunk: Boolean = false) {
+        val all = computeLoadedEvents(reuseLiveChunk)
         val events = applyWindow(all)
         builtEvents = events
+        requestDecryptionForUtd(events)
         windowHasMoreOlder = isWindowed && events.isNotEmpty() && events.last().eventId != all.last().eventId
         refreshPaginationStates()
         Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events")
         withContext(coroutineDispatchers.main) {
             listeners.forEach { tryOrNull { it.onTimelineUpdated(events) } }
         }
+    }
+
+    // Persisted UTD events are only decrypted at sync/insert time (skipped on initial sync) and, for the
+    // room's latest previewable event, by the room-summary decryptor — so on opening an old room every
+    // other encrypted event stays UTD until we ask here. requestDecryption dedupes in-flight/failed ones.
+    private fun requestDecryptionForUtd(events: List<TimelineEvent>) {
+        val requests = events.mapNotNull { event ->
+            event.root.takeIf { it.isEncrypted() && it.mxDecryptionResult == null }
+                    ?.let { TimelineEventDecryptor.DecryptionRequest(it, timelineID) }
+        }
+        if (requests.isNotEmpty()) eventDecryptor.requestDecryption(requests)
     }
 
     private fun isLiveEdgeLoaded(): Boolean =
@@ -390,7 +449,7 @@ internal class SqlTimeline(
         if (isThreadTimeline) return
         val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) }
         val moreBackward = windowHasMoreOlder ||
-                (oldest != null && (oldest.prev_chunk_id != null || oldest.prev_token != null))
+                (oldest != null && oldest.is_last_backward == 0L && (oldest.prev_chunk_id != null || oldest.prev_token != null))
         updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = moreBackward) }
 
         val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }
@@ -409,5 +468,9 @@ internal class SqlTimeline(
         timelineScope.launch(coroutineDispatchers.main) {
             listeners.forEach { tryOrNull { it.onStateUpdated(direction, newValue) } }
         }
+    }
+
+    companion object {
+        private const val DECRYPT_REBUILD_DEBOUNCE_MS = 150L
     }
 }

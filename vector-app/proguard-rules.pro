@@ -20,7 +20,27 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class im.vector.app.features.** { *; }
+# Do NOT blanket-keep the whole app. A `-keep ... { *; }` pins every class (including all the Kotlin
+# lambda/synthetic classes) against R8's class-merging + inlining, so our own loaded-class count only
+# grows as features are added — which is what overflows ICS's fixed 8MB Dalvik LinearAlloc (class/method
+# metadata) at the home screen. Instead let R8 optimise features.** and keep only the reflective entry
+# points that R8 can't see through:
+#  - Mavericks rebuilds a ViewState from Parcelable fragment args and finds the ViewModel factory (the
+#    companion) by reflection.
+#  - the FragmentManager, preference screens and settings re-instantiate fragments/preferences by name.
+# (AGP's default -optimize rules keep manifest components, custom Views and Parcelable CREATORs; Epoxy,
+# Moshi, Glide and Hilt ship their own consumer rules.)
+-keep class * implements com.airbnb.mvrx.MavericksState { *; }
+-keep class * implements com.airbnb.mvrx.MavericksViewModelFactory { *; }
+-keepclassmembers class * extends com.airbnb.mvrx.MavericksViewModel {
+    <init>(...);
+}
+-keep class * extends androidx.fragment.app.Fragment {
+    <init>(...);
+}
+-keep class * extends androidx.preference.Preference {
+    <init>(...);
+}
 
 ## print all the rules in a file
 # -printconfiguration ../proguard_files/full-r8-config.txt

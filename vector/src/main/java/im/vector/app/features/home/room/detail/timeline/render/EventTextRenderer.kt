@@ -18,6 +18,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.html.PILL_PLACEHOLDER
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.setPillSpan
 import im.vector.lib.strings.CommonStrings
@@ -107,7 +108,7 @@ class EventTextRenderer @AssistedInject constructor(
         }
     }
 
-    private data class PillPlacement(val item: MatrixItem, val start: Int, val end: Int)
+    private data class PillPlacement(val item: MatrixItem, val start: Int, val end: Int, val url: String)
 
     private fun addPermalinksSpans(text: Spannable) {
         val placements = mutableListOf<PillPlacement>()
@@ -122,7 +123,7 @@ class EventTextRenderer @AssistedInject constructor(
             if (start < 0 || end < 0) continue
             if (existingPills.any { text.getSpanStart(it) < end && start < text.getSpanEnd(it) }) continue
             val item = permalinkToMatrixItem(span.url) ?: continue
-            placements.add(PillPlacement(item, start, end))
+            placements.add(PillPlacement(item, start, end, span.url))
         }
         // Bare permalink URLs that appear as plain visible text (no <a> wrapper), skipping ranges
         // already covered above.
@@ -132,12 +133,17 @@ class EventTextRenderer @AssistedInject constructor(
             val end = trimTrailingUrlPunctuation(text, match.range.first, rawEnd)
             val start = match.range.first
             if (placements.any { it.start < end && start < it.end }) continue
-            val item = permalinkToMatrixItem(text.substring(start, end)) ?: continue
-            placements.add(PillPlacement(item, start, end))
+            val url = text.substring(start, end)
+            val item = permalinkToMatrixItem(url) ?: continue
+            placements.add(PillPlacement(item, start, end, url))
         }
         // Apply in reverse so collapsing a pill's backing text doesn't shift the earlier ranges.
         placements.sortedByDescending { it.start }.forEach {
             addPillSpan(text, createPillImageSpan(it.item), it.start, it.end)
+            // setPillSpan collapsed the link text to a single placeholder char, dropping any underlying
+            // URLSpan — re-add one over the pill so the movement method still routes taps to onUrlClicked
+            // (otherwise a "Message in …" / permalink pill renders but is inert).
+            text.setSpan(URLSpan(it.url), it.start, it.start + PILL_PLACEHOLDER.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
     }
 

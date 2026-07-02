@@ -47,7 +47,9 @@ abstract class HomeSpaceSummaryItem : VectorEpoxyModel<HomeSpaceSummaryItem.Hold
         holder.groupNameView.text = holder.view.context.getString(CommonStrings.all_chats)
         holder.rootView.isChecked = selected
         holder.rootView.context.resources
-        holder.avatarImageView.backgroundCompat = ContextCompat.getDrawable(holder.view.context, R.drawable.space_home_background)
+        val homeBackgroundRes = ThemeUtils.getAttribute(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_space_home_background)?.resourceId
+                ?: R.drawable.space_home_background
+        holder.avatarImageView.backgroundCompat = ContextCompat.getDrawable(holder.view.context, homeBackgroundRes)
         holder.avatarImageView.setImageResource(R.drawable.ic_space_home)
         ImageViewCompat.setImageTintList(holder.avatarImageView, ColorStateList.valueOf(
                 ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)

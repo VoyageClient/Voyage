@@ -46,6 +46,9 @@ internal class MegolmInboundSqlStore(private val database: CryptoSqlDatabase) {
 
     fun getAll(): List<Olm_inbound_group_session> = queries.selectAll().executeAsList()
 
+    /** Just the primary keys ("sessionId|senderKey") — cheap, avoids unpickling every stored session. */
+    fun getAllPrimaryKeys(): Set<String> = queries.selectAllPrimaryKeys().executeAsList().toHashSet()
+
     fun getByRoomId(roomId: String): List<Olm_inbound_group_session> =
             queries.selectByRoomId(roomId).executeAsList()
 

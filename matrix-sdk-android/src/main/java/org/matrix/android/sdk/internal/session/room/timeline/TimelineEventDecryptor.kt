@@ -20,7 +20,9 @@ import kotlinx.coroutines.runBlocking
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
+import org.matrix.android.sdk.api.session.crypto.model.MXEventDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -28,6 +30,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import timber.log.Timber
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -41,20 +44,44 @@ internal class TimelineEventDecryptor @Inject constructor(
 
     private val newSessionListener = object : NewSessionListener {
         override fun onNewSession(roomId: String?, sessionId: String) {
-            synchronized(unknownSessionsFailure) {
+            val retry = synchronized(unknownSessionsFailure) {
                 unknownSessionsFailure[sessionId]
                         ?.toList()
                         .orEmpty()
-                        .also {
-                            unknownSessionsFailure[sessionId]?.clear()
-                        }
-            }.forEach {
-                requestDecryption(it)
+                        .also { unknownSessionsFailure[sessionId]?.clear() }
+            }
+            // Just removed from unknownSessionsFailure above, so skip the (O(n)) re-scan of that map.
+            if (retry.isNotEmpty()) requestDecryption(retry, alreadyClearedFromUnknown = true)
+            // The map above only holds events that failed IN THIS app run. A key import (exported/backup
+            // keys) needs to also re-decrypt events that failed in a previous run and were persisted as
+            // UTD — decryption otherwise only runs at sync/insert time. Re-scan the room's stored UTDs
+            // once (per run) so old encrypted rooms decrypt after import.
+            if (roomId != null && rescannedRooms.add(roomId)) {
+                executor?.execute { rescanRoomForDecryption(roomId) }
             }
         }
     }
 
+    // Rooms already re-scanned for persisted UTDs this run (dedupes the per-session storm of a bulk import).
+    private val rescannedRooms = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    private fun rescanRoomForDecryption(roomId: String) {
+        val events = runBlocking {
+            database.awaitDbTransaction(dispatcher) {
+                stores.event.getUndecryptedEncryptedEvents(roomId, EventType.ENCRYPTED)
+            }
+        }
+        requestDecryption(events.map { DecryptionRequest(it, "") })
+    }
+
     private var executor: ExecutorService? = null
+
+    // Notified after an event is successfully decrypted, so the owning timeline can rebuild its snapshot
+    // (a decryption result is written to the event table, which the timeline_event flow doesn't observe).
+    private val onDecryptedListeners = CopyOnWriteArrayList<OnEventDecryptedListener>()
+
+    fun addOnDecryptedListener(listener: OnEventDecryptedListener) = onDecryptedListeners.add(listener)
+    fun removeOnDecryptedListener(listener: OnEventDecryptedListener) = onDecryptedListeners.remove(listener)
 
     // Set of eventIds which are currently decrypting
     private val existingRequests = mutableSetOf<DecryptionRequest>()
@@ -77,85 +104,101 @@ internal class TimelineEventDecryptor @Inject constructor(
         synchronized(existingRequests) {
             existingRequests.clear()
         }
+        rescannedRooms.clear()
     }
 
-    fun requestDecryption(request: DecryptionRequest) {
-        synchronized(unknownSessionsFailure) {
-            for (requests in unknownSessionsFailure.values) {
-                if (request in requests) {
-                    Timber.d("Skip Decryption request for event ${request.event.eventId}, unknown session")
-                    return
+    fun requestDecryption(request: DecryptionRequest, alreadyClearedFromUnknown: Boolean = false) =
+            requestDecryption(listOf(request), alreadyClearedFromUnknown)
+
+    fun requestDecryption(requests: List<DecryptionRequest>, alreadyClearedFromUnknown: Boolean = false) {
+        val toProcess = ArrayList<DecryptionRequest>(requests.size)
+        for (request in requests) {
+            if (!alreadyClearedFromUnknown) {
+                val knownUnknownSession = synchronized(unknownSessionsFailure) {
+                    unknownSessionsFailure.values.any { request in it }
                 }
+                if (knownUnknownSession) continue
             }
+            val added = synchronized(existingRequests) { existingRequests.add(request) }
+            if (added) toProcess.add(request)
         }
-        synchronized(existingRequests) {
-            if (!existingRequests.add(request)) {
-                Timber.d("Skip Decryption request for event ${request.event.eventId}, already requested")
-                return
-            }
-        }
+        if (toProcess.isEmpty()) return
         executor?.execute {
             try {
-                processDecryptRequest(request)
+                processDecryptRequests(toProcess)
             } catch (e: InterruptedException) {
                 Timber.i("Decryption got interrupted")
             }
         }
     }
 
-    private fun processDecryptRequest(request: DecryptionRequest) {
-        val event = request.event
-        val timelineId = request.timelineId
-
-        // Non-encrypted events were only made thread-aware here; that decoration runs in the SQL sync
-        // path now, so there is nothing to do for them on-demand.
-        if (!event.isEncrypted()) return
-
+    private fun processDecryptRequests(requests: List<DecryptionRequest>) {
         try {
-            val result = runBlocking {
-                cryptoService.decryptEvent(event, timelineId)
-            }
-            Timber.v("Successfully decrypted event ${event.eventId}")
-            val eventId = event.eventId ?: return
-            runBlocking {
-                database.awaitDbTransaction(dispatcher) {
-                    stores.event.applyDecryptionResult(eventId, result)
-                    // the event can now be aggregated (reactions/edits) on its clear content
-                    stores.eventInsert.setCanBeProcessed(eventId, true)
-                }
-            }
-        } catch (e: MXCryptoError) {
-            Timber.v("Failed to decrypt event ${event.eventId} : ${e.localizedMessage}")
-            if (e is MXCryptoError.Base) {
-                val eventId = event.eventId.orEmpty()
-                runBlocking {
-                    database.awaitDbTransaction(dispatcher) {
-                        stores.event.applyDecryptionError(
-                                eventId,
-                                e.errorType.name,
-                                e.technicalMessage.takeIf { it.isNotEmpty() } ?: e.detailedErrorDescription,
-                        )
-                    }
-                }
-                event.content?.toModel<EncryptedEventContent>()?.let { content ->
-                    content.sessionId?.let { sessionId ->
+            // Chunk so a large backlog (e.g. a whole-room rescan) writes in bounded transactions that
+            // surface progressively, rather than one giant commit that holds the write lock.
+            requests.chunked(DECRYPT_BATCH_SIZE).forEach { processChunk(it) }
+        } finally {
+            synchronized(existingRequests) { existingRequests.removeAll(requests.toSet()) }
+        }
+    }
+
+    // Decrypt the whole chunk first, then persist every result in a SINGLE transaction. Each transaction
+    // commit fsyncs (no WAL), so a per-event transaction caps throughput at a handful/second — batching a
+    // room's UTD backlog into one commit is what lets them surface together after a key import / room open.
+    private fun processChunk(requests: List<DecryptionRequest>) {
+        val successes = ArrayList<Pair<String, MXEventDecryptionResult>>(requests.size)
+        val errors = ArrayList<Triple<String, String, String?>>()
+        for (request in requests) {
+            val event = request.event
+            // Defensive: only encrypted events have anything to decrypt here.
+            if (!event.isEncrypted()) continue
+            try {
+                val result = runBlocking { cryptoService.decryptEvent(event, request.timelineId) }
+                event.eventId?.let { successes.add(it to result) }
+            } catch (e: MXCryptoError) {
+                if (e is MXCryptoError.Base) {
+                    errors.add(Triple(
+                            event.eventId.orEmpty(),
+                            e.errorType.name,
+                            e.technicalMessage.takeIf { it.isNotEmpty() } ?: e.detailedErrorDescription,
+                    ))
+                    event.content?.toModel<EncryptedEventContent>()?.sessionId?.let { sessionId ->
                         synchronized(unknownSessionsFailure) {
                             unknownSessionsFailure.getOrPut(sessionId) { mutableSetOf() }.add(request)
                         }
                     }
                 }
-            }
-        } catch (t: Throwable) {
-            Timber.e("Failed to decrypt event ${event.eventId}, ${t.localizedMessage}")
-        } finally {
-            synchronized(existingRequests) {
-                existingRequests.remove(request)
+            } catch (t: Throwable) {
+                Timber.e("Failed to decrypt event ${event.eventId}, ${t.localizedMessage}")
             }
         }
+        if (successes.isNotEmpty() || errors.isNotEmpty()) {
+            runBlocking {
+                database.awaitDbTransaction(dispatcher) {
+                    successes.forEach { (eventId, result) ->
+                        stores.event.applyDecryptionResult(eventId, result)
+                        // the event can now be aggregated (reactions/edits) on its clear content
+                        stores.eventInsert.setCanBeProcessed(eventId, true)
+                    }
+                    errors.forEach { (eventId, code, reason) ->
+                        stores.event.applyDecryptionError(eventId, code, reason)
+                    }
+                }
+            }
+        }
+        if (successes.isNotEmpty()) onDecryptedListeners.forEach { it.onEventsDecrypted() }
     }
 
     data class DecryptionRequest(
             val event: Event,
             val timelineId: String
     )
+
+    fun interface OnEventDecryptedListener {
+        fun onEventsDecrypted()
+    }
+
+    companion object {
+        private const val DECRYPT_BATCH_SIZE = 100
+    }
 }

@@ -209,6 +209,8 @@ internal class SqlCryptoStore @Inject constructor(
         }
     }
 
+    override fun getInboundGroupSessionKeys(): Set<String> = megolmStore.getAllPrimaryKeys()
+
     override fun getInboundGroupSession(sessionId: String, senderKey: String): MXInboundMegolmSessionWrapper? =
             megolmStore.get(OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, senderKey))?.toModelWrapper()
 
@@ -226,19 +228,11 @@ internal class SqlCryptoStore @Inject constructor(
     override fun markBackupDoneForInboundGroupSessions(olmInboundGroupSessionWrappers: List<MXInboundMegolmSessionWrapper>) {
         if (olmInboundGroupSessionWrappers.isEmpty()) return
         database.transaction {
+            // These were just persisted by storeInboundGroupSessions, so a targeted UPDATE is enough — no
+            // need to read each one back first (that per-session lookup dominated a large backup restore).
             olmInboundGroupSessionWrappers.forEach { wrapper ->
                 val sessionId = tryOrNull("markBackupDone sessionIdentifier") { wrapper.session.sessionIdentifier() } ?: return@forEach
-                val key = OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, wrapper.sessionData.senderKey)
-                if (megolmStore.get(key) != null) {
-                    megolmStore.markBackedUp(key)
-                } else {
-                    val entity = OlmInboundGroupSessionEntity().apply {
-                        primaryKey = key
-                        store(wrapper)
-                        backedUp = true
-                    }
-                    megolmStore.upsert(key, entity.sessionId, entity.senderKey, entity.roomId, entity.inboundGroupSessionDataJson, entity.serializedOlmInboundGroupSession, entity.sharedHistory, true)
-                }
+                megolmStore.markBackedUp(OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, wrapper.sessionData.senderKey))
             }
         }
     }

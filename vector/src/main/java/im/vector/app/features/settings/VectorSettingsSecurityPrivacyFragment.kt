@@ -63,6 +63,7 @@ import im.vector.app.features.pin.PinMode
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.session.coroutineScope
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -678,40 +679,54 @@ class VectorSettingsSecurityPrivacyFragment :
                         .setView(progressLayout)
                         .setCancelable(false)
                         .show()
+                // Update the dialog's OWN views (not the fragment view) and no-op once the dialog window is
+                // gone, so a rotation / backgrounding mid-import can never poke a detached view.
                 val progressListener = object : ProgressListener {
                     override fun onProgress(progress: Int, total: Int) {
-                        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                            progressViews.importKeysProgress.max = total
-                            progressViews.importKeysProgress.setProgressCompat(progress, true)
-                            progressViews.importKeysProgressCount.text = getString(CommonStrings.import_e2e_keys_progress_count, progress, total)
+                        progressViews.root.post {
+                            if (progressDialog.isShowing) {
+                                progressViews.importKeysProgress.max = total
+                                progressViews.importKeysProgress.setProgressCompat(progress, true)
+                                progressViews.importKeysProgressCount.text =
+                                        appContext.getString(CommonStrings.import_e2e_keys_progress_count, progress, total)
+                            }
                         }
                     }
                 }
 
-                lifecycleScope.launch {
+                // Run on the session scope, not the fragment's: the import must keep running across a screen
+                // rotation or the app being backgrounded (the fragment scope would cancel it). Everything that
+                // touches the UI afterwards is best-effort — the Activity/window may be gone by the time we finish.
+                val importScope = activeSessionHolder.getSafeActiveSession()?.coroutineScope ?: lifecycleScope
+                importScope.launch {
                     val data = try {
                         keysImporter.import(uri, mimetype, password, progressListener)
                     } catch (failure: Throwable) {
                         appContext.toast(errorFormatter.toHumanReadable(failure))
                         null
                     }
-                    progressDialog.dismiss()
-
-                    if (data != null) {
-                        MaterialAlertDialogBuilder(thisActivity)
-                                .setMessage(
-                                        resources.getQuantityString(
-                                                CommonPlurals.encryption_import_room_keys_success,
-                                                data.successfullyNumberOfImportedKeys,
-                                                data.successfullyNumberOfImportedKeys,
-                                                data.totalNumberOfKeys
-                                        )
-                                )
-                                .setPositiveButton(CommonStrings.ok) { dialog, _ -> dialog.dismiss() }
-                                .show()
+                    withContext(Dispatchers.Main) {
+                        tryOrNull { progressDialog.dismiss() }
+                        if (data != null) {
+                            val message = appContext.resources.getQuantityString(
+                                    CommonPlurals.encryption_import_room_keys_success,
+                                    data.successfullyNumberOfImportedKeys,
+                                    data.successfullyNumberOfImportedKeys,
+                                    data.totalNumberOfKeys,
+                            )
+                            val current = activity
+                            if (isResumed && current != null && !current.isFinishing) {
+                                MaterialAlertDialogBuilder(current)
+                                        .setMessage(message)
+                                        .setPositiveButton(CommonStrings.ok) { dialog, _ -> dialog.dismiss() }
+                                        .show()
+                            } else {
+                                appContext.toast(message)
+                            }
+                        }
                     }
                 }
-                importDialog.dismiss()
+                tryOrNull { importDialog.dismiss() }
             }
         }
     }

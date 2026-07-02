@@ -39,6 +39,13 @@
     <!-- Used for toolbar background -->
     <attr name="vctr_toolbar_background" format="color" />
 
+    <!-- Space-list item background. A theme-selected reference (not ?android:colorBackground inside the
+         drawable) because pre-21 can't resolve theme attrs during drawable inflation. -->
+    <attr name="vctr_space_item_background" format="reference" />
+
+    <!-- "All chats" home-space icon background; theme-selected for the same pre-21 reason. -->
+    <attr name="vctr_space_home_background" format="reference" />
+
     <!-- Used for header background -->
     <attr name="vctr_header_background" format="color" />
 

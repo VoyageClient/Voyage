@@ -157,7 +157,7 @@ internal class RoomSummaryDataSource @Inject constructor(
             pagedListConfig: PagedList.Config,
             sortOrder: RoomSortOrder,
     ): LiveData<PagedList<RoomSummary>> {
-        return livePaged(queries.selectAll(), pageSize = pagedListConfig.pageSize) {
+        return livePaged(queries.selectAll(), pagedListConfig) {
             filteredSortedRows(queryParams, sortOrder).mapNotNull { it.toDomain() }
         }
     }
@@ -184,7 +184,7 @@ internal class RoomSummaryDataSource @Inject constructor(
                 }
             override val liveBoundaries: LiveData<ResultBoundaries> get() = boundaries
             override val livePagedList: LiveData<PagedList<RoomSummary>> =
-                    livePaged(queries.selectAll(), pageSize = pagedListConfig.pageSize, onDataSourceCreated = { dataSourceRef.set(it) }) {
+                    livePaged(queries.selectAll(), pagedListConfig, onDataSourceCreated = { dataSourceRef.set(it) }) {
                         filteredSortedRows(this.queryParams, this.sortOrder).mapNotNull { it.toDomain() }
                                 .also { boundaries.postValue(ResultBoundaries(zeroItemLoaded = it.isEmpty())) }
                     }

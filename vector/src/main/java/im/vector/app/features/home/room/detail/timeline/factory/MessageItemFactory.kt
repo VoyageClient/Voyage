@@ -150,16 +150,21 @@ class MessageItemFactory @Inject constructor(
         private val session: Session,
         private val clock: Clock,
         private val audioMessagePlaybackTracker: AudioMessagePlaybackTracker,
-        private val locationPinProvider: LocationPinProvider,
+        private val locationPinProvider: Lazy<LocationPinProvider>,
         private val vectorPreferences: VectorPreferences,
-        private val urlMapProvider: UrlMapProvider,
-        private val liveLocationShareMessageItemFactory: LiveLocationShareMessageItemFactory,
+        private val urlMapProvider: Lazy<UrlMapProvider>,
+        private val liveLocationShareMessageItemFactory: Lazy<LiveLocationShareMessageItemFactory>,
         private val pollItemViewStateFactory: PollItemViewStateFactory,
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
         private val pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor,
 ) {
+
+    // MapLibre (and the whole location UI) is unavailable pre-Lollipop; never touch the location
+    // builders there so their classes — and MapLibre's — are never loaded (they'd waste the tight
+    // Dalvik LinearAlloc budget that already crashes room-open on ICS).
+    private val locationSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
 
     // TODO inject this properly?
     private var roomId: String = ""
@@ -222,8 +227,16 @@ class MessageItemFactory @Inject constructor(
             is MessageVerificationRequestContent -> buildVerificationRequestMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessagePollContent -> buildPollItem(messageContent, informationData, highlight, callback, attributes, isEnded = false)
             is MessageEndPollContent -> buildEndedPollItem(event.getRelationContent()?.eventId, informationData, highlight, callback, attributes)
-            is MessageLocationContent -> buildLocationItem(messageContent, informationData, highlight, attributes)
-            is MessageBeaconInfoContent -> liveLocationShareMessageItemFactory.create(event, highlight, attributes)
+            is MessageLocationContent -> if (locationSupported) {
+                buildLocationItem(messageContent, informationData, highlight, attributes)
+            } else {
+                buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
+            }
+            is MessageBeaconInfoContent -> if (locationSupported) {
+                liveLocationShareMessageItemFactory.get().create(event, highlight, attributes)
+            } else {
+                buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
+            }
             else -> buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
         } }
         return messageItem?.apply {
@@ -248,7 +261,7 @@ class MessageItemFactory @Inject constructor(
         val height = dimensionConverter.dpToPx(MESSAGE_LOCATION_ITEM_HEIGHT_IN_DP)
 
         val locationUrl = locationContent.toLocationData()?.let {
-            urlMapProvider.buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, width, height)
+            urlMapProvider.get().buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, width, height)
         }
 
         val pinMatrixItem = if (locationContent.isSelfLocation()) informationData.matrixItem else null
@@ -259,7 +272,7 @@ class MessageItemFactory @Inject constructor(
                 .mapWidth(width)
                 .mapHeight(height)
                 .pinMatrixItem(pinMatrixItem)
-                .locationPinProvider(locationPinProvider)
+                .locationPinProvider(locationPinProvider.get())
                 .highlighted(highlight)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
     }

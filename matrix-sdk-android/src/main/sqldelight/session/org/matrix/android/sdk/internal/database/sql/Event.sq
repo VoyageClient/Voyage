@@ -45,6 +45,9 @@ SELECT * FROM event WHERE event_id = ? LIMIT 1;
 selectByEventIdInRoom:
 SELECT * FROM event WHERE room_id = ? AND event_id = ? LIMIT 1;
 
+selectUndecryptedEncryptedInRoom:
+SELECT * FROM event WHERE room_id = ? AND type = ? AND decryption_result_json IS NULL;
+
 selectIdByEventIdInRoom:
 SELECT id FROM event WHERE room_id = ? AND event_id = ? LIMIT 1;
 
