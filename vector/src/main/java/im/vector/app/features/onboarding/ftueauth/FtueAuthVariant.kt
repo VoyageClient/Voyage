@@ -111,11 +111,7 @@ class FtueAuthVariant(
     }
 
     private fun addFirstFragment() {
-        val splashFragment = when (vectorFeatures.isOnboardingSplashCarouselEnabled()) {
-            true -> FtueAuthSplashCarouselFragment::class.java
-            else -> FtueAuthSplashFragment::class.java
-        }
-        activity.addFragment(views.loginFragmentContainer, splashFragment)
+        activity.addFragment(views.loginFragmentContainer, FtueAuthServerSelectionFragment::class.java)
     }
 
     private fun updateWithState(viewState: OnboardingViewState) {

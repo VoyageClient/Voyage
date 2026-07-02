@@ -95,7 +95,7 @@
 
                 <data
                     android:host="connect"
-                    android:scheme="element" />
+                    android:scheme="im.voyage.app" />
             </intent-filter>
         </activity>
 

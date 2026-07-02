@@ -8,5 +8,5 @@
     android:layout_gravity="center_horizontal"
     android:layout_marginTop="32dp"
     android:importantForAccessibility="no"
-    app:srcCompat="@drawable/element_logo_green"
+    app:srcCompat="@drawable/element_logo_white"
     tools:viewBindingIgnore="true" />

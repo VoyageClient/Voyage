@@ -12,18 +12,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.FragmentLoginServerSelectionBinding
-import im.vector.app.features.login.EMS_LINK
 import im.vector.app.features.login.ServerType
 import im.vector.app.features.login.SignMode
 import im.vector.app.features.onboarding.OnboardingAction
 import im.vector.app.features.onboarding.OnboardingViewState
-import im.vector.lib.strings.CommonStrings
-import me.gujun.android.span.span
 
 /**
- * In this screen, the user will choose between matrix.org, modular or other type of homeserver.
+ * In this screen, the user chooses to sign in with a Matrix ID or to connect to a custom homeserver.
  */
 @AndroidEntryPoint
 class FtueAuthServerSelectionFragment :
@@ -36,39 +32,8 @@ class FtueAuthServerSelectionFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initViews()
-        initTextViews()
-    }
-
-    private fun initViews() {
-        views.loginServerChoiceEmsLearnMore.setOnClickListener { learnMore() }
-        views.loginServerChoiceMatrixOrg.setOnClickListener { selectMatrixOrg() }
-        views.loginServerChoiceEms.setOnClickListener { selectEMS() }
+        views.loginServerChoiceMatrixId.setOnClickListener { loginWithMatrixId() }
         views.loginServerChoiceOther.setOnClickListener { selectOther() }
-        views.loginServerIKnowMyIdSubmit.setOnClickListener { loginWithMatrixId() }
-    }
-
-    private fun updateSelectedChoice(state: OnboardingViewState) {
-        views.loginServerChoiceMatrixOrg.isChecked = state.serverType == ServerType.MatrixOrg
-    }
-
-    private fun initTextViews() {
-        views.loginServerChoiceEmsLearnMore.text = span {
-            text = getString(CommonStrings.login_server_modular_learn_more)
-            textDecorationLine = "underline"
-        }
-    }
-
-    private fun learnMore() {
-        openUrlInChromeCustomTab(requireActivity(), null, EMS_LINK)
-    }
-
-    private fun selectMatrixOrg() {
-        viewModel.handle(OnboardingAction.UpdateServerType(ServerType.MatrixOrg))
-    }
-
-    private fun selectEMS() {
-        viewModel.handle(OnboardingAction.UpdateServerType(ServerType.EMS))
     }
 
     private fun selectOther() {
@@ -84,6 +49,6 @@ class FtueAuthServerSelectionFragment :
     }
 
     override fun updateWithState(state: OnboardingViewState) {
-        updateSelectedChoice(state)
+        // Nothing to do
     }
 }

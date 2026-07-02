@@ -429,9 +429,18 @@ class OnboardingViewModel @AssistedInject constructor(
     private fun handleUpdateSignMode(action: OnboardingAction.UpdateSignMode) {
         updateSignMode(action.signMode)
         when (action.signMode) {
-            SignMode.SignUp -> handleRegisterAction(RegisterAction.StartRegistration)
-            SignMode.SignIn -> startAuthenticationFlow()
-            SignMode.SignInWithMatrixId -> _viewEvents.post(OnboardingViewEvents.OnSignModeSelected(SignMode.SignInWithMatrixId))
+            SignMode.SignUp -> {
+                setState { copy(onboardingFlow = OnboardingFlow.SignUp) }
+                handleRegisterAction(RegisterAction.StartRegistration)
+            }
+            SignMode.SignIn -> {
+                setState { copy(onboardingFlow = OnboardingFlow.SignIn) }
+                startAuthenticationFlow()
+            }
+            SignMode.SignInWithMatrixId -> {
+                setState { copy(onboardingFlow = OnboardingFlow.SignIn) }
+                _viewEvents.post(OnboardingViewEvents.OnSignModeSelected(SignMode.SignInWithMatrixId))
+            }
             SignMode.Unknown -> Unit
         }
     }

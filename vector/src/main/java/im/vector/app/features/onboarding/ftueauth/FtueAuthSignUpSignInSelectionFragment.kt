@@ -73,7 +73,12 @@ class FtueAuthSignUpSignInSelectionFragment :
         }
 
         when (state.selectedHomeserver.preferredLoginMode) {
-            is LoginMode.SsoAndPassword -> {
+            // For OIDC/MAS the Create account / Sign In buttons already drive the SSO flow,
+            // so don't also render the redundant per-provider social login buttons.
+            is LoginMode.SsoAndPassword -> if (state.selectedHomeserver.hasOidcCompatibilityFlow) {
+                views.loginSignupSigninSignInSocialLoginContainer.isVisible = false
+                views.loginSignupSigninSocialLoginButtons.ssoIdentityProviders = null
+            } else {
                 views.loginSignupSigninSignInSocialLoginContainer.isVisible = true
                 views.loginSignupSigninSocialLoginButtons.render(state.selectedHomeserver.preferredLoginMode, Mode.MODE_CONTINUE) { provider ->
                     viewModel.fetchSsoUrl(
@@ -102,11 +107,18 @@ class FtueAuthSignUpSignInSelectionFragment :
     }
 
     private fun setupButtons(state: OnboardingViewState) {
-        when (state.selectedHomeserver.preferredLoginMode) {
-            is LoginMode.Sso -> {
-                // change to only one button that is sign in with sso
-                views.loginSignupSigninSubmit.text =
-                        getString(if (state.selectedHomeserver.hasOidcCompatibilityFlow) CommonStrings.login_continue else CommonStrings.login_signin_sso)
+        val homeServer = state.selectedHomeserver
+        when {
+            // OIDC/MAS (e.g. matrix.org): accounts are managed by the OIDC provider, so both
+            // create-account and sign-in go through the compatibility SSO flow - even when the
+            // server also advertises password login (in which case preferredLoginMode is SsoAndPassword).
+            homeServer.hasOidcCompatibilityFlow -> {
+                views.loginSignupSigninSubmit.text = getString(CommonStrings.login_splash_create_account)
+                views.loginSignupSigninSignIn.isVisible = true
+            }
+            homeServer.preferredLoginMode is LoginMode.Sso -> {
+                // Plain SSO server: a single "continue with SSO" button
+                views.loginSignupSigninSubmit.text = getString(CommonStrings.login_signin_sso)
                 views.loginSignupSigninSignIn.isVisible = false
             }
             else -> {
@@ -117,21 +129,31 @@ class FtueAuthSignUpSignInSelectionFragment :
     }
 
     private fun submit() = withState(viewModel) { state ->
-        if (state.selectedHomeserver.preferredLoginMode is LoginMode.Sso) {
-            viewModel.fetchSsoUrl(
-                    redirectUrl = SSORedirectRouterActivity.VECTOR_REDIRECT_URL,
-                    deviceId = state.deviceId,
-                    provider = null,
-                    action = if (state.onboardingFlow == OnboardingFlow.SignUp) SSOAction.REGISTER else SSOAction.LOGIN
-            )
-                    ?.let { openInCustomTab(it) }
-        } else {
-            viewModel.handle(OnboardingAction.UpdateSignMode(SignMode.SignUp))
+        val homeServer = state.selectedHomeserver
+        when {
+            homeServer.hasOidcCompatibilityFlow -> startSso(state, SSOAction.REGISTER)
+            homeServer.preferredLoginMode is LoginMode.Sso ->
+                startSso(state, if (state.onboardingFlow == OnboardingFlow.SignUp) SSOAction.REGISTER else SSOAction.LOGIN)
+            else -> viewModel.handle(OnboardingAction.UpdateSignMode(SignMode.SignUp))
         }
     }
 
-    private fun signIn() {
-        viewModel.handle(OnboardingAction.UpdateSignMode(SignMode.SignIn))
+    private fun signIn() = withState(viewModel) { state ->
+        val homeServer = state.selectedHomeserver
+        when {
+            homeServer.hasOidcCompatibilityFlow || homeServer.preferredLoginMode is LoginMode.Sso -> startSso(state, SSOAction.LOGIN)
+            else -> viewModel.handle(OnboardingAction.UpdateSignMode(SignMode.SignIn))
+        }
+    }
+
+    private fun startSso(state: OnboardingViewState, action: SSOAction) {
+        viewModel.fetchSsoUrl(
+                redirectUrl = SSORedirectRouterActivity.VECTOR_REDIRECT_URL,
+                deviceId = state.deviceId,
+                provider = null,
+                action = action,
+        )
+                ?.let { openInCustomTab(it) }
     }
 
     override fun resetViewModel() {
@@ -141,7 +163,5 @@ class FtueAuthSignUpSignInSelectionFragment :
     override fun updateWithState(state: OnboardingViewState) {
         render(state)
         setupButtons(state)
-        // if talking to OIDC enabled homeserver in compatibility mode then immediately start SSO
-        if (state.selectedHomeserver.hasOidcCompatibilityFlow) submit()
     }
 }

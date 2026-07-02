@@ -39,7 +39,7 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:importantForAccessibility="no"
-            app:srcCompat="@drawable/element_logo_green"
+            app:srcCompat="@drawable/element_logo_white"
             android:transitionName="loginLogoTransition" />
 
         <ImageView

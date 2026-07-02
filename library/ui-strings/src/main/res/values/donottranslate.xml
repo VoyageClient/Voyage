@@ -408,4 +408,5 @@
     <string name="encryption_export_notice_optional" translatable="false">Optionally create a passphrase to encrypt the exported keys. If you set one, you will need to enter the same passphrase to import the keys; leave it blank to export without encryption.</string>
     <string name="settings_randomize_upload_filenames_title" translatable="false">Randomize uploaded file names</string>
     <string name="settings_randomize_upload_filenames_summary" translatable="false">Replace the name of uploaded files with a random ID</string>
+    <string name="login_server_matrix_id_text" translatable="false">Use your existing @user:domain.com account</string>
 </resources>

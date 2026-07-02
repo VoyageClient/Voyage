@@ -43,14 +43,13 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/loginServerTitle" />
 
-            <!-- Use a CheckableConstraintLayout to keep the pressed state when retrieving login flow -->
-            <im.vector.app.core.platform.CheckableConstraintLayout
-                android:id="@+id/loginServerChoiceMatrixOrg"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/loginServerChoiceMatrixId"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/bg_login_server_selector"
-                android:contentDescription="@string/login_a11y_choose_matrix_org"
+                android:contentDescription="@string/login_connect_using_matrix_id_submit"
                 android:minHeight="80dp"
                 android:paddingStart="@dimen/layout_horizontal_margin"
                 android:paddingLeft="@dimen/layout_horizontal_margin"
@@ -60,89 +59,32 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/loginServerText">
 
-                <ImageView
-                    android:id="@+id/loginServerChoiceMatrixOrgIcon"
+                <TextView
+                    android:id="@+id/loginServerChoiceMatrixIdTitle"
+                    style="@style/Widget.Vector.TextView.Subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:importantForAccessibility="no"
-                    app:srcCompat="@drawable/ic_logo_matrix_org"
-                    app:layout_constraintBottom_toTopOf="@id/loginServerChoiceMatrixOrgText"
+                    android:gravity="start"
+                    android:text="@string/login_connect_using_matrix_id_submit"
+                    android:textColor="?vctr_content_primary"
+                    app:layout_constraintBottom_toTopOf="@id/loginServerChoiceMatrixIdText"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_chainStyle="packed"
-                    app:tint="?vctr_content_primary"
-                    tools:ignore="MissingPrefix" />
+                    app:layout_constraintVertical_chainStyle="packed" />
 
                 <TextView
-                    android:id="@+id/loginServerChoiceMatrixOrgText"
+                    android:id="@+id/loginServerChoiceMatrixIdText"
                     style="@style/Widget.Vector.TextView.Caption"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginTop="4dp"
                     android:gravity="start"
-                    android:text="@string/login_server_matrix_org_text"
+                    android:text="@string/login_server_matrix_id_text"
                     android:textColor="?vctr_content_secondary"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/loginServerChoiceMatrixOrgIcon" />
-
-            </im.vector.app.core.platform.CheckableConstraintLayout>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/loginServerChoiceEms"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/layout_vertical_margin"
-                android:background="@drawable/bg_login_server_selector"
-                android:contentDescription="@string/login_a11y_choose_modular"
-                android:minHeight="80dp"
-                android:paddingStart="@dimen/layout_horizontal_margin"
-                android:paddingLeft="@dimen/layout_horizontal_margin"
-                android:paddingEnd="0dp"
-                android:paddingRight="0dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/loginServerChoiceMatrixOrg">
-
-                <ImageView
-                    android:id="@+id/loginServerChoiceEmsIcon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:importantForAccessibility="no"
-                    app:srcCompat="@drawable/ic_logo_element_matrix_services"
-                    app:layout_constraintBottom_toTopOf="@id/loginServerChoiceEmsText"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_chainStyle="packed"
-                    app:tint="?vctr_content_primary"
-                    tools:ignore="MissingPrefix" />
-
-                <TextView
-                    android:id="@+id/loginServerChoiceEmsText"
-                    style="@style/Widget.Vector.TextView.Caption"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="7dp"
-                    android:gravity="start"
-                    android:text="@string/login_server_modular_text"
-                    android:textColor="?vctr_content_secondary"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/loginServerChoiceEmsLearnMore"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/loginServerChoiceEmsIcon" />
-
-                <TextView
-                    android:id="@+id/loginServerChoiceEmsLearnMore"
-                    style="@style/Widget.Vector.TextView.Caption"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:text="@string/login_server_modular_learn_more"
-                    android:textColor="?colorPrimary"
-                    app:layout_constraintBottom_toBottomOf="@id/loginServerChoiceEmsText"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/loginServerChoiceEmsText" />
+                    app:layout_constraintTop_toBottomOf="@id/loginServerChoiceMatrixIdTitle" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -151,6 +93,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/layout_vertical_margin"
+                android:layout_marginBottom="32dp"
                 android:background="@drawable/bg_login_server_selector"
                 android:contentDescription="@string/login_a11y_choose_other"
                 android:minHeight="80dp"
@@ -158,9 +101,10 @@
                 android:paddingLeft="@dimen/layout_horizontal_margin"
                 android:paddingEnd="@dimen/layout_horizontal_margin"
                 android:paddingRight="@dimen/layout_horizontal_margin"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/loginServerChoiceEms">
+                app:layout_constraintTop_toBottomOf="@id/loginServerChoiceMatrixId">
 
                 <TextView
                     android:id="@+id/loginServerChoiceOtherTitle"
@@ -190,19 +134,6 @@
                     app:layout_constraintTop_toBottomOf="@id/loginServerChoiceOtherTitle" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <Button
-                android:id="@+id/loginServerIKnowMyIdSubmit"
-                style="@style/Widget.Vector.Button.Text.Login"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="32dp"
-                android:text="@string/login_connect_using_matrix_id_submit"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/loginServerChoiceOther" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

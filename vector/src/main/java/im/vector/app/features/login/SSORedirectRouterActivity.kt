@@ -25,7 +25,8 @@ class SSORedirectRouterActivity : AppCompatActivity() {
     }
 
     companion object {
-        // Note that the domain can be displayed to the user for confirmation that he trusts it. So use a human readable string
-        const val VECTOR_REDIRECT_URL = "element://connect"
+        // Note that the domain can be displayed to the user for confirmation that he trusts it. So use a human readable string.
+        // Fork-specific scheme so the SSO redirect can't be hijacked by a co-installed Element/SchildiChat that also registers element://connect.
+        const val VECTOR_REDIRECT_URL = "im.voyage.app://connect"
     }
 }

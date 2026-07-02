@@ -12,13 +12,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.FragmentLoginServerSelectionBinding
-import im.vector.lib.strings.CommonStrings
-import me.gujun.android.span.span
 
 /**
- * In this screen, the user will choose between matrix.org, modular or other type of homeserver.
+ * In this screen, the user chooses to sign in with a Matrix ID or to connect to a custom homeserver.
  */
 @AndroidEntryPoint
 class LoginServerSelectionFragment :
@@ -31,39 +28,8 @@ class LoginServerSelectionFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initViews()
-        initTextViews()
-    }
-
-    private fun initViews() {
-        views.loginServerChoiceEmsLearnMore.debouncedClicks { learnMore() }
-        views.loginServerChoiceMatrixOrg.debouncedClicks { selectMatrixOrg() }
-        views.loginServerChoiceEms.debouncedClicks { selectEMS() }
+        views.loginServerChoiceMatrixId.debouncedClicks { loginWithMatrixId() }
         views.loginServerChoiceOther.debouncedClicks { selectOther() }
-        views.loginServerIKnowMyIdSubmit.debouncedClicks { loginWithMatrixId() }
-    }
-
-    private fun updateSelectedChoice(state: LoginViewState) {
-        views.loginServerChoiceMatrixOrg.isChecked = state.serverType == ServerType.MatrixOrg
-    }
-
-    private fun initTextViews() {
-        views.loginServerChoiceEmsLearnMore.text = span {
-            text = getString(CommonStrings.login_server_modular_learn_more)
-            textDecorationLine = "underline"
-        }
-    }
-
-    private fun learnMore() {
-        openUrlInChromeCustomTab(requireActivity(), null, EMS_LINK)
-    }
-
-    private fun selectMatrixOrg() {
-        loginViewModel.handle(LoginAction.UpdateServerType(ServerType.MatrixOrg))
-    }
-
-    private fun selectEMS() {
-        loginViewModel.handle(LoginAction.UpdateServerType(ServerType.EMS))
     }
 
     private fun selectOther() {
@@ -79,6 +45,6 @@ class LoginServerSelectionFragment :
     }
 
     override fun updateWithState(state: LoginViewState) {
-        updateSelectedChoice(state)
+        // Nothing to do
     }
 }
