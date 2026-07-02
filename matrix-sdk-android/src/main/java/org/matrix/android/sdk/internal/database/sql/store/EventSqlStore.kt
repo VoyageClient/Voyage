@@ -104,6 +104,11 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     }
 
     fun updateEcho(entity: EventEntity) = queries.updateEchoByEventId(
+            // Persist the type too: encrypting a local echo flips it to m.room.encrypted, and without this
+            // the row keeps m.room.message while its content is the encrypted blob — so getClearContent()
+            // (which only decrypts when the type is encrypted) returns the blob and the event renders as
+            // "malformed" until the remote echo replaces it.
+            type = entity.type,
             content = entity.content,
             send_state_str = entity.sendState.name,
             send_state_details = entity.sendStateDetails,
