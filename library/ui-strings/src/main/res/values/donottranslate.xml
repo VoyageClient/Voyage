@@ -409,4 +409,19 @@
     <string name="settings_randomize_upload_filenames_title" translatable="false">Randomize uploaded file names</string>
     <string name="settings_randomize_upload_filenames_summary" translatable="false">Replace the name of uploaded files with a random ID</string>
     <string name="login_server_matrix_id_text" translatable="false">Use your existing @user:domain.com account</string>
+
+    <string name="settings_app_logo_title" translatable="false">App logo</string>
+    <string name="settings_app_logo_burst" translatable="false">Burst</string>
+    <string name="settings_app_logo_spark" translatable="false">Spark</string>
+    <string name="settings_app_logo_element" translatable="false">Element</string>
+    <string-array name="app_logo_entries" translatable="false">
+        <item>@string/settings_app_logo_burst</item>
+        <item>@string/settings_app_logo_spark</item>
+        <item>@string/settings_app_logo_element</item>
+    </string-array>
+    <string-array name="app_logo_values" translatable="false">
+        <item>burst</item>
+        <item>spark</item>
+        <item>element</item>
+    </string-array>
 </resources>

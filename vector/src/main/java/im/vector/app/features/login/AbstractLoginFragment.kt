@@ -19,6 +19,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.features.settings.applySelectedAppLogo
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import org.matrix.android.sdk.api.failure.Failure
@@ -52,6 +53,8 @@ abstract class AbstractLoginFragment<VB : ViewBinding> : VectorBaseFragment<VB>(
     @CallSuper
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        view.applySelectedAppLogo()
 
         loginViewModel.observeViewEvents {
             handleLoginViewEvents(it)

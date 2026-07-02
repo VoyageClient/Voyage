@@ -37,11 +37,52 @@
             android:name="android.content.APP_RESTRICTIONS"
             android:resource="@xml/vector_app_restrictions" />
 
-        <!-- Activity alias for the launcher Activity (must be declared after the Activity it targets) -->
+        <!-- Launcher aliases, one per selectable app logo. Exactly one is enabled at a time; the
+             app toggles them via PackageManager.setComponentEnabledSetting to change the home-screen
+             icon. Burst (.features.Alias, the documented launch entrypoint) is the default. -->
         <!-- exported="true" is required to launch application -->
         <activity-alias
             android:name=".features.Alias"
+            android:enabled="true"
             android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:targetActivity="im.vector.app.features.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".features.LauncherSpark"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_spark"
+            android:roundIcon="@mipmap/ic_launcher_spark_round"
+            android:targetActivity="im.vector.app.features.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+
+        <activity-alias
+            android:name=".features.LauncherElement"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_element"
+            android:roundIcon="@mipmap/ic_launcher_element_round"
             android:targetActivity="im.vector.app.features.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -31,6 +31,15 @@
             android:title="@string/settings_accent"
             app:entryPreviews="@array/sc_accent_color_previews" />
 
+        <im.vector.app.core.preference.VectorListPreference
+            android:defaultValue="burst"
+            android:entries="@array/app_logo_entries"
+            android:entryValues="@array/app_logo_values"
+            android:key="SETTINGS_APP_LOGO_KEY"
+            android:summary="%s"
+            android:title="@string/settings_app_logo_title"
+            app:iconSpaceReserved="false" />
+
         <im.vector.app.core.preference.VectorPreference
             android:dialogTitle="@string/font_size"
             android:key="SETTINGS_INTERFACE_TEXT_SIZE_KEY"

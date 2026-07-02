@@ -50,6 +50,7 @@ class VectorSettingsPreferencesFragment :
     @Inject lateinit var vectorLocale: VectorLocale
     @Inject lateinit var shortcutsHandler: ShortcutsHandler
     @Inject lateinit var customEmojiFontStore: CustomEmojiFontStore
+    @Inject lateinit var appLogoManager: AppLogoManager
 
     private val emojiFontPickerLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode != Activity.RESULT_OK) return@registerStartForActivityResult
@@ -102,6 +103,17 @@ class VectorSettingsPreferencesFragment :
                 // on the Preferences screen, same as the accent picker below.
                 (activity as? VectorBaseActivity<*>)?.acknowledgeConfigurationChange()
                 activity?.recreate()
+                true
+            } else {
+                false
+            }
+        }
+
+        // App logo: swaps the home-screen launcher icon (via activity-aliases) and the in-app marks.
+        findPreference<VectorListPreference>(AppLogo.SETTINGS_APP_LOGO_KEY)!!
+                .onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            if (newValue is String) {
+                appLogoManager.setCurrent(AppLogo.fromStorageValue(newValue))
                 true
             } else {
                 false
