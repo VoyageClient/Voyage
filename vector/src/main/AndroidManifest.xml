@@ -135,10 +135,15 @@
         <activity android:name=".features.roomdirectory.pendingrequests.PendingJoinRequestsActivity" />
         <activity android:name=".features.roomdirectory.roompreview.RoomPreviewActivity" />
         <activity android:name=".features.home.room.filtered.FilteredRoomsActivity" />
-        <activity android:name=".features.home.room.threads.ThreadsActivity" />
+        <activity
+            android:name=".features.home.room.threads.ThreadsActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
 
+        <!-- Recreating the timeline on rotation re-inflates and re-binds every loaded message,
+             which blanks the screen for many seconds on slow devices — relayout in place instead. -->
         <activity
             android:name=".features.home.room.detail.RoomDetailActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:parentActivityName=".features.home.HomeActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
