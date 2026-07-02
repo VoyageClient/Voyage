@@ -94,13 +94,6 @@ static def getFdroidVersionSuffix() {
     }
 }
 
-project.android.buildTypes.all { buildType ->
-    buildType.javaCompileOptions.annotationProcessorOptions.arguments =
-            [
-                    validateEpoxyModelUsage: String.valueOf(buildType.name == 'debug')
-            ]
-}
-
 // map for the version codes last digit
 // x86 must have greater values than arm
 // 64 bits have greater value than 32 bits

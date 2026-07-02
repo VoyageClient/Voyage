@@ -358,6 +358,14 @@ tasks.withType(Test) {
     maxHeapSize = "2g"
 }
 
+// Kapt and the Hilt plugin pass their processor args to plain javac too, where no processor
+// claims them ("options were not recognized by any processor"); that lint category is noise here.
+subprojects {
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << '-Xlint:-processing'
+    }
+}
+
 // Workaround to have KSP generated Kotlin code available in the IDE (for code completion)
 // Ref: https://github.com/airbnb/epoxy/releases/tag/5.0.0beta02
 subprojects { project ->
