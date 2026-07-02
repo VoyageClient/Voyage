@@ -214,7 +214,10 @@ android {
         debug {
             applicationIdSuffix ".debug"
             signingConfig signingConfigs.debug
-            resValue "string", "app_name", "Voyage - dbg"
+            // app_name drives in-app text (the ${app_name} string placeholders); keep it unsuffixed so
+            // the " - dbg" tag only appears on the launcher label (app_name_launcher), not inside the app.
+            resValue "string", "app_name", "Voyage"
+            resValue "string", "app_name_launcher", "Voyage - dbg"
             buildConfigField "boolean", "IS_DEBUG_VARIANT", "true"
 
             // Fast iteration: no R8, fully debuggable. Runs on KitKat+; ICS needs installRelease (the
@@ -228,6 +231,7 @@ android {
 
         release {
             resValue "string", "app_name", "Voyage"
+            resValue "string", "app_name_launcher", "Voyage"
             // Debug-key signed so installRelease works without the signing.element.* properties; swap to
             // signingConfigs.release for distribution.
             signingConfig signingConfigs.debug

@@ -2,6 +2,10 @@
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <im.vector.app.core.preference.AppLogoHeaderPreference
+        android:key="APP_LOGO_HEADER_PREFERENCE_KEY"
+        android:selectable="false" />
+
     <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/preference_help">
 
         <im.vector.app.core.preference.VectorPreference
