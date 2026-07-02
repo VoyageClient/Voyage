@@ -2813,8 +2813,4 @@
 \n
 \nSi vous ne voulez plus voir de contenu de cet utilisateur, vous pouvez l’ignorer pour masquer ses messages.</string>
     <string name="call_unsupported">Appel non pris en charge</string>
-    <string name="error_mas_not_supported_title">Vous ne pouvez plus créer de compte sur %1$s avec cette application</string>
-    <string name="error_mas_not_supported_subtitle">Téléchargez %1$s pour utiliser %2$s avec votre compte, ou choisissez un autre serveur d’accueil.</string>
-    <string name="view_download_replacement_app_title">Télécharger %1$s</string>
-    <string name="view_download_replacement_app_subtitle">Plus rapide, plus sécurisé et fourni avec des outils de collaboration efficaces.</string>
 </resources>

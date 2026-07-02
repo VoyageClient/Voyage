@@ -12,8 +12,6 @@ import com.airbnb.mvrx.MavericksViewModelFactory
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import im.vector.app.config.Config
-import im.vector.app.config.SunsetConfig
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
@@ -767,13 +765,7 @@ class OnboardingViewModel @AssistedInject constructor(
                 }
                 OnboardingFlow.SignUp -> {
                     updateSignMode(SignMode.SignUp)
-                    if (authResult.selectedHomeserver.hasOidcCompatibilityFlow && Config.sunsetConfig is SunsetConfig.Enabled) {
-                        // Navigate to the screen to create an account, it will show the error
-                        setState { copy(isLoading = false) }
-                        _viewEvents.post(OnboardingViewEvents.OpenCombinedRegister)
-                    } else {
-                        internalRegisterAction(RegisterAction.StartRegistration)
-                    }
+                    internalRegisterAction(RegisterAction.StartRegistration)
                 }
                 OnboardingFlow.SignInSignUp,
                 null -> {
@@ -788,15 +780,9 @@ class OnboardingViewModel @AssistedInject constructor(
     private suspend fun onHomeServerEdited(config: HomeServerConnectionConfig, serverTypeOverride: ServerType?, authResult: StartAuthenticationResult) {
         when (awaitState().onboardingFlow) {
             OnboardingFlow.SignUp -> {
-                if (authResult.selectedHomeserver.hasOidcCompatibilityFlow && Config.sunsetConfig is SunsetConfig.Enabled) {
-                    // An error is displayed now
-                    setState { copy(isLoading = false) }
-                    _viewEvents.post(OnboardingViewEvents.Failure(MasSupportRequiredException()))
-                } else {
-                    internalRegisterAction(RegisterAction.StartRegistration) {
-                        updateServerSelection(config, serverTypeOverride, authResult)
-                        _viewEvents.post(OnboardingViewEvents.OnHomeserverEdited)
-                    }
+                internalRegisterAction(RegisterAction.StartRegistration) {
+                    updateServerSelection(config, serverTypeOverride, authResult)
+                    _viewEvents.post(OnboardingViewEvents.OnHomeserverEdited)
                 }
             }
             OnboardingFlow.SignIn -> {

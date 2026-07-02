@@ -2757,8 +2757,4 @@
 \n%s</string>
     <string name="invite_unknown_users_dialog_submit">无论如何都邀请</string>
     <string name="call_unsupported">不支持的通话</string>
-    <string name="view_download_replacement_app_title">下载%1$s</string>
-    <string name="view_download_replacement_app_subtitle">更快、更安全，并配备了强大的协作工具。</string>
-    <string name="error_mas_not_supported_subtitle">下载%1$s以将%2$s用于您的帐户或选择不同的主服务器。</string>
-    <string name="error_mas_not_supported_title">您无法再使用此应用程序创建%1$s的帐户</string>
 </resources>

@@ -2813,8 +2813,4 @@
 \n
 \nOm du inte vill se något mer innehåll från den här användaren så kan du ignorera denne för att dölja dennes meddelanden.</string>
     <string name="call_unsupported">Samtal stöds inte</string>
-    <string name="view_download_replacement_app_title">Ladda ner %1$s</string>
-    <string name="view_download_replacement_app_subtitle">Snabbare, säkrare och fullproppad med kraftfulla samarbetsverktyg.</string>
-    <string name="error_mas_not_supported_title">Du kan inte längre skapa ett konto med %1$s med den här appen</string>
-    <string name="error_mas_not_supported_subtitle">Ladda ner %1$s för att använda %2$s för ditt konto eller välj en annan hemserver.</string>
 </resources>

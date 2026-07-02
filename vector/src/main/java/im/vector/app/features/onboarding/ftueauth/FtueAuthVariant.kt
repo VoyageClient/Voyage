@@ -207,7 +207,6 @@ class FtueAuthVariant(
                         option = commonOption
                 )
             }
-            OnboardingViewEvents.OpenCombinedRegister -> onStartCombinedRegister()
             is OnboardingViewEvents.OnAccountCreated -> onAccountCreated()
             OnboardingViewEvents.OnAccountSignedIn -> onAccountSignedIn()
             OnboardingViewEvents.OnChooseDisplayName -> onChooseDisplayName()
