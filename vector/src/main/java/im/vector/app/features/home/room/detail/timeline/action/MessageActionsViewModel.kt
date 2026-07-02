@@ -82,6 +82,7 @@ import org.matrix.android.sdk.api.session.room.timeline.isSticker
 import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
+import timber.log.Timber
 
 /**
  * Information related to an event and used to display preview in contextual bottom sheet.
@@ -232,14 +233,19 @@ class MessageActionsViewModel @AssistedInject constructor(
             // keep it off the main thread so the sheet opens/animates immediately instead of holding the
             // "-" preview placeholder while the main thread blocks on the render.
             viewModelScope.launch(Dispatchers.Default) {
-                val events = actionsForEvent(nonNullTimelineEvent, permissions)
-                val body = computeMessageBody(nonNullTimelineEvent)
-                setState {
-                    copy(
-                            eventId = nonNullTimelineEvent.eventId,
-                            messageBody = body,
-                            actions = events
-                    )
+                try {
+                    val events = actionsForEvent(nonNullTimelineEvent, permissions)
+                    val body = computeMessageBody(nonNullTimelineEvent)
+                    setState {
+                        copy(
+                                eventId = nonNullTimelineEvent.eventId,
+                                messageBody = body,
+                                actions = events
+                        )
+                    }
+                } catch (failure: Throwable) {
+                    // A throw here would otherwise die silently and leave the sheet empty.
+                    Timber.e(failure, "Failed to compute message actions for ${nonNullTimelineEvent.eventId}")
                 }
             }
         }

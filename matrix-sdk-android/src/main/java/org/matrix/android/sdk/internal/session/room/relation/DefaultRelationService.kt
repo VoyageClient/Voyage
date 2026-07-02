@@ -65,7 +65,7 @@ internal class DefaultRelationService @AssistedInject constructor(
                         ?.reactionsSummary
                         .orEmpty()
                         .none { it.addedByMe && it.key == reaction }) {
-            val event = eventFactory.createReactionEvent(roomId, targetEventId, reaction)
+            val event = eventFactory.createReactionEvent(roomId, targetTimelineEvent?.eventId ?: targetEventId, reaction)
                     .also { saveLocalEcho(it) }
             eventSenderProcessor.postEvent(event, false /* reaction are not encrypted*/)
         } else {

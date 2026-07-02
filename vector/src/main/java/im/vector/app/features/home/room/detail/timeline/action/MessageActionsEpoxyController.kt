@@ -58,7 +58,6 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
-import org.matrix.android.sdk.api.session.room.send.SendState
 import javax.inject.Inject
 
 /**
@@ -160,14 +159,8 @@ class MessageActionsEpoxyController @Inject constructor(
             bottomSheetSendStateItem {
                 id("send_state")
                 showProgress(true)
+                accentTint(true)
                 text(host.stringProvider.getString(CommonStrings.event_status_sending_message))
-            }
-        } else if (sendState == SendState.SENT) {
-            bottomSheetSendStateItem {
-                id("send_state")
-                showProgress(false)
-                drawableStart(R.drawable.ic_message_sent)
-                text(host.stringProvider.getString(CommonStrings.event_status_sent_message))
             }
         }
 

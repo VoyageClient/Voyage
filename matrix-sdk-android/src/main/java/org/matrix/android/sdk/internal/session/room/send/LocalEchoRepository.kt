@@ -36,6 +36,7 @@ import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
@@ -45,6 +46,10 @@ import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
+// Session-scoped: the pending-echo / local→remote id maps must be shared between the send
+// pipeline (writer) and timeline lookups (reader); unscoped, each injection point got its
+// own empty copy.
+@SessionScope
 internal class LocalEchoRepository @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
@@ -57,6 +62,17 @@ internal class LocalEchoRepository @Inject constructor(
 ) {
 
     private val sentEchoesByRemoteId = java.util.Collections.synchronizedMap(HashMap<String, String>())
+
+    // The DB insert of a local echo is deferred (see createLocalEcho), and once sent the echo row is
+    // replaced by the remote event under a different id. These maps let lookups by the local echo id
+    // (e.g. the long-press action sheet, or a redact/reaction targeting a still-sending message)
+    // resolve instantly during both windows.
+    private val pendingEchoes = java.util.Collections.synchronizedMap(HashMap<String, TimelineEvent>())
+    private val remoteIdsByLocalEcho = java.util.Collections.synchronizedMap(HashMap<String, String>())
+
+    fun getPendingEcho(eventId: String): TimelineEvent? = pendingEchoes[eventId]
+
+    fun getRemoteEchoId(localEchoId: String): String? = remoteIdsByLocalEcho[localEchoId]
 
     fun createLocalEcho(event: Event) {
         val roomId = event.roomId ?: throw IllegalStateException("You should have set a roomId for your event")
@@ -81,6 +97,7 @@ internal class LocalEchoRepository @Inject constructor(
                 it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
             }
             val timelineEvent = timelineEventMapper.map(timelineEventEntity)
+            pendingEchoes[event.eventId] = timelineEvent
             timelineInput.onLocalEchoCreated(roomId = roomId, timelineEvent = timelineEvent)
             database.awaitDbTransaction(dispatcher) {
                 val dbId = stores.event.insert(eventEntity)
@@ -88,6 +105,7 @@ internal class LocalEchoRepository @Inject constructor(
                 stores.timelineEvent.insert(timelineEventEntity, chunkId = null, rootEventDbId = dbId)
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
             }
+            pendingEchoes.remove(event.eventId)
         }
     }
 
@@ -105,6 +123,7 @@ internal class LocalEchoRepository @Inject constructor(
 
     suspend fun onEventSent(roomId: String, localEchoId: String, remoteEventId: String) {
         sentEchoesByRemoteId[remoteEventId] = localEchoId
+        remoteIdsByLocalEcho[localEchoId] = remoteEventId
         database.awaitDbTransaction(dispatcher) {
             val remoteExists = stores.timelineEvent.getByRoomAndEventId(roomId, remoteEventId) != null
             if (remoteExists) {
@@ -156,6 +175,7 @@ internal class LocalEchoRepository @Inject constructor(
 
     suspend fun deleteFailedEcho(roomId: String, eventId: String?) {
         eventId ?: return
+        pendingEchoes.remove(eventId)
         database.awaitDbTransaction(dispatcher) {
             stores.timelineEvent.deleteSending(roomId, eventId)
             stores.event.deleteByEventIdInRoom(roomId, eventId)
@@ -165,6 +185,7 @@ internal class LocalEchoRepository @Inject constructor(
 
     fun deleteFailedEchoAsync(roomId: String, eventId: String?) {
         eventId ?: return
+        pendingEchoes.remove(eventId)
         taskExecutor.executorScope.launch {
             database.awaitDbTransaction(dispatcher) {
                 stores.timelineEvent.deleteSending(roomId, eventId)

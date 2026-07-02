@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
@@ -40,12 +41,41 @@ internal class SendEventQueuedTask(
 
     override suspend fun doExecute() {
         try {
-            sendEventTask.execute(SendEventTask.Params(event, encrypt))
+            sendEventTask.execute(SendEventTask.Params(remapLocalRelationTargets(event), encrypt))
         } catch (e: Throwable) {
             lastFailure = e
             throw e
         }
     }
+
+    // A reaction/reply/thread event created against a still-sending message carries the target's
+    // "$local." echo id. The room queue is sequential, so by now the target's send has finished:
+    // rewrite the relation to the real event id (no mapping = target failed; send as-is, harmless).
+    private fun remapLocalRelationTargets(event: Event): Event {
+        val content = event.content ?: return event
+        val relates = content["m.relates_to"] as? Map<*, *> ?: return event
+        val newRelates = relates.toMutableMap()
+        var changed = false
+        (relates["event_id"] as? String)
+                ?.let { targetId -> remoteIdFor(targetId) }
+                ?.let { remoteId ->
+                    newRelates["event_id"] = remoteId
+                    changed = true
+                }
+        (relates["m.in_reply_to"] as? Map<*, *>)?.let { inReplyTo ->
+            (inReplyTo["event_id"] as? String)
+                    ?.let { targetId -> remoteIdFor(targetId) }
+                    ?.let { remoteId ->
+                        newRelates["m.in_reply_to"] = inReplyTo.toMutableMap().apply { put("event_id", remoteId) }
+                        changed = true
+                    }
+        }
+        if (!changed) return event
+        return event.copy(content = content.toMutableMap().apply { put("m.relates_to", newRelates) })
+    }
+
+    private fun remoteIdFor(targetId: String): String? =
+            targetId.takeIf { LocalEcho.isLocalEchoId(it) }?.let { localEchoRepository.getRemoteEchoId(it) }
 
     override fun onTaskFailed() {
         when (event.getClearType()) {

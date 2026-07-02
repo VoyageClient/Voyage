@@ -9,7 +9,9 @@ package org.matrix.android.sdk.internal.session.room.timeline
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
+import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isSticker
@@ -24,6 +26,7 @@ import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import javax.inject.Inject
 
 /** SQLDelight counterpart of [TimelineEventDataSource]. */
@@ -32,9 +35,22 @@ internal class SqlTimelineEventDataSource @Inject constructor(
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
         private val timelineEventMapper: TimelineEventMapper,
+        private val localEchoRepository: Lazy<LocalEchoRepository>,
 ) {
     fun getTimelineEvent(roomId: String, eventId: String): TimelineEvent? =
             stores.timelineEvent.getByRoomAndEventId(roomId, eventId)?.let { timelineEventMapper.map(it) }
+                    ?: resolveLocalEcho(roomId, eventId)
+
+    // A local echo has no DB row yet right after sending (the insert is deferred), and none anymore
+    // once the remote copy arrives (the row is deleted and the event lives under its server id).
+    // Resolve both windows so lookups by the echo id (long-press sheet, relations) keep working.
+    private fun resolveLocalEcho(roomId: String, eventId: String): TimelineEvent? {
+        if (!LocalEcho.isLocalEchoId(eventId)) return null
+        localEchoRepository.get().getRemoteEchoId(eventId)?.let { remoteId ->
+            stores.timelineEvent.getByRoomAndEventId(roomId, remoteId)?.let { return timelineEventMapper.map(it) }
+        }
+        return localEchoRepository.get().getPendingEcho(eventId)
+    }
 
     fun getTimelineEventLive(roomId: String, eventId: String): LiveData<Optional<TimelineEvent>> =
             database.timelineEventQueries.selectByRoomAndEventId(roomId, eventId)

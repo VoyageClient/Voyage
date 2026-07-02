@@ -16,9 +16,11 @@
 
 package org.matrix.android.sdk.internal.session.room.send.queue
 
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
+import timber.log.Timber
 
 internal class RedactQueuedTask(
         private val toRedactEventId: String,
@@ -32,7 +34,24 @@ internal class RedactQueuedTask(
 ) : QueuedTask(queueIdentifier = roomId, taskIdentifier = redactionLocalEchoId) {
 
     override suspend fun doExecute() {
-        redactEventTask.execute(RedactEventTask.Params(redactionLocalEchoId, roomId, toRedactEventId, reason, withRelTypes))
+        // The target may have been a still-sending local echo when the redaction was queued. The room
+        // queue is sequential, so its send task has finished by now: redact the real event id. If it
+        // never reached the server, fall back to cancelling the echo locally instead of sending a
+        // redaction of a "$local." id.
+        val targetEventId = if (LocalEcho.isLocalEchoId(toRedactEventId)) {
+            val remoteId = localEchoRepository.getRemoteEchoId(toRedactEventId)
+            if (remoteId == null) {
+                Timber.w("Redaction target $toRedactEventId was never sent, cancelling it locally")
+                cancelSendTracker.markLocalEchoForCancel(toRedactEventId, roomId)
+                localEchoRepository.deleteFailedEchoAsync(roomId, toRedactEventId)
+                localEchoRepository.deleteFailedEchoAsync(roomId, redactionLocalEchoId)
+                return
+            }
+            remoteId
+        } else {
+            toRedactEventId
+        }
+        redactEventTask.execute(RedactEventTask.Params(redactionLocalEchoId, roomId, targetEventId, reason, withRelTypes))
     }
 
     override fun onTaskFailed() {
