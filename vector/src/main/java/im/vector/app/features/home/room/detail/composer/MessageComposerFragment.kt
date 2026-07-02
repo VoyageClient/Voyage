@@ -76,6 +76,7 @@ import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecord
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
 import im.vector.app.features.html.PillImageSpan
+import im.vector.app.features.html.expandPillSpans
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.poll.PollMode
@@ -357,7 +358,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     resources.configuration.keyboard != Configuration.KEYBOARD_NOKEYS
             val sendMessageWithEnter = externalKeyboardPressedEnter && vectorPreferences.sendMessageWithEnter()
             val result = if (isSendAction || sendMessageWithEnter) {
-                sendTextMessage(v.text)
+                sendTextMessage(v.text.expandPillSpans())
                 true
             } else false
             result
