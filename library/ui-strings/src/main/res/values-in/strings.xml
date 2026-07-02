@@ -1748,8 +1748,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="other">Kode salah, %d upaya tersisa</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">Lihat pengaturan Anda untuk mengaktifkan notifikasi push</string>
-    <string name="alert_push_are_disabled_title">Notifikasi push dinonaktifkan</string>
     <string name="failed_to_unban">Gagal untuk menghapus cekalan</string>
     <string name="member_banned_by">Dicekal oleh %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">Batalkan undangan ke %1$s\?</string>

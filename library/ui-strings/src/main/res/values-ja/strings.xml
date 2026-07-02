@@ -1880,7 +1880,6 @@
     <string name="universal_link_malformed">このリンクは不正な形式です</string>
     <string name="qr_code_not_scanned">QRコードがスキャンされていません！</string>
     <string name="settings_security_pin_code_notifications_title">内容を通知に表示</string>
-    <string name="alert_push_are_disabled_title">プッシュ通知は無効になっています</string>
     <string name="failed_to_unban">ユーザーのブロックの解除に失敗しました</string>
     <string name="three_pid_revoke_invite_dialog_content">%1$sへの招待を取り消しますか？</string>
     <string name="loading_contact_book">連絡先を取得しています…</string>
@@ -2129,7 +2128,6 @@
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="other">コードが誤っています。残りの試行回数は%d回です</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">プッシュ通知を有効にするには、設定を確認してください</string>
     <string name="external_link_confirmation_message">リンク %1$s は別のサイトに移動します：%2$s
 \n
 \n続行してよろしいですか？</string>

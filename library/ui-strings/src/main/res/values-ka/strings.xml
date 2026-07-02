@@ -2579,8 +2579,6 @@
     <string name="crypto_error_withheld_unverified">ვერ ხსნით ამ შეტყობინებას, რადგან თქვენი სესია არ არის ნდობით აღჭურვილი გამგზავნის მიერ</string>
     <string tools:ignore="UnusedResources" name="disclaimer_content">სიხარულით გაცნობებთ, რომ სახელი შევცვალეთ! თქვენი აპლიკაცია განახლებულია და თქვენ უკვე შესული ხართ თქვენს ანგარიშში.</string>
     <string name="contacts_book_title">საკონტაქტო წიგნი</string>
-    <string name="alert_push_are_disabled_title">მომართვის შეტყობინებები გამორთულია</string>
-    <string name="alert_push_are_disabled_description">გადახედეთ თქვენს პარამეტრებს, რომ გაააქტიუროთ შეტყობინებები</string>
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="one">არასწორი კოდი, დარჩა %d ცდა</item>
         <item quantity="other">არასწორი კოდი, დარჩა %d ცდა</item>

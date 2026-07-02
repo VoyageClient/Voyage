@@ -1070,7 +1070,6 @@
         <item quantity="one">رمز اشتباه، %d تلاش مانده</item>
         <item quantity="other">رمز اشتباه، %d تلاش مانده</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">برای به کار انداختن ارسال آگاهی‌ها، تنظیماتتان را بازبینی کنید</string>
     <string name="room_error_not_found">نمی‌توان این اتاق را یافت. مطمئن شوید وجود دارد.</string>
     <string name="error_opening_banned_room">نمی‌توان اتاقی را که از آن تحریم شده‌اید، گشود.</string>
     <string name="settings_security_pin_code_grace_period_summary_off">نیاز به رمز پین، هر بار که المنت را می‌گشایید.</string>
@@ -1086,7 +1085,6 @@
     <string name="settings_security_pin_code_title">به کار انداختن پین</string>
     <string name="settings_security_application_protection_screen_title">پیکربندی محافظت</string>
     <string name="universal_link_malformed">پیوند بدریخت بود</string>
-    <string name="alert_push_are_disabled_title">ارسال آگاهی‌ها از کار افتاده</string>
     <string name="failed_to_unban">شکست در رفع تحریم کاربر</string>
     <string name="member_banned_by">تحریم شده به دست %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">پس گرفتن دعوت به %1$s؟</string>

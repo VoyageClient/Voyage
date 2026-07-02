@@ -1161,7 +1161,6 @@
     <string name="call_tile_other_declined">%1$s відхиляє виклик</string>
     <string name="change_room_directory_network">Змінити мережу</string>
     <string name="action_change">Змінити</string>
-    <string name="alert_push_are_disabled_title">Push-сповіщення вимкнено</string>
     <string name="failed_to_unban">Не вдалось розблокувати користувача</string>
     <string name="member_banned_by">Блокування від %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">Відкликати запрошення для %1$s\?</string>
@@ -2056,7 +2055,6 @@
         <item quantity="many">Неправильний код, залишилося %d спроб</item>
         <item quantity="other">Неправильний код, залишилося %d спроб</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">Увімкніть push-сповіщення у налаштуваннях</string>
     <string name="save_recovery_key_chooser_hint">Зберегти ключ відновлення в</string>
     <string name="notice_crypto_unable_to_decrypt_merged">Очікування історії шифрування</string>
     <string name="crypto_error_withheld_generic">Ви не можете прочитати це повідомлення, оскільки відправник навмисне не надіслав ключі</string>

@@ -687,8 +687,6 @@
     <string name="settings_security_pin_code_notifications_summary_off">Allinnich werjeftenûmer fan oantal berjochten yn in ienfâldige notifikaasje.</string>
     <string name="settings_security_pin_code_notifications_summary_on">Details as keamernamme en berjochtynhâld toane.</string>
     <string name="settings_security_pin_code_notifications_title">Ynhâld yn notifikaasjes toane</string>
-    <string name="alert_push_are_disabled_description">Besjoch jo ynstellingen om pushnotifikaasjes yn te skeakeljen</string>
-    <string name="alert_push_are_disabled_title">Pushnotifikaasjes binne útskeakele</string>
     <string name="settings_notification_configuration">Notifikaasjeskonfiguraasje</string>
     <string name="room_profile_section_more_notifications">Notifikaasjes</string>
     <string name="room_list_quick_actions_notifications_mute">Dôvje</string>

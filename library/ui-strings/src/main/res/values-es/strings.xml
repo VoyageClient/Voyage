@@ -1565,8 +1565,6 @@
     <string name="three_pid_revoke_invite_dialog_content">¿Revocar la invitación a %1$s\?</string>
     <string name="member_banned_by">Prohibido por %1$s</string>
     <string name="failed_to_unban">No se pudo anular la prohibición del usuario</string>
-    <string name="alert_push_are_disabled_title">Las notificaciones push están deshabilitadas</string>
-    <string name="alert_push_are_disabled_description">Revise su configuración para habilitar las notificaciones push</string>
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="one">Código incorrecto, %d intento restante</item>
         <item quantity="other">Código incorrecto, %d intentos restantes</item>

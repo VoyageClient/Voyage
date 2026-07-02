@@ -1577,8 +1577,6 @@
     <string name="three_pid_revoke_invite_dialog_content">Отозвать приглашение для %1$s\?</string>
     <string name="member_banned_by">Забанен %1$s</string>
     <string name="failed_to_unban">Не удалось разбанить пользователя</string>
-    <string name="alert_push_are_disabled_title">Push-уведомления отключены</string>
-    <string name="alert_push_are_disabled_description">Просмотрите свои настройки, чтобы включить push-уведомления</string>
     <string name="create_pin_title">Выберите PIN-код для обеспечения безопасности</string>
     <string name="create_pin_confirm_title">Подтвердите PIN-код</string>
     <string name="create_pin_confirm_failure">Не удалось установить PIN-код, Пожалуйста, введите новый.</string>

@@ -51,7 +51,6 @@ class PopupAlertManager @Inject constructor(
         const val REVIEW_LOGIN_UID = "review_login"
         const val UPGRADE_SECURITY_UID = "upgrade_security"
         const val VERIFY_SESSION_UID = "verify_session"
-        const val ENABLE_PUSH_UID = "enable_push"
     }
 
     private var weakCurrentActivity: WeakReference<Activity>? = null

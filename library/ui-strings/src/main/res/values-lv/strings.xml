@@ -2358,8 +2358,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="crypto_error_withheld_blacklisted">Šai ziņai nevar piekļūt, jo sūtītājs Tevi ir norobežojis</string>
     <string name="crypto_error_withheld_unverified">Šai ziņai nevar piekļūt, jo sūtītājs neuzticas Tavai sesijai</string>
     <string name="failed_to_unban">Neizdevās atsaukt lietotāja piekļuves aizliegumu</string>
-    <string name="alert_push_are_disabled_title">Pašpiegādes paziņojumi ir atspējoti</string>
-    <string name="alert_push_are_disabled_description">Jāpārskata iestatījumi, lai iespējotu pašpiegādes paziņojumus</string>
     <string name="save_recovery_key_chooser_hint">Saglabāt atkopšanas atslēgu</string>
     <string name="bottom_sheet_setup_secure_backup_submit">Uzstādīt</string>
     <plurals name="entries">

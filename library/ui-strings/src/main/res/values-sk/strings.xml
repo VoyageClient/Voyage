@@ -1726,8 +1726,6 @@
     <string name="settings_security_pin_code_notifications_summary_off">Zobraziť iba počet neprečítaných správ v jednoduchom oznámení.</string>
     <string name="settings_security_pin_code_notifications_summary_on">Zobraziť podrobnosti, ako sú názvy miestností a obsah správ.</string>
     <string name="settings_security_pin_code_notifications_title">Zobraziť obsah v oznámeniach</string>
-    <string name="alert_push_are_disabled_description">Skontrolujte svoje nastavenia a povoľte okamžité oznámenia</string>
-    <string name="alert_push_are_disabled_title">Okamžité oznámenia sú vypnuté</string>
     <string name="login_reset_password_success_notice_2">Boli ste odhlásení zo všetkých zariadení a nebudú sa vám viac zobrazovať okamžité oznámenia. Ak chcete zobrazovať oznámenia, musíte sa na každom zariadení znovu prihlásiť.</string>
     <string name="notification_unread_notified_messages_in_room_and_invitation">%1$s v %2$s a %3$s</string>
     <string name="room_settings_room_notifications_manage_notifications">Oznámenia môžete spravovať v %1$s.</string>

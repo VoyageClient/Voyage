@@ -1330,8 +1330,6 @@
         <item quantity="one">Malĝusta kodo; restas %d provo</item>
         <item quantity="other">Malĝusta kodo; restas %d provoj</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">Kontrolu viajn agordojn por ŝalti pasivajn sciigojn</string>
-    <string name="alert_push_are_disabled_title">Pasivaj sciigoj estas malŝaltitaj</string>
     <string name="failed_to_unban">Malsukcesis malforbari uzanton</string>
     <string name="member_banned_by">Forbarita de %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">Ĉu nuligi inviton por %1$s\?</string>

@@ -1479,7 +1479,6 @@
     <string name="dev_tools_event_content_hint">Efni atburðar</string>
     <string name="dev_tools_edit_content">Breyta efni</string>
     <string name="a11y_import_key_from_file">Flytja lykil inn úr skrá</string>
-    <string name="alert_push_are_disabled_title">Ýti-tilkynningar eru óvirkar</string>
     <string name="failed_to_unban">Tókst ekki að taka notanda úr banni</string>
     <string name="member_banned_by">Bannaður af %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">Afturkalla boð til %1$s\?</string>
@@ -1686,7 +1685,6 @@
         <item quantity="one">Rangur kóði, %d tilraun eftir</item>
         <item quantity="other">Rangur kóði, %d tilraunir eftir</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">Yfirfarðu stillingarnar þínar til að virkja ýtitilkynningar</string>
     <string name="phone_book_perform_lookup">Leita að tengiliðum á Matrix</string>
     <string name="empty_contact_book">Tengiliðaskráin þín er tóm</string>
     <string name="loading_contact_book">Næ í tengiliðina þína…</string>

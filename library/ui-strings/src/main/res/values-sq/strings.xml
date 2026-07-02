@@ -1563,8 +1563,6 @@
     <string name="three_pid_revoke_invite_dialog_content">Të shfuqizohet ftesa për %1$s\?</string>
     <string name="member_banned_by">Dëbuar nga %1$s</string>
     <string name="failed_to_unban">S’u arrit të Hiqej Dëbimi i përdoruesit</string>
-    <string name="alert_push_are_disabled_title">Njoftimet push janë të çaktivizuar</string>
-    <string name="alert_push_are_disabled_description">Që të aktivizoni njoftimet push, shihni te rregullimet tuaja</string>
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="one">Kod i gabuar, edhe %d provë</item>
         <item quantity="other">Kod i gabuar, edhe %d prova</item>

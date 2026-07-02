@@ -1603,14 +1603,12 @@
     <string name="room_participants_action_unignore_title">Ne plus ignorer l’utilisateur</string>
     <string name="action_reset">Réinitialiser</string>
     <string name="failed_to_unban">Échec de la révocation du bannissement de l’utilisateur</string>
-    <string name="alert_push_are_disabled_description">Vérifiez vos paramètres pour activer les notifications push</string>
     <string name="bottom_sheet_save_your_recovery_key_content">Stockez votre clé de sécurité en lieu sûr comme un gestionnaire de mots de passe ou un coffre-fort.</string>
     <string name="bottom_sheet_setup_secure_backup_security_key_subtitle">Générez une clé de sécurité à stocker en lieu sûr comme un gestionnaire de mots de passe ou un coffre-fort.</string>
     <string name="settings_troubleshoot_test_push_loop_failed">Erreur de réception du push. La solution pourrait être de réinstaller l’application.</string>
     <string name="settings_troubleshoot_test_push_loop_success">L’application reçoit le PUSH</string>
     <string name="settings_troubleshoot_test_push_loop_waiting_for_push">L’application attend le PUSH</string>
     <string name="settings_troubleshoot_test_push_loop_title">Tester le Push</string>
-    <string name="alert_push_are_disabled_title">Les notifications push sont désactivées</string>
     <string name="set_a_security_phrase_notice">Entrez une phrase de sécurité que seul vous connaissez, celle-ci est utilisée pour sécuriser les mots de passe sur le serveur.</string>
     <string name="bottom_sheet_setup_secure_backup_security_phrase_subtitle">Entrez une phrase secrète que seul vous connaissez, et générez une clé de sauvegarde.</string>
     <string name="bottom_sheet_setup_secure_backup_subtitle">Protection contre la perte d’accès aux messages et données chiffrées en sauvegardant les clés de chiffrement sur votre serveur.</string>

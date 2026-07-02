@@ -1289,8 +1289,6 @@
     <string name="create_pin_title">Chọn mã PIN để bảo mật</string>
     <string name="too_many_pin_failures">Quá nhiều lỗi, bạn đã bị đăng xuất</string>
     <string name="wrong_pin_message_last_remaining_attempt">Cảnh báo! Nỗ lực cuối cùng còn lại trước khi bị đăng xuất!</string>
-    <string name="alert_push_are_disabled_description">Xem lại cài đặt của bạn để bật thông báo Push</string>
-    <string name="alert_push_are_disabled_title">Thông báo Push bị vô hiệu hóa</string>
     <string name="failed_to_unban">Hủy cấm người dùng thất bại</string>
     <string name="member_banned_by">Bị cấm bởi %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">Thu hồi lời mời đến %1$s\?</string>

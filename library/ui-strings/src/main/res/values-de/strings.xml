@@ -1532,8 +1532,6 @@
     <string name="three_pid_revoke_invite_dialog_content">Einladung zu %1$s zurücknehmen\?</string>
     <string name="member_banned_by">Gebannt von %1$s</string>
     <string name="failed_to_unban">Aufhebung der Verbannung fehlgeschlagen</string>
-    <string name="alert_push_are_disabled_title">Push-Benachrichtigungen sind deaktiviert</string>
-    <string name="alert_push_are_disabled_description">Gehe zu deinen Einstellungen um Push-Benachrichtigungen zu aktivieren</string>
     <string name="create_pin_title">Nutze eine PIN für mehr Sicherheit</string>
     <string name="create_pin_confirm_title">Bestätige PIN</string>
     <string name="create_pin_confirm_failure">Validierung der PIN fehlgeschlagen. Bitte probiere es noch einmal.</string>

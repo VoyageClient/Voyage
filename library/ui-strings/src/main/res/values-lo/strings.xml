@@ -1426,8 +1426,6 @@
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="other">ລະຫັດຜິດ, ພະຍາຍາມອີກ %dຄັ້ງ</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">ກວດເບິ່ງການຕັ້ງຄ່າຂອງທ່ານເພື່ອເປີດໃຊ້ການແຈ້ງເຕືອນແບບ push</string>
-    <string name="alert_push_are_disabled_title">ການແຈ້ງເຕືອນແບບ Pushຖືກປິດໃຊ້ງານ</string>
     <string name="failed_to_unban">ຜູ້ໃຊ້ UnBan ບໍ່ສຳເລັດ</string>
     <string name="member_banned_by">ຫ້າມໂດຍ %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">ຍົກເລີກການເຊີນໄປຫາ %1$s ບໍ\?</string>

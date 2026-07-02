@@ -567,8 +567,6 @@
     <string name="empty_contact_book">Kontaktboken din er tom</string>
     <string name="contacts_book_title">Kontaktbok</string>
     <string name="phone_book_perform_lookup">Søk etter kontakter på Matrix</string>
-    <string name="alert_push_are_disabled_title">Push-varsler er deaktivert</string>
-    <string name="alert_push_are_disabled_description">Gjennomgå innstillingene dine for å aktivere push-varsler</string>
     <plurals name="wrong_pin_message_remaining_attempts">
         <item quantity="one">Feil kode, %d gjenværende forsøk</item>
         <item quantity="other">Feil kode, %d gjenværende forsøk</item>

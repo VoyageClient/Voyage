@@ -1495,8 +1495,6 @@
         <item quantity="many">קוד שגוי,%d ניסיונות נוספים</item>
         <item quantity="other">קוד שגוי,%d ניסיונות נוספים</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">בדוק את ההגדרות שלך כדי לאפשר התראות דחיפה</string>
-    <string name="alert_push_are_disabled_title">התראות קופצות מושבתות</string>
     <string name="failed_to_unban">נכשל המשתמש לבטל את הסילוק</string>
     <string name="member_banned_by">נחסם על ידי%1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">לבטל את ההזמנה ל-%1$s\?</string>

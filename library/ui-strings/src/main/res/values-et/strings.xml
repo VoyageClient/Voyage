@@ -385,7 +385,6 @@
     <string name="bug_report_error_too_short">Kirjeldus on liiga lühike</string>
     <string name="notification_initial_sync">Teen andmete esmast sünkroonimist…</string>
     <string name="settings_advanced_settings">Lisaseadistused</string>
-    <string name="alert_push_are_disabled_description">Tõuketeavituste kasutuselevõtuks vaata üle seadistused</string>
     <string name="create_pin_title">Turvaliseks ligipääsuks seadista PIN-kood</string>
     <string name="create_pin_confirm_title">Korda PIN-koodi</string>
     <string name="create_pin_confirm_failure">PIN-koodid ei klapi, palun loo uus PIN-kood.</string>
@@ -1315,7 +1314,6 @@
     <string name="three_pid_revoke_invite_dialog_content">Kas tühistame kasutaja %1$s kutse\?</string>
     <string name="member_banned_by">Suhtluskeeld on seatud kasutaja %1$s poolt</string>
     <string name="failed_to_unban">Kasutaja ligipääsu taastamine ei õnnestunud</string>
-    <string name="alert_push_are_disabled_title">Tõuketeavitused on välja lülitatud</string>
     <string name="enter_account_password">Jätkamaks sisesta oma %s.</string>
     <string name="bootstrap_dont_reuse_pwd">Palun ära kasuta selleks oma tavalist konto salasõna.</string>
     <string name="bootstrap_info_text_2">Andmete kaitsmiseks sinu koduserveris sisesta turvafraas, mida vaid sina tead.</string>

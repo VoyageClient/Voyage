@@ -48,9 +48,6 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
 import org.matrix.android.sdk.api.session.getUserOrDefault
-import org.matrix.android.sdk.api.session.pushrules.RuleIds
-import org.matrix.android.sdk.api.session.room.model.Membership
-import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.toMatrixItem
@@ -104,7 +101,6 @@ class HomeActivityViewModel @AssistedInject constructor(
             cleanupFiles()
         }
         observeInitialSync()
-        checkSessionPushIsOn()
         observeCrossSigningReset()
         promptForNotifications()
         observeReleaseNotes()
@@ -255,44 +251,6 @@ class HomeActivityViewModel @AssistedInject constructor(
 
         if (session.syncService().hasAlreadySynced()) {
             maybeVerifyOrBootstrapCrossSigning()
-        }
-    }
-
-    /**
-     * After migration from riot to element some users reported that their
-     * push setting for the session was set to off.
-     * In order to mitigate this, we want to display a popup once to the user
-     * giving him the option to review this setting.
-     */
-    private fun checkSessionPushIsOn() {
-        viewModelScope.launch(Dispatchers.IO) {
-            // Don't do that if it's a login or a register (pass in memory)
-            if (reAuthHelper.data != null) return@launch
-            // Check if disabled for this device
-            if (!vectorPreferences.areNotificationEnabledForDevice()) {
-                // Check if set at account level
-                val mRuleMaster = activeSessionHolder.getSafeActiveSession()
-                        ?.pushRuleService()
-                        ?.getPushRules()
-                        ?.getAllRules()
-                        ?.find { it.ruleId == RuleIds.RULE_ID_DISABLE_ALL }
-                if (mRuleMaster?.enabled == false) {
-                    // So push are enabled at account level but not for this session
-                    // Let's check that there are some rooms?
-                    val knownRooms = activeSessionHolder.getSafeActiveSession()
-                            ?.roomService()
-                            ?.getRoomSummaries(roomSummaryQueryParams {
-                                memberships = Membership.activeMemberships()
-                            })?.size ?: 0
-
-                    // Prompt once to the user
-                    if (knownRooms > 1 && !vectorPreferences.didAskUserToEnableSessionPush()) {
-                        // delay a bit
-                        delay(1500)
-                        _viewEvents.post(HomeActivityViewEvents.PromptToEnableSessionPush)
-                    }
-                }
-            }
         }
     }
 
@@ -458,9 +416,6 @@ class HomeActivityViewModel @AssistedInject constructor(
 
     override fun handle(action: HomeActivityViewActions) {
         when (action) {
-            HomeActivityViewActions.PushPromptHasBeenReviewed -> {
-                vectorPreferences.setDidAskUserToEnableSessionPush()
-            }
             HomeActivityViewActions.ViewStarted -> {
                 initialize()
             }

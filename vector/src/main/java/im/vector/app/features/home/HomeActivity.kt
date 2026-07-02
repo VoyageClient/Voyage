@@ -59,7 +59,6 @@ import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.permalink.PermalinkHandler.Companion.MATRIX_TO_CUSTOM_SCHEME_URL_BASE
 import im.vector.app.features.permalink.PermalinkHandler.Companion.ROOM_LINK_PREFIX
 import im.vector.app.features.permalink.PermalinkHandler.Companion.USER_LINK_PREFIX
-import im.vector.app.features.popup.DefaultVectorAlert
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.rageshake.BugReporter
@@ -245,7 +244,6 @@ class HomeActivity :
                 is HomeActivityViewEvents.AskPasswordToInitCrossSigning -> handleAskPasswordToInitCrossSigning(it)
                 is HomeActivityViewEvents.CurrentSessionNotVerified -> handleOnNewSession(it)
                 is HomeActivityViewEvents.CurrentSessionCannotBeVerified -> handleCantVerify(it)
-                HomeActivityViewEvents.PromptToEnableSessionPush -> handlePromptToEnablePush()
                 HomeActivityViewEvents.StartRecoverySetupFlow -> handleStartRecoverySetup()
                 is HomeActivityViewEvents.ForceVerification -> {
                     navigator.requestSelfSessionVerification(this)
@@ -487,42 +485,6 @@ class HomeActivity :
         ) {
             it.navigator.open4SSetup(it, SetupMode.PASSPHRASE_AND_NEEDED_SECRETS_RESET)
         }
-    }
-
-    private fun handlePromptToEnablePush() {
-        popupAlertManager.postVectorAlert(
-                DefaultVectorAlert(
-                        uid = PopupAlertManager.ENABLE_PUSH_UID,
-                        title = getString(CommonStrings.alert_push_are_disabled_title),
-                        description = getString(CommonStrings.alert_push_are_disabled_description),
-                        iconId = R.drawable.ic_room_actions_notifications_mutes,
-                        shouldBeDisplayedIn = {
-                            it is HomeActivity
-                        }
-                ).apply {
-                    colorInt = ThemeUtils.getColor(this@HomeActivity, im.vector.lib.ui.styles.R.attr.vctr_notice_secondary)
-                    contentAction = Runnable {
-                        (weakCurrentActivity?.get() as? VectorBaseActivity<*>)?.let {
-                            // action(it)
-                            homeActivityViewModel.handle(HomeActivityViewActions.PushPromptHasBeenReviewed)
-                            it.navigator.openSettings(it, VectorSettingsActivity.EXTRA_DIRECT_ACCESS_NOTIFICATIONS)
-                        }
-                    }
-                    dismissedAction = Runnable {
-                        homeActivityViewModel.handle(HomeActivityViewActions.PushPromptHasBeenReviewed)
-                    }
-                    addButton(getString(CommonStrings.action_dismiss), {
-                        homeActivityViewModel.handle(HomeActivityViewActions.PushPromptHasBeenReviewed)
-                    }, true)
-                    addButton(getString(CommonStrings.settings), {
-                        (weakCurrentActivity?.get() as? VectorBaseActivity<*>)?.let {
-                            // action(it)
-                            homeActivityViewModel.handle(HomeActivityViewActions.PushPromptHasBeenReviewed)
-                            it.navigator.openSettings(it, VectorSettingsActivity.EXTRA_DIRECT_ACCESS_NOTIFICATIONS)
-                        }
-                    }, true)
-                }
-        )
     }
 
     private fun promptSecurityEvent(

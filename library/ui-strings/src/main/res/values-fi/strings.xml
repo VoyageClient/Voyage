@@ -1577,8 +1577,6 @@
         <item quantity="one">Väärä koodi, %d yritys jäljellä</item>
         <item quantity="other">Väärä koodi, %d yritystä jäljellä</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">Katselmoi asetukset ottaaksesi push-ilmoitukset käyttöön</string>
-    <string name="alert_push_are_disabled_title">Push-ilmoitukset ovat pois käytöstä</string>
     <string name="phone_book_perform_lookup">Etsi yhteystietojasi Matrixista</string>
     <string name="disclaimer_positive_button">LUE LISÄÄ</string>
     <string name="disclaimer_negative_button">SELVÄ</string>

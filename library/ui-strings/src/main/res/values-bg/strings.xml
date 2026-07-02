@@ -1547,8 +1547,6 @@
         <item quantity="one">Грешен код, %d оставащ опит</item>
         <item quantity="other">Грешен код, %d оставащи опита</item>
     </plurals>
-    <string name="alert_push_are_disabled_description">Прегледайте настройките за да включите push уведомления</string>
-    <string name="alert_push_are_disabled_title">Push-уведомленията са изключени</string>
     <string name="failed_to_unban">Неуспешно разблокиране на потребител</string>
     <string name="member_banned_by">Блокиран от %1$s</string>
     <string name="three_pid_revoke_invite_dialog_content">Оттегли поканата от %1$s\?</string>
