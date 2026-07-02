@@ -132,6 +132,12 @@
             android:summary="@string/settings_show_emoji_keyboard_summary"
             android:title="@string/settings_show_emoji_keyboard" />
 
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY"
+            android:summary="@string/settings_randomize_upload_filenames_summary"
+            android:title="@string/settings_randomize_upload_filenames_title" />
+
         <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_INTERFACE_TAKE_PHOTO_VIDEO"
             android:persistent="false"

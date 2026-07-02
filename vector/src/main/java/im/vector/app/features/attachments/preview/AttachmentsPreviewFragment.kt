@@ -24,6 +24,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.core.widget.CompoundButtonCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import com.airbnb.mvrx.args
@@ -85,10 +86,14 @@ class AttachmentsPreviewFragment :
         views.attachmentPreviewerSendButton.debouncedClicks {
             setResultAndFinish()
         }
-        // This activity's theme has no accent variant, so ?colorAccent here is the default (green).
-        // Resolve the configured accent from the application theme so the FAB matches the rest of the UI.
-        views.attachmentPreviewerSendButton.backgroundTintList = ColorStateList.valueOf(
-                ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorAccent)
+        // This activity's theme has no accent variant, so ?colorAccent here is the default (green) — for
+        // both the layout and any ColorStateList. Resolve the configured accent from the application theme
+        // so the send button, the "original size" checkbox and the selected-media highlight all match.
+        val accent = ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorAccent)
+        views.attachmentPreviewerSendButton.backgroundTintList = ColorStateList.valueOf(accent)
+        CompoundButtonCompat.setButtonTintList(
+                views.attachmentPreviewerSendImageOriginalSize,
+                ColorStateList.valueOf(accent)
         )
     }
 

@@ -7,6 +7,7 @@
 
 package im.vector.app.features.attachments.preview
 
+import android.graphics.Color
 import android.view.View
 import android.widget.ImageView
 import androidx.annotation.LayoutRes
@@ -19,6 +20,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.platform.CheckableImageView
+import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 
 abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRes layoutId: Int) : VectorEpoxyModel<H>(layoutId) {
@@ -72,6 +74,13 @@ abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<Attachment
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.imageView.isChecked = checked
+        // The activity theme has no accent variant (?colorAccent is the default green) and a themed-attr
+        // ColorStateList doesn't pick up the configured accent either, so resolve it from the app theme and
+        // paint the selection border ourselves. The image view's padding turns this fill into a border.
+        val border = if (checked) ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorAccent) else Color.TRANSPARENT
+        val pad = holder.imageView.paddingLeft
+        holder.imageView.setBackgroundColor(border)
+        holder.imageView.setPadding(pad, pad, pad, pad)
         holder.miniatureVideoIndicator.isVisible = attachment.type == ContentAttachmentData.Type.VIDEO
         holder.view.setOnClickListener(clickListener)
     }

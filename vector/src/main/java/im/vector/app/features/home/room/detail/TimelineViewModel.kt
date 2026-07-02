@@ -30,6 +30,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.BehaviorDataSource
+import im.vector.app.features.attachments.withRandomizedFilename
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
 import im.vector.app.features.crypto.verification.SupportedVerificationMethodsProvider
@@ -845,8 +846,13 @@ private fun handleSelectStickerAttachment() {
     }
 
     private fun sendMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia, captionText: CharSequence?, captionFormattedText: String?) {
+        val attachments = if (vectorPreferences.randomizeUploadFilenames()) {
+            action.attachments.map { it.withRandomizedFilename() }
+        } else {
+            action.attachments
+        }
         room.sendService().sendMedias(
-                attachments = action.attachments,
+                attachments = attachments,
                 compressBeforeSending = action.compressBeforeSending,
                 roomIds = emptySet(),
                 rootThreadEventId = initialState.rootThreadEventId,

@@ -20,6 +20,31 @@ import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import timber.log.Timber
 
+/**
+ * Replace the file name with a random id, keeping the extension. Media (image/video/audio) never carries a
+ * compound extension, so only the final one is kept (foo.mp4 -> uuid.mp4); other files can (e.g. .tar.gz),
+ * where dropping to just the last part (.gz) would break extraction, so the .tar.<x> pair is preserved.
+ */
+fun ContentAttachmentData.withRandomizedFilename(): ContentAttachmentData {
+    val originalName = name ?: return this
+    return copy(name = java.util.UUID.randomUUID().toString() + extensionSuffixOf(originalName, type))
+}
+
+private fun extensionSuffixOf(fileName: String, type: ContentAttachmentData.Type): String {
+    val parts = fileName.split('.')
+    val last = parts.lastOrNull().orEmpty()
+    if (parts.size < 2 || last.isEmpty()) return ""
+    val isMedia = type == ContentAttachmentData.Type.IMAGE ||
+            type == ContentAttachmentData.Type.VIDEO ||
+            type == ContentAttachmentData.Type.AUDIO ||
+            type == ContentAttachmentData.Type.VOICE_MESSAGE
+    return if (!isMedia && parts.size >= 3 && parts[parts.size - 2].equals("tar", ignoreCase = true)) {
+        ".tar.$last"
+    } else {
+        ".$last"
+    }
+}
+
 fun MultiPickerContactType.toContactAttachment(): ContactAttachment {
     return ContactAttachment(
             displayName = displayName,

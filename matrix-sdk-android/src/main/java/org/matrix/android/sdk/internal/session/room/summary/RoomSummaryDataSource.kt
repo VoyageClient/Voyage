@@ -63,6 +63,14 @@ internal class RoomSummaryDataSource @Inject constructor(
 ) {
     private val queries get() = database.roomSummaryQueries
 
+    // The room list's sections each get their own paged list; on the default IO pool they load
+    // concurrently and the smallest (usually Low priority) wins the race and briefly shows first. Loading
+    // them on one thread makes them populate in the order they're observed (Favourites, Rooms/DMs, Low
+    // priority) instead.
+    private val sectionFetchExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "room-list-section-paging")
+    }
+
     // Mapping a row is expensive (deep latest-event/space/tag resolution). Memoize by the row itself
     // (a generated data class) so each sync only re-maps rooms whose summary actually changed; a new
     // message mutates the row (latest event id, unread counts, activity) → cache miss → fresh map.
@@ -184,7 +192,7 @@ internal class RoomSummaryDataSource @Inject constructor(
                 }
             override val liveBoundaries: LiveData<ResultBoundaries> get() = boundaries
             override val livePagedList: LiveData<PagedList<RoomSummary>> =
-                    livePaged(queries.selectAll(), pagedListConfig, onDataSourceCreated = { dataSourceRef.set(it) }) {
+                    livePaged(queries.selectAll(), pagedListConfig, onDataSourceCreated = { dataSourceRef.set(it) }, fetchExecutor = sectionFetchExecutor) {
                         filteredSortedRows(this.queryParams, this.sortOrder).mapNotNull { it.toDomain() }
                                 .also { boundaries.postValue(ResultBoundaries(zeroItemLoaded = it.isEmpty())) }
                     }

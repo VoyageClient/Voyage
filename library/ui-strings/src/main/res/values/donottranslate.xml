@@ -406,4 +406,6 @@
     <string name="notice_voice_broadcast_started" translatable="false">%1$s started a voice broadcast.</string>
     <string name="notice_voice_broadcast_started_by_you" translatable="false">You started a voice broadcast.</string>
     <string name="encryption_export_notice_optional" translatable="false">Optionally create a passphrase to encrypt the exported keys. If you set one, you will need to enter the same passphrase to import the keys; leave it blank to export without encryption.</string>
+    <string name="settings_randomize_upload_filenames_title" translatable="false">Randomize uploaded file names</string>
+    <string name="settings_randomize_upload_filenames_summary" translatable="false">Replace the name of uploaded files with a random ID</string>
 </resources>

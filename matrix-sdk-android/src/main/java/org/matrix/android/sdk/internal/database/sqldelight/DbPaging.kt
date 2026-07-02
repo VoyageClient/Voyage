@@ -27,12 +27,17 @@ internal fun <T> livePaged(
         query: Query<*>,
         config: PagedList.Config,
         onDataSourceCreated: ((DataSource<Int, T>) -> Unit)? = null,
+        // A shared single-thread executor makes several lists load FIFO (in the order they're observed)
+        // instead of racing on the default IO pool — used so the room-list sections populate in order.
+        fetchExecutor: java.util.concurrent.Executor? = null,
         fetch: () -> List<T>,
 ): LiveData<PagedList<T>> {
     val factory = object : DataSource.Factory<Int, T>() {
         override fun create(): DataSource<Int, T> = SnapshotPositionalDataSource(query, fetch()).also { onDataSourceCreated?.invoke(it) }
     }
-    return LivePagedListBuilder(factory, config).build()
+    return LivePagedListBuilder(factory, config)
+            .apply { fetchExecutor?.let { setFetchExecutor(it) } }
+            .build()
 }
 
 /** Convenience overload for callers that only care about page size (no placeholders). */

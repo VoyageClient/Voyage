@@ -133,6 +133,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_VIBRATE_ON_MENTION_KEY = "SETTINGS_VIBRATE_ON_MENTION_KEY"
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
+        private const val SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY = "SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         private const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
         const val SETTINGS_USE_TWEMOJI_KEY = "SETTINGS_USE_TWEMOJI_KEY"
@@ -1025,6 +1026,13 @@ class VectorPreferences @Inject constructor(
      */
     fun showEmojiKeyboard(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_EMOJI_KEYBOARD, true)
+    }
+
+    /**
+     * Tells if uploaded file names should be replaced with a random id (keeping the extension).
+     */
+    fun randomizeUploadFilenames(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY, false)
     }
 
     /**
