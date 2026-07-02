@@ -12,8 +12,8 @@ import android.content.Context
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.pushers.FcmHelper
 import im.vector.app.core.pushers.PushersManager
+import im.vector.app.core.services.AlarmSyncBroadcastReceiver
 import im.vector.app.fdroid.BackgroundSyncStarter
-import im.vector.app.fdroid.receiver.AlarmSyncBroadcastReceiver
 import javax.inject.Inject
 
 /**

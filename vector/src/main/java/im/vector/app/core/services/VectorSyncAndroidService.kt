@@ -6,12 +6,10 @@
  */
 package im.vector.app.core.services
 
-import android.app.AlarmManager
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.work.Constraints
 import androidx.work.Data
@@ -23,7 +21,6 @@ import androidx.work.Worker
 import androidx.work.WorkerParameters
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.startForegroundCompat
-import im.vector.app.core.platform.PendingIntentCompat
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.settings.BackgroundSyncMode
 import im.vector.lib.core.utils.timer.Clock
@@ -104,7 +101,7 @@ class VectorSyncAndroidService : SyncAndroidService() {
                 syncDelaySeconds = syncDelaySeconds,
                 isPeriodic = true,
                 isNetworkBack = false,
-                currentTimeMillis = clock.epochMillis()
+                clock = clock
         )
     }
 
@@ -162,7 +159,7 @@ class VectorSyncAndroidService : SyncAndroidService() {
                     syncDelaySeconds = syncDelaySeconds,
                     isPeriodic = isPeriodic,
                     isNetworkBack = true,
-                    currentTimeMillis = clock.epochMillis()
+                    clock = clock
             )
             // Indicate whether the work finished successfully with the Result
             return Result.success()
@@ -197,39 +194,34 @@ private fun Context.rescheduleSyncService(
         syncDelaySeconds: Int,
         isPeriodic: Boolean,
         isNetworkBack: Boolean,
-        currentTimeMillis: Long
+        clock: Clock
 ) {
     Timber.d("## Sync: rescheduleSyncService")
-    val intent = if (isPeriodic) {
-        VectorSyncAndroidService.newPeriodicIntent(
-                context = this,
-                sessionId = sessionId,
-                syncTimeoutSeconds = syncTimeoutSeconds,
-                syncDelaySeconds = syncDelaySeconds,
-                isNetworkBack = isNetworkBack
-        )
-    } else {
-        VectorSyncAndroidService.newOneShotIntent(
-                context = this,
-                sessionId = sessionId
-        )
-    }
-
     if (isNetworkBack || syncDelaySeconds == 0) {
         // Do not wait, do the sync now (more reactivity if network back is due to user action)
-        startService(intent)
+        val intent = if (isPeriodic) {
+            VectorSyncAndroidService.newPeriodicIntent(
+                    context = this,
+                    sessionId = sessionId,
+                    syncTimeoutSeconds = syncTimeoutSeconds,
+                    syncDelaySeconds = syncDelaySeconds,
+                    isNetworkBack = isNetworkBack
+            )
+        } else {
+            VectorSyncAndroidService.newOneShotIntent(
+                    context = this,
+                    sessionId = sessionId
+            )
+        }
+        try {
+            ContextCompat.startForegroundService(this, intent)
+        } catch (ex: Throwable) {
+            Timber.e(ex, "## Sync: Failed to restart service, fallback to alarm")
+            AlarmSyncBroadcastReceiver.scheduleAlarm(this, sessionId, syncDelaySeconds, clock)
+        }
     } else {
-        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            PendingIntent.getForegroundService(this, 0, intent, PendingIntentCompat.FLAG_IMMUTABLE)
-        } else {
-            PendingIntent.getService(this, 0, intent, PendingIntentCompat.FLAG_IMMUTABLE)
-        }
-        val firstMillis = currentTimeMillis + syncDelaySeconds * 1000L
-        val alarmMgr = getSystemService<AlarmManager>()!!
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmMgr.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, firstMillis, pendingIntent)
-        } else {
-            alarmMgr.set(AlarmManager.RTC_WAKEUP, firstMillis, pendingIntent)
-        }
+        // Go through the single broadcast alarm chain, so this never competes with the
+        // alarm scheduled by BackgroundSyncStarter and permission checks apply at each cycle
+        AlarmSyncBroadcastReceiver.scheduleAlarm(this, sessionId, syncDelaySeconds, clock)
     }
 }

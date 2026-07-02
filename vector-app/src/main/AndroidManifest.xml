@@ -103,7 +103,7 @@
         </receiver>
 
         <receiver
-            android:name="im.vector.app.fdroid.receiver.AlarmSyncBroadcastReceiver"
+            android:name="im.vector.app.core.services.AlarmSyncBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
 

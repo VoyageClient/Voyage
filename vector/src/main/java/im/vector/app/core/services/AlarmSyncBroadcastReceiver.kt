@@ -5,7 +5,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package im.vector.app.fdroid.receiver
+package im.vector.app.core.services
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
@@ -14,11 +14,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.platform.PendingIntentCompat
-import im.vector.app.core.services.VectorSyncAndroidService
 import im.vector.lib.core.utils.timer.Clock
 import org.matrix.android.sdk.api.session.sync.job.SyncAndroidService
 import timber.log.Timber
@@ -33,6 +33,10 @@ class AlarmSyncBroadcastReceiver : BroadcastReceiver() {
             return
         }
         val vectorPreferences = singletonEntryPoint.vectorPreferences()
+        if (!vectorPreferences.areNotificationEnabledForDevice() || !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            Timber.i("## Sync: notifications are disabled, stopping background sync chain")
+            return
+        }
         val clock = singletonEntryPoint.clock()
 
         val sessionId = intent.getStringExtra(SyncAndroidService.EXTRA_SESSION_ID) ?: return
@@ -81,7 +85,7 @@ class AlarmSyncBroadcastReceiver : BroadcastReceiver() {
         }
 
         @SuppressLint("WrongConstant") // PendingIntentCompat.FLAG_IMMUTABLE is a false positive
-        fun cancelAlarm(context: Context) {
+        fun cancelPendingAlarm(context: Context) {
             Timber.v("## Sync: Cancel alarm for background sync")
             val intent = Intent(context, AlarmSyncBroadcastReceiver::class.java)
             val pIntent = PendingIntent.getBroadcast(
@@ -92,6 +96,10 @@ class AlarmSyncBroadcastReceiver : BroadcastReceiver() {
             )
             val alarmMgr = context.getSystemService<AlarmManager>()!!
             alarmMgr.cancel(pIntent)
+        }
+
+        fun cancelAlarm(context: Context) {
+            cancelPendingAlarm(context)
 
             // Stop current service to restart
             VectorSyncAndroidService.stopIntent(context).let {

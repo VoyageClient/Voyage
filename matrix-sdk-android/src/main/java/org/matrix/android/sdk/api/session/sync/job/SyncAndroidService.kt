@@ -24,6 +24,7 @@ import androidx.core.content.getSystemService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -154,42 +155,48 @@ abstract class SyncAndroidService : Service() {
     private suspend fun doSync() {
         Timber.v("## Sync: Execute sync request with timeout $syncTimeoutSeconds seconds")
         val params = SyncTask.Params(syncTimeoutSeconds * 1000L, SyncPresence.Offline, afterPause = false)
-        try {
-            // never do that in foreground, let the syncThread work
-            syncTask.execute(params)
-            // Start sync if we were doing an initial sync and the syncThread is not launched yet
-            if (isInitialSync && session.syncService().getSyncState() == SyncState.Idle) {
-                val isForeground = !backgroundDetectionObserver.isInBackground
-                session.syncService().startSync(isForeground)
-            }
-            stopMe()
-        } catch (throwable: Throwable) {
-            Timber.e(throwable, "## Sync: sync service did fail ${isRunning.get()}")
-            if (throwable.isTokenError()) {
-                // no need to retry
-                preventReschedule = true
-            }
-            if (throwable is Failure.NetworkConnection) {
-                // Timeout is not critical, so retry as soon as possible.
-                if (throwable.cause is SocketTimeoutException) {
-                    // For big accounts, computing sync response can take time, but Synapse will cache the
-                    // result for the next request. So keep retrying in loop
-                    Timber.w("Timeout during sync, retry in loop")
-                    doSync()
-                    return
+        var timeoutRetryCount = 0
+        while (true) {
+            try {
+                // never do that in foreground, let the syncThread work
+                syncTask.execute(params)
+                // Start sync if we were doing an initial sync and the syncThread is not launched yet
+                if (isInitialSync && session.syncService().getSyncState() == SyncState.Idle) {
+                    val isForeground = !backgroundDetectionObserver.isInBackground
+                    session.syncService().startSync(isForeground)
                 }
-                // Network might be off, no need to reschedule endless alarms :/
-                preventReschedule = true
-                // Instead start a work to restart background sync when network is on
-                onNetworkError(
-                        sessionId = sessionId ?: "",
-                        syncTimeoutSeconds = syncTimeoutSeconds,
-                        syncDelaySeconds = syncDelaySeconds,
-                        isPeriodic = periodic
-                )
+                stopMe()
+            } catch (throwable: Throwable) {
+                Timber.e(throwable, "## Sync: sync service did fail ${isRunning.get()}")
+                if (throwable.isTokenError()) {
+                    // no need to retry
+                    preventReschedule = true
+                }
+                if (throwable is Failure.NetworkConnection) {
+                    if (throwable.cause is SocketTimeoutException && timeoutRetryCount++ < MAX_TIMEOUT_RETRY_COUNT) {
+                        // Synapse caches the slow sync response for the next request, so retrying helps big
+                        // accounts — but bounded and spaced out, else this loop can spin for hours.
+                        Timber.w("Timeout during sync, retry $timeoutRetryCount/$MAX_TIMEOUT_RETRY_COUNT")
+                        delay(TIMEOUT_RETRY_DELAY_MILLIS)
+                        continue
+                    }
+                    if (throwable.cause !is SocketTimeoutException) {
+                        // Network might be off, no need to reschedule endless alarms :/
+                        preventReschedule = true
+                        // Instead start a work to restart background sync when network is on
+                        onNetworkError(
+                                sessionId = sessionId ?: "",
+                                syncTimeoutSeconds = syncTimeoutSeconds,
+                                syncDelaySeconds = syncDelaySeconds,
+                                isPeriodic = periodic
+                        )
+                    }
+                    // On repeated timeouts, fall through: the periodic reschedule will try again later
+                }
+                // JobCancellation could be caught here when onDestroy cancels the coroutine context
+                if (isRunning.get()) stopMe()
             }
-            // JobCancellation could be caught here when onDestroy cancels the coroutine context
-            if (isRunning.get()) stopMe()
+            return
         }
     }
 
@@ -244,5 +251,8 @@ abstract class SyncAndroidService : Service() {
         const val EXTRA_NETWORK_BACK_RESTART = "EXTRA_NETWORK_BACK_RESTART"
 
         const val ACTION_STOP = "ACTION_STOP"
+
+        private const val MAX_TIMEOUT_RETRY_COUNT = 3
+        private const val TIMEOUT_RETRY_DELAY_MILLIS = 10_000L
     }
 }

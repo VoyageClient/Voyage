@@ -8,8 +8,9 @@
 package im.vector.app.fdroid
 
 import android.content.Context
+import androidx.core.app.NotificationManagerCompat
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.fdroid.receiver.AlarmSyncBroadcastReceiver
+import im.vector.app.core.services.AlarmSyncBroadcastReceiver
 import im.vector.app.features.settings.BackgroundSyncMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
@@ -22,31 +23,35 @@ class BackgroundSyncStarter @Inject constructor(
         private val clock: Clock
 ) {
     fun start(activeSessionHolder: ActiveSessionHolder) {
-        if (vectorPreferences.areNotificationEnabledForDevice()) {
-            val activeSession = activeSessionHolder.getSafeActiveSession() ?: return
-            when (vectorPreferences.getFdroidSyncBackgroundMode()) {
-                BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_BATTERY -> {
-                    // we rely on periodic worker
-                    Timber.i("## Sync: Work scheduled to periodically sync in ${vectorPreferences.backgroundSyncDelay()}s")
-                    activeSession.syncService().startAutomaticBackgroundSync(
-                            vectorPreferences.backgroundSyncTimeOut().toLong(),
-                            vectorPreferences.backgroundSyncDelay().toLong()
-                    )
-                }
-                BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_REALTIME -> {
-                    // We need to use alarm in this mode
-                    AlarmSyncBroadcastReceiver.scheduleAlarm(
-                            context,
-                            activeSession.sessionId,
-                            vectorPreferences.backgroundSyncDelay(),
-                            clock
-                    )
-                    Timber.i("## Sync: Alarm scheduled to start syncing")
-                }
-                BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_DISABLED -> {
-                    // we do nothing
-                    Timber.i("## Sync: background sync is disabled")
-                }
+        if (!vectorPreferences.areNotificationEnabledForDevice() || !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+            Timber.i("## Sync: background sync not started, notifications are disabled")
+            AlarmSyncBroadcastReceiver.cancelPendingAlarm(context)
+            activeSessionHolder.getSafeActiveSession()?.syncService()?.stopAnyBackgroundSync()
+            return
+        }
+        val activeSession = activeSessionHolder.getSafeActiveSession() ?: return
+        when (vectorPreferences.getFdroidSyncBackgroundMode()) {
+            BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_BATTERY -> {
+                // we rely on periodic worker
+                Timber.i("## Sync: Work scheduled to periodically sync in ${vectorPreferences.backgroundSyncDelay()}s")
+                activeSession.syncService().startAutomaticBackgroundSync(
+                        vectorPreferences.backgroundSyncTimeOut().toLong(),
+                        vectorPreferences.backgroundSyncDelay().toLong()
+                )
+            }
+            BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_FOR_REALTIME -> {
+                // We need to use alarm in this mode
+                AlarmSyncBroadcastReceiver.scheduleAlarm(
+                        context,
+                        activeSession.sessionId,
+                        vectorPreferences.backgroundSyncDelay(),
+                        clock
+                )
+                Timber.i("## Sync: Alarm scheduled to start syncing")
+            }
+            BackgroundSyncMode.FDROID_BACKGROUND_SYNC_MODE_DISABLED -> {
+                // we do nothing
+                Timber.i("## Sync: background sync is disabled")
             }
         }
     }
