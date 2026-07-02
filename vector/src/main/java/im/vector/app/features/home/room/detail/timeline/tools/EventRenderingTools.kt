@@ -23,6 +23,7 @@ import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.html.EmoteImageSpan
+import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.SpoilerSpan
 import kotlinx.coroutines.CoroutineScope
@@ -80,7 +81,22 @@ fun CharSequence.linkify(callback: TimelineEventController.UrlClickCallback?): C
     })
     VectorLinkify.addLinks(spannable, true)
     spannable.removeLinksOverEmotes()
+    spannable.removeLinksOverCode()
     return spannable
+}
+
+// Code is verbatim: a URL / matrix permalink inside inline code or a code block must not be linkified
+// (removing the clickable span drops both the tap handling and the link colour).
+private fun SpannableStringBuilder.removeLinksOverCode() {
+    val codeSpans = getSpans(0, length, HtmlCodeSpan::class.java)
+    if (codeSpans.isEmpty()) return
+    getSpans(0, length, ClickableSpan::class.java).forEach { link ->
+        val ls = getSpanStart(link)
+        val le = getSpanEnd(link)
+        if (codeSpans.any { ls < getSpanEnd(it) && getSpanStart(it) < le }) {
+            removeSpan(link)
+        }
+    }
 }
 
 // Linkify can lay a clickable span over an emote's (invisible) alt text; drop those so tapping the emote is inert.

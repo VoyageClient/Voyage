@@ -69,11 +69,14 @@ class PillsPostProcessor @AssistedInject constructor(
 
     private fun addLinkSpans(renderedText: Spannable) {
         // We let markdown handle links and then we add PillImageSpan if needed.
+        val codeSpans = renderedText.getSpans(0, renderedText.length, HtmlCodeSpan::class.java)
         val linkSpans = renderedText.getSpans(0, renderedText.length, LinkSpan::class.java)
         linkSpans.forEach { linkSpan ->
-            val pillSpan = linkSpan.createPillSpan() ?: return@forEach
             val startSpan = renderedText.getSpanStart(linkSpan)
             val endSpan = renderedText.getSpanEnd(linkSpan)
+            // A mention/permalink inside inline code or a code block should stay verbatim, not become a pill.
+            if (codeSpans.any { renderedText.getSpanStart(it) < endSpan && startSpan < renderedText.getSpanEnd(it) }) return@forEach
+            val pillSpan = linkSpan.createPillSpan() ?: return@forEach
             // GlideImagesPlugin causes duplicated pills if we have a nested spans in the pill span,
             // such as images or italic text.
             // Accordingly, it's better to remove all spans that are contained in this span before rendering.

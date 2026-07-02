@@ -320,9 +320,11 @@ class DisplayableEventFormatter @Inject constructor(
     // Render a formatted preview the way the timeline does: mentions/rooms become pills (pillsPostProcessor),
     // matrix.to message links become "Message in Room" pills (EventTextRenderer), then bare links get coloured.
     private fun renderFormattedPreview(roomId: String?, formattedBody: String): CharSequence {
-        if (roomId == null) return htmlRenderer.get().render(formattedBody).sanitizeForPreview().colorBareLinks().flattenForPreview().trimForPreview()
+        // colorBareLinks must run before sanitizeForPreview, which strips block-level code spans it relies
+        // on to leave URLs inside a code block un-coloured.
+        if (roomId == null) return htmlRenderer.get().render(formattedBody).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
         val (pills, textRenderer) = pillProcessorsFor(roomId)
-        return textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).sanitizeForPreview().colorBareLinks().flattenForPreview().trimForPreview()
+        return textRenderer.render(htmlRenderer.get().render(formattedBody, pills)).colorBareLinks().sanitizeForPreview().flattenForPreview().trimForPreview()
     }
 
     // Block-level spans don't render in a one-line preview: a blockquote draws its stripe/indent and a
@@ -392,7 +394,9 @@ class DisplayableEventFormatter @Inject constructor(
             val start = match.range.first
             val end = match.range.last + 1
             val covered = builder.getSpans(start, end, URLSpan::class.java).isNotEmpty() ||
-                    builder.getSpans(start, end, PillImageSpan::class.java).isNotEmpty()
+                    builder.getSpans(start, end, PillImageSpan::class.java).isNotEmpty() ||
+                    // A URL inside inline code or a code block stays verbatim, not link-coloured.
+                    builder.getSpans(start, end, im.vector.app.features.html.HtmlCodeSpan::class.java).isNotEmpty()
             if (!covered) builder.setSpan(ForegroundColorSpan(linkColor), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         return builder
