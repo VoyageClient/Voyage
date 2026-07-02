@@ -7,7 +7,9 @@
 
 package im.vector.app.features.invite
 
+import android.view.View
 import androidx.core.view.isGone
+import androidx.core.view.isInvisible
 import im.vector.app.core.platform.ButtonStateView
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 
@@ -16,7 +18,8 @@ object InviteButtonStateBinder {
     fun bind(
             acceptView: ButtonStateView,
             rejectView: ButtonStateView,
-            changeMembershipState: ChangeMembershipState
+            changeMembershipState: ChangeMembershipState,
+            ignoreView: View? = null
     ) {
         // When a request is in progress (accept or reject), we only use the accept State button
         // We check for isSuccessful, otherwise we get a glitch the time room summaries get rebuilt
@@ -30,6 +33,7 @@ object InviteButtonStateBinder {
         // ButtonStateView.State.Loaded not used because roomSummary will not be displayed as a room invitation anymore
 
         rejectView.isGone = requestInProgress
+        ignoreView?.isInvisible = requestInProgress
 
         when (changeMembershipState) {
             is ChangeMembershipState.FailedLeaving -> rejectView.render(ButtonStateView.State.Error)

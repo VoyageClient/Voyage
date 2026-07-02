@@ -99,7 +99,6 @@
             android:id="@+id/inviteRejectView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:layout_marginEnd="2dp"
             android:layout_marginRight="2dp"
             android:minWidth="120dp"
@@ -109,12 +108,14 @@
             app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/inviteAcceptView"
-            app:layout_constraintTop_toBottomOf="@id/inviteLabelView" />
+            app:layout_constraintTop_toTopOf="@id/inviteAcceptView"
+            app:layout_constraintBottom_toBottomOf="@id/inviteAcceptView" />
 
         <im.vector.app.core.platform.ButtonStateView
             android:id="@+id/inviteAcceptView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:layout_marginStart="2dp"
             android:layout_marginLeft="2dp"
             android:minWidth="120dp"
@@ -123,8 +124,7 @@
             app:bsv_use_flat_button="false"
             app:layout_constraintStart_toEndOf="@id/inviteRejectView"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/inviteRejectView"
-            app:layout_constraintBottom_toBottomOf="@id/inviteRejectView" />
+            app:layout_constraintTop_toBottomOf="@id/inviteLabelView" />
 
         <Button
             android:id="@+id/inviteIgnoreView"
@@ -136,7 +136,7 @@
             android:text="@string/action_ignore"
             app:layout_constraintEnd_toEndOf="@id/inviteAcceptView"
             app:layout_constraintStart_toStartOf="@id/inviteRejectView"
-            app:layout_constraintTop_toBottomOf="@id/inviteRejectView" />
+            app:layout_constraintTop_toBottomOf="@id/inviteAcceptView" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

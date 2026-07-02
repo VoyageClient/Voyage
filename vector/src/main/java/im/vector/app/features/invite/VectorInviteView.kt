@@ -71,6 +71,6 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             views.inviteLabelView.text = context.getString(CommonStrings.invited_by, sender.userId)
             views.inviteIgnoreView.visibility = View.GONE
         }
-        InviteButtonStateBinder.bind(views.inviteAcceptView, views.inviteRejectView, changeMembershipState)
+        InviteButtonStateBinder.bind(views.inviteAcceptView, views.inviteRejectView, changeMembershipState, views.inviteIgnoreView)
     }
 }
