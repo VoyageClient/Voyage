@@ -19,11 +19,16 @@ package org.matrix.android.sdk.internal.session.room.summary
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.paging.DataSource
 import androidx.paging.PagedList
+import app.cash.sqldelight.Query
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.SpaceFilter
@@ -32,6 +37,7 @@ import org.matrix.android.sdk.api.session.room.ResultBoundaries
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -60,6 +66,7 @@ internal class RoomSummaryDataSource @Inject constructor(
         private val roomSummaryMapper: RoomSummaryMapper,
         private val localRoomSummaryMapper: LocalRoomSummaryMapper,
         private val stores: SessionStores,
+        private val previewInvalidation: RoomSummaryPreviewInvalidation,
 ) {
     private val queries get() = database.roomSummaryQueries
 
@@ -76,9 +83,47 @@ internal class RoomSummaryDataSource @Inject constructor(
     // message mutates the row (latest event id, unread counts, activity) → cache miss → fresh map.
     private val summaryCache = java.util.concurrent.ConcurrentHashMap<RoomSummaryRow, RoomSummary>()
 
+    // One deserialized selectAll snapshot shared by every observer. The room list spins up 10+
+    // selectAll-based observers (per-section paged lists, counts, notification counts); without this,
+    // each re-ran its own full-table deserialize (~50-250ms for ~400 rooms) on every sync write.
+    // The generation guard prevents caching a snapshot that a concurrent write already superseded.
+    private val roomSummaryGeneration = MutableStateFlow(0L)
+    @Volatile private var cachedAllRows: Pair<Long, List<RoomSummaryRow>>? = null
+    private val allRowsInvalidator = Query.Listener {
+        cachedAllRows = null
+        roomSummaryGeneration.value += 1
+    }
+
+    // Retained so the driver-level listener registration lives as long as the (session-scoped) source.
+    private val invalidationQuery = database.roomSummaryQueries.selectAll().also { it.addListener(allRowsInvalidator) }
+
+    init {
+        // Preview decryption changes the mapped summary without changing the row, so the row-keyed
+        // memo must be evicted explicitly (see RoomSummaryPreviewInvalidation).
+        previewInvalidation.register { roomId ->
+            summaryCache.keys.removeAll { it.room_id == roomId }
+        }
+    }
+
+    private fun allRows(): List<RoomSummaryRow> {
+        cachedAllRows?.let { (gen, rows) -> if (gen == roomSummaryGeneration.value) return rows }
+        val gen = roomSummaryGeneration.value
+        val perfStart = MatrixPerf.now()
+        val rows = queries.selectAll().executeAsList()
+        MatrixPerf.end(perfStart) { "roomlist.selectAll rows=${rows.size}" }
+        if (roomSummaryGeneration.value == gen) cachedAllRows = gen to rows
+        return rows
+    }
+
+    /** LiveData recomputing [transform] (against [allRows]) on the DB dispatcher on every room_summary change. */
+    private fun <T> liveOnRoomSummaryChange(transform: () -> T): LiveData<T> =
+            roomSummaryGeneration.map { transform() }.flowOn(dispatcher).asLiveData()
+
     private fun RoomSummaryRow.toDomain(): RoomSummary? {
         summaryCache[this]?.let { return it }
+        val perfStart = MatrixPerf.now()
         val mapped = stores.roomSummary.get(room_id)?.let { roomSummaryMapper.map(it) } ?: return null
+        MatrixPerf.end(perfStart) { "roomlist.toDomain.miss room=$room_id" }
         // Changed rooms leave their old row as a dead key; bound growth.
         if (summaryCache.size > 512) summaryCache.clear()
         summaryCache[this] = mapped
@@ -112,12 +157,11 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     fun getRoomSummariesLive(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): LiveData<List<RoomSummary>> {
-        return queries.selectAll().asLiveList(dispatcher)
-                .map { applyFilterAndSort(it, queryParams, sortOrder).mapNotNull { row -> row.toDomain() } }
+        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).mapNotNull { row -> row.toDomain() } }
     }
 
     fun getRoomSummariesChangesLive(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): LiveData<List<Unit>> {
-        return queries.selectAll().asLiveList(dispatcher).map { rows -> applyFilterAndSort(rows, queryParams, sortOrder).map { } }
+        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).map { } }
     }
 
     fun getSpaceSummariesLive(queryParams: SpaceSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): LiveData<List<RoomSummary>> =
@@ -152,8 +196,8 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     fun getBreadcrumbsLive(queryParams: RoomSummaryQueryParams): LiveData<List<RoomSummary>> {
-        return queries.selectAll().asLiveList(dispatcher).map { rows ->
-            applyFilterAndSort(rows, queryParams, RoomSortOrder.NONE)
+        return liveOnRoomSummaryChange {
+            filteredSortedRows(queryParams, RoomSortOrder.NONE)
                     .filter { it.breadcrumbs_index > RoomSummary.NOT_IN_BREADCRUMBS }
                     .sortedBy { it.breadcrumbs_index }
                     .mapNotNull { it.toDomain() }
@@ -201,16 +245,17 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     fun getCountLive(queryParams: RoomSummaryQueryParams): LiveData<Int> {
-        return queries.selectAll().asLiveList(dispatcher).map { applyFilterAndSort(it, queryParams, RoomSortOrder.NONE).size }
+        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, RoomSortOrder.NONE).size }
     }
 
-    fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount {
-        val rows = filteredSortedRows(queryParams, RoomSortOrder.NONE)
-        return RoomAggregateNotificationCount(
-                rows.sumOf { it.notification_count.toInt() },
-                rows.sumOf { it.highlight_count.toInt() },
-        )
-    }
+    fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount =
+            MatrixPerf.time("roomlist.notificationCount") {
+                val rows = filteredSortedRows(queryParams, RoomSortOrder.NONE)
+                RoomAggregateNotificationCount(
+                        rows.sumOf { it.notification_count.toInt() },
+                        rows.sumOf { it.highlight_count.toInt() },
+                )
+            }
 
     fun getAllRoomSummaryChildOf(spaceAliasOrId: String, memberShips: List<Membership>): List<RoomSummary> {
         val space = getSpaceSummary(spaceAliasOrId) ?: return emptyList()
@@ -303,8 +348,12 @@ internal class RoomSummaryDataSource @Inject constructor(
         }
     }
 
-    private fun filteredSortedRows(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> =
-            applyFilterAndSort(queries.selectAll().executeAsList(), queryParams, sortOrder)
+    private fun filteredSortedRows(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> {
+        val all = allRows()
+        val filterStart = MatrixPerf.now()
+        return applyFilterAndSort(all, queryParams, sortOrder)
+                .also { MatrixPerf.end(filterStart) { "roomlist.filterSort ${it.size}/${all.size} sort=$sortOrder" } }
+    }
 
     private fun applyFilterAndSort(rows: List<RoomSummaryRow>, queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> =
             sort(rows.filter { it.matches(queryParams) }, sortOrder)

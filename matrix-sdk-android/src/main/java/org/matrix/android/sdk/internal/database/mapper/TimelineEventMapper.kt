@@ -24,7 +24,30 @@ import javax.inject.Inject
 
 internal class TimelineEventMapper @Inject constructor(private val readReceiptsSummaryMapper: ReadReceiptsSummaryMapper) {
 
+    // Parsing an event's JSON (2-3 Moshi passes) dominates timeline snapshot mapping (~1.5ms/event on
+    // device), and the live chunk re-maps in full on every sync. Memoize the mapped TimelineEvent per
+    // eventId, guarded by a fingerprint over every entity field that feeds the mapping — decryption,
+    // edits, redactions, reactions and read receipts all change the fingerprint, so a stale hit can
+    // only come from a 64-bit hash collision.
+    private val memo = object : LinkedHashMap<String, Pair<Long, TimelineEvent>>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Pair<Long, TimelineEvent>>) = size > MEMO_MAX_SIZE
+    }
+
     fun map(timelineEventEntity: TimelineEventEntity, buildReadReceipts: Boolean = true): TimelineEvent {
+        val fingerprint = fingerprintOf(timelineEventEntity, buildReadReceipts)
+        synchronized(memo) {
+            memo[timelineEventEntity.eventId]?.let { (cachedFingerprint, cached) ->
+                if (cachedFingerprint == fingerprint) return cached
+            }
+        }
+        val mapped = doMap(timelineEventEntity, buildReadReceipts)
+        synchronized(memo) {
+            memo[timelineEventEntity.eventId] = fingerprint to mapped
+        }
+        return mapped
+    }
+
+    private fun doMap(timelineEventEntity: TimelineEventEntity, buildReadReceipts: Boolean): TimelineEvent {
         val readReceipts = if (buildReadReceipts) {
             timelineEventEntity.readReceipts
                     ?.let {
@@ -54,5 +77,75 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
                             it.originServerTs
                         }.orEmpty()
         )
+    }
+
+    private fun fingerprintOf(e: TimelineEventEntity, buildReadReceipts: Boolean): Long {
+        var h = if (buildReadReceipts) 1L else 2L
+        fun add(v: Any?) {
+            h = 31 * h + (v?.hashCode() ?: 0)
+        }
+        add(e.eventId)
+        add(e.localId)
+        add(e.displayIndex)
+        add(e.senderName)
+        add(e.senderAvatar)
+        add(e.isUniqueDisplayName)
+        add(e.senderMembershipEventId)
+        add(e.ownedByThreadChunk)
+        e.root?.let { r ->
+            add(r.type)
+            add(r.content)
+            add(r.prevContent)
+            add(r.unsignedData)
+            add(r.decryptionResultJson)
+            add(r.decryptionErrorCode)
+            add(r.decryptionErrorReason)
+            add(r.sendState)
+            add(r.sendStateDetails)
+            add(r.originServerTs)
+            add(r.ageLocalTs)
+            add(r.isVerificationStateDirty)
+            add(r.isRootThread)
+            add(r.numberOfThreads)
+            add(r.threadNotificationState)
+            add(r.threadSummaryLatestMessage?.eventId)
+            add(r.threadSummaryLatestMessage?.root?.content)
+        }
+        e.annotations?.let { a ->
+            a.reactionsSummary.forEach {
+                add(it.key)
+                add(it.count)
+                add(it.addedByMe)
+                add(it.sourceEvents.size)
+                add(it.sourceLocalEcho.size)
+            }
+            a.editSummary?.editions?.forEach {
+                add(it.eventId)
+                add(it.timestamp)
+                add(it.isLocalEcho)
+            }
+            add(a.referencesSummaryEntity?.content)
+            a.pollResponseSummary?.let {
+                add(it.aggregatedContent)
+                add(it.closedTime)
+                add(it.nbOptions)
+            }
+            a.liveLocationShareAggregatedSummary?.let {
+                add(it.isActive)
+                add(it.endOfLiveTimestampMillis)
+                add(it.lastLocationContent)
+            }
+        }
+        e.readReceipts?.readReceipts?.forEach {
+            add(it.userId)
+            add(it.originServerTs)
+            add(it.eventId)
+            add(it.threadId)
+        }
+        return h
+    }
+
+    private companion object {
+        private const val MEMO_MAX_SIZE = 1500
     }
 }

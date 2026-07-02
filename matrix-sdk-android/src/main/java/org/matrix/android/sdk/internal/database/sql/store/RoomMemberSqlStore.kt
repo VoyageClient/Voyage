@@ -40,7 +40,12 @@ internal class RoomMemberSqlStore(private val database: SessionSqlDatabase) {
             user_presence_user_id = entity.userPresenceEntity?.userId,
     )
 
-    fun linkUserPresence(userId: String) = queries.updateUserPresence(userId, userId)
+    // Guarded like RoomSummarySqlStore.linkDirectUserPresence: skip the (listener-notifying) UPDATE when
+    // every member row already carries the presence link.
+    fun linkUserPresence(userId: String) {
+        if (queries.countMembersMissingPresenceLink(userId, userId).executeAsOne() == 0L) return
+        queries.updateUserPresence(userId, userId)
+    }
 
     fun deleteByRoom(roomId: String) = queries.deleteByRoom(roomId)
 

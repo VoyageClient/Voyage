@@ -39,6 +39,12 @@ To quickly check that code compiles without building/installing the whole app (n
 
 The installed fdroid-debug package is `im.voyage.app.debug` (NOT `im.vector.app.debug`). Use that for `am start`, `pidof`, logcat filters, etc.
 
+To launch the app programmatically, always use the explicit entry activity:
+
+    adb shell am start -n im.voyage.app.debug/im.vector.application.features.Alias
+
+(release build: `im.voyage.app/im.vector.application.features.Alias`). Do NOT launch via `monkey -c android.intent.category.LAUNCHER` — debug builds contain a second launcher activity (LeakCanary's `LeakLauncherActivity`), and monkey may open that instead of the app.
+
 The app takes ~45 seconds to start. When launching it (e.g. to read logs after an install), always wait at least 45s before checking for output.
 
 NEVER take device screenshots (no `adb screencap`, no `adb exec-out screencap`, no driving the UI to capture a screen) unless the user explicitly asks for one in that message. To verify behaviour, prefer reading logcat; let the user drive the UI and trigger flows themselves.

@@ -81,6 +81,8 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 database = database,
                 sessionDispatcher = sessionDbDispatcher,
                 eventDecryptor = eventDecryptorProvider.get(),
+                timelineInput = timelineInput,
+                clock = clock,
         )
     }
 

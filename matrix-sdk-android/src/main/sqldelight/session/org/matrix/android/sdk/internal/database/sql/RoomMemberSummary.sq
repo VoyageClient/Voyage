@@ -36,6 +36,10 @@ INSERT OR REPLACE INTO room_member_summary(
 updateUserPresence:
 UPDATE room_member_summary SET user_presence_user_id = ? WHERE user_id = ?;
 
+countMembersMissingPresenceLink:
+SELECT count(*) FROM room_member_summary
+WHERE user_id = ? AND (user_presence_user_id IS NULL OR user_presence_user_id != ?);
+
 deleteByRoom:
 DELETE FROM room_member_summary WHERE room_id = ?;
 

@@ -59,6 +59,11 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
 
     fun getById(id: Long): EventEntity? = queries.selectById(id).executeAsOneOrNull()?.toResolvedEntity()
 
+    /** Bulk [getById] for timeline snapshot assembly — one query per 500 ids instead of one per event. */
+    fun getByIds(ids: Collection<Long>): Map<Long, EventEntity> =
+            ids.flatMapInChunks { queries.selectByIds(it).executeAsList() }
+                    .associateBy({ it.id }, { it.toResolvedEntity() })
+
     fun getByEventId(eventId: String): EventEntity? = queries.selectByEventId(eventId).executeAsOneOrNull()?.toResolvedEntity()
 
     fun getByEventIdInRoom(roomId: String, eventId: String): EventEntity? =

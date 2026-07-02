@@ -39,6 +39,9 @@ CREATE INDEX event_root_thread ON event(root_thread_event_id);
 selectById:
 SELECT * FROM event WHERE id = ?;
 
+selectByIds:
+SELECT * FROM event WHERE id IN ?;
+
 selectByEventId:
 SELECT * FROM event WHERE event_id = ? LIMIT 1;
 

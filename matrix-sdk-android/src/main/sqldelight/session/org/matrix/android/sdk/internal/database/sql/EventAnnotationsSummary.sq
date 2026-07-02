@@ -58,6 +58,9 @@ SELECT * FROM event_annotations_summary WHERE event_id = ?;
 selectSummariesForRoom:
 SELECT * FROM event_annotations_summary WHERE room_id = ?;
 
+selectSummariesIn:
+SELECT * FROM event_annotations_summary WHERE event_id IN ?;
+
 upsertSummary:
 INSERT OR REPLACE INTO event_annotations_summary(event_id, room_id) VALUES (?, ?);
 
@@ -67,6 +70,9 @@ DELETE FROM event_annotations_summary WHERE event_id = ?;
 -- reactions
 selectReactions:
 SELECT * FROM reaction_aggregated_summary WHERE annotation_event_id = ? ORDER BY reaction_order;
+
+selectReactionsIn:
+SELECT * FROM reaction_aggregated_summary WHERE annotation_event_id IN ? ORDER BY annotation_event_id, reaction_order;
 
 insertReaction:
 INSERT INTO reaction_aggregated_summary(annotation_event_id, reaction_order, reaction_key, reaction_count, added_by_me, first_timestamp, source_events, source_local_echo)
@@ -78,6 +84,9 @@ DELETE FROM reaction_aggregated_summary WHERE annotation_event_id = ?;
 -- editions
 selectEditions:
 SELECT * FROM edition_of_event WHERE annotation_event_id = ? ORDER BY edition_order;
+
+selectEditionsIn:
+SELECT * FROM edition_of_event WHERE annotation_event_id IN ? ORDER BY annotation_event_id, edition_order;
 
 insertEdition:
 INSERT INTO edition_of_event(annotation_event_id, edition_order, event_id, timestamp, is_local_echo, event_db_id)

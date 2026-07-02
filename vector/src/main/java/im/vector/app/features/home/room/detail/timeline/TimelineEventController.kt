@@ -95,6 +95,12 @@ class TimelineEventController @Inject constructor(
         private val avatarRenderer: AvatarRenderer,
 ) : EpoxyController(backgroundHandler, backgroundHandler), Timeline.Listener, EpoxyController.Interceptor {
 
+    private companion object {
+        // Keeps a pass under ~0.5s (~13ms/model build + ~150ms fixed epoxy overhead), so a message sent
+        // while a bulk reveal is trickling in waits at most one short pass to render.
+        private const val MAX_MODEL_BUILDS_PER_PASS = 20
+    }
+
     /**
      * This is a partial state of the RoomDetailViewState.
      */
@@ -444,8 +450,28 @@ class TimelineEventController @Inject constructor(
 
 // Timeline.LISTENER ***************************************************************************
 
+    // A backstacked room keeps its RecyclerView attached, so its controller keeps receiving snapshots
+    // and re-running full model passes for a screen nobody sees — doubling (or worse) the shared epoxy
+    // thread's load. The fragment pauses us while stopped; the latest snapshot is replayed on restart.
+    private val isPaused = java.util.concurrent.atomic.AtomicBoolean(false)
+    @Volatile private var pendingPausedSnapshot: List<TimelineEvent>? = null
+
+    fun setPaused(paused: Boolean) {
+        isPaused.set(paused)
+        if (!paused) {
+            pendingPausedSnapshot?.let {
+                pendingPausedSnapshot = null
+                submitSnapshot(it)
+            }
+        }
+    }
+
     override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
-        submitSnapshot(snapshot)
+        if (isPaused.get()) {
+            pendingPausedSnapshot = snapshot
+        } else {
+            submitSnapshot(snapshot)
+        }
     }
 
     private fun submitSnapshot(newSnapshot: List<TimelineEvent>) {
@@ -455,7 +481,7 @@ class TimelineEventController @Inject constructor(
             val diffCallback = TimelineEventDiffUtilCallback(currentSnapshot, newSnapshot)
             currentSnapshot = newSnapshot
             Timber.v("Submit a new snapshot of ${currentSnapshot.size} items.")
-            val diffResult = DiffUtil.calculateDiff(diffCallback)
+            val diffResult = PerfTrace.time("timeline.snapshotDiff") { DiffUtil.calculateDiff(diffCallback) }
             diffResult.dispatchUpdatesTo(listUpdateCallback)
             requestDelayedModelBuild(0)
             inSubmitList = false
@@ -500,14 +526,36 @@ class TimelineEventController @Inject constructor(
         }
         Timber.v("Preprocess events took $preprocessEventsTiming ms")
         var numberOfEventsToBuild = 0
-        val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(readReceiptsCache.receiptsByEvent())
+        val perfEnabled = PerfTrace.isEnabled
+        var lastSentStart = if (perfEnabled) System.nanoTime() else 0L
+        val receiptsByEvent = readReceiptsCache.receiptsByEvent()
+        val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(receiptsByEvent)
+        val lastSentNanos = if (perfEnabled) System.nanoTime() - lastSentStart else 0L
         // Nearest displayable neighbours, precomputed in O(n) — was a per-event subList scan (O(n²)).
+        val neighboursStart = if (perfEnabled) System.nanoTime() else 0L
         val (prevDisplayableEvents, nextDisplayableEvents) = computeDisplayableNeighbours()
+        val neighboursNanos = if (perfEnabled) System.nanoTime() - neighboursStart else 0L
+        var checkNanos = 0L
+        var buildNanos = 0L
+        var enrichNanos = 0L
+        var enrichSkips = 0
+        var buildBudgetExhausted = false
         (0 until modelCache.size).forEach { position ->
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
+            var t0 = if (perfEnabled) System.nanoTime() else 0L
             // Should be build if not cached or if model should be refreshed
-            if (modelCache[position] == null || modelCache[position]?.isCacheable(partialState) == false || reactionListFactory.needsRebuild(event)) {
+            val needsBuild = modelCache[position] == null || modelCache[position]?.isCacheable(partialState) == false || reactionListFactory.needsRebuild(event)
+            if (perfEnabled) checkNanos += System.nanoTime() - t0
+            // A model build is ~10-25ms (Markwon etc.), so a bulk reveal (room open, scroll-up) built for
+            // seconds in one pass — and a message sent meanwhile couldn't render until the whole pass
+            // finished. Build newest-first (position 0 = live edge, where a just-sent message sits) up to
+            // a budget and finish the (older, off-screen) rest in follow-up passes.
+            if (needsBuild && numberOfEventsToBuild >= MAX_MODEL_BUILDS_PER_PASS) {
+                buildBudgetExhausted = true
+                return@forEach
+            }
+            if (needsBuild) {
                 val prevEvent = currentSnapshot.prevOrNull(position)
                 val prevDisplayableEvent = prevDisplayableEvents[position]
                 val nextDisplayableEvent = nextDisplayableEvents[position]
@@ -529,16 +577,33 @@ class TimelineEventController @Inject constructor(
                                 onShowMoreClicked = { reactionListFactory.onShowMoreClicked(event.eventId) }
                         )
                 )
+                t0 = if (perfEnabled) System.nanoTime() else 0L
                 modelCache[position] = buildCacheItem(params)
+                if (perfEnabled) buildNanos += System.nanoTime() - t0
                 numberOfEventsToBuild++
             }
             val itemCachedData = modelCache[position] ?: return@forEach
             // Then update with additional models if needed
-            modelCache[position] = itemCachedData.enrichWithModels(event, nextEvent, position, readReceiptsCache.receiptsByEvent())
+            t0 = if (perfEnabled) System.nanoTime() else 0L
+            val enriched = itemCachedData.enrichWithModels(event, nextEvent, currentSnapshot.prevOrNull(position), position, receiptsByEvent)
+            if (perfEnabled) {
+                enrichNanos += System.nanoTime() - t0
+                if (enriched === itemCachedData) enrichSkips++
+            }
+            modelCache[position] = enriched
+        }
+        if (buildBudgetExhausted) {
+            // Cannot request from inside buildModels; queue it behind this pass on the same handler.
+            backgroundHandler.post { requestDelayedModelBuild(0) }
         }
         Timber.v("Number of events to rebuild: $numberOfEventsToBuild on ${modelCache.size} total events")
-        if (PerfTrace.isEnabled) {
-            Timber.tag("VectorPerf").i("timeline.buildModels.rebuilt %d/%d", numberOfEventsToBuild, modelCache.size)
+        if (perfEnabled) {
+            Timber.tag("VectorPerf").i(
+                    "timeline.buildCache rebuilt=%d/%d check=%dms build=%dms enrich=%dms(skips=%d) lastSent=%dms neighbours=%dms more=%b",
+                    numberOfEventsToBuild, modelCache.size,
+                    checkNanos / 1_000_000, buildNanos / 1_000_000, enrichNanos / 1_000_000, enrichSkips,
+                    lastSentNanos / 1_000_000, neighboursNanos / 1_000_000, buildBudgetExhausted,
+            )
         }
     }
 
@@ -594,9 +659,21 @@ class TimelineEventController @Inject constructor(
     private fun CacheItemData.enrichWithModels(
             event: TimelineEvent,
             nextEvent: TimelineEvent?,
+            prevEvent: TimelineEvent?,
             position: Int,
             receiptsByEvents: Map<String, List<ReadReceipt>>
     ): CacheItemData {
+        val readReceipts = receiptsByEvents[event.eventId].orEmpty()
+        // Enrichment inputs unchanged → keep the cached models. Merge start/membership decisions read
+        // only an event and its immediate neighbours (events are inserted at timeline edges, never
+        // mid-run), so identical neighbours + receipts make the result stable; merged-header models
+        // additionally embed collapse state, guarded by the factory's generation counter.
+        if (enrichedNextEventId == nextEvent?.eventId && enrichedPrevEventId == prevEvent?.eventId &&
+                enrichedReceipts == readReceipts) {
+            val mergeStable = (mergedHeaderModel == null && event.root.stateKey == null) ||
+                    enrichedCollapseGeneration == mergedHeaderItemFactory.collapseGeneration
+            if (mergeStable) return this
+        }
         val wantsDateSeparator = wantsDateSeparator(event, nextEvent)
         val mergedHeaderModel = mergedHeaderItemFactory.create(
                 event,
@@ -615,7 +692,6 @@ class TimelineEventController @Inject constructor(
         } else {
             null
         }
-        val readReceipts = receiptsByEvents[event.eventId].orEmpty()
         return copy(
                 readReceiptsItem = readReceiptsItemFactory.create(
                         event.eventId,
@@ -625,7 +701,11 @@ class TimelineEventController @Inject constructor(
                         partialState.isFromThreadTimeline(),
                 ),
                 formattedDayModel = formattedDayModel,
-                mergedHeaderModel = mergedHeaderModel
+                mergedHeaderModel = mergedHeaderModel,
+                enrichedNextEventId = nextEvent?.eventId,
+                enrichedPrevEventId = prevEvent?.eventId,
+                enrichedReceipts = readReceipts,
+                enrichedCollapseGeneration = mergedHeaderItemFactory.collapseGeneration,
         )
     }
 
@@ -781,7 +861,13 @@ class TimelineEventController @Inject constructor(
             val eventModel: EpoxyModel<*>? = null,
             val mergedHeaderModel: BasedMergedItem<*>? = null,
             val formattedDayModel: DaySeparatorItem? = null,
-            private val isCacheable: Boolean = true
+            private val isCacheable: Boolean = true,
+            // Inputs the enrichment step (receipts/day-separator/merged-header models) was computed
+            // from, so unchanged events can skip it on subsequent passes.
+            val enrichedNextEventId: String? = null,
+            val enrichedPrevEventId: String? = null,
+            val enrichedReceipts: List<ReadReceipt>? = null,
+            val enrichedCollapseGeneration: Int = -1,
     ) {
         fun isCacheable(partialState: PartialState): Boolean {
             return isCacheable && partialState.highlightedEventId != eventId

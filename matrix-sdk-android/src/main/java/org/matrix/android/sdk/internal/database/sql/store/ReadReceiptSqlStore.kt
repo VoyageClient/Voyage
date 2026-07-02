@@ -21,6 +21,22 @@ internal class ReadReceiptSqlStore(private val database: SessionSqlDatabase) {
     fun getSummary(eventId: String): ReadReceiptsSummaryEntity? =
             queries.selectSummary(eventId).executeAsOneOrNull()?.toEntity()
 
+    /** Bulk [getSummary] for timeline snapshot assembly — two IN queries instead of one-plus-one per event. */
+    fun getSummaries(eventIds: Collection<String>): Map<String, ReadReceiptsSummaryEntity> {
+        val summaries = eventIds.flatMapInChunks { queries.selectSummariesIn(it).executeAsList() }
+        if (summaries.isEmpty()) return emptyMap()
+        val receipts = summaries.map { it.event_id }
+                .flatMapInChunks { queries.selectReceiptsForEvents(it).executeAsList() }
+                .groupBy { it.event_id }
+        return summaries.associateBy({ it.event_id }) { row ->
+            ReadReceiptsSummaryEntity(
+                    eventId = row.event_id,
+                    roomId = row.room_id,
+                    readReceipts = ArrayList(receipts[row.event_id].orEmpty().map { it.toEntity() }),
+            )
+        }
+    }
+
     fun upsertSummary(eventId: String, roomId: String) = queries.upsertSummary(eventId, roomId)
 
     fun getReceipt(roomId: String, userId: String, threadId: String?): ReadReceiptEntity? =

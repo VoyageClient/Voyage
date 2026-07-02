@@ -73,9 +73,21 @@ internal class RoomSummarySqlStore(
 
     fun setHiddenFromUser(roomId: String, hidden: Boolean) = queries.updateHiddenFromUser(hidden.toLong(), roomId)
 
-    fun linkDirectUserPresence(userId: String) = queries.updateDirectUserPresence(userId, userId)
+    // Guarded: the FK never changes once linked, but SQLDelight notifies room_summary listeners on any
+    // executed UPDATE — an unguarded link made every presence event invalidate the whole room list.
+    fun linkDirectUserPresence(userId: String) {
+        if (queries.countDirectRoomsMissingPresenceLink(userId, userId).executeAsOne() == 0L) return
+        queries.updateDirectUserPresence(userId, userId)
+    }
 
     fun ensureExists(roomId: String) = queries.insertEmptyIfAbsent(roomId)
+
+    /** Rooms whose latest previewable event is one of [eventIds] (used after those events decrypt). */
+    fun roomIdsWithPreviewEvent(eventIds: Collection<String>): List<String> =
+            eventIds.flatMapInChunks { queries.selectRoomIdsByLatestPreviewEvents(it).executeAsList() }
+
+    /** No-op write that makes room_summary listeners re-emit for [roomId]. */
+    fun touch(roomId: String) = queries.touchByRoomId(roomId)
 
     fun updateTags(roomId: String, tags: List<Pair<String, Double?>>) {
         database.transaction {

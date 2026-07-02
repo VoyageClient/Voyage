@@ -29,6 +29,7 @@ import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
@@ -40,6 +41,7 @@ internal class TimelineEventDecryptor @Inject constructor(
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
         private val cryptoService: CryptoService,
+        private val previewInvalidation: RoomSummaryPreviewInvalidation,
 ) {
 
     private val newSessionListener = object : NewSessionListener {
@@ -182,6 +184,11 @@ internal class TimelineEventDecryptor @Inject constructor(
                     }
                     errors.forEach { (eventId, code, reason) ->
                         stores.event.applyDecryptionError(eventId, code, reason)
+                    }
+                    // The room list won't see these event-table writes; refresh summaries they preview.
+                    stores.roomSummary.roomIdsWithPreviewEvent(successes.map { it.first }).forEach { roomId ->
+                        previewInvalidation.onPreviewChanged(roomId)
+                        stores.roomSummary.touch(roomId)
                     }
                 }
             }

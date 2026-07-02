@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.query.toActiveSpaceOrOrphanRooms
@@ -199,6 +200,8 @@ class HomeDetailViewModel @AssistedInject constructor(
         }
                 .throttleFirst(300)
                 .onEach {
+                    // Counting runs several full room-list filters; collection is on Main, so hop off.
+                    withContext(Dispatchers.Default) {
                     val activeSpaceRoomId = spaceStateHandler.getCurrentSpace()?.roomId
                     var dmInvites = 0
                     var roomsInvite = 0
@@ -246,6 +249,7 @@ class HomeDetailViewModel @AssistedInject constructor(
                                 notificationHighlightRooms = otherRooms.isHighlight || roomsInvite > 0,
                                 hasUnreadMessages = dmRooms.totalCount + otherRooms.totalCount > 0
                         )
+                    }
                     }
                 }
                 .launchIn(viewModelScope)

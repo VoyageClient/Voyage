@@ -13,6 +13,10 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.paging.PositionalDataSource
 import app.cash.sqldelight.Query
+import org.matrix.android.sdk.api.util.MatrixPerf
+
+/** Identify the backing query in perf logs (the generated Query class name is table+query). */
+private fun describeQuery(query: Query<*>): String = query.javaClass.simpleName.ifEmpty { query.javaClass.name.substringAfterLast('.') }
 
 /**
  * Build a Paging-2 [PagedList] LiveData backed by a SQLDelight [query]: each time the query's results
@@ -33,7 +37,12 @@ internal fun <T> livePaged(
         fetch: () -> List<T>,
 ): LiveData<PagedList<T>> {
     val factory = object : DataSource.Factory<Int, T>() {
-        override fun create(): DataSource<Int, T> = SnapshotPositionalDataSource(query, fetch()).also { onDataSourceCreated?.invoke(it) }
+        override fun create(): DataSource<Int, T> {
+            val perfStart = MatrixPerf.now()
+            val data = fetch()
+            MatrixPerf.end(perfStart) { "paging.fetch items=${data.size} [${describeQuery(query)}]" }
+            return SnapshotPositionalDataSource(query, data).also { onDataSourceCreated?.invoke(it) }
+        }
     }
     return LivePagedListBuilder(factory, config)
             .apply { fetchExecutor?.let { setFetchExecutor(it) } }
@@ -62,15 +71,30 @@ private class SnapshotPositionalDataSource<T>(
         private val data: List<T>,
 ) : PositionalDataSource<T>() {
 
+    private val invalidatePending = java.util.concurrent.atomic.AtomicBoolean(false)
+
     private val listener = object : Query.Listener {
         override fun queryResultsChanged() {
-            invalidate()
+            // Coalesce write bursts: a sync (or a batch of preview decryptions) hits the table many
+            // times in quick succession, and every invalidation resets the PagedList to placeholders and
+            // re-fetches all sections on the shared executor — starving the page loads a live scroll needs.
+            if (invalidatePending.compareAndSet(false, true)) {
+                MatrixPerf.note { "paging.invalidate [${describeQuery(query)}]" }
+                coalesceExecutor.schedule({ invalidate() }, INVALIDATE_COALESCE_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+            }
         }
     }
 
     init {
         query.addListener(listener)
         addInvalidatedCallback { query.removeListener(listener) }
+    }
+
+    private companion object {
+        private const val INVALIDATE_COALESCE_MS = 250L
+        private val coalesceExecutor = java.util.concurrent.Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread(runnable, "db-paging-invalidate").apply { isDaemon = true }
+        }
     }
 
     override fun loadInitial(params: LoadInitialParams, callback: LoadInitialCallback<T>) {

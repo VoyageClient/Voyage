@@ -85,9 +85,9 @@ class HomeRoomListViewModel @AssistedInject constructor(
 
     private val pagedListConfig = PagedList.Config.Builder()
             .setPageSize(30)
-            .setInitialLoadSizeHint(50)
+            .setInitialLoadSizeHint(60)
             .setEnablePlaceholders(true)
-            .setPrefetchDistance(10)
+            .setPrefetchDistance(30)
             .build()
 
     val filteredPagedRoomSummariesLive: UpdatableLivePageResult by lazy {

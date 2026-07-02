@@ -13,10 +13,12 @@ import im.vector.app.R
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
+import im.vector.app.core.utils.FrameJankWatcher
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.features.home.NightlyProxy
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.util.MatrixPerf
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -46,8 +48,12 @@ class VectorSettingsAdvancedSettingsFragment :
         // PerfTrace.isEnabled — the next app start re-seeds via VectorApplication.onCreate,
         // and the XML `dependency` already disables this row visually when dev mode is off.)
         PerfTrace.isEnabled = vectorPreferences.isPerfLoggingEnabled()
+        MatrixPerf.isEnabled = PerfTrace.isEnabled
+        FrameJankWatcher.startIfEnabled()
         findPreference<VectorSwitchPreference>("SETTINGS_PERF_LOGGING_ENABLED")?.setOnPreferenceChangeListener { _, newValue ->
             PerfTrace.isEnabled = (newValue as? Boolean == true) && vectorPreferences.developerMode()
+            MatrixPerf.isEnabled = PerfTrace.isEnabled
+            FrameJankWatcher.startIfEnabled()
             true
         }
     }

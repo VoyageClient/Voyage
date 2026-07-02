@@ -11,6 +11,7 @@ import dagger.Lazy
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
@@ -115,16 +116,20 @@ internal class SqlRoomSyncHandler @Inject constructor(
             roomMemberEventHandler.handle(stores, roomId, event, isInitialSync, aggregator)
         }
         if (roomSync.timeline?.events?.isNotEmpty() == true) {
-            handleTimelineEvents(stores, roomId, roomSync.timeline.events, roomSync.timeline.prevToken, roomSync.timeline.limited, insertType, syncTs)
+            MatrixPerf.time("sync.room.timelineEvents n=${roomSync.timeline.events.size}") {
+                handleTimelineEvents(stores, roomId, roomSync.timeline.events, roomSync.timeline.prevToken, roomSync.timeline.limited, insertType, syncTs)
+            }
         }
         val hasRoomMember = (roomSync.state?.events.orEmpty() + roomSync.timeline?.events.orEmpty())
                 .any { it.type == EventType.STATE_ROOM_MEMBER }
 
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.JOIN)
-        roomSummaryUpdater.update(
-                stores, roomId, Membership.JOIN, roomSync.summary, roomSync.unreadNotifications,
-                roomSync.unreadThreadNotifications, updateMembers = hasRoomMember, aggregator = aggregator,
-        )
+        MatrixPerf.time("sync.room.summaryUpdate members=$hasRoomMember") {
+            roomSummaryUpdater.update(
+                    stores, roomId, Membership.JOIN, roomSync.summary, roomSync.unreadNotifications,
+                    roomSync.unreadThreadNotifications, updateMembers = hasRoomMember, aggregator = aggregator,
+            )
+        }
         // After the summary update so tag/read-marker/marked-unread flags it derives aren't clobbered.
         handleRoomAccountData(stores, roomId, roomSync.accountData)
     }

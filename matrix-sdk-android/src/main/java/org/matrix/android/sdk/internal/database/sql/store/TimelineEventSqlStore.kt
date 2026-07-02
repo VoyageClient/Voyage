@@ -30,10 +30,13 @@ internal class TimelineEventSqlStore(
 
     fun nextLocalId(): Long = queries.nextLocalId().executeAsOne()
 
-    fun getByChunk(chunkId: Long): List<TimelineEventEntity> = queries.selectByChunk(chunkId).executeAsList().map { it.toEntity() }
+    fun getByChunk(chunkId: Long): List<TimelineEventEntity> = queries.selectByChunk(chunkId).executeAsList().toEntities()
 
     fun getByChunkRange(chunkId: Long, from: Long, to: Long): List<TimelineEventEntity> =
-            queries.selectByChunkRange(chunkId, from, to).executeAsList().map { it.toEntity() }
+            queries.selectByChunkRange(chunkId, from, to).executeAsList().toEntities()
+
+    fun getByChunkAfterIndex(chunkId: Long, afterDisplayIndex: Long): List<TimelineEventEntity> =
+            queries.selectByChunkAfterIndex(chunkId, afterDisplayIndex).executeAsList().toEntities()
 
     fun getInChunkByEventId(chunkId: Long, eventId: String): TimelineEventEntity? =
             queries.selectInChunkByEventId(chunkId, eventId).executeAsOneOrNull()?.toEntity()
@@ -43,29 +46,29 @@ internal class TimelineEventSqlStore(
     fun getByRoomAndEventId(roomId: String, eventId: String): TimelineEventEntity? =
             queries.selectByRoomAndEventId(roomId, eventId).executeAsOneOrNull()?.toEntity()
 
-    fun getByRoom(roomId: String): List<TimelineEventEntity> = queries.selectByRoom(roomId).executeAsList().map { it.toEntity() }
+    fun getByRoom(roomId: String): List<TimelineEventEntity> = queries.selectByRoom(roomId).executeAsList().toEntities()
 
     fun getByRoomTypesAfterTs(roomId: String, types: Collection<String>, ts: Long): List<TimelineEventEntity> =
-            queries.selectByRoomTypesAfterTs(roomId, types, ts).executeAsList().map { it.toEntity() }
+            queries.selectByRoomTypesAfterTs(roomId, types, ts).executeAsList().toEntities()
 
     fun getSendingByRoom(roomId: String): List<TimelineEventEntity> =
-            queries.selectSendingByRoom(roomId).executeAsList().map { it.toEntity() }
+            queries.selectSendingByRoom(roomId).executeAsList().toEntities()
 
     /** timeline_event id of the most recent in-thread reply for the given root (for the root preview). */
     fun latestThreadReplyId(roomId: String, rootThreadEventId: String): Long? =
             queries.selectLatestThreadReplyId(roomId, rootThreadEventId).executeAsOneOrNull()
 
     fun getRootThreadsForRoom(roomId: String): List<TimelineEventEntity> =
-            queries.selectRootThreadsForRoom(roomId).executeAsList().map { it.toEntity() }
+            queries.selectRootThreadsForRoom(roomId).executeAsList().toEntities()
 
     fun getLocalThreadNotificationsForRoom(roomId: String): List<TimelineEventEntity> =
-            queries.selectLocalThreadNotificationsForRoom(roomId).executeAsList().map { it.toEntity() }
+            queries.selectLocalThreadNotificationsForRoom(roomId).executeAsList().toEntities()
 
     fun getRootThreadsForRoomLive(roomId: String, dispatcher: CoroutineDispatcher): LiveData<List<TimelineEventEntity>> =
-            queries.selectRootThreadsForRoom(roomId).asLiveList(dispatcher).map { rows -> rows.map { it.toEntity() } }
+            queries.selectRootThreadsForRoom(roomId).asLiveList(dispatcher).map { rows -> rows.toEntities() }
 
     fun getLocalThreadNotificationsForRoomLive(roomId: String, dispatcher: CoroutineDispatcher): LiveData<List<TimelineEventEntity>> =
-            queries.selectLocalThreadNotificationsForRoom(roomId).asLiveList(dispatcher).map { rows -> rows.map { it.toEntity() } }
+            queries.selectLocalThreadNotificationsForRoom(roomId).asLiveList(dispatcher).map { rows -> rows.toEntities() }
 
     fun countByChunk(chunkId: Long): Long = queries.countByChunk(chunkId).executeAsOne()
 
@@ -101,6 +104,32 @@ internal class TimelineEventSqlStore(
     fun deleteSending(roomId: String, eventId: String) = queries.deleteSendingByRoomAndEventId(roomId, eventId)
 
     fun deleteByRoom(roomId: String) = queries.deleteByRoom(roomId)
+
+    /** Bulk [toEntity]: resolve roots/annotations/receipts for the whole list in a handful of IN queries
+     *  instead of ~4 per row — a chunk snapshot re-maps on every sync tick, so the N+1 dominated scroll. */
+    private fun List<TimelineEventRow>.toEntities(): List<TimelineEventEntity> {
+        if (isEmpty()) return emptyList()
+        val roots = eventStore.getByIds(mapNotNull { it.root_event_db_id })
+        val eventIds = map { it.event_id }
+        val annotations = annotationsStore.getForEventIds(eventIds)
+        val receipts = readReceiptStore.getSummaries(eventIds)
+        return map { row ->
+            TimelineEventEntity(
+                    localId = row.local_id,
+                    eventId = row.event_id,
+                    roomId = row.room_id,
+                    displayIndex = row.display_index.toInt(),
+                    root = row.root_event_db_id?.let { roots[it] },
+                    annotations = annotations[row.event_id],
+                    senderName = row.sender_name,
+                    isUniqueDisplayName = row.is_unique_display_name != 0L,
+                    senderAvatar = row.sender_avatar,
+                    senderMembershipEventId = row.sender_membership_event_id,
+                    ownedByThreadChunk = row.owned_by_thread_chunk != 0L,
+                    readReceipts = receipts[row.event_id],
+            )
+        }
+    }
 
     private fun TimelineEventRow.toEntity(): TimelineEventEntity = TimelineEventEntity(
             localId = local_id,

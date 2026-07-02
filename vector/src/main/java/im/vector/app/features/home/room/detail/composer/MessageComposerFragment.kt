@@ -448,6 +448,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             (it.sendMode as? SendMode.Edit)?.timelineEvent?.getVectorLastMessageContent() is MessageWithAttachmentContent
         }
         if (text.isNotBlank() || isMediaCaptionEdit) {
+            im.vector.app.core.utils.PerfTrace.report("send.tap", 0)
             composer.renderComposerMode(MessageComposerMode.Normal(""))
             lockSendButton = true
             if (formattedText != null) {

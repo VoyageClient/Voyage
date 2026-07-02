@@ -65,11 +65,13 @@ class RoomListSectionBuilder(
         private val onlyOrphansInHome: Boolean = false
 ) {
 
+    // Pages are cheap (the DataSource holds an in-memory snapshot); larger pages + prefetch keep fast
+    // scrolling ahead of the placeholder rows.
     private val pagedListConfig = PagedList.Config.Builder()
-            .setPageSize(10)
-            .setInitialLoadSizeHint(20)
+            .setPageSize(30)
+            .setInitialLoadSizeHint(60)
             .setEnablePlaceholders(true)
-            .setPrefetchDistance(10)
+            .setPrefetchDistance(30)
             .build()
 
     private var displayMode: RoomListDisplayMode = RoomListDisplayMode.NOTIFICATIONS

@@ -298,6 +298,8 @@ dependencies {
     implementation project(':library:ui-strings')
     debugImplementation project(':library:external:span')
     debugImplementation project(':library:ui-styles')
+    // Debug-only (never runs on the ICS/Dalvik release path, so its LinearAlloc weight doesn't matter).
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
     implementation libs.dagger.hilt
     // Needed on the compile classpath to instantiate MatrixConfiguration (okhttp ConnectionSpec);
     // previously reached vector-app transitively via the Jitsi SDK.

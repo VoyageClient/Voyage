@@ -45,15 +45,28 @@ internal class ProgressResponseBody(
     fun source(source: Source): Source {
         return object : ForwardingSource(source) {
             var totalBytesRead = 0L
+            var lastNotifyMs = 0L
 
             override fun read(sink: Buffer, byteCount: Long): Long {
                 val bytesRead = super.read(sink, byteCount)
                 // read() returns the number of bytes read, or -1 if this source is exhausted.
                 totalBytesRead += if (bytesRead != -1L) bytesRead else 0L
-                progressListener.update(chainUrl, totalBytesRead, responseBody.contentLength(), bytesRead == -1L)
+                val done = bytesRead == -1L
+                // Throttle: update() posts to the main thread, and this is called for every ~8KB read —
+                // unthrottled, a large file on a fast connection floods the main looper and freezes the UI
+                // for the whole download.
+                val now = android.os.SystemClock.elapsedRealtime()
+                if (done || now - lastNotifyMs >= PROGRESS_INTERVAL_MS) {
+                    lastNotifyMs = now
+                    progressListener.update(chainUrl, totalBytesRead, responseBody.contentLength(), done)
+                }
                 return bytesRead
             }
         }
+    }
+
+    private companion object {
+        private const val PROGRESS_INTERVAL_MS = 100L
     }
 }
 

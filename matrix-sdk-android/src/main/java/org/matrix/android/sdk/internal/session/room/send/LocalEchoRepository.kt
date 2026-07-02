@@ -65,25 +65,28 @@ internal class LocalEchoRepository @Inject constructor(
         event.type ?: throw IllegalStateException("You should have set a type for your event")
 
         taskExecutor.executorScope.launch {
+            // Build and announce the echo BEFORE queueing the DB write: the session DB dispatcher can
+            // run hundreds of ms behind (sync handling, timeline mapping), and the message must show in
+            // the timeline the instant it is sent. WAL lets the member reads run on this pool thread.
+            val eventEntity = event.toEntity(roomId, SendState.UNSENT, clock.epochMillis())
+            val roomMemberHelper = SqlRoomMemberHelper(stores, roomId)
+            val myUser = roomMemberHelper.getLastRoomMember(senderId)
+            val localId = UUID.randomUUID().mostSignificantBits
+            val timelineEventEntity = TimelineEventEntity(localId).also {
+                it.root = eventEntity
+                it.eventId = event.eventId
+                it.roomId = roomId
+                it.senderName = myUser?.displayName
+                it.senderAvatar = myUser?.avatarUrl
+                it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
+            }
+            val timelineEvent = timelineEventMapper.map(timelineEventEntity)
+            timelineInput.onLocalEchoCreated(roomId = roomId, timelineEvent = timelineEvent)
             database.awaitDbTransaction(dispatcher) {
-                val eventEntity = event.toEntity(roomId, SendState.UNSENT, clock.epochMillis())
-                val roomMemberHelper = SqlRoomMemberHelper(stores, roomId)
-                val myUser = roomMemberHelper.getLastRoomMember(senderId)
-                val localId = UUID.randomUUID().mostSignificantBits
-                val timelineEventEntity = TimelineEventEntity(localId).also {
-                    it.root = eventEntity
-                    it.eventId = event.eventId
-                    it.roomId = roomId
-                    it.senderName = myUser?.displayName
-                    it.senderAvatar = myUser?.avatarUrl
-                    it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
-                }
                 val dbId = stores.event.insert(eventEntity)
                 stores.eventInsert.insert(event.eventId, event.type, canBeProcessed = true, insertType = EventInsertType.LOCAL_ECHO)
                 stores.timelineEvent.insert(timelineEventEntity, chunkId = null, rootEventDbId = dbId)
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
-                val timelineEvent = timelineEventMapper.map(timelineEventEntity)
-                timelineInput.onLocalEchoCreated(roomId = roomId, timelineEvent = timelineEvent)
             }
         }
     }

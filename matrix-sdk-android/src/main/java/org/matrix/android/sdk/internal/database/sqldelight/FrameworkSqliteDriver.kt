@@ -23,6 +23,7 @@ import app.cash.sqldelight.db.SqlCursor
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlPreparedStatement
 import app.cash.sqldelight.db.SqlSchema
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.util.use
 import java.io.File
 
@@ -51,6 +52,11 @@ internal class FrameworkSqliteDriver private constructor(
         (suppliedDatabase ?: openHelper!!.writableDatabase).also {
             // Enlarge the framework's internal compiled-SQL cache used by rawQuery() (reads).
             runCatching { it.setMaxSqlCacheSize(SQLiteDatabase.MAX_SQL_CACHE_SIZE) }
+            // WAL + the framework's read connection pool: readers no longer block while a write
+            // transaction is open. In rollback-journal mode every sync transaction (50-300ms) stalled
+            // every concurrent read — including any on the main thread. No-ops safely where
+            // unsupported (in-memory DBs return false).
+            runCatching { it.enableWriteAheadLogging() }
         }
     }
 
@@ -72,20 +78,25 @@ internal class FrameworkSqliteDriver private constructor(
             parameters: Int,
             binders: (SqlPreparedStatement.() -> Unit)?,
     ): QueryResult<Long> {
-        // No identifier (e.g. schema DDL) → not reusable, compile once and discard.
-        if (identifier == null) {
-            val statement = database.compileStatement(sql)
-            try {
-                if (binders != null) FrameworkProgramBinder(statement).binders()
-                return QueryResult.Value(statement.executeUpdateDelete().toLong())
-            } finally {
-                statement.close()
+        val perfStart = MatrixPerf.now()
+        try {
+            // No identifier (e.g. schema DDL) → not reusable, compile once and discard.
+            if (identifier == null) {
+                val statement = database.compileStatement(sql)
+                try {
+                    if (binders != null) FrameworkProgramBinder(statement).binders()
+                    return QueryResult.Value(statement.executeUpdateDelete().toLong())
+                } finally {
+                    statement.close()
+                }
             }
+            val statement = statementCache.get()!!.getOrPut(identifier) { database.compileStatement(sql) }
+            statement.clearBindings()
+            if (binders != null) FrameworkProgramBinder(statement).binders()
+            return QueryResult.Value(statement.executeUpdateDelete().toLong())
+        } finally {
+            MatrixPerf.end(perfStart) { "db.write${mainThreadFlag()} [${sql.perfSnippet()}]" }
         }
-        val statement = statementCache.get()!!.getOrPut(identifier) { database.compileStatement(sql) }
-        statement.clearBindings()
-        if (binders != null) FrameworkProgramBinder(statement).binders()
-        return QueryResult.Value(statement.executeUpdateDelete().toLong())
     }
 
     override fun <R> executeQuery(
@@ -95,14 +106,19 @@ internal class FrameworkSqliteDriver private constructor(
             parameters: Int,
             binders: (SqlPreparedStatement.() -> Unit)?,
     ): QueryResult<R> {
-        val cursor: Cursor = if (binders == null) {
-            database.rawQuery(sql, null)
-        } else {
-            // editTable is only used by the deprecated cursor write-back path, which SQLDelight
-            // never exercises (cursors are read forward then closed), so a placeholder is safe.
-            database.rawQueryWithFactory(BindingCursorFactory(binders), sql, null, "")
+        val perfStart = MatrixPerf.now()
+        try {
+            val cursor: Cursor = if (binders == null) {
+                database.rawQuery(sql, null)
+            } else {
+                // editTable is only used by the deprecated cursor write-back path, which SQLDelight
+                // never exercises (cursors are read forward then closed), so a placeholder is safe.
+                database.rawQueryWithFactory(BindingCursorFactory(binders), sql, null, "")
+            }
+            return cursor.use { mapper(FrameworkCursor(it)) }
+        } finally {
+            MatrixPerf.end(perfStart) { "db.query${mainThreadFlag()} [${sql.perfSnippet()}]" }
         }
-        return cursor.use { mapper(FrameworkCursor(it)) }
     }
 
     override fun newTransaction(): QueryResult<Transacter.Transaction> {
@@ -110,7 +126,12 @@ internal class FrameworkSqliteDriver private constructor(
         val transaction = Transaction(enclosing)
         transactions.set(transaction)
         if (enclosing == null) {
+            // beginTransaction blocks while another thread holds the write lock — that wait IS the
+            // cross-thread contention we're hunting, so time it separately from the hold.
+            val waitStart = MatrixPerf.now()
             database.beginTransaction()
+            MatrixPerf.end(waitStart) { "db.txn.wait${mainThreadFlag()}" }
+            transaction.perfHoldStart = MatrixPerf.now()
         }
         return QueryResult.Value(transaction)
     }
@@ -121,12 +142,15 @@ internal class FrameworkSqliteDriver private constructor(
             override val enclosingTransaction: Transacter.Transaction?,
     ) : Transacter.Transaction() {
 
+        var perfHoldStart = 0L
+
         override fun endTransaction(successful: Boolean): QueryResult<Unit> {
             if (enclosingTransaction == null) {
                 if (successful) {
                     database.setTransactionSuccessful()
                 }
                 database.endTransaction()
+                if (perfHoldStart != 0L) MatrixPerf.end(perfHoldStart) { "db.txn.hold${mainThreadFlag()}" }
             }
             transactions.set(enclosingTransaction as Transaction?)
             return QueryResult.Value(Unit)
@@ -228,6 +252,16 @@ internal class FrameworkSqliteDriver private constructor(
             drops.forEach { db.execSQL(it) }
         }
     }
+}
+
+/** Marks perf log lines for DB work running on the main thread — always a jank bug. */
+private fun mainThreadFlag(): String =
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) ".MAIN-THREAD" else ""
+
+/** First ~70 chars of the SQL, collapsed whitespace, enough to identify the query in the log. */
+private fun String.perfSnippet(): String {
+    val flat = replace('\n', ' ')
+    return if (flat.length <= 70) flat else flat.substring(0, 70)
 }
 
 /** Binds typed SQLDelight parameters (0-based) onto a framework [SQLiteProgram] (1-based). */

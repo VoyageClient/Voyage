@@ -118,8 +118,20 @@ UPDATE room_summary SET last_activity_time = ? WHERE room_id = ?;
 updateDirectUserPresence:
 UPDATE room_summary SET direct_user_presence_user_id = ? WHERE direct_user_id = ?;
 
+countDirectRoomsMissingPresenceLink:
+SELECT count(*) FROM room_summary
+WHERE direct_user_id = ? AND (direct_user_presence_user_id IS NULL OR direct_user_presence_user_id != ?);
+
 insertEmptyIfAbsent:
 INSERT OR IGNORE INTO room_summary(room_id) VALUES (?);
+
+selectRoomIdsByLatestPreviewEvents:
+SELECT room_id FROM room_summary WHERE latest_previewable_event_id IN ?;
+
+-- no-op self-assignment: executed purely so room_summary listeners re-emit (e.g. after the preview
+-- event's content changed in the event table, which the room list doesn't observe)
+touchByRoomId:
+UPDATE room_summary SET room_id = room_id WHERE room_id = ?;
 
 updateTagFlags:
 UPDATE room_summary SET is_favourite = ?, is_low_priority = ?, is_server_notice = ? WHERE room_id = ?;

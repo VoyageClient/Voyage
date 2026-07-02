@@ -33,6 +33,30 @@ internal class EventAnnotationsSqlStore(
 
     fun get(eventId: String): EventAnnotationsSummaryEntity? = queries.selectSummary(eventId).executeAsOneOrNull()?.toEntity()
 
+    /** Bulk [get] for timeline snapshot assembly: one IN query finds the (sparse) summary hits and the
+     *  common children (reactions/editions) are bulk-fetched for just those; the rare ones stay per-hit. */
+    fun getForEventIds(eventIds: Collection<String>): Map<String, EventAnnotationsSummaryEntity> {
+        val summaries = eventIds.flatMapInChunks { queries.selectSummariesIn(it).executeAsList() }
+        if (summaries.isEmpty()) return emptyMap()
+        val hitIds = summaries.map { it.event_id }
+        val reactions = hitIds.flatMapInChunks { queries.selectReactionsIn(it).executeAsList() }.groupBy { it.annotation_event_id }
+        val editions = hitIds.flatMapInChunks { queries.selectEditionsIn(it).executeAsList() }.groupBy { it.annotation_event_id }
+        return summaries.associateBy({ it.event_id }) { row ->
+            val editionEntities = editions[row.event_id].orEmpty().map { it.toEntity() }
+            EventAnnotationsSummaryEntity(
+                    eventId = row.event_id,
+                    roomId = row.room_id,
+                    reactionsSummary = ArrayList(reactions[row.event_id].orEmpty().map { it.toEntity() }),
+                    editSummary = editionEntities.takeIf { it.isNotEmpty() }?.let {
+                        EditAggregatedSummaryEntity(editions = ArrayList(it))
+                    },
+                    referencesSummaryEntity = queries.selectReferences(row.event_id).executeAsOneOrNull()?.toEntity(),
+                    pollResponseSummary = queries.selectPollResponse(row.event_id).executeAsOneOrNull()?.toEntity(),
+                    liveLocationShareAggregatedSummary = liveLocationStore.get(row.event_id),
+            )
+        }
+    }
+
     fun upsertSummary(eventId: String, roomId: String?) = queries.upsertSummary(eventId, roomId)
 
     fun replaceReactions(eventId: String, reactions: List<ReactionAggregatedSummaryEntity>) {

@@ -21,6 +21,13 @@ internal fun String?.splitToList(): List<String> = if (isNullOrEmpty()) emptyLis
 
 internal fun String?.splitToRealmList(): MutableList<String> = ArrayList<String>().apply { addAll(splitToList()) }
 
+/** SQLite caps bound variables at 999 per statement; run an IN-list query in chunks and concatenate. */
+internal fun <T, R> Collection<T>.flatMapInChunks(fetch: (List<T>) -> List<R>): List<R> = when {
+    isEmpty() -> emptyList()
+    size <= 500 -> fetch(toList())
+    else -> chunked(500).flatMap(fetch)
+}
+
 /**
  * The legacy filter constants in [org.matrix.android.sdk.internal.database.query.TimelineEventFilter]
  * are authored for Realm's `LIKE`, whose wildcards are glob-style (`*` = any run, `?` = any char). SQL

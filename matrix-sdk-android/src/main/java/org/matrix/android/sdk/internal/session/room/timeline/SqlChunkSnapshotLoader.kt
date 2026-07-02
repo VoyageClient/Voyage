@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -31,30 +32,42 @@ internal class SqlChunkSnapshotLoader(
 ) {
 
     /** One-shot snapshot of a chunk's timeline events, most-recent first (display_index DESC). */
-    fun chunkSnapshot(chunkId: Long): List<TimelineEvent> =
-            stores.timelineEvent.getByChunk(chunkId).map { timelineEventMapper.map(it) }
+    fun chunkSnapshot(chunkId: Long): List<TimelineEvent> {
+        val perfStart = MatrixPerf.now()
+        val entities = stores.timelineEvent.getByChunk(chunkId)
+        MatrixPerf.end(perfStart) { "timeline.chunkSnapshot.load chunk=$chunkId rows=${entities.size}" }
+        val mapStart = MatrixPerf.now()
+        return entities.map { timelineEventMapper.map(it) }
+                .also { MatrixPerf.end(mapStart) { "timeline.chunkSnapshot.map chunk=$chunkId rows=${it.size}" } }
+    }
 
-    /** Auto-rebuilding snapshot: re-emits the full mapped list whenever the chunk's rows change. */
-    fun chunkSnapshotFlow(chunkId: Long): Flow<List<TimelineEvent>> =
+    /** Change signal for a chunk's rows. Deliberately does NOT execute the query — the collector
+     *  rebuilds via [chunkSnapshot] itself, and computing a mapped list here just to discard it doubled
+     *  the per-change mapping cost. */
+    fun chunkChangesFlow(chunkId: Long): Flow<Unit> =
             database.timelineEventQueries.selectByChunk(chunkId)
                     .asFlow()
-                    .mapToList(dispatcher)
-                    .map { chunkSnapshot(chunkId) }
+                    .map { }
 
     /** Paginated window of a chunk by display-index range (for loadMore). */
     fun eventsInRange(chunkId: Long, from: Long, to: Long): List<TimelineEvent> =
             stores.timelineEvent.getByChunkRange(chunkId, from, to).map { timelineEventMapper.map(it) }
 
+    /** The chunk's events strictly newer than [afterDisplayIndex], most-recent first. */
+    fun chunkSnapshotAfter(chunkId: Long, afterDisplayIndex: Long): List<TimelineEvent> =
+            stores.timelineEvent.getByChunkAfterIndex(chunkId, afterDisplayIndex).map { timelineEventMapper.map(it) }
+
+    fun chunkEventCount(chunkId: Long): Long = stores.timelineEvent.countByChunk(chunkId)
+
     /** The room's sending (local-echo) events — timeline_event rows with chunk_id NULL — newest first. */
     fun sendingEvents(roomId: String): List<TimelineEvent> =
             stores.timelineEvent.getSendingByRoom(roomId).map { timelineEventMapper.map(it) }.asReversed()
 
-    /** Auto-rebuilding sending-events snapshot, re-emitting whenever a local echo is added/removed. */
-    fun sendingEventsFlow(roomId: String): Flow<List<TimelineEvent>> =
+    /** Change signal for the room's sending events (same no-execute rationale as [chunkChangesFlow]). */
+    fun sendingChangesFlow(roomId: String): Flow<Unit> =
             database.timelineEventQueries.selectSendingByRoom(roomId)
                     .asFlow()
-                    .mapToList(dispatcher)
-                    .map { sendingEvents(roomId) }
+                    .map { }
 
     /** The ignored-user id set, re-emitting whenever the user (un)ignores someone — so the timeline can
      *  re-filter instantly without a re-sync. */
@@ -64,10 +77,9 @@ internal class SqlChunkSnapshotLoader(
                     .mapToList(dispatcher)
 
     /** Emits when any event's annotation summary (reactions/edits/etc) changes — the chunk flow only watches
-     *  timeline_event rows, so it misses these. */
-    fun annotationSummaryChangesFlow(roomId: String): Flow<List<String>> =
+     *  timeline_event rows, so it misses these. Pure signal (no query execution). */
+    fun annotationSummaryChangesFlow(roomId: String): Flow<Unit> =
             database.eventAnnotationsSummaryQueries.selectSummariesForRoom(roomId)
                     .asFlow()
-                    .mapToList(dispatcher)
-                    .map { rows -> rows.map { it.event_id } }
+                    .map { }
 }

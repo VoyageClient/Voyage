@@ -82,7 +82,10 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
     override fun bind(holder: H) {
         super.bind(holder)
 
-        if ((holder.view as? ScMessageBubbleWrapView)?.customBind(this, holder, attributes, _avatarClickListener) != true) {
+        val scBindMarker = im.vector.app.core.utils.PerfTrace.mark("bind.super.scCustomBind")
+        val scBound = (holder.view as? ScMessageBubbleWrapView)?.customBind(this, holder, attributes, _avatarClickListener) == true
+        scBindMarker.end()
+        if (!scBound) {
         // Indentation kept flat for easy diffing against upstream
 
         if (attributes.informationData.messageLayout.showAvatar) {
@@ -90,7 +93,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                 height = attributes.avatarSize
                 width = attributes.avatarSize
             }
-            attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
+            im.vector.app.core.utils.PerfTrace.time("bind.super.avatar") {
+                attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
+            }
             holder.avatarImageView.setOnLongClickListener(attributes.itemLongClickListener)
             holder.avatarImageView.isVisible = true
             holder.avatarImageView.onClick(_avatarClickListener)
@@ -125,6 +130,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         }
 
         // Threads
+        val threadsMarker = im.vector.app.core.utils.PerfTrace.mark("bind.super.threads")
         if (attributes.areThreadMessagesEnabled) {
             holder.threadSummaryConstraintLayout.onClick(_threadClickListener)
             attributes.threadDetails?.let { threadDetails ->
@@ -143,7 +149,10 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             }
         }
 
+        threadsMarker.end()
+
         // Replies (SchildiChat-style preview rendered in all layouts)
+        val replyMarker = im.vector.app.core.utils.PerfTrace.mark("bind.super.reply")
         if (holder.replyToView != null) {
             replyViewUpdater.replyView = holder.replyToView
             holder.replyToView?.delegate = inReplyToClickCallback
@@ -158,6 +167,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                 safeReplyPreviewRetriever.addListener(attributes.informationData.eventId, replyViewUpdater)
             }
         }
+        replyMarker.end()
     }
 
     private fun updateHighlightedMessageHeight(holder: Holder, isExpanded: Boolean) {

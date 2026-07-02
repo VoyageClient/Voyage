@@ -64,7 +64,9 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
     @SuppressLint("SetTextI18n")
     override fun bind(holder: H) {
         super.bind(holder)
-        renderReactions(holder, baseAttributes.informationData.reactionsSummary)
+        im.vector.app.core.utils.PerfTrace.time("bind.super.reactions") {
+            renderReactions(holder, baseAttributes.informationData.reactionsSummary)
+        }
         if (!baseAttributes.informationData.messageLayout.showsE2eDecorationInFooter()) {
             if (baseAttributes.informationData.isPgp) {
                 holder.e2EDecorationView.renderPgpLock()
@@ -75,10 +77,12 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
         holder.view.onClick(baseAttributes.itemClickListener)
         holder.view.setOnLongClickListener(baseAttributes.itemLongClickListener)
         val messageLayout = baseAttributes.informationData.messageLayout
-        if (messageLayout is TimelineMessageLayout.ScBubble) {
-            (holder.view as? TimelineMessageLayoutRenderer).scRenderMessageLayout(messageLayout, this, holder)
-        } else {
-            (holder.view as? TimelineMessageLayoutRenderer)?.renderMessageLayout(messageLayout)
+        im.vector.app.core.utils.PerfTrace.time("bind.super.messageLayout") {
+            if (messageLayout is TimelineMessageLayout.ScBubble) {
+                (holder.view as? TimelineMessageLayoutRenderer).scRenderMessageLayout(messageLayout, this, holder)
+            } else {
+                (holder.view as? TimelineMessageLayoutRenderer)?.renderMessageLayout(messageLayout)
+            }
         }
     }
 

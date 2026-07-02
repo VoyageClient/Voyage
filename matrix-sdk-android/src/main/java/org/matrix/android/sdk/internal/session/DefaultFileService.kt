@@ -208,30 +208,33 @@ internal class DefaultFileService @Inject constructor(
                 cachedFiles
             }
 
-            // Decrypt if necessary
+            // Decrypt if necessary. On the IO dispatcher: several callers invoke downloadFile from a
+            // main-dispatcher scope, and streaming AES over a whole video on the main thread froze the UI.
             if (cachedFiles.decryptedFile != null) {
-                if (!cachedFiles.decryptedFile.exists()) {
-                    Timber.v("## FileService: decrypt file")
-                    // Ensure the parent folder exists
-                    cachedFiles.decryptedFile.parentFile?.mkdirs()
-                    // Write to a part file first, so if we abort before done, we don't have a broken cached file
-                    val atomicFileCreator = AtomicFileCreator(cachedFiles.decryptedFile).also { atomicFileDecrypt = it }
-                    val decryptSuccess = cachedFiles.file.inputStream().use { inputStream ->
-                        atomicFileCreator.partFile.outputStream().buffered().use { outputStream ->
-                            MXEncryptedAttachments.decryptAttachment(
-                                    inputStream,
-                                    elementToDecrypt,
-                                    outputStream,
-                                    clock
-                            )
+                withContext(coroutineDispatchers.io) {
+                    if (!cachedFiles.decryptedFile.exists()) {
+                        Timber.v("## FileService: decrypt file")
+                        // Ensure the parent folder exists
+                        cachedFiles.decryptedFile.parentFile?.mkdirs()
+                        // Write to a part file first, so if we abort before done, we don't have a broken cached file
+                        val atomicFileCreator = AtomicFileCreator(cachedFiles.decryptedFile).also { atomicFileDecrypt = it }
+                        val decryptSuccess = cachedFiles.file.inputStream().use { inputStream ->
+                            atomicFileCreator.partFile.outputStream().buffered().use { outputStream ->
+                                MXEncryptedAttachments.decryptAttachment(
+                                        inputStream,
+                                        elementToDecrypt,
+                                        outputStream,
+                                        clock
+                                )
+                            }
                         }
+                        atomicFileCreator.commit()
+                        if (!decryptSuccess) {
+                            throw IllegalStateException("Decryption error")
+                        }
+                    } else {
+                        Timber.v("## FileService: cache hit for decrypted file")
                     }
-                    atomicFileCreator.commit()
-                    if (!decryptSuccess) {
-                        throw IllegalStateException("Decryption error")
-                    }
-                } else {
-                    Timber.v("## FileService: cache hit for decrypted file")
                 }
                 cachedFiles.decryptedFile
             } else {

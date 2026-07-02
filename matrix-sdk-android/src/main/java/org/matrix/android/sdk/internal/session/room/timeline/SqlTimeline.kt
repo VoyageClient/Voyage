@@ -20,8 +20,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
+import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -29,6 +32,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.session.room.relation.threads.DefaultFetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
+import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
@@ -58,7 +62,9 @@ internal class SqlTimeline(
         private val database: SessionSqlDatabase,
         private val sessionDispatcher: CoroutineDispatcher,
         private val eventDecryptor: TimelineEventDecryptor,
-) : Timeline {
+        private val timelineInput: TimelineInput,
+        private val clock: Clock,
+) : Timeline, TimelineInput.Listener, UIEchoManager.Listener {
 
     override val timelineID = UUID.randomUUID().toString()
 
@@ -80,6 +86,11 @@ internal class SqlTimeline(
     private val decryptedSignal = Channel<Unit>(Channel.CONFLATED)
     private val decryptedListener = TimelineEventDecryptor.OnEventDecryptedListener { decryptedSignal.trySend(Unit) }
 
+    // In-memory echo of just-sent events and their send-state transitions: the DB round-trip (insert on
+    // the session dispatcher, flow emission, snapshot rebuild) is far too slow for perceived send latency,
+    // and send-state updates only touch the event table, which the timeline_event flows don't observe.
+    private val uiEchoManager = UIEchoManager(this, clock)
+
     private var threadRootId: String? = null
     private val isThreadTimeline get() = threadRootId != null
 
@@ -97,6 +108,8 @@ internal class SqlTimeline(
     private var pendingShowEventId: String? = initialEventId
     private var oldestShownEventId: String? = null
     @Volatile private var windowHasMoreOlder: Boolean = false
+    // Cached so the instant-echo path (main thread) doesn't need a DB read.
+    @Volatile private var liveEdgeLoaded: Boolean = false
     private val isWindowed: Boolean get() = !isThreadTimeline
     private fun initialWindowCount() = settings.initialSize.coerceAtLeast(1)
 
@@ -117,6 +130,7 @@ internal class SqlTimeline(
     override fun start(rootThreadEventId: String?) {
         if (!isStarted.compareAndSet(false, true)) return
         threadRootId = rootThreadEventId ?: settings.rootThreadEventId
+        timelineInput.listeners.add(this)
         eventDecryptor.start()
         eventDecryptor.addOnDecryptedListener(decryptedListener)
         decryptedJob = timelineScope.launch {
@@ -139,6 +153,7 @@ internal class SqlTimeline(
 
     override fun dispose() {
         isStarted.set(false)
+        timelineInput.listeners.remove(this)
         eventDecryptor.removeOnDecryptedListener(decryptedListener)
         eventDecryptor.destroy()
         observeJob?.cancel()
@@ -231,14 +246,15 @@ internal class SqlTimeline(
         loadedChunkIds.add(seedChunkId)
         // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
         observeJob = timelineScope.launch {
-            snapshotLoader.chunkSnapshotFlow(seedChunkId).conflate().collect { rebuildSnapshot() }
+            snapshotLoader.chunkChangesFlow(seedChunkId).conflate().collect { rebuildSnapshot() }
         }
+        // Local-echo add/remove and ignore-set changes don't alter the live chunk's rows, so those
+        // rebuilds reuse its cached mapping instead of re-resolving the whole chunk.
         sendingJob = timelineScope.launch {
-            snapshotLoader.sendingEventsFlow(roomId).conflate().collect { rebuildSnapshot() }
+            snapshotLoader.sendingChangesFlow(roomId).conflate().collect { rebuildSnapshot(reuseLiveChunk = true) }
         }
-        // Re-filter the timeline instantly when the ignored-user set changes (ignore/unignore).
         ignoredJob = timelineScope.launch {
-            snapshotLoader.ignoredUserIdsFlow().drop(1).collect { rebuildSnapshot() }
+            snapshotLoader.ignoredUserIdsFlow().drop(1).collect { rebuildSnapshot(reuseLiveChunk = true) }
         }
         // Reactions/edits live in event_annotations_summary, which the chunk flow doesn't watch — rebuild
         // (clearing the static-chunk cache so history re-reads too) when a summary changes.
@@ -367,8 +383,8 @@ internal class SqlTimeline(
         val liveChunkId = loadedChunkIds.firstOrNull()
         val chunkEvents = loadedChunkIds.flatMap { chunkId ->
             if (chunkId == liveChunkId && !reuseLiveChunk) {
-                // the live/changing chunk is re-mapped on sync/content changes...
-                snapshotLoader.chunkSnapshot(chunkId).also { chunkSnapshotCache[chunkId] = it }
+                // the live/changing chunk is refreshed on sync/content changes (incrementally when possible)...
+                refreshLiveChunkSnapshot(chunkId)
             } else {
                 // ...but static history chunks — and the live chunk during a pure backward-scroll reveal
                 // (reuseLiveChunk), which never changes its content — reuse the cached mapping. Re-resolving
@@ -376,16 +392,30 @@ internal class SqlTimeline(
                 chunkSnapshotCache.getOrPut(chunkId) { snapshotLoader.chunkSnapshot(chunkId) }
             }
         }
-        val sending = when {
-            // Only the local echoes posted into this thread belong at its live edge.
-            isThreadTimeline -> snapshotLoader.sendingEvents(roomId).filter { it.root.getRootThreadEventId() == threadRootId }
-            isLiveEdgeLoaded() -> snapshotLoader.sendingEvents(roomId)
-            else -> emptyList()
+        // A fast remote echo can arrive before any rebuild saw the DB sending row (the conflated flow
+        // collapses insert+delete), stranding the in-memory copy — reconcile against synced transaction ids.
+        if (uiEchoManager.getInMemorySendingEvents().isNotEmpty()) {
+            chunkEvents.forEach { event ->
+                event.root.unsignedData?.transactionId?.let { uiEchoManager.onSyncedEvent(it) }
+            }
+        }
+        val sending = if (isThreadTimeline || isLiveEdgeLoaded()) {
+            val dbSending = snapshotLoader.sendingEvents(roomId)
+            uiEchoManager.onSentEventsInDatabase(dbSending.map { it.eventId })
+            (uiEchoManager.getInMemorySendingEvents() + dbSending)
+                    .distinctBy { it.eventId }
+                    // Only the local echoes posted into this thread belong at its live edge.
+                    .let { if (isThreadTimeline) it.filter { e -> e.root.getRootThreadEventId() == threadRootId } else it }
+                    .map { uiEchoManager.updateSentStateWithUiEcho(it) }
+        } else {
+            emptyList()
         }
         // Hide ignored users' messages at display time (keep their state events, per the spec). Filtering
         // here — rather than deleting rows — is what makes unignore instant: nothing was ever removed.
         val ignored = stores.user.getIgnoredUserIds().toSet()
-        return (sending + chunkEvents).filterNot { it.root.senderId in ignored && it.root.stateKey == null }
+        return (sending + chunkEvents)
+                .filterNot { it.root.senderId in ignored && it.root.stateKey == null }
+                .map { uiEchoManager.decorateEventWithReactionUiEcho(it) }
     }
 
     // Index 0 is newest (display_index DESC). Keep newest down to [oldestShownEventId], growing the anchor
@@ -418,15 +448,26 @@ internal class SqlTimeline(
     }
 
     private suspend fun rebuildSnapshot(reuseLiveChunk: Boolean = false) {
+        val perfStart = MatrixPerf.now()
+        liveEdgeLoaded = isLiveEdgeLoaded()
         val all = computeLoadedEvents(reuseLiveChunk)
+        MatrixPerf.end(perfStart) { "timeline.computeLoadedEvents reuse=$reuseLiveChunk chunks=${loadedChunkIds.size} events=${all.size}" }
         val events = applyWindow(all)
+        // The memoized mappers return the same instances for unchanged events, so a reference sweep
+        // detects a no-op rebuild. Skipping the notify matters: each snapshot posted wakes the epoxy
+        // controller for a full model pass (~0.5s on device), and redundant posts were queueing behind
+        // each other and delaying real updates (like a just-sent message) by seconds.
+        val unchanged = sameByReference(events, builtEvents)
         builtEvents = events
         requestDecryptionForUtd(events)
         windowHasMoreOlder = isWindowed && events.isNotEmpty() && events.last().eventId != all.last().eventId
         refreshPaginationStates()
-        Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events")
-        withContext(coroutineDispatchers.main) {
-            listeners.forEach { tryOrNull { it.onTimelineUpdated(events) } }
+        Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events (unchanged=$unchanged)")
+        MatrixPerf.end(perfStart) { "timeline.rebuildSnapshot reuse=$reuseLiveChunk shown=${events.size}/${all.size} unchanged=$unchanged" }
+        if (!unchanged) {
+            withContext(coroutineDispatchers.main) {
+                listeners.forEach { tryOrNull { it.onTimelineUpdated(events) } }
+            }
         }
     }
 
@@ -439,6 +480,38 @@ internal class SqlTimeline(
                     ?.let { TimelineEventDecryptor.DecryptionRequest(it, timelineID) }
         }
         if (requests.isNotEmpty()) eventDecryptor.requestDecryption(requests)
+    }
+
+    /**
+     * The live chunk grows with every sync, and re-loading + re-mapping it in full made each incoming
+     * message cost O(chunk size) — the "app gets slower the longer it runs" mechanism. Its rows are
+     * append-only in practice, so load only the rows above the cached max display index and prepend.
+     * Fall back to a full reload when the count doesn't add up (rows were removed / chunk rebuilt) or a
+     * new event is a redaction (it prunes an OLDER root in place, which the cached mapping would miss).
+     * In-place edits/reactions/decryptions are covered by the annotation/decrypt jobs, which clear the
+     * cache entirely before rebuilding.
+     */
+    private fun refreshLiveChunkSnapshot(chunkId: Long): List<TimelineEvent> {
+        val cached = chunkSnapshotCache[chunkId]
+        if (cached.isNullOrEmpty()) {
+            return snapshotLoader.chunkSnapshot(chunkId).also { chunkSnapshotCache[chunkId] = it }
+        }
+        val newEvents = snapshotLoader.chunkSnapshotAfter(chunkId, cached.first().displayIndex.toLong())
+        val consistent = snapshotLoader.chunkEventCount(chunkId).toInt() == cached.size + newEvents.size &&
+                newEvents.none { it.root.getClearType() == EventType.REDACTION }
+        if (!consistent) {
+            return snapshotLoader.chunkSnapshot(chunkId).also { chunkSnapshotCache[chunkId] = it }
+        }
+        if (newEvents.isEmpty()) return cached
+        return (newEvents + cached).also { chunkSnapshotCache[chunkId] = it }
+    }
+
+    private fun sameByReference(a: List<TimelineEvent>, b: List<TimelineEvent>): Boolean {
+        if (a.size != b.size) return false
+        for (i in a.indices) {
+            if (a[i] !== b[i]) return false
+        }
+        return true
     }
 
     private fun isLiveEdgeLoaded(): Boolean =
@@ -456,6 +529,57 @@ internal class SqlTimeline(
         val moreForward = newest != null && newest.is_last_forward == 0L &&
                 (newest.next_chunk_id != null || newest.next_token != null)
         updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = moreForward) }
+    }
+
+    // TimelineInput callbacks: the send pipeline's in-memory signal, so a sent message and its
+    // send-state transitions show instantly instead of waiting for the DB flow (echo insert) or a sync
+    // round-trip (send-state lives in the event table, which the timeline_event flows don't observe).
+    // These run on the MAIN dispatcher, not the session dispatcher: the DB thread can be hundreds of ms
+    // behind (sync handling, chunk mapping) and the whole point is showing the echo instantly. A
+    // concurrent DB-thread rebuild can overwrite the optimistic prepend, but it merges the same echo
+    // back in from uiEchoManager's in-memory list, so the loss is at most one frame.
+    override fun onLocalEchoCreated(roomId: String, timelineEvent: TimelineEvent) {
+        if (roomId != this.roomId || !isStarted.get()) return
+        timelineScope.launch(coroutineDispatchers.main) {
+            if (isThreadTimeline && timelineEvent.root.getRootThreadEventId() != threadRootId) return@launch
+            if (!isThreadTimeline && !liveEdgeLoaded) return@launch
+            uiEchoManager.onLocalEchoCreated(timelineEvent)
+            // A DB-flow rebuild may already have picked the echo up from the sending table.
+            if (builtEvents.none { it.eventId == timelineEvent.eventId }) {
+                builtEvents = listOf(timelineEvent) + builtEvents
+                listeners.forEach { tryOrNull { it.onTimelineUpdated(builtEvents) } }
+            }
+        }
+    }
+
+    override fun onLocalEchoUpdated(roomId: String, eventId: String, sendState: SendState) {
+        if (roomId != this.roomId || !isStarted.get()) return
+        timelineScope.launch(coroutineDispatchers.main) {
+            if (!uiEchoManager.onSendStateUpdated(eventId, sendState)) return@launch
+            val current = builtEvents
+            val idx = current.indexOfFirst { it.eventId == eventId }
+            if (idx < 0) return@launch
+            builtEvents = current.toMutableList().also { it[idx] = uiEchoManager.updateSentStateWithUiEcho(current[idx]) }
+            listeners.forEach { tryOrNull { it.onTimelineUpdated(builtEvents) } }
+        }
+    }
+
+    /** [UIEchoManager.Listener]: patch one event in the built snapshot (reaction ui-echo decoration). */
+    override fun rebuildEvent(eventId: String, builder: (TimelineEvent) -> TimelineEvent?): Boolean {
+        val current = builtEvents
+        val idx = current.indexOfFirst { it.eventId == eventId }
+        if (idx < 0) return false
+        val updated = builder(current[idx]) ?: return false
+        builtEvents = current.toMutableList().also { it[idx] = updated }
+        timelineScope.launch { notifySnapshot() }
+        return true
+    }
+
+    private suspend fun notifySnapshot() {
+        val snapshot = builtEvents
+        withContext(coroutineDispatchers.main) {
+            listeners.forEach { tryOrNull { it.onTimelineUpdated(snapshot) } }
+        }
     }
 
     private fun updateState(direction: Timeline.Direction, update: (Timeline.PaginationState) -> Timeline.PaginationState) {

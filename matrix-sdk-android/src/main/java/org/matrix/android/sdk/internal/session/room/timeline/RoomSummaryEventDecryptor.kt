@@ -34,6 +34,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -44,7 +45,8 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
         private val stores: SessionStores,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         cryptoCoroutineScope: CoroutineScope,
-        private val cryptoService: dagger.Lazy<CryptoService>
+        private val cryptoService: dagger.Lazy<CryptoService>,
+        private val previewInvalidation: RoomSummaryPreviewInvalidation,
 ) {
 
     internal sealed class Message {
@@ -115,6 +117,11 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
             database.awaitDbTransaction(dispatcher) {
                 stores.event.applyDecryptionResult(eventId, result)
                 stores.eventInsert.setCanBeProcessed(eventId, true)
+                // The room list won't see this event-table write; refresh the summary it previews.
+                stores.roomSummary.roomIdsWithPreviewEvent(listOf(eventId)).forEach { roomId ->
+                    previewInvalidation.onPreviewChanged(roomId)
+                    stores.roomSummary.touch(roomId)
+                }
             }
         } catch (failure: Throwable) {
             Timber.v(failure, "Failed to decrypt event ${event.eventId}")

@@ -23,6 +23,9 @@ CREATE INDEX read_receipt_user ON read_receipt(user_id);
 selectSummary:
 SELECT * FROM read_receipts_summary WHERE event_id = ?;
 
+selectSummariesIn:
+SELECT * FROM read_receipts_summary WHERE event_id IN ?;
+
 upsertSummary:
 INSERT OR REPLACE INTO read_receipts_summary(event_id, room_id) VALUES (?, ?);
 
@@ -31,6 +34,9 @@ DELETE FROM read_receipts_summary WHERE event_id = ?;
 
 selectReceiptsForEvent:
 SELECT * FROM read_receipt WHERE event_id = ?;
+
+selectReceiptsForEvents:
+SELECT * FROM read_receipt WHERE event_id IN ?;
 
 selectReceiptForUserInRoom:
 SELECT * FROM read_receipt WHERE room_id = ? AND user_id = ? AND thread_id IS ?;

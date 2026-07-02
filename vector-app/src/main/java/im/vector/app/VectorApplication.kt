@@ -111,6 +111,8 @@ class VectorApplication :
         // Hilt has injected vectorPreferences by now. Seed perf flag immediately so we can
         // time the rest of onCreate.
         im.vector.app.core.utils.PerfTrace.isEnabled = vectorPreferences.isPerfLoggingEnabled()
+        org.matrix.android.sdk.api.util.MatrixPerf.isEnabled = im.vector.app.core.utils.PerfTrace.isEnabled
+        im.vector.app.core.utils.FrameJankWatcher.startIfEnabled()
         val perfMarker = im.vector.app.core.utils.PerfTrace.mark("app.onCreate")
         de.spiritcroc.matrixsdk.StaticScSdkHelper.scSdkPreferenceProvider = vectorPreferences
         appContext = this

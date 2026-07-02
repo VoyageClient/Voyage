@@ -34,6 +34,8 @@ class TimelineEventDiffUtilCallback(
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         val oldItem = oldList[oldItemPosition]
         val newItem = newList[newItemPosition]
-        return oldItem == newItem
+        // The SDK memoizes mapped events, so unchanged events are the same instance — the reference
+        // check skips the deep data-class equals (content maps etc.) for almost every row.
+        return oldItem === newItem || oldItem == newItem
     }
 }

@@ -27,6 +27,9 @@ SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY display_index DESC;
 selectByChunkRange:
 SELECT * FROM timeline_event WHERE chunk_id = ? AND display_index BETWEEN ? AND ? ORDER BY display_index DESC;
 
+selectByChunkAfterIndex:
+SELECT * FROM timeline_event WHERE chunk_id = ? AND display_index > ? ORDER BY display_index DESC;
+
 selectById:
 SELECT * FROM timeline_event WHERE id = ? LIMIT 1;
 

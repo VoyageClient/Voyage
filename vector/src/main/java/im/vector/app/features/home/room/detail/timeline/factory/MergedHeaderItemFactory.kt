@@ -51,6 +51,10 @@ class MergedHeaderItemFactory @Inject constructor(
     private val collapsedEventIds = linkedSetOf<Long>()
     private val mergeItemCollapseStates = HashMap<Long, Boolean>()
 
+    /** Bumped on every collapse toggle so cached merged-header models can detect staleness. */
+    var collapseGeneration = 0
+        private set
+
     /**
      * @param event the main timeline event
      * @param nextEvent is an older event than event
@@ -151,6 +155,9 @@ class MergedHeaderItemFactory @Inject constructor(
             partialState: TimelineEventController.PartialState,
             addDaySeparator: Boolean,
     ): Boolean {
+        // Check isRedacted BEFORE the neighbour scan: the scan is O(list size) and runs for every event
+        // on every model pass, while almost no events are redacted — unguarded it made passes O(n²).
+        if (!event.root.isRedacted()) return false
         val nextDisplayableEvent = items.subList(currentPosition + 1, items.size).firstOrNull {
             timelineEventVisibilityHelper.shouldShowEvent(
                     timelineEvent = it,
@@ -159,7 +166,7 @@ class MergedHeaderItemFactory @Inject constructor(
                     rootThreadEventId = partialState.rootThreadEventId
             )
         }
-        return event.root.isRedacted() && (nextDisplayableEvent?.root?.isRedacted() == false || addDaySeparator)
+        return nextDisplayableEvent?.root?.isRedacted() == false || addDaySeparator
     }
 
     private fun buildSameTypeEventsMergedSummary(
@@ -273,6 +280,7 @@ class MergedHeaderItemFactory @Inject constructor(
                         avatarRenderer = avatarRenderer,
                         onCollapsedStateChanged = {
                             mergeItemCollapseStates[event.localId] = it
+                            collapseGeneration++
                             requestModelBuild()
                         }
                 )
@@ -363,6 +371,7 @@ class MergedHeaderItemFactory @Inject constructor(
                     avatarRenderer = avatarRenderer,
                     onCollapsedStateChanged = {
                         mergeItemCollapseStates[event.localId] = it
+                        collapseGeneration++
                         requestModelBuild()
                     },
                     hasEncryptionEvent = hasEncryption,

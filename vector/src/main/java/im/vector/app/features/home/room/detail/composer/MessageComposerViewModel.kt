@@ -107,6 +107,9 @@ class MessageComposerViewModel @AssistedInject constructor(
     // Keep it out of state to avoid invalidate being called
     private var currentComposerText: CharSequence = ""
 
+    @kotlinx.coroutines.ExperimentalCoroutinesApi
+    private val sendPreparationLane = Dispatchers.Default.limitedParallelism(1)
+
     init {
         if (room != null) {
             loadDraftIfAny(room)
@@ -357,7 +360,13 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     @Suppress("NAME_SHADOWING")
     private fun handleSendMessage(room: Room, action: MessageComposerAction.SendMessage) {
+        im.vector.app.core.utils.PerfTrace.report("send.handle", 0)
         withState { state ->
+            // Preparation (emote shortcode tagging, mention resolution, slash-command parsing) reads
+            // prefs/DB and took ~150ms on the Mavericks state thread, delaying the local echo. Run it on
+            // a single-parallelism lane so rapid consecutive sends keep their order.
+            viewModelScope.launch(sendPreparationLane) {
+            im.vector.app.core.utils.PerfTrace.report("send.withState", 0)
             setState { copy(startsThread = false) }
             // Tag literal `:shortcode:` text as custom emotes for every send mode (regular, reply, quote, edit).
             // The rich-text path already carries its own formatted body, so only touch the plain-text path.
@@ -460,7 +469,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             if (!pgpKeyStore.isEnabled) {
                                 popDraft(room)
                                 _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_disabled)))
-                                return@withState
+                                return@launch
                             }
                             handlePgpSend(room, parsedCommand.message, pgpFormattedFor(room, parsedCommand.message, null, action.autoMarkdown)) { armoredBody, armoredFormatted ->
                                 if (state.rootThreadEventId != null) {
@@ -1096,6 +1105,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 is SendMode.Voice -> {
                     // do nothing
                 }
+            }
             }
         }
     }

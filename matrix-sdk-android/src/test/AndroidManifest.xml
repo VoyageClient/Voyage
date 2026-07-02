@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- JVM/Robolectric-only source set; the library's minSdk doesn't apply on the host. -->
+    <uses-sdk tools:overrideLibrary="androidx.test.espresso.idling.resource, androidx.test.monitor, androidx.test.core, androidx.test.ext.junit, androidx.test.rules, androidx.test.runner, androidx.test.services.storage" />
+
+</manifest>

@@ -1101,6 +1101,17 @@ class TimelineFragment :
                 .show()
     }
 
+    override fun onStart() {
+        super.onStart()
+        timelineEventController.setPaused(false)
+    }
+
+    override fun onStop() {
+        // Backstacked/hidden rooms must not keep burning the shared epoxy thread on every new event.
+        timelineEventController.setPaused(true)
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         itemVisibilityTracker.attach(views.timelineRecyclerView)
@@ -1151,6 +1162,14 @@ class TimelineFragment :
 
 // PRIVATE METHODS *****************************************************************************
 
+    /** A pool that keeps up to 25 holders per view type (the framework default of 5 forces re-inflation). */
+    private fun deepRecycledViewPool() = object : RecyclerView.RecycledViewPool() {
+        override fun putRecycledView(scrap: RecyclerView.ViewHolder) {
+            setMaxRecycledViews(scrap.itemViewType, 25)
+            super.putRecycledView(scrap)
+        }
+    }
+
     private fun setupRecyclerView() {
         timelineEventController.callback = this
         timelineEventController.timeline = timelineViewModel.timeline
@@ -1171,6 +1190,13 @@ class TimelineFragment :
         views.timelineRecyclerView.layoutManager = layoutManager
         views.timelineRecyclerView.itemAnimator = null
         views.timelineRecyclerView.setHasFixedSize(true)
+        // Message binds cost 5-40ms each; keep more offscreen holders bound so direction changes and
+        // small scrolls rebind less on the main thread.
+        views.timelineRecyclerView.setItemViewCacheSize(12)
+        // Profiling a fling showed the biggest main-thread cost was holder churn: every message
+        // layout+stub combo is its own view type, and the default pool keeps only 5 of each, so fast
+        // scrolling destroyed and re-inflated message views continuously (and generated GC pressure).
+        views.timelineRecyclerView.setRecycledViewPool(deepRecycledViewPool())
         // Time-to-first-models: how long after onViewCreated until Epoxy delivers the first
         // built model list. This is what the user sees as the "blank timeline" period on
         // room open / rotation.

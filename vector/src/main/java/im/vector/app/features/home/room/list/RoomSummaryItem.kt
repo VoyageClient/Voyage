@@ -105,6 +105,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     var useSingleLineForLastEvent: Boolean = false
 
     override fun bind(holder: Holder) {
+        val perfMarker = im.vector.app.core.utils.PerfTrace.mark("roomlist.item.bind")
         super.bind(holder)
 
         renderDisplayMode(holder)
@@ -129,6 +130,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         if (useSingleLineForLastEvent) {
             holder.subtitleView.setLines(1)
         }
+        perfMarker.end()
     }
 
     private fun renderDisplayMode(holder: Holder) = when (displayMode) {

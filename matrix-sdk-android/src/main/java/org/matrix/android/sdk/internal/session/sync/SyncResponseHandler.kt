@@ -39,6 +39,7 @@ import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.session.SessionListeners
 import org.matrix.android.sdk.internal.session.dispatchTo
 import org.matrix.android.sdk.internal.session.pushrules.ProcessEventForPushTask
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.session.sync.handler.SyncResponsePostTreatmentAggregatorHandler
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
@@ -202,18 +203,24 @@ internal class SyncResponseHandler @Inject constructor(
     ) {
         // Start one big transaction on the session DB dispatcher.
         measureSpan("task", "sql_session_transaction") {
-            database.awaitDbTransaction(sessionDbDispatcher) {
-                if (syncResponse.rooms != null) {
-                    reportSubtask(reporter, InitialSyncStep.ImportingAccountRoom, 1, 0.8f) {
-                        roomSyncHandler.handle(stores, syncResponse.rooms, isInitialSync, aggregator, reporter)
+            MatrixPerf.timeSuspending("sync.transaction rooms=${syncResponse.rooms?.join?.size ?: 0}j/${syncResponse.rooms?.invite?.size ?: 0}i presence=${syncResponse.presence?.events?.size ?: 0}") {
+                database.awaitDbTransaction(sessionDbDispatcher) {
+                    if (syncResponse.rooms != null) {
+                        reportSubtask(reporter, InitialSyncStep.ImportingAccountRoom, 1, 0.8f) {
+                            MatrixPerf.time("sync.roomSyncHandler") {
+                                roomSyncHandler.handle(stores, syncResponse.rooms, isInitialSync, aggregator, reporter)
+                            }
+                        }
                     }
-                }
-                reportSubtask(reporter, InitialSyncStep.ImportingAccountData, 1, 0.1f) {
-                    userAccountDataSyncHandler.handle(syncResponse.accountData, aggregator)
-                }
-                presenceSyncHandler.handle(stores, syncResponse.presence)
-                if (persistToken) {
-                    stores.syncToken.setNextBatch(syncResponse.nextBatch)
+                    reportSubtask(reporter, InitialSyncStep.ImportingAccountData, 1, 0.1f) {
+                        userAccountDataSyncHandler.handle(syncResponse.accountData, aggregator)
+                    }
+                    MatrixPerf.time("sync.presenceHandler") {
+                        presenceSyncHandler.handle(stores, syncResponse.presence)
+                    }
+                    if (persistToken) {
+                        stores.syncToken.setNextBatch(syncResponse.nextBatch)
+                    }
                 }
             }
         }
@@ -258,8 +265,10 @@ internal class SyncResponseHandler @Inject constructor(
         // Revalidating the whole space parent/child graph is expensive; only do it when the sync actually
         // carried changes that can affect it.
         if (!shouldValidateSpaceHierarchy) return
-        database.awaitDbTransaction(sessionDbDispatcher) {
-            roomSummaryUpdater.validateSpaceRelationship(stores)
+        MatrixPerf.timeSuspending("sync.validateSpaceRelationship") {
+            database.awaitDbTransaction(sessionDbDispatcher) {
+                roomSummaryUpdater.validateSpaceRelationship(stores)
+            }
         }
     }
 

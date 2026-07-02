@@ -168,22 +168,27 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         val room = args.roomId?.let { session.getRoom(it) }
 
         val inMemoryData = intent.getParcelableArrayListExtraCompat<AttachmentData>(EXTRA_IN_MEMORY_DATA)
-        val sourceProvider = if (inMemoryData != null) {
+        val isFirstCreation = savedInstanceState == null
+        if (inMemoryData != null) {
             initialIndex = inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
-            dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope)
+            installSourceProvider(dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope), setCurrentItem = isFirstCreation)
         } else {
-            val events = room?.timelineService()?.getAttachmentMessages().orEmpty()
-            initialIndex = events.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
-            dataSourceFactory.createProvider(events, lifecycleScope)
-        }
-        sourceProvider.interactionListener = this
-        setSourceProvider(sourceProvider)
-        currentSourceProvider = sourceProvider
-        if (savedInstanceState == null) {
-            pager2.setCurrentItem(initialIndex, false)
-            // The page change listener is not notified of the change...
-            pager2.post {
-                onSelectedPositionChanged(initialIndex)
+            // Loading + mapping every attachment of the room took seconds on the main thread for
+            // media-heavy rooms, freezing the tap until the gallery list was built. Open on the tapped
+            // item alone (its own loading UI shows immediately) and swap in the full gallery when ready.
+            val tappedItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
+            if (tappedItem != null) {
+                initialIndex = 0
+                installSourceProvider(dataSourceFactory.createProvider(listOf(tappedItem), room, lifecycleScope), setCurrentItem = isFirstCreation)
+            }
+            lifecycleScope.launch {
+                val events = withContext(Dispatchers.IO) {
+                    room?.timelineService()?.getAttachmentMessages().orEmpty()
+                }
+                if (events.isNotEmpty()) {
+                    initialIndex = events.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
+                    installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope), setCurrentItem = true)
+                }
             }
         }
 
@@ -195,6 +200,19 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         }
 
         observeViewEvents()
+    }
+
+    private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>, setCurrentItem: Boolean) {
+        sourceProvider.interactionListener = this
+        setSourceProvider(sourceProvider)
+        currentSourceProvider = sourceProvider
+        if (setCurrentItem) {
+            pager2.setCurrentItem(initialIndex, false)
+            // The page change listener is not notified of the change...
+            pager2.post {
+                onSelectedPositionChanged(initialIndex)
+            }
+        }
     }
 
     override fun onResume() {

@@ -15,10 +15,10 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
-import im.vector.app.features.home.room.list.usecase.GetLatestPreviewableEventUseCase
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
@@ -40,7 +40,6 @@ class RoomSummaryItemFactory @Inject constructor(
         private val typingHelper: TypingHelper,
         private val avatarRenderer: AvatarRenderer,
         private val errorFormatter: ErrorFormatter,
-        private val getLatestPreviewableEventUseCase: GetLatestPreviewableEventUseCase,
         private val vectorPreferences: VectorPreferences,
         private val pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore,
 ) {
@@ -57,14 +56,16 @@ class RoomSummaryItemFactory @Inject constructor(
             listener: RoomListListener?,
             singleLineLastEvent: Boolean = false
     ): VectorEpoxyModel<*> {
-        return when (roomSummary.membership) {
-            Membership.INVITE -> {
-                val changeMembershipState = roomChangeMembershipStates[roomSummary.roomId] ?: ChangeMembershipState.Unknown
-                createInvitationItem(roomSummary, changeMembershipState, listener)
+        return PerfTrace.time("roomlist.item.build") {
+            when (roomSummary.membership) {
+                Membership.INVITE -> {
+                    val changeMembershipState = roomChangeMembershipStates[roomSummary.roomId] ?: ChangeMembershipState.Unknown
+                    createInvitationItem(roomSummary, changeMembershipState, listener)
+                }
+                else -> createRoomItem(
+                        roomSummary, selectedRoomIds, displayMode, singleLineLastEvent, listener?.let { it::onRoomClicked }, listener?.let { it::onRoomLongClicked }
+                )
             }
-            else -> createRoomItem(
-                    roomSummary, selectedRoomIds, displayMode, singleLineLastEvent, listener?.let { it::onRoomClicked }, listener?.let { it::onRoomLongClicked }
-            )
         }
     }
 
@@ -135,10 +136,15 @@ class RoomSummaryItemFactory @Inject constructor(
         val showSelected = selectedRoomIds.contains(roomSummary.roomId)
         var latestFormattedEvent: CharSequence = ""
         var latestEventTime = ""
-        val latestEvent = getLatestPreviewableEventUseCase.execute(roomSummary.roomId)
+        // The mapped summary already resolved its latest previewable event; re-fetching it through
+        // room.roomSummary() ran a per-item DB query chain on the main thread (models build on the UI
+        // handler) — a room-list scroll-stutter source.
+        val latestEvent = roomSummary.latestPreviewableEvent
         if (latestEvent != null) {
+            val formatStart = PerfTrace.mark("roomlist.item.formatPreview")
             latestFormattedEvent = displayableEventFormatter.format(latestEvent, roomSummary.isDirect, roomSummary.isDirect.not())
             latestEventTime = dateFormatter.format(latestEvent.root.originServerTs, DateFormatKind.ROOM_LIST)
+            formatStart.end()
         }
 
         val typingMessage = typingHelper.getTypingMessage(roomSummary.typingUsers)
