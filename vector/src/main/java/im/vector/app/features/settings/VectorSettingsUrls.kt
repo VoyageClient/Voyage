@@ -8,7 +8,7 @@
 package im.vector.app.features.settings
 
 object VectorSettingsUrls {
-    const val HELP = "https://element.io/help"
+    const val HELP = "https://claude.com"
     const val COPYRIGHT = "https://element.io/copyright"
     const val ACCEPTABLE_USE_POLICY = "https://element.io/acceptable-use-policy-terms"
     const val PRIVACY_POLICY = "https://element.io/privacy"
