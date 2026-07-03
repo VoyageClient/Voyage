@@ -25,7 +25,7 @@ import android.text.TextUtils
 import android.text.style.ReplacementSpan
 import android.widget.TextView
 import androidx.annotation.UiThread
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.chip.ChipDrawable
@@ -164,17 +164,17 @@ class PillImageSpan(
         val icon = when {
             matrixItem is MatrixItem.RoomAliasItem && matrixItem.avatarUrl.isNullOrEmpty() &&
                     matrixItem.displayName == context.getString(CommonStrings.pill_message_in_room, matrixItem.id) -> {
-                ContextCompat.getDrawable(context, R.drawable.ic_permalink_round)
+                AppCompatResources.getDrawable(context, R.drawable.ic_permalink_round)
             }
             matrixItem is MatrixItem.RoomItem && matrixItem.avatarUrl.isNullOrEmpty() && (
                     matrixItem.displayName == context.getString(CommonStrings.pill_message_in_unknown_room) ||
                             matrixItem.displayName == context.getString(CommonStrings.pill_message_unknown_room_or_space) ||
                             matrixItem.displayName == context.getString(CommonStrings.pill_message_from_unknown_user)
                     ) -> {
-                ContextCompat.getDrawable(context, R.drawable.ic_permalink_round)
+                AppCompatResources.getDrawable(context, R.drawable.ic_permalink_round)
             }
             matrixItem is MatrixItem.UserItem && matrixItem.avatarUrl.isNullOrEmpty() && matrixItem.displayName?.isMatrixId().orTrue() -> {
-                ContextCompat.getDrawable(context, R.drawable.ic_user_round)
+                AppCompatResources.getDrawable(context, R.drawable.ic_user_round)
             }
             else -> {
                 try {
