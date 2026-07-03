@@ -7,6 +7,7 @@
 
 package im.vector.app.core.utils
 
+import android.os.Build
 import android.text.Spannable
 import android.text.Spanned
 import android.text.style.ClickableSpan
@@ -47,6 +48,9 @@ class EvenBetterLinkMovementMethod(private val onLinkClickListener: OnLinkClickL
     // Don't flash the link-highlight (accent) when toggling a spoiler.
     override fun highlightUrl(textView: TextView, clickableSpan: ClickableSpan, text: Spannable) {
         if (clickableSpan is SpoilerSpan) return
+        // super calls TextView.getHighlightColor, which only exists from API 16 — skip the
+        // (purely cosmetic) tap flash below that instead of crashing.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) return
         super.highlightUrl(textView, clickableSpan, text)
     }
 

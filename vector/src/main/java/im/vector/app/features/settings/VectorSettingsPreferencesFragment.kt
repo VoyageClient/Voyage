@@ -164,9 +164,13 @@ class VectorSettingsPreferencesFragment :
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
             // Update the runtime mirror so new binds pick it up without a restart.
-            im.vector.app.core.ui.PerformanceMode.enabled = newValue as Boolean
+            val performanceMode = newValue as Boolean
+            im.vector.app.core.ui.PerformanceMode.enabled = performanceMode
+            vectorPreferences.applyPerformanceModeConstraints(performanceMode)
+            updatePerformanceModeDependents(performanceMode)
             true
         }
+        updatePerformanceModeDependents(vectorPreferences.isPerformanceModeEnabled())
 
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_USE_TWEMOJI_KEY)!!.let { pref ->
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
@@ -312,6 +316,20 @@ class VectorSettingsPreferencesFragment :
                 }
             })
             true
+        }
+    }
+
+    // Settings performance mode forces off: unchecked and locked until it's toggled back off.
+    private fun updatePerformanceModeDependents(performanceMode: Boolean) {
+        listOf(
+                VectorPreferences.SETTINGS_AUTOPLAY_ANIMATED_IMAGES,
+                VectorPreferences.SETTINGS_ANIMATE_ROOM_AVATARS,
+                VectorPreferences.SETTINGS_SHOW_URL_PREVIEW_KEY,
+        ).forEach { key ->
+            findPreference<VectorSwitchPreference>(key)?.let { pref ->
+                if (performanceMode) pref.isChecked = false
+                pref.isEnabled = !performanceMode
+            }
         }
     }
 

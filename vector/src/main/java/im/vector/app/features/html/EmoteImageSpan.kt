@@ -9,9 +9,11 @@
 
 package im.vector.app.features.html
 
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.Animatable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import android.text.Spanned
@@ -20,6 +22,7 @@ import android.widget.TextView
 import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.ui.PerformanceMode
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import java.lang.ref.WeakReference
 import kotlin.math.min
@@ -71,9 +74,22 @@ class EmoteImageSpan(
         }
     }
 
+    private val bitmapTarget = object : SimpleTarget<Bitmap>() {
+        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+            val textView = tv?.get() ?: return
+            drawable = BitmapDrawable(textView.resources, resource)
+            textView.invalidate()
+        }
+    }
+
     fun bind(textView: TextView) {
         tv = WeakReference(textView)
-        GlideApp.with(textView).load(resolvedUrl).into(target)
+        if (PerformanceMode.enabled) {
+            // An animated emote redraws its whole TextView every frame; decode a single static frame instead.
+            GlideApp.with(textView).asBitmap().load(resolvedUrl).into(bitmapTarget)
+        } else {
+            GlideApp.with(textView).load(resolvedUrl).into(target)
+        }
     }
 
     // Box the emote to the line height so it matches an emoji glyph (which fills ~the line) at any text size.

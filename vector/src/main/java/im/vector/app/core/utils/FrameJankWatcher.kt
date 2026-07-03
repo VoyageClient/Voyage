@@ -8,10 +8,11 @@
 package im.vector.app.core.utils
 
 import android.os.Build
+import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.view.Choreographer
-import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -19,7 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * moments can be correlated with whatever else the log shows running at that time. A frame gap over
  * [JANK_THRESHOLD_MS] logs `frame.jank NNms`; ordinary frames are silent.
  *
- * Runs off [Choreographer] (API 16+); on older devices it silently does nothing.
+ * Runs off [Choreographer] (API 16+); below that a self-reposting main-Handler tick measures the
+ * same thing (a busy main thread delays the tick).
  */
 object FrameJankWatcher {
 
@@ -30,14 +32,26 @@ object FrameJankWatcher {
 
     fun startIfEnabled() {
         if (!PerfTrace.isEnabled) return
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) return
         if (!running.compareAndSet(false, true)) return
         val mainLooper = Looper.getMainLooper()
-        if (Looper.myLooper() == mainLooper) {
-            ChoreographerWatcher.postCallback()
-        } else {
-            android.os.Handler(mainLooper).post { ChoreographerWatcher.postCallback() }
+        val start = Runnable {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                ChoreographerWatcher.postCallback()
+            } else {
+                HandlerWatcher.start()
+            }
         }
+        if (Looper.myLooper() == mainLooper) {
+            start.run()
+        } else {
+            Handler(mainLooper).post(start)
+        }
+    }
+
+    // android.util.Log (not Timber): release builds don't plant a logcat tree, and this exists to
+    // be captured via `adb logcat -s VectorPerf` on release devices.
+    private fun reportJank(gapMs: Long) {
+        Log.i(TAG, "frame.jank ${gapMs}ms (uptime ${SystemClock.uptimeMillis()})")
     }
 
     // Nested holder so Choreographer.FrameCallback (API 16) is never linked on older devices:
@@ -58,7 +72,7 @@ object FrameJankWatcher {
                 if (last != 0L) {
                     val gap = nowMs - last
                     if (gap >= JANK_THRESHOLD_MS) {
-                        Timber.tag(TAG).i("frame.jank %dms (uptime %d)", gap, SystemClock.uptimeMillis())
+                        reportJank(gap)
                     }
                 }
                 lastFrameMs = nowMs
@@ -69,6 +83,39 @@ object FrameJankWatcher {
         fun postCallback() {
             lastFrameMs = 0L
             Choreographer.getInstance().postFrameCallback(callback)
+        }
+    }
+
+    private object HandlerWatcher {
+
+        private const val INTERVAL_MS = 16L
+        private var lastTickMs = 0L
+        private val handler = Handler(Looper.getMainLooper())
+
+        private val tick = object : Runnable {
+            override fun run() {
+                if (!PerfTrace.isEnabled) {
+                    running.set(false)
+                    lastTickMs = 0L
+                    return
+                }
+                val now = SystemClock.uptimeMillis()
+                val last = lastTickMs
+                if (last != 0L) {
+                    // Time beyond the requested delay = how long the main looper was occupied.
+                    val gap = now - last - INTERVAL_MS
+                    if (gap >= JANK_THRESHOLD_MS) {
+                        reportJank(gap)
+                    }
+                }
+                lastTickMs = now
+                handler.postDelayed(this, INTERVAL_MS)
+            }
+        }
+
+        fun start() {
+            lastTickMs = 0L
+            handler.post(tick)
         }
     }
 }

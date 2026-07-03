@@ -425,6 +425,17 @@ class VectorPreferences @Inject constructor(
         }
     }
 
+    // Settings performance mode forces off (and the settings screen greys out while it's on).
+    // The parameter exists because the settings toggle listener runs before the new value is persisted.
+    fun applyPerformanceModeConstraints(performanceMode: Boolean = isPerformanceModeEnabled()) {
+        if (!performanceMode) return
+        defaultPrefs.edit {
+            putBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, false)
+            putBoolean(SETTINGS_ANIMATE_ROOM_AVATARS, false)
+            putBoolean(SETTINGS_SHOW_URL_PREVIEW_KEY, false)
+        }
+    }
+
     // Rough capability check: single/dual-core or low-clocked CPUs default into performance mode.
     // availableProcessors() reports only online cores (old kernels hot-unplug them), so count the
     // physical cpuN entries in sysfs; fall back to the runtime value if that read fails.
