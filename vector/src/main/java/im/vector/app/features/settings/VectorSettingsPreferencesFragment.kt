@@ -168,15 +168,16 @@ class VectorSettingsPreferencesFragment :
                 pref.isChecked = true
                 pref.isEnabled = false
             } else {
-                // Mutually exclusive with the system-emoji-font mode below.
-                pref.isEnabled = !vectorPreferences.useSystemEmojiFont()
                 pref.setOnPreferenceChangeListener { _, newValue ->
                     // The emoji path is wired once in Application.onCreate, so a full process restart is
                     // needed for the switch to take effect — an activity-only restart wouldn't re-run it.
                     // Persist synchronously first (the framework's own persist runs only after this
                     // returns, which is too late once restartProcess kills us), then return false so it
                     // isn't double-written.
-                    vectorPreferences.setUseTwemoji(newValue as Boolean)
+                    val enabled = newValue as Boolean
+                    vectorPreferences.setUseTwemoji(enabled)
+                    // Mutually exclusive with the system-emoji-font mode: turning one on turns the other off.
+                    if (enabled) vectorPreferences.setUseSystemEmojiFont(false)
                     MainActivity.restartProcess(requireActivity())
                     false
                 }
@@ -189,10 +190,11 @@ class VectorSettingsPreferencesFragment :
                 pref.isChecked = false
                 pref.isEnabled = false
             } else {
-                // Can't drop emoji2 for the system font while Twemoji sprites are forced on.
-                pref.isEnabled = !vectorPreferences.useTwemoji()
                 pref.setOnPreferenceChangeListener { _, newValue ->
-                    vectorPreferences.setUseSystemEmojiFont(newValue as Boolean)
+                    val enabled = newValue as Boolean
+                    vectorPreferences.setUseSystemEmojiFont(enabled)
+                    // Mutually exclusive with Twemoji: turning one on turns the other off.
+                    if (enabled) vectorPreferences.setUseTwemoji(false)
                     MainActivity.restartProcess(requireActivity())
                     false
                 }
