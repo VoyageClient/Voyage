@@ -45,6 +45,7 @@
 
         <!-- Some alias -->
         <item name="vctr_header_background">@color/background_sc_light_secondary</item>
+        <item name="vctr_space_item_background">@drawable/bg_space_item_sc_light</item>
         <item name="vctr_list_separator">@color/list_divider_color_sc_light</item>
         <item name="vctr_list_separator_system">?vctr_list_separator</item>
         <item name="vctr_list_separator_on_surface">?vctr_list_separator</item>

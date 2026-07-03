@@ -34,36 +34,41 @@ object FrameJankWatcher {
         if (!running.compareAndSet(false, true)) return
         val mainLooper = Looper.getMainLooper()
         if (Looper.myLooper() == mainLooper) {
-            postCallback()
+            ChoreographerWatcher.postCallback()
         } else {
-            android.os.Handler(mainLooper).post { postCallback() }
+            android.os.Handler(mainLooper).post { ChoreographerWatcher.postCallback() }
         }
     }
 
-    private var lastFrameMs = 0L
+    // Nested holder so Choreographer.FrameCallback (API 16) is never linked on older devices:
+    // referencing it from this object's <clinit> crashes Dalvik on ICS with NoClassDefFoundError.
+    private object ChoreographerWatcher {
 
-    private val callback = object : Choreographer.FrameCallback {
-        override fun doFrame(frameTimeNanos: Long) {
-            if (!PerfTrace.isEnabled) {
-                running.set(false)
-                lastFrameMs = 0L
-                return
-            }
-            val nowMs = frameTimeNanos / 1_000_000
-            val last = lastFrameMs
-            if (last != 0L) {
-                val gap = nowMs - last
-                if (gap >= JANK_THRESHOLD_MS) {
-                    Timber.tag(TAG).i("frame.jank %dms (uptime %d)", gap, SystemClock.uptimeMillis())
+        private var lastFrameMs = 0L
+
+        private val callback = object : Choreographer.FrameCallback {
+            override fun doFrame(frameTimeNanos: Long) {
+                if (!PerfTrace.isEnabled) {
+                    running.set(false)
+                    lastFrameMs = 0L
+                    return
                 }
+                val nowMs = frameTimeNanos / 1_000_000
+                val last = lastFrameMs
+                if (last != 0L) {
+                    val gap = nowMs - last
+                    if (gap >= JANK_THRESHOLD_MS) {
+                        Timber.tag(TAG).i("frame.jank %dms (uptime %d)", gap, SystemClock.uptimeMillis())
+                    }
+                }
+                lastFrameMs = nowMs
+                Choreographer.getInstance().postFrameCallback(this)
             }
-            lastFrameMs = nowMs
-            Choreographer.getInstance().postFrameCallback(this)
         }
-    }
 
-    private fun postCallback() {
-        lastFrameMs = 0L
-        Choreographer.getInstance().postFrameCallback(callback)
+        fun postCallback() {
+            lastFrameMs = 0L
+            Choreographer.getInstance().postFrameCallback(callback)
+        }
     }
 }

@@ -45,6 +45,8 @@
 
         <!-- Some alias -->
         <item name="vctr_header_background">?android:colorBackground</item>
+        <!-- Pre-21 can't resolve theme attrs in drawable XML, so each SC theme picks a hardcoded fallback -->
+        <item name="vctr_space_item_background">@drawable/bg_space_item_sc</item>
         <item name="vctr_list_separator">@color/list_divider_color_sc</item>
         <item name="vctr_list_separator_system">?vctr_list_separator</item>
         <item name="vctr_list_separator_on_surface">?vctr_list_separator</item>
@@ -144,6 +146,7 @@
         <item name="android:colorBackground">@color/background_dark_sc</item>
         <item name="colorSurface">@color/background_dark_sc</item> <!-- same as android:colorBackground, but using attr crashes actionMode? -->
         <item name="vctr_header_background">@color/background_sc</item>
+        <item name="vctr_space_item_background">@drawable/bg_space_item_sc_dark</item>
 
         <item name="android:statusBarColor">@color/background_dark_sc</item>
         <item name="android:navigationBarColor">@color/background_black_sc</item>

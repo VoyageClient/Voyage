@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-21 fallback for SC black theme: drawable XML can't resolve theme attrs below API 21,
+     so the colors of drawable-v21/bg_space_item are hardcoded per SC theme. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_checked="true">
+        <layer-list>
+            <item>
+                <shape>
+                    <solid android:color="@android:color/transparent" />
+                </shape>
+            </item>
+            <item android:gravity="center_vertical|start"
+                android:left="8dp"
+                android:right="11dp">
+                <shape>
+                    <solid android:color="@color/list_divider_color_sc" />
+                    <corners android:radius="8dp"/>
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+
+    <item>
+        <shape>
+            <solid android:color="@color/background_black_sc" />
+        </shape>
+    </item>
+
+</selector>
