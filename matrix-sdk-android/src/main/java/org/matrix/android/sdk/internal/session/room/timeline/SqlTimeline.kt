@@ -586,6 +586,23 @@ internal class SqlTimeline(
         }
     }
 
+    // A limited (gappy) sync clears the room's chunks and starts a fresh last-forward chunk (see
+    // SqlRoomSyncHandler.handleTimelineEvents). Our observe job is bound to the old — now deleted — chunk,
+    // so the synced events never surface until the room is reopened. Detect the live chunk moving and
+    // re-seed onto it, back at the live edge.
+    override fun onNewTimelineEvents(roomId: String, eventIds: List<String>) {
+        if (roomId != this.roomId || !isStarted.get() || isThreadTimeline) return
+        timelineScope.launch {
+            val currentLive = loadedChunkIds.firstOrNull() ?: return@launch
+            val liveChunkId = stores.chunk.lastForward(this@SqlTimeline.roomId)?.id ?: return@launch
+            if (liveChunkId == currentLive) return@launch
+            pendingShowEventId = null
+            oldestShownEventId = null
+            seedFrom(liveChunkId)
+            rebuildSnapshot()
+        }
+    }
+
     /** [UIEchoManager.Listener]: patch one event in the built snapshot (reaction ui-echo decoration). */
     override fun rebuildEvent(eventId: String, builder: (TimelineEvent) -> TimelineEvent?): Boolean {
         val current = builtEvents
