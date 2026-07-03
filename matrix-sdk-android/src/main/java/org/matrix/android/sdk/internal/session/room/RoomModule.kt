@@ -107,9 +107,11 @@ import org.matrix.android.sdk.internal.session.room.read.DefaultSetReadMarkersTa
 import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
 import org.matrix.android.sdk.internal.session.room.read.SetReadMarkersTask
 import org.matrix.android.sdk.internal.session.room.relation.DefaultFetchEditHistoryTask
+import org.matrix.android.sdk.internal.session.room.relation.DefaultFetchReactionsTask
 import org.matrix.android.sdk.internal.session.room.relation.DefaultFindReactionEventForUndoTask
 import org.matrix.android.sdk.internal.session.room.relation.DefaultUpdateQuickReactionTask
 import org.matrix.android.sdk.internal.session.room.relation.FetchEditHistoryTask
+import org.matrix.android.sdk.internal.session.room.relation.FetchReactionsTask
 import org.matrix.android.sdk.internal.session.room.relation.FindReactionEventForUndoTask
 import org.matrix.android.sdk.internal.session.room.relation.UpdateQuickReactionTask
 import org.matrix.android.sdk.internal.session.room.relation.poll.DefaultFetchPollResponseEventsTask
@@ -311,6 +313,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindFetchEditHistoryTask(task: DefaultFetchEditHistoryTask): FetchEditHistoryTask
+
+    @Binds
+    abstract fun bindFetchReactionsTask(task: DefaultFetchReactionsTask): FetchReactionsTask
 
     @Binds
     abstract fun bindGetRoomIdByAliasTask(task: DefaultGetRoomIdByAliasTask): GetRoomIdByAliasTask

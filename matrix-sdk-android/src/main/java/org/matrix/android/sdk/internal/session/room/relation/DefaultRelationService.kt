@@ -47,6 +47,7 @@ internal class DefaultRelationService @AssistedInject constructor(
         private val eventFactory: LocalEchoEventFactory,
         private val findReactionEventForUndoTask: FindReactionEventForUndoTask,
         private val fetchEditHistoryTask: FetchEditHistoryTask,
+        private val fetchReactionsTask: FetchReactionsTask,
         private val timelineEventDataSource: SqlTimelineEventDataSource,
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
@@ -134,6 +135,10 @@ internal class DefaultRelationService @AssistedInject constructor(
 
     override suspend fun fetchEditHistory(eventId: String): List<Event> {
         return fetchEditHistoryTask.execute(FetchEditHistoryTask.Params(roomId, eventId))
+    }
+
+    override suspend fun fetchReactions(eventId: String): List<Event> {
+        return fetchReactionsTask.execute(FetchReactionsTask.Params(roomId, eventId))
     }
 
     override fun replyToMessage(
