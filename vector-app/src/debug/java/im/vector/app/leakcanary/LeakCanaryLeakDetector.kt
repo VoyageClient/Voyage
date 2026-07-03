@@ -16,6 +16,9 @@ import javax.inject.Inject
 // Debug builds only (they never run on the ICS/Dalvik path, where LeakCanary's class count would
 // blow the 8 MB LinearAlloc budget).
 class LeakCanaryLeakDetector @Inject constructor() : LeakDetector {
+    // AppWatcher.config's setter is deprecated in favour of manualInstall(), but that's install-time
+    // only — there's no non-deprecated way to toggle watching at runtime, which is what we need here.
+    @Suppress("DEPRECATION")
     override fun enable(enable: Boolean) {
         Timber.v("Enable LeakCanary: $enable")
         // dumpHeap alone only stops heap dumps; AppWatcher keeps watching and firing retained-object

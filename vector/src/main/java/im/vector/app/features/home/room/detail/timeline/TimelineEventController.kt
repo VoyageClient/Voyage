@@ -61,7 +61,9 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
+import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
@@ -99,6 +101,9 @@ class TimelineEventController @Inject constructor(
         // Keeps a pass under ~0.5s (~13ms/model build + ~150ms fixed epoxy overhead), so a message sent
         // while a bulk reveal is trickling in waits at most one short pass to render.
         private const val MAX_MODEL_BUILDS_PER_PASS = 20
+
+        // Fields a caption edit is allowed to touch; anything else differing means the media changed.
+        private val CAPTION_MUTABLE_KEYS = setOf("body", "filename", "formatted_body", "format", "m.mentions", "m.relates_to", "m.new_content")
     }
 
     /**
@@ -217,6 +222,7 @@ class TimelineEventController @Inject constructor(
     private var hasUTD: Boolean = false
     private var positionOfReadMarker: Int? = null
     private var partialState: PartialState = PartialState()
+    private var forcedVisibleEditIds: Set<String> = emptySet()
 
     var callback: Callback? = null
     var timeline: Timeline? = null
@@ -525,6 +531,7 @@ class TimelineEventController @Inject constructor(
             preprocessReverseEvents()
         }
         Timber.v("Preprocess events took $preprocessEventsTiming ms")
+        forcedVisibleEditIds = computeRejectedMediaEdits()
         var numberOfEventsToBuild = 0
         val perfEnabled = PerfTrace.isEnabled
         var lastSentStart = if (perfEnabled) System.nanoTime() else 0L
@@ -575,7 +582,8 @@ class TimelineEventController @Inject constructor(
                                 onAddMoreClicked = { reactionListFactory.onAddMoreClicked(callback, event) },
                                 onShowLessClicked = { reactionListFactory.onShowLessClicked(event.eventId) },
                                 onShowMoreClicked = { reactionListFactory.onShowMoreClicked(event.eventId) }
-                        )
+                        ),
+                        forcedVisibleEventIds = forcedVisibleEditIds
                 )
                 t0 = if (perfEnabled) System.nanoTime() else 0L
                 modelCache[position] = buildCacheItem(params)
@@ -607,6 +615,29 @@ class TimelineEventController @Inject constructor(
         }
     }
 
+    // A media "edit" that swaps the file/thumbnail/metadata (anything but the caption) is refused as an
+    // edit by the SDK, so it must not be hidden like a real edit — that would let a sender smuggle or
+    // hide media through the edit mechanism. Surface those as standalone messages. The check mirrors the
+    // SDK's EventEditValidator and is done directly against the loaded original, so it is immune to the
+    // async aggregation timing (a normal caption edit never flashes as a duplicate).
+    private fun computeRejectedMediaEdits(): Set<String> {
+        val byId = currentSnapshot.associateBy { it.eventId }
+        val rejected = HashSet<String>()
+        for (event in currentSnapshot) {
+            if (!event.root.isAttachmentMessage()) continue
+            val relation = event.root.getRelationContent()?.takeIf { it.type == RelationType.REPLACE } ?: continue
+            val original = relation.eventId?.let { byId[it] }?.root?.getClearContent() ?: continue
+            @Suppress("UNCHECKED_CAST")
+            val newContent = event.root.getClearContent()?.get("m.new_content") as? Map<String, Any?> ?: continue
+            if (original.withoutCaptionFields() != newContent.withoutCaptionFields()) {
+                rejected.add(event.eventId)
+            }
+        }
+        return rejected
+    }
+
+    private fun Map<String, Any?>.withoutCaptionFields(): Map<String, Any?> = this - CAPTION_MUTABLE_KEYS
+
     // Nearest displayable event before / after each position, via one forward + one backward pass.
     private fun computeDisplayableNeighbours(): Pair<Array<TimelineEvent?>, Array<TimelineEvent?>> {
         val size = currentSnapshot.size
@@ -615,7 +646,8 @@ class TimelineEventController @Inject constructor(
                     timelineEvent = currentSnapshot[position],
                     highlightedEventId = partialState.highlightedEventId,
                     isFromThreadTimeline = partialState.isFromThreadTimeline(),
-                    rootThreadEventId = partialState.rootThreadEventId
+                    rootThreadEventId = partialState.rootThreadEventId,
+                    forcedVisibleEventIds = forcedVisibleEditIds
             )
         }
         val prev = arrayOfNulls<TimelineEvent>(size)

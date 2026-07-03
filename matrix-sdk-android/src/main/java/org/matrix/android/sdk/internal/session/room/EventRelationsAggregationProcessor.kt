@@ -54,6 +54,7 @@ import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollAggrega
 import org.matrix.android.sdk.internal.session.room.aggregation.utd.EncryptedReferenceAggregationProcessor
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
@@ -77,6 +78,7 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         private val liveLocationAggregationProcessor: LiveLocationAggregationProcessor,
         private val encryptedReferenceAggregationProcessor: EncryptedReferenceAggregationProcessor,
         private val stateEventDataSource: StateEventDataSource,
+        private val previewInvalidation: RoomSummaryPreviewInvalidation,
 ) : EventInsertLiveProcessor {
 
     // OPT OUT server aggregation until API mature enough (should be true to work with e2e)
@@ -320,6 +322,15 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         // reads this edit summary), so no thread-root pointer fix-up is needed here.
         stores.annotations.upsertSummary(targetEventId, roomId)
         stores.annotations.replaceEditions(targetEventId, eventSummary.editSummary)
+
+        // Aggregation runs async, after the sync already refreshed the room summary, and an edit leaves
+        // the preview's row untouched — so the room list keeps its (row-keyed) memoized mapping of the
+        // pre-edit text. Evict that mapping and touch the row to force a re-emit, exactly as decryption
+        // does for the same reason.
+        stores.roomSummary.roomIdsWithPreviewEvent(listOf(targetEventId)).forEach { previewRoomId ->
+            previewInvalidation.onPreviewChanged(previewRoomId)
+            stores.roomSummary.touch(previewRoomId)
+        }
     }
 
     // MSC2675: seed reaction counts from the server's bundled aggregations (used for E2E rooms where the

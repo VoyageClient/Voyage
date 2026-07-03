@@ -29,6 +29,7 @@ import name.fraser.neil.plaintext.diff_match_patch
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromReply
 import org.matrix.android.sdk.api.util.TextContent
 import java.util.Calendar
@@ -137,13 +138,31 @@ class ViewEditHistoryEpoxyController @Inject constructor(
     }
 
     private fun getCorrectContent(event: Event, isOriginalReply: Boolean): TextContent {
-        val clearContent = event.getClearContent().toModel<MessageTextContent>()
-        val newContent = clearContent
-                ?.newContent
-                ?.toModel<MessageTextContent>()
+        val topContent = event.getClearContent()
+        val clearContent = topContent.toModel<MessageTextContent>()
+        val newContentMap = clearContent?.newContent
+        val newContent = newContentMap?.toModel<MessageTextContent>()
+        val effectiveMap = newContentMap ?: topContent
+        val effectiveModel = newContent ?: clearContent
+
+        // For media messages the body holds the filename when the MSC2530 `filename` field is
+        // absent; that isn't user-facing, so show nothing to keep caption add/remove readable.
+        if (effectiveModel?.msgType in MEDIA_MSG_TYPES && effectiveMap?.containsKey("filename") != true) {
+            return TextContent("")
+        }
+
         if (isOriginalReply) {
             return TextContent(extractUsefulTextFromReply(newContent?.body ?: clearContent?.body ?: ""))
         }
         return TextContent(newContent?.body ?: clearContent?.body ?: "", newContent?.formattedBody ?: clearContent?.formattedBody)
+    }
+
+    companion object {
+        private val MEDIA_MSG_TYPES = setOf(
+                MessageType.MSGTYPE_IMAGE,
+                MessageType.MSGTYPE_VIDEO,
+                MessageType.MSGTYPE_AUDIO,
+                MessageType.MSGTYPE_FILE,
+        )
     }
 }

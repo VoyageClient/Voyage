@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.events.model.toValidDecryptedEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import javax.inject.Inject
 
@@ -101,6 +102,9 @@ internal class EventEditValidator @Inject constructor(val cryptoStore: IMXCommon
             if (!hasNewContent(replaceDecrypted.type, replaceDecrypted.clearContent)) {
                 return EditValidity.Invalid("replacement event must have an m.new_content property")
             }
+            if (isMediaContentModified(originalDecrypted.clearContent, replaceDecrypted.clearContent)) {
+                return EditValidity.Invalid("a media edit may only change its caption, not the media itself")
+            }
         } else {
             if (originalEvent.getRelationContent()?.type == RelationType.REPLACE) {
                 return EditValidity.Invalid("The original event must not, itself, have a rel_type of m.replace ")
@@ -116,6 +120,9 @@ internal class EventEditValidator @Inject constructor(val cryptoStore: IMXCommon
             if (!hasNewContent(replaceEvent.type, replaceEvent.content)) {
                 return EditValidity.Invalid("replacement event must have an m.new_content property")
             }
+            if (isMediaContentModified(originalEvent.content, replaceEvent.content)) {
+                return EditValidity.Invalid("a media edit may only change its caption, not the media itself")
+            }
         }
 
         return EditValidity.Valid
@@ -126,5 +133,32 @@ internal class EventEditValidator @Inject constructor(val cryptoStore: IMXCommon
             in EventType.POLL_START.values -> content.toModel<MessagePollContent>()?.newContent != null
             else -> content.toModel<MessageContent>()?.newContent != null
         }
+    }
+
+    /**
+     * Honouring a media edit that swaps the file/thumbnail/metadata would let a sender silently hide
+     * or replace media that other clients already displayed. Only the caption may change, so anything
+     * outside the caption fields differing between the original and the replacement's new content
+     * marks the edit invalid — it is then shown as its own message rather than folded in.
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun isMediaContentModified(originalContent: Content?, replaceContent: Content?): Boolean {
+        val original = originalContent ?: return false
+        val msgType = original[MessageContent.MSG_TYPE_JSON_KEY] as? String
+        if (msgType !in MEDIA_MSG_TYPES) return false
+        val newContent = replaceContent?.get("m.new_content") as? Map<String, Any?> ?: return false
+        return original.withoutCaptionFields() != newContent.withoutCaptionFields()
+    }
+
+    private fun Map<String, Any?>.withoutCaptionFields(): Map<String, Any?> = this - CAPTION_MUTABLE_KEYS
+
+    companion object {
+        private val MEDIA_MSG_TYPES = setOf(
+                MessageType.MSGTYPE_IMAGE,
+                MessageType.MSGTYPE_VIDEO,
+                MessageType.MSGTYPE_AUDIO,
+                MessageType.MSGTYPE_FILE,
+        )
+        private val CAPTION_MUTABLE_KEYS = setOf("body", "filename", "formatted_body", "format", "m.mentions", "m.relates_to", "m.new_content")
     }
 }

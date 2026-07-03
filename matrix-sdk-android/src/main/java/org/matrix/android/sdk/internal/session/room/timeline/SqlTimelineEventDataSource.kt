@@ -12,6 +12,7 @@ import androidx.lifecycle.map
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isSticker
@@ -62,6 +63,17 @@ internal class SqlTimelineEventDataSource @Inject constructor(
                     .sortedBy { it.root?.originServerTs ?: 0 }
                     .distinctBy { it.eventId }
                     .mapNotNull { timelineEventMapper.map(it).takeIf { te -> te.root.isImageMessage() || te.root.isVideoMessage() || te.root.isSticker() } }
+                    .filterNot { isAcceptedEdition(it) }
+
+    // A caption edit is a full media event carrying m.new_content, so it would otherwise appear as a
+    // second copy of the same media in the viewer. Skip replaces that were folded into their target;
+    // rejected media edits (never aggregated) fall through and remain visible as distinct media.
+    private fun isAcceptedEdition(event: TimelineEvent): Boolean {
+        val relation = event.root.getRelationContent()?.takeIf { it.type == RelationType.REPLACE } ?: return false
+        val targetId = relation.eventId ?: return false
+        val editions = stores.annotations.get(targetId)?.editSummary?.editions ?: return false
+        return editions.any { it.eventId == event.eventId }
+    }
 
     fun getTimelineEventsRelatedTo(roomId: String, eventType: String, eventId: String): List<TimelineEvent> =
             stores.timelineEvent.getByRoom(roomId)

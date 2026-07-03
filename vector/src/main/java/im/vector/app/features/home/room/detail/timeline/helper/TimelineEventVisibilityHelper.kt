@@ -213,8 +213,14 @@ class TimelineEventVisibilityHelper @Inject constructor(
             timelineEvent: TimelineEvent,
             highlightedEventId: String?,
             isFromThreadTimeline: Boolean,
-            rootThreadEventId: String?
+            rootThreadEventId: String?,
+            forcedVisibleEventIds: Set<String> = emptySet()
     ): Boolean {
+        // A media "edit" that changed the media itself is rejected as an edit and shown as its own
+        // message, so it must not be hidden by the replace-relation rule below.
+        if (timelineEvent.eventId in forcedVisibleEventIds) {
+            return true
+        }
         // If show hidden events is true we should always display something
         if (userPreferencesProvider.shouldShowHiddenEvents() && !isFromThreadTimeline) {
             return true
