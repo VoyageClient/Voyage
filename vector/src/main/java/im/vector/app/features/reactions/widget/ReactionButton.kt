@@ -16,6 +16,7 @@ import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
@@ -33,11 +34,13 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.layoutDirectionCompat
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.databinding.ReactionButtonBinding
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 /**
  * An animated reaction button.
@@ -89,7 +92,7 @@ class ReactionButton @JvmOverloads constructor(
         context.withStyledAttributes(attrs, im.vector.lib.ui.styles.R.styleable.ReactionButton, defStyleAttr) {
             onDrawable = ContextCompat.getDrawable(context, R.drawable.reaction_rounded_rect_shape)
             offDrawable = ContextCompat.getDrawable(context, R.drawable.reaction_rounded_rect_shape_off)
-            tintOnDrawableFillToAccent()
+            tintDrawablesFromTheme()
             getString(im.vector.lib.ui.styles.R.styleable.ReactionButton_emoji)?.let {
                 reactionString = it
             }
@@ -102,17 +105,29 @@ class ReactionButton @JvmOverloads constructor(
         setOnLongClickListener(this)
     }
 
-    // The themed "on" fill is a fixed element-green; recolour the solid (not the stroke) to the accent,
-    // keeping the theme's alpha, so the highlight matches the outline.
-    private fun tintOnDrawableFillToAccent() {
-        val drawable = onDrawable?.mutate() as? GradientDrawable ?: return
-        val themedFill = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_reaction_background_on)
+    // All colors are applied in code: theme attrs inside the drawable XML don't resolve pre-21
+    // (solid/wrong pills on ICS), and the "on" fill is additionally recoloured from the themed
+    // element-green to the accent — keeping the theme's alpha — so the highlight matches the outline.
+    private fun tintDrawablesFromTheme() {
         val accent = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorPrimary)
-        drawable.setColor(ColorUtils.setAlphaComponent(accent, Color.alpha(themedFill)))
-        onDrawable = drawable
+        val themedFill = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_reaction_background_on)
+        val themedOff = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_reaction_background_off)
+        (onDrawable?.mutate() as? GradientDrawable)?.let { drawable ->
+            drawable.setColor(ColorUtils.setAlphaComponent(accent, Color.alpha(themedFill)))
+            drawable.setStroke(resources.displayMetrics.density.roundToInt(), accent)
+            onDrawable = drawable
+        }
+        (offDrawable?.mutate() as? GradientDrawable)?.let { drawable ->
+            drawable.setColor(themedOff)
+            offDrawable = drawable
+        }
     }
 
     private fun applyReactionContent(value: String) {
+        // A recycled button may have been caught mid-bounce (scale < 1) — rebinding must show the glyph.
+        views.reactionText.animate().cancel()
+        views.reactionText.scaleX = 1f
+        views.reactionText.scaleY = 1f
         if (!value.isMxcUrl()) {
             // Plain emoji / unicode reaction.
             GlideApp.with(views.reactionImage).clear(views.reactionImage)
@@ -193,8 +208,21 @@ class ReactionButton @JvmOverloads constructor(
         if (isChecked) {
             reactedListener?.onReacted(this)
             views.reactionText.animate().cancel()
-            views.reactionText.scaleX = 0f
-            views.reactionText.scaleY = 0f
+            if (PerformanceMode.enabled) {
+                views.reactionText.scaleX = 1f
+                views.reactionText.scaleY = 1f
+            } else {
+                // Bounce the emoji in; without the follow-up animation, zeroing the scale left the
+                // glyph invisible for good.
+                views.reactionText.scaleX = 0f
+                views.reactionText.scaleY = 0f
+                views.reactionText.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(300)
+                        .setInterpolator(OvershootInterpolator())
+                        .start()
+            }
         } else {
             reactedListener?.onUnReacted(this)
         }

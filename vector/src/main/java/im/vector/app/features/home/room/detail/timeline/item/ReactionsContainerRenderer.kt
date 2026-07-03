@@ -87,7 +87,11 @@ object ReactionsContainerRenderer {
 
     private fun createReactionTextView(context: Context): TextView {
         return TextView(ContextThemeWrapper(context, im.vector.lib.ui.styles.R.style.TimelineReactionView)).apply {
-            backgroundCompat = getDrawable(this.context, R.drawable.reaction_rounded_rect_shape_off)
+            backgroundCompat = getDrawable(this.context, R.drawable.reaction_rounded_rect_shape_off)?.mutate()?.also {
+                // Theme attrs inside the drawable XML don't resolve pre-21; apply the fill in code.
+                (it as? android.graphics.drawable.GradientDrawable)
+                        ?.setColor(ThemeUtils.getColor(this.context, im.vector.lib.ui.styles.R.attr.vctr_reaction_background_off))
+            }
             TextViewCompat.setTextAppearance(this, im.vector.lib.ui.styles.R.style.TextAppearance_Vector_Micro)
             setTypeface(typeface, Typeface.BOLD)
             setTextColor(ThemeUtils.getColor(this.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))

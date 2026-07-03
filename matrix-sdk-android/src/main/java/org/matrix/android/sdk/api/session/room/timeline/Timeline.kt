@@ -57,6 +57,13 @@ interface Timeline {
     fun restartWithEventId(eventId: String?)
 
     /**
+     * UI hint: whether the user is currently viewing the live edge (bottom of the room).
+     * Lets the timeline trim its shown window as sync appends events, without pulling
+     * content out from under a user who has scrolled up. Optional to implement.
+     */
+    fun setViewAtLiveEdge(atLiveEdge: Boolean) = Unit
+
+    /**
      * Check if the timeline can be enriched by paginating.
      * @param direction the direction to check in
      * @return true if timeline can be enriched

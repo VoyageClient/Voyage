@@ -10,7 +10,7 @@ package im.vector.app.core.utils
 import android.os.Build
 import android.os.SystemClock
 import android.os.Trace
-import timber.log.Timber
+import android.util.Log
 
 /**
  * Lightweight performance instrumentation.
@@ -102,7 +102,9 @@ object PerfTrace {
      */
     fun report(name: String, elapsedMs: Long) {
         if (!isEnabled) return
-        Timber.tag(TAG).i("%s %dms", name, elapsedMs)
+        // android.util.Log (not Timber): release builds don't plant a logcat tree, and these
+        // markers exist precisely to be captured via `adb logcat -s VectorPerf` on release devices.
+        Log.i(TAG, "$name ${elapsedMs}ms")
     }
 
     @PublishedApi
@@ -120,7 +122,7 @@ object PerfTrace {
             Trace.endSection()
         }
         if (elapsedMs >= LOG_THRESHOLD_MS) {
-            Timber.tag(TAG).i("%s %dms", name, elapsedMs)
+            Log.i(TAG, "$name ${elapsedMs}ms")
         }
     }
 }

@@ -13,8 +13,8 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
+import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
-import me.saket.bettermovementmethod.BetterLinkMovementMethod
 
 @EpoxyModelClass
 abstract class RoomCreateItem : VectorEpoxyModel<RoomCreateItem.Holder>(R.layout.item_timeline_event_create) {
@@ -23,7 +23,8 @@ abstract class RoomCreateItem : VectorEpoxyModel<RoomCreateItem.Holder>(R.layout
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.description.movementMethod = BetterLinkMovementMethod.getInstance()
+        // EvenBetter (not the raw library method): its highlightUrl guards the API 16+ getHighlightColor call.
+        holder.description.movementMethod = EvenBetterLinkMovementMethod()
         holder.description.text = text.charSequence
     }
 

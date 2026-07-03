@@ -1220,6 +1220,19 @@ class TimelineFragment :
         timelineEventController.addModelBuildListener(modelBuildListener)
         views.timelineRecyclerView.adapter = timelineEventController.adapter
 
+        // Feed the timeline the live-edge hint driving its shown-window cap (position 0/1 can be the
+        // typing/loading item, so "at bottom" tolerates one offset).
+        views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            private var wasAtLiveEdge = true
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val atLiveEdge = layoutManager.findFirstVisibleItemPosition() <= 1
+                if (atLiveEdge != wasAtLiveEdge) {
+                    wasAtLiveEdge = atLiveEdge
+                    timelineViewModel.timeline?.setViewAtLiveEdge(atLiveEdge)
+                }
+            }
+        })
+
         // onScrolled fires ~once per frame during a fling, so a large gap between callbacks is a dropped frame.
         if (PerfTrace.isEnabled) {
             views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {

@@ -21,6 +21,7 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.LoadingItem_
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.core.extensions.nextOrNull
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.extensions.prevOrNull
 import im.vector.app.features.home.AvatarRenderer
@@ -101,6 +102,13 @@ class TimelineEventController @Inject constructor(
         // Keeps a pass under ~0.5s (~13ms/model build + ~150ms fixed epoxy overhead), so a message sent
         // while a bulk reveal is trickling in waits at most one short pass to render.
         private const val MAX_MODEL_BUILDS_PER_PASS = 20
+
+        // The count budget assumes cheap models, but on slow hardware a formatted message costs
+        // 40-80ms to build — 20 of those is well over a second of blank timeline on room open. Cap
+        // measured build time per pass too, tighter in performance mode, so the first models
+        // (newest-first = the visible screen) are delivered quickly and the rest trickle in.
+        private val maxBuildNanosPerPass: Long
+            get() = if (PerformanceMode.enabled) 250_000_000L else 500_000_000L
 
         // Fields a caption edit is allowed to touch; anything else differing means the media changed.
         private val CAPTION_MUTABLE_KEYS = setOf("body", "filename", "formatted_body", "format", "m.mentions", "m.relates_to", "m.new_content")
@@ -211,16 +219,22 @@ class TimelineEventController @Inject constructor(
         fun onPreviewUrlImageClicked(sharedView: View?, mxcUrl: String?, title: String?)
     }
 
-    // Map eventId to adapter position
+    // Map eventId to adapter position.
+    // Guarded by positionsLock, NOT the modelCache lock: a build pass holds modelCache for up to
+    // seconds on slow hardware, and these positions are read from the main thread while scrolling
+    // (pinned banner, jump-to-reply) — blocking there froze the UI for the whole pass.
     private val adapterPositionMapping = HashMap<String, Int>()
+    private val positionsLock = Any()
     private val timelineEventsGroups = TimelineEventsGroups()
     private val readReceiptsCache = ReadReceiptsCache()
     private val modelCache = arrayListOf<CacheItemData?>()
-    private var currentSnapshot: List<TimelineEvent> = emptyList()
+    // Volatile: replaced wholesale on the background thread, read (never mutated) from main-thread
+    // position lookups under positionsLock only.
+    @Volatile private var currentSnapshot: List<TimelineEvent> = emptyList()
     private var inSubmitList: Boolean = false
     private var hasReachedInvite: Boolean = false
     private var hasUTD: Boolean = false
-    private var positionOfReadMarker: Int? = null
+    @Volatile private var positionOfReadMarker: Int? = null
     private var partialState: PartialState = PartialState()
     private var forcedVisibleEditIds: Set<String> = emptySet()
 
@@ -313,7 +327,11 @@ class TimelineEventController @Inject constructor(
     }
 
     override fun intercept(models: MutableList<EpoxyModel<*>>) = synchronized(modelCache) {
-        interceptorHelper.intercept(models, partialState.unreadState, timeline, callback)
+        // positionsLock only around the (fast) mapping rebuild, so main-thread position lookups
+        // wait at most this long — never a whole model-build pass.
+        synchronized(positionsLock) {
+            interceptorHelper.intercept(models, partialState.unreadState, timeline, callback)
+        }
     }
 
     /**
@@ -322,7 +340,9 @@ class TimelineEventController @Inject constructor(
      * an unresolved reply). Cheap to call — touches at most a handful of cache slots and only
      * triggers a model rebuild when something actually changed.
      */
-    fun invalidateEventCache(eventId: String) {
+    fun invalidateEventCache(eventId: String) = backgroundHandler.post {
+        // On the build thread: the modelCache lock can be held for a whole build pass, so callers
+        // (often the main thread, e.g. decrypt listeners) must never take it directly.
         var dirty = false
         synchronized(modelCache) {
             currentSnapshot.forEachIndexed { index, event ->
@@ -347,18 +367,20 @@ class TimelineEventController @Inject constructor(
     fun invalidateEventCaches(eventIds: Collection<String>) {
         if (eventIds.isEmpty()) return
         val ids = eventIds.toHashSet()
-        var dirty = false
-        synchronized(modelCache) {
-            currentSnapshot.forEachIndexed { index, event ->
-                if (index >= modelCache.size) return@forEachIndexed
-                if (modelCache[index] == null) return@forEachIndexed
-                if (event.eventId in ids || event.root.getRelationContent()?.inReplyTo?.eventId in ids) {
-                    modelCache[index] = null
-                    dirty = true
+        backgroundHandler.post {
+            var dirty = false
+            synchronized(modelCache) {
+                currentSnapshot.forEachIndexed { index, event ->
+                    if (index >= modelCache.size) return@forEachIndexed
+                    if (modelCache[index] == null) return@forEachIndexed
+                    if (event.eventId in ids || event.root.getRelationContent()?.inReplyTo?.eventId in ids) {
+                        modelCache[index] = null
+                        dirty = true
+                    }
                 }
             }
+            if (dirty) requestModelBuild()
         }
-        if (dirty) requestModelBuild()
     }
 
     /**
@@ -367,7 +389,7 @@ class TimelineEventController @Inject constructor(
      * so when an off-timeline decrypt finishes only reply items need re-binding — invalidating the
      * whole cache here would rebuild + rebind every visible item and jank the main thread.
      */
-    fun invalidateReplyEventCaches() {
+    fun invalidateReplyEventCaches() = backgroundHandler.post {
         var dirty = false
         synchronized(modelCache) {
             currentSnapshot.forEachIndexed { index, event ->
@@ -384,7 +406,7 @@ class TimelineEventController @Inject constructor(
 
     /** Drop every cached model and rebuild. Used after a PGP OpenKeychain interaction so all
      * visible PGP items re-request decryption. Heavy, so reserved for rare one-shot events. */
-    fun invalidateAllCache() {
+    fun invalidateAllCache() = backgroundHandler.post {
         synchronized(modelCache) {
             for (i in modelCache.indices) {
                 modelCache[i] = null
@@ -558,7 +580,7 @@ class TimelineEventController @Inject constructor(
             // seconds in one pass — and a message sent meanwhile couldn't render until the whole pass
             // finished. Build newest-first (position 0 = live edge, where a just-sent message sits) up to
             // a budget and finish the (older, off-screen) rest in follow-up passes.
-            if (needsBuild && numberOfEventsToBuild >= MAX_MODEL_BUILDS_PER_PASS) {
+            if (needsBuild && (numberOfEventsToBuild >= MAX_MODEL_BUILDS_PER_PASS || buildNanos >= maxBuildNanosPerPass)) {
                 buildBudgetExhausted = true
                 return@forEach
             }
@@ -585,9 +607,9 @@ class TimelineEventController @Inject constructor(
                         ),
                         forcedVisibleEventIds = forcedVisibleEditIds
                 )
-                t0 = if (perfEnabled) System.nanoTime() else 0L
+                t0 = System.nanoTime()
                 modelCache[position] = buildCacheItem(params)
-                if (perfEnabled) buildNanos += System.nanoTime() - t0
+                buildNanos += System.nanoTime() - t0
                 numberOfEventsToBuild++
             }
             val itemCachedData = modelCache[position] ?: return@forEach
@@ -606,11 +628,11 @@ class TimelineEventController @Inject constructor(
         }
         Timber.v("Number of events to rebuild: $numberOfEventsToBuild on ${modelCache.size} total events")
         if (perfEnabled) {
-            Timber.tag("VectorPerf").i(
-                    "timeline.buildCache rebuilt=%d/%d check=%dms build=%dms enrich=%dms(skips=%d) lastSent=%dms neighbours=%dms more=%b",
-                    numberOfEventsToBuild, modelCache.size,
-                    checkNanos / 1_000_000, buildNanos / 1_000_000, enrichNanos / 1_000_000, enrichSkips,
-                    lastSentNanos / 1_000_000, neighboursNanos / 1_000_000, buildBudgetExhausted,
+            PerfTrace.report(
+                    "timeline.buildCache rebuilt=$numberOfEventsToBuild/${modelCache.size} " +
+                            "check=${checkNanos / 1_000_000}ms enrich=${enrichNanos / 1_000_000}ms(skips=$enrichSkips) " +
+                            "lastSent=${lastSentNanos / 1_000_000}ms neighbours=${neighboursNanos / 1_000_000}ms more=$buildBudgetExhausted",
+                    buildNanos / 1_000_000,
             )
         }
     }
@@ -850,7 +872,7 @@ class TimelineEventController @Inject constructor(
         return shouldAdd
     }
 
-    fun searchPositionOfEvent(eventId: String?): Int? = synchronized(modelCache) {
+    fun searchPositionOfEvent(eventId: String?): Int? = synchronized(positionsLock) {
         return adapterPositionMapping[eventId]
     }
 
@@ -859,7 +881,7 @@ class TimelineEventController @Inject constructor(
      * event, or one merged/aggregated away), fall back to the nearest event that does — so jumping to it
      * still lands in the right place instead of leaving the timeline blank.
      */
-    fun searchPositionOfEventOrNearest(eventId: String?): Int? = synchronized(modelCache) {
+    fun searchPositionOfEventOrNearest(eventId: String?): Int? = synchronized(positionsLock) {
         adapterPositionMapping[eventId]?.let { return it }
         val targetIndex = currentSnapshot.indexOfFirst { it.eventId == eventId }.takeIf { it >= 0 } ?: return null
         for (distance in 1 until currentSnapshot.size) {
@@ -873,7 +895,7 @@ class TimelineEventController @Inject constructor(
      * Return the newest timeline event still visible at or below the given adapter position.
      * The timeline is reverse-laid-out, so the smallest adapter position is the newest event.
      */
-    fun getNewestVisibleEvent(firstVisibleAdapterPosition: Int): TimelineEvent? = synchronized(modelCache) {
+    fun getNewestVisibleEvent(firstVisibleAdapterPosition: Int): TimelineEvent? = synchronized(positionsLock) {
         val eventId = adapterPositionMapping.entries
                 .filter { it.value >= firstVisibleAdapterPosition }
                 .minByOrNull { it.value }
@@ -882,7 +904,7 @@ class TimelineEventController @Inject constructor(
         return currentSnapshot.firstOrNull { it.eventId == eventId }
     }
 
-    fun getPositionOfReadMarker(): Int? = synchronized(modelCache) {
+    fun getPositionOfReadMarker(): Int? = synchronized(positionsLock) {
         return positionOfReadMarker
     }
 

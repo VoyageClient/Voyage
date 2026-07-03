@@ -105,6 +105,16 @@ internal class SqlTimeline(
     // loaded chunk at once — building the whole chunk is catastrophic room-open on a single-core device.
     // Grow-only so there's no forward/backward oscillation. Off for thread timelines (small).
     private val windowGrowStep = 50
+
+    // While the user sits at the live edge, every synced message widens the (grow-only) window —
+    // rebuilds, model passes and diffs get slower the longer a room stays open. Cap it there:
+    // each new message nudges the oldest shown event out instead of growing the span. Nothing is
+    // unloaded — hidden events re-reveal instantly through the normal backward reveal on scroll-up.
+    private val windowLiveEdgeCap = 120
+    // Seeded false for a permalink open so the cap can't clip the window above the target event
+    // before the first scroll callback arrives.
+    @Volatile private var viewAtLiveEdge: Boolean = initialEventId == null
+
     private var pendingShowEventId: String? = initialEventId
     private var oldestShownEventId: String? = null
     @Volatile private var windowHasMoreOlder: Boolean = false
@@ -185,6 +195,10 @@ internal class SqlTimeline(
         }
     }
 
+    override fun setViewAtLiveEdge(atLiveEdge: Boolean) {
+        viewAtLiveEdge = atLiveEdge
+    }
+
     override fun hasMoreToLoad(direction: Timeline.Direction): Boolean = getPaginationState(direction).hasMoreToLoad
 
     override fun paginate(direction: Timeline.Direction, count: Int) {
@@ -260,8 +274,12 @@ internal class SqlTimeline(
         // (clearing the static-chunk cache so history re-reads too) when a summary changes.
         annotationsJob = timelineScope.launch {
             snapshotLoader.annotationSummaryChangesFlow(roomId).drop(1).conflate().collect {
+                // Marker: reaction/edit propagation into the visible timeline (must fire and stay
+                // fast regardless of scroll position or the live-edge window cap).
+                val perfStart = MatrixPerf.now()
                 chunkSnapshotCache.clear()
                 rebuildSnapshot()
+                MatrixPerf.end(perfStart) { "timeline.annotationsPropagate" }
             }
         }
     }
@@ -419,7 +437,8 @@ internal class SqlTimeline(
     }
 
     // Index 0 is newest (display_index DESC). Keep newest down to [oldestShownEventId], growing the anchor
-    // to include a pending navigation target. Grow-only — never trims.
+    // to include a pending navigation target. Grows on reveal; only capped at the live edge (see
+    // windowLiveEdgeCap) so nothing moves under a scrolled-up reader.
     private fun applyWindow(all: List<TimelineEvent>): List<TimelineEvent> {
         if (!isWindowed || all.isEmpty()) return all
         pendingShowEventId?.let { id ->
@@ -431,8 +450,11 @@ internal class SqlTimeline(
                 if (want > current) oldestShownEventId = all[want].eventId
             }
         }
-        val oldestIdx = (oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
+        var oldestIdx = (oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
                 ?.takeIf { it >= 0 } ?: (initialWindowCount() - 1)).coerceIn(0, all.lastIndex)
+        if (viewAtLiveEdge && pendingShowEventId == null && oldestIdx > windowLiveEdgeCap) {
+            oldestIdx = windowLiveEdgeCap
+        }
         oldestShownEventId = all[oldestIdx].eventId
         return all.take(oldestIdx + 1)
     }

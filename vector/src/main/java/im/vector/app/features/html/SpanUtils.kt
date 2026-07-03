@@ -7,6 +7,7 @@
 
 package im.vector.app.features.html
 
+import android.os.Build
 import android.text.Spanned
 import android.text.style.MetricAffectingSpan
 import android.text.style.StrikethroughSpan
@@ -19,6 +20,12 @@ class SpanUtils @Inject constructor(
         private val emojiSpanify: EmojiSpanify
 ) {
     fun getBindingOptions(charSequence: CharSequence): BindingOptions {
+        // Pre-P there is no PrecomputedText: PrecomputedTextCompat just builds a throwaway
+        // StaticLayout, so a text future buys nothing — skip the costly EmojiCompat probe
+        // (~10ms per message) that only exists to decide whether a future is safe.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            return BindingOptions(canUseTextFuture = false)
+        }
         val emojiCharSequence = emojiSpanify.spanify(charSequence)
 
         if (emojiCharSequence !is Spanned) {
