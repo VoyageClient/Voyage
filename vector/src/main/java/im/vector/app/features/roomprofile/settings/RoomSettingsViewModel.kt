@@ -9,6 +9,7 @@ package im.vector.app.features.roomprofile.settings
 
 import androidx.core.net.toFile
 import com.airbnb.mvrx.MavericksViewModelFactory
+import com.airbnb.mvrx.Success
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -106,10 +107,13 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 .unwrap()
                 .execute { async ->
                     val roomSummary = async.invoke()
+                    // Seed the editable fields on first load only; later summary updates (from sync) must not
+                    // clobber in-progress edits, which would silently hide the Save button.
+                    val alreadyLoaded = this.roomSummary is Success
                     copy(
                             roomSummary = async,
-                            newName = roomSummary?.name,
-                            newTopic = roomSummary?.topic
+                            newName = if (alreadyLoaded) newName else roomSummary?.name,
+                            newTopic = if (alreadyLoaded) newTopic else roomSummary?.topic
                     )
                 }
 
