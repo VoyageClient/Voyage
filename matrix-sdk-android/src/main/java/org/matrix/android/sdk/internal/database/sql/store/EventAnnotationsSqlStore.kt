@@ -26,6 +26,7 @@ import org.matrix.android.sdk.internal.database.sql.References_aggregated_summar
  */
 internal class EventAnnotationsSqlStore(
         private val database: SessionSqlDatabase,
+        private val eventStore: EventSqlStore,
         private val liveLocationStore: LiveLocationSqlStore,
 ) {
 
@@ -164,7 +165,8 @@ internal class EventAnnotationsSqlStore(
             eventId = event_id,
             timestamp = timestamp,
             isLocalEcho = is_local_echo != 0L,
-            event = null,
+            // The mapper reads the replacement event's m.new_content to render the edited body.
+            event = eventStore.getByEventId(event_id),
     )
 
     private fun ReferencesRow.toEntity(): ReferencesAggregatedSummaryEntity = ReferencesAggregatedSummaryEntity(

@@ -29,7 +29,7 @@ internal class SessionStores @Inject constructor(
     val draft = DraftSqlStore(database)
     val roomTag = RoomTagSqlStore(database)
     val liveLocation = LiveLocationSqlStore(database)
-    val annotations = EventAnnotationsSqlStore(database, liveLocation)
+    val annotations = EventAnnotationsSqlStore(database, event, liveLocation)
     val timelineEvent = TimelineEventSqlStore(database, event, annotations, readReceipt)
     val chunk = ChunkSqlStore(database)
     val space = SpaceSqlStore(database)
