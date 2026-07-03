@@ -21,6 +21,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.epoxy.ClickListener
@@ -63,7 +64,7 @@ abstract class ReactionInfoSimpleItem : VectorEpoxyModel<ReactionInfoSimpleItem.
             holder.emojiReactionView.isVisible = true
             holder.emojiReactionView.text = reactionKey.charSequence
         }
-        holder.displayNameView.text = authorDisplayName
+        holder.displayNameView.text = authorDisplayName.withEmojis()
         timeStamp?.let {
             holder.timeStampView.text = it
             holder.timeStampView.isVisible = true

@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -36,7 +37,7 @@ abstract class UnknownRoomItem : VectorEpoxyModel<UnknownRoomItem.Holder>(R.layo
         super.bind(holder)
         holder.rootView.onClick(globalListener)
         avatarRenderer.render(matrixItem, holder.avatarView)
-        holder.nameView.text = matrixItem.displayName
+        holder.nameView.text = matrixItem.displayName?.withEmojis()
     }
 
     class Holder : VectorEpoxyHolder() {

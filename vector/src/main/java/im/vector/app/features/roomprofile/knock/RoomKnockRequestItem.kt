@@ -14,6 +14,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.material.button.MaterialButton
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -37,7 +38,7 @@ abstract class RoomKnockRequestItem : VectorEpoxyModel<RoomKnockRequestItem.Hold
     override fun bind(holder: Holder) {
         super.bind(holder)
         avatarRenderer.render(matrixItem, holder.avatar)
-        holder.name.text = matrixItem.getBestName()
+        holder.name.text = matrixItem.getBestName().withEmojis()
         holder.userId.setTextOrHide(matrixItem.id.takeIf { it != matrixItem.getBestName() })
         holder.reason.setTextOrHide(reason)
 

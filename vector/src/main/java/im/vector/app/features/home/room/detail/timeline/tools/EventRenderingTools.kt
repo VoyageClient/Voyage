@@ -42,6 +42,30 @@ var messageEmojiSpanify: EmojiSpanify? = null
 /** Replace emoji in this text with the app's emoji rendering (Twemoji sprites / emoji2 / system font). */
 fun CharSequence.withEmojis(): CharSequence = messageEmojiSpanify?.spanify(this) ?: this
 
+/** Add a watcher so emoji typed/pasted into this input field render like elsewhere (Twemoji / emoji2); the
+ *  spans sit over the original codepoints so the entered/saved text is unchanged. Call once per view. */
+fun android.widget.EditText.setupLiveEmojiInput() {
+    addTextChangedListener(object : im.vector.app.core.platform.SimpleTextWatcher() {
+        override fun afterTextChanged(s: android.text.Editable) {
+            messageEmojiSpanify?.applyLive(s)
+        }
+    })
+}
+
+/** Same, for a [SearchView]'s inner query EditText (filter/search boxes). */
+fun androidx.appcompat.widget.SearchView.setupLiveEmojiInput() {
+    (findViewById(androidx.appcompat.R.id.search_src_text) as? android.widget.EditText)?.setupLiveEmojiInput()
+}
+
+/** Same, for an [EditTextPreference]'s dialog EditText (rendered each time the dialog opens), plus rendering
+ *  the current value the framework sets before this callback runs. */
+fun androidx.preference.EditTextPreference.setupLiveEmojiInput() {
+    setOnBindEditTextListener { editText ->
+        editText.setupLiveEmojiInput()
+        messageEmojiSpanify?.applyLive(editText.text)
+    }
+}
+
 /**
  * Build an inline attachment pill (rounded background + icon + label) for a file / voice / audio,
  * matching the reply header's pill, for the long-press sheet and reply composer where only a TextView

@@ -14,6 +14,8 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
+import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.R
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
@@ -86,6 +88,8 @@ class RoomPersonalizationSettingsFragment :
             accountAvatarUrl = user?.avatarUrl
             displayNamePreference.setOnBindEditTextListener { editText ->
                 editText.hint = accountDisplayName
+                editText.setupLiveEmojiInput()
+                messageEmojiSpanify?.applyLive(editText.text)
             }
         }
     }

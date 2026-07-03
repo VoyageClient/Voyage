@@ -22,6 +22,7 @@ import com.airbnb.mvrx.args
 import com.airbnb.mvrx.withState
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
@@ -180,7 +181,7 @@ class UserListFragment :
         val chip = Chip(requireContext())
         chip.setChipBackgroundColorResource(android.R.color.transparent)
         chip.chipStrokeWidth = dimensionConverter.dpToPx(1).toFloat()
-        chip.text = pendingSelection.getBestName()
+        chip.text = pendingSelection.getBestName().withEmojis()
         chip.isClickable = true
         chip.isCheckable = false
         chip.isCloseIconVisible = true

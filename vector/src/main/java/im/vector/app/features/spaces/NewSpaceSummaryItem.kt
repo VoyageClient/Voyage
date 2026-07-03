@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -44,7 +45,7 @@ abstract class NewSpaceSummaryItem : VectorEpoxyModel<NewSpaceSummaryItem.Holder
             onLongClickListener?.invoke(holder.root)
             true
         }
-        holder.name.text = matrixItem.displayName
+        holder.name.text = matrixItem.displayName?.withEmojis()
         holder.root.isChecked = selected
 
         holder.chevron.setOnClickListener(onToggleExpandListener)

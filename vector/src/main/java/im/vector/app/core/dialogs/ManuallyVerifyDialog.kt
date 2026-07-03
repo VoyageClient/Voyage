@@ -9,6 +9,7 @@ package im.vector.app.core.dialogs
 
 import android.app.Activity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.databinding.DialogDeviceVerifyBinding
 import im.vector.lib.strings.CommonStrings
@@ -28,7 +29,7 @@ object ManuallyVerifyDialog {
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
 
-        views.encryptedDeviceInfoDeviceName.text = cryptoDeviceInfo.displayName()
+        views.encryptedDeviceInfoDeviceName.text = cryptoDeviceInfo.displayName()?.withEmojis()
         views.encryptedDeviceInfoDeviceId.text = cryptoDeviceInfo.deviceId
         views.encryptedDeviceInfoDeviceKey.text = cryptoDeviceInfo.getFingerprintHumanReadable()
 

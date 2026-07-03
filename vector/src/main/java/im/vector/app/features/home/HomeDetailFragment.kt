@@ -19,6 +19,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.badge.BadgeDrawable
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.SpaceStateHandler
 import im.vector.app.core.extensions.commitTransaction
@@ -235,7 +236,7 @@ class HomeDetailFragment :
             views.groupToolbarSpaceTitleView.isVisible = false
         } else {
             views.groupToolbarSpaceTitleView.isVisible = true
-            views.groupToolbarSpaceTitleView.text = spaceSummary.displayName
+            views.groupToolbarSpaceTitleView.text = spaceSummary.displayName.withEmojis()
         }
     }
 

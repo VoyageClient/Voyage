@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
@@ -61,7 +62,7 @@ abstract class LiveLocationUserItem : VectorEpoxyModel<LiveLocationUserItem.Hold
     override fun bind(holder: Holder) {
         super.bind(holder)
         avatarRenderer.render(matrixItem, holder.itemUserAvatarImageView)
-        holder.itemUserDisplayNameTextView.text = matrixItem.displayName
+        holder.itemUserDisplayNameTextView.text = matrixItem.displayName?.withEmojis()
         holder.itemRemainingTimeTextView.text = remainingTime
 
         holder.itemStopSharingButton.isVisible = showStopSharingButton

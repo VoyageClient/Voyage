@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -32,7 +33,7 @@ abstract class AutocompleteMatrixItem : VectorEpoxyModel<AutocompleteMatrixItem.
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.view.onClick(clickListener)
-        holder.nameView.text = matrixItem.getBestName()
+        holder.nameView.text = matrixItem.getBestName().withEmojis()
         holder.subNameView.setTextOrHide(subName)
         avatarRenderer.render(matrixItem, holder.avatarImageView)
     }

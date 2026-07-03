@@ -19,6 +19,8 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import im.vector.app.R
 import im.vector.app.core.epoxy.TextListener
+import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.addTextChangedListenerOnce
@@ -78,6 +80,9 @@ abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.la
 
     private val onTextChangeListener = object : SimpleTextWatcher() {
         override fun afterTextChanged(s: Editable) {
+            // Render emoji typed/pasted after the initial value; spans sit over the codepoints, so the
+            // string passed to the callback (and saved) is unchanged. setSpan doesn't retrigger watchers.
+            messageEmojiSpanify?.applyLive(s)
             onTextChange?.invoke(s.toString())
         }
     }
@@ -94,10 +99,13 @@ abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.la
         holder.textInputLayout.prefixText = prefixText
         holder.textInputLayout.suffixText = suffixText
 
+        // Render emoji (Twemoji sprites / emoji2) in the current value; the underlying codepoints stay intact
+        // under the spans, so edits and the saved value are unaffected.
+        val displayValue = value?.withEmojis()
         if (forceUpdateValue) {
-            holder.textInputEditText.setText(value)
+            holder.textInputEditText.setText(displayValue)
         } else {
-            holder.setValueOnce(holder.textInputEditText, value)
+            holder.setValueOnce(holder.textInputEditText, displayValue)
         }
 
         holder.textInputEditText.isEnabled = enabled

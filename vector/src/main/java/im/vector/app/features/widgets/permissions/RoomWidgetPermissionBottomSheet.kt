@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetRoomWidgetPermissionBinding
 import im.vector.app.features.home.AvatarRenderer
@@ -56,7 +57,7 @@ class RoomWidgetPermissionBottomSheet :
         super.invalidate()
         val permissionData = state.permissionData() ?: return@withState
         views.widgetPermissionOwnerId.text = permissionData.widget.senderInfo?.userId ?: ""
-        views.widgetPermissionOwnerDisplayName.text = permissionData.widget.senderInfo?.disambiguatedDisplayName
+        views.widgetPermissionOwnerDisplayName.text = permissionData.widget.senderInfo?.disambiguatedDisplayName?.withEmojis()
         permissionData.widget.senderInfo?.toMatrixItem()?.also {
             avatarRenderer.render(it, views.widgetPermissionOwnerAvatar)
         }

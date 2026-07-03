@@ -20,6 +20,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.R
 import im.vector.app.core.dialogs.ManuallyVerifyDialog
 import im.vector.app.core.extensions.cleanup
@@ -127,6 +128,7 @@ class VectorSettingsDevicesFragment :
         val inflater = requireActivity().layoutInflater
         val layout = inflater.inflate(R.layout.dialog_base_edit_text, null)
         val views = DialogBaseEditTextBinding.bind(layout)
+        views.editText.setupLiveEmojiInput()
         views.editText.setText(deviceInfo.displayName)
 
         MaterialAlertDialogBuilder(requireActivity())
