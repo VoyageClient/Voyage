@@ -22,6 +22,7 @@ sealed class RoomMemberProfileViewEvents : VectorViewEvents {
     object OnInviteActionSuccess : RoomMemberProfileViewEvents()
     object OnKickActionSuccess : RoomMemberProfileViewEvents()
     object OnBanActionSuccess : RoomMemberProfileViewEvents()
+    object MassRedactionAlreadyRunning : RoomMemberProfileViewEvents()
     data class ShowPowerLevelValidation(val currentValue: UserPowerLevel, val newValue: UserPowerLevel.Value) : RoomMemberProfileViewEvents()
     data class ShowPowerLevelDemoteWarning(val currentValue: UserPowerLevel, val newValue: UserPowerLevel.Value) : RoomMemberProfileViewEvents()
 

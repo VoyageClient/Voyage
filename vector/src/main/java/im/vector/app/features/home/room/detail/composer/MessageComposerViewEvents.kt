@@ -32,6 +32,8 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
 
     data class OpenRoomMemberProfile(val userId: String) : MessageComposerViewEvents()
 
+    data class ShowMassRedactConfirmation(val userId: String, val displayName: String, val delayMs: Long) : MessageComposerViewEvents()
+
     /**
      * A /join that couldn't join directly: open the room's matrix.to sheet (Join / Ask to join).
      */

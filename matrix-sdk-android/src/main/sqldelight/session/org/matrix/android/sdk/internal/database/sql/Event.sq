@@ -35,6 +35,8 @@ CREATE INDEX event_type ON event(type);
 CREATE INDEX event_state_key ON event(state_key);
 CREATE INDEX event_sender ON event(sender);
 CREATE INDEX event_root_thread ON event(root_thread_event_id);
+-- room-list preview: newest previewable message per room, ordered by timestamp (selectByRoomTypesNewest).
+CREATE INDEX event_room_ts ON event(room_id, origin_server_ts);
 
 selectById:
 SELECT * FROM event WHERE id = ?;
@@ -111,6 +113,11 @@ SELECT event_id FROM event WHERE room_id = ? AND root_thread_event_id = ? AND se
 
 selectByRoomAndType:
 SELECT event_id FROM event WHERE room_id = ? AND type = ?;
+
+-- All distinct events a sender contributed to a room (any type), for mass redaction. type + unsigned_data
+-- are returned so the caller can skip redaction events and already-redacted ones.
+selectEventIdsByRoomAndSender:
+SELECT event_id, type, unsigned_data FROM event WHERE room_id = ? AND sender = ? GROUP BY event_id;
 
 markEventAsRoot:
 UPDATE event SET is_root_thread = 1, number_of_threads = ?, thread_summary_latest_timeline_id = ? WHERE id = ?;

@@ -258,6 +258,9 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         if (kept.size != editSummary.editions.size) {
             Timber.v("## Replace: dropping ${editSummary.editions.size - kept.size} invalid edition(s) for $targetEventId")
             editSummary.editions = ArrayList<EditionOfEvent>().apply { addAll(kept) }
+            // Touch event_annotations_summary so the timeline's annotation-change flow fires (it doesn't watch
+            // the editions table) — see handleReactionRedact.
+            stores.annotations.upsertSummary(targetEventId, summary.roomId)
             stores.annotations.replaceEditions(targetEventId, editSummary)
         }
     }
@@ -444,6 +447,9 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
             return
         }
         editSummary.editions.remove(sourceToDiscard)
+        // Touch event_annotations_summary so the timeline's annotation-change flow (which only watches that
+        // table, not the editions table) fires — same reason as handleReactionRedact.
+        stores.annotations.upsertSummary(relatedEventId, eventSummary.roomId)
         stores.annotations.replaceEditions(relatedEventId, editSummary)
     }
 
@@ -469,6 +475,11 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         if (aggregation.count == 0) {
             summary.reactionsSummary.remove(aggregation)
         }
+        // Touch event_annotations_summary too: reactions live in their own table, but the timeline's
+        // annotation-change flow only watches event_annotations_summary. Without this the removal writes only
+        // the reactions table and the timeline never re-maps, leaving the redacted reaction shown until reopen
+        // (the add path does the same via upsertSummary).
+        stores.annotations.upsertSummary(eventThatWasReacted, eventToPrune.roomId)
         stores.annotations.replaceReactions(eventThatWasReacted, summary.reactionsSummary)
     }
 

@@ -145,6 +145,9 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val edition = summary.editSummary?.editions?.firstOrNull { it.eventId == txId } ?: return
         edition.eventId = realEventId
         edition.isLocalEcho = false
+        // Touch event_annotations_summary so the timeline's annotation-change flow fires (it doesn't watch the
+        // editions table) — see EventRelationsAggregationProcessor.handleReactionRedact.
+        stores.annotations.upsertSummary(targetId, summary.roomId)
         stores.annotations.replaceEditions(targetId, summary.editSummary)
     }
 

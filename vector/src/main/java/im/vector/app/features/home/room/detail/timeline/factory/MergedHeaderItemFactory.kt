@@ -74,6 +74,7 @@ class MergedHeaderItemFactory @Inject constructor(
             addDaySeparator: Boolean,
             currentPosition: Int,
             eventIdToHighlight: String?,
+            nextDisplayableEvent: TimelineEvent?,
             callback: TimelineEventController.Callback?,
             requestModelBuild: () -> Unit
     ): BasedMergedItem<*>? {
@@ -82,12 +83,32 @@ class MergedHeaderItemFactory @Inject constructor(
                 buildRoomCreationMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
             isStartOfSameTypeEventsSummary(event, nextEvent, partialState, addDaySeparator) ->
                 buildSameTypeEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-            isStartOfRedactedEventsSummary(event, items, currentPosition, partialState, addDaySeparator) ->
+            isStartOfRedactedEventsSummary(event, nextDisplayableEvent, addDaySeparator) ->
                 buildRedactedEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
             isStartOfHiddenEventsSummary(event, nextEvent, partialState, addDaySeparator) ->
                 buildHiddenEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
             else -> null
         }
+    }
+
+    /**
+     * True when [event] begins ANY kind of merged summary (room-creation, same-type membership/ACL/image-pack,
+     * redacted, or hidden run). The controller uses this to exempt a merge anchor from the per-pass build
+     * budget: deferring the anchor leaves its run rendered as individual (un-collapsed) events until a later
+     * pass builds it — the compact<->expand flicker. [nextDisplayableEvent] is the controller's precomputed
+     * next shown neighbour (keeps the redacted check O(1)).
+     */
+    fun startsMergedSummary(
+            event: TimelineEvent,
+            nextEvent: TimelineEvent?,
+            nextDisplayableEvent: TimelineEvent?,
+            partialState: TimelineEventController.PartialState,
+            addDaySeparator: Boolean,
+    ): Boolean {
+        return isStartOfRoomCreationSummary(event, nextEvent) ||
+                isStartOfSameTypeEventsSummary(event, nextEvent, partialState, addDaySeparator) ||
+                isStartOfRedactedEventsSummary(event, nextDisplayableEvent, addDaySeparator) ||
+                isStartOfHiddenEventsSummary(event, nextEvent, partialState, addDaySeparator)
     }
 
     /**
@@ -101,10 +122,16 @@ class MergedHeaderItemFactory @Inject constructor(
             partialState: TimelineEventController.PartialState,
             addDaySeparator: Boolean,
     ): Boolean {
-        return timelineEventVisibilityHelper.isHiddenEvent(event, partialState.rootThreadEventId, partialState.isFromThreadTimeline()) &&
-                (nextEvent == null ||
-                        addDaySeparator ||
-                        !timelineEventVisibilityHelper.isHiddenEvent(nextEvent, partialState.rootThreadEventId, partialState.isFromThreadTimeline()))
+        return isHiddenRunMember(event, partialState) &&
+                (nextEvent == null || addDaySeparator || !isHiddenRunMember(nextEvent, partialState))
+    }
+
+    // A redacted event that is also "hidden" (e.g. a redacted m.room.redaction) is owned by the redacted
+    // summary (checked first in create()), so it must NOT extend a hidden run — otherwise the boundary between
+    // the two never forms and the hidden events before it are left with no anchor / header.
+    private fun isHiddenRunMember(event: TimelineEvent, partialState: TimelineEventController.PartialState): Boolean {
+        return !event.root.isRedacted() &&
+                timelineEventVisibilityHelper.isHiddenEvent(event, partialState.rootThreadEventId, partialState.isFromThreadTimeline())
     }
 
     /**
@@ -150,23 +177,16 @@ class MergedHeaderItemFactory @Inject constructor(
      */
     private fun isStartOfRedactedEventsSummary(
             event: TimelineEvent,
-            items: List<TimelineEvent>,
-            currentPosition: Int,
-            partialState: TimelineEventController.PartialState,
+            nextDisplayableEvent: TimelineEvent?,
             addDaySeparator: Boolean,
     ): Boolean {
-        // Check isRedacted BEFORE the neighbour scan: the scan is O(list size) and runs for every event
-        // on every model pass, while almost no events are redacted — unguarded it made passes O(n²).
+        // [nextDisplayableEvent] is precomputed once per pass by the controller (O(n) total); scanning for it
+        // here per redacted event made passes O(n²) — catastrophic in a room full of redactions.
         if (!event.root.isRedacted()) return false
-        val nextDisplayableEvent = items.subList(currentPosition + 1, items.size).firstOrNull {
-            timelineEventVisibilityHelper.shouldShowEvent(
-                    timelineEvent = it,
-                    highlightedEventId = partialState.highlightedEventId,
-                    isFromThreadTimeline = partialState.isFromThreadTimeline(),
-                    rootThreadEventId = partialState.rootThreadEventId
-            )
-        }
-        return nextDisplayableEvent?.root?.isRedacted() == false || addDaySeparator
+        // nextDisplayableEvent == null means the run reaches the bottom of what's loaded — treat that as a
+        // boundary too, so the redactions collapse immediately instead of only after scrolling up loads an
+        // older non-redacted event below them.
+        return nextDisplayableEvent == null || nextDisplayableEvent.root.isRedacted() == false || addDaySeparator
     }
 
     private fun buildSameTypeEventsMergedSummary(
@@ -271,7 +291,12 @@ class MergedHeaderItemFactory @Inject constructor(
             } else {
                 collapsedEventIds.removeAll(mergedEventIds)
             }
-            val mergeId = mergedEventIds.joinToString(separator = "_") { it.toString() }
+            // Anchor the epoxy id on the NEWEST event of the run. The merge itself anchors on the oldest
+            // event (whose older neighbour is non-redacted), which moves every time older events paginate in
+            // — so keying the id on it made epoxy replace the whole item each fetch (the compact<->expand
+            // flicker). The newest member is stable under backward pagination, so the item just rebinds.
+            val stableAnchorId = mergedEvents.maxByOrNull { it.root.originServerTs ?: 0L }?.localId ?: event.localId
+            val mergeId = "merged_$stableAnchorId"
             (forcedSummaryTitleResId ?: getSummaryTitleResId(event.root))?.let { summaryTitle ->
                 val attributes = MergedSimilarEventsItem.Attributes(
                         summaryTitleResId = summaryTitle,

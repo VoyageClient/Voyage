@@ -221,7 +221,18 @@
     <string name="notice_location_sent" translatable="false">%1$s sent a location.</string>
     <string name="notice_location_sent_no_sender" translatable="false">Sent a location.</string>
 
-    <string name="room_participants_action_kick" translatable="false">Kick from chat</string>
+    <string name="room_participants_action_kick" translatable="false">Kick</string>
+    <string name="room_participants_action_redact_all" translatable="false">Redact all messages</string>
+    <string name="mass_redaction_confirmation_title" translatable="false">Redact all messages?</string>
+    <string name="mass_redaction_confirmation_message" translatable="false">This will redact every event from %1$s. It can take a long time and cannot be reversed.</string>
+    <string name="mass_redaction_already_running" translatable="false">A mass redaction is already in progress, wait for it to finish or cancel it first.</string>
+    <string name="mass_redaction_redacting_from" translatable="false">Redacting messages from %1$s…</string>
+    <string name="mass_redaction_pause" translatable="false">Pause</string>
+    <string name="mass_redaction_resume" translatable="false">Resume</string>
+    <string name="mass_redaction_cancel" translatable="false">Cancel</string>
+    <string name="mass_redaction_cancel_confirmation_title" translatable="false">Stop redacting?</string>
+    <string name="mass_redaction_cancel_confirmation_message" translatable="false">This stops the mass redaction. Events already redacted will not be restored.</string>
+    <string name="command_description_mass_redact" translatable="false">Redact all events from the given user in this room</string>
     <string name="room_participants_kick_title" translatable="false">Kick user</string>
     <string name="room_participants_kick_reason" translatable="false">Reason to kick</string>
     <string name="room_participants_kick_prompt_msg" translatable="false">The user will be kicked from this room.\n\nTo prevent them from joining again, you should ban them instead.</string>

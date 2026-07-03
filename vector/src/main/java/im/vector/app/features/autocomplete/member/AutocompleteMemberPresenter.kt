@@ -128,7 +128,8 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
             QueryStringValue.Contains(query.toString(), QueryStringValue.Case.INSENSITIVE)
         }
         memberships = listOf(Membership.JOIN)
-        excludeSelf = true
+        // Allow mentioning yourself (creates a self mention pill) like other members.
+        excludeSelf = false
     }
 
     private fun createMembersHeader() =

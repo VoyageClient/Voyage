@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.database.sql.store
 
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -68,6 +69,13 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
 
     fun getByEventIdInRoom(roomId: String, eventId: String): EventEntity? =
             queries.selectByEventIdInRoom(roomId, eventId).executeAsOneOrNull()?.toResolvedEntity()
+
+    // Distinct event ids a user contributed to a room, for mass redaction. Skips redaction events
+    // themselves and events already redacted (marked by "redacted_because" in unsigned_data).
+    fun getRedactableEventIdsBySender(roomId: String, senderId: String): List<String> =
+            queries.selectEventIdsByRoomAndSender(roomId, senderId).executeAsList()
+                    .filter { it.type != EventType.REDACTION && it.unsigned_data?.contains("redacted_because") != true }
+                    .map { it.event_id }
 
     // Encrypted events in a room still lacking a clear result — used to re-attempt decryption after a key
     // import, since decryption otherwise only runs at sync/insert time and never re-tries persisted UTDs.

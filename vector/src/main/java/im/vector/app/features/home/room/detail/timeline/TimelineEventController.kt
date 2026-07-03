@@ -19,6 +19,7 @@ import com.airbnb.epoxy.VisibilityState
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.epoxy.LoadingItem_
+import im.vector.app.core.epoxy.TimelineEmptyItem_
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.core.extensions.nextOrNull
 import im.vector.app.core.ui.PerformanceMode
@@ -78,7 +79,6 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.min
-import kotlin.system.measureTimeMillis
 
 class TimelineEventController @Inject constructor(
         private val dateFormatter: VectorDateFormatter,
@@ -109,6 +109,10 @@ class TimelineEventController @Inject constructor(
         // (newest-first = the visible screen) are delivered quickly and the rest trickle in.
         private val maxBuildNanosPerPass: Long
             get() = if (PerformanceMode.enabled) 250_000_000L else 500_000_000L
+
+        // Builds faster than this are "cheap" (hidden/redacted/notice items) and don't count against the
+        // per-pass count cap — the time budget bounds them instead.
+        private const val EXPENSIVE_BUILD_NANOS = 4_000_000L
 
         // Fields a caption edit is allowed to touch; anything else differing means the media changed.
         private val CAPTION_MUTABLE_KEYS = setOf("body", "filename", "formatted_body", "format", "m.mentions", "m.relates_to", "m.new_content")
@@ -228,9 +232,25 @@ class TimelineEventController @Inject constructor(
     private val timelineEventsGroups = TimelineEventsGroups()
     private val readReceiptsCache = ReadReceiptsCache()
     private val modelCache = arrayListOf<CacheItemData?>()
+    // Per-snapshot O(n) work (reverse preprocess, displayable-neighbour arrays, receipts) is identical across
+    // the multiple budget-limited build passes over one snapshot; recomputing it each pass was the bulk of the
+    // per-pass cost on a big (e.g. redaction-heavy) window. Cache it, keyed on the snapshot + partial-state
+    // identity — any structural change replaces currentSnapshot wholesale (see submitSnapshot), so identity is
+    // a sound key.
+    private var processedSnapshot: List<TimelineEvent>? = null
+    private var processedPartialState: PartialState? = null
+    private var cachedPrevDisplayable: Array<TimelineEvent?> = emptyArray()
+    private var cachedNextDisplayable: Array<TimelineEvent?> = emptyArray()
+    private var cachedReceiptsByEvent: Map<String, List<ReadReceipt>> = emptyMap()
+    private var cachedLastSentWithoutRr: String? = null
     // Volatile: replaced wholesale on the background thread, read (never mutated) from main-thread
     // position lookups under positionsLock only.
     @Volatile private var currentSnapshot: List<TimelineEvent> = emptyList()
+    // Bumped whenever a new snapshot is submitted. A merged-header's membership depends on events beyond its
+    // immediate neighbours (a run can grow when a nearby event changes state — e.g. becomes redacted during a
+    // mass redaction), which the per-event enrich-stability check can't see. Re-enriching merge anchors on
+    // every snapshot keeps runs correctly grouped; non-merge items still skip via the stability check.
+    @Volatile private var structureGeneration: Int = 0
     private var inSubmitList: Boolean = false
     private var hasReachedInvite: Boolean = false
     private var hasUTD: Boolean = false
@@ -270,6 +290,9 @@ class TimelineEventController @Inject constructor(
                 if (prevDisplayableEventIndex != -1 && currentSnapshot.getOrNull(prevDisplayableEventIndex)?.senderInfo?.userId == invalidatedSenderId) {
                     modelCache[prevDisplayableEventIndex] = null
                 }
+                // An in-place content change (e.g. an event becoming redacted) can alter merge grouping without
+                // changing any neighbour ids — force merge anchors to re-evaluate their run membership.
+                structureGeneration++
                 requestModelBuild()
             }
         }
@@ -297,6 +320,12 @@ class TimelineEventController @Inject constructor(
                 repeat(count) {
                     modelCache.add(position, null)
                 }
+                // A live-edge insert (new events at the top, e.g. redactions streaming in during a mass
+                // redaction) can extend a run whose anchor sits far below and whose neighbours are unchanged,
+                // so that anchor must re-evaluate. Reveals insert older history at the bottom instead — those
+                // only shift the boundary, which the neighbour-change check already handles, so skip the
+                // (O(total) anchor re-enrich) there to keep backlog loading fast.
+                if (position == 0) structureGeneration++
                 requestModelBuild()
             }
         }
@@ -521,10 +550,7 @@ class TimelineEventController @Inject constructor(
     }
 
     private fun getModels(): List<EpoxyModel<*>> {
-        val timeForBuilding = measureTimeMillis {
-            buildCacheItemsIfNeeded()
-        }
-        Timber.v("Time for building cache items: $timeForBuilding ms")
+        buildCacheItemsIfNeeded()
         return modelCache
                 .map { cacheItemData ->
                     val eventModel = if (cacheItemData == null || mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)) {
@@ -543,27 +569,43 @@ class TimelineEventController @Inject constructor(
                 .filterNotNull()
     }
 
+    // True when [event] is the oldest event of ANY merged run (redacted, hidden, membership/ACL/image-pack,
+    // room-creation). Its build is what collapses the run, so it must bypass the per-pass build budget —
+    // otherwise the run shows expanded until a later pass catches up (the compact<->expand flicker).
+    private fun isMergedRunStart(event: TimelineEvent, nextEvent: TimelineEvent?, nextDisplayableEvent: TimelineEvent?): Boolean {
+        return mergedHeaderItemFactory.startsMergedSummary(
+                event, nextEvent, nextDisplayableEvent, partialState, wantsDateSeparator(event, nextEvent)
+        )
+    }
+
     private fun buildCacheItemsIfNeeded() = synchronized(modelCache) {
         hasUTD = false
         hasReachedInvite = false
         if (modelCache.isEmpty()) {
             return
         }
-        val preprocessEventsTiming = measureTimeMillis {
-            preprocessReverseEvents()
-        }
-        Timber.v("Preprocess events took $preprocessEventsTiming ms")
-        forcedVisibleEditIds = computeRejectedMediaEdits()
         var numberOfEventsToBuild = 0
         val perfEnabled = PerfTrace.isEnabled
-        var lastSentStart = if (perfEnabled) System.nanoTime() else 0L
-        val receiptsByEvent = readReceiptsCache.receiptsByEvent()
-        val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(receiptsByEvent)
-        val lastSentNanos = if (perfEnabled) System.nanoTime() - lastSentStart else 0L
-        // Nearest displayable neighbours, precomputed in O(n) — was a per-event subList scan (O(n²)).
-        val neighboursStart = if (perfEnabled) System.nanoTime() else 0L
-        val (prevDisplayableEvents, nextDisplayableEvents) = computeDisplayableNeighbours()
-        val neighboursNanos = if (perfEnabled) System.nanoTime() - neighboursStart else 0L
+        // Reuse the per-snapshot O(n) work across budget passes over the same (unchanged) snapshot.
+        val processStable = processedSnapshot === currentSnapshot && processedPartialState === partialState
+        val processStart = if (perfEnabled && !processStable) System.nanoTime() else 0L
+        if (!processStable) {
+            preprocessReverseEvents()
+            forcedVisibleEditIds = computeRejectedMediaEdits()
+            cachedReceiptsByEvent = readReceiptsCache.receiptsByEvent()
+            cachedLastSentWithoutRr = searchLastSentEventWithoutReadReceipts(cachedReceiptsByEvent)
+            // Nearest displayable neighbours, precomputed in O(n) — was a per-event subList scan (O(n²)).
+            val (prev, next) = computeDisplayableNeighbours()
+            cachedPrevDisplayable = prev
+            cachedNextDisplayable = next
+            processedSnapshot = currentSnapshot
+            processedPartialState = partialState
+        }
+        val processNanos = if (perfEnabled && !processStable) System.nanoTime() - processStart else 0L
+        val receiptsByEvent = cachedReceiptsByEvent
+        val lastSentEventWithoutReadReceipts = cachedLastSentWithoutRr
+        val prevDisplayableEvents = cachedPrevDisplayable
+        val nextDisplayableEvents = cachedNextDisplayable
         var checkNanos = 0L
         var buildNanos = 0L
         var enrichNanos = 0L
@@ -573,14 +615,35 @@ class TimelineEventController @Inject constructor(
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
             var t0 = if (perfEnabled) System.nanoTime() else 0L
-            // Should be build if not cached or if model should be refreshed
-            val needsBuild = modelCache[position] == null || modelCache[position]?.isCacheable(partialState) == false || reactionListFactory.needsRebuild(event)
+            val cached = modelCache[position]
+            // Known-collapsed (from a prior pass's merged-header build) — an O(1) lookup, not a rescan. Its
+            // model is never displayed (the run's header replaces it), so skip the expensive build.
+            val isCollapsed = mergedHeaderItemFactory.isCollapsed(event.localId)
+            // Should build if not cached or if model should be refreshed. A placeholder that is no longer
+            // collapsed (run expanded) needs a real build; a real model that is now collapsed can stay
+            // (getModels hides it anyway) so we don't waste a rebuild switching it to a placeholder.
+            val needsBuild = cached == null || cached.isCacheable(partialState) == false ||
+                    reactionListFactory.needsRebuild(event) ||
+                    (cached.isCollapsedPlaceholder && !isCollapsed)
             if (perfEnabled) checkNanos += System.nanoTime() - t0
+            if (needsBuild && isCollapsed) {
+                modelCache[position] = buildCollapsedPlaceholder(event, nextEvent)
+                val itemCachedData = modelCache[position] ?: return@forEach
+                modelCache[position] = itemCachedData.enrichWithModels(
+                        event, nextEvent, currentSnapshot.prevOrNull(position), position, receiptsByEvent, nextDisplayableEvents[position]
+                )
+                return@forEach
+            }
             // A model build is ~10-25ms (Markwon etc.), so a bulk reveal (room open, scroll-up) built for
             // seconds in one pass — and a message sent meanwhile couldn't render until the whole pass
             // finished. Build newest-first (position 0 = live edge, where a just-sent message sits) up to
             // a budget and finish the (older, off-screen) rest in follow-up passes.
-            if (needsBuild && (numberOfEventsToBuild >= MAX_MODEL_BUILDS_PER_PASS || buildNanos >= maxBuildNanosPerPass)) {
+            // Exception: an event that starts a merged run (oldest redacted/hidden event, whose older
+            // neighbour is a normal event) must never be deferred — its build is what collapses the whole run
+            // into one item. Deferring it leaves the run's events showing individually until a later pass,
+            // which is the compacted<->expanded flicker when more redactions load in.
+            if (needsBuild && !isMergedRunStart(event, nextEvent, nextDisplayableEvents[position]) &&
+                    (numberOfEventsToBuild >= MAX_MODEL_BUILDS_PER_PASS || buildNanos >= maxBuildNanosPerPass)) {
                 buildBudgetExhausted = true
                 return@forEach
             }
@@ -609,13 +672,20 @@ class TimelineEventController @Inject constructor(
                 )
                 t0 = System.nanoTime()
                 modelCache[position] = buildCacheItem(params)
-                buildNanos += System.nanoTime() - t0
-                numberOfEventsToBuild++
+                val buildDelta = System.nanoTime() - t0
+                buildNanos += buildDelta
+                // Only expensive (formatted-message) builds count toward the per-pass count cap; cheap ones
+                // (hidden, redacted, notices) are bounded by the time budget alone. Otherwise a big run of
+                // cheap events (e.g. thousands of redactions) forces hundreds of passes before the real
+                // content above them ever builds.
+                if (buildDelta >= EXPENSIVE_BUILD_NANOS) numberOfEventsToBuild++
             }
             val itemCachedData = modelCache[position] ?: return@forEach
             // Then update with additional models if needed
             t0 = if (perfEnabled) System.nanoTime() else 0L
-            val enriched = itemCachedData.enrichWithModels(event, nextEvent, currentSnapshot.prevOrNull(position), position, receiptsByEvent)
+            val enriched = itemCachedData.enrichWithModels(
+                    event, nextEvent, currentSnapshot.prevOrNull(position), position, receiptsByEvent, nextDisplayableEvents[position]
+            )
             if (perfEnabled) {
                 enrichNanos += System.nanoTime() - t0
                 if (enriched === itemCachedData) enrichSkips++
@@ -626,12 +696,11 @@ class TimelineEventController @Inject constructor(
             // Cannot request from inside buildModels; queue it behind this pass on the same handler.
             backgroundHandler.post { requestDelayedModelBuild(0) }
         }
-        Timber.v("Number of events to rebuild: $numberOfEventsToBuild on ${modelCache.size} total events")
         if (perfEnabled) {
             PerfTrace.report(
                     "timeline.buildCache rebuilt=$numberOfEventsToBuild/${modelCache.size} " +
                             "check=${checkNanos / 1_000_000}ms enrich=${enrichNanos / 1_000_000}ms(skips=$enrichSkips) " +
-                            "lastSent=${lastSentNanos / 1_000_000}ms neighbours=${neighboursNanos / 1_000_000}ms more=$buildBudgetExhausted",
+                            "process=${processNanos / 1_000_000}ms(stable=$processStable) more=$buildBudgetExhausted",
                     buildNanos / 1_000_000,
             )
         }
@@ -687,6 +756,20 @@ class TimelineEventController @Inject constructor(
         return prev to next
     }
 
+    private fun buildCollapsedPlaceholder(event: TimelineEvent, nextEvent: TimelineEvent?): CacheItemData {
+        // Still track invite/UTD boundaries — a redacted membership in the run can flip hasReachedInvite.
+        updateUTDStates(event, nextEvent)
+        return CacheItemData(
+                localId = event.localId,
+                eventId = event.root.eventId,
+                eventModel = TimelineEmptyItem_()
+                        .id(event.localId)
+                        .eventId(event.eventId)
+                        .notBlank(false),
+                isCollapsedPlaceholder = true,
+        )
+    }
+
     private fun buildCacheItem(params: TimelineItemFactoryParams): CacheItemData {
         val event = params.event
         if (hasReachedInvite && hasUTD) {
@@ -715,7 +798,8 @@ class TimelineEventController @Inject constructor(
             nextEvent: TimelineEvent?,
             prevEvent: TimelineEvent?,
             position: Int,
-            receiptsByEvents: Map<String, List<ReadReceipt>>
+            receiptsByEvents: Map<String, List<ReadReceipt>>,
+            nextDisplayableEvent: TimelineEvent?,
     ): CacheItemData {
         val readReceipts = receiptsByEvents[event.eventId].orEmpty()
         // Enrichment inputs unchanged → keep the cached models. Merge start/membership decisions read
@@ -724,8 +808,11 @@ class TimelineEventController @Inject constructor(
         // additionally embed collapse state, guarded by the factory's generation counter.
         if (enrichedNextEventId == nextEvent?.eventId && enrichedPrevEventId == prevEvent?.eventId &&
                 enrichedReceipts == readReceipts) {
+            // A merge anchor (or state event) must re-evaluate its run membership whenever the snapshot
+            // changed; an event with no header depends only on its immediate neighbours, so it stays stable.
             val mergeStable = (mergedHeaderModel == null && event.root.stateKey == null) ||
-                    enrichedCollapseGeneration == mergedHeaderItemFactory.collapseGeneration
+                    (enrichedCollapseGeneration == mergedHeaderItemFactory.collapseGeneration &&
+                            enrichedStructureGeneration == structureGeneration)
             if (mergeStable) return this
         }
         val wantsDateSeparator = wantsDateSeparator(event, nextEvent)
@@ -737,6 +824,7 @@ class TimelineEventController @Inject constructor(
                 addDaySeparator = wantsDateSeparator,
                 currentPosition = position,
                 eventIdToHighlight = partialState.highlightedEventId,
+                nextDisplayableEvent = nextDisplayableEvent,
                 callback = callback
         ) {
             requestModelBuild()
@@ -760,6 +848,7 @@ class TimelineEventController @Inject constructor(
                 enrichedPrevEventId = prevEvent?.eventId,
                 enrichedReceipts = readReceipts,
                 enrichedCollapseGeneration = mergedHeaderItemFactory.collapseGeneration,
+                enrichedStructureGeneration = structureGeneration,
         )
     }
 
@@ -915,6 +1004,9 @@ class TimelineEventController @Inject constructor(
             val eventModel: EpoxyModel<*>? = null,
             val mergedHeaderModel: BasedMergedItem<*>? = null,
             val formattedDayModel: DaySeparatorItem? = null,
+            // A cheap stand-in built for an event collapsed into a merged run: its real (expensive) model
+            // would be discarded by the collapse, so it's deferred until the run is expanded.
+            val isCollapsedPlaceholder: Boolean = false,
             private val isCacheable: Boolean = true,
             // Inputs the enrichment step (receipts/day-separator/merged-header models) was computed
             // from, so unchanged events can skip it on subsequent passes.
@@ -922,6 +1014,7 @@ class TimelineEventController @Inject constructor(
             val enrichedPrevEventId: String? = null,
             val enrichedReceipts: List<ReadReceipt>? = null,
             val enrichedCollapseGeneration: Int = -1,
+            val enrichedStructureGeneration: Int = -1,
     ) {
         fun isCacheable(partialState: PartialState): Boolean {
             return isCacheable && partialState.highlightedEventId != eventId

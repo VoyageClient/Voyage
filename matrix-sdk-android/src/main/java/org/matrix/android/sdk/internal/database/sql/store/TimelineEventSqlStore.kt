@@ -32,11 +32,17 @@ internal class TimelineEventSqlStore(
 
     fun getByChunk(chunkId: Long): List<TimelineEventEntity> = queries.selectByChunk(chunkId).executeAsList().toEntities()
 
+    fun getByChunkNewest(chunkId: Long, limit: Long): List<TimelineEventEntity> =
+            queries.selectByChunkNewest(chunkId, limit).executeAsList().toEntities()
+
     fun getByChunkRange(chunkId: Long, from: Long, to: Long): List<TimelineEventEntity> =
             queries.selectByChunkRange(chunkId, from, to).executeAsList().toEntities()
 
     fun getByChunkAfterIndex(chunkId: Long, afterDisplayIndex: Long): List<TimelineEventEntity> =
             queries.selectByChunkAfterIndex(chunkId, afterDisplayIndex).executeAsList().toEntities()
+
+    fun getByChunkBeforeIndex(chunkId: Long, beforeDisplayIndex: Long, limit: Long): List<TimelineEventEntity> =
+            queries.selectByChunkBeforeIndex(chunkId, beforeDisplayIndex, limit).executeAsList().toEntities()
 
     fun getInChunkByEventId(chunkId: Long, eventId: String): TimelineEventEntity? =
             queries.selectInChunkByEventId(chunkId, eventId).executeAsOneOrNull()?.toEntity()
@@ -51,8 +57,18 @@ internal class TimelineEventSqlStore(
     fun getByRoomTypesAfterTs(roomId: String, types: Collection<String>, ts: Long): List<TimelineEventEntity> =
             queries.selectByRoomTypesAfterTs(roomId, types, ts).executeAsList().toEntities()
 
+    // Excludes sending (chunk_id NULL) local echoes here rather than in SQL — a `chunk_id IS NOT NULL` clause
+    // makes SQLDelight infer a distinct non-null-chunk row type that breaks the shared row mapper.
+    fun getByRoomTypesNewest(roomId: String, types: Collection<String>, limit: Long): List<TimelineEventEntity> =
+            queries.selectByRoomTypesNewest(roomId, types, limit).executeAsList()
+                    .filter { it.chunk_id != null }
+                    .toEntities()
+
     fun getSendingByRoom(roomId: String): List<TimelineEventEntity> =
             queries.selectSendingByRoom(roomId).executeAsList().toEntities()
+
+    fun getAllSending(): List<TimelineEventEntity> =
+            queries.selectAllSending().executeAsList().toEntities()
 
     /** timeline_event id of the most recent in-thread reply for the given root (for the root preview). */
     fun latestThreadReplyId(roomId: String, rootThreadEventId: String): Long? =

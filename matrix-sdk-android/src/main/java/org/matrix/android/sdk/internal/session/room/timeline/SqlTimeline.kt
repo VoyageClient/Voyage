@@ -74,6 +74,9 @@ internal class SqlTimeline(
     private val backwardState = AtomicReference(Timeline.PaginationState(hasMoreToLoad = true))
 
     private val timelineScope = CoroutineScope(SupervisorJob() + sessionDispatcher)
+    // The backward loading item re-fires onLoadMore every time it's visible; in a room dominated by collapsed
+    // (hidden/redacted) events it stays on screen, so serialize the requests to avoid piling up fetches.
+    private val backwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
     private var observeJob: Job? = null
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
@@ -114,6 +117,19 @@ internal class SqlTimeline(
     // Seeded false for a permalink open so the cap can't clip the window above the target event
     // before the first scroll callback arrives.
     @Volatile private var viewAtLiveEdge: Boolean = initialEventId == null
+
+    // The live chunk can hold thousands of rows in a redaction-heavy or busy room. Mapping all of them on
+    // every rebuild — room-open included — is the "slow to open every time" cost, even though the window only
+    // ever shows the newest slice. Map only the newest [liveChunkRowCap] rows and grow the slice in
+    // [liveChunkRowStep] increments as the user reveals older content (see growLiveChunkMapping).
+    private val liveChunkRowStep = 400
+    @Volatile private var liveChunkRowCap = liveChunkRowStep
+    // Max history chunks pulled into the loaded set per backward pagination (each is mapped on the next
+    // rebuild, so this bounds per-pass mapping cost). The reveal loop keeps calling back to walk older.
+    private val maxBackwardChunks = 3
+    // True once the mapped slice covers the whole live chunk; while false there are older rows we haven't
+    // mapped yet, so the timeline must still offer a backward-reveal affordance.
+    @Volatile private var liveChunkFullyMapped = false
 
     private var pendingShowEventId: String? = initialEventId
     private var oldestShownEventId: String? = null
@@ -256,6 +272,8 @@ internal class SqlTimeline(
         annotationsJob?.cancel()
         loadedChunkIds.clear()
         chunkSnapshotCache.clear()
+        liveChunkRowCap = liveChunkRowStep
+        liveChunkFullyMapped = false
         if (seedChunkId == null) return
         loadedChunkIds.add(seedChunkId)
         // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
@@ -290,39 +308,52 @@ internal class SqlTimeline(
             return
         }
         if (direction == Timeline.Direction.BACKWARDS) {
-            if (isWindowed) {
-                val all = computeLoadedEvents(reuseLiveChunk = true)
-                val oldestIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }?.takeIf { it >= 0 }
-                        ?: (initialWindowCount() - 1).coerceAtMost(all.lastIndex)
-                val target = oldestIdx + windowGrowStep
-                // Loaded events still hidden above the window: reveal the next page without a fetch.
-                if (target < all.size) {
-                    oldestShownEventId = all[target].eventId
-                    rebuildSnapshot(reuseLiveChunk = true)
+            // Ignore overlapping requests; the visible loading item fires this continuously in a
+            // redaction-heavy room.
+            if (!backwardPaginating.compareAndSet(false, true)) return
+            try {
+                if (isWindowed) {
+                    val all = computeLoadedEvents(reuseLiveChunk = true)
+                    val oldestIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }?.takeIf { it >= 0 }
+                            ?: (initialWindowCount() - 1).coerceAtMost(all.lastIndex)
+                    val target = advanceByMessages(all, oldestIdx, windowGrowStep)
+                    // Reached windowGrowStep more messages while still inside the loaded set: reveal, no fetch.
+                    if (target < all.lastIndex) {
+                        oldestShownEventId = all[target].eventId
+                        rebuildSnapshot(reuseLiveChunk = true)
+                        return
+                    }
+                    // Window already reaches the oldest loaded event: reveal it, then fetch older below.
+                    oldestShownEventId = all.lastOrNull()?.eventId
+                    // If the live chunk still has older rows we've not mapped yet, widen the mapped slice and
+                    // reveal within it instead of paginating older chunks / the server.
+                    if (growLiveChunkMapping()) {
+                        revealAfterBackwardFetch()
+                        return
+                    }
+                }
+                val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) } ?: run {
+                    if (isWindowed) rebuildSnapshot(reuseLiveChunk = true)
                     return
                 }
-                // Window already reaches the oldest loaded event: reveal it, then fetch older below.
-                oldestShownEventId = all.lastOrNull()?.eventId
-            }
-            val oldest = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) } ?: run {
-                if (isWindowed) rebuildSnapshot(reuseLiveChunk = true)
-                return
-            }
-            when {
-                // is_last_backward is the room start: nothing older, whatever a stale prev link says.
-                oldest.is_last_backward != 0L -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
-                oldest.prev_chunk_id != null -> {
-                    extendLoadedChunks(Timeline.Direction.BACKWARDS)
-                    revealAfterBackwardFetch()
+                when {
+                    // is_last_backward is the room start: nothing older, whatever a stale prev link says.
+                    oldest.is_last_backward != 0L -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+                    oldest.prev_chunk_id != null -> {
+                        extendLoadedChunks(Timeline.Direction.BACKWARDS)
+                        revealAfterBackwardFetch()
+                    }
+                    oldest.prev_token != null -> {
+                        paginate(oldest.prev_token, Timeline.Direction.BACKWARDS, count)
+                        // The server page is persisted as a new chunk linked into our chain; walk the whole
+                        // prev_chunk_id chain so a page that bridges to an existing older chunk is fully picked up.
+                        extendLoadedChunks(Timeline.Direction.BACKWARDS)
+                        revealAfterBackwardFetch()
+                    }
+                    else -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
                 }
-                oldest.prev_token != null -> {
-                    paginate(oldest.prev_token, Timeline.Direction.BACKWARDS, count)
-                    // The server page is persisted as a new chunk linked into our chain; walk the whole
-                    // prev_chunk_id chain so a page that bridges to an existing older chunk is fully picked up.
-                    extendLoadedChunks(Timeline.Direction.BACKWARDS)
-                    revealAfterBackwardFetch()
-                }
-                else -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+            } finally {
+                backwardPaginating.set(false)
             }
         } else {
             val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) } ?: return
@@ -343,11 +374,16 @@ internal class SqlTimeline(
     }
 
     /** Walk the prev_chunk_id (backwards) / next_chunk_id (forwards) links from the current edge, adding
-     *  every transitively-linked chunk — so server pages that bridge or merge chunks are fully loaded. */
+     *  transitively-linked chunks — so server pages that bridge or merge chunks are picked up. Backwards is
+     *  capped at [maxBackwardChunks] per call: each newly-loaded chunk is mapped in full on the next rebuild,
+     *  so pulling the whole chain at once (dozens of chunks in a redaction-heavy room) froze the open for
+     *  seconds. Adding a few at a time spreads that mapping across passes; the reveal loop re-invokes us to
+     *  keep walking older. */
     private fun extendLoadedChunks(direction: Timeline.Direction) {
         if (direction == Timeline.Direction.BACKWARDS) {
             var tail = loadedChunkIds.lastOrNull()?.let { stores.chunk.getById(it) }
-            while (true) {
+            var added = 0
+            while (added < maxBackwardChunks) {
                 // The room start has nothing older: never follow a (possibly corrupt) prev link off an
                 // is_last_backward chunk, or the walk wraps around into the live edge and pulls the whole
                 // history in as "older than the first event".
@@ -355,6 +391,7 @@ internal class SqlTimeline(
                 val prevId = tail.prev_chunk_id ?: break
                 if (prevId in loadedChunkIds) break
                 loadedChunkIds.add(prevId)
+                added++
                 tail = stores.chunk.getById(prevId)
             }
         } else {
@@ -400,13 +437,14 @@ internal class SqlTimeline(
     private fun computeLoadedEvents(reuseLiveChunk: Boolean = false): List<TimelineEvent> {
         val liveChunkId = loadedChunkIds.firstOrNull()
         val chunkEvents = loadedChunkIds.flatMap { chunkId ->
-            if (chunkId == liveChunkId && !reuseLiveChunk) {
-                // the live/changing chunk is refreshed on sync/content changes (incrementally when possible)...
-                refreshLiveChunkSnapshot(chunkId)
+            if (chunkId == liveChunkId) {
+                // the live/changing chunk is refreshed on sync/content changes (incrementally when possible);
+                // during a pure backward-scroll reveal (reuseLiveChunk) its content is unchanged, so reuse the
+                // cached bounded slice. Either way the mapping is bounded to the newest [liveChunkRowCap] rows.
+                if (reuseLiveChunk) chunkSnapshotCache[chunkId] ?: loadLiveChunkNewest(chunkId).also { chunkSnapshotCache[chunkId] = it }
+                else refreshLiveChunkSnapshot(chunkId)
             } else {
-                // ...but static history chunks — and the live chunk during a pure backward-scroll reveal
-                // (reuseLiveChunk), which never changes its content — reuse the cached mapping. Re-resolving
-                // a large live chunk on every scroll page was a scroll-lag source.
+                // Static history chunks (bounded pagination pages) are mapped once and reused.
                 chunkSnapshotCache.getOrPut(chunkId) { snapshotLoader.chunkSnapshot(chunkId) }
             }
         }
@@ -450,13 +488,51 @@ internal class SqlTimeline(
                 if (want > current) oldestShownEventId = all[want].eventId
             }
         }
-        var oldestIdx = (oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
-                ?.takeIf { it >= 0 } ?: (initialWindowCount() - 1)).coerceIn(0, all.lastIndex)
-        if (viewAtLiveEdge && pendingShowEventId == null && oldestIdx > windowLiveEdgeCap) {
-            oldestIdx = windowLiveEdgeCap
+        val anchorIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
+        var oldestIdx = (anchorIdx?.takeIf { it >= 0 } ?: (initialWindowCount() - 1)).coerceIn(0, all.lastIndex)
+        // Cap the live-edge window by the count of *message* events, not raw events: a flood of redactions
+        // or state changes (e.g. a mass redaction) collapses to a single merged item, so a raw cap would
+        // show that one block and nothing else — no content, no scroll affordance to grow the window.
+        val capIdx = if (viewAtLiveEdge && pendingShowEventId == null) contentWindowCapIndex(all) else all.lastIndex
+        if (oldestIdx > capIdx) {
+            oldestIdx = capIdx
         }
         oldestShownEventId = all[oldestIdx].eventId
         return all.take(oldestIdx + 1)
+    }
+
+    // Index of the [windowLiveEdgeCap]-th message event from the live edge (or the last loaded index if
+    // there are fewer). Non-message events (redactions, reactions, state) between messages ride along for
+    // free, so a burst of them can't crowd real content out of the live-edge window.
+    private fun contentWindowCapIndex(all: List<TimelineEvent>): Int {
+        var messages = 0
+        for (i in all.indices) {
+            if (all[i].isMessageContent()) {
+                messages++
+                if (messages >= windowLiveEdgeCap) return i
+            }
+        }
+        return all.lastIndex
+    }
+
+    private fun TimelineEvent.isMessageContent(): Boolean = when (root.getClearType()) {
+        EventType.MESSAGE, EventType.ENCRYPTED, EventType.STICKER -> true
+        else -> false
+    }
+
+    // Index reached by revealing [messageStep] more message events past [fromIdx], skipping interleaved
+    // hidden/redaction/state events. Growing the window by *raw* count instead crawled through a big hidden
+    // run 50 events at a time — and since the run collapses to one item that never fills the screen, the
+    // backward-reveal kept re-triggering, walking the whole timeline. Jumping by message count reveals real
+    // content in one step so the loop terminates.
+    private fun advanceByMessages(all: List<TimelineEvent>, fromIdx: Int, messageStep: Int): Int {
+        var messages = 0
+        var i = fromIdx + 1
+        while (i <= all.lastIndex) {
+            if (all[i].isMessageContent() && ++messages >= messageStep) return i
+            i++
+        }
+        return all.lastIndex
     }
 
     // After loading older events from disk/server, advance the window a page older to reveal them.
@@ -464,7 +540,7 @@ internal class SqlTimeline(
         if (isWindowed) {
             val all = computeLoadedEvents(reuseLiveChunk = true)
             val oldestIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }?.takeIf { it >= 0 } ?: all.lastIndex
-            oldestShownEventId = all.getOrNull((oldestIdx + windowGrowStep).coerceAtMost(all.lastIndex))?.eventId
+            oldestShownEventId = all.getOrNull(advanceByMessages(all, oldestIdx, windowGrowStep))?.eventId
         }
         rebuildSnapshot(reuseLiveChunk = true)
     }
@@ -482,7 +558,8 @@ internal class SqlTimeline(
         val unchanged = sameByReference(events, builtEvents)
         builtEvents = events
         requestDecryptionForUtd(events)
-        windowHasMoreOlder = isWindowed && events.isNotEmpty() && events.last().eventId != all.last().eventId
+        windowHasMoreOlder = isWindowed && events.isNotEmpty() &&
+                (events.last().eventId != all.last().eventId || !liveChunkFullyMapped)
         refreshPaginationStates()
         Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events (unchanged=$unchanged)")
         MatrixPerf.end(perfStart) { "timeline.rebuildSnapshot reuse=$reuseLiveChunk shown=${events.size}/${all.size} unchanged=$unchanged" }
@@ -516,16 +593,57 @@ internal class SqlTimeline(
     private fun refreshLiveChunkSnapshot(chunkId: Long): List<TimelineEvent> {
         val cached = chunkSnapshotCache[chunkId]
         if (cached.isNullOrEmpty()) {
-            return snapshotLoader.chunkSnapshot(chunkId).also { chunkSnapshotCache[chunkId] = it }
+            return loadLiveChunkNewest(chunkId).also { chunkSnapshotCache[chunkId] = it }
         }
         val newEvents = snapshotLoader.chunkSnapshotAfter(chunkId, cached.first().displayIndex.toLong())
-        val consistent = snapshotLoader.chunkEventCount(chunkId).toInt() == cached.size + newEvents.size &&
-                newEvents.none { it.root.getClearType() == EventType.REDACTION }
-        if (!consistent) {
-            return snapshotLoader.chunkSnapshot(chunkId).also { chunkSnapshotCache[chunkId] = it }
+        // A redaction prunes an OLDER root in place (its display_index is unchanged, so the append query above
+        // never re-maps it) — reload the bounded slice so the redacted content drops out. The redaction event
+        // lands in the live chunk, but its target can sit in any loaded chunk, so also drop the cached history
+        // mappings; they re-map with the pruned content on this same rebuild (the live chunk is index 0, so
+        // this runs before the flatMap reaches them). During a mass redaction history usually isn't loaded, so
+        // there is normally nothing to drop.
+        if (newEvents.any { it.root.getClearType() == EventType.REDACTION }) {
+            loadedChunkIds.forEach { if (it != chunkId) chunkSnapshotCache.remove(it) }
+            return loadLiveChunkNewest(chunkId).also { chunkSnapshotCache[chunkId] = it }
         }
         if (newEvents.isEmpty()) return cached
         return (newEvents + cached).also { chunkSnapshotCache[chunkId] = it }
+    }
+
+    // Map only the newest [liveChunkRowCap] rows of the live chunk (unless a permalink target is pending —
+    // that event may sit deep in the chunk, so map it whole to be sure it's reachable).
+    private fun loadLiveChunkNewest(chunkId: Long): List<TimelineEvent> {
+        // Threads aren't windowed (they page from the server), and a permalink target may sit deep in the
+        // chunk — map the whole chunk in both cases so nothing is unreachable.
+        if (isThreadTimeline || pendingShowEventId != null) {
+            liveChunkFullyMapped = true
+            return snapshotLoader.chunkSnapshot(chunkId)
+        }
+        val slice = snapshotLoader.chunkSnapshotNewest(chunkId, liveChunkRowCap.toLong())
+        liveChunkFullyMapped = slice.size >= snapshotLoader.chunkEventCount(chunkId).toInt()
+        return slice
+    }
+
+    // When a backward reveal reaches the oldest mapped row but the live chunk still has older rows we haven't
+    // mapped, widen the mapped slice instead of paginating older chunks. Appends only the next step of older
+    // rows to the cached slice (O(step)) rather than re-mapping the whole, growing slice. Returns true if it grew.
+    private fun growLiveChunkMapping(): Boolean {
+        if (liveChunkFullyMapped) return false
+        val liveChunkId = loadedChunkIds.firstOrNull() ?: return false
+        val cached = chunkSnapshotCache[liveChunkId]
+        if (cached.isNullOrEmpty()) {
+            liveChunkRowCap += liveChunkRowStep
+            return true
+        }
+        val older = snapshotLoader.chunkSnapshotOlderThan(liveChunkId, cached.last().displayIndex.toLong(), liveChunkRowStep.toLong())
+        liveChunkRowCap += liveChunkRowStep
+        if (older.isEmpty()) {
+            liveChunkFullyMapped = true
+            return false
+        }
+        chunkSnapshotCache[liveChunkId] = cached + older
+        liveChunkFullyMapped = older.size < liveChunkRowStep
+        return true
     }
 
     private fun sameByReference(a: List<TimelineEvent>, b: List<TimelineEvent>): Boolean {

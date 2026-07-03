@@ -57,6 +57,19 @@ internal class SqlChunkSnapshotLoader(
     fun chunkSnapshotAfter(chunkId: Long, afterDisplayIndex: Long): List<TimelineEvent> =
             stores.timelineEvent.getByChunkAfterIndex(chunkId, afterDisplayIndex).map { timelineEventMapper.map(it) }
 
+    /** The [limit] newest rows of a chunk, most-recent first — used to bound the live-chunk mapping. */
+    fun chunkSnapshotNewest(chunkId: Long, limit: Long): List<TimelineEvent> {
+        val perfStart = MatrixPerf.now()
+        val entities = stores.timelineEvent.getByChunkNewest(chunkId, limit)
+        MatrixPerf.end(perfStart) { "timeline.chunkSnapshotNewest.load chunk=$chunkId rows=${entities.size}" }
+        return entities.map { timelineEventMapper.map(it) }
+    }
+
+    /** The [limit] rows just older than [beforeDisplayIndex], most-recent first — appends to a bounded slice
+     *  as the window grows, so widening it costs O(step) instead of re-mapping the whole slice. */
+    fun chunkSnapshotOlderThan(chunkId: Long, beforeDisplayIndex: Long, limit: Long): List<TimelineEvent> =
+            stores.timelineEvent.getByChunkBeforeIndex(chunkId, beforeDisplayIndex, limit).map { timelineEventMapper.map(it) }
+
     fun chunkEventCount(chunkId: Long): Long = stores.timelineEvent.countByChunk(chunkId)
 
     /** The room's sending (local-echo) events — timeline_event rows with chunk_id NULL — newest first. */

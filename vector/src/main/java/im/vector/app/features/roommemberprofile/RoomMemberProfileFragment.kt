@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
@@ -134,6 +135,8 @@ class RoomMemberProfileFragment :
                 is RoomMemberProfileViewEvents.ShowPowerLevelDemoteWarning -> handleShowPowerLevelDemoteWarning(it)
                 is RoomMemberProfileViewEvents.OpenRoom -> handleOpenRoom(it)
                 is RoomMemberProfileViewEvents.OnKickActionSuccess -> Unit
+                RoomMemberProfileViewEvents.MassRedactionAlreadyRunning ->
+                    Toast.makeText(requireContext(), CommonStrings.mass_redaction_already_running, Toast.LENGTH_LONG).show()
                 is RoomMemberProfileViewEvents.OnSetPowerLevelSuccess -> Unit
                 is RoomMemberProfileViewEvents.OnBanActionSuccess -> Unit
                 is RoomMemberProfileViewEvents.OnIgnoreActionSuccess -> Unit
@@ -407,6 +410,21 @@ class RoomMemberProfileFragment :
                 ) { reason ->
                     viewModel.handle(RoomMemberProfileAction.KickUser(reason))
                 }
+    }
+
+    override fun onRedactAllClicked() {
+        withState(viewModel) { state ->
+            val bestName = state.userMatrixItem()?.getBestName()
+            val target = if (bestName != null && bestName != state.userId) "$bestName (${state.userId})" else state.userId
+            MaterialAlertDialogBuilder(requireActivity())
+                    .setTitle(CommonStrings.mass_redaction_confirmation_title)
+                    .setMessage(getString(CommonStrings.mass_redaction_confirmation_message, target))
+                    .setPositiveButton(android.R.string.ok) { _, _ ->
+                        viewModel.handle(RoomMemberProfileAction.RedactAllMessages)
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        }
     }
 
     override fun onBanClicked(isSpace: Boolean, isUserBanned: Boolean) {

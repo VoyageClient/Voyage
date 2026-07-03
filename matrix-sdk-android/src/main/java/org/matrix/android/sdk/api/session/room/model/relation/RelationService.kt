@@ -151,6 +151,36 @@ interface RelationService {
     suspend fun fetchReactions(eventId: String): List<Event>
 
     /**
+     * Event ids [userId] contributed to this room that are present in the local DB (any event type, not
+     * yet redacted). Used to burst-redact a user's history that's already synced, before paging the server.
+     */
+    /**
+     * Redact an event directly against the server, WITHOUT a local echo. Used by mass redaction: hundreds of
+     * echoes would flood the timeline, serialize slowly through the send queue, and get stuck in "sending".
+     * Suspends until the redaction is sent (the target updates on the next sync).
+     */
+    suspend fun redactEventNoEcho(eventId: String, reason: String?)
+
+    /** Remove any local-echo redactions stuck in "sending" for this room (cleanup for orphaned echoes). */
+    suspend fun clearSendingRedactions()
+
+    fun getLocalEventIdsFromUser(userId: String): List<String>
+
+    /**
+     * Page the server backwards for more of [userId]'s event ids. Pass null [fromToken] to start from the
+     * live edge; feed [PagedEventIds.nextToken] back in to continue until it returns null. [floorTs] (from
+     * [getMassRedactionFloorTs]) stops paging once the user's earliest event is reached, instead of walking
+     * all the way to the room's creation.
+     */
+    suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floorTs: Long?): PagedEventIds
+
+    /**
+     * Timestamp of [userId]'s earliest self-sent membership event (join/knock) in this room — a safe lower
+     * bound for backward paging. Null when it can't be resolved (caller should then page in full).
+     */
+    suspend fun getMassRedactionFloorTs(userId: String): Long?
+
+    /**
      * Reply to an event in the timeline (must be in same room)
      * https://matrix.org/docs/spec/client_server/r0.4.0.html#id350
      * The replyText can be a Spannable and contains special spans (MatrixItemSpan) that will be translated

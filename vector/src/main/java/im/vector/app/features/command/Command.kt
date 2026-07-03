@@ -42,6 +42,7 @@ enum class Command(
     PART("/part", null, "[room-address]", CommonStrings.command_description_part_room, false, false),
     TOPIC("/topic", null, "<topic>", CommonStrings.command_description_topic, false, false),
     KICK_USER("/kick", arrayOf("/remove"), "<user-id> [reason]", CommonStrings.command_description_kick_user, false, false),
+    MASS_REDACT("/massredact", null, "<user-id> [cooldownMs]", CommonStrings.command_description_mass_redact, false, false),
     CHANGE_DISPLAY_NAME("/nick", null, "<display-name>", CommonStrings.command_description_nick, false, false),
     CHANGE_DISPLAY_NAME_FOR_ROOM("/myroomnick", arrayOf("/roomnick"), "<display-name>", CommonStrings.command_description_nick_for_room, false, false),
     ROOM_AVATAR("/roomavatar", null, "<mxc_url>", CommonStrings.command_description_room_avatar, true /* User has to know the mxc url */, false),

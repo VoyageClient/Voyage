@@ -43,5 +43,6 @@ data class ActionPermissions(
         val canKick: Boolean = false,
         val canBan: Boolean = false,
         val canInvite: Boolean = false,
-        val canEditPowerLevel: Boolean = false
+        val canEditPowerLevel: Boolean = false,
+        val canRedact: Boolean = false
 )

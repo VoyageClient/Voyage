@@ -37,6 +37,8 @@ import im.vector.app.features.crypto.verification.self.SelfVerificationBottomShe
 import im.vector.app.features.home.room.list.home.HomeRoomListFragment
 import im.vector.app.features.home.room.list.home.NewChatBottomSheet
 import im.vector.app.features.popup.PopupAlertManager
+import im.vector.app.features.redaction.MassRedactionBannerBinder
+import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.qrcode.QrCodeScannerActivity
 import im.vector.app.features.settings.VectorPreferences
@@ -65,6 +67,7 @@ class NewHomeDetailFragment :
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var buildMeta: BuildMeta
+    @Inject lateinit var massRedactionManager: MassRedactionManager
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val newHomeDetailViewModel: NewHomeDetailViewModel by fragmentViewModel()
@@ -114,6 +117,7 @@ class NewHomeDetailFragment :
         setupVerificationBanner()
         setupDebugButton()
         setupFabs()
+        MassRedactionBannerBinder.bind(views.massRedactionBanner, this, massRedactionManager)
 
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)

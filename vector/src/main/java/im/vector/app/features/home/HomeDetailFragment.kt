@@ -35,6 +35,8 @@ import im.vector.app.features.home.room.list.RoomListFragment
 import im.vector.app.features.home.room.list.RoomListParams
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.popup.PopupAlertManager
+import im.vector.app.features.redaction.MassRedactionBannerBinder
+import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity.Companion.EXTRA_DIRECT_ACCESS_SECURITY_PRIVACY_MANAGE_SESSIONS
@@ -59,6 +61,7 @@ class HomeDetailFragment :
     @Inject lateinit var alertManager: PopupAlertManager
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
+    @Inject lateinit var massRedactionManager: MassRedactionManager
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
@@ -104,6 +107,7 @@ class HomeDetailFragment :
         setupBottomNavigationView()
         setupToolbar()
         setupKeysBackupBanner()
+        MassRedactionBannerBinder.bind(views.massRedactionBanner, this, massRedactionManager)
 
         withState(viewModel) {
             // Update the navigation view if needed (for when we restore the tabs)
