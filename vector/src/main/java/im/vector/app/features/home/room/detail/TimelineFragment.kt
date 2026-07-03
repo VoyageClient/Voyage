@@ -868,6 +868,12 @@ class TimelineFragment :
     }
 
     private fun setupJumpToReadMarkerView() {
+        // The chip's rounded MaterialShapeDrawable background is drawn with clipPath, which a
+        // hardware-accelerated canvas ignores before API 18 (JELLY_BEAN_MR2), leaving no background.
+        // Render it into a software layer there so the pill shows.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            views.jumpToReadMarkerView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        }
         views.jumpToReadMarkerView.debouncedClicks {
             onJumpToReadMarkerClicked()
         }

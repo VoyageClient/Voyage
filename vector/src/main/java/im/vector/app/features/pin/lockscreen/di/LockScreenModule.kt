@@ -17,15 +17,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dagger.multibindings.IntoMap
-import im.vector.app.core.di.MavericksAssistedViewModelFactory
-import im.vector.app.core.di.MavericksViewModelKey
 import im.vector.app.features.pin.PinCodeStore
 import im.vector.app.features.pin.lockscreen.configuration.LockScreenConfiguration
 import im.vector.app.features.pin.lockscreen.configuration.LockScreenMode
 import im.vector.app.features.pin.lockscreen.crypto.migrations.LegacyPinCodeMigrator
 import im.vector.app.features.pin.lockscreen.pincode.EncryptedPinCodeStorage
-import im.vector.app.features.pin.lockscreen.ui.LockScreenViewModel
 import org.matrix.android.sdk.api.securestorage.SecretStoringUtils
 import org.matrix.android.sdk.api.util.BuildVersionSdkIntProvider
 import org.matrix.android.sdk.api.util.DefaultBuildVersionSdkIntProvider
@@ -84,11 +80,6 @@ object LockScreenModule {
 @Module
 @InstallIn(SingletonComponent::class)
 interface LockScreenBindsModule {
-
-    @Binds
-    @IntoMap
-    @MavericksViewModelKey(LockScreenViewModel::class)
-    fun bindLockScreenViewModel(factory: LockScreenViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     fun bindSharedPreferencesStorage(pinCodeStore: PinCodeStore): EncryptedPinCodeStorage

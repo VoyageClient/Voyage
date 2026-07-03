@@ -8,7 +8,6 @@
 package im.vector.app.core.di
 
 import androidx.lifecycle.ViewModel
-import com.airbnb.mvrx.MavericksViewModel
 import dagger.MapKey
 import kotlin.reflect.KClass
 
@@ -17,7 +16,12 @@ import kotlin.reflect.KClass
 @MapKey
 annotation class ViewModelKey(val value: KClass<out ViewModel>)
 
+/**
+ * Keyed by the ViewModel's fully-qualified class name, NOT its KClass: a Class-valued map key
+ * makes Dagger's generated map construction load every ViewModel class in the app up front,
+ * which blows Dalvik's 8MB LinearAlloc budget on ICS. Requires obfuscation to stay disabled.
+ */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
 @MapKey
-annotation class MavericksViewModelKey(val value: KClass<out MavericksViewModel<*>>)
+annotation class MavericksViewModelKey(val value: String)

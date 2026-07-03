@@ -13,18 +13,18 @@ import com.airbnb.mvrx.MavericksViewModel
 /**
  * This factory allows Mavericks to supply the initial or restored [MavericksState] to Hilt.
  *
- * Add this interface inside of your [MavericksViewModel] class then create the following Hilt module:
+ * Add this interface inside of your [MavericksViewModel] class, then register the factory in the
+ * per-group module in MavericksViewModelModule.kt that matches your ViewModel's package (see
+ * [mavericksViewModelGroupOf]):
  *
- * @Module
- * @InstallIn(MavericksViewModelComponent::class)
- * interface ViewModelsModule {
  *   @Binds
  *   @IntoMap
- *   @ViewModelKey(MyViewModel::class)
- *   fun myViewModelFactory(factory: MyViewModel.Factory): AssistedViewModelFactory<*, *>
- * }
+ *   @MavericksViewModelKey("im.vector.app.features.mine.MyViewModel")
+ *   fun myViewModelFactory(factory: MyViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
  *
- * If you already have a ViewModelsModule then all you have to do is add the multibinding entry for your new [MavericksViewModel].
+ * The bindings are split across sibling components (keyed by ViewModel FQN, not Class) so Dalvik's
+ * verifier doesn't resolve every ViewModel at once on ICS. Put the binding in the group whose
+ * [mavericksViewModelGroupOf] the ViewModel maps to, or it won't be found at runtime.
  */
 interface MavericksAssistedViewModelFactory<VM : MavericksViewModel<S>, S : MavericksState> {
     fun create(initialState: S): VM

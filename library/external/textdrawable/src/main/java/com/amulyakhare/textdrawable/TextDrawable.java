@@ -8,8 +8,10 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
+import android.os.Build;
 import android.graphics.drawable.shapes.RectShape;
 import android.graphics.drawable.shapes.RoundRectShape;
 
@@ -66,6 +68,18 @@ public class TextDrawable extends ShapeDrawable {
         Paint paint = getPaint();
         paint.setColor(color);
 
+    }
+
+    @Override
+    public Drawable mutate() {
+        // Pre-KitKat ShapeDrawable.mutate() builds `new Rect(padding)` from a null padding, and the
+        // framework Rect(Rect) there lacks a null check, so it NPEs (hit via ChipDrawable.setChipIcon
+        // when a letter-tile avatar is used as a pill icon). Seed a non-null (zero) padding so the
+        // super is safe. Must use the Rect overload: setPadding(0,0,0,0) resets padding to null.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            setPadding(new Rect());
+        }
+        return super.mutate();
     }
 
     private int getDarkerShade(int color) {

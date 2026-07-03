@@ -112,6 +112,9 @@ class VectorApplication :
         // time the rest of onCreate.
         im.vector.app.core.utils.PerfTrace.isEnabled = vectorPreferences.isPerfLoggingEnabled()
         org.matrix.android.sdk.api.util.MatrixPerf.isEnabled = im.vector.app.core.utils.PerfTrace.isEnabled
+        // Seed the hardware-derived Performance-mode default and mirror it for the hot render paths.
+        vectorPreferences.seedPerformanceModeDefaultIfNeeded()
+        im.vector.app.core.ui.PerformanceMode.enabled = vectorPreferences.isPerformanceModeEnabled()
         im.vector.app.core.utils.FrameJankWatcher.startIfEnabled()
         val perfMarker = im.vector.app.core.utils.PerfTrace.mark("app.onCreate")
         de.spiritcroc.matrixsdk.StaticScSdkHelper.scSdkPreferenceProvider = vectorPreferences

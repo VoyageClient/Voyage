@@ -74,6 +74,11 @@
             android:title="@string/settings_uglier_username_colors_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_PERFORMANCE_MODE_KEY"
+            android:summary="@string/settings_performance_mode_summary"
+            android:title="@string/settings_performance_mode_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
             android:key="SETTINGS_USE_TWEMOJI_KEY"
             android:summary="@string/settings_use_twemoji_summary"

@@ -19,6 +19,7 @@ import androidx.core.text.toSpannable
 import im.vector.app.EmojiSpanify
 import im.vector.app.features.html.AttachmentPillSpan
 import im.vector.app.core.linkify.VectorLinkify
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
@@ -64,7 +65,10 @@ fun CharSequence.findPillsAndProcess(scope: CoroutineScope, processBlock: (PillI
 
 // BlurMaskFilter (used by hidden spoilers) is ignored on a hardware layer, so switch the view to a
 // software layer whenever it still contains a blurred spoiler, and back once everything is revealed.
+// In performance mode there is no blur (spoilers render as a flat block, see SpoilerSpan), so keep the
+// cheaper hardware layer.
 fun TextView.applySpoilerRenderLayer() {
+    if (PerformanceMode.enabled) return
     val spanned = text as? Spanned
     val blurred = spanned?.getSpans(0, spanned.length, SpoilerSpan::class.java)?.any { it.blurFraction > 0f } ?: false
     val desired = if (blurred) View.LAYER_TYPE_SOFTWARE else View.LAYER_TYPE_NONE
