@@ -302,6 +302,7 @@ class EventHtmlRenderer @Inject constructor(
         // Editable so post-processors can collapse pill backing text to a placeholder (see setPillSpan).
         val renderedText = im.vector.app.core.utils.PerfTrace.time("html.markwonRender") { SpannableStringBuilder(markwon.render(node)) }
         collapseBlockQuotePadding(renderedText)
+        separateBlockQuoteTrailingContent(renderedText)
         // Block elements (a trailing <p>/<br>) leave a dangling newline/space Markwon doesn't strip. The
         // timeline happens to hide it, but the non-timeline surfaces that set this text directly (long-press,
         // reply header, reply composer) render it as a blank trailing line. Drop the trailing whitespace run
@@ -315,6 +316,30 @@ class EventHtmlRenderer @Inject constructor(
             }
         }
         renderedText
+    }
+
+    // A <blockquote> immediately followed by body text with no wrapping <p> (e.g. `</blockquote>trailing`)
+    // renders the trailing content on the quote's last line, because Markwon appends it inline. Match the
+    // plaintext body / element-web by separating the quote from the following content with a blank line.
+    private fun separateBlockQuoteTrailingContent(text: SpannableStringBuilder) {
+        val quotes = text.getSpans(0, text.length, QuoteMarginSpan::class.java)
+        if (quotes.isEmpty()) return
+        fun Char.isTrimable() = this == '\n' || this == ' ' || this == '\t'
+        // Collect edits first, then apply back-to-front so earlier indices stay valid as the buffer grows.
+        val edits = ArrayList<Pair<Int, Int>>()
+        for (quote in quotes) {
+            val spanEnd = text.getSpanEnd(quote).coerceIn(0, text.length)
+            var contentStart = spanEnd
+            while (contentStart < text.length && text[contentStart].isTrimable()) contentStart++
+            if (contentStart >= text.length) continue
+            // Skip when the following content is itself inside a quote (nested/adjacent blockquote).
+            if (text.getSpans(contentStart, contentStart + 1, QuoteMarginSpan::class.java).isNotEmpty()) continue
+            edits.add(spanEnd to contentStart)
+        }
+        edits.sortByDescending { it.first }
+        for ((start, end) in edits) {
+            text.replace(start, end, "\n\n")
+        }
     }
 
     // Senders often pad a blockquote with blank leading/trailing lines (e.g. `<blockquote>\n…\n</blockquote>`).
