@@ -24,7 +24,8 @@ data class TimelineItemFactoryParams(
         val lastSentEventIdWithoutReadReceipts: String? = null,
         val callback: TimelineEventController.Callback? = null,
         val reactionsSummaryEvents: ReactionsSummaryEvents? = null,
-        val eventsGroup: TimelineEventsGroup? = null
+        val eventsGroup: TimelineEventsGroup? = null,
+        val forcedVisibleEventIds: Set<String> = emptySet()
 ) {
 
     val highlightedEventId: String?

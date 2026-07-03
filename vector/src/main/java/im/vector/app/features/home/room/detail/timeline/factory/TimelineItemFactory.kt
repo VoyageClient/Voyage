@@ -45,7 +45,8 @@ class TimelineItemFactory @Inject constructor(
                             timelineEvent = event,
                             highlightedEventId = params.highlightedEventId,
                             isFromThreadTimeline = params.isFromThreadTimeline(),
-                            rootThreadEventId = params.rootThreadEventId
+                            rootThreadEventId = params.rootThreadEventId,
+                            forcedVisibleEventIds = params.forcedVisibleEventIds
                     )) {
                 return buildEmptyItem(
                         event,
