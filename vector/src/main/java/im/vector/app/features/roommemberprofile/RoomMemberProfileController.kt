@@ -38,6 +38,7 @@ class RoomMemberProfileController @Inject constructor(
         fun onMentionClicked()
         fun onEditPowerLevel(userPowerLevel: UserPowerLevel.Value)
         fun onKickClicked(isSpace: Boolean)
+        fun onRedactAllClicked()
         fun onBanClicked(isSpace: Boolean, isUserBanned: Boolean)
         fun onCancelInviteClicked()
         fun onInviteClicked()
@@ -180,7 +181,7 @@ class RoomMemberProfileController @Inject constructor(
                 editable = false,
                 title = stringProvider.getString(CommonStrings.room_member_override_nick_color),
                 subtitle = state.userColorOverride,
-                divider = !state.isMine,
+                divider = true,
                 action = { callback?.onOverrideColorClicked() }
         )
 
@@ -230,6 +231,17 @@ class RoomMemberProfileController @Inject constructor(
                 )
             }
         }
+
+        if (state.isMine) {
+            buildProfileAction(
+                    id = "redact_all",
+                    editable = false,
+                    destructive = true,
+                    divider = false,
+                    title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
+                    action = { callback?.onRedactAllClicked() }
+            )
+        }
     }
 
     private fun buildAdminSection(state: RoomMemberProfileViewState) {
@@ -237,15 +249,17 @@ class RoomMemberProfileController @Inject constructor(
         val roomPowerLevels = state.roomPowerLevels ?: return
         val userPowerLevel = roomPowerLevels.getUserPowerLevel(state.userId)
         val myPowerLevel = roomPowerLevels.getUserPowerLevel(session.myUserId)
-        if ((!state.isMine && myPowerLevel <= userPowerLevel)) {
-            return
-        }
         if (userPowerLevel !is UserPowerLevel.Value) return
         val membership = state.asyncMembership() ?: return
-        val canKick = !state.isMine && state.actionPermissions.canKick
-        val canBan = !state.isMine && state.actionPermissions.canBan
-        val canEditPowerLevel = state.actionPermissions.canEditPowerLevel
-        if (canKick || canBan || canEditPowerLevel) {
+        // Kick/ban/role can only be applied to someone you outrank. Redacting another user's messages,
+        // however, depends only on your own redact power level — not the target's rank — so it must also
+        // show for fellow moderators/admins. Self-redaction lives under "More" (see buildMoreSection).
+        val hasPowerOverTarget = state.isMine || myPowerLevel > userPowerLevel
+        val canKick = hasPowerOverTarget && !state.isMine && state.actionPermissions.canKick
+        val canBan = hasPowerOverTarget && !state.isMine && state.actionPermissions.canBan
+        val canEditPowerLevel = hasPowerOverTarget && state.actionPermissions.canEditPowerLevel
+        val canRedactAll = !state.isMine && state.actionPermissions.canRedact
+        if (canKick || canBan || canEditPowerLevel || canRedactAll) {
             buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_admin))
         }
         if (canEditPowerLevel) {
@@ -254,9 +268,19 @@ class RoomMemberProfileController @Inject constructor(
                     editable = true,
                     title = stringProvider.getString(CommonStrings.power_level_title),
                     subtitle = powerLevelsStr,
-                    divider = canKick || canBan,
+                    divider = canRedactAll || canKick || canBan,
                     editableRes = R.drawable.ic_edit,
                     action = { callback?.onEditPowerLevel(userPowerLevel) }
+            )
+        }
+        if (canRedactAll) {
+            buildProfileAction(
+                    id = "redact_all",
+                    editable = false,
+                    destructive = true,
+                    divider = canKick || canBan,
+                    title = stringProvider.getString(CommonStrings.room_participants_action_redact_all),
+                    action = { callback?.onRedactAllClicked() }
             )
         }
 

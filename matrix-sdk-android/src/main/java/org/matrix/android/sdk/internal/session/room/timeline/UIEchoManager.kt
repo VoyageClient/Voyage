@@ -39,8 +39,10 @@ internal class UIEchoManager(
 
     private val inMemorySendingEvents = Collections.synchronizedList<TimelineEvent>(ArrayList())
 
+    // synchronizedList only guards single ops; iterating (find/removeAll/toList) needs manual locking on
+    // the list, or a concurrent add (e.g. the redaction burst on another thread) throws ConcurrentModificationException.
     fun getInMemorySendingEvents(): List<TimelineEvent> {
-        return inMemorySendingEvents.toList()
+        return synchronized(inMemorySendingEvents) { ArrayList(inMemorySendingEvents) }
     }
 
     /**
@@ -52,14 +54,18 @@ internal class UIEchoManager(
 
     fun onSentEventsInDatabase(eventIds: List<String>) {
         // Remove in memory as soon as they are known by database
-        eventIds.forEach { eventId ->
-            inMemorySendingEvents.removeAll { eventId == it.eventId }
+        synchronized(inMemorySendingEvents) {
+            eventIds.forEach { eventId ->
+                inMemorySendingEvents.removeAll { eventId == it.eventId }
+            }
         }
-        inMemoryReactions.forEach { (_, uiEchoData) ->
-            uiEchoData.removeAll { data ->
-                // I remove the uiEcho, when the related event is not anymore in the sending list
-                // (means that it is synced)!
-                eventIds.find { it == data.localEchoId } == null
+        synchronized(inMemoryReactions) {
+            inMemoryReactions.forEach { (_, uiEchoData) ->
+                uiEchoData.removeAll { data ->
+                    // I remove the uiEcho, when the related event is not anymore in the sending list
+                    // (means that it is synced)!
+                    eventIds.find { it == data.localEchoId } == null
+                }
             }
         }
     }
@@ -156,13 +162,17 @@ internal class UIEchoManager(
     }
 
     fun onSyncedEvent(transactionId: String?) {
-        val sendingEvent = inMemorySendingEvents.find {
-            it.eventId == transactionId
+        synchronized(inMemorySendingEvents) {
+            val sendingEvent = inMemorySendingEvents.find {
+                it.eventId == transactionId
+            }
+            inMemorySendingEvents.remove(sendingEvent)
         }
-        inMemorySendingEvents.remove(sendingEvent)
         // Is it too early to clear it? will be done when removed from sending anyway?
-        inMemoryReactions.forEach { (_, u) ->
-            u.filterNot { it.localEchoId == transactionId }
+        synchronized(inMemoryReactions) {
+            inMemoryReactions.forEach { (_, u) ->
+                u.filterNot { it.localEchoId == transactionId }
+            }
         }
         inMemorySendingStates.remove(transactionId)
     }

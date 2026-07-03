@@ -612,6 +612,15 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.KickUser -> {
                             handleKickSlashCommand(room, parsedCommand)
                         }
+                        is ParsedCommand.MassRedact -> {
+                            val displayName = room.membershipService().getRoomMember(parsedCommand.userId)?.displayName ?: parsedCommand.userId
+                            _viewEvents.post(
+                                    MessageComposerViewEvents.ShowMassRedactConfirmation(
+                                            parsedCommand.userId, displayName, parsedCommand.delayMs ?: 0L
+                                    )
+                            )
+                            popDraft(room)
+                        }
                         is ParsedCommand.JoinRoom -> {
                             handleJoinToAnotherRoomSlashCommand(parsedCommand)
                             popDraft(room)

@@ -58,6 +58,7 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
         private val sessionParams: SessionParams,
         private val queuedTaskFactory: QueuedTaskFactory,
         private val taskExecutor: TaskExecutor,
+        private val localEchoRepository: org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository,
         private val memento: QueueMemento
 ) : EventSenderProcessor {
 
@@ -84,6 +85,8 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
         taskExecutor.executorScope.launch {
             Timber.d("## Send relaunched pending events on restart")
             try {
+                // Purge stuck bulk-redaction echoes before restoring anything, so a cold launch clears them.
+                localEchoRepository.clearAllSendingRedactions()
                 memento.restoreTasks(this@EventSenderProcessorCoroutine)
             } catch (failure: Throwable) {
                 Timber.e(failure, "Fail restoring send tasks")

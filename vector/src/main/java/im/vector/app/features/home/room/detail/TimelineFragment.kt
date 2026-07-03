@@ -84,6 +84,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.core.ui.views.FailedMessagesWarningView
 import im.vector.app.core.ui.views.NotificationAreaView
+import im.vector.app.core.ui.views.MassRedactionBannerView
 import im.vector.app.core.ui.views.PinnedMessagesBannerView
 import im.vector.app.core.utils.Debouncer
 import im.vector.app.core.utils.DimensionConverter
@@ -328,6 +329,7 @@ class TimelineFragment :
         setupJumpToReadMarkerView()
         setupJumpToBottomView()
         setupPinnedMessagesBanner()
+        setupMassRedactionBanner()
         setupLiveLocationIndicator()
         setupBackPressHandling()
         setupVoiceRecorderStacking()
@@ -746,6 +748,25 @@ class TimelineFragment :
     override fun onDestroy() {
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
         super.onDestroy()
+    }
+
+    private fun setupMassRedactionBanner() {
+        views.massRedactionBanner.callback = object : MassRedactionBannerView.Callback {
+            override fun onMassRedactionPauseToggled() {
+                timelineViewModel.handle(RoomDetailAction.MassRedactionPauseToggle)
+            }
+
+            override fun onMassRedactionCancelled() {
+                MaterialAlertDialogBuilder(requireActivity())
+                        .setTitle(CommonStrings.mass_redaction_cancel_confirmation_title)
+                        .setMessage(CommonStrings.mass_redaction_cancel_confirmation_message)
+                        .setPositiveButton(android.R.string.ok) { _, _ ->
+                            timelineViewModel.handle(RoomDetailAction.MassRedactionCancel)
+                        }
+                        .setNegativeButton(CommonStrings.action_cancel, null)
+                        .show()
+            }
+        }
     }
 
     private fun setupPinnedMessagesBanner() {
@@ -1345,6 +1366,7 @@ class TimelineFragment :
         val summary = mainState.asyncRoomSummary()
         renderToolbar(summary)
         renderPinnedMessagesBanner(mainState)
+        views.massRedactionBanner.render(mainState.massRedactionState)
         if (mainState.hasFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.isVisible = true
         } else {

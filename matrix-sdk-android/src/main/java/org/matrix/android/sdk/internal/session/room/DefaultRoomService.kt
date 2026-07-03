@@ -134,7 +134,7 @@ internal class DefaultRoomService @Inject constructor(
         if (roomSummaries.isNotEmpty()) {
             kotlinx.coroutines.runBlocking {
                 database.awaitDbTransaction(dispatcher) {
-                    roomSummaries.forEach { roomSummaryUpdater.refreshLatestPreviewableEvent(stores, it.roomId) }
+                    roomSummaries.forEach { roomSummaryUpdater.refreshLatestPreviewableEvent(stores, it.roomId, thorough = true) }
                 }
             }
         }

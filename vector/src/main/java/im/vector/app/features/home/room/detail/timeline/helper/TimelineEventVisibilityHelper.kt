@@ -36,61 +36,6 @@ class TimelineEventVisibilityHelper @Inject constructor(
     }
 
     /**
-     * @param timelineEvents the events to search in, sorted from oldest event to newer event
-     * @param index the index to start computing (inclusive)
-     * @param minSize the minimum number of same type events to have sequentially, otherwise will return an empty list
-     * @param eventIdToHighlight used to compute visibility
-     * @param rootThreadEventId the root thread event id if in a thread timeline
-     * @param isFromThreadTimeline true if the timeline is a thread
-     * @param predicateToStop events are taken until this condition is met
-     *
-     * @return a list of timeline events which meet sequentially the same criteria following the next direction.
-     */
-    private fun nextEventsUntil(
-            timelineEvents: List<TimelineEvent>,
-            index: Int,
-            minSize: Int,
-            eventIdToHighlight: String?,
-            rootThreadEventId: String?,
-            isFromThreadTimeline: Boolean,
-            excludeHiddenEvents: Boolean = false,
-            predicateToStop: PredicateToStopSearch
-    ): List<TimelineEvent> {
-        if (index >= timelineEvents.size - 1) {
-            return emptyList()
-        }
-        val timelineEvent = timelineEvents[index]
-        val nextSubList = timelineEvents.subList(index, timelineEvents.size)
-        val indexOfNextDay = nextSubList.indexOfFirst {
-            val date = it.root.localDateTime()
-            val nextDate = timelineEvent.root.localDateTime()
-            date.toLocalDate() != nextDate.toLocalDate()
-        }
-        val nextSameDayEvents = if (indexOfNextDay == -1) {
-            nextSubList
-        } else {
-            nextSubList.subList(0, indexOfNextDay)
-        }
-        val indexOfFirstDifferentEvent = nextSameDayEvents.indexOfFirst {
-            predicateToStop.shouldStopSearch(oldEvent = timelineEvent.root, newEvent = it.root)
-        }
-        val similarEvents = if (indexOfFirstDifferentEvent == -1) {
-            nextSameDayEvents
-        } else {
-            nextSameDayEvents.subList(0, indexOfFirstDifferentEvent)
-        }
-        val filteredSimilarEvents = similarEvents.filter {
-            shouldShowEvent(
-                    timelineEvent = it,
-                    highlightedEventId = eventIdToHighlight,
-                    isFromThreadTimeline = isFromThreadTimeline,
-                    rootThreadEventId = rootThreadEventId
-            ) && !(excludeHiddenEvents && isHiddenEvent(it, rootThreadEventId, isFromThreadTimeline))
-        }
-        return if (filteredSimilarEvents.size < minSize) emptyList() else filteredSimilarEvents
-    }
-
-    /**
      * @param timelineEvents the events to search in, sorted from newer event to oldest event
      * @param index the index to start computing (inclusive)
      * @param minSize the minimum number of same type events to have sequentially, otherwise will return an empty list
@@ -108,16 +53,51 @@ class TimelineEventVisibilityHelper @Inject constructor(
             rootThreadEventId: String?,
             isFromThreadTimeline: Boolean
     ): List<TimelineEvent> {
-        val prevSub = timelineEvents.subList(0, index + 1)
-        return prevSub
-                .reversed()
-                .let {
-                    nextEventsUntil(it, 0, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline, excludeHiddenEvents = true, predicateToStop = object : PredicateToStopSearch {
-                        override fun shouldStopSearch(oldEvent: Event, newEvent: Event): Boolean {
-                            return oldEvent.timelineMergeGroupType() != newEvent.timelineMergeGroupType()
-                        }
-                    })
-                }
+        return collectPrevRun(
+                timelineEvents, index, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline,
+                excludeHiddenEvents = true, skipNonDisplayable = false,
+                predicateToStop = object : PredicateToStopSearch {
+                    override fun shouldStopSearch(oldEvent: Event, newEvent: Event): Boolean {
+                        return oldEvent.timelineMergeGroupType() != newEvent.timelineMergeGroupType()
+                    }
+                })
+    }
+
+    /**
+     * Collect a merged run ending at [index] (the anchor / oldest event), walking toward newer events (index
+     * decreasing) within the same day until [predicateToStop] fires against the anchor. O(run length) — no
+     * whole-prefix subList/filter/reverse, so re-enriching many anchors stays O(total events), not O(n²).
+     *
+     * @param excludeHiddenEvents drop hidden events from the collected result (they still count for stops).
+     * @param skipNonDisplayable when true, non-shown events are ignored entirely (not collected, don't break
+     *   the run nor the day scan) — matches the redacted grouping which pre-filters to displayable events.
+     */
+    private fun collectPrevRun(
+            timelineEvents: List<TimelineEvent>,
+            index: Int,
+            minSize: Int,
+            eventIdToHighlight: String?,
+            rootThreadEventId: String?,
+            isFromThreadTimeline: Boolean,
+            excludeHiddenEvents: Boolean,
+            skipNonDisplayable: Boolean,
+            predicateToStop: PredicateToStopSearch,
+    ): List<TimelineEvent> {
+        val anchor = timelineEvents.getOrNull(index) ?: return emptyList()
+        val anchorDate = anchor.root.localDateTime().toLocalDate()
+        val collected = ArrayList<TimelineEvent>()
+        var i = index
+        while (i >= 0) {
+            val candidate = timelineEvents[i]
+            val shown = shouldShowEvent(candidate, eventIdToHighlight, isFromThreadTimeline, rootThreadEventId) &&
+                    !(excludeHiddenEvents && isHiddenEvent(candidate, rootThreadEventId, isFromThreadTimeline))
+            if (skipNonDisplayable && !shown) { i--; continue }
+            if (candidate.root.localDateTime().toLocalDate() != anchorDate) break
+            if (predicateToStop.shouldStopSearch(anchor.root, candidate.root)) break
+            if (shown) collected.add(candidate)
+            i--
+        }
+        return if (collected.size < minSize) emptyList() else collected
     }
 
     /**
@@ -138,23 +118,14 @@ class TimelineEventVisibilityHelper @Inject constructor(
             rootThreadEventId: String?,
             isFromThreadTimeline: Boolean
     ): List<TimelineEvent> {
-        val prevDisplayableEvents = timelineEvents.subList(0, index + 1)
-                .filter {
-                    shouldShowEvent(
-                            timelineEvent = it,
-                            highlightedEventId = eventIdToHighlight,
-                            isFromThreadTimeline = isFromThreadTimeline,
-                            rootThreadEventId = rootThreadEventId)
-                }
-        return prevDisplayableEvents
-                .reversed()
-                .let {
-                    nextEventsUntil(it, 0, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline, predicateToStop = object : PredicateToStopSearch {
-                        override fun shouldStopSearch(oldEvent: Event, newEvent: Event): Boolean {
-                            return !newEvent.isRedacted()
-                        }
-                    })
-                }
+        return collectPrevRun(
+                timelineEvents, index, minSize, eventIdToHighlight, rootThreadEventId, isFromThreadTimeline,
+                excludeHiddenEvents = false, skipNonDisplayable = true,
+                predicateToStop = object : PredicateToStopSearch {
+                    override fun shouldStopSearch(oldEvent: Event, newEvent: Event): Boolean {
+                        return !newEvent.isRedacted()
+                    }
+                })
     }
 
     /**
@@ -180,7 +151,9 @@ class TimelineEventVisibilityHelper @Inject constructor(
         while (i >= 0) {
             val candidate = timelineEvents[i]
             if (candidate.root.localDateTime().toLocalDate() != startDate) break
-            if (!isHiddenEvent(candidate, rootThreadEventId, isFromThreadTimeline)) break
+            // A redacted event is owned by the redacted summary, not the hidden one (see isHiddenRunMember);
+            // stop the hidden run at it so the two groupings agree on the boundary.
+            if (candidate.root.isRedacted() || !isHiddenEvent(candidate, rootThreadEventId, isFromThreadTimeline)) break
             result.add(candidate)
             i--
         }

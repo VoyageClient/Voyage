@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
@@ -60,6 +61,7 @@ class RoomMemberListViewModel @AssistedInject constructor(
     private val roomFlow = room.flow()
 
     init {
+        ensureAllMembersLoaded()
         observeRoomMemberSummaries()
         observeThirdPartyInvites()
         observeRoomSummary()
@@ -67,9 +69,23 @@ class RoomMemberListViewModel @AssistedInject constructor(
         observeIgnoredUsers()
     }
 
+    // The member-list screen relied on the full /members load having happened elsewhere. If that load never
+    // ran or was starved (e.g. sync stalled during a mass redaction), only the lazily-seen members show
+    // ("3 people"). Trigger it here so opening the list always fetches the complete membership.
+    private fun ensureAllMembersLoaded() {
+        viewModelScope.launch {
+            tryOrNull("Failed to load room members") {
+                room.membershipService().loadRoomMembersIfNeeded()
+            }
+        }
+    }
+
     private fun observeRoomMemberSummaries() {
         val roomMemberQueryParams = roomMemberQueryParams {
-            displayName = QueryStringValue.IsNotEmpty
+            // The builder defaults displayName to IsNotEmpty, which silently drops members with no display
+            // name — invited users who haven't set one, and anyone whose membership was redacted. Query with
+            // NoCondition so they still show, keyed by their user id.
+            displayName = QueryStringValue.NoCondition
             memberships = Membership.activeMemberships()
         }
 
@@ -78,7 +94,7 @@ class RoomMemberListViewModel @AssistedInject constructor(
                 roomFlow.liveRoomMembers(roomMemberQueryParams),
                 powerLevelsFlow,
         ) { roomMembers, roomPowerLevels ->
-            buildRoomMemberSummaries(roomPowerLevels, roomMembers)
+            buildRoomMemberSummaries(roomPowerLevels, ensureSelfPresent(roomMembers))
         }
                 .execute { async ->
                     copy(roomMemberSummaries = async)
@@ -178,6 +194,14 @@ class RoomMemberListViewModel @AssistedInject constructor(
                             ignoredUserIds = async.invoke().orEmpty().map { it.userId }
                     )
                 }
+    }
+
+    // Redacting your own (or someone's) membership event can make the summary query drop them; make sure the
+    // current user always appears if a summary exists for them at all.
+    private fun ensureSelfPresent(roomMembers: List<RoomMemberSummary>): List<RoomMemberSummary> {
+        if (roomMembers.any { it.userId == session.myUserId }) return roomMembers
+        val self = room.membershipService().getRoomMember(session.myUserId) ?: return roomMembers
+        return roomMembers + self
     }
 
     private fun buildRoomMemberSummaries(roomPowerLevels: RoomPowerLevels, roomMembers: List<RoomMemberSummary>): RoomMembersByRole {

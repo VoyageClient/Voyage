@@ -15,6 +15,7 @@ sealed class RoomMemberProfileAction : VectorViewModelAction {
     object IgnoreUser : RoomMemberProfileAction()
     data class BanOrUnbanUser(val reason: String?) : RoomMemberProfileAction()
     data class KickUser(val reason: String?) : RoomMemberProfileAction()
+    object RedactAllMessages : RoomMemberProfileAction()
     object InviteUser : RoomMemberProfileAction()
     object VerifyUser : RoomMemberProfileAction()
     object ShareRoomMemberProfile : RoomMemberProfileAction()

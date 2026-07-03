@@ -79,6 +79,7 @@ import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.expandPillSpans
 import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.location.LocationSharingMode
+import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.poll.PollMode
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.settings.VectorPreferences
@@ -120,6 +121,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var emoteShortcodeProcessor: im.vector.app.features.imagepack.EmoteShortcodeProcessor
     @Inject lateinit var emojiPickerSectionFactory: im.vector.app.features.reactions.EmojiPickerSectionFactory
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
+    @Inject lateinit var massRedactionManager: MassRedactionManager
 
     private val roomId: String get() = withState(timelineViewModel) { it.roomId }
 
@@ -190,6 +192,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 is MessageComposerViewEvents.ShowRoomUpgradeDialog -> handleShowRoomUpgradeDialog(it)
                 is MessageComposerViewEvents.AnimateSendButtonVisibility -> handleSendButtonVisibilityChanged(it)
                 is MessageComposerViewEvents.OpenRoomMemberProfile -> openRoomMemberProfile(it.userId)
+                is MessageComposerViewEvents.ShowMassRedactConfirmation -> handleMassRedactConfirmation(it)
                 is MessageComposerViewEvents.OpenRoomLink -> navigator.openMatrixToBottomSheet(requireActivity(), it.link, OriginOfMatrixTo.LINK)
                 is MessageComposerViewEvents.VoicePlaybackOrRecordingFailure -> {
                     if (it.throwable is VoiceFailure.UnableToRecord) {
@@ -662,6 +665,21 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         val roomId = withState(timelineViewModel) { it.roomId }
         MigrateRoomBottomSheet.newInstance(roomId, roomDetailViewEvents.newVersion)
                 .show(parentFragmentManager, tag)
+    }
+
+    private fun handleMassRedactConfirmation(event: MessageComposerViewEvents.ShowMassRedactConfirmation) {
+        val target = if (event.displayName != event.userId) "${event.displayName} (${event.userId})" else event.userId
+        MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(CommonStrings.mass_redaction_confirmation_title)
+                .setMessage(getString(CommonStrings.mass_redaction_confirmation_message, target))
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    val result = massRedactionManager.start(roomId, event.userId, event.displayName, event.delayMs)
+                    if (result == MassRedactionManager.StartResult.AlreadyRunning) {
+                        Toast.makeText(requireContext(), CommonStrings.mass_redaction_already_running, Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
     }
 
     private fun openRoomMemberProfile(userId: String) {

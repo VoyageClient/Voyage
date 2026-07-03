@@ -17,13 +17,13 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
-import im.vector.app.core.mvrx.runCatchingToAsync
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -48,8 +48,8 @@ import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.user.model.User
+import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
-import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 
@@ -58,6 +58,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         private val stringProvider: StringProvider,
         private val matrixItemColorProvider: MatrixItemColorProvider,
         private val directRoomHelper: DirectRoomHelper,
+        private val massRedactionManager: MassRedactionManager,
         private val session: Session
 ) : VectorViewModel<RoomMemberProfileViewState, RoomMemberProfileAction, RoomMemberProfileViewEvents>(initialState) {
 
@@ -99,6 +100,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     canBan = initialRoomPowerLevels.isUserAbleToBan(session.myUserId),
                     canInvite = initialRoomPowerLevels.isUserAbleToInvite(session.myUserId),
                     canEditPowerLevel = initialRoomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_POWER_LEVELS),
+                    canRedact = initialRoomPowerLevels.isUserAbleToRedact(session.myUserId),
             )
         } else {
             ActionPermissions()
@@ -106,12 +108,16 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         setState {
             copy(
                     isMine = session.myUserId == this.userId,
-                    userMatrixItem = room?.membershipService()?.getRoomMember(initialState.userId)?.toMatrixItem()?.let { Success(it) } ?: Uninitialized,
+                    // Always resolve to at least the mxid item, so a redacted/absent membership shows the
+                    // user tag as the display name instead of leaving the profile stuck on loading.
+                    userMatrixItem = Success(room?.membershipService()?.getRoomMember(initialState.userId)?.toMatrixItem()
+                            ?: MatrixItem.UserItem(initialState.userId)),
                     hasReadReceipt = room?.readService()?.getUserReadReceipt(initialState.userId) != null,
                     isSpace = initialRoomSummary?.roomType == RoomType.SPACE,
                     roomPowerLevels = initialRoomPowerLevels,
                     actionPermissions = initialPermissions,
                     userPowerLevelString = initialUserPowerLevelString?.let { Success(it) } ?: Uninitialized,
+                    asyncMembership = initialRoomMember?.membership?.let { Success(it) } ?: Uninitialized,
             )
         }
         observeIgnoredState()
@@ -188,6 +194,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             is RoomMemberProfileAction.SetPowerLevel -> handleSetPowerLevel(action)
             is RoomMemberProfileAction.BanOrUnbanUser -> handleBanOrUnbanAction(action)
             is RoomMemberProfileAction.KickUser -> handleKickAction(action)
+            RoomMemberProfileAction.RedactAllMessages -> handleRedactAllMessages()
             RoomMemberProfileAction.InviteUser -> handleInviteAction()
             is RoomMemberProfileAction.SetUserColorOverride -> handleSetUserColorOverride(action)
             is RoomMemberProfileAction.OpenOrCreateDm -> handleOpenOrCreateDm(action)
@@ -307,6 +314,15 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
     }
 
+    private fun handleRedactAllMessages() = withState { state ->
+        val roomId = state.roomId ?: return@withState
+        val displayName = state.userMatrixItem()?.getBestName() ?: state.userId
+        val result = massRedactionManager.start(roomId, state.userId, displayName, delayMs = 0L)
+        if (result == MassRedactionManager.StartResult.AlreadyRunning) {
+            _viewEvents.post(RoomMemberProfileViewEvents.MassRedactionAlreadyRunning)
+        }
+    }
+
     private fun handleBanOrUnbanAction(action: RoomMemberProfileAction.BanOrUnbanUser) = withState { state ->
         if (room == null) {
             return@withState
@@ -330,19 +346,25 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     private fun observeRoomMemberSummary(room: Room) {
         val queryParams = roomMemberQueryParams {
             this.userId = QueryStringValue.Equals(initialState.userId, QueryStringValue.Case.SENSITIVE)
+            // The builder defaults displayName to IsNotEmpty; a redacted/empty-profile member has none, so
+            // that default would drop them from the live query — leaving asyncMembership unresolved and
+            // every membership-dependent action (ignore/invite/kick/ban/role) hidden. Query unconditionally.
+            displayName = QueryStringValue.NoCondition
         }
         room.flow().liveRoomMembers(queryParams)
-                .map { it.firstOrNull().toOptional() }
-                .unwrap()
+                .map { it.firstOrNull() }
                 .execute {
-                    when (it) {
-                        is Loading -> copy(userMatrixItem = Loading(), asyncMembership = Loading())
-                        is Success -> copy(
-                                userMatrixItem = Success(it().toMatrixItem()),
-                                asyncMembership = Success(it().membership)
+                    val member = it()
+                    when {
+                        it is Fail -> copy(userMatrixItem = Fail(it.error), asyncMembership = Fail(it.error))
+                        member != null -> copy(
+                                userMatrixItem = Success(member.toMatrixItem()),
+                                asyncMembership = Success(member.membership)
                         )
-                        is Fail -> copy(userMatrixItem = Fail(it.error), asyncMembership = Fail(it.error))
-                        is Uninitialized -> this
+                        // No summary (e.g. membership event redacted): keep the mxid fallback rather than
+                        // regressing to Loading, which would leave the profile stuck.
+                        it is Success -> copy(userMatrixItem = Success(MatrixItem.UserItem(initialState.userId)))
+                        else -> this
                     }
                 }
     }
@@ -354,15 +376,17 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private suspend fun fetchProfileInfo() {
-        val result = runCatchingToAsync {
+        val item = try {
             session.profileService()
                     .getProfile(initialState.userId)
                     .let { User.fromJson(initialState.userId, it) }
                     .toMatrixItem()
+        } catch (throwable: Throwable) {
+            // Fall back to the mxid so the profile opens with the user tag rather than getting stuck.
+            MatrixItem.UserItem(initialState.userId)
         }
-
         setState {
-            copy(userMatrixItem = result)
+            copy(userMatrixItem = Success(item))
         }
     }
 
@@ -375,7 +399,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                             canKick = roomPowerLevels.isUserAbleToKick(session.myUserId),
                             canBan = roomPowerLevels.isUserAbleToBan(session.myUserId),
                             canInvite = roomPowerLevels.isUserAbleToInvite(session.myUserId),
-                            canEditPowerLevel = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_POWER_LEVELS)
+                            canEditPowerLevel = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_POWER_LEVELS),
+                            canRedact = roomPowerLevels.isUserAbleToRedact(session.myUserId)
                     )
                     setState {
                         copy(roomPowerLevels = roomPowerLevels, actionPermissions = permissions)

@@ -11,6 +11,7 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
+import im.vector.app.features.redaction.MassRedactionState
 import im.vector.app.features.share.SharedData
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -62,6 +63,7 @@ data class RoomDetailViewState(
         val showKeyboardWhenPresented: Boolean = false,
         val sharedData: SharedData? = null,
         val pinnedEvents: List<TimelineEvent> = emptyList(),
+        val massRedactionState: MassRedactionState? = null,
 ) : MavericksState {
 
     constructor(args: TimelineArgs) : this(

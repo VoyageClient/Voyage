@@ -45,6 +45,7 @@ import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
 import im.vector.app.features.notifications.NotificationDrawerManager
+import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.raw.wellknown.CryptoConfig
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.pgp.PgpKeyStore
@@ -153,6 +154,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val spaceStateHandler: SpaceStateHandler,
         private val voteToPollUseCase: VoteToPollUseCase,
         private val getPinnedEventsUseCase: GetPinnedEventsUseCase,
+        private val massRedactionManager: MassRedactionManager,
         private val recentEmojiDataSource: RecentEmojiDataSource,
         private val displayableEventFormatter: DisplayableEventFormatter,
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
@@ -255,6 +257,7 @@ class TimelineViewModel @AssistedInject constructor(
         observeActiveRoomWidgets()
         observePowerLevel()
         observePinnedEvents()
+        observeMassRedaction()
         setupPreviewUrlObservers()
         setupInReplyToObserver()
         viewModelScope.launch(Dispatchers.IO) {
@@ -269,6 +272,12 @@ class TimelineViewModel @AssistedInject constructor(
         // Inform the SDK that the room is displayed
         viewModelScope.launch(Dispatchers.IO) {
             tryOrNull { session.roomService().onRoomDisplayed(initialState.roomId) }
+        }
+        // Recompute the room-list preview + activity time from what's now loaded. Opening a room where the
+        // last synced events were non-previewable (e.g. a redaction batch) leaves the summary stale until a
+        // sync touches it; this corrects it immediately on open.
+        viewModelScope.launch(Dispatchers.IO) {
+            tryOrNull { session.roomService().refreshJoinedRoomSummaryPreviews(initialState.roomId) }
         }
 
         // Ensure to share the outbound session keys with all members
@@ -369,6 +378,13 @@ class TimelineViewModel @AssistedInject constructor(
                 .onEach { pinnedEvents ->
                     setState { copy(pinnedEvents = pinnedEvents) }
                 }
+                .launchIn(viewModelScope)
+    }
+
+    private fun observeMassRedaction() {
+        // The job is app-wide, so its banner shows in every room (and on the room list), not just the target.
+        massRedactionManager.stream()
+                .onEach { state -> setState { copy(massRedactionState = state) } }
                 .launchIn(viewModelScope)
     }
 
@@ -552,6 +568,8 @@ class TimelineViewModel @AssistedInject constructor(
             }
             is RoomDetailAction.EndPoll -> handleEndPoll(action.eventId)
             RoomDetailAction.StopLiveLocationSharing -> handleStopLiveLocationSharing()
+            RoomDetailAction.MassRedactionPauseToggle -> massRedactionManager.togglePause()
+            RoomDetailAction.MassRedactionCancel -> massRedactionManager.cancel()
         }
     }
 

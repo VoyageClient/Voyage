@@ -21,9 +21,12 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.message.PollType
+import org.matrix.android.sdk.api.session.room.model.relation.PagedEventIds
 import org.matrix.android.sdk.api.session.room.model.relation.RelationService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.Cancelable
@@ -37,6 +40,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
+import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.SqlTimelineEventDataSource
 import timber.log.Timber
 
@@ -48,6 +52,10 @@ internal class DefaultRelationService @AssistedInject constructor(
         private val findReactionEventForUndoTask: FindReactionEventForUndoTask,
         private val fetchEditHistoryTask: FetchEditHistoryTask,
         private val fetchReactionsTask: FetchReactionsTask,
+        private val fetchUserEventsTask: FetchUserEventsTask,
+        private val getEventTask: GetEventTask,
+        private val redactEventTask: org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask,
+        private val localEchoRepository: org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository,
         private val timelineEventDataSource: SqlTimelineEventDataSource,
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
@@ -141,6 +149,53 @@ internal class DefaultRelationService @AssistedInject constructor(
         return fetchReactionsTask.execute(FetchReactionsTask.Params(roomId, eventId))
     }
 
+    override suspend fun clearSendingRedactions() {
+        // Remove any stuck local-echo redactions (legacy of the echo-based path) so they stop showing as
+        // "sending" forever. The no-echo path doesn't create these.
+        val stuck = stores.timelineEvent.getSendingByRoom(roomId)
+                .filter { it.root?.type == EventType.REDACTION }
+        Timber.i("massredact: clearing ${stuck.size} stuck sending redactions in $roomId")
+        stuck.forEach { localEchoRepository.deleteFailedEcho(roomId, it.eventId) }
+    }
+
+    override suspend fun redactEventNoEcho(eventId: String, reason: String?) {
+        redactEventTask.execute(
+                org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask.Params(
+                        txID = java.util.UUID.randomUUID().toString(),
+                        roomId = roomId,
+                        eventId = eventId,
+                        reason = reason,
+                        withRelTypes = null,
+                )
+        )
+    }
+
+    override fun getLocalEventIdsFromUser(userId: String): List<String> {
+        return stores.event.getRedactableEventIdsBySender(roomId, userId)
+    }
+
+    override suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floorTs: Long?): PagedEventIds {
+        val result = fetchUserEventsTask.execute(FetchUserEventsTask.Params(roomId, userId, fromToken, floorTs))
+        return PagedEventIds(result.eventIds, result.nextToken)
+    }
+
+    // A user can't have sent anything before their earliest self-sent membership event (join/knock), so
+    // that event's timestamp is a safe floor for backward paging. Walk the m.room.member replaces_state
+    // chain to the start; only return a floor when the walk resolves fully — otherwise null (page in full)
+    // so we never stop early and miss events.
+    override suspend fun getMassRedactionFloorTs(userId: String): Long? {
+        var eventId = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.eventId ?: return null
+        var earliestSelfTs: Long? = null
+        var hops = 0
+        while (hops++ < MAX_MEMBERSHIP_HOPS) {
+            val event = tryOrNull { getEventTask.execute(GetEventTask.Params(roomId, eventId)) } ?: return null
+            if (event.senderId == userId) earliestSelfTs = event.originServerTs ?: earliestSelfTs
+            val prev = event.unsignedData?.replacesState ?: return earliestSelfTs
+            eventId = prev
+        }
+        return null
+    }
+
     override fun replyToMessage(
             eventReplied: TimelineEvent,
             replyText: CharSequence,
@@ -224,5 +279,9 @@ internal class DefaultRelationService @AssistedInject constructor(
      */
     private fun saveLocalEcho(event: Event) {
         eventFactory.createLocalEcho(event)
+    }
+
+    companion object {
+        private const val MAX_MEMBERSHIP_HOPS = 100
     }
 }

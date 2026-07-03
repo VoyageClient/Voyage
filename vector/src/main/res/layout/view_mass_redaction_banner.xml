@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="?android:colorBackground"
+    tools:parentTag="android.widget.LinearLayout">
+
+    <View
+        android:id="@+id/massRedactionTopDivider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?vctr_list_separator_on_surface"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/massRedactionLabel"
+                style="@style/Widget.Vector.TextView.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?colorPrimary"
+                tools:text="Redacting messages from Alice…" />
+
+            <ProgressBar
+                android:id="@+id/massRedactionProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:indeterminate="false"
+                android:max="100"
+                android:progressTint="?colorPrimary"
+                tools:progress="30" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/massRedactionCount"
+            style="@style/Widget.Vector.TextView.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="?vctr_content_secondary"
+            tools:text="30/100" />
+
+        <ImageButton
+            android:id="@+id/massRedactionPauseButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mass_redaction_pause"
+            app:srcCompat="@drawable/ic_pause"
+            app:tint="?colorPrimary" />
+
+        <ImageButton
+            android:id="@+id/massRedactionCancelButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mass_redaction_cancel"
+            app:srcCompat="@drawable/ic_close_24dp"
+            app:tint="?vctr_content_secondary" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?vctr_list_separator_on_surface" />
+
+</merge>

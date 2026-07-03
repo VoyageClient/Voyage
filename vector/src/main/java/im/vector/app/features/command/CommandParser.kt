@@ -239,6 +239,17 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.KICK_USER)
                     }
                 }
+                Command.MASS_REDACT.matches(slashCommand) -> {
+                    val userId = messageParts.getOrNull(1)
+                    val cooldownPart = messageParts.getOrNull(2)
+                    val cooldown = cooldownPart?.toLongOrNull()
+                    when {
+                        userId == null || !MatrixPatterns.isUserId(userId) -> ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                        // A cooldown token, if given, must be a non-negative integer.
+                        cooldownPart != null && (cooldown == null || cooldown < 0) -> ParsedCommand.ErrorSyntax(Command.MASS_REDACT)
+                        else -> ParsedCommand.MassRedact(userId, cooldown)
+                    }
+                }
                 Command.BAN_USER.matches(slashCommand) -> {
                     if (messageParts.size >= 2) {
                         val userId = messageParts[1]

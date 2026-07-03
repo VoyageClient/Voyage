@@ -46,6 +46,9 @@ internal class EncryptedReferenceAggregationProcessor @Inject constructor() {
         val poll = stores.annotations.get(annotationId)?.pollResponseSummary ?: return
         if (eventId !in poll.encryptedRelatedEventIds) {
             poll.encryptedRelatedEventIds.add(eventId)
+            // Touch event_annotations_summary so the timeline's annotation-change flow fires (it doesn't watch
+            // the poll-response table) — see handleReactionRedact.
+            stores.annotations.upsertSummary(annotationId, event.roomId)
             stores.annotations.upsertPollResponse(annotationId, poll)
         }
     }

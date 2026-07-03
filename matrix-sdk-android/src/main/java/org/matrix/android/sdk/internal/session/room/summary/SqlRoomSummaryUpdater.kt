@@ -58,9 +58,16 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         private val roomSummaryEventsHelper: SqlRoomSummaryEventsHelper,
 ) {
 
-    fun refreshLatestPreviewableEvent(stores: SessionStores, roomId: String) {
+    fun refreshLatestPreviewableEvent(stores: SessionStores, roomId: String, thorough: Boolean = false) {
         val entity = stores.roomSummary.get(roomId) ?: return
-        entity.latestPreviewableEvent = roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId)
+        val latestPreviewableEvent = roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId, thorough)
+        // Only advance when we actually found a previewable message — don't wipe a known-good last message
+        // and its date just because the current chunk's newest events are non-previewable. Advancing the
+        // activity time here is what lets opening a room correct a stale/missing room-list preview + date.
+        if (latestPreviewableEvent != null) {
+            entity.latestPreviewableEvent = latestPreviewableEvent
+            latestPreviewableEvent.root?.originServerTs?.let { entity.lastActivityTime = it }
+        }
         stores.roomSummary.upsert(entity)
     }
 
@@ -117,9 +124,14 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         val encryptionEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_ENCRYPTION, "")?.root
 
         val latestPreviewableEvent = roomSummaryEventsHelper.getLatestPreviewableEvent(stores, roomId)
-        latestPreviewableEvent?.root?.originServerTs?.let {
-            entity.lastActivityTime = it
-            latestPreviewableEvent.attemptToDecrypt()
+        // Only advance the activity time for an actual previewable message. When the recent activity is all
+        // non-previewable (e.g. a big redaction batch), keep the last known message + time instead of
+        // forgetting them — the room stays sorted by its real last message rather than dropping off the list.
+        if (latestPreviewableEvent != null) {
+            latestPreviewableEvent.root?.originServerTs?.let {
+                entity.lastActivityTime = it
+                latestPreviewableEvent.attemptToDecrypt()
+            }
         }
 
         val shouldCheckIfReadInEventsThread = homeServerCapabilitiesService.getHomeServerCapabilities().canUseThreadReadReceiptsAndNotifications
@@ -131,7 +143,11 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         entity.name = ContentMapper.map(lastNameEvent?.content).toModel<RoomNameContent>()?.name
         entity.topic = ContentMapper.map(lastTopicEvent?.content).toModel<RoomTopicContent>()?.topic
         entity.joinRules = ContentMapper.map(joinRulesEvent?.content).toModel<RoomJoinRulesContent>()?.joinRules
-        entity.latestPreviewableEvent = latestPreviewableEvent
+        // Only replace the preview when we actually found one — don't wipe a known-good last message just
+        // because the current chunk's newest events are non-previewable.
+        if (latestPreviewableEvent != null) {
+            entity.latestPreviewableEvent = latestPreviewableEvent
+        }
         entity.canonicalAlias = ContentMapper.map(lastCanonicalAliasEvent?.content).toModel<RoomCanonicalAliasContent>()?.canonicalAlias
 
         val wasEncrypted = entity.isEncrypted

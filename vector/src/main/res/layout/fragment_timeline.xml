@@ -36,6 +36,18 @@
         android:layout_height="match_parent"
         android:background="?android:colorBackground">
 
+        <im.vector.app.core.ui.views.MassRedactionBannerView
+            android:id="@+id/massRedactionBanner"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="?android:colorBackground"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tombstoneBanner"
+            tools:visibility="visible" />
+
         <im.vector.app.core.ui.views.PinnedMessagesBannerView
             android:id="@+id/pinnedMessagesBanner"
             android:layout_width="0dp"
@@ -45,7 +57,7 @@
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tombstoneBanner"
+            app:layout_constraintTop_toBottomOf="@id/massRedactionBanner"
             tools:visibility="visible" />
 
         <LinearLayout

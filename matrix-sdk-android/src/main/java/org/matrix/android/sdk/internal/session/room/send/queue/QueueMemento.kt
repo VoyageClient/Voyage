@@ -19,11 +19,9 @@ package org.matrix.android.sdk.internal.session.room.send.queue
 import android.content.Context
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.CryptoService
-import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
-import org.matrix.android.sdk.internal.session.room.send.model.EventRedactBody
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -106,24 +104,16 @@ internal class QueueMemento @Inject constructor(
                                 }
                             }
                             is RedactEventTaskInfo -> {
+                                // Redaction echoes are fake aggregation events; don't resurrect them on a
+                                // cold launch. Rescheduling a bulk redaction's hundreds of echoes just left
+                                // them stuck in "sending" forever — instead, drop the stale echo. If the
+                                // redaction actually reached the server it comes back via sync anyway.
                                 info.redactionLocalEcho?.let { localEchoRepository.getUpToDateEcho(it) }?.let {
-                                    localEchoRepository.updateSendState(it.eventId!!, it.roomId, SendState.UNSENT)
-                                    // try to get reason
-                                    val body = it.content.toModel<EventRedactBody>()
-                                    if (it.redacts != null && it.roomId != null) {
-                                        Timber.d("## Send -Reschedule redact $info")
-                                        eventProcessor.postTask(
-                                                queuedTaskFactory.createRedactTask(
-                                                        redactionLocalEcho = it.eventId,
-                                                        eventId = it.redacts,
-                                                        roomId = it.roomId,
-                                                        reason = body?.reason,
-                                                        withRelTypes = body?.getBestWithRelTypes(),
-                                                )
-                                        )
+                                    if (it.eventId != null && it.roomId != null) {
+                                        Timber.d("## Send -Dropping stale redact echo $info")
+                                        localEchoRepository.deleteFailedEcho(it.roomId, it.eventId)
                                     }
                                 }
-                                // postTask(queuedTaskFactory.createRedactTask(info.eventToRedactId, info.)
                             }
                         }
                     } catch (failure: Throwable) {

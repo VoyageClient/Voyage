@@ -24,11 +24,18 @@ CREATE INDEX timeline_event_display_index ON timeline_event(display_index);
 selectByChunk:
 SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY display_index DESC;
 
+selectByChunkNewest:
+SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY display_index DESC LIMIT ?;
+
 selectByChunkRange:
 SELECT * FROM timeline_event WHERE chunk_id = ? AND display_index BETWEEN ? AND ? ORDER BY display_index DESC;
 
 selectByChunkAfterIndex:
 SELECT * FROM timeline_event WHERE chunk_id = ? AND display_index > ? ORDER BY display_index DESC;
+
+-- the [limit] rows just older than [display_index], newest-first — for growing the bounded live-chunk slice.
+selectByChunkBeforeIndex:
+SELECT * FROM timeline_event WHERE chunk_id = ? AND display_index < ? ORDER BY display_index DESC LIMIT ?;
 
 selectById:
 SELECT * FROM timeline_event WHERE id = ? LIMIT 1;
@@ -55,11 +62,26 @@ SELECT timeline_event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.room_id = ? AND event.type IN ? AND event.origin_server_ts > ?;
 
+-- room-list preview: newest events of the given (previewable) types across ALL chunks, by timestamp. Excludes
+-- already-redacted events here (the common case after a mass redaction) so the LIMIT is spent on real messages
+-- rather than exhausted by redacted ones; the remaining checks (replace / ignored / sending) are done in
+-- Kotlin. Skips non-previewable types entirely, so a redaction/state burst ahead of the last message can't hide
+-- it.
+selectByRoomTypesNewest:
+SELECT timeline_event.* FROM timeline_event
+JOIN event ON timeline_event.root_event_db_id = event.id
+WHERE timeline_event.room_id = ? AND event.type IN ?
+    AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
+ORDER BY event.origin_server_ts DESC LIMIT ?;
+
 selectByRoomAndEventId:
 SELECT * FROM timeline_event WHERE room_id = ? AND event_id = ? LIMIT 1;
 
 selectSendingByRoom:
 SELECT * FROM timeline_event WHERE room_id = ? AND chunk_id IS NULL ORDER BY display_index;
+
+selectAllSending:
+SELECT * FROM timeline_event WHERE chunk_id IS NULL;
 
 countByChunk:
 SELECT count(*) FROM timeline_event WHERE chunk_id = ?;

@@ -195,6 +195,25 @@ internal class LocalEchoRepository @Inject constructor(
         }
     }
 
+    // Delete every local-echo redaction still in a sending state, across all rooms. Bulk redactions used to
+    // create hundreds of these echoes; if they never sent they linger in "sending" forever. Called on session
+    // start so a cold launch clears them (the no-echo redaction path doesn't create new ones).
+    suspend fun clearAllSendingRedactions() {
+        val stuck = stores.timelineEvent.getAllSending()
+                .filter { it.root?.type == EventType.REDACTION }
+                .mapNotNull { te -> te.root?.roomId?.let { it to te.eventId } }
+        if (stuck.isEmpty()) return
+        Timber.i("Clearing ${stuck.size} stuck sending redaction echoes on session start")
+        stuck.forEach { (roomId, eventId) ->
+            pendingEchoes.remove(eventId)
+            database.awaitDbTransaction(dispatcher) {
+                stores.timelineEvent.deleteSending(roomId, eventId)
+                stores.event.deleteByEventIdInRoom(roomId, eventId)
+                roomSummaryUpdater.updateSendingInformation(stores, roomId)
+            }
+        }
+    }
+
     suspend fun clearSendingQueue(roomId: String) {
         database.awaitDbTransaction(dispatcher) {
             stores.timelineEvent.getSendingByRoom(roomId)

@@ -97,4 +97,8 @@ sealed class RoomDetailAction : VectorViewModelAction {
 
     // Live Location
     object StopLiveLocationSharing : RoomDetailAction()
+
+    // Mass redaction
+    object MassRedactionPauseToggle : RoomDetailAction()
+    object MassRedactionCancel : RoomDetailAction()
 }
