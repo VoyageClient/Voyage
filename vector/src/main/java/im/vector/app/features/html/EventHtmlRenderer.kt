@@ -302,6 +302,13 @@ class EventHtmlRenderer @Inject constructor(
         // Editable so post-processors can collapse pill backing text to a placeholder (see setPillSpan).
         val renderedText = im.vector.app.core.utils.PerfTrace.time("html.markwonRender") { SpannableStringBuilder(markwon.render(node)) }
         collapseBlockQuotePadding(renderedText)
+        // Block elements (a trailing <p>/<br>) leave a dangling newline/space Markwon doesn't strip. The
+        // timeline happens to hide it, but the non-timeline surfaces that set this text directly (long-press,
+        // reply header, reply composer) render it as a blank trailing line. Drop the trailing whitespace run
+        // here so every surface matches — message trailing whitespace is never significant.
+        var end = renderedText.length
+        while (end > 0 && renderedText[end - 1].let { it == '\n' || it == ' ' || it == '\t' }) end--
+        if (end < renderedText.length) renderedText.delete(end, renderedText.length)
         im.vector.app.core.utils.PerfTrace.time("html.postProcess") {
             postProcessors.forEach {
                 it.afterRender(renderedText)
