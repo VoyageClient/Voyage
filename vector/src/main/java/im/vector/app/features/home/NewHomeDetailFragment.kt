@@ -20,6 +20,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.appbar.AppBarLayout
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.SpaceStateHandler
 import im.vector.app.core.extensions.commitTransaction
@@ -242,7 +243,7 @@ class NewHomeDetailFragment :
     }
 
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
-        views.collapsingToolbar.title = (spaceSummary?.displayName ?: getString(CommonStrings.all_chats))
+        views.collapsingToolbar.title = (spaceSummary?.displayName ?: getString(CommonStrings.all_chats)).withEmojis()
     }
 
     private fun setupKeysBackupBanner() {

@@ -14,7 +14,7 @@ import androidx.core.view.ViewCompat
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 
-fun VectorEpoxyHolder.setValueOnce(textInputEditText: TextInputEditText, value: String?) {
+fun VectorEpoxyHolder.setValueOnce(textInputEditText: TextInputEditText, value: CharSequence?) {
     if (ViewCompat.isAttachedToWindow(view)) {
         // the view is attached to the window
         // So it is a rebind of new data and you could ignore it assuming this is text that was already inputted into the view.

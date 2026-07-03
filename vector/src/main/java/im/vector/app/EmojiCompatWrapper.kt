@@ -22,8 +22,12 @@ import java.io.FileInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
-fun interface EmojiSpanify {
+interface EmojiSpanify {
     fun spanify(sequence: CharSequence): CharSequence
+
+    /** Apply emoji rendering in place to a live editable (an input field), for use from a TextWatcher so
+     *  emoji typed/pasted after the initial value also render. No-op when emoji rendering is off. */
+    fun applyLive(editable: android.text.Editable) {}
 }
 
 @Singleton
@@ -72,6 +76,20 @@ class EmojiCompatWrapper @Inject constructor(
                         Timber.e(throwable, "Failed to init EmojiCompat")
                     }
                 })
+    }
+
+    override fun applyLive(editable: android.text.Editable) {
+        if (twemojiProvider.enabled) {
+            twemojiProvider.applyTo(editable)
+            return
+        }
+        if (initialized) {
+            try {
+                EmojiCompat.get().process(editable)
+            } catch (throwable: Throwable) {
+                Timber.e(throwable, "Failed to process editable with EmojiCompat")
+            }
+        }
     }
 
     override fun spanify(sequence: CharSequence): CharSequence {

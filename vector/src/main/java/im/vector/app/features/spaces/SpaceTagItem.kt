@@ -10,6 +10,7 @@ package im.vector.app.features.spaces
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -29,7 +30,7 @@ abstract class SpaceTagItem : VectorEpoxyModel<SpaceTagItem.Holder>(R.layout.ite
         super.bind(holder)
         holder.rootView.isChecked = selected
         holder.rootView.onClick(listener)
-        holder.nameView.text = name
+        holder.nameView.text = name.withEmojis()
         holder.countView.text = count.toString()
     }
 

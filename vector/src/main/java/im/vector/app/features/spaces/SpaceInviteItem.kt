@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -38,7 +39,7 @@ abstract class SpaceInviteItem : VectorEpoxyModel<SpaceInviteItem.Holder>(R.layo
         holder.root.isChecked = selected
         holder.root.onClick(onInviteSelectedListener)
         holder.root.setOnLongClickListener { onLongClickListener?.invoke(holder.root).let { true } }
-        holder.name.text = matrixItem.displayName
+        holder.name.text = matrixItem.displayName?.withEmojis()
         holder.invitedBy.text = context.getString(CommonStrings.invited_by, inviter)
 
         avatarRenderer.render(matrixItem, holder.avatar)

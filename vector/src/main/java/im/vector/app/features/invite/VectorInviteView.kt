@@ -13,6 +13,7 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.databinding.VectorInviteViewBinding
 import im.vector.app.features.home.AvatarRenderer
@@ -59,7 +60,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             views.inviteScroll.updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
             avatarRenderer.render(sender.toMatrixItem().let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }, views.inviteAvatarView)
             views.inviteIdentifierView.text = sender.userId
-            views.inviteNameView.text = sender.displayName
+            views.inviteNameView.text = sender.displayName?.withEmojis()
             views.inviteLabelView.text = context.getString(CommonStrings.send_you_invite)
             views.inviteIgnoreView.visibility = View.VISIBLE
         } else {

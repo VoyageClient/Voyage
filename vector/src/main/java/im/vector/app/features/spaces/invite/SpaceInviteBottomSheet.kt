@@ -22,6 +22,7 @@ import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.platform.ButtonStateView
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.core.utils.toast
@@ -104,7 +105,7 @@ class SpaceInviteBottomSheet : VectorBaseBottomSheetDialogFragment<BottomSheetIn
             views.inviterText.isVisible = true
             views.inviterMxid.isVisible = true
             avatarRenderer.render(inviter.let { if (hideInviteAvatars) it.updateAvatar(null) else it }, views.inviterAvatarImage)
-            views.inviterText.text = getString(CommonStrings.user_invites_you, inviter.getBestName())
+            views.inviterText.text = getString(CommonStrings.user_invites_you, inviter.getBestName()).withEmojis()
             views.inviterMxid.text = inviter.id
         } else {
             views.inviterAvatarImage.isVisible = false

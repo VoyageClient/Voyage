@@ -14,6 +14,7 @@ import android.view.View
 import androidx.appcompat.widget.SearchView
 import com.airbnb.mvrx.Mavericks
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.core.extensions.addFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivitySearchBinding
@@ -45,6 +46,7 @@ class SearchActivity : VectorBaseActivity<ActivitySearchBinding>() {
             val fragmentArgs: SearchArgs = intent?.extras?.getParcelableCompat(Mavericks.KEY_ARG) ?: return
             addFragment(views.searchFragmentContainer, SearchFragment::class.java, fragmentArgs, FRAGMENT_TAG)
         }
+        views.searchView.setupLiveEmojiInput()
         views.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 searchFragment?.search(query)

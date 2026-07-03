@@ -20,6 +20,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.extensions.toMvRxBundle
@@ -137,7 +138,7 @@ class UserVerificationBottomSheet : VectorBaseBottomSheetDialogFragment<BottomSh
 
     override fun invalidate() = withState(viewModel) { state ->
         avatarRenderer.render(state.otherUserMxItem, views.otherUserAvatarImageView)
-        views.otherUserNameText.text = getString(CommonStrings.verification_verify_user, state.otherUserMxItem.getBestName())
+        views.otherUserNameText.text = getString(CommonStrings.verification_verify_user, state.otherUserMxItem.getBestName()).withEmojis()
         views.otherUserShield.render(
                 if (state.otherUserIsTrusted) RoomEncryptionTrustLevel.Trusted
                 else RoomEncryptionTrustLevel.Default

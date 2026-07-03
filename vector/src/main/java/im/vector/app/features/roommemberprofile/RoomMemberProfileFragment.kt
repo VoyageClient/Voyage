@@ -224,9 +224,9 @@ class RoomMemberProfileFragment :
                 headerViews.memberProfileStateView.state = StateView.State.Content
                 headerViews.memberProfileIdView.text = userMatrixItem.id
                 val bestName = userMatrixItem.getBestName().withEmojis()
-                headerViews.memberProfileNameView.text = bestName
+                headerViews.memberProfileNameView.text = bestName.withEmojis()
                 headerViews.memberProfileNameView.setTextColor(matrixItemColorProvider.getColor(userMatrixItem))
-                views.matrixProfileToolbarTitleView.text = bestName
+                views.matrixProfileToolbarTitleView.text = bestName.withEmojis()
                 // In rooms that hide avatars, show the default placeholder here, but keep the real avatar
                 // available when the user taps it to open the full-screen viewer (see onAvatarClicked).
                 val displayedMatrixItem = if (state.userId != session.myUserId && shouldHideAvatars(state.roomId, session, vectorPreferences)) {

@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -32,7 +33,7 @@ abstract class DisplayReadReceiptItem : VectorEpoxyModel<DisplayReadReceiptItem.
     override fun bind(holder: Holder) {
         super.bind(holder)
         avatarRenderer.render(matrixItem, holder.avatarView)
-        holder.displayNameView.text = matrixItem.getBestName()
+        holder.displayNameView.text = matrixItem.getBestName().withEmojis()
         timestamp?.let {
             holder.timestampView.text = it
             holder.timestampView.isVisible = true

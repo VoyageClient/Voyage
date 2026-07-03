@@ -18,6 +18,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
@@ -122,7 +123,7 @@ class RoomAliasFragment :
 
     private fun renderRoomSummary(state: RoomAliasViewState) {
         state.roomSummary()?.let {
-            views.roomSettingsToolbarTitleView.text = it.displayName
+            views.roomSettingsToolbarTitleView.text = it.displayName.withEmojis()
             avatarRenderer.render(it.toMatrixItem(), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }

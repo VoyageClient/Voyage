@@ -154,6 +154,7 @@ import im.vector.app.features.home.room.detail.widget.RoomWidgetsBottomSheet
 import im.vector.app.features.home.room.threads.ThreadsManager
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.invite.VectorInviteView
 import im.vector.app.features.location.LocationSharingMode
@@ -1465,7 +1466,7 @@ class TimelineFragment :
                             it.roomEncryptionTrustLevel,
                             isPgp = pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(it.roomId),
                     )
-                    views.includeThreadToolbar.roomToolbarThreadSubtitleTextView.text = it.displayName
+                    views.includeThreadToolbar.roomToolbarThreadSubtitleTextView.text = it.displayName?.withEmojis()
                 }
                 views.includeThreadToolbar.roomToolbarThreadTitleTextView.text = resources.getText(CommonStrings.thread_timeline_title)
             }
@@ -1476,7 +1477,7 @@ class TimelineFragment :
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = false
                 } else {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = roomSummary.membership == Membership.JOIN
-                    views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName
+                    views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName.withEmojis()
                     val toolbarMatrixItem = roomSummary.toInvitationMatrixItem().let {
                         if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it
                     }

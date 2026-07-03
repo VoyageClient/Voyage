@@ -18,6 +18,7 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.extensions.copyOnLongClick
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
@@ -37,7 +38,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.content.text = content
+        holder.content.text = content.withEmojis()
         holder.content.copyOnLongClick()
         holder.content.movementMethod = movementMethod
 
