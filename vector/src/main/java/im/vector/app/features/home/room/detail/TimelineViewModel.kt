@@ -91,6 +91,7 @@ import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.verification.EVerificationState
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
@@ -789,8 +790,55 @@ private fun handleSelectStickerAttachment() {
                 }
                 else -> {
                     room.sendService().redactEvent(event.root, action.reason)
+                    redactAssociatedEdits(room, event, action.reason)
+                    redactAssociatedReactions(room, event, action.reason)
                 }
             }
+        }
+    }
+
+    // Edits are separate m.replace events; redacting the original leaves them intact on the server (and
+    // their content re-surfaces on re-aggregation). Redact the editions we've already aggregated locally
+    // first (cheap, no round-trip), then fetch the full edit history from the server to catch any this
+    // device never synced. Only edits we haven't already redacted are sent again.
+    private fun redactAssociatedEdits(room: Room, event: TimelineEvent, reason: String?) {
+        val redacted = HashSet<String>()
+        event.annotations?.editSummary?.sourceEvents?.forEach { editEventId ->
+            room.getTimelineEvent(editEventId)?.let {
+                room.sendService().redactEvent(it.root, reason)
+                redacted.add(editEventId)
+            }
+        }
+        viewModelScope.launch {
+            val history = tryOrNull { room.relationService().fetchEditHistory(event.eventId) }.orEmpty()
+            history.forEach { editEvent ->
+                val editEventId = editEvent.eventId ?: return@forEach
+                if (editEventId != event.eventId && redacted.add(editEventId)) {
+                    room.sendService().redactEvent(editEvent, reason)
+                }
+            }
+        }
+    }
+
+    // Reactions are separate m.reaction events, one per user. Redact the ones this device already
+    // aggregated first, then page the server's full reaction list to catch any we never synced (the local
+    // counter is derived from synced reactions, so it can undercount). Our own reactions can always be
+    // redacted; other users' need the room's redact power level, so gate on it rather than firing rejected
+    // redactions.
+    private fun redactAssociatedReactions(room: Room, event: TimelineEvent, reason: String?) {
+        viewModelScope.launch {
+            val myUserId = session.myUserId
+            val canRedactOthers = tryOrNull { room.stateService().getRoomPowerLevels().isUserAbleToRedact(myUserId) } ?: false
+            val redacted = HashSet<String>()
+            fun redactReaction(reactionEvent: Event) {
+                val reactionEventId = reactionEvent.eventId ?: return
+                if (reactionEvent.senderId != myUserId && !canRedactOthers) return
+                if (redacted.add(reactionEventId)) room.sendService().redactEvent(reactionEvent, reason)
+            }
+            event.annotations?.reactionsSummary?.flatMap { it.sourceEvents }?.forEach { reactionEventId ->
+                room.getTimelineEvent(reactionEventId)?.let { redactReaction(it.root) }
+            }
+            tryOrNull { room.relationService().fetchReactions(event.eventId) }.orEmpty().forEach { redactReaction(it) }
         }
     }
 

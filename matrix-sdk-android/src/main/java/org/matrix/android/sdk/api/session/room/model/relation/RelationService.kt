@@ -144,6 +144,13 @@ interface RelationService {
     suspend fun fetchEditHistory(eventId: String): List<Event>
 
     /**
+     * Fetch every (non-redacted) reaction event on the given event from the server, across all senders.
+     * Used to redact all reactions on a message — the local aggregation only knows the reactions this
+     * device synced.
+     */
+    suspend fun fetchReactions(eventId: String): List<Event>
+
+    /**
      * Reply to an event in the timeline (must be in same room)
      * https://matrix.org/docs/spec/client_server/r0.4.0.html#id350
      * The replyText can be a Spannable and contains special spans (MatrixItemSpan) that will be translated
