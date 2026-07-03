@@ -22,6 +22,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.views.RoundedCornerImageView
@@ -110,6 +111,10 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 holder.imageView.clipToOutline = false
                 holder.imageView.tag = 0f
             }
+        } else if (PerformanceMode.enabled) {
+            // The pre-Lollipop clip runs on a per-frame software layer. In performance mode skip it:
+            // static thumbnails are already rounded by Glide; animated ones just show square corners.
+            holder.imageView.setCornerRadii(0f, 0f, 0f, 0f)
         } else {
             // clipToOutline is API 21+: backport the same view-level clip with identical radii so
             // animated drawables round on KitKat too (static bitmaps are already rounded by Glide).

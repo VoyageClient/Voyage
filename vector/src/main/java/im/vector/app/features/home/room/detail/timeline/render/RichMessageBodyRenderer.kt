@@ -21,6 +21,7 @@ import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TableRow
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.view.ViewCompat
 import im.vector.app.R
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.settings.VectorPreferences
@@ -147,11 +148,11 @@ class RichMessageBodyRenderer @Inject constructor(
                 topMargin = dim.dpToPx(6)
                 bottomMargin = dim.dpToPx(6)
             }
-            background = GradientDrawable().apply {
+            ViewCompat.setBackground(this, GradientDrawable().apply {
                 shape = GradientDrawable.RECTANGLE
                 cornerRadius = dim.dpToPx(6).toFloat()
                 setColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.code_block_bg_color))
-            }
+            })
             val padH = dim.dpToPx(10)
             val padV = dim.dpToPx(8)
             setPadding(padH, padV, padH, padV)

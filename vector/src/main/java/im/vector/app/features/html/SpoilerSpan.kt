@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.core.animation.doOnEnd
 import androidx.core.graphics.ColorUtils
 import im.vector.app.core.resources.ColorProvider
+import im.vector.app.core.ui.PerformanceMode
 
 /**
  * Mimics element-web's spoiler: the content stays fully rendered (mentions, links, formatting) but is
@@ -44,6 +45,13 @@ class SpoilerSpan(private val colorProvider: ColorProvider) : ClickableSpan() {
         isRevealed = !isRevealed
         val target = if (isRevealed) 0f else 1f
         animator?.cancel()
+        if (PerformanceMode.enabled) {
+            // No blur / software layer here (see updateDrawState); toggle instantly, no animation.
+            blurFraction = target
+            (widget as? TextView)?.let { it.text = it.text }
+            widget.invalidate()
+            return
+        }
         // Re-set the text so any contained mention re-measures (hidden = name width, revealed = chip width).
         // setText fires onTextChanged → applySpoilerRenderLayer(), which sets the layer type based on the
         // current blurFraction. For the hide direction blurFraction is 0 at this point, so it would
@@ -63,8 +71,16 @@ class SpoilerSpan(private val colorProvider: ColorProvider) : ClickableSpan() {
 
     override fun updateDrawState(tp: TextPaint) {
         if (blurFraction > 0f) {
-            tp.maskFilter = BlurMaskFilter((tp.textSize * MAX_BLUR_RATIO * blurFraction).coerceAtLeast(0.1f), BlurMaskFilter.Blur.NORMAL)
-            tp.color = ColorUtils.blendARGB(tp.color, tintColor, blurFraction)
+            if (PerformanceMode.enabled) {
+                // BlurMaskFilter needs a software layer and is re-rendered every frame; too costly in
+                // performance mode. Hide the content as a flat tinted block instead (glyphs painted in
+                // the tint colour over a matching background), which draws on the hardware layer.
+                tp.bgColor = tintColor
+                tp.color = tintColor
+            } else {
+                tp.maskFilter = BlurMaskFilter((tp.textSize * MAX_BLUR_RATIO * blurFraction).coerceAtLeast(0.1f), BlurMaskFilter.Blur.NORMAL)
+                tp.color = ColorUtils.blendARGB(tp.color, tintColor, blurFraction)
+            }
         }
         // Once revealed, leave the paint untouched so mentions, links and any other inline
         // formatting inside the spoiler keep their own styling.

@@ -32,6 +32,7 @@ import com.google.android.material.chip.ChipDrawable
 import im.vector.app.R
 import im.vector.app.core.extensions.isMatrixId
 import im.vector.app.core.glide.GlideRequests
+import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.themes.ThemeUtils
@@ -146,7 +147,13 @@ class PillImageSpan(
 
     private fun drawSpoilerName(canvas: Canvas, x: Float, baseline: Int, paint: Paint, blurFraction: Float) {
         spoilerTextPaint.set(paint)
-        spoilerTextPaint.maskFilter = BlurMaskFilter((paint.textSize * SPOILER_BLUR_RATIO * blurFraction).coerceAtLeast(0.1f), BlurMaskFilter.Blur.NORMAL)
+        // Performance mode: skip the (software-layer) BlurMaskFilter; the tint colour alone renders the
+        // name as a flat hidden block.
+        spoilerTextPaint.maskFilter = if (PerformanceMode.enabled) {
+            null
+        } else {
+            BlurMaskFilter((paint.textSize * SPOILER_BLUR_RATIO * blurFraction).coerceAtLeast(0.1f), BlurMaskFilter.Blur.NORMAL)
+        }
         spoilerTextPaint.color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_spoiler_background_color)
         spoilerTextPaint.alpha = (blurFraction * 255).toInt()
         canvas.drawText(matrixItem.getBestName(), x, baseline.toFloat(), spoilerTextPaint)

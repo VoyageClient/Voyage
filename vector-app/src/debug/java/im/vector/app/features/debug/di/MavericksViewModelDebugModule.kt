@@ -12,22 +12,22 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.multibindings.IntoMap
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
-import im.vector.app.core.di.MavericksViewModelComponent
+import im.vector.app.core.di.MiscMavericksViewModelComponent
 import im.vector.app.core.di.MavericksViewModelKey
 import im.vector.app.features.debug.leak.DebugMemoryLeaksViewModel
 import im.vector.app.features.debug.settings.DebugPrivateSettingsViewModel
 
-@InstallIn(MavericksViewModelComponent::class)
+@InstallIn(MiscMavericksViewModelComponent::class)
 @Module
 interface MavericksViewModelDebugModule {
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey(DebugPrivateSettingsViewModel::class)
+    @MavericksViewModelKey("im.vector.app.features.debug.settings.DebugPrivateSettingsViewModel")
     fun debugPrivateSettingsViewModelFactory(factory: DebugPrivateSettingsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey(DebugMemoryLeaksViewModel::class)
+    @MavericksViewModelKey("im.vector.app.features.debug.leak.DebugMemoryLeaksViewModel")
     fun debugMemoryLeaksViewModelFactory(factory: DebugMemoryLeaksViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 }

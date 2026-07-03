@@ -12,7 +12,6 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.widget.ImageView
 import androidx.annotation.AnyThread
-import androidx.annotation.ColorInt
 import androidx.annotation.UiThread
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
@@ -28,7 +27,6 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import im.vector.app.core.contacts.MappedContact
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.core.glide.AvatarPlaceholder
 import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
@@ -41,8 +39,6 @@ import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorPr
 import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
-import jp.wasabeef.glide.transformations.BlurTransformation
-import jp.wasabeef.glide.transformations.ColorFilterTransformation
 import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
@@ -237,41 +233,6 @@ class AvatarRenderer @Inject constructor(
                 )
             }
         }
-    }
-
-    @UiThread
-    fun renderBlur(
-            matrixItem: MatrixItem,
-            imageView: ImageView,
-            sampling: Int,
-            rounded: Boolean,
-            @ColorInt colorFilter: Int? = null,
-            addPlaceholder: Boolean
-    ) {
-        val transformations = mutableListOf<Transformation<Bitmap>>(
-                BlurTransformation(20, sampling),
-        )
-        if (colorFilter != null) {
-            transformations.add(ColorFilterTransformation(colorFilter))
-        }
-        if (rounded) {
-            transformations.add(CircleCrop())
-        }
-        val bitmapTransform = RequestOptions.bitmapTransform(MultiTransformation(transformations))
-        val glideRequests = GlideApp.with(imageView)
-        val placeholderRequest = if (addPlaceholder) {
-            glideRequests
-                    .load(AvatarPlaceholder(matrixItem))
-                    .apply(bitmapTransform)
-        } else {
-            null
-        }
-        glideRequests.loadResolvedUrl(matrixItem.avatarUrl)
-                .apply(bitmapTransform)
-                // We are using thumbnail and error API so we can have blur transformation on it...
-                .thumbnail(placeholderRequest)
-                .error(placeholderRequest)
-                .into(imageView)
     }
 
     @AnyThread

@@ -162,6 +162,12 @@ class VectorSettingsPreferencesFragment :
             }
         }
 
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
+            // Update the runtime mirror so new binds pick it up without a restart.
+            im.vector.app.core.ui.PerformanceMode.enabled = newValue as Boolean
+            true
+        }
+
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_USE_TWEMOJI_KEY)!!.let { pref ->
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
                 // No usable system emoji font below KitKat: Twemoji is mandatory, so lock the toggle on.

@@ -54,6 +54,9 @@
     <string name="settings_uglier_username_colors_title" translatable="false">Uglier username color palette</string>
     <string name="settings_uglier_username_colors_summary" translatable="false">Color usernames and default avatars with element-web\'s current palette and hashing, which replaced the nicer one used before 2023.</string>
 
+    <string name="settings_performance_mode_title" translatable="false">Performance mode</string>
+    <string name="settings_performance_mode_summary" translatable="false">Drop CPU-heavy graphical effects for smoother performance on slower devices.</string>
+
     <string name="settings_use_twemoji_title" translatable="false">Use Twemoji</string>
     <string name="settings_use_twemoji_summary" translatable="false">Draw emojis with the bundled Twemoji font</string>
     <string name="settings_use_system_emoji_font_title" translatable="false">Use system emoji font</string>

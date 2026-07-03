@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import im.vector.app.core.ui.PerformanceMode
 import com.vanniktech.blurhash.BlurHash
 import kotlin.math.cos
 import kotlin.math.max
@@ -98,6 +99,9 @@ class BlurHashDrawable private constructor(
         private const val FRAME_INTERVAL_MS = 16L
 
         fun from(hash: String, width: Int?, height: Int?, pulse: Boolean = true): BlurHashDrawable? {
+            // BlurHash decoding is a per-pixel cosine synthesis (and the pulse animation redraws every
+            // frame); in performance mode skip it so callers fall back to the solid/neutral placeholder.
+            if (PerformanceMode.enabled) return null
             val w = width?.takeIf { it > 0 } ?: DEFAULT_DIM
             val h = height?.takeIf { it > 0 } ?: DEFAULT_DIM
             val scale = DECODE_MAX.toFloat() / max(w, h)
