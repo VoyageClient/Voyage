@@ -92,8 +92,8 @@ internal class LocalEchoRepository @Inject constructor(
                 it.root = eventEntity
                 it.eventId = event.eventId
                 it.roomId = roomId
-                it.senderName = myUser?.displayName
-                it.senderAvatar = myUser?.avatarUrl
+                it.senderName = myUser?.let { u -> u.displayName ?: "" }
+                it.senderAvatar = myUser?.let { u -> u.avatarUrl ?: "" }
                 it.isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(myUser?.displayName)
             }
             val timelineEvent = timelineEventMapper.map(timelineEventEntity)
