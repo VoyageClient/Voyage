@@ -61,7 +61,13 @@ internal class TimelineEventDecryptor @Inject constructor(
             // UTD — decryption otherwise only runs at sync/insert time. Re-scan the room's stored UTDs
             // once (per run) so old encrypted rooms decrypt after import.
             if (roomId != null && rescannedRooms.add(roomId)) {
-                executor?.execute { rescanRoomForDecryption(roomId) }
+                executor?.execute {
+                    try {
+                        rescanRoomForDecryption(roomId)
+                    } catch (e: InterruptedException) {
+                        Timber.i("Room rescan for decryption got interrupted")
+                    }
+                }
             }
         }
     }
