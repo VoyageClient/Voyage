@@ -192,6 +192,13 @@ sqldelight {
             srcDirs.setFrom("src/main/sqldelight/session")
             dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
         }
+        // Local full-text index of decrypted events in encrypted rooms (seshat equivalent). Its own
+        // file so it can grow/clear independently and survive session-schema drops.
+        EventIndexSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.session.search.index.db"
+            srcDirs.setFrom("src/main/sqldelight/eventindex")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
     }
 }
 

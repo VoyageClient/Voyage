@@ -26,7 +26,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.io.File
@@ -55,17 +54,20 @@ abstract class BaseAttachmentProvider<Type>(
             overlayView?.interactionListener = interactionListener
         }
 
+        val counter = stringProvider.getString(CommonStrings.attachment_viewer_item_x_of_y, position + 1, getItemCount())
         val timelineEvent = getTimelineEventAtPosition(position)
         if (timelineEvent != null) {
             val dateString = dateFormatter.format(timelineEvent.root.originServerTs, DateFormatKind.DEFAULT_DATE_AND_TIME)
             overlayView?.updateWith(
-                    counter = stringProvider.getString(CommonStrings.attachment_viewer_item_x_of_y, position + 1, getItemCount()),
+                    counter = counter,
                     senderInfo = "${timelineEvent.senderInfo.disambiguatedDisplayName} $dateString"
             )
-            overlayView?.views?.overlayVideoControlsGroup?.isVisible = timelineEvent.root.isVideoMessage()
         } else {
-            overlayView?.updateWith("", "")
+            // The event may not be in the local timeline store (e.g. a crawled search result).
+            overlayView?.updateWith(counter, "")
         }
+        // Decide from the attachment itself, not the timeline event — see above, it can be absent.
+        overlayView?.views?.overlayVideoControlsGroup?.isVisible = getAttachmentInfoAt(position) is AttachmentInfo.Video
 
         return overlayView
     }

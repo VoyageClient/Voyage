@@ -78,7 +78,8 @@ data class RoomDetailViewState(
             sharedData = args.sharedData,
     )
 
-    fun isSearchAvailable() = asyncRoomSummary()?.isEncrypted == false
+    fun isSearchAvailable(searchEncryptedRoomsEnabled: Boolean = false) =
+            asyncRoomSummary()?.let { !it.isEncrypted || searchEncryptedRoomsEnabled } == true
 
     fun isDm() = asyncRoomSummary()?.isDirect == true
 

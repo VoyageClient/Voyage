@@ -1,0 +1,4 @@
+-- Bumps the schema version so FrameworkSqliteDriver drops and recreates the index (it does not
+-- run migrations); the index is a cache and rebuilds itself by re-crawling.
+ALTER TABLE indexed_event ADD COLUMN msgtype TEXT;
+ALTER TABLE indexed_event ADD COLUMN mentions TEXT;

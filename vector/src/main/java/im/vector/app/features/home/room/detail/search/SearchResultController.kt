@@ -11,67 +11,102 @@ import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.StyleSpan
-import com.airbnb.epoxy.EpoxyModel
+import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.epoxy.VisibilityState
+import im.vector.app.R
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
-import im.vector.app.core.epoxy.loadingItem
+import im.vector.app.core.epoxy.LoadingItem_
+import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.noResultItem
 import im.vector.app.core.resources.StringProvider
-import im.vector.app.core.resources.UserPreferencesProvider
-import im.vector.app.core.ui.list.GenericHeaderItem_
-import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactory
+import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
+import im.vector.app.features.home.room.detail.timeline.helper.StubTimelineEventCallback
+import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
+import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem_
+import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
+import im.vector.app.features.home.room.detail.timeline.item.MessageTextItem_
+import im.vector.app.features.media.AttachmentData
+import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.VideoContentRenderer
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.util.Calendar
 import javax.inject.Inject
 
+/**
+ * Renders search results with the actual timeline item factories so messages look and behave
+ * exactly like in the room timeline (media viewer, inline audio playback, HTML, bubbles...).
+ * Interactions that only make sense inside a live timeline are no-ops (via
+ * [StubTimelineEventCallback]); tapping anywhere outside an interactive part of a result
+ * navigates to the event in the timeline.
+ */
 class SearchResultController @Inject constructor(
         private val session: Session,
-        private val avatarRenderer: AvatarRenderer,
         private val stringProvider: StringProvider,
         private val dateFormatter: VectorDateFormatter,
-        private val displayableEventFormatter: DisplayableEventFormatter,
-        private val userPreferencesProvider: UserPreferencesProvider,
         private val clock: Clock,
-) : TypedEpoxyController<SearchViewState>() {
+        private val timelineItemFactory: TimelineItemFactory,
+        private val timelineRetrieversFactory: TimelineRetrieversFactory,
+        private val stubCallback: StubTimelineEventCallback,
+) : TypedEpoxyController<SearchViewState>(), TimelineEventController.Callback by stubCallback {
 
     var listener: Listener? = null
 
     private var idx = 0
+    private var roomSummary: RoomSummary? = null
+    private val eventsById = HashMap<String, Event>()
 
     interface Listener {
         fun onItemClicked(event: Event)
         fun onThreadSummaryClicked(event: Event)
         fun loadMore()
+        fun onImageMessageClicked(messageImageContent: MessageImageInfoContent, mediaData: ImageContentRenderer.Data, view: View, inMemory: List<AttachmentData>)
+        fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View)
+        fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent)
+        fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float)
+        fun onAvatarClicked(userId: String)
+    }
+
+    /** Must be called once before the first [setData]. */
+    fun start(roomId: String, coroutineScope: CoroutineScope) {
+        roomSummary = session.roomService().getRoomSummary(roomId)
+        stubCallback.retrievers = timelineRetrieversFactory.create(roomId, coroutineScope)
     }
 
     override fun buildModels(data: SearchViewState?) {
         data ?: return
 
         val host = this
-        val searchItems = buildSearchResultItems(data)
 
         if (data.hasMoreResult) {
-            loadingItem {
-                // Always use a different id, because we can be notified several times of visibility state changed
-                id("loadMore${host.idx++}")
-                onVisibilityStateChanged { _, _, visibilityState ->
-                    if (visibilityState == VisibilityState.VISIBLE) {
-                        host.listener?.loadMore()
+            LoadingItem_()
+                    // Always use a different id, because we can be notified several times of visibility state changed
+                    .id("loadMore${host.idx++}")
+                    // The stock loading layout is a ~130dp mostly-empty block; sitting at the top
+                    // of this bottom-anchored list for the whole crawl it reads as a blank band.
+                    .layout(R.layout.item_loading_compact)
+                    .onVisibilityStateChanged { _, _, visibilityState ->
+                        if (visibilityState == VisibilityState.VISIBLE) {
+                            host.listener?.loadMore()
+                        }
                     }
-                }
-            }
+                    .addTo(this)
         } else {
-            if (searchItems.isEmpty()) {
-                // All returned results by the server has been filtered out and there is no more result
+            if (data.searchResult.isEmpty()) {
                 noResultItem {
                     id("noResult")
                     text(host.stringProvider.getString(CommonStrings.no_result_placeholder))
@@ -84,76 +119,141 @@ class SearchResultController @Inject constructor(
             }
         }
 
-        searchItems.forEach { add(it) }
+        buildSearchResultItems(data)
     }
 
-    /**
-     * @return the list of EpoxyModel (date items and search result items), or an empty list if all items have been filtered out
-     */
-    private fun buildSearchResultItems(data: SearchViewState): List<EpoxyModel<*>> {
+    private fun buildSearchResultItems(data: SearchViewState) {
         var lastDate: Calendar? = null
-        val result = mutableListOf<EpoxyModel<*>>()
+        eventsById.clear()
 
         data.searchResult.forEach { eventAndSender ->
             val event = eventAndSender.event
-
-            // Take new content first
-            @Suppress("UNCHECKED_CAST")
-            val text = ((event.content?.get("m.new_content") as? Content) ?: event.content)?.get("body") as? String ?: return@forEach
-            val spannable = setHighLightedText(text, data.highlights) ?: return@forEach
+            val eventId = event.eventId ?: return@forEach
+            eventsById[eventId] = event
 
             val eventDate = Calendar.getInstance().apply {
-                timeInMillis = eventAndSender.event.originServerTs ?: clock.epochMillis()
+                timeInMillis = event.originServerTs ?: clock.epochMillis()
             }
-            if (lastDate?.get(Calendar.DAY_OF_YEAR) != eventDate.get(Calendar.DAY_OF_YEAR)) {
-                GenericHeaderItem_()
-                        .id(eventDate.hashCode())
-                        .text(dateFormatter.format(eventDate.timeInMillis, DateFormatKind.EDIT_HISTORY_HEADER))
-                        .let { result.add(it) }
+            if (lastDate?.isSameDayAs(eventDate) != true) {
+                DaySeparatorItem_()
+                        .id("day-${eventDate.get(Calendar.YEAR)}-${eventDate.get(Calendar.DAY_OF_YEAR)}")
+                        .formattedDay(dateFormatter.format(eventDate.timeInMillis, DateFormatKind.TIMELINE_DAY_DIVIDER))
+                        .addTo(this)
             }
             lastDate = eventDate
 
-            SearchResultItem_()
-                    .id(eventAndSender.event.eventId)
-                    .avatarRenderer(avatarRenderer)
-                    .formattedDate(dateFormatter.format(event.originServerTs, DateFormatKind.MESSAGE_SIMPLE))
-                    .spannable(spannable.toEpoxyCharSequence())
-                    .sender(
-                            eventAndSender.sender
-                                    ?: eventAndSender.event.senderId?.let { session.roomService().getRoomMember(it, data.roomId) }?.toMatrixItem()
-                    )
-                    .threadDetails(event.threadDetails)
-                    .threadSummaryFormatted(displayableEventFormatter.formatThreadSummary(event.threadDetails?.threadSummaryLatestEvent).toString())
-                    .areThreadMessagesEnabled(userPreferencesProvider.areThreadMessagesEnabled())
-                    .listener { listener?.onItemClicked(eventAndSender.event) }
-                    .threadSummaryListener { listener?.onThreadSummaryClicked(eventAndSender.event) }
-                    .let { result.add(it) }
+            val timelineEvent = event.toTimelineEvent(eventAndSender.sender?.displayName, eventAndSender.sender?.avatarUrl)
+            val params = TimelineItemFactoryParams(
+                    event = timelineEvent,
+                    partialState = TimelineEventController.PartialState(roomSummary = roomSummary),
+                    callback = this,
+            )
+            val model = timelineItemFactory.create(params)
+            model.boldSearchMatches(data.highlights)
+            model.id("search-$eventId")
+            model.addTo(this)
         }
-
-        return result
     }
 
-    /**
-     * Highlight the text. If the text is not found, return null to ignore this result
-     * See https://github.com/matrix-org/synapse/issues/8686
-     */
-    private fun setHighLightedText(text: String, highlights: List<String>): Spannable? {
-        val wordToSpan: Spannable = SpannableString(text)
+    private fun Calendar.isSameDayAs(other: Calendar) =
+            get(Calendar.YEAR) == other.get(Calendar.YEAR) && get(Calendar.DAY_OF_YEAR) == other.get(Calendar.DAY_OF_YEAR)
+
+    private fun Event.toTimelineEvent(senderDisplayName: String?, senderAvatarUrl: String?): TimelineEvent {
+        return TimelineEvent(
+                root = this,
+                localId = eventId.hashCode().toLong(),
+                eventId = eventId.orEmpty(),
+                displayIndex = 0,
+                senderInfo = SenderInfo(
+                        userId = senderId.orEmpty(),
+                        displayName = senderDisplayName,
+                        isUniqueDisplayName = true,
+                        avatarUrl = senderAvatarUrl,
+                ),
+        )
+    }
+
+    /** Bold the query matches inside plain/HTML text items, like the old search list did. */
+    private fun VectorEpoxyModel<*>.boldSearchMatches(highlights: List<String>) {
+        if (highlights.isEmpty()) return
+        val textItem = this as? MessageTextItem_ ?: return
+        val message = textItem.message()?.charSequence ?: return
+        val plain = message.toString()
+        val spannable: Spannable = SpannableString(message)
         var found = false
         highlights.forEach { highlight ->
-            var searchFromIndex = 0
-            while (searchFromIndex < text.length) {
-                val indexOfHighlight = text.indexOf(highlight, searchFromIndex, ignoreCase = true)
-                searchFromIndex = if (indexOfHighlight == -1) {
-                    Integer.MAX_VALUE
-                } else {
-                    // bold
-                    found = true
-                    wordToSpan.setSpan(StyleSpan(Typeface.BOLD), indexOfHighlight, indexOfHighlight + highlight.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    indexOfHighlight + 1
-                }
+            var from = 0
+            while (from < plain.length) {
+                val index = plain.indexOf(highlight, from, ignoreCase = true)
+                if (index == -1) break
+                spannable.setSpan(StyleSpan(Typeface.BOLD), index, index + highlight.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                found = true
+                from = index + 1
             }
         }
-        return wordToSpan.takeIf { found }
+        if (found) textItem.message(spannable.toEpoxyCharSequence())
+    }
+
+    // Interactions supported by the search screen; everything else no-ops in StubTimelineEventCallback.
+
+    override fun onEventCellClicked(informationData: MessageInformationData, messageContent: Any?, view: View, isRootThreadEvent: Boolean) {
+        eventsById[informationData.eventId]?.let { listener?.onItemClicked(it) }
+    }
+
+    override fun onEventLongClicked(informationData: MessageInformationData, messageContent: Any?, view: View): Boolean {
+        // No action bottom sheet in search results; long press navigates like a tap.
+        eventsById[informationData.eventId]?.let { listener?.onItemClicked(it) }
+        return true
+    }
+
+    override fun onImageMessageClicked(
+            messageImageContent: MessageImageInfoContent,
+            mediaData: ImageContentRenderer.Data,
+            view: View,
+            inMemory: List<AttachmentData>
+    ) {
+        listener?.onImageMessageClicked(messageImageContent, mediaData, view, inMemory)
+    }
+
+    override fun onVideoMessageClicked(messageVideoContent: MessageVideoContent, mediaData: VideoContentRenderer.Data, view: View) {
+        listener?.onVideoMessageClicked(messageVideoContent, mediaData, view)
+    }
+
+    override fun onVoiceControlButtonClicked(eventId: String, messageAudioContent: MessageAudioContent) {
+        listener?.onVoiceControlButtonClicked(eventId, messageAudioContent)
+    }
+
+    override fun onVoiceWaveformTouchedUp(eventId: String, duration: Int, percentage: Float) {
+        listener?.onAudioSeekBarMovedTo(eventId, duration, percentage)
+    }
+
+    override fun onVoiceWaveformMovedTo(eventId: String, duration: Int, percentage: Float) {
+        listener?.onAudioSeekBarMovedTo(eventId, duration, percentage)
+    }
+
+    override fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float) {
+        listener?.onAudioSeekBarMovedTo(eventId, duration, percentage)
+    }
+
+    override fun onAvatarClicked(informationData: MessageInformationData) {
+        listener?.onAvatarClicked(informationData.senderId)
+    }
+
+    override fun onMemberNameClicked(informationData: MessageInformationData) {
+        // The sender header isn't part of the message cell; treat taps there as navigation too.
+        eventsById[informationData.eventId]?.let { listener?.onItemClicked(it) }
+    }
+
+    override fun onThreadSummaryClicked(eventId: String, isRootThreadEvent: Boolean): Boolean {
+        val event = eventsById[eventId] ?: return false
+        listener?.onThreadSummaryClicked(event)
+        return true
+    }
+
+    override fun onRepliedToEventClicked(sourceEventId: String?, targetEventId: String) {
+        // Navigate to the replied-to message in the timeline.
+        eventsById[sourceEventId]?.roomId?.let {
+            listener?.onItemClicked(Event(eventId = targetEventId, roomId = it))
+        }
     }
 }

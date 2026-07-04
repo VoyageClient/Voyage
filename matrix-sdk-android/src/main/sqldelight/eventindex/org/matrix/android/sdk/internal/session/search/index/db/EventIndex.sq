@@ -1,0 +1,116 @@
+-- Local search index over messages: encrypted rooms always (the server cannot search those),
+-- unencrypted rooms unless the user opted for server search.
+-- content_text is the lowercased searchable text; event_json is the full clear event, replayed
+-- as-is into search results. Substring search uses LIKE (see EventIndexStore.likePattern) rather
+-- than FTS: the fork must run on SQLite 3.7.4 (ICS) where FTS4 options are too limited, recency
+-- ordering is all the UI uses, and LIKE handles CJK/substring queries that the simple FTS
+-- tokenizer cannot.
+CREATE TABLE indexed_event (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    room_id TEXT NOT NULL,
+    sender TEXT,
+    origin_server_ts INTEGER NOT NULL,
+    content_text TEXT NOT NULL,
+    event_json TEXT NOT NULL,
+    -- msgtype for m.room.message, or the pseudo-msgtype "m.sticker" (has: filters)
+    msgtype TEXT,
+    -- space-joined lowercased user ids the event mentions (mentions: filter)
+    mentions TEXT
+);
+
+CREATE INDEX indexed_event_room_ts ON indexed_event(room_id, origin_server_ts);
+
+-- Where to resume crawling a room's history (mirrors seshat's crawler checkpoints).
+CREATE TABLE crawler_checkpoint (
+    room_id TEXT NOT NULL,
+    token TEXT NOT NULL,
+    direction TEXT NOT NULL,
+    full_crawl INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (room_id, token, direction)
+);
+
+-- Rooms whose history crawl reached a given live-timeline token; used to detect sync gaps that
+-- appeared since (new live token != last crawled one) without re-crawling on every app start.
+CREATE TABLE crawled_room (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    last_token TEXT NOT NULL
+);
+
+-- Misc key/value state (event-table sweep watermark).
+CREATE TABLE index_meta (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+insertEvent:
+INSERT OR IGNORE INTO indexed_event(event_id, room_id, sender, origin_server_ts, content_text, event_json, msgtype, mentions)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+eventExists:
+SELECT 1 FROM indexed_event WHERE event_id = ? LIMIT 1;
+
+deleteEvent:
+DELETE FROM indexed_event WHERE event_id = ?;
+
+-- local echoes must never be indexed (fake ids, no timeline row); purges rows from older builds.
+-- The '$local.%' pattern is bound from Kotlin: inlined in the .sq it lands in a generated Kotlin
+-- string where $local reads as a template expression.
+deleteLocalEchoes:
+DELETE FROM indexed_event WHERE event_id LIKE ?;
+
+deleteRoom:
+DELETE FROM indexed_event WHERE room_id = ?;
+
+search:
+SELECT * FROM indexed_event
+WHERE room_id = ? AND content_text LIKE ? ESCAPE '\'
+ORDER BY origin_server_ts DESC
+LIMIT ? OFFSET ?;
+
+oldestTsInRoom:
+SELECT origin_server_ts FROM indexed_event WHERE room_id = ? ORDER BY origin_server_ts ASC LIMIT 1;
+
+countEvents:
+SELECT COUNT(*) FROM indexed_event;
+
+countRooms:
+SELECT COUNT(DISTINCT room_id) FROM indexed_event;
+
+isRoomIndexed:
+SELECT 1 FROM indexed_event WHERE room_id = ? LIMIT 1;
+
+selectCheckpoints:
+SELECT * FROM crawler_checkpoint;
+
+insertCheckpoint:
+INSERT OR REPLACE INTO crawler_checkpoint(room_id, token, direction, full_crawl) VALUES (?, ?, ?, ?);
+
+deleteCheckpoint:
+DELETE FROM crawler_checkpoint WHERE room_id = ? AND token = ? AND direction = ?;
+
+deleteCheckpointsForRoom:
+DELETE FROM crawler_checkpoint WHERE room_id = ?;
+
+selectCrawledToken:
+SELECT last_token FROM crawled_room WHERE room_id = ?;
+
+upsertCrawledToken:
+INSERT OR REPLACE INTO crawled_room(room_id, last_token) VALUES (?, ?);
+
+selectMeta:
+SELECT value FROM index_meta WHERE key = ?;
+
+upsertMeta:
+INSERT OR REPLACE INTO index_meta(key, value) VALUES (?, ?);
+
+clearEvents:
+DELETE FROM indexed_event;
+
+clearCheckpoints:
+DELETE FROM crawler_checkpoint;
+
+clearCrawledRooms:
+DELETE FROM crawled_room;
+
+clearMeta:
+DELETE FROM index_meta;

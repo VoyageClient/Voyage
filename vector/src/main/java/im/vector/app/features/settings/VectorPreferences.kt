@@ -102,6 +102,8 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_SECURE_MESSAGE_RECOVERY_PREFERENCE_KEY = "SETTINGS_SECURE_MESSAGE_RECOVERY_PREFERENCE_KEY"
         const val SETTINGS_PERSISTED_SPACE_BACKSTACK = "SETTINGS_PERSISTED_SPACE_BACKSTACK"
         const val SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY = "SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY"
+        const val SETTINGS_SEARCH_ENCRYPTED_ROOMS_PREFERENCE_KEY = "SETTINGS_SEARCH_ENCRYPTED_ROOMS_PREFERENCE_KEY"
+        const val SETTINGS_SEARCH_UNENCRYPTED_ON_SERVER_PREFERENCE_KEY = "SETTINGS_SEARCH_UNENCRYPTED_ON_SERVER_PREFERENCE_KEY"
 
         const val SETTINGS_CRYPTOGRAPHY_HS_ADMIN_DISABLED_E2E_DEFAULT = "SETTINGS_CRYPTOGRAPHY_HS_ADMIN_DISABLED_E2E_DEFAULT"
 //        const val SETTINGS_SECURE_BACKUP_RESET_PREFERENCE_KEY = "SETTINGS_SECURE_BACKUP_RESET_PREFERENCE_KEY"
@@ -1130,6 +1132,16 @@ class VectorPreferences @Inject constructor(
     /** Whether the keyboard should disable personalized learning. */
     fun useIncognitoKeyboard(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY, false)
+    }
+
+    /** Whether decrypted messages are indexed locally so encrypted rooms are searchable. */
+    fun searchEncryptedRoomsEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SEARCH_ENCRYPTED_ROOMS_PREFERENCE_KEY, true)
+    }
+
+    /** Whether unencrypted rooms should use the server-side search instead of the local index. */
+    fun searchUnencryptedRoomsOnServer(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_SEARCH_UNENCRYPTED_ON_SERVER_PREFERENCE_KEY, false)
     }
 
     /**

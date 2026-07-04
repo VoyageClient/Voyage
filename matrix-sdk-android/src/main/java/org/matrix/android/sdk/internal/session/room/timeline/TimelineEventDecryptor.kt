@@ -30,6 +30,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
+import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
@@ -42,6 +43,7 @@ internal class TimelineEventDecryptor @Inject constructor(
         private val stores: SessionStores,
         private val cryptoService: CryptoService,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
+        private val eventIndexer: EventIndexer,
 ) {
 
     private val newSessionListener = object : NewSessionListener {
@@ -148,7 +150,7 @@ internal class TimelineEventDecryptor @Inject constructor(
     // commit fsyncs (no WAL), so a per-event transaction caps throughput at a handful/second — batching a
     // room's UTD backlog into one commit is what lets them surface together after a key import / room open.
     private fun processChunk(requests: List<DecryptionRequest>) {
-        val successes = ArrayList<Pair<String, MXEventDecryptionResult>>(requests.size)
+        val successes = ArrayList<Pair<Event, MXEventDecryptionResult>>(requests.size)
         val errors = ArrayList<Triple<String, String, String?>>()
         for (request in requests) {
             val event = request.event
@@ -156,7 +158,7 @@ internal class TimelineEventDecryptor @Inject constructor(
             if (!event.isEncrypted()) continue
             try {
                 val result = runBlocking { cryptoService.decryptEvent(event, request.timelineId) }
-                event.eventId?.let { successes.add(it to result) }
+                if (event.eventId != null) successes.add(event to result)
             } catch (e: MXCryptoError) {
                 if (e is MXCryptoError.Base) {
                     errors.add(Triple(
@@ -177,7 +179,8 @@ internal class TimelineEventDecryptor @Inject constructor(
         if (successes.isNotEmpty() || errors.isNotEmpty()) {
             runBlocking {
                 database.awaitDbTransaction(dispatcher) {
-                    successes.forEach { (eventId, result) ->
+                    successes.forEach { (event, result) ->
+                        val eventId = event.eventId.orEmpty()
                         stores.event.applyDecryptionResult(eventId, result)
                         // the event can now be aggregated (reactions/edits) on its clear content
                         stores.eventInsert.setCanBeProcessed(eventId, true)
@@ -186,14 +189,17 @@ internal class TimelineEventDecryptor @Inject constructor(
                         stores.event.applyDecryptionError(eventId, code, reason)
                     }
                     // The room list won't see these event-table writes; refresh summaries they preview.
-                    stores.roomSummary.roomIdsWithPreviewEvent(successes.map { it.first }).forEach { roomId ->
+                    stores.roomSummary.roomIdsWithPreviewEvent(successes.map { it.first.eventId.orEmpty() }).forEach { roomId ->
                         previewInvalidation.onPreviewChanged(roomId)
                         stores.roomSummary.touch(roomId)
                     }
                 }
             }
         }
-        if (successes.isNotEmpty()) onDecryptedListeners.forEach { it.onEventsDecrypted() }
+        if (successes.isNotEmpty()) {
+            eventIndexer.onEventsDecrypted(successes)
+            onDecryptedListeners.forEach { it.onEventsDecrypted() }
+        }
     }
 
     data class DecryptionRequest(

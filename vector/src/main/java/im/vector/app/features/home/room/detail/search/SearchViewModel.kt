@@ -81,6 +81,9 @@ class SearchViewModel @AssistedInject constructor(
 
         // Show full screen loading just for the clean search
         if (!isNextBatch) {
+            // A clean search starts from the most recent messages; without this it would resume
+            // from the previous search's pagination point and only return older results.
+            nextBatch = null
             setState {
                 copy(
                         asyncSearchRequest = Loading()
@@ -117,7 +120,9 @@ class SearchViewModel @AssistedInject constructor(
     }
 
     private fun onSearchResultSuccess(searchResult: SearchResult) = withState { state ->
+        // An edited message can match as both its original and its (remapped) edit event; keep one.
         val accumulatedResult = searchResult.results.orEmpty().plus(state.searchResult)
+                .distinctBy { it.event.eventId }
 
         // Note: We do not care about the highlights for the moment, but it will be the same algorithm
 

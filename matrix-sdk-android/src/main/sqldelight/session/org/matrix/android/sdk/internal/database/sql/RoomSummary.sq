@@ -77,6 +77,15 @@ SELECT room_id FROM room_summary WHERE room_id = ? AND invited_members_count = ?
 selectDirectRooms:
 SELECT room_id, direct_user_id, membership_str FROM room_summary WHERE is_direct = 1;
 
+selectEncryptedRoomIdsByMembership:
+SELECT room_id FROM room_summary WHERE is_encrypted = 1 AND membership_str = ?;
+
+selectRoomIdsByMembership:
+SELECT room_id FROM room_summary WHERE membership_str = ?;
+
+selectIsEncrypted:
+SELECT is_encrypted FROM room_summary WHERE room_id = ?;
+
 selectRoomMembershipInfo:
 SELECT room_id, membership_str, other_member_ids FROM room_summary;
 

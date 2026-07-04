@@ -439,4 +439,8 @@
         <item>spark</item>
         <item>element</item>
     </string-array>
+    <string name="settings_search_encrypted_rooms_title" translatable="false">Search encrypted rooms</string>
+    <string name="settings_search_encrypted_rooms_summary" translatable="false">Securely cache decrypted messages on this device so encrypted rooms can be searched. Room history is downloaded and indexed in the background.</string>
+    <string name="settings_search_unencrypted_on_server_title" translatable="false">Server search in unencrypted rooms</string>
+    <string name="settings_search_unencrypted_on_server_summary" translatable="false">Skip local indexing of unencrypted rooms and let the server answer searches there. Faster and saves storage, but exact matching and search filters won\'t apply.</string>
 </resources>

@@ -86,6 +86,9 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
     override fun onPause() {
         super.onPause()
 
+        // Symmetric with the (re-)track in onResume: listeners are per-instance now, so a stale
+        // recorder view must deregister itself instead of being overwritten by the next track().
+        audioMessagePlaybackTracker.untrack(AudioMessagePlaybackTracker.RECORDING_ID, views.voiceMessageRecorderView)
         audioMessagePlaybackTracker.pauseAllPlaybacks()
     }
 
