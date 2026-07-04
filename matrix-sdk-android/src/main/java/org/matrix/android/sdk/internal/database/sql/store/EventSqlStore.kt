@@ -71,11 +71,22 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
             queries.selectByEventIdInRoom(roomId, eventId).executeAsOneOrNull()?.toResolvedEntity()
 
     // Distinct event ids a user contributed to a room, for mass redaction. Skips redaction events
-    // themselves and events already redacted (marked by "redacted_because" in unsigned_data).
-    fun getRedactableEventIdsBySender(roomId: String, senderId: String): List<String> =
-            queries.selectEventIdsByRoomAndSender(roomId, senderId).executeAsList()
-                    .filter { it.type != EventType.REDACTION && it.unsigned_data?.contains("redacted_because") != true }
-                    .map { it.event_id }
+    // themselves and events already redacted — either marked "redacted_because" in unsigned_data, or
+    // targeted by a stored redaction event (older DBs / non-pruned types lack the unsigned marker).
+    fun getRedactionTargets(roomId: String): Set<String> =
+            queries.selectRedactionTargetsInRoom(roomId, EventType.REDACTION).executeAsList().filterNotNull().toHashSet()
+
+    fun getRedactableEventIdsBySender(roomId: String, senderId: String): List<String> {
+        val redactedIds = getRedactionTargets(roomId)
+        fun markedRedacted(unsigned: String?) = unsigned != null && ("redacted_because" in unsigned || "redacted_by" in unsigned)
+        return queries.selectEventIdsByRoomAndSender(roomId, senderId).executeAsList()
+                .filter {
+                    it.type != EventType.REDACTION &&
+                            !markedRedacted(it.unsigned_data) &&
+                            it.event_id !in redactedIds
+                }
+                .map { it.event_id }
+    }
 
     // Encrypted events in a room still lacking a clear result — used to re-attempt decryption after a key
     // import, since decryption otherwise only runs at sync/insert time and never re-tries persisted UTDs.
@@ -172,8 +183,6 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
             queries.updateDecryptionErrorByEventId(errorCode, errorReason, eventId)
 
     fun updatePruned(id: Long, content: String?, unsignedData: String?) = queries.updatePrunedById(content, unsignedData, id)
-
-    fun updateContentOnly(id: Long, content: String?) = queries.updateContentOnlyById(content, id)
 
     fun updateUnsignedData(id: Long, unsignedData: String?) = queries.updateUnsignedDataById(unsignedData, id)
 

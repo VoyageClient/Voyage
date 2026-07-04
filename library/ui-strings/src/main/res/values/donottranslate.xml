@@ -237,6 +237,10 @@
     <string name="mass_redaction_cancel" translatable="false">Cancel</string>
     <string name="mass_redaction_cancel_confirmation_title" translatable="false">Stop redacting?</string>
     <string name="mass_redaction_cancel_confirmation_message" translatable="false">This stops the mass redaction. Events already redacted will not be restored.</string>
+    <string name="mass_redaction_finished_title" translatable="false">Mass redaction finished</string>
+    <string name="mass_redaction_finished" translatable="false">Redacted %1$d events from %2$s</string>
+    <string name="mass_redaction_nothing_found_title" translatable="false">Nothing to redact</string>
+    <string name="mass_redaction_nothing_found" translatable="false">No events from %1$s needed redacting.</string>
     <string name="command_description_mass_redact" translatable="false">Redact all events from the given user in this room</string>
     <string name="room_participants_kick_title" translatable="false">Kick user</string>
     <string name="room_participants_kick_reason" translatable="false">Reason to kick</string>

@@ -168,17 +168,23 @@ interface RelationService {
 
     /**
      * Page the server backwards for more of [userId]'s event ids. Pass null [fromToken] to start from the
-     * live edge; feed [PagedEventIds.nextToken] back in to continue until it returns null. [floorTs] (from
-     * [getMassRedactionFloorTs]) stops paging once the user's earliest event is reached, instead of walking
+     * live edge; feed [PagedEventIds.nextToken] back in to continue until it returns null. [floor] (from
+     * [getMassRedactionFloor]) stops paging once the user's earliest event is reached, instead of walking
      * all the way to the room's creation.
      */
-    suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floorTs: Long?): PagedEventIds
+    suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floor: MassRedactionFloor?): PagedEventIds
+
+    /** Event ids targeted by any redaction event stored locally for this room. */
+    fun getKnownRedactionTargets(): Set<String>
+
+    /** Prune local copies of [eventIds] the server reports as redacted but the local DB has unmarked. */
+    suspend fun markRedactedLocally(eventIds: List<String>)
 
     /**
-     * Timestamp of [userId]'s earliest self-sent membership event (join/knock) in this room — a safe lower
-     * bound for backward paging. Null when it can't be resolved (caller should then page in full).
+     * [userId]'s earliest self-sent membership event (join/knock) in this room — a safe lower bound for
+     * backward paging. Null when it can't be resolved (caller should then page in full).
      */
-    suspend fun getMassRedactionFloorTs(userId: String): Long?
+    suspend fun getMassRedactionFloor(userId: String): MassRedactionFloor?
 
     /**
      * Reply to an event in the timeline (must be in same room)

@@ -26,7 +26,9 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.message.PollType
+import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionFloor
 import org.matrix.android.sdk.api.session.room.model.relation.PagedEventIds
+import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.api.session.room.model.relation.RelationService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.Cancelable
@@ -37,6 +39,7 @@ import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
@@ -55,8 +58,12 @@ internal class DefaultRelationService @AssistedInject constructor(
         private val fetchUserEventsTask: FetchUserEventsTask,
         private val getEventTask: GetEventTask,
         private val redactEventTask: org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask,
+        private val redactionEventProcessor: org.matrix.android.sdk.internal.session.room.prune.RedactionEventProcessor,
+        @org.matrix.android.sdk.internal.di.UserId private val userId: String,
         private val localEchoRepository: org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository,
         private val timelineEventDataSource: SqlTimelineEventDataSource,
+        private val roomAPI: org.matrix.android.sdk.internal.session.room.RoomAPI,
+        private val globalErrorReceiver: org.matrix.android.sdk.internal.network.GlobalErrorReceiver,
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
@@ -159,7 +166,7 @@ internal class DefaultRelationService @AssistedInject constructor(
     }
 
     override suspend fun redactEventNoEcho(eventId: String, reason: String?) {
-        redactEventTask.execute(
+        val redactionEventId = redactEventTask.execute(
                 org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask.Params(
                         txID = java.util.UUID.randomUUID().toString(),
                         roomId = roomId,
@@ -168,32 +175,86 @@ internal class DefaultRelationService @AssistedInject constructor(
                         withRelTypes = null,
                 )
         )
+        // A bulk redaction makes sync gappy (limited), so most of these redactions never come back
+        // through /sync to prune their targets — apply each to the local copy right away, or a re-run
+        // would enumerate every already-redacted event again.
+        database.awaitDbTransaction(dispatcher) {
+            redactionEventProcessor.prune(stores, Event(
+                    type = EventType.REDACTION,
+                    eventId = redactionEventId,
+                    redacts = eventId,
+                    roomId = roomId,
+                    senderId = userId,
+                    originServerTs = System.currentTimeMillis(),
+            ))
+        }
     }
 
     override fun getLocalEventIdsFromUser(userId: String): List<String> {
         return stores.event.getRedactableEventIdsBySender(roomId, userId)
     }
 
-    override suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floorTs: Long?): PagedEventIds {
-        val result = fetchUserEventsTask.execute(FetchUserEventsTask.Params(roomId, userId, fromToken, floorTs))
-        return PagedEventIds(result.eventIds, result.nextToken)
+    override suspend fun fetchMoreEventIdsFromUser(userId: String, fromToken: String?, floor: MassRedactionFloor?): PagedEventIds {
+        val result = fetchUserEventsTask.execute(FetchUserEventsTask.Params(roomId, userId, fromToken, floor?.ts, floor?.anchorToken))
+        return PagedEventIds(result.eventIds, result.nextToken, result.redactionTargets, result.alreadyRedactedIds)
     }
 
-    // A user can't have sent anything before their earliest self-sent membership event (join/knock), so
-    // that event's timestamp is a safe floor for backward paging. Walk the m.room.member replaces_state
-    // chain to the start; only return a floor when the walk resolves fully — otherwise null (page in full)
-    // so we never stop early and miss events.
-    override suspend fun getMassRedactionFloorTs(userId: String): Long? {
+    override suspend fun markRedactedLocally(eventIds: List<String>) {
+        // Reconcile stale local rows with server truth: a row the server serves as redacted but the local
+        // DB still has unmarked (its redaction never synced) would otherwise be re-redacted by the next
+        // local sweep. Prune it now exactly as if the redaction had arrived.
+        val stale = eventIds.filter {
+            val dbId = stores.event.getDbId(roomId, it) ?: return@filter false
+            stores.event.getById(dbId)?.unsignedData?.contains("redacted_b") != true
+        }
+        if (stale.isEmpty()) return
+        database.awaitDbTransaction(dispatcher) {
+            stale.forEach { eventId ->
+                redactionEventProcessor.prune(stores, Event(
+                        type = EventType.REDACTION,
+                        redacts = eventId,
+                        roomId = roomId,
+                ))
+            }
+        }
+    }
+
+    override fun getKnownRedactionTargets(): Set<String> = stores.event.getRedactionTargets(roomId)
+
+    // A user can't have sent anything before their earliest self-sent membership event (join/knock).
+    // Walk the m.room.member replaces_state chain to the start; only return a floor when the walk
+    // resolves fully — otherwise null (page in full) so we never stop early and miss events.
+    override suspend fun getMassRedactionFloor(userId: String): MassRedactionFloor? {
         var eventId = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.eventId ?: return null
         var earliestSelfTs: Long? = null
-        var hops = 0
-        while (hops++ < MAX_MEMBERSHIP_HOPS) {
+        var reachedChainStart = false
+        // Guard against a malformed replaces_state cycle, not chain length — the walk must visit every
+        // membership change (rejoins, name changes) however many there are.
+        val visited = HashSet<String>()
+        while (visited.add(eventId)) {
             val event = tryOrNull { getEventTask.execute(GetEventTask.Params(roomId, eventId)) } ?: return null
-            if (event.senderId == userId) earliestSelfTs = event.originServerTs ?: earliestSelfTs
-            val prev = event.unsignedData?.replacesState ?: return earliestSelfTs
+            if (event.senderId == userId && event.originServerTs != null) {
+                earliestSelfTs = event.originServerTs
+            }
+            val prev = event.unsignedData?.replacesState
+            if (prev == null) {
+                reachedChainStart = true
+                break
+            }
             eventId = prev
         }
-        return null
+        if (!reachedChainStart) return null
+        val ts = earliestSelfTs ?: return null
+        // A pagination token at the floor lets the walk run FORWARDS from the user's join to the live
+        // edge — a forward walk can never touch (or backfill over federation) pre-join history, which is
+        // what made backwards pages hang on sparsely-cached rooms. Note the token's topological part may
+        // be the placeholder depth (2^53-2, e.g. on rooms where every event is stored that way); the
+        // stream part still positions it correctly for forward paging.
+        val anchorToken = tryOrNull {
+            val anchor = executeRequest(globalErrorReceiver) { roomAPI.getEventForTimestamp(roomId, ts, "f") }
+            executeRequest(globalErrorReceiver) { roomAPI.getContextOfEvent(roomId, anchor.eventId, 0) }.start
+        }
+        return MassRedactionFloor(ts, anchorToken)
     }
 
     override fun replyToMessage(
@@ -281,7 +342,4 @@ internal class DefaultRelationService @AssistedInject constructor(
         eventFactory.createLocalEcho(event)
     }
 
-    companion object {
-        private const val MAX_MEMBERSHIP_HOPS = 100
-    }
 }

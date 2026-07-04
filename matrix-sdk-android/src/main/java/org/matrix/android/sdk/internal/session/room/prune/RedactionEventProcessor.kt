@@ -49,13 +49,18 @@ internal class RedactionEventProcessor @Inject constructor(
     }
 
     private fun pruneEvent(stores: SessionStores, redactionEvent: Event) {
+        // Check that we know the redaction event itself
+        val roomId = redactionEvent.roomId ?: return
+        if (stores.event.getDbId(roomId, redactionEvent.eventId ?: "") == null) return
+        prune(stores, redactionEvent)
+    }
+
+    /** Applies [redactionEvent] to the local copy of its target. The redaction itself needn't be in the DB. */
+    fun prune(stores: SessionStores, redactionEvent: Event) {
         if (redactionEvent.redacts.isNullOrBlank()) {
             return
         }
         val roomId = redactionEvent.roomId ?: return
-
-        // Check that we know the redaction event itself
-        if (stores.event.getDbId(roomId, redactionEvent.eventId ?: "") == null) return
 
         val isLocalEcho = LocalEcho.isLocalEchoId(redactionEvent.eventId ?: "")
         Timber.v("Redact event for ${redactionEvent.redacts} localEcho=$isLocalEcho")
@@ -69,19 +74,26 @@ internal class RedactionEventProcessor @Inject constructor(
         val typeToPrune = eventToPrune.type
         val stateKey = eventToPrune.stateKey
         val allowedKeys = computeAllowedKeys(typeToPrune)
+        // Record "redacted_because" in every branch, even when content isn't pruned — consumers
+        // (e.g. mass redaction) rely on it to tell already-redacted events apart.
+        val unsignedData = EventMapper.map(eventToPrune).unsignedData ?: UnsignedData(null, null)
+        val redactedUnsignedJson = MoshiProvider.providesMoshi().adapter(UnsignedData::class.java)
+                .toJson(unsignedData.copy(redactedEvent = redactionEvent))
         when {
             allowedKeys.isNotEmpty() -> {
                 val prunedContent = ContentMapper.map(eventToPrune.content)?.filterKeys { key -> allowedKeys.contains(key) }
-                stores.event.updateContentOnly(pruneDbId, ContentMapper.map(prunedContent))
+                stores.event.updatePruned(
+                        id = pruneDbId,
+                        content = ContentMapper.map(prunedContent),
+                        unsignedData = redactedUnsignedJson,
+                )
             }
             canPruneEventType(typeToPrune) -> {
                 Timber.d("REDACTION for message ${eventToPrune.eventId}")
-                val unsignedData = EventMapper.map(eventToPrune).unsignedData ?: UnsignedData(null, null)
-                val modified = unsignedData.copy(redactedEvent = redactionEvent)
                 stores.event.updatePruned(
                         id = pruneDbId,
                         content = ContentMapper.map(emptyMap()),
-                        unsignedData = MoshiProvider.providesMoshi().adapter(UnsignedData::class.java).toJson(modified),
+                        unsignedData = redactedUnsignedJson,
                 )
                 val rootThreadId = eventToPrune.rootThreadEventId
                 if (rootThreadId != null && !isLocalEcho) {
@@ -101,13 +113,12 @@ internal class RedactionEventProcessor @Inject constructor(
                 // Reactions are aggregated (the relations processor needs the key to remove the chip), so
                 // we keep their content but still flag them redacted, then refresh the preview right away —
                 // otherwise an undone reaction lingers as the room-list preview until the next message.
-                val unsignedData = EventMapper.map(eventToPrune).unsignedData ?: UnsignedData(null, null)
-                val modified = unsignedData.copy(redactedEvent = redactionEvent)
-                stores.event.updateUnsignedData(pruneDbId, MoshiProvider.providesMoshi().adapter(UnsignedData::class.java).toJson(modified))
+                stores.event.updateUnsignedData(pruneDbId, redactedUnsignedJson)
                 roomSummaryUpdater.refreshLatestPreviewableEvent(stores, eventToPrune.roomId)
             }
             else -> {
-                Timber.w("Not pruning event (type $typeToPrune)")
+                // Content stays (call/verification events), but the redacted marker must still be recorded.
+                stores.event.updateUnsignedData(pruneDbId, redactedUnsignedJson)
             }
         }
         if (typeToPrune == EventType.STATE_ROOM_MEMBER && stateKey != null) {

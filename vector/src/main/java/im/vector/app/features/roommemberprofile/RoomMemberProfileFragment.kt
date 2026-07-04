@@ -13,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
@@ -136,7 +135,11 @@ class RoomMemberProfileFragment :
                 is RoomMemberProfileViewEvents.OpenRoom -> handleOpenRoom(it)
                 is RoomMemberProfileViewEvents.OnKickActionSuccess -> Unit
                 RoomMemberProfileViewEvents.MassRedactionAlreadyRunning ->
-                    Toast.makeText(requireContext(), CommonStrings.mass_redaction_already_running, Toast.LENGTH_LONG).show()
+                    MaterialAlertDialogBuilder(requireActivity())
+                            .setTitle(CommonStrings.dialog_title_error)
+                            .setMessage(CommonStrings.mass_redaction_already_running)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
                 is RoomMemberProfileViewEvents.OnSetPowerLevelSuccess -> Unit
                 is RoomMemberProfileViewEvents.OnBanActionSuccess -> Unit
                 is RoomMemberProfileViewEvents.OnIgnoreActionSuccess -> Unit

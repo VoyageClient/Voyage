@@ -32,6 +32,11 @@ data class UnsignedData(
          */
         @Json(name = "redacted_because") val redactedEvent: Event? = null,
         /**
+         * Optional. The id of the event that redacted this event. Synapse sets this even when it can't
+         * inline the full redaction event in redacted_because (e.g. a redaction received over federation).
+         */
+        @Json(name = "redacted_by") val redactedBy: String? = null,
+        /**
          * The client-supplied transaction ID, if the client being given the event is the same one which sent it.
          */
         @Json(name = "transaction_id") val transactionId: String? = null,
@@ -47,4 +52,4 @@ data class UnsignedData(
 
 )
 
-fun UnsignedData?.isRedacted() = this?.redactedEvent != null
+fun UnsignedData?.isRedacted() = this?.redactedEvent != null || this?.redactedBy != null
