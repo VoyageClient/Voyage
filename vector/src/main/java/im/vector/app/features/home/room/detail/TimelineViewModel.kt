@@ -81,6 +81,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixPatterns
@@ -279,6 +280,7 @@ class TimelineViewModel @AssistedInject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             tryOrNull { session.roomService().refreshJoinedRoomSummaryPreviews(initialState.roomId) }
         }
+        refreshRoomSummaryPreviewAfterInitialLoad()
 
         // Ensure to share the outbound session keys with all members
         if (room.roomCryptoService().isEncrypted()) {
@@ -416,6 +418,24 @@ class TimelineViewModel @AssistedInject constructor(
                 .execute {
                     copy(myRoomMember = it)
                 }
+    }
+
+    private fun refreshRoomSummaryPreviewAfterInitialLoad() {
+        // The most recent message is often not in the DB when the room opens — it arrives with the timeline's
+        // initial fetch/pagination — so the on-open refresh above can miss it, leaving a stale room-list
+        // preview until the room is opened a second time. Re-run the thorough refresh once the timeline has
+        // delivered its first content, when that page (which contains the newest message) is persisted. Skip
+        // entirely when a preview is already cached: that room doesn't need the extra DB scan.
+        if (room?.roomSummary()?.latestPreviewableEvent != null) return
+        timelineEvents
+                .filter { it.isNotEmpty() }
+                .take(1)
+                .onEach {
+                    withContext(Dispatchers.IO) {
+                        tryOrNull { session.roomService().refreshJoinedRoomSummaryPreviews(initialState.roomId) }
+                    }
+                }
+                .launchIn(viewModelScope)
     }
 
     private fun setupInReplyToObserver() {
