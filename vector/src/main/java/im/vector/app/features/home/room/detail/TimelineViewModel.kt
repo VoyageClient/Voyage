@@ -281,6 +281,7 @@ class TimelineViewModel @AssistedInject constructor(
             tryOrNull { session.roomService().refreshJoinedRoomSummaryPreviews(initialState.roomId) }
         }
         refreshRoomSummaryPreviewAfterInitialLoad()
+        retryPickerPermissionFailedUploads()
 
         // Ensure to share the outbound session keys with all members
         if (room.roomCryptoService().isEncrypted()) {
@@ -436,6 +437,35 @@ class TimelineViewModel @AssistedInject constructor(
                     }
                 }
                 .launchIn(viewModelScope)
+    }
+
+    // Media echoes picked from the Android photo picker carry a transient content://media/picker_get_content
+    // uri whose read grant dies with the process. If the app is killed mid-upload, the resumed upload worker
+    // hits "does not have permission to access picker uri" and the echo is left failed — but a manual retry
+    // (grant re-established once the app is back up) succeeds. Retry such an echo once automatically on open.
+    private val autoRetriedUploadEchoes = mutableSetOf<String>()
+
+    private fun retryPickerPermissionFailedUploads() {
+        timelineEvents
+                .filter { it.isNotEmpty() }
+                .take(1)
+                .onEach { snapshot ->
+                    snapshot.forEach { event ->
+                        val root = event.root
+                        if (root.sendState.hasFailed() &&
+                                root.isAttachmentMessage() &&
+                                isPickerPermissionFailure(root.sendStateDetails) &&
+                                autoRetriedUploadEchoes.add(event.eventId)) {
+                            room?.sendService()?.resendMediaMessage(event)
+                        }
+                    }
+                }
+                .launchIn(viewModelScope)
+    }
+
+    private fun isPickerPermissionFailure(details: String?): Boolean {
+        details ?: return false
+        return details.contains("does not have permission to access picker uri", ignoreCase = true)
     }
 
     private fun setupInReplyToObserver() {

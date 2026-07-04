@@ -109,11 +109,13 @@ class BlurFadeOutTransitionFactory(private val durationMs: Long) : TransitionFac
     override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> =
             Transition<Drawable> { current, adapter ->
                 val placeholder = adapter.currentDrawable as? BlurHashDrawable
-                if (placeholder == null) {
+                val placeholderBitmap = placeholder?.bitmap
+                if (placeholder == null || placeholderBitmap == null) {
+                    // No blurhash (yet) to fade from: let Glide set the image directly.
                     false
                 } else {
                     placeholder.markFinished()
-                    adapter.setDrawable(BlurFadeOutDrawable(current, placeholder.bitmap, durationMs))
+                    adapter.setDrawable(BlurFadeOutDrawable(current, placeholderBitmap, durationMs))
                     true
                 }
             }
