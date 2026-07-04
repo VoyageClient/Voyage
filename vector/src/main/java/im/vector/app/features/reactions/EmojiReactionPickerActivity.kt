@@ -25,8 +25,8 @@ import im.vector.app.core.extensions.observeEvent
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.ActivityEmojiReactionPickerBinding
-import im.vector.lib.core.utils.flow.throttleFirst
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -136,7 +136,7 @@ class EmojiReactionPickerActivity :
             }
 
             searchView.queryTextChanges()
-                    .throttleFirst(600)
+                    .debounce(300)
                     .onEach { query ->
                         onQueryText(query.toString())
                     }
