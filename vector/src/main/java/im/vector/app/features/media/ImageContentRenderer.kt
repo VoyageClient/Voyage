@@ -370,6 +370,12 @@ class ImageContentRenderer @Inject constructor(
                     // limit on width
                     finalWidth = min(dimensionConverter.dpToPx(width), maxImageWidth * 3 / 4)
                     finalHeight = finalWidth * height / width
+                    // Also cap the height: a tall alpha-capable image (routed here by previewMode) would
+                    // otherwise render at full height in the reply header / composer / long-press previews.
+                    if (finalHeight > maxImageHeight) {
+                        finalHeight = maxImageHeight
+                        finalWidth = finalHeight * width / height
+                    }
                 }
             }
         }
