@@ -26,6 +26,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.cache.DiskCache
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.R
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
@@ -179,7 +180,11 @@ class VectorSettingsGeneralFragment :
         }
 
         // Display name
-        mDisplayNamePreference.setupLiveEmojiInput()
+        mDisplayNamePreference.setOnBindEditTextListener { editText ->
+            editText.hint = session.myUserId
+            editText.setupLiveEmojiInput()
+            messageEmojiSpanify?.applyLive(editText.text)
+        }
         mDisplayNamePreference.let {
             it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
                 newValue

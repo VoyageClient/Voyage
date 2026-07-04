@@ -69,7 +69,7 @@ interface StateService {
 
     /**
      * Update the current user's display name for this room only (the self m.room.member event).
-     * Pass the account-wide display name to remove the per-room personalization.
+     * null omits the field so the server restores the account-wide name; "" blanks it explicitly.
      */
     suspend fun updateMyRoomDisplayName(displayName: String?)
 
@@ -80,9 +80,15 @@ interface StateService {
 
     /**
      * Set the current user's avatar for this room only (the self m.room.member event).
-     * Pass the account-wide avatar url (or null) to remove the per-room personalization.
+     * null omits the field so the server restores the account-wide avatar; "" removes it explicitly.
      */
     suspend fun resetMyRoomAvatar(avatarUrl: String?)
+
+    /**
+     * Set both the current user's display name and avatar for this room only, in a single
+     * self m.room.member event. Same null / "" semantics as the single-field variants.
+     */
+    suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?)
 
     /**
      * Send a state event to the room.

@@ -100,20 +100,27 @@ class MessageInformationDataFactory @Inject constructor(
         // this is claimed data or not depending on the e2e decoration
         val senderId = event.senderInfo.userId
 
-        // Sender name/avatar are denormalized at sync time and can be missing when the event was
-        // received while the room was only listed (members not yet loaded). Fall back to the current
-        // member state so they resolve once members are known, without rewriting stored events.
-        val fallbackMember = if (event.senderInfo.displayName.isNullOrBlank() || event.senderInfo.avatarUrl == null) {
+        // Sender name/avatar are denormalized at sync time: null = member state unknown when stored,
+        // so fall back to the current member state; "" = member known but field genuinely empty at
+        // that time, no fallback. With "show latest user info" on, always prefer the live member.
+        val useLiveSenderInfo = vectorPreferences.showLiveSenderInfo()
+        val storedName = event.senderInfo.displayName
+        val storedAvatar = event.senderInfo.avatarUrl
+        val liveMember = if (useLiveSenderInfo || storedName == null || storedAvatar == null) {
             event.root.roomId?.let { session.roomService().getRoom(it)?.membershipService()?.getRoomMember(senderId) }
         } else {
             null
         }
-        val senderName = if (!event.senderInfo.displayName.isNullOrBlank()) {
-            event.senderInfo.disambiguatedDisplayName
-        } else {
-            fallbackMember?.displayName?.takeUnless { it.isBlank() } ?: event.senderInfo.disambiguatedDisplayName
+        val senderName = when {
+            useLiveSenderInfo && liveMember != null -> liveMember.displayName?.takeUnless { it.isBlank() } ?: senderId
+            storedName == null -> liveMember?.displayName?.takeUnless { it.isBlank() } ?: event.senderInfo.disambiguatedDisplayName
+            else -> event.senderInfo.disambiguatedDisplayName
         }
-        val senderAvatar = event.senderInfo.avatarUrl ?: fallbackMember?.avatarUrl
+        val senderAvatar = when {
+            useLiveSenderInfo && liveMember != null -> liveMember.avatarUrl
+            storedAvatar == null -> liveMember?.avatarUrl
+            else -> storedAvatar.takeUnless { it.isEmpty() }
+        }
 
         // Determine DM partner so dual-side bubbles can hide both avatars in direct chats.
         val isEffectivelyDirect = roomSummary?.isDirect ?: false
