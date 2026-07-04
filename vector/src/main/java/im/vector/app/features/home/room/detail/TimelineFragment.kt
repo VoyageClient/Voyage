@@ -215,7 +215,7 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetType
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.MimeTypes
-import org.matrix.android.sdk.api.util.toInvitationMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import java.net.URL
@@ -1478,7 +1478,7 @@ class TimelineFragment :
                 } else {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = roomSummary.membership == Membership.JOIN
                     views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName.withEmojis()
-                    val toolbarMatrixItem = roomSummary.toInvitationMatrixItem().let {
+                    val toolbarMatrixItem = roomSummary.toDisplayMatrixItem().let {
                         if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it
                     }
                     avatarRenderer.render(toolbarMatrixItem, views.includeRoomToolbar.roomToolbarAvatarImageView)

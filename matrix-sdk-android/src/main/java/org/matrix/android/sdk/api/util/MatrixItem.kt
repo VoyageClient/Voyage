@@ -192,17 +192,14 @@ fun RoomSummary.toMatrixItem() = if (roomType == RoomType.SPACE) {
     MatrixItem.RoomItem(roomId, displayName, avatarUrl)
 }
 
-// A DM invite has no room avatar of its own, so colour/identify it from the other user (a UserItem, tinted by
-// user id) rather than the room (tinted by room id): the inviter for an inbound invite, or the person we
-// invited for an outbound one who hasn't joined yet. Only DM invites are remapped — joined DMs and non-DM
-// rooms keep their own room item so rooms still show their own avatar.
-fun RoomSummary.toInvitationMatrixItem(): MatrixItem {
+// A DM has no room identity of its own, so colour/identify it from the other user (a UserItem, tinted by
+// user id) rather than the room (tinted by room id) — this makes its placeholder avatar match that user's
+// name colour. The other user is the inviter for an inbound invite, else directUserId (outbound invite or a
+// joined DM). The room's avatarUrl is kept, so a DM that has its own avatar still shows it. Non-DM rooms keep
+// their own room item so they show their own avatar.
+fun RoomSummary.toDisplayMatrixItem(): MatrixItem {
     if (!isDirect) return toMatrixItem()
-    val otherUserId = when {
-        membership == Membership.INVITE -> inviterId
-        (invitedMembersCount ?: 0) > 0 -> directUserId
-        else -> null
-    }
+    val otherUserId = if (membership == Membership.INVITE) inviterId else directUserId
     return otherUserId?.let { MatrixItem.UserItem(it, displayName, avatarUrl) } ?: toMatrixItem()
 }
 

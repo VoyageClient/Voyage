@@ -12,6 +12,7 @@ import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 private val PRIVATE_JOIN_RULES = setOf(
@@ -54,7 +55,13 @@ fun isMediaHiddenInRoom(
         vectorPreferences: VectorPreferences,
 ): Boolean {
     roomId ?: return false
-    val summary = session.getRoomSummary(roomId)
+    return isMediaHiddenInRoom(session.getRoomSummary(roomId), vectorPreferences)
+}
+
+fun isMediaHiddenInRoom(
+        summary: RoomSummary?,
+        vectorPreferences: VectorPreferences,
+): Boolean {
     return when (vectorPreferences.getMediaPreviewMode()) {
         MediaPreviewMode.ALWAYS_SHOW -> false
         MediaPreviewMode.ALWAYS_HIDE -> true
@@ -73,4 +80,11 @@ fun shouldHideAvatars(
         vectorPreferences: VectorPreferences,
 ): Boolean {
     return vectorPreferences.hideAvatarsInHiddenMediaRooms() && isMediaHiddenInRoom(roomId, session, vectorPreferences)
+}
+
+fun shouldHideAvatars(
+        summary: RoomSummary?,
+        vectorPreferences: VectorPreferences,
+): Boolean {
+    return vectorPreferences.hideAvatarsInHiddenMediaRooms() && isMediaHiddenInRoom(summary, vectorPreferences)
 }
