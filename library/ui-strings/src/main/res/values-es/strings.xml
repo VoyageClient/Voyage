@@ -1110,9 +1110,9 @@
     <string name="verification_conclusion_not_secure">No seguro</string>
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Imagen.</string>
-    <string name="sent_an_audio_file">Audio</string>
-    <string name="sent_a_file">Archivo</string>
-    <string name="send_a_sticker">Pegatina</string>
+    <string name="sent_an_audio_file">Audio.</string>
+    <string name="sent_a_file">Archivo.</string>
+    <string name="send_a_sticker">Pegatina.</string>
     <string name="verification_request_waiting">Esperando…</string>
     <string name="verification_request_other_cancelled">%s cancelada</string>
     <string name="verification_request_you_cancelled">Cancelado por usted</string>
@@ -1585,7 +1585,7 @@
 \n
 \nTus mensajes están asegurados con un candado. Solo tú y tú destinatario tenéis las llaves especiales para descifrarlos.</string>
     <string name="direct_room_profile_not_encrypted_subtitle">Los mensajes aquí no están cifrados Extremo-a-Extremo.</string>
-    <string name="sent_a_poll">Encuesta</string>
+    <string name="sent_a_poll">Encuesta.</string>
     <string name="room_list_quick_actions_low_priority_remove">Eliminar de baja prioridad</string>
     <string name="room_list_quick_actions_low_priority_add">Añadir a Baja prioridad</string>
     <string name="rotate_and_crop_screen_title">Rotar y recortar</string>
@@ -1635,8 +1635,8 @@
     <string name="delete_account_data_warning">¿Borrar los datos de cuenta de typo %1$s\?
 \n
 \nPrecaución, puede causar funcionamiento inesperado.</string>
-    <string name="sent_verification_conclusion">Resultado de la verificación</string>
-    <string name="sent_a_reaction">Reaccionó con: %s</string>
+    <string name="sent_verification_conclusion">Resultado de la verificación.</string>
+    <string name="sent_a_reaction">Reaccionó con: %s.</string>
     <string name="login_error_outdated_homeserver_warning_content">Este servidor particular usa una versión antigua. Pregunta a su administrador si puede actualizarlo. Puedes continuar usándolo, pero algunas características pueden no funcionar.</string>
     <string name="direct_room_join_rules_invite_by_you">Tú has configurado como sólo con invitación.</string>
     <string name="direct_room_join_rules_invite">%1$s ha configurado como sólo con invitación.</string>
@@ -2004,7 +2004,7 @@
     <string name="verification_scan_self_emoji_subtitle">Verificar comparando emoji en su lugar</string>
     <string name="verification_scan_with_this_device">Escanear con este dispositivo</string>
     <string name="verification_scan_self_notice">Escanee el código con su otro dispositivo o cambié y escanee con este dispositivo</string>
-    <string name="sent_a_voice_message">Voz</string>
+    <string name="sent_a_voice_message">Voz.</string>
     <string name="create_space_in_progress">Creando espacio…</string>
     <string name="create_room_alias_invalid">Algunos caracteres no están permitidos</string>
     <string name="create_room_alias_empty">Proporcione la dirección de la sala</string>
@@ -2234,8 +2234,8 @@
     <string name="edit_poll_title">Editar encuesta</string>
     <string name="delete_poll_dialog_content">¿Estás seguro de que quieres eliminar esta encuesta\? No podrás recuperarla cuando se elimine.</string>
     <string name="delete_poll_dialog_title">Eliminar encuesta</string>
-    <string name="poll_end_room_list_preview">Encuesta finalizada</string>
-    <string name="poll_response_room_list_preview">Voto enviado</string>
+    <string name="poll_end_room_list_preview">Encuesta finalizada.</string>
+    <string name="poll_response_room_list_preview">Voto enviado.</string>
     <string name="end_poll_confirmation_approve_button">Finalizar encuesta</string>
     <string name="end_poll_confirmation_description">Esto evitará que las personas puedan votar y mostrará los resultados finales de la encuesta.</string>
     <string name="end_poll_confirmation_title">¿Finalizar encuesta\?</string>

@@ -848,12 +848,12 @@
     <string name="verification_conclusion_not_secure">ناامن</string>
     <string name="sent_a_video">ویدیو.</string>
     <string name="sent_an_image">تصویر.</string>
-    <string name="sent_an_audio_file">صدا</string>
-    <string name="sent_a_file">پرونده</string>
-    <string name="send_a_sticker">برچسب</string>
-    <string name="sent_a_poll">نظرسنجی</string>
-    <string name="sent_a_reaction">واکنش داده با: %s</string>
-    <string name="sent_verification_conclusion">نتیجه‌گیری تأیید</string>
+    <string name="sent_an_audio_file">صدا.</string>
+    <string name="sent_a_file">پرونده.</string>
+    <string name="send_a_sticker">برچسب.</string>
+    <string name="sent_a_poll">نظرسنجی.</string>
+    <string name="sent_a_reaction">واکنش داده با: %s.</string>
+    <string name="sent_verification_conclusion">نتیجه‌گیری تأیید.</string>
     <string name="verification_request_waiting">در حال انتظار…</string>
     <string name="verification_request_other_cancelled">%s لغو شد</string>
     <string name="verification_request_you_cancelled">لغو کردید</string>
@@ -1994,7 +1994,7 @@
     <string name="voice_message_slide_to_cancel">برای لغو، بکشید</string>
     <string name="a11y_start_voice_message">ضبط پیام صوتی</string>
     <string name="upgrade_required">نیازمند ارتقا</string>
-    <string name="sent_a_voice_message">صدا</string>
+    <string name="sent_a_voice_message">صدا.</string>
     <string name="other_spaces_or_rooms_you_might_not_know">دیگر فضاها یا اتاق‌هایی که ممکن است نشناسید</string>
     <string name="space_you_know_that_contains_this_room">فضاهایی که می‌دانید شامل این اتاقند</string>
     <string name="decide_who_can_find_and_join">تصمیم بگیرید چه کسانی می‌توانند این اتاق را یافته و به آن بپیوندند.</string>
@@ -2124,8 +2124,8 @@
 \nمی‌توانید از %s قوانینمان را بخوانید.</string>
     <string name="delete_poll_dialog_content">مطمئنید که می خواهید این نظرسنجی را بردارید؟ پس از این کار، قادر به بازگردانیش نیستید.</string>
     <string name="delete_poll_dialog_title">برداشتن نظرسنجی</string>
-    <string name="poll_end_room_list_preview">نظرسنجی پایان یافت</string>
-    <string name="poll_response_room_list_preview">رأی داده شد</string>
+    <string name="poll_end_room_list_preview">نظرسنجی پایان یافت.</string>
+    <string name="poll_response_room_list_preview">رأی داده شد.</string>
     <string name="end_poll_confirmation_approve_button">پایان نظرسنجی</string>
     <string name="end_poll_confirmation_description">این کار اجازهٔ رأی دادن افراد را پایان داده و نتیجهٔ نهایی نظرسنجی را نمایش خواهد داد.</string>
     <string name="end_poll_confirmation_title">پایان این نظرسنجی؟</string>
@@ -2812,7 +2812,7 @@
     <string name="user_reported_as_inappropriate_content">کاربر گزارش شد.
 \n
 \nاگر دیگر نمی‌خواهید محتوایی از این کاربر ببینید، می‌توانید برای نهفتن پیام‌هایش نادیده‌اش بگیرید.</string>
-    <string name="call_unsupported">تماس پشتیبانی نشده</string>
+    <string name="call_unsupported">تماس پشتیبانی نشده.</string>
     <string name="room_profile_section_more_report">گزارش اتاق</string>
     <string name="room_profile_section_more_report_success_content">اتاق با موفّقیت گزارش شد.</string>
 </resources>

@@ -1150,8 +1150,8 @@
     <string name="verification_conclusion_compromised">Uno dei seguenti potrebbe essere compromesso:\n\n - Il tuo Home Server\n - L\'Home Server al quale è connesso l\'utente che stai verificando\n - La tua connessione internet o quella dell\'altro utente\n - Il tuo dispositivo o quello dell\'altro utente</string>
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Immagine.</string>
-    <string name="sent_an_audio_file">Audio</string>
-    <string name="sent_a_file">File</string>
+    <string name="sent_an_audio_file">Audio.</string>
+    <string name="sent_a_file">File.</string>
     <string name="verification_request_waiting">In attesa…</string>
     <string name="verification_request_other_cancelled">%s ha annullato</string>
     <string name="verification_request_you_cancelled">Hai annullato</string>
@@ -1471,7 +1471,7 @@
     <string name="room_join_rules_invite_by_you">Hai reso la stanza accessibile solo su invito.</string>
     <string name="login_server_url_form_common_notice">Inserisci l\'indirizzo del server che vuoi usare</string>
     <string name="login_signin_matrix_id_password_notice">Se non sai la tua password, torna indietro per reimpostarla.</string>
-    <string name="send_a_sticker">Sticker</string>
+    <string name="send_a_sticker">Sticker.</string>
     <string name="room_profile_section_admin">Azioni Amministratore</string>
     <string name="room_member_power_level_default_in">Standard in %1$s</string>
     <string name="settings_hs_admin_e2e_disabled">L\'amministratore del server ha disattivato di default la crittografia E2E sia nelle stanze private che nei messaggi diretti.</string>
@@ -1576,9 +1576,9 @@
         <item quantity="one">%d secondo</item>
         <item quantity="other">%d secondi</item>
     </plurals>
-    <string name="sent_a_poll">Sondaggio</string>
-    <string name="sent_a_reaction">Reagito con: %s</string>
-    <string name="sent_verification_conclusion">Verifica conclusa</string>
+    <string name="sent_a_poll">Sondaggio.</string>
+    <string name="sent_a_reaction">Reagito con: %s.</string>
+    <string name="sent_verification_conclusion">Verifica conclusa.</string>
     <string name="delete_account_data_warning">Vuoi eliminare i dati dell\'account di tipo %1$s\?
 \n
 \nProcedi con cautela: quest\'azione può provocare comportamenti imprevisti.</string>
@@ -1989,7 +1989,7 @@
     <string name="a11y_play_voice_message">Riproduci messaggio vocale</string>
     <string name="voice_message_slide_to_cancel">Scorri per annullare</string>
     <string name="upgrade_required">Aggiornamento necessario</string>
-    <string name="sent_a_voice_message">Vocale</string>
+    <string name="sent_a_voice_message">Vocale.</string>
     <string name="other_spaces_or_rooms_you_might_not_know">Altri spazi o stanze che potresti non conoscere</string>
     <string name="space_you_know_that_contains_this_room">Spazi di cui sai che contengono questa stanza</string>
     <string name="decide_who_can_find_and_join">Decidi chi può trovare ed entrare in questa stanza.</string>
@@ -2112,8 +2112,8 @@
     <string name="action_not_now">Non ora</string>
     <string name="delete_poll_dialog_content">Vuoi davvero rimuovere questo sondaggio\? Non potrai recuperarlo una volta rimosso.</string>
     <string name="delete_poll_dialog_title">Rimuovi sondaggio</string>
-    <string name="poll_end_room_list_preview">Sondaggio terminato</string>
-    <string name="poll_response_room_list_preview">Voto inviato</string>
+    <string name="poll_end_room_list_preview">Sondaggio terminato.</string>
+    <string name="poll_response_room_list_preview">Voto inviato.</string>
     <string name="end_poll_confirmation_approve_button">Termina sondaggio</string>
     <string name="end_poll_confirmation_description">Ciò impedirà alle persone di poter votare e mostrerà i risultati finali del sondaggio.</string>
     <string name="end_poll_confirmation_title">Terminare questo sondaggio\?</string>

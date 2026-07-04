@@ -873,7 +873,7 @@
     <string name="notice_made_future_room_visibility_by_you">Je hebt toekomstige kamergeschiedenis zichtbaar gemaakt voor %1$s</string>
     <string name="voice_message_n_seconds_warning_toast">%1$ds over</string>
     <string name="direct_room_created_summary_item">%s is toegetreden.</string>
-    <string name="sent_verification_conclusion">Conclusie Bevestiging</string>
+    <string name="sent_verification_conclusion">Conclusie Bevestiging.</string>
     <string name="create_room_settings_section">Kamerinstellingen</string>
     <string name="create_room_name_section">Kamernaam</string>
     <string name="room_manage_integrations">Integraties Beheren</string>
@@ -975,7 +975,7 @@
     <string name="room_participants_ban_title">Persoon verbannen</string>
     <string name="room_participants_action_cancel_invite_title">Uitnodiging annuleren</string>
     <string name="room_participants_action_unignore_title">Persoon niet meer negeren</string>
-    <string name="sent_a_voice_message">Stem</string>
+    <string name="sent_a_voice_message">Stem.</string>
     <string name="settings_server_room_version_unstable">onstabiel</string>
     <string name="settings_server_room_version_stable">stabiel</string>
     <string name="room_list_quick_actions_notifications_all">Alle berichten</string>
@@ -1035,7 +1035,7 @@
     <string name="topic_prefix">"Onderwerp: "</string>
     <string name="direct_room_profile_section_more_leave">Verlaten</string>
     <string name="direct_room_profile_section_more_settings">Instellingen</string>
-    <string name="sent_a_poll">Stemming</string>
+    <string name="sent_a_poll">Stemming.</string>
     <string name="login_social_continue">Of</string>
     <string name="settings_text_message_sent_hint">Code</string>
     <string name="direct_room_user_list_suggestions_title">Suggesties</string>
@@ -1070,9 +1070,9 @@
     <string name="room_profile_section_more">Meer</string>
     <string name="room_profile_section_security">Beveiliging</string>
     <string name="verification_request_waiting">Wachten…</string>
-    <string name="send_a_sticker">Sticker</string>
-    <string name="sent_a_file">Bestand</string>
-    <string name="sent_an_audio_file">Geluid</string>
+    <string name="send_a_sticker">Sticker.</string>
+    <string name="sent_a_file">Bestand.</string>
+    <string name="sent_an_audio_file">Geluid.</string>
     <string name="sent_an_image">Afbeelding.</string>
     <string name="sent_a_video">Video.</string>
     <string name="settings_developer_mode_fail_fast_title">Snel falen</string>
@@ -1916,7 +1916,7 @@
     <string name="verification_scan_self_notice">Scan de code met je andere apparaat of wissel en scan met dit apparaat</string>
     <string name="verification_scan_notice">Scan de code met het apparaat van de andere persoon om elkaar veilig te verifiëren</string>
     <string name="verification_verify_device">Deze sessie verifiëren</string>
-    <string name="sent_a_reaction">Gereageerd met: %s</string>
+    <string name="sent_a_reaction">Gereageerd met: %s.</string>
     <string name="verification_conclusion_compromised">Een van de volgende zaken kan worden aangetast:
 \n
 \n - Jouw server
@@ -2036,8 +2036,8 @@
     <string name="tooltip_attachment_photo">Open camera</string>
     <string name="delete_poll_dialog_content">Weet je zeker dat je deze poll wilt verwijderen\? Je kan het niet meer herstellen nadat het is verwijderd.</string>
     <string name="delete_poll_dialog_title">Poll verwijderen</string>
-    <string name="poll_end_room_list_preview">Poll beëindigd</string>
-    <string name="poll_response_room_list_preview">Stem uitgebracht</string>
+    <string name="poll_end_room_list_preview">Poll beëindigd.</string>
+    <string name="poll_response_room_list_preview">Stem uitgebracht.</string>
     <string name="end_poll_confirmation_approve_button">Einde poll</string>
     <string name="end_poll_confirmation_description">Hierdoor kunnen mensen niet meer stemmen en worden de definitieve resultaten van de poll weergegeven.</string>
     <string name="end_poll_confirmation_title">Deze poll beëindigen\?</string>

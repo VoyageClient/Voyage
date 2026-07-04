@@ -1221,8 +1221,8 @@
     <string name="delete_poll_dialog_content">Ar tikrai norite pašalinti šią apklausą\? Pašalinę ją negalėsite susigrąžinti.</string>
     <string name="end_poll_confirmation_description">Tai neleis žmonėms balsuoti ir bus rodomi galutiniai apklausos rezultatai.</string>
     <string name="delete_poll_dialog_title">Pašalinti apklausą</string>
-    <string name="poll_end_room_list_preview">Apklausa baigėsi</string>
-    <string name="poll_response_room_list_preview">Prabalsuota</string>
+    <string name="poll_end_room_list_preview">Apklausa baigėsi.</string>
+    <string name="poll_response_room_list_preview">Prabalsuota.</string>
     <string name="end_poll_confirmation_approve_button">Baigti apklausą</string>
     <string name="poll_undisclosed_not_ended">Rezultatai bus matomi pasibaigus apklausai</string>
     <string name="poll_no_votes_cast">Nėra balsų</string>

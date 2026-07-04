@@ -969,8 +969,8 @@
     <string name="room_profile_encrypted_subtitle">Els missatges d\'aquesta sala estan xifrats d\'extrem a extrem.
 \n
 \nEls missatges estan protegits i només tu i el destinatari teniu les úniques claus per poder desxifrar-los.</string>
-    <string name="sent_a_file">Fitxer</string>
-    <string name="sent_an_audio_file">Àudio</string>
+    <string name="sent_a_file">Fitxer.</string>
+    <string name="sent_an_audio_file">Àudio.</string>
     <string name="uploads_files_subtitle">%1$s a les %2$s</string>
     <string name="uploads_files_title">FITXERS</string>
     <string name="attachment_type_file">Fitxer</string>
@@ -1672,10 +1672,10 @@
     <string name="verification_request_you_cancelled">Has cancel·lat</string>
     <string name="verification_request_other_cancelled">%s ha cancel·lat</string>
     <string name="verification_request_waiting">Esperant…</string>
-    <string name="sent_verification_conclusion">Conclusió de la verificació</string>
-    <string name="sent_a_reaction">Ha reaccionat amb: %s</string>
-    <string name="sent_a_poll">Enquesta</string>
-    <string name="send_a_sticker">Adhesiu</string>
+    <string name="sent_verification_conclusion">Conclusió de la verificació.</string>
+    <string name="sent_a_reaction">Ha reaccionat amb: %s.</string>
+    <string name="sent_a_poll">Enquesta.</string>
+    <string name="send_a_sticker">Adhesiu.</string>
     <string name="sent_an_image">Imatge.</string>
     <string name="sent_a_video">Vídeo.</string>
     <string name="cross_signing_verify_by_emoji">Verifica interactivament mitjançant emoticones</string>
@@ -2137,8 +2137,8 @@
     <string name="edit_poll_title">Edita l\'enquesta</string>
     <string name="delete_poll_dialog_content">Estàs segur que vols eliminar l\'enquesta\? No la podràs recuperar un cop eliminada.</string>
     <string name="delete_poll_dialog_title">Elimina l\'enquesta</string>
-    <string name="poll_end_room_list_preview">S\'ha acabat l\'enquesta</string>
-    <string name="poll_response_room_list_preview">Vot emès</string>
+    <string name="poll_end_room_list_preview">S\'ha acabat l\'enquesta.</string>
+    <string name="poll_response_room_list_preview">Vot emès.</string>
     <string name="end_poll_confirmation_approve_button">Acaba l\'enquesta</string>
     <string name="end_poll_confirmation_description">Això impedirà que la gent pugui votar i es mostraran els resultats finals de l\'enquesta.</string>
     <string name="end_poll_confirmation_title">Vols acabar l\'enquesta\?</string>
@@ -2190,7 +2190,7 @@
     <string name="verification_scan_with_this_device">Escaneja amb aquest dispositiu</string>
     <string name="verification_scan_self_notice">Escaneja el codi amb un altre dispositiu o canvia i fes l\'escaneig amb aquest dispositiu</string>
     <string name="sent_live_location">Ha compartit la seva ubicació en directe</string>
-    <string name="sent_a_voice_message">Veu</string>
+    <string name="sent_a_voice_message">Veu.</string>
     <string name="command_description_lenny">Afegeix ( ͡° ͜ʖ ͡°) abans d\'un missatge de text</string>
     <string name="settings_developer_mode_show_info_on_screen_summary">Mostra informació útil per ajudar a depurar l\'aplicació</string>
     <string name="settings_developer_mode_show_info_on_screen_title">Mostra la informació de depuració a la pantalla</string>

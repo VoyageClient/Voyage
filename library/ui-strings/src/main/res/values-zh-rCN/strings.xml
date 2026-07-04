@@ -1162,9 +1162,9 @@
 \n - 你或其他用户的设备</string>
     <string name="sent_a_video">视频。</string>
     <string name="sent_an_image">图片。</string>
-    <string name="sent_an_audio_file">音频</string>
-    <string name="sent_a_file">文件</string>
-    <string name="send_a_sticker">贴纸</string>
+    <string name="sent_an_audio_file">音频。</string>
+    <string name="sent_a_file">文件。</string>
+    <string name="send_a_sticker">贴纸。</string>
     <string name="verification_request_waiting">正在等待……</string>
     <string name="verification_request_other_cancelled">%s已取消</string>
     <string name="verification_request_you_cancelled">你已取消</string>
@@ -1513,9 +1513,9 @@
     <plurals name="seconds">
         <item quantity="other">%d 秒</item>
     </plurals>
-    <string name="sent_a_poll">轮询</string>
-    <string name="sent_a_reaction">用%s回应</string>
-    <string name="sent_verification_conclusion">验证结果</string>
+    <string name="sent_a_poll">轮询。</string>
+    <string name="sent_a_reaction">用%s回应。</string>
+    <string name="sent_verification_conclusion">验证结果。</string>
     <string name="delete_account_data_warning">是否删除类型 %1$s 的账户数据？
 \n
 \n小心使用，它可能导致意外行为。</string>
@@ -1961,7 +1961,7 @@
     <string name="voice_message_slide_to_cancel">滑动取消</string>
     <string name="a11y_start_voice_message">录制语音消息</string>
     <string name="upgrade_required">需要升级</string>
-    <string name="sent_a_voice_message">语音</string>
+    <string name="sent_a_voice_message">语音。</string>
     <string name="other_spaces_or_rooms_you_might_not_know">你可能不知道的其它空间或房间</string>
     <string name="space_you_know_that_contains_this_room">你知道的包含这个房间的空间</string>
     <string name="decide_who_can_find_and_join">决定谁能找到并加入这个房间。</string>
@@ -2083,8 +2083,8 @@
     <string name="action_not_now">不是现在</string>
     <string name="delete_poll_dialog_content">你确定要删除此投票吗？一旦移除，就无法恢复。</string>
     <string name="delete_poll_dialog_title">删除投票</string>
-    <string name="poll_end_room_list_preview">投票已结束</string>
-    <string name="poll_response_room_list_preview">投票</string>
+    <string name="poll_end_room_list_preview">投票已结束。</string>
+    <string name="poll_response_room_list_preview">投票。</string>
     <string name="end_poll_confirmation_approve_button">结束投票</string>
     <string name="end_poll_confirmation_description">这将使人们无法再投票，并将显示投票的最终结果。</string>
     <string name="end_poll_confirmation_title">结束此投票？</string>
@@ -2756,5 +2756,5 @@
 \n
 \n%s</string>
     <string name="invite_unknown_users_dialog_submit">无论如何都邀请</string>
-    <string name="call_unsupported">不支持的通话</string>
+    <string name="call_unsupported">不支持的通话。</string>
 </resources>

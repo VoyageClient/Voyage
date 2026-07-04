@@ -1136,8 +1136,8 @@
 \n- 您的，或對方的裝置</string>
     <string name="sent_a_video">影片。</string>
     <string name="sent_an_image">圖片。</string>
-    <string name="sent_an_audio_file">音訊</string>
-    <string name="sent_a_file">檔案</string>
+    <string name="sent_an_audio_file">音訊。</string>
+    <string name="sent_a_file">檔案。</string>
     <string name="verification_request_waiting">正在等待…</string>
     <string name="verification_request_other_cancelled">%s 已取消</string>
     <string name="verification_request_you_cancelled">您已取消</string>
@@ -1452,7 +1452,7 @@
     <string name="room_join_rules_invite_by_you">您讓聊天室變為邀請才可加入。</string>
     <string name="login_server_url_form_common_notice">輸入您想要使用的伺服器位址</string>
     <string name="login_signin_matrix_id_password_notice">如果您不知道密碼，請返回並重設。</string>
-    <string name="send_a_sticker">貼圖</string>
+    <string name="send_a_sticker">貼圖。</string>
     <string name="room_profile_section_admin">管理員動作</string>
     <string name="room_member_power_level_default_in">在 %1$s 中的預設</string>
     <string name="settings_hs_admin_e2e_disabled">您的伺服器管理員已在私密聊天室與私人訊息中預設停用端對端加密。</string>
@@ -1553,9 +1553,9 @@
     <plurals name="seconds">
         <item quantity="other">%d 秒</item>
     </plurals>
-    <string name="sent_a_poll">投票</string>
-    <string name="sent_a_reaction">送出反應：%s</string>
-    <string name="sent_verification_conclusion">驗證結果</string>
+    <string name="sent_a_poll">投票。</string>
+    <string name="sent_a_reaction">送出反應：%s。</string>
+    <string name="sent_verification_conclusion">驗證結果。</string>
     <string name="universal_link_malformed">連結格式錯誤</string>
     <string name="delete_account_data_warning">刪除類型為 %1$s 的帳號資料？
 \n
@@ -1961,7 +1961,7 @@
     <string name="voice_message_slide_to_cancel">滑動以取消</string>
     <string name="a11y_start_voice_message">錄製語音訊息</string>
     <string name="upgrade_required">必須升級</string>
-    <string name="sent_a_voice_message">語音</string>
+    <string name="sent_a_voice_message">語音。</string>
     <string name="other_spaces_or_rooms_you_might_not_know">您可能不知道的其他聊天空間或聊天室</string>
     <string name="space_you_know_that_contains_this_room">您所知包含此聊天室的聊天空間</string>
     <string name="decide_who_can_find_and_join">決定誰可以找到並加入此聊天室。</string>
@@ -2083,8 +2083,8 @@
     <string name="action_not_now">現在不要</string>
     <string name="delete_poll_dialog_content">您確定要移除此投票？移除後將無法復原。</string>
     <string name="delete_poll_dialog_title">移除投票</string>
-    <string name="poll_end_room_list_preview">投票已結束</string>
-    <string name="poll_response_room_list_preview">投票</string>
+    <string name="poll_end_room_list_preview">投票已結束。</string>
+    <string name="poll_response_room_list_preview">投票。</string>
     <string name="end_poll_confirmation_approve_button">結束投票</string>
     <string name="end_poll_confirmation_description">將停止投票，並顯示投票最終結果。</string>
     <string name="end_poll_confirmation_title">結束此投票？</string>
@@ -2756,7 +2756,7 @@
 \n
 \n若您不想要看到來自此使用者的任何內容，您可以忽略他們以隱藏他們的訊息。</string>
     <string name="message_report_user">回報使用者</string>
-    <string name="call_unsupported">不支援的通話</string>
+    <string name="call_unsupported">不支援的通話。</string>
     <string name="room_profile_section_more_report">回報聊天室</string>
     <string name="room_profile_section_more_report_success_content">已成功回報聊天室。</string>
 </resources>

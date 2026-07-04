@@ -1182,8 +1182,8 @@
 \n- Zařízení Vaše či dalších uživatelů</string>
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Obrázek.</string>
-    <string name="sent_an_audio_file">Audio</string>
-    <string name="sent_a_file">Soubor</string>
+    <string name="sent_an_audio_file">Audio.</string>
+    <string name="sent_a_file">Soubor.</string>
     <string name="verification_request_waiting">Čekám…</string>
     <string name="verification_request_other_cancelled">%s zrušeno</string>
     <string name="verification_request_you_cancelled">Zrušili jste</string>
@@ -1539,7 +1539,7 @@
     <string name="login_server_url_form_common_notice">Zadejte adresu serveru, jejž chcete použít</string>
     <string name="login_msisdn_notice">Prosím, použijte mezinárodní formát (telefonní číslo musí začít \'+\')</string>
     <string name="login_signin_matrix_id_password_notice">Neznáte-li heslo, vraťte se zpět a resetujte je.</string>
-    <string name="send_a_sticker">Nálepka</string>
+    <string name="send_a_sticker">Nálepka.</string>
     <string name="room_profile_section_admin">Akce správce</string>
     <string name="room_member_power_level_default_in">Výchozí v %1$s</string>
     <string name="settings_hs_admin_e2e_disabled">Správce vašeho serveru vypnul ve výchozím nastavení koncové šifrování v soukromých místnostech a přímých zprávách.</string>
@@ -1617,9 +1617,9 @@
         <item quantity="few">%d vteřiny</item>
         <item quantity="other">%d vteřin</item>
     </plurals>
-    <string name="sent_a_poll">Hlasování</string>
-    <string name="sent_a_reaction">Reagoval(a): %s</string>
-    <string name="sent_verification_conclusion">Výsledek ověření</string>
+    <string name="sent_a_poll">Hlasování.</string>
+    <string name="sent_a_reaction">Reagoval(a): %s.</string>
+    <string name="sent_verification_conclusion">Výsledek ověření.</string>
     <string name="universal_link_malformed">Odkaz byl chybně zformován</string>
     <string name="delete_account_data_warning">Smazat údaje účtu typu %1$s\?
 \n
@@ -2041,7 +2041,7 @@
     <string name="a11y_play_voice_message">Přehrát hlasovou zprávu</string>
     <string name="voice_message_slide_to_cancel">Posunutím zrušíte</string>
     <string name="a11y_start_voice_message">Nahrát hlasovou zprávu</string>
-    <string name="sent_a_voice_message">Hlasová zpráva</string>
+    <string name="sent_a_voice_message">Hlasová zpráva.</string>
     <string name="spaces_which_can_access">Prostory, které mají přístup</string>
     <string name="allow_space_member_to_find_and_access">Umožněte členům prostoru ho najít a zpřístupnit.</string>
     <string name="room_create_member_of_space_name_can_join">Členové prostoru %s mohou vyhledávat, prohlížet a připojovat se.</string>
@@ -2159,8 +2159,8 @@
     <string name="action_not_now">Nyní ne</string>
     <string name="delete_poll_dialog_content">Opravdu chcete toto hlasování odstranit\? Po odstranění ho již nebude možné obnovit.</string>
     <string name="delete_poll_dialog_title">Odstranit hlasování</string>
-    <string name="poll_end_room_list_preview">Hlasování skončilo</string>
-    <string name="poll_response_room_list_preview">Hlas odeslán</string>
+    <string name="poll_end_room_list_preview">Hlasování skončilo.</string>
+    <string name="poll_response_room_list_preview">Hlas odeslán.</string>
     <string name="end_poll_confirmation_approve_button">Ukončit hlasování</string>
     <string name="end_poll_confirmation_description">Toto zastaví možnost hlasování a zobrazí se konečné výsledky.</string>
     <string name="end_poll_confirmation_title">Ukončit toto hlasování\?</string>
@@ -2868,5 +2868,5 @@
     <string name="user_reported_as_inappropriate_content">Uživatel byl nahlášen.
 \n
 \nPokud nechcete vidět další obsah od tohoto uživatele, můžete ho ignorovat a skrýt jeho zprávy.</string>
-    <string name="call_unsupported">Nepodporované volání</string>
+    <string name="call_unsupported">Nepodporované volání.</string>
 </resources>

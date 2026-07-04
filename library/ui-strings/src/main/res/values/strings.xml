@@ -2200,13 +2200,13 @@
 
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Image.</string>
-    <string name="sent_an_audio_file">Audio</string>
-    <string name="sent_a_voice_message">Voice</string>
-    <string name="sent_a_file">File</string>
-    <string name="send_a_sticker">Sticker</string>
-    <string name="sent_a_poll">Poll</string>
-    <string name="sent_a_reaction">Reacted with: %s</string>
-    <string name="sent_verification_conclusion">Verification Conclusion</string>
+    <string name="sent_an_audio_file">Audio.</string>
+    <string name="sent_a_voice_message">Voice.</string>
+    <string name="sent_a_file">File.</string>
+    <string name="send_a_sticker">Sticker.</string>
+    <string name="sent_a_poll">Poll.</string>
+    <string name="sent_a_reaction">Reacted with: %s.</string>
+    <string name="sent_verification_conclusion">Verification Conclusion.</string>
     <string name="sent_live_location">Shared their live location</string>
     <string name="started_a_voice_broadcast">Started a voice broadcast</string>
 
@@ -2783,7 +2783,7 @@
 
     <string name="call_tile_you_declined_this_call">You declined this call</string>
     <string name="call_tile_other_declined">%1$s declined this call</string>
-    <string name="call_unsupported">Unsupported call</string>
+    <string name="call_unsupported">Unsupported call.</string>
     <string name="re_authentication_activity_title">Re-Authentication Needed</string>
     <!-- Note to translators: the translation MUST contain the string "${app_name}", which will be replaced by the application name -->
     <string name="re_authentication_default_confirm_text">${app_name} requires you to enter your credentials to perform this action.</string>
@@ -3084,8 +3084,8 @@
     <string name="end_poll_confirmation_title">End this poll?</string>
     <string name="end_poll_confirmation_description">This will stop people from being able to vote and will display the final results of the poll.</string>
     <string name="end_poll_confirmation_approve_button">End poll</string>
-    <string name="poll_response_room_list_preview">Vote cast</string>
-    <string name="poll_end_room_list_preview">Poll ended</string>
+    <string name="poll_response_room_list_preview">Vote cast.</string>
+    <string name="poll_end_room_list_preview">Poll ended.</string>
     <string name="delete_poll_dialog_title">Remove poll</string>
     <string name="delete_poll_dialog_content">Are you sure you want to remove this poll? You won\'t be able to recover it once removed.</string>
     <string name="edit_poll_title">Edit poll</string>

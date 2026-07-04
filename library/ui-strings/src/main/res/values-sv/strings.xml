@@ -725,9 +725,9 @@
     <string name="command_description_spoiler">Skickar det valda meddelandet som en spoiler</string>
     <string name="login_server_matrix_org_text">Gå med miljontals användare gratis på den största publika servern</string>
     <string name="command_description_shrug">Lägger till ¯\\_(ツ)_/¯ till början av ett textmeddelande</string>
-    <string name="sent_an_audio_file">Ljud</string>
-    <string name="sent_a_file">Fil</string>
-    <string name="send_a_sticker">Dekal</string>
+    <string name="sent_an_audio_file">Ljud.</string>
+    <string name="sent_a_file">Fil.</string>
+    <string name="send_a_sticker">Dekal.</string>
     <string name="command_description_rainbow">Skickar det valda meddelandet I regnbågsfärger</string>
     <string name="settings_category_composer">Meddelanderedigering</string>
     <string name="message_key">Meddelandenyckel</string>
@@ -1585,9 +1585,9 @@
         <item quantity="one">%d sekund</item>
         <item quantity="other">%d sekunder</item>
     </plurals>
-    <string name="sent_a_poll">Omröstning</string>
-    <string name="sent_a_reaction">Reagerade med: %s</string>
-    <string name="sent_verification_conclusion">Verifieringsavslutning</string>
+    <string name="sent_a_poll">Omröstning.</string>
+    <string name="sent_a_reaction">Reagerade med: %s.</string>
+    <string name="sent_verification_conclusion">Verifieringsavslutning.</string>
     <string name="universal_link_malformed">Länken var felformaterad</string>
     <string name="delete_account_data_warning">Radera kontodata av typen %1$s\?
 \n
@@ -1993,7 +1993,7 @@
     <string name="verification_scan_self_emoji_subtitle">Verifiera genom att jämföra emoji istället</string>
     <string name="verification_scan_with_this_device">Skanna med den här enheten</string>
     <string name="verification_scan_self_notice">Skanna koden med din andra enhet eller byt och skanna med den här enheten</string>
-    <string name="sent_a_voice_message">Röst</string>
+    <string name="sent_a_voice_message">Röst.</string>
     <string name="create_space_alias_hint">Utrymmesadress</string>
     <string name="other_spaces_or_rooms_you_might_not_know">Andra utrymmen eller rum du kanske inte känner till</string>
     <string name="space_you_know_that_contains_this_room">Utrymmen du känner till som innehåller det här rummet</string>
@@ -2130,8 +2130,8 @@
     <string name="action_enable">Aktivera</string>
     <string name="delete_poll_dialog_content">Är du säker på att du vill ta bort den här omröstningen\? Du kommer inte kunna få tillbaka den när den har tagits bort.</string>
     <string name="delete_poll_dialog_title">Ta bort omröstning</string>
-    <string name="poll_end_room_list_preview">Omröstning avslutad</string>
-    <string name="poll_response_room_list_preview">Röst avgiven</string>
+    <string name="poll_end_room_list_preview">Omröstning avslutad.</string>
+    <string name="poll_response_room_list_preview">Röst avgiven.</string>
     <string name="end_poll_confirmation_approve_button">Avsluta omröstningen</string>
     <string name="end_poll_confirmation_description">Det här kommer att stoppa personer från att rösta och visa det slutgiltiga resultatet av omröstningen.</string>
     <string name="end_poll_confirmation_title">Avsluta den här omröstningen\?</string>
@@ -2812,5 +2812,5 @@
     <string name="user_reported_as_inappropriate_content">Användaren har rapporterats.
 \n
 \nOm du inte vill se något mer innehåll från den här användaren så kan du ignorera denne för att dölja dennes meddelanden.</string>
-    <string name="call_unsupported">Samtal stöds inte</string>
+    <string name="call_unsupported">Samtal stöds inte.</string>
 </resources>

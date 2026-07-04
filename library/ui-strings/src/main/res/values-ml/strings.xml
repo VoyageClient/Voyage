@@ -187,9 +187,9 @@
     <string name="room_profile_section_more">കൂടുതൽ</string>
     <string name="room_profile_section_security_learn_more">കൂടുതൽ അറിയുക</string>
     <string name="verification_scan_their_code">അവരുടെ കോഡ് സ്കാൻ ചെയ്യൂ</string>
-    <string name="send_a_sticker">സ്റ്റിക്കർ</string>
-    <string name="sent_a_file">ഫയൽ</string>
-    <string name="sent_an_audio_file">ഓഡിയോ</string>
+    <string name="send_a_sticker">സ്റ്റിക്കർ.</string>
+    <string name="sent_a_file">ഫയൽ.</string>
+    <string name="sent_an_audio_file">ഓഡിയോ.</string>
     <string name="verification_conclusion_not_secure">സുരക്ഷിതമല്ല</string>
     <string name="verification_sas_match">അവ പൊരുത്തപ്പെടുന്നു</string>
     <string name="create_room_in_progress">മുറി സൃഷ്ടിക്കുന്നൂ…</string>
@@ -628,7 +628,7 @@
     <string name="room_member_power_level_moderators">മോഡറേറ്റർമാർ</string>
     <string name="direct_room_profile_section_more_leave">വിടുക</string>
     <string name="room_profile_section_security">സുരക്ഷ</string>
-    <string name="sent_a_poll">പോൾ</string>
+    <string name="sent_a_poll">പോൾ.</string>
     <string name="soft_logout_signin_password_hint">രഹസ്യവാക്ക്</string>
     <string name="login_signup_cancel_confirmation_title">മുന്നറിയിപ്പ്</string>
     <string name="login_signup_password_hint">രഹസ്യവാക്ക്</string>

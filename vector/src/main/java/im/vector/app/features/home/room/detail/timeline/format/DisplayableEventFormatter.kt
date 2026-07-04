@@ -107,7 +107,7 @@ class DisplayableEventFormatter @Inject constructor(
 
         if (timelineEvent.root.isEncrypted() &&
                 timelineEvent.root.mxDecryptionResult == null) {
-            return stringProvider.getString(CommonStrings.encrypted_message)
+            return stringProvider.getString(CommonStrings.encrypted_message_room_list_preview)
         }
 
         val senderName = timelineEvent.senderInfo.disambiguatedDisplayName
@@ -130,7 +130,7 @@ class DisplayableEventFormatter @Inject constructor(
                             }
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
-                            simpleFormat(senderName, stringProvider.getString(CommonStrings.verification_request), appendAuthor)
+                            simpleFormat(senderName, stringProvider.getString(CommonStrings.verification_request_room_list_preview), appendAuthor)
                         }
                         MessageType.MSGTYPE_IMAGE -> {
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_an_image), appendAuthor)
@@ -152,7 +152,7 @@ class DisplayableEventFormatter @Inject constructor(
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_a_file), appendAuthor)
                         }
                         MessageType.MSGTYPE_LOCATION -> {
-                            noticeEventFormatter.formatLocationNotice(timelineEvent.root, senderName)
+                            simpleFormat(senderName, stringProvider.getString(CommonStrings.location_room_list_preview), appendAuthor)
                         }
                         else -> {
                             simpleFormat(senderName, messageContent.body, appendAuthor)
@@ -192,7 +192,7 @@ class DisplayableEventFormatter @Inject constructor(
                 stringProvider.getString(CommonStrings.poll_end_room_list_preview)
             }
             in EventType.STATE_ROOM_BEACON_INFO.values -> {
-                simpleFormat(senderName, stringProvider.getString(CommonStrings.sent_live_location), appendAuthor)
+                simpleFormat(senderName, stringProvider.getString(CommonStrings.live_location_room_list_preview), appendAuthor)
             }
             in EventType.ELEMENT_CALL_NOTIFY.values -> {
                 simpleFormat(senderName, stringProvider.getString(CommonStrings.call_unsupported), appendAuthor)
@@ -229,7 +229,7 @@ class DisplayableEventFormatter @Inject constructor(
         // The event is encrypted
         if (event.isEncrypted() &&
                 event.mxDecryptionResult == null) {
-            return stringProvider.getString(CommonStrings.encrypted_message)
+            return stringProvider.getString(CommonStrings.encrypted_message_room_list_preview)
         }
 
         return when (event.getClearType()) {
@@ -245,7 +245,7 @@ class DisplayableEventFormatter @Inject constructor(
                             }
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
-                            stringProvider.getString(CommonStrings.verification_request)
+                            stringProvider.getString(CommonStrings.verification_request_room_list_preview)
                         }
                         MessageType.MSGTYPE_IMAGE -> {
                             stringProvider.getString(CommonStrings.sent_an_image)
@@ -264,7 +264,7 @@ class DisplayableEventFormatter @Inject constructor(
                             stringProvider.getString(CommonStrings.sent_a_file)
                         }
                         MessageType.MSGTYPE_LOCATION -> {
-                            noticeEventFormatter.formatLocationNotice(event, senderName = null)
+                            stringProvider.getString(CommonStrings.location_room_list_preview)
                         }
                         else -> {
                             messageContent.body
@@ -291,7 +291,7 @@ class DisplayableEventFormatter @Inject constructor(
                 stringProvider.getString(CommonStrings.poll_end_room_list_preview)
             }
             in EventType.STATE_ROOM_BEACON_INFO.values -> {
-                stringProvider.getString(CommonStrings.sent_live_location)
+                stringProvider.getString(CommonStrings.live_location_room_list_preview)
             }
             in EventType.ELEMENT_CALL_NOTIFY.values -> {
                 stringProvider.getString(CommonStrings.call_unsupported)
