@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application>
         <activity android:name="im.vector.app.features.debug.TestLinkifyActivity" />
@@ -9,6 +10,14 @@
         <activity android:name="im.vector.app.features.debug.features.DebugFeaturesSettingsActivity" />
         <activity android:name="im.vector.app.features.debug.DebugMenuActivity" />
         <activity android:name="im.vector.app.features.debug.leak.DebugMemoryLeaksActivity" />
+
+        <!-- Don't let LeakCanary auto-install on launch: it proactively requests the POST_NOTIFICATIONS
+             permission even when leak analysis is off (the default), spamming a permission prompt. We
+             install it on demand instead (see LeakCanaryLeakDetector) only when analysis is enabled. -->
+        <provider
+            android:name="leakcanary.internal.MainProcessAppWatcherInstaller"
+            android:authorities="${applicationId}.leakcanary-installer"
+            tools:node="remove" />
     </application>
 
 </manifest>
