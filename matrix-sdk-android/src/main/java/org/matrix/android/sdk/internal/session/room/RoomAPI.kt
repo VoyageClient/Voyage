@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsPa
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsResponse
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.network.NetworkConstants
+import org.matrix.android.sdk.internal.network.TimeOutInterceptor
 import org.matrix.android.sdk.internal.session.room.alias.GetAliasesResponse
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomBody
 import org.matrix.android.sdk.internal.session.room.create.CreateRoomResponse
@@ -90,6 +91,20 @@ internal interface RoomAPI {
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/messages")
     suspend fun getRoomMessagesFrom(
+            @Path("roomId") roomId: String,
+            @Query("from") from: String,
+            @Query("dir") dir: String,
+            @Query("limit") limit: Int?,
+            @Query("filter") filter: String?,
+    ): PaginationResponse
+
+    /**
+     * Same as [getRoomMessagesFrom] with a longer read timeout: mass-redaction pages over sparsely-cached
+     * history can require federation backfill that takes the server past the default 60s.
+     */
+    @Headers("${TimeOutInterceptor.READ_TIMEOUT}: 180000")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/messages")
+    suspend fun getRoomMessagesFromForMassRedaction(
             @Path("roomId") roomId: String,
             @Query("from") from: String,
             @Query("dir") dir: String,

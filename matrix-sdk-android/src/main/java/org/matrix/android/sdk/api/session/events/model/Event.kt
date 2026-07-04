@@ -317,7 +317,7 @@ data class Event(
     /**
      * Tells if the event is redacted.
      */
-    fun isRedacted() = unsignedData?.redactedEvent != null
+    fun isRedacted() = unsignedData?.redactedEvent != null || unsignedData?.redactedBy != null
 
     /**
      * Tells if the event is redacted by the user himself.

@@ -76,9 +76,6 @@ updatePrunedById:
 UPDATE event SET content = ?, unsigned_data = ?, decryption_result_json = NULL,
 decryption_error_code = NULL, decryption_error_reason = NULL WHERE id = ?;
 
-updateContentOnlyById:
-UPDATE event SET content = ? WHERE id = ?;
-
 updateUnsignedDataById:
 UPDATE event SET unsigned_data = ? WHERE id = ?;
 
@@ -118,6 +115,11 @@ SELECT event_id FROM event WHERE room_id = ? AND type = ?;
 -- are returned so the caller can skip redaction events and already-redacted ones.
 selectEventIdsByRoomAndSender:
 SELECT event_id, type, unsigned_data FROM event WHERE room_id = ? AND sender = ? GROUP BY event_id;
+
+-- Event ids targeted by a known redaction event in the room, regardless of whether the target was
+-- ever pruned locally (covers redactions synced before the target, or done by other clients).
+selectRedactionTargetsInRoom:
+SELECT DISTINCT redacts FROM event WHERE room_id = ? AND type = ? AND redacts IS NOT NULL;
 
 markEventAsRoot:
 UPDATE event SET is_root_thread = 1, number_of_threads = ?, thread_summary_latest_timeline_id = ? WHERE id = ?;

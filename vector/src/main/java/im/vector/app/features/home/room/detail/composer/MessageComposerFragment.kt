@@ -675,7 +675,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 .setPositiveButton(android.R.string.ok) { _, _ ->
                     val result = massRedactionManager.start(roomId, event.userId, event.displayName, event.delayMs)
                     if (result == MassRedactionManager.StartResult.AlreadyRunning) {
-                        Toast.makeText(requireContext(), CommonStrings.mass_redaction_already_running, Toast.LENGTH_LONG).show()
+                        MaterialAlertDialogBuilder(requireActivity())
+                                .setTitle(CommonStrings.dialog_title_error)
+                                .setMessage(CommonStrings.mass_redaction_already_running)
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show()
                     }
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
