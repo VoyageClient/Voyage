@@ -82,7 +82,9 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
     private fun fingerprintOf(e: TimelineEventEntity, buildReadReceipts: Boolean): Long {
         var h = if (buildReadReceipts) 1L else 2L
         fun add(v: Any?) {
-            h = 31 * h + (v?.hashCode() ?: 0)
+            // -1 for null so it differs from "" (whose hashCode is 0) — sender fields use "" vs null
+            // to mean known-empty vs unknown.
+            h = 31 * h + (v?.hashCode() ?: -1)
         }
         add(e.eventId)
         add(e.localId)

@@ -11,7 +11,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.EditTextPreferenceDialogFragmentCompat
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
@@ -23,6 +25,7 @@ import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.preference.UserAvatarPreference
 import im.vector.app.core.preference.VectorEditTextPreference
 import im.vector.app.features.settings.VectorSettingsBaseFragment
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -58,7 +61,9 @@ class RoomPersonalizationSettingsFragment :
     private val roomId: String by lazy { requireArguments().getString(ARG_ROOM_ID)!! }
     private val room: Room by lazy { session.getRoom(roomId)!! }
 
+    private var memberContentLoaded = false
     private var currentAvatarUrl: String? = null
+    private var currentDisplayName: String? = null
     private var accountDisplayName: String? = null
     private var accountAvatarUrl: String? = null
 
@@ -84,13 +89,15 @@ class RoomPersonalizationSettingsFragment :
         lifecycleScope.launch {
             val user = tryOrNull { session.userService().resolveUser(session.myUserId) }
                     ?: session.userService().getUser(session.myUserId)
-            accountDisplayName = user?.displayName
+            accountDisplayName = user?.displayName?.takeIf { it.isNotBlank() }
             accountAvatarUrl = user?.avatarUrl
             displayNamePreference.setOnBindEditTextListener { editText ->
-                editText.hint = accountDisplayName
+                // An empty field means no display name at all in this room, i.e. the Matrix ID is shown.
+                editText.hint = session.myUserId
                 editText.setupLiveEmojiInput()
                 messageEmojiSpanify?.applyLive(editText.text)
             }
+            activity?.invalidateOptionsMenu()
         }
     }
 
@@ -101,14 +108,18 @@ class RoomPersonalizationSettingsFragment :
                 .unwrap()
                 .distinctUntilChanged()
                 .onEach { content ->
-                    currentAvatarUrl = content.avatarUrl
+                    memberContentLoaded = true
+                    // "" means explicitly blanked (see DefaultStateService), same as absent for display purposes.
+                    currentAvatarUrl = content.avatarUrl?.takeIf { it.isNotEmpty() }
+                    currentDisplayName = content.displayName?.takeIf { it.isNotBlank() }
                     avatarPreference.refreshAvatar(
-                            User(session.myUserId, content.displayName ?: accountDisplayName, content.avatarUrl)
+                            User(session.myUserId, currentDisplayName, currentAvatarUrl)
                     )
                     displayNamePreference.let {
-                        it.text = content.displayName
-                        it.summary = content.displayName?.takeIf { name -> name.isNotBlank() } ?: accountDisplayName
+                        it.text = currentDisplayName
+                        it.summary = currentDisplayName ?: session.myUserId
                     }
+                    activity?.invalidateOptionsMenu()
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
     }
@@ -116,8 +127,9 @@ class RoomPersonalizationSettingsFragment :
     override fun bindPref() {
         avatarPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             galleryOrCameraDialogHelper.show(
-                    withDeleteOption = currentAvatarUrl != accountAvatarUrl,
-                    deleteActionTitle = CommonStrings.room_personalization_reset
+                    withDeleteOption = !currentAvatarUrl.isNullOrEmpty(),
+                    withResetOption = currentAvatarUrl != accountAvatarUrl,
+                    resetActionTitle = CommonStrings.room_personalization_reset
             )
             false
         }
@@ -145,18 +157,50 @@ class RoomPersonalizationSettingsFragment :
     }
 
     override fun onImageDeleted() {
+        // Remove the avatar in this room entirely (others see the placeholder).
+        applyAvatar("")
+    }
+
+    override fun onImageReset() {
+        applyAvatar(null)
+    }
+
+    // null resets to the account-wide avatar (field omitted, the server re-fills it); "" removes it.
+    private fun applyAvatar(avatarUrl: String?) {
         displayLoadingView()
         lifecycleScope.launch {
-            val result = runCatching { room.stateService().resetMyRoomAvatar(accountAvatarUrl) }
+            val result = runCatching { room.stateService().resetMyRoomAvatar(avatarUrl) }
             if (!isAdded) return@launch
             hideLoadingView()
             result.onFailure { displayErrorDialog(it) }
         }
     }
 
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if (preference.key == displayNamePreference.key) {
+            if (parentFragmentManager.findFragmentByTag(DISPLAY_NAME_DIALOG_TAG) != null) return
+            DisplayNameDialogFragment.newInstance(preference.key, withResetOption = currentDisplayName != accountDisplayName).apply {
+                @Suppress("DEPRECATION")
+                setTargetFragment(this@RoomPersonalizationSettingsFragment, 0)
+            }.show(parentFragmentManager, DISPLAY_NAME_DIALOG_TAG)
+        } else {
+            super.onDisplayPreferenceDialog(preference)
+        }
+    }
+
     private fun onDisplayNameChanged(value: String) {
-        // An empty value removes the personalization and falls back to the account-wide display name.
-        val newDisplayName = value.takeIf { it.isNotBlank() } ?: accountDisplayName
+        // An empty value blanks the display name in this room (the Matrix ID is shown instead).
+        applyDisplayName(value)
+    }
+
+    fun onDisplayNameReset() {
+        applyDisplayName(null)
+    }
+
+    // null resets to the account-wide name (field omitted, the server re-fills it); "" blanks it.
+    private fun applyDisplayName(newDisplayName: String?) {
+        val expected = if (newDisplayName == null) accountDisplayName else newDisplayName.takeIf { it.isNotBlank() }
+        if (memberContentLoaded && expected == currentDisplayName) return
         displayLoadingView()
         lifecycleScope.launch {
             val result = runCatching { room.stateService().updateMyRoomDisplayName(newDisplayName) }
@@ -166,8 +210,52 @@ class RoomPersonalizationSettingsFragment :
         }
     }
 
+    fun isPersonalized() = currentDisplayName != accountDisplayName || currentAvatarUrl != accountAvatarUrl
+
+    fun resetToAccountProfile() {
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = runCatching { room.stateService().updateMyRoomProfile(null, null) }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            result.onFailure { displayErrorDialog(it) }
+        }
+    }
+
+    class DisplayNameDialogFragment : EditTextPreferenceDialogFragmentCompat() {
+
+        override fun onPrepareDialogBuilder(builder: AlertDialog.Builder) {
+            super.onPrepareDialogBuilder(builder)
+            if (requireArguments().getBoolean(ARG_WITH_RESET)) {
+                builder.setNeutralButton(CommonStrings.room_personalization_reset) { _, _ ->
+                    @Suppress("DEPRECATION")
+                    (targetFragment as? RoomPersonalizationSettingsFragment)?.onDisplayNameReset()
+                }
+            }
+        }
+
+        override fun onStart() {
+            super.onStart()
+            (dialog as? AlertDialog)?.getButton(AlertDialog.BUTTON_NEUTRAL)?.setTextColor(
+                    ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorError)
+            )
+        }
+
+        companion object {
+            private const val ARG_WITH_RESET = "ARG_WITH_RESET"
+
+            fun newInstance(key: String, withResetOption: Boolean) = DisplayNameDialogFragment().apply {
+                arguments = Bundle().apply {
+                    putString("key", key)
+                    putBoolean(ARG_WITH_RESET, withResetOption)
+                }
+            }
+        }
+    }
+
     companion object {
         private const val ARG_ROOM_ID = "ARG_ROOM_ID"
+        private const val DISPLAY_NAME_DIALOG_TAG = "DISPLAY_NAME_DIALOG_TAG"
 
         fun newInstance(roomId: String) = RoomPersonalizationSettingsFragment().apply {
             arguments = Bundle().apply { putString(ARG_ROOM_ID, roomId) }

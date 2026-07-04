@@ -187,6 +187,11 @@ internal class DefaultStateService @AssistedInject constructor(
         )
     }
 
+    // A null displayname/avatar_url is omitted from the serialized event, and Synapse re-fills
+    // omitted profile fields on join membership events from the account-wide profile. So null means
+    // "reset to the account-wide value", while an explicit "" blanks the field (omitting can't:
+    // the server would re-fill it).
+
     override suspend fun updateMyRoomDisplayName(displayName: String?) {
         sendMyRoomMemberContent { copy(displayName = displayName) }
     }
@@ -198,6 +203,10 @@ internal class DefaultStateService @AssistedInject constructor(
 
     override suspend fun resetMyRoomAvatar(avatarUrl: String?) {
         sendMyRoomMemberContent { copy(avatarUrl = avatarUrl) }
+    }
+
+    override suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?) {
+        sendMyRoomMemberContent { copy(displayName = displayName, avatarUrl = avatarUrl) }
     }
 
     private suspend fun sendMyRoomMemberContent(transform: RoomMemberContent.() -> RoomMemberContent) {

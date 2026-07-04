@@ -742,14 +742,16 @@ class NoticeEventFormatter @Inject constructor(
         }
         // Check whether the avatar has been changed
         if (eventContent?.avatarUrl != prevEventContent?.avatarUrl) {
+            val avatarRemoved = eventContent?.avatarUrl.isNullOrEmpty()
             val displayAvatarText = if (displayText.isNotEmpty()) {
                 displayText.append(" ")
-                sp.getString(CommonStrings.notice_avatar_changed_too)
+                sp.getString(if (avatarRemoved) CommonStrings.notice_avatar_removed_too else CommonStrings.notice_avatar_changed_too)
             } else {
-                if (event.isSentByCurrentUser()) {
-                    sp.getString(CommonStrings.notice_avatar_url_changed_by_you)
-                } else {
-                    sp.getString(CommonStrings.notice_avatar_url_changed, senderName)
+                when {
+                    avatarRemoved && event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_avatar_removed_by_you)
+                    avatarRemoved -> sp.getString(CommonStrings.notice_avatar_removed, senderName)
+                    event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_avatar_url_changed_by_you)
+                    else -> sp.getString(CommonStrings.notice_avatar_url_changed, senderName)
                 }
             }
             displayText.append(displayAvatarText)

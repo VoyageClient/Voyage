@@ -328,6 +328,10 @@
     <string name="room_profile_section_more_personalization" translatable="false">Personalization</string>
     <string name="room_personalization_title" translatable="false">Your appearance in this room</string>
     <string name="room_personalization_reset" translatable="false">Reset</string>
+    <string name="room_personalization_reset_confirmation" translatable="false">Reset your display name and avatar in this room to your account-wide ones?</string>
+    <string name="notice_avatar_removed" translatable="false">%1$s removed their avatar</string>
+    <string name="notice_avatar_removed_by_you" translatable="false">You removed your avatar</string>
+    <string name="notice_avatar_removed_too" translatable="false">(avatar was removed too)</string>
 
     <!-- PGP via OpenKeychain -->
     <string name="pgp_decrypting" translatable="false">Decrypting…</string>

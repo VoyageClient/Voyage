@@ -46,6 +46,7 @@ class GalleryOrCameraDialogHelper(
     interface Listener {
         fun onImageReady(uri: Uri?)
         fun onImageDeleted() = Unit
+        fun onImageReset() = Unit
     }
 
     private val activity
@@ -102,7 +103,12 @@ class GalleryOrCameraDialogHelper(
         Gallery
     }
 
-    fun show(withDeleteOption: Boolean = false, @StringRes deleteActionTitle: Int = CommonStrings.action_delete) {
+    fun show(
+            withDeleteOption: Boolean = false,
+            @StringRes deleteActionTitle: Int = CommonStrings.action_delete,
+            withResetOption: Boolean = false,
+            @StringRes resetActionTitle: Int = CommonStrings.action_reset,
+    ) {
         val dialog = MaterialAlertDialogBuilder(activity)
                 .setTitle(CommonStrings.attachment_type_dialog_title)
                 .setItems(
@@ -115,8 +121,15 @@ class GalleryOrCameraDialogHelper(
                 }
                 .setPositiveButton(CommonStrings.action_cancel, null)
                 .apply {
-                    if (withDeleteOption) {
-                        setNeutralButton(deleteActionTitle) { _, _ -> listener.onImageDeleted() }
+                    // Neutral is the leftmost button, so delete lands left of reset when both show.
+                    when {
+                        withDeleteOption -> {
+                            setNeutralButton(deleteActionTitle) { _, _ -> listener.onImageDeleted() }
+                            if (withResetOption) {
+                                setNegativeButton(resetActionTitle) { _, _ -> listener.onImageReset() }
+                            }
+                        }
+                        withResetOption -> setNeutralButton(resetActionTitle) { _, _ -> listener.onImageReset() }
                     }
                 }
                 .show()
