@@ -250,6 +250,15 @@ fun CharSequence.expandPillSpans(): CharSequence {
 }
 
 /**
+ * Loads the avatars for any mention pills in this TextView's text (e.g. a room-list preview), so they show
+ * the real avatar instead of the bare placeholder icon. Mirrors [bindEmoteImageSpans]; call once per bind.
+ */
+fun TextView.bindPillImageSpans() {
+    val spanned = text as? Spanned ?: return
+    spanned.getSpans(0, spanned.length, PillImageSpan::class.java).forEach { it.bind(this) }
+}
+
+/**
  * Glide target to handle avatar retrieval into [PillImageSpan].
  */
 private class PillImageSpanTarget(pillImageSpan: PillImageSpan) : SimpleTarget<Drawable>() {

@@ -27,6 +27,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.html.bindEmoteImageSpans
+import im.vector.app.features.html.bindPillImageSpans
 import im.vector.app.core.ui.views.PresenceStateImageView
 import im.vector.app.core.ui.views.ShieldImageView
 import im.vector.app.features.displayname.getBestName
@@ -104,6 +105,9 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     @EpoxyAttribute
     var useSingleLineForLastEvent: Boolean = false
 
+    @EpoxyAttribute
+    var loadMentionAvatars: Boolean = true
+
     override fun bind(holder: Holder) {
         val perfMarker = im.vector.app.core.utils.PerfTrace.mark("roomlist.item.bind")
         super.bind(holder)
@@ -144,6 +148,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     private fun renderForDefaultDisplayMode(holder: Holder) {
         holder.subtitleView.text = lastFormattedEvent.charSequence
         holder.subtitleView.bindEmoteImageSpans()
+        if (loadMentionAvatars) holder.subtitleView.bindPillImageSpans()
         // A spoiler in the preview keeps its blur; the BlurMaskFilter only paints on a software layer.
         holder.subtitleView.applySpoilerRenderLayer()
         holder.lastEventTimeView.text = lastEventTime

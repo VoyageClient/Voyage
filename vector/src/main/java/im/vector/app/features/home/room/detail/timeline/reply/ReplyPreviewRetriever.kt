@@ -102,6 +102,10 @@ class ReplyPreviewRetriever(
     private val serverRequests = mutableMapOf<String, Long>()
     // eventToRetrieveId-specific locking
     private val retrieveEventLocks = mutableMapOf<String, Any>()
+    // In-flight fetches keyed by parent eventId (value = target being fetched). Guards against launching a
+    // second coroutine for a reply still loading: the retrieveEventLock only serializes the fetch, not the
+    // state update, so a redundant fetch could land its (stale) result last and clobber a good preview.
+    private val inFlightRetrievals = mutableMapOf<String, String>()
     // Refreshed once per snapshot; a reply whose author is ignored is shown as unavailable, not their text.
     @Volatile
     private var ignoredUserIds: Set<String> = emptySet()
@@ -163,10 +167,20 @@ class ReplyPreviewRetriever(
                 }
             }
         }?.let { eventIdToRetrieve ->
+            val shouldLaunch = synchronized(data) {
+                if (inFlightRetrievals[eventId] == eventIdToRetrieve) {
+                    false
+                } else {
+                    inFlightRetrievals[eventId] = eventIdToRetrieve
+                    true
+                }
+            }
+            if (!shouldLaunch) return
             coroutineScope.launch(Dispatchers.IO) {
                 val retrieveEventLock = synchronized(retrieveEventLocks) {
                     retrieveEventLocks.getOrPut(eventIdToRetrieve) { eventIdToRetrieve }
                 }
+                try {
                 runCatching {
                     // Don't spam the server too often if it doesn't know the event
                     val mayAskServerForEvent = synchronized(serverRequests) {
@@ -225,6 +239,11 @@ class ReplyPreviewRetriever(
                             }
                         }
                 )
+                } finally {
+                    synchronized(data) {
+                        if (inFlightRetrievals[eventId] == eventIdToRetrieve) inFlightRetrievals.remove(eventId)
+                    }
+                }
             }
         }
     }

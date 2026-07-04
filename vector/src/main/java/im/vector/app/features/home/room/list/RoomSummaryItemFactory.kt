@@ -20,6 +20,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.typing.TypingHelper
+import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonPlurals
@@ -29,7 +30,7 @@ import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
-import org.matrix.android.sdk.api.util.toInvitationMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
 
@@ -108,7 +109,7 @@ class RoomSummaryItemFactory @Inject constructor(
             }
         }
 
-        val matrixItem = roomSummary.toInvitationMatrixItem()
+        val matrixItem = roomSummary.toDisplayMatrixItem()
                 .let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }
 
         return RoomInvitationItem_()
@@ -184,9 +185,10 @@ class RoomSummaryItemFactory @Inject constructor(
             .izPgp(isRoomPgpOn(roomSummary))
             .showPresence(roomSummary.isDirect)
             .userPresence(roomSummary.directUserPresence)
-            .matrixItem(roomSummary.toInvitationMatrixItem())
+            .matrixItem(roomSummary.toDisplayMatrixItem())
             .lastEventTime(latestEventTime)
             .typingMessage(typingMessage)
+            .loadMentionAvatars(!shouldHideAvatars(roomSummary, vectorPreferences))
             .lastFormattedEvent(latestFormattedEvent.toEpoxyCharSequence())
             .showHighlighted(showHighlighted)
             .showSelected(showSelected)
@@ -215,7 +217,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .izPgp(isRoomPgpOn(roomSummary))
             .showPresence(roomSummary.isDirect)
             .userPresence(roomSummary.directUserPresence)
-            .matrixItem(roomSummary.toInvitationMatrixItem())
+            .matrixItem(roomSummary.toDisplayMatrixItem())
             .showSelected(showSelected)
             .hasFailedSending(roomSummary.hasFailedSending)
             .unreadNotificationCount(unreadCount)
