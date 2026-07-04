@@ -29,7 +29,7 @@ data class SenderInfo(
 ) {
     val disambiguatedDisplayName: String
         get() = when {
-            displayName == null -> userId
+            displayName.isNullOrEmpty() -> userId
             displayName.replaceSpaceChars().isBlank() -> "$displayName ($userId)"
             isUniqueDisplayName -> displayName
             else -> "$displayName ($userId)"

@@ -52,9 +52,11 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
                 eventId = eventId,
                 roomId = roomId,
                 displayIndex = displayIndex,
-                senderName = roomMemberContent?.displayName,
+                // "" (vs null) means the member state was known at write time and the field was
+                // genuinely empty, so readers must not fall back to the live profile for it.
+                senderName = roomMemberContent?.let { it.displayName ?: "" },
                 isUniqueDisplayName = isUnique,
-                senderAvatar = roomMemberContent?.avatarUrl,
+                senderAvatar = roomMemberContent?.let { it.avatarUrl ?: "" },
                 ownedByThreadChunk = ownedByThreadChunk,
         )
         return stores.timelineEvent.insert(entity, chunkId, eventDbId)
