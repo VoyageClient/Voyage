@@ -1378,7 +1378,7 @@
     <string name="a11y_image">画像</string>
     <string name="a11y_screenshot">スクリーンショット</string>
     <string name="attachment_type_poll">アンケート</string>
-    <string name="sent_a_poll">アンケート</string>
+    <string name="sent_a_poll">アンケート。</string>
     <string name="settings_text_message_sent_hint">コード</string>
     <string name="power_level_title">役割</string>
     <string name="identity_server_set_alternative_submit">送信</string>
@@ -1391,9 +1391,9 @@
     <string name="unignore">無視を解除</string>
     <string name="sent_a_video">動画。</string>
     <string name="verification_request_waiting">待機しています…</string>
-    <string name="send_a_sticker">ステッカー</string>
-    <string name="sent_a_file">ファイル</string>
-    <string name="sent_an_audio_file">音声</string>
+    <string name="send_a_sticker">ステッカー。</string>
+    <string name="sent_a_file">ファイル。</string>
+    <string name="sent_an_audio_file">音声。</string>
     <string name="sent_an_image">画像。</string>
     <string name="login_signup_cancel_confirmation_title">警告</string>
     <string name="login_reset_password_cancel_confirmation_title">警告</string>
@@ -1402,7 +1402,7 @@
     <string name="login_reset_password_warning_title">警告！</string>
     <string name="attachment_type_location">位置情報</string>
     <string name="uploads_media_title">メディア</string>
-    <string name="poll_end_room_list_preview">アンケートが終了しました</string>
+    <string name="poll_end_room_list_preview">アンケートが終了しました。</string>
     <string name="end_poll_confirmation_title">アンケートを終了しますか？</string>
     <string name="delete_poll_dialog_title">アンケートを削除</string>
     <string name="create_space">スペースを作成</string>
@@ -1494,7 +1494,7 @@
     <string name="verification_scan_with_this_device">この端末でスキャン</string>
     <string name="verification_sent">認証を送信しました</string>
     <string name="verification_verify_device">このセッションを認証</string>
-    <string name="sent_a_voice_message">音声</string>
+    <string name="sent_a_voice_message">音声。</string>
     <string name="create_room_alias_empty">ルームのアドレスを入力してください</string>
     <string name="create_room_alias_already_in_use">このアドレスは既に使用されています</string>
     <string name="create_space_alias_hint">スペースのアドレス</string>
@@ -1615,7 +1615,7 @@
     <string name="recovery_key_empty_error_message">リカバリーキーを入力してください</string>
     <string name="poll_type_title">アンケートの種類</string>
     <string name="open_poll_option_title">投票の際に結果を公開</string>
-    <string name="poll_response_room_list_preview">投票する</string>
+    <string name="poll_response_room_list_preview">投票する。</string>
     <string name="open_poll_option_description">投票した人には、投票の際に即座に結果が表示されます</string>
     <string name="closed_poll_option_title">アンケートの終了後に結果を公開</string>
     <string name="closed_poll_option_description">結果はアンケートが終了した後で表示されます</string>
@@ -1896,8 +1896,8 @@
     <string name="a11y_start_camera">カメラを開始</string>
     <string name="a11y_stop_camera">カメラを停止</string>
     <string name="bottom_sheet_save_your_recovery_key_title">セキュリティーキーを保存</string>
-    <string name="sent_a_reaction">%sでリアクションしました</string>
-    <string name="sent_verification_conclusion">認証が完了しました</string>
+    <string name="sent_a_reaction">%sでリアクションしました。</string>
+    <string name="sent_verification_conclusion">認証が完了しました。</string>
     <string name="verification_conclusion_compromised">次のいずれかのセキュリティーが破られている可能性があります。
 \n
 \n - あなたのホームサーバー

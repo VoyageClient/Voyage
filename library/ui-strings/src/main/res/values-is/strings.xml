@@ -700,7 +700,7 @@
     <string name="settings_hs_admin_e2e_disabled">Kerfisstjóri netþjónsins þíns hefur lokað á sjálfvirka dulritun í einkaspjallrásum og beinum skilaboðum.</string>
     <string name="room_profile_section_more_settings">Stillingar spjallrásar</string>
     <string name="room_profile_not_encrypted_subtitle">Skilaboð í þessari spjallrás eru ekki enda-í-enda dulrituð.</string>
-    <string name="send_a_sticker">Límmerki</string>
+    <string name="send_a_sticker">Límmerki.</string>
     <string name="create_space_in_progress">Útbý svæði…</string>
     <string name="create_room_alias_empty">Settu inn vistfang spjallrásar</string>
     <string name="create_room_alias_already_in_use">Þetta vistfang er nú þegar í notkun</string>
@@ -944,7 +944,7 @@
     <string name="poll_type_title">Tegund könnunar</string>
     <string name="edit_poll_title">Breyta könnun</string>
     <string name="delete_poll_dialog_title">Fjarlægja könnun</string>
-    <string name="poll_response_room_list_preview">Atkvæði greitt</string>
+    <string name="poll_response_room_list_preview">Atkvæði greitt.</string>
     <string name="create_poll_button">ÚTBÚA KÖNNUN</string>
     <string name="create_poll_add_option">BÆTA VIÐ VALKOSTI</string>
     <string name="create_poll_options_title">Búa til valkosti</string>
@@ -1057,10 +1057,10 @@
     <string name="room_profile_section_security_learn_more">Kanna nánar</string>
     <string name="room_profile_section_security">Öryggi</string>
     <string name="verification_request_waiting">Bíð…</string>
-    <string name="sent_a_poll">Könnun</string>
-    <string name="sent_a_file">Skrá</string>
-    <string name="sent_a_voice_message">Tal</string>
-    <string name="sent_an_audio_file">Hljóð</string>
+    <string name="sent_a_poll">Könnun.</string>
+    <string name="sent_a_file">Skrá.</string>
+    <string name="sent_a_voice_message">Tal.</string>
+    <string name="sent_an_audio_file">Hljóð.</string>
     <string name="sent_an_image">Mynd.</string>
     <string name="sent_a_video">Myndskeið.</string>
     <string name="create_room_encryption_title">Virkja dulritun</string>
@@ -1087,7 +1087,7 @@
     <string name="login_set_email_submit">Næsta</string>
     <string name="login_set_email_optional_hint">Tölvupóstfang (valfrjálst)</string>
     <string name="login_set_email_mandatory_hint">Tölvupóstur</string>
-    <string name="poll_end_room_list_preview">Könnuninni er lokið</string>
+    <string name="poll_end_room_list_preview">Könnuninni er lokið.</string>
     <string name="create_poll_options_hint">Valkostur %1$d</string>
     <string name="create_poll_question_title">Spurning eða viðfangsefni könnunar</string>
     <string name="login_reset_password_cancel_confirmation_title">Aðvörun</string>
@@ -1818,8 +1818,8 @@
     <string name="verification_sent">Sannvottun send</string>
     <string name="verification_request_other_accepted">%s samþykkti</string>
     <string name="verification_request_other_cancelled">%s hætti við</string>
-    <string name="sent_verification_conclusion">Niðurstaða sannvottunar</string>
-    <string name="sent_a_reaction">Brást við með: %s</string>
+    <string name="sent_verification_conclusion">Niðurstaða sannvottunar.</string>
+    <string name="sent_a_reaction">Brást við með: %s.</string>
     <string name="create_room_in_progress">Bý til spjallrás…</string>
     <string name="signed_out_submit">Skráðu þig inn aftur</string>
     <string name="settings_discovery_consent_title">Senda tölvupóstföng og símanúmer</string>

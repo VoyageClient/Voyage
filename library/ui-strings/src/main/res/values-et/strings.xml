@@ -1209,7 +1209,7 @@
     <string name="verification_sas_match">Nad klapivad</string>
     <string name="verification_sas_do_not_match">Nad ei klapi</string>
     <string name="verification_conclusion_not_secure">Ei ole turvaline</string>
-    <string name="send_a_sticker">Kleeps</string>
+    <string name="send_a_sticker">Kleeps.</string>
     <string name="verification_request_waiting">Ootan…</string>
     <string name="verification_request_other_cancelled">%s tühistas</string>
     <string name="verification_request_you_cancelled">Sa tühistasid</string>
@@ -1448,8 +1448,8 @@
 \n - Sinu või teise osapoole seade</string>
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Pilt.</string>
-    <string name="sent_an_audio_file">Helifail</string>
-    <string name="sent_a_file">Fail</string>
+    <string name="sent_an_audio_file">Helifail.</string>
+    <string name="sent_a_file">Fail.</string>
     <string name="room_profile_not_encrypted_subtitle">Sõnumid siin jututoas on läbivalt krüptitud.</string>
     <string name="room_profile_encrypted_subtitle">Sõnumid siin jututoas kasutavad läbivat krüptimist. 
 \n 
@@ -1585,9 +1585,9 @@
         <item quantity="one">%d sekund</item>
         <item quantity="other">%d sekundit</item>
     </plurals>
-    <string name="sent_a_poll">Küsitlus</string>
-    <string name="sent_a_reaction">Reageeris: %s</string>
-    <string name="sent_verification_conclusion">Verifitseerimise tulemus</string>
+    <string name="sent_a_poll">Küsitlus.</string>
+    <string name="sent_a_reaction">Reageeris: %s.</string>
+    <string name="sent_verification_conclusion">Verifitseerimise tulemus.</string>
     <string name="universal_link_malformed">Link oli vigane</string>
     <string name="delete_account_data_warning">Kas kustutame %1$s tüüpi kasutajakonto andmed\?
 \n
@@ -2007,7 +2007,7 @@
     <string name="error_voice_message_cannot_reply_or_edit">Kui häälsõnum on esitamisel, siis sa ei saa talle vastata ega teda muuta</string>
     <string name="voice_message_reply_content">Häälsõnum (%1$s)</string>
     <string name="upgrade_room_for_restricted_note">Palun arvesta, et uuendusega tehakse jututoast uus variant. Kõik senised sõnumid jäävad sellesse jututuppa arhiveeritud olekus.</string>
-    <string name="sent_a_voice_message">Häälkõne</string>
+    <string name="sent_a_voice_message">Häälkõne.</string>
     <string name="settings_room_upgrades">Jututubade versiooniuuendused</string>
     <string name="settings_messages_by_bot">Robotite saadetud sõnumid</string>
     <string name="settings_room_invitations">Kutsed jututubadesse</string>
@@ -2119,10 +2119,10 @@
     <string name="identity_server_consent_dialog_content_3">Selleks et leida tuttavaid, sa peaksid saatma oma kontaktteavet (telefoninumbreid ja/või e-posti aadresse) siin rakenduses seadistatud isikutuvastusserverile. Parema andmeturvalisuse nimel me ei saada teavet mitte loetava tekstina, vaid räsina.</string>
     <string name="identity_server_consent_dialog_content_question">Kas sa oled nõus selle teabe edastamisega\?</string>
     <string name="action_not_now">Mitte praegu</string>
-    <string name="poll_response_room_list_preview">Hääletatud</string>
+    <string name="poll_response_room_list_preview">Hääletatud.</string>
     <string name="delete_poll_dialog_content">Kas sa oled kindel, et soovid küsitlust kustutada\? Seda tegevust sa ei saa hiljem tagasi pöörata.</string>
     <string name="delete_poll_dialog_title">Kustuta küsitlus</string>
-    <string name="poll_end_room_list_preview">Küsitlus on lõppenud</string>
+    <string name="poll_end_room_list_preview">Küsitlus on lõppenud.</string>
     <string name="end_poll_confirmation_approve_button">Lõpeta küsitlus</string>
     <string name="end_poll_confirmation_description">Sellega ei saa enam keegi oma arvamust avaldada ning kuvame lõplikud tulemused.</string>
     <string name="end_poll_confirmation_title">Kas lõpetame selle küsitluse\?</string>
@@ -2812,7 +2812,7 @@
     <string name="user_reported_as_inappropriate_content">Selle kasutaja tegevusest on haldajale teada antud.
 \n
 \nKui sa ei soovi tema loodud sisu enam näha, siis kasuta eiramise võimalust.</string>
-    <string name="call_unsupported">See kõne pole toetatud</string>
+    <string name="call_unsupported">See kõne pole toetatud.</string>
     <string name="room_profile_section_more_report">Teata jututoast</string>
     <string name="room_profile_section_more_report_success_content">Jututoast teatamine õnnestus.</string>
 </resources>

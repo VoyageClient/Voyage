@@ -220,6 +220,11 @@
     <string name="notice_location_sent_by_you" translatable="false">You sent a location.</string>
     <string name="notice_location_sent" translatable="false">%1$s sent a location.</string>
     <string name="notice_location_sent_no_sender" translatable="false">Sent a location.</string>
+    <!-- Room-list preview labels; the base strings are shared with other UI where a full stop doesn't fit. -->
+    <string name="location_room_list_preview" translatable="false">Location.</string>
+    <string name="live_location_room_list_preview" translatable="false">Live location.</string>
+    <string name="verification_request_room_list_preview" translatable="false">Verification Request.</string>
+    <string name="encrypted_message_room_list_preview" translatable="false">Encrypted message.</string>
 
     <string name="room_participants_action_kick" translatable="false">Kick</string>
     <string name="room_participants_action_redact_all" translatable="false">Redact all messages</string>

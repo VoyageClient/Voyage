@@ -1159,8 +1159,8 @@
 \n - Dein Gerät oder das Gerät des Gegenüber</string>
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Bild.</string>
-    <string name="sent_an_audio_file">Audio</string>
-    <string name="sent_a_file">Datei</string>
+    <string name="sent_an_audio_file">Audio.</string>
+    <string name="sent_a_file">Datei.</string>
     <string name="verification_request_waiting">Warte …</string>
     <string name="verification_request_other_cancelled">%s brach ab</string>
     <string name="verification_request_you_cancelled">Du brachst ab</string>
@@ -1462,7 +1462,7 @@
     <string name="login_signin_matrix_id_password_notice">Wenn du dein Passwort nicht weißt, gehe zurück um es zurücksetzen zu lassen.</string>
     <string name="login_signin_matrix_id_error_invalid_matrix_id">Dies ist keine gültige Benutzerkennung. Erwartetes Format: „@benutzer:homeserver.org“</string>
     <string name="autodiscover_well_known_error">Es konnte kein gültiger Homeserver gefunden werden. Bitte prüfe deine Kennung</string>
-    <string name="send_a_sticker">Sticker</string>
+    <string name="send_a_sticker">Sticker.</string>
     <string name="room_profile_section_admin">Administrative Aktionen</string>
     <string name="room_member_power_level_default_in">Standard in %1$s</string>
     <string name="settings_hs_admin_e2e_disabled">Dein Serveradministrator hat in privaten Räumen und Direktnachrichten Ende-zu-Ende-Verschlüsselung standardmäßig deaktiviert.</string>
@@ -1585,10 +1585,10 @@
         <item quantity="one">%d Sekunde</item>
         <item quantity="other">%d Sekunden</item>
     </plurals>
-    <string name="sent_a_poll">Umfrage</string>
-    <string name="sent_a_reaction">Reagierte mit: %s</string>
+    <string name="sent_a_poll">Umfrage.</string>
+    <string name="sent_a_reaction">Reagierte mit: %s.</string>
     <string name="universal_link_malformed">Der Link war fehlerhaft</string>
-    <string name="sent_verification_conclusion">Ergebnis der Überprüfung</string>
+    <string name="sent_verification_conclusion">Ergebnis der Überprüfung.</string>
     <string name="delete_account_data_warning">Kontodaten vom Typ %1$s löschen\?
 \n
 \nVorsicht! Es kann zu unerwartetem Verhalten führen.</string>
@@ -1992,7 +1992,7 @@
     <string name="verification_scan_self_emoji_subtitle">Stattdessen mit Emojis vergleichen</string>
     <string name="verification_scan_with_this_device">Mit diesem Gerät scannen</string>
     <string name="verification_scan_self_notice">Scanne den Code mit einem anderen Gerät oder umgekehrt</string>
-    <string name="sent_a_voice_message">Sprachnachricht</string>
+    <string name="sent_a_voice_message">Sprachnachricht.</string>
     <string name="decide_who_can_find_and_join">Lege fest, wer diesen Raum finden und betreten kann.</string>
     <string name="tap_to_edit_spaces">Klicke, um die Spaces zu bearbeiten</string>
     <string name="select_spaces">Spaces wählen</string>
@@ -2167,8 +2167,8 @@
     <string name="tooltip_attachment_photo">Kamera öffnen</string>
     <string name="delete_poll_dialog_content">Willst du diese Umfrage wirklich entfernen\? Du wirst sie nicht wiederherstellen können.</string>
     <string name="delete_poll_dialog_title">Umfrage entfernen</string>
-    <string name="poll_end_room_list_preview">Umfrage beendet</string>
-    <string name="poll_response_room_list_preview">Stimme abgegeben</string>
+    <string name="poll_end_room_list_preview">Umfrage beendet.</string>
+    <string name="poll_response_room_list_preview">Stimme abgegeben.</string>
     <string name="end_poll_confirmation_approve_button">Umfrage beenden</string>
     <string name="end_poll_confirmation_description">Dies verhindert, dass andere Personen abstimmen können, und zeigt die Endergebnisse der Umfrage an.</string>
     <string name="end_poll_confirmation_title">Diese Umfrage beenden\?</string>
@@ -2811,5 +2811,5 @@
     <string name="user_reported_as_inappropriate_content">Dieser Benutzer ist gemeldet worden.
 \n
 \nWenn du keine Inhalte mehr von dieser Person sehen möchtest, kannst du sie ignorieren, um ihre Nachrichten auszublenden.</string>
-    <string name="call_unsupported">Nicht unterstützter Anruf</string>
+    <string name="call_unsupported">Nicht unterstützter Anruf.</string>
 </resources>

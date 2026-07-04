@@ -563,8 +563,8 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="direct_room_profile_not_encrypted_subtitle">Ziņas šeit nav nodrošinātas ar pilnīgu šifrēšanu.</string>
     <string name="room_profile_not_encrypted_subtitle">Ziņām šajā istabā netiek piemērota pilnīga šifrēšana.</string>
     <string name="verification_request_you_accepted">Tu apstiprināji</string>
-    <string name="sent_a_file">Fails</string>
-    <string name="sent_an_audio_file">Audio</string>
+    <string name="sent_a_file">Fails.</string>
+    <string name="sent_an_audio_file">Audio.</string>
     <string name="sent_an_image">Attēls.</string>
     <string name="sent_a_video">Video.</string>
     <string name="create_room_alias_empty">Lūgums norādīt istabas adresi</string>
@@ -769,9 +769,9 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="verification_emoji_notice">Salīdziniet unikālās emocijzīmes, pārliecinoties tās ir vienādā secībā.</string>
     <string name="verification_request_start_notice">Lai būtu droši, dariet to klātienē vai izmantojiet citu komunikācijas veidu.</string>
     <string name="verification_request_notice">Lai būtu droši, jāapliecina %s ar vienreizēja koda palīdzību.</string>
-    <string name="sent_verification_conclusion">Verifikācijas slēdziens</string>
-    <string name="sent_a_poll">Aptauja</string>
-    <string name="send_a_sticker">Uzlīme</string>
+    <string name="sent_verification_conclusion">Verifikācijas slēdziens.</string>
+    <string name="sent_a_poll">Aptauja.</string>
+    <string name="send_a_sticker">Uzlīme.</string>
     <string name="verification_conclusion_compromised">Kaut kam no uzskaitītā var būt ietekmēta drošība:
 \n
 \n - mājasserveris
@@ -974,7 +974,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="verification_request_you_cancelled">Tu atcēli</string>
     <string name="verification_request_other_cancelled">%s atcēla</string>
     <string name="verification_request_waiting">Gaida…</string>
-    <string name="sent_a_reaction">Atsaucās ar %s</string>
+    <string name="sent_a_reaction">Atsaucās ar %s.</string>
     <string name="create_room_disable_federation_title">Bloķēt pievienošanos šai istabai ikvienam, kas nav daļa no %s</string>
     <string name="create_room_encryption_title">Iespējot šifrēšanu</string>
     <string name="notification_initial_sync">Sākotnējā sinhronizācija…</string>
@@ -1772,7 +1772,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="verification_scan_self_emoji_subtitle">Tā vietā pārbaudiet, salīdzinot emocijzīmes</string>
     <string name="verification_scan_with_this_device">Noskenēt ar šo ierīci</string>
     <string name="verification_scan_self_notice">Noskenējiet kodu ar citu ierīci vai pārslēdziet un skenējiet ar šo ierīci</string>
-    <string name="sent_a_voice_message">Balss</string>
+    <string name="sent_a_voice_message">Balss.</string>
     <string name="login_error_threepid_denied">Šādam e-pasta domēnam nav ļauta reģistrēšanās šajā serverī</string>
     <string name="create_space_in_progress">Izveido Telpu…</string>
     <string name="create_space_alias_hint">Telpas adrese</string>
@@ -2529,7 +2529,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
         <item quantity="one">Galīgais iznākums, pamatojoties uz %1$d balsojumu</item>
         <item quantity="other">Galīgais iznākums, pamatojoties uz %1$d balsojumiem</item>
     </plurals>
-    <string name="poll_end_room_list_preview">Aptauja noslēgta</string>
+    <string name="poll_end_room_list_preview">Aptauja noslēgta.</string>
     <string name="edit_poll_title">Labot aptauju</string>
     <string name="ended_poll_indicator">Noslēdza aptauju.</string>
     <string name="room_polls_load_more">Ielādēt vairāk aptauju</string>
@@ -2558,7 +2558,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="closed_poll_option_title">Aizvērta aptauja</string>
     <string name="location_share_live_remaining_time">Atlicis %1$s</string>
     <string name="labs_enable_msc3061_share_history">MSC3061: istabu atslēgu kopīgošana pagātnes ziņām</string>
-    <string name="poll_response_room_list_preview">Saņemtais balsojums</string>
+    <string name="poll_response_room_list_preview">Saņemtais balsojums.</string>
     <string name="delete_poll_dialog_title">Noņemt aptauju</string>
     <string name="location_share_live_select_duration_option_3">8 stundas</string>
     <string name="poll_end_action">Noslēgt aptauju</string>

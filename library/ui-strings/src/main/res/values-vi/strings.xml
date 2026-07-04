@@ -1099,8 +1099,8 @@
     </plurals>
     <string name="delete_poll_dialog_content">Bạn có chắc chắn muốn xóa cuộc thăm dò này không\? Bạn sẽ không thể phục hồi nó một khi bị xóa.</string>
     <string name="delete_poll_dialog_title">Xóa cuộc thăm dò ý kiến</string>
-    <string name="poll_end_room_list_preview">Cuộc thăm dò kết thúc</string>
-    <string name="poll_response_room_list_preview">Bỏ phiếu</string>
+    <string name="poll_end_room_list_preview">Cuộc thăm dò kết thúc.</string>
+    <string name="poll_response_room_list_preview">Bỏ phiếu.</string>
     <string name="end_poll_confirmation_approve_button">Kết thúc cuộc thăm dò ý kiến</string>
     <string name="end_poll_confirmation_description">Điều này sẽ ngăn mọi người có thể bỏ phiếu và sẽ hiển thị kết quả cuối cùng của cuộc thăm dò.</string>
     <string name="end_poll_confirmation_title">Kết thúc cuộc thăm dò này\?</string>
@@ -1556,13 +1556,13 @@
     <string name="verification_request_you_cancelled">Bạn đã hủy bỏ</string>
     <string name="verification_request_other_cancelled">%s đã hủy bỏ</string>
     <string name="verification_request_waiting">Đang chờ…</string>
-    <string name="sent_verification_conclusion">Kết luận xác minh</string>
-    <string name="sent_a_reaction">Phản ứng với: %s</string>
-    <string name="sent_a_poll">Thăm dò ý kiến</string>
-    <string name="send_a_sticker">Sticker</string>
-    <string name="sent_a_file">Tệp</string>
-    <string name="sent_a_voice_message">Thoại</string>
-    <string name="sent_an_audio_file">Âm thanh</string>
+    <string name="sent_verification_conclusion">Kết luận xác minh.</string>
+    <string name="sent_a_reaction">Phản ứng với: %s.</string>
+    <string name="sent_a_poll">Thăm dò ý kiến.</string>
+    <string name="send_a_sticker">Sticker.</string>
+    <string name="sent_a_file">Tệp.</string>
+    <string name="sent_a_voice_message">Thoại.</string>
+    <string name="sent_an_audio_file">Âm thanh.</string>
     <string name="sent_an_image">Hình ảnh.</string>
     <string name="sent_a_video">Video.</string>
     <string name="verification_conclusion_compromised">Một trong những điều sau đây có thể bị xâm phạm:
@@ -2410,7 +2410,7 @@
     <string name="_resume">Tiếp tục</string>
     <string name="a11y_presence_busy">Bận</string>
     <string name="invite_unknown_users_dialog_submit">Cứ mời cho tôi</string>
-    <string name="call_unsupported">Cuộc gọi không được hỗ trợ</string>
+    <string name="call_unsupported">Cuộc gọi không được hỗ trợ.</string>
     <string name="login_splash_sign_in">Đăng nhập</string>
     <string name="error_audio_message_unable_to_play">Không thể phát %1$s</string>
     <string name="settings_troubleshoot_test_system_settings_permission_failed">${app_name} cần quyền để hiển thị thông báo.

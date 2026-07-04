@@ -220,8 +220,8 @@
     <string name="command_description_shrug">Føyer til ¯\\_(ツ)_/¯ på en råtekstmelding</string>
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Bilde.</string>
-    <string name="sent_an_audio_file">Lyd</string>
-    <string name="sent_a_file">Fil</string>
+    <string name="sent_an_audio_file">Lyd.</string>
+    <string name="sent_a_file">Fil.</string>
     <string name="verification_request_you_cancelled">Du avbrøt</string>
     <string name="verification_request_you_accepted">Du aksepterte</string>
     <string name="verification_request">Verifiseringsforespørsel</string>
@@ -503,7 +503,7 @@
     <string name="soft_logout_clear_data_submit">Tøm alle data</string>
     <string name="create_room_encryption_title">Skru på kryptering</string>
     <string name="verification_sas_do_not_match">De samsvarer ikke</string>
-    <string name="send_a_sticker">Klistremerke</string>
+    <string name="send_a_sticker">Klistremerke.</string>
     <string name="room_settings_enable_encryption_dialog_submit">Skru på kryptering</string>
     <string name="refresh">Oppdater</string>
     <string name="finish">Avslutt</string>
@@ -846,7 +846,7 @@
     <string name="create_room_alias_invalid">Noen tegn er ikke tillatt</string>
     <string name="create_room_in_progress">Oppretter rom…</string>
     <string name="verification_conclusion_warning">Ikke klarert pålogging</string>
-    <string name="sent_a_reaction">Reagerte med: %s</string>
+    <string name="sent_a_reaction">Reagerte med: %s.</string>
     <string name="verification_request_other_cancelled">%s avbrutt</string>
     <string name="verification_request_other_accepted">%s akseptert</string>
     <string name="verification_scan_notice">Skann koden med den andre brukerens enhet for å verifisere hverandre på en sikker måte</string>

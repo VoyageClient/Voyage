@@ -1143,8 +1143,8 @@
     <string name="verification_conclusion_not_secure">Jo i sigurt</string>
     <string name="sent_a_video">Video.</string>
     <string name="sent_an_image">Figurë.</string>
-    <string name="sent_an_audio_file">Audio</string>
-    <string name="sent_a_file">Kartelë</string>
+    <string name="sent_an_audio_file">Audio.</string>
+    <string name="sent_a_file">Kartelë.</string>
     <string name="verification_request_waiting">Në pritje…</string>
     <string name="verification_request_you_cancelled">Anuluat</string>
     <string name="verification_request_you_accepted">Pranuat</string>
@@ -1502,10 +1502,10 @@
     <string name="login_server_url_form_common_notice">Jepni adresën e shërbyesit që doni të përdoret</string>
     <string name="login_msisdn_notice">Ju lutemi, përdorni formatin ndërkombëtar (numrat e telefonave duhet të fillojnë me \'+\')</string>
     <string name="login_signin_matrix_id_password_notice">Nëse s’e dini fjalëkalimin, kthehuni mbrapsht që ta ricaktoni.</string>
-    <string name="send_a_sticker">Ngjitës</string>
-    <string name="sent_a_poll">Pyetësor</string>
-    <string name="sent_a_reaction">Reagoi me: %s</string>
-    <string name="sent_verification_conclusion">Përfundim Verifikimi</string>
+    <string name="send_a_sticker">Ngjitës.</string>
+    <string name="sent_a_poll">Pyetësor.</string>
+    <string name="sent_a_reaction">Reagoi me: %s.</string>
+    <string name="sent_verification_conclusion">Përfundim Verifikimi.</string>
     <string name="room_profile_section_admin">Veprime Përgjegjësi</string>
     <string name="room_member_power_level_default_in">%1$s, si parazgjedhje</string>
     <string name="settings_hs_admin_e2e_disabled">Përgjegjësi i shërbyesit tuaj ka çaktivizuar, si parazgjedhje, fshehtëzim skaj-më-skaj në dhoma private &amp; Mesazhe të Drejtpërdrejtë.</string>
@@ -1989,7 +1989,7 @@
     <string name="voice_message_slide_to_cancel">Rrëshqiteni që të anulohet</string>
     <string name="a11y_start_voice_message">Incizoni Mesazh Zanor</string>
     <string name="upgrade_required">Lypset Domosdo Përmirësim</string>
-    <string name="sent_a_voice_message">Zë</string>
+    <string name="sent_a_voice_message">Zë.</string>
     <string name="other_spaces_or_rooms_you_might_not_know">Hapësira ose dhoma të tjera që mund të mos i dini</string>
     <string name="space_you_know_that_contains_this_room">Hapësirë që e dini se përmban këtë dhomë</string>
     <string name="decide_who_can_find_and_join">Vendosni se cilët mund të gjejnë dhe hyjnë në këtë dhomë.</string>
@@ -2109,8 +2109,8 @@
     <string name="action_not_now">Jo tani</string>
     <string name="delete_poll_dialog_content">Jeni i sigurt se doni të hiqet ky pyetësor\? Po u hoq, s’do të jeni në gjendje ta rimerrni.</string>
     <string name="delete_poll_dialog_title">Hiqe pyetësorin</string>
-    <string name="poll_end_room_list_preview">Pyetësori përfundoi</string>
-    <string name="poll_response_room_list_preview">U votua</string>
+    <string name="poll_end_room_list_preview">Pyetësori përfundoi.</string>
+    <string name="poll_response_room_list_preview">U votua.</string>
     <string name="end_poll_confirmation_approve_button">Përfundoje pyetësorin</string>
     <string name="end_poll_confirmation_description">Kjo do t’ua bëjë njerëzve të pamundur të votojnë dhe do të shfaqë rezultatet përfundimtare të pyetësorit.</string>
     <string name="end_poll_confirmation_title">Të përfundohet pyetësori\?</string>
@@ -2801,7 +2801,7 @@
     <string name="user_reported_as_inappropriate_content">Përdoruesi është raportuar.
 \n
 \nNëse s’doni të shihni më lëndë nga ky përdorues, mund ta shpërfillni, që mesazhet e tij të jenë të fshehura.</string>
-    <string name="call_unsupported">Thirrje që s’mbulohet</string>
+    <string name="call_unsupported">Thirrje që s’mbulohet.</string>
     <string name="room_profile_section_more_report">Raportojeni Dhomën</string>
     <string name="room_profile_section_more_report_success_content">Dhoma u raportua me sukses.</string>
 </resources>

@@ -1070,7 +1070,7 @@
 \n
 \nВи впевнені, що бажаєте продовжити\?</string>
     <string name="signed_out_title">Ви вийшли</string>
-    <string name="send_a_sticker">Наліпка</string>
+    <string name="send_a_sticker">Наліпка.</string>
     <string name="terms_description_for_integration_manager">Використовувати боти, мости, віджети та пакунки наліпок</string>
     <string name="no_connectivity_to_the_server_indicator">Зв\'язок із сервером втрачено</string>
     <string name="no_message_edits_found">Виправлень не знайдено</string>
@@ -1232,7 +1232,7 @@
     <string name="report_content_custom_title">Поскаржитись на цей вміст</string>
     <string name="report_content_custom_submit">ПОСКАРЖИТИСЬ</string>
     <string name="report_content_custom_hint">Причина скарги</string>
-    <string name="sent_a_reaction">Зреагували: %s</string>
+    <string name="sent_a_reaction">Зреагували: %s.</string>
     <string name="message_add_reaction">Зреагувати</string>
     <string name="finish">Завершити</string>
     <string name="reply">Відповісти</string>
@@ -1673,10 +1673,10 @@
     <string name="settings_text_message_sent">Текстове повідомлення надіслано на %s. Введіть код підтвердження, який воно містить.</string>
     <string name="settings_discovery_confirm_mail">Ми надіслали вам електронний лист на %s, відкрийте свою е-пошту та клацніть на посилання для підтвердження</string>
     <string name="settings_discovery_confirm_mail_not_clicked">Ми надіслали вам електронний лист на %s, відкрийте свою е-пошту та клацніть на посилання для підтвердження</string>
-    <string name="sent_a_poll">Опитування</string>
-    <string name="sent_a_file">Файл</string>
-    <string name="sent_a_voice_message">Голосове</string>
-    <string name="sent_an_audio_file">Аудіо</string>
+    <string name="sent_a_poll">Опитування.</string>
+    <string name="sent_a_file">Файл.</string>
+    <string name="sent_a_voice_message">Голосове.</string>
+    <string name="sent_an_audio_file">Аудіо.</string>
     <string name="sent_an_image">Зображення.</string>
     <string name="sent_a_video">Відео.</string>
     <string name="verification_conclusion_not_secure">Не безпечно</string>
@@ -1840,7 +1840,7 @@
     <string name="verification_request_notice">Для власної безпеки, перевірте %s звіривши одноразовий код.</string>
     <string name="rendering_event_error_type_of_event_not_handled">${app_name} не обробляє події типу «%1$s»</string>
     <string name="verification_sent">Запит перевірки надіслано</string>
-    <string name="sent_verification_conclusion">Результат перевірки</string>
+    <string name="sent_verification_conclusion">Результат перевірки.</string>
     <string name="verification_scan_emoji_subtitle">Якщо ви не бачите особу, порівняйте натомість емоджі</string>
     <string name="login_error_threepid_denied">Ваш домен е-пошти не авторизовано для реєстрації на цьому сервері</string>
     <string name="create_room_disable_federation_title">Заборонити будь-кому, хто не є учасником %s, будь-коли приєднуватися до цієї кімнати</string>
@@ -2203,8 +2203,8 @@
     </plurals>
     <string name="delete_poll_dialog_content">Точно видалити опитування\? Ви не зможете відновити опитування після видалення.</string>
     <string name="delete_poll_dialog_title">Видалити опитування</string>
-    <string name="poll_end_room_list_preview">Голосування завершене</string>
-    <string name="poll_response_room_list_preview">Проголосовано</string>
+    <string name="poll_end_room_list_preview">Голосування завершене.</string>
+    <string name="poll_response_room_list_preview">Проголосовано.</string>
     <string name="end_poll_confirmation_approve_button">Завершити опитування</string>
     <string name="end_poll_confirmation_description">Люди більше не зможуть голосувати, і будуть показані остаточні результати опитування.</string>
     <string name="end_poll_confirmation_title">Завершити це опитування\?</string>
@@ -2924,5 +2924,5 @@
     <string name="user_reported_as_inappropriate_content">Скаргу на користувача надіслано.
 \n
 \nЯкщо ви більше хочете нічого не бачити від нього, ви можете ігнорувати його, щоб сховати його повідомлення.</string>
-    <string name="call_unsupported">Непідтримуваний виклик</string>
+    <string name="call_unsupported">Непідтримуваний виклик.</string>
 </resources>

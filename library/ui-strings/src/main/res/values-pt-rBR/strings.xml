@@ -1230,9 +1230,9 @@
 \n - O dispositivo seu ou da/do outro usuário</string>
     <string name="sent_a_video">Vídeo.</string>
     <string name="sent_an_image">Imagem.</string>
-    <string name="sent_an_audio_file">Áudio</string>
-    <string name="sent_a_file">Arquivo</string>
-    <string name="send_a_sticker">Sticker</string>
+    <string name="sent_an_audio_file">Áudio.</string>
+    <string name="sent_a_file">Arquivo.</string>
+    <string name="send_a_sticker">Sticker.</string>
     <string name="verification_request_waiting">Esperando…</string>
     <string name="verification_request_other_cancelled">%s cancelou</string>
     <string name="verification_request_you_cancelled">Você cancelou</string>
@@ -1586,9 +1586,9 @@
     <string name="room_error_not_found">Não foi possível encontrar esta sala. Certifique-se de que ela existe.</string>
     <string name="universal_link_malformed">O link foi malformado</string>
     <string name="auth_msisdn_already_defined">Este número de telefone já está definido.</string>
-    <string name="sent_a_poll">Enquete</string>
-    <string name="sent_a_reaction">Reagiu com: %s</string>
-    <string name="sent_verification_conclusion">Conclusão de Verificação</string>
+    <string name="sent_a_poll">Enquete.</string>
+    <string name="sent_a_reaction">Reagiu com: %s.</string>
+    <string name="sent_verification_conclusion">Conclusão de Verificação.</string>
     <string name="delete_account_data_warning">Deletar os dados de conta de tipo %1$s\?
 \n
 \nUse com caução, pode levar a comportamento inesperado.</string>
@@ -1998,7 +1998,7 @@
     <string name="voice_message_slide_to_cancel">Deslize para cancelar</string>
     <string name="a11y_start_voice_message">Gravar Mensagem de Voz</string>
     <string name="upgrade_required">Upgrade Requerido</string>
-    <string name="sent_a_voice_message">Voz</string>
+    <string name="sent_a_voice_message">Voz.</string>
     <string name="other_spaces_or_rooms_you_might_not_know">Outros espaços ou salas que você poderia não saber</string>
     <string name="space_you_know_that_contains_this_room">Espaço que você sabe que contém esta sala</string>
     <string name="decide_who_can_find_and_join">Decida quem pode encontrar e entrar nesta sala.</string>
@@ -2121,8 +2121,8 @@
     <string name="action_not_now">Não agora</string>
     <string name="delete_poll_dialog_content">Você tem certeza que você quer remover esta enquete\? Você não vai ser capaz de recuperá-la uma vez removida.</string>
     <string name="delete_poll_dialog_title">Remover enquete</string>
-    <string name="poll_end_room_list_preview">Enquete terminada</string>
-    <string name="poll_response_room_list_preview">Voto lançado</string>
+    <string name="poll_end_room_list_preview">Enquete terminada.</string>
+    <string name="poll_response_room_list_preview">Voto lançado.</string>
     <string name="end_poll_confirmation_approve_button">Terminar enquete</string>
     <string name="end_poll_confirmation_description">Isto vai parar as pessoas de poderem votar e vai exibir os resultados finais da enquete.</string>
     <string name="end_poll_confirmation_title">Terminar esta enquete\?</string>

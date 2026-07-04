@@ -1427,11 +1427,11 @@
     <string name="verification_conclusion_not_secure">არ არის უსაფრთხო</string>
     <string name="sent_a_video">ვიდეო.</string>
     <string name="sent_an_image">სურათი.</string>
-    <string name="sent_an_audio_file">აუდიო</string>
-    <string name="sent_a_voice_message">ხმა</string>
-    <string name="send_a_sticker">სტიკერი</string>
-    <string name="sent_a_poll">გამოკითხვა</string>
-    <string name="sent_a_reaction">რეაგირება: %s</string>
+    <string name="sent_an_audio_file">აუდიო.</string>
+    <string name="sent_a_voice_message">ხმა.</string>
+    <string name="send_a_sticker">სტიკერი.</string>
+    <string name="sent_a_poll">გამოკითხვა.</string>
+    <string name="sent_a_reaction">რეაგირება: %s.</string>
     <string name="started_a_voice_broadcast">ხმის ტრანსლაციის დაწყება</string>
     <string name="verification_request_waiting">მოლოდინი…</string>
     <string name="verification_request_other_cancelled">%s გააუქმა</string>
@@ -1987,8 +1987,8 @@
 \n- ჰოუმსერვერი, რომელთანაც დაკავშირებულია მომხმარებელი, რომელსაც ადასტურებთ 
 \n- თქვენი ან სხვა მომხმარებლის ინტერნეტკავშირი 
 \n- თქვენი ან სხვა მომხმარებლის მოწყობილობა</string>
-    <string name="sent_a_file">ფაილი</string>
-    <string name="sent_verification_conclusion">ვერიფიკაციის დასრულება</string>
+    <string name="sent_a_file">ფაილი.</string>
+    <string name="sent_verification_conclusion">ვერიფიკაციის დასრულება.</string>
     <string name="sent_live_location">მდებარეობის ცოცხლად გაზიარება</string>
     <string name="verification_request_you_accepted">თქვენ დაადასტურეთ</string>
     <string name="verification_verify_device">დადასტურეთ ეს სესია</string>
@@ -2341,8 +2341,8 @@
     <string name="poll_end_action">გამოკითხვის დასრულება</string>
     <string name="end_poll_confirmation_title">დასრულდეს ეს გამოკითხვა\?</string>
     <string name="end_poll_confirmation_approve_button">გამოკითხვის დასრულება</string>
-    <string name="poll_response_room_list_preview">ხმა მიცემულია</string>
-    <string name="poll_end_room_list_preview">გამოკითხვა დასრულდა</string>
+    <string name="poll_response_room_list_preview">ხმა მიცემულია.</string>
+    <string name="poll_end_room_list_preview">გამოკითხვა დასრულდა.</string>
     <string name="delete_poll_dialog_title">გამოკითხვის წაშლა</string>
     <string name="edit_poll_title">გამოკითხვის რედაქტირება</string>
     <string name="poll_type_title">გამოკითხვის ტიპი</string>
@@ -2809,6 +2809,6 @@
     <string name="direct_room_join_rules_invite">%1$s გახადა ეს მხოლოდ მოწვევისთვის.</string>
     <string name="settings_discovery_consent_notice_off_2">თქვენი კონტაქტები კერძოა. კონტაქტებიდან მომხმარებლების აღმოსაჩენად, საჭიროა თქვენი ნებართვა, რომ კონტაქტების ინფორმაცია გაგზავნოთ თქვენი იდენტობის სერვერზე.</string>
     <string name="ftue_personalize_lets_go">წავიდეთ</string>
-    <string name="call_unsupported">მხარდაუჭერი ზარი</string>
+    <string name="call_unsupported">მხარდაუჭერი ზარი.</string>
     <string name="pill_message_unknown_room_or_space">ოთახი/სივრცე</string>
 </resources>

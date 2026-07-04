@@ -460,12 +460,12 @@
     <string name="verification_request_you_cancelled">Vi nuligis</string>
     <string name="verification_request_other_cancelled">%s nuligis</string>
     <string name="verification_request_waiting">Atendante…</string>
-    <string name="sent_verification_conclusion">Rezulto de kontrolo</string>
-    <string name="sent_a_reaction">Reagis per: %s</string>
-    <string name="sent_a_poll">Enketo</string>
-    <string name="send_a_sticker">Glumarko</string>
-    <string name="sent_a_file">Dosiero</string>
-    <string name="sent_an_audio_file">Sono</string>
+    <string name="sent_verification_conclusion">Rezulto de kontrolo.</string>
+    <string name="sent_a_reaction">Reagis per: %s.</string>
+    <string name="sent_a_poll">Enketo.</string>
+    <string name="send_a_sticker">Glumarko.</string>
+    <string name="sent_a_file">Dosiero.</string>
+    <string name="sent_an_audio_file">Sono.</string>
     <string name="sent_an_image">Bildo.</string>
     <string name="sent_a_video">Filmo.</string>
     <string name="verification_conclusion_compromised">Sekureco de unu el la jenaj povus esti rompita:
@@ -1975,7 +1975,7 @@
     <string name="verification_scan_self_emoji_subtitle">Kontroli per bildosignoj anstataŭe</string>
     <string name="verification_scan_with_this_device">Skani per ĉi tiu aparato</string>
     <string name="verification_scan_self_notice">Skanu la kodon per alia via aparato, aŭ baskulu kaj skanu per ĉi tiu aparato</string>
-    <string name="sent_a_voice_message">Voĉo</string>
+    <string name="sent_a_voice_message">Voĉo.</string>
     <string name="create_space_alias_hint">Adreso de spaco</string>
     <string name="directory_add_a_new_server_error_already_added">Ĉi tiu servilo jam estas en la listo</string>
     <string name="directory_add_a_new_server_error">Ne povas trovi ĉi tiun servilon aŭ ĝian liston de ĉambroj</string>

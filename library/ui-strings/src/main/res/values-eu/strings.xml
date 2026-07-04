@@ -1025,8 +1025,8 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
 \n- Zure edo bestearen gailua</string>
     <string name="sent_a_video">Bideoa.</string>
     <string name="sent_an_image">Irudia.</string>
-    <string name="sent_an_audio_file">Audioa</string>
-    <string name="sent_a_file">Fitxategia</string>
+    <string name="sent_an_audio_file">Audioa.</string>
+    <string name="sent_a_file">Fitxategia.</string>
     <string name="verification_request_waiting">Itxaroten…</string>
     <string name="verification_request_other_cancelled">%s(e)k ezeztatu du</string>
     <string name="verification_request_you_cancelled">Zuk ezeztatu duzu</string>

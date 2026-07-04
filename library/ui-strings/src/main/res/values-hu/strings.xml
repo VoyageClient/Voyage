@@ -1093,8 +1093,8 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
 \n - Az Ön vagy a másik felhasználó készülékét</string>
     <string name="sent_a_video">Videó.</string>
     <string name="sent_an_image">Kép.</string>
-    <string name="sent_an_audio_file">Hang</string>
-    <string name="sent_a_file">Fájl</string>
+    <string name="sent_an_audio_file">Hang.</string>
+    <string name="sent_a_file">Fájl.</string>
     <string name="verification_request_waiting">Várakozás…</string>
     <string name="verification_request_other_cancelled">%s megszakította</string>
     <string name="verification_request_you_cancelled">Megszakította</string>
@@ -1432,7 +1432,7 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="room_join_rules_invite_by_you">Meghívásossá tetted a szobát.</string>
     <string name="login_server_url_form_common_notice">Add meg a használandó kiszolgáló címét</string>
     <string name="login_signin_matrix_id_password_notice">Ha nem tudod a jelszavad, akkor lépj vissza és állítsd helyre.</string>
-    <string name="send_a_sticker">Matrica</string>
+    <string name="send_a_sticker">Matrica.</string>
     <string name="room_profile_section_admin">Rendszergazdai műveletek</string>
     <string name="room_member_power_level_default_in">Alapértelmezett itt: %1$s</string>
     <string name="settings_hs_admin_e2e_disabled">A kiszolgáló rendszergazdája alapértelmezetten letiltotta a végpontok közti titkosítást a privát szobákban és közvetlen üzenetekben.</string>
@@ -1526,7 +1526,7 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="this_is_the_beginning_of_room_no_name">Itt kezdődik ez a beszélgetés.</string>
     <string name="this_is_the_beginning_of_room">Ez a %s szoba kezdete.</string>
     <string name="direct_room_user_list_known_title">Ismert felhasználók</string>
-    <string name="sent_a_reaction">Reakció: %s</string>
+    <string name="sent_a_reaction">Reakció: %s.</string>
     <string name="action_add">Hozzáadás</string>
     <string name="call_notification_hangup">Befejezés</string>
     <string name="user_code_info_text">Mutassa meg ezt a kódot az ismerőseinek, hogy be tudják olvasni, és elkezdődhessen a csevegés.</string>
@@ -1852,8 +1852,8 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
 \n
 \nAz üzeneteidet zárolással vannak biztosítva és csak neked és a címzetteknek van meg a kulcs hozzá.</string>
     <string name="direct_room_profile_not_encrypted_subtitle">Itt az üzenetek nincsenek végponttól végpontig titkosítva.</string>
-    <string name="sent_verification_conclusion">Hitelesítés eredménye</string>
-    <string name="sent_a_poll">Szavazás</string>
+    <string name="sent_verification_conclusion">Hitelesítés eredménye.</string>
+    <string name="sent_a_poll">Szavazás.</string>
     <string name="create_room_in_progress">Szoba létrehozása…</string>
     <string name="create_room_alias_invalid">Néhány karakter nem engedélyezett</string>
     <string name="create_room_alias_empty">Kérlek add meg a szoba címét</string>
@@ -1979,7 +1979,7 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="denied_permission_camera">A művelet végrehajtásához adja meg a Kamera engedélyt a rendszerbeállításokban.</string>
     <string name="denied_permission_generic">Néhány jogosultság hiányzik a művelet végrehajtásához, adja meg a jogosultságokat a rendszerbeállításokban.</string>
     <string name="upgrade_required">Fejlesztés szükséges</string>
-    <string name="sent_a_voice_message">Hanggal</string>
+    <string name="sent_a_voice_message">Hanggal.</string>
     <string name="other_spaces_or_rooms_you_might_not_know">Más terek vagy szobák melyről lehet, hogy nem tudsz</string>
     <string name="space_you_know_that_contains_this_room">Tér melyről tudod, hogy ezt a szobát tartalmazza</string>
     <string name="decide_who_can_find_and_join">Döntsd el ki találhatja meg és léphet be ebbe a szobába.</string>
@@ -2119,8 +2119,8 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="action_enable">Engedélyezés</string>
     <string name="delete_poll_dialog_content">Biztosan eltávítja ezt a szavazást\? Ezt a műveletet nem lehet visszavonni.</string>
     <string name="delete_poll_dialog_title">Szavazás eltávolítása</string>
-    <string name="poll_end_room_list_preview">Szavazás lezárva</string>
-    <string name="poll_response_room_list_preview">Szavazat leadva</string>
+    <string name="poll_end_room_list_preview">Szavazás lezárva.</string>
+    <string name="poll_response_room_list_preview">Szavazat leadva.</string>
     <string name="end_poll_confirmation_approve_button">Szavazás lezárása</string>
     <string name="end_poll_confirmation_description">Ez megszünteti az új szavazatok leadásának lehetőségét, és megjeleníti a végleges eredményt.</string>
     <string name="end_poll_confirmation_title">Lezárja a szavazást\?</string>

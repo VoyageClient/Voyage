@@ -272,7 +272,7 @@ class MessageActionsViewModel @AssistedInject constructor(
 
                             textRenderer.render(eventHtmlRenderer.get().render(html, pillsPostProcessor))
                         } else if (messageContent is MessageVerificationRequestContent) {
-                            stringProvider.getString(CommonStrings.verification_request)
+                            stringProvider.getString(CommonStrings.verification_request_room_list_preview)
                         } else if (messageContent is MessageFileContent) {
                             attachmentPreviewText(context, R.drawable.ic_paperclip, messageContent.getFileName().orEmpty())
                         } else if (messageContent is MessageAudioContent) {

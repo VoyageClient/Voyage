@@ -1121,8 +1121,8 @@
 \n - Varmentamasi toisen käyttäjän kotipalvelin
 \n - Sinun tai toisen käyttäjän Internet-yhteys
 \n - Sinun tai toisen käyttäjän käyttämä laite</string>
-    <string name="sent_an_audio_file">Äänitiedosto</string>
-    <string name="sent_a_file">Tiedosto</string>
+    <string name="sent_an_audio_file">Äänitiedosto.</string>
+    <string name="sent_a_file">Tiedosto.</string>
     <string name="verification_sent">Varmennus lähetetty</string>
     <string name="verification_request">Varmennuspyyntö</string>
     <string name="verification_verify_device">Varmenna istunto</string>
@@ -1388,14 +1388,14 @@
     <string name="create_room_topic_hint">Aihe</string>
     <string name="direct_room_profile_section_more_leave">Poistu</string>
     <string name="direct_room_profile_section_more_settings">Asetukset</string>
-    <string name="sent_a_poll">Äänestys</string>
+    <string name="sent_a_poll">Äänestys.</string>
     <string name="settings_text_message_sent_hint">Koodi</string>
     <string name="room_settings_topic_hint">Aihe</string>
     <string name="power_level_title">Rooli</string>
     <string name="invite_users_to_room_action_invite">KUTSU</string>
     <string name="room_message_placeholder">Viesti</string>
     <string name="room_member_power_level_invites">Kutsut</string>
-    <string name="send_a_sticker">Tarra</string>
+    <string name="send_a_sticker">Tarra.</string>
     <string name="uploads_files_title">TIEDOSTOT</string>
     <string name="uploads_media_title">MEDIA</string>
     <string name="notice_room_server_acl_set_title_by_you">Asetit palvelimen käyttäjäoikeuslistan tähän huoneeseen.</string>
@@ -1648,7 +1648,7 @@
 \nViestisi turvataan lukolla ja vain sinä sekä vastaanottaja omaatte avaimet, joilla salauksen voi purkaa.</string>
     <string name="direct_room_profile_not_encrypted_subtitle">Viestit täällä eivät ole päästä päähän -salattuja.</string>
     <string name="verification_scan_with_this_device">Skannaa tällä laitteella</string>
-    <string name="sent_a_voice_message">Ääni</string>
+    <string name="sent_a_voice_message">Ääni.</string>
     <string name="create_space_in_progress">Luodaan avaruutta…</string>
     <string name="create_room_alias_invalid">Jotkin merkit eivät ole sallittuja</string>
     <string name="create_room_alias_empty">Anna huoneen osoite</string>
@@ -1813,7 +1813,7 @@
         <item quantity="one">yksi ääni</item>
         <item quantity="other">%1$d ääntä</item>
     </plurals>
-    <string name="poll_response_room_list_preview">Ääni annettu</string>
+    <string name="poll_response_room_list_preview">Ääni annettu.</string>
     <string name="a11y_static_map_image">Kartta</string>
     <string name="location_activity_title_preview">Sijainti</string>
     <string name="location_activity_title_static_sharing">Jaa sijainti</string>
@@ -2041,7 +2041,7 @@
     <string name="location_share_live_select_duration_option_2">1 tunti</string>
     <string name="location_share_live_select_duration_option_1">15 minuuttia</string>
     <string name="closed_poll_option_description">Tulokset näytetään vain kun lopetat kyselyn</string>
-    <string name="poll_end_room_list_preview">Kysely lopetettu</string>
+    <string name="poll_end_room_list_preview">Kysely lopetettu.</string>
     <string name="end_poll_confirmation_approve_button">Lopeta kysely</string>
     <string name="end_poll_confirmation_title">Lopetetaanko tämä kysely\?</string>
     <string name="poll_undisclosed_not_ended">Tulokset tulevat näkyviin kun kysely lopetetaan</string>
