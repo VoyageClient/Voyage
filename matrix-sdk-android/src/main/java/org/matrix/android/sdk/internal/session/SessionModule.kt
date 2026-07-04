@@ -96,6 +96,7 @@ import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProces
 import org.matrix.android.sdk.internal.session.room.read.ReadReceiptQueue
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessorCoroutine
 import org.matrix.android.sdk.internal.session.room.tombstone.RoomTombstoneEventProcessor
+import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import org.matrix.android.sdk.internal.session.typing.DefaultTypingUsersTracker
 import org.matrix.android.sdk.internal.session.user.accountdata.DefaultSessionAccountDataService
 import org.matrix.android.sdk.internal.session.widgets.DefaultWidgetURLFormatter
@@ -386,6 +387,14 @@ internal abstract class SessionModule {
     @Binds
     @IntoSet
     abstract fun bindSessionCoroutineScopeHolder(holder: SessionCoroutineScopeHolder): SessionLifecycleObserver
+
+    @Binds
+    @IntoSet
+    abstract fun bindEventIndexerAsSessionLifecycleObserver(indexer: EventIndexer): SessionLifecycleObserver
+
+    @Binds
+    @IntoSet
+    abstract fun bindEventIndexerAsEventInsertLiveProcessor(indexer: EventIndexer): EventInsertLiveProcessor
 
     @Binds
     @IntoSet

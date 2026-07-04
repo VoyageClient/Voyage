@@ -49,6 +49,8 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
     fun execute(session: Session, startSyncing: Boolean = true) {
         Timber.i("Configure and start session for ${session.myUserId}. startSyncing: $startSyncing")
         session.open()
+        session.eventIndexService().setUnencryptedRoomsEnabled(!vectorPreferences.searchUnencryptedRoomsOnServer())
+        session.eventIndexService().setEnabled(vectorPreferences.searchEncryptedRoomsEnabled())
         if (startSyncing) {
             session.startSyncing(context)
         }

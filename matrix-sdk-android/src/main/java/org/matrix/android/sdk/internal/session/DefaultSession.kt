@@ -37,6 +37,7 @@ import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.contentscanner.ContentScannerService
 import org.matrix.android.sdk.api.session.crypto.CryptoService
+import org.matrix.android.sdk.api.session.eventindex.EventIndexService
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.api.session.file.FileService
@@ -95,6 +96,7 @@ internal class DefaultSession @Inject constructor(
         private val pushersService: Lazy<PushersService>,
         private val termsService: Lazy<TermsService>,
         private val searchService: Lazy<SearchService>,
+        private val eventIndexService: Lazy<EventIndexService>,
         private val cryptoService: Lazy<CryptoService>,
         private val defaultFileService: Lazy<FileService>,
         private val permalinkService: Lazy<PermalinkService>,
@@ -218,6 +220,7 @@ internal class DefaultSession @Inject constructor(
     override fun integrationManagerService(): IntegrationManagerService = integrationManagerService.get()
     override fun callSignalingService(): CallSignalingService = callSignalingService.get()
     override fun searchService(): SearchService = searchService.get()
+    override fun eventIndexService(): EventIndexService = eventIndexService.get()
     override fun federationService(): FederationService = federationService.get()
     override fun thirdPartyService(): ThirdPartyService = thirdPartyService.get()
     override fun spaceService(): SpaceService = spaceService.get()

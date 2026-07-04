@@ -284,8 +284,8 @@ class AudioMessageHelper @Inject constructor(
         playbackTicker = null
     }
 
-    fun stopTracking() {
-        playbackTracker.unregisterListeners()
+    fun resetPlaybackStates() {
+        playbackTracker.resetAllPlaybackStates()
     }
 
     fun getCurrentVoiceFile(): File? = voiceRecorder.getVoiceMessageFile()

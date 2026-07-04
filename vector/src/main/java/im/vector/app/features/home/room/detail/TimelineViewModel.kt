@@ -27,7 +27,6 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.mvrx.runCatchingToAsync
 import im.vector.app.core.platform.VectorViewModel
-import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.BehaviorDataSource
 import im.vector.app.features.attachments.withRandomizedFilename
@@ -40,31 +39,16 @@ import im.vector.app.features.home.room.detail.pinned.GetPinnedEventsUseCase
 import im.vector.app.features.home.room.detail.poll.VoteToPollUseCase
 import im.vector.app.features.home.room.detail.sticker.StickerPickerActionHandler
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineFactory
-import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
+import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
 import im.vector.app.features.home.room.typing.TypingHelper
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.raw.wellknown.CryptoConfig
-import im.vector.app.features.pgp.PgpDecryptor
-import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpRoomEncryptor
-import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.raw.wellknown.getOutboundSessionKeySharingStrategyOrDefault
 import im.vector.app.features.raw.wellknown.withElementWellKnown
-import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
-import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
-import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
-import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
-import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
-import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
-import im.vector.app.features.html.EventHtmlRenderer
-import im.vector.app.features.html.PillsPostProcessor
-import im.vector.app.features.html.SpanUtils
-import im.vector.app.features.html.VectorHtmlCompressor
-import im.vector.app.features.media.ImageContentRenderer
-import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorDataStore
@@ -95,7 +79,6 @@ import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.verification.EVerificationState
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
@@ -118,7 +101,6 @@ import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
-import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.model.tombstone.RoomTombstoneContent
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -150,26 +132,13 @@ class TimelineViewModel @AssistedInject constructor(
         private val stopLiveLocationShareUseCase: StopLiveLocationShareUseCase,
         private val redactLiveLocationShareEventUseCase: RedactLiveLocationShareEventUseCase,
         private val cryptoConfig: CryptoConfig,
-        buildMeta: BuildMeta,
         timelineFactory: TimelineFactory,
         private val spaceStateHandler: SpaceStateHandler,
         private val voteToPollUseCase: VoteToPollUseCase,
         private val getPinnedEventsUseCase: GetPinnedEventsUseCase,
         private val massRedactionManager: MassRedactionManager,
         private val recentEmojiDataSource: RecentEmojiDataSource,
-        private val displayableEventFormatter: DisplayableEventFormatter,
-        private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
-        private val textRendererFactory: EventTextRenderer.Factory,
-        private val messageColorProvider: MessageColorProvider,
-        private val htmlCompressor: VectorHtmlCompressor,
-        private val htmlRenderer: EventHtmlRenderer,
-        private val spanUtils: SpanUtils,
-        private val imageContentRenderer: ImageContentRenderer,
-        private val mediaContentRevealManager: MediaContentRevealManager,
-        private val richMessageBodyRenderer: RichMessageBodyRenderer,
-        private val pgpServiceManager: PgpServiceManager,
-        private val pgpKeyStore: PgpKeyStore,
-        private val pgpDecryptor: PgpDecryptor,
+        timelineRetrieversFactory: TimelineRetrieversFactory,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
@@ -187,25 +156,10 @@ class TimelineViewModel @AssistedInject constructor(
     val timeline: Timeline?
 
     // Same lifecycle than the ViewModel (survive to screen rotation)
-    val previewUrlRetriever = PreviewUrlRetriever(session, viewModelScope, buildMeta)
-    val pgpDecryptionRetriever = PgpDecryptionRetriever(viewModelScope, pgpServiceManager, pgpKeyStore)
-    val replyPreviewRetriever = ReplyPreviewRetriever(
-            vectorPreferences,
-            initialState.roomId,
-            session,
-            viewModelScope,
-            displayableEventFormatter,
-            pillsPostProcessorFactory,
-            textRendererFactory,
-            mediaContentRevealManager,
-            messageColorProvider,
-            htmlCompressor,
-            htmlRenderer,
-            spanUtils,
-            imageContentRenderer,
-            richMessageBodyRenderer,
-            pgpDecryptor,
-    )
+    private val timelineRetrievers = timelineRetrieversFactory.create(initialState.roomId, viewModelScope)
+    val previewUrlRetriever = timelineRetrievers.previewUrlRetriever
+    val pgpDecryptionRetriever = timelineRetrievers.pgpDecryptionRetriever
+    val replyPreviewRetriever = timelineRetrievers.replyPreviewRetriever
 
     // Slot to keep a pending action during permission request
     var pendingAction: RoomDetailAction? = null
@@ -830,7 +784,7 @@ private fun handleSelectStickerAttachment() {
                     R.id.timeline_setting -> true
                     R.id.invite -> state.canInvite
                     R.id.open_matrix_apps -> true
-                    R.id.search -> state.isSearchAvailable()
+                    R.id.search -> state.isSearchAvailable(vectorPreferences.searchEncryptedRoomsEnabled())
                     R.id.menu_timeline_thread_list -> vectorPreferences.areThreadMessagesEnabled()
                     R.id.dev_tools -> vectorPreferences.developerMode()
                     else -> false
@@ -1526,6 +1480,20 @@ private fun handleSelectStickerAttachment() {
             // tryEmit doesn't work with SharedFlow without cache
             timelineEvents.emit(snapshot)
             navigateToThreadEventIfNeeded(snapshot)
+            navigateToPermalinkEventIfNeeded(snapshot)
+        }
+    }
+
+    // Opening the room AT an event (search result, permalink from elsewhere) seeds the timeline
+    // around it but nothing scrolled the list there — it opened at the live edge and only the
+    // highlight decoration hinted at the target. Navigate once the event shows up in a snapshot.
+    private var permalinkHandled = false
+    private fun navigateToPermalinkEventIfNeeded(snapshot: List<TimelineEvent>) {
+        if (permalinkHandled || initialState.rootThreadEventId != null) return
+        val targetEventId = initialState.eventId ?: return
+        if (snapshot.any { it.eventId == targetEventId }) {
+            permalinkHandled = true
+            handleNavigateToEvent(RoomDetailAction.NavigateToEvent(targetEventId, highlight = true))
         }
     }
 

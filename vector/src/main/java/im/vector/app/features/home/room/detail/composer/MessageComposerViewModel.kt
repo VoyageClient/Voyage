@@ -1941,7 +1941,7 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     fun endAllVoiceActions(deleteRecord: Boolean = true) {
-        audioMessageHelper.stopTracking()
+        audioMessageHelper.resetPlaybackStates()
         audioMessageHelper.stopAllVoiceActions(deleteRecord)
     }
 

@@ -86,6 +86,15 @@ internal class RoomSummarySqlStore(
     fun roomIdsWithPreviewEvent(eventIds: Collection<String>): List<String> =
             eventIds.flatMapInChunks { queries.selectRoomIdsByLatestPreviewEvents(it).executeAsList() }
 
+    fun getEncryptedRoomIds(membership: Membership): List<String> =
+            queries.selectEncryptedRoomIdsByMembership(membership.name).executeAsList()
+
+    fun getRoomIdsByMembership(membership: Membership): List<String> =
+            queries.selectRoomIdsByMembership(membership.name).executeAsList()
+
+    fun isEncrypted(roomId: String): Boolean =
+            queries.selectIsEncrypted(roomId).executeAsOneOrNull() == 1L
+
     /** No-op write that makes room_summary listeners re-emit for [roomId]. */
     fun touch(roomId: String) = queries.touchByRoomId(roomId)
 

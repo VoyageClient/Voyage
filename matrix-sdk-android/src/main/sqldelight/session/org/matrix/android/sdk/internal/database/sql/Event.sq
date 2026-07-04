@@ -131,6 +131,10 @@ DELETE FROM event WHERE room_id = ? AND event_id = ?;
 updateSendStateInRoom:
 UPDATE event SET send_state_str = ?, send_state_details = ? WHERE room_id = ? AND event_id = ?;
 
+-- event-index sweep: batched ascending scan of rows above a watermark (id is the autoincrement PK)
+selectForIndexAfterId:
+SELECT * FROM event WHERE id > ? ORDER BY id ASC LIMIT ?;
+
 lastInsertRowId:
 SELECT last_insert_rowid();
 

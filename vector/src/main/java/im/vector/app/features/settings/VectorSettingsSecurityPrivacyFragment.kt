@@ -289,6 +289,9 @@ class VectorSettingsSecurityPrivacyFragment :
         // Incognito Keyboard
         setUpIncognitoKeyboard()
 
+        // Local index for searching encrypted rooms
+        setUpSearchEncryptedRooms()
+
         // Media visibility / avatar hiding
         setUpMediaVisibility()
 
@@ -329,6 +332,19 @@ class VectorSettingsSecurityPrivacyFragment :
 
     private fun setUpIncognitoKeyboard() {
         incognitoKeyboardPref.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+    }
+
+    private fun setUpSearchEncryptedRooms() {
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SEARCH_ENCRYPTED_ROOMS_PREFERENCE_KEY)!!
+                .setOnPreferenceChangeListener { _, newValue ->
+                    session.eventIndexService().setEnabled(newValue as Boolean)
+                    true
+                }
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_SEARCH_UNENCRYPTED_ON_SERVER_PREFERENCE_KEY)!!
+                .setOnPreferenceChangeListener { _, newValue ->
+                    session.eventIndexService().setUnencryptedRoomsEnabled(!(newValue as Boolean))
+                    true
+                }
     }
 
     private fun setUpPgp() {

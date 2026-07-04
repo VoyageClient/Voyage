@@ -161,6 +161,18 @@
             android:title="@string/settings_security_incognito_keyboard_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_SEARCH_ENCRYPTED_ROOMS_PREFERENCE_KEY"
+            android:summary="@string/settings_search_encrypted_rooms_summary"
+            android:title="@string/settings_search_encrypted_rooms_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_SEARCH_UNENCRYPTED_ON_SERVER_PREFERENCE_KEY"
+            android:summary="@string/settings_search_unencrypted_on_server_summary"
+            android:title="@string/settings_search_unencrypted_on_server_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"
             android:key="SETTINGS_SECURITY_USE_FLAG_SECURE"
             android:summary="@string/settings_security_prevent_screenshots_summary"

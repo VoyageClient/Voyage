@@ -76,6 +76,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
 
     private var isUserSeeking = false
+    private var playbackTrackerListener: AudioMessagePlaybackTracker.Listener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -152,7 +153,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderStateBasedOnAudioPlayback(holder: Holder) {
-        audioMessagePlaybackTracker.track(attributes.informationData.eventId) { state ->
+        playbackTrackerListener = AudioMessagePlaybackTracker.Listener { state ->
             when (state) {
                 is AudioMessagePlaybackTracker.Listener.State.Error,
                 is AudioMessagePlaybackTracker.Listener.State.Idle -> renderIdleState(holder)
@@ -160,7 +161,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
                 is AudioMessagePlaybackTracker.Listener.State.Paused -> renderPausedState(holder, state)
                 is AudioMessagePlaybackTracker.Listener.State.Recording -> Unit
             }
-        }
+        }.also { audioMessagePlaybackTracker.track(attributes.informationData.eventId, it) }
     }
 
     private fun renderIdleState(holder: Holder) {
@@ -202,7 +203,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
-        audioMessagePlaybackTracker.untrack(attributes.informationData.eventId)
+        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.eventId, it) }
+        playbackTrackerListener = null
     }
 
     override fun getViewStubId() = STUB_ID

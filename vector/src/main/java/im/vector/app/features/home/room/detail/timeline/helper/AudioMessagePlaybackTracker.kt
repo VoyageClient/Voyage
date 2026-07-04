@@ -16,7 +16,10 @@ import javax.inject.Singleton
 class AudioMessagePlaybackTracker @Inject constructor() {
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val listeners = mutableMapOf<String, Listener>()
+
+    // Several hosts can display the same message at once (room timeline + search results), so an
+    // id maps to a set of listeners — a single slot let the last binder steal the registration.
+    private val listeners = mutableMapOf<String, MutableSet<Listener>>()
     private val activityListeners = mutableListOf<ActivityListener>()
     private val states = mutableMapOf<String, Listener.State>()
 
@@ -29,7 +32,7 @@ class AudioMessagePlaybackTracker @Inject constructor() {
     }
 
     fun track(id: String, listener: Listener) {
-        listeners[id] = listener
+        listeners.getOrPut(id) { linkedSetOf() }.add(listener)
 
         val currentState = states[id] ?: Listener.State.Idle
         mainHandler.post {
@@ -37,15 +40,20 @@ class AudioMessagePlaybackTracker @Inject constructor() {
         }
     }
 
-    fun untrack(id: String) {
-        listeners.remove(id)
+    fun untrack(id: String, listener: Listener) {
+        listeners[id]?.let {
+            it.remove(listener)
+            if (it.isEmpty()) listeners.remove(id)
+        }
     }
 
-    fun unregisterListeners() {
-        listeners.forEach {
-            it.value.onUpdate(Listener.State.Idle)
-        }
-        listeners.clear()
+    /**
+     * Stop-everything reset (leaving a room): every tracked message returns to Idle and listeners
+     * are notified. Listeners stay registered — other hosts (e.g. search results) may still be
+     * displaying these messages; each bound row detaches itself via [untrack] on unbind.
+     */
+    fun resetAllPlaybackStates() {
+        states.keys.toList().forEach { setState(it, Listener.State.Idle) }
     }
 
     /**
@@ -55,7 +63,7 @@ class AudioMessagePlaybackTracker @Inject constructor() {
         states[key] = state
         val isPlayingOrRecording = states.values.any { it is Listener.State.Playing || it is Listener.State.Recording }
         mainHandler.post {
-            listeners[key]?.onUpdate(state)
+            listeners[key]?.forEach { it.onUpdate(state) }
             activityListeners.forEach { it.onUpdate(isPlayingOrRecording) }
         }
     }

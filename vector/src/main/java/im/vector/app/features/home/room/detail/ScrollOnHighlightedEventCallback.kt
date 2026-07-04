@@ -23,6 +23,7 @@ class ScrollOnHighlightedEventCallback(
 ) : DefaultListUpdateCallback {
 
     private val scheduledEventId = AtomicReference<String?>()
+    private var nearestScrollBudget = 0
 
     override fun onInserted(position: Int, count: Int) {
         scrollIfNeeded()
@@ -34,8 +35,20 @@ class ScrollOnHighlightedEventCallback(
 
     private fun scrollIfNeeded() {
         val eventId = scheduledEventId.get() ?: return
-        val positionToScroll = timelineEventController.searchPositionOfEventOrNearest(eventId) ?: return
-        scheduledEventId.set(null)
+        // The target may not have a built model yet (context still paginating/decrypting in): scroll
+        // to the nearest event but stay scheduled, and snap exactly once the target's row exists —
+        // consuming the schedule on the nearest match left the jump landing "close but not on it".
+        val exactPosition = timelineEventController.searchPositionOfEvent(eventId)
+        val positionToScroll = when {
+            exactPosition != null -> exactPosition.also { scheduledEventId.set(null) }
+            nearestScrollBudget-- > 0 -> timelineEventController.searchPositionOfEventOrNearest(eventId) ?: return
+            else -> {
+                // Give up: the target may be hidden or aggregated away and never get a row, and a
+                // still-armed schedule would yank the list whenever it materialized much later.
+                scheduledEventId.set(null)
+                return
+            }
+        }
         // Epoxy dispatches model-build-finished on a background handler, so scrolling here directly would
         // call scrollToPosition()/requestLayout() off the main thread — which doesn't reliably schedule a
         // layout pass, leaving a jump-to-event blank until something else forces one. Post it onto the
@@ -48,5 +61,12 @@ class ScrollOnHighlightedEventCallback(
 
     fun scheduleScrollTo(eventId: String?) {
         scheduledEventId.set(eventId)
+        nearestScrollBudget = NEAREST_SCROLL_BUDGET
+    }
+
+    companion object {
+        // How many model rebuilds may settle for a nearest-match scroll before giving up on the
+        // exact target (it may be hidden or aggregated away and never get a row).
+        private const val NEAREST_SCROLL_BUDGET = 20
     }
 }

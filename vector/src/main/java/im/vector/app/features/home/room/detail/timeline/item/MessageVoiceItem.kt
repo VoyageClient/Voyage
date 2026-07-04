@@ -76,6 +76,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
+    private var playbackTrackerListener: AudioMessagePlaybackTracker.Listener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -135,7 +136,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
             true
         }
 
-        audioMessagePlaybackTracker.track(attributes.informationData.eventId) { state ->
+        playbackTrackerListener = AudioMessagePlaybackTracker.Listener { state ->
             when (state) {
                 is AudioMessagePlaybackTracker.Listener.State.Error,
                 is AudioMessagePlaybackTracker.Listener.State.Idle -> renderIdleState(holder, waveformColorIdle, waveformColorPlayed)
@@ -143,7 +144,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
                 is AudioMessagePlaybackTracker.Listener.State.Paused -> renderPausedState(holder, state, waveformColorIdle, waveformColorPlayed)
                 is AudioMessagePlaybackTracker.Listener.State.Recording -> Unit
             }
-        }
+        }.also { audioMessagePlaybackTracker.track(attributes.informationData.eventId, it) }
     }
 
     private fun getTouchedPositionPercentage(motionEvent: MotionEvent, view: View) = (motionEvent.x / view.width).coerceIn(0f, 1f)
@@ -175,7 +176,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         super.unbind(holder)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
-        audioMessagePlaybackTracker.untrack(attributes.informationData.eventId)
+        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.eventId, it) }
+        playbackTrackerListener = null
     }
 
     override fun getViewStubId() = STUB_ID

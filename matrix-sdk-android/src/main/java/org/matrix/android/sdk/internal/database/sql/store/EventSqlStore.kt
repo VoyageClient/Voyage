@@ -82,6 +82,11 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
     fun getUndecryptedEncryptedEvents(roomId: String, type: String): List<Event> =
             queries.selectUndecryptedEncryptedInRoom(roomId, type).executeAsList().map { it.toEntity().asDomain() }
 
+    /** Batched ascending scan above a watermark row id, for the local event-index sweep. */
+    fun getForIndexAfterId(afterId: Long, limit: Int): List<Pair<Long, Event>> =
+            queries.selectForIndexAfterId(afterId, limit.toLong()).executeAsList()
+                    .map { it.id to it.toEntity().asDomain() }
+
     /** [toEntity] plus the thread-root preview (latest in-thread message), resolved only when set. */
     private fun EventRow.toResolvedEntity(): EventEntity = toEntity().also { entity ->
         thread_summary_latest_timeline_id?.let { entity.threadSummaryLatestMessage = resolveTimelineEvent(it) }

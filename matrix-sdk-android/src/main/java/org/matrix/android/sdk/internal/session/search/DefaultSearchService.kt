@@ -16,12 +16,21 @@
 
 package org.matrix.android.sdk.internal.session.search
 
+import org.matrix.android.sdk.api.session.events.model.Content
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.session.search.SearchService
+import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.session.search.index.EventIndexer
+import org.matrix.android.sdk.internal.session.search.index.LocalEventSearchTask
 import javax.inject.Inject
 
 internal class DefaultSearchService @Inject constructor(
-        private val searchTask: SearchTask
+        private val searchTask: SearchTask,
+        private val localEventSearchTask: LocalEventSearchTask,
+        private val eventIndexer: EventIndexer,
+        private val stores: SessionStores,
 ) : SearchService {
 
     override suspend fun search(
@@ -34,9 +43,26 @@ internal class DefaultSearchService @Inject constructor(
             afterLimit: Int,
             includeProfile: Boolean
     ): SearchResult {
-        return searchTask.execute(
+        val query = SearchQueryParser.parse(searchTerm)
+
+        // The local index answers: encrypted rooms (the server cannot search them), unencrypted
+        // rooms unless the user opted for server search, and filter-only queries (the server
+        // requires a search term).
+        val useLocalIndex = eventIndexer.isEnabled() &&
+                (stores.roomSummary.isEncrypted(roomId) ||
+                        eventIndexer.includesUnencryptedRooms() ||
+                        query.tokens.isEmpty())
+        if (useLocalIndex) {
+            return localEventSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+        }
+        if (query.tokens.isEmpty()) {
+            return SearchResult(nextBatch = null, highlights = emptyList(), results = emptyList())
+        }
+        val result = searchTask.execute(
                 SearchTask.Params(
-                        searchTerm = searchTerm,
+                        // Quotes mean nothing to the server; send the bare tokens for recall and
+                        // enforce the verbatim/phrase semantics client-side below.
+                        searchTerm = query.tokens.joinToString(" "),
                         roomId = roomId,
                         nextBatch = nextBatch,
                         orderByRecent = orderByRecent,
@@ -45,6 +71,29 @@ internal class DefaultSearchService @Inject constructor(
                         afterLimit = afterLimit,
                         includeProfile = includeProfile
                 )
+        )
+        // Server matching stems words ("looks" matches "look") and knows nothing of our filters;
+        // refilter with the full query semantics so both search backends behave identically.
+        // Highlights become our tokens rather than the server's stems, which is what the UI bolds.
+        return result.copy(
+                results = result.results
+                        ?.filter { query.matchesServerEvent(it.event) }
+                        ?.map { it.copy(event = it.event.unwrapReplaceForSearch()) },
+                highlights = query.tokens,
+        )
+    }
+
+    private fun ParsedSearchQuery.matchesServerEvent(event: Event): Boolean {
+        // Edited content first, like the UI displays it.
+        @Suppress("UNCHECKED_CAST")
+        val content = (event.content?.get("m.new_content") as? Content) ?: event.content
+        val msgtype = if (event.type == EventType.STICKER) EventType.STICKER else content?.get("msgtype") as? String
+        return matches(
+                text = content?.get("body") as? String ?: "",
+                sender = event.senderId,
+                originServerTs = event.originServerTs ?: 0L,
+                msgtype = msgtype,
+                eventMentions = extractMentionedUserIds(event.content),
         )
     }
 }

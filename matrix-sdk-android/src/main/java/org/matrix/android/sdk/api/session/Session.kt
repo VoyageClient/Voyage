@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.contentscanner.ContentScannerService
 import org.matrix.android.sdk.api.session.crypto.CryptoService
+import org.matrix.android.sdk.api.session.eventindex.EventIndexService
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.api.session.file.FileService
@@ -245,6 +246,11 @@ interface Session {
      * Returns the search service associated with the session.
      */
     fun searchService(): SearchService
+
+    /**
+     * Returns the local event-index service (search in encrypted rooms) associated with the session.
+     */
+    fun eventIndexService(): EventIndexService
 
     /**
      * Returns the federation service associated with the session.

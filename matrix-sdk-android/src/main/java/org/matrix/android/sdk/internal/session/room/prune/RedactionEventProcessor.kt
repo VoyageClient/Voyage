@@ -27,6 +27,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
+import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -36,6 +37,7 @@ import javax.inject.Inject
  */
 internal class RedactionEventProcessor @Inject constructor(
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
+        private val eventIndexer: EventIndexer,
 ) : EventInsertLiveProcessor {
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {
@@ -57,6 +59,9 @@ internal class RedactionEventProcessor @Inject constructor(
 
         val isLocalEcho = LocalEcho.isLocalEchoId(redactionEvent.eventId ?: "")
         Timber.v("Redact event for ${redactionEvent.redacts} localEcho=$isLocalEcho")
+
+        // The target may exist only in the search index (crawled history), so don't gate on the DB row.
+        eventIndexer.onEventRedacted(redactionEvent.redacts)
 
         val pruneDbId = stores.event.getDbId(roomId, redactionEvent.redacts) ?: return
         val eventToPrune = stores.event.getById(pruneDbId) ?: return
