@@ -19,15 +19,22 @@ import android.os.Looper
 import android.os.SystemClock
 import im.vector.app.core.ui.PerformanceMode
 import com.vanniktech.blurhash.BlurHash
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.max
 
 class BlurHashDrawable private constructor(
-        val bitmap: Bitmap,
         private val intrinsicW: Int,
         private val intrinsicH: Int,
         private val pulse: Boolean,
 ) : Drawable(), Runnable {
+
+    // Filled once the background decode completes (or immediately from cache). Read on the main thread only.
+    var bitmap: Bitmap? = null
+        private set
 
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val handler = Handler(Looper.getMainLooper())
@@ -37,8 +44,9 @@ class BlurHashDrawable private constructor(
 
     override fun draw(canvas: Canvas) {
         if (finished) return
+        val bmp = bitmap ?: return
         if (!pulse) {
-            canvas.drawBitmap(bitmap, null, bounds, paint)
+            canvas.drawBitmap(bmp, null, bounds, paint)
             return
         }
         val t = (SystemClock.uptimeMillis() - startMs) % PULSE_PERIOD_MS
@@ -46,7 +54,14 @@ class BlurHashDrawable private constructor(
         val factor = (cos(phase) + 1.0) / 2.0
         val alphaFrac = PULSE_MIN_ALPHA + (1.0 - PULSE_MIN_ALPHA) * factor
         paint.alpha = (255 * alphaFrac).toInt()
-        canvas.drawBitmap(bitmap, null, bounds, paint)
+        canvas.drawBitmap(bmp, null, bounds, paint)
+    }
+
+    private fun onBitmapReady(bmp: Bitmap) {
+        if (finished) return
+        bitmap = bmp
+        if (isVisible && pulse) start()
+        invalidateSelf()
     }
 
     fun markFinished() {
@@ -77,7 +92,7 @@ class BlurHashDrawable private constructor(
     }
 
     private fun start() {
-        if (!pulse || running) return
+        if (!pulse || running || bitmap == null) return
         running = true
         handler.post(this)
     }
@@ -98,20 +113,45 @@ class BlurHashDrawable private constructor(
         private const val PULSE_MIN_ALPHA = 0.65
         private const val FRAME_INTERVAL_MS = 16L
 
+        // BlurHash decoding is a per-pixel cosine synthesis, too costly to run on the main thread during a
+        // scroll. Decode off-thread and cache the result, keyed by hash + decode size, so a recycled/repeated
+        // view (same image scrolling back in) reuses the bitmap with no work on the UI thread.
+        private val decodeScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        private val mainHandler = Handler(Looper.getMainLooper())
+        private const val CACHE_MAX = 128
+        private val cache = object : LinkedHashMap<String, Bitmap>(16, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Bitmap>?): Boolean = size > CACHE_MAX
+        }
+
         fun from(hash: String, width: Int?, height: Int?, pulse: Boolean = true): BlurHashDrawable? {
-            // BlurHash decoding is a per-pixel cosine synthesis (and the pulse animation redraws every
-            // frame); in performance mode skip it so callers fall back to the solid/neutral placeholder.
+            // In performance mode skip decoding entirely; callers fall back to the solid/neutral placeholder.
             if (PerformanceMode.enabled) return null
             val w = width?.takeIf { it > 0 } ?: DEFAULT_DIM
             val h = height?.takeIf { it > 0 } ?: DEFAULT_DIM
             val scale = DECODE_MAX.toFloat() / max(w, h)
             val decodeW = max(1, (w * scale).toInt())
             val decodeH = max(1, (h * scale).toInt())
-            // useCache = false: the library caches cosine tables in a shared singleton that isn't
-            // thread-safe, so concurrent decodes (multiple images scrolling in) corrupt each other and
-            // produce intermittent zig-zag artifacts. Recomputing per call is cheap at this size.
-            val bitmap = runCatching { BlurHash.decode(hash, decodeW, decodeH, punch = 1f, useCache = false) }.getOrNull() ?: return null
-            return BlurHashDrawable(bitmap, w, h, pulse)
+            val key = "$hash|$decodeW|$decodeH"
+            val drawable = BlurHashDrawable(w, h, pulse)
+
+            val cached = synchronized(cache) { cache[key] }
+            if (cached != null) {
+                drawable.bitmap = cached
+                return drawable
+            }
+            decodeAsync(hash, decodeW, decodeH, key, drawable)
+            return drawable
+        }
+
+        private fun decodeAsync(hash: String, decodeW: Int, decodeH: Int, key: String, target: BlurHashDrawable) {
+            decodeScope.launch {
+                val cached = synchronized(cache) { cache[key] }
+                // useCache = false: the library's shared cosine-table cache isn't thread-safe, so concurrent
+                // decodes corrupt each other (zig-zag artifacts). Recompute per call — cheap at this size.
+                val bmp = cached ?: runCatching { BlurHash.decode(hash, decodeW, decodeH, punch = 1f, useCache = false) }.getOrNull() ?: return@launch
+                if (cached == null) synchronized(cache) { cache[key] = bmp }
+                mainHandler.post { target.onBitmapReady(bmp) }
+            }
         }
 
         private const val DEFAULT_DIM = 320

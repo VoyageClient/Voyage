@@ -21,6 +21,7 @@ import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
+import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.html.EventHtmlRenderer
@@ -44,9 +45,12 @@ import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
+import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.toMatrixItem
 import timber.log.Timber
 import java.util.UUID
@@ -82,6 +86,7 @@ class ReplyPreviewRetriever(
     companion object {
         // Delay between attempts to fetch the replied-to event from the server, if it failed.
         private const val RETRY_SERVER_LOOKUP_INTERVAL_MS = 1000 * 30
+        private const val REPLY_BODY_CACHE_MAX = 200
         private val IgnoredAuthorException = Exception("Replied-to author is ignored")
     }
 
@@ -109,6 +114,15 @@ class ReplyPreviewRetriever(
     // Refreshed once per snapshot; a reply whose author is ignored is shown as unavailable, not their text.
     @Volatile
     private var ignoredUserIds: Set<String> = emptySet()
+
+    // Pre-rendered reply body, keyed by "eventId:cacheId" (so an edit/redaction re-renders). The HTML
+    // compress/render/linkify pipeline is the per-message main-thread cost during a scroll, so build it in
+    // the (off-main) retrieval coroutine and let [InReplyToView] reuse it; a re-bind is then just a cache hit.
+    private val replyBodyCache = mutableMapOf<String, RenderedReplyBody>()
+
+    // compressed: the HTML-compressed formatted body (null for a plaintext-only body) — kept so the view can
+    // still detect a table/code block to route to the rich renderer. text: the final linkified CharSequence.
+    class RenderedReplyBody(val compressed: String?, val text: CharSequence)
 
     private val threadsEnabled = vectorPreferences.areThreadMessagesEnabled()
 
@@ -223,6 +237,8 @@ class ReplyPreviewRetriever(
                     }
                 }.fold(
                         {
+                            // Pre-render the reply body here (off the main thread) so the view's bind is a cache hit.
+                            if (it != null && it.root.senderId !in ignoredUserIds) warmReplyBodyCache(it)
                             synchronized(data) {
                                 updateState(eventId, eventIdToRetrieve,
                                         when {
@@ -335,5 +351,36 @@ class ReplyPreviewRetriever(
                 appendAuthor = false,
                 unhandledFallback = true,
         )
+    }
+
+    /** The pre-rendered reply body for [event], building (and caching) it on the calling thread on a miss.
+     *  Warmed off-main by the retrieval coroutine, so [InReplyToView] normally just reads the cache. */
+    fun renderedReplyBody(event: TimelineEvent): RenderedReplyBody? {
+        val content = event.getLastMessageContent() as? MessageContentWithFormattedBody ?: return null
+        val key = "${event.eventId}:${event.getCacheId()}"
+        synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
+        val built = buildReplyBody(content)
+        synchronized(replyBodyCache) {
+            if (replyBodyCache.size > REPLY_BODY_CACHE_MAX) replyBodyCache.clear()
+            replyBodyCache[key] = built
+        }
+        return built
+    }
+
+    private fun buildReplyBody(content: MessageContentWithFormattedBody): RenderedReplyBody {
+        // If the replied-to event is itself a reply, strip its quoted portion so only its own message shows.
+        val formattedBody = content.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
+        val compressed = formattedBody?.let { htmlCompressor.compress(it) }
+        val text = (if (compressed != null) {
+            textRenderer.render(htmlRenderer.render(compressed, pillsPostProcessor))
+        } else {
+            textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body))
+        }).linkify(null)
+        return RenderedReplyBody(compressed, text)
+    }
+
+    private fun warmReplyBodyCache(event: TimelineEvent) {
+        if (event.root.isRedacted()) return
+        runCatching { renderedReplyBody(event) }
     }
 }

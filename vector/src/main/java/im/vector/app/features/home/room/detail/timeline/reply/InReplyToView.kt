@@ -41,7 +41,6 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
-import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.HtmlBodySegmenter
@@ -63,7 +62,6 @@ import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
-import org.matrix.android.sdk.api.util.ContentUtils
 import timber.log.Timber
 import kotlin.math.roundToInt
 import im.vector.app.core.extensions.backgroundCompat
@@ -235,7 +233,7 @@ class InReplyToView @JvmOverloads constructor(
                     // Outside bubbles, stretch a block-code reply to the full timeline width like the
                     // timeline does; inside a bubble it should hug its content instead.
                     val fullWidthBlockCode = roomInformationData.messageLayout is TimelineMessageLayout.Default
-                    renderTextContent(content, retriever, movementMethod, coroutineScope, itemLongClickListener, fullWidthBlockCode)
+                    renderTextContent(content, state.event, retriever, movementMethod, coroutineScope, itemLongClickListener, fullWidthBlockCode)
                 }
                 else -> renderFallback(state.event, retriever)
             }
@@ -255,6 +253,7 @@ class InReplyToView @JvmOverloads constructor(
 
     private fun renderTextContent(
             content: MessageContentWithFormattedBody,
+            event: TimelineEvent,
             retriever: ReplyPreviewRetriever,
             movementMethod: MovementMethod?,
             coroutineScope: CoroutineScope,
@@ -274,32 +273,21 @@ class InReplyToView @JvmOverloads constructor(
         }
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, baseColorAttr))
 
-        // If the replied-to event is itself a reply, strip its quoted portion so we render only its
-        // own message (a reply-chain shouldn't nest the grandparent's quote inside the preview).
-        val formattedBody = content.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
-
-        if (formattedBody != null) {
-            val compressed = retriever.htmlCompressor.compress(formattedBody)
-            if (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true)) {
-                val segments = HtmlBodySegmenter.segment(compressed)
-                // Only use the rich container when a real table/code block was extracted; otherwise fall
-                // through so the text keeps its pill / linkify treatment.
-                if (segments.any { it !is BodySegment.Html }) {
-                    renderRichContent(segments, retriever, movementMethod, isNotice, itemLongClickListener)
-                    return
-                }
+        // Reuse the reply body pre-rendered (off the main thread) by the retriever; a re-bind during a scroll
+        // is a cache hit, so the HTML compress/render/linkify pipeline doesn't run on the UI thread.
+        val rendered = retriever.renderedReplyBody(event)
+        val compressed = rendered?.compressed
+        if (compressed != null && (compressed.contains("<table", ignoreCase = true) || compressed.contains("<pre", ignoreCase = true))) {
+            val segments = HtmlBodySegmenter.segment(compressed)
+            // Only use the rich container when a real table/code block was extracted; otherwise fall
+            // through so the text keeps its pill / linkify treatment.
+            if (segments.any { it !is BodySegment.Html }) {
+                renderRichContent(segments, retriever, movementMethod, isNotice, itemLongClickListener)
+                return
             }
         }
 
-        // Same textRenderer + linkify pipeline as the timeline / composer preview, so a permalink
-        // (matrix.to) resolves to a pill and plain URLs become coloured links instead of raw text.
-        val text = (if (formattedBody != null) {
-            val compressed = retriever.htmlCompressor.compress(formattedBody)
-            val renderedFormattedBody = retriever.htmlRenderer.render(compressed, retriever.pillsPostProcessor)
-            retriever.textRenderer.render(renderedFormattedBody)
-        } else {
-            retriever.textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body))
-        }).linkify(null)
+        val text = rendered?.text ?: retriever.formatFallbackReply(event)
         val markwonPlugins = retriever.htmlRenderer.plugins
 
         text.findPillsAndProcess(coroutineScope) { pillImageSpan ->
