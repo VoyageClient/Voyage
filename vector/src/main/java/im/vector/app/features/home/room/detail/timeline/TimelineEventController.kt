@@ -966,6 +966,16 @@ class TimelineEventController @Inject constructor(
     }
 
     /**
+     * Whether [eventId] is present in the timeline snapshot fed to the controller, regardless of whether a
+     * model has been built (and thus mapped to an adapter position) for it yet. Used by the highlight-scroll
+     * to tell "loaded, model not built yet — wait" apart from "not loaded — approximate/paginate".
+     */
+    fun isEventInSnapshot(eventId: String?): Boolean {
+        eventId ?: return false
+        return currentSnapshot.any { it.eventId == eventId }
+    }
+
+    /**
      * Like [searchPositionOfEvent], but when the target event has no rendered item (e.g. a hidden state
      * event, or one merged/aggregated away), fall back to the nearest event that does — so jumping to it
      * still lands in the right place instead of leaving the timeline blank.
