@@ -173,8 +173,11 @@ class ReplyPreviewRetriever(
                     repliedToEventId?.let { lookedUpEvents.remove(it) }
                     updateState(eventId, repliedToEventId, PreviewReplyUiState.Error(IgnoredAuthorException, repliedToEventId))
                     null
-                } else if (repliedToEventId in lookedUpEvents) {
-                    // Nothing changed... but the replied-to event might have been edited or decrypted in the meantime
+                } else if (repliedToEventId in lookedUpEvents &&
+                        !(currentState is PreviewReplyUiState.Error && currentState.throwable !== IgnoredAuthorException)) {
+                    // Nothing changed... but the replied-to event might have been edited or decrypted in the meantime.
+                    // A transient Error must still retry: lookedUpEvents is shared across all replies to the same
+                    // event, so a sibling reply's success would otherwise leave this one stuck on Error forever.
                     null
                 } else {
                     repliedToEventId
@@ -212,9 +215,11 @@ class ReplyPreviewRetriever(
                         if (timelineEvent == null && mayAskServerForEvent) {
                             runBlocking { session.eventService().ensureEventCached(roomId, eventIdToRetrieve) }
                             timelineEvent = room?.getTimelineEvent(eventIdToRetrieve)
-                                    ?: session.eventService().getEventFromCache(roomId, eventIdToRetrieve)?.toFallbackTimelineEvent()
                         }
+                        // The event cache is a local read, so consult it even when rate-limited for the
+                        // server: a sibling reply's fetch may have cached the event without timeline rows.
                         timelineEvent
+                                ?: session.eventService().getEventFromCache(roomId, eventIdToRetrieve)?.toFallbackTimelineEvent()
                     }?.apply {
                         // Decrypt synchronously if needed
                         val repliedToEvent = root
