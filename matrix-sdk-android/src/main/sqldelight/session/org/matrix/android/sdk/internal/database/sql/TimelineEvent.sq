@@ -74,6 +74,19 @@ WHERE timeline_event.room_id = ? AND event.type IN ?
     AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 ORDER BY event.origin_server_ts DESC LIMIT ?;
 
+selectAttachmentsByRoom:
+SELECT timeline_event.* FROM timeline_event
+JOIN event ON timeline_event.root_event_db_id = event.id
+WHERE timeline_event.room_id = ?
+AND (
+    event.type = 'm.sticker'
+    OR event.content LIKE '%"m.image"%'
+    OR event.content LIKE '%"m.video"%'
+    OR event.decryption_result_json LIKE '%"m.image"%'
+    OR event.decryption_result_json LIKE '%"m.video"%'
+)
+ORDER BY event.origin_server_ts;
+
 selectByRoomAndEventId:
 SELECT * FROM timeline_event WHERE room_id = ? AND event_id = ? LIMIT 1;
 

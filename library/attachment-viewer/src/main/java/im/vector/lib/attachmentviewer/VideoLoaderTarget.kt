@@ -62,19 +62,13 @@ internal class DefaultVideoLoaderTarget(val holder: VideoViewHolder, private val
 
     override fun onVideoFileReady(uid: String, file: File) {
         if (holder.boundResourceUid != uid) return
-        arrangeForVideoReady()
+        holder.views.videoLoaderProgress.isVisible = false
         holder.videoReady(file)
     }
 
     override fun onVideoURLReady(uid: String, path: String) {
         if (holder.boundResourceUid != uid) return
-        arrangeForVideoReady()
-        holder.videoReady(path)
-    }
-
-    private fun arrangeForVideoReady() {
-        holder.views.videoThumbnailImage.isVisible = false
         holder.views.videoLoaderProgress.isVisible = false
-        holder.views.videoView.isVisible = true
+        holder.videoReady(path)
     }
 }

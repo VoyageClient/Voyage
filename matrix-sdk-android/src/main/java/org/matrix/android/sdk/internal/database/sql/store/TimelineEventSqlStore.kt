@@ -54,6 +54,8 @@ internal class TimelineEventSqlStore(
 
     fun getByRoom(roomId: String): List<TimelineEventEntity> = queries.selectByRoom(roomId).executeAsList().toEntities()
 
+    fun getAttachmentsByRoom(roomId: String): List<TimelineEventEntity> = queries.selectAttachmentsByRoom(roomId).executeAsList().toEntities()
+
     fun getByRoomTypesAfterTs(roomId: String, types: Collection<String>, ts: Long): List<TimelineEventEntity> =
             queries.selectByRoomTypesAfterTs(roomId, types, ts).executeAsList().toEntities()
 
