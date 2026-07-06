@@ -1587,7 +1587,7 @@
     <string name="universal_link_malformed">O link foi malformado</string>
     <string name="auth_msisdn_already_defined">Este número de telefone já está definido.</string>
     <string name="sent_a_poll">Enquete.</string>
-    <string name="sent_a_reaction">Reagiu com: %s.</string>
+    <string name="sent_a_reaction">Reagiu com: %s</string>
     <string name="sent_verification_conclusion">Conclusão de Verificação.</string>
     <string name="delete_account_data_warning">Deletar os dados de conta de tipo %1$s\?
 \n

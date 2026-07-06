@@ -742,7 +742,7 @@
     <string name="failed_to_add_widget">فشلت إضافة الودجة</string>
     <string name="notification_listening_for_notifications">يستمع للإشعارات</string>
     <string name="verification_request_waiting">ينتظر…</string>
-    <string name="sent_a_reaction">تفاعلَ بـ: %s.</string>
+    <string name="sent_a_reaction">تفاعلَ بـ: %s</string>
     <string name="sent_a_poll">استبيان.</string>
     <string name="send_a_sticker">ملصق.</string>
     <string name="sent_a_file">ملف.</string>

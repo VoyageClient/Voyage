@@ -1314,7 +1314,7 @@
 \nTwoje wiadomości są zabezpieczone kłódkami, do których jedynie Ty i Twoi rozmówcy mają unikalne klucze umożliwiające ich otwarcie.</string>
     <string name="direct_room_profile_not_encrypted_subtitle">Wiadomości tutaj nie są zaszyfrowane w trybie punkt-punkt (e2e).</string>
     <string name="sent_verification_conclusion">Weryfikacja wniosków.</string>
-    <string name="sent_a_reaction">Zareagował z: %s.</string>
+    <string name="sent_a_reaction">Zareagował z: %s</string>
     <string name="create_room_in_progress">Tworzenie pokoju…</string>
     <string name="create_room_alias_invalid">Niektóre znaki nie są dozwolone</string>
     <string name="create_room_alias_empty">Podaj adres pokoju</string>

@@ -1673,7 +1673,7 @@
     <string name="verification_request_other_cancelled">%s ha cancel·lat</string>
     <string name="verification_request_waiting">Esperant…</string>
     <string name="sent_verification_conclusion">Conclusió de la verificació.</string>
-    <string name="sent_a_reaction">Ha reaccionat amb: %s.</string>
+    <string name="sent_a_reaction">Ha reaccionat amb: %s</string>
     <string name="sent_a_poll">Enquesta.</string>
     <string name="send_a_sticker">Adhesiu.</string>
     <string name="sent_an_image">Imatge.</string>

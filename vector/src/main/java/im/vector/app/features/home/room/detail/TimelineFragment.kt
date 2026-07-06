@@ -2122,7 +2122,7 @@ class TimelineFragment :
     }
 
     private fun showSnackWithMessage(message: String) {
-        view?.showOptimizedSnackbar(message)
+        view?.showOptimizedSnackbar(message, anchorView = views.composerContainer)
     }
 
     private fun showDialogWithMessage(message: String) {

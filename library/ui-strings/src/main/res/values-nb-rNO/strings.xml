@@ -846,7 +846,7 @@
     <string name="create_room_alias_invalid">Noen tegn er ikke tillatt</string>
     <string name="create_room_in_progress">Oppretter rom…</string>
     <string name="verification_conclusion_warning">Ikke klarert pålogging</string>
-    <string name="sent_a_reaction">Reagerte med: %s.</string>
+    <string name="sent_a_reaction">Reagerte med: %s</string>
     <string name="verification_request_other_cancelled">%s avbrutt</string>
     <string name="verification_request_other_accepted">%s akseptert</string>
     <string name="verification_scan_notice">Skann koden med den andre brukerens enhet for å verifisere hverandre på en sikker måte</string>

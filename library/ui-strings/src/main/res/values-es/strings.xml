@@ -1636,7 +1636,7 @@
 \n
 \nPrecaución, puede causar funcionamiento inesperado.</string>
     <string name="sent_verification_conclusion">Resultado de la verificación.</string>
-    <string name="sent_a_reaction">Reaccionó con: %s.</string>
+    <string name="sent_a_reaction">Reaccionó con: %s</string>
     <string name="login_error_outdated_homeserver_warning_content">Este servidor particular usa una versión antigua. Pregunta a su administrador si puede actualizarlo. Puedes continuar usándolo, pero algunas características pueden no funcionar.</string>
     <string name="direct_room_join_rules_invite_by_you">Tú has configurado como sólo con invitación.</string>
     <string name="direct_room_join_rules_invite">%1$s ha configurado como sólo con invitación.</string>

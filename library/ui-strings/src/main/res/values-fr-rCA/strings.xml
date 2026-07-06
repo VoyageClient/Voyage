@@ -161,7 +161,7 @@
     <string name="verification_request_other_cancelled">%s a annulé</string>
     <string name="verification_request_waiting">En attente…</string>
     <string name="sent_verification_conclusion">Conclusion de la vérification.</string>
-    <string name="sent_a_reaction">A réagi avec : %s.</string>
+    <string name="sent_a_reaction">A réagi avec : %s</string>
     <string name="sent_a_poll">Sondage.</string>
     <string name="send_a_sticker">Autocollants.</string>
     <string name="sent_a_file">Fichier.</string>

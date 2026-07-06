@@ -718,7 +718,7 @@
     <string name="keys_backup_setup_step3_copy_button_title">שמור מפתח שחזור</string>
     <string name="keys_backup_setup_step3_button_title_no_passphrase">הכנתי עותק</string>
     <string name="sent_verification_conclusion">מסקנת אימות.</string>
-    <string name="sent_a_reaction">הגיב עם: %s.</string>
+    <string name="sent_a_reaction">הגיב עם: %s</string>
     <string name="sent_a_poll">משאל.</string>
     <string name="send_a_sticker">מדבקה.</string>
     <string name="sent_a_file">קובץ.</string>

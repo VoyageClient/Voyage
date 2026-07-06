@@ -1557,7 +1557,7 @@
     <string name="verification_request_other_cancelled">%s đã hủy bỏ</string>
     <string name="verification_request_waiting">Đang chờ…</string>
     <string name="sent_verification_conclusion">Kết luận xác minh.</string>
-    <string name="sent_a_reaction">Phản ứng với: %s.</string>
+    <string name="sent_a_reaction">Phản ứng với: %s</string>
     <string name="sent_a_poll">Thăm dò ý kiến.</string>
     <string name="send_a_sticker">Sticker.</string>
     <string name="sent_a_file">Tệp.</string>

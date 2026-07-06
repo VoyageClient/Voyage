@@ -1554,7 +1554,7 @@
         <item quantity="other">%d 秒</item>
     </plurals>
     <string name="sent_a_poll">投票。</string>
-    <string name="sent_a_reaction">送出反應：%s。</string>
+    <string name="sent_a_reaction">送出反應：%s</string>
     <string name="sent_verification_conclusion">驗證結果。</string>
     <string name="universal_link_malformed">連結格式錯誤</string>
     <string name="delete_account_data_warning">刪除類型為 %1$s 的帳號資料？

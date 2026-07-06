@@ -1916,7 +1916,7 @@
     <string name="verification_scan_self_notice">Scan de code met je andere apparaat of wissel en scan met dit apparaat</string>
     <string name="verification_scan_notice">Scan de code met het apparaat van de andere persoon om elkaar veilig te verifiëren</string>
     <string name="verification_verify_device">Deze sessie verifiëren</string>
-    <string name="sent_a_reaction">Gereageerd met: %s.</string>
+    <string name="sent_a_reaction">Gereageerd met: %s</string>
     <string name="verification_conclusion_compromised">Een van de volgende zaken kan worden aangetast:
 \n
 \n - Jouw server

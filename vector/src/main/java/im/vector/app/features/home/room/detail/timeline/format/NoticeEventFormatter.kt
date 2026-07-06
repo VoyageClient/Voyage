@@ -65,9 +65,20 @@ class NoticeEventFormatter @Inject constructor(
 
     private fun Event.isSentByCurrentUser() = senderId != null && senderId == currentUserId
 
+    private fun resolveDisplayName(event: TimelineEvent): String {
+        val senderId = event.senderInfo.userId
+        val storedName = event.senderInfo.displayName
+        if (storedName != null) return event.senderInfo.disambiguatedDisplayName
+        val session = activeSessionDataSource.currentValue?.orNull()
+        val liveName = event.root.roomId?.let {
+            session?.roomService()?.getRoom(it)?.membershipService()?.getRoomMember(senderId)
+        }?.displayName?.takeUnless { it.isBlank() }
+        return liveName ?: event.senderInfo.disambiguatedDisplayName
+    }
+
     fun format(timelineEvent: TimelineEvent, isDm: Boolean): CharSequence? {
         val event = timelineEvent.root
-        val senderName = timelineEvent.senderInfo.disambiguatedDisplayName
+        val senderName = resolveDisplayName(timelineEvent)
         return when (val type = event.getClearType()) {
             EventType.STATE_ROOM_JOIN_RULES -> formatJoinRulesEvent(event, senderName, isDm)
             EventType.STATE_ROOM_CREATE -> formatRoomCreateEvent(event, isDm)
@@ -723,13 +734,13 @@ class NoticeEventFormatter @Inject constructor(
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_display_name_set_by_you, eventContent?.displayName)
                     } else {
-                        sp.getString(CommonStrings.notice_display_name_set, event.senderId, eventContent?.displayName)
+                        sp.getString(CommonStrings.notice_display_name_set, senderName ?: event.senderId, eventContent?.displayName)
                     }
                 eventContent?.displayName.isNullOrEmpty() ->
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_display_name_removed_by_you, prevEventContent?.displayName)
                     } else {
-                        sp.getString(CommonStrings.notice_display_name_removed, event.senderId, prevEventContent?.displayName)
+                        sp.getString(CommonStrings.notice_display_name_removed, senderName ?: event.senderId, prevEventContent?.displayName)
                     }
                 else ->
                     if (event.isSentByCurrentUser()) {

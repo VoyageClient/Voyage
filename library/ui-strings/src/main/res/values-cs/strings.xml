@@ -1618,7 +1618,7 @@
         <item quantity="other">%d vteřin</item>
     </plurals>
     <string name="sent_a_poll">Hlasování.</string>
-    <string name="sent_a_reaction">Reagoval(a): %s.</string>
+    <string name="sent_a_reaction">Reagoval(a): %s</string>
     <string name="sent_verification_conclusion">Výsledek ověření.</string>
     <string name="universal_link_malformed">Odkaz byl chybně zformován</string>
     <string name="delete_account_data_warning">Smazat údaje účtu typu %1$s\?

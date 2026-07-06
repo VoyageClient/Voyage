@@ -1421,7 +1421,7 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="verification_request_other_cancelled">%s membatalkan</string>
     <string name="verification_request_waiting">Menunggu…</string>
     <string name="sent_verification_conclusion">Kesimpulan Verifikasi.</string>
-    <string name="sent_a_reaction">Bereaksi dengan: %s.</string>
+    <string name="sent_a_reaction">Bereaksi dengan: %s</string>
     <string name="sent_a_poll">Poll.</string>
     <string name="send_a_sticker">Stiker.</string>
     <string name="sent_a_file">File.</string>
