@@ -86,6 +86,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private var initialIndex = 0
     private var isAnimatingOut = false
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
+    private var providerInstalled = false
+    private var handoffPending = false
     // Fraction of the shorter side used as the transition image corner radius: 0.5 = circle, 0 = square.
     private var transitionCornerFraction = CIRCLE_CORNER_FRACTION
     // Absolute pixel corner radius for rounded (non-circular) shared elements.
@@ -173,21 +175,19 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             initialIndex = inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
             installSourceProvider(dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope), setCurrentItem = isFirstCreation)
         } else {
-            // Loading + mapping every attachment of the room took seconds on the main thread for
-            // media-heavy rooms, freezing the tap until the gallery list was built. Open on the tapped
-            // item alone (its own loading UI shows immediately) and swap in the full gallery when ready.
-            val tappedItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
-            if (tappedItem != null) {
-                initialIndex = 0
-                installSourceProvider(dataSourceFactory.createProvider(listOf(tappedItem), room, lifecycleScope), setCurrentItem = isFirstCreation)
-            }
             lifecycleScope.launch {
                 val events = withContext(Dispatchers.IO) {
                     room?.timelineService()?.getAttachmentMessages().orEmpty()
                 }
                 if (events.isNotEmpty()) {
                     initialIndex = events.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
-                    installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope), setCurrentItem = true)
+                    installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope), setCurrentItem = isFirstCreation)
+                } else {
+                    val tappedItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
+                    if (tappedItem != null) {
+                        initialIndex = 0
+                        installSourceProvider(dataSourceFactory.createProvider(listOf(tappedItem), room, lifecycleScope), setCurrentItem = isFirstCreation)
+                    }
                 }
             }
         }
@@ -206,12 +206,16 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         sourceProvider.interactionListener = this
         setSourceProvider(sourceProvider)
         currentSourceProvider = sourceProvider
+        providerInstalled = true
         if (setCurrentItem) {
             pager2.setCurrentItem(initialIndex, false)
-            // The page change listener is not notified of the change...
             pager2.post {
                 onSelectedPositionChanged(initialIndex)
             }
+        }
+        if (handoffPending) {
+            handoffPending = false
+            handOffToPager()
         }
     }
 
@@ -306,6 +310,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     // the surrogate first draw at its final fullscreen size to match the pager and avoid a few-px snap.
     private fun handOffToPager() {
         if (isAnimatingOut) return
+        if (!providerInstalled) {
+            handoffPending = true
+            return
+        }
         if (args()?.circularTransition == true) {
             imageTransitionView.post {
                 transitionImageContainer.isVisible = false

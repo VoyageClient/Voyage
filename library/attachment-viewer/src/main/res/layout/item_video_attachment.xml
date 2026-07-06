@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:importantForAccessibility="no"
-        android:scaleType="centerInside" />
+        android:scaleType="fitCenter" />
 
     <TextureView
         android:id="@+id/videoView"

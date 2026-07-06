@@ -59,8 +59,7 @@ internal class SqlTimelineEventDataSource @Inject constructor(
                     .map { getTimelineEvent(roomId, eventId).toOptional() }
 
     fun getAttachmentMessages(roomId: String): List<TimelineEvent> =
-            stores.timelineEvent.getByRoom(roomId)
-                    .sortedBy { it.root?.originServerTs ?: 0 }
+            stores.timelineEvent.getAttachmentsByRoom(roomId)
                     .distinctBy { it.eventId }
                     .mapNotNull { timelineEventMapper.map(it).takeIf { te -> te.root.isImageMessage() || te.root.isVideoMessage() || te.root.isSticker() } }
                     .filterNot { isAcceptedEdition(it) }

@@ -45,6 +45,7 @@ class VideoViewHolder constructor(itemView: View) :
     private var mediaPlayer: MediaPlayer? = null
     private var surface: Surface? = null
     private var isPrepared = false
+    private var waitingForFirstFrame = false
     private var videoWidth = 0
     private var videoHeight = 0
 
@@ -77,7 +78,13 @@ class VideoViewHolder constructor(itemView: View) :
                 return true
             }
 
-            override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
+            override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
+                if (waitingForFirstFrame) {
+                    waitingForFirstFrame = false
+                    views.videoView.alpha = 1f
+                    views.videoThumbnailImage.isVisible = false
+                }
+            }
         }
     }
 
@@ -323,9 +330,10 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     private fun startPlaying() {
-        views.videoThumbnailImage.isVisible = false
         views.videoLoaderProgress.isVisible = false
+        views.videoView.alpha = 0f
         views.videoView.isVisible = true
+        waitingForFirstFrame = true
 
         // Don't try to set up the MediaPlayer until we have a surface to render into; the
         // SurfaceTextureListener picks it up once the surface becomes available, gated on
@@ -443,6 +451,10 @@ class VideoViewHolder constructor(itemView: View) :
 
     override fun bind(attachmentInfo: AttachmentInfo) {
         super.bind(attachmentInfo)
+        views.videoView.isVisible = false
+        views.videoView.alpha = 1f
+        views.videoThumbnailImage.isVisible = true
+        waitingForFirstFrame = false
         progress = 0
         wasPaused = false
         resetZoom()
