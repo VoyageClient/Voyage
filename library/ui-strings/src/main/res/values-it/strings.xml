@@ -1577,7 +1577,7 @@
         <item quantity="other">%d secondi</item>
     </plurals>
     <string name="sent_a_poll">Sondaggio.</string>
-    <string name="sent_a_reaction">Reagito con: %s.</string>
+    <string name="sent_a_reaction">Reagito con: %s</string>
     <string name="sent_verification_conclusion">Verifica conclusa.</string>
     <string name="delete_account_data_warning">Vuoi eliminare i dati dell\'account di tipo %1$s\?
 \n

@@ -1431,7 +1431,7 @@
     <string name="sent_a_voice_message">ხმა.</string>
     <string name="send_a_sticker">სტიკერი.</string>
     <string name="sent_a_poll">გამოკითხვა.</string>
-    <string name="sent_a_reaction">რეაგირება: %s.</string>
+    <string name="sent_a_reaction">რეაგირება: %s</string>
     <string name="started_a_voice_broadcast">ხმის ტრანსლაციის დაწყება</string>
     <string name="verification_request_waiting">მოლოდინი…</string>
     <string name="verification_request_other_cancelled">%s გააუქმა</string>

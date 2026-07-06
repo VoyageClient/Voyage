@@ -1586,7 +1586,7 @@
         <item quantity="other">%d sekundit</item>
     </plurals>
     <string name="sent_a_poll">Küsitlus.</string>
-    <string name="sent_a_reaction">Reageeris: %s.</string>
+    <string name="sent_a_reaction">Reageeris: %s</string>
     <string name="sent_verification_conclusion">Verifitseerimise tulemus.</string>
     <string name="universal_link_malformed">Link oli vigane</string>
     <string name="delete_account_data_warning">Kas kustutame %1$s tüüpi kasutajakonto andmed\?

@@ -1586,7 +1586,7 @@
         <item quantity="other">%d Sekunden</item>
     </plurals>
     <string name="sent_a_poll">Umfrage.</string>
-    <string name="sent_a_reaction">Reagierte mit: %s.</string>
+    <string name="sent_a_reaction">Reagierte mit: %s</string>
     <string name="universal_link_malformed">Der Link war fehlerhaft</string>
     <string name="sent_verification_conclusion">Ergebnis der Überprüfung.</string>
     <string name="delete_account_data_warning">Kontodaten vom Typ %1$s löschen\?

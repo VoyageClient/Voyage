@@ -2254,7 +2254,7 @@
     <string name="bootstrap_crosssigning_progress_initializing">Zverejňovanie vytvorených kľúčov totožnosti</string>
     <string name="event_redacted_by_user_reason_with_reason">Udalosť vymazaná používateľom, dôvod: %1$s</string>
     <string name="rendering_event_error_exception">${app_name} sa stretol s problémom pri vykresľovaní obsahu udalosti s id \'%1$s\'</string>
-    <string name="sent_a_reaction">Reagoval/a: %s.</string>
+    <string name="sent_a_reaction">Reagoval/a: %s</string>
     <string name="settings_developer_mode_fail_fast_summary">${app_name} môže padať častejšie, keď sa vyskytne neočakávaná chyba</string>
     <string name="login_server_url_form_common_notice">Zadajte adresu servera, ktorý chcete použiť</string>
     <string name="report_content_custom">Vlastné hlásenie…</string>

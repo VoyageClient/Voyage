@@ -1504,7 +1504,7 @@
     <string name="login_signin_matrix_id_password_notice">Nëse s’e dini fjalëkalimin, kthehuni mbrapsht që ta ricaktoni.</string>
     <string name="send_a_sticker">Ngjitës.</string>
     <string name="sent_a_poll">Pyetësor.</string>
-    <string name="sent_a_reaction">Reagoi me: %s.</string>
+    <string name="sent_a_reaction">Reagoi me: %s</string>
     <string name="sent_verification_conclusion">Përfundim Verifikimi.</string>
     <string name="room_profile_section_admin">Veprime Përgjegjësi</string>
     <string name="room_member_power_level_default_in">%1$s, si parazgjedhje</string>

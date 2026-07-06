@@ -1642,7 +1642,7 @@
     <string name="verification_request_waiting">ກຳລັງລໍຖ້າ…</string>
     <string name="sent_live_location">ແບ່ງປັນສະຖານທີ່ປັດຈຸບັນຂອງເຂົາເຈົ້າ</string>
     <string name="sent_verification_conclusion">ສະຫຼຸບການຢັ້ງຢືນ.</string>
-    <string name="sent_a_reaction">ຕອບສະໜອງດ້ວຍ: %s.</string>
+    <string name="sent_a_reaction">ຕອບສະໜອງດ້ວຍ: %s</string>
     <string name="sent_a_poll">ການສໍາຫຼວດ.</string>
     <string name="send_a_sticker">ສະຕິກເກີ.</string>
     <string name="sent_a_file">ໄຟລ໌.</string>

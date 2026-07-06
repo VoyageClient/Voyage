@@ -461,7 +461,7 @@
     <string name="verification_request_other_cancelled">%s nuligis</string>
     <string name="verification_request_waiting">Atendante…</string>
     <string name="sent_verification_conclusion">Rezulto de kontrolo.</string>
-    <string name="sent_a_reaction">Reagis per: %s.</string>
+    <string name="sent_a_reaction">Reagis per: %s</string>
     <string name="sent_a_poll">Enketo.</string>
     <string name="send_a_sticker">Glumarko.</string>
     <string name="sent_a_file">Dosiero.</string>

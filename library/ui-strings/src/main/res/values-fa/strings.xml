@@ -852,7 +852,7 @@
     <string name="sent_a_file">پرونده.</string>
     <string name="send_a_sticker">برچسب.</string>
     <string name="sent_a_poll">نظرسنجی.</string>
-    <string name="sent_a_reaction">واکنش داده با: %s.</string>
+    <string name="sent_a_reaction">واکنش داده با: %s</string>
     <string name="sent_verification_conclusion">نتیجه‌گیری تأیید.</string>
     <string name="verification_request_waiting">در حال انتظار…</string>
     <string name="verification_request_other_cancelled">%s لغو شد</string>

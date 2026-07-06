@@ -1819,7 +1819,7 @@
     <string name="verification_request_other_accepted">%s samþykkti</string>
     <string name="verification_request_other_cancelled">%s hætti við</string>
     <string name="sent_verification_conclusion">Niðurstaða sannvottunar.</string>
-    <string name="sent_a_reaction">Brást við með: %s.</string>
+    <string name="sent_a_reaction">Brást við með: %s</string>
     <string name="create_room_in_progress">Bý til spjallrás…</string>
     <string name="signed_out_submit">Skráðu þig inn aftur</string>
     <string name="settings_discovery_consent_title">Senda tölvupóstföng og símanúmer</string>

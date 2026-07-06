@@ -1635,7 +1635,7 @@
         <item quantity="many">%d секунд</item>
     </plurals>
     <string name="sent_a_poll">Опрос.</string>
-    <string name="sent_a_reaction">Отреагировал(а): %s.</string>
+    <string name="sent_a_reaction">Отреагировал(а): %s</string>
     <string name="sent_verification_conclusion">Результат проверки.</string>
     <string name="universal_link_malformed">Ссылка была искажена</string>
     <string name="delete_account_data_warning">Удалить данные учетной записи типа %1$s\?

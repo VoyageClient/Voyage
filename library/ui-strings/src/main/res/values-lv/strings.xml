@@ -974,7 +974,7 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="verification_request_you_cancelled">Tu atcēli</string>
     <string name="verification_request_other_cancelled">%s atcēla</string>
     <string name="verification_request_waiting">Gaida…</string>
-    <string name="sent_a_reaction">Atsaucās ar %s.</string>
+    <string name="sent_a_reaction">Atsaucās ar %s</string>
     <string name="create_room_disable_federation_title">Bloķēt pievienošanos šai istabai ikvienam, kas nav daļa no %s</string>
     <string name="create_room_encryption_title">Iespējot šifrēšanu</string>
     <string name="notification_initial_sync">Sākotnējā sinhronizācija…</string>

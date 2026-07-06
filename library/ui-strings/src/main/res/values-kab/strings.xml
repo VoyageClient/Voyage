@@ -1558,7 +1558,7 @@
     </plurals>
     <string name="sent_verification_conclusion">Taggrayt n usenqed.</string>
     <string name="universal_link_malformed">Aseɣwen ur yemsil ara akken iwata</string>
-    <string name="sent_a_reaction">Issedmer s: %s.</string>
+    <string name="sent_a_reaction">Issedmer s: %s</string>
     <string name="settings_troubleshoot_test_push_loop_title">Sekyed Push</string>
     <string name="search_banned_user_hint">Sizdeg iseqdacen yettwagedlen</string>
     <string name="permissions_denied_add_contact">Mudd tisirag i unekcum ɣer yinermisen-inek;inem.</string>

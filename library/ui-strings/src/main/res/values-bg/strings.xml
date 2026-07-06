@@ -1200,7 +1200,7 @@
     <string name="verification_request_other_cancelled">%s отказа</string>
     <string name="verification_request_waiting">Изчакване…</string>
     <string name="sent_verification_conclusion">Резултат от проверка.</string>
-    <string name="sent_a_reaction">Реагира с: %s.</string>
+    <string name="sent_a_reaction">Реагира с: %s</string>
     <string name="sent_a_poll">Анкета.</string>
     <string name="send_a_sticker">Стикер.</string>
     <string name="sent_a_file">Файл.</string>

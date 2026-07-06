@@ -1514,7 +1514,7 @@
         <item quantity="other">%d 秒</item>
     </plurals>
     <string name="sent_a_poll">轮询。</string>
-    <string name="sent_a_reaction">用%s回应。</string>
+    <string name="sent_a_reaction">用%s回应</string>
     <string name="sent_verification_conclusion">验证结果。</string>
     <string name="delete_account_data_warning">是否删除类型 %1$s 的账户数据？
 \n

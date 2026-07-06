@@ -44,6 +44,10 @@ class EmoteImageSpan(
         private val resolvedUrl: String?,
 ) : ReplacementSpan(), MatrixEmoteSpan {
 
+    companion object {
+        private const val PLACEHOLDER = "❓"
+    }
+
     private var drawable: Drawable? = null
     private var tv: WeakReference<TextView>? = null
 
@@ -111,7 +115,10 @@ class EmoteImageSpan(
     }
 
     override fun draw(canvas: Canvas, text: CharSequence, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint) {
-        val dr = drawable ?: return
+        val dr = drawable ?: run {
+            canvas.drawText(PLACEHOLDER, 0, PLACEHOLDER.length, x, y.toFloat(), paint)
+            return
+        }
         val box = boxSize(paint)
         // Fit-centre within the reserved square, preserving aspect ratio.
         val intrinsicW = dr.intrinsicWidth.takeIf { it > 0 } ?: box

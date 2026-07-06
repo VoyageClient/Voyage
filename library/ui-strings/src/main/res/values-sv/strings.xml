@@ -1586,7 +1586,7 @@
         <item quantity="other">%d sekunder</item>
     </plurals>
     <string name="sent_a_poll">Omröstning.</string>
-    <string name="sent_a_reaction">Reagerade med: %s.</string>
+    <string name="sent_a_reaction">Reagerade med: %s</string>
     <string name="sent_verification_conclusion">Verifieringsavslutning.</string>
     <string name="universal_link_malformed">Länken var felformaterad</string>
     <string name="delete_account_data_warning">Radera kontodata av typen %1$s\?

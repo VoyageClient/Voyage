@@ -1232,7 +1232,7 @@
     <string name="report_content_custom_title">Поскаржитись на цей вміст</string>
     <string name="report_content_custom_submit">ПОСКАРЖИТИСЬ</string>
     <string name="report_content_custom_hint">Причина скарги</string>
-    <string name="sent_a_reaction">Зреагували: %s.</string>
+    <string name="sent_a_reaction">Зреагували: %s</string>
     <string name="message_add_reaction">Зреагувати</string>
     <string name="finish">Завершити</string>
     <string name="reply">Відповісти</string>
