@@ -438,7 +438,12 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         expand {
             // need to do it here also when not using quick reply
             if (isVisible) {
-                showKeyboard(andRequestFocus = true)
+                // Post so the focus request runs after the RecyclerView's swipe-gesture
+                // touch processing settles; targeting the EditText directly (not the parent
+                // layout) ensures the IME input connection is fully established.
+                views.composerEditText.post {
+                    views.composerEditText.showKeyboard(andRequestFocus = true)
+                }
             }
             views.composerRelatedMessageImage.isVisible = isImageVisible
         }
