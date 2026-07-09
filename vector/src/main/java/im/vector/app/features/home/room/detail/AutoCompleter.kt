@@ -227,7 +227,7 @@ class AutoCompleter @AssistedInject constructor(
                                 // Discord-style: just fill in the `:shortcode:` text. The literal shortcode is
                                 // converted to the actual emote on send (see EmoteShortcodeProcessor), so the
                                 // composer stays plain text instead of showing an inline image.
-                                editable.replace(startIndex, endIndex, ":${item.image.shortcode}: ")
+                                editable.replace(startIndex, endIndex, ":${item.image.shortcode}:")
                             }
                         }
                         return true

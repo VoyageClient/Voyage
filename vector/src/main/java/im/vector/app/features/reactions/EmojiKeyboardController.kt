@@ -140,7 +140,7 @@ class EmojiKeyboardController(
     private fun insert(item: EmojiPickerItem) {
         val text = when (item) {
             is EmojiPickerItem.Unicode -> item.glyph
-            is EmojiPickerItem.Emote -> ":${item.shortcode}: "
+            is EmojiPickerItem.Emote -> ":${item.shortcode}:"
         }
         val start = editText.selectionStart.coerceAtLeast(0)
         val end = editText.selectionEnd.coerceAtLeast(0)
