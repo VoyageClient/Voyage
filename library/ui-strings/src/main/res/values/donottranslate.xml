@@ -456,4 +456,14 @@
     <string name="settings_search_encrypted_rooms_summary" translatable="false">Securely cache decrypted messages on this device so encrypted rooms can be searched. Room history is downloaded and indexed in the background.</string>
     <string name="settings_search_unencrypted_on_server_title" translatable="false">Server search in unencrypted rooms</string>
     <string name="settings_search_unencrypted_on_server_summary" translatable="false">Skip local indexing of unencrypted rooms and let the server answer searches there. Faster and saves storage, but exact matching and search filters won\'t apply.</string>
+
+    <string name="dalvik_verifier_dialog_title" translatable="false">Enable pre-KitKat compatibility</string>
+    <string name="dalvik_verifier_dialog_message" translatable="false">This Android version needs the Dalvik bytecode verifier disabled to open rooms without crashing. Applying it uses root to set a system property, then restarts the device once. The app can\'t run here without it.</string>
+    <string name="dalvik_verifier_action_enable" translatable="false">Apply</string>
+    <string name="dalvik_verifier_applying" translatable="false">Restarting…</string>
+    <string name="dalvik_verifier_action_quit" translatable="false">Quit</string>
+    <string name="dalvik_verifier_needs_root_title" translatable="false">Root required</string>
+    <string name="dalvik_verifier_needs_root_message" translatable="false">This device runs Android 4.0–4.3, where the app requires the Dalvik bytecode verifier to be disabled. Doing so requires root access. No root was found, so the app cannot run on this device.</string>
+    <string name="dalvik_verifier_failed_title" translatable="false">Couldn\'t enable</string>
+    <string name="dalvik_verifier_failed_message" translatable="false">Enabling failed or root access was denied, so the app cannot run on this device.</string>
 </resources>

@@ -27,6 +27,7 @@ import com.airbnb.mvrx.viewModel
 import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.dalvik.DalvikVerifierGate
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.extensions.vectorStore
 import im.vector.app.core.platform.VectorBaseActivity
@@ -170,6 +171,12 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (DalvikVerifierGate.gateIfNeeded(this)) {
+            // Pre-KitKat with the bytecode verifier still active: a blocking dialog is up (quit or
+            // reboot). Don't start the app — opening a room would crash on LinearAlloc.
+            return
+        }
 
         shortcutsHandler.updateShortcutsWithPreviousIntent()
 
