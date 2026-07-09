@@ -179,10 +179,13 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 val events = withContext(Dispatchers.IO) {
                     room?.timelineService()?.getAttachmentMessages().orEmpty()
                 }
-                if (events.isNotEmpty()) {
-                    initialIndex = events.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
+                val index = events.indexOfFirst { it.eventId == args.eventId }
+                if (index != -1) {
+                    initialIndex = index
                     installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope), setCurrentItem = isFirstCreation)
                 } else {
+                    // Tapped event missing from the room's media list (e.g. a still-sending echo):
+                    // show it alone rather than landing on an unrelated first entry.
                     val tappedItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
                     if (tappedItem != null) {
                         initialIndex = 0

@@ -84,6 +84,7 @@ AND (
     OR event.content LIKE '%"m.video"%'
     OR event.decryption_result_json LIKE '%"m.image"%'
     OR event.decryption_result_json LIKE '%"m.video"%'
+    OR event.decryption_result_json LIKE '%"m.sticker"%'
 )
 ORDER BY event.origin_server_ts;
 

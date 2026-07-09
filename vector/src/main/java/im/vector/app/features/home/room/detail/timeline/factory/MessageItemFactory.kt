@@ -644,9 +644,14 @@ class MessageItemFactory @Inject constructor(
                 .mediaData(data)
                 .caption(captionEpoxy)
                 .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(callback))                .apply {
-                    clickListener { view ->
-                        callback?.onImageMessageClicked(messageContent, data, view, emptyList())
+                .captionMovementMethod(createLinkMovementMethod(callback))
+                .apply {
+                    // A still-sending event may have no entry in the media viewer's list yet,
+                    // which would open the viewer on the wrong item; keep it untappable until sent.
+                    if (!informationData.sendState.isSending()) {
+                        clickListener { view ->
+                            callback?.onImageMessageClicked(messageContent, data, view, emptyList())
+                        }
                     }
                     if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {
                         mode(ImageContentRenderer.Mode.STICKER)
@@ -709,7 +714,12 @@ class MessageItemFactory @Inject constructor(
                 .mediaData(thumbnailData)
                 .caption(captionEpoxy)
                 .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(callback))                .clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
+                .captionMovementMethod(createLinkMovementMethod(callback))
+                .apply {
+                    if (!informationData.sendState.isSending()) {
+                        clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
+                    }
+                }
     }
 
     private fun buildItemForTextContent(

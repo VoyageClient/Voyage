@@ -153,7 +153,8 @@ class RoomEventsAttachmentProvider(
     override suspend fun getFileForSharing(position: Int): File? {
         return getItem(position)
                 .let { timelineEvent ->
-                    timelineEvent.root.getClearContent().toModel<MessageContent>() as? MessageWithAttachmentContent
+                    val clearContent = timelineEvent.root.getClearContent()
+                    (clearContent.toModel<MessageContent>() ?: clearContent.toModel<MessageStickerContent>()) as? MessageWithAttachmentContent
                 }
                 ?.let { messageContent ->
                     tryOrNull {
