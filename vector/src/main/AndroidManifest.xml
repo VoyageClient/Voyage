@@ -276,6 +276,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".features.attachments.preview.AttachmentsPreviewActivity"
+            android:label="@string/app_name"
             android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
         <activity android:name=".features.terms.ReviewTermsActivity" />
         <activity
@@ -287,6 +288,23 @@
         <activity android:name=".features.imagepack.edit.ImagePackEditActivity" />
         <activity android:name=".features.imagepack.edit.ImagePackListActivity" />
         <activity android:name=".features.settings.reactions.QuickReactionsSettingsActivity" />
+        <activity
+            android:name=".features.settings.KitkatVideoActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:exported="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+        <activity
+            android:name=".features.settings.KitkatPlatLogoActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Wallpaper.NoTitleBar.Fullscreen" />
+        <activity
+            android:name=".features.settings.KitkatDessertCaseActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleInstance"
+            android:screenOrientation="locked"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
         <activity android:name=".features.home.room.detail.search.SearchActivity" />
         <activity android:name=".features.usercode.UserCodeActivity" />
 

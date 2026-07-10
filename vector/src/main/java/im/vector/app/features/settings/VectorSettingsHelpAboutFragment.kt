@@ -8,6 +8,7 @@
 package im.vector.app.features.settings
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -85,11 +86,54 @@ class VectorSettingsHelpAboutFragment :
         }
 
         // olm version
-        findPreference<VectorPreference>(VectorPreferences.SETTINGS_CRYPTO_VERSION_PREFERENCE_KEY)!!
-                .summary = Matrix.getCryptoVersion(true)
+        findPreference<VectorPreference>(VectorPreferences.SETTINGS_CRYPTO_VERSION_PREFERENCE_KEY)!!.let {
+            it.summary = Matrix.getCryptoVersion(true)
+
+            it.setOnPreferenceClickListener {
+                onCryptoVersionTapped()
+                true
+            }
+        }
+    }
+
+    // AOSP's developer-options tap counter (Build number on About phone), minus the unlock: taps 1-2
+    // are silent, taps 3-6 toast the remaining count, the 7th plays the video and wraps back around.
+    private var kitkatCountdown = KITKAT_TAPS
+    private var kitkatToast: Toast? = null
+
+    override fun onResume() {
+        super.onResume()
+        kitkatCountdown = KITKAT_TAPS
+    }
+
+    override fun onPause() {
+        super.onPause()
+        kitkatToast?.cancel()
+        kitkatToast = null
+    }
+
+    private fun onCryptoVersionTapped() {
+        kitkatCountdown--
+        when {
+            kitkatCountdown in 1..4 -> {
+                val message = if (kitkatCountdown == 1) {
+                    getString(CommonStrings.one_step_away_from_kitkat)
+                } else {
+                    getString(CommonStrings.steps_away_from_kitkat, kitkatCountdown)
+                }
+                kitkatToast?.cancel()
+                kitkatToast = Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).also { it.show() }
+            }
+            kitkatCountdown <= 0 -> {
+                kitkatCountdown = KITKAT_TAPS
+                kitkatToast?.cancel()
+                KitkatVideoActivity.start(requireContext())
+            }
+        }
     }
 
     companion object {
         private const val APP_INFO_LINK_PREFERENCE_KEY = "APP_INFO_LINK_PREFERENCE_KEY"
+        private const val KITKAT_TAPS = 7
     }
 }
