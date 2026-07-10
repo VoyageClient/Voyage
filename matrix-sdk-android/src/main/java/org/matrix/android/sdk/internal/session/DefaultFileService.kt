@@ -202,6 +202,10 @@ internal class DefaultFileService @Inject constructor(
                     writeToFile(source.inputStream(), atomicFileCreator.partFile)
                     response.close()
                     atomicFileCreator.commit()
+                    // Remember the server-advertised filename so getServerFileName can answer on cache hits.
+                    parseContentDispositionFilename(response.header("Content-Disposition"))?.let { name ->
+                        runCatching { File(cachedFiles.file.parentFile, SERVER_FILENAME_SIDECAR).writeText(name) }
+                    }
                 } else {
                     Timber.v("## FileService: cache hit for $url")
                 }
@@ -256,6 +260,31 @@ internal class DefaultFileService @Inject constructor(
         }
 
         return result.getOrThrow()
+    }
+
+    override fun getServerFileName(url: String?): String? {
+        url ?: return null
+        return runCatching {
+            File(downloadFolder, "${url.md5()}/$SERVER_FILENAME_SIDECAR")
+                    .takeIf { it.exists() }
+                    ?.readText()
+                    ?.takeIf { it.isNotBlank() }
+        }.getOrNull()
+    }
+
+    // RFC 6266: prefer the RFC 5987 `filename*=charset''percent-encoded` form, then the quoted and
+    // bare `filename=` forms. The result is a display name, so strip any path components.
+    private fun parseContentDispositionFilename(header: String?): String? {
+        header ?: return null
+        val raw = Regex("""filename\*\s*=\s*[Uu][Tt][Ff]-8''([^;]+)""").find(header)?.groupValues?.get(1)?.trim()
+                ?.let { encoded -> runCatching { java.net.URLDecoder.decode(encoded, "UTF-8") }.getOrNull() }
+                ?: Regex("""filename\s*=\s*"([^"]*)"""").find(header)?.groupValues?.get(1)
+                ?: Regex("""filename\s*=\s*([^;]+)""").find(header)?.groupValues?.get(1)?.trim()
+        return raw
+                ?.substringAfterLast('/')
+                ?.substringAfterLast('\\')
+                ?.filterNot { it.isISOControl() }
+                ?.takeIf { it.isNotBlank() }
     }
 
     fun storeDataFor(
@@ -373,6 +402,7 @@ internal class DefaultFileService @Inject constructor(
 
     companion object {
         private const val ENCRYPTED_FILENAME = "encrypted.bin"
+        private const val SERVER_FILENAME_SIDECAR = ".server_filename"
 
         // The extension would be added from the mimetype
         const val DEFAULT_FILENAME = "file"

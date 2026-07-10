@@ -8,6 +8,8 @@
 package im.vector.app.features.media.domain.usecase
 
 import android.content.Context
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.core.intent.getMimeTypeFromUri
@@ -28,7 +30,7 @@ class DownloadMediaUseCase @Inject constructor(
         private val clock: Clock,
 ) {
 
-    suspend fun execute(input: File): Result<Unit> = withContext(session.coroutineDispatchers.io) {
+    suspend fun execute(input: File, title: String? = null): Result<Unit> = withContext(session.coroutineDispatchers.io) {
         runCatching {
             // Fall back to sniffing the file's content when the type can't be derived from its name
             // (e.g. downloaded avatars have no extension), so it's saved with a proper extension.
@@ -36,7 +38,7 @@ class DownloadMediaUseCase @Inject constructor(
             saveMedia(
                     context = appContext,
                     file = input,
-                    title = input.name,
+                    title = title ?: input.name,
                     mediaMimeType = mimeType,
                     notificationUtils = notificationUtils,
                     currentTimeMillis = clock.epochMillis()
@@ -45,8 +47,22 @@ class DownloadMediaUseCase @Inject constructor(
     }
 
     private fun sniffMimeType(file: File): String? {
-        return tryOrNull {
+        // BitmapFactory covers the image types URLConnection misses (notably WebP).
+        val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, opts)
+        opts.outMimeType?.let { return it }
+        tryOrNull {
             file.inputStream().buffered().use { URLConnection.guessContentTypeFromStream(it) }
+        }?.let { return it }
+        // Video/audio containers: ask the media framework.
+        return tryOrNull {
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(file.absolutePath)
+                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
+            } finally {
+                retriever.release()
+            }
         }
     }
 }
