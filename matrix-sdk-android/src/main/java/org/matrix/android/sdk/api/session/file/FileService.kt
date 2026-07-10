@@ -113,6 +113,12 @@ interface FileService {
             )
 
     /**
+     * The filename the server advertised (Content-Disposition) when [url] was downloaded through
+     * [downloadFile], or null when unknown (never downloaded, or the server sent no filename).
+     */
+    fun getServerFileName(url: String?): String?
+
+    /**
      * Upload a (clear, unencrypted) file to the content repository and return its `mxc://` URI.
      * Used for content that is referenced by URL rather than sent as a message, e.g. MSC2545 image packs.
      */

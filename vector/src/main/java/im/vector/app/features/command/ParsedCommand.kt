@@ -74,4 +74,5 @@ sealed interface ParsedCommand {
     data class JumpToDate(val date: String) : ParsedCommand
     object TogglePgpMode : ParsedCommand
     data class SendPgpEncrypted(val message: CharSequence) : ParsedCommand
+    data class DownloadFile(val mxcUrl: String) : ParsedCommand
 }

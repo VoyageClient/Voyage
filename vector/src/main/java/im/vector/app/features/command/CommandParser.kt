@@ -500,6 +500,14 @@ class CommandParser @Inject constructor(
                         ParsedCommand.SendPgpEncrypted(message = message)
                     }
                 }
+                Command.DOWNLOAD.matches(slashCommand) -> {
+                    val url = message.toString().trim()
+                    if (url.isMxcUrl() && url.none { it.isWhitespace() }) {
+                        ParsedCommand.DownloadFile(mxcUrl = url)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.DOWNLOAD)
+                    }
+                }
                 Command.CRASH_APP.matches(slashCommand) && vectorPreferences.developerMode() -> {
                     throw RuntimeException("Application crashed from user demand")
                 }

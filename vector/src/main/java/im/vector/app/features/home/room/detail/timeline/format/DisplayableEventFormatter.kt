@@ -56,7 +56,9 @@ class DisplayableEventFormatter @Inject constructor(
         private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
 ) {
 
-    private val webUrlRegex = android.util.Patterns.WEB_URL.toRegex()
+    // AUTOLINK_WEB_URL, not WEB_URL: its (?<!://) lookbehind is what stops the host part of a
+    // non-web URI (mxc://server/id) from matching, mirroring the timeline's LinkifyCompat behavior.
+    private val webUrlRegex = androidx.core.util.PatternsCompat.AUTOLINK_WEB_URL.toRegex()
 
     // Per-room pill processors, cached so the room list doesn't rebuild them on every summary render.
     private val pillProcessors = java.util.concurrent.ConcurrentHashMap<String, Pair<im.vector.app.features.html.PillsPostProcessor, im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer>>()

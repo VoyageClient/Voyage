@@ -72,7 +72,8 @@ enum class Command(
     JUMP_TO_START("/jumptostart", null, "", CommonStrings.command_description_jump_to_start, false, false),
     JUMP_TO("/jumpto", null, "<event-id>", CommonStrings.command_description_jump_to, false, false),
     JUMP_TO_DATE("/jumptodate", null, "<YYYY-MM-DD>", CommonStrings.command_description_jump_to_date, false, false),
-    ENCRYPT("/encrypt", null, "[message]", CommonStrings.command_description_encrypt, false, true);
+    ENCRYPT("/encrypt", null, "[message]", CommonStrings.command_description_encrypt, false, true),
+    DOWNLOAD("/download", null, "<mxc-url>", CommonStrings.command_description_download, false, true);
 
     val allAliases = arrayOf(command, *aliases.orEmpty())
 

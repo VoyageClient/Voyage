@@ -27,6 +27,7 @@ import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
+import im.vector.app.features.media.domain.usecase.DownloadMediaUseCase
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.VoiceFailure
@@ -100,6 +101,7 @@ class MessageComposerViewModel @AssistedInject constructor(
         private val pgpRoomEncryptor: PgpRoomEncryptor,
         private val pgpDecryptor: PgpDecryptor,
         private val emoteShortcodeProcessor: EmoteShortcodeProcessor,
+        private val downloadMediaUseCase: DownloadMediaUseCase,
 ) : VectorViewModel<MessageComposerViewState, MessageComposerAction, MessageComposerViewEvents>(initialState) {
 
     private val room = session.getRoom(initialState.roomId)
@@ -464,6 +466,9 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     }
                                 }
                             }
+                        }
+                        is ParsedCommand.DownloadFile -> {
+                            handleDownloadSlashCommand(room, parsedCommand)
                         }
                         is ParsedCommand.SendPgpEncrypted -> {
                             if (!pgpKeyStore.isEnabled) {
@@ -1991,6 +1996,24 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleInsertUserDisplayName(action: MessageComposerAction.InsertUserDisplayName) {
         _viewEvents.post(MessageComposerViewEvents.InsertUserDisplayName(action.userId))
+    }
+
+    private fun handleDownloadSlashCommand(room: Room, parsedCommand: ParsedCommand.DownloadFile) {
+        launchSlashCommandFlowSuspendable(room, parsedCommand) {
+            val file = session.fileService().downloadFile(
+                    fileName = parsedCommand.mxcUrl.substringAfterLast('/'),
+                    mimeType = null,
+                    url = parsedCommand.mxcUrl,
+                    elementToDecrypt = null,
+            )
+            // Name the saved copy after the server's Content-Disposition; without one, "file" plus
+            // saveMedia's timestamp and sniffed extension yields file_<timestamp>.<ext>.
+            val title = session.fileService().getServerFileName(parsedCommand.mxcUrl) ?: "file"
+            // Sorts into Pictures/Movies/Music/Downloads by sniffed type and posts the DL notification.
+            downloadMediaUseCase.execute(file, title = title).getOrThrow()
+            // The notification can be suppressed (no notification permission) — confirm in-app too.
+            _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.file_has_been_downloaded)))
+        }
     }
 
     private fun launchSlashCommandFlowSuspendable(room: Room, parsedCommand: ParsedCommand, block: suspend () -> Unit) {
