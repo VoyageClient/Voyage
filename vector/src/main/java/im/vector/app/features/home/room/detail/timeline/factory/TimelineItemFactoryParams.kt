@@ -31,6 +31,9 @@ data class TimelineItemFactoryParams(
     val highlightedEventId: String?
         get() = partialState.highlightedEventId
 
+    val highlightNonce: Long
+        get() = partialState.highlightNonce
+
     val rootThreadEventId: String?
         get() = partialState.rootThreadEventId
 

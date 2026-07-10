@@ -46,6 +46,15 @@ class VectorSwitchPreference : SwitchPreference {
 
     var currentHighlightAnimator: Animator? = null
 
+    // The themed ripple, not a flat transparent color: rows must keep their material tap feedback
+    // when the deep-link highlight isn't running (the highlight animation above overwrites the
+    // preference layout's own selectableItemBackground).
+    private fun restoreRippleBackground(itemView: android.view.View) {
+        val ta = itemView.context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
+        itemView.background = ta.getDrawable(0)
+        ta.recycle()
+    }
+
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         // display the title in multi-line to avoid ellipsis.
         (holder.findViewById(android.R.id.title) as? TextView)?.isSingleLine = false
@@ -70,6 +79,7 @@ class VectorSwitchPreference : SwitchPreference {
                         }
                         doOnEnd {
                             isHighlighted = false
+                            restoreRippleBackground(itemView)
                         }
                         start()
                     }
@@ -78,7 +88,7 @@ class VectorSwitchPreference : SwitchPreference {
                 start()
             }
         } else {
-            itemView.setBackgroundColor(Color.TRANSPARENT)
+            restoreRippleBackground(itemView)
         }
 
         super.onBindViewHolder(holder)

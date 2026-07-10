@@ -6,6 +6,9 @@
  */
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
@@ -35,6 +38,11 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
     @EpoxyAttribute
     var highlighted: Boolean = false
 
+    // Bumped by the view model on every jump, so re-jumping to the same event rebinds and
+    // replays the flash (a bare boolean can't change twice). See TimelineEventController.
+    @EpoxyAttribute
+    var highlightNonce: Long = 0
+
     @EpoxyAttribute
     open var leftGuideline: Int = 0
 
@@ -57,16 +65,65 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
         holder.leftGuideline.updateLayoutParams<RelativeLayout.LayoutParams> {
             this.marginStartCompat = leftGuideline
         }
-        // The highlighted_message_background selector references theme attributes (?colorPrimary,
-        // ?vctr_header_background) which don't resolve inside a drawable on pre-21, so build the
-        // highlight in code where ThemeUtils resolves them on every API.
-        holder.checkableBackground.backgroundCompat = if (highlighted) {
-            buildHighlightDrawable(holder.checkableBackground.context)
+        val eventId = getEventIds().firstOrNull()
+        val flashKey = if (highlighted) "$eventId:$highlightNonce" else null
+        if (highlighted) {
+            if (flashKey == holder.lastFlashKey) {
+                // The same flash session rebinding (live rooms rebind often): leave it be, whether
+                // still fading or already finished — cancelling would cut it to a single frame.
+                return
+            }
+            holder.lastFlashKey = flashKey
+            // A new flash supersedes a fading one from full strength; drop the old animation's
+            // listeners first so its cleanup can't clear the new flash's background.
+            holder.highlightAnimator?.removeAllListeners()
+            holder.highlightAnimator?.cancel()
+            holder.checkableBackground.alpha = 1f
+            val drawable = buildHighlightDrawable(holder.checkableBackground.context)
+            holder.checkableBackground.backgroundCompat = drawable
+            // Fade the dedicated background view, not the drawable: LayerDrawable alpha applies to
+            // every layer, so mid-fade the full-width accent layer under the cover layer would
+            // bleed through and paint the whole row accent.
+            holder.highlightAnimator = ObjectAnimator.ofFloat(holder.checkableBackground, View.ALPHA, 1f, 0f).apply {
+                duration = HIGHLIGHT_FADE_MS
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        if (holder.checkableBackground.background === drawable) {
+                            holder.checkableBackground.backgroundCompat = null
+                            holder.checkableBackground.alpha = 1f
+                        }
+                    }
+                })
+                start()
+            }
         } else {
-            null
+            holder.lastFlashKey = null
+            if (holder.highlightAnimator?.isRunning == true) {
+                // Highlight state moved on (cleared, or another event's turn); let the fade play
+                // out — its end listener clears the background.
+            } else {
+                holder.highlightAnimator = null
+                holder.checkableBackground.backgroundCompat = null
+                holder.checkableBackground.alpha = 1f
+            }
         }
     }
 
+    @CallSuper
+    override fun unbind(holder: H) {
+        holder.highlightAnimator?.removeAllListeners()
+        holder.highlightAnimator?.cancel()
+        holder.highlightAnimator = null
+        // The recycled view must come back clean; lastFlashKey stays, so re-binding the same
+        // still-highlighted event doesn't replay a flash that already played.
+        holder.checkableBackground.backgroundCompat = null
+        holder.checkableBackground.alpha = 1f
+        super.unbind(holder)
+    }
+
+    // Built in code rather than as a drawable resource: the highlighted_message_background
+    // selector's theme attributes (?colorPrimary, ?vctr_header_background) don't resolve inside a
+    // drawable on pre-21, ThemeUtils does on every API.
     private fun buildHighlightDrawable(context: Context): LayerDrawable {
         val density = context.resources.displayMetrics.density
         fun dp(value: Float) = (value * density).toInt()
@@ -94,7 +151,13 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
         }
     }
 
+    companion object {
+        private const val HIGHLIGHT_FADE_MS = 800L
+    }
+
     abstract class BaseHolder(@IdRes val stubId: Int) : VectorEpoxyHolder() {
+        var highlightAnimator: Animator? = null
+        var lastFlashKey: String? = null
         val leftGuideline by bind<View>(R.id.messageStartGuideline)
         val contentContainer by bind<View>(R.id.viewStubContainer)
         val viewStubContainer by bind<FrameLayout>(R.id.viewStubContainer)
