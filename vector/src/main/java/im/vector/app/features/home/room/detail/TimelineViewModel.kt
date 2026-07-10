@@ -62,6 +62,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -178,6 +179,7 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     companion object : MavericksViewModelFactory<TimelineViewModel, RoomDetailViewState> by hiltMavericksViewModelFactory() {
+        private const val HIGHLIGHT_TTL_MS = 1500L
         const val PAGINATION_COUNT = 50
 
         // The larger the number the faster the results, COUNT=200 for 500 thread messages its x4 faster than COUNT=50
@@ -185,6 +187,7 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     init {
+        initialState.highlightedEventId?.let { scheduleHighlightClear(it) }
         // This method will take care of a null room to update the state.
         observeRoomSummary()
         observeLocalRoomSummary()
@@ -1023,6 +1026,20 @@ private fun handleSelectStickerAttachment() {
         }
     }
 
+    private var highlightClearJob: kotlinx.coroutines.Job? = null
+
+    // The jump-to flash is momentary (BaseEventItem fades it out); drop the state soon after so
+    // later rebinds of the same item don't replay it. Cancel any pending clear first: re-jumping
+    // to the SAME event would otherwise get its fresh flash killed by the previous jump's timer
+    // (the id-equality guard can't tell the two apart).
+    private fun scheduleHighlightClear(eventId: String) {
+        highlightClearJob?.cancel()
+        highlightClearJob = viewModelScope.launch {
+            delay(HIGHLIGHT_TTL_MS)
+            setState { if (highlightedEventId == eventId) copy(highlightedEventId = null) else this }
+        }
+    }
+
     private fun handleNavigateToEvent(action: RoomDetailAction.NavigateToEvent) {
         if (timeline == null) return
         val targetEventId: String = action.eventId
@@ -1032,7 +1049,8 @@ private fun handleSelectStickerAttachment() {
             timeline.restartWithEventId(targetEventId)
         }
         if (action.highlight) {
-            setState { copy(highlightedEventId = targetEventId) }
+            setState { copy(highlightedEventId = targetEventId, highlightNonce = highlightNonce + 1) }
+            scheduleHighlightClear(targetEventId)
         }
         _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(targetEventId, action.isFirstUnreadEvent))
     }

@@ -43,6 +43,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisi
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventsGroups
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
+import im.vector.app.features.home.room.detail.timeline.item.BaseEventItem
 import im.vector.app.features.home.room.detail.timeline.item.BasedMergedItem
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem_
@@ -124,6 +125,7 @@ class TimelineEventController @Inject constructor(
     data class PartialState(
             val unreadState: UnreadState = UnreadState.Unknown,
             val highlightedEventId: String? = null,
+            val highlightNonce: Long = 0,
             val roomSummary: RoomSummary? = null,
             val rootThreadEventId: String? = null,
     ) {
@@ -131,6 +133,7 @@ class TimelineEventController @Inject constructor(
         constructor(state: RoomDetailViewState) : this(
                 unreadState = state.unreadState,
                 highlightedEventId = state.highlightedEventId,
+                highlightNonce = state.highlightNonce,
                 roomSummary = state.asyncRoomSummary(),
                 rootThreadEventId = state.rootThreadEventId,
         )
@@ -783,6 +786,8 @@ class TimelineEventController @Inject constructor(
             // areItemsTheSame in TimelineEventDiffUtilCallback) instead of flashing the bubble out.
             it.id(event.timelineStableId())
             it.setOnVisibilityStateChanged(TimelineEventVisibilityStateChangedListener(callback, event))
+            // Central spot every event model passes through — spares each factory from threading it.
+            if (params.isHighlighted) (it as? BaseEventItem<*>)?.highlightNonce = params.highlightNonce
         }
         val isCacheable = (eventModel !is ItemWithEvents || eventModel.isCacheable()) && !params.isHighlighted
         return CacheItemData(

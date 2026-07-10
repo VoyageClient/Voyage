@@ -48,6 +48,7 @@ data class RoomDetailViewState(
         val incrementalSyncRequestState: SyncRequestState.IncrementalSyncRequestState? = null,
         val pushCounter: Int = 0,
         val highlightedEventId: String? = null,
+        val highlightNonce: Long = 0,
         val unreadState: UnreadState = UnreadState.Unknown,
         val canShowJumpToReadMarker: Boolean = true,
         val changeMembershipState: ChangeMembershipState = ChangeMembershipState.Unknown,

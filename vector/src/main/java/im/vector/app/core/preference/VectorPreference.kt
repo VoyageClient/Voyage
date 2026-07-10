@@ -77,6 +77,15 @@ open class VectorPreference : Preference {
 
     var currentHighlightAnimator: Animator? = null
 
+    // The themed ripple, not a flat transparent color: rows must keep their tap feedback when the
+    // deep-link highlight isn't running (the preference layout's own background gets overwritten by
+    // the highlight animation above).
+    private fun restoreRippleBackground(itemView: android.view.View) {
+        val ta = itemView.context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackground))
+        itemView.background = ta.getDrawable(0)
+        ta.recycle()
+    }
+
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         val itemView = holder.itemView
         addClickListeners(itemView)
@@ -110,6 +119,7 @@ open class VectorPreference : Preference {
                             }
                             doOnEnd {
                                 isHighlighted = false
+                                restoreRippleBackground(itemView)
                             }
                             start()
                         }
@@ -118,7 +128,7 @@ open class VectorPreference : Preference {
                     start()
                 }
             } else {
-                itemView.setBackgroundColor(Color.TRANSPARENT)
+                restoreRippleBackground(itemView)
             }
         } catch (e: Exception) {
             Timber.e(e, "onBindView")
