@@ -52,7 +52,7 @@ class AutocompleteEmojiController @Inject constructor(
                             autocompleteEmoteItem {
                                 id("emote_${item.image.shortcode}_$index")
                                 image(item.image)
-                                resolvedUrl(contentUrlResolver?.resolveThumbnail(item.image.mxcUrl, 96, 96, org.matrix.android.sdk.api.session.content.ContentUrlResolver.ThumbnailMethod.SCALE))
+                                resolvedUrl(contentUrlResolver?.resolveFullSize(item.image.mxcUrl))
                                 onClickListener { host.listener?.onItemClick(item) }
                             }
                         }

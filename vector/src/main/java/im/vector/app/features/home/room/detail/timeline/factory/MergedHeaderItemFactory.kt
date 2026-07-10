@@ -305,6 +305,10 @@ class MergedHeaderItemFactory @Inject constructor(
                         avatarRenderer = avatarRenderer,
                         onCollapsedStateChanged = {
                             mergeItemCollapseStates[event.localId] = it
+                            // Update the hidden-set now, not on the next buildSummaryItem: member positions
+                            // build before the (older) run-start in the model pass, so a stale set leaves
+                            // their invisible collapsed placeholders in place and the expanded run is empty.
+                            if (it) collapsedEventIds.addAll(mergedEventIds) else collapsedEventIds.removeAll(mergedEventIds)
                             collapseGeneration++
                             requestModelBuild()
                         }
@@ -396,6 +400,8 @@ class MergedHeaderItemFactory @Inject constructor(
                     avatarRenderer = avatarRenderer,
                     onCollapsedStateChanged = {
                         mergeItemCollapseStates[event.localId] = it
+                        // Same eager update as the similar-events summary — see there.
+                        if (it) collapsedEventIds.addAll(mergedEventIds) else collapsedEventIds.removeAll(mergedEventIds)
                         collapseGeneration++
                         requestModelBuild()
                     },

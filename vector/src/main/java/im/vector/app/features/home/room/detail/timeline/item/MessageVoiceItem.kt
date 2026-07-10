@@ -30,6 +30,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
+import io.noties.markwon.MarkwonPlugin
 import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
@@ -76,6 +77,12 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMarkwonPlugins: (List<MarkwonPlugin>)? = null
+
+    @EpoxyAttribute
+    var captionUseBigFont: Boolean = false
+
     private var playbackTrackerListener: AudioMessagePlaybackTracker.Listener? = null
 
     override fun bind(holder: Holder) {
@@ -106,6 +113,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
                 bindingOptions = captionBindingOptions,
                 movementMethod = captionMovementMethod,
                 itemLongClickListener = attributes.itemLongClickListener,
+                markwonPlugins = captionMarkwonPlugins,
+                useBigFont = captionUseBigFont,
         )
     }
 

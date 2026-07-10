@@ -29,7 +29,6 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.ReferencesAggregatedContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconLocationDataContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollResponseContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageRelationContent
@@ -158,18 +157,11 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
                     }
                 }
                 EventType.REDACTION -> {
+                    // Redaction of an m.replace edit is handled in RedactionEventProcessor.prune, before
+                    // the pruning wipes the relation out of the content (processor order is unspecified).
                     val eventToPrune = event.redacts?.let { stores.event.getByEventId(it) } ?: return
-                    when (eventToPrune.type) {
-                        EventType.MESSAGE -> {
-                            Timber.d("REDACTION for message ${eventToPrune.eventId}")
-                            val contentModel = ContentMapper.map(eventToPrune.content)?.toModel<MessageContent>()
-                            if (RelationType.REPLACE == contentModel?.relatesTo?.type && contentModel.relatesTo?.eventId != null) {
-                                handleRedactionOfReplace(stores, eventToPrune.eventId, contentModel.relatesTo!!.eventId!!)
-                            }
-                        }
-                        EventType.REACTION -> {
-                            handleReactionRedact(stores, eventToPrune)
-                        }
+                    if (eventToPrune.type == EventType.REACTION) {
+                        handleReactionRedact(stores, eventToPrune)
                     }
                 }
                 in EventType.POLL_START.values -> {
@@ -427,30 +419,6 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         // Local echoes are always our own; otherwise look up the sender of each known source event.
         sum.addedByMe = sum.sourceLocalEcho.isNotEmpty() ||
                 sum.sourceEvents.any { stores.event.getByEventId(it)?.sender == userId }
-    }
-
-    private fun handleRedactionOfReplace(
-            stores: SessionStores,
-            redactedEventId: String,
-            relatedEventId: String
-    ) {
-        Timber.d("Handle redaction of m.replace")
-        val eventSummary = stores.annotations.get(relatedEventId)
-        if (eventSummary == null) {
-            Timber.w("Redaction of a replace targeting an unknown event $relatedEventId")
-            return
-        }
-        val editSummary = eventSummary.editSummary
-        val sourceToDiscard = editSummary?.editions?.firstOrNull { it.eventId == redactedEventId }
-        if (sourceToDiscard == null) {
-            Timber.w("Redaction of a replace that was not known in aggregation")
-            return
-        }
-        editSummary.editions.remove(sourceToDiscard)
-        // Touch event_annotations_summary so the timeline's annotation-change flow (which only watches that
-        // table, not the editions table) fires — same reason as handleReactionRedact.
-        stores.annotations.upsertSummary(relatedEventId, eventSummary.roomId)
-        stores.annotations.replaceEditions(relatedEventId, editSummary)
     }
 
     private fun handleReactionRedact(stores: SessionStores, eventToPrune: EventEntity) {

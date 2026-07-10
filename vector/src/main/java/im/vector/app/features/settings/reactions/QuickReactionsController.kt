@@ -16,7 +16,6 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericButtonItem
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
-import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
 
 class QuickReactionsController @Inject constructor(
@@ -51,7 +50,7 @@ class QuickReactionsController @Inject constructor(
                 reaction(reaction)
                 fontProvider(host.fontProvider)
                 label(host.labelFor(reaction))
-                resolvedUrl(reaction.takeIf { it.isMxcUrl() }?.let { contentUrlResolver?.resolveThumbnail(it, 64, 64, ContentUrlResolver.ThumbnailMethod.SCALE) })
+                resolvedUrl(reaction.takeIf { it.isMxcUrl() }?.let { contentUrlResolver?.resolveFullSize(it) })
                 onRemoveClick { host.listener?.onRemoveReaction(reaction) }
             }
         }

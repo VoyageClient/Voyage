@@ -30,7 +30,6 @@ import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.imagepack.ResolvedImage
 import im.vector.app.features.imagepack.ResolvedImagePack
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 
@@ -112,7 +111,7 @@ class StickerPickerBottomSheet :
             sections += EmojiPickerSection(
                     name = controller.packTitle(pack),
                     tabGlyph = null,
-                    tabImageUrl = contentUrlResolver?.resolveThumbnail(tabMxc, 96, 96, ContentUrlResolver.ThumbnailMethod.SCALE),
+                    tabImageUrl = contentUrlResolver?.resolveFullSize(tabMxc),
                     items = emptyList(),
             )
             sectionHeaderPositions += position

@@ -59,6 +59,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
         @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
         @SessionDatabase private val sessionDbDispatcher: kotlinx.coroutines.CoroutineDispatcher,
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
+        private val timelineRedactionSignal: TimelineRedactionSignal,
 ) : TimelineService {
 
     @AssistedFactory
@@ -83,6 +84,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 eventDecryptor = eventDecryptorProvider.get(),
                 timelineInput = timelineInput,
                 clock = clock,
+                redactionSignal = timelineRedactionSignal,
         )
     }
 

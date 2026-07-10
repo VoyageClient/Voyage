@@ -52,7 +52,7 @@ class EmojiPickerSectionFactory @Inject constructor(
                     name = pack.displayName?.takeIf { it.isNotBlank() }
                             ?: if (pack.source == ImagePackSource.ACCOUNT) stringProvider.getString(CommonStrings.image_pack_personal_pack) else "",
                     tabGlyph = null,
-                    tabImageUrl = contentUrlResolver?.thumb(tabMxc),
+                    tabImageUrl = contentUrlResolver?.fullSize(tabMxc),
                     items = emotes.map { it.toItem(contentUrlResolver) },
             )
         }
@@ -150,8 +150,6 @@ class EmojiPickerSectionFactory @Inject constructor(
                     resolvedUrl = contentUrlResolver?.fullSize(mxcUrl),
                     contentDescription = body ?: shortcode,
             )
-
-    private fun ContentUrlResolver.thumb(mxc: String) = resolveThumbnail(mxc, 96, 96, ContentUrlResolver.ThumbnailMethod.SCALE)
 
     // Full (original) file so animated custom emotes actually animate; the grid downsamples it to cell size.
     private fun ContentUrlResolver.fullSize(mxc: String) = resolveFullSize(mxc)

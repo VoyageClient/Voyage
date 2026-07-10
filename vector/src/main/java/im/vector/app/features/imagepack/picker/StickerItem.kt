@@ -21,19 +21,16 @@ import im.vector.app.core.glide.GlideApp
 abstract class StickerItem : VectorEpoxyModel<StickerItem.Holder>(R.layout.item_sticker) {
 
     @EpoxyAttribute var resolvedUrl: String? = null
-    @EpoxyAttribute var thumbnailUrl: String? = null
     @EpoxyAttribute var contentDescription: String? = null
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onClickListener: ClickListener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.image.contentDescription = contentDescription
-        // Show the small static thumbnail right away (fast), then upgrade to the full file (which animates).
         // Downsample to the cell size so animated stickers play without the full-resolution decode cost.
         GlideApp.with(holder.image)
                 .load(resolvedUrl)
                 .override(128, 128)
-                .thumbnail(GlideApp.with(holder.image).load(thumbnailUrl).override(128, 128))
                 .into(holder.image)
         holder.image.onClick(onClickListener)
     }

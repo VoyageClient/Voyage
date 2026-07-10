@@ -13,7 +13,6 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
 
 class ImagePackListController @Inject constructor(
@@ -58,7 +57,7 @@ class ImagePackListController @Inject constructor(
                 id(key)
                 title(title)
                 subtitle(host.subtitleFor(pack))
-                resolvedAvatarUrl((pack.avatarUrl ?: pack.firstImageUrl)?.let { contentUrlResolver?.resolveThumbnail(it, 64, 64, ContentUrlResolver.ThumbnailMethod.SCALE) })
+                resolvedAvatarUrl((pack.avatarUrl ?: pack.firstImageUrl)?.let { contentUrlResolver?.resolveFullSize(it) })
                 showGlobalSwitch(pack.canToggleGlobal)
                 globalEnabled(pack.isGloballyEnabled)
                 onGlobalToggled { enabled -> host.listener?.onGlobalToggled(pack, enabled) }

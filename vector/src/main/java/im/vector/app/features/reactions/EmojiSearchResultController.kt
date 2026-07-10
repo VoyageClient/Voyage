@@ -17,7 +17,6 @@ import im.vector.app.features.autocomplete.emoji.autocompleteEmoteItem
 import im.vector.app.features.reactions.data.EmojiItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
 
 class EmojiSearchResultController @Inject constructor(
@@ -65,7 +64,7 @@ class EmojiSearchResultController @Inject constructor(
                 autocompleteEmoteItem {
                     id("emote_reaction_${image.shortcode}_${image.mxcUrl}")
                     image(image)
-                    resolvedUrl(contentUrlResolver?.resolveThumbnail(image.mxcUrl, 96, 96, ContentUrlResolver.ThumbnailMethod.SCALE))
+                    resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
                     onClickListener { host.listener?.onReactionSelected(image.mxcUrl) }
                 }
             }

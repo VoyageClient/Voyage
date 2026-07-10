@@ -115,6 +115,9 @@ internal class TimelineEventSqlStore(
 
     fun clearSenderInfoForMembershipEvent(membershipEventId: String) = queries.clearSenderInfoByMembershipEvent(membershipEventId)
 
+    /** Fire timeline_event query listeners for [eventId]'s row without changing it — see touchByEventId. */
+    fun touch(eventId: String) = queries.touchByEventId(eventId)
+
     fun deleteById(id: Long) = queries.deleteById(id)
 
     fun deleteByChunk(chunkId: Long) = queries.deleteByChunk(chunkId)

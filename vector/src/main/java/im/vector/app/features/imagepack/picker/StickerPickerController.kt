@@ -16,7 +16,6 @@ import im.vector.app.features.imagepack.ResolvedImage
 import im.vector.app.features.imagepack.ResolvedImagePack
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
 
 class StickerPickerController @Inject constructor(
@@ -66,9 +65,8 @@ class StickerPickerController @Inject constructor(
             frequent.forEach { image ->
                 stickerItem {
                     id("frequent_${image.mxcUrl}")
-                    // Full (original) file animates; the static thumbnail shows instantly while it loads.
+                    // Full (original) file: it animates, and server thumbnails flatten transparency.
                     resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
-                    thumbnailUrl(contentUrlResolver?.resolveThumbnail(image.mxcUrl, 128, 128, ContentUrlResolver.ThumbnailMethod.SCALE))
                     contentDescription(image.body ?: image.shortcode)
                     onClickListener { host.listener?.onStickerClicked(image) }
                 }
@@ -85,9 +83,8 @@ class StickerPickerController @Inject constructor(
             pack.images.forEach { image ->
                 stickerItem {
                     id("${packIndex}_${image.shortcode}")
-                    // Full (original) file animates; the static thumbnail shows instantly while it loads.
+                    // Full (original) file: it animates, and server thumbnails flatten transparency.
                     resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
-                    thumbnailUrl(contentUrlResolver?.resolveThumbnail(image.mxcUrl, 128, 128, ContentUrlResolver.ThumbnailMethod.SCALE))
                     contentDescription(image.body ?: image.shortcode)
                     onClickListener { host.listener?.onStickerClicked(image) }
                 }
