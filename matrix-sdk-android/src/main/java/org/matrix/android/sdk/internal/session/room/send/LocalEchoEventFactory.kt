@@ -594,6 +594,15 @@ internal class LocalEchoEventFactory @Inject constructor(
                     mimeType = it.mimeType
             )
         }
+        // The decoded frame is ground truth for display size: the metadata keys report coded
+        // dimensions, which lie for anamorphic files (SAR != 1:1, e.g. coded 2880x2160 displaying
+        // as 1620x2160) and files with bogus headers. When the frame's aspect disagrees with the
+        // metadata's, send the frame's dimensions.
+        val frameW = thumbnailInfo?.width ?: 0
+        val frameH = thumbnailInfo?.height ?: 0
+        val aspectDisagrees = frameW > 0 && frameH > 0 && width > 0 && height > 0 &&
+                kotlin.math.abs(width.toFloat() / height - frameW.toFloat() / frameH) > 0.01f * (frameW.toFloat() / frameH)
+        val (finalWidth, finalHeight) = if (aspectDisagrees) frameW to frameH else width to height
         val body = buildMediaBody(attachment, "video", captionText, captionFormattedText, autoMarkdown)
         val content = MessageVideoContent(
                 msgType = MessageType.MSGTYPE_VIDEO,
@@ -603,8 +612,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                 formattedBody = body.formattedBody,
                 videoInfo = VideoInfo(
                         mimeType = attachment.getSafeMimeType(),
-                        width = width,
-                        height = height,
+                        width = finalWidth,
+                        height = finalHeight,
                         size = attachment.size,
                         duration = attachment.duration?.toInt() ?: 0,
                         // Glide will be able to use the local path and extract a thumbnail.

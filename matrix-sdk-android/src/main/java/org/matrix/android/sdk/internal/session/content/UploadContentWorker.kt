@@ -199,6 +199,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
                 } else {
                     fileToUpload = workingFile()
+                    if (attachment.type == ContentAttachmentData.Type.VIDEO) {
+                        // The echo's videoInfo was measured against the decoded frame (display
+                        // orientation); the picker metadata can be orientation-blind, so don't
+                        // overwrite the echo's dims when sending the original file.
+                        newAttachmentAttributes = newAttachmentAttributes.copy(newWidth = null, newHeight = null)
+                    }
                     val storedWaveform = attachment.waveform
                     val needsWaveform = attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE &&
                             (storedWaveform.isNullOrEmpty() || storedWaveform.all { it == 0 })

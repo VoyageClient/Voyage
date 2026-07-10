@@ -121,12 +121,16 @@ fun MultiPickerImageType.toContentAttachmentData(): ContentAttachmentData {
 
 fun MultiPickerVideoType.toContentAttachmentData(): ContentAttachmentData {
     if (mimeType == null) Timber.w("No mimeType")
+    // orientation is the mp4 rotation hint (degrees) and width/height the unrotated track dims;
+    // a sideways video must swap them so consumers of the attachment (e.g. the compressed-send
+    // path's fallback attributes) see display dims.
+    val sideways = orientation == 90 || orientation == 270
     return ContentAttachmentData(
             mimeType = mimeType,
             type = ContentAttachmentData.Type.VIDEO,
             size = size,
-            height = height.toLong(),
-            width = width.toLong(),
+            height = (if (sideways) width else height).toLong(),
+            width = (if (sideways) height else width).toLong(),
             duration = duration,
             name = displayName,
             queryUri = contentUri
