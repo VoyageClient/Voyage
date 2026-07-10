@@ -13,7 +13,6 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.epoxy.loadingItem
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
 
 class ImagePackEditController @Inject constructor(
@@ -51,7 +50,7 @@ class ImagePackEditController @Inject constructor(
                 image(image)
                 editable(host.editable)
                 showUsageToggles(host.showUsageToggles)
-                resolvedUrl(contentUrlResolver?.resolveThumbnail(image.mxcUrl, 96, 96, ContentUrlResolver.ThumbnailMethod.SCALE))
+                resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
                 onDeleteClick { host.listener?.onDeleteImage(image) }
                 onEdited { host.listener?.onImageEdited() }
             }

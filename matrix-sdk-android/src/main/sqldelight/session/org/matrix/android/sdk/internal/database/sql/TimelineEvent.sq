@@ -125,6 +125,11 @@ clearSenderInfoByMembershipEvent:
 UPDATE timeline_event SET sender_name = NULL, is_unique_display_name = 0, sender_avatar = NULL
 WHERE sender_membership_event_id = ?;
 
+-- No-op UPDATE whose only purpose is to fire this table's query listeners: the timeline's chunk flow
+-- watches timeline_event, not event, so content-only changes (e.g. redaction pruning) need this nudge.
+touchByEventId:
+UPDATE timeline_event SET local_id = local_id WHERE event_id = ?;
+
 -- root-thread timeline events for a room (live thread list); caller sorts by latest message ts
 selectRootThreadsForRoom:
 SELECT timeline_event.* FROM timeline_event

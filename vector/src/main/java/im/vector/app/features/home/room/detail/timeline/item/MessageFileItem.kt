@@ -27,6 +27,7 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
+import io.noties.markwon.MarkwonPlugin
 
 @EpoxyModelClass
 abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
@@ -61,6 +62,12 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMarkwonPlugins: (List<MarkwonPlugin>)? = null
+
+    @EpoxyAttribute
+    var captionUseBigFont: Boolean = false
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -110,6 +117,8 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
                 bindingOptions = captionBindingOptions,
                 movementMethod = captionMovementMethod,
                 itemLongClickListener = attributes.itemLongClickListener,
+                markwonPlugins = captionMarkwonPlugins,
+                useBigFont = captionUseBigFont,
         )
     }
 

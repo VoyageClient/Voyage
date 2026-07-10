@@ -242,6 +242,11 @@ class MessageInformationDataFactory @Inject constructor(
             // we don't display e2e decoration if event not synced back
             return E2EDecoration.NONE
         }
+        // Redaction wiped the ciphertext, so the (stale) decryption result can't be re-attested and a
+        // "Message deleted" placeholder would permanently carry an authenticity warning.
+        if (event.isRedacted()) {
+            return E2EDecoration.NONE
+        }
 
         return when (event.mxDecryptionResult?.verificationState) {
             MessageVerificationState.VERIFIED -> E2EDecoration.NONE

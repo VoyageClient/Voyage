@@ -175,9 +175,7 @@ class ImagePackEditFragment :
         // When no avatar is set, fall back to the pack's first image — pickers auto-use it as the avatar.
         val explicit = packAvatarUrl != null
         val mxc = packAvatarUrl ?: images.firstOrNull()?.mxcUrl
-        val resolved = mxc?.let {
-            contentUrlResolver?.resolveThumbnail(it, 160, 160, org.matrix.android.sdk.api.session.content.ContentUrlResolver.ThumbnailMethod.SCALE)
-        }
+        val resolved = mxc?.let { contentUrlResolver?.resolveFullSize(it) }
         if (resolved != null) {
             androidx.core.widget.ImageViewCompat.setImageTintList(views.imagePackAvatarImage, null)
             // RoundedCornerImageView only clips pre-Lollipop, so round the bitmap itself (works on all APIs).

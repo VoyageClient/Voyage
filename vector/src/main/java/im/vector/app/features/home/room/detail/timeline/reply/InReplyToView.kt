@@ -34,7 +34,6 @@ import android.view.ViewOutlineProvider
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
-import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.databinding.ViewInReplyToBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
@@ -224,8 +223,8 @@ class InReplyToView @JvmOverloads constructor(
             if (pgpPlain != null) {
                 renderPgpReplyText(pgpPlain)
             } else when (val content = state.event.getLastMessageContent()) {
-                is MessageImageInfoContent -> renderImageThumbnailContent(content, state.event, retriever)
-                is MessageVideoContent -> renderVideoThumbnailContent(content, state.event, retriever)
+                is MessageImageInfoContent -> renderImageThumbnailContent(content, state.event, retriever, coroutineScope)
+                is MessageVideoContent -> renderVideoThumbnailContent(content, state.event, retriever, coroutineScope)
                 // Files / voice / audio render as a non-interactive pill mirroring the timeline.
                 is MessageFileContent -> renderAttachmentPill(R.drawable.ic_paperclip, content.getFileName())
                 is MessageAudioContent -> renderAudioContent(content)
@@ -337,6 +336,7 @@ class InReplyToView @JvmOverloads constructor(
             content: MessageImageInfoContent,
             event: TimelineEvent,
             retriever: ReplyPreviewRetriever,
+            coroutineScope: CoroutineScope,
     ) {
         val data = ImageContentRenderer.Data(
                 eventId = event.eventId,
@@ -352,13 +352,14 @@ class InReplyToView @JvmOverloads constructor(
                 blurHash = content.info?.blurHash,
         )
         val mode = ImageContentRenderer.previewMode(content is MessageStickerContent, content.mimeType)
-        renderThumbnailContent(data, content.getCaption(), event, retriever, mode)
+        renderThumbnailContent(data, content.getCaption(), event, retriever, coroutineScope, mode)
     }
 
     private fun renderVideoThumbnailContent(
             content: MessageVideoContent,
             event: TimelineEvent,
             retriever: ReplyPreviewRetriever,
+            coroutineScope: CoroutineScope,
     ) {
         val thumbnailData = ImageContentRenderer.Data(
                 eventId = event.eventId,
@@ -373,7 +374,7 @@ class InReplyToView @JvmOverloads constructor(
                 allowNonMxcUrls = false,
                 blurHash = content.videoInfo?.blurHash,
         )
-        renderThumbnailContent(thumbnailData, content.getCaption(), event, retriever)
+        renderThumbnailContent(thumbnailData, content.getCaption(), event, retriever, coroutineScope)
     }
 
     private fun renderThumbnailContent(
@@ -381,6 +382,7 @@ class InReplyToView @JvmOverloads constructor(
             caption: String?,
             event: TimelineEvent,
             retriever: ReplyPreviewRetriever,
+            coroutineScope: CoroutineScope,
             mode: ImageContentRenderer.Mode = ImageContentRenderer.Mode.THUMBNAIL,
     ) {
         views.replyThumbnailView.isVisible = true
@@ -399,8 +401,27 @@ class InReplyToView @JvmOverloads constructor(
                     mode,
                     views.replyThumbnailView
             )
-            views.replyTextView.setTextOrHide(caption)
+            if (caption == null) {
+                views.replyTextView.isVisible = false
+            } else {
+                renderCaptionText(caption, event, retriever, coroutineScope)
+            }
         }
+    }
+
+    // Captions carry the same pills / custom emoticons as text bodies; render through the retriever's
+    // cached pipeline and bind the spans — the raw string would show emotes as literal :shortcode:.
+    private fun renderCaptionText(caption: String, event: TimelineEvent, retriever: ReplyPreviewRetriever, coroutineScope: CoroutineScope) {
+        val text = retriever.renderedReplyBody(event)?.text ?: caption
+        views.replyTextView.isVisible = true
+        views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        val markwonPlugins = retriever.htmlRenderer.plugins
+        text.findPillsAndProcess(coroutineScope) { it.bind(views.replyTextView) }
+        if (text is Spanned) {
+            markwonPlugins.forEach { plugin -> plugin.beforeSetText(views.replyTextView, text) }
+        }
+        views.replyTextView.text = text.withEmojis()
+        markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
     }
 
     private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) {

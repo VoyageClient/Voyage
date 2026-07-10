@@ -19,14 +19,20 @@ package org.matrix.android.sdk.internal.session.room.prune
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.EventMapper
+import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
+import org.matrix.android.sdk.internal.session.room.timeline.TimelineRedactionSignal
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import timber.log.Timber
 import javax.inject.Inject
@@ -38,6 +44,8 @@ import javax.inject.Inject
 internal class RedactionEventProcessor @Inject constructor(
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
         private val eventIndexer: EventIndexer,
+        private val previewInvalidation: RoomSummaryPreviewInvalidation,
+        private val timelineRedactionSignal: TimelineRedactionSignal,
 ) : EventInsertLiveProcessor {
 
     override fun shouldProcess(eventId: String, eventType: String, insertType: EventInsertType): Boolean {
@@ -70,6 +78,8 @@ internal class RedactionEventProcessor @Inject constructor(
 
         val pruneDbId = stores.event.getDbId(roomId, redactionEvent.redacts) ?: return
         val eventToPrune = stores.event.getById(pruneDbId) ?: return
+
+        discardEditionOfRedactedReplace(stores, eventToPrune)
 
         val typeToPrune = eventToPrune.type
         val stateKey = eventToPrune.stateKey
@@ -123,6 +133,40 @@ internal class RedactionEventProcessor @Inject constructor(
         }
         if (typeToPrune == EventType.STATE_ROOM_MEMBER && stateKey != null) {
             stores.timelineEvent.clearSenderInfoForMembershipEvent(eventToPrune.eventId)
+        }
+        // The prune only wrote the event table, which the timeline's chunk flow doesn't watch — an open
+        // room would keep showing the old content (the redaction's own chunk insert races the prune).
+        // Touch the target's timeline row so the rebuild fires after the pruned content is committed,
+        // and bump the redaction stamp so the rebuild also drops cached static-chunk mappings.
+        timelineRedactionSignal.onRedaction(roomId)
+        stores.timelineEvent.touch(eventToPrune.eventId)
+    }
+
+    /**
+     * If the redacted event was an m.replace edit, drop it from the target event's edit aggregation
+     * and refresh any room-list preview rendering the target with that edit applied. Must run before
+     * the content is pruned (that destroys `m.relates_to`), which is also why it lives here and not in
+     * the relations aggregation processor: processor order is unspecified, and the direct prune()
+     * callers (mass redaction) never go through that processor at all.
+     */
+    private fun discardEditionOfRedactedReplace(stores: SessionStores, eventToPrune: EventEntity) {
+        val relation = eventToPrune.asDomain().getRelationContent() ?: return
+        if (relation.type != RelationType.REPLACE) return
+        val targetEventId = relation.eventId ?: return
+        val summary = stores.annotations.get(targetEventId) ?: return
+        val editSummary = summary.editSummary ?: return
+        val discarded = editSummary.editions.firstOrNull { it.eventId == eventToPrune.eventId } ?: return
+        editSummary.editions.remove(discarded)
+        // Touch event_annotations_summary so the timeline's annotation-change flow fires (it only
+        // watches that table, not the editions table).
+        stores.annotations.upsertSummary(targetEventId, summary.roomId)
+        stores.annotations.replaceEditions(targetEventId, editSummary)
+        // The reverted text must also reach the room list: this write leaves the preview's row (the
+        // target event) untouched, so evict its memoized mapping and touch the room — same as an
+        // incoming edit does in EventRelationsAggregationProcessor.handleReplace.
+        stores.roomSummary.roomIdsWithPreviewEvent(listOf(targetEventId)).forEach { previewRoomId ->
+            previewInvalidation.onPreviewChanged(previewRoomId)
+            stores.roomSummary.touch(previewRoomId)
         }
     }
 

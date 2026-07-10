@@ -368,12 +368,12 @@ class MessageItemFactory @Inject constructor(
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
         val duration = messageContent.audioInfo?.duration ?: 0
         val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
-        val (captionEpoxy, captionBindingOptions) = renderCaption(
+        val renderedCaption = renderCaption(
                 body = messageContent.getCaption(isReply).orEmpty(),
                 formattedBody = messageContent.getFormattedCaption(isReply),
                 informationData = informationData,
                 callback = params.callback,
-        ) ?: (null to null)
+        )
 
         return MessageAudioItem_()
                 .attributes(attributes)
@@ -389,9 +389,12 @@ class MessageItemFactory @Inject constructor(
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
                 .highlighted(highlight)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
-                .caption(captionEpoxy)
-                .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(params.callback))    }
+                .caption(renderedCaption?.epoxy)
+                .captionBindingOptions(renderedCaption?.bindingOptions)
+                .captionUseBigFont(renderedCaption?.useBigFont == true)
+                .captionMarkwonPlugins(htmlRenderer.get().plugins)
+                .captionMovementMethod(createLinkMovementMethod(params.callback))
+    }
 
     private fun getAudioFileUrl(
             messageContent: MessageAudioContent,
@@ -424,12 +427,12 @@ class MessageItemFactory @Inject constructor(
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
         val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
-        val (captionEpoxy, captionBindingOptions) = renderCaption(
+        val renderedCaption = renderCaption(
                 body = messageContent.getCaption(isReply).orEmpty(),
                 formattedBody = messageContent.getFormattedCaption(isReply),
                 informationData = informationData,
                 callback = params.callback,
-        ) ?: (null to null)
+        )
 
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
             override fun onWaveformTouchedUp(percentage: Float) {
@@ -456,9 +459,12 @@ class MessageItemFactory @Inject constructor(
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
                 .highlighted(highlight)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
-                .caption(captionEpoxy)
-                .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(params.callback))    }
+                .caption(renderedCaption?.epoxy)
+                .captionBindingOptions(renderedCaption?.bindingOptions)
+                .captionUseBigFont(renderedCaption?.useBigFont == true)
+                .captionMarkwonPlugins(htmlRenderer.get().plugins)
+                .captionMovementMethod(createLinkMovementMethod(params.callback))
+    }
 
     private fun buildVerificationRequestMessageItem(
             messageContent: MessageVerificationRequestContent,
@@ -512,12 +518,12 @@ class MessageItemFactory @Inject constructor(
     ): MessageFileItem {
         val mxcUrl = messageContent.getFileUrl() ?: ""
         val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
-        val (captionEpoxy, captionBindingOptions) = renderCaption(
+        val renderedCaption = renderCaption(
                 body = messageContent.getCaption(isReply).orEmpty(),
                 formattedBody = messageContent.getFormattedCaption(isReply),
                 informationData = informationData,
                 callback = callback,
-        ) ?: (null to null)
+        )
         return MessageFileItem_()
                 .attributes(attributes)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -529,9 +535,12 @@ class MessageItemFactory @Inject constructor(
                 .highlighted(highlight)
                 .filename(messageContent.getFileName())
                 .iconRes(R.drawable.ic_paperclip)
-                .caption(captionEpoxy)
-                .captionBindingOptions(captionBindingOptions)
-                .captionMovementMethod(createLinkMovementMethod(callback))    }
+                .caption(renderedCaption?.epoxy)
+                .captionBindingOptions(renderedCaption?.bindingOptions)
+                .captionUseBigFont(renderedCaption?.useBigFont == true)
+                .captionMarkwonPlugins(htmlRenderer.get().plugins)
+                .captionMovementMethod(createLinkMovementMethod(callback))
+    }
 
     private fun buildAudioContent(
             params: TimelineItemFactoryParams,
@@ -620,14 +629,14 @@ class MessageItemFactory @Inject constructor(
 
         val attachmentContent = messageContent as? MessageWithAttachmentContent
         val isReply = attachmentContent?.relatesTo?.inReplyTo?.eventId != null
-        val (captionEpoxy, captionBindingOptions) = attachmentContent?.let { mc ->
+        val renderedCaption = attachmentContent?.let { mc ->
             renderCaption(
                     body = mc.getCaption(isReply).orEmpty(),
                     formattedBody = mc.getFormattedCaption(isReply),
                     informationData = informationData,
                     callback = callback,
             )
-        } ?: (null to null)
+        }
 
         val hideMedia = shouldHideMedia(informationData)
 
@@ -642,8 +651,10 @@ class MessageItemFactory @Inject constructor(
                 .playable(playable)
                 .highlighted(highlight)
                 .mediaData(data)
-                .caption(captionEpoxy)
-                .captionBindingOptions(captionBindingOptions)
+                .caption(renderedCaption?.epoxy)
+                .captionBindingOptions(renderedCaption?.bindingOptions)
+                .captionUseBigFont(renderedCaption?.useBigFont == true)
+                .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(callback))
                 .apply {
                     // A still-sending event may have no entry in the media viewer's list yet,
@@ -694,12 +705,12 @@ class MessageItemFactory @Inject constructor(
         )
 
         val isReply = messageContent.relatesTo?.inReplyTo?.eventId != null
-        val (captionEpoxy, captionBindingOptions) = renderCaption(
+        val renderedCaption = renderCaption(
                 body = messageContent.getCaption(isReply).orEmpty(),
                 formattedBody = messageContent.getFormattedCaption(isReply),
                 informationData = informationData,
                 callback = callback,
-        ) ?: (null to null)
+        )
 
         return MessageImageVideoItem_()
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -712,8 +723,10 @@ class MessageItemFactory @Inject constructor(
                 .playable(true)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)
-                .caption(captionEpoxy)
-                .captionBindingOptions(captionBindingOptions)
+                .caption(renderedCaption?.epoxy)
+                .captionBindingOptions(renderedCaption?.bindingOptions)
+                .captionUseBigFont(renderedCaption?.useBigFont == true)
+                .captionMarkwonPlugins(htmlRenderer.get().plugins)
                 .captionMovementMethod(createLinkMovementMethod(callback))
                 .apply {
                     if (!informationData.sendState.isSending()) {
@@ -853,21 +866,26 @@ class MessageItemFactory @Inject constructor(
         return if (start == 0 && end == length) this else subSequence(start, end)
     }
 
+    private data class RenderedCaption(
+            val epoxy: EpoxyCharSequence,
+            val bindingOptions: BindingOptions,
+            val useBigFont: Boolean,
+    )
+
     /**
-     * Renders an optional user-typed caption attached to a media event (MSC2530). Returns
-     * `(epoxyCharSequence, bindingOptions)` ready to feed to the media Epoxy item's
-     * `caption(...)` / `captionBindingOptions(...)` attributes — or `null` when there's no
-     * caption to render.
+     * Renders an optional user-typed caption attached to a media event (MSC2530) into the values
+     * for the media Epoxy item's caption attributes — or `null` when there's no caption to render.
      *
      * Uses the same Markwon HTML / textRenderer / linkify / annotateWithEdited pipeline as
-     * regular text messages so pills, links, edits and emoji all work identically.
+     * regular text messages so pills, links, edits, emoji and the big emoji-only rendering all
+     * work identically.
      */
     private fun renderCaption(
             body: String,
             formattedBody: String?,
             informationData: MessageInformationData,
             callback: TimelineEventController.Callback?,
-    ): Pair<EpoxyCharSequence, BindingOptions>? {
+    ): RenderedCaption? {
         if (body.isEmpty()) return null
         // PGP: a captioned media's caption may be an armored block — show the decrypted plaintext
         // (and ignore the armored formatted_body).
@@ -884,12 +902,19 @@ class MessageItemFactory @Inject constructor(
         val rendered = textRenderer.render(initialBody)
         val bindingOptions = spanUtils.getBindingOptions(rendered)
         val linkified = rendered.linkify(callback)
+        val emoteRanges = (linkified as? Spanned)
+                ?.let { spanned -> spanned.getSpans(0, spanned.length, EmoteImageSpan::class.java).map { spanned.getSpanStart(it) until spanned.getSpanEnd(it) } }
+                .orEmpty()
         val final = if (informationData.hasBeenEdited) {
             annotateWithEdited(linkified, callback, informationData)
         } else {
             linkified
         }
-        return final.withEmojis().toEpoxyCharSequence() to bindingOptions
+        return RenderedCaption(
+                epoxy = final.withEmojis().toEpoxyCharSequence(),
+                bindingOptions = bindingOptions,
+                useBigFont = containsOnlyEmojisAndEmotes(linkified, emoteRanges, MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT),
+        )
     }
 
 
@@ -1077,6 +1102,6 @@ class MessageItemFactory @Inject constructor(
         private val IMG_TAG_REGEX = Regex("<img\\b[^>]*>", RegexOption.IGNORE_CASE)
         private const val OBJECT_REPLACEMENT_CHAR = '￼'
         private const val OBJECT_REPLACEMENT_STRING = "￼"
-        private const val PGP_FORMATTED_CACHE_SUFFIX = " fmt"
+        private const val PGP_FORMATTED_CACHE_SUFFIX = "\u0000fmt"
     }
 }

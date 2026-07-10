@@ -64,6 +64,7 @@ internal class SqlTimeline(
         private val eventDecryptor: TimelineEventDecryptor,
         private val timelineInput: TimelineInput,
         private val clock: Clock,
+        private val redactionSignal: TimelineRedactionSignal,
 ) : Timeline, TimelineInput.Listener, UIEchoManager.Listener {
 
     override val timelineID = UUID.randomUUID().toString()
@@ -102,6 +103,16 @@ internal class SqlTimeline(
     // Per-chunk mapped snapshots. Only the live (index-0) chunk changes on sync, so paginated history
     // chunks are mapped once and reused — the rebuild cost stays bounded as you scroll back.
     private val chunkSnapshotCache = HashMap<Long, List<TimelineEvent>>()
+
+    private var seenRedactionStamp = redactionSignal.stamp(roomId)
+
+    private fun consumeRedactionStamp(): Boolean {
+        val stamp = redactionSignal.stamp(roomId)
+        if (stamp == seenRedactionStamp) return false
+        seenRedactionStamp = stamp
+        return true
+    }
+
     @Volatile private var builtEvents: List<TimelineEvent> = emptyList()
 
     // Live timelines render a grow-only window (newest down to [oldestShownEventId]) instead of the whole
@@ -278,7 +289,13 @@ internal class SqlTimeline(
         loadedChunkIds.add(seedChunkId)
         // conflate: collapse a burst of row changes into one rebuild (each rebuild reads the latest state).
         observeJob = timelineScope.launch {
-            snapshotLoader.chunkChangesFlow(seedChunkId).conflate().collect { rebuildSnapshot() }
+            snapshotLoader.chunkChangesFlow(seedChunkId).conflate().collect {
+                // A redaction's prune rewrote the event table underneath the cached static-chunk
+                // mappings (and its timeline_event touch is what re-fired this flow, post-commit) —
+                // drop them so the rebuild re-reads the pruned content.
+                if (consumeRedactionStamp()) chunkSnapshotCache.clear()
+                rebuildSnapshot()
+            }
         }
         // Local-echo add/remove and ignore-set changes don't alter the live chunk's rows, so those
         // rebuilds reuse its cached mapping instead of re-resolving the whole chunk.

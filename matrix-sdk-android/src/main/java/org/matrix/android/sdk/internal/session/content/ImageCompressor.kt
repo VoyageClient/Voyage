@@ -53,6 +53,14 @@ internal class ImageCompressor @Inject constructor(
                 SourceFormat.FARBFELD -> compressFarbfeld(imageFile, desiredWidth, desiredHeight, desiredQuality)
                 // Re-encoding would drop to the first frame and strip the animation.
                 SourceFormat.ANIMATED_WEBP -> CompressedImage(imageFile, mimeType = "image/webp")
+                // Platform WebP has no alpha/lossless support before 4.2.1: decoding either fails
+                // or bakes transparency to black, so keep the original bytes there.
+                SourceFormat.STATIC_WEBP_ALPHA ->
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                        CompressedImage(imageFile, mimeType = "image/webp")
+                    } else {
+                        compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                    }
                 SourceFormat.OTHER -> compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality)
             }
         }
@@ -73,22 +81,29 @@ internal class ImageCompressor @Inject constructor(
         val downsampled = decodeBitmap(imageFile, downsampleOptions)?.let {
             rotateBitmap(imageFile, it)
         } ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeBitmapToWebp(imageFile, downsampled, desiredWidth, desiredHeight, desiredQuality)
+        return encodeBitmap(imageFile, downsampled, desiredWidth, desiredHeight, desiredQuality)
     }
 
     private suspend fun compressXpm(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
         val decoded = XpmBitmapReader.decode(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeBitmapToWebp(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
+        return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
     }
 
     private suspend fun compressFarbfeld(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
         val decoded = FarbfeldBitmapReader.decode(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeBitmapToWebp(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
+        return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
     }
 
-    private suspend fun encodeBitmapToWebp(originalFile: File, sourceBitmap: Bitmap, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+    private suspend fun encodeBitmap(originalFile: File, sourceBitmap: Bitmap, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
         val compressedBitmap = scaleBitmapToFit(sourceBitmap, desiredWidth, desiredHeight)
-        val format = webpLossyFormat()
+        // Transparent images must not become WebP: homeservers thumbnail WebP as JPEG (no alpha),
+        // blacking out the background wherever a server thumbnail is shown — and Bitmap.compress(WEBP)
+        // can't even write alpha before 4.2.1. PNG avoids both.
+        val (format, mimeType) = if (hasTransparency(compressedBitmap)) {
+            Bitmap.CompressFormat.PNG to "image/png"
+        } else {
+            webpLossyFormat() to "image/webp"
+        }
         val destinationFile = temporaryFileCreator.create()
         runCatching {
             destinationFile.outputStream().use {
@@ -97,7 +112,7 @@ internal class ImageCompressor @Inject constructor(
         }.onFailure {
             return CompressedImage(originalFile, mimeType = null)
         }
-        return CompressedImage(destinationFile, mimeType = "image/webp")
+        return CompressedImage(destinationFile, mimeType = mimeType)
     }
 
     private suspend fun compressGif(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
@@ -124,6 +139,12 @@ internal class ImageCompressor @Inject constructor(
             if (out !== frame.bitmap) frame.bitmap.recycle()
             AnimatedFrame(out, frame.durationMs)
         }
+        // Transparent animations must not become WebP either (see encodeBitmap), and frames
+        // can't individually fall back to PNG — keep the original GIF/APNG instead.
+        if (scaled.any { hasTransparency(it.bitmap) }) {
+            scaled.forEach { it.bitmap.recycle() }
+            return CompressedImage(originalFile, mimeType = null)
+        }
         val destinationFile = temporaryFileCreator.create()
         val ok = runCatching {
             destinationFile.outputStream().use { os ->
@@ -149,7 +170,7 @@ internal class ImageCompressor @Inject constructor(
                 Bitmap.CompressFormat.WEBP
             }
 
-    private enum class SourceFormat { GIF, APNG, XPM, FARBFELD, ANIMATED_WEBP, OTHER }
+    private enum class SourceFormat { GIF, APNG, XPM, FARBFELD, ANIMATED_WEBP, STATIC_WEBP_ALPHA, OTHER }
 
     private fun sniffFormat(file: File): SourceFormat {
         val head = ByteArray(64)
@@ -167,13 +188,20 @@ internal class ImageCompressor @Inject constructor(
             // acTL must appear before IDAT — scan the whole file's first ~4 KB to detect.
             return if (containsApngMarker(file)) SourceFormat.APNG else SourceFormat.OTHER
         }
-        // RIFF....WEBP — VP8X header at offset 12 carries the ANIM flag (bit 1) when animated.
-        if (read >= 21 &&
+        // RIFF....WEBP — a VP8X header at offset 12 carries ANIM (bit 1) and ALPHA (bit 4) flags;
+        // a VP8L chunk is lossless, which may also carry alpha.
+        if (read >= 16 &&
                 head[0] == 'R'.code.toByte() && head[1] == 'I'.code.toByte() && head[2] == 'F'.code.toByte() && head[3] == 'F'.code.toByte() &&
-                head[8] == 'W'.code.toByte() && head[9] == 'E'.code.toByte() && head[10] == 'B'.code.toByte() && head[11] == 'P'.code.toByte() &&
-                head[12] == 'V'.code.toByte() && head[13] == 'P'.code.toByte() && head[14] == '8'.code.toByte() && head[15] == 'X'.code.toByte() &&
-                (head[20].toInt() and (1 shl 1)) != 0) {
-            return SourceFormat.ANIMATED_WEBP
+                head[8] == 'W'.code.toByte() && head[9] == 'E'.code.toByte() && head[10] == 'B'.code.toByte() && head[11] == 'P'.code.toByte()) {
+            if (head[12] == 'V'.code.toByte() && head[13] == 'P'.code.toByte() && head[14] == '8'.code.toByte()) {
+                if (head[15] == 'X'.code.toByte() && read >= 21) {
+                    val flags = head[20].toInt()
+                    if (flags and (1 shl 1) != 0) return SourceFormat.ANIMATED_WEBP
+                    if (flags and (1 shl 4) != 0) return SourceFormat.STATIC_WEBP_ALPHA
+                }
+                if (head[15] == 'L'.code.toByte()) return SourceFormat.STATIC_WEBP_ALPHA
+            }
+            return SourceFormat.OTHER
         }
         if (read >= 9 && String(head, 0, 9, Charsets.US_ASCII).startsWith("/* XPM */")) return SourceFormat.XPM
         if (read >= 8 && String(head, 0, 8, Charsets.US_ASCII) == "farbfeld") return SourceFormat.FARBFELD
@@ -202,6 +230,21 @@ internal class ImageCompressor @Inject constructor(
         } catch (t: Throwable) {
             false
         }
+    }
+
+    // hasAlpha() alone over-reports (any ARGB_8888 bitmap has an alpha channel, e.g. opaque
+    // screenshots); scan for an actually-transparent pixel, bailing out on the first hit.
+    private fun hasTransparency(bitmap: Bitmap): Boolean {
+        if (!bitmap.hasAlpha()) return false
+        val width = bitmap.width
+        val row = IntArray(width)
+        for (y in 0 until bitmap.height) {
+            bitmap.getPixels(row, 0, width, 0, y, width, 1)
+            for (x in 0 until width) {
+                if (row[x] ushr 24 != 0xFF) return true
+            }
+        }
+        return false
     }
 
     private fun scaleBitmapToFit(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {

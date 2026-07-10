@@ -35,6 +35,7 @@ import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrap
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
+import io.noties.markwon.MarkwonPlugin
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import im.vector.app.core.extensions.backgroundCompat
 
@@ -76,6 +77,12 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var captionMovementMethod: MovementMethod? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMarkwonPlugins: (List<MarkwonPlugin>)? = null
+
+    @EpoxyAttribute
+    var captionUseBigFont: Boolean = false
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -180,6 +187,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 bindingOptions = captionBindingOptions,
                 movementMethod = captionMovementMethod,
                 itemLongClickListener = attributes.itemLongClickListener,
+                markwonPlugins = captionMarkwonPlugins,
+                useBigFont = captionUseBigFont,
         )
     }
 
