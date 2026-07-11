@@ -577,10 +577,17 @@ internal class SqlTimeline(
         requestDecryptionForUtd(events)
         windowHasMoreOlder = isWindowed && events.isNotEmpty() &&
                 (events.last().eventId != all.last().eventId || !liveChunkFullyMapped)
+        // The loading spinners are (re)built from hasMoreToLoad only when a snapshot is posted, so a
+        // pagination-state flip that doesn't change the visible events (reaching the room start reveals the
+        // empty is_last_backward chunk) must still post — otherwise the backward spinner is never removed and
+        // its visibility listener re-fires onLoadMore forever.
+        val backwardBefore = backwardState.get().hasMoreToLoad
+        val forwardBefore = forwardState.get().hasMoreToLoad
         refreshPaginationStates()
+        val paginationChanged = backwardBefore != backwardState.get().hasMoreToLoad || forwardBefore != forwardState.get().hasMoreToLoad
         Timber.v("SqlTimeline $roomId rebuilt snapshot of ${events.size}/${all.size} events (unchanged=$unchanged)")
         MatrixPerf.end(perfStart) { "timeline.rebuildSnapshot reuse=$reuseLiveChunk shown=${events.size}/${all.size} unchanged=$unchanged" }
-        if (!unchanged) {
+        if (!unchanged || paginationChanged) {
             withContext(coroutineDispatchers.main) {
                 listeners.forEach { tryOrNull { it.onTimelineUpdated(events) } }
             }
