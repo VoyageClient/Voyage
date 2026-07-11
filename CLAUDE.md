@@ -61,4 +61,11 @@ Also during review, compact overly verbose comments down to the minimal non-obvi
 
 # Changelog
 
-Never write changelog entries to any file (no `changelog.d/` fragments, no `CHANGES.md` — that towncrier setup predates this fork and is unused). The changelog lives only in the commit message: a concise imperative subject line followed by a body describing the changes. Every body item MUST start with `- ` — NEVER write a paragraph that does not begin with `- `. Put a blank line between each `- ` entry.
+The full per-commit changelog lives only in the commit message: a concise imperative subject line followed by a body describing the changes. Every body item MUST start with `- ` — NEVER write a paragraph that does not begin with `- `. Put a blank line between each `- ` entry. Do not write per-commit changelog fragments to any file (no `changelog.d/`).
+
+`CHANGES.md` is a separate, curated highlights list — NOT a per-commit log. When you land a change worth surfacing to users, add it there too:
+
+- Include new **features**, user-facing **improvements**, notable **feature removals**, and **significant bugfixes** (crashes, freezes, data loss, can't-log-in / can't-send). Do NOT list routine bugfixes, and do NOT list a fix for a regression we introduced ourselves (fixing our own not-yet-released breakage is not a changelog-worthy bugfix).
+- Group related entries by area and place your new entry next to similar ones; within that, lead with the most impactful. User-facing entries come first (under `## Features & improvements`, with `### Removals` / `### Branding` subsections), then technical/under-the-hood changes (`## Under the hood`), then `## Significant bugfixes`.
+- Do not mention specific app version numbers or upstream-sync versions.
+- One `- ` bullet per entry with a short bold lead-in, e.g. `- **Message pinning** — …`.
