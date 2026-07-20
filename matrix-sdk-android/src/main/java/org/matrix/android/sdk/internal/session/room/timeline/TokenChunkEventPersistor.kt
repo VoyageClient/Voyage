@@ -126,7 +126,15 @@ internal class TokenChunkEventPersistor @Inject constructor(
     }
 
     private fun insertEventOrIgnore(entity: EventEntity, insertType: EventInsertType): Long {
-        stores.event.getDbId(entity.roomId, entity.eventId)?.let { return it }
+        stores.event.getDbId(entity.roomId, entity.eventId)?.let { dbId ->
+            // An event row can outlive its insert-queue entry (a gappy sync clears chunks but keeps
+            // event rows), so a re-delivered relation event may never have been aggregated: its edit
+            // or reaction would be missing forever. Re-enqueue it; processing is idempotent.
+            if (entity.content?.contains("m.relates_to") == true && !stores.eventInsert.exists(entity.eventId)) {
+                stores.eventInsert.insert(entity.eventId, entity.type, canBeProcessed = true, insertType = insertType)
+            }
+            return dbId
+        }
         stores.eventInsert.insert(entity.eventId, entity.type, canBeProcessed = true, insertType = insertType)
         return stores.event.insert(entity)
     }
