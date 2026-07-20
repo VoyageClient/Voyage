@@ -71,7 +71,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
-import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
@@ -159,8 +158,6 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handleSendSticker(room: Room, action: MessageComposerAction.SendSticker) = withState { state ->
         val replyTo = (state.sendMode as? SendMode.Reply)?.timelineEvent
         val rootThreadEventId = state.rootThreadEventId
-        val captionText = currentComposerText.toString().takeIf { it.isNotBlank() }
-        val originalBody = action.content.body
         val relatesTo = when {
             replyTo != null -> RelationDefaultContent(
                     type = rootThreadEventId?.let { RelationType.THREAD },
@@ -175,18 +172,12 @@ class MessageComposerViewModel @AssistedInject constructor(
             )
             else -> action.content.relatesTo
         }
-        val content = if (captionText != null) {
-            action.content.copy(
-                    body = captionText,
-                    filename = action.content.filename ?: originalBody.takeIf { it.isNotBlank() },
-                    relatesTo = relatesTo,
-            )
-        } else {
-            action.content.copy(relatesTo = relatesTo)
+        room.sendService().sendEvent(EventType.STICKER, action.content.copy(relatesTo = relatesTo).toContent())
+        // A sticker's body IS its name — composer text is never sent as a caption, so keep it in the
+        // box; only the consumed reply target is cleared.
+        if (replyTo != null) {
+            setState { copy(sendMode = SendMode.Regular(currentComposerText, fromSharing = false)) }
         }
-        room.sendService().sendEvent(EventType.STICKER, content.toContent())
-        currentComposerText = ""
-        popDraft(room)
     }
 
     private fun handleOnVoiceRecordingUiStateChanged(action: MessageComposerAction.OnVoiceRecordingUiStateChanged) {

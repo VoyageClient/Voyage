@@ -44,7 +44,7 @@ class GetPinnedEventsUseCase @Inject constructor(
 
     private suspend fun resolve(room: Room, ids: List<String>): List<TimelineEvent> = withContext(Dispatchers.IO) {
         ids.mapNotNull { eventId ->
-            tryOrNull { session.eventService().ensureEventCached(room.roomId, eventId) }
+            tryOrNull { session.eventService().ensureEventCached(room.roomId, eventId, requireTimelineEvent = true) }
             room.getTimelineEvent(eventId)?.takeUnless { it.root.isRedacted() }
         }
                 // Order by the pinned event's own date (oldest first), not by when it was pinned.

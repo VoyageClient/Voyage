@@ -43,10 +43,15 @@ interface EventService {
      *
      * Use this for ancillary lookups (e.g. resolving the target of an `m.in_reply_to` whose
      * referenced event isn't in the timeline DB) where you want the event to survive across
-     * app restarts. Returns null on fetch failure.
+     * app restarts. On fetch failure returns the cached event if there is one, else null.
+     *
+     * [requireTimelineEvent] also guarantees a timeline entry resolvable via
+     * [org.matrix.android.sdk.api.session.room.timeline.TimelineService.getTimelineEvent]: a gappy
+     * sync clears a room's chunks but keeps event rows, so a cached event alone doesn't imply one.
      */
     suspend fun ensureEventCached(
             roomId: String,
-            eventId: String
+            eventId: String,
+            requireTimelineEvent: Boolean = false
     ): Event?
 }

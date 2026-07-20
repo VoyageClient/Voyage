@@ -46,12 +46,15 @@ internal class DefaultEventService @Inject constructor(
         return stores.event.getByEventIdInRoom(roomId, eventId)?.asDomain()
     }
 
-    override suspend fun ensureEventCached(roomId: String, eventId: String): Event? {
-        getEventFromCache(roomId, eventId)?.let { return it }
+    override suspend fun ensureEventCached(roomId: String, eventId: String, requireTimelineEvent: Boolean): Event? {
+        val cached = getEventFromCache(roomId, eventId)
+        if (cached != null && (!requireTimelineEvent || stores.timelineEvent.getByRoomAndEventId(roomId, eventId) != null)) {
+            return cached
+        }
         // Use the same context-fetch task the timeline uses for permalink navigation. It persists
         // the event AND surrounding context through TokenChunkEventPersistor (both EventEntity and
         // TimelineEventEntity rows), which UpdatedReplyDecorator needs to resolve reply targets.
-        tryOrNull { getContextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId)) } ?: return null
+        tryOrNull { getContextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId)) } ?: return cached
         return getEventFromCache(roomId, eventId)
     }
 }
