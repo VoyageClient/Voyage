@@ -48,7 +48,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Greentext** — quote-style greentext rendering, with an option to send all blockquotes as greentext.
 
-- **Slash commands** — added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, and `/encrypt`, plus the ability to run slash commands on a reply.
+- **Slash commands** — added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/encrypt`, and `/trans`/`/transme` (trans-flag gradient messages), plus the ability to run slash commands on a reply; `/rainbow` now paints nheko's vivid gradient instead of washed-out CIELAB colors.
 
 - **Emoji font options** — render emoji with bundled Twemoji, the system emoji font, or a custom emoji font you supply; emoji autocomplete is toggleable.
 

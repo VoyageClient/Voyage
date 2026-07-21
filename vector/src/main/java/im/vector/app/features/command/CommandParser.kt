@@ -168,6 +168,20 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.RAINBOW_EMOTE)
                     }
                 }
+                Command.TRANS.matches(slashCommand) -> {
+                    if (message.isNotEmpty()) {
+                        ParsedCommand.SendTrans(message)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.TRANS)
+                    }
+                }
+                Command.TRANS_EMOTE.matches(slashCommand) -> {
+                    if (message.isNotEmpty()) {
+                        ParsedCommand.SendTransEmote(message)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.TRANS_EMOTE)
+                    }
+                }
                 Command.JOIN_ROOM.matches(slashCommand) -> {
                     if (messageParts.size >= 2) {
                         val roomAlias = messageParts[1]

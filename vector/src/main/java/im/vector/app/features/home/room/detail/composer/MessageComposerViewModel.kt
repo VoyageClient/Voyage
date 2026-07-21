@@ -678,36 +678,22 @@ class MessageComposerViewModel @AssistedInject constructor(
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendRainbow -> {
-                            val message = parsedCommand.message.toString()
-                            val formatted = rainbowWithMentions(parsedCommand.message)
-                            offloadSend {
-                                if (state.rootThreadEventId != null) {
-                                    room.relationService().replyInThread(
-                                            rootThreadEventId = state.rootThreadEventId,
-                                            replyInThreadText = parsedCommand.message,
-                                            formattedText = formatted
-                                    )
-                                } else {
-                                    room.sendService().sendFormattedTextMessage(message, formatted)
-                                }
-                            }
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, rainbowWithMentions(parsedCommand.message))
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendRainbowEmote -> {
-                            val message = parsedCommand.message.toString()
-                            val formatted = rainbowWithMentions(parsedCommand.message)
-                            if (state.rootThreadEventId != null) {
-                                room.relationService().replyInThread(
-                                        rootThreadEventId = state.rootThreadEventId,
-                                        replyInThreadText = parsedCommand.message,
-                                        msgType = MessageType.MSGTYPE_EMOTE,
-                                        formattedText = formatted
-                                )
-                            } else {
-                                room.sendService().sendFormattedTextMessage(message, formatted, MessageType.MSGTYPE_EMOTE)
-                            }
-
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, rainbowWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                            popDraft(room, state.sendMode)
+                        }
+                        is ParsedCommand.SendTrans -> {
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, transWithMentions(parsedCommand.message))
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                            popDraft(room, state.sendMode)
+                        }
+                        is ParsedCommand.SendTransEmote -> {
+                            sendColored(room, state.rootThreadEventId, parsedCommand.message, transWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
@@ -1530,6 +1516,16 @@ class MessageComposerViewModel @AssistedInject constructor(
                 finish()
                 true
             }
+            is ParsedCommand.SendTrans -> {
+                reply(parsedCommand.message.toString(), transWithMentions(parsedCommand.message))
+                finish()
+                true
+            }
+            is ParsedCommand.SendTransEmote -> {
+                reply(parsedCommand.message.toString(), transWithMentions(parsedCommand.message), MessageType.MSGTYPE_EMOTE)
+                finish()
+                true
+            }
             is ParsedCommand.SendSpoiler -> {
                 reply(
                         text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})",
@@ -1603,6 +1599,8 @@ class MessageComposerViewModel @AssistedInject constructor(
             is ParsedCommand.SendNotice -> CaptionCommandResolution.Caption(parsed.message, null, false)
             is ParsedCommand.SendRainbow -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowWithMentions(parsed.message), false)
             is ParsedCommand.SendRainbowEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), rainbowWithMentions(parsed.message), false)
+            is ParsedCommand.SendTrans -> CaptionCommandResolution.Caption(parsed.message.toString(), transWithMentions(parsed.message), false)
+            is ParsedCommand.SendTransEmote -> CaptionCommandResolution.Caption(parsed.message.toString(), transWithMentions(parsed.message), false)
             is ParsedCommand.SendSpoiler -> CaptionCommandResolution.Caption(
                     "[${stringProvider.getString(CommonStrings.spoiler)}](${parsed.message})",
                     "<span data-mx-spoiler>${mentionsToHtml(parsed.message)}</span>",
@@ -1682,6 +1680,24 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun rainbowWithMentions(message: CharSequence): String =
             mapPillSegments(message, onText = { rainbowGenerator.generate(it) }, onPill = { id, name -> mentionLink(id, name) })
+
+    private fun transWithMentions(message: CharSequence): String =
+            mapPillSegments(message, onText = { rainbowGenerator.generateTrans(it) }, onPill = { id, name -> mentionLink(id, name) })
+
+    private fun sendColored(room: Room, rootThreadEventId: String?, message: CharSequence, formatted: String, msgType: String = MessageType.MSGTYPE_TEXT) {
+        offloadSend {
+            if (rootThreadEventId != null) {
+                room.relationService().replyInThread(
+                        rootThreadEventId = rootThreadEventId,
+                        replyInThreadText = message,
+                        msgType = msgType,
+                        formattedText = formatted
+                )
+            } else {
+                room.sendService().sendFormattedTextMessage(message.toString(), formatted, msgType)
+            }
+        }
+    }
 
     private fun mentionLink(id: String, name: String) = "<a href=\"https://matrix.to/#/$id\">$name</a>"
 

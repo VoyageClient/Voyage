@@ -53,6 +53,8 @@ enum class Command(
     MARKDOWN("/markdown", null, "<on|off>", CommonStrings.command_description_markdown, false, false),
     RAINBOW("/rainbow", null, "<message>", CommonStrings.command_description_rainbow, false, true),
     RAINBOW_EMOTE("/rainbowme", null, "<message>", CommonStrings.command_description_rainbow_emote, false, true),
+    TRANS("/trans", null, "<message>", CommonStrings.command_description_trans, false, true),
+    TRANS_EMOTE("/transme", null, "<message>", CommonStrings.command_description_trans_emote, false, true),
     DEVTOOLS("/devtools", null, "", CommonStrings.command_description_devtools, true, false),
     CLEAR_SCALAR_TOKEN("/clear_scalar_token", null, "", CommonStrings.command_description_clear_scalar_token, false, false),
     SPOILER("/spoiler", null, "<message>", CommonStrings.command_description_spoiler, false, true),
