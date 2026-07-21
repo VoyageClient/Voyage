@@ -245,12 +245,6 @@
             android:title="@string/settings_autoplay_animated_images_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="true"
-            android:key="SETTINGS_ANIMATE_ROOM_AVATARS"
-            android:summary="@string/settings_animate_room_avatars_summary"
-            android:title="@string/settings_animate_room_avatars_title" />
-
-        <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_VIBRATE_ON_MENTION_KEY"
             android:title="@string/settings_vibrate_on_mention"
             app:isPreferenceVisible="@bool/false_not_implemented" />

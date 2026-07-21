@@ -290,7 +290,7 @@ class AvatarRenderer @Inject constructor(
         return activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
                 ?.resolveThumbnail(
                         avatarUrl, THUMBNAIL_SIZE, THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE,
-                        animated = vectorPreferences.animateRoomAvatars()
+                        animated = vectorPreferences.autoplayAnimatedImages()
                 )
     }
 

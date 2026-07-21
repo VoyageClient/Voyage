@@ -323,7 +323,6 @@ class VectorSettingsPreferencesFragment :
     private fun updatePerformanceModeDependents(performanceMode: Boolean) {
         listOf(
                 VectorPreferences.SETTINGS_AUTOPLAY_ANIMATED_IMAGES,
-                VectorPreferences.SETTINGS_ANIMATE_ROOM_AVATARS,
                 VectorPreferences.SETTINGS_SHOW_URL_PREVIEW_KEY,
         ).forEach { key ->
             findPreference<VectorSwitchPreference>(key)?.let { pref ->
