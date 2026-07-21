@@ -53,7 +53,7 @@ abstract class SpaceSummaryItem : VectorEpoxyModel<SpaceSummaryItem.Holder>(R.la
         holder.moreView.isVisible = onMore != null
         holder.moreView.onClick(onMore)
 
-        holder.secondLineText.setTextOrHide(description)
+        holder.secondLineText.setTextOrHide(description?.withEmojis())
         if (hasChildren) {
             holder.collapseIndicator.isVisible = true
             holder.collapseIndicator.setImageDrawable(

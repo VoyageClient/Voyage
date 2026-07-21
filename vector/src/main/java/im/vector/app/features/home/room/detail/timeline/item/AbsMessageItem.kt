@@ -136,7 +136,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             attributes.threadDetails?.let { threadDetails ->
                 holder.threadSummaryConstraintLayout.isVisible = threadDetails.isRootThread
                 holder.threadSummaryCounterTextView.text = "${threadDetails.numberOfThreads}"
-                holder.threadSummaryInfoTextView.text = attributes.threadSummaryFormatted ?: attributes.decryptionErrorMessage
+                holder.threadSummaryInfoTextView.text = (attributes.threadSummaryFormatted ?: attributes.decryptionErrorMessage)?.withEmojis()
 
                 val userId = threadDetails.threadSummarySenderInfo?.userId ?: return@let
                 val displayName = threadDetails.threadSummarySenderInfo?.displayName

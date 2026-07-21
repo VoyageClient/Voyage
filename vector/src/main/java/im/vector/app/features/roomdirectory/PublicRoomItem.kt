@@ -59,7 +59,7 @@ abstract class PublicRoomItem : VectorEpoxyModel<PublicRoomItem.Holder>(R.layout
         avatarRenderer.render(matrixItem, holder.avatarView)
         holder.nameView.text = matrixItem.displayName?.withEmojis()
         holder.aliasView.setTextOrHide(roomAlias)
-        holder.topicView.setTextOrHide(roomTopic)
+        holder.topicView.setTextOrHide(roomTopic?.withEmojis())
         // TODO Use formatter for big numbers?
         holder.counterView.text = "$nbOfMembers"
 

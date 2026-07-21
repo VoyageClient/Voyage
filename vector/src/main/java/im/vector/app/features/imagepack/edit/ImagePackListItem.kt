@@ -20,6 +20,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 
 @EpoxyModelClass
 abstract class ImagePackListItem : VectorEpoxyModel<ImagePackListItem.Holder>(R.layout.item_image_pack_list) {
@@ -35,8 +36,8 @@ abstract class ImagePackListItem : VectorEpoxyModel<ImagePackListItem.Holder>(R.
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.title.text = title
-        holder.subtitle.text = subtitle
+        holder.title.text = title.withEmojis()
+        holder.subtitle.text = subtitle?.withEmojis()
         holder.subtitle.isVisible = !subtitle.isNullOrEmpty()
 
         if (resolvedAvatarUrl != null) {

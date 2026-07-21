@@ -339,7 +339,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         // switch to expanded bar
         views.composerRelatedMessageTitle.apply {
-            text = event.senderInfo.disambiguatedDisplayName
+            text = event.senderInfo.disambiguatedDisplayName.withEmojis()
             setTextColor(matrixItemColorProvider.getColor(MatrixItem.UserItem(event.root.senderId ?: "@")))
         }
 

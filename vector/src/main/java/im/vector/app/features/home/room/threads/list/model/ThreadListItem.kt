@@ -24,6 +24,7 @@ import im.vector.app.core.extensions.setLeftDrawable
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState
@@ -49,7 +50,7 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
         holder.rootView.onClick(itemClickListener)
         avatarRenderer.render(matrixItem, holder.avatarImageView)
         holder.avatarImageView.contentDescription = matrixItem.getBestName()
-        holder.titleTextView.text = title
+        holder.titleTextView.text = title.withEmojis()
         holder.dateTextView.text = date
         if (rootMessageDeleted) {
             holder.rootMessageTextView.text = holder.view.context.getString(CommonStrings.event_redacted)
@@ -58,7 +59,7 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
             holder.rootMessageTextView.compoundDrawablePadding = DimensionConverter(holder.view.context.resources).dpToPx(10)
         } else {
             holder.rootMessageTextView.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-            holder.rootMessageTextView.text = rootMessage
+            holder.rootMessageTextView.text = rootMessage.withEmojis()
             holder.rootMessageTextView.clearDrawables()
         }
         // Last message summary
@@ -66,7 +67,7 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
             avatarRenderer.render(it, holder.lastMessageAvatarImageView)
         }
         holder.lastMessageAvatarImageView.contentDescription = lastMessageMatrixItem?.getBestName()
-        holder.lastMessageTextView.text = lastMessage
+        holder.lastMessageTextView.text = lastMessage.withEmojis()
         holder.lastMessageCounterTextView.text = lastMessageCounter
         renderNotificationState(holder)
     }

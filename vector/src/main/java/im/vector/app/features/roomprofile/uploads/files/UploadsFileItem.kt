@@ -15,6 +15,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 
 @EpoxyModelClass
 abstract class UploadsFileItem : VectorEpoxyModel<UploadsFileItem.Holder>(R.layout.item_uploads_file) {
@@ -27,8 +28,8 @@ abstract class UploadsFileItem : VectorEpoxyModel<UploadsFileItem.Holder>(R.layo
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.view.setOnClickListener { listener?.onItemClicked() }
-        holder.titleView.text = title
-        holder.subtitleView.setTextOrHide(subtitle)
+        holder.titleView.text = title?.withEmojis()
+        holder.subtitleView.setTextOrHide(subtitle?.withEmojis())
         holder.downloadView.setOnClickListener { listener?.onDownloadClicked() }
         holder.shareView.setOnClickListener { listener?.onShareClicked() }
     }

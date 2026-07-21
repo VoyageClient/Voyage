@@ -27,6 +27,7 @@ import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentSpacePreviewBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.SpacePreviewSharedAction
 import im.vector.app.features.spaces.SpacePreviewSharedActionViewModel
@@ -151,7 +152,7 @@ class SpacePreviewFragment :
         val resolvedAvatarUrl = spaceAvatarUrl.takeUnless { vectorPreferences.hideInviteAvatars() && isInvite }
         val mxItem = MatrixItem.SpaceItem(spacePreviewState.idOrAlias, spaceName, resolvedAvatarUrl)
         avatarRenderer.render(mxItem, views.spacePreviewToolbarAvatar)
-        views.roomPreviewNoPreviewToolbarTitle.text = spaceName
+        views.roomPreviewNoPreviewToolbarTitle.text = spaceName.withEmojis()
 //            }
 //            is SpacePeekResult.SpacePeekError,
 //            null -> {

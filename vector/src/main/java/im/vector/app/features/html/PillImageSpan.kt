@@ -17,12 +17,15 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.text.Editable
+import android.text.Layout
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.Spanned
+import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.text.style.ReplacementSpan
+import android.text.style.TextAppearanceSpan
 import android.widget.TextView
 import androidx.annotation.UiThread
 import androidx.appcompat.content.res.AppCompatResources
@@ -34,7 +37,9 @@ import im.vector.app.core.extensions.isMatrixId
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.emoji.TwemojiSpan
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orTrue
@@ -54,6 +59,14 @@ class PillImageSpan(
         private val context: Context,
         override val matrixItem: MatrixItem
 ) : ReplacementSpan(), MatrixItemSpan {
+
+    // ChipDrawable draws its label straight to the canvas, so Twemoji sprite spans can't render
+    // through it. When the name spanifies to sprites, the chip gets empty text (bounds widened by
+    // the label width) and [drawEmojiLabel] draws the spanned label at the chip's text position.
+    private var emojiLabel: CharSequence? = null
+    private var emojiLabelPaint: TextPaint? = null
+    private var emojiLabelLayout: StaticLayout? = null
+    private var emojiLabelLayoutWidth = -1
 
     private val pillDrawable = createChipDrawable()
     private val target = PillImageSpanTarget(this)
@@ -118,13 +131,12 @@ class PillImageSpan(
         }
 
         canvas.save()
-        canvas.save()
         canvas.translate(x, transY.toFloat())
 
         val rect = Rect()
         canvas.getClipBounds(rect)
         val maxWidth = rect.right
-        if (pillDrawable.intrinsicWidth > maxWidth) {
+        if (pillDrawable.bounds.width() > maxWidth) {
             pillDrawable.setBounds(0, 0, maxWidth, pillDrawable.intrinsicHeight)
             pillDrawable.ellipsize = TextUtils.TruncateAt.END
         }
@@ -132,7 +144,38 @@ class PillImageSpan(
         pillDrawable.alpha = ((1f - blurFraction) * 255).toInt()
         pillDrawable.draw(canvas)
         pillDrawable.alpha = 255
+        emojiLabel?.let { drawEmojiLabel(canvas, it, blurFraction) }
         canvas.restore()
+    }
+
+    private fun drawEmojiLabel(canvas: Canvas, label: CharSequence, blurFraction: Float) {
+        val paint = emojiLabelPaint ?: return
+        val iconWidth = if (pillDrawable.chipIcon != null && pillDrawable.isChipIconVisible) {
+            pillDrawable.iconStartPadding + pillDrawable.chipIconSize + pillDrawable.iconEndPadding
+        } else {
+            0f
+        }
+        val textStartX = pillDrawable.chipStartPadding + iconWidth + pillDrawable.textStartPadding
+        val available =
+                (pillDrawable.bounds.width() - textStartX - pillDrawable.textEndPadding - pillDrawable.chipEndPadding).toInt()
+        if (available <= 0) return
+        var layout = emojiLabelLayout
+        if (layout == null || emojiLabelLayoutWidth != available) {
+            val toDraw = if (ceil(Layout.getDesiredWidth(label, paint)).toInt() > available) {
+                TextUtils.ellipsize(label, paint, available.toFloat(), TextUtils.TruncateAt.END)
+            } else {
+                label
+            }
+            layout = StaticLayout(toDraw, paint, available, Layout.Alignment.ALIGN_NORMAL, 1f, 0f, false)
+            emojiLabelLayout = layout
+            emojiLabelLayoutWidth = available
+        }
+        paint.alpha = ((1f - blurFraction) * 255).toInt()
+        canvas.save()
+        canvas.translate(textStartX, (pillDrawable.bounds.height() - layout.height) / 2f)
+        layout.draw(canvas)
+        canvas.restore()
+        paint.alpha = 255
     }
 
     private fun spoilerBlurFraction(text: CharSequence, start: Int, end: Int): Float {
@@ -192,8 +235,13 @@ class PillImageSpan(
             }
         }
 
+        val name = matrixItem.getBestName()
+        val spanified = name.withEmojis()
+        val needsManualLabel = (spanified as? Spanned)
+                ?.getSpans(0, spanified.length, TwemojiSpan::class.java)?.isNotEmpty() == true
+
         return ChipDrawable.createFromResource(context, R.xml.pill_view).apply {
-            text = matrixItem.getBestName()
+            text = if (needsManualLabel) "" else name
             textEndPadding = textPadding
             textStartPadding = textPadding
             setChipMinHeightResource(im.vector.lib.ui.styles.R.dimen.pill_min_height)
@@ -204,7 +252,16 @@ class PillImageSpan(
                 // setTextColor API does not exist right now for ChipDrawable, use textAppearance
                 setTextAppearanceResource(im.vector.lib.ui.styles.R.style.TextAppearance_Vector_Body_OnError)
             }
-            setBounds(0, 0, intrinsicWidth, intrinsicHeight)
+            if (needsManualLabel) {
+                emojiLabel = spanified
+                val paint = createChipLabelPaint(context).also { emojiLabelPaint = it }
+                // With empty chip text, intrinsicWidth is the base (paddings + avatar) width; widen
+                // the bounds by the label so the pill occupies the same space the chip text would.
+                val labelWidth = ceil(Layout.getDesiredWidth(spanified, paint)).toInt()
+                setBounds(0, 0, intrinsicWidth + labelWidth, intrinsicHeight)
+            } else {
+                setBounds(0, 0, intrinsicWidth, intrinsicHeight)
+            }
         }
     }
 
@@ -212,6 +269,22 @@ class PillImageSpan(
         // Keep in sync with SpoilerSpan's text blur so a hidden mention matches the surrounding text.
         private const val SPOILER_BLUR_RATIO = 0.4f
     }
+}
+
+// Approximate a Material chip's label style (chip text-appearance + theme text colour), for drawing
+// a chip label manually — ChipDrawable's internal TextPaint isn't accessible.
+internal fun createChipLabelPaint(context: Context): TextPaint {
+    val paint = TextPaint(Paint.ANTI_ALIAS_FLAG)
+    val ta = context.obtainStyledAttributes(intArrayOf(com.google.android.material.R.attr.textAppearanceBody2))
+    val styleRes = ta.getResourceId(0, 0)
+    ta.recycle()
+    if (styleRes != 0) {
+        TextAppearanceSpan(context, styleRes).updateDrawState(paint)
+    } else {
+        paint.textSize = 14 * context.resources.displayMetrics.scaledDensity
+    }
+    paint.color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+    return paint
 }
 
 // A pill's display name (with emoji) as backing text gets split by the layout at emoji-cluster

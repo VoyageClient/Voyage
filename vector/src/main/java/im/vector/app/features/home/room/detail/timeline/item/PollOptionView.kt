@@ -17,6 +17,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.setAttributeTintedImageResource
 import im.vector.app.core.extensions.setCompoundDrawablesRelativeWithIntrinsicBoundsCompat
 import im.vector.app.databinding.ItemPollOptionBinding
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 
@@ -34,7 +35,7 @@ class PollOptionView @JvmOverloads constructor(
     }
 
     fun render(state: PollOptionViewState) {
-        views.optionNameTextView.text = state.optionAnswer
+        views.optionNameTextView.text = state.optionAnswer.withEmojis()
 
         when (state) {
             is PollOptionViewState.PollSending -> renderPollSending()
