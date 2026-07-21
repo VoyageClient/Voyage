@@ -29,7 +29,9 @@ import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
+import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.copyToClipboard
@@ -37,7 +39,7 @@ import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.imagepack.edit.ImagePackListActivity
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
@@ -243,9 +245,11 @@ class RoomProfileFragment :
                 Timber.w("The room has been left")
                 activity?.finish()
             } else {
-                headerViews.roomProfileNameView.text = it.displayName.withEmojis()
-                views.matrixProfileToolbarTitleView.text = it.displayName.withEmojis()
-                headerViews.roomProfileAliasView.setTextOrHide(it.canonicalAlias)
+                headerViews.roomProfileNameView.text = it.displayName.prepareForDisplay()
+                headerViews.roomProfileNameView.setCopySource(it.displayName)
+                views.matrixProfileToolbarTitleView.text = it.displayName.prepareForDisplay()
+                headerViews.roomProfileAliasView.setTextOrHide(it.canonicalAlias?.neutralizeDirectionOverrides())
+                headerViews.roomProfileAliasView.setCopySource(it.canonicalAlias)
                 val matrixItem = it.toMatrixItem()
                 avatarRenderer.render(matrixItem, headerViews.roomProfileAvatarView)
                 avatarRenderer.render(matrixItem, views.matrixProfileToolbarAvatarImageView)

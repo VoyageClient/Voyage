@@ -70,7 +70,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovement
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -911,7 +911,7 @@ class MessageItemFactory @Inject constructor(
             linkified
         }
         return RenderedCaption(
-                epoxy = final.withEmojis().toEpoxyCharSequence(),
+                epoxy = final.prepareForDisplay().toEpoxyCharSequence(),
                 bindingOptions = bindingOptions,
                 useBigFont = containsOnlyEmojisAndEmotes(linkified, emoteRanges, MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT),
         )
@@ -948,7 +948,7 @@ class MessageItemFactory @Inject constructor(
                             annotateWithEdited(linkifiedBody, callback, informationData)
                         } else {
                             linkifiedBody
-                        }).withEmojis().toEpoxyCharSequence()
+                        }).prepareForDisplay().toEpoxyCharSequence()
                 )
                 .useBigFont(containsOnlyEmojisAndEmotes(linkifiedBody, emoteRanges, MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT))
                 .bindingOptions(bindingOptions)
@@ -1057,7 +1057,7 @@ class MessageItemFactory @Inject constructor(
                             annotateWithEdited(message, callback, informationData)
                         } else {
                             message
-                        }).withEmojis().toEpoxyCharSequence()
+                        }).prepareForDisplay().toEpoxyCharSequence()
                 )
                 .bindingOptions(bindingOptions)
                 .leftGuideline(avatarSizeProvider.leftGuideline)

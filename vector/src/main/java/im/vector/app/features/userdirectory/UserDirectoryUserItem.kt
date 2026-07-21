@@ -13,7 +13,7 @@ import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.amulyakhare.textdrawable.TextDrawable
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -21,6 +21,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -37,11 +38,11 @@ abstract class UserDirectoryUserItem : VectorEpoxyModel<UserDirectoryUserItem.Ho
         // If name is empty, use userId as name and force it being centered
         if (matrixItem.displayName.isNullOrEmpty()) {
             holder.userIdView.visibility = View.GONE
-            holder.nameView.text = matrixItem.id
+            holder.nameView.text = matrixItem.id.neutralizeDirectionOverrides()
         } else {
             holder.userIdView.visibility = View.VISIBLE
-            holder.nameView.text = matrixItem.displayName?.withEmojis()
-            holder.userIdView.text = matrixItem.id
+            holder.nameView.text = matrixItem.displayName?.prepareForDisplay()
+            holder.userIdView.text = matrixItem.id.neutralizeDirectionOverrides()
         }
         renderSelection(holder, selected)
     }

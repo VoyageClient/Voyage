@@ -16,7 +16,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -48,12 +48,12 @@ abstract class SpaceSummaryItem : VectorEpoxyModel<SpaceSummaryItem.Holder>(R.la
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.rootView.onClick(listener)
-        holder.groupNameView.text = matrixItem.displayName?.withEmojis()
+        holder.groupNameView.text = matrixItem.displayName?.prepareForDisplay()
         holder.rootView.isChecked = selected
         holder.moreView.isVisible = onMore != null
         holder.moreView.onClick(onMore)
 
-        holder.secondLineText.setTextOrHide(description?.withEmojis())
+        holder.secondLineText.setTextOrHide(description?.prepareForDisplay())
         if (hasChildren) {
             holder.collapseIndicator.isVisible = true
             holder.collapseIndicator.setImageDrawable(

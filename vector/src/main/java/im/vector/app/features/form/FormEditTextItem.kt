@@ -10,6 +10,7 @@ package im.vector.app.features.form
 import android.text.Editable
 import android.text.InputFilter
 import android.text.InputType
+import android.text.method.SingleLineTransformationMethod
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
@@ -20,7 +21,7 @@ import com.google.android.material.textfield.TextInputLayout
 import im.vector.app.R
 import im.vector.app.core.epoxy.TextListener
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.addTextChangedListenerOnce
@@ -99,9 +100,9 @@ abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.la
         holder.textInputLayout.prefixText = prefixText
         holder.textInputLayout.suffixText = suffixText
 
-        // Render emoji (Twemoji sprites / emoji2) in the current value; the underlying codepoints stay intact
-        // under the spans, so edits and the saved value are unaffected.
-        val displayValue = value?.withEmojis()
+        // Emoji spans only, NOT prepareForDisplay: this text round-trips into the saved value, so no
+        // character may be replaced. The spans sit over the original codepoints, leaving edits intact.
+        val displayValue = value?.let { messageEmojiSpanify?.spanify(it) ?: it }
         if (forceUpdateValue) {
             holder.textInputEditText.setText(displayValue)
         } else {
@@ -112,6 +113,12 @@ abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.la
 
         configureInputType(holder)
         configureImeOptions(holder)
+
+        // Draw direction-override chars as tofu without touching the editable value; never clobber a
+        // password transformation (installed by password input types).
+        if (holder.textInputEditText.transformationMethod.let { it == null || it is SingleLineTransformationMethod }) {
+            holder.textInputEditText.transformationMethod = DirectionOverridesTransformation
+        }
 
         holder.textInputEditText.addTextChangedListenerOnce(onTextChangeListener)
         holder.textInputEditText.setOnEditorActionListener(editorActionListener)

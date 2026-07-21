@@ -20,7 +20,7 @@ import android.util.AttributeSet
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import im.vector.app.features.emoji.TwemojiSpan
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.createChipLabelPaint
 import kotlin.math.ceil
 
@@ -43,7 +43,7 @@ class EmojiChip @JvmOverloads constructor(
     private var labelLayoutWidth = -1
 
     override fun setText(text: CharSequence?, type: BufferType?) {
-        val spanified = text?.withEmojis()
+        val spanified = text?.prepareForDisplay()
         val needsManualLabel = (spanified as? Spanned)
                 ?.getSpans(0, spanified.length, TwemojiSpan::class.java)?.isNotEmpty() == true
         emojiLabel = if (needsManualLabel) spanified else null

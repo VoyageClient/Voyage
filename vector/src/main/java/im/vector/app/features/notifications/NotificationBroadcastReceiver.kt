@@ -13,6 +13,7 @@ import android.content.Intent
 import androidx.core.app.RemoteInput
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.session.coroutineScope
 import im.vector.lib.core.utils.timer.Clock
@@ -144,14 +145,14 @@ class NotificationBroadcastReceiver : BroadcastReceiver() {
                 editedEventId = null,
                 noisy = false,
                 timestamp = clock.epochMillis(),
-                senderName = session.roomService().getRoomMember(session.myUserId, room.roomId)?.displayName
-                        ?: context?.getString(CommonStrings.notification_sender_me),
+                senderName = (session.roomService().getRoomMember(session.myUserId, room.roomId)?.displayName
+                        ?: context?.getString(CommonStrings.notification_sender_me))?.neutralizeDirectionOverrides(),
                 senderId = session.myUserId,
-                body = message,
+                body = message.neutralizeDirectionOverrides(),
                 imageUriString = null,
                 roomId = room.roomId,
                 threadId = threadId,
-                roomName = room.roomSummary()?.displayName ?: room.roomId,
+                roomName = (room.roomSummary()?.displayName ?: room.roomId).neutralizeDirectionOverrides(),
                 roomIsDirect = room.roomSummary()?.isDirect == true,
                 outGoingMessage = true,
                 canBeReplaced = false

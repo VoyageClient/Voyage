@@ -24,7 +24,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <!-- android:imeOptions="actionDone" to fix a crash -->
-        <com.google.android.material.textfield.TextInputEditText
+        <im.vector.app.core.ui.views.RawCopyTextInputEditText
             android:id="@+id/formTextInputTextInputEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -20,7 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.observeK
@@ -89,7 +89,7 @@ class HomeDrawerFragment :
             val user = optionalUser?.getOrNull()
             if (user != null) {
                 avatarRenderer.render(user.toMatrixItem(), views.homeDrawerHeaderAvatarView)
-                views.homeDrawerUsernameView.text = (user.displayName?.takeIf { it.isNotBlank() } ?: user.userId).withEmojis()
+                views.homeDrawerUsernameView.text = (user.displayName?.takeIf { it.isNotBlank() } ?: user.userId).prepareForDisplay()
                 views.homeDrawerUserIdView.text = user.userId
                 // Keep the switcher's active row in sync with profile edits when the panel is up.
                 if (views.homeDrawerAccountList.isVisible) refreshAccountList()

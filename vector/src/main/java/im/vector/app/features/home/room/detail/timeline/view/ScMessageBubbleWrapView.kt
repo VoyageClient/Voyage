@@ -28,7 +28,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.backgroundCompat
@@ -209,7 +209,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         memberNameView?.onClick(attributes.memberClickListener)
         timeView?.visibility = View.VISIBLE
         timeView?.text = attributes.informationData.time
-        memberNameView?.text = attributes.informationData.memberName?.withEmojis()
+        memberNameView?.text = attributes.informationData.memberName?.prepareForDisplay()
         memberNameView?.setTextColor(attributes.getMemberNameColor())
         if (avatarImageView != null) attributes.avatarRenderer.render(attributes.informationData.matrixItem, avatarImageView)
         avatarImageView?.setOnLongClickListener(attributes.itemLongClickListener)

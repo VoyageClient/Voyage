@@ -14,6 +14,7 @@ import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.ui.list.GenericItem_
 import im.vector.app.core.utils.createUIHandler
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.crypto.model.IncomingRoomKeyRequest
 import javax.inject.Inject
@@ -37,7 +38,7 @@ class IncomingKeyRequestPagedController @Inject constructor(
 
         return GenericItem_().apply {
             id(roomKeyRequest.requestId)
-            title(roomKeyRequest.requestId?.toEpoxyCharSequence())
+            title(roomKeyRequest.requestId?.neutralizeDirectionOverrides()?.toEpoxyCharSequence())
             description(
                     span {
                         span("From: ") {
@@ -54,7 +55,7 @@ class IncomingKeyRequestPagedController @Inject constructor(
                             textStyle = "bold"
                         }
                         +"${roomKeyRequest.deviceId}"
-                    }.toEpoxyCharSequence()
+                    }.neutralizeDirectionOverrides().toEpoxyCharSequence()
             )
         }
     }

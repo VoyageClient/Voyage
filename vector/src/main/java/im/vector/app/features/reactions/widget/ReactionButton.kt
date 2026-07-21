@@ -38,6 +38,7 @@ import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.databinding.ReactionButtonBinding
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -134,7 +135,7 @@ class ReactionButton @JvmOverloads constructor(
             views.reactionImage.isVisible = false
             views.reactionText.setReactionTextLayoutForEmoji()
             views.reactionText.isVisible = true
-            views.reactionText.text = emojiSpanify.spanify(value)
+            views.reactionText.text = emojiSpanify.spanify(value.neutralizeDirectionOverrides())
             return
         }
         // Image reaction. Show a ❓ placeholder at the exact size the loaded image will occupy

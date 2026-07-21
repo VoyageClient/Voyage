@@ -139,7 +139,7 @@ class VectorApplication :
         ThemeUtils.init(this)
         vectorConfiguration.applyToApplicationContext()
 
-        // Shared entry point for emoji rendering across all message-text surfaces (see withEmojis()).
+        // Shared entry point for emoji rendering across all message-text surfaces (see prepareForDisplay()).
         im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify = emojiCompatWrapper
         if (twemojiProvider.enabled) {
             // Twemoji draws emoji from bundled sprites (forced below KitKat, opt-in above) and bypasses

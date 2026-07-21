@@ -8,6 +8,7 @@ package im.vector.app.features.notifications
 
 import android.net.Uri
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.extensions.takeAs
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
@@ -132,7 +133,7 @@ class NotifiableEventResolver @Inject constructor(
             // Ok room is not known in store, but we can still display something
             val body = displayableEventFormatter.format(event, isDm = false, appendAuthor = false)
             val roomName = stringProvider.getString(CommonStrings.notification_unknown_room_name)
-            val senderDisplayName = event.senderInfo.disambiguatedDisplayName
+            val senderDisplayName = event.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()
 
             NotifiableMessageEvent(
                     eventId = event.root.eventId!!,
@@ -157,8 +158,8 @@ class NotifiableEventResolver @Inject constructor(
             when {
                 isIncomingElementCall || event.root.supportsNotification() -> {
                     val body = displayableEventFormatter.format(event, isDm = room.roomSummary()?.isDirect.orFalse(), appendAuthor = false).toString()
-                    val roomName = room.roomSummary()?.displayName ?: ""
-                    val senderDisplayName = event.senderInfo.disambiguatedDisplayName
+                    val roomName = (room.roomSummary()?.displayName ?: "").neutralizeDirectionOverrides()
+                    val senderDisplayName = event.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()
 
                     NotifiableMessageEvent(
                             eventId = event.root.eventId!!,
@@ -249,11 +250,11 @@ class NotifiableEventResolver @Inject constructor(
                     editedEventId = null,
                     canBeReplaced = canBeReplaced,
                     roomId = roomId,
-                    roomName = roomSummary?.displayName,
+                    roomName = roomSummary?.displayName?.neutralizeDirectionOverrides(),
                     timestamp = event.originServerTs ?: 0,
                     noisy = isNoisy,
                     title = stringProvider.getString(CommonStrings.notification_new_invitation),
-                    description = body.toString(),
+                    description = body.toString().neutralizeDirectionOverrides(),
                     soundName = null, // will be set later
                     type = event.getClearType()
             )

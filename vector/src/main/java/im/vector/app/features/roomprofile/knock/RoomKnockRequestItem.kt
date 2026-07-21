@@ -7,6 +7,7 @@
 
 package im.vector.app.features.roomprofile.knock
 
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -14,7 +15,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.material.button.MaterialButton
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -38,9 +39,9 @@ abstract class RoomKnockRequestItem : VectorEpoxyModel<RoomKnockRequestItem.Hold
     override fun bind(holder: Holder) {
         super.bind(holder)
         avatarRenderer.render(matrixItem, holder.avatar)
-        holder.name.text = matrixItem.getBestName().withEmojis()
-        holder.userId.setTextOrHide(matrixItem.id.takeIf { it != matrixItem.getBestName() })
-        holder.reason.setTextOrHide(reason)
+        holder.name.text = matrixItem.getBestName().prepareForDisplay()
+        holder.userId.setTextOrHide(matrixItem.id.takeIf { it != matrixItem.getBestName() }?.neutralizeDirectionOverrides())
+        holder.reason.setTextOrHide(reason?.prepareForDisplay())
 
         holder.progress.isVisible = inProgress
         holder.accept.isVisible = !inProgress

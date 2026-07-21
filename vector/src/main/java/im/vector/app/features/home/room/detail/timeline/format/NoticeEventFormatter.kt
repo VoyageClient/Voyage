@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.format
 
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.ActiveSessionDataSource
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
@@ -1031,9 +1032,9 @@ class NoticeEventFormatter @Inject constructor(
                         }
                     } else {
                         if (event.isRedactedBySameUser()) {
-                            sp.getString(CommonStrings.event_redacted_by_user_reason_with_reason, reason)
+                            sp.getString(CommonStrings.event_redacted_by_user_reason_with_reason, reason.neutralizeDirectionOverrides())
                         } else {
-                            sp.getString(CommonStrings.event_redacted_by_admin_reason_with_reason, reason)
+                            sp.getString(CommonStrings.event_redacted_by_admin_reason_with_reason, reason.neutralizeDirectionOverrides())
                         }
                     }
                 }

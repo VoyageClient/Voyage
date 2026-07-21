@@ -13,7 +13,7 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -52,7 +52,7 @@ abstract class PinnedMessageItem : VectorEpoxyModel<PinnedMessageItem.Holder>(R.
         holder.overflow.isVisible = overflowClickListener != null
         holder.overflow.onClick(overflowClickListener)
         avatarRenderer.render(matrixItem, holder.avatar)
-        holder.sender.text = senderName.withEmojis()
+        holder.sender.text = senderName.prepareForDisplay()
         holder.body.text = body
         holder.timestamp.text = formattedDate
     }

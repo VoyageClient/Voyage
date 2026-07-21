@@ -31,7 +31,7 @@ import im.vector.app.databinding.FragmentIncomingShareBinding
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -179,7 +179,7 @@ class IncomingShareFragment :
     private fun showForwardConfirmationDialog(roomSummary: RoomSummary) {
         MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(CommonStrings.action_forward)
-                .setMessage(getString(CommonStrings.forward_to_room_confirmation, roomSummary.displayName).withEmojis())
+                .setMessage(getString(CommonStrings.forward_to_room_confirmation, roomSummary.displayName).prepareForDisplay())
                 .setPositiveButton(CommonStrings.action_send) { _, _ ->
                     viewModel.handle(IncomingShareAction.ShareToRoom(roomSummary.roomId))
                 }
@@ -210,7 +210,7 @@ class IncomingShareFragment :
     private fun showConfirmationDialog(roomSummary: RoomSummary, sharedData: SharedData) {
         MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(CommonStrings.send_attachment)
-                .setMessage(getString(CommonStrings.share_confirm_room, roomSummary.displayName).withEmojis())
+                .setMessage(getString(CommonStrings.share_confirm_room, roomSummary.displayName).prepareForDisplay())
                 .setPositiveButton(CommonStrings.action_send) { _, _ ->
                     navigator.openRoomForSharingAndFinish(requireActivity(), roomSummary.roomId, sharedData)
                 }

@@ -20,7 +20,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.room.detail.timeline.item.PollOptionView
 import im.vector.app.features.home.room.detail.timeline.item.PollOptionViewState
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 
 @EpoxyModelClass
 abstract class RoomPollItem : VectorEpoxyModel<RoomPollItem.Holder>(R.layout.item_poll) {
@@ -44,7 +44,7 @@ abstract class RoomPollItem : VectorEpoxyModel<RoomPollItem.Holder>(R.layout.ite
         super.bind(holder)
         holder.view.onClick(clickListener)
         holder.date.text = formattedDate
-        holder.title.text = title.withEmojis()
+        holder.title.text = title.prepareForDisplay()
         holder.winnerOptions.removeAllViews()
         holder.winnerOptions.isVisible = winnerOptions.isNotEmpty()
         for (winnerOption in winnerOptions) {

@@ -16,6 +16,7 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 
 @EpoxyModelClass
 abstract class StickerPackHeaderItem : VectorEpoxyModel<StickerPackHeaderItem.Holder>(R.layout.item_sticker_pack_header) {
@@ -25,7 +26,7 @@ abstract class StickerPackHeaderItem : VectorEpoxyModel<StickerPackHeaderItem.Ho
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.title.text = title
+        holder.title.text = title?.prepareForDisplay()
         val icon = iconRes
         holder.icon.isVisible = icon != null
         if (icon != null) holder.icon.setImageResource(icon)

@@ -20,6 +20,7 @@ import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.core.ui.list.genericHeaderItem
 import im.vector.app.core.ui.list.genericItem
 import im.vector.app.core.ui.list.genericLoaderItem
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
@@ -131,7 +132,7 @@ class ViewEditHistoryEpoxyController @Inject constructor(
                 genericItem {
                     id(timelineEvent.eventId)
                     title(host.dateFormatter.format(timelineEvent.originServerTs, DateFormatKind.EDIT_HISTORY_ROW).toEpoxyCharSequence())
-                    description((spannedDiff ?: body).toEpoxyCharSequence())
+                    description((spannedDiff ?: body).prepareForDisplay().toEpoxyCharSequence())
                 }
             }
         }

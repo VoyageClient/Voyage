@@ -7,6 +7,7 @@
 
 package im.vector.app.core.extensions
 
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.Test
 
@@ -46,5 +47,23 @@ class StringExtensionsTest {
         val result = textWithDirectionOverrides.filterDirectionOverrides()
 
         result shouldBeEqualTo "123456789"
+    }
+
+    @Test
+    fun `given text with direction override characters, when neutralizing, then replaces each with a visible box`() {
+        val hostileText = "abc\u202Edef\u202aghi"
+
+        val result = hostileText.neutralizeDirectionOverrides()
+
+        result shouldBeEqualTo "abc\ufdd0def\ufdd0ghi"
+    }
+
+    @Test
+    fun `given text with direction marks and isolates, when neutralizing, then leaves it untouched`() {
+        val legitimateText = "\u2068\u0645\u0631\u062d\u0628\u0627\u2069 \u200eabc"
+
+        val result = legitimateText.neutralizeDirectionOverrides()
+
+        result shouldBeEqualTo legitimateText
     }
 }

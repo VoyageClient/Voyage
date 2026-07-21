@@ -21,6 +21,7 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.MainActivity
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
@@ -88,7 +89,7 @@ class ShortcutCreator @Inject constructor(
         }
 
         return ShortcutInfoCompat.Builder(context, roomSummary.roomId)
-                .setShortLabel(roomSummary.displayName)
+                .setShortLabel(roomSummary.displayName.neutralizeDirectionOverrides())
                 .setIcon(bitmap?.toProfileImageIcon())
                 .setIntent(intent)
                 .setLongLived(true)

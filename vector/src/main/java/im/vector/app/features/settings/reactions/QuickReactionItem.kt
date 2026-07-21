@@ -21,7 +21,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.glide.GlideApp
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 
 @EpoxyModelClass
 abstract class QuickReactionItem : VectorEpoxyModel<QuickReactionItem.Holder>(R.layout.item_quick_reaction) {
@@ -46,7 +46,7 @@ abstract class QuickReactionItem : VectorEpoxyModel<QuickReactionItem.Holder>(R.
             holder.glyph.typeface = fontProvider.typeface ?: Typeface.DEFAULT
             // Route through the shared emoji renderer so Twemoji sprites / emoji2 apply here too, and
             // multi-codepoint sequences (ZWJ, skin tones) render fully instead of as the base glyph.
-            holder.glyph.text = reaction.withEmojis()
+            holder.glyph.text = reaction.prepareForDisplay()
         }
         // Always present (even when empty) so its weight keeps the remove button pinned to the right edge.
         holder.label.text = label

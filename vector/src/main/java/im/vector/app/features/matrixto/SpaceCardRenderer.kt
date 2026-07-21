@@ -17,7 +17,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -47,9 +47,9 @@ class SpaceCardRenderer @Inject constructor(
             inCard.matrixToCardContentVisibility.isVisible = true
             inCard.matrixToCardButtonLoading.isVisible = false
             avatarRenderer.render(spaceSummary.toMatrixItem().let { if (hideAvatar) it.updateAvatar(null) else it }, inCard.matrixToCardAvatar)
-            inCard.matrixToCardNameText.text = spaceSummary.name.withEmojis()
+            inCard.matrixToCardNameText.text = spaceSummary.name.prepareForDisplay()
             inCard.matrixToCardAliasText.setTextOrHide(spaceSummary.canonicalAlias)
-            inCard.matrixToCardDescText.setTextOrHide(spaceSummary.topic.linkify(matrixLinkCallback).withEmojis())
+            inCard.matrixToCardDescText.setTextOrHide(spaceSummary.topic.linkify(matrixLinkCallback).prepareForDisplay())
             if (spaceSummary.isPublic) {
                 inCard.matrixToAccessText.setTextOrHide(stringProvider.getString(CommonStrings.public_space))
                 inCard.matrixToAccessImage.isVisible = true
@@ -97,9 +97,9 @@ class SpaceCardRenderer @Inject constructor(
             inCard.matrixToCardContentVisibility.isVisible = true
             inCard.matrixToCardButtonLoading.isVisible = false
             avatarRenderer.render(spaceChildInfo.toMatrixItem(), inCard.matrixToCardAvatar)
-            inCard.matrixToCardNameText.setTextOrHide(spaceChildInfo.name?.withEmojis())
+            inCard.matrixToCardNameText.setTextOrHide(spaceChildInfo.name?.prepareForDisplay())
             inCard.matrixToCardAliasText.setTextOrHide(spaceChildInfo.canonicalAlias)
-            inCard.matrixToCardDescText.setTextOrHide(spaceChildInfo.topic?.linkify(matrixLinkCallback)?.withEmojis())
+            inCard.matrixToCardDescText.setTextOrHide(spaceChildInfo.topic?.linkify(matrixLinkCallback)?.prepareForDisplay())
             if (spaceChildInfo.worldReadable) {
                 inCard.matrixToAccessText.setTextOrHide(stringProvider.getString(CommonStrings.public_space))
                 inCard.matrixToAccessImage.isVisible = true

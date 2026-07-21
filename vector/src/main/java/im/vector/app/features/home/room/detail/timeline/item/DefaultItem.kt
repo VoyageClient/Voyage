@@ -14,6 +14,7 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 
 @EpoxyModelClass
 abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_timeline_event_base_noinfo) {
@@ -23,7 +24,7 @@ abstract class DefaultItem : BaseEventItem<DefaultItem.Holder>(R.layout.item_tim
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.messageTextView.text = attributes.text
+        holder.messageTextView.text = attributes.text.prepareForDisplay()
         attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
         holder.view.setOnLongClickListener(attributes.itemLongClickListener)
     }

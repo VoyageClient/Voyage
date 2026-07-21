@@ -8,9 +8,11 @@
 package im.vector.app.features.home.room.detail.timeline.format
 
 import dagger.Lazy
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.resources.ColorProvider
@@ -85,9 +87,9 @@ class DisplayableEventFormatter @Inject constructor(
             } else {
                 null
             }
-            return reactionTemplate(rendered ?: QUESTION_MARK_EMOJI.withEmojis())
+            return reactionTemplate(rendered ?: QUESTION_MARK_EMOJI.prepareForDisplay())
         }
-        return stringProvider.getString(CommonStrings.sent_a_reaction, key).withEmojis()
+        return stringProvider.getString(CommonStrings.sent_a_reaction, key).prepareForDisplay()
     }
 
     // Insert [display] (which may carry emote image spans) into the "Reacted with: %s" template.
@@ -203,7 +205,7 @@ class DisplayableEventFormatter @Inject constructor(
                 val formatted = noticeEventFormatter.format(timelineEvent, isDm)
                 when {
                     // Not span{} — it wouldn't preserve the emoji ReplacementSpans (names in "X joined" etc.).
-                    formatted != null -> formatted.withEmojis()
+                    formatted != null -> formatted.prepareForDisplay()
                     // Reply previews want unhandled/debug events to read as they do in the timeline,
                     // rather than collapsing to an empty header; other callers keep the blank fallback.
                     unhandledFallback -> noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
@@ -406,13 +408,16 @@ class DisplayableEventFormatter @Inject constructor(
     }
 
     private fun simpleFormat(senderName: String, body: CharSequence, appendAuthor: Boolean): CharSequence {
-        val emojiBody = body.withEmojis()
+        val emojiBody = body.prepareForDisplay()
         if (!appendAuthor) return emojiBody
         // SpannableStringBuilder (not the gujun span DSL) so [body]'s emote ReplacementSpans are preserved.
         return android.text.SpannableStringBuilder().apply {
             val start = length
             // Isolate the sender name so an RTL name doesn't flip the whole "Name: message" line to RTL.
-            append(androidx.core.text.BidiFormatter.getInstance().unicodeWrap(senderName).withEmojis())
+            // Neutralize BEFORE wrapping and emoji-spanify only afterwards: unicodeWrap's own embedding
+            // chars (U+202A..U+202C) fall in the neutralized range and must survive.
+            val wrappedName = androidx.core.text.BidiFormatter.getInstance().unicodeWrap(senderName.neutralizeDirectionOverrides())
+            append(messageEmojiSpanify?.spanify(wrappedName) ?: wrappedName)
             setSpan(
                     android.text.style.ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)),
                     start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE

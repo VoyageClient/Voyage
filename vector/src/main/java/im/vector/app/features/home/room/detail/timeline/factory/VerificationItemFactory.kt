@@ -15,6 +15,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.MessageInformatio
 import im.vector.app.features.home.room.detail.timeline.helper.MessageItemAttributesFactory
 import im.vector.app.features.home.room.detail.timeline.item.StatusTileTimelineItem
 import im.vector.app.features.home.room.detail.timeline.item.StatusTileTimelineItem_
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.verification.CancelCode
@@ -84,7 +85,7 @@ class VerificationItemFactory @Inject constructor(
                                 .attributes(
                                         StatusTileTimelineItem.Attributes(
                                                 title = stringProvider.getString(CommonStrings.verification_conclusion_warning),
-                                                description = "${informationData.memberName} (${informationData.senderId})",
+                                                description = "${informationData.memberName?.neutralizeDirectionOverrides()} (${informationData.senderId.neutralizeDirectionOverrides()})",
                                                 shieldUIState = StatusTileTimelineItem.ShieldUIState.RED,
                                                 informationData = informationData,
                                                 avatarRenderer = attributes.avatarRenderer,
@@ -118,7 +119,7 @@ class VerificationItemFactory @Inject constructor(
                         .attributes(
                                 StatusTileTimelineItem.Attributes(
                                         title = stringProvider.getString(CommonStrings.sas_verified),
-                                        description = "${informationData.memberName} (${informationData.senderId})",
+                                        description = "${informationData.memberName?.neutralizeDirectionOverrides()} (${informationData.senderId.neutralizeDirectionOverrides()})",
                                         shieldUIState = StatusTileTimelineItem.ShieldUIState.GREEN,
                                         informationData = informationData,
                                         avatarRenderer = attributes.avatarRenderer,

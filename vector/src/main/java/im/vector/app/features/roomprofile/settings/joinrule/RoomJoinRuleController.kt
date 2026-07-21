@@ -10,6 +10,7 @@ package im.vector.app.features.roomprofile.settings.joinrule
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.bottomsheet.BottomSheetGenericController
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import javax.inject.Inject
@@ -45,7 +46,7 @@ class RoomJoinRuleController @Inject constructor(
                 RoomJoinRuleRadioAction(
                         roomJoinRule = RoomJoinRules.RESTRICTED,
                         description = if (state.parentSpaceName != null) {
-                            stringProvider.getString(CommonStrings.room_create_member_of_space_name_can_join, state.parentSpaceName)
+                            stringProvider.getString(CommonStrings.room_create_member_of_space_name_can_join, state.parentSpaceName.neutralizeDirectionOverrides())
                         } else {
                             stringProvider.getString(CommonStrings.room_settings_room_access_restricted_description)
                         },

@@ -18,6 +18,7 @@ import im.vector.app.features.crypto.verification.epoxy.bottomSheetVerificationQ
 import im.vector.app.features.crypto.verification.epoxy.bottomSheetVerificationWaitingItem
 import im.vector.app.features.displayname.getBestName
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.crypto.verification.CancelCode
@@ -302,9 +303,9 @@ fun BaseEpoxyVerificationController.renderQrTransaction(transaction: Verificatio
             bottomSheetVerificationWaitingItem {
                 id("waiting")
                 if (otherUserItem != null) {
-                    title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, otherUserItem.getBestName()))
+                    title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, otherUserItem.getBestName().neutralizeDirectionOverrides()))
                 } else {
-                    title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, transaction.otherDeviceId.orEmpty()))
+                    title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, transaction.otherDeviceId.orEmpty().neutralizeDirectionOverrides()))
                 }
             }
         }
@@ -314,7 +315,7 @@ fun BaseEpoxyVerificationController.renderQrTransaction(transaction: Verificatio
                 id("notice")
                 apply {
                     if (otherUserItem != null) {
-                        val name = otherUserItem.getBestName()
+                        val name = otherUserItem.getBestName().neutralizeDirectionOverrides()
                         notice(host.stringProvider.getString(CommonStrings.qr_code_scanned_by_other_notice, name).toEpoxyCharSequence())
                     } else {
                         notice(host.stringProvider.getString(CommonStrings.qr_code_scanned_self_verif_notice).toEpoxyCharSequence())
@@ -370,9 +371,9 @@ fun BaseEpoxyVerificationController.renderQrTransaction(transaction: Verificatio
                 id("waiting")
                 apply {
                     if (otherUserItem != null) {
-                        title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, otherUserItem.getBestName()))
+                        title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, otherUserItem.getBestName().neutralizeDirectionOverrides()))
                     } else {
-                        title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, transaction.otherDeviceId.orEmpty()))
+                        title(host.stringProvider.getString(CommonStrings.qr_code_scanned_verif_waiting, transaction.otherDeviceId.orEmpty().neutralizeDirectionOverrides()))
                     }
                 }
             }

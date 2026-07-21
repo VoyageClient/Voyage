@@ -22,7 +22,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.material.button.MaterialButton
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -66,7 +66,7 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             itemLongClickListener?.onLongClick(it) ?: false
         }
-        holder.titleView.text = matrixItem.displayName?.withEmojis() ?: holder.rootView.context.getString(CommonStrings.unnamed_room)
+        holder.titleView.text = matrixItem.displayName?.prepareForDisplay() ?: holder.rootView.context.getString(CommonStrings.unnamed_room)
         avatarRenderer.render(matrixItem, holder.avatarImageView)
 
         holder.descriptionText.text = span {
@@ -87,7 +87,7 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
                     }
                 }
             }
-        }.withEmojis()
+        }.prepareForDisplay()
 
         holder.suggestedTag.visibility = if (suggested) View.VISIBLE else View.GONE
         holder.joinButton.text = buttonLabel

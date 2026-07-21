@@ -34,12 +34,13 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.chip.ChipDrawable
 import im.vector.app.R
 import im.vector.app.core.extensions.isMatrixId
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.emoji.TwemojiSpan
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orTrue
@@ -68,6 +69,9 @@ class PillImageSpan(
     private var emojiLabelLayout: StaticLayout? = null
     private var emojiLabelLayoutWidth = -1
 
+    // Display-only; the outgoing body built by [expandPillSpans] keeps the real name from matrixItem.
+    private val displayName = matrixItem.getBestName().neutralizeDirectionOverrides()
+
     private val pillDrawable = createChipDrawable()
     private val target = PillImageSpanTarget(this)
     private var tv: WeakReference<TextView>? = null
@@ -92,7 +96,7 @@ class PillImageSpan(
         // again once revealed (the host view is re-laid-out on toggle).
         if (isInsideHiddenSpoiler(text, start, end)) {
             fm?.let { paint.getFontMetricsInt(it) }
-            return ceil(paint.measureText(matrixItem.getBestName())).toInt()
+            return ceil(paint.measureText(displayName)).toInt()
         }
         val rect = pillDrawable.bounds
         if (fm != null) {
@@ -199,7 +203,7 @@ class PillImageSpan(
         }
         spoilerTextPaint.color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_spoiler_background_color)
         spoilerTextPaint.alpha = (blurFraction * 255).toInt()
-        canvas.drawText(matrixItem.getBestName(), x, baseline.toFloat(), spoilerTextPaint)
+        canvas.drawText(displayName, x, baseline.toFloat(), spoilerTextPaint)
     }
 
     internal fun updateAvatarDrawable(drawable: Drawable?) {
@@ -235,13 +239,12 @@ class PillImageSpan(
             }
         }
 
-        val name = matrixItem.getBestName()
-        val spanified = name.withEmojis()
+        val spanified = displayName.prepareForDisplay()
         val needsManualLabel = (spanified as? Spanned)
                 ?.getSpans(0, spanified.length, TwemojiSpan::class.java)?.isNotEmpty() == true
 
         return ChipDrawable.createFromResource(context, R.xml.pill_view).apply {
-            text = if (needsManualLabel) "" else name
+            text = if (needsManualLabel) "" else displayName
             textEndPadding = textPadding
             textStartPadding = textPadding
             setChipMinHeightResource(im.vector.lib.ui.styles.R.dimen.pill_min_height)

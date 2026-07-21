@@ -7,6 +7,7 @@
 
 package im.vector.app.features.media
 
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.View
@@ -60,7 +61,7 @@ abstract class BaseAttachmentProvider<Type>(
             val dateString = dateFormatter.format(timelineEvent.root.originServerTs, DateFormatKind.DEFAULT_DATE_AND_TIME)
             overlayView?.updateWith(
                     counter = counter,
-                    senderInfo = "${timelineEvent.senderInfo.disambiguatedDisplayName} $dateString"
+                    senderInfo = "${timelineEvent.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()} $dateString"
             )
         } else {
             // The event may not be in the local timeline store (e.g. a crawled search result).

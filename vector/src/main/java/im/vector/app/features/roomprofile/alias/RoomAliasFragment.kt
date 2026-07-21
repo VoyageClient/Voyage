@@ -18,7 +18,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
@@ -30,6 +30,7 @@ import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.app.features.roomprofile.alias.detail.RoomAliasBottomSheet
 import im.vector.app.features.roomprofile.alias.detail.RoomAliasBottomSheetSharedAction
 import im.vector.app.features.roomprofile.alias.detail.RoomAliasBottomSheetSharedActionViewModel
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -123,7 +124,7 @@ class RoomAliasFragment :
 
     private fun renderRoomSummary(state: RoomAliasViewState) {
         state.roomSummary()?.let {
-            views.roomSettingsToolbarTitleView.text = it.displayName.withEmojis()
+            views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toMatrixItem(), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }
@@ -132,7 +133,7 @@ class RoomAliasFragment :
     private fun unpublishAlias(alias: String) {
         MaterialAlertDialogBuilder(requireContext(), im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_Destructive)
                 .setTitle(CommonStrings.dialog_title_confirmation)
-                .setMessage(getString(CommonStrings.room_alias_unpublish_confirmation, alias))
+                .setMessage(getString(CommonStrings.room_alias_unpublish_confirmation, alias.neutralizeDirectionOverrides()))
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .setPositiveButton(CommonStrings.action_unpublish) { _, _ ->
                     viewModel.handle(RoomAliasAction.UnpublishAlias(alias))
@@ -187,7 +188,7 @@ class RoomAliasFragment :
     private fun removeLocalAlias(alias: String) {
         MaterialAlertDialogBuilder(requireContext(), im.vector.lib.ui.styles.R.style.ThemeOverlay_Vector_MaterialAlertDialog_Destructive)
                 .setTitle(CommonStrings.dialog_title_confirmation)
-                .setMessage(getString(CommonStrings.room_alias_delete_confirmation, alias))
+                .setMessage(getString(CommonStrings.room_alias_delete_confirmation, alias.neutralizeDirectionOverrides()))
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .setPositiveButton(CommonStrings.action_delete) { _, _ ->
                     viewModel.handle(RoomAliasAction.RemoveLocalAlias(alias))

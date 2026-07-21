@@ -16,7 +16,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -45,8 +45,8 @@ abstract class RoomChildItem : VectorEpoxyModel<RoomChildItem.Holder>(R.layout.i
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.roomNameText.text = title.withEmojis()
-        holder.roomTopicText.setTextOrHide(topic?.withEmojis())
+        holder.roomNameText.text = title.prepareForDisplay()
+        holder.roomTopicText.setTextOrHide(topic?.prepareForDisplay())
         holder.memberCountText.text = memberCount
 
         avatarRenderer.render(

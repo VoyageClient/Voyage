@@ -12,6 +12,7 @@ import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Fail
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import me.gujun.android.span.Span
 import me.gujun.android.span.span
 import org.json.JSONArray
@@ -45,6 +46,8 @@ internal class JSonViewerEpoxyController(private val context: Context) :
         }
     }
 
+    // Keys and string values are neutralized in the rendered spans only; copyValue always carries
+    // the raw data, so copying from the viewer round-trips the exact source.
     private fun buildRec(
             model: JSonViewerModel,
             depth: Int,
@@ -67,7 +70,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                         text(
                                 span {
                                     if (model.key != null) {
-                                        span("\"${model.key}\"") {
+                                        span("\"${model.key?.neutralizeDirectionOverrides()}\"") {
                                             textColor = host.styleProvider.keyColor
                                         }
                                         span(" : ") {
@@ -107,7 +110,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                         text(
                                 span {
                                     if (model.key != null) {
-                                        span("\"${model.key}\"") {
+                                        span("\"${model.key?.neutralizeDirectionOverrides()}\"") {
                                             textColor = host.styleProvider.keyColor
                                         }
                                         span(" : ") {
@@ -169,7 +172,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
         val host = this
         return when (leaf.type) {
             JSONType.STRING -> {
-                span("\"${leaf.stringRes}\"") {
+                span("\"${leaf.stringRes.neutralizeDirectionOverrides()}\"") {
                     textColor = host.styleProvider.stringColor
                 }
             }
@@ -206,7 +209,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
             text(
                     span {
                         if (key != null) {
-                            span("\"$key\"") {
+                            span("\"${key.neutralizeDirectionOverrides()}\"") {
                                 textColor = host.styleProvider.keyColor
                             }
                             span(" : ") {
