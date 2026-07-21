@@ -38,6 +38,7 @@ import im.vector.app.features.home.room.detail.timeline.action.LocationUiData
 import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.media.ImageContentRenderer
@@ -105,7 +106,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         avatarRenderer.render(matrixItem, holder.avatar)
         holder.avatar.onClick(userClicked)
         holder.sender.onClick(userClicked)
-        holder.sender.setTextOrHide(matrixItem.getBestName())
+        holder.sender.setTextOrHide(matrixItem.getBestName().withEmojis())
         // Static outline clip — Glide's RoundedCorners only applies to Bitmap output, so a
         // blurhash placeholder (Drawable) renders with square corners without this clip.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

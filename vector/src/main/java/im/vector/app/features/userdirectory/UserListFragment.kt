@@ -20,9 +20,8 @@ import androidx.lifecycle.withResumed
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.withState
-import com.google.android.material.chip.Chip
+import im.vector.app.core.ui.views.EmojiChip
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
@@ -178,10 +177,10 @@ class UserListFragment :
     }
 
     private fun addChipToGroup(pendingSelection: PendingSelection) {
-        val chip = Chip(requireContext())
+        val chip = EmojiChip(requireContext())
         chip.setChipBackgroundColorResource(android.R.color.transparent)
         chip.chipStrokeWidth = dimensionConverter.dpToPx(1).toFloat()
-        chip.text = pendingSelection.getBestName().withEmojis()
+        chip.text = pendingSelection.getBestName()
         chip.isClickable = true
         chip.isCheckable = false
         chip.isCloseIconVisible = true

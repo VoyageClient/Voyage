@@ -18,6 +18,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import org.matrix.android.sdk.api.util.MatrixItem
 
 /**
@@ -41,7 +42,7 @@ abstract class UserItem : VectorEpoxyModel<UserItem.Holder>(R.layout.item_user) 
 
         avatarRenderer.render(matrixItem, holder.avatarImage)
         holder.userIdText.setTextOrHide(matrixItem.id)
-        holder.displayNameText.setTextOrHide(matrixItem.displayName)
+        holder.displayNameText.setTextOrHide(matrixItem.displayName?.withEmojis())
     }
 
     class Holder : VectorEpoxyHolder() {

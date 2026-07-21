@@ -29,6 +29,7 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
@@ -170,7 +171,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         val roomDisplayName = roomSummary?.displayName
         val membersCount = roomSummary?.otherMemberIds?.size ?: 0
 
-        holder.roomNameText.setTextOrHide(roomDisplayName)
+        holder.roomNameText.setTextOrHide(roomDisplayName?.withEmojis())
         renderRoomDescription(holder)
         renderRoomTopic(holder)
 
@@ -226,7 +227,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                 holder.view.resources.getString(CommonStrings.this_is_the_beginning_of_room, roomDisplayName)
             }
         }
-        holder.roomDescriptionText.text = description
+        holder.roomDescriptionText.text = description.withEmojis()
         if (isDirectRoom && attributes.isLocalRoom) {
             TextViewCompat.setTextAppearance(holder.roomDescriptionText, im.vector.lib.ui.styles.R.style.TextAppearance_Vector_Subtitle)
             holder.roomDescriptionText.setTextColor(
@@ -256,7 +257,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                             textStyle = "bold"
                         }
                         +topic.linkify(attributes.callback)
-                    }
+                    }.withEmojis()
             )
         }
         holder.roomTopicText.movementMethod = movementMethod

@@ -127,7 +127,7 @@ class RoomMemberListFragment :
         if (withState(viewModel) { it.actionsPermissions.canRevokeThreePidInvite }) {
             MaterialAlertDialogBuilder(requireActivity())
                     .setTitle(CommonStrings.three_pid_revoke_invite_dialog_title)
-                    .setMessage(getString(CommonStrings.three_pid_revoke_invite_dialog_content, content.displayName))
+                    .setMessage(getString(CommonStrings.three_pid_revoke_invite_dialog_content, content.displayName).withEmojis())
                     .setNegativeButton(CommonStrings.action_cancel, null)
                     .setPositiveButton(CommonStrings.action_revoke) { _, _ ->
                         viewModel.handle(RoomMemberListAction.RevokeThreePidInvite(stateKey))

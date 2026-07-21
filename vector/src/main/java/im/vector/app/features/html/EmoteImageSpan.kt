@@ -12,6 +12,7 @@ package im.vector.app.features.html
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -23,6 +24,7 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
+import im.vector.app.features.reactions.EmojiDrawView
 import org.matrix.android.sdk.api.session.room.send.MatrixEmoteSpan
 import java.lang.ref.WeakReference
 import kotlin.math.min
@@ -101,6 +103,22 @@ class EmoteImageSpan(
         return (paint.descent() - paint.ascent()).roundToInt().coerceAtLeast(1)
     }
 
+    private val placeholderDst = RectF()
+
+    // The "❓" fallback is itself an emoji, which drawText can't render under Twemoji; use its sprite then.
+    private fun drawPlaceholder(canvas: Canvas, x: Float, y: Int, paint: Paint) {
+        val sprite = EmojiDrawView.twemojiResolver?.invoke(PLACEHOLDER)
+        if (sprite == null) {
+            canvas.drawText(PLACEHOLDER, 0, PLACEHOLDER.length, x, y.toFloat(), paint)
+            return
+        }
+        val box = boxSize(paint)
+        val paintFm = paint.fontMetricsInt
+        val centerY = y + (paintFm.ascent + paintFm.descent) / 2
+        placeholderDst.set(x, (centerY - box / 2).toFloat(), x + box, (centerY + box / 2).toFloat())
+        canvas.drawBitmap(sprite, null, placeholderDst, paint)
+    }
+
     override fun getSize(paint: Paint, text: CharSequence, start: Int, end: Int, fm: Paint.FontMetricsInt?): Int {
         val box = boxSize(paint)
         if (fm != null) {
@@ -116,7 +134,7 @@ class EmoteImageSpan(
 
     override fun draw(canvas: Canvas, text: CharSequence, start: Int, end: Int, x: Float, top: Int, y: Int, bottom: Int, paint: Paint) {
         val dr = drawable ?: run {
-            canvas.drawText(PLACEHOLDER, 0, PLACEHOLDER.length, x, y.toFloat(), paint)
+            drawPlaceholder(canvas, x, y, paint)
             return
         }
         val box = boxSize(paint)

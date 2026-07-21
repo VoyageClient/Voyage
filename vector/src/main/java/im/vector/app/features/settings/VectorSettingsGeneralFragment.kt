@@ -28,6 +28,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.R
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
@@ -163,7 +164,7 @@ class VectorSettingsGeneralFragment :
                 .distinctUntilChanged()
                 .onEach { displayName ->
                     mDisplayNamePreference.let {
-                        it.summary = displayName
+                        it.summary = displayName.withEmojis()
                         it.text = displayName
                     }
                 }

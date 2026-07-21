@@ -24,6 +24,7 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentMatrixToUserCardBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -59,7 +60,7 @@ class MatrixToUserFragment :
             }
             is Success -> {
                 views.matrixToCardUserContentVisibility.isVisible = true
-                views.matrixToCardNameText.setTextOrHide(item.invoke().displayName)
+                views.matrixToCardNameText.setTextOrHide(item.invoke().displayName?.withEmojis())
                 views.matrixToCardUserIdText.setTextOrHide(item.invoke().id)
                 avatarRenderer.render(item.invoke(), views.matrixToCardAvatar)
             }

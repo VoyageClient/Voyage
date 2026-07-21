@@ -22,6 +22,7 @@ import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentUserCodeShowBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -78,7 +79,7 @@ class ShowUserCodeFragment :
     override fun invalidate() = withState(sharedViewModel) { state ->
         state.matrixItem?.let { avatarRenderer.render(it, views.showUserCodeAvatar) }
         state.shareLink?.let { views.showUserCodeQRImage.setData(it) }
-        views.showUserCodeCardNameText.setTextOrHide(state.matrixItem?.displayName)
+        views.showUserCodeCardNameText.setTextOrHide(state.matrixItem?.displayName?.withEmojis())
         views.showUserCodeCardUserIdText.setTextOrHide(state.matrixItem?.id)
     }
 }

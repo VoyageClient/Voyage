@@ -152,12 +152,12 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         // A spoiler in the preview keeps its blur; the BlurMaskFilter only paints on a software layer.
         holder.subtitleView.applySpoilerRenderLayer()
         holder.lastEventTimeView.text = lastEventTime
-        holder.typingView.setTextOrHide(typingMessage)
+        holder.typingView.setTextOrHide(typingMessage.withEmojis())
         holder.subtitleView.isInvisible = holder.typingView.isVisible
     }
 
     private fun renderForFilteredDisplayMode(holder: Holder) {
-        holder.subtitleView.text = subtitle
+        holder.subtitleView.text = subtitle.withEmojis()
     }
 
     override fun unbind(holder: Holder) {

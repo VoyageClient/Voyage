@@ -25,6 +25,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.views.ShieldImageView
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 
 @EpoxyModelClass
@@ -89,7 +90,7 @@ abstract class OtherSessionItem : VectorEpoxyModel<OtherSessionItem.Holder>(R.la
             setDeviceTypeIconUseCase.execute(deviceType, holder.otherSessionDeviceTypeImageView, stringProvider)
         }
         holder.otherSessionVerificationStatusImageView.renderDeviceShield(roomEncryptionTrustLevel)
-        holder.otherSessionNameTextView.text = sessionName
+        holder.otherSessionNameTextView.text = sessionName?.withEmojis()
         holder.otherSessionDescriptionTextView.text = sessionDescription
         sessionDescriptionColor?.let {
             holder.otherSessionDescriptionTextView.setTextColor(it)

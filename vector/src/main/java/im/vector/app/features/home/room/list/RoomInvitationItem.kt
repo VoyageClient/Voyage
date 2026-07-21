@@ -44,7 +44,7 @@ abstract class RoomInvitationItem : VectorEpoxyModel<RoomInvitationItem.Holder>(
         holder.rejectView.commonClicked = rejectListener
         InviteButtonStateBinder.bind(holder.acceptView, holder.rejectView, changeMembershipState)
         holder.titleView.text = matrixItem.getBestName().withEmojis()
-        holder.subtitleView.setTextOrHide(secondLine)
+        holder.subtitleView.setTextOrHide(secondLine?.withEmojis())
         avatarRenderer.render(matrixItem, holder.avatarImageView)
     }
 

@@ -26,6 +26,7 @@ import im.vector.app.core.platform.ButtonStateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentMatrixToRoomSpaceCardBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -77,9 +78,9 @@ class MatrixToRoomSpaceFragment :
                                 views.matrixToAccessImage.setImageResource(R.drawable.ic_room_private)
                             }
                         }
-                        views.matrixToCardNameText.setTextOrHide(peek.name)
+                        views.matrixToCardNameText.setTextOrHide(peek.name.withEmojis())
                         views.matrixToCardAliasText.setTextOrHide(peek.alias)
-                        views.matrixToCardDescText.setTextOrHide(peek.topic)
+                        views.matrixToCardDescText.setTextOrHide(peek.topic.withEmojis())
                         val memberCount = peek.memberCount
                         if (memberCount != null) {
                             views.matrixToMemberPills.isVisible = true

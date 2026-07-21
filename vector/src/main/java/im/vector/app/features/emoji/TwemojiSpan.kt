@@ -49,7 +49,10 @@ class TwemojiSpan(private val bitmap: Bitmap) : ReplacementSpan() {
         dst.set(0, 0, size, size)
         canvas.save()
         canvas.translate(x, (y + metrics.ascent).toFloat())
+        // Follow the run paint's alpha so faded text (spoiler crossfades, pill fade-ins) fades the sprite too.
+        FILTER_PAINT.alpha = paint.alpha
         canvas.drawBitmap(bitmap, null, dst, FILTER_PAINT)
+        FILTER_PAINT.alpha = 255
         canvas.restore()
     }
 

@@ -32,6 +32,7 @@ import im.vector.app.core.utils.styleMatchingText
 import im.vector.app.core.utils.tappableMatchingText
 import im.vector.app.databinding.FragmentRoomPreviewNoPreviewBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.roomdirectory.JoinState
 import im.vector.app.features.settings.VectorPreferences
@@ -235,10 +236,10 @@ class RoomPreviewNoPreviewFragment :
             views.roomPreviewNoPreviewToolbarAvatar.isVisible = false
             views.roomPreviewNoPreviewAvatar.isVisible = false
         }
-        views.roomPreviewNoPreviewToolbarTitle.text = roomName
+        views.roomPreviewNoPreviewToolbarTitle.text = roomName.withEmojis()
 
         // Screen
-        views.roomPreviewNoPreviewName.text = roomName
-        views.roomPreviewNoPreviewTopic.setTextOrHide(topic)
+        views.roomPreviewNoPreviewName.text = roomName.withEmojis()
+        views.roomPreviewNoPreviewTopic.setTextOrHide(topic?.withEmojis())
     }
 }

@@ -23,6 +23,7 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -48,7 +49,7 @@ abstract class BottomSheetRoomPreviewItem : VectorEpoxyModel<BottomSheetRoomPrev
         super.bind(holder)
         avatarRenderer.render(matrixItem, holder.avatar)
         holder.avatar.onClick(settingsClickListener)
-        holder.roomName.setTextOrHide(matrixItem.displayName)
+        holder.roomName.setTextOrHide(matrixItem.displayName?.withEmojis())
         setLowPriorityState(holder, izLowPriority)
         setFavoriteState(holder, izFavorite)
 
