@@ -40,7 +40,17 @@ class GuardAndroidService : VectorAndroidService() {
 
     // Android 14+ enforces a dataSync time cap; not stopping promptly here crashes with
     // ForegroundServiceDidNotStopInTimeException. Background sync survives via the alarm chain.
+    // The one-arg overload only fires for shortService timeouts — Android 15 delivers the dataSync
+    // timeout through the two-arg overload, so both must stop the service.
     override fun onTimeout(startId: Int) {
+        stopOnTimeout()
+    }
+
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        stopOnTimeout()
+    }
+
+    private fun stopOnTimeout() {
         Timber.w("Guard service reached the dataSync foreground time limit, stopping")
         stopForegroundCompat()
         myStopSelf()
