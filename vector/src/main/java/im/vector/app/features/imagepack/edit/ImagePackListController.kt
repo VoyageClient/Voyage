@@ -32,6 +32,7 @@ class ImagePackListController @Inject constructor(
         fun onGlobalToggled(pack: ManagedPack, enabled: Boolean)
         fun onCreateAccountPack()
         fun onCreateRoomPack()
+        fun onImportPack()
     }
 
     var listener: Listener? = null
@@ -48,10 +49,11 @@ class ImagePackListController @Inject constructor(
                 dividerItem { id("divider_$key") }
             }
             // The single personal account pack always shows as "Personal pack" (it has no editable name).
+            // Room packs always resolve a name (their own, else the room's — MSC2545 fallback).
             val title = if (pack.kind == ManagedPackKind.ACCOUNT) {
                 stringProvider.getString(CommonStrings.image_pack_personal_pack)
             } else {
-                pack.displayName?.takeIf { it.isNotBlank() } ?: stringProvider.getString(kindFallbackName(pack.kind))
+                pack.displayName.orEmpty()
             }
             imagePackListItem {
                 id(key)
@@ -73,12 +75,14 @@ class ImagePackListController @Inject constructor(
                 placeholderIconRes(R.drawable.ic_plus)
                 onClickListener { host.listener?.onCreateRoomPack() }
             }
+            dividerItem { id("divider_import_pack") }
+            imagePackListItem {
+                id("import_pack")
+                title(host.stringProvider.getString(CommonStrings.image_pack_import))
+                placeholderIconRes(R.drawable.ic_paperclip)
+                onClickListener { host.listener?.onImportPack() }
+            }
         }
-    }
-
-    private fun kindFallbackName(kind: ManagedPackKind): Int = when (kind) {
-        ManagedPackKind.ACCOUNT -> CommonStrings.image_pack_account_pack_title
-        else -> CommonStrings.image_pack_room_pack_title
     }
 
     private fun subtitleFor(pack: ManagedPack): String {

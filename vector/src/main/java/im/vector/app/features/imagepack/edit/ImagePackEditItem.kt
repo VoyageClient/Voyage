@@ -102,7 +102,12 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
         val desired = editText.paint.measureText(toMeasure).toInt() + editText.compoundPaddingLeft + editText.compoundPaddingRight
         val available = availableWidth(editText)
         if (available == null) {
-            // Row not laid out yet (first bind): retry once it has a width so we can compute the cap.
+            // Row not laid out yet (first bind): size to the text now, uncapped — leaving wrap_content here
+            // measures the HINT ("shortcode"), parking the trailing ":" way out until the retry runs — and
+            // re-run once laid out to apply the cap.
+            if (editText.layoutParams.width != desired) {
+                editText.layoutParams = editText.layoutParams.apply { this.width = desired }
+            }
             editText.post { resizeToContent(editText) }
             return
         }

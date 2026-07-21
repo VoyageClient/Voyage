@@ -14,6 +14,8 @@ import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackSource
 import im.vector.app.features.imagepack.ResolvedImagePack
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emitAll
@@ -21,6 +23,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import java.io.IOException
+import kotlin.coroutines.coroutineContext
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -100,11 +105,22 @@ class ImagePackRepository @Inject constructor(
     }
 
     private fun settingsDataFromCache(entries: List<ImagePackDiskCache.Entry>): ImagePackListController.Data {
-        val packs = mutableListOf(accountManagedPack())
-        entries.forEach { entry ->
-            packs += roomManagedPack(entry.roomId, entry.stateKey, entry.displayName, entry.avatarUrl, entry.firstImageUrl, entry.imageCount)
-        }
-        return ImagePackListController.Data(packs = packs, canCreateRoomPack = false, hasAccountPack = true, inRoom = false)
+        // Fresh scans are saved room-grouped/sorted, but a cache written by an older version may carry
+        // insertion order — re-sort so even the instant first paint is deterministic.
+        val roomPacks = entries
+                .map { entry -> roomManagedPack(entry.roomId, entry.stateKey, entry.displayName, entry.avatarUrl, entry.firstImageUrl, entry.imageCount) }
+                .sortedWith(compareBy(
+                        { it.roomDisplayName.orEmpty().lowercase() },
+                        { it.roomId.orEmpty() },
+                        { it.displayName.orEmpty().lowercase() },
+                        { it.stateKey.orEmpty() },
+                ))
+        return ImagePackListController.Data(
+                packs = listOf(accountManagedPack()) + roomPacks,
+                canCreateRoomPack = false,
+                hasAccountPack = true,
+                inRoom = false,
+        )
     }
 
     private fun roomData(roomId: String): ImagePackListController.Data = ImagePackListController.Data(
@@ -187,10 +203,10 @@ class ImagePackRepository @Inject constructor(
                 ?.content.toModel()
     }
 
-    suspend fun saveAccountPack(content: ImagePackContent) {
+    suspend fun saveAccountPack(content: ImagePackContent, includeUsage: Boolean = false) {
         val session = activeSessionHolder.getActiveSession()
         val existing = session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_USER_EMOTES)?.content
-        session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_USER_EMOTES, mergePackContent(existing, content))
+        session.accountDataService().updateUserAccountData(UserAccountDataTypes.TYPE_USER_EMOTES, mergePackContent(existing, content, includeUsage))
     }
 
     suspend fun deleteAccountPack() {
@@ -228,6 +244,14 @@ class ImagePackRepository @Inject constructor(
         }
     }
 
+    // Per-image usage is a legacy im.ponies extension (the current MSC2545 schema carries usage on the pack
+    // only), so the editor offers per-image toggles solely for packs living in an unstable-id event.
+    fun isRoomPackLegacy(roomId: String, stateKey: String): Boolean {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return false
+        val room = session.roomService().getRoom(roomId) ?: return false
+        return room.stateService().canonicalPackEvent(stateKey)?.type == EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE
+    }
+
     fun canEditRoomPacks(roomId: String): Boolean {
         val session = activeSessionHolder.getSafeActiveSession() ?: return false
         val room = session.roomService().getRoom(roomId) ?: return false
@@ -235,7 +259,7 @@ class ImagePackRepository @Inject constructor(
                 .isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_IMAGE_PACK)
     }
 
-    suspend fun saveRoomPack(roomId: String, stateKey: String, content: ImagePackContent) {
+    suspend fun saveRoomPack(roomId: String, stateKey: String, content: ImagePackContent, includeUsage: Boolean = false) {
         val session = activeSessionHolder.getActiveSession()
         val room = session.roomService().getRoom(roomId) ?: return
         // Edit the pack in whichever event it already lives in (preserving its id AND its state key, which
@@ -243,7 +267,7 @@ class ImagePackRepository @Inject constructor(
         // (stable) copy. A brand-new pack is written with the stable id.
         val canonical = room.stateService().canonicalPackEvent(stateKey)
         val type = canonical?.type ?: EventType.STATE_ROOM_IMAGE_PACK
-        room.stateService().sendStateEvent(type, stateKey, mergePackContent(canonical?.content, content))
+        room.stateService().sendStateEvent(type, stateKey, mergePackContent(canonical?.content, content, includeUsage))
         // A pack you create is enabled (usable in pickers) right away; packs from other rooms you're in
         // still have to be turned on from the settings list.
         if (canonical == null) setPackEnabledGlobally(roomId, stateKey, true)
@@ -259,7 +283,9 @@ class ImagePackRepository @Inject constructor(
     // Merge the editor's content over the pack's existing raw event so we never silently drop fields we
     // don't model: the editor fully owns `images` and the pack's display_name / avatar_url, but every other
     // key (pack `usage`, `attribution`, and any unknown top-level or pack field) is passed through untouched.
-    private fun mergePackContent(existing: JsonDict?, content: ImagePackContent): JsonDict {
+    // [includeUsage] additionally lets the new content own the pack `usage` (the zip import sets it; the
+    // editor never does, so its saves keep passing existing usage through).
+    private fun mergePackContent(existing: JsonDict?, content: ImagePackContent, includeUsage: Boolean = false): JsonDict {
         val newMap = content.toContent()
         val result = LinkedHashMap<String, Any>()
         // Drop legacy image maps too: we re-write the pack under the current `images` key, so leaving the old
@@ -272,6 +298,7 @@ class ImagePackRepository @Inject constructor(
         val newPack = newMap["pack"] as? Map<*, *>
         pack.setOrRemove("display_name", newPack?.get("display_name"))
         pack.setOrRemove("avatar_url", newPack?.get("avatar_url"))
+        if (includeUsage) pack.setOrRemove("usage", newPack?.get("usage"))
         if (pack.isNotEmpty()) result["pack"] = pack
         return result
     }
@@ -316,8 +343,32 @@ class ImagePackRepository @Inject constructor(
         return activeSessionHolder.getActiveSession().fileService().uploadFile(uri, fileName, mimeType)
     }
 
+    // Foreground uploads have no retry (unlike the media-send worker), and a flaky TLS connection can stall
+    // until the 60s read timeout. Use a shorter per-attempt timeout and retry on a fresh connection.
+    suspend fun uploadImageWithRetry(uri: Uri, fileName: String?, mimeType: String?): String {
+        var lastError: Throwable? = null
+        repeat(UPLOAD_MAX_ATTEMPTS) {
+            coroutineContext.ensureActive()
+            try {
+                return withTimeout(UPLOAD_ATTEMPT_TIMEOUT_MS) { uploadImage(uri, fileName, mimeType) }
+            } catch (timeout: TimeoutCancellationException) {
+                lastError = timeout
+            } catch (io: IOException) {
+                coroutineContext.ensureActive()
+                lastError = io
+            }
+        }
+        // Not a CancellationException, so the caller surfaces it as a failure rather than silent cancellation.
+        throw (lastError as? IOException) ?: IOException("Upload failed", lastError)
+    }
+
     suspend fun compressImage(uri: Uri, mimeType: String?, maxDimension: Int): Pair<Uri, String?> {
         val result = activeSessionHolder.getActiveSession().fileService().compressImageForUpload(uri, mimeType, maxDimension)
         return result.uri to result.mimeType
+    }
+
+    companion object {
+        private const val UPLOAD_MAX_ATTEMPTS = 3
+        private const val UPLOAD_ATTEMPT_TIMEOUT_MS = 30_000L
     }
 }

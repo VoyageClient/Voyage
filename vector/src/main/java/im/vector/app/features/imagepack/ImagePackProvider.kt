@@ -69,6 +69,11 @@ class ImagePackProvider @Inject constructor(
 
     private fun Event.hasPackImages(): Boolean = content.toModel<ImagePackContent>()?.effectiveImages().isNullOrEmpty().not()
 
+    // MSC2545 defines no pack order and the state store's row order is arbitrary (insertion order), so sort
+    // alphabetically for a deterministic display everywhere packs are listed.
+    private fun List<ResolvedImagePack>.sortedAlphabetically(): List<ResolvedImagePack> =
+            sortedWith(compareBy({ it.displayName.orEmpty().lowercase() }, { it.roomId.orEmpty() }, { it.stateKey.orEmpty() }))
+
     // A pack that still exists: only a fully-cleared `{}` event (an explicitly deleted pack) is empty. A pack
     // with 0 images but a `pack` object (e.g. just created) still counts, so it stays listed for editing.
     private fun Event.hasPackContent(): Boolean = content?.isNotEmpty() == true
@@ -84,34 +89,38 @@ class ImagePackProvider @Inject constructor(
         // 1. Personal account pack (always enabled).
         session.accountDataService().getUserAccountDataEvent(UserAccountDataTypes.TYPE_USER_EMOTES)
                 ?.content.toModel<ImagePackContent>()
-                ?.toResolved(ImagePackSource.ACCOUNT, roomId = null, stateKey = null, fallbackName = null, fallbackAvatar = null, enabled = true)
+                ?.toResolved(ImagePackSource.ACCOUNT, roomId = null, stateKey = null, fallbackName = null, fallbackAvatar = null, enabled = true, legacyPack = true)
                 ?.let { packs += it }
 
         // 2. Globally-enabled room packs (m.image_pack.rooms, fall back to im.ponies.emote_rooms).
         //    Skip the current room here; its packs are added in step 3 (avoids listing them twice).
+        val globalPacks = mutableListOf<ResolvedImagePack>()
         emoteRooms?.rooms?.forEach { (refRoomId, stateKeys) ->
             if (refRoomId == roomId) return@forEach
             stateKeys.keys.forEach { stateKey ->
-                session.readRoomPack(refRoomId, stateKey)
-                        ?.toResolved(ImagePackSource.GLOBAL_ROOM, refRoomId, stateKey, fallbackName = null, fallbackAvatar = null, enabled = true)
-                        ?.let { packs += it }
+                session.readRoomPackEvent(refRoomId, stateKey)
+                        ?.toResolvedPack(ImagePackSource.GLOBAL_ROOM, refRoomId, enabled = true)
+                        ?.let { globalPacks += it }
             }
         }
+        packs += globalPacks.sortedAlphabetically()
 
         // 3. Current room packs (enabled only when referenced in m.image_pack.rooms — authoring lists the rest).
         val room = roomId?.let { session.roomService().getRoom(it) }
         if (room != null) {
-            room.stateService().getStateEvents(roomPackTypes, QueryStringValue.IsNotNull).uniqueRoomPackEvents().forEach { event ->
-                event.toResolvedPack(ImagePackSource.CURRENT_ROOM, room.roomId, isEnabled(room.roomId, event.stateKey))?.let { packs += it }
-            }
+            packs += room.stateService().getStateEvents(roomPackTypes, QueryStringValue.IsNotNull).uniqueRoomPackEvents()
+                    .mapNotNull { event -> event.toResolvedPack(ImagePackSource.CURRENT_ROOM, room.roomId, isEnabled(room.roomId, event.stateKey)) }
+                    .sortedAlphabetically()
 
             // 4. Canonical-space hierarchy packs (flattenParentIds is already cycle/depth bounded by the SDK).
             room.roomSummary()?.flattenParentIds.orEmpty().take(MAX_SPACES).forEach { spaceId ->
-                session.roomService().getRoom(spaceId)
+                packs += session.roomService().getRoom(spaceId)
                         ?.stateService()
                         ?.getStateEvents(roomPackTypes, QueryStringValue.IsNotNull)
                         ?.uniqueRoomPackEvents()
-                        ?.forEach { event -> event.toResolvedPack(ImagePackSource.SPACE, spaceId, isEnabled(spaceId, event.stateKey))?.let { packs += it } }
+                        ?.mapNotNull { event -> event.toResolvedPack(ImagePackSource.SPACE, spaceId, isEnabled(spaceId, event.stateKey)) }
+                        ?.sortedAlphabetically()
+                        .orEmpty()
             }
         }
 
@@ -124,6 +133,25 @@ class ImagePackProvider @Inject constructor(
      * duplicate emoticon shortcodes disambiguated (`name`, `name@2`, `name@3`…) in priority order. */
     fun getEnabledImagePacks(roomId: String?): List<ResolvedImagePack> = disambiguate(getImagePacks(roomId).filter { it.enabled })
 
+    /** Display order for pack lists: personal pack first, then room packs grouped by room (rooms
+     * alphabetical), packs alphabetical within their room. Display-only — aggregation priority
+     * (which drives dedup and shortcode disambiguation) is unaffected. */
+    fun sortForDisplay(packs: List<ResolvedImagePack>): List<ResolvedImagePack> {
+        val session = activeSessionHolder.getSafeActiveSession()
+        val roomNames = HashMap<String, String>()
+        fun roomName(roomId: String?): String {
+            if (roomId == null) return ""
+            return roomNames.getOrPut(roomId) { session?.roomService()?.getRoomSummary(roomId)?.displayName.orEmpty() }
+        }
+        return packs.sortedWith(compareBy(
+                { it.source != ImagePackSource.ACCOUNT },
+                { roomName(it.roomId).lowercase() },
+                { it.roomId.orEmpty() },
+                { it.displayName.orEmpty().lowercase() },
+                { it.stateKey.orEmpty() },
+        ))
+    }
+
     /** Only the packs defined in [roomId] itself (for the per-room authoring screen). */
     fun getRoomOwnPacks(roomId: String): List<ResolvedImagePack> {
         val session = activeSessionHolder.getSafeActiveSession() ?: return emptyList()
@@ -134,6 +162,7 @@ class ImagePackProvider @Inject constructor(
                 .mapNotNull { event ->
                     event.toResolvedPack(ImagePackSource.CURRENT_ROOM, roomId, emoteRooms?.rooms?.get(roomId)?.containsKey(event.stateKey) == true, allowEmpty = true)
                 }
+                .sortedAlphabetically()
     }
 
     @Volatile private var allRoomsPacksCache: List<ResolvedImagePack>? = null
@@ -145,7 +174,9 @@ class ImagePackProvider @Inject constructor(
     fun getAllRoomsPacks(): List<ResolvedImagePack> {
         val session = activeSessionHolder.getSafeActiveSession() ?: return emptyList()
         val emoteRooms = session.readImagePackRooms()
+        // Grouped by room (rooms alphabetical), packs alphabetical within their room.
         return session.roomService().getRoomSummaries(roomSummaryQueryParams { memberships = listOf(Membership.JOIN) })
+                .sortedWith(compareBy({ it.displayName.lowercase() }, { it.roomId }))
                 .flatMap { summary ->
                     val room = session.roomService().getRoom(summary.roomId) ?: return@flatMap emptyList()
                     room.stateService().getStateEvents(roomPackTypes, QueryStringValue.IsNotNull).uniqueRoomPackEvents()
@@ -153,6 +184,7 @@ class ImagePackProvider @Inject constructor(
                             .mapNotNull { event ->
                                 event.toResolvedPack(ImagePackSource.GLOBAL_ROOM, summary.roomId, emoteRooms?.rooms?.get(summary.roomId)?.containsKey(event.stateKey) == true, allowEmpty = true)
                             }
+                            .sortedAlphabetically()
                 }
                 .also { allRoomsPacksCache = it }
     }
@@ -287,7 +319,7 @@ class ImagePackProvider @Inject constructor(
                 ?.content.toModel()
     }
 
-    private fun Session.readRoomPack(roomId: String, stateKey: String): ImagePackContent? {
+    private fun Session.readRoomPackEvent(roomId: String, stateKey: String): Event? {
         val room = roomService().getRoom(roomId) ?: return null
         // Same legacy-first selection as everywhere else, so a globally-enabled legacy pack isn't shadowed
         // by an empty stable event.
@@ -295,12 +327,22 @@ class ImagePackProvider @Inject constructor(
                 room.stateService().getStateEvent(EventType.STATE_ROOM_IMAGE_PACK, QueryStringValue.Equals(stateKey)),
                 room.stateService().getStateEvent(EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE, QueryStringValue.Equals(stateKey)),
         )
-        return events.uniqueRoomPackEvents().firstOrNull()?.content.toModel()
+        return events.uniqueRoomPackEvents().firstOrNull()
     }
 
     private fun Event.toResolvedPack(source: ImagePackSource, roomId: String, enabled: Boolean, allowEmpty: Boolean = false): ResolvedImagePack? {
+        // MSC2545: an unnamed in-room pack defaults to the room's name. Deliberate deviation for the avatar:
+        // no room-avatar fallback — surfaces show the pack's first image instead.
+        val roomName = activeSessionHolder.getSafeActiveSession()?.roomService()?.getRoomSummary(roomId)?.displayName
         return content.toModel<ImagePackContent>()
-                ?.toResolved(source, roomId, stateKey, fallbackName = null, fallbackAvatar = null, enabled = enabled, allowEmpty = allowEmpty)
+                ?.toResolved(
+                        source, roomId, stateKey,
+                        fallbackName = roomName?.takeIf { it.isNotBlank() },
+                        fallbackAvatar = null,
+                        enabled = enabled,
+                        allowEmpty = allowEmpty,
+                        legacyPack = type == EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
+                )
     }
 
     private fun ImagePackContent.toResolved(
@@ -312,6 +354,8 @@ class ImagePackProvider @Inject constructor(
             enabled: Boolean,
             // The authoring list keeps 0-image packs (so they stay editable); pickers drop them.
             allowEmpty: Boolean = false,
+            // Legacy im.ponies packs may narrow usage per image when the pack itself doesn't restrict it.
+            legacyPack: Boolean = false,
     ): ResolvedImagePack? {
         val images = effectiveImages().orEmpty()
         if (images.isEmpty() && !allowEmpty) return null
@@ -326,7 +370,7 @@ class ImagePackProvider @Inject constructor(
                     mxcUrl = image.url,
                     body = image.body,
                     info = image.info,
-                    usages = image.resolveUsages(pack),
+                    usages = image.resolveUsages(pack, allowPerImage = legacyPack),
                     packDisplayName = packName,
                     personal = source == ImagePackSource.ACCOUNT,
             )

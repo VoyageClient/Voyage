@@ -385,14 +385,12 @@
     <string name="sticker_picker_empty" translatable="false">No stickers available. Add a sticker pack in settings or in a room\'s image packs.</string>
     <string name="image_pack_settings_title" translatable="false">Image Packs</string>
     <string name="image_pack_settings_summary" translatable="false">Manage your custom emoticons and stickers</string>
-    <string name="image_pack_account_pack_title" translatable="false">Your packs</string>
     <string name="image_pack_personal_pack" translatable="false">Personal pack</string>
     <string name="image_pack_your_personal_pack" translatable="false">Your personal pack</string>
-    <string name="image_pack_room_pack_title" translatable="false">This room\'s packs</string>
     <string name="image_pack_global_packs_title" translatable="false">Globally enabled packs</string>
     <string name="image_pack_create" translatable="false">Create pack</string>
     <string name="image_pack_create_account" translatable="false">Create personal pack</string>
-    <string name="image_pack_create_room" translatable="false">Create Image Pack</string>
+    <string name="image_pack_create_room" translatable="false">Create Pack</string>
     <string name="image_pack_edit_title" translatable="false">Edit Pack</string>
     <string name="image_pack_create_title" translatable="false">Create Pack</string>
     <string name="image_pack_name_hint" translatable="false">Pack name</string>
@@ -421,12 +419,26 @@
     <string name="image_pack_usage_emoticon" translatable="false">Emoticon</string>
     <string name="image_pack_usage_sticker" translatable="false">Sticker</string>
     <string name="image_pack_usage_both" translatable="false">Both</string>
+    <string name="image_pack_type_title" translatable="false">Pack Type</string>
+    <string name="image_pack_usage_emoticons" translatable="false">Emoticons</string>
+    <string name="image_pack_usage_stickers" translatable="false">Stickers</string>
     <string name="permalink_open_failed" translatable="false">Couldn\'t open this link. Check your connection and try again.</string>
     <string name="image_pack_enable_globally" translatable="false">Enable in all rooms</string>
     <string name="image_pack_uploading" translatable="false">Uploading…</string>
     <string name="image_pack_no_permission_room" translatable="false">You don\'t have permission to edit packs in this room</string>
     <string name="image_pack_duplicate_shortcode" translatable="false">Duplicate shortcode \"%1$s\": each shortcode in a pack must be unique</string>
     <string name="image_pack_invalid_shortcode" translatable="false">Shortcodes may only contain letters, digits, - and _</string>
+    <string name="image_pack_import" translatable="false">Import Pack</string>
+    <string name="image_pack_importing" translatable="false">Importing %1$s… (%2$d/%3$d)</string>
+    <string name="image_pack_import_done" translatable="false">Imported %1$s</string>
+    <string name="image_pack_import_empty" translatable="false">No images found in %1$s</string>
+    <string name="image_pack_export" translatable="false">Export</string>
+    <string name="image_pack_exporting_title" translatable="false">Exporting Pack</string>
+    <string name="image_pack_exporting" translatable="false">Exporting… (%1$d/%2$d)</string>
+    <string name="image_pack_export_done" translatable="false">Pack exported</string>
+    <string name="image_pack_export_cancel_prompt" translatable="false">Cancel the export?</string>
+    <string name="image_pack_export_skipped" translatable="false">Pack exported, but these images failed to download and were left out: %1$s</string>
+    <string name="image_pack_export_all_failed" translatable="false">Export failed: none of the images could be downloaded</string>
     <string name="image_pack_source_account" translatable="false">Your personal pack</string>
     <string name="image_pack_source_this_room" translatable="false">Pack from this room</string>
     <string name="image_pack_source_space" translatable="false">Pack from parent space</string>
