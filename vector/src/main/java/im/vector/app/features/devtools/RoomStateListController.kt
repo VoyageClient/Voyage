@@ -91,6 +91,33 @@ class RoomStateListController @Inject constructor(
                     }
                 }
             }
+            RoomDevToolViewState.Mode.AccountDataList -> {
+                val accountDataEvents = data.roomAccountData.invoke().orEmpty()
+                if (accountDataEvents.isEmpty()) {
+                    noResultItem {
+                        id("no account data")
+                        text(host.stringProvider.getString(CommonStrings.no_result_placeholder))
+                    }
+                } else {
+                    accountDataEvents.forEach { event ->
+                        val contentJson = JSONObject(event.content).toString().let {
+                            if (it.length > 140) {
+                                it.take(140) + Typography.ellipsis
+                            } else {
+                                it
+                            }
+                        }
+                        genericItem {
+                            id(event.type)
+                            title(event.type.neutralizeDirectionOverrides().toEpoxyCharSequence())
+                            description(contentJson.neutralizeDirectionOverrides().toEpoxyCharSequence())
+                            itemClickAction {
+                                host.interactionListener?.processAction(RoomDevToolAction.ShowAccountDataEvent(event))
+                            }
+                        }
+                    }
+                }
+            }
             else -> {
                 // nop
             }

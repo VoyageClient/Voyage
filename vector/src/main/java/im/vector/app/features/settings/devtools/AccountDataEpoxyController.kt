@@ -7,7 +7,6 @@
 
 package im.vector.app.features.settings.devtools
 
-import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
@@ -28,7 +27,6 @@ class AccountDataEpoxyController @Inject constructor(
 
     interface InteractionListener {
         fun didTap(data: UserAccountDataEvent)
-        fun didLongTap(data: UserAccountDataEvent)
     }
 
     var interactionListener: InteractionListener? = null
@@ -64,10 +62,6 @@ class AccountDataEpoxyController @Inject constructor(
                             itemClickAction {
                                 host.interactionListener?.didTap(accountData)
                             }
-                            itemLongClickAction(View.OnLongClickListener {
-                                host.interactionListener?.didLongTap(accountData)
-                                true
-                            })
                         }
                     }
                 }

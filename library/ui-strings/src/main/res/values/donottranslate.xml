@@ -482,4 +482,7 @@
     <string name="dalvik_verifier_needs_root_message" translatable="false">This device runs Android 4.0–4.3, where the app requires the Dalvik bytecode verifier to be disabled. Doing so requires root access. No root was found, so the app cannot run on this device.</string>
     <string name="dalvik_verifier_failed_title" translatable="false">Couldn\'t enable</string>
     <string name="dalvik_verifier_failed_message" translatable="false">Enabling failed or root access was denied, so the app cannot run on this device.</string>
+
+    <string name="dev_tools_explore_room_account_data" translatable="false">Room Account Data</string>
+    <string name="dev_tools_success_account_data" translatable="false">Account data updated!</string>
 </resources>

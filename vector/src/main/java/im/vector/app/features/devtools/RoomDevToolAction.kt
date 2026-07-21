@@ -9,13 +9,16 @@ package im.vector.app.features.devtools
 
 import im.vector.app.core.platform.VectorViewModelAction
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 
 sealed class RoomDevToolAction : VectorViewModelAction {
     object ExploreRoomState : RoomDevToolAction()
+    object ExploreRoomAccountData : RoomDevToolAction()
     object OnBackPressed : RoomDevToolAction()
     object MenuEdit : RoomDevToolAction()
     object MenuItemSend : RoomDevToolAction()
     data class ShowStateEvent(val event: Event) : RoomDevToolAction()
+    data class ShowAccountDataEvent(val event: RoomAccountDataEvent) : RoomDevToolAction()
     data class ShowStateEventType(val stateEventType: String) : RoomDevToolAction()
     data class UpdateContentText(val contentJson: String) : RoomDevToolAction()
     data class SendCustomEvent(val isStateEvent: Boolean) : RoomDevToolAction()

@@ -11,13 +11,16 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 
 data class RoomDevToolViewState(
         val roomId: String = "",
         val displayMode: Mode = Mode.Root,
         val stateEvents: Async<List<Event>> = Uninitialized,
+        val roomAccountData: Async<List<RoomAccountDataEvent>> = Uninitialized,
         val currentStateType: String? = null,
         val selectedEvent: Event? = null,
+        val selectedAccountData: RoomAccountDataEvent? = null,
         val selectedEventJson: String? = null,
         val editedContent: String? = null,
         val modalLoading: Async<Unit> = Uninitialized,
@@ -31,6 +34,8 @@ data class RoomDevToolViewState(
         object StateEventList : Mode()
         object StateEventListByType : Mode()
         object StateEventDetail : Mode()
+        object AccountDataList : Mode()
+        object AccountDataDetail : Mode()
         object EditEventContent : Mode()
         data class SendEventForm(val isState: Boolean) : Mode()
     }

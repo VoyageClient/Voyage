@@ -16,12 +16,14 @@
 
 package org.matrix.android.sdk.api.session.room.accountdata
 
+import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.events.model.Content
 
 /**
  * This is a simplified Event with just a roomId, a type and a content.
  * Currently used types are defined in [RoomAccountDataTypes].
  */
+@JsonClass(generateAdapter = true)
 data class RoomAccountDataEvent(
         val roomId: String,
         val type: String,
