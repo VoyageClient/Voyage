@@ -11,7 +11,6 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventContent
 import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
@@ -24,7 +23,7 @@ import org.matrix.android.sdk.api.session.room.model.VersioningState
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContentWithSender
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
-import org.matrix.android.sdk.api.session.room.read.ReadService
+import org.matrix.android.sdk.internal.database.sql.store.isEventRead
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncSummary
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncUnreadNotifications
@@ -53,7 +52,6 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         private val roomDisplayNameResolver: SqlRoomDisplayNameResolver,
         private val roomAvatarResolver: SqlRoomAvatarResolver,
         private val roomAccountDataDataSource: RoomAccountDataDataSource,
-        private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
         private val roomSummaryEventDecryptor: RoomSummaryEventDecryptor,
         private val roomSummaryEventsHelper: SqlRoomSummaryEventsHelper,
 ) {
@@ -134,9 +132,8 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
             }
         }
 
-        val shouldCheckIfReadInEventsThread = homeServerCapabilitiesService.getHomeServerCapabilities().canUseThreadReadReceiptsAndNotifications
         entity.hasUnreadMessages = entity.notificationCount > 0 ||
-                latestPreviewableEvent?.let { !isEventRead(stores, roomId, it.eventId, shouldCheckIfReadInEventsThread) }.orFalse()
+                latestPreviewableEvent?.let { !stores.isEventRead(userId, roomId, it.eventId) }.orFalse()
 
         entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
         entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
@@ -189,14 +186,6 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
 
     private fun hasFailedSending(stores: SessionStores, roomId: String): Boolean =
             stores.timelineEvent.getSendingByRoom(roomId).any { it.root?.sendState in SendState.HAS_FAILED_STATES }
-
-    private fun isEventRead(stores: SessionStores, roomId: String, eventId: String, @Suppress("UNUSED_PARAMETER") checkInThread: Boolean): Boolean {
-        val rrEventId = stores.readReceipt.getReceipt(roomId, userId, ReadService.THREAD_ID_MAIN)?.eventId ?: return false
-        if (rrEventId == eventId) return true
-        val rrTimelineEvent = stores.timelineEvent.getByRoomAndEventId(roomId, rrEventId)
-        val targetTimelineEvent = stores.timelineEvent.getByRoomAndEventId(roomId, eventId)
-        return rrTimelineEvent != null && targetTimelineEvent != null && rrTimelineEvent.displayIndex >= targetTimelineEvent.displayIndex
-    }
 
     fun validateSpaceRelationship(stores: SessionStores) {
         val active = Membership.activeMemberships()

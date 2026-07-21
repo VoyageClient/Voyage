@@ -150,9 +150,9 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun handleOnAttachmentsSent(room: Room) {
+    private fun handleOnAttachmentsSent(room: Room) = withState { state ->
         currentComposerText = ""
-        popDraft(room)
+        popDraft(room, state.sendMode)
     }
 
     private fun handleSendSticker(room: Room, action: MessageComposerAction.SendSticker) = withState { state ->
@@ -215,14 +215,14 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun pgpFormattedFor(room: Room, message: CharSequence, explicitFormatted: String?, autoMarkdown: Boolean): String? =
             explicitFormatted ?: room.sendService().computeFormattedHtml(message, autoMarkdown)
 
-    private fun handlePgpSend(room: Room, text: CharSequence, formattedText: String?, send: suspend (armoredBody: String, armoredFormatted: String?) -> Unit) {
+    private fun handlePgpSend(room: Room, text: CharSequence, formattedText: String?, consumedMode: SendMode?, send: suspend (armoredBody: String, armoredFormatted: String?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 when (val outcome = pgpRoomEncryptor.encryptForRoom(room, text, formattedText)) {
                     is PgpRoomEncryptor.Outcome.Encrypted -> {
                         send(outcome.armoredBody, outcome.armoredFormatted)
                         _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                        popDraft(room)
+                        popDraft(room, consumedMode)
                     }
                     PgpRoomEncryptor.Outcome.NotConfigured ->
                         _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_no_key_configured)))
@@ -380,7 +380,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             if (roomPgpOn) {
                                 // Room is in PGP mode: encrypt the body (and the formatted body, if any,
                                 // separately) — each field carries its own armored block.
-                                handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown)) { armoredBody, armoredFormatted ->
+                                handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown), state.sendMode) { armoredBody, armoredFormatted ->
                                     if (state.rootThreadEventId != null) {
                                         room.relationService().replyInThread(
                                                 rootThreadEventId = state.rootThreadEventId,
@@ -420,11 +420,11 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
 
                                 _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                                popDraft(room)
+                                popDraft(room, state.sendMode)
                             }
                         }
                         is ParsedCommand.TogglePgpMode -> {
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                             when {
                                 room.roomCryptoService().isEncrypted() ->
                                     _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_not_in_encrypted_room)))
@@ -463,11 +463,11 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.SendPgpEncrypted -> {
                             if (!pgpKeyStore.isEnabled) {
-                                popDraft(room)
+                                popDraft(room, state.sendMode)
                                 _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.pgp_disabled)))
                                 return@launch
                             }
-                            handlePgpSend(room, parsedCommand.message, pgpFormattedFor(room, parsedCommand.message, null, action.autoMarkdown)) { armoredBody, armoredFormatted ->
+                            handlePgpSend(room, parsedCommand.message, pgpFormattedFor(room, parsedCommand.message, null, action.autoMarkdown), state.sendMode) { armoredBody, armoredFormatted ->
                                 if (state.rootThreadEventId != null) {
                                     room.relationService().replyInThread(
                                             rootThreadEventId = state.rootThreadEventId,
@@ -507,7 +507,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendFormattedText -> {
                             offloadSend {
@@ -526,7 +526,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendGreentext -> {
                             val (plain, formatted) = buildGreentext(parsedCommand.message)
@@ -546,7 +546,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendBlockquote -> {
                             val (plain, formatted) = buildBlockquote(parsedCommand.message)
@@ -566,7 +566,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.ChangeRoomName -> {
                             handleChangeRoomNameSlashCommand(room, parsedCommand)
@@ -582,7 +582,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.DevTools -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.ClearScalarToken -> {
                             // TODO
@@ -591,7 +591,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.SetMarkdown -> {
                             vectorPreferences.setMarkdownEnabled(parsedCommand.enable)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.BanUser -> {
                             handleBanSlashCommand(room, parsedCommand)
@@ -615,11 +615,11 @@ class MessageComposerViewModel @AssistedInject constructor(
                                             parsedCommand.userId, displayName, parsedCommand.delayMs ?: 0L
                                     )
                             )
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.JoinRoom -> {
                             handleJoinToAnotherRoomSlashCommand(parsedCommand)
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.PartRoom -> {
                             handlePartSlashCommand(room, parsedCommand)
@@ -642,7 +642,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendNotice -> {
                             // sendTextMessage only builds a formatted body for m.text/m.emote, so an
@@ -675,7 +675,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendRainbow -> {
                             val message = parsedCommand.message.toString()
@@ -692,7 +692,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 }
                             }
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendRainbowEmote -> {
                             val message = parsedCommand.message.toString()
@@ -709,7 +709,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             }
 
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendSpoiler -> {
                             val text = "[${stringProvider.getString(CommonStrings.spoiler)}](${parsedCommand.message})"
@@ -727,22 +727,22 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 )
                             }
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendShrug -> {
                             sendPrefixedMessage(room, "¯\\_(ツ)_/¯", parsedCommand.message, state.rootThreadEventId)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendLenny -> {
                             sendPrefixedMessage(room, "( ͡° ͜ʖ ͡°)", parsedCommand.message, state.rootThreadEventId)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.SendTableFlip -> {
                             sendPrefixedMessage(room, "(╯°□°）╯︵ ┻━┻", parsedCommand.message, state.rootThreadEventId)
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.ChangeTopic -> {
                             handleChangeTopicSlashCommand(room, parsedCommand)
@@ -762,13 +762,13 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.ShowUser -> {
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             handleWhoisSlashCommand(parsedCommand)
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.DiscardSession -> {
                             if (room.roomCryptoService().isEncrypted()) {
                                 session.cryptoService().discardOutboundSession(room.roomId)
                                 _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                                popDraft(room)
+                                popDraft(room, state.sendMode)
                             } else {
                                 _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                                 _viewEvents.post(
@@ -793,7 +793,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                                     null,
                                                     true
                                             )
-                                    popDraft(room)
+                                    popDraft(room, state.sendMode)
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                                 } catch (failure: Throwable) {
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
@@ -812,7 +812,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                                     null,
                                                     false
                                             )
-                                    popDraft(room)
+                                    popDraft(room, state.sendMode)
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                                 } catch (failure: Throwable) {
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
@@ -825,7 +825,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             viewModelScope.launch(Dispatchers.IO) {
                                 try {
                                     session.spaceService().joinSpace(parsedCommand.spaceIdOrAlias)
-                                    popDraft(room)
+                                    popDraft(room, state.sendMode)
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                                 } catch (failure: Throwable) {
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
@@ -837,7 +837,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             viewModelScope.launch(Dispatchers.IO) {
                                 try {
                                     session.roomService().leaveRoom(parsedCommand.roomId)
-                                    popDraft(room)
+                                    popDraft(room, state.sendMode)
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                                 } catch (failure: Throwable) {
                                     _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
@@ -853,7 +853,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     )
                             )
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.ConvertToDm -> {
                             handleConvertToDmSlashCommand(room, parsedCommand)
@@ -868,7 +868,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             if (createEventId != null) {
                                 _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = createEventId))
                                 _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                                popDraft(room)
+                                popDraft(room, state.sendMode)
                             } else {
                                 _viewEvents.post(
                                         MessageComposerViewEvents.JumpToEvent(
@@ -882,7 +882,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         is ParsedCommand.JumpToEvent -> {
                             _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = parsedCommand.eventId))
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                            popDraft(room)
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.Tombstone -> {
                             handleTombstoneSlashCommand(room, parsedCommand)
@@ -891,7 +891,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             val timestamp = parseJumpToDate(parsedCommand.date)
                             if (timestamp == null) {
                                 _viewEvents.post(MessageComposerViewEvents.SlashCommandError(Command.JUMP_TO_DATE))
-                                popDraft(room)
+                                popDraft(room, state.sendMode)
                             } else {
                                 viewModelScope.launch(Dispatchers.IO) {
                                     val eventId = room.timelineService().fetchEventIdForTimestamp(timestamp, forward = true)
@@ -906,7 +906,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                                 )
                                         )
                                     }
-                                    popDraft(room)
+                                    popDraft(room, state.sendMode)
                                 }
                             }
                             Unit
@@ -1016,7 +1016,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                     }
                     _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                    popDraft(room)
+                    popDraft(room, state.sendMode)
                 }
                 is SendMode.Quote -> {
                     room.sendService().sendQuotedTextMessage(
@@ -1027,7 +1027,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             rootThreadEventId = state.rootThreadEventId
                     )
                     _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                    popDraft(room)
+                    popDraft(room, state.sendMode)
                 }
                 is SendMode.Reply -> {
                     val timelineEvent = state.sendMode.timelineEvent
@@ -1048,6 +1048,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             showInThread = showInThread,
                             replyRootThreadEventId = rootThreadEventId,
                             autoMarkdown = action.autoMarkdown,
+                            consumedMode = state.sendMode,
                     )
                     if (!handledAsCommand && parsedCommand !is ParsedCommand.ErrorNotACommand) {
                         // Action command (e.g. /myroomnick, /kick) typed in the reply composer: run it via
@@ -1063,7 +1064,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                     } else if (!handledAsCommand &&
                             pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(room.roomId) && !room.roomCryptoService().isEncrypted()) {
                         // PGP-mode reply: encrypt the body, keep the m.relates_to so it still threads/replies.
-                        handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown)) { armoredBody, armoredFormatted ->
+                        handlePgpSend(room, action.text, pgpFormattedFor(room, action.text, action.formattedText, action.autoMarkdown), state.sendMode) { armoredBody, armoredFormatted ->
                             state.rootThreadEventId?.let {
                                 room.relationService().replyInThread(
                                         rootThreadEventId = it,
@@ -1104,7 +1105,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                         )
 
                         _viewEvents.post(MessageComposerViewEvents.MessageSent)
-                        popDraft(room)
+                        popDraft(room, state.sendMode)
                     }
                 }
                 is SendMode.Voice -> {
@@ -1115,11 +1116,26 @@ class MessageComposerViewModel @AssistedInject constructor(
         }
     }
 
-    private fun popDraft(room: Room) = withState {
+    // Identifies which composer mode a send consumed, so a completed send only clears its own mode.
+    private fun SendMode.modeKey(): String = when (this) {
+        is SendMode.Regular -> "regular"
+        is SendMode.Reply -> "reply:${timelineEvent.eventId}"
+        is SendMode.Edit -> "edit:${timelineEvent.eventId}"
+        is SendMode.Quote -> "quote:${timelineEvent.eventId}"
+        is SendMode.Voice -> "voice"
+    }
+
+    private fun popDraft(room: Room, consumedMode: SendMode? = null) = withState {
         replyTargetToRestoreAfterCommand?.let { replyTarget ->
             // A slash command was just run from the reply composer: keep replying, clear only the text.
             replyTargetToRestoreAfterCommand = null
             setState { copy(sendMode = SendMode.Reply(replyTarget, "")) }
+            viewModelScope.launch { room.draftService().deleteDraft() }
+            return@withState
+        }
+        if (consumedMode != null && consumedMode.modeKey() != it.sendMode.modeKey()) {
+            // The user switched modes while this send was in flight (e.g. tapped reply during the
+            // async dispatch): the sent draft is consumed, but the new mode isn't this send's to clear.
             viewModelScope.launch { room.draftService().deleteDraft() }
             return@withState
         }
@@ -1439,6 +1455,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             showInThread: Boolean,
             replyRootThreadEventId: String?,
             autoMarkdown: Boolean,
+            consumedMode: SendMode?,
     ): Boolean {
         fun reply(text: CharSequence, formatted: String? = null, msgType: String = MessageType.MSGTYPE_TEXT) {
             offloadSend {
@@ -1467,7 +1484,7 @@ class MessageComposerViewModel @AssistedInject constructor(
 
         fun finish() {
             _viewEvents.post(MessageComposerViewEvents.MessageSent)
-            popDraft(room)
+            popDraft(room, consumedMode)
         }
 
         return when (parsedCommand) {

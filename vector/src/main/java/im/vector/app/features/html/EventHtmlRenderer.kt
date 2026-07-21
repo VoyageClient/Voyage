@@ -44,7 +44,9 @@ import io.noties.markwon.MarkwonPlugin
 import io.noties.markwon.MarkwonSpansFactory
 import io.noties.markwon.PrecomputedFutureTextSetterCompat
 import io.noties.markwon.core.MarkwonTheme
+import io.noties.markwon.core.spans.BulletListItemSpan
 import io.noties.markwon.core.spans.EmphasisSpan
+import io.noties.markwon.core.spans.OrderedListItemSpan
 import io.noties.markwon.core.spans.StrongEmphasisSpan
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.html.tag.EmphasisHandler
@@ -303,6 +305,7 @@ class EventHtmlRenderer @Inject constructor(
         val renderedText = im.vector.app.core.utils.PerfTrace.time("html.markwonRender") { SpannableStringBuilder(markwon.render(node)) }
         collapseBlockQuotePadding(renderedText)
         separateBlockQuoteTrailingContent(renderedText)
+        collapsePhantomWhitespaceLines(renderedText)
         // Block elements (a trailing <p>/<br>) leave a dangling newline/space Markwon doesn't strip. The
         // timeline happens to hide it, but the non-timeline surfaces that set this text directly (long-press,
         // reply header, reply composer) render it as a blank trailing line. Drop the trailing whitespace run
@@ -316,6 +319,64 @@ class EventHtmlRenderer @Inject constructor(
             }
         }
         renderedText
+    }
+
+    // The compressor turns the newlines markdown leaves between tags into single spaces
+    // (removeIntertagSpaces would corrupt inline content), which Markwon strands on lines of their
+    // own around list boundaries — blank-looking lines that detach bullets from their text. Space-only
+    // lines are always that artifact (real blank lines are empty, e.g. from a sender's explicit
+    // <br />), so drop every list-related run. Looseness itself adds no blank line: it's list-wide in
+    // commonmark, so it can't say which gaps were typed blank; its <p> padding carries the spacing,
+    // like element-web. A run between two paragraphs of the SAME item keeps its blank line like
+    // top-level paragraphs; non-list runs and code spans are untouched.
+    private fun collapsePhantomWhitespaceLines(text: SpannableStringBuilder) {
+        val listRanges = (
+                text.getSpans(0, text.length, BulletListItemSpan::class.java).asList() +
+                        text.getSpans(0, text.length, OrderedListItemSpan::class.java)
+                ).map { text.getSpanStart(it) to text.getSpanEnd(it) }
+        if (listRanges.isEmpty()) return
+        val codeRanges = text.getSpans(0, text.length, HtmlCodeSpan::class.java)
+                .filter { it.isBlock }
+                .map { text.getSpanStart(it) to text.getSpanEnd(it) }
+
+        // Runs of consecutive lines that contain only spaces/tabs (at least one), as [start, end).
+        val runs = ArrayList<IntArray>()
+        var pos = 0
+        while (pos < text.length) {
+            val nl = text.indexOf('\n', pos).let { if (it == -1) text.length else it }
+            val whitespaceOnly = nl > pos &&
+                    (pos until nl).all { text[it] == ' ' || text[it] == '\t' } &&
+                    codeRanges.none { (s, e) -> s < nl && e > pos }
+            if (whitespaceOnly) {
+                val lineEnd = (nl + 1).coerceAtMost(text.length)
+                val last = runs.lastOrNull()
+                if (last != null && last[1] == pos) last[1] = lineEnd else runs.add(intArrayOf(pos, lineEnd))
+            }
+            pos = nl + 1
+        }
+
+        fun Char.isWs() = this == ' ' || this == '\t' || this == '\n'
+        // Item spans swallow adjacent phantom whitespace, so classify a run by the items owning the
+        // nearest real content on each side, not by span overlap with the run itself.
+        fun innermostItem(index: Int) = listRanges.filter { (s, e) -> index in s until e }.minByOrNull { (s, e) -> e - s }
+
+        for (run in runs.asReversed()) {
+            val (start, end) = run
+            if (start == 0) {
+                text.delete(start, end)
+                continue
+            }
+            var p = start - 1
+            while (p >= 0 && text[p].isWs()) p--
+            var n = end
+            while (n < text.length && text[n].isWs()) n++
+            val prevItem = if (p >= 0) innermostItem(p) else null
+            val nextItem = if (n < text.length) innermostItem(n) else null
+            when {
+                prevItem != null && prevItem == nextItem -> Unit
+                prevItem != null || nextItem != null -> text.delete(start, end)
+            }
+        }
     }
 
     // A <blockquote> immediately followed by body text with no wrapping <p> (e.g. `</blockquote>trailing`)

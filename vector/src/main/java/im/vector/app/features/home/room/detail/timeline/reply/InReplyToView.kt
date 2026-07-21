@@ -25,7 +25,6 @@ import android.graphics.drawable.GradientDrawable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.format.DateUtils
-import android.text.method.MovementMethod
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.AttributeSet
@@ -96,7 +95,6 @@ class InReplyToView @JvmOverloads constructor(
             newState: PreviewReplyUiState,
             retriever: ReplyPreviewRetriever,
             roomInformationData: MessageInformationData,
-            movementMethod: MovementMethod?,
             itemLongClickListener: OnLongClickListener?,
             coroutineScope: CoroutineScope,
             force: Boolean = false
@@ -111,7 +109,7 @@ class InReplyToView @JvmOverloads constructor(
             PreviewReplyUiState.NoReply -> renderHidden()
             is PreviewReplyUiState.ReplyLoading -> renderLoading()
             is PreviewReplyUiState.Error -> renderError(newState)
-            is PreviewReplyUiState.InReplyTo -> renderReplyTo(newState, retriever, roomInformationData, movementMethod, coroutineScope, itemLongClickListener)
+            is PreviewReplyUiState.InReplyTo -> renderReplyTo(newState, retriever, roomInformationData, coroutineScope, itemLongClickListener)
         }
 
         setOnLongClickListener(itemLongClickListener)
@@ -159,6 +157,7 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.text = null
         // Reset colour in case this recycled view previously rendered a (muted) notice.
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.movementMethod = null
         // A recycled reply must not keep a previous message's full-width-code stretch.
         views.replyTextView.fullWidthBlockCode = false
         views.replyThumbnailView.isVisible = false
@@ -202,7 +201,6 @@ class InReplyToView @JvmOverloads constructor(
             state: PreviewReplyUiState.InReplyTo,
             retriever: ReplyPreviewRetriever,
             roomInformationData: MessageInformationData,
-            movementMethod: MovementMethod?,
             coroutineScope: CoroutineScope,
             itemLongClickListener: OnLongClickListener?,
     ) {
@@ -232,7 +230,7 @@ class InReplyToView @JvmOverloads constructor(
                     // Outside bubbles, stretch a block-code reply to the full timeline width like the
                     // timeline does; inside a bubble it should hug its content instead.
                     val fullWidthBlockCode = roomInformationData.messageLayout is TimelineMessageLayout.Default
-                    renderTextContent(content, state.event, retriever, movementMethod, coroutineScope, itemLongClickListener, fullWidthBlockCode)
+                    renderTextContent(content, state.event, retriever, coroutineScope, itemLongClickListener, fullWidthBlockCode)
                 }
                 else -> renderFallback(state.event, retriever)
             }
@@ -250,11 +248,12 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.setText(CommonStrings.event_redacted)
     }
 
+    // No movement method anywhere in the preview: links/pills/spoilers stay inert so a tap anywhere
+    // on the reply header jumps to the replied-to message instead.
     private fun renderTextContent(
             content: MessageContentWithFormattedBody,
             event: TimelineEvent,
             retriever: ReplyPreviewRetriever,
-            movementMethod: MovementMethod?,
             coroutineScope: CoroutineScope,
             itemLongClickListener: OnLongClickListener?,
             fullWidthBlockCode: Boolean,
@@ -281,7 +280,7 @@ class InReplyToView @JvmOverloads constructor(
             // Only use the rich container when a real table/code block was extracted; otherwise fall
             // through so the text keeps its pill / linkify treatment.
             if (segments.any { it !is BodySegment.Html }) {
-                renderRichContent(segments, retriever, movementMethod, isNotice, itemLongClickListener)
+                renderRichContent(segments, retriever, isNotice, itemLongClickListener)
                 return
             }
         }
@@ -298,12 +297,14 @@ class InReplyToView @JvmOverloads constructor(
             }
         }
 
-        views.replyTextView.movementMethod = movementMethod
         // Set synchronously (not via PrecomputedTextCompat future): the async path measured the
         // ExpandableViewLayout before the text landed, leaving a recycled view stuck showing the
         // multi-line fade over a single-line reply.
         views.replyTextView.text = text.withEmojis()
         markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
+        // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none;
+        // links here must stay inert so a tap snaps to the source message instead.
+        views.replyTextView.movementMethod = null
     }
 
     // A reply to a message that contains a table or code block: render the full body into the rich
@@ -312,7 +313,6 @@ class InReplyToView @JvmOverloads constructor(
     private fun renderRichContent(
             segments: List<BodySegment>,
             retriever: ReplyPreviewRetriever,
-            movementMethod: MovementMethod?,
             isNotice: Boolean,
             itemLongClickListener: OnLongClickListener?,
     ) {
@@ -324,7 +324,7 @@ class InReplyToView @JvmOverloads constructor(
                 container = views.replyRichContainer,
                 segments = segments,
                 postProcessors = arrayOf(retriever.pillsPostProcessor),
-                movementMethod = movementMethod,
+                movementMethod = null,
                 onClick = { onClick(it) },
                 onLongClick = { itemLongClickListener?.onLongClick(it) ?: false },
                 noticeStyle = isNotice,
@@ -422,6 +422,7 @@ class InReplyToView @JvmOverloads constructor(
         }
         views.replyTextView.text = text.withEmojis()
         markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
+        views.replyTextView.movementMethod = null
     }
 
     private fun renderFallback(event: TimelineEvent, retriever: ReplyPreviewRetriever) {

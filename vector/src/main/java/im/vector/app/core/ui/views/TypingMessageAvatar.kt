@@ -47,9 +47,4 @@ class TypingMessageAvatar @JvmOverloads constructor(
             addView(avatar)
         }
     }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        removeAllViews()
-    }
 }

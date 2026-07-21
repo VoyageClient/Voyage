@@ -14,8 +14,6 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.text.Editable
 import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.style.LeadingMarginSpan
 import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.view.View
@@ -424,9 +422,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         avatarRenderer.render(event.senderInfo.toMatrixItem(), views.composerRelatedMessageAvatar)
 
         val content = if (specialMode is MessageComposerMode.Edit) {
-            // Drop block leading-margin spans (blockquote, code, list indents): in an EditText they
-            // trigger the Android cursor-vs-text offset bug while editing.
-            (formattedBody ?: defaultContent).withoutLeadingMargins()
+            // Edit against the plain body — the markdown source the user typed. The rendered
+            // formatted body can't roundtrip: list/quote markers exist only as spans, so saving
+            // would flatten the structure.
+            reconstructMentionPills(defaultContent)
         } else {
             defaultContent
         }
@@ -463,13 +462,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 onLongClick = { false },
                 interactive = false,
         )
-    }
-
-    private fun CharSequence.withoutLeadingMargins(): CharSequence {
-        if (this !is Spanned) return this
-        val spans = getSpans(0, length, LeadingMarginSpan::class.java)
-        if (spans.isEmpty()) return this
-        return SpannableStringBuilder(this).also { ssb -> spans.forEach { ssb.removeSpan(it) } }
     }
 
     private fun getAudioContentBodyText(messageContent: MessageAudioContent): String {

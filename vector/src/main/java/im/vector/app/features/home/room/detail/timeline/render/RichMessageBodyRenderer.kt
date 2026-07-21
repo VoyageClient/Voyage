@@ -62,8 +62,8 @@ class RichMessageBodyRenderer @Inject constructor(
             onLongClick: (View) -> Boolean,
             noticeStyle: Boolean = false,
             replyHeader: CharSequence? = null,
-            // Previews (reply header / composer / long-press) are non-interactive: code blocks clip
-            // overflow instead of scrolling, and show no scrollbar.
+            // Previews (reply header / composer / long-press) are non-interactive: code blocks and
+            // tables clip overflow instead of scrolling (no scroll view to steal the tap/gesture).
             interactive: Boolean = true,
             // Non-bubble timeline: stretch code blocks to the full row width (the bubble layout hugs
             // its content instead).
@@ -78,7 +78,7 @@ class RichMessageBodyRenderer @Inject constructor(
         segments.forEach { segment ->
             when (segment) {
                 is BodySegment.Html -> container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
-                is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, defaultColorAttr))
+                is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr, interactive))
                 is BodySegment.Code -> container.addView(buildCodeBlock(ctx, segment.code, interactive, fullBleed, onClick, onLongClick))
             }
         }
@@ -97,10 +97,12 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
         tv.setTextColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-        tv.movementMethod = movementMethod
         tv.setOnClickListener(onClick)
         tv.setOnLongClickListener(onLongClick)
         htmlRenderer.get().setTextWithPlugins(tv, header)
+        // After the plugin pass: Markwon's CorePlugin force-installs a LinkMovementMethod on a
+        // movement-less view, so a deliberate null (inert links) has to be re-asserted.
+        tv.movementMethod = movementMethod
         return tv
     }
 
@@ -117,8 +119,9 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
         tv.setTextColor(themeColor(ctx, defaultColorAttr))
-        tv.movementMethod = movementMethod
         htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(html, *postProcessors))
+        // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView).
+        tv.movementMethod = movementMethod
         tv.applySpoilerRenderLayer()
         tv.setOnClickListener(onClick)
         tv.setOnLongClickListener(onLongClick)
@@ -126,9 +129,10 @@ class RichMessageBodyRenderer @Inject constructor(
     }
 
     // Code block, element-web style: a rounded translucent panel with a left line-number gutter and the
-    // monospace code preserving its indentation verbatim. In the timeline ([interactive]) long lines
-    // scroll horizontally; in non-interactive previews they clip (no scroll view / scrollbar) so the
-    // gesture stays with the surrounding long-press / list.
+    // monospace code preserving its indentation verbatim. With line wrapping enabled long lines wrap
+    // (the gutter keeps its number on the logical line, blank on continuations); with it disabled they
+    // scroll horizontally in the timeline ([interactive]) and clip in non-interactive previews (no
+    // scroll view / scrollbar) so the gesture stays with the surrounding long-press / list.
     private fun buildCodeBlock(
             ctx: Context,
             code: String,
@@ -140,8 +144,9 @@ class RichMessageBodyRenderer @Inject constructor(
         val codeColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
         val gutterColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
         val lineCount = code.count { it == '\n' } + 1
+        val wrap = vectorPreferences.isLineWrappingEnabled()
 
-        val outer = FullBleedLinearLayout(ctx).apply {
+        val outer = CodeBlockLayout(ctx).apply {
             this.fullBleed = fullBleed
             orientation = LinearLayout.HORIZONTAL
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -174,26 +179,35 @@ class RichMessageBodyRenderer @Inject constructor(
             typeface = Typeface.MONOSPACE
             setTextSize(TypedValue.COMPLEX_UNIT_SP, CODE_TEXT_SIZE_SP)
             setTextColor(codeColor)
-            setHorizontallyScrolling(true)
+            setHorizontallyScrolling(!wrap)
             text = code
+            setOnClickListener(onClick)
             setOnLongClickListener(onLongClick)
         }
 
         outer.addView(gutter)
-        if (interactive) {
-            codeView.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
-            val scroll = ShrinkableHorizontalScrollView(ctx).apply {
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                isHorizontalScrollBarEnabled = false
-                isFillViewport = false
-                addView(codeView)
+        when {
+            wrap -> {
+                codeView.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                outer.syncGutterWithWrappedCode(gutter, codeView)
+                outer.addView(codeView)
             }
-            outer.addView(scroll)
-        } else {
-            // Non-interactive: the code fills the remaining width and clips its overflow (the outer
-            // LinearLayout clips children), so there's no scroll view to steal the gesture or draw a bar.
-            codeView.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-            outer.addView(codeView)
+            interactive -> {
+                codeView.layoutParams = FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT)
+                val scroll = ShrinkableHorizontalScrollView(ctx).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    isHorizontalScrollBarEnabled = false
+                    isFillViewport = false
+                    addView(codeView)
+                }
+                outer.addView(scroll)
+            }
+            else -> {
+                // Non-interactive: the code fills the remaining width and clips its overflow (the outer
+                // LinearLayout clips children), so there's no scroll view to steal the gesture or draw a bar.
+                codeView.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                outer.addView(codeView)
+            }
         }
         return outer
     }
@@ -203,8 +217,33 @@ class RichMessageBodyRenderer @Inject constructor(
             rows: List<TableRowData>,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
+            onClick: (View) -> Unit,
+            onLongClick: (View) -> Boolean,
             defaultColorAttr: Int,
+            interactive: Boolean,
     ): View {
+        val table = TableLayout(ctx).apply {
+            isShrinkAllColumns = false
+            isStretchAllColumns = false
+            setBackgroundResource(R.drawable.bg_rich_table_cell)
+        }
+        val colCount = rows.maxOfOrNull { it.cells.size } ?: 0
+        rows.forEach { row ->
+            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
+        }
+        if (!interactive) {
+            // Previews: no scroll view (it would steal the tap/gesture from the surrounding view).
+            // With wrapping on the columns shrink to fit; otherwise the overflow just clips.
+            table.isShrinkAllColumns = vectorPreferences.isLineWrappingEnabled()
+            table.layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                topMargin = dim.dpToPx(6)
+                bottomMargin = dim.dpToPx(6)
+            }
+            return table
+        }
         val scroll = ShrinkableHorizontalScrollView(ctx).apply {
             layoutParams = LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
@@ -213,7 +252,7 @@ class RichMessageBodyRenderer @Inject constructor(
                 topMargin = dim.dpToPx(6)
                 bottomMargin = dim.dpToPx(6)
             }
-            allowShrink = !vectorPreferences.isTableLineWrappingDisabled()
+            allowShrink = vectorPreferences.isLineWrappingEnabled()
             isHorizontalScrollBarEnabled = true
             isFillViewport = false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -221,16 +260,7 @@ class RichMessageBodyRenderer @Inject constructor(
             }
             isScrollbarFadingEnabled = true
         }
-        val table = TableLayout(ctx).apply {
-            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            isShrinkAllColumns = false
-            isStretchAllColumns = false
-            setBackgroundResource(R.drawable.bg_rich_table_cell)
-        }
-        val colCount = rows.maxOfOrNull { it.cells.size } ?: 0
-        rows.forEach { row ->
-            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod, defaultColorAttr))
-        }
+        table.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         scroll.addView(table)
         return scroll
     }
@@ -241,6 +271,8 @@ class RichMessageBodyRenderer @Inject constructor(
             colCount: Int,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
+            onClick: (View) -> Unit,
+            onLongClick: (View) -> Boolean,
             defaultColorAttr: Int,
     ): TableRow {
         val tr = TableRow(ctx)
@@ -250,7 +282,7 @@ class RichMessageBodyRenderer @Inject constructor(
         )
         for (i in 0 until colCount) {
             val cell = row.cells.getOrNull(i)
-            tr.addView(buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod, defaultColorAttr))
+            tr.addView(buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
         }
         return tr
     }
@@ -261,6 +293,8 @@ class RichMessageBodyRenderer @Inject constructor(
             rowIsHeader: Boolean,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
+            onClick: (View) -> Unit,
+            onLongClick: (View) -> Boolean,
             defaultColorAttr: Int,
     ): AppCompatTextView {
         val isHeader = rowIsHeader || (cell?.isHeader == true)
@@ -276,22 +310,25 @@ class RichMessageBodyRenderer @Inject constructor(
         } else {
             tv.setBackgroundResource(R.drawable.bg_rich_table_cell)
         }
-        tv.movementMethod = movementMethod
+        tv.setOnClickListener(onClick)
+        tv.setOnLongClickListener(onLongClick)
         tv.gravity = when (cell?.alignment) {
             Alignment.CENTER -> Gravity.CENTER
             Alignment.RIGHT -> Gravity.END or Gravity.CENTER_VERTICAL
             else -> Gravity.START or Gravity.CENTER_VERTICAL
         }
         tv.minWidth = dim.dpToPx(40)
-        if (vectorPreferences.isTableLineWrappingDisabled()) {
+        if (vectorPreferences.isLineWrappingEnabled()) {
+            tv.maxWidth = dim.dpToPx(560)
+        } else {
             tv.setSingleLine(true)
             tv.ellipsize = null
-        } else {
-            tv.maxWidth = dim.dpToPx(560)
         }
         tv.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT)
         val cellHtml = cell?.html?.trim().orEmpty()
         if (cellHtml.isEmpty()) tv.text = "" else htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(cellHtml, *postProcessors))
+        // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView).
+        tv.movementMethod = movementMethod
         return tv
     }
 

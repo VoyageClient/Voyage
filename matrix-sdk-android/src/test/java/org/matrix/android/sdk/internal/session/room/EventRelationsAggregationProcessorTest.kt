@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import org.matrix.android.sdk.test.fakes.FakeClock
 import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.matrix.android.sdk.test.fakes.FakeStateEventDataSource
@@ -62,6 +63,7 @@ internal class EventRelationsAggregationProcessorTest {
             encryptedReferenceAggregationProcessor = fakeEncryptedReferenceAggregationProcessor.instance,
             editValidator = fakeEventEditValidator.instance,
             clock = fakeClock,
+            previewInvalidation = RoomSummaryPreviewInvalidation(),
     )
 
     @After
