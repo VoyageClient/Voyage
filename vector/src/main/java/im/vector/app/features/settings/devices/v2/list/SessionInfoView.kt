@@ -21,7 +21,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.databinding.ViewSessionInfoBinding
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
@@ -157,7 +157,7 @@ class SessionInfoView @JvmOverloads constructor(
 
     private fun renderDeviceInfo(sessionName: String, deviceType: DeviceType, stringProvider: StringProvider) {
         setDeviceTypeIconUseCase.execute(deviceType, views.sessionInfoDeviceTypeImageView, stringProvider)
-        views.sessionInfoNameTextView.text = sessionName.withEmojis()
+        views.sessionInfoNameTextView.text = sessionName.prepareForDisplay()
     }
 
     private fun renderDeviceLastSeenDetails(

@@ -12,7 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -43,8 +43,8 @@ abstract class RoomInvitationItem : VectorEpoxyModel<RoomInvitationItem.Holder>(
         holder.acceptView.commonClicked = acceptListener
         holder.rejectView.commonClicked = rejectListener
         InviteButtonStateBinder.bind(holder.acceptView, holder.rejectView, changeMembershipState)
-        holder.titleView.text = matrixItem.getBestName().withEmojis()
-        holder.subtitleView.setTextOrHide(secondLine?.withEmojis())
+        holder.titleView.text = matrixItem.getBestName().prepareForDisplay()
+        holder.subtitleView.setTextOrHide(secondLine?.prepareForDisplay())
         avatarRenderer.render(matrixItem, holder.avatarImageView)
     }
 

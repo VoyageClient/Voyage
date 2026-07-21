@@ -39,7 +39,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageInformationD
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.media.ImageContentRenderer
@@ -207,7 +207,7 @@ class InReplyToView @JvmOverloads constructor(
         hideViews()
         isVisible = true
         views.replyMemberNameView.isVisible = true
-        views.replyMemberNameView.text = state.senderName.withEmojis()
+        views.replyMemberNameView.text = state.senderName.prepareForDisplay()
         val senderColor = retriever.getMemberNameColor(state.event)
         views.replyMemberNameView.setTextColor(senderColor)
         views.inReplyToBar.setBackgroundColor(senderColor)
@@ -240,7 +240,7 @@ class InReplyToView @JvmOverloads constructor(
     private fun renderPgpReplyText(text: String) {
         views.replyTextView.isVisible = true
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-        views.replyTextView.text = text.withEmojis()
+        views.replyTextView.text = text.prepareForDisplay()
     }
 
     private fun renderRedacted() {
@@ -300,7 +300,7 @@ class InReplyToView @JvmOverloads constructor(
         // Set synchronously (not via PrecomputedTextCompat future): the async path measured the
         // ExpandableViewLayout before the text landed, leaving a recycled view stuck showing the
         // multi-line fade over a single-line reply.
-        views.replyTextView.text = text.withEmojis()
+        views.replyTextView.text = text.prepareForDisplay()
         markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
         // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none;
         // links here must stay inert so a tap snaps to the source message instead.
@@ -420,7 +420,7 @@ class InReplyToView @JvmOverloads constructor(
         if (text is Spanned) {
             markwonPlugins.forEach { plugin -> plugin.beforeSetText(views.replyTextView, text) }
         }
-        views.replyTextView.text = text.withEmojis()
+        views.replyTextView.text = text.prepareForDisplay()
         markwonPlugins.forEach { plugin -> plugin.afterSetText(views.replyTextView) }
         views.replyTextView.movementMethod = null
     }

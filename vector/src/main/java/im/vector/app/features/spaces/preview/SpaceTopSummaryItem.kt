@@ -14,7 +14,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.setTextOrHide
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 
 @EpoxyModelClass
 abstract class SpaceTopSummaryItem : VectorEpoxyModel<SpaceTopSummaryItem.Holder>(R.layout.item_space_top_summary) {
@@ -27,7 +27,7 @@ abstract class SpaceTopSummaryItem : VectorEpoxyModel<SpaceTopSummaryItem.Holder
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.spaceTopicText.setTextOrHide(topic?.withEmojis())
+        holder.spaceTopicText.setTextOrHide(topic?.prepareForDisplay())
         holder.memberCountText.text = formattedMemberCount
     }
 

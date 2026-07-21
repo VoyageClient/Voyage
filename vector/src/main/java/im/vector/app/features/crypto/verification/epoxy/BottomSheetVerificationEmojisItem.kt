@@ -16,7 +16,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.databinding.ItemEmojiVerifBinding
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import me.gujun.android.span.Span
 import me.gujun.android.span.image
 import me.gujun.android.span.span
@@ -67,7 +67,7 @@ abstract class BottomSheetVerificationEmojisItem : VectorEpoxyModel<BottomSheetV
         } else {
             views.itemEmojiTv.isVisible = true
             views.itemEmojiImage.isVisible = false
-            views.itemEmojiTv.text = rep.emoji.withEmojis()
+            views.itemEmojiTv.text = rep.emoji.prepareForDisplay()
         }
         views.itemEmojiNameTv.setText(rep.nameResId)
     }

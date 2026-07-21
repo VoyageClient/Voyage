@@ -29,8 +29,9 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -98,9 +99,9 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
             }
         } else {
             if (isDirectRoom) {
-                resources.getString(CommonStrings.direct_room_created_summary_item, data?.memberName.orEmpty())
+                resources.getString(CommonStrings.direct_room_created_summary_item, data?.memberName.orEmpty().neutralizeDirectionOverrides())
             } else {
-                resources.getString(CommonStrings.room_created_summary_item, data?.memberName.orEmpty())
+                resources.getString(CommonStrings.room_created_summary_item, data?.memberName.orEmpty().neutralizeDirectionOverrides())
             }
         }
         holder.summaryView.text = summary
@@ -171,7 +172,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         val roomDisplayName = roomSummary?.displayName
         val membersCount = roomSummary?.otherMemberIds?.size ?: 0
 
-        holder.roomNameText.setTextOrHide(roomDisplayName?.withEmojis())
+        holder.roomNameText.setTextOrHide(roomDisplayName?.prepareForDisplay())
         renderRoomDescription(holder)
         renderRoomTopic(holder)
 
@@ -227,7 +228,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                 holder.view.resources.getString(CommonStrings.this_is_the_beginning_of_room, roomDisplayName)
             }
         }
-        holder.roomDescriptionText.text = description.withEmojis()
+        holder.roomDescriptionText.text = description.prepareForDisplay()
         if (isDirectRoom && attributes.isLocalRoom) {
             TextViewCompat.setTextAppearance(holder.roomDescriptionText, im.vector.lib.ui.styles.R.style.TextAppearance_Vector_Subtitle)
             holder.roomDescriptionText.setTextColor(
@@ -257,7 +258,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                             textStyle = "bold"
                         }
                         +topic.linkify(attributes.callback)
-                    }.withEmojis()
+                    }.prepareForDisplay()
             )
         }
         holder.roomTopicText.movementMethod = movementMethod

@@ -17,6 +17,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.core.ui.list.genericWithValueItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import javax.inject.Inject
@@ -59,7 +60,7 @@ class AccountDataEpoxyController @Inject constructor(
                     dataList.forEach { accountData ->
                         genericWithValueItem {
                             id(accountData.type)
-                            title(accountData.type.toEpoxyCharSequence())
+                            title(accountData.type.neutralizeDirectionOverrides().toEpoxyCharSequence())
                             itemClickAction {
                                 host.interactionListener?.didTap(accountData)
                             }

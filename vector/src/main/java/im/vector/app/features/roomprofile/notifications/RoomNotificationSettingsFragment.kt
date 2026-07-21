@@ -15,7 +15,7 @@ import androidx.core.view.isVisible
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
@@ -91,7 +91,7 @@ class RoomNotificationSettingsFragment :
 
     private fun renderRoomSummary(state: RoomNotificationSettingsViewState) {
         state.roomSummary()?.let {
-            views.roomSettingsToolbarTitleView.text = it.displayName.withEmojis()
+            views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toMatrixItem(), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }

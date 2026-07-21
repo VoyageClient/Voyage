@@ -11,7 +11,7 @@ import androidx.annotation.CallSuper
 import androidx.annotation.LayoutRes
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
@@ -41,7 +41,7 @@ abstract class BaseProfileMatrixItem<T : ProfileMatrixItem.Holder>(@LayoutRes la
                 // Special case for ThreePid fake matrix item
                 .takeIf { it != "@" }
         holder.view.onClick(clickListener?.takeIf { editable })
-        holder.titleView.text = bestName.withEmojis()
+        holder.titleView.text = bestName.prepareForDisplay()
         holder.subtitleView.setTextOrHide(matrixId)
         holder.editableView.isVisible = editable
         avatarRenderer.render(matrixItem, holder.avatarImageView)

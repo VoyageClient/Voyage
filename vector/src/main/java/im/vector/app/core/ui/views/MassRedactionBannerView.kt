@@ -14,6 +14,7 @@ import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.databinding.ViewMassRedactionBannerBinding
 import im.vector.app.features.redaction.MassRedactionState
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 
 class MassRedactionBannerView @JvmOverloads constructor(
@@ -44,7 +45,7 @@ class MassRedactionBannerView @JvmOverloads constructor(
             return
         }
         isVisible = true
-        views.massRedactionLabel.text = resources.getString(CommonStrings.mass_redaction_redacting_from, state.targetDisplayName)
+        views.massRedactionLabel.text = resources.getString(CommonStrings.mass_redaction_redacting_from, state.targetDisplayName.neutralizeDirectionOverrides())
         views.massRedactionCount.text = "${state.completed}/${state.total}"
         views.massRedactionProgress.isIndeterminate = state.total == 0 && !state.paused
         if (state.total > 0) {

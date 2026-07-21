@@ -6,6 +6,7 @@
  */
 package im.vector.app.features.crypto.verification
 
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.content.Context
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
@@ -155,7 +156,7 @@ class IncomingVerificationRequestHandler @Inject constructor(
                 name
             } else {
                 "$name (${pr.otherUserId})"
-            }
+            }.neutralizeDirectionOverrides()
 
             val alert = VerificationVectorAlert(
                     uid = uniqueIdForVerificationRequest(pr),

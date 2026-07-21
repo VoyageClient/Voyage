@@ -26,6 +26,8 @@ import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationService
@@ -64,9 +66,9 @@ abstract class VerificationRequestItem : AbsBaseMessageItem<VerificationRequestI
         }
 
         holder.descriptionView.text = if (!attributes.informationData.sentByMe) {
-            "${attributes.informationData.memberName} (${attributes.informationData.senderId})"
+            "${attributes.informationData.memberName} (${attributes.informationData.senderId})".prepareForDisplay()
         } else {
-            "${attributes.otherUserName} (${attributes.otherUserId})"
+            "${attributes.otherUserName} (${attributes.otherUserId})".prepareForDisplay()
         }
 
         when (attributes.informationData.referencesInfoData?.verificationStatus) {
@@ -79,7 +81,7 @@ abstract class VerificationRequestItem : AbsBaseMessageItem<VerificationRequestI
             VerificationState.CANCELED_BY_OTHER -> {
                 holder.buttonBar.isVisible = false
                 holder.statusTextView.text = holder.view.context
-                        .getString(CommonStrings.verification_request_other_cancelled, attributes.informationData.memberName)
+                        .getString(CommonStrings.verification_request_other_cancelled, attributes.informationData.memberName?.neutralizeDirectionOverrides())
                 holder.statusTextView.isVisible = true
             }
             VerificationState.CANCELED_BY_ME -> {
@@ -95,7 +97,7 @@ abstract class VerificationRequestItem : AbsBaseMessageItem<VerificationRequestI
             VerificationState.DONE -> {
                 holder.buttonBar.isVisible = false
                 holder.statusTextView.text = if (attributes.informationData.sentByMe) {
-                    holder.view.context.getString(CommonStrings.verification_request_other_accepted, attributes.otherUserName)
+                    holder.view.context.getString(CommonStrings.verification_request_other_accepted, attributes.otherUserName.neutralizeDirectionOverrides())
                 } else {
                     holder.view.context.getString(CommonStrings.verification_request_you_accepted)
                 }

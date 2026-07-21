@@ -19,7 +19,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.utils.saveMedia
@@ -104,7 +104,7 @@ class RoomUploadsFragment :
 
     private fun renderRoomSummary(state: RoomUploadsViewState) {
         state.roomSummary()?.let {
-            views.roomUploadsToolbarTitleView.text = it.displayName.withEmojis()
+            views.roomUploadsToolbarTitleView.text = it.displayName.prepareForDisplay()
             views.roomUploadsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
             avatarRenderer.render(it.toMatrixItem(), views.roomUploadsToolbarAvatarImageView)
         }

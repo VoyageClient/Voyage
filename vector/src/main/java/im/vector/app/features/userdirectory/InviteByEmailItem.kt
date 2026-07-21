@@ -16,6 +16,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 
 @EpoxyModelClass
 abstract class InviteByEmailItem : VectorEpoxyModel<InviteByEmailItem.Holder>(R.layout.item_invite_by_mail) {
@@ -26,7 +27,7 @@ abstract class InviteByEmailItem : VectorEpoxyModel<InviteByEmailItem.Holder>(R.
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.itemTitleText.text = foundItem.email
+        holder.itemTitleText.text = foundItem.email.neutralizeDirectionOverrides()
         holder.checkedImageView.isVisible = false
         holder.avatarImageView.isVisible = true
         holder.view.setOnClickListener(clickListener)

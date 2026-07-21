@@ -17,7 +17,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.features.home.room.detail.timeline.item.PollOptionView
 import im.vector.app.features.home.room.detail.timeline.item.PollOptionViewState
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 
 @EpoxyModelClass
 abstract class RoomPollDetailItem : VectorEpoxyModel<RoomPollDetailItem.Holder>(R.layout.item_poll_detail) {
@@ -49,7 +49,7 @@ abstract class RoomPollDetailItem : VectorEpoxyModel<RoomPollDetailItem.Holder>(
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.date.text = formattedDate
-        holder.questionTextView.text = question?.withEmojis()
+        holder.questionTextView.text = question?.prepareForDisplay()
         holder.votesStatusTextView.text = votesStatus
         holder.optionsContainer.removeAllViews()
         holder.optionsContainer.isVisible = optionViewStates.isNotEmpty()

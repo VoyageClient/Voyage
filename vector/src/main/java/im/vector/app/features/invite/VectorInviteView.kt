@@ -13,11 +13,12 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.updateLayoutParams
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.databinding.VectorInviteViewBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
@@ -59,8 +60,8 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             // Fill the parent so the ScrollView can scroll a too-tall invite internally.
             views.inviteScroll.updateLayoutParams { height = LayoutParams.MATCH_CONSTRAINT }
             avatarRenderer.render(sender.toMatrixItem().let { if (vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it }, views.inviteAvatarView)
-            views.inviteIdentifierView.text = sender.userId
-            views.inviteNameView.text = sender.displayName?.withEmojis()
+            views.inviteIdentifierView.text = sender.userId.neutralizeDirectionOverrides()
+            views.inviteNameView.text = sender.displayName?.prepareForDisplay()
             views.inviteLabelView.text = context.getString(CommonStrings.send_you_invite)
             views.inviteIgnoreView.visibility = View.VISIBLE
         } else {
@@ -69,7 +70,7 @@ class VectorInviteView @JvmOverloads constructor(context: Context, attrs: Attrib
             views.inviteAvatarView.visibility = View.GONE
             views.inviteIdentifierView.visibility = View.GONE
             views.inviteNameView.visibility = View.GONE
-            views.inviteLabelView.text = context.getString(CommonStrings.invited_by, sender.userId)
+            views.inviteLabelView.text = context.getString(CommonStrings.invited_by, sender.userId.neutralizeDirectionOverrides())
             views.inviteIgnoreView.visibility = View.GONE
         }
         InviteButtonStateBinder.bind(views.inviteAcceptView, views.inviteRejectView, changeMembershipState, views.inviteIgnoreView)

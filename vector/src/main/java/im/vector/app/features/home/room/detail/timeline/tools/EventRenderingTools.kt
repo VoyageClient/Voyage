@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.core.text.toSpannable
 import im.vector.app.EmojiSpanify
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.features.html.AttachmentPillSpan
 import im.vector.app.core.linkify.VectorLinkify
 import im.vector.app.core.ui.PerformanceMode
@@ -39,8 +40,13 @@ import org.matrix.android.sdk.api.session.permalinks.MatrixPermalinkSpan
 @Volatile
 var messageEmojiSpanify: EmojiSpanify? = null
 
-/** Replace emoji in this text with the app's emoji rendering (Twemoji sprites / emoji2 / system font). */
-fun CharSequence.withEmojis(): CharSequence = messageEmojiSpanify?.spanify(this) ?: this
+/** Prepare user-provided text for display: neutralize Unicode direction-override characters (shown as an
+ *  unsupported-glyph box, see [neutralizeDirectionOverrides]) and apply the app's emoji rendering
+ *  (Twemoji sprites / emoji2 / system font). */
+fun CharSequence.prepareForDisplay(): CharSequence {
+    val neutralized = neutralizeDirectionOverrides()
+    return messageEmojiSpanify?.spanify(neutralized) ?: neutralized
+}
 
 /** Add a watcher so emoji typed/pasted into this input field render like elsewhere (Twemoji / emoji2); the
  *  spans sit over the original codepoints so the entered/saved text is unchanged. Call once per view. */

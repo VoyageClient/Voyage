@@ -19,7 +19,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
@@ -191,7 +191,7 @@ class ThreadListFragment :
         avatarRenderer.render(matrixItem, views.includeThreadListToolbar.roomToolbarThreadImageView)
         views.includeThreadListToolbar.roomToolbarThreadShieldImageView.render(threadListArgs.roomEncryptionTrustLevel)
         views.includeThreadListToolbar.roomToolbarThreadTitleTextView.text = resources.getText(CommonStrings.thread_list_title)
-        views.includeThreadListToolbar.roomToolbarThreadSubtitleTextView.text = threadListArgs.displayName?.withEmojis()
+        views.includeThreadListToolbar.roomToolbarThreadSubtitleTextView.text = threadListArgs.displayName?.prepareForDisplay()
     }
 
     override fun onThreadSummaryClicked(threadSummary: ThreadSummary) {

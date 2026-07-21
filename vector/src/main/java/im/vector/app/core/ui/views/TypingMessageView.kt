@@ -14,7 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.databinding.TypingMessageLayoutBinding
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.typing.TypingHelper
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import javax.inject.Inject
@@ -37,7 +37,7 @@ class TypingMessageView @JvmOverloads constructor(
     }
 
     fun render(typingUsers: List<SenderInfo>, avatarRenderer: AvatarRenderer) {
-        views.typingUserText.text = typingHelper.getNotificationTypingMessage(typingUsers).withEmojis()
+        views.typingUserText.text = typingHelper.getNotificationTypingMessage(typingUsers).prepareForDisplay()
         views.typingUserAvatars.render(typingUsers, avatarRenderer)
     }
 }

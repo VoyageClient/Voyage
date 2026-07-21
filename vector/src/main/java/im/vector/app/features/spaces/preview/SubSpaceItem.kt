@@ -15,7 +15,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -38,7 +38,7 @@ abstract class SubSpaceItem : VectorEpoxyModel<SubSpaceItem.Holder>(R.layout.ite
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.nameText.text = title.withEmojis()
+        holder.nameText.text = title.prepareForDisplay()
 
         avatarRenderer.render(
                 MatrixItem.SpaceItem(roomId, title, avatarUrl),

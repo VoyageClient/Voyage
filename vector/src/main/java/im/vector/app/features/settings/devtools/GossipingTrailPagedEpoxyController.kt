@@ -15,6 +15,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.list.GenericItem_
 import im.vector.app.core.utils.createUIHandler
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
 import org.matrix.android.sdk.api.session.crypto.model.ForwardInfo
@@ -88,7 +89,7 @@ class GossipingTrailPagedEpoxyController @Inject constructor(
                                 }
                             }
                         }
-                    }.toEpoxyCharSequence()
+                    }.neutralizeDirectionOverrides().toEpoxyCharSequence()
             )
         }
     }

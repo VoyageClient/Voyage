@@ -27,6 +27,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlayb
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -129,7 +130,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val formattedFileSize = TextUtils.formatFileSize(holder.rootLayout.context, fileSize, true)
         val durationContentDescription = getPlaybackTimeContentDescription(holder.rootLayout.context, duration)
 
-        holder.filenameView.text = filename
+        holder.filenameView.text = filename.prepareForDisplay()
         holder.filenameView.onClick(attributes.itemClickListener)
         holder.audioPlaybackDuration.text = formattedDuration
         holder.fileSize.text = holder.rootLayout.context.getString(

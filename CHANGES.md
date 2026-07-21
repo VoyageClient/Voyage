@@ -36,6 +36,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Timeline polish** — consecutive hidden events collapse into a single "N hidden events" tile, overhauled state-change notices, room-list previews that reflect message edits, an always-show-timestamps option, and a jump-to-present button that returns to the message you jumped from.
 
+- **Direction-override (RLO) spoofing protection** — hostile Unicode direction-override characters in display names, messages, mention pills, and room names no longer flip the surrounding text backwards (a trick used to spoof user IDs and file extensions); they now show as a visible placeholder box instead. Genuine right-to-left text is unaffected.
+
 - **Media hiding** — hide media, and inline images/emoji, in the timeline until tapped.
 
 - **Voice messages overhaul** — an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.

@@ -20,7 +20,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
@@ -127,7 +127,7 @@ class RoomMemberListFragment :
         if (withState(viewModel) { it.actionsPermissions.canRevokeThreePidInvite }) {
             MaterialAlertDialogBuilder(requireActivity())
                     .setTitle(CommonStrings.three_pid_revoke_invite_dialog_title)
-                    .setMessage(getString(CommonStrings.three_pid_revoke_invite_dialog_content, content.displayName).withEmojis())
+                    .setMessage(getString(CommonStrings.three_pid_revoke_invite_dialog_content, content.displayName).prepareForDisplay())
                     .setNegativeButton(CommonStrings.action_cancel, null)
                     .setPositiveButton(CommonStrings.action_revoke) { _, _ ->
                         viewModel.handle(RoomMemberListAction.RevokeThreePidInvite(stateKey))
@@ -138,7 +138,7 @@ class RoomMemberListFragment :
 
     private fun renderRoomSummary(state: RoomMemberListViewState) {
         state.roomSummary()?.let {
-            views.roomSettingGeneric.roomSettingsToolbarTitleView.text = it.displayName.withEmojis()
+            views.roomSettingGeneric.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toMatrixItem(), views.roomSettingGeneric.roomSettingsToolbarAvatarImageView)
             views.roomSettingGeneric.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }

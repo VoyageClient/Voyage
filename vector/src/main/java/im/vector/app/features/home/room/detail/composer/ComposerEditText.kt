@@ -24,6 +24,7 @@ import im.vector.app.core.extensions.ooi
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.features.home.room.detail.composer.images.UriContentListener
 import im.vector.app.features.html.PillImageSpan
+import im.vector.lib.core.utils.text.copyRawSelection
 import timber.log.Timber
 
 class ComposerEditText @JvmOverloads constructor(
@@ -54,6 +55,8 @@ class ComposerEditText @JvmOverloads constructor(
 
         return ic
     }
+
+    override fun onTextContextMenuItem(id: Int) = copyRawSelection(id) || super.onTextContextMenuItem(id)
 
     // Some Android 4.x (TouchWiz) builds throw ArithmeticException: divide by zero inside
     // Editor.updateShowAsAction while creating the text-selection action mode on long-press. Swallow it

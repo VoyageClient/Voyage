@@ -7,6 +7,7 @@
 
 package im.vector.app.features.widgets
 
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
@@ -128,7 +129,7 @@ class WidgetActivity : VectorBaseActivity<ActivityWidgetBinding>() {
         }
 
         viewModel.onEach(WidgetViewState::widgetName) { name ->
-            supportActionBar?.title = name
+            supportActionBar?.title = name.neutralizeDirectionOverrides()
         }
 
         viewModel.onEach(WidgetViewState::canManageWidgets) {

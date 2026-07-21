@@ -24,6 +24,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -80,7 +81,7 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
             holder.progressLayout.isVisible = false
         }
 
-        holder.filenameView.text = filename
+        holder.filenameView.text = filename.prepareForDisplay()
 
         if (attributes.informationData.sendState.isSending()) {
             holder.fileImageView.setImageResource(iconRes)

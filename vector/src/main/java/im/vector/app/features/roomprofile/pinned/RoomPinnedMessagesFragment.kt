@@ -16,7 +16,7 @@ import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.VectorBaseFragment
@@ -62,7 +62,7 @@ class RoomPinnedMessagesFragment :
 
     private fun renderToolbarRoom() {
         val roomSummary = session.getRoom(roomProfileArgs.roomId)?.roomSummary() ?: return
-        views.pinnedMessagesToolbarRoomName.text = roomSummary.displayName.withEmojis()
+        views.pinnedMessagesToolbarRoomName.text = roomSummary.displayName.prepareForDisplay()
         avatarRenderer.render(roomSummary.toMatrixItem(), views.pinnedMessagesToolbarAvatar)
     }
 

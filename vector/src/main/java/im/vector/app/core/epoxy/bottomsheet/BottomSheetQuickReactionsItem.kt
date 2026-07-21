@@ -22,7 +22,7 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.EmojiCompatFontProvider
 import im.vector.app.R
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
@@ -86,7 +86,7 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
                     id = ViewCompat.generateViewId()
                     setPadding(padding, padding, padding, padding)
                     typeface = fontProvider.typeface ?: Typeface.DEFAULT
-                    text = emoji.withEmojis()
+                    text = emoji.prepareForDisplay()
                     alpha = if (selected) 0.2f else 1f
                     onClick { listener?.didSelect(emoji, !selected) }
                 }

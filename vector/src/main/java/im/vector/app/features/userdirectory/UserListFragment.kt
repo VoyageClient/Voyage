@@ -33,6 +33,7 @@ import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.showIdentityServerConsentDialog
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentUserListBinding
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
@@ -180,7 +181,7 @@ class UserListFragment :
         val chip = EmojiChip(requireContext())
         chip.setChipBackgroundColorResource(android.R.color.transparent)
         chip.chipStrokeWidth = dimensionConverter.dpToPx(1).toFloat()
-        chip.text = pendingSelection.getBestName()
+        chip.text = pendingSelection.getBestName().prepareForDisplay()
         chip.isClickable = true
         chip.isCheckable = false
         chip.isCloseIconVisible = true

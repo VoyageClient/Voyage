@@ -27,6 +27,7 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.ToggleableAppBarLayoutBehavior
 import im.vector.app.databinding.FragmentSpaceLeaveAdvancedBinding
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -54,7 +55,7 @@ class SpaceLeaveAdvancedFragment :
 
         withState(viewModel) { state ->
             setupToolbar(views.toolbar)
-                    .setSubtitle(state.spaceSummary?.name)
+                    .setSubtitle(state.spaceSummary?.name?.neutralizeDirectionOverrides())
                     .allowBack()
         }
 
@@ -103,7 +104,7 @@ class SpaceLeaveAdvancedFragment :
             views.spaceLeavePromptDescription.text = warningMessage
         }
 
-        views.spaceLeavePromptTitle.text = getString(CommonStrings.space_leave_prompt_msg_with_name, state.spaceSummary?.name ?: "")
+        views.spaceLeavePromptTitle.text = getString(CommonStrings.space_leave_prompt_msg_with_name, state.spaceSummary?.name?.neutralizeDirectionOverrides() ?: "")
 
         if (state.isFilteringEnabled) {
             views.appBarLayout.setExpanded(false)

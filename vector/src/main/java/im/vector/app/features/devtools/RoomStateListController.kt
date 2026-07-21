@@ -13,6 +13,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericItem
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
@@ -41,7 +42,7 @@ class RoomStateListController @Inject constructor(
                     stateEventsGroups.forEach { entry ->
                         genericItem {
                             id(entry.key)
-                            title(entry.key.toEpoxyCharSequence())
+                            title(entry.key.neutralizeDirectionOverrides().toEpoxyCharSequence())
                             description(host.stringProvider.getQuantityString(CommonPlurals.entries, entry.value.size, entry.value.size).toEpoxyCharSequence())
                             itemClickAction {
                                 host.interactionListener?.processAction(RoomDevToolAction.ShowStateEventType(entry.key))
@@ -72,17 +73,17 @@ class RoomStateListController @Inject constructor(
                                 +"Type: "
                                 span {
                                     textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                                    text = "\"${stateEvent.type}\""
+                                    text = "\"${stateEvent.type?.neutralizeDirectionOverrides()}\""
                                     textStyle = "normal"
                                 }
                                 +"\nState Key: "
                                 span {
                                     textColor = host.colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                                    text = stateEvent.stateKey.let { "\"$it\"" }
+                                    text = stateEvent.stateKey.let { "\"${it?.neutralizeDirectionOverrides()}\"" }
                                     textStyle = "normal"
                                 }
                             }.toEpoxyCharSequence())
-                            description(contentJson.toEpoxyCharSequence())
+                            description(contentJson.neutralizeDirectionOverrides().toEpoxyCharSequence())
                             itemClickAction {
                                 host.interactionListener?.processAction(RoomDevToolAction.ShowStateEvent(stateEvent))
                             }

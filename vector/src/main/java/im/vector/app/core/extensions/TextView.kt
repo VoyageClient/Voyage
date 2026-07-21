@@ -23,6 +23,7 @@ import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
+import im.vector.app.R
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.features.themes.ThemeUtils
@@ -130,15 +131,22 @@ fun TextView.clearDrawables() {
 
 /**
  * Set long click listener to copy the current text of the TextView to the clipboard and show a Snackbar.
+ * Copies the [setCopySource] value when one was bound, else the displayed text.
  */
 fun TextView.copyOnLongClick() {
     setOnLongClickListener { view ->
         (view as? TextView)
-                ?.text
+                ?.let { tv -> tv.getTag(R.id.copy_on_long_click_source) as? CharSequence ?: tv.text }
                 ?.let { text ->
                     copyToClipboard(view.context, text, false)
                     view.showOptimizedSnackbar(view.resources.getString(CommonStrings.copied_to_clipboard))
                 }
         true
     }
+}
+
+/** The exact text [copyOnLongClick] should copy when the displayed text is a lossy rendering of it
+ *  (e.g. direction-override characters neutralized to a placeholder glyph). */
+fun TextView.setCopySource(raw: CharSequence?) {
+    setTag(R.id.copy_on_long_click_source, raw)
 }

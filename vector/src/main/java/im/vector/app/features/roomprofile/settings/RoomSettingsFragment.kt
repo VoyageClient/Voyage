@@ -33,7 +33,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.FragmentRoomSettingGenericBinding
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.app.features.roomprofile.RoomProfileSharedActionViewModel
 import im.vector.app.features.roomprofile.settings.historyvisibility.RoomHistoryVisibilityBottomSheet
@@ -159,7 +159,7 @@ class RoomSettingsFragment :
         views.waitingView.root.isVisible = state.isLoading
 
         state.roomSummary()?.let {
-            views.roomSettingsToolbarTitleView.text = it.displayName.withEmojis()
+            views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toMatrixItem(), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }

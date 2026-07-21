@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:fillViewport="true">
 
-    <EditText
+    <im.vector.app.core.ui.views.RawCopyEditText
         android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

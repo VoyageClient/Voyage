@@ -30,7 +30,9 @@ import im.vector.app.core.dialogs.ConfirmationDialogBuilder
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
+import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
@@ -42,7 +44,7 @@ import im.vector.app.databinding.ViewStubRoomMemberProfileHeaderBinding
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
@@ -212,24 +214,26 @@ class RoomMemberProfileFragment :
         when (val asyncUserMatrixItem = state.userMatrixItem) {
             Uninitialized,
             is Loading -> {
-                views.matrixProfileToolbarTitleView.text = state.userId
+                views.matrixProfileToolbarTitleView.text = state.userId.neutralizeDirectionOverrides()
                 avatarRenderer.render(MatrixItem.UserItem(state.userId, null, null), views.matrixProfileToolbarAvatarImageView)
                 headerViews.memberProfileStateView.state = StateView.State.Loading
             }
             is Fail -> {
                 avatarRenderer.render(MatrixItem.UserItem(state.userId, null, null), views.matrixProfileToolbarAvatarImageView)
-                views.matrixProfileToolbarTitleView.text = state.userId
+                views.matrixProfileToolbarTitleView.text = state.userId.neutralizeDirectionOverrides()
                 val failureMessage = errorFormatter.toHumanReadable(asyncUserMatrixItem.error)
                 headerViews.memberProfileStateView.state = StateView.State.Error(failureMessage)
             }
             is Success -> {
                 val userMatrixItem = asyncUserMatrixItem()
                 headerViews.memberProfileStateView.state = StateView.State.Content
-                headerViews.memberProfileIdView.text = userMatrixItem.id
-                val bestName = userMatrixItem.getBestName().withEmojis()
-                headerViews.memberProfileNameView.text = bestName.withEmojis()
+                headerViews.memberProfileIdView.text = userMatrixItem.id.neutralizeDirectionOverrides()
+                headerViews.memberProfileIdView.setCopySource(userMatrixItem.id)
+                val bestName = userMatrixItem.getBestName()
+                headerViews.memberProfileNameView.text = bestName.prepareForDisplay()
+                headerViews.memberProfileNameView.setCopySource(bestName)
                 headerViews.memberProfileNameView.setTextColor(matrixItemColorProvider.getColor(userMatrixItem))
-                views.matrixProfileToolbarTitleView.text = bestName.withEmojis()
+                views.matrixProfileToolbarTitleView.text = bestName.prepareForDisplay()
                 // In rooms that hide avatars, show the default placeholder here, but keep the real avatar
                 // available when the user taps it to open the full-screen viewer (see onAvatarClicked).
                 val displayedMatrixItem = if (state.userId != session.myUserId && shouldHideAvatars(state.roomId, session, vectorPreferences)) {

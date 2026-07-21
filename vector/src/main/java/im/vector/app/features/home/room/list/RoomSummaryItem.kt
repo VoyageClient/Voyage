@@ -20,7 +20,7 @@ import com.amulyakhare.textdrawable.TextDrawable
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
@@ -118,7 +118,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             itemLongClickListener?.onLongClick(it) ?: false
         }
-        holder.titleView.text = matrixItem.getBestName().withEmojis()
+        holder.titleView.text = matrixItem.getBestName().prepareForDisplay()
         holder.unreadCounterBadgeView.render(UnreadCounterBadgeView.State.Count(unreadNotificationCount, showHighlighted))
         holder.unreadIndentIndicator.isVisible = hasUnreadMessage
         holder.draftView.isVisible = hasDraft
@@ -152,12 +152,12 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         // A spoiler in the preview keeps its blur; the BlurMaskFilter only paints on a software layer.
         holder.subtitleView.applySpoilerRenderLayer()
         holder.lastEventTimeView.text = lastEventTime
-        holder.typingView.setTextOrHide(typingMessage.withEmojis())
+        holder.typingView.setTextOrHide(typingMessage.prepareForDisplay())
         holder.subtitleView.isInvisible = holder.typingView.isVisible
     }
 
     private fun renderForFilteredDisplayMode(holder: Holder) {
-        holder.subtitleView.text = subtitle.withEmojis()
+        holder.subtitleView.text = subtitle.prepareForDisplay()
     }
 
     override fun unbind(holder: Holder) {

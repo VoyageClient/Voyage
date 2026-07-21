@@ -18,7 +18,7 @@ import im.vector.app.R
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 
 @EpoxyModelClass
@@ -58,7 +58,7 @@ abstract class PollItem : AbsMessageItem<PollItem.Holder>() {
 
         renderSendState(holder.view, holder.questionTextView)
 
-        holder.questionTextView.text = pollTitle?.charSequence?.withEmojis()
+        holder.questionTextView.text = pollTitle?.charSequence?.prepareForDisplay()
         holder.votesStatusTextView.setTextOrHide(votesStatus)
 
         while (holder.optionsContainer.childCount < optionViewStates.size) {

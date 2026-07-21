@@ -32,12 +32,13 @@ import im.vector.app.core.utils.styleMatchingText
 import im.vector.app.core.utils.tappableMatchingText
 import im.vector.app.databinding.FragmentRoomPreviewNoPreviewBinding
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.roomdirectory.JoinState
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.getRoomSummary
@@ -130,17 +131,18 @@ class RoomPreviewNoPreviewFragment :
                         views.roomPreviewNoPreviewJoin.isVisible = true
                         renderState(bestName, state.matrixItem().hideAvatarIfInvite(state), state.roomTopic)
                         if (state.fromEmailInvite != null && !state.isEmailBoundToAccount) {
+                            val email = state.fromEmailInvite.email.neutralizeDirectionOverrides()
                             views.roomPreviewNoPreviewLabel.text =
                                     span {
                                         span {
                                             textColor = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_content_primary)
                                             text = if (state.roomType == RoomType.SPACE) {
-                                                getString(CommonStrings.this_invite_to_this_space_was_sent, state.fromEmailInvite.email)
+                                                getString(CommonStrings.this_invite_to_this_space_was_sent, email)
                                             } else {
-                                                getString(CommonStrings.this_invite_to_this_room_was_sent, state.fromEmailInvite.email)
+                                                getString(CommonStrings.this_invite_to_this_room_was_sent, email)
                                             }
                                                     .toSpannable()
-                                                    .styleMatchingText(state.fromEmailInvite.email, Typeface.BOLD)
+                                                    .styleMatchingText(email, Typeface.BOLD)
                                         }
                                         +"\n"
                                         span {
@@ -236,10 +238,10 @@ class RoomPreviewNoPreviewFragment :
             views.roomPreviewNoPreviewToolbarAvatar.isVisible = false
             views.roomPreviewNoPreviewAvatar.isVisible = false
         }
-        views.roomPreviewNoPreviewToolbarTitle.text = roomName.withEmojis()
+        views.roomPreviewNoPreviewToolbarTitle.text = roomName.prepareForDisplay()
 
         // Screen
-        views.roomPreviewNoPreviewName.text = roomName.withEmojis()
-        views.roomPreviewNoPreviewTopic.setTextOrHide(topic?.withEmojis())
+        views.roomPreviewNoPreviewName.text = roomName.prepareForDisplay()
+        views.roomPreviewNoPreviewTopic.setTextOrHide(topic?.prepareForDisplay())
     }
 }

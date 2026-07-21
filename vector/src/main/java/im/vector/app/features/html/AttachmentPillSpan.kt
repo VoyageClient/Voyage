@@ -20,7 +20,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import im.vector.app.features.emoji.TwemojiSpan
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
 import kotlin.math.ceil
 
@@ -55,7 +55,7 @@ class AttachmentPillSpan(
 
     // canvas.drawText can't render Twemoji sprite spans; when the label spanifies to sprites (emoji
     // in a filename), measure and draw it through a Layout instead.
-    private val spanifiedLabel = label.withEmojis()
+    private val spanifiedLabel = label.prepareForDisplay()
     private val drawViaLayout = (spanifiedLabel as? Spanned)
             ?.getSpans(0, spanifiedLabel.length, TwemojiSpan::class.java)?.isNotEmpty() == true
     private val layoutPaint = TextPaint()

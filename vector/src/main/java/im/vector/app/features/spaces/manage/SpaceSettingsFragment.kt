@@ -22,7 +22,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
@@ -133,7 +133,7 @@ class SpaceSettingsFragment :
         views.waitingView.root.isVisible = state.isLoading
 
         state.roomSummary()?.let {
-            views.roomSettingsToolbarTitleView.text = it.displayName.withEmojis()
+            views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
             avatarRenderer.render(it.toMatrixItem(), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }

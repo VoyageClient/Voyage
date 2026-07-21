@@ -17,6 +17,7 @@ import im.vector.app.core.session.clientinfo.MatrixClientInfoContent
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.settings.devices.v2.DeviceFullInfo
 import im.vector.app.features.settings.devices.v2.list.DeviceType
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import javax.inject.Inject
@@ -71,7 +72,7 @@ class SessionDetailsController @Inject constructor(
         sessionDetailsContentItem {
             id(titleResId)
             title(host.stringProvider.getString(titleResId))
-            description(value)
+            description(value.neutralizeDirectionOverrides())
             hasDivider(hasDivider)
             onLongClickListener(View.OnLongClickListener {
                 host.callback?.onItemLongClicked(value)

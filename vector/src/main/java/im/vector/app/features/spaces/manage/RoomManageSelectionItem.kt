@@ -13,7 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -37,7 +37,7 @@ abstract class RoomManageSelectionItem : VectorEpoxyModel<RoomManageSelectionIte
         super.bind(holder)
         avatarRenderer.render(matrixItem, holder.avatarImageView)
 
-        holder.titleText.text = matrixItem.getBestName().withEmojis()
+        holder.titleText.text = matrixItem.getBestName().prepareForDisplay()
 
         if (selected) {
             holder.checkboxImage.setImageDrawable(ContextCompat.getDrawable(holder.view.context, R.drawable.ic_checkbox_on))

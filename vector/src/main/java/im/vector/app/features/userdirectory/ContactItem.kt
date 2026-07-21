@@ -11,7 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.contacts.MappedContact
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -27,7 +27,7 @@ abstract class ContactItem : VectorEpoxyModel<ContactItem.Holder>(R.layout.item_
     override fun bind(holder: Holder) {
         super.bind(holder)
         // If name is empty, use userId as name and force it being centered
-        holder.nameView.text = mappedContact.displayName.withEmojis()
+        holder.nameView.text = mappedContact.displayName.prepareForDisplay()
         avatarRenderer.render(mappedContact, holder.avatarImageView)
     }
 

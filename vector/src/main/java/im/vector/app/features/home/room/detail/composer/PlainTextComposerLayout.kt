@@ -39,7 +39,8 @@ import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormat
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.features.emoji.TwemojiProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.html.BodySegment
@@ -139,6 +140,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views = ComposerLayoutBinding.bind(this)
 
         views.composerEditText.maxLines = MessageComposerView.MAX_LINES_WHEN_COLLAPSED
+        // Draw direction-override chars (e.g. in an edited message) as tofu instead of letting them
+        // flip the field; the Editable and the sent text keep the real characters.
+        views.composerEditText.transformationMethod = DirectionOverridesTransformation
 
         // Round the replied-to image corners. Glide's RoundedCorners only transforms the loaded
         // bitmap, so a still-loading blurhash placeholder (Drawable) would otherwise show square.
@@ -337,7 +341,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
         // switch to expanded bar
         views.composerRelatedMessageTitle.apply {
-            text = event.senderInfo.disambiguatedDisplayName.withEmojis()
+            text = event.senderInfo.disambiguatedDisplayName.prepareForDisplay()
             setTextColor(matrixItemColorProvider.getColor(MatrixItem.UserItem(event.root.senderId ?: "@")))
         }
 
@@ -402,7 +406,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // Resolve mentions/permalinks (incl. message links -> "Message in Room") into pills for the
         // preview only; the un-pilled [formattedBody] still feeds the edit box below.
         val previewBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }
-        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.withEmojis())
+        eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.prepareForDisplay())
         // Muted grey for non-message notices and m.notice messages (which render grey in the
         // timeline), normal text colour for everything else.
         val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {

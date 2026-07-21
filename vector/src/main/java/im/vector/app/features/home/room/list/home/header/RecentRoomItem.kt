@@ -14,7 +14,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -51,7 +51,7 @@ abstract class RecentRoomItem : VectorEpoxyModel<RecentRoomItem.Holder>(R.layout
         avatarRenderer.render(matrixItem, holder.avatarImageView)
         holder.avatarImageView.contentDescription = matrixItem.getBestName()
         holder.unreadCounterBadgeView.render(UnreadCounterBadgeView.State.Count(unreadNotificationCount, showHighlighted))
-        holder.title.text = matrixItem.getBestName().withEmojis()
+        holder.title.text = matrixItem.getBestName().prepareForDisplay()
     }
 
     override fun unbind(holder: Holder) {

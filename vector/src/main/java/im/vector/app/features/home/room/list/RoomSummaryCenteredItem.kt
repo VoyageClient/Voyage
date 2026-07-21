@@ -16,7 +16,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.amulyakhare.textdrawable.TextDrawable
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -89,7 +89,7 @@ abstract class RoomSummaryCenteredItem : VectorEpoxyModel<RoomSummaryCenteredIte
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             itemLongClickListener?.onLongClick(it) ?: false
         }
-        holder.titleView.text = matrixItem.getBestName().withEmojis()
+        holder.titleView.text = matrixItem.getBestName().prepareForDisplay()
         avatarRenderer.render(matrixItem, holder.avatarImageView)
         // PGP-on rooms show the padlock in the encryption-shield slot (same place olm rooms show theirs).
         holder.roomAvatarDecorationImageView.renderRoomShield(encryptionTrustLevel, izPgp)

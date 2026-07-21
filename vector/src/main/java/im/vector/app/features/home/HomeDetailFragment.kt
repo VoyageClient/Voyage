@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home
 
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -19,7 +20,7 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.badge.BadgeDrawable
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.withEmojis
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.SpaceStateHandler
 import im.vector.app.core.extensions.commitTransaction
@@ -179,7 +180,7 @@ class HomeDetailFragment :
                 VerificationVectorAlert(
                         uid = uid,
                         title = getString(CommonStrings.new_session),
-                        description = getString(CommonStrings.verify_this_session, newest.displayName ?: newest.deviceId ?: ""),
+                        description = getString(CommonStrings.verify_this_session, (newest.displayName ?: newest.deviceId ?: "").neutralizeDirectionOverrides()),
                         iconId = R.drawable.ic_shield_warning
                 ).apply {
                     viewBinder = VerificationVectorAlert.ViewBinder(user, avatarRenderer)
@@ -236,7 +237,7 @@ class HomeDetailFragment :
             views.groupToolbarSpaceTitleView.isVisible = false
         } else {
             views.groupToolbarSpaceTitleView.isVisible = true
-            views.groupToolbarSpaceTitleView.text = spaceSummary.displayName.withEmojis()
+            views.groupToolbarSpaceTitleView.text = spaceSummary.displayName.prepareForDisplay()
         }
     }
 
