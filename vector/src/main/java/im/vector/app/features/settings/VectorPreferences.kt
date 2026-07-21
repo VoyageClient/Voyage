@@ -145,7 +145,6 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
-        const val SETTINGS_ANIMATE_ROOM_AVATARS = "SETTINGS_ANIMATE_ROOM_AVATARS"
         const val SETTINGS_AVATAR_SHAPE_KEY = "SETTINGS_AVATAR_SHAPE_KEY"
         const val SETTINGS_MEDIA_PREVIEW_KEY = "SETTINGS_MEDIA_PREVIEW_KEY"
         const val SETTINGS_MEDIA_PREVIEW_SOLID_KEY = "SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
@@ -433,7 +432,6 @@ class VectorPreferences @Inject constructor(
         if (!performanceMode) return
         defaultPrefs.edit {
             putBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, false)
-            putBoolean(SETTINGS_ANIMATE_ROOM_AVATARS, false)
             putBoolean(SETTINGS_SHOW_URL_PREVIEW_KEY, false)
         }
     }
@@ -924,13 +922,6 @@ class VectorPreferences @Inject constructor(
      */
     fun autoplayAnimatedImages(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, true)
-    }
-
-    /**
-     * Tells if room avatars should play their animation when they are animated images.
-     */
-    fun animateRoomAvatars(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_ANIMATE_ROOM_AVATARS, true)
     }
 
     /**
