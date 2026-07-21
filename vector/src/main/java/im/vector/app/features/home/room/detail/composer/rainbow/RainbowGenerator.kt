@@ -9,76 +9,64 @@ package im.vector.app.features.home.room.detail.composer.rainbow
 
 import im.vector.app.core.utils.splitEmoji
 import javax.inject.Inject
-import kotlin.math.cos
-import kotlin.math.pow
+import kotlin.math.abs
 import kotlin.math.roundToInt
-import kotlin.math.sin
 
-/**
- * Inspired from React-Sdk
- * Ref: https://github.com/matrix-org/matrix-react-sdk/blob/develop/src/utils/colour.js
- */
 class RainbowGenerator @Inject constructor() {
 
-    fun generate(text: String): String {
-        val split = text.splitEmoji()
-        val frequency = 2 * Math.PI / split.size
+    fun generate(text: String) = colorize(text) { idx, size -> hueColor(idx * 300.0 / size) }
 
+    fun generateTrans(text: String) = colorize(text) { idx, size ->
+        stopsColor(TRANS_STOPS, if (size == 1) 0.0 else idx / (size - 1.0))
+    }
+
+    private fun colorize(text: String, color: (idx: Int, size: Int) -> String): String {
+        val split = text.splitEmoji()
         return split
                 .mapIndexed { idx, letter ->
-                    // Do better than React-Sdk: Avoid adding font color for spaces
                     if (letter == " ") {
                         "$letter"
                     } else {
-                        val (a, b) = generateAB(idx * frequency, 1f)
-                        val dashColor = labToRGB(75, a, b).toDashColor()
-                        "<font color=\"$dashColor\">$letter</font>"
+                        "<font color=\"${color(idx, split.size)}\">$letter</font>"
                     }
                 }
                 .joinToString(separator = "")
     }
 
-    private fun generateAB(hue: Double, chroma: Float): Pair<Double, Double> {
-        val a = chroma * 127 * cos(hue)
-        val b = chroma * 127 * sin(hue)
-
-        return Pair(a, b)
-    }
-
-    private fun labToRGB(l: Int, a: Double, b: Double): RgbColor {
-        // Convert CIELAB to CIEXYZ (D65)
-        var y = (l + 16) / 116.0
-        val x = adjustXYZ(y + a / 500) * 0.9505
-        val z = adjustXYZ(y - b / 200) * 1.0890
-
-        y = adjustXYZ(y)
-
-        // Linear transformation from CIEXYZ to RGB
-        val red = 3.24096994 * x - 1.53738318 * y - 0.49861076 * z
-        val green = -0.96924364 * x + 1.8759675 * y + 0.04155506 * z
-        val blue = 0.05563008 * x - 0.20397696 * y + 1.05697151 * z
-
-        return RgbColor(adjustRGB(red), adjustRGB(green), adjustRGB(blue))
-    }
-
-    private fun adjustXYZ(value: Double): Double {
-        if (value > 0.2069) {
-            return value.pow(3)
+    // nheko's rainbowify gradient: HSL(hue, 0.9, 0.5), hue swept over 5/6 of the color wheel.
+    private fun hueColor(hue: Double): String {
+        val x = 0.9 * (1 - abs((hue / 60) % 2 - 1))
+        val (r, g, b) = when {
+            hue < 60 -> Triple(0.9, x, 0.0)
+            hue < 120 -> Triple(x, 0.9, 0.0)
+            hue < 180 -> Triple(0.0, 0.9, x)
+            hue < 240 -> Triple(0.0, x, 0.9)
+            hue < 300 -> Triple(x, 0.0, 0.9)
+            else -> Triple(0.9, 0.0, x)
         }
-        return 0.1284 * value - 0.01771
+        return dashColor(listOf(r, g, b).map { ((it + 0.05) * 255).roundToInt() })
     }
 
-    private fun gammaCorrection(value: Double): Double {
-        // Non-linear transformation to sRGB
-        if (value <= 0.0031308) {
-            return 12.92 * value
-        }
-        return 1.055 * value.pow(1 / 2.4) - 0.055
+    private fun stopsColor(stops: List<IntArray>, fraction: Double): String {
+        val scaled = fraction * (stops.size - 1)
+        val segment = scaled.toInt().coerceAtMost(stops.size - 2)
+        val segmentFraction = scaled - segment
+        val from = stops[segment]
+        val to = stops[segment + 1]
+        return dashColor(from.indices.map { (from[it] + (to[it] - from[it]) * segmentFraction).roundToInt() })
     }
 
-    private fun adjustRGB(value: Double): Int {
-        return (gammaCorrection(value)
-                .coerceIn(0.0, 1.0) * 255)
-                .roundToInt()
+    private fun dashColor(channels: List<Int>): String =
+            channels.joinToString(separator = "", prefix = "#") { it.toString(16).padStart(2, '0') }
+
+    companion object {
+        // Trans flag stripes: light blue, pink, white, pink, light blue.
+        private val TRANS_STOPS = listOf(
+                intArrayOf(0x5b, 0xce, 0xfa),
+                intArrayOf(0xf5, 0xa9, 0xb8),
+                intArrayOf(0xff, 0xff, 0xff),
+                intArrayOf(0xf5, 0xa9, 0xb8),
+                intArrayOf(0x5b, 0xce, 0xfa),
+        )
     }
 }
