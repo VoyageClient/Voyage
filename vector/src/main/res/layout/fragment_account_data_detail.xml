@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/jsonViewerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/editorScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:colorBackground"
+        android:fillViewport="true"
+        android:visibility="gone">
+
+        <im.vector.app.core.ui.views.RawCopyEditText
+            android:id="@+id/editText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:typeface="monospace"
+            android:gravity="top|start"
+            android:hint="@string/dev_tools_event_content_hint"
+            android:inputType="textMultiLine"
+            android:padding="12dp"
+            android:textSize="14sp" />
+
+    </androidx.core.widget.NestedScrollView>
+
+</FrameLayout>

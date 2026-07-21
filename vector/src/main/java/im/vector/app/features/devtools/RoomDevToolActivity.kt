@@ -87,14 +87,16 @@ class RoomDevToolActivity :
         if (it.displayMode != currentDisplayMode) {
             val fragment: Fragment = when (it.displayMode) {
                 RoomDevToolViewState.Mode.Root -> RoomDevToolFragment()
-                RoomDevToolViewState.Mode.StateEventDetail -> JSonViewerFragment.newInstance(
+                RoomDevToolViewState.Mode.StateEventDetail,
+                RoomDevToolViewState.Mode.AccountDataDetail -> JSonViewerFragment.newInstance(
                         jsonString = it.selectedEventJson ?: "",
                         initialOpenDepth = -1,
                         wrap = true,
                         styleProvider = createJSonViewerStyleProvider(colorProvider)
                 )
                 RoomDevToolViewState.Mode.StateEventList,
-                RoomDevToolViewState.Mode.StateEventListByType -> RoomDevToolStateEventListFragment()
+                RoomDevToolViewState.Mode.StateEventListByType,
+                RoomDevToolViewState.Mode.AccountDataList -> RoomDevToolStateEventListFragment()
                 RoomDevToolViewState.Mode.EditEventContent -> RoomDevToolEditFragment()
                 is RoomDevToolViewState.Mode.SendEventForm -> RoomDevToolSendFormFragment()
             }
@@ -139,7 +141,8 @@ class RoomDevToolActivity :
 
     override fun handlePrepareMenu(menu: Menu) {
         withState(viewModel) { state ->
-            menu.findItem(R.id.menuItemEdit).isVisible = state.displayMode == RoomDevToolViewState.Mode.StateEventDetail
+            menu.findItem(R.id.menuItemEdit).isVisible = state.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
+                    state.displayMode == RoomDevToolViewState.Mode.AccountDataDetail
             menu.findItem(R.id.menuItemSend).isVisible = state.displayMode == RoomDevToolViewState.Mode.EditEventContent ||
                     state.displayMode is RoomDevToolViewState.Mode.SendEventForm
         }
@@ -164,6 +167,12 @@ class RoomDevToolActivity :
             }
             RoomDevToolViewState.Mode.StateEventDetail -> {
                 state.selectedEvent?.type
+            }
+            RoomDevToolViewState.Mode.AccountDataList -> {
+                getString(CommonStrings.dev_tools_explore_room_account_data)
+            }
+            RoomDevToolViewState.Mode.AccountDataDetail -> {
+                state.selectedAccountData?.type
             }
             RoomDevToolViewState.Mode.EditEventContent -> {
                 getString(CommonStrings.dev_tools_edit_content)

@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.flow.flow
@@ -80,6 +81,12 @@ class RoomDevToolViewModel @AssistedInject constructor(
                 ?.execute { async ->
                     copy(stateEvents = async)
                 }
+        session.getRoom(initialState.roomId)
+                ?.flow()
+                ?.liveRoomAccountData(emptySet())
+                ?.execute { async ->
+                    copy(roomAccountData = async)
+                }
     }
 
     override fun handle(action: RoomDevToolAction) {
@@ -92,26 +99,49 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     )
                 }
             }
+            RoomDevToolAction.ExploreRoomAccountData -> {
+                setState {
+                    copy(
+                            displayMode = RoomDevToolViewState.Mode.AccountDataList,
+                            selectedAccountData = null
+                    )
+                }
+            }
             is RoomDevToolAction.ShowStateEvent -> {
                 showStateEventDetail(action.event)
+            }
+            is RoomDevToolAction.ShowAccountDataEvent -> {
+                val sanitized = action.event.copy(content = coerceContent(action.event.content).orEmpty())
+                val jsonString = MatrixJsonParser.getMoshi()
+                        .adapter(RoomAccountDataEvent::class.java)
+                        .toJson(sanitized)
+                setState {
+                    copy(
+                            displayMode = RoomDevToolViewState.Mode.AccountDataDetail,
+                            selectedAccountData = sanitized,
+                            selectedEvent = null,
+                            selectedEventJson = jsonString
+                    )
+                }
             }
             RoomDevToolAction.OnBackPressed -> {
                 handleBack()
             }
             RoomDevToolAction.MenuEdit -> {
                 withState {
-                    if (it.displayMode == RoomDevToolViewState.Mode.StateEventDetail) {
-                        // Serialize with Moshi (the same parser used on save) so the content round-trips
-                        // exactly — org.json mangles nested maps and escapes '/', which broke saving.
-                        val content = it.selectedEvent?.content?.let { contentMap ->
-                            contentAdapter.indent("    ").toJson(contentMap)
-                        } ?: "{\n\t\n}"
-                        setState {
-                            copy(
-                                    editedContent = content,
-                                    displayMode = RoomDevToolViewState.Mode.EditEventContent
-                            )
-                        }
+                    // Serialize with Moshi (the same parser used on save) so the content round-trips
+                    // exactly — org.json mangles nested maps and escapes '/', which broke saving.
+                    val contentMap = when (it.displayMode) {
+                        RoomDevToolViewState.Mode.StateEventDetail -> it.selectedEvent?.content
+                        RoomDevToolViewState.Mode.AccountDataDetail -> it.selectedAccountData?.content
+                        else -> return@withState
+                    }
+                    val content = contentMap?.let { map -> contentAdapter.indent("    ").toJson(map) } ?: "{\n\t\n}"
+                    setState {
+                        copy(
+                                editedContent = content,
+                                displayMode = RoomDevToolViewState.Mode.EditEventContent
+                        )
                     }
                 }
             }
@@ -173,9 +203,44 @@ class RoomDevToolViewModel @AssistedInject constructor(
 
     private fun handleMenuItemSend() = withState { state ->
         when (state.displayMode) {
-            RoomDevToolViewState.Mode.EditEventContent -> editEventContent(state)
+            RoomDevToolViewState.Mode.EditEventContent -> {
+                if (state.selectedAccountData != null) {
+                    editAccountDataContent(state, state.selectedAccountData)
+                } else {
+                    editEventContent(state)
+                }
+            }
             is RoomDevToolViewState.Mode.SendEventForm -> sendEventContent(state, state.displayMode.isState)
             else -> Unit
+        }
+    }
+
+    private fun editAccountDataContent(state: RoomDevToolViewState, accountData: RoomAccountDataEvent) {
+        setState { copy(modalLoading = Loading()) }
+
+        viewModelScope.launch {
+            try {
+                val room = session.getRoom(initialState.roomId)
+                        ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.room_error_not_found))
+
+                val json = parseJsonLeniently(state.editedContent ?: "")
+                        ?: throw IllegalArgumentException(stringProvider.getString(CommonStrings.dev_tools_error_no_content))
+
+                room.roomAccountDataService().updateAccountData(accountData.type, json)
+                _viewEvents.post(DevToolsViewEvents.ShowSnackMessage(stringProvider.getString(CommonStrings.dev_tools_success_account_data)))
+                setState {
+                    copy(
+                            modalLoading = Success(Unit),
+                            selectedAccountData = null,
+                            selectedEventJson = null,
+                            editedContent = null,
+                            displayMode = RoomDevToolViewState.Mode.AccountDataList
+                    )
+                }
+            } catch (failure: Throwable) {
+                _viewEvents.post(DevToolsViewEvents.ShowAlertMessage(errorFormatter.toHumanReadable(failure)))
+                setState { copy(modalLoading = Fail(failure)) }
+            }
         }
     }
 
@@ -267,6 +332,7 @@ class RoomDevToolViewModel @AssistedInject constructor(
             copy(
                     displayMode = RoomDevToolViewState.Mode.StateEventDetail,
                     selectedEvent = sanitizedEvent,
+                    selectedAccountData = null,
                     selectedEventJson = jsonString
             )
         }
@@ -293,6 +359,24 @@ class RoomDevToolViewModel @AssistedInject constructor(
                     )
                 }
             }
+            RoomDevToolViewState.Mode.AccountDataList -> {
+                setState {
+                    copy(
+                            selectedAccountData = null,
+                            selectedEventJson = null,
+                            displayMode = RoomDevToolViewState.Mode.Root
+                    )
+                }
+            }
+            RoomDevToolViewState.Mode.AccountDataDetail -> {
+                setState {
+                    copy(
+                            selectedAccountData = null,
+                            selectedEventJson = null,
+                            displayMode = RoomDevToolViewState.Mode.AccountDataList
+                    )
+                }
+            }
             RoomDevToolViewState.Mode.StateEventDetail -> {
                 // Mirror the forward skip: if we jumped straight here (single empty-key event), skip the
                 // intermediate list on the way back too.
@@ -309,7 +393,11 @@ class RoomDevToolViewModel @AssistedInject constructor(
             RoomDevToolViewState.Mode.EditEventContent -> {
                 setState {
                     copy(
-                            displayMode = RoomDevToolViewState.Mode.StateEventDetail
+                            displayMode = if (selectedAccountData != null) {
+                                RoomDevToolViewState.Mode.AccountDataDetail
+                            } else {
+                                RoomDevToolViewState.Mode.StateEventDetail
+                            }
                     )
                 }
             }

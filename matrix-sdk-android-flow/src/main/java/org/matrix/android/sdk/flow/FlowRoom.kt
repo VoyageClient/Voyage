@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
@@ -93,6 +94,13 @@ class FlowRoom(private val room: Room) {
         return room.stateService().getStateEventsLive(eventTypes, stateKey).asFlow()
                 .startWith(room.coroutineDispatchers.io) {
                     room.stateService().getStateEvents(eventTypes, stateKey)
+                }
+    }
+
+    fun liveRoomAccountData(types: Set<String>): Flow<List<RoomAccountDataEvent>> {
+        return room.roomAccountDataService().getLiveAccountDataEvents(types).asFlow()
+                .startWith(room.coroutineDispatchers.io) {
+                    room.roomAccountDataService().getAccountDataEvents(types)
                 }
     }
 

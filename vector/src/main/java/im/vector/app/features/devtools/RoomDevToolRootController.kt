@@ -33,6 +33,13 @@ class RoomDevToolRootController @Inject constructor(
             }
         }
         genericButtonItem {
+            id("account_data")
+            text(host.stringProvider.getString(CommonStrings.dev_tools_explore_room_account_data))
+            buttonClickAction {
+                host.interactionListener?.processAction(RoomDevToolAction.ExploreRoomAccountData)
+            }
+        }
+        genericButtonItem {
             id("send")
             text(host.stringProvider.getString(CommonStrings.dev_tools_send_custom_event))
             buttonClickAction {
