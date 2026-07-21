@@ -202,7 +202,8 @@ class DisplayableEventFormatter @Inject constructor(
             else -> {
                 val formatted = noticeEventFormatter.format(timelineEvent, isDm)
                 when {
-                    formatted != null -> span { text = formatted }
+                    // Not span{} — it wouldn't preserve the emoji ReplacementSpans (names in "X joined" etc.).
+                    formatted != null -> formatted.withEmojis()
                     // Reply previews want unhandled/debug events to read as they do in the timeline,
                     // rather than collapsing to an empty header; other callers keep the blank fallback.
                     unhandledFallback -> noticeEventFormatter.formatDebugOrUnhandled(timelineEvent.root)
@@ -411,7 +412,7 @@ class DisplayableEventFormatter @Inject constructor(
         return android.text.SpannableStringBuilder().apply {
             val start = length
             // Isolate the sender name so an RTL name doesn't flip the whole "Name: message" line to RTL.
-            append(androidx.core.text.BidiFormatter.getInstance().unicodeWrap(senderName))
+            append(androidx.core.text.BidiFormatter.getInstance().unicodeWrap(senderName).withEmojis())
             setSpan(
                     android.text.style.ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)),
                     start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
