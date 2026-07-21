@@ -97,8 +97,8 @@
     <!--  WIP -->
     <string name="location_map_view_copyright" translatable="false">© MapTiler © OpenStreetMap contributors</string>
 
-    <string name="settings_timeline_disable_table_wrap" translatable="false">Disable table cell line wrapping</string>
-    <string name="settings_timeline_disable_table_wrap_summary" translatable="false">Cells in tables won\'t wrap. The table scrolls horizontally instead.</string>
+    <string name="settings_timeline_line_wrap" translatable="false">Line wrapping</string>
+    <string name="settings_timeline_line_wrap_summary" translatable="false">Wrap long lines in tables and code blocks. When off, they scroll horizontally instead.</string>
 
     <string name="action_copy_event_id" translatable="false">Copy Event ID</string>
 

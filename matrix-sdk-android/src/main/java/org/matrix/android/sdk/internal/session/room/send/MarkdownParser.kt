@@ -16,6 +16,11 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
+import org.commonmark.node.HtmlBlock
+import org.commonmark.node.HtmlInline
+import org.commonmark.node.ListBlock
+import org.commonmark.node.Node
+import org.commonmark.node.Paragraph
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 import org.matrix.android.sdk.api.util.TextContent
@@ -40,6 +45,8 @@ internal class MarkdownParser @Inject constructor(
 
     private companion object {
         const val CUSTOM_EMOTICON_MARKER = "data-mx-emoticon"
+        val listItemMarker = Regex("""^( {0,3})((?:[-*+]|\d{1,9}[.)])[ \t]+)""")
+        val fenceLine = Regex("""^ {0,3}(```|~~~)""")
     }
 
     /**
@@ -57,7 +64,9 @@ internal class MarkdownParser @Inject constructor(
             return TextContent(source)
         }
 
-        val document = if (advanced) advancedParser.parse(source) else simpleParser.parse(source)
+        val effectiveSource = if (advanced) preserveExtraBlankLinesBeforeListItems(source) else source
+        val document = if (advanced) advancedParser.parse(effectiveSource) else simpleParser.parse(effectiveSource)
+        tightenSpuriouslyLooseLists(document)
         val htmlText = htmlRenderer.render(document)
 
         // Cleanup extra paragraph
@@ -81,6 +90,84 @@ internal class MarkdownParser @Inject constructor(
             TextContent(text.toString(), cleanHtmlText.postTreatment())
         } else {
             TextContent(source)
+        }
+    }
+
+    // Commonmark records blank lines between list items only as list-wide "looseness" (every item
+    // gets a <p>), so which gaps actually had blank lines — and how many — is lost. Encode each
+    // typed blank line before a list item as an explicit <br /> block attached to the preceding
+    // item (a continuation line indented to the item's content column), so the spacing survives
+    // per-gap into the HTML.
+    private fun preserveExtraBlankLinesBeforeListItems(source: String): String {
+        if (!source.contains("\n\n")) return source
+        val lines = source.split("\n")
+        val out = ArrayList<String>(lines.size)
+        var inFence = false
+        var i = 0
+        while (i < lines.size) {
+            val line = lines[i]
+            if (fenceLine.containsMatchIn(line)) {
+                inFence = !inFence
+                out.add(line)
+                i++
+                continue
+            }
+            if (!inFence && line.isBlank() && i > 0) {
+                var j = i
+                while (j < lines.size && lines[j].isBlank()) j++
+                val blanks = j - i
+                val marker = if (j < lines.size) listItemMarker.find(lines[j]) else null
+                if (marker != null) {
+                    val indent = " ".repeat(marker.groupValues[1].length + marker.groupValues[2].length)
+                    out.add("")
+                    repeat(blanks) { out.add(indent + "<br />") }
+                    out.add("")
+                } else {
+                    repeat(blanks) { out.add(lines[i + it]) }
+                }
+                i = j
+                continue
+            }
+            out.add(line)
+            i++
+        }
+        return out.joinToString("\n")
+    }
+
+    // Any blank line between items makes commonmark mark the whole list loose, wrapping every item
+    // in <p>. The typed blank lines are already carried per-gap by the injected <br /> blocks, so
+    // when no item genuinely holds several paragraphs the <p>s say nothing — render tight. A tight
+    // item has no </p> supplying a line break before the brs, so each blank-run gets one extra
+    // <br /> to keep the rendered spacing identical.
+    private fun tightenSpuriouslyLooseLists(node: Node) {
+        var child = node.firstChild
+        while (child != null) {
+            tightenSpuriouslyLooseLists(child)
+            child = child.next
+        }
+        if (node is ListBlock && !node.isTight) {
+            val items = generateSequence(node.firstChild) { it.next }.toList()
+            val spurious = items.all { item ->
+                generateSequence(item.firstChild) { it.next }.count { it is Paragraph } <= 1
+            }
+            if (spurious) {
+                node.isTight = true
+                items.forEach { item ->
+                    generateSequence(item.firstChild) { it.next }
+                            .filterIsInstance<HtmlBlock>()
+                            .filter { block -> block.literal.orEmpty().lines().all { it.trim() == "<br />" } }
+                            .forEach { block ->
+                                // Put the compensating break at the end of the content line it
+                                // terminates, not on a line of its own.
+                                val paragraph = block.previous as? Paragraph
+                                if (paragraph != null) {
+                                    paragraph.appendChild(HtmlInline().apply { literal = "<br />" })
+                                } else {
+                                    block.literal += "\n<br />"
+                                }
+                            }
+                }
+            }
         }
     }
 

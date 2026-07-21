@@ -209,7 +209,6 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                         state,
                         it,
                         attributes.informationData,
-                        movementMethod,
                         attributes.itemLongClickListener,
                         coroutineScope,
                 )

@@ -24,7 +24,13 @@ class VectorHtmlCompressor @Inject constructor() {
         // Trim space after <br> and <p>, unfortunately the method setRemoveSurroundingSpaces() from the doc does not exist
         result = result.replace("<br> ", "<br>")
         result = result.replace("<br/> ", "<br/>")
+        result = result.replace("<br /> ", "<br />")
         result = result.replace("<p> ", "<p>")
+        // A space next to an explicit line break never renders; stripping it keeps a <br> between
+        // blocks producing a clean empty line instead of a space-only one.
+        result = result.replace(" <br>", "<br>")
+        result = result.replace(" <br/>", "<br/>")
+        result = result.replace(" <br />", "<br />")
 
         return result
     }

@@ -72,7 +72,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_LABS_PREFERENCE_KEY = "SETTINGS_LABS_PREFERENCE_KEY"
         const val SETTINGS_LABS_NEW_APP_LAYOUT_KEY = "SETTINGS_LABS_NEW_APP_LAYOUT_KEY"
         const val SETTINGS_LABS_DEFERRED_DM_KEY = "SETTINGS_LABS_DEFERRED_DM_KEY"
-        const val SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY = "SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY"
+        const val SETTINGS_TIMELINE_LINE_WRAP_KEY = "SETTINGS_TIMELINE_LINE_WRAP_KEY"
         const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
         const val SETTINGS_QUICK_REACTIONS_KEY = "SETTINGS_QUICK_REACTIONS_KEY"
         const val SETTINGS_COMPACT_QUICK_REACTIONS_KEY = "SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
@@ -1428,8 +1428,8 @@ class VectorPreferences @Inject constructor(
         )
     }
 
-    fun isTableLineWrappingDisabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_TIMELINE_DISABLE_TABLE_WRAP_KEY, false)
+    fun isLineWrappingEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_TIMELINE_LINE_WRAP_KEY, true)
     }
 
     fun showPinnedMessagesBanner(): Boolean {
