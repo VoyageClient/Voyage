@@ -3,6 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/imagePackMenuExport"
+        android:icon="@drawable/ic_floppy_save"
+        android:title="@string/image_pack_export"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/imagePackMenuType"
+        android:icon="@drawable/ic_tag_24"
+        android:title="@string/image_pack_type_title"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/imagePackMenuDelete"
         android:icon="@drawable/ic_trash_24"
         android:title="@string/image_pack_delete"

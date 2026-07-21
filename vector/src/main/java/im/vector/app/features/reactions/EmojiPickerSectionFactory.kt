@@ -43,7 +43,8 @@ class EmojiPickerSectionFactory @Inject constructor(
         val rawData = emojiDataSource.rawData.await()
 
         val validEmoteMxcs = HashSet<String>()
-        val emoteSections = ImagePackUsageFilter.emoticonPacks(imagePackProvider.getEnabledImagePacks(roomId)).mapNotNull { pack ->
+        val enabledPacks = imagePackProvider.sortForDisplay(ImagePackUsageFilter.emoticonPacks(imagePackProvider.getEnabledImagePacks(roomId)))
+        val emoteSections = enabledPacks.mapNotNull { pack ->
             val emotes = pack.images
             if (emotes.isEmpty()) return@mapNotNull null
             emotes.forEach { mxcToShortcode[it.mxcUrl] = it.shortcode; validEmoteMxcs.add(it.mxcUrl) }

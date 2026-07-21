@@ -10,7 +10,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Background-sync battery fix** — permission-gated polling and a single alarm chain with a bounded retry loop, replacing overnight battery drain.
 
-- **Custom emoticons & stickers (MSC2545 image packs)** — send custom emoji and stickers, pickers for both, author your own packs, and react with custom images.
+- **Custom emoticons & stickers (MSC2545 image packs)** — send custom emoji and stickers, pickers for both, author your own packs, import and export packs as Misskey-style zip archives, and react with emoticons.
 
 - **Local message search, including encrypted rooms** — a local event index with its own database, plus advanced filters: `from:`, `mentions:`, `has:(image|video|audio|file|sticker)`, `before:`/`after:` dates, and quoted exact-substring matching.
 

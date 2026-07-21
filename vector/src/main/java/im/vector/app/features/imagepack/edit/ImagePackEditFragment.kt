@@ -7,8 +7,12 @@
 
 package im.vector.app.features.imagepack.edit
 
+import android.app.Activity
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -34,29 +38,32 @@ import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
+import im.vector.app.core.extensions.safeOpenOutputStream
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
+import im.vector.lib.core.utils.timer.Clock
+import im.vector.app.core.utils.saveMedia
+import im.vector.app.core.utils.toast
+import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.databinding.FragmentImagePackEditBinding
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import java.io.File
-import java.io.IOException
-import kotlin.coroutines.coroutineContext
+import java.io.FileNotFoundException
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackImage
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackMeta
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
 import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
-import org.matrix.android.sdk.api.session.room.model.imagepack.resolveUsages
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import javax.inject.Inject
 import im.vector.app.core.extensions.backgroundCompat
@@ -76,6 +83,9 @@ class ImagePackEditFragment :
     @Inject lateinit var controller: ImagePackEditController
     @Inject lateinit var activeSessionHolder: im.vector.app.core.di.ActiveSessionHolder
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
+    @Inject lateinit var archiver: ImagePackArchiver
+    @Inject lateinit var notificationUtils: NotificationUtils
+    @Inject lateinit var clock: Clock
 
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
@@ -95,8 +105,8 @@ class ImagePackEditFragment :
     private var packExists: Boolean
         get() = editViewModel.packExists
         set(value) { editViewModel.packExists = value }
-    // Pack-level usage (MSC2545). When it declares a single usage, every image inherits it and the per-image
-    // emoticon/sticker toggles are hidden — the usage is decided by the pack, not per image.
+    // Pack-level usage (MSC2545); null/empty = usable as both (spec default). Set from the Image Pack Type
+    // menu; images without their own usage inherit it.
     private var packUsage: List<String>?
         get() = editViewModel.packUsage
         set(value) { editViewModel.packUsage = value }
@@ -107,8 +117,11 @@ class ImagePackEditFragment :
         set(value) { editViewModel.initialContent = value }
 
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { onImagePicked(it) }
+    private val pickImagesLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uris = extractPickedUris(result.data)
+            if (uris.isNotEmpty()) onImagesPicked(uris)
+        }
     }
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?) =
@@ -135,8 +148,12 @@ class ImagePackEditFragment :
         val isAccountPack = pageArgs.roomId == null
         views.imagePackNameTil.isVisible = !isAccountPack
         if (!isAccountPack) {
-            if (firstLoad && packName == null) packName = pageArgs.displayName
+            // No pageArgs.displayName prefill: for unnamed packs it carries the resolved room-name fallback,
+            // which must not silently become the stored name on the next apply.
+            // Animation off for the prefill, or the hint starts in-field drawn over the restored name.
+            views.imagePackNameTil.isHintAnimationEnabled = false
             views.imagePackNameInput.setText(packName)
+            views.imagePackNameTil.isHintAnimationEnabled = true
             views.imagePackNameInput.doAfterTextChanged {
                 packName = it?.toString()?.takeIf { s -> s.isNotBlank() }
                 requireActivity().invalidateOptionsMenu()
@@ -153,6 +170,11 @@ class ImagePackEditFragment :
             views.imagePackAvatarContainer.backgroundCompat = android.graphics.drawable.GradientDrawable().apply {
                 cornerRadius = radius
                 setColor(bgColor)
+            }
+            // Rounds animated avatars (which skip the baked-bitmap rounding below) on L+; pre-L the
+            // RoundedCornerImageView canvas clip covers them.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                views.imagePackAvatarContainer.clipToOutline = true
             }
         }
         if (pageArgs.canEdit) {
@@ -178,10 +200,12 @@ class ImagePackEditFragment :
         val resolved = mxc?.let { contentUrlResolver?.resolveFullSize(it) }
         if (resolved != null) {
             androidx.core.widget.ImageViewCompat.setImageTintList(views.imagePackAvatarImage, null)
-            // RoundedCornerImageView only clips pre-Lollipop, so round the bitmap itself (works on all APIs).
+            // optionalTransform, NOT transform: Glide can't snapshot Animatable drawables (WebP/APNG), so a
+            // required transform fails the whole load. Optional leaves animated content untransformed (and
+            // animating); the view/container clip rounds it instead.
             im.vector.app.core.glide.GlideApp.with(views.imagePackAvatarImage)
                     .load(resolved)
-                    .transform(MultiTransformation(CenterCrop(), RoundedCornersPercent(ROUNDED_CORNER_PERCENT)))
+                    .optionalTransform(MultiTransformation(CenterCrop(), RoundedCornersPercent(ROUNDED_CORNER_PERCENT)))
                     .into(views.imagePackAvatarImage)
         } else {
             im.vector.app.core.glide.GlideApp.with(views.imagePackAvatarImage.context.applicationContext).clear(views.imagePackAvatarImage)
@@ -223,21 +247,32 @@ class ImagePackEditFragment :
 
     override fun handlePrepareMenu(menu: Menu) {
         val canEdit = pageArgs.canEdit
+        val exporting = exportJob?.isActive == true
         // Match the toolbar back arrow's grey; the Apply checkmark goes a dimmer grey when disabled.
         val enabledTint = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
         val disabledTint = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
         menu.findItem(R.id.imagePackMenuDelete)?.apply {
             // The personal account pack always exists; only room packs can be deleted, and only once they've
             // actually been created (no trashcan in the create flow — there's nothing to delete yet).
-            isVisible = canEdit && pageArgs.roomId != null && packExists
+            isVisible = !exporting && canEdit && pageArgs.roomId != null && packExists
             icon?.mutate()?.let { DrawableCompat.setTint(it, enabledTint) }
         }
         menu.findItem(R.id.imagePackMenuApply)?.apply {
-            isVisible = canEdit
-            // Disabled (and dimmer) when there's nothing to apply.
-            val dirty = isDirty()
-            isEnabled = dirty
-            icon?.mutate()?.let { DrawableCompat.setTint(it, if (dirty) enabledTint else disabledTint) }
+            isVisible = !exporting && canEdit
+            // Disabled (and dimmer) when there's nothing to apply — or no pack name yet (room packs
+            // must be named; unnamed ones would show as the room's name in MSC2545-following clients).
+            val applicable = canApply()
+            isEnabled = applicable
+            icon?.mutate()?.let { DrawableCompat.setTint(it, if (applicable) enabledTint else disabledTint) }
+        }
+        menu.findItem(R.id.imagePackMenuExport)?.apply {
+            // Read-only viewers can export too; hidden until the pack has actually been created (and has images).
+            isVisible = !exporting && packExists && images.isNotEmpty()
+            icon?.mutate()?.let { DrawableCompat.setTint(it, enabledTint) }
+        }
+        menu.findItem(R.id.imagePackMenuType)?.apply {
+            isVisible = !exporting && canEdit
+            icon?.mutate()?.let { DrawableCompat.setTint(it, enabledTint) }
         }
     }
 
@@ -245,7 +280,129 @@ class ImagePackEditFragment :
         return when (item.itemId) {
             R.id.imagePackMenuApply -> { save(); true }
             R.id.imagePackMenuDelete -> { confirmDeletePack(); true }
+            R.id.imagePackMenuExport -> { exportPack(); true }
+            R.id.imagePackMenuType -> { showPackTypeDialog(); true }
             else -> false
+        }
+    }
+
+    private var exportJob: Job? = null
+
+    private val createExportDocumentLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data
+        if (result.resultCode == Activity.RESULT_OK && uri != null) {
+            runExport(
+                    write = { zip ->
+                        withContext(Dispatchers.IO) {
+                            // "wt" (via safeOpenOutputStream) truncates an existing document instead of leaving a tail.
+                            val out = requireContext().safeOpenOutputStream(uri) ?: throw FileNotFoundException(uri.toString())
+                            out.use { zip.inputStream().use { input -> input.copyTo(it) } }
+                        }
+                    },
+                    // The picker creates the document up front, so a cancelled/failed export must remove
+                    // the empty zip it leaves behind.
+                    onAbort = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                            runCatching { android.provider.DocumentsContract.deleteDocument(requireContext().contentResolver, uri) }
+                        }
+                    },
+            )
+        }
+    }
+
+    // Blank is fine: the archiver falls back to "image_pack" for the file name and omits the category.
+    private fun exportName(): String = if (pageArgs.roomId == null) {
+        getString(CommonStrings.image_pack_personal_pack)
+    } else {
+        packName ?: pageArgs.displayName.orEmpty()
+    }
+
+    private fun exportPack() {
+        if (exportJob?.isActive == true) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            // Same flow as key export: a create-document dialog with the pack name pre-filled as the file name.
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType("application/zip")
+                    .putExtra(Intent.EXTRA_TITLE, "${exportName()}.zip")
+            try {
+                createExportDocumentLauncher.launch(intent)
+            } catch (activityNotFound: ActivityNotFoundException) {
+                exportToDownloads()
+            }
+        } else {
+            // No SAF before KitKat — save straight to Downloads (no runtime permissions pre-23 either).
+            exportToDownloads()
+        }
+    }
+
+    private fun exportToDownloads() {
+        runExport(write = { zip ->
+            saveMedia(
+                    context = requireContext(),
+                    file = zip,
+                    title = zip.name,
+                    mediaMimeType = "application/zip",
+                    notificationUtils = notificationUtils,
+                    currentTimeMillis = clock.epochMillis(),
+            )
+        })
+    }
+
+    // "Exporting" screen state: an opaque overlay with a centered spinner replaces the editor, the toolbar
+    // title switches, and the menu hides. Back asks to cancel; the screen closes itself once saved.
+    private fun showExportScreen(total: Int) {
+        views.imagePackExportOverlay.isVisible = true
+        views.imagePackExportProgress.text = getString(CommonStrings.image_pack_exporting, 0, total)
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(CommonStrings.image_pack_exporting_title)
+        requireActivity().invalidateOptionsMenu()
+    }
+
+    private fun hideExportScreen() {
+        views.imagePackExportOverlay.isVisible = false
+        (activity as? androidx.appcompat.app.AppCompatActivity)?.supportActionBar?.setTitle(
+                if (packExists) CommonStrings.image_pack_edit_title else CommonStrings.image_pack_create_title
+        )
+        requireActivity().invalidateOptionsMenu()
+    }
+
+    private fun runExport(write: suspend (File) -> Unit, onAbort: () -> Unit = {}) {
+        if (exportJob?.isActive == true) return
+        val exportImages = images.toList()
+        showExportScreen(exportImages.size)
+        exportJob = lifecycleScope.launch {
+            try {
+                val result = archiver.exportPack(exportName(), exportImages, packUsage) { done, total ->
+                    // Progress arrives on IO; hop to main for the view.
+                    lifecycleScope.launch {
+                        if (view != null) views.imagePackExportProgress.text = getString(CommonStrings.image_pack_exporting, done, total)
+                    }
+                }
+                try {
+                    write(result.zipFile)
+                } finally {
+                    runCatching { result.zipFile.parentFile?.deleteRecursively() }
+                }
+                if (isAdded) {
+                    if (result.skippedShortcodes.isNotEmpty()) {
+                        MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(CommonStrings.image_pack_export)
+                                .setMessage(getString(CommonStrings.image_pack_export_skipped, result.skippedShortcodes.joinToString(", ")))
+                                .setPositiveButton(CommonStrings.ok, null)
+                                .show()
+                    } else {
+                        requireContext().toast(getString(CommonStrings.image_pack_export_done))
+                    }
+                }
+            } catch (cancellation: CancellationException) {
+                runCatching { onAbort() }
+                throw cancellation
+            } catch (failure: Throwable) {
+                runCatching { onAbort() }
+                if (isAdded) showFailure(failure)
+            } finally {
+                if (isAdded && view != null) hideExportScreen()
+            }
         }
     }
 
@@ -280,10 +437,21 @@ class ImagePackEditFragment :
                 })
     }
 
+    // The account pack (im.ponies.user_emotes) and legacy im.ponies.room_emotes packs support per-image
+    // usage; the current MSC2545 schema carries usage on the pack only, so stable packs get no toggles.
+    // Cached: resolving it parses the full pack event, and hot paths hit this per image (loadExisting,
+    // buildContent via isDirty on every menu invalidation).
+    private val supportsPerImageUsage: Boolean by lazy {
+        val roomId = pageArgs.roomId ?: return@lazy true
+        repository.isRoomPackLegacy(roomId, pageArgs.stateKey)
+    }
+
     private fun applyEditable() {
         val canEdit = pageArgs.canEdit
         controller.editable = canEdit
-        controller.showUsageToggles = fixedUsage() == null
+        // Per-image toggles only matter when the pack allows everything: a restricting pack usage wins
+        // over per-image values, so the toggles would be inert.
+        controller.showUsageToggles = supportsPerImageUsage && fixedUsage() == null
         views.imagePackReadOnlyNotice.isVisible = !canEdit
         views.imagePackNameInput.isEnabled = canEdit
         requireActivity().invalidateOptionsMenu()
@@ -308,7 +476,11 @@ class ImagePackEditFragment :
         packUsage = content?.pack?.usage?.takeIf { it.isNotEmpty() }
         images.clear()
         content?.effectiveImages()?.forEach { (shortcode, image) ->
-            val usages = image.resolveUsages(content.pack)
+            // The toggles carry the PER-ENTRY layer only (not the pack-resolved usage): while a restricting
+            // pack usage hides them, the layer is preserved through saves and restored when the pack goes
+            // back to Both. Stable packs have no per-entry layer.
+            val perEntry = if (supportsPerImageUsage) image.usage?.takeIf { it.isNotEmpty() }?.toSet() else null
+            val usages = perEntry ?: setOf(ImagePackUsage.EMOTICON, ImagePackUsage.STICKER)
             images += EditableImage(
                     shortcode = shortcode,
                     mxcUrl = image.url,
@@ -321,74 +493,86 @@ class ImagePackEditFragment :
     }
 
     private var uploadJob: Job? = null
+    private val pendingUploads = ArrayDeque<Uri>()
 
-    private fun onImagePicked(uri: Uri) {
-        val mimeType = requireContext().contentResolver.getType(uri)
-        val shortcode = shortcodeFromFileName(uri)
+    // Uploads run in parallel (bounded), but a finished image is only appended once every
+    // earlier-selected one has been (prefix flush) — so the list order is the selection order,
+    // not upload-completion luck. Images picked mid-batch queue up for the next batch.
+    private fun onImagesPicked(uris: List<Uri>) {
+        pendingUploads.addAll(uris)
+        if (uploadJob?.isActive == true) return
         uploadJob = lifecycleScope.launch {
             controller.uploading = true
             refresh()
-            var compressedTemp: File? = null
-            try {
-                val (uploadUri, uploadMime) = withContext(Dispatchers.IO) { compressForUpload(uri, mimeType) }
-                // compressForUpload returns a file:// temp distinct from the content:// source; clean it up after.
-                compressedTemp = uploadUri.takeIf { it != uri && it.scheme == "file" }?.path?.let { File(it) }
-                val info = withContext(Dispatchers.IO) { computeImageInfo(uploadUri, uploadMime) }
-                val mxcUrl = uploadWithRetry(uploadUri, uploadMime)
-                images += EditableImage(
-                        shortcode = shortcode,
-                        mxcUrl = mxcUrl,
-                        body = shortcode,
-                        info = info,
-                        emoticon = true,
-                        sticker = true,
-                )
-            } catch (cancellation: CancellationException) {
-                throw cancellation
-            } catch (failure: Throwable) {
-                // Don't touch the UI if the user backed out mid-upload (fragment detached).
-                if (isAdded) showFailure(failure)
-            } finally {
-                compressedTemp?.let { runCatching { it.delete() } }
+            var firstFailure: Throwable? = null
+            while (pendingUploads.isNotEmpty()) {
+                val batch = pendingUploads.toList()
+                pendingUploads.clear()
+                val results = arrayOfNulls<EditableImage>(batch.size)
+                val completed = BooleanArray(batch.size)
+                var flushed = 0
+                val semaphore = Semaphore(UPLOAD_PARALLELISM)
+                coroutineScope {
+                    batch.forEachIndexed { index, uri ->
+                        launch {
+                            semaphore.withPermit {
+                                // Failures don't cancel the batch: record the first, skip the image.
+                                results[index] = try {
+                                    uploadOneImage(uri)
+                                } catch (cancellation: CancellationException) {
+                                    throw cancellation
+                                } catch (failure: Throwable) {
+                                    if (firstFailure == null) firstFailure = failure
+                                    null
+                                }
+                                // All state mutation happens on the main dispatcher — no locking needed.
+                                completed[index] = true
+                                while (flushed < batch.size && completed[flushed]) {
+                                    results[flushed]?.let { images += it }
+                                    flushed++
+                                }
+                                refresh()
+                                activity?.invalidateOptionsMenu()
+                            }
+                        }
+                    }
+                }
             }
             controller.uploading = false
             refresh()
             activity?.invalidateOptionsMenu()
+            // Don't touch the UI if the user backed out mid-upload (fragment detached).
+            firstFailure?.let { if (isAdded) showFailure(it) }
         }
     }
 
-    // Foreground uploads have no retry (unlike the media-send worker), and a flaky TLS connection can stall
-    // until the 60s read timeout. Use a shorter per-attempt timeout and retry on a fresh connection.
-    private suspend fun uploadWithRetry(uri: Uri, mimeType: String?): String {
-        var lastError: Throwable? = null
-        repeat(UPLOAD_MAX_ATTEMPTS) {
-            coroutineContext.ensureActive()
-            try {
-                return withTimeout(UPLOAD_ATTEMPT_TIMEOUT_MS) { repository.uploadImage(uri, null, mimeType) }
-            } catch (timeout: TimeoutCancellationException) {
-                lastError = timeout
-            } catch (io: IOException) {
-                coroutineContext.ensureActive()
-                lastError = io
-            }
+    private suspend fun uploadOneImage(uri: Uri): EditableImage {
+        val mimeType = requireContext().contentResolver.getType(uri)
+        val shortcode = shortcodeFromFileName(uri)
+        var compressedTemp: File? = null
+        try {
+            val (uploadUri, uploadMime) = withContext(Dispatchers.IO) { compressForUpload(uri, mimeType) }
+            // compressForUpload returns a file:// temp distinct from the content:// source; clean it up after.
+            compressedTemp = uploadUri.takeIf { it != uri && it.scheme == "file" }?.path?.let { File(it) }
+            val info = withContext(Dispatchers.IO) { computeImageInfo(uploadUri, uploadMime) }
+            val mxcUrl = repository.uploadImageWithRetry(uploadUri, null, uploadMime)
+            return EditableImage(
+                    shortcode = shortcode,
+                    mxcUrl = mxcUrl,
+                    body = shortcode,
+                    info = info,
+                    emoticon = true,
+                    sticker = true,
+            )
+        } finally {
+            compressedTemp?.let { runCatching { it.delete() } }
         }
-        // Not a CancellationException, so the caller surfaces it as a failure rather than silent cancellation.
-        throw (lastError as? IOException) ?: IOException("Upload failed", lastError)
     }
 
     // Derive a valid shortcode from the picked file's name (strip extension, keep [A-Za-z0-9_-]).
     private fun shortcodeFromFileName(uri: Uri): String {
-        val displayName = runCatching {
-            requireContext().contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use {
-                if (it.moveToFirst()) it.getString(0) else null
-            }
-        }.getOrNull() ?: uri.lastPathSegment
-        val base = displayName?.substringBeforeLast('.')?.trim().orEmpty()
-        // MSC2545 shortcodes are ASCII [a-zA-Z0-9-_] only; map anything else (incl. Unicode letters) to '_'.
-        return base.map { if (it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '-' || it == '_') it else '_' }
-                .joinToString("")
-                .take(100)
-                .ifEmpty { "emote" }
+        val displayName = requireContext().queryDisplayName(uri)
+        return sanitizeShortcode(displayName?.substringBeforeLast('.').orEmpty())
     }
 
     // Decode the image's real dimensions and size; omit (0) any value we can't determine.
@@ -449,6 +633,16 @@ class ImagePackEditFragment :
         }
     }
 
+    private fun canApply(): Boolean {
+        if (!isDirty()) return false
+        if (pageArgs.roomId == null) return true
+        // New packs must be named. A pack another client created unnamed stays editable and saveable
+        // unnamed (its display falls back to the room name per MSC2545) — but clearing the name of a
+        // pack that HAS one is still blocked.
+        val existedUnnamed = packExists && initialContent?.pack?.displayName.isNullOrBlank()
+        return existedUnnamed || !packName.isNullOrBlank()
+    }
+
     private fun save() {
         val roomId = pageArgs.roomId
         if (roomId != null && !repository.canEditRoomPacks(roomId)) {
@@ -467,9 +661,9 @@ class ImagePackEditFragment :
         lifecycleScope.launch {
             try {
                 if (roomId == null) {
-                    repository.saveAccountPack(content)
+                    repository.saveAccountPack(content, includeUsage = true)
                 } else {
-                    repository.saveRoomPack(roomId, pageArgs.stateKey, content)
+                    repository.saveRoomPack(roomId, pageArgs.stateKey, content, includeUsage = true)
                 }
                 activity?.finish()
             } catch (cancellation: CancellationException) {
@@ -492,21 +686,51 @@ class ImagePackEditFragment :
         }
         return ImagePackContent(
                 images = imageMap,
-                pack = ImagePackMeta(displayName = packName, avatarUrl = packAvatarUrl),
+                pack = ImagePackMeta(displayName = packName, avatarUrl = packAvatarUrl, usage = packUsage),
         )
     }
 
-    // A single pack-level usage decides every image; don't write a (possibly conflicting) per-image usage.
     private fun fixedUsage(): String? = packUsage?.singleOrNull()
 
-    // null = usable everywhere (both / neither selected) or inherited from the pack; otherwise the explicit
-    // single usage.
+    // Per-image usage is only written for legacy im.ponies packs; null = usable everywhere (both / neither
+    // selected). Stable packs express usage at pack level only (spec).
     private fun usageList(editable: EditableImage): List<String>? = when {
-        fixedUsage() != null -> null
+        !supportsPerImageUsage -> null
         editable.emoticon && editable.sticker -> null
         editable.emoticon -> listOf(ImagePackUsage.EMOTICON)
         editable.sticker -> listOf(ImagePackUsage.STICKER)
         else -> null
+    }
+
+    private fun showPackTypeDialog() {
+        val options = arrayOf(
+                getString(CommonStrings.image_pack_usage_emoticons),
+                getString(CommonStrings.image_pack_usage_stickers),
+                getString(CommonStrings.image_pack_usage_both),
+        )
+        val checked = when (fixedUsage()) {
+            ImagePackUsage.EMOTICON -> 0
+            ImagePackUsage.STICKER -> 1
+            else -> 2
+        }
+        // Plain AlertDialog.Builder, not Material: matches the ListPreference dialogs in Settings
+        // (Theme, App logo) that this deliberately mimics.
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(CommonStrings.image_pack_type_title)
+                .setSingleChoiceItems(options, checked) { dialog, which ->
+                    packUsage = when (which) {
+                        0 -> listOf(ImagePackUsage.EMOTICON)
+                        1 -> listOf(ImagePackUsage.STICKER)
+                        // Absent usage means all types (spec default).
+                        else -> null
+                    }
+                    // Toggle visibility follows the pack type (per-entry only matters on Both).
+                    applyEditable()
+                    refresh()
+                    dialog.dismiss()
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
     }
 
     private fun refresh() {
@@ -522,7 +746,12 @@ class ImagePackEditFragment :
     }
 
     override fun onAddImage() {
-        pickImageLauncher.launch("image/*")
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+                .addCategory(Intent.CATEGORY_OPENABLE)
+                .setType("image/*")
+                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        pickImagesLauncher.launch(intent)
     }
 
     override fun onImageEdited() {
@@ -538,14 +767,23 @@ class ImagePackEditFragment :
     }
 
     override fun onBackPressed(toolbarButton: Boolean): Boolean {
+        if (exportJob?.isActive == true) {
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(CommonStrings.image_pack_exporting_title)
+                    .setMessage(CommonStrings.image_pack_export_cancel_prompt)
+                    .setPositiveButton(CommonStrings.yes) { _, _ -> exportJob?.cancel() }
+                    .setNegativeButton(CommonStrings.no, null)
+                    .show()
+            return true
+        }
         val uploading = uploadJob?.isActive == true
         if (!isDirty() && !uploading) return false
         MaterialAlertDialogBuilder(requireContext())
                 .setTitle(CommonStrings.image_pack_unsaved_title)
                 .setMessage(CommonStrings.image_pack_unsaved_message)
                 .apply {
-                    // "Apply" only when there are committed changes to save (not while an upload is still in flight).
-                    if (isDirty() && !uploading) {
+                    // "Apply" only when there are committed, saveable changes (named pack, no upload in flight).
+                    if (canApply() && !uploading) {
                         setPositiveButton(CommonStrings.image_pack_apply) { _, _ -> save() }
                     }
                 }
@@ -559,8 +797,7 @@ class ImagePackEditFragment :
     }
 
     companion object {
-        private const val UPLOAD_MAX_ATTEMPTS = 3
-        private const val UPLOAD_ATTEMPT_TIMEOUT_MS = 30_000L
         private const val COMPRESS_MAX_DIMENSION = 1024
+        private const val UPLOAD_PARALLELISM = 10
     }
 }

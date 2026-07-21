@@ -48,6 +48,7 @@ import im.vector.app.features.home.room.detail.timeline.item.BasedMergedItem
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem_
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
+import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.ReactionsSummaryEvents
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
@@ -818,7 +819,11 @@ class TimelineEventController @Inject constructor(
             val mergeStable = (mergedHeaderModel == null && event.root.stateKey == null) ||
                     (enrichedCollapseGeneration == mergedHeaderItemFactory.collapseGeneration &&
                             enrichedStructureGeneration == structureGeneration)
-            if (mergeStable) return this
+            // The creation header renders the room summary (name/topic/avatar); without this a just-created
+            // room keeps showing "Empty room" in the "beginning of" tile until the room is reopened.
+            val summaryStable = mergedHeaderModel !is MergedRoomCreationItem_ ||
+                    enrichedCreationSummaryStamp == partialState.roomSummary.creationTileRenderState()
+            if (mergeStable && summaryStable) return this
         }
         val wantsDateSeparator = wantsDateSeparator(event, nextEvent)
         val mergedHeaderModel = mergedHeaderItemFactory.create(
@@ -854,7 +859,18 @@ class TimelineEventController @Inject constructor(
                 enrichedReceipts = readReceipts,
                 enrichedCollapseGeneration = mergedHeaderItemFactory.collapseGeneration,
                 enrichedStructureGeneration = structureGeneration,
+                enrichedCreationSummaryStamp = if (mergedHeaderModel is MergedRoomCreationItem_) {
+                    partialState.roomSummary.creationTileRenderState()
+                } else {
+                    null
+                },
         )
+    }
+
+    // Only the summary fields the creation tile actually renders, so unrelated summary churn
+    // (typing, unread counts, last message) doesn't rebuild it.
+    private fun RoomSummary?.creationTileRenderState(): List<Any?>? = this?.run {
+        listOf(displayName, name, topic, avatarUrl, isDirect, directUserId, isEncrypted, joinedMembersCount, invitedMembersCount, otherMemberIds)
     }
 
     private fun searchLastSentEventWithoutReadReceipts(receiptsByEvent: Map<String, List<ReadReceipt>>): String? {
@@ -1030,6 +1046,7 @@ class TimelineEventController @Inject constructor(
             val enrichedReceipts: List<ReadReceipt>? = null,
             val enrichedCollapseGeneration: Int = -1,
             val enrichedStructureGeneration: Int = -1,
+            val enrichedCreationSummaryStamp: List<Any?>? = null,
     ) {
         fun isCacheable(partialState: PartialState): Boolean {
             return isCacheable && partialState.highlightedEventId != eventId

@@ -61,11 +61,13 @@ object ImagePackUsage {
 }
 
 /**
- * Effective usages for an image: the image's own usage if present, else the pack's usage, else both
- * (an absent or empty usage means the image is usable everywhere).
+ * Effective usages for an image: the pack's usage wins when it restricts to a type; when the pack allows
+ * everything (absent/empty usage), a legacy im.ponies pack ([allowPerImage]) may narrow per image via the
+ * image's own usage; otherwise the image is usable everywhere. Per-image usage is not part of the current
+ * MSC2545 schema, hence the gate.
  */
-fun ImagePackImage.resolveUsages(pack: ImagePackMeta?): Set<String> {
-    val raw = usage?.takeIf { it.isNotEmpty() }
-            ?: pack?.usage?.takeIf { it.isNotEmpty() }
-    return raw?.toSet() ?: setOf(ImagePackUsage.EMOTICON, ImagePackUsage.STICKER)
+fun ImagePackImage.resolveUsages(pack: ImagePackMeta?, allowPerImage: Boolean): Set<String> {
+    pack?.usage?.takeIf { it.isNotEmpty() }?.let { return it.toSet() }
+    if (allowPerImage) usage?.takeIf { it.isNotEmpty() }?.let { return it.toSet() }
+    return setOf(ImagePackUsage.EMOTICON, ImagePackUsage.STICKER)
 }
