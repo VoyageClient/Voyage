@@ -8,7 +8,6 @@
 package im.vector.app.features.home.room.detail
 
 import android.net.Uri
-import android.view.View
 import im.vector.app.core.platform.VectorViewEvents
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.widgets.model.Widget
@@ -38,7 +37,7 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
     object OpenSetRoomAvatarDialog : RoomDetailViewEvents()
     object OpenRoomSettings : RoomDetailViewEvents()
     object OpenRoomProfile : RoomDetailViewEvents()
-    data class ShowRoomAvatarFullScreen(val matrixItem: MatrixItem?, val view: View?) : RoomDetailViewEvents()
+    data class ShowRoomAvatarFullScreen(val matrixItem: MatrixItem?) : RoomDetailViewEvents()
 
     data class ShowWaitingView(val text: String? = null) : RoomDetailViewEvents()
     object HideWaitingView : RoomDetailViewEvents()

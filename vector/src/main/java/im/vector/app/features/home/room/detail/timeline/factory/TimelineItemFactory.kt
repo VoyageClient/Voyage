@@ -81,6 +81,7 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_POWER_LEVELS -> {
                         noticeItemFactory.create(params)
                     }
+                    in EventType.STATE_ROOM_BANNER.values -> noticeItemFactory.create(params)
                     EventType.STATE_ROOM_WIDGET_LEGACY,
                     EventType.STATE_ROOM_WIDGET -> widgetItemFactory.create(params)
                     EventType.STATE_ROOM_ENCRYPTION -> encryptionItemFactory.create(params)

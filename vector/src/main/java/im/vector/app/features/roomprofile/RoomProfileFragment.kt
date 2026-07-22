@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -34,11 +35,13 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
+import im.vector.app.core.ui.views.ProfileBannerUiHelper
 import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.BannerRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.imagepack.edit.ImagePackListActivity
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
@@ -70,6 +73,7 @@ class RoomProfileFragment :
 
     @Inject lateinit var roomProfileController: RoomProfileController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var bannerRenderer: BannerRenderer
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
 
@@ -81,10 +85,9 @@ class RoomProfileFragment :
     private val roomProfileViewModel: RoomProfileViewModel by fragmentViewModel()
 
     private var appBarStateChangeListener: AppBarStateChangeListener? = null
-
-    // The full-screen avatar viewer is launched while the collapsing header may transiently collapse;
-    // re-expand it on the way back so the shared-element return lands on the on-screen avatar.
-    private var expandAppBarOnResume = false
+    private var bannerAppBarStateChangeListener: AppBarStateChangeListener? = null
+    private var bannerUiHelper: ProfileBannerUiHelper? = null
+    private var currentBannerUrl: String? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
@@ -128,6 +131,18 @@ class RoomProfileFragment :
                 )
         )
         views.matrixProfileAppBarLayout.addOnOffsetChangedListener(appBarStateChangeListener)
+        bannerUiHelper = ProfileBannerUiHelper(
+                vectorBaseActivity,
+                views.matrixProfileToolbar,
+                views.matrixProfileCollapsingToolbarLayout,
+                headerViews.roomProfileBannerScrim
+        )
+        bannerAppBarStateChangeListener = object : AppBarStateChangeListener() {
+            override fun onStateChanged(appBarLayout: AppBarLayout, state: State) {
+                bannerUiHelper?.update(currentBannerUrl != null, state == State.COLLAPSED)
+            }
+        }
+        views.matrixProfileAppBarLayout.addOnOffsetChangedListener(bannerAppBarStateChangeListener)
         roomProfileViewModel.observeViewEvents {
             when (it) {
                 is RoomProfileViewEvents.Loading -> showLoading(it.message)
@@ -180,9 +195,11 @@ class RoomProfileFragment :
         setOf(
                 headerViews.roomProfileAvatarView,
                 views.matrixProfileToolbarAvatarImageView
-        ).forEach { view ->
-            view.debouncedClicks { onAvatarClicked(view) }
+        ).forEach {
+            it.debouncedClicks { onAvatarClicked() }
         }
+        // Open Banner
+        headerViews.roomProfileBannerView.debouncedClicks { onBannerClicked() }
     }
 
     private fun setupLongClicks() {
@@ -221,24 +238,28 @@ class RoomProfileFragment :
         views.matrixProfileRecyclerView.configureWith(roomProfileController, hasFixedSize = true, disableItemAnimation = true)
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (expandAppBarOnResume) {
-            expandAppBarOnResume = false
-            views.matrixProfileAppBarLayout.setExpanded(true, false)
-        }
-    }
-
     override fun onDestroyView() {
         roomProfileController.callback = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
+        views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(bannerAppBarStateChangeListener)
         views.matrixProfileRecyclerView.cleanup()
         appBarStateChangeListener = null
+        bannerAppBarStateChangeListener = null
+        bannerUiHelper?.restore()
+        bannerUiHelper = null
         super.onDestroyView()
     }
 
     override fun invalidate() = withState(roomProfileViewModel) { state ->
         views.waitingView.root.isVisible = state.isLoading
+
+        currentBannerUrl = state.bannerUrl
+        val hasBanner = currentBannerUrl != null
+        headerViews.roomProfileBannerView.isVisible = hasBanner
+        headerViews.roomProfileBannerScrim.isVisible = hasBanner
+        headerViews.roomProfileBannerOverlap.isVisible = hasBanner
+        bannerRenderer.render(currentBannerUrl, headerViews.roomProfileBannerView)
+        bannerUiHelper?.update(hasBanner, bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED)
 
         state.roomSummary()?.let {
             if (it.membership.isLeft()) {
@@ -252,6 +273,7 @@ class RoomProfileFragment :
                 headerViews.roomProfileAliasView.setCopySource(it.canonicalAlias)
                 val matrixItem = it.toMatrixItem()
                 avatarRenderer.render(matrixItem, headerViews.roomProfileAvatarView)
+                bannerRenderer.applyAvatarStroke(headerViews.roomProfileAvatarView, matrixItem, state.bannerUrl != null)
                 avatarRenderer.render(matrixItem, views.matrixProfileToolbarAvatarImageView)
                 val isPgp = pgpKeyStore.isEnabled && !it.isEncrypted && pgpKeyStore.isRoomPgpEnabled(it.roomId)
                 headerViews.roomProfileDecorationImageView.renderRoomShield(it.roomEncryptionTrustLevel, isPgp)
@@ -390,10 +412,15 @@ class RoomProfileFragment :
         navigator.openSettings(requireContext(), SettingsActivityPayload.SecurityPrivacy)
     }
 
-    private fun onAvatarClicked(view: View) = withState(roomProfileViewModel) { state ->
+    private fun onAvatarClicked() = withState(roomProfileViewModel) { state ->
         state.roomSummary()?.toMatrixItem()?.let { matrixItem ->
-            expandAppBarOnResume = true
-            navigator.openBigImageViewer(requireActivity(), view, matrixItem)
+            navigator.openBigImageViewer(requireActivity(), matrixItem)
+        }
+    }
+
+    private fun onBannerClicked() = withState(roomProfileViewModel) { state ->
+        state.bannerUrl?.let { bannerUrl ->
+            navigator.openBigImageViewer(requireActivity(), null, bannerUrl, state.roomSummary()?.displayName)
         }
     }
 }

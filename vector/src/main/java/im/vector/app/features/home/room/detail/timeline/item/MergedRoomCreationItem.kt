@@ -184,12 +184,12 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         holder.roomAvatarImageView.isVisible = roomItem != null
         if (roomItem != null) {
             attributes.avatarRenderer.render(roomItem, holder.roomAvatarImageView)
-            holder.roomAvatarImageView.onClick { view ->
+            holder.roomAvatarImageView.onClick {
                 if (shouldSetAvatar) {
                     attributes.callback?.onTimelineItemAction(RoomDetailAction.QuickActionSetAvatar)
                 } else {
                     // Note: this is no op if there is no avatar on the room
-                    attributes.callback?.onTimelineItemAction(RoomDetailAction.ShowRoomAvatarFullScreen(roomItem, view))
+                    attributes.callback?.onTimelineItemAction(RoomDetailAction.ShowRoomAvatarFullScreen(roomItem))
                 }
             }
         }

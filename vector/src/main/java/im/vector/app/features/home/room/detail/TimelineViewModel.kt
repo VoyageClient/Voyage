@@ -561,7 +561,7 @@ class TimelineViewModel @AssistedInject constructor(
             RoomDetailAction.QuickActionSetTopic -> _viewEvents.post(RoomDetailViewEvents.OpenRoomSettings)
             is RoomDetailAction.ShowRoomAvatarFullScreen -> {
                 _viewEvents.post(
-                        RoomDetailViewEvents.ShowRoomAvatarFullScreen(action.matrixItem, action.transitionView)
+                        RoomDetailViewEvents.ShowRoomAvatarFullScreen(action.matrixItem)
                 )
             }
             is RoomDetailAction.DoNotShowPreviewUrlFor -> handleDoNotShowPreviewUrlFor(action)

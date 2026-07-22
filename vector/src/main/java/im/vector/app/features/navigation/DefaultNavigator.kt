@@ -22,6 +22,7 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.util.Pair
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
+import im.vector.app.R
 import im.vector.app.SpaceStateHandler
 import im.vector.app.config.OnboardingVariant
 import im.vector.app.core.debug.DebugNavigator
@@ -38,7 +39,6 @@ import im.vector.app.features.crypto.verification.SupportedVerificationMethodsPr
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.devtools.RoomDevToolActivity
 import im.vector.app.features.displayname.getBestName
-import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailActivity
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.home.room.detail.search.SearchActivity
@@ -76,7 +76,6 @@ import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import im.vector.app.features.roommemberprofile.RoomMemberProfileActivity
 import im.vector.app.features.roommemberprofile.RoomMemberProfileArgs
 import im.vector.app.features.roomprofile.RoomProfileActivity
-import im.vector.app.features.settings.AvatarShape
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.share.SharedData
@@ -379,22 +378,12 @@ class DefaultNavigator @Inject constructor(
         context.startActivity(RoomProfileActivity.newIntent(context, roomId, directAccess))
     }
 
-    override fun openBigImageViewer(activity: Activity, sharedElement: View?, matrixItem: MatrixItem) {
-        openBigImageViewer(activity, sharedElement, matrixItem.avatarUrl, matrixItem.getBestName(), avatarCornerFraction(matrixItem))
+    override fun openBigImageViewer(activity: Activity, matrixItem: MatrixItem) {
+        // No shared element: the avatar morph transition proved too buggy to maintain, cross-fade instead
+        openBigImageViewer(activity, null, matrixItem.avatarUrl, matrixItem.getBestName())
     }
 
-    // Mirror AvatarRenderer's shape choice (spaces are always rounded, otherwise the user's preference) and
-    // express it as a corner fraction of the shorter side, matching RoundedCornersPercent / the morph outline.
-    private fun avatarCornerFraction(matrixItem: MatrixItem): Float {
-        val shape = if (matrixItem is MatrixItem.SpaceItem) AvatarShape.ROUNDED else vectorPreferences.avatarShape()
-        return when (shape) {
-            AvatarShape.CIRCLE -> 0.5f
-            AvatarShape.ROUNDED -> AvatarRenderer.ROUNDED_CORNER_PERCENT
-            AvatarShape.SQUARE -> 0f
-        }
-    }
-
-    override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?, avatarCornerFraction: Float) {
+    override fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?) {
         val avatarUrl = mxcUrl?.takeIf { it.isNotBlank() } ?: return
         // Reuse the timeline media viewer (zoom + download + share) with the avatar as a single entry.
         val imageData = ImageContentRenderer.Data(
@@ -415,14 +404,15 @@ class DefaultNavigator @Inject constructor(
                 eventId = imageData.eventId,
                 inMemoryData = listOf(imageData),
                 sharedTransitionName = sharedElement?.let { ViewCompat.getTransitionName(it) },
-                circularTransition = true,
-                avatarSizePx = sharedElement?.height ?: 0,
-                avatarCornerFraction = avatarCornerFraction,
+                standalonePreview = true,
         )
-        val options = sharedElement?.let {
-            ActivityOptionsCompat.makeSceneTransitionAnimation(activity, it, ViewCompat.getTransitionName(it) ?: "")
+        val options = if (sharedElement != null) {
+            ActivityOptionsCompat.makeSceneTransitionAnimation(activity, sharedElement, ViewCompat.getTransitionName(sharedElement) ?: "")
+        } else {
+            // Cross-fade like an in-app page change
+            ActivityOptionsCompat.makeCustomAnimation(activity, R.anim.fade_in, R.anim.fade_out)
         }
-        ActivityCompat.startActivity(activity, intent, options?.toBundle())
+        ActivityCompat.startActivity(activity, intent, options.toBundle())
     }
 
     override fun openTerms(

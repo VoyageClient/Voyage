@@ -38,6 +38,7 @@ import im.vector.app.core.extensions.toMvRxBundle
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.core.preference.UserAvatarPreference
+import im.vector.app.core.preference.UserBannerPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
@@ -61,6 +62,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.isInvalidPassword
 import org.matrix.android.sdk.api.session.getUser
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerConfig
@@ -85,14 +87,33 @@ class VectorSettingsGeneralFragment :
     override val preferenceXmlRes = R.xml.vector_settings_general
 
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
+    private lateinit var bannerGalleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
     private var currentAvatarUrl: String? = null
+    private var currentBannerUrl: String? = null
+
+    private val bannerListener = object : GalleryOrCameraDialogHelper.Listener {
+        override fun onImageReady(uri: Uri?) {
+            if (uri != null) {
+                uploadBanner(uri)
+            } else {
+                Toast.makeText(requireContext(), "Cannot retrieve cropped value", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        override fun onImageDeleted() {
+            deleteBanner()
+        }
+    }
 
     private val mUserSettingsCategory by lazy {
         findPreference<PreferenceCategory>(VectorPreferences.SETTINGS_USER_SETTINGS_PREFERENCE_KEY)!!
     }
     private val mUserAvatarPreference by lazy {
         findPreference<UserAvatarPreference>(VectorPreferences.SETTINGS_PROFILE_PICTURE_PREFERENCE_KEY)!!
+    }
+    private val mUserBannerPreference by lazy {
+        findPreference<UserBannerPreference>(VectorPreferences.SETTINGS_PROFILE_BANNER_PREFERENCE_KEY)!!
     }
     private val mDisplayNamePreference by lazy {
         findPreference<EditTextPreference>("SETTINGS_DISPLAY_NAME_PREFERENCE_KEY")!!
@@ -134,7 +155,13 @@ class VectorSettingsGeneralFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Fixed construction order: launcher registration must be deterministic across process death.
         galleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(this)
+        bannerGalleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(
+                this,
+                GalleryOrCameraDialogHelper.Aspect.BANNER,
+                bannerListener
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -142,6 +169,20 @@ class VectorSettingsGeneralFragment :
 
         observeUserAvatar()
         observeUserDisplayName()
+        refreshBanner()
+    }
+
+    // There is no live store for custom profile fields, so seed from the session cache
+    // (avoids a pop-in) and then fetch fresh on show and after each change.
+    private fun refreshBanner() {
+        currentBannerUrl = session.profileService().getCachedBannerUrl(session.myUserId)
+        mUserBannerPreference.refreshBanner(currentBannerUrl)
+        lifecycleScope.launch {
+            currentBannerUrl = tryOrNull { session.profileService().getBannerUrl(session.myUserId).getOrNull() }
+            if (isAdded) {
+                mUserBannerPreference.refreshBanner(currentBannerUrl)
+            }
+        }
     }
 
     private fun observeUserAvatar() {
@@ -176,6 +217,14 @@ class VectorSettingsGeneralFragment :
         mUserAvatarPreference.let {
             it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
                 galleryOrCameraDialogHelper.show(withDeleteOption = !currentAvatarUrl.isNullOrBlank())
+                false
+            }
+        }
+
+        // Banner
+        mUserBannerPreference.let {
+            it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                bannerGalleryOrCameraDialogHelper.show(withDeleteOption = !currentBannerUrl.isNullOrBlank())
                 false
             }
         }
@@ -418,6 +467,50 @@ class VectorSettingsGeneralFragment :
 
             result.fold(
                     onSuccess = { hideLoadingView() },
+                    onFailure = {
+                        hideLoadingView()
+                        displayErrorDialog(it)
+                    }
+            )
+        }
+    }
+
+    private fun uploadBanner(uri: Uri) {
+        displayLoadingView()
+
+        lifecycleScope.launch {
+            val result = runCatching {
+                session.profileService().updateBanner(session.myUserId, uri, getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
+            }
+            if (!isAdded) return@launch
+
+            result.fold(
+                    onSuccess = {
+                        hideLoadingView()
+                        refreshBanner()
+                    },
+                    onFailure = {
+                        hideLoadingView()
+                        displayErrorDialog(it)
+                    }
+            )
+        }
+    }
+
+    private fun deleteBanner() {
+        displayLoadingView()
+
+        lifecycleScope.launch {
+            val result = runCatching {
+                session.profileService().deleteBanner(session.myUserId)
+            }
+            if (!isAdded) return@launch
+
+            result.fold(
+                    onSuccess = {
+                        hideLoadingView()
+                        refreshBanner()
+                    },
                     onFailure = {
                         hideLoadingView()
                         displayErrorDialog(it)

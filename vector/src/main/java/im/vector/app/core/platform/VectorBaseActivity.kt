@@ -427,14 +427,32 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                             WindowInsetsCompat.Type.displayCutout() or
                             WindowInsetsCompat.Type.ime()
             )
+            systemBarsTopInset = systemBars.top
             v.updatePadding(
                     systemBars.left,
-                    systemBars.top,
+                    if (drawUnderStatusBar) 0 else systemBars.top,
                     systemBars.right,
                     systemBars.bottom,
             )
             WindowInsetsCompat.CONSUMED
         }
+    }
+
+    /** Last dispatched status-bar inset (View.getRootWindowInsets is API 23+, this works on all). */
+    var systemBarsTopInset: Int = 0
+        private set
+
+    private var drawUnderStatusBar = false
+
+    /**
+     * Let content extend behind the (transparent) status bar instead of being inset below it.
+     * Used by profile screens to draw the banner up to the top screen edge; callers are responsible
+     * for keeping their toolbars below [systemBarsTopInset] while enabled.
+     */
+    fun setDrawUnderStatusBar(enabled: Boolean) {
+        if (drawUnderStatusBar == enabled) return
+        drawUnderStatusBar = enabled
+        ViewCompat.requestApplyInsets(rootView)
     }
 
     private val postResumeScheduledActions = mutableListOf<() -> Unit>()

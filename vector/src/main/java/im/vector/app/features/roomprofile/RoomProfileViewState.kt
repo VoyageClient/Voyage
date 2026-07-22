@@ -22,6 +22,8 @@ data class RoomProfileViewState(
         val bannedMembership: Async<List<RoomMemberSummary>> = Uninitialized,
         val knockRequests: Async<List<RoomMemberSummary>> = Uninitialized,
         val actionPermissions: ActionPermissions = ActionPermissions(),
+        // MSC4221 room banner
+        val bannerUrl: String? = null,
         val isLoading: Boolean = false,
         val isUsingUnstableRoomVersion: Boolean = false,
         val recommendedRoomVersion: String? = null,

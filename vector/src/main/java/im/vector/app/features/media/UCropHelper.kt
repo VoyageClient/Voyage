@@ -17,7 +17,8 @@ fun createUCropWithDefaultSettings(
         colorProvider: ColorProvider,
         source: Uri,
         destination: Uri,
-        toolbarTitle: String?
+        toolbarTitle: String?,
+        freeStyleCropEnabled: Boolean = true
 ): UCrop {
     return UCrop.of(source, destination)
             .withOptions(
@@ -29,7 +30,7 @@ fun createUCropWithDefaultSettings(
                                         /* tabAspectRatio = */ UCropActivity.SCALE
                                 )
                                 setToolbarTitle(toolbarTitle)
-                                setFreeStyleCropEnabled(true)
+                                setFreeStyleCropEnabled(freeStyleCropEnabled)
                                 // Color used for toolbar icon and text
                                 setToolbarColor(colorProvider.getColorFromAttribute(android.R.attr.colorBackground))
                                 setToolbarWidgetColor(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary))

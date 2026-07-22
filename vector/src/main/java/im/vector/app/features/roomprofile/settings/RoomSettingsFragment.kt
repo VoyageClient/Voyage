@@ -67,6 +67,21 @@ class RoomSettingsFragment :
 
     private val roomProfileArgs: RoomProfileArgs by args()
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
+    private lateinit var bannerGalleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
+
+    private val bannerListener = object : GalleryOrCameraDialogHelper.Listener {
+        override fun onImageReady(uri: Uri?) {
+            uri ?: return
+            viewModel.handle(
+                    RoomSettingsAction.SetBannerAction(
+                            RoomSettingsViewState.BannerAction.UpdateBanner(
+                                    newBannerUri = uri,
+                                    newBannerFileName = getFilenameFromUri(requireContext(), uri) ?: UUID.randomUUID().toString()
+                            )
+                    )
+            )
+        }
+    }
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentRoomSettingGenericBinding {
         return FragmentRoomSettingGenericBinding.inflate(inflater, container, false)
@@ -76,7 +91,14 @@ class RoomSettingsFragment :
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Fixed construction order: both helpers register activity-result launchers, and
+        // registration order must be deterministic across process death.
         galleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(this)
+        bannerGalleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(
+                this,
+                GalleryOrCameraDialogHelper.Aspect.BANNER,
+                bannerListener
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -222,6 +244,27 @@ class RoomSettingsFragment :
 
     override fun onAvatarChange() {
         galleryOrCameraDialogHelper.show()
+    }
+
+    override fun onBannerDelete() {
+        withState(viewModel) {
+            when (it.bannerAction) {
+                RoomSettingsViewState.BannerAction.None -> {
+                    viewModel.handle(RoomSettingsAction.SetBannerAction(RoomSettingsViewState.BannerAction.DeleteBanner))
+                }
+                RoomSettingsViewState.BannerAction.DeleteBanner -> {
+                    /* Should not happen */
+                }
+                is RoomSettingsViewState.BannerAction.UpdateBanner -> {
+                    // Cancel the update of the banner
+                    viewModel.handle(RoomSettingsAction.SetBannerAction(RoomSettingsViewState.BannerAction.None))
+                }
+            }
+        }
+    }
+
+    override fun onBannerChange() {
+        bannerGalleryOrCameraDialogHelper.show()
     }
 
     private var ignoreChanges = false

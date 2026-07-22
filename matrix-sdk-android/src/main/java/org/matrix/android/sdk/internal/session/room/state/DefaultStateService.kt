@@ -27,8 +27,10 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.BannerImageInfo
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomBannerContent
 import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
@@ -187,6 +189,26 @@ internal class DefaultStateService @AssistedInject constructor(
         )
     }
 
+    override suspend fun updateBanner(bannerUri: Uri, fileName: String) {
+        val response = fileUploader.uploadFromUri(bannerUri, fileName, MimeTypes.Jpeg)
+        sendStateEvent(
+                eventType = EventType.STATE_ROOM_BANNER.unstable,
+                body = RoomBannerContent(
+                        url = response.contentUri,
+                        info = BannerImageInfo(mimeType = MimeTypes.Jpeg)
+                ).toContent(),
+                stateKey = ""
+        )
+    }
+
+    override suspend fun deleteBanner() {
+        sendStateEvent(
+                eventType = EventType.STATE_ROOM_BANNER.unstable,
+                body = emptyMap(),
+                stateKey = ""
+        )
+    }
+
     // A null displayname/avatar_url is omitted from the serialized event, and Synapse re-fills
     // omitted profile fields on join membership events from the account-wide profile. So null means
     // "reset to the account-wide value", while an explicit "" blanks the field (omitting can't:
@@ -205,18 +227,43 @@ internal class DefaultStateService @AssistedInject constructor(
         sendMyRoomMemberContent { copy(avatarUrl = avatarUrl) }
     }
 
-    override suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?) {
-        sendMyRoomMemberContent { copy(displayName = displayName, avatarUrl = avatarUrl) }
+    override suspend fun updateMyRoomBanner(bannerUri: Uri, fileName: String) {
+        val response = fileUploader.uploadFromUri(bannerUri, fileName, MimeTypes.Jpeg)
+        sendMyRoomMemberContent { copy(bannerUrl = response.contentUri) }
+    }
+
+    override suspend fun resetMyRoomBanner(bannerUrl: String?) {
+        sendMyRoomMemberContent { copy(bannerUrl = bannerUrl) }
+    }
+
+    override suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?, bannerUrl: String?) {
+        sendMyRoomMemberContent { copy(displayName = displayName, avatarUrl = avatarUrl, bannerUrl = bannerUrl) }
     }
 
     private suspend fun sendMyRoomMemberContent(transform: RoomMemberContent.() -> RoomMemberContent) {
-        val currentContent = getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(userId))
-                ?.content
-                ?.toModel<RoomMemberContent>()
+        val rawContent = getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(userId))?.content
+        val currentContent = rawContent?.toModel<RoomMemberContent>()
                 ?: RoomMemberContent(membership = Membership.JOIN)
+        val oldTyped = currentContent.toContent()
+        val newTyped = currentContent.transform().toContent()
+        // Apply only the keys the transform changed onto the raw content, so the round-trip neither
+        // drops keys the model doesn't know nor materializes model defaults (e.g. is_direct: false)
+        // into events that never carried them.
+        val body = if (rawContent == null) {
+            newTyped
+        } else {
+            rawContent.toMutableMap().apply {
+                (oldTyped.keys + newTyped.keys).forEach { key ->
+                    when {
+                        key !in newTyped -> remove(key)
+                        oldTyped[key] != newTyped[key] -> put(key, newTyped.getValue(key))
+                    }
+                }
+            }
+        }
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_MEMBER,
-                body = currentContent.transform().toContent(),
+                body = body,
                 stateKey = userId
         )
     }

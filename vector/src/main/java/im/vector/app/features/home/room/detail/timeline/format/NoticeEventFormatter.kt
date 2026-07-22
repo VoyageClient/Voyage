@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.RoomAliasesContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
+import org.matrix.android.sdk.api.session.room.model.RoomBannerContent
 import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
 import org.matrix.android.sdk.api.session.room.model.RoomGuestAccessContent
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibilityContent
@@ -86,6 +87,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_NAME -> formatRoomNameEvent(event, senderName)
             EventType.STATE_ROOM_TOPIC -> formatRoomTopicEvent(event, senderName)
             EventType.STATE_ROOM_AVATAR -> formatRoomAvatarEvent(event, senderName)
+            in EventType.STATE_ROOM_BANNER.values -> formatRoomBannerEvent(event, senderName)
             EventType.STATE_ROOM_MEMBER -> formatRoomMemberEvent(event, senderName, isDm)
             EventType.STATE_ROOM_THIRD_PARTY_INVITE -> formatRoomThirdPartyInvite(event, senderName, isDm)
             EventType.STATE_ROOM_ALIASES -> formatRoomAliasesEvent(event, senderName)
@@ -201,6 +203,7 @@ class NoticeEventFormatter @Inject constructor(
             EventType.STATE_ROOM_NAME -> formatRoomNameEvent(event, senderName)
             EventType.STATE_ROOM_TOPIC -> formatRoomTopicEvent(event, senderName)
             EventType.STATE_ROOM_AVATAR -> formatRoomAvatarEvent(event, senderName)
+            in EventType.STATE_ROOM_BANNER.values -> formatRoomBannerEvent(event, senderName)
             EventType.STATE_ROOM_MEMBER -> formatRoomMemberEvent(event, senderName, isDm)
             EventType.STATE_ROOM_THIRD_PARTY_INVITE -> formatRoomThirdPartyInvite(event, senderName, isDm)
             EventType.STATE_ROOM_HISTORY_VISIBILITY -> formatRoomHistoryVisibilityEvent(event, senderName, isDm)
@@ -344,6 +347,24 @@ class NoticeEventFormatter @Inject constructor(
                 sp.getString(CommonStrings.notice_room_avatar_changed_by_you)
             } else {
                 sp.getString(CommonStrings.notice_room_avatar_changed, senderName)
+            }
+        }
+    }
+
+    private fun formatRoomBannerEvent(event: Event, senderName: String?): CharSequence {
+        // Removal is empty content, so no toModel null-check: {} must still format
+        val bannerUrl = event.content.toModel<RoomBannerContent>()?.url
+        return if (bannerUrl.isNullOrEmpty()) {
+            if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_room_banner_removed_by_you)
+            } else {
+                sp.getString(CommonStrings.notice_room_banner_removed, senderName)
+            }
+        } else {
+            if (event.isSentByCurrentUser()) {
+                sp.getString(CommonStrings.notice_room_banner_changed_by_you)
+            } else {
+                sp.getString(CommonStrings.notice_room_banner_changed, senderName)
             }
         }
     }
@@ -767,6 +788,22 @@ class NoticeEventFormatter @Inject constructor(
                 }
             }
             displayText.append(displayAvatarText)
+        }
+        // Check whether the banner has been changed
+        if (eventContent?.bannerUrl != prevEventContent?.bannerUrl) {
+            val bannerRemoved = eventContent?.bannerUrl.isNullOrEmpty()
+            val displayBannerText = if (displayText.isNotEmpty()) {
+                displayText.append(" ")
+                sp.getString(if (bannerRemoved) CommonStrings.notice_banner_removed_too else CommonStrings.notice_banner_changed_too)
+            } else {
+                when {
+                    bannerRemoved && event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_banner_removed_by_you)
+                    bannerRemoved -> sp.getString(CommonStrings.notice_member_banner_removed, senderName)
+                    event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_banner_changed_by_you)
+                    else -> sp.getString(CommonStrings.notice_member_banner_changed, senderName)
+                }
+            }
+            displayText.append(displayBannerText)
         }
         if (displayText.isEmpty()) {
             // A repeated knock (re-request to join) makes no real change. Only the first knock is a

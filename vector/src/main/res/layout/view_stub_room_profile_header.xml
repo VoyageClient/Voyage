@@ -5,7 +5,41 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?android:colorBackground"
-    android:padding="16dp">
+    android:paddingBottom="16dp">
+
+    <ImageView
+        android:id="@+id/roomProfileBannerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/a11y_banner"
+        android:scaleType="centerCrop"
+        android:transitionName="roomProfileBannerView"
+        android:visibility="gone"
+        app:layout_constraintDimensionRatio="2.8:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/roomProfileBannerScrim"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <Space
+        android:id="@+id/roomProfileBannerOverlap"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/roomProfileBannerView"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
 
     <ImageView
         android:id="@+id/roomProfileAvatarView"
@@ -18,7 +52,8 @@
         app:layout_constraintBottom_toTopOf="@id/roomProfileNameView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="@id/roomProfileBannerOverlap"
+        app:layout_goneMarginTop="16dp"
         tools:src="@sample/room_round_avatars" />
 
     <im.vector.app.core.ui.views.PresenceStateImageView
@@ -55,6 +90,8 @@
         android:id="@+id/roomProfileDecorationImageView"
         android:layout_width="30dp"
         android:layout_height="30dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:layout_marginTop="2dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
@@ -69,8 +106,12 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:gravity="center"
         android:textStyle="bold"
+        app:layout_goneMarginLeft="16dp"
+        app:layout_goneMarginStart="16dp"
         app:layout_constraintBottom_toTopOf="@id/roomProfileAliasView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/roomProfileDecorationImageView"
@@ -82,7 +123,11 @@
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:layout_marginBottom="16dp"
         android:gravity="center"
         android:singleLine="true"

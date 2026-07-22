@@ -449,7 +449,7 @@ class TimelineFragment :
                 RoomDetailViewEvents.OpenRoomSettings -> handleOpenRoomSettings(RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_SETTINGS)
                 RoomDetailViewEvents.OpenRoomProfile -> handleOpenRoomSettings()
                 is RoomDetailViewEvents.ShowRoomAvatarFullScreen -> it.matrixItem?.let { item ->
-                    navigator.openBigImageViewer(requireActivity(), it.view, item)
+                    navigator.openBigImageViewer(requireActivity(), item)
                 }
                 RoomDetailViewEvents.RoomReplacementStarted -> handleRoomReplacement()
                 is RoomDetailViewEvents.RevokeFilePermission -> revokeFilePermission(it)

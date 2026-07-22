@@ -118,6 +118,21 @@
     <string name="settings_show_pinned_messages_banner" translatable="false">Show pinned messages banner</string>
     <string name="settings_show_pinned_messages_banner_summary" translatable="false">Display a banner with pinned messages at the top of the timeline</string>
 
+    <string name="settings_profile_banner" translatable="false">Banner</string>
+    <string name="a11y_banner" translatable="false">Banner</string>
+    <string name="a11y_change_banner" translatable="false">Change banner</string>
+    <string name="a11y_delete_banner" translatable="false">Delete banner</string>
+    <string name="notice_room_banner_changed" translatable="false">%1$s changed the room banner</string>
+    <string name="notice_room_banner_changed_by_you" translatable="false">You changed the room banner</string>
+    <string name="notice_room_banner_removed" translatable="false">%1$s removed the room banner</string>
+    <string name="notice_room_banner_removed_by_you" translatable="false">You removed the room banner</string>
+    <string name="notice_member_banner_changed" translatable="false">%1$s changed their banner</string>
+    <string name="notice_member_banner_changed_by_you" translatable="false">You changed your banner</string>
+    <string name="notice_member_banner_removed" translatable="false">%1$s removed their banner</string>
+    <string name="notice_member_banner_removed_by_you" translatable="false">You removed your banner</string>
+    <string name="notice_banner_changed_too" translatable="false">(banner was changed too)</string>
+    <string name="notice_banner_removed_too" translatable="false">(banner was removed too)</string>
+
     <string name="tag_favourites" translatable="false">Favorites</string>
     <string name="tag_low_priority" translatable="false">Low Priority</string>
     <string name="tag_server_notice" translatable="false">System Alerts</string>

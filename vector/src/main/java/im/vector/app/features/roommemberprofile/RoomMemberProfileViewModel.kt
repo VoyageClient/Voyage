@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
@@ -39,15 +40,18 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
+import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.user.model.User
+import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.flow.flow
@@ -118,6 +122,11 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     actionPermissions = initialPermissions,
                     userPowerLevelString = initialUserPowerLevelString?.let { Success(it) } ?: Uninitialized,
                     asyncMembership = initialRoomMember?.membership?.let { Success(it) } ?: Uninitialized,
+                    // Seeded synchronously so the banner doesn't pop in a frame late
+                    memberBannerUrl = room?.stateService()
+                            ?.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(initialState.userId))
+                            ?.content?.toModel<RoomMemberContent>()?.bannerUrl,
+                    globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId),
             )
         }
         observeIgnoredState()
@@ -135,6 +144,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 setState { copy(showAsMember = true) }
                 observeRoomMemberSummary(room)
                 observeRoomSummaryAndPowerLevels(room)
+                observeMemberBanner(room)
+                fetchGlobalBanner()
             }
         }
 
@@ -376,18 +387,41 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private suspend fun fetchProfileInfo() {
-        val item = try {
-            session.profileService()
-                    .getProfile(initialState.userId)
-                    .let { User.fromJson(initialState.userId, it) }
-                    .toMatrixItem()
+        val profile = try {
+            session.profileService().getProfile(initialState.userId)
         } catch (throwable: Throwable) {
-            // Fall back to the mxid so the profile opens with the user tag rather than getting stuck.
-            MatrixItem.UserItem(initialState.userId)
+            null
         }
+        // Fall back to the mxid so the profile opens with the user tag rather than getting stuck.
+        val item = profile?.let { User.fromJson(initialState.userId, it).toMatrixItem() }
+                ?: MatrixItem.UserItem(initialState.userId)
         setState {
-            copy(userMatrixItem = Success(item))
+            copy(
+                    userMatrixItem = Success(item),
+                    // On fetch failure keep the seeded cache value rather than blanking the banner
+                    globalBannerUrl = if (profile != null) profile.bannerUrl() else globalBannerUrl
+            )
         }
+    }
+
+    private fun observeMemberBanner(room: Room) {
+        room.flow().liveStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(initialState.userId))
+                .map { it.getOrNull()?.content?.toModel<RoomMemberContent>()?.bannerUrl }
+                .onEach { bannerUrl -> setState { copy(memberBannerUrl = bannerUrl) } }
+                .launchIn(viewModelScope)
+    }
+
+    private fun fetchGlobalBanner() {
+        viewModelScope.launch {
+            // 403 (profiles limited to shared-room users) just means no banner
+            val profile = tryOrNull { session.profileService().getProfile(initialState.userId) } ?: return@launch
+            setState { copy(globalBannerUrl = profile.bannerUrl()) }
+        }
+    }
+
+    private fun JsonDict.bannerUrl(): String? {
+        return (this[ProfileService.BANNER_URL_KEY_UNSTABLE] as? String)
+                ?: (this[ProfileService.BANNER_URL_KEY] as? String)
     }
 
     private fun observeRoomSummaryAndPowerLevels(room: Room) {

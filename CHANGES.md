@@ -24,6 +24,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Media captions & replies** — add/edit/remove captions on media, reply to or comment alongside media, rich reply previews with embedded image/video/sticker thumbnails, and the ability to reply to and redact non-message events (reactions, joins, leaves, redactions).
 
+- **Room & profile banners (MSC4221 / MSC4427)** — Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings, with a per-room override of your own banner in the room's personalization tab; banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
+
 - **Message pinning** — pin and unpin messages, sorted by most recent, with a pinned-messages banner (toggleable).
 
 - **Message forwarding** — forward messages (using their most recent edit), with a custom Forward icon.

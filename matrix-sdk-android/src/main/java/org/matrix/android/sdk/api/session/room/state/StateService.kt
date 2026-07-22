@@ -68,6 +68,16 @@ interface StateService {
     suspend fun deleteAvatar()
 
     /**
+     * Update the banner of the room (MSC4221).
+     */
+    suspend fun updateBanner(bannerUri: Uri, fileName: String)
+
+    /**
+     * Delete the banner of the room.
+     */
+    suspend fun deleteBanner()
+
+    /**
      * Update the current user's display name for this room only (the self m.room.member event).
      * null omits the field so the server restores the account-wide name; "" blanks it explicitly.
      */
@@ -85,10 +95,22 @@ interface StateService {
     suspend fun resetMyRoomAvatar(avatarUrl: String?)
 
     /**
-     * Set both the current user's display name and avatar for this room only, in a single
+     * Upload a banner and set it as the current user's MSC4427 banner for this room only
+     * (the self m.room.member event; per-room override is a fork extension, no MSC covers it).
+     */
+    suspend fun updateMyRoomBanner(bannerUri: Uri, fileName: String)
+
+    /**
+     * Set the current user's MSC4427 banner for this room only (the self m.room.member event).
+     * null omits the field so the account-wide banner applies; "" hides it explicitly.
+     */
+    suspend fun resetMyRoomBanner(bannerUrl: String?)
+
+    /**
+     * Set the current user's display name, avatar and banner for this room only, in a single
      * self m.room.member event. Same null / "" semantics as the single-field variants.
      */
-    suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?)
+    suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?, bannerUrl: String?)
 
     /**
      * Send a state event to the room.
