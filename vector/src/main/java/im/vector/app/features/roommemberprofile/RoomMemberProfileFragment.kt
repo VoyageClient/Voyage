@@ -21,6 +21,7 @@ import com.airbnb.mvrx.Uninitialized
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -36,6 +37,7 @@ import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
+import im.vector.app.core.ui.views.ProfileBannerUiHelper
 import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.databinding.DialogShareQrCodeBinding
@@ -44,6 +46,7 @@ import im.vector.app.databinding.ViewStubRoomMemberProfileHeaderBinding
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.BannerRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
@@ -74,6 +77,7 @@ class RoomMemberProfileFragment :
 
     @Inject lateinit var roomMemberProfileController: RoomMemberProfileController
     @Inject lateinit var avatarRenderer: AvatarRenderer
+    @Inject lateinit var bannerRenderer: BannerRenderer
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @Inject lateinit var session: Session
@@ -85,10 +89,9 @@ class RoomMemberProfileFragment :
     private val viewModel: RoomMemberProfileViewModel by fragmentViewModel()
 
     private var appBarStateChangeListener: AppBarStateChangeListener? = null
-
-    // The full-screen avatar viewer is launched while the collapsing header may transiently collapse;
-    // re-expand it on the way back so the shared-element return lands on the on-screen avatar.
-    private var expandAppBarOnResume = false
+    private var bannerAppBarStateChangeListener: AppBarStateChangeListener? = null
+    private var bannerUiHelper: ProfileBannerUiHelper? = null
+    private var currentBannerUrl: String? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
@@ -126,6 +129,19 @@ class RoomMemberProfileFragment :
                 )
         )
         views.matrixProfileAppBarLayout.addOnOffsetChangedListener(appBarStateChangeListener)
+        bannerUiHelper = ProfileBannerUiHelper(
+                vectorBaseActivity,
+                views.matrixProfileToolbar,
+                views.matrixProfileCollapsingToolbarLayout,
+                headerViews.memberProfileBannerScrim
+        )
+        bannerAppBarStateChangeListener = object : AppBarStateChangeListener() {
+            override fun onStateChanged(appBarLayout: AppBarLayout, state: State) {
+                bannerUiHelper?.update(currentBannerUrl != null, state == State.COLLAPSED)
+            }
+        }
+        views.matrixProfileAppBarLayout.addOnOffsetChangedListener(bannerAppBarStateChangeListener)
+        headerViews.memberProfileBannerView.debouncedClicks { onBannerClicked() }
         viewModel.observeViewEvents {
             when (it) {
                 is RoomMemberProfileViewEvents.Loading -> showLoading(it.message)
@@ -204,8 +220,12 @@ class RoomMemberProfileFragment :
 
     override fun onDestroyView() {
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
+        views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(bannerAppBarStateChangeListener)
         roomMemberProfileController.callback = null
         appBarStateChangeListener = null
+        bannerAppBarStateChangeListener = null
+        bannerUiHelper?.restore()
+        bannerUiHelper = null
         views.matrixProfileRecyclerView.cleanup()
         super.onDestroyView()
     }
@@ -244,6 +264,17 @@ class RoomMemberProfileFragment :
                 avatarRenderer.render(displayedMatrixItem, headerViews.memberProfileAvatarView)
                 avatarRenderer.render(displayedMatrixItem, views.matrixProfileToolbarAvatarImageView)
 
+                // Follow the same hiding rule as the avatar
+                currentBannerUrl = state.resolvedBannerUrl()
+                        ?.takeUnless { state.userId != session.myUserId && shouldHideAvatars(state.roomId, session, vectorPreferences) }
+                val hasBanner = currentBannerUrl != null
+                headerViews.memberProfileBannerView.isVisible = hasBanner
+                headerViews.memberProfileBannerScrim.isVisible = hasBanner
+                headerViews.memberProfileBannerOverlap.isVisible = hasBanner
+                bannerRenderer.render(currentBannerUrl, headerViews.memberProfileBannerView)
+                bannerRenderer.applyAvatarStroke(headerViews.memberProfileAvatarView, displayedMatrixItem, hasBanner)
+                bannerUiHelper?.update(hasBanner, bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED)
+
                 if (state.isRoomEncrypted) {
                     headerViews.memberProfileDecorationImageView.isVisible = true
                     val trustLevel = if (state.userMXCrossSigningInfo != null) {
@@ -276,11 +307,11 @@ class RoomMemberProfileFragment :
                     headerViews.memberProfileDecorationImageView.isVisible = false
                 }
 
-                headerViews.memberProfileAvatarView.setOnClickListener { view ->
-                    onAvatarClicked(view, userMatrixItem)
+                headerViews.memberProfileAvatarView.setOnClickListener {
+                    onAvatarClicked(userMatrixItem)
                 }
-                views.matrixProfileToolbarAvatarImageView.setOnClickListener { view ->
-                    onAvatarClicked(view, userMatrixItem)
+                views.matrixProfileToolbarAvatarImageView.setOnClickListener {
+                    onAvatarClicked(userMatrixItem)
                 }
             }
         }
@@ -365,16 +396,13 @@ class RoomMemberProfileFragment :
                 }.show()
     }
 
-    private fun onAvatarClicked(view: View, userMatrixItem: MatrixItem) {
-        expandAppBarOnResume = true
-        navigator.openBigImageViewer(requireActivity(), view, userMatrixItem)
+    private fun onAvatarClicked(userMatrixItem: MatrixItem) {
+        navigator.openBigImageViewer(requireActivity(), userMatrixItem)
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (expandAppBarOnResume) {
-            expandAppBarOnResume = false
-            views.matrixProfileAppBarLayout.setExpanded(true, false)
+    private fun onBannerClicked() = withState(viewModel) { state ->
+        currentBannerUrl?.let { bannerUrl ->
+            navigator.openBigImageViewer(requireActivity(), null, bannerUrl, state.userMatrixItem()?.getBestName() ?: state.userId)
         }
     }
 

@@ -8,7 +8,6 @@
 package im.vector.app.features.home.room.detail
 
 import android.net.Uri
-import android.view.View
 import im.vector.app.core.platform.VectorViewModelAction
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
@@ -80,7 +79,7 @@ sealed class RoomDetailAction : VectorViewModelAction {
     object QuickActionSetAvatar : RoomDetailAction()
     data class SetAvatarAction(val newAvatarUri: Uri, val newAvatarFileName: String) : RoomDetailAction()
     object QuickActionSetTopic : RoomDetailAction()
-    data class ShowRoomAvatarFullScreen(val matrixItem: MatrixItem?, val transitionView: View?) : RoomDetailAction()
+    data class ShowRoomAvatarFullScreen(val matrixItem: MatrixItem?) : RoomDetailAction()
 
     // Preview URL
     data class DoNotShowPreviewUrlFor(val eventId: String, val url: String) : RoomDetailAction()

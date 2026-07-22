@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:colorBackground"
+    android:paddingBottom="8dp"
+    tools:viewBindingIgnore="true">
+
+    <FrameLayout
+        android:id="@+id/itemEditableRoomHeaderBannerContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?vctr_reaction_background_off"
+        android:contentDescription="@string/a11y_change_banner"
+        app:layout_constraintDimensionRatio="2.8:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/itemEditableRoomHeaderBannerAddIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            app:srcCompat="@drawable/ic_attachment_camera"
+            app:tint="?vctr_content_secondary" />
+
+        <ImageView
+            android:id="@+id/itemEditableRoomHeaderBannerImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop" />
+
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/itemEditableRoomHeaderBannerDelete"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="8dp"
+        android:background="@drawable/header_panel_round_background"
+        android:contentDescription="@string/a11y_delete_banner"
+        android:scaleType="center"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/itemEditableRoomHeaderBannerContainer"
+        app:layout_constraintTop_toTopOf="@id/itemEditableRoomHeaderBannerContainer"
+        app:srcCompat="@drawable/ic_delete"
+        app:tint="?colorError"
+        tools:ignore="MissingPrefix"
+        tools:visibility="visible" />
+
+    <Space
+        android:id="@+id/itemEditableRoomHeaderOverlap"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        app:layout_constraintBottom_toBottomOf="@id/itemEditableRoomHeaderBannerContainer"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/itemEditableRoomHeaderAvatarContainer"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:background="@drawable/placeholder_round_background"
+        android:contentDescription="@string/a11y_change_avatar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/itemEditableRoomHeaderOverlap">
+
+        <ImageView
+            android:id="@+id/itemEditableRoomHeaderAvatarImage"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            android:importantForAccessibility="no"
+            android:scaleType="center"
+            tools:src="@sample/room_round_avatars" />
+
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/itemEditableRoomHeaderAvatarDelete"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/header_panel_round_background"
+        android:contentDescription="@string/a11y_delete_avatar"
+        android:scaleType="center"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/itemEditableRoomHeaderAvatarContainer"
+        app:layout_constraintTop_toTopOf="@id/itemEditableRoomHeaderAvatarContainer"
+        app:srcCompat="@drawable/ic_delete"
+        app:tint="?colorError"
+        tools:ignore="MissingPrefix"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

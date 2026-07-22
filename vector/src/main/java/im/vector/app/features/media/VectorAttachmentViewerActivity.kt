@@ -28,6 +28,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.transition.Transition
 import com.airbnb.mvrx.viewModel
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.intent.getMimeTypeFromUri
@@ -43,7 +44,6 @@ import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentCommands
 import im.vector.lib.attachmentviewer.AttachmentViewerActivity
-import im.vector.lib.attachmentviewer.MorphImageView
 import im.vector.lib.core.utils.compat.getParcelableArrayListExtraCompat
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
@@ -64,17 +64,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             val roomId: String?,
             val eventId: String,
             val sharedTransitionName: String?,
-            // The shared element is an avatar: morph its image (crop <-> fit) and corner radius between the
-            // avatar's shape (see avatarCornerFraction/avatarSizePx) and the square full-screen image.
-            val circularTransition: Boolean = false,
             // The shared element has rounded corners with this pixel radius; animate them away during
             // the enter transition and restore them on return, so corners don't snap at either end.
             val transitionCornerRadiusPx: Int = 0,
-            // Pixel size of the square avatar box, used to drive the crop<->fit morph from the live bounds.
-            val avatarSizePx: Int = 0,
-            // The avatar's corner radius as a fraction of its shorter side (0 = square, 0.2 = rounded,
-            // 0.5 = circle); the corner morph starts/ends here so it matches the avatar's actual shape.
-            val avatarCornerFraction: Float = 0.5f,
+            // A single avatar/banner opened outside any room-media context: no position counter
+            val standalonePreview: Boolean = false,
     ) : Parcelable
 
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
@@ -88,9 +82,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
     private var providerInstalled = false
     private var handoffPending = false
-    // Fraction of the shorter side used as the transition image corner radius: 0.5 = circle, 0 = square.
-    private var transitionCornerFraction = CIRCLE_CORNER_FRACTION
-    // Absolute pixel corner radius for rounded (non-circular) shared elements.
+    // Absolute pixel corner radius for rounded shared elements.
     private var transitionCornerPx = 0f
     private var cornerAnimator: android.animation.ValueAnimator? = null
     private val downloadActionResultLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
@@ -111,33 +103,20 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
         val args = args() ?: throw IllegalArgumentException("Missing arguments")
 
-        if (supportsSharedElementTransition) {
-            if (args.circularTransition) {
-                // Morph the transition image's corner radius between the avatar's actual shape (circle,
-                // rounded square or square) and the square full-screen image, in step with the transition,
-                // instead of snapping shape at either end.
-                transitionCornerFraction = args.avatarCornerFraction
-                imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
-                    override fun getOutline(view: View, outline: Outline) {
-                        val radius = minOf(view.width, view.height) * transitionCornerFraction
-                        outline.setRoundRect(0, 0, view.width, view.height, radius)
-                    }
-                }
-                imageTransitionView.clipToOutline = true
+        // Opened without a shared element (avatar/banner taps): close with the same page cross-fade.
+        // Pre-34 this is done with overridePendingTransition right after finishing, see applyPageExitAnimation().
+        if (args.sharedTransitionName == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, R.anim.fade_in, R.anim.fade_out)
+        }
 
-                // The avatar is center-cropped to a square but the full-screen image is fit-center; the
-                // MorphImageView blends the two from its live bounds, in its own onDraw, so the shared-element
-                // framework can't briefly reset the matrix to the avatar's (a top-left flash).
-                (imageTransitionView as? MorphImageView)?.morphAvatarSizePx = args.avatarSizePx
-            } else if (args.transitionCornerRadiusPx > 0) {
-                transitionCornerPx = args.transitionCornerRadiusPx.toFloat()
-                imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
-                    override fun getOutline(view: View, outline: Outline) {
-                        outline.setRoundRect(0, 0, view.width, view.height, transitionCornerPx)
-                    }
+        if (supportsSharedElementTransition && args.transitionCornerRadiusPx > 0) {
+            transitionCornerPx = args.transitionCornerRadiusPx.toFloat()
+            imageTransitionView.outlineProvider = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, transitionCornerPx)
                 }
-                imageTransitionView.clipToOutline = true
             }
+            imageTransitionView.clipToOutline = true
         }
 
         if (savedInstanceState == null && addTransitionListener()) {
@@ -179,7 +158,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 val events = withContext(Dispatchers.IO) {
                     room?.timelineService()?.getAttachmentMessages().orEmpty()
                 }
-                val index = events.indexOfFirst { it.eventId == args.eventId }
+                // Also match by transaction id: a just-sent event can get its local-echo id swapped for
+                // the server id between the tap and this query, which would wrongly fall through to the
+                // show-it-alone branch below.
+                val index = events.indexOfFirst {
+                    it.eventId == args.eventId || (it.root.unsignedData?.transactionId?.takeIf { tid -> tid.isNotEmpty() } == args.eventId)
+                }
                 if (index != -1) {
                     initialIndex = index
                     installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope), setCurrentItem = isFirstCreation)
@@ -207,6 +191,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>, setCurrentItem: Boolean) {
         sourceProvider.interactionListener = this
+        sourceProvider.showOverlayCounter = args()?.standalonePreview != true
         setSourceProvider(sourceProvider)
         currentSourceProvider = sourceProvider
         providerInstalled = true
@@ -240,6 +225,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         isAnimatingOut = true
         @Suppress("DEPRECATION")
         super.onBackPressed()
+        applyPageExitAnimation()
     }
 
     override fun shouldAnimateDismiss(): Boolean {
@@ -252,29 +238,31 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         }
         isAnimatingOut = true
         ActivityCompat.finishAfterTransition(this)
+        applyPageExitAnimation()
+    }
+
+    private fun applyPageExitAnimation() {
+        if (args()?.sharedTransitionName != null) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }
     }
 
     // show back the transition view
     // TODO, we should track and update the mapping
     private fun prepareSharedElementReturn() {
+        if (args()?.sharedTransitionName == null) return
         transitionImageContainer.isVisible = true
-        // Hide the pager so only the morphing surrogate is shown during the return, mirroring the open.
-        // Only when the surrogate actually morphs (shared-element transition, API 21+); otherwise hiding the
-        // pager would just blank the screen as the activity finishes.
-        if (supportsSharedElementTransition && args()?.circularTransition == true) {
-            pager2.isInvisible = true
-        }
         roundTransitionCornerForClose()
     }
 
-    // Round the corners back to the avatar's shape as the image shrinks into it.
+    // Round the corners back to the shared element's shape as the image shrinks into it.
     private fun roundTransitionCornerForClose() {
         if (!supportsSharedElementTransition) return
         val a = args() ?: return
-        val returnTransition = window.sharedElementReturnTransition
-        when {
-            a.circularTransition -> animateTransitionCorner(to = a.avatarCornerFraction, transition = returnTransition)
-            a.transitionCornerRadiusPx > 0 -> animateTransitionCornerPx(to = a.transitionCornerRadiusPx.toFloat(), transition = returnTransition)
+        if (a.transitionCornerRadiusPx > 0) {
+            animateTransitionCornerPx(to = a.transitionCornerRadiusPx.toFloat(), transition = window.sharedElementReturnTransition)
         }
     }
 
@@ -308,24 +296,15 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         return false
     }
 
-    // Called at the end of the enter transition (and also on exit; the flag guards that). For the avatar
-    // morph the enter transition lands a hair short of fullscreen, so defer the hand-off one frame, letting
-    // the surrogate first draw at its final fullscreen size to match the pager and avoid a few-px snap.
+    // Called at the end of the enter transition (and also on exit; the flag guards that).
     private fun handOffToPager() {
         if (isAnimatingOut) return
         if (!providerInstalled) {
             handoffPending = true
             return
         }
-        if (args()?.circularTransition == true) {
-            imageTransitionView.post {
-                transitionImageContainer.isVisible = false
-                pager2.isInvisible = false
-            }
-        } else {
-            transitionImageContainer.isVisible = false
-            pager2.isInvisible = false
-        }
+        transitionImageContainer.isVisible = false
+        pager2.isInvisible = false
     }
 
     private fun args() = intent.getParcelableExtraCompat<Args>(EXTRA_ARGS)
@@ -338,25 +317,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                         supportStartPostponedEnterTransition()
                         val a = args()
                         val enterTransition = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) window.sharedElementEnterTransition else null
-                        when {
-                            a?.circularTransition == true -> animateTransitionCorner(to = SQUARE_CORNER_FRACTION, transition = enterTransition)
-                            (a?.transitionCornerRadiusPx ?: 0) > 0 -> animateTransitionCornerPx(to = 0f, transition = enterTransition)
+                        if ((a?.transitionCornerRadiusPx ?: 0) > 0) {
+                            animateTransitionCornerPx(to = 0f, transition = enterTransition)
                         }
                         return true
                     }
                 })
-    }
-
-    private fun animateTransitionCorner(to: Float, transition: android.transition.Transition?) {
-        cornerAnimator?.cancel()
-        cornerAnimator = android.animation.ValueAnimator.ofFloat(transitionCornerFraction, to).apply {
-            duration = transition.durationCompat?.takeIf { it >= 0 } ?: DEFAULT_TRANSITION_MS
-            addUpdateListener {
-                transitionCornerFraction = it.animatedValue as Float
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) imageTransitionView.invalidateOutline()
-            }
-            start()
-        }
     }
 
     private fun animateTransitionCornerPx(to: Float, transition: android.transition.Transition?) {
@@ -474,8 +440,6 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         private const val EXTRA_IMAGE_DATA = "EXTRA_IMAGE_DATA"
         private const val EXTRA_IN_MEMORY_DATA = "EXTRA_IN_MEMORY_DATA"
         private const val POSTPONED_TRANSITION_TIMEOUT_MS = 150L
-        private const val CIRCLE_CORNER_FRACTION = 0.5f
-        private const val SQUARE_CORNER_FRACTION = 0f
         private const val DEFAULT_TRANSITION_MS = 300L
 
         fun newIntent(
@@ -485,12 +449,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 eventId: String,
                 inMemoryData: List<AttachmentData>,
                 sharedTransitionName: String?,
-                circularTransition: Boolean = false,
                 transitionCornerRadiusPx: Int = 0,
-                avatarSizePx: Int = 0,
-                avatarCornerFraction: Float = 0.5f,
+                standalonePreview: Boolean = false,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
-            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, circularTransition, transitionCornerRadiusPx, avatarSizePx, avatarCornerFraction))
+            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview))
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
                 it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))

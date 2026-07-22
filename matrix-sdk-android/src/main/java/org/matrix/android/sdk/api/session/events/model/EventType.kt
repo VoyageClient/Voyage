@@ -45,6 +45,10 @@ object EventType {
     const val STATE_ROOM_NAME = "m.room.name"
     const val STATE_ROOM_TOPIC = "m.room.topic"
     const val STATE_ROOM_AVATAR = "m.room.avatar"
+
+    // MSC4221 room banner. Read both ids, write the unstable one (matches the Haven element-web patchset).
+    val STATE_ROOM_BANNER = StableUnstableId(stable = "m.room.banner", unstable = "page.codeberg.everypizza.room.banner")
+
     const val STATE_ROOM_MEMBER = "m.room.member"
     const val STATE_ROOM_THIRD_PARTY_INVITE = "m.room.third_party_invite"
     const val STATE_ROOM_CREATE = "m.room.create"
@@ -168,6 +172,7 @@ object EventType {
                             KEY_VERIFICATION_DONE, KEY_VERIFICATION_READY, REACTION,
                     )
             )
+            addAll(STATE_ROOM_BANNER.values)
             addAll(STATE_ROOM_BEACON_INFO.values)
             addAll(BEACON_LOCATION_DATA.values)
             addAll(CALL_ASSERTED_IDENTITY.values)

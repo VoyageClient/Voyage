@@ -26,7 +26,8 @@
             android:layout_height="48dp"
             android:layout_gravity="center"
             android:importantForAccessibility="no"
-            app:srcCompat="@drawable/ic_add_image" />
+            app:srcCompat="@drawable/ic_attachment_camera"
+            app:tint="?vctr_content_secondary" />
 
         <ImageView
             android:id="@+id/itemEditableAvatarImage"

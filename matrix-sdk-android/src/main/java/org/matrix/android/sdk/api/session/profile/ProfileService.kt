@@ -33,6 +33,10 @@ interface ProfileService {
     companion object Constants {
         const val DISPLAY_NAME_KEY = "displayname"
         const val AVATAR_URL_KEY = "avatar_url"
+
+        // MSC4427 profile banner. Read both keys, write the unstable one.
+        const val BANNER_URL_KEY = "m.banner_url"
+        const val BANNER_URL_KEY_UNSTABLE = "chat.commet.profile_banner"
     }
 
     /**
@@ -69,6 +73,37 @@ interface ProfileService {
      *
      */
     suspend fun getAvatarUrl(userId: String): Optional<String>
+
+    /**
+     * Set an arbitrary profile field for this user (MSC4133 extended profiles).
+     */
+    suspend fun setProfileField(userId: String, keyName: String, value: String)
+
+    /**
+     * Delete an arbitrary profile field for this user (MSC4133 extended profiles).
+     */
+    suspend fun deleteProfileField(userId: String, keyName: String)
+
+    /**
+     * Upload a banner image and set it as this user's profile banner (MSC4427).
+     */
+    suspend fun updateBanner(userId: String, newBannerUri: Uri, fileName: String)
+
+    /**
+     * Remove the profile banner for this user.
+     */
+    suspend fun deleteBanner(userId: String)
+
+    /**
+     * Return the current profile banner mxc url for this user.
+     */
+    suspend fun getBannerUrl(userId: String): Optional<String>
+
+    /**
+     * Last banner url this session has seen for this user (from any profile fetch or update),
+     * or null when none is known. Synchronous, for seeding UI ahead of a network refresh.
+     */
+    fun getCachedBannerUrl(userId: String): String?
 
     /**
      * Get the combined profile information for this user.

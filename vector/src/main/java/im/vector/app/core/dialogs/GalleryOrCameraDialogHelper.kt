@@ -34,15 +34,22 @@ import java.io.File
 /**
  * Use to let the user choose between Camera (with permission handling) and Gallery (with single image selection),
  * then edit the image
- * [Listener.onImageReady] will be called with an uri of a square image store in the cache of the application.
+ * [Listener.onImageReady] will be called with an uri of a cropped image stored in the cache of the application.
  * It's up to the caller to delete the file.
  */
 class GalleryOrCameraDialogHelper(
-        // must implement GalleryOrCameraDialogHelper.Listener
+        // must implement GalleryOrCameraDialogHelper.Listener, unless an explicit listener is given
         private val fragment: Fragment,
         private val colorProvider: ColorProvider,
         private val clock: Clock,
+        private val aspect: Aspect = Aspect.SQUARE,
+        overrideListener: Listener? = null,
 ) {
+    enum class Aspect {
+        SQUARE,
+        BANNER,
+    }
+
     interface Listener {
         fun onImageReady(uri: Uri?)
         fun onImageDeleted() = Unit
@@ -52,7 +59,9 @@ class GalleryOrCameraDialogHelper(
     private val activity
         get() = fragment.requireActivity()
 
-    private val listener = fragment as? Listener ?: error("Fragment must implement GalleryOrCameraDialogHelper.Listener")
+    private val listener = overrideListener
+            ?: fragment as? Listener
+            ?: error("Fragment must implement GalleryOrCameraDialogHelper.Listener")
 
     private val takePhotoPermissionActivityResultLauncher = fragment.registerForPermissionsResult { allGranted, deniedPermanently ->
         if (allGranted) {
@@ -91,8 +100,15 @@ class GalleryOrCameraDialogHelper(
     private fun startUCrop(image: MultiPickerImageType) {
         val destinationFile = File(activity.cacheDir, image.displayName.insertBeforeLast("_e_${clock.epochMillis()}"))
         val uri = image.contentUri
-        createUCropWithDefaultSettings(colorProvider, uri, destinationFile.toUri(), fragment.getString(CommonStrings.rotate_and_crop_screen_title))
-                .withAspectRatio(1f, 1f)
+        createUCropWithDefaultSettings(
+                colorProvider,
+                uri,
+                destinationFile.toUri(),
+                fragment.getString(CommonStrings.rotate_and_crop_screen_title),
+                // A free-style crop frame would defeat the locked banner ratio
+                freeStyleCropEnabled = aspect == Aspect.SQUARE
+        )
+                .withAspectRatio(if (aspect == Aspect.BANNER) 2.8f else 1f, 1f)
                 .getIntent(activity)
                 .apply { setClass(activity, VectorUCropActivity::class.java) }
                 .let { uCropActivityResultLauncher.launch(it) }

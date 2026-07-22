@@ -48,6 +48,7 @@ object TimelineDisplayableEvents {
             EventType.KEY_VERIFICATION_CANCEL,
             STATE_ROOM_VOICE_BROADCAST_INFO,
     ) +
+            EventType.STATE_ROOM_BANNER.values +
             EventType.POLL_START.values +
             EventType.POLL_END.values +
             EventType.ELEMENT_CALL_NOTIFY.values +
@@ -73,6 +74,7 @@ fun TimelineEvent.timelineStableId(): String {
 fun Event.timelineMergeGroupType(): String = when (getClearType()) {
     EventType.STATE_ROOM_IMAGE_PACK,
     EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> EventType.STATE_ROOM_IMAGE_PACK
+    in EventType.STATE_ROOM_BANNER.values -> EventType.STATE_ROOM_BANNER.stable
     else -> getClearType()
 }
 

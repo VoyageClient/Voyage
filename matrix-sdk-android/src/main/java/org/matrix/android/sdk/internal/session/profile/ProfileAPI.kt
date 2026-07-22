@@ -22,6 +22,7 @@ import org.matrix.android.sdk.internal.auth.registration.SuccessResult
 import org.matrix.android.sdk.internal.auth.registration.ValidationCodeBody
 import org.matrix.android.sdk.internal.network.NetworkConstants
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -61,6 +62,38 @@ internal interface ProfileAPI {
     suspend fun setAvatarUrl(
             @Path("userId") userId: String,
             @Body body: SetAvatarUrlBody
+    )
+
+    /**
+     * Set an arbitrary profile field (MSC4133 extended profiles). Body is {keyName: value}.
+     */
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "profile/{userId}/{keyName}")
+    suspend fun setProfileField(
+            @Path("userId") userId: String,
+            @Path("keyName") keyName: String,
+            @Body body: JsonDict
+    )
+
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "uk.tcpip.msc4133/profile/{userId}/{keyName}")
+    suspend fun setProfileFieldUnstable(
+            @Path("userId") userId: String,
+            @Path("keyName") keyName: String,
+            @Body body: JsonDict
+    )
+
+    /**
+     * Delete an arbitrary profile field (MSC4133 extended profiles).
+     */
+    @DELETE(NetworkConstants.URI_API_PREFIX_PATH_V3 + "profile/{userId}/{keyName}")
+    suspend fun deleteProfileField(
+            @Path("userId") userId: String,
+            @Path("keyName") keyName: String
+    )
+
+    @DELETE(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "uk.tcpip.msc4133/profile/{userId}/{keyName}")
+    suspend fun deleteProfileFieldUnstable(
+            @Path("userId") userId: String,
+            @Path("keyName") keyName: String
     )
 
     /**

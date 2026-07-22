@@ -29,6 +29,8 @@ data class RoomSettingsViewState(
         val isLoading: Boolean = false,
         val currentRoomAvatarUrl: String? = null,
         val avatarAction: AvatarAction = AvatarAction.None,
+        val currentRoomBannerUrl: String? = null,
+        val bannerAction: BannerAction = BannerAction.None,
         val newName: String? = null,
         val newTopic: String? = null,
         val newHistoryVisibility: RoomHistoryVisibility? = null,
@@ -43,6 +45,7 @@ data class RoomSettingsViewState(
 
     data class ActionPermissions(
             val canChangeAvatar: Boolean = false,
+            val canChangeBanner: Boolean = false,
             val canChangeName: Boolean = false,
             val canChangeTopic: Boolean = false,
             val canChangeHistoryVisibility: Boolean = false,
@@ -57,6 +60,15 @@ data class RoomSettingsViewState(
                 val newAvatarUri: Uri,
                 val newAvatarFileName: String
         ) : AvatarAction()
+    }
+
+    sealed class BannerAction {
+        object None : BannerAction()
+        object DeleteBanner : BannerAction()
+        data class UpdateBanner(
+                val newBannerUri: Uri,
+                val newBannerFileName: String
+        ) : BannerAction()
     }
 
     data class NewJoinRule(

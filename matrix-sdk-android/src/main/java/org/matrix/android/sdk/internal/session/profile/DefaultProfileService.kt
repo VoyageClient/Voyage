@@ -48,13 +48,16 @@ internal class DefaultProfileService @Inject constructor(
         private val getProfileInfoTask: GetProfileInfoTask,
         private val setDisplayNameTask: SetDisplayNameTask,
         private val setAvatarUrlTask: SetAvatarUrlTask,
+        private val setProfileFieldTask: SetProfileFieldTask,
+        private val deleteProfileFieldTask: DeleteProfileFieldTask,
         private val addThreePidTask: AddThreePidTask,
         private val validateSmsCodeTask: ValidateSmsCodeTask,
         private val finalizeAddingThreePidTask: FinalizeAddingThreePidTask,
         private val deleteThreePidTask: DeleteThreePidTask,
         private val pendingThreePidMapper: PendingThreePidMapper,
         private val userStore: UserStore,
-        private val fileUploader: FileUploader
+        private val fileUploader: FileUploader,
+        private val bannerPropagator: ProfileBannerPropagator
 ) : ProfileService {
 
     override suspend fun getDisplayName(userId: String): Optional<String> {
@@ -89,9 +92,43 @@ internal class DefaultProfileService @Inject constructor(
         return Optional.from(avatarUrl)
     }
 
+    override suspend fun setProfileField(userId: String, keyName: String, value: String) {
+        setProfileFieldTask.execute(SetProfileFieldTask.Params(userId = userId, keyName = keyName, value = value))
+    }
+
+    override suspend fun deleteProfileField(userId: String, keyName: String) {
+        deleteProfileFieldTask.execute(DeleteProfileFieldTask.Params(userId = userId, keyName = keyName))
+    }
+
+    override suspend fun updateBanner(userId: String, newBannerUri: Uri, fileName: String) {
+        val response = fileUploader.uploadFromUri(newBannerUri, fileName, MimeTypes.Jpeg)
+        setProfileField(userId, ProfileService.BANNER_URL_KEY_UNSTABLE, response.contentUri)
+        bannerPropagator.cacheBannerUrl(userId, response.contentUri)
+        bannerPropagator.propagateToJoinedRooms(userId, response.contentUri)
+    }
+
+    override suspend fun deleteBanner(userId: String) {
+        deleteProfileField(userId, ProfileService.BANNER_URL_KEY_UNSTABLE)
+        bannerPropagator.cacheBannerUrl(userId, null)
+        bannerPropagator.propagateToJoinedRooms(userId, null)
+    }
+
+    override suspend fun getBannerUrl(userId: String): Optional<String> {
+        val data = getProfileInfoTask.execute(GetProfileInfoTask.Params(userId))
+        return Optional.from(data.profileBannerUrl()).also {
+            bannerPropagator.cacheBannerUrl(userId, it.getOrNull())
+        }
+    }
+
+    override fun getCachedBannerUrl(userId: String): String? {
+        return bannerPropagator.getCachedBannerUrl(userId)
+    }
+
     override suspend fun getProfile(userId: String): JsonDict {
         val params = GetProfileInfoTask.Params(userId)
-        return getProfileInfoTask.execute(params)
+        return getProfileInfoTask.execute(params).also {
+            bannerPropagator.cacheBannerUrl(userId, it.profileBannerUrl())
+        }
     }
 
     override fun getThreePids(): List<ThreePid> {

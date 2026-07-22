@@ -16,6 +16,7 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.features.home.resolveRoomBannerUrl
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
@@ -53,11 +54,16 @@ class RoomSettingsViewModel @AssistedInject constructor(
     private val room = session.getRoom(initialState.roomId)!!
 
     init {
+        // Seed synchronously so the editable header shows the banner on the first frame
+        setState {
+            copy(currentRoomBannerUrl = room.stateService().getStateEvents(EventType.STATE_ROOM_BANNER.values.toSet(), QueryStringValue.IsEmpty).resolveRoomBannerUrl())
+        }
         observeRoomSummary()
         observeRoomHistoryVisibility()
         observeJoinRule()
         observeGuestAccess()
         observeRoomAvatar()
+        observeRoomBanner()
         observeState()
 
         val homeServerCapabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
@@ -78,12 +84,14 @@ class RoomSettingsViewModel @AssistedInject constructor(
     private fun observeState() {
         onEach(
                 RoomSettingsViewState::avatarAction,
+                RoomSettingsViewState::bannerAction,
                 RoomSettingsViewState::newName,
                 RoomSettingsViewState::newTopic,
                 RoomSettingsViewState::newHistoryVisibility,
                 RoomSettingsViewState::newRoomJoinRules,
                 RoomSettingsViewState::roomSummary
         ) { avatarAction,
+            bannerAction,
             newName,
             newTopic,
             newHistoryVisibility,
@@ -93,6 +101,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
             setState {
                 copy(
                         showSaveAction = avatarAction !is RoomSettingsViewState.AvatarAction.None ||
+                                bannerAction !is RoomSettingsViewState.BannerAction.None ||
                                 summary?.name != newName ||
                                 summary?.topic != newTopic ||
                                 (newHistoryVisibility != null && newHistoryVisibility != currentHistoryVisibility) ||
@@ -122,6 +131,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 .onEach { roomPowerLevels ->
                     val permissions = RoomSettingsViewState.ActionPermissions(
                             canChangeAvatar = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_AVATAR),
+                            canChangeBanner = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_BANNER.unstable),
                             canChangeName = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_NAME),
                             canChangeTopic = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_TOPIC),
                             canChangeHistoryVisibility = roomPowerLevels.isUserAllowedToSend(
@@ -193,9 +203,18 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 }
     }
 
+    private fun observeRoomBanner() {
+        room.flow()
+                .liveStateEvents(EventType.STATE_ROOM_BANNER.values.toSet(), QueryStringValue.IsEmpty)
+                .setOnEach {
+                    copy(currentRoomBannerUrl = it.resolveRoomBannerUrl())
+                }
+    }
+
     override fun handle(action: RoomSettingsAction) {
         when (action) {
             is RoomSettingsAction.SetAvatarAction -> handleSetAvatarAction(action)
+            is RoomSettingsAction.SetBannerAction -> handleSetBannerAction(action)
             is RoomSettingsAction.SetRoomName -> setState { copy(newName = action.newName) }
             is RoomSettingsAction.SetRoomTopic -> setState { copy(newTopic = action.newTopic) }
             is RoomSettingsAction.SetRoomHistoryVisibility -> setState { copy(newHistoryVisibility = action.visibility) }
@@ -237,8 +256,23 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 ?.let { tryOrNull { it.newAvatarUri.toFile().delete() } }
     }
 
+    private fun handleSetBannerAction(action: RoomSettingsAction.SetBannerAction) {
+        setState {
+            deletePendingBanner(this)
+            copy(bannerAction = action.bannerAction)
+        }
+    }
+
+    private fun deletePendingBanner(state: RoomSettingsViewState) {
+        (state.bannerAction as? RoomSettingsViewState.BannerAction.UpdateBanner)
+                ?.let { tryOrNull { it.newBannerUri.toFile().delete() } }
+    }
+
     private fun cancel() {
-        withState { deletePendingAvatar(it) }
+        withState {
+            deletePendingAvatar(it)
+            deletePendingBanner(it)
+        }
 
         _viewEvents.post(RoomSettingsViewEvents.GoBack)
     }
@@ -255,6 +289,15 @@ class RoomSettingsViewModel @AssistedInject constructor(
             }
             is RoomSettingsViewState.AvatarAction.UpdateAvatar -> {
                 operationList.add { room.stateService().updateAvatar(avatarAction.newAvatarUri, avatarAction.newAvatarFileName) }
+            }
+        }
+        when (val bannerAction = state.bannerAction) {
+            RoomSettingsViewState.BannerAction.None -> Unit
+            RoomSettingsViewState.BannerAction.DeleteBanner -> {
+                operationList.add { room.stateService().deleteBanner() }
+            }
+            is RoomSettingsViewState.BannerAction.UpdateBanner -> {
+                operationList.add { room.stateService().updateBanner(bannerAction.newBannerUri, bannerAction.newBannerFileName) }
             }
         }
         if (summary?.name != state.newName) {
@@ -279,8 +322,10 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 }
                 setState {
                     deletePendingAvatar(this)
+                    deletePendingBanner(this)
                     copy(
                             avatarAction = RoomSettingsViewState.AvatarAction.None,
+                            bannerAction = RoomSettingsViewState.BannerAction.None,
                             newHistoryVisibility = null,
                             newRoomJoinRules = RoomSettingsViewState.NewJoinRule()
                     )

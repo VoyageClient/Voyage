@@ -14,6 +14,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 
 sealed class RoomSettingsAction : VectorViewModelAction {
     data class SetAvatarAction(val avatarAction: RoomSettingsViewState.AvatarAction) : RoomSettingsAction()
+    data class SetBannerAction(val bannerAction: RoomSettingsViewState.BannerAction) : RoomSettingsAction()
     data class SetRoomName(val newName: String) : RoomSettingsAction()
     data class SetRoomTopic(val newTopic: String) : RoomSettingsAction()
     data class SetRoomHistoryVisibility(val visibility: RoomHistoryVisibility) : RoomSettingsAction()

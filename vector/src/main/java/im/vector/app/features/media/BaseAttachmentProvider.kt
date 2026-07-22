@@ -42,6 +42,9 @@ abstract class BaseAttachmentProvider<Type>(
 
     var interactionListener: AttachmentInteractionListener? = null
 
+    // Off for standalone avatar/banner previews, where a "1 of 1" counter is just noise
+    var showOverlayCounter = true
+
     private var overlayView: AttachmentOverlayView? = null
 
     final override fun getItemCount() = attachments.size
@@ -55,7 +58,11 @@ abstract class BaseAttachmentProvider<Type>(
             overlayView?.interactionListener = interactionListener
         }
 
-        val counter = stringProvider.getString(CommonStrings.attachment_viewer_item_x_of_y, position + 1, getItemCount())
+        val counter = if (showOverlayCounter) {
+            stringProvider.getString(CommonStrings.attachment_viewer_item_x_of_y, position + 1, getItemCount())
+        } else {
+            ""
+        }
         val timelineEvent = getTimelineEventAtPosition(position)
         if (timelineEvent != null) {
             val dateString = dateFormatter.format(timelineEvent.root.originServerTs, DateFormatKind.DEFAULT_DATE_AND_TIME)

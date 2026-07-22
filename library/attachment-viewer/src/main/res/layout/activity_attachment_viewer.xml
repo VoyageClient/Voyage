@@ -25,7 +25,7 @@
             tools:ignore="UselessParent"
             tools:visibility="invisible">
 
-            <im.vector.lib.attachmentviewer.MorphImageView
+            <ImageView
                 android:id="@+id/transitionImageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

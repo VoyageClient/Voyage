@@ -33,10 +33,20 @@ data class RoomMemberProfileViewState(
         val asyncMembership: Async<Membership> = Uninitialized,
         val hasReadReceipt: Boolean = false,
         val userColorOverride: String? = null,
+        // Raw per-room override of the MSC4427 profile banner (member-event field):
+        // null = absent, "" = explicitly blanked in this room
+        val memberBannerUrl: String? = null,
+        // MSC4427 profile banner field
+        val globalBannerUrl: String? = null,
         val actionPermissions: ActionPermissions = ActionPermissions()
 ) : MavericksState {
 
     constructor(args: RoomMemberProfileArgs) : this(userId = args.userId, roomId = args.roomId)
+
+    fun resolvedBannerUrl(): String? = when {
+        memberBannerUrl != null -> memberBannerUrl.takeIf { it.isNotEmpty() }
+        else -> globalBannerUrl?.takeIf { it.isNotEmpty() }
+    }
 }
 
 data class ActionPermissions(

@@ -17,6 +17,7 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.ShortcutCreator
+import im.vector.app.features.home.resolveRoomBannerUrl
 import im.vector.app.features.powerlevel.isLastAdminFlow
 import im.vector.app.features.session.coroutineScope
 import im.vector.lib.strings.CommonStrings
@@ -61,8 +62,14 @@ class RoomProfileViewModel @AssistedInject constructor(
     private val room = session.getRoom(initialState.roomId)!!
 
     init {
+        // Seed synchronously so the header lays out with the banner on the first frame instead of
+        // popping it in when the live query delivers.
+        setState {
+            copy(bannerUrl = room.stateService().getStateEvents(EventType.STATE_ROOM_BANNER.values.toSet(), QueryStringValue.IsEmpty).resolveRoomBannerUrl())
+        }
         val flowRoom = room.flow()
         observeRoomSummary(flowRoom)
+        observeRoomBanner(flowRoom)
         observeRoomCreateContent(flowRoom)
         observeBannedRoomMembers(flowRoom)
         observeKnockingRoomMembers(flowRoom)
@@ -150,6 +157,11 @@ class RoomProfileViewModel @AssistedInject constructor(
                 .execute {
                     copy(roomSummary = it)
                 }
+    }
+
+    private fun observeRoomBanner(flowRoom: FlowRoom) {
+        flowRoom.liveStateEvents(EventType.STATE_ROOM_BANNER.values.toSet(), QueryStringValue.IsEmpty)
+                .setOnEach { copy(bannerUrl = it.resolveRoomBannerUrl()) }
     }
 
     private fun observeBannedRoomMembers(flowRoom: FlowRoom) {
