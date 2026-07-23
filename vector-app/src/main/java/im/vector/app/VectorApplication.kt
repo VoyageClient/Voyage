@@ -141,6 +141,7 @@ class VectorApplication :
 
         // Shared entry point for emoji rendering across all message-text surfaces (see prepareForDisplay()).
         im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify = emojiCompatWrapper
+        org.billcarsonfr.jsonviewer.jsonViewerEmojiSpanify = emojiCompatWrapper::spanify
         if (twemojiProvider.enabled) {
             // Twemoji draws emoji from bundled sprites (forced below KitKat, opt-in above) and bypasses
             // EmojiCompat, so don't init it or load its 10MB font. The reaction picker uses the sprites too.
