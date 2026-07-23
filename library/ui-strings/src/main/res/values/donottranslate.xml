@@ -20,6 +20,8 @@
     <string name="settings_enable_voice_message_button_title" translatable="false">Show voice message button</string>
 
     <string name="settings_media_and_avatars" translatable="false">Media and avatars</string>
+    <string name="settings_strip_media_metadata_title" translatable="false">Strip metadata from media uploads</string>
+    <string name="settings_strip_media_metadata_summary" translatable="false">Strip EXIF data from media before uploading.</string>
     <string name="settings_media_preview_title" translatable="false">Show media in timeline</string>
     <string name="settings_media_preview_always_show" translatable="false">Always show</string>
     <string name="settings_media_preview_always_hide" translatable="false">Always hide</string>

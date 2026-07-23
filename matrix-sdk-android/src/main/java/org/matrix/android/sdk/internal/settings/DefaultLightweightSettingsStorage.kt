@@ -46,6 +46,11 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
         return sdkDefaultPrefs.getBoolean(MATRIX_SDK_SETTINGS_THREAD_MESSAGES_ENABLED, matrixConfiguration.threadMessagesEnabledDefault)
     }
 
+    // Backed by the app's "Media and avatars" toggle (shared default prefs); defaults to on.
+    override fun shouldStripMediaMetadata(): Boolean {
+        return sdkDefaultPrefs.getBoolean(SETTINGS_STRIP_MEDIA_METADATA, true)
+    }
+
     /**
      * Set the presence status sent on syncs when the application is in foreground.
      *
@@ -70,5 +75,8 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
     companion object {
         const val MATRIX_SDK_SETTINGS_THREAD_MESSAGES_ENABLED = "MATRIX_SDK_SETTINGS_THREAD_MESSAGES_ENABLED"
         private const val MATRIX_SDK_SETTINGS_FOREGROUND_PRESENCE_STATUS = "MATRIX_SDK_SETTINGS_FOREGROUND_PRESENCE_STATUS"
+
+        // Must match the app-side preference key (im.vector.app VectorPreferences).
+        private const val SETTINGS_STRIP_MEDIA_METADATA = "SETTINGS_STRIP_MEDIA_METADATA_KEY"
     }
 }

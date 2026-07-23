@@ -19,4 +19,7 @@ package org.matrix.android.sdk.api.settings
 interface LightweightSettingsStorage {
     fun setThreadMessagesEnabled(enabled: Boolean)
     fun areThreadMessagesEnabled(): Boolean
+
+    /** Whether EXIF/location metadata should be stripped from images and videos before upload. */
+    fun shouldStripMediaMetadata(): Boolean
 }

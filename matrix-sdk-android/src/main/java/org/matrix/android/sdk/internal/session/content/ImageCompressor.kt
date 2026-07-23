@@ -66,6 +66,23 @@ internal class ImageCompressor @Inject constructor(
         }
     }
 
+    /**
+     * Always decode + re-encode (no small-file passthrough), which strips every trace of embedded
+     * metadata. Used for formats whose metadata can't be scrubbed in place (e.g. HEIC). Orientation
+     * is baked into the pixels, so no EXIF is needed to display it correctly. Output is bounded to
+     * [REENCODE_MAX_DIMENSION] on the shorter side to keep a full-resolution decode from OOMing.
+     */
+    suspend fun reEncodeStrippingMetadata(imageFile: File, desiredQuality: Int = 90): CompressedImage {
+        return withContext(coroutineDispatchers.io) {
+            try {
+                compressBitmap(imageFile, REENCODE_MAX_DIMENSION, REENCODE_MAX_DIMENSION, desiredQuality)
+            } catch (t: Throwable) {
+                Timber.w(t, "Metadata-stripping re-encode failed")
+                CompressedImage(imageFile, mimeType = null)
+            }
+        }
+    }
+
     private suspend fun compressBitmap(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         decodeBitmap(imageFile, bounds)
@@ -324,5 +341,6 @@ internal class ImageCompressor @Inject constructor(
 
     companion object {
         private const val SMALL_FILE_PASSTHROUGH_BYTES = 512 * 1024L
+        private const val REENCODE_MAX_DIMENSION = 2048
     }
 }
