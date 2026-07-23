@@ -38,6 +38,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
@@ -91,7 +92,9 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     @Inject lateinit var cancelSendTracker: CancelSendTracker
     @Inject lateinit var imageCompressor: ImageCompressor
     @Inject lateinit var imageExitTagRemover: ImageExifTagRemover
+    @Inject lateinit var videoMetadataStripper: VideoMetadataStripper
     @Inject lateinit var videoCompressor: VideoCompressor
+    @Inject lateinit var lightweightSettingsStorage: LightweightSettingsStorage
     @Inject lateinit var thumbnailExtractor: ThumbnailExtractor
     @Inject lateinit var localEchoRepository: LocalEchoRepository
     @Inject lateinit var temporaryFileCreator: TemporaryFileCreator
@@ -172,33 +175,60 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         params.attachment.size
                 )
 
+                val stripMetadata = lightweightSettingsStorage.shouldStripMediaMetadata()
+
                 if (attachment.type == ContentAttachmentData.Type.IMAGE && params.compressBeforeSending) {
                     notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
 
                     val compressed = imageCompressor.compress(workingFile(), MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
-                    fileToUpload = compressed.file.also { compressedFile ->
-                        compressedFile.inputStream().use {
-                            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                            BitmapFactory.decodeStream(it, null, options)
-                            newAttachmentAttributes = NewAttachmentAttributes(
-                                    newWidth = options.outWidth,
-                                    newHeight = options.outHeight,
-                                    newFileSize = compressedFile.length(),
-                                    newMimeType = compressed.mimeType,
-                            )
-                        }
-                    }.also { filesToDelete.add(it) }
+                    fileToUpload = compressed.file.also { filesToDelete.add(it) }
+                    newAttachmentAttributes = measureImageAttributes(fileToUpload, compressed.mimeType)
                 } else if (attachment.type == ContentAttachmentData.Type.VIDEO && params.compressBeforeSending) {
-                    val outcome = compressVideo(params, newAttachmentAttributes, filesToDelete, ::workingFile)
+                    val outcome = compressVideo(params, newAttachmentAttributes, filesToDelete, ::workingFile, stripMetadata)
                     fileToUpload = outcome.fileToUpload
                     newAttachmentAttributes = outcome.attributes
                     transcodedVideoFile = outcome.transcodedFile
-                } else if (attachment.type == ContentAttachmentData.Type.IMAGE && !params.compressBeforeSending) {
-                    fileToUpload = imageExitTagRemover.removeSensitiveJpegExifTags(workingFile())
-                            .also { filesToDelete.add(it) }
-                    newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
+                } else if (attachment.type == ContentAttachmentData.Type.IMAGE) {
+                    // Original-size image: strip metadata in place when possible, otherwise re-encode.
+                    val working = workingFile()
+                    val stripped = if (stripMetadata) imageExitTagRemover.stripImageMetadata(working) else working
+                    if (stripped != null) {
+                        fileToUpload = stripped.also { if (it !== working) filesToDelete.add(it) }
+                        newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
+                    } else {
+                        // Format can't be scrubbed in place (e.g. HEIC) — re-encode so nothing leaks.
+                        notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
+                        val reEncoded = imageCompressor.reEncodeStrippingMetadata(working)
+                        fileToUpload = reEncoded.file.also { if (it !== working) filesToDelete.add(it) }
+                        newAttachmentAttributes = if (reEncoded.mimeType != null) {
+                            measureImageAttributes(fileToUpload, reEncoded.mimeType)
+                        } else {
+                            newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
+                        }
+                    }
                 } else {
-                    fileToUpload = workingFile()
+                    val working = workingFile()
+                    // A JPEG/PNG/WebP shared through the file/document picker lands here rather than the
+                    // IMAGE branch; scrub it too so "send as file" doesn't leak EXIF. Videos sent at
+                    // original size are re-muxed to drop their location/metadata atoms.
+                    fileToUpload = when {
+                        !stripMetadata -> working
+                        attachment.type == ContentAttachmentData.Type.FILE ->
+                            (imageExitTagRemover.stripImageMetadata(working) ?: working).also { scrubbed ->
+                                if (scrubbed !== working) {
+                                    filesToDelete.add(scrubbed)
+                                    newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = scrubbed.length())
+                                }
+                            }
+                        attachment.type == ContentAttachmentData.Type.VIDEO ->
+                            (videoMetadataStripper.strip(working) ?: working).also { stripped ->
+                                if (stripped !== working) {
+                                    filesToDelete.add(stripped)
+                                    newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = stripped.length())
+                                }
+                            }
+                        else -> working
+                    }
                     if (attachment.type == ContentAttachmentData.Type.VIDEO) {
                         // The echo's videoInfo was measured against the decoded frame (display
                         // orientation); the picker metadata can be orientation-blind, so don't
@@ -322,6 +352,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             initialAttributes: NewAttachmentAttributes,
             filesToDelete: HashSet<File>,
             fallbackToWorkingFile: suspend () -> File,
+            stripMetadata: Boolean,
     ): VideoCompressOutcome {
         val progressListener = object : ProgressListener {
             override fun onProgress(progress: Int, total: Int) {
@@ -330,6 +361,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         }
         return when (val result = videoCompressor.compress(params.attachment.queryUri, params.attachment.size, progressListener)) {
             is VideoCompressionResult.Success -> {
+                // Transcoding produces a fresh container with no source metadata atoms.
                 val compressedFile = result.compressedFile.also { filesToDelete.add(it) }
                 val (w, h) = readCompressedVideoDimensions(compressedFile)
                 VideoCompressOutcome(
@@ -344,12 +376,40 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             }
             VideoCompressionResult.CompressionNotNeeded,
             VideoCompressionResult.CompressionCancelled ->
-                VideoCompressOutcome(fallbackToWorkingFile(), initialAttributes, transcodedFile = null)
+                originalVideoOutcome(fallbackToWorkingFile(), initialAttributes, filesToDelete, stripMetadata)
             is VideoCompressionResult.CompressionFailed -> {
                 Timber.e(result.failure, "Video compression failed")
-                VideoCompressOutcome(fallbackToWorkingFile(), initialAttributes, transcodedFile = null)
+                originalVideoOutcome(fallbackToWorkingFile(), initialAttributes, filesToDelete, stripMetadata)
             }
         }
+    }
+
+    // Compression was skipped/failed, so the untouched original would otherwise carry its metadata
+    // atoms — re-mux to drop them when stripping is enabled.
+    private suspend fun originalVideoOutcome(
+            working: File,
+            attributes: NewAttachmentAttributes,
+            filesToDelete: HashSet<File>,
+            stripMetadata: Boolean,
+    ): VideoCompressOutcome {
+        val file = if (stripMetadata) {
+            videoMetadataStripper.strip(working)?.also { filesToDelete.add(it) } ?: working
+        } else {
+            working
+        }
+        val attrs = if (file !== working) attributes.copy(newFileSize = file.length()) else attributes
+        return VideoCompressOutcome(file, attrs, transcodedFile = null)
+    }
+
+    private fun measureImageAttributes(file: File, mimeType: String?): NewAttachmentAttributes {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
+        return NewAttachmentAttributes(
+                newWidth = options.outWidth,
+                newHeight = options.outHeight,
+                newFileSize = file.length(),
+                newMimeType = mimeType,
+        )
     }
 
     private fun readCompressedVideoDimensions(file: File): Pair<Int?, Int?> {

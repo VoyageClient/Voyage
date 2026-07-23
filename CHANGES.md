@@ -40,6 +40,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Direction-override (RLO) spoofing protection** — hostile Unicode direction-override characters in display names, messages, mention pills, and room names no longer flip the surrounding text backwards (a trick used to spoof user IDs and file extensions); they now show as a visible placeholder box instead. Genuine right-to-left text is unaffected.
 
+- **Metadata stripping on upload** — sent photos and videos no longer leak embedded metadata (GPS location, capture timestamps, camera make/model & serial numbers, and the hidden EXIF thumbnail). JPEG, PNG and WebP are scrubbed losslessly while keeping display orientation; formats that can't be scrubbed in place (e.g. HEIC) are re-encoded; videos are re-muxed to drop their location atoms without re-encoding; and images sent through the file picker, as well as profile/room avatars and banners, are covered too. Controlled by a new "Remove metadata from sent media" toggle in Settings → Security & Privacy → Media and avatars (on by default).
+
 - **Media hiding** — hide media, and inline images/emoji, in the timeline until tapped.
 
 - **Voice messages overhaul** — an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.

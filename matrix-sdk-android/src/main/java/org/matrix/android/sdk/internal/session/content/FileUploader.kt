@@ -35,6 +35,7 @@ import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.ProgressRequestBody
@@ -53,6 +54,8 @@ internal class FileUploader @Inject constructor(
         private val context: Context,
         private val temporaryFileCreator: TemporaryFileCreator,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
+        private val imageExifTagRemover: ImageExifTagRemover,
+        private val lightweightSettingsStorage: LightweightSettingsStorage,
         contentUrlResolver: ContentUrlResolver,
         moshi: Moshi
 ) {
@@ -113,8 +116,17 @@ internal class FileUploader @Inject constructor(
             progressListener: ProgressRequestBody.Listener? = null
     ): ContentUploadResponse {
         val workingFile = context.copyUriToTempFile(uri)
-        return uploadFile(workingFile, filename, mimeType, progressListener).also {
+        // Avatars, banners and image-pack stickers upload the picked bytes directly (they don't go
+        // through the timeline-media worker), so scrub their EXIF/location here too when enabled.
+        // Lossless only — non-images and formats that can't be scrubbed in place are left untouched.
+        val fileToUpload = if (lightweightSettingsStorage.shouldStripMediaMetadata()) {
+            imageExifTagRemover.stripImageMetadata(workingFile) ?: workingFile
+        } else {
+            workingFile
+        }
+        return uploadFile(fileToUpload, filename, mimeType, progressListener).also {
             tryOrNull { workingFile.delete() }
+            if (fileToUpload !== workingFile) tryOrNull { fileToUpload.delete() }
         }
     }
 
