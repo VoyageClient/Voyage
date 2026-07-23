@@ -293,6 +293,7 @@ dependencies {
     implementation project(':vector-config')
     implementation project(':library:core-utils')
     implementation project(':library:ui-strings')
+    implementation project(':library:external:jsonviewer')
     debugImplementation project(':library:external:span')
     debugImplementation project(':library:ui-styles')
     // Debug-only (never runs on the ICS/Dalvik release path, so its LinearAlloc weight doesn't matter).

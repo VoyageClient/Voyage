@@ -19,6 +19,14 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 
+// Set at app start so keys/values render emoji like the app's other text surfaces; this vendored
+// module can't depend on the app's EmojiSpanify.
+@Volatile
+var jsonViewerEmojiSpanify: ((CharSequence) -> CharSequence)? = null
+
+private fun CharSequence.toDisplayEpoxyCharSequence() =
+        (jsonViewerEmojiSpanify?.invoke(this) ?: this).toEpoxyCharSequence()
+
 internal class JSonViewerEpoxyController(private val context: Context) :
         TypedEpoxyController<JSonViewerState>() {
 
@@ -89,7 +97,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                                         +"{+${model.keys.size}}"
                                         textColor = host.styleProvider.baseColor
                                     }
-                                }.toEpoxyCharSequence()
+                                }.toDisplayEpoxyCharSequence()
                         )
                         copyValue(host.serializedValue(model))
                         itemClickListener(View.OnClickListener { host.itemClicked(model) })
@@ -129,7 +137,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                                         +"[+${model.items.size}]"
                                         textColor = host.styleProvider.baseColor
                                     }
-                                }.toEpoxyCharSequence()
+                                }.toDisplayEpoxyCharSequence()
                         )
                         copyValue(host.serializedValue(model))
                         itemClickListener(View.OnClickListener { host.itemClicked(model) })
@@ -160,7 +168,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                                     }
                                 }
                                 append(host.valueToSpan(model))
-                            }.toEpoxyCharSequence()
+                            }.toDisplayEpoxyCharSequence()
                     )
                     copyValue(model.stringRes)
                 }
@@ -230,7 +238,7 @@ internal class JSonViewerEpoxyController(private val context: Context) :
                         span("{".takeIf { isObject } ?: "[") {
                             textColor = host.styleProvider.baseColor
                         }
-                    }.toEpoxyCharSequence()
+                    }.toDisplayEpoxyCharSequence()
             )
             copyValue(host.serializedValue(composed))
             itemClickListener(View.OnClickListener { host.itemClicked(composed) })
