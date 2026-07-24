@@ -154,6 +154,7 @@ import im.vector.app.features.home.room.detail.widget.RoomWidgetsBottomSheet
 import im.vector.app.features.home.room.threads.ThreadsManager
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
+import im.vector.app.features.home.room.detail.timeline.tools.LinkClickSourceHolder
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.invite.VectorInviteView
@@ -288,6 +289,11 @@ class TimelineFragment :
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
     private var replyJumpSourceEventId: String? = null
+
+    // Captured while the source is still on screen: after the jump restarts the timeline the source may
+    // not be loaded at all (the forward chain from the target can be far from the live edge), so its
+    // position can only be judged by timestamp.
+    private var replyJumpSourceTs: Long? = null
     private var modelBuildListener: OnModelBuildFinishedListener? = null
     private var pinnedBannerJumpApplied = false
 
@@ -850,10 +856,16 @@ class TimelineFragment :
 
     private fun jumpToBottom() {
         replyJumpSourceEventId = null
+        replyJumpSourceTs = null
+        timelineEventController.setBuildFocusEventId(null)
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
         views.jumpToBottomView.visibility = View.INVISIBLE
         if (timelineViewModel.timeline?.isLive == false) {
             scrollOnNewMessageCallback.forceScrollOnNextUpdate()
+            // Snap to the newest loaded row right away: the restart's list replacement takes a
+            // moment, and leaving the viewport deep in the list shows a page of stale rows first.
+            views.timelineRecyclerView.stopScroll()
+            layoutManager.scrollToPosition(0)
             timelineViewModel.timeline?.restartWithEventId(null)
         } else {
             layoutManager.scrollToPosition(0)
@@ -862,11 +874,20 @@ class TimelineFragment :
 
     private fun shouldJumpToReplySource(sourceEventId: String): Boolean {
         if (!vectorPreferences.jumpBackToReplySource()) return false
-        val sourcePosition = timelineEventController.searchPositionOfEvent(sourceEventId) ?: return false
+        val sourcePosition = timelineEventController.searchPositionOfEvent(sourceEventId)
         // The timeline is reverse-laid-out, so smaller positions sit nearer the bottom. Only stop
         // at the reply source if it's below the current viewport (off-screen toward the bottom);
         // if it's already visible or above us, a plain jump-to-bottom is what's wanted.
-        return sourcePosition < layoutManager.findFirstVisibleItemPosition()
+        if (sourcePosition != null) {
+            return sourcePosition < layoutManager.findFirstVisibleItemPosition()
+        }
+        // The source may have no built row — or not be loaded at all (the jump restarted the timeline
+        // around the target, and its forward chain may be nowhere near the live edge where the source
+        // sits). Fall back to the timestamp captured when it was clicked: newer than the newest visible
+        // message means it's below the viewport.
+        val sourceTs = replyJumpSourceTs ?: return false
+        val newestVisibleTs = timelineEventController.getNewestVisibleEvent(layoutManager.findFirstVisibleItemPosition())?.root?.originServerTs ?: return false
+        return sourceTs > newestVisibleTs
     }
 
     private fun setupJumpToBottomView() {
@@ -875,6 +896,7 @@ class TimelineFragment :
             val sourceId = replyJumpSourceEventId
             if (sourceId != null && shouldJumpToReplySource(sourceId)) {
                 replyJumpSourceEventId = null
+                replyJumpSourceTs = null
                 timelineViewModel.handle(RoomDetailAction.NavigateToEvent(sourceId, highlight = true))
             } else {
                 jumpToBottom()
@@ -885,7 +907,8 @@ class TimelineFragment :
                 views.jumpToBottomView,
                 debouncer,
                 views.timelineRecyclerView,
-                layoutManager
+                layoutManager,
+                isTimelineLive = { timelineViewModel.timeline?.isLive != false }
         )
     }
 
@@ -908,6 +931,10 @@ class TimelineFragment :
         val scrollPosition = timelineEventController.getPositionOfReadMarker().takeIf { action.isFirstUnreadEvent }
                 ?: timelineEventController.searchPositionOfEvent(action.eventId)
 
+        // Seed the build focus immediately: the highlight reaches the controller's partial state
+        // asynchronously, and until then the budgeted build spends its expensive-model budget at the
+        // live edge — leaving the jump-target region with only cheap (debug-notice) models built.
+        timelineEventController.setBuildFocusEventId(action.eventId)
         if (scrollPosition == null) {
             scrollOnHighlightedEventCallback.scheduleScrollTo(action.eventId)
         } else {
@@ -1132,11 +1159,15 @@ class TimelineFragment :
     override fun onStart() {
         super.onStart()
         timelineEventController.setPaused(false)
+        timelineViewModel.timeline?.setPaused(false)
     }
 
     override fun onStop() {
-        // Backstacked/hidden rooms must not keep burning the shared epoxy thread on every new event.
+        // Backstacked/hidden rooms must not keep burning the shared epoxy thread on every new event —
+        // nor the SDK's single DB thread on snapshot rebuilds (two stacked copies of a room halve
+        // the visible one's throughput).
         timelineEventController.setPaused(true)
+        timelineViewModel.timeline?.setPaused(true)
         super.onStop()
     }
 
@@ -1213,8 +1244,12 @@ class TimelineFragment :
             stackFromEnd = isLocalRoom()
         }
         val stateRestorer = LayoutManagerStateRestorer(layoutManager).register()
-        scrollOnNewMessageCallback = ScrollOnNewMessageCallback(layoutManager, timelineEventController)
-        scrollOnHighlightedEventCallback = ScrollOnHighlightedEventCallback(views.timelineRecyclerView, layoutManager, timelineEventController)
+        scrollOnNewMessageCallback = ScrollOnNewMessageCallback(views.timelineRecyclerView, layoutManager, timelineEventController)
+        scrollOnHighlightedEventCallback = ScrollOnHighlightedEventCallback(views.timelineRecyclerView, layoutManager, timelineEventController) {
+            // The landing itself produces no scroll events, so re-evaluate the FAB explicitly.
+            jumpToBottomViewVisibilityManager.maybeShowJumpToBottomViewVisibilityWithDelay()
+            timelineViewModel.onJumpToEventLanded()
+        }
         views.timelineRecyclerView.layoutManager = layoutManager
         views.timelineRecyclerView.itemAnimator = null
         views.timelineRecyclerView.setHasFixedSize(true)
@@ -1246,11 +1281,25 @@ class TimelineFragment :
         // typing/loading item, so "at bottom" tolerates one offset).
         views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             private var wasAtLiveEdge = true
+            private var lastFocusFirstVis = -1
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                val atLiveEdge = layoutManager.findFirstVisibleItemPosition() <= 1
+                // While a jump-to-event is settling the list is transiently tiny (it fits on screen, so
+                // position 0 is "visible") — reporting live-edge then lets the window cap clip the jump
+                // target back out. Ignore until the jump lands and the user actually scrolls.
+                if (scrollOnHighlightedEventCallback.isSettling()) return
+                val firstVis = layoutManager.findFirstVisibleItemPosition()
+                // Position 0 can be a forward loading spinner deep in history (non-live timeline) —
+                // reporting live-edge there lets the window cap slide the anchor under the reader.
+                val atLiveEdge = firstVis <= 1 && timelineViewModel.timeline?.isLive != false
                 if (atLiveEdge != wasAtLiveEdge) {
                     wasAtLiveEdge = atLiveEdge
                     timelineViewModel.timeline?.setViewAtLiveEdge(atLiveEdge)
+                }
+                if (firstVis != lastFocusFirstVis) {
+                    lastFocusFirstVis = firstVis
+                    timelineEventController.setBuildFocusEventId(
+                            if (atLiveEdge) null else timelineEventController.getNewestVisibleEvent(firstVis)?.eventId
+                    )
                 }
             }
         })
@@ -1581,7 +1630,10 @@ class TimelineFragment :
                                     showSnackWithMessage(getString(CommonStrings.navigate_to_room_when_already_in_the_room))
                                     true
                                 } else {
-                                    // Highlight and scroll to this event
+                                    // Highlight and scroll to this event; remember the linking message so
+                                    // the jump-to-bottom FAB can return to it (like the reply-header jump).
+                                    replyJumpSourceEventId = LinkClickSourceHolder.consume()
+                                    replyJumpSourceTs = timelineEventController.findEventInSnapshot(replyJumpSourceEventId)?.root?.originServerTs
                                     timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, true))
                                     true
                                 }
@@ -1591,6 +1643,8 @@ class TimelineFragment :
                                     true
                                 } else if (rootThreadEventId == getRootThreadEventId() && eventId != null) {
                                     // we are in the same thread
+                                    replyJumpSourceEventId = LinkClickSourceHolder.consume()
+                                    replyJumpSourceTs = timelineEventController.findEventInSnapshot(replyJumpSourceEventId)?.root?.originServerTs
                                     timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, true))
                                     true
                                 } else {
@@ -1833,6 +1887,7 @@ class TimelineFragment :
 
     override fun onRepliedToEventClicked(sourceEventId: String?, targetEventId: String) {
         replyJumpSourceEventId = sourceEventId
+        replyJumpSourceTs = timelineEventController.findEventInSnapshot(sourceEventId)?.root?.originServerTs
         timelineViewModel.handle(RoomDetailAction.NavigateToEvent(targetEventId, highlight = true))
     }
 

@@ -20,11 +20,16 @@ import java.util.concurrent.atomic.AtomicReference
 class ScrollOnHighlightedEventCallback(
         private val recyclerView: RecyclerView,
         private val layoutManager: LinearLayoutManager,
-        private val timelineEventController: TimelineEventController
+        private val timelineEventController: TimelineEventController,
+        private val onLanded: () -> Unit = {}
 ) : DefaultListUpdateCallback {
 
     private val scheduledEventId = AtomicReference<String?>()
-    private var nearestScrollBudget = 0
+
+    // A deadline rather than a retry count: after a restart the controller still dispatches deferred
+    // model-build diffs for the outgoing snapshot in a rapid burst, which would exhaust any
+    // per-callback budget before the new snapshot (with the target) ever arrives.
+    private var scheduleDeadlineMs = 0L
 
     // After landing on the target we keep it on screen for a short window: surrounding events are still
     // loading/decrypting in, and an encrypted neighbour growing from its short "Encrypted message"
@@ -70,17 +75,28 @@ class ScrollOnHighlightedEventCallback(
             // starving the single DB thread (blank timeline + blank toolbar, here and in the next room
             // opened). A later model build re-fires this and we snap exactly.
             timelineEventController.isEventInSnapshot(eventId) -> {
-                if (nearestScrollBudget-- <= 0) {
+                if (SystemClock.uptimeMillis() > scheduleDeadlineMs) {
                     // Waited long enough and it never got a row (hidden/aggregated away): approximate once.
                     scheduledEventId.set(null)
                     timelineEventController.searchPositionOfEventOrNearest(eventId) ?: return
                 } else {
-                    // Wait for the model; a later build re-fires this and we snap exactly.
+                    // Wait for the model; a later build re-fires this and we snap exactly. Meanwhile
+                    // keep the viewport near the nearest built row so the list replacement doesn't
+                    // leave a page of unrelated rows on screen (builds focus around the target, so
+                    // "nearest built" converges on it). ensureOnScreen only acts when it's fully off.
+                    timelineEventController.searchPositionOfEventOrNearest(eventId)?.let { near ->
+                        recyclerView.post { ensureOnScreen(near) }
+                    }
                     return
                 }
             }
-            // Not loaded yet (context still paginating in): approximate toward it while it arrives.
-            nearestScrollBudget-- > 0 -> timelineEventController.searchPositionOfEventOrNearest(eventId) ?: return
+            // Not loaded yet (context still paginating in, or stale pre-restart callbacks firing):
+            // wait for the deadline, approximating toward it when something nearby is built.
+            SystemClock.uptimeMillis() <= scheduleDeadlineMs -> {
+                val nearest = timelineEventController.searchPositionOfEventOrNearest(eventId)
+                nearest?.let { near -> recyclerView.post { ensureOnScreen(near) } }
+                return
+            }
             else -> {
                 scheduledEventId.set(null)
                 return
@@ -93,6 +109,7 @@ class ScrollOnHighlightedEventCallback(
         recyclerView.post {
             recyclerView.stopScroll()
             ensureOnScreen(positionToScroll)
+            if (pinnedEventId != null) onLanded()
         }
     }
 
@@ -116,16 +133,19 @@ class ScrollOnHighlightedEventCallback(
         }
     }
 
+    /** True while a jump is in flight or its target is still pinned (surroundings still loading in). */
+    fun isSettling(): Boolean = scheduledEventId.get() != null || pinnedEventId != null
+
     fun scheduleScrollTo(eventId: String?) {
         scheduledEventId.set(eventId)
-        nearestScrollBudget = NEAREST_SCROLL_BUDGET
+        scheduleDeadlineMs = SystemClock.uptimeMillis() + SCHEDULE_TIMEOUT_MS
         pinnedEventId = null
     }
 
     companion object {
-        // How many model rebuilds may settle before giving up on the exact target (it may be hidden or
-        // aggregated away and never get a row, or its context may never paginate in).
-        private const val NEAREST_SCROLL_BUDGET = 20
+        // How long the exact target may take to get a row (restart + context fetch + model build)
+        // before giving up on it (it may be hidden or aggregated away and never get one).
+        private const val SCHEDULE_TIMEOUT_MS = 10_000L
 
         // How long after landing to keep the target on screen as its surrounding events load/decrypt in.
         private const val PIN_DURATION_MS = 2500L

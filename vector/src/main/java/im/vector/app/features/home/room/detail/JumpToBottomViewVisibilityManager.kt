@@ -22,7 +22,10 @@ class JumpToBottomViewVisibilityManager(
         private val jumpToBottomView: FloatingActionButton,
         private val debouncer: Debouncer,
         recyclerView: RecyclerView,
-        private val layoutManager: LinearLayoutManager
+        private val layoutManager: LinearLayoutManager,
+        // With a forward-bounded window (jumped deep into history) position 0 isn't the live edge,
+        // so "at position <= 1" must not hide the FAB.
+        private val isTimelineLive: () -> Boolean = { true }
 ) {
 
     init {
@@ -32,7 +35,7 @@ class JumpToBottomViewVisibilityManager(
 
                 val scrollingToPast = dy < 0
 
-                if (scrollingToPast) {
+                if (scrollingToPast && isTimelineLive()) {
                     jumpToBottomView.hide()
                 } else {
                     maybeShowJumpToBottomViewVisibility()
@@ -58,7 +61,9 @@ class JumpToBottomViewVisibilityManager(
     }
 
     private fun maybeShowJumpToBottomViewVisibility() {
-        if (layoutManager.findFirstVisibleItemPosition() > 1) {
+        val firstVis = layoutManager.findFirstVisibleItemPosition()
+        val show = firstVis > 1 || !isTimelineLive()
+        if (show) {
             jumpToBottomView.show()
         } else {
             jumpToBottomView.hide()
