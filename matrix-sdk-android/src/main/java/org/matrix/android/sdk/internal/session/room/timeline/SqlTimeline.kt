@@ -78,6 +78,7 @@ internal class SqlTimeline(
     // The backward loading item re-fires onLoadMore every time it's visible; in a room dominated by collapsed
     // (hidden/redacted) events it stays on screen, so serialize the requests to avoid piling up fetches.
     private val backwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
+    private val forwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
     private var observeJob: Job? = null
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
@@ -144,7 +145,14 @@ internal class SqlTimeline(
 
     private var pendingShowEventId: String? = initialEventId
     private var oldestShownEventId: String? = null
+    // Newer bound of the window, set when jumping deep into history: without it the window spans
+    // live edge → target, which in a busy room is thousands of events to map and model-build at
+    // once. null = the window reaches the newest loaded event (the normal live case). Newer events
+    // are revealed step-wise through forward pagination, mirroring the backward reveal.
+    // Volatile: also read on the main thread by the local-echo fast path.
+    @Volatile private var newestShownEventId: String? = null
     @Volatile private var windowHasMoreOlder: Boolean = false
+    @Volatile private var windowHasMoreNewer: Boolean = false
     // Cached so the instant-echo path (main thread) doesn't need a DB read.
     @Volatile private var liveEdgeLoaded: Boolean = false
     private val isWindowed: Boolean get() = !isThreadTimeline
@@ -216,6 +224,11 @@ internal class SqlTimeline(
             // Reset the window: null returns to the newest events; a target grows the window to include it.
             pendingShowEventId = eventId
             oldestShownEventId = null
+            newestShownEventId = null
+            // Same reasoning as the constructor seed: right after a jump the transient few-row list fits
+            // on screen, so the fragment's scroll hint briefly reports "at live edge" — if believed, the
+            // live-edge cap clips the target straight back out of the window.
+            viewAtLiveEdge = eventId == null
             val seed = eventId?.let { chunkForEvent(it) } ?: resolveSeedChunkId()
             seedFrom(seed)
             rebuildSnapshot()
@@ -224,6 +237,20 @@ internal class SqlTimeline(
 
     override fun setViewAtLiveEdge(atLiveEdge: Boolean) {
         viewAtLiveEdge = atLiveEdge
+    }
+
+    @Volatile private var rebuildsPaused = false
+    @Volatile private var rebuildPendingWhilePaused = false
+
+    override fun setPaused(paused: Boolean) {
+        rebuildsPaused = paused
+        if (!paused && rebuildPendingWhilePaused) {
+            rebuildPendingWhilePaused = false
+            timelineScope.launch {
+                chunkSnapshotCache.clear()
+                rebuildSnapshot()
+            }
+        }
     }
 
     override fun hasMoreToLoad(direction: Timeline.Direction): Boolean = getPaginationState(direction).hasMoreToLoad
@@ -373,19 +400,42 @@ internal class SqlTimeline(
                 backwardPaginating.set(false)
             }
         } else {
-            val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) } ?: return
-            when {
-                newest.is_last_forward != 0L -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
-                newest.next_chunk_id != null -> {
-                    extendLoadedChunks(Timeline.Direction.FORWARDS)
-                    rebuildSnapshot()
+            // The visible forward spinner fires this continuously; without a guard the duplicate
+            // server round-trips clog the serial timeline queue (delaying jumps scheduled behind them).
+            if (!forwardPaginating.compareAndSet(false, true)) return
+            try {
+                // Forward-bounded window (jumped deep into history): reveal already-loaded newer events
+                // before touching the chunk chain, mirroring the backward reveal.
+                if (isWindowed && newestShownEventId != null) {
+                    val all = computeLoadedEvents(reuseLiveChunk = true)
+                    val curIdx = all.indexOfFirst { it.eventId == newestShownEventId }
+                    if (curIdx > 0) {
+                        val newIdx = retreatByMessages(all, curIdx, windowGrowStep).coerceAtLeast(0)
+                        // Only drop the bound at the true live edge. Clearing it just because we reached
+                        // the newest *loaded* event re-expands the window to the full loaded prefix on
+                        // the next forward page — thousands of events again, and everything slows down.
+                        newestShownEventId = if (newIdx == 0 && liveEdgeLoaded) null else all[newIdx].eventId
+                        rebuildSnapshot(reuseLiveChunk = true)
+                        return
+                    }
+                    if (liveEdgeLoaded) newestShownEventId = null
                 }
-                newest.next_token != null -> {
-                    paginate(newest.next_token, Timeline.Direction.FORWARDS, count)
-                    extendLoadedChunks(Timeline.Direction.FORWARDS)
-                    rebuildSnapshot()
+                val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) } ?: return
+                when {
+                    newest.is_last_forward != 0L -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
+                    newest.next_chunk_id != null -> {
+                        extendLoadedChunks(Timeline.Direction.FORWARDS)
+                        rebuildSnapshot()
+                    }
+                    newest.next_token != null -> {
+                        paginate(newest.next_token, Timeline.Direction.FORWARDS, count)
+                        extendLoadedChunks(Timeline.Direction.FORWARDS)
+                        rebuildSnapshot()
+                    }
+                    else -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
                 }
-                else -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
+            } finally {
+                forwardPaginating.set(false)
             }
         }
     }
@@ -413,12 +463,17 @@ internal class SqlTimeline(
             }
         } else {
             var head = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }
-            while (true) {
+            var added = 0
+            // Same per-call cap as backwards: once a deep jump's chain has been bridged to the live
+            // edge (by earlier catch-up pagination), the full next-chain is dozens of chunks — walking
+            // it all at once maps thousands of events in one rebuild and stalls the jump for seconds.
+            while (added < maxBackwardChunks) {
                 // Symmetrically, the live edge has nothing newer.
                 if (head == null || head.is_last_forward != 0L) break
                 val nextId = head.next_chunk_id ?: break
                 if (nextId in loadedChunkIds) break
                 loadedChunkIds.add(0, nextId)
+                added++
                 head = stores.chunk.getById(nextId)
             }
         }
@@ -503,6 +558,13 @@ internal class SqlTimeline(
                 val want = (idx + initialWindowCount()).coerceAtMost(all.lastIndex)
                 val current = oldestShownEventId?.let { e -> all.indexOfFirst { it.eventId == e } } ?: -1
                 if (want > current) oldestShownEventId = all[want].eventId
+                // Bound the newer side too: a deep target with an unbounded newer side means mapping
+                // and model-building everything up to the live edge at once. Newer events reveal
+                // step-wise through forward pagination instead. Always set — the target often resolves
+                // against a barely-loaded set (idx 0 of 1 event, context still fetching), and a null
+                // bound here re-expands over everything the context fetch brings in. If the target is
+                // actually near the live edge, the first reveal clears the bound (liveEdgeLoaded).
+                newestShownEventId = all[(idx - initialWindowCount()).coerceAtLeast(0)].eventId
             }
         }
         val anchorIdx = oldestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } }
@@ -510,12 +572,18 @@ internal class SqlTimeline(
         // Cap the live-edge window by the count of *message* events, not raw events: a flood of redactions
         // or state changes (e.g. a mass redaction) collapses to a single merged item, so a raw cap would
         // show that one block and nothing else — no content, no scroll affordance to grow the window.
-        val capIdx = if (viewAtLiveEdge && pendingShowEventId == null) contentWindowCapIndex(all) else all.lastIndex
+        val capIdx = if (viewAtLiveEdge && pendingShowEventId == null && newestShownEventId == null) contentWindowCapIndex(all) else all.lastIndex
         if (oldestIdx > capIdx) {
             oldestIdx = capIdx
         }
         oldestShownEventId = all[oldestIdx].eventId
-        return all.take(oldestIdx + 1)
+        val boundIdx = newestShownEventId?.let { id -> all.indexOfFirst { it.eventId == id } } ?: -1
+        // A bound sitting at index 0 (revealed up to the newest loaded event, next page not fetched
+        // yet) must be KEPT — nulling it would re-expand the window over every event the next page
+        // brings in. Only an id that vanished from the loaded set clears the bound.
+        val newestIdx = boundIdx.coerceAtMost(oldestIdx).coerceAtLeast(0)
+        newestShownEventId = if (boundIdx < 0) null else all[newestIdx].eventId
+        return ArrayList(all.subList(newestIdx, oldestIdx + 1))
     }
 
     // Index of the [windowLiveEdgeCap]-th message event from the live edge (or the last loaded index if
@@ -552,6 +620,22 @@ internal class SqlTimeline(
         return all.lastIndex
     }
 
+    // Mirror of [advanceByMessages] toward newer events (index decreasing), for the forward reveal.
+    // Additionally bounded by a raw event count: in an edit-heavy room [messageStep] messages can span
+    // hundreds of raw events, each mapped + model-built on reveal — an unbounded step made every
+    // reveal a multi-second stall. If the capped step doesn't fill the screen, the still-visible
+    // spinner just fires the next one.
+    private fun retreatByMessages(all: List<TimelineEvent>, fromIdx: Int, messageStep: Int): Int {
+        val rawFloor = (fromIdx - MAX_RAW_REVEAL_STEP).coerceAtLeast(0)
+        var messages = 0
+        var i = fromIdx - 1
+        while (i >= rawFloor) {
+            if (all[i].isMessageContent() && ++messages >= messageStep) return i
+            i--
+        }
+        return rawFloor
+    }
+
     // After loading older events from disk/server, advance the window a page older to reveal them.
     private suspend fun revealAfterBackwardFetch() {
         if (isWindowed) {
@@ -563,6 +647,10 @@ internal class SqlTimeline(
     }
 
     private suspend fun rebuildSnapshot(reuseLiveChunk: Boolean = false) {
+        if (rebuildsPaused) {
+            rebuildPendingWhilePaused = true
+            return
+        }
         val perfStart = MatrixPerf.now()
         liveEdgeLoaded = isLiveEdgeLoaded()
         val all = computeLoadedEvents(reuseLiveChunk)
@@ -577,6 +665,7 @@ internal class SqlTimeline(
         requestDecryptionForUtd(events)
         windowHasMoreOlder = isWindowed && events.isNotEmpty() &&
                 (events.last().eventId != all.last().eventId || !liveChunkFullyMapped)
+        windowHasMoreNewer = isWindowed && events.isNotEmpty() && events.first().eventId != all.first().eventId
         // The loading spinners are (re)built from hasMoreToLoad only when a snapshot is posted, so a
         // pagination-state flip that doesn't change the visible events (reaching the room start reveals the
         // empty is_last_backward chunk) must still post — otherwise the backward spinner is never removed and
@@ -690,8 +779,8 @@ internal class SqlTimeline(
         updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = moreBackward) }
 
         val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) }
-        val moreForward = newest != null && newest.is_last_forward == 0L &&
-                (newest.next_chunk_id != null || newest.next_token != null)
+        val moreForward = windowHasMoreNewer || (newest != null && newest.is_last_forward == 0L &&
+                (newest.next_chunk_id != null || newest.next_token != null))
         updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = moreForward) }
     }
 
@@ -706,7 +795,9 @@ internal class SqlTimeline(
         if (roomId != this.roomId || !isStarted.get()) return
         timelineScope.launch(coroutineDispatchers.main) {
             if (isThreadTimeline && timelineEvent.root.getRootThreadEventId() != threadRootId) return@launch
-            if (!isThreadTimeline && !liveEdgeLoaded) return@launch
+            // Forward-bounded window: the live edge isn't shown, so prepending the echo would place
+            // it next to old history. Sending triggers a jump-to-bottom restart which shows it.
+            if (!isThreadTimeline && (!liveEdgeLoaded || newestShownEventId != null)) return@launch
             uiEchoManager.onLocalEchoCreated(timelineEvent)
             // A DB-flow rebuild may already have picked the echo up from the sending table.
             if (builtEvents.none { it.eventId == timelineEvent.eventId }) {
@@ -736,10 +827,15 @@ internal class SqlTimeline(
         if (roomId != this.roomId || !isStarted.get() || isThreadTimeline) return
         timelineScope.launch {
             val currentLive = loadedChunkIds.firstOrNull() ?: return@launch
+            // Only re-seed when our observed chunk was actually deleted (the limited-sync case above).
+            // After a jump into history the newest *loaded* chunk is legitimately not the room's
+            // last-forward chunk — re-seeding then would yank the user back to the live edge on every
+            // incoming message, collapsing the list under a scrolled-up viewport.
+            if (stores.chunk.getById(currentLive) != null) return@launch
             val liveChunkId = stores.chunk.lastForward(this@SqlTimeline.roomId)?.id ?: return@launch
-            if (liveChunkId == currentLive) return@launch
             pendingShowEventId = null
             oldestShownEventId = null
+            newestShownEventId = null
             seedFrom(liveChunkId)
             rebuildSnapshot()
         }
@@ -777,5 +873,6 @@ internal class SqlTimeline(
 
     companion object {
         private const val DECRYPT_REBUILD_DEBOUNCE_MS = 150L
+        private const val MAX_RAW_REVEAL_STEP = 150
     }
 }

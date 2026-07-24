@@ -232,6 +232,17 @@ class TimelineEventController @Inject constructor(
     // seconds on slow hardware, and these positions are read from the main thread while scrolling
     // (pinned banner, jump-to-reply) — blocking there froze the UI for the whole pass.
     private val adapterPositionMapping = HashMap<String, Int>()
+
+    @Volatile
+    private var buildFocusEventId: String? = null
+
+    /** Hint from the UI: the event the viewport currently sits at (null when at the live edge). */
+    fun setBuildFocusEventId(eventId: String?) {
+        buildFocusEventId = eventId
+    }
+
+    fun findEventInSnapshot(eventId: String?): TimelineEvent? =
+            eventId?.let { id -> currentSnapshot.firstOrNull { it.eventId == id } }
     private val positionsLock = Any()
     private val timelineEventsGroups = TimelineEventsGroups()
     private val readReceiptsCache = ReadReceiptsCache()
@@ -615,7 +626,23 @@ class TimelineEventController @Inject constructor(
         var enrichNanos = 0L
         var enrichSkips = 0
         var buildBudgetExhausted = false
-        (0 until modelCache.size).forEach { position ->
+        // Build order is normally newest-first (position 0 = live edge, where a just-sent message sits).
+        // After a jump-to-event, though, the snapshot spans live edge → target and the viewport is at the
+        // target — deep in the list — so newest-first leaves everything around the target unbuilt (invisible)
+        // for dozens of budgeted passes. Build outward from the highlight target, or failing that from the
+        // viewport (fed by the fragment's scroll listener), so the user's area materializes first.
+        val focusIdx = (partialState.highlightedEventId ?: buildFocusEventId)
+                ?.let { id -> currentSnapshot.indexOfFirst { it.eventId == id } }
+                ?.takeIf { it > 0 }
+        val buildOrder = if (focusIdx == null) (0 until modelCache.size).asSequence() else
+            (0 until modelCache.size).sortedBy { kotlin.math.abs(it - focusIdx) }.asSequence()
+        // The small per-pass budget exists so a just-sent message renders fast — a live-edge concern.
+        // With a jump/scroll focus active the user is deep in history and each pass carries a large
+        // fixed cost (interceptor + diff over the whole list), so bigger passes fill the huge
+        // post-jump snapshot several times faster.
+        val maxBuildsThisPass = if (focusIdx == null) MAX_MODEL_BUILDS_PER_PASS else MAX_MODEL_BUILDS_PER_PASS * 6
+        val maxNanosThisPass = if (focusIdx == null) maxBuildNanosPerPass else maxBuildNanosPerPass * 6
+        buildOrder.forEach { position ->
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
             var t0 = if (perfEnabled) System.nanoTime() else 0L
@@ -626,8 +653,12 @@ class TimelineEventController @Inject constructor(
             // Should build if not cached or if model should be refreshed. A placeholder that is no longer
             // collapsed (run expanded) needs a real build; a real model that is now collapsed can stay
             // (getModels hides it anyway) so we don't waste a rebuild switching it to a placeholder.
+            val neighboursChanged = cached != null && !cached.isCollapsedPlaceholder &&
+                    (cached.builtPrevDisplayableId != prevDisplayableEvents[position]?.eventId ||
+                            cached.builtNextDisplayableId != nextDisplayableEvents[position]?.eventId)
             val needsBuild = cached == null || cached.isCacheable(partialState) == false ||
                     reactionListFactory.needsRebuild(event) ||
+                    neighboursChanged ||
                     (cached.isCollapsedPlaceholder && !isCollapsed)
             if (perfEnabled) checkNanos += System.nanoTime() - t0
             if (needsBuild && isCollapsed) {
@@ -647,7 +678,7 @@ class TimelineEventController @Inject constructor(
             // into one item. Deferring it leaves the run's events showing individually until a later pass,
             // which is the compacted<->expanded flicker when more redactions load in.
             if (needsBuild && !isMergedRunStart(event, nextEvent, nextDisplayableEvents[position]) &&
-                    (numberOfEventsToBuild >= MAX_MODEL_BUILDS_PER_PASS || buildNanos >= maxBuildNanosPerPass)) {
+                    (numberOfEventsToBuild >= maxBuildsThisPass || buildNanos >= maxNanosThisPass)) {
                 buildBudgetExhausted = true
                 return@forEach
             }
@@ -795,7 +826,9 @@ class TimelineEventController @Inject constructor(
                 localId = event.localId,
                 eventId = event.root.eventId,
                 eventModel = eventModel,
-                isCacheable = isCacheable
+                isCacheable = isCacheable,
+                builtPrevDisplayableId = params.prevDisplayableEvent?.eventId,
+                builtNextDisplayableId = params.nextDisplayableEvent?.eventId
         )
     }
 
@@ -1039,6 +1072,11 @@ class TimelineEventController @Inject constructor(
             // would be discarded by the collapse, so it's deferred until the run is expanded.
             val isCollapsedPlaceholder: Boolean = false,
             private val isCacheable: Boolean = true,
+            // Displayable neighbours the event model's grouping (isFirst/LastFromThisSender, avatar/name
+            // header) was computed from. A jump target is first built with no context loaded; when its
+            // real neighbours arrive the model must rebuild or it keeps its standalone look.
+            val builtPrevDisplayableId: String? = null,
+            val builtNextDisplayableId: String? = null,
             // Inputs the enrichment step (receipts/day-separator/merged-header models) was computed
             // from, so unchanged events can skip it on subsequent passes.
             val enrichedNextEventId: String? = null,

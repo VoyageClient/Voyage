@@ -16,6 +16,8 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.core.text.toSpannable
+import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.epoxy.EpoxyViewHolder
 import im.vector.app.EmojiSpanify
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.features.html.AttachmentPillSpan
@@ -24,6 +26,7 @@ import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.EvenBetterLinkMovementMethod
 import im.vector.app.core.utils.isValidUrl
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
 import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.app.features.html.PillImageSpan
@@ -146,11 +149,40 @@ private fun SpannableStringBuilder.removeLinksOverEmotes() {
     }
 }
 
+/**
+ * The UrlClickCallback chain doesn't carry which event's text was clicked, but same-room permalink
+ * navigation wants the source message (to offer a jump back to it, like the reply-header jump does).
+ * Recorded here at click time — the last point where the clicked view is still available — and
+ * consumed by the navigation interceptor.
+ */
+object LinkClickSourceHolder {
+    @Volatile private var eventId: String? = null
+    fun record(id: String?) {
+        eventId = id
+    }
+    fun consume(): String? = eventId.also { eventId = null }
+}
+
+private fun View.findContainingTimelineEventId(): String? {
+    var v: View = this
+    while (true) {
+        val parent = v.parent as? View ?: return null
+        if (parent is RecyclerView) {
+            val holder = parent.getChildViewHolder(v) as? EpoxyViewHolder ?: return null
+            return (holder.model as? ItemWithEvents)?.getEventIds()?.firstOrNull()
+        }
+        v = parent
+    }
+}
+
 // Better link movement methods fixes the issue when
 // long pressing to open the context menu on a TextView also triggers an autoLink click.
 fun createLinkMovementMethod(urlClickCallback: TimelineEventController.UrlClickCallback?): EvenBetterLinkMovementMethod {
     return EvenBetterLinkMovementMethod(object : EvenBetterLinkMovementMethod.OnLinkClickListener {
         override fun onLinkClicked(textView: TextView, span: ClickableSpan, url: String, actualText: String): Boolean {
+            // Record before the callback runs: this covers both the handled path and the fallback
+            // where the span's own onClick (e.g. MatrixPermalinkSpan) delivers the url without the view.
+            LinkClickSourceHolder.record(textView.findContainingTimelineEventId())
             // Always return false if the url is not valid, so the EvenBetterLinkMovementMethod can fallback to default click listener.
             return url.isValidUrl() && urlClickCallback?.onUrlClicked(url, actualText) == true
         }

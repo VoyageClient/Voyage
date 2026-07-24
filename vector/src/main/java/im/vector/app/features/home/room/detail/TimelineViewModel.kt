@@ -180,7 +180,9 @@ class TimelineViewModel @AssistedInject constructor(
 
     companion object : MavericksViewModelFactory<TimelineViewModel, RoomDetailViewState> by hiltMavericksViewModelFactory() {
         private const val HIGHLIGHT_TTL_MS = 1500L
+        private const val HIGHLIGHT_SAFETY_TTL_MS = 30_000L
         const val PAGINATION_COUNT = 50
+        const val PAGINATION_COUNT_FORWARD_CATCHUP = 200
 
         // The larger the number the faster the results, COUNT=200 for 500 thread messages its x4 faster than COUNT=50
         const val PAGINATION_COUNT_THREADS_PERMALINK = 200
@@ -953,7 +955,10 @@ private fun handleSelectStickerAttachment() {
 
     private fun handleLoadMore(action: RoomDetailAction.LoadMoreTimelineEvents) {
         if (timeline == null) return
-        timeline.paginate(action.direction, PAGINATION_COUNT)
+        // Forward catch-up after a deep jump can span thousands of events; bigger pages mean far
+        // fewer server round-trips on the way back to the live edge.
+        val count = if (action.direction == Timeline.Direction.FORWARDS) PAGINATION_COUNT_FORWARD_CATCHUP else PAGINATION_COUNT
+        timeline.paginate(action.direction, count)
     }
 
     private fun handleRejectInvite() {
@@ -1032,12 +1037,19 @@ private fun handleSelectStickerAttachment() {
     // later rebinds of the same item don't replay it. Cancel any pending clear first: re-jumping
     // to the SAME event would otherwise get its fresh flash killed by the previous jump's timer
     // (the id-equality guard can't tell the two apart).
-    private fun scheduleHighlightClear(eventId: String) {
+    private fun scheduleHighlightClear(eventId: String, ttlMs: Long = HIGHLIGHT_SAFETY_TTL_MS) {
         highlightClearJob?.cancel()
         highlightClearJob = viewModelScope.launch {
-            delay(HIGHLIGHT_TTL_MS)
+            delay(ttlMs)
             setState { if (highlightedEventId == eventId) copy(highlightedEventId = null) else this }
         }
+    }
+
+    // A jump can take seconds to land (context fetch + model builds); counting the clear from the
+    // click meant the highlight was gone before the target's model ever built, so no flash showed.
+    // The navigate schedules only a long safety clear; the real countdown starts here.
+    fun onJumpToEventLanded() = withState { state ->
+        state.highlightedEventId?.let { scheduleHighlightClear(it, HIGHLIGHT_TTL_MS) }
     }
 
     private fun handleNavigateToEvent(action: RoomDetailAction.NavigateToEvent) {

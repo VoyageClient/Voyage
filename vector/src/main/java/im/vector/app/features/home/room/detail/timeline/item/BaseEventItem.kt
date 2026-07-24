@@ -19,6 +19,7 @@ import android.widget.RelativeLayout
 import androidx.annotation.CallSuper
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.updateLayoutParams
 import com.airbnb.epoxy.EpoxyAttribute
 import im.vector.app.R
@@ -78,23 +79,32 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
             // listeners first so its cleanup can't clear the new flash's background.
             holder.highlightAnimator?.removeAllListeners()
             holder.highlightAnimator?.cancel()
+            holder.highlightAnimator = null
             holder.checkableBackground.alpha = 1f
             val drawable = buildHighlightDrawable(holder.checkableBackground.context)
             holder.checkableBackground.backgroundCompat = drawable
-            // Fade the dedicated background view, not the drawable: LayerDrawable alpha applies to
-            // every layer, so mid-fade the full-width accent layer under the cover layer would
-            // bleed through and paint the whole row accent.
-            holder.highlightAnimator = ObjectAnimator.ofFloat(holder.checkableBackground, View.ALPHA, 1f, 0f).apply {
-                duration = HIGHLIGHT_FADE_MS
-                addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        if (holder.checkableBackground.background === drawable) {
-                            holder.checkableBackground.backgroundCompat = null
-                            holder.checkableBackground.alpha = 1f
+            // Start the fade only once the row is actually drawn: after a jump the model is often
+            // bound during the landing churn (or off-screen prefetch), so a fade started at bind
+            // time can finish before the user ever sees the row.
+            holder.checkableBackground.doOnPreDraw {
+                if (holder.lastFlashKey != flashKey || holder.checkableBackground.background !== drawable) return@doOnPreDraw
+                if (holder.highlightAnimator != null) return@doOnPreDraw
+                // Fade the dedicated background view, not the drawable: LayerDrawable alpha applies to
+                // every layer, so mid-fade the full-width accent layer under the cover layer would
+                // bleed through and paint the whole row accent.
+                holder.highlightAnimator = ObjectAnimator.ofFloat(holder.checkableBackground, View.ALPHA, 1f, 0f).apply {
+                    duration = HIGHLIGHT_FADE_MS
+                    startDelay = HIGHLIGHT_HOLD_MS
+                    addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            if (holder.checkableBackground.background === drawable) {
+                                holder.checkableBackground.backgroundCompat = null
+                                holder.checkableBackground.alpha = 1f
+                            }
                         }
-                    }
-                })
-                start()
+                    })
+                    start()
+                }
             }
         } else {
             holder.lastFlashKey = null
@@ -153,6 +163,10 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
 
     companion object {
         private const val HIGHLIGHT_FADE_MS = 800L
+
+        // Keep the highlight at full strength briefly before fading, so the flash reads as a
+        // deliberate "here it is" even when the landing still shuffles the surrounding rows.
+        private const val HIGHLIGHT_HOLD_MS = 700L
     }
 
     abstract class BaseHolder(@IdRes val stubId: Int) : VectorEpoxyHolder() {

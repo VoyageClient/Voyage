@@ -64,6 +64,13 @@ interface Timeline {
     fun setViewAtLiveEdge(atLiveEdge: Boolean) = Unit
 
     /**
+     * UI hint: the timeline's screen is not visible (backstacked room, app backgrounded). While
+     * paused, snapshot rebuilds are skipped (they'd fight the visible room for the DB thread);
+     * un-pausing performs one catch-up rebuild if anything changed. Optional to implement.
+     */
+    fun setPaused(paused: Boolean) = Unit
+
+    /**
      * Check if the timeline can be enriched by paginating.
      * @param direction the direction to check in
      * @return true if timeline can be enriched
