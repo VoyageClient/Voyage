@@ -86,6 +86,9 @@ class EmojiDrawView @JvmOverloads constructor(
         /** Resolves an emoji glyph to a Twemoji sprite, or null when Twemoji is off / unavailable. */
         var twemojiResolver: ((String) -> Bitmap?)? = null
 
+        /** Spans emoji inside a string with Twemoji sprites (for multi-glyph reactions with no single sprite). */
+        var twemojiSpanify: ((CharSequence) -> CharSequence)? = null
+
         var emojiSize = 40
 
         /** Whether the shared paint has been sized at least once (so a fallback config can skip if so). */

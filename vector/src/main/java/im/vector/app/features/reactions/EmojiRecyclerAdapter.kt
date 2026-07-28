@@ -216,9 +216,9 @@ class EmojiRecyclerAdapter @Inject constructor() :
 
         private fun getStaticLayoutForEmoji(emoji: String): StaticLayout {
             return staticLayoutCache.getOrPut(emoji) {
-                // Process through EmojiCompat so the grid uses the bundled font like the composer does (else
-                // it falls back to the system font). No-op when EmojiCompat isn't loaded (e.g. Twemoji mode).
-                val source = emojiCompatProcess(emoji)
+                // In Twemoji mode a multi-glyph reaction has no single sprite, so span each emoji inside it;
+                // otherwise process through EmojiCompat so the grid uses the bundled font like the composer.
+                val source = EmojiDrawView.twemojiSpanify?.invoke(emoji) ?: emojiCompatProcess(emoji)
                 // Single-line natural width so multi-glyph reactions aren't wrapped/clipped (EmojiDrawView
                 // scales to fit). Measure the PROCESSED source — getDesiredWidth accounts for its spans.
                 val width = kotlin.math.ceil(Layout.getDesiredWidth(source, EmojiDrawView.tPaint)).toInt().coerceAtLeast(EmojiDrawView.emojiSize)
