@@ -146,6 +146,7 @@ class VectorApplication :
             // Twemoji draws emoji from bundled sprites (forced below KitKat, opt-in above) and bypasses
             // EmojiCompat, so don't init it or load its 10MB font. The reaction picker uses the sprites too.
             im.vector.app.features.reactions.EmojiDrawView.twemojiResolver = twemojiProvider::bitmapForEmoji
+            im.vector.app.features.reactions.EmojiDrawView.twemojiSpanify = twemojiProvider::spanify
             Thread { twemojiProvider.warmUp() }.start()
         } else {
             emojiCompatWrapper.init()
