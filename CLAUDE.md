@@ -25,6 +25,13 @@ There are TWO room-list layouts, gated by `SETTINGS_LABS_NEW_APP_LAYOUT_KEY` (`i
 
 Any change to room-list behavior (display, sorting, refresh, item rendering) MUST be implemented for BOTH paths, or it will silently do nothing on whichever layout the user runs. Don't assume one layout.
 
+# Versioning
+
+The app version lives in TWO places that must both be bumped in sync:
+
+- `vector-app/build.gradle` — `ext.versionPatch` (with `versionMajor`/`versionMinor` above it). Max 2 digits per field. Even patch values are regular releases, odd are hotfixes.
+- `matrix-sdk-android/build.gradle` — the `SDK_VERSION` buildConfigField string (e.g. `"1.6.62"`).
+
 # Building
 
 Two install variants:
