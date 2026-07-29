@@ -28,6 +28,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -35,12 +36,14 @@ internal class DraftRepository @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
+        private val previewInvalidation: RoomSummaryPreviewInvalidation,
 ) {
     suspend fun saveDraft(roomId: String, userDraft: UserDraft) {
         database.awaitDbTransaction(dispatcher) {
             if (userDraft.isValid()) {
                 Timber.d("Draft: create a new draft")
                 stores.draft.replaceDrafts(roomId, listOf(DraftMapper.map(userDraft)))
+                invalidateRoomSummary(roomId)
             } else {
                 // Composer cleared: pop the top draft if any.
                 val current = stores.draft.getDrafts(roomId)
@@ -49,6 +52,7 @@ internal class DraftRepository @Inject constructor(
                 } else {
                     Timber.d("Draft: remove the top draft")
                     stores.draft.replaceDrafts(roomId, current.dropLast(1))
+                    invalidateRoomSummary(roomId)
                 }
             }
         }
@@ -57,7 +61,14 @@ internal class DraftRepository @Inject constructor(
     suspend fun deleteDraft(roomId: String) {
         database.awaitDbTransaction(dispatcher) {
             stores.draft.deleteDrafts(roomId)
+            invalidateRoomSummary(roomId)
         }
+    }
+
+    // Drafts are a separate table; nudge room_summary so the room list drops the stale draft badge.
+    private fun invalidateRoomSummary(roomId: String) {
+        previewInvalidation.onPreviewChanged(roomId)
+        stores.roomSummary.touch(roomId)
     }
 
     fun getDraft(roomId: String): UserDraft? =
