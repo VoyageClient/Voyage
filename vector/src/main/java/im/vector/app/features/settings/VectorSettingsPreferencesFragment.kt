@@ -162,6 +162,11 @@ class VectorSettingsPreferencesFragment :
             }
         }
 
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_UGLIER_USERNAME_COLORS_KEY)?.setOnPreferenceChangeListener { _, _ ->
+            (activity as? VectorBaseActivity<*>)?.acknowledgeConfigurationChange()
+            true
+        }
+
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PERFORMANCE_MODE_KEY)?.setOnPreferenceChangeListener { _, newValue ->
             // Update the runtime mirror so new binds pick it up without a restart.
             val performanceMode = newValue as Boolean
