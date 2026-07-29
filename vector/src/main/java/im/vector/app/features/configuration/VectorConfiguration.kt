@@ -12,8 +12,10 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
 import androidx.annotation.RequiresApi
+import androidx.preference.PreferenceManager
 import im.vector.app.features.settings.FontScalePreferences
 import im.vector.app.features.settings.VectorLocaleProvider
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import timber.log.Timber
 import java.util.Locale
@@ -112,6 +114,8 @@ class VectorConfiguration @Inject constructor(
         return (vectorLocale.applicationLocale.toString() +
                 "_" + fontScalePreferences.getResolvedFontScaleValue().preferenceValue +
                 "_" + ThemeUtils.getApplicationTheme(context) +
-                "_" + ThemeUtils.getApplicationThemeAccent(context))
+                "_" + ThemeUtils.getApplicationThemeAccent(context) +
+                "_" + PreferenceManager.getDefaultSharedPreferences(context)
+                .getBoolean(VectorPreferences.SETTINGS_UGLIER_USERNAME_COLORS_KEY, false))
     }
 }
