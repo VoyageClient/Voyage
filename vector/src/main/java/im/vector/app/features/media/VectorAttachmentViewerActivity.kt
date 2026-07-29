@@ -78,6 +78,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private val viewModel: VectorAttachmentViewerViewModel by viewModel()
     private val errorFormatter by lazy(LazyThreadSafetyMode.NONE) { singletonEntryPoint().errorFormatter() }
     private var initialIndex = 0
+    // Restored from saved state (e.g. after process death) so we reopen on the page the user was viewing, not the first one.
+    private var restoredPosition = -1
     private var isAnimatingOut = false
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
     private var providerInstalled = false
@@ -102,6 +104,8 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         ThemeUtils.setActivityTheme(this, getOtherThemes())
 
         val args = args() ?: throw IllegalArgumentException("Missing arguments")
+
+        restoredPosition = savedInstanceState?.getInt(STATE_CURRENT_POSITION, -1) ?: -1
 
         // Opened without a shared element (avatar/banner taps): close with the same page cross-fade.
         // Pre-34 this is done with overridePendingTransition right after finishing, see applyPageExitAnimation().
@@ -149,10 +153,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         val room = args.roomId?.let { session.getRoom(it) }
 
         val inMemoryData = intent.getParcelableArrayListExtraCompat<AttachmentData>(EXTRA_IN_MEMORY_DATA)
-        val isFirstCreation = savedInstanceState == null
         if (inMemoryData != null) {
             initialIndex = inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
-            installSourceProvider(dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope), setCurrentItem = isFirstCreation)
+            installSourceProvider(dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope))
         } else {
             lifecycleScope.launch {
                 val events = withContext(Dispatchers.IO) {
@@ -166,14 +169,14 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 }
                 if (index != -1) {
                     initialIndex = index
-                    installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope), setCurrentItem = isFirstCreation)
+                    installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope))
                 } else {
                     // Tapped event missing from the room's media list (e.g. a still-sending echo):
                     // show it alone rather than landing on an unrelated first entry.
                     val tappedItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
                     if (tappedItem != null) {
                         initialIndex = 0
-                        installSourceProvider(dataSourceFactory.createProvider(listOf(tappedItem), room, lifecycleScope), setCurrentItem = isFirstCreation)
+                        installSourceProvider(dataSourceFactory.createProvider(listOf(tappedItem), room, lifecycleScope))
                     }
                 }
             }
@@ -189,22 +192,27 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         observeViewEvents()
     }
 
-    private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>, setCurrentItem: Boolean) {
+    private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>) {
         sourceProvider.interactionListener = this
         sourceProvider.showOverlayCounter = args()?.standalonePreview != true
         setSourceProvider(sourceProvider)
         currentSourceProvider = sourceProvider
         providerInstalled = true
-        if (setCurrentItem) {
-            pager2.setCurrentItem(initialIndex, false)
-            pager2.post {
-                onSelectedPositionChanged(initialIndex)
-            }
+        val lastIndex = (sourceProvider.getItemCount() - 1).coerceAtLeast(0)
+        val targetPosition = (if (restoredPosition >= 0) restoredPosition else initialIndex).coerceIn(0, lastIndex)
+        pager2.setCurrentItem(targetPosition, false)
+        pager2.post {
+            onSelectedPositionChanged(targetPosition)
         }
         if (handoffPending) {
             handoffPending = false
             handOffToPager()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_CURRENT_POSITION, currentPosition)
     }
 
     override fun onResume() {
@@ -439,6 +447,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         private const val EXTRA_ARGS = "EXTRA_ARGS"
         private const val EXTRA_IMAGE_DATA = "EXTRA_IMAGE_DATA"
         private const val EXTRA_IN_MEMORY_DATA = "EXTRA_IN_MEMORY_DATA"
+        private const val STATE_CURRENT_POSITION = "STATE_CURRENT_POSITION"
         private const val POSTPONED_TRANSITION_TIMEOUT_MS = 150L
         private const val DEFAULT_TRANSITION_MS = 300L
 
