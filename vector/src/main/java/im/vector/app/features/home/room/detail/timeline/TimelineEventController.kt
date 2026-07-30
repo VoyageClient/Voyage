@@ -112,6 +112,9 @@ class TimelineEventController @Inject constructor(
         private val maxBuildNanosPerPass: Long
             get() = if (PerformanceMode.enabled) 250_000_000L else 500_000_000L
 
+        // Budget for the pass that paints a room's first frame: about a screenful, not the whole window.
+        private const val FIRST_PAINT_BUILD_NANOS = 150_000_000L
+
         // Builds faster than this are "cheap" (hidden/redacted/notice items) and don't count against the
         // per-pass count cap — the time budget bounds them instead.
         private const val EXPENSIVE_BUILD_NANOS = 4_000_000L
@@ -247,6 +250,8 @@ class TimelineEventController @Inject constructor(
     private val timelineEventsGroups = TimelineEventsGroups()
     private val readReceiptsCache = ReadReceiptsCache()
     private val modelCache = arrayListOf<CacheItemData?>()
+    // A pass hit its budget with events left to build; see addWhenLoading.
+    @Volatile private var hasUnbuiltEvents = false
     // Per-snapshot O(n) work (reverse preprocess, displayable-neighbour arrays, receipts) is identical across
     // the multiple budget-limited build passes over one snapshot; recomputing it each pass was the bulk of the
     // per-pass cost on a big (e.g. redaction-heavy) window. Cache it, keyed on the snapshot + partial-state
@@ -640,8 +645,19 @@ class TimelineEventController @Inject constructor(
         // With a jump/scroll focus active the user is deep in history and each pass carries a large
         // fixed cost (interceptor + diff over the whole list), so bigger passes fill the huge
         // post-jump snapshot several times faster.
-        val maxBuildsThisPass = if (focusIdx == null) MAX_MODEL_BUILDS_PER_PASS else MAX_MODEL_BUILDS_PER_PASS * 6
-        val maxNanosThisPass = if (focusIdx == null) maxBuildNanosPerPass else maxBuildNanosPerPass * 6
+        // Nothing painted yet (room open): building the whole window first costs ~35ms a message of blank
+        // screen, and everything past the first screenful is invisible anyway.
+        val nothingOnScreenYet = modelCache.none { it?.eventModel != null }
+        val maxBuildsThisPass = when {
+            focusIdx != null -> MAX_MODEL_BUILDS_PER_PASS * 6
+            nothingOnScreenYet -> MAX_MODEL_BUILDS_PER_PASS / 4
+            else -> MAX_MODEL_BUILDS_PER_PASS
+        }
+        val maxNanosThisPass = when {
+            focusIdx != null -> maxBuildNanosPerPass * 6
+            nothingOnScreenYet -> FIRST_PAINT_BUILD_NANOS
+            else -> maxBuildNanosPerPass
+        }
         buildOrder.forEach { position ->
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
@@ -727,6 +743,7 @@ class TimelineEventController @Inject constructor(
             }
             modelCache[position] = enriched
         }
+        hasUnbuiltEvents = buildBudgetExhausted
         if (buildBudgetExhausted) {
             // Cannot request from inside buildModels; queue it behind this pass on the same handler.
             backgroundHandler.post { requestDelayedModelBuild(0) }
@@ -1010,7 +1027,10 @@ class TimelineEventController @Inject constructor(
      */
     private fun LoadingItem_.addWhenLoading(direction: Timeline.Direction): Boolean {
         val host = this@TimelineEventController
-        val shouldAdd = host.timeline?.hasMoreToLoad(direction) ?: false
+        // With events still unbuilt the list is shorter than what is loaded, so this loader would sit on
+        // screen requesting history the timeline hasn't rendered yet.
+        val shouldAdd = (host.timeline?.hasMoreToLoad(direction) ?: false) &&
+                !(direction == Timeline.Direction.BACKWARDS && host.hasUnbuiltEvents)
         addIf(shouldAdd, host)
         return shouldAdd
     }
