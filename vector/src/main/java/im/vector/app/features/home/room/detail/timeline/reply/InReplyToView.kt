@@ -18,10 +18,8 @@
 package im.vector.app.features.home.room.detail.timeline.reply
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.format.DateUtils
@@ -61,8 +59,6 @@ import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import timber.log.Timber
-import kotlin.math.roundToInt
-import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * A View to render a replied-to event.
@@ -165,7 +161,7 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.isVisible = true
         views.replyRichContainer.isVisible = false
         views.replyRichContainer.removeAllViews()
-        renderFadeOut(null)
+        views.expandableReplyView.setExpanded(true)
     }
 
     private fun renderHidden() {
@@ -214,7 +210,7 @@ class InReplyToView @JvmOverloads constructor(
         if (state.event.root.isRedacted()) {
             renderRedacted()
         } else {
-            renderFadeOut(roomInformationData)
+            views.expandableReplyView.setExpanded(false)
             // PGP: show the decrypted plaintext for the quoted message, like the timeline.
             val pgpPlain = (state.event.getLastMessageContent() as? MessageContentWithFormattedBody)
                     ?.let { retriever.pgpDecryptor.peekDecryptedBody(it.body) }
@@ -445,66 +441,5 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.isVisible = true
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
         views.replyTextView.text = attachmentPreviewText(context, iconRes, label.orEmpty())
-    }
-
-    /**
-     * @param informationData The information data of the parent message, for background fade rendering info. Null to force expand to full height.
-     */
-    private fun renderFadeOut(informationData: MessageInformationData?) {
-        if (informationData != null) {
-            views.expandableReplyView.setExpanded(false)
-            val chatBgColor = ThemeUtils.getColor(context, android.R.attr.colorBackground)
-            val bgColor = when (val layout = informationData.messageLayout) {
-                is TimelineMessageLayout.ScBubble -> {
-                    if (informationData.sentByMe && !layout.singleSidedLayout) {
-                        ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.sc_message_bg_outgoing)
-                    } else {
-                        ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.sc_message_bg_incoming)
-                    }
-                }
-                is TimelineMessageLayout.Bubble -> {
-                    if (layout.isPseudoBubble) {
-                        0
-                    } else {
-                        val backgroundColorAttr = if (informationData.sentByMe) {
-                            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound
-                        } else {
-                            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound
-                        }
-                        ThemeUtils.getColor(context, backgroundColorAttr)
-                    }
-                }
-                is TimelineMessageLayout.Default -> {
-                    // Non-bubble: the text sits directly on the chat background, so fade into it for
-                    // a clean dissolve rather than a mismatched coloured glow.
-                    chatBgColor
-                }
-            }
-            val fadeView = views.expandableReplyView.getChildAt(1)
-            // A real two-stop transparent->bg gradient (top transparent, bottom opaque) gives a
-            // gradual fade; for transparent bubbles we resolve the effective colour over the chat bg.
-            val effective = calculateEffectiveColor(bgColor, chatBgColor)
-            fadeView.backgroundCompat = GradientDrawable(
-                    GradientDrawable.Orientation.TOP_BOTTOM,
-                    intArrayOf(Color.TRANSPARENT, effective)
-            )
-        } else {
-            views.expandableReplyView.setExpanded(true)
-        }
-    }
-
-    /**
-     * In case of transparent bubbles, we need to calculate the effective color before applying the fade effect.
-     */
-    private fun calculateEffectiveColor(fg: Int, bg: Int): Int {
-        val fgAlpha = Color.alpha(fg)
-        if (fgAlpha == 0xff) {
-            return fg
-        }
-        val opacity = fgAlpha / (0xff).toFloat()
-        val r = (Color.red(bg) * (1 - opacity) + Color.red(fg) * opacity).roundToInt()
-        val g = (Color.green(bg) * (1 - opacity) + Color.green(fg) * opacity).roundToInt()
-        val b = (Color.blue(bg) * (1 - opacity) + Color.blue(fg) * opacity).roundToInt()
-        return Color.rgb(r, g, b)
     }
 }

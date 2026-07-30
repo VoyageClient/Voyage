@@ -92,7 +92,6 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/reply_fade_out_height"
-                android:background="@drawable/bg_expandable_edge_shadow"
                 android:layout_gravity="bottom" />
         </com.ruesga.rview.widget.ExpandableViewLayout>
 

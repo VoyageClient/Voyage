@@ -6,9 +6,7 @@
  */
 package im.vector.app.core.epoxy.bottomsheet
 
-import android.graphics.Color
 import android.graphics.Outline
-import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.text.method.MovementMethod
 import android.util.TypedValue
@@ -32,6 +30,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.views.RoundedCornerImageView
+import im.vector.app.core.utils.nonScrolling
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.action.LocationUiData
@@ -45,7 +44,6 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.util.MatrixItem
-import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * A message preview for bottom sheet.
@@ -131,16 +129,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
             }
         }
         holder.imagePreview.isVisible = data != null
-        // Fade the capped preview into the bottom sheet's surface background, matching the reply
-        // header / composer previews, rather than clipping with a trailing ellipsis.
-        if (holder.bodyFade.background == null) {
-            val surfaceColor = ThemeUtils.getColor(holder.bodyFade.context, com.google.android.material.R.attr.colorSurface)
-            holder.bodyFade.backgroundCompat = GradientDrawable(
-                    GradientDrawable.Orientation.TOP_BOTTOM,
-                    intArrayOf(Color.TRANSPARENT, surfaceColor)
-            )
-        }
-        holder.body.movementMethod = movementMethod
+        holder.body.movementMethod = movementMethod?.nonScrolling()
         // The bottom-sheet theme tree doesn't inherit the app theme's textColorHighlight, so give a pressed
         // link a translucent tint matching the link colour here instead of Material's stray teal default.
         holder.body.highlightColor = ColorUtils.setAlphaComponent(
@@ -204,7 +193,6 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         val sender by bind<TextView>(R.id.bottom_sheet_message_preview_sender)
         val body by bind<TextView>(R.id.bottom_sheet_message_preview_body)
         val richBody by bind<LinearLayout>(R.id.bottom_sheet_message_preview_rich_body)
-        val bodyFade by bind<View>(R.id.bottom_sheet_message_preview_fade)
         val bodyDetails by bind<TextView>(R.id.bottom_sheet_message_preview_body_details)
         val timestamp by bind<TextView>(R.id.bottom_sheet_message_preview_timestamp)
         val imagePreview by bind<RoundedCornerImageView>(R.id.bottom_sheet_message_preview_image)

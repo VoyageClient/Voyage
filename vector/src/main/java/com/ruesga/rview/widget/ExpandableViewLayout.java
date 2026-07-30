@@ -18,6 +18,13 @@ package com.ruesga.rview.widget;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Shader;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -36,6 +43,8 @@ public class ExpandableViewLayout extends FrameLayout {
     private boolean mAllowExpand;
     private View mExpandableControl;
     private int mChildViewHeight;
+    private Paint mFadePaint;
+    private int mFadeShaderHeight;
 
     public ExpandableViewLayout(Context context) {
         this(context, null);
@@ -105,6 +114,35 @@ public class ExpandableViewLayout extends FrameLayout {
             heightMeasureSpec = MeasureSpec.makeMeasureSpec(mMaxHeight, MeasureSpec.AT_MOST);
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        final int fadeHeight = mExpandableControl.getVisibility() == View.VISIBLE
+                ? mExpandableControl.getHeight() : 0;
+        if (fadeHeight <= 0) {
+            super.dispatchDraw(canvas);
+            return;
+        }
+
+        // Erase the capped content's alpha rather than painting a gradient of the assumed background
+        // over it, which glows whenever the real backdrop differs (bubble, highlight flash, sheet).
+        final int top = getHeight() - fadeHeight;
+        if (mFadePaint == null) {
+            mFadePaint = new Paint();
+            mFadePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
+        }
+        if (mFadeShaderHeight != fadeHeight) {
+            mFadeShaderHeight = fadeHeight;
+            mFadePaint.setShader(new LinearGradient(
+                    0, 0, 0, fadeHeight, Color.TRANSPARENT, Color.BLACK, Shader.TileMode.CLAMP));
+        }
+
+        final int saveCount = canvas.saveLayer(0, 0, getWidth(), getHeight(), null, Canvas.ALL_SAVE_FLAG);
+        super.dispatchDraw(canvas);
+        canvas.translate(0, top);
+        canvas.drawRect(0, 0, getWidth(), fadeHeight, mFadePaint);
+        canvas.restoreToCount(saveCount);
     }
 
     private void setExpandableControlVisibility() {
