@@ -573,11 +573,6 @@ interface MiscMavericksViewModelModule {
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.usercode.UserCodeSharedViewModel")
-    fun vm23(factory: im.vector.app.features.usercode.UserCodeSharedViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.userdirectory.UserListViewModel")
     fun vm24(factory: im.vector.app.features.userdirectory.UserListViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 

@@ -31,11 +31,9 @@ import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.showIdentityServerConsentDialog
-import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentUserListBinding
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.settings.VectorSettingsActivity
-import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -88,16 +86,6 @@ class UserListFragment :
 
         viewModel.observeViewEvents {
             when (it) {
-                is UserListViewEvents.OpenShareMatrixToLink -> {
-                    val text = getString(CommonStrings.invite_friends_text, it.link)
-                    startSharePlainTextIntent(
-                            context = requireContext(),
-                            activityResultLauncher = null,
-                            chooserTitle = getString(CommonStrings.invite_friends),
-                            text = text,
-                            extraTitle = getString(CommonStrings.invite_friends_rich_title)
-                    )
-                }
                 is UserListViewEvents.Failure -> showFailure(it.throwable)
                 is UserListViewEvents.OnPoliciesRetrieved -> showConsentDialog(it)
             }
@@ -193,10 +181,6 @@ class UserListFragment :
 
     fun getCurrentState() = withState(viewModel) { it }
 
-    override fun onInviteFriendClick() {
-        viewModel.handle(UserListAction.ComputeMatrixToLinkForSharing)
-    }
-
     override fun onContactBookClick() {
         sharedActionViewModel.post(UserListSharedAction.OpenPhoneBook)
     }
@@ -237,10 +221,5 @@ class UserListFragment :
                 event.identityServerWithTerms,
                 consentCallBack = { viewModel.handle(UserListAction.UpdateUserConsent(true)) }
         )
-    }
-
-    override fun onUseQRCode() {
-        view?.hideKeyboard()
-        sharedActionViewModel.post(UserListSharedAction.AddByQrCode)
     }
 }

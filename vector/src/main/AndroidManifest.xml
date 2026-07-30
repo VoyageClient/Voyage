@@ -307,7 +307,6 @@
             android:screenOrientation="locked"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
         <activity android:name=".features.home.room.detail.search.SearchActivity" />
-        <activity android:name=".features.usercode.UserCodeActivity" />
 
         <!-- Single instance is very important for the custom scheme callback-->
         <activity

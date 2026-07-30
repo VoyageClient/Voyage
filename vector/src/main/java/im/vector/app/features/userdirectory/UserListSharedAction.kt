@@ -14,5 +14,4 @@ sealed class UserListSharedAction : VectorSharedAction {
     object GoBack : UserListSharedAction()
     data class OnMenuItemSubmitClick(val selections: Set<PendingSelection>) : UserListSharedAction()
     object OpenPhoneBook : UserListSharedAction()
-    object AddByQrCode : UserListSharedAction()
 }

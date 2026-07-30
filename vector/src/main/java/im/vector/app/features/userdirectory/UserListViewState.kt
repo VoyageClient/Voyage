@@ -27,7 +27,6 @@ data class UserListViewState(
         val single3pidSelection: Boolean,
         val isE2EByDefault: Boolean = false,
         val configuredIdentityServer: String? = null,
-        private val showInviteActions: Boolean,
         val showContactBookAction: Boolean
 ) : MavericksState {
 
@@ -35,7 +34,6 @@ data class UserListViewState(
             excludedUserIds = args.excludedUserIds,
             singleSelection = args.singleSelection,
             single3pidSelection = args.single3pidSelection,
-            showInviteActions = args.showInviteActions,
             showContactBookAction = args.showContactBookAction
     )
 
@@ -49,5 +47,4 @@ data class UserListViewState(
                 }
     }
 
-    fun showInviteActions() = showInviteActions && pendingSelections.isEmpty()
 }

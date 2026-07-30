@@ -63,16 +63,6 @@ class UserListController @Inject constructor(
 
         // Build generic items
         if (currentState.searchTerm.isBlank()) {
-            if (currentState.showInviteActions()) {
-                actionItem {
-                    id(R.drawable.ic_share)
-                    title(host.stringProvider.getString(CommonStrings.invite_friends))
-                    actionIconRes(R.drawable.ic_share)
-                    clickAction {
-                        host.callback?.onInviteFriendClick()
-                    }
-                }
-            }
             if (currentState.showContactBookAction) {
                 actionItem {
                     id(R.drawable.ic_baseline_perm_contact_calendar_24)
@@ -80,16 +70,6 @@ class UserListController @Inject constructor(
                     actionIconRes(R.drawable.ic_baseline_perm_contact_calendar_24)
                     clickAction {
                         host.callback?.onContactBookClick()
-                    }
-                }
-            }
-            if (currentState.showInviteActions()) {
-                actionItem {
-                    id(R.drawable.ic_qr_code_add)
-                    title(host.stringProvider.getString(CommonStrings.qr_code))
-                    actionIconRes(R.drawable.ic_qr_code_add)
-                    clickAction {
-                        host.callback?.onUseQRCode()
                     }
                 }
             }
@@ -312,9 +292,7 @@ class UserListController @Inject constructor(
     }
 
     interface Callback {
-        fun onInviteFriendClick()
         fun onContactBookClick()
-        fun onUseQRCode()
         fun onItemClick(user: User)
         fun onMatrixIdClick(matrixId: String)
         fun onThreePidClick(threePid: ThreePid)

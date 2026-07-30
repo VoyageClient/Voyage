@@ -11,7 +11,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Fail
@@ -26,15 +25,10 @@ import im.vector.app.core.extensions.addFragmentToBackstack
 import im.vector.app.core.platform.SimpleFragmentActivity
 import im.vector.app.core.platform.WaitingViewData
 import im.vector.app.core.utils.PERMISSIONS_FOR_MEMBERS_SEARCH
-import im.vector.app.core.utils.PERMISSIONS_FOR_TAKING_PHOTO
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedSnackbar
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.features.contactsbook.ContactsBookFragment
-import im.vector.app.features.qrcode.QrCodeScannerEvents
-import im.vector.app.features.qrcode.QrCodeScannerFragment
-import im.vector.app.features.qrcode.QrCodeScannerViewModel
-import im.vector.app.features.qrcode.QrScannerArgs
 import im.vector.app.features.userdirectory.PendingSelection
 import im.vector.app.features.userdirectory.UserListFragment
 import im.vector.app.features.userdirectory.UserListFragmentArgs
@@ -51,7 +45,6 @@ import java.net.HttpURLConnection
 class CreateDirectRoomActivity : SimpleFragmentActivity() {
 
     private val viewModel: CreateDirectRoomViewModel by viewModel()
-    private val qrViewModel: QrCodeScannerViewModel by viewModel()
 
     private lateinit var sharedActionViewModel: UserListSharedActionViewModel
 
@@ -69,7 +62,6 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
                         UserListSharedAction.GoBack -> onBackPressed()
                         is UserListSharedAction.OnMenuItemSubmitClick -> handleOnMenuItemSubmitClick(action)
                         UserListSharedAction.OpenPhoneBook -> openPhoneBook()
-                        UserListSharedAction.AddByQrCode -> openAddByQrCode()
                     }
                 }
                 .launchIn(lifecycleScope)
@@ -88,39 +80,6 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
         viewModel.onEach(CreateDirectRoomViewState::createAndInviteState) {
             renderCreateAndInviteState(it)
         }
-
-        viewModel.observeViewEvents {
-            when (it) {
-                CreateDirectRoomViewEvents.InvalidCode -> {
-                    Toast.makeText(this, CommonStrings.invalid_qr_code_uri, Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-                CreateDirectRoomViewEvents.DmSelf -> {
-                    Toast.makeText(this, CommonStrings.cannot_dm_self, Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            }
-        }
-
-        qrViewModel.observeViewEvents {
-            when (it) {
-                is QrCodeScannerEvents.CodeParsed -> {
-                    viewModel.handle(CreateDirectRoomAction.QrScannedAction(it.result))
-                }
-                is QrCodeScannerEvents.ParseFailed -> {
-                    Toast.makeText(this, CommonStrings.qr_code_not_scanned, Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-                else -> Unit
-            }
-        }
-    }
-
-    private fun openAddByQrCode() {
-        if (checkPermissions(PERMISSIONS_FOR_TAKING_PHOTO, this, permissionCameraLauncher)) {
-            val args = QrScannerArgs(showExtraButtons = false, CommonStrings.add_by_qr_code)
-            addFragment(views.container, QrCodeScannerFragment::class.java, args)
-        }
     }
 
     private fun openPhoneBook() {
@@ -135,15 +94,6 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
             doOnPostResume { addFragmentToBackstack(views.container, ContactsBookFragment::class.java) }
         } else if (deniedPermanently) {
             onPermissionDeniedSnackbar(CommonStrings.permissions_denied_add_contact)
-        }
-    }
-
-    private val permissionCameraLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
-        if (allGranted) {
-            val args = QrScannerArgs(showExtraButtons = false, CommonStrings.add_by_qr_code)
-            addFragment(views.container, QrCodeScannerFragment::class.java, args)
-        } else if (deniedPermanently) {
-            onPermissionDeniedSnackbar(CommonStrings.permissions_denied_qr_code)
         }
     }
 

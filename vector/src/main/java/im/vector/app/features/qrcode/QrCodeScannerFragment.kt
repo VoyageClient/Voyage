@@ -30,7 +30,6 @@ import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.databinding.FragmentQrCodeScannerBinding
-import im.vector.app.features.usercode.QRCodeBitmapDecodeHelper
 import im.vector.lib.multipicker.MultiPicker
 import im.vector.lib.multipicker.utils.ImageUtils
 import im.vector.lib.strings.CommonStrings

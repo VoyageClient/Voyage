@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
+import im.vector.app.core.extensions.copyOnLongClick
+import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.features.home.AvatarRenderer
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -105,6 +107,11 @@ class AccountSwitcherAdapter(
             }
             displayName.text = (entry.displayName?.takeIf { it.isNotBlank() } ?: entry.userId).prepareForDisplay()
             userId.text = entry.homeServerHost?.let { "${entry.userId} — $it" } ?: entry.userId
+            // Copy the bare MXID, not the disambiguating homeserver suffix rendered next to it.
+            userId.setCopySource(entry.userId)
+            userId.copyOnLongClick()
+            // Long-clickable children swallow taps, so the row's click has to be repeated here.
+            userId.throttledClicks { onAccountClick(entry) }
             activeMark.isVisible = entry.isActive
             logout.isVisible = !entry.isActive
             itemView.throttledClicks { onAccountClick(entry) }
