@@ -76,6 +76,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY = "SETTINGS_SHOW_PINNED_MESSAGES_BANNER_KEY"
         const val SETTINGS_QUICK_REACTIONS_KEY = "SETTINGS_QUICK_REACTIONS_KEY"
         const val SETTINGS_COMPACT_QUICK_REACTIONS_KEY = "SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
+        private const val SETTINGS_QUICK_REACTIONS_SYNCED_KEY = "SETTINGS_QUICK_REACTIONS_SYNCED_KEY"
         const val SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY = "SETTINGS_ALLOW_URL_PREVIEW_IN_ENCRYPTED_ROOM_KEY"
         const val SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD = "SETTINGS_OPEN_CHATS_AT_FIRST_UNREAD"
         const val SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS = "SETTINGS_SPACE_MEMBERS_IN_SPACE_ROOMS"
@@ -1438,14 +1439,29 @@ class VectorPreferences @Inject constructor(
     }
 
     /**
-     * Reactions shown in the message long-press quick-reaction row, in order. Stored whitespace-separated.
-     * A missing key falls back to the built-in defaults; an explicitly-set empty value means the user removed
-     * them all (so the row is hidden) — that's why empty and unset are kept distinct.
+     * Local mirror of the account-wide quick reactions (see QuickReactionsDataSource), stored whitespace-separated.
+     * A missing key means the built-in defaults, an explicitly-set empty value means the user removed them all
+     * (so the row is hidden) — that's why empty and unset are kept distinct.
      */
     fun getQuickReactions(): List<String> {
         val raw = defaultPrefs.getString(SETTINGS_QUICK_REACTIONS_KEY, null)
                 ?: return EmojiDataSource.quickEmojis
         return raw.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+    }
+
+    fun hasQuickReactionsOverride(): Boolean {
+        return defaultPrefs.contains(SETTINGS_QUICK_REACTIONS_KEY)
+    }
+
+    /** Whether the mirror has ever been reconciled with the account, i.e. whether an unset key can be trusted. */
+    fun hasSyncedQuickReactions(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_QUICK_REACTIONS_SYNCED_KEY, false)
+    }
+
+    fun setQuickReactionsSynced() {
+        defaultPrefs.edit {
+            putBoolean(SETTINGS_QUICK_REACTIONS_SYNCED_KEY, true)
+        }
     }
 
     fun setQuickReactions(reactions: List<String>) {
