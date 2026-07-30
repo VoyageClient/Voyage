@@ -12,6 +12,7 @@
         android:id="@+id/homeDrawerHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingBottom="12dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -42,7 +43,7 @@
             android:singleLine="true"
             android:textColor="?vctr_content_primary"
             app:layout_constraintBottom_toTopOf="@id/homeDrawerUserIdView"
-            app:layout_constraintEnd_toStartOf="@id/homeDrawerAccountSwitcherToggle"
+            app:layout_constraintEnd_toStartOf="@id/homeDrawerHeaderDebugView"
             app:layout_constraintStart_toEndOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintTop_toTopOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintVertical_chainStyle="packed"
@@ -60,7 +61,7 @@
             android:singleLine="true"
             android:textColor="?vctr_content_secondary"
             app:layout_constraintBottom_toBottomOf="@id/homeDrawerHeaderAvatarView"
-            app:layout_constraintEnd_toStartOf="@id/homeDrawerAccountSwitcherToggle"
+            app:layout_constraintEnd_toStartOf="@id/homeDrawerHeaderDebugView"
             app:layout_constraintStart_toStartOf="@id/homeDrawerUsernameView"
             app:layout_constraintTop_toBottomOf="@id/homeDrawerUsernameView"
             tools:text="@sample/users.json/data/id" />
@@ -71,7 +72,6 @@
             android:layout_height="@dimen/layout_touch_size"
             android:layout_marginEnd="4dp"
             android:layout_marginRight="4dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/account_switcher_toggle_description"
             android:scaleType="center"
             app:srcCompat="@drawable/ic_expand_more"
@@ -81,37 +81,21 @@
             app:tint="?vctr_content_tertiary"
             tools:ignore="MissingPrefix" />
 
-        <Button
-            android:id="@+id/homeDrawerInviteFriendButton"
-            style="@style/Widget.Vector.Button.Text"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:gravity="center"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:padding="0dp"
-            android:text="@string/invite_friends"
-            android:textAllCaps="false"
-            app:icon="@drawable/ic_share"
-            app:iconGravity="textStart"
-            app:iconSize="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@id/homeDrawerHeaderAvatarView"
-            app:layout_constraintTop_toBottomOf="@id/homeDrawerHeaderAvatarView"
-            tools:ignore="MissingPrefix" />
-
         <ImageView
             android:id="@+id/homeDrawerHeaderDebugView"
             style="@style/VectorDebug"
             android:layout_width="@dimen/layout_touch_size"
             android:layout_height="@dimen/layout_touch_size"
+            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:importantForAccessibility="no"
+            android:paddingStart="28dp"
+            android:paddingLeft="28dp"
             android:scaleType="center"
             app:srcCompat="@drawable/ic_settings_x"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/homeDrawerAccountSwitcherToggle"
+            app:layout_constraintEnd_toStartOf="@id/homeDrawerAccountSwitcherToggle"
+            app:layout_constraintTop_toTopOf="@id/homeDrawerAccountSwitcherToggle"
             app:tint="?colorPrimary"
             tools:ignore="MissingPrefix" />
 

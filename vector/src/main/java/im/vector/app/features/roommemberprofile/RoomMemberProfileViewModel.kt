@@ -201,7 +201,6 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             is RoomMemberProfileAction.RetryFetchingInfo -> handleRetryFetchProfileInfo()
             is RoomMemberProfileAction.IgnoreUser -> handleIgnoreAction()
             is RoomMemberProfileAction.VerifyUser -> prepareVerification()
-            is RoomMemberProfileAction.ShareRoomMemberProfile -> handleShareRoomMemberProfile()
             is RoomMemberProfileAction.SetPowerLevel -> handleSetPowerLevel(action)
             is RoomMemberProfileAction.BanOrUnbanUser -> handleBanOrUnbanAction(action)
             is RoomMemberProfileAction.KickUser -> handleKickAction(action)
@@ -503,12 +502,6 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 RoomMemberProfileViewEvents.Failure(failure)
             }
             _viewEvents.post(event)
-        }
-    }
-
-    private fun handleShareRoomMemberProfile() {
-        session.permalinkService().createPermalink(initialState.userId)?.let { permalink ->
-            _viewEvents.post(RoomMemberProfileViewEvents.ShareRoomMemberProfile(permalink))
         }
     }
 }

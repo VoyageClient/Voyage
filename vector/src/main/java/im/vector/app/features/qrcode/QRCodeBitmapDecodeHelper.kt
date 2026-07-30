@@ -5,7 +5,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package im.vector.app.features.usercode
+package im.vector.app.features.qrcode
 
 import android.graphics.Bitmap
 import com.google.zxing.BarcodeFormat

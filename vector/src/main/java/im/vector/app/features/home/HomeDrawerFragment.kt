@@ -23,6 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.extensions.copyOnLongClick
 import im.vector.app.core.extensions.observeK
 import im.vector.app.core.extensions.replaceChildFragment
 import im.vector.app.core.platform.VectorBaseFragment
@@ -30,14 +31,12 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.core.session.LogoutAccountUseCase
 import im.vector.app.core.session.SwitchAccountUseCase
-import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.FragmentHomeDrawerBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.home.accountswitcher.AccountSwitcherAdapter
 import im.vector.app.features.home.accountswitcher.AccountSwitcherEntry
 import im.vector.app.features.onboarding.OnboardingActivity
-import im.vector.app.features.permalink.PermalinkFactory
 import im.vector.app.features.roomdirectory.pendingrequests.PendingJoinRequestsActivity
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
@@ -60,7 +59,6 @@ class HomeDrawerFragment :
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var buildMeta: BuildMeta
-    @Inject lateinit var permalinkFactory: PermalinkFactory
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
     @Inject lateinit var logoutAccountUseCase: LogoutAccountUseCase
@@ -96,10 +94,10 @@ class HomeDrawerFragment :
             }
         }
         // Profile
-        views.homeDrawerHeader.debouncedClicks {
-            sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
-            navigator.openSettings(requireActivity(), directAccess = VectorSettingsActivity.EXTRA_DIRECT_ACCESS_GENERAL)
-        }
+        views.homeDrawerHeader.debouncedClicks { openProfile() }
+        views.homeDrawerUserIdView.copyOnLongClick()
+        // Long-clickable children swallow taps, so the header's click has to be repeated here.
+        views.homeDrawerUserIdView.debouncedClicks { openProfile() }
         // Settings
         views.homeDrawerHeaderSettingsView.debouncedClicks {
             sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
@@ -112,20 +110,6 @@ class HomeDrawerFragment :
         }
 
         setupAccountSwitcher()
-
-        views.homeDrawerInviteFriendButton.debouncedClicks {
-            permalinkFactory.createPermalinkOfCurrentUser()?.let { permalink ->
-                val text = getString(CommonStrings.invite_friends_text, permalink)
-
-                startSharePlainTextIntent(
-                        context = requireContext(),
-                        activityResultLauncher = null,
-                        chooserTitle = getString(CommonStrings.invite_friends),
-                        text = text,
-                        extraTitle = getString(CommonStrings.invite_friends_rich_title)
-                )
-            }
-        }
 
         ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
             val systemBars = insets.getInsets(
@@ -159,6 +143,11 @@ class HomeDrawerFragment :
                     views.homeDrawerPendingRequestsView.isVisible = showPending
                     views.homeDrawerPendingRequestsDivider.isVisible = showPending
                 }
+    }
+
+    private fun openProfile() {
+        sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
+        navigator.openSettings(requireActivity(), directAccess = VectorSettingsActivity.EXTRA_DIRECT_ACCESS_GENERAL)
     }
 
     private fun setupAccountSwitcher() {

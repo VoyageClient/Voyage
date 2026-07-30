@@ -64,8 +64,6 @@ class InviteUsersToRoomActivity : SimpleFragmentActivity() {
                         UserListSharedAction.GoBack -> onBackPressed()
                         is UserListSharedAction.OnMenuItemSubmitClick -> handleOnMenuItemSubmitClick(sharedAction)
                         UserListSharedAction.OpenPhoneBook -> openPhoneBook()
-                        // not exhaustive because it's a sharedAction
-                        else -> Unit
                     }
                 }
                 .launchIn(lifecycleScope)
@@ -78,7 +76,6 @@ class InviteUsersToRoomActivity : SimpleFragmentActivity() {
                             menuResId = R.menu.vector_invite_users_to_room,
                             submitMenuItemId = R.id.action_invite_users_to_room_invite,
                             excludedUserIds = viewModel.getUserIdsOfRoomMembers(),
-                            showInviteActions = false
                     )
             )
         }

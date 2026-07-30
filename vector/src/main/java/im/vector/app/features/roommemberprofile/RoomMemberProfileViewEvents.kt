@@ -31,7 +31,6 @@ sealed class RoomMemberProfileViewEvents : VectorViewEvents {
             val canCrossSign: Boolean
     ) : RoomMemberProfileViewEvents()
 
-    data class ShareRoomMemberProfile(val permalink: String) : RoomMemberProfileViewEvents()
     data class OpenRoom(val roomId: String) : RoomMemberProfileViewEvents()
     object GoBack : RoomMemberProfileViewEvents()
 }

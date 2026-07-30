@@ -10,7 +10,6 @@ package im.vector.app.features.roommemberprofile
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -36,11 +35,8 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
-import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
-import im.vector.app.core.utils.startSharePlainTextIntent
 import im.vector.app.databinding.DialogBaseEditTextBinding
-import im.vector.app.databinding.DialogShareQrCodeBinding
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomMemberProfileHeaderBinding
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
@@ -72,8 +68,7 @@ data class RoomMemberProfileArgs(
 @AndroidEntryPoint
 class RoomMemberProfileFragment :
         VectorBaseFragment<FragmentMatrixProfileBinding>(),
-        RoomMemberProfileController.Callback,
-        VectorMenuProvider {
+        RoomMemberProfileController.Callback {
 
     @Inject lateinit var roomMemberProfileController: RoomMemberProfileController
     @Inject lateinit var avatarRenderer: AvatarRenderer
@@ -96,8 +91,6 @@ class RoomMemberProfileFragment :
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentMatrixProfileBinding {
         return FragmentMatrixProfileBinding.inflate(inflater, container, false)
     }
-
-    override fun getMenuRes() = R.menu.vector_room_member_profile
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -147,7 +140,6 @@ class RoomMemberProfileFragment :
                 is RoomMemberProfileViewEvents.Loading -> showLoading(it.message)
                 is RoomMemberProfileViewEvents.Failure -> showFailure(it.throwable)
                 is RoomMemberProfileViewEvents.StartVerification -> handleStartVerification(it)
-                is RoomMemberProfileViewEvents.ShareRoomMemberProfile -> handleShareRoomMemberProfile(it.permalink)
                 is RoomMemberProfileViewEvents.ShowPowerLevelValidation -> handleShowPowerLevelAdminWarning(it)
                 is RoomMemberProfileViewEvents.ShowPowerLevelDemoteWarning -> handleShowPowerLevelDemoteWarning(it)
                 is RoomMemberProfileViewEvents.OpenRoom -> handleOpenRoom(it)
@@ -186,16 +178,6 @@ class RoomMemberProfileFragment :
     private fun handleShowPowerLevelAdminWarning(event: RoomMemberProfileViewEvents.ShowPowerLevelValidation) {
         EditPowerLevelDialogs.showValidation(requireActivity()) {
             viewModel.handle(RoomMemberProfileAction.SetPowerLevel(event.currentValue, event.newValue, false))
-        }
-    }
-
-    override fun handleMenuItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.roomMemberProfileShareAction -> {
-                viewModel.handle(RoomMemberProfileAction.ShareRoomMemberProfile)
-                true
-            }
-            else -> false
         }
     }
 
@@ -377,23 +359,6 @@ class RoomMemberProfileFragment :
     override fun onMentionClicked() {
         roomDetailPendingActionStore.data = RoomDetailPendingAction.MentionUser(fragmentArgs.userId)
         vectorBaseActivity.finish()
-    }
-
-    private fun handleShareRoomMemberProfile(permalink: String) {
-        val view = layoutInflater.inflate(R.layout.dialog_share_qr_code, null)
-        val views = DialogShareQrCodeBinding.bind(view)
-        views.itemShareQrCodeImage.setData(permalink)
-        MaterialAlertDialogBuilder(requireContext())
-                .setView(view)
-                .setNeutralButton(CommonStrings.ok, null)
-                .setPositiveButton(CommonStrings.share_by_text) { _, _ ->
-                    startSharePlainTextIntent(
-                            context = requireContext(),
-                            activityResultLauncher = null,
-                            chooserTitle = null,
-                            text = permalink
-                    )
-                }.show()
     }
 
     private fun onAvatarClicked(userMatrixItem: MatrixItem) {

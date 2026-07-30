@@ -14,7 +14,6 @@ sealed class UserListAction : VectorViewModelAction {
     object ClearSearchUsers : UserListAction()
     data class AddPendingSelection(val pendingSelection: PendingSelection) : UserListAction()
     data class RemovePendingSelection(val pendingSelection: PendingSelection) : UserListAction()
-    object ComputeMatrixToLinkForSharing : UserListAction()
     object UserConsentRequest : UserListAction()
     data class UpdateUserConsent(val consent: Boolean) : UserListAction()
     object Resumed : UserListAction()

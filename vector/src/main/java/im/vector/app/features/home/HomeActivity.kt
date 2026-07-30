@@ -63,14 +63,12 @@ import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.rageshake.BugReporter
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.session.coroutineScope
-import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.spaces.SpaceCreationActivity
 import im.vector.app.features.spaces.SpacePreviewActivity
 import im.vector.app.features.spaces.SpaceSettingsMenuBottomSheet
 import im.vector.app.features.spaces.invite.SpaceInviteBottomSheet
 import im.vector.app.features.spaces.share.ShareSpaceBottomSheet
 import im.vector.app.features.themes.ThemeUtils
-import im.vector.app.features.usercode.UserCodeActivity
 import im.vector.app.features.workers.signout.ServerBackupStatusViewModel
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
@@ -599,20 +597,8 @@ class HomeActivity :
                 showLayoutSettings()
                 true
             }
-            R.id.menu_home_invite_friends -> {
-                launchInviteFriends()
-                true
-            }
-            R.id.menu_home_qr -> {
-                launchQrCode()
-                true
-            }
             else -> false
         }
-    }
-
-    private fun launchQrCode() {
-        startActivity(UserCodeActivity.newIntent(this, sharedActionViewModel.session.myUserId))
     }
 
     private fun launchInviteFriends() {

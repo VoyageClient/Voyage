@@ -121,7 +121,6 @@ class UserListViewModel @AssistedInject constructor(
             is UserListAction.ClearSearchUsers -> handleClearSearchUsers()
             is UserListAction.AddPendingSelection -> handleSelectUser(action)
             is UserListAction.RemovePendingSelection -> handleRemoveSelectedUser(action)
-            UserListAction.ComputeMatrixToLinkForSharing -> handleShareMyMatrixToLink()
             UserListAction.UserConsentRequest -> handleUserConsentRequest()
             is UserListAction.UpdateUserConsent -> handleISUpdateConsent(action)
             UserListAction.Resumed -> handleResumed()
@@ -177,12 +176,6 @@ class UserListViewModel @AssistedInject constructor(
         identityServerUsersSearch.tryEmit(UserSearch(searchTerm))
         knownUsersSearch.tryEmit(searchTerm)
         directoryUsersSearch.tryEmit(searchTerm)
-    }
-
-    private fun handleShareMyMatrixToLink() {
-        session.permalinkService().createPermalink(session.myUserId)?.let {
-            _viewEvents.post(UserListViewEvents.OpenShareMatrixToLink(it))
-        }
     }
 
     private fun handleClearSearchUsers() {

@@ -31,7 +31,6 @@ import im.vector.app.features.home.HomeActivitySharedAction
 import im.vector.app.features.home.HomeSharedActionViewModel
 import im.vector.app.features.home.room.list.actions.RoomListSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListSharedActionViewModel
-import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
 
@@ -42,12 +41,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class SpaceListFragment :
         VectorBaseFragment<FragmentSpaceListBinding>(),
-        SpaceSummaryController.Callback,
-        NewSpaceSummaryController.Callback {
+        SpaceSummaryController.Callback {
 
     @Inject lateinit var spaceController: SpaceSummaryController
-    @Inject lateinit var newSpaceController: NewSpaceSummaryController
-    @Inject lateinit var vectorPreferences: VectorPreferences
 
     private lateinit var homeActivitySharedActionViewModel: HomeSharedActionViewModel
     private lateinit var roomListSharedActionViewModel: RoomListSharedActionViewModel
@@ -68,14 +64,9 @@ class SpaceListFragment :
     }
 
     private fun setupSpaceController() {
-        if (vectorPreferences.isNewAppLayoutEnabled()) {
-            newSpaceController.callback = this
-            views.groupListView.configureWith(newSpaceController)
-        } else {
-            enableDragAndDropForSpaceController()
-            spaceController.callback = this
-            views.groupListView.configureWith(spaceController)
-        }
+        enableDragAndDropForSpaceController()
+        spaceController.callback = this
+        views.groupListView.configureWith(spaceController)
     }
 
     private fun enableDragAndDropForSpaceController() {
@@ -158,11 +149,7 @@ class SpaceListFragment :
             else -> Unit
         }
 
-        if (vectorPreferences.isNewAppLayoutEnabled()) {
-            newSpaceController.update(state)
-        } else {
-            spaceController.update(state)
-        }
+        spaceController.update(state)
     }
 
     override fun onSpaceSelected(spaceSummary: RoomSummary?, isSubSpace: Boolean) {

@@ -18,7 +18,6 @@ sealed class RoomMemberProfileAction : VectorViewModelAction {
     object RedactAllMessages : RoomMemberProfileAction()
     object InviteUser : RoomMemberProfileAction()
     object VerifyUser : RoomMemberProfileAction()
-    object ShareRoomMemberProfile : RoomMemberProfileAction()
     data class SetPowerLevel(val previousValue: UserPowerLevel, val newValue: UserPowerLevel.Value, val askForValidation: Boolean) : RoomMemberProfileAction()
     data class SetUserColorOverride(val newColorSpec: String) : RoomMemberProfileAction()
     data class OpenOrCreateDm(val userId: String) : RoomMemberProfileAction()
