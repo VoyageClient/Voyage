@@ -41,4 +41,7 @@ object UserAccountDataTypes {
 
     // Frequently-used custom emoticons (separate from the unicode io.element.recent_emoji).
     const val TYPE_RECENT_EMOTICONS = "io.element.recent_emoticons"
+
+    // The message long-press quick-reaction row, as an ordered list of emojis / emote mxc urls.
+    const val TYPE_QUICK_REACTIONS = "im.voyage.setting.quick_reactions"
 }

@@ -37,6 +37,7 @@ import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpResult
 import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.pgp.PgpUtils
+import im.vector.app.features.reactions.data.QuickReactionsDataSource
 import org.json.JSONObject
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
@@ -105,6 +106,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val pgpServiceManager: PgpServiceManager,
         private val pgpKeyStore: PgpKeyStore,
         private val imagePackProvider: ImagePackProvider,
+        private val quickReactionsDataSource: QuickReactionsDataSource,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -196,7 +198,7 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     private fun observeReactions() {
         if (room == null) return
-        val quickReactions = pruneDeletedEmotes(vectorPreferences.getQuickReactions())
+        val quickReactions = pruneDeletedEmotes(quickReactionsDataSource.getQuickReactions())
         eventIdFlow
                 .flatMapLatest { eventId ->
                     room.flow()
@@ -220,7 +222,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 .mapTo(HashSet()) { it.mxcUrl }
         val pruned = quickReactions.filter { !it.isMxcUrl() || it in validMxcs }
         if (pruned.size != quickReactions.size) {
-            vectorPreferences.setQuickReactions(pruned)
+            quickReactionsDataSource.setQuickReactions(pruned)
         }
         return pruned
     }

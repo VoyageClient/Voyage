@@ -58,7 +58,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Emoji font options** — render emoji with bundled Twemoji, the system emoji font, or a custom emoji font you supply; emoji autocomplete is toggleable.
 
-- **Configurable reactions** — configurable quick reactions, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions by typing any text.
+- **Configurable reactions** — configurable quick reactions that sync across your devices, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions by typing any text.
 
 - **Room knocking** — request access to rooms that require it.
 

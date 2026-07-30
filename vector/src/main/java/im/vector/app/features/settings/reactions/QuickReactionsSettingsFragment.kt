@@ -33,8 +33,9 @@ import im.vector.app.core.epoxy.ListDividerDecoration
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.reactions.EmojiReactionPickerActivity
 import im.vector.app.features.reactions.data.EmojiDataSource
-import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.reactions.data.QuickReactionsDataSource
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -46,12 +47,13 @@ class QuickReactionsSettingsFragment :
         OnBackPressed {
 
     @Inject lateinit var controller: QuickReactionsController
-    @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var quickReactionsDataSource: QuickReactionsDataSource
     @Inject lateinit var emojiDataSource: EmojiDataSource
     @Inject lateinit var imagePackProvider: ImagePackProvider
 
     private val reactions = mutableListOf<String>()
     private var initial: List<String> = emptyList()
+    private var isSaving = false
 
     private val addReactionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -75,7 +77,7 @@ class QuickReactionsSettingsFragment :
         views.quickReactionsRecycler.addItemDecoration(ListDividerDecoration(requireContext()))
         enableDragReorder()
 
-        reactions.addAll(vectorPreferences.getQuickReactions())
+        reactions.addAll(quickReactionsDataSource.getQuickReactions())
         initial = reactions.toList()
         refresh()
         loadLabels()
@@ -83,7 +85,7 @@ class QuickReactionsSettingsFragment :
 
     // Emoji names + custom-emote shortcodes, so each row can show a description.
     private fun loadLabels() {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val names = emojiDataSource.rawData.await().emojis.values.associate { it.emoji to it.name }
             val shortcodes = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
                 imagePackProvider.getEmoticons(roomId = null).associate { it.mxcUrl to it.shortcode }
@@ -107,7 +109,7 @@ class QuickReactionsSettingsFragment :
         val disabledTint = im.vector.app.features.themes.ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
         // Apply only matters when something changed; reset only when not already at the defaults.
         menu.findItem(R.id.quickReactionsApply)?.apply {
-            isEnabled = reactions != initial
+            isEnabled = reactions != initial && !isSaving
             icon?.mutate()?.let { DrawableCompat.setTint(it, if (isEnabled) enabledTint else disabledTint) }
         }
         menu.findItem(R.id.quickReactionsReset)?.apply {
@@ -125,6 +127,7 @@ class QuickReactionsSettingsFragment :
     }
 
     override fun onBackPressed(toolbarButton: Boolean): Boolean {
+        if (isSaving) return true
         if (reactions == initial) return false
         MaterialAlertDialogBuilder(requireContext())
                 .setTitle(CommonStrings.dialog_title_warning)
@@ -146,12 +149,24 @@ class QuickReactionsSettingsFragment :
     }
 
     private fun apply() {
-        if (reactions == EmojiDataSource.quickEmojis) {
-            vectorPreferences.resetQuickReactions()
-        } else {
-            vectorPreferences.setQuickReactions(reactions)
+        if (isSaving) return
+        isSaving = true
+        invalidateOptionsMenu()
+        views.quickReactionsSpinnerViews.isVisible = true
+        val toSave = reactions.toList()
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                quickReactionsDataSource.saveQuickReactions(toSave)
+                activity?.finish()
+            } catch (failure: CancellationException) {
+                throw failure
+            } catch (failure: Throwable) {
+                isSaving = false
+                views.quickReactionsSpinnerViews.isVisible = false
+                invalidateOptionsMenu()
+                displayErrorDialog(failure)
+            }
         }
-        activity?.finish()
     }
 
     private fun resetToDefaults() {
