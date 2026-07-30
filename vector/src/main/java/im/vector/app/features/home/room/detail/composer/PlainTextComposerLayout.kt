@@ -8,9 +8,7 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Outline
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.text.Editable
 import android.text.SpannableStringBuilder
@@ -32,6 +30,7 @@ import im.vector.app.core.extensions.setTextIfDifferent
 import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.core.utils.nonScrollingLinkMovementMethod
 import im.vector.app.databinding.ComposerLayoutBinding
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
@@ -81,7 +80,6 @@ import org.matrix.android.sdk.api.util.ContentUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import javax.inject.Inject
-import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * Encapsulate the timeline composer UX.
@@ -144,6 +142,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // flip the field; the Editable and the sent text keep the real characters.
         views.composerEditText.transformationMethod = DirectionOverridesTransformation
 
+        // Must precede any text: Markwon only installs its own (scrolling) LinkMovementMethod when the view has none.
+        views.composerRelatedMessageContent.movementMethod = nonScrollingLinkMovementMethod
+
         // Round the replied-to image corners. Glide's RoundedCorners only transforms the loaded
         // bitmap, so a still-loading blurhash placeholder (Drawable) would otherwise show square.
         val imageCornerRadius = 8 * resources.displayMetrics.density
@@ -159,14 +160,6 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             // Pre-Lollipop: RoundedCornerImageView clips via canvas path instead.
             views.composerRelatedMessageImage.setCornerRadii(imageCornerRadius, imageCornerRadius, imageCornerRadius, imageCornerRadius)
         }
-
-        // Fade the capped preview into the composer's surface background (matches the reply header's
-        // fade-out) rather than clipping content with a trailing ellipsis.
-        val surfaceColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface)
-        views.composerRelatedMessageFade.backgroundCompat = GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                intArrayOf(Color.TRANSPARENT, surfaceColor)
-        )
 
         collapse()
 
