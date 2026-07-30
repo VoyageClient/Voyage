@@ -8,6 +8,7 @@
         <item name="colorSecondary">#8bc34a</item>
         <item name="colorSecondaryVariant">#8bc34a</item>
         <item name="colorAccent">#8bc34a</item>
+        <item name="vctr_accent">#8bc34a</item>
         <item name="android:colorAccent">#8bc34a</item>
     </style>
     <style name="Theme.Vector.Light.Amber" parent="Theme.Vector.Light">
@@ -16,6 +17,7 @@
         <item name="colorSecondary">#ffa000</item>
         <item name="colorSecondaryVariant">#ffa000</item>
         <item name="colorAccent">#ffa000</item>
+        <item name="vctr_accent">#ffa000</item>
         <item name="android:colorAccent">#ffa000</item>
     </style>
     <style name="Theme.Vector.Light.BlueLight" parent="Theme.Vector.Light">
@@ -24,6 +26,7 @@
         <item name="colorSecondary">#03a9f4</item>
         <item name="colorSecondaryVariant">#03a9f4</item>
         <item name="colorAccent">#03a9f4</item>
+        <item name="vctr_accent">#03a9f4</item>
         <item name="android:colorAccent">#03a9f4</item>
     </style>
     <style name="Theme.Vector.Light.Blue" parent="Theme.Vector.Light">
@@ -32,6 +35,7 @@
         <item name="colorSecondary">#2196F3</item>
         <item name="colorSecondaryVariant">#2196F3</item>
         <item name="colorAccent">#2196F3</item>
+        <item name="vctr_accent">#2196F3</item>
         <item name="android:colorAccent">#2196F3</item>
     </style>
     <style name="Theme.Vector.Light.Carnation" parent="Theme.Vector.Light">
@@ -40,6 +44,7 @@
         <item name="colorSecondary">#fb83b2</item>
         <item name="colorSecondaryVariant">#fb83b2</item>
         <item name="colorAccent">#fb83b2</item>
+        <item name="vctr_accent">#fb83b2</item>
         <item name="android:colorAccent">#fb83b2</item>
     </style>
     <style name="Theme.Vector.Light.Cyan" parent="Theme.Vector.Light">
@@ -48,6 +53,7 @@
         <item name="colorSecondary">#00bcd4</item>
         <item name="colorSecondaryVariant">#00bcd4</item>
         <item name="colorAccent">#00bcd4</item>
+        <item name="vctr_accent">#00bcd4</item>
         <item name="android:colorAccent">#00bcd4</item>
     </style>
     <style name="Theme.Vector.Light.Denim" parent="Theme.Vector.Light">
@@ -56,6 +62,7 @@
         <item name="colorSecondary">#1560BD</item>
         <item name="colorSecondaryVariant">#1560BD</item>
         <item name="colorAccent">#1560BD</item>
+        <item name="vctr_accent">#1560BD</item>
         <item name="android:colorAccent">#1560BD</item>
     </style>
     <style name="Theme.Vector.Light.Gold" parent="Theme.Vector.Light">
@@ -64,6 +71,7 @@
         <item name="colorSecondary">#CFB53B</item>
         <item name="colorSecondaryVariant">#CFB53B</item>
         <item name="colorAccent">#CFB53B</item>
+        <item name="vctr_accent">#CFB53B</item>
         <item name="android:colorAccent">#CFB53B</item>
     </style>
     <style name="Theme.Vector.Light.GreenDark" parent="Theme.Vector.Light">
@@ -72,6 +80,7 @@
         <item name="colorSecondary">#4CAF50</item>
         <item name="colorSecondaryVariant">#4CAF50</item>
         <item name="colorAccent">#4CAF50</item>
+        <item name="vctr_accent">#4CAF50</item>
         <item name="android:colorAccent">#4CAF50</item>
     </style>
     <style name="Theme.Vector.Light.Indigo" parent="Theme.Vector.Light">
@@ -80,6 +89,7 @@
         <item name="colorSecondary">#5C6BC0</item>
         <item name="colorSecondaryVariant">#5C6BC0</item>
         <item name="colorAccent">#5C6BC0</item>
+        <item name="vctr_accent">#5C6BC0</item>
         <item name="android:colorAccent">#5C6BC0</item>
     </style>
     <style name="Theme.Vector.Light.Lava" parent="Theme.Vector.Light">
@@ -88,6 +98,7 @@
         <item name="colorSecondary">#B20120</item>
         <item name="colorSecondaryVariant">#B20120</item>
         <item name="colorAccent">#B20120</item>
+        <item name="vctr_accent">#B20120</item>
         <item name="android:colorAccent">#B20120</item>
     </style>
     <style name="Theme.Vector.Light.Lime" parent="Theme.Vector.Light">
@@ -96,6 +107,7 @@
         <item name="colorSecondary">#C0CA33</item>
         <item name="colorSecondaryVariant">#C0CA33</item>
         <item name="colorAccent">#C0CA33</item>
+        <item name="vctr_accent">#C0CA33</item>
         <item name="android:colorAccent">#C0CA33</item>
     </style>
     <style name="Theme.Vector.Light.Orange" parent="Theme.Vector.Light">
@@ -104,6 +116,7 @@
         <item name="colorSecondary">#ff9800</item>
         <item name="colorSecondaryVariant">#ff9800</item>
         <item name="colorAccent">#ff9800</item>
+        <item name="vctr_accent">#ff9800</item>
         <item name="android:colorAccent">#ff9800</item>
     </style>
     <style name="Theme.Vector.Light.Pink" parent="Theme.Vector.Light">
@@ -112,6 +125,7 @@
         <item name="colorSecondary">#e91e63</item>
         <item name="colorSecondaryVariant">#e91e63</item>
         <item name="colorAccent">#e91e63</item>
+        <item name="vctr_accent">#e91e63</item>
         <item name="android:colorAccent">#e91e63</item>
     </style>
     <style name="Theme.Vector.Light.Purple" parent="Theme.Vector.Light">
@@ -120,6 +134,7 @@
         <item name="colorSecondary">#673ab7</item>
         <item name="colorSecondaryVariant">#673ab7</item>
         <item name="colorAccent">#673ab7</item>
+        <item name="vctr_accent">#673ab7</item>
         <item name="android:colorAccent">#673ab7</item>
     </style>
     <style name="Theme.Vector.Light.Red" parent="Theme.Vector.Light">
@@ -128,6 +143,7 @@
         <item name="colorSecondary">#ff0000</item>
         <item name="colorSecondaryVariant">#ff0000</item>
         <item name="colorAccent">#ff0000</item>
+        <item name="vctr_accent">#ff0000</item>
         <item name="android:colorAccent">#ff0000</item>
     </style>
     <style name="Theme.Vector.Light.Teal" parent="Theme.Vector.Light">
@@ -136,6 +152,7 @@
         <item name="colorSecondary">#008577</item>
         <item name="colorSecondaryVariant">#008577</item>
         <item name="colorAccent">#008577</item>
+        <item name="vctr_accent">#008577</item>
         <item name="android:colorAccent">#008577</item>
     </style>
     <style name="Theme.Vector.Light.Turquoise" parent="Theme.Vector.Light">
@@ -144,6 +161,7 @@
         <item name="colorSecondary">#00C1C1</item>
         <item name="colorSecondaryVariant">#00C1C1</item>
         <item name="colorAccent">#00C1C1</item>
+        <item name="vctr_accent">#00C1C1</item>
         <item name="android:colorAccent">#00C1C1</item>
     </style>
     <style name="Theme.Vector.Light.Yellow" parent="Theme.Vector.Light">
@@ -152,6 +170,7 @@
         <item name="colorSecondary">#FBC02D</item>
         <item name="colorSecondaryVariant">#FBC02D</item>
         <item name="colorAccent">#FBC02D</item>
+        <item name="vctr_accent">#FBC02D</item>
         <item name="android:colorAccent">#FBC02D</item>
     </style>
     <style name="Theme.Vector.Dark.Green" parent="Theme.Vector.Dark">
@@ -160,6 +179,7 @@
         <item name="colorSecondary">#8bc34a</item>
         <item name="colorSecondaryVariant">#8bc34a</item>
         <item name="colorAccent">#8bc34a</item>
+        <item name="vctr_accent">#8bc34a</item>
         <item name="android:colorAccent">#8bc34a</item>
     </style>
     <style name="Theme.Vector.Dark.Amber" parent="Theme.Vector.Dark">
@@ -168,6 +188,7 @@
         <item name="colorSecondary">#ffab00</item>
         <item name="colorSecondaryVariant">#ffab00</item>
         <item name="colorAccent">#ffab00</item>
+        <item name="vctr_accent">#ffab00</item>
         <item name="android:colorAccent">#ffab00</item>
     </style>
     <style name="Theme.Vector.Dark.BlueLight" parent="Theme.Vector.Dark">
@@ -176,6 +197,7 @@
         <item name="colorSecondary">#03a9f4</item>
         <item name="colorSecondaryVariant">#03a9f4</item>
         <item name="colorAccent">#03a9f4</item>
+        <item name="vctr_accent">#03a9f4</item>
         <item name="android:colorAccent">#03a9f4</item>
     </style>
     <style name="Theme.Vector.Dark.Blue" parent="Theme.Vector.Dark">
@@ -184,6 +206,7 @@
         <item name="colorSecondary">#2196F3</item>
         <item name="colorSecondaryVariant">#2196F3</item>
         <item name="colorAccent">#2196F3</item>
+        <item name="vctr_accent">#2196F3</item>
         <item name="android:colorAccent">#2196F3</item>
     </style>
     <style name="Theme.Vector.Dark.Carnation" parent="Theme.Vector.Dark">
@@ -192,6 +215,7 @@
         <item name="colorSecondary">#ffa6c9</item>
         <item name="colorSecondaryVariant">#ffa6c9</item>
         <item name="colorAccent">#ffa6c9</item>
+        <item name="vctr_accent">#ffa6c9</item>
         <item name="android:colorAccent">#ffa6c9</item>
     </style>
     <style name="Theme.Vector.Dark.Cyan" parent="Theme.Vector.Dark">
@@ -200,6 +224,7 @@
         <item name="colorSecondary">#00bcd4</item>
         <item name="colorSecondaryVariant">#00bcd4</item>
         <item name="colorAccent">#00bcd4</item>
+        <item name="vctr_accent">#00bcd4</item>
         <item name="android:colorAccent">#00bcd4</item>
     </style>
     <style name="Theme.Vector.Dark.Denim" parent="Theme.Vector.Dark">
@@ -208,6 +233,7 @@
         <item name="colorSecondary">#1560BD</item>
         <item name="colorSecondaryVariant">#1560BD</item>
         <item name="colorAccent">#1560BD</item>
+        <item name="vctr_accent">#1560BD</item>
         <item name="android:colorAccent">#1560BD</item>
     </style>
     <style name="Theme.Vector.Dark.Gold" parent="Theme.Vector.Dark">
@@ -216,6 +242,7 @@
         <item name="colorSecondary">#CFB53B</item>
         <item name="colorSecondaryVariant">#CFB53B</item>
         <item name="colorAccent">#CFB53B</item>
+        <item name="vctr_accent">#CFB53B</item>
         <item name="android:colorAccent">#CFB53B</item>
     </style>
     <style name="Theme.Vector.Dark.GreenDark" parent="Theme.Vector.Dark">
@@ -224,6 +251,7 @@
         <item name="colorSecondary">#4CAF50</item>
         <item name="colorSecondaryVariant">#4CAF50</item>
         <item name="colorAccent">#4CAF50</item>
+        <item name="vctr_accent">#4CAF50</item>
         <item name="android:colorAccent">#4CAF50</item>
     </style>
     <style name="Theme.Vector.Dark.Indigo" parent="Theme.Vector.Dark">
@@ -232,6 +260,7 @@
         <item name="colorSecondary">#5C6BC0</item>
         <item name="colorSecondaryVariant">#5C6BC0</item>
         <item name="colorAccent">#5C6BC0</item>
+        <item name="vctr_accent">#5C6BC0</item>
         <item name="android:colorAccent">#5C6BC0</item>
     </style>
     <style name="Theme.Vector.Dark.Lava" parent="Theme.Vector.Dark">
@@ -240,6 +269,7 @@
         <item name="colorSecondary">#EB0028</item>
         <item name="colorSecondaryVariant">#EB0028</item>
         <item name="colorAccent">#EB0028</item>
+        <item name="vctr_accent">#EB0028</item>
         <item name="android:colorAccent">#EB0028</item>
     </style>
     <style name="Theme.Vector.Dark.Lime" parent="Theme.Vector.Dark">
@@ -248,6 +278,7 @@
         <item name="colorSecondary">#AFB42B</item>
         <item name="colorSecondaryVariant">#AFB42B</item>
         <item name="colorAccent">#AFB42B</item>
+        <item name="vctr_accent">#AFB42B</item>
         <item name="android:colorAccent">#AFB42B</item>
     </style>
     <style name="Theme.Vector.Dark.Orange" parent="Theme.Vector.Dark">
@@ -256,6 +287,7 @@
         <item name="colorSecondary">#ff9800</item>
         <item name="colorSecondaryVariant">#ff9800</item>
         <item name="colorAccent">#ff9800</item>
+        <item name="vctr_accent">#ff9800</item>
         <item name="android:colorAccent">#ff9800</item>
     </style>
     <style name="Theme.Vector.Dark.Pink" parent="Theme.Vector.Dark">
@@ -264,6 +296,7 @@
         <item name="colorSecondary">#f48fb1</item>
         <item name="colorSecondaryVariant">#f48fb1</item>
         <item name="colorAccent">#f48fb1</item>
+        <item name="vctr_accent">#f48fb1</item>
         <item name="android:colorAccent">#f48fb1</item>
     </style>
     <style name="Theme.Vector.Dark.Purple" parent="Theme.Vector.Dark">
@@ -272,6 +305,7 @@
         <item name="colorSecondary">#9575CD</item>
         <item name="colorSecondaryVariant">#9575CD</item>
         <item name="colorAccent">#9575CD</item>
+        <item name="vctr_accent">#9575CD</item>
         <item name="android:colorAccent">#9575CD</item>
     </style>
     <style name="Theme.Vector.Dark.Red" parent="Theme.Vector.Dark">
@@ -280,6 +314,7 @@
         <item name="colorSecondary">#ff0000</item>
         <item name="colorSecondaryVariant">#ff0000</item>
         <item name="colorAccent">#ff0000</item>
+        <item name="vctr_accent">#ff0000</item>
         <item name="android:colorAccent">#ff0000</item>
     </style>
     <style name="Theme.Vector.Dark.Teal" parent="Theme.Vector.Dark">
@@ -288,6 +323,7 @@
         <item name="colorSecondary">#80cbc4</item>
         <item name="colorSecondaryVariant">#80cbc4</item>
         <item name="colorAccent">#80cbc4</item>
+        <item name="vctr_accent">#80cbc4</item>
         <item name="android:colorAccent">#80cbc4</item>
     </style>
     <style name="Theme.Vector.Dark.Turquoise" parent="Theme.Vector.Dark">
@@ -296,6 +332,7 @@
         <item name="colorSecondary">#00C1C1</item>
         <item name="colorSecondaryVariant">#00C1C1</item>
         <item name="colorAccent">#00C1C1</item>
+        <item name="vctr_accent">#00C1C1</item>
         <item name="android:colorAccent">#00C1C1</item>
     </style>
     <style name="Theme.Vector.Dark.Yellow" parent="Theme.Vector.Dark">
@@ -304,6 +341,7 @@
         <item name="colorSecondary">#FBC02D</item>
         <item name="colorSecondaryVariant">#FBC02D</item>
         <item name="colorAccent">#FBC02D</item>
+        <item name="vctr_accent">#FBC02D</item>
         <item name="android:colorAccent">#FBC02D</item>
     </style>
     <style name="Theme.Vector.Black.Green" parent="Theme.Vector.Black">
@@ -312,6 +350,7 @@
         <item name="colorSecondary">#8bc34a</item>
         <item name="colorSecondaryVariant">#8bc34a</item>
         <item name="colorAccent">#8bc34a</item>
+        <item name="vctr_accent">#8bc34a</item>
         <item name="android:colorAccent">#8bc34a</item>
     </style>
     <style name="Theme.Vector.Black.Amber" parent="Theme.Vector.Black">
@@ -320,6 +359,7 @@
         <item name="colorSecondary">#ffab00</item>
         <item name="colorSecondaryVariant">#ffab00</item>
         <item name="colorAccent">#ffab00</item>
+        <item name="vctr_accent">#ffab00</item>
         <item name="android:colorAccent">#ffab00</item>
     </style>
     <style name="Theme.Vector.Black.BlueLight" parent="Theme.Vector.Black">
@@ -328,6 +368,7 @@
         <item name="colorSecondary">#03a9f4</item>
         <item name="colorSecondaryVariant">#03a9f4</item>
         <item name="colorAccent">#03a9f4</item>
+        <item name="vctr_accent">#03a9f4</item>
         <item name="android:colorAccent">#03a9f4</item>
     </style>
     <style name="Theme.Vector.Black.Blue" parent="Theme.Vector.Black">
@@ -336,6 +377,7 @@
         <item name="colorSecondary">#2196F3</item>
         <item name="colorSecondaryVariant">#2196F3</item>
         <item name="colorAccent">#2196F3</item>
+        <item name="vctr_accent">#2196F3</item>
         <item name="android:colorAccent">#2196F3</item>
     </style>
     <style name="Theme.Vector.Black.Carnation" parent="Theme.Vector.Black">
@@ -344,6 +386,7 @@
         <item name="colorSecondary">#ffa6c9</item>
         <item name="colorSecondaryVariant">#ffa6c9</item>
         <item name="colorAccent">#ffa6c9</item>
+        <item name="vctr_accent">#ffa6c9</item>
         <item name="android:colorAccent">#ffa6c9</item>
     </style>
     <style name="Theme.Vector.Black.Cyan" parent="Theme.Vector.Black">
@@ -352,6 +395,7 @@
         <item name="colorSecondary">#00bcd4</item>
         <item name="colorSecondaryVariant">#00bcd4</item>
         <item name="colorAccent">#00bcd4</item>
+        <item name="vctr_accent">#00bcd4</item>
         <item name="android:colorAccent">#00bcd4</item>
     </style>
     <style name="Theme.Vector.Black.Denim" parent="Theme.Vector.Black">
@@ -360,6 +404,7 @@
         <item name="colorSecondary">#1560BD</item>
         <item name="colorSecondaryVariant">#1560BD</item>
         <item name="colorAccent">#1560BD</item>
+        <item name="vctr_accent">#1560BD</item>
         <item name="android:colorAccent">#1560BD</item>
     </style>
     <style name="Theme.Vector.Black.Gold" parent="Theme.Vector.Black">
@@ -368,6 +413,7 @@
         <item name="colorSecondary">#CFB53B</item>
         <item name="colorSecondaryVariant">#CFB53B</item>
         <item name="colorAccent">#CFB53B</item>
+        <item name="vctr_accent">#CFB53B</item>
         <item name="android:colorAccent">#CFB53B</item>
     </style>
     <style name="Theme.Vector.Black.GreenDark" parent="Theme.Vector.Black">
@@ -376,6 +422,7 @@
         <item name="colorSecondary">#4CAF50</item>
         <item name="colorSecondaryVariant">#4CAF50</item>
         <item name="colorAccent">#4CAF50</item>
+        <item name="vctr_accent">#4CAF50</item>
         <item name="android:colorAccent">#4CAF50</item>
     </style>
     <style name="Theme.Vector.Black.Indigo" parent="Theme.Vector.Black">
@@ -384,6 +431,7 @@
         <item name="colorSecondary">#5C6BC0</item>
         <item name="colorSecondaryVariant">#5C6BC0</item>
         <item name="colorAccent">#5C6BC0</item>
+        <item name="vctr_accent">#5C6BC0</item>
         <item name="android:colorAccent">#5C6BC0</item>
     </style>
     <style name="Theme.Vector.Black.Lava" parent="Theme.Vector.Black">
@@ -392,6 +440,7 @@
         <item name="colorSecondary">#EB0028</item>
         <item name="colorSecondaryVariant">#EB0028</item>
         <item name="colorAccent">#EB0028</item>
+        <item name="vctr_accent">#EB0028</item>
         <item name="android:colorAccent">#EB0028</item>
     </style>
     <style name="Theme.Vector.Black.Lime" parent="Theme.Vector.Black">
@@ -400,6 +449,7 @@
         <item name="colorSecondary">#AFB42B</item>
         <item name="colorSecondaryVariant">#AFB42B</item>
         <item name="colorAccent">#AFB42B</item>
+        <item name="vctr_accent">#AFB42B</item>
         <item name="android:colorAccent">#AFB42B</item>
     </style>
     <style name="Theme.Vector.Black.Orange" parent="Theme.Vector.Black">
@@ -408,6 +458,7 @@
         <item name="colorSecondary">#ff9800</item>
         <item name="colorSecondaryVariant">#ff9800</item>
         <item name="colorAccent">#ff9800</item>
+        <item name="vctr_accent">#ff9800</item>
         <item name="android:colorAccent">#ff9800</item>
     </style>
     <style name="Theme.Vector.Black.Pink" parent="Theme.Vector.Black">
@@ -416,6 +467,7 @@
         <item name="colorSecondary">#f48fb1</item>
         <item name="colorSecondaryVariant">#f48fb1</item>
         <item name="colorAccent">#f48fb1</item>
+        <item name="vctr_accent">#f48fb1</item>
         <item name="android:colorAccent">#f48fb1</item>
     </style>
     <style name="Theme.Vector.Black.Purple" parent="Theme.Vector.Black">
@@ -424,6 +476,7 @@
         <item name="colorSecondary">#9575CD</item>
         <item name="colorSecondaryVariant">#9575CD</item>
         <item name="colorAccent">#9575CD</item>
+        <item name="vctr_accent">#9575CD</item>
         <item name="android:colorAccent">#9575CD</item>
     </style>
     <style name="Theme.Vector.Black.Red" parent="Theme.Vector.Black">
@@ -432,6 +485,7 @@
         <item name="colorSecondary">#ff0000</item>
         <item name="colorSecondaryVariant">#ff0000</item>
         <item name="colorAccent">#ff0000</item>
+        <item name="vctr_accent">#ff0000</item>
         <item name="android:colorAccent">#ff0000</item>
     </style>
     <style name="Theme.Vector.Black.Teal" parent="Theme.Vector.Black">
@@ -440,6 +494,7 @@
         <item name="colorSecondary">#80cbc4</item>
         <item name="colorSecondaryVariant">#80cbc4</item>
         <item name="colorAccent">#80cbc4</item>
+        <item name="vctr_accent">#80cbc4</item>
         <item name="android:colorAccent">#80cbc4</item>
     </style>
     <style name="Theme.Vector.Black.Turquoise" parent="Theme.Vector.Black">
@@ -448,6 +503,7 @@
         <item name="colorSecondary">#00C1C1</item>
         <item name="colorSecondaryVariant">#00C1C1</item>
         <item name="colorAccent">#00C1C1</item>
+        <item name="vctr_accent">#00C1C1</item>
         <item name="android:colorAccent">#00C1C1</item>
     </style>
     <style name="Theme.Vector.Black.Yellow" parent="Theme.Vector.Black">
@@ -456,42 +512,49 @@
         <item name="colorSecondary">#FBC02D</item>
         <item name="colorSecondaryVariant">#FBC02D</item>
         <item name="colorAccent">#FBC02D</item>
+        <item name="vctr_accent">#FBC02D</item>
         <item name="android:colorAccent">#FBC02D</item>
     </style>
 
     <!-- "Element Green" accent variants of the SchildiChat themes. -->
     <style name="AppTheme.SC.Light.Element" parent="AppTheme.Base.SC.Light">
         <item name="colorAccent">@color/element_accent_light</item>
+        <item name="vctr_accent">@color/element_accent_light</item>
         <item name="android:colorAccent">@color/element_accent_light</item>
         <item name="colorAccentPale">@color/element_accent_light</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Element" parent="AppTheme.Base.SC">
         <item name="colorAccent">@color/element_accent_dark</item>
+        <item name="vctr_accent">@color/element_accent_dark</item>
         <item name="android:colorAccent">@color/element_accent_dark</item>
         <item name="colorAccentPale">@color/element_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Dark.Element" parent="AppTheme.Base.SC.Dark">
         <item name="colorAccent">@color/element_accent_dark</item>
+        <item name="vctr_accent">@color/element_accent_dark</item>
         <item name="android:colorAccent">@color/element_accent_dark</item>
         <item name="colorAccentPale">@color/element_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Colored.Element" parent="AppTheme.Base.SC.Colored">
         <item name="colorAccent">@color/element_accent_dark</item>
+        <item name="vctr_accent">@color/element_accent_dark</item>
         <item name="android:colorAccent">@color/element_accent_dark</item>
         <item name="colorAccentPale">@color/element_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Dark.Colored.Element" parent="AppTheme.Base.SC.Dark.Colored">
         <item name="colorAccent">@color/element_accent_dark</item>
+        <item name="vctr_accent">@color/element_accent_dark</item>
         <item name="android:colorAccent">@color/element_accent_dark</item>
         <item name="colorAccentPale">@color/element_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.AttachmentsPreview.SC.Element" parent="AppTheme.Base.SC">
         <item name="colorAccent">@color/element_accent_dark</item>
+        <item name="vctr_accent">@color/element_accent_dark</item>
         <item name="android:colorAccent">@color/element_accent_dark</item>
         <item name="colorAccentPale">@color/element_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
@@ -504,6 +567,7 @@
         <item name="colorSecondary">#DE7356</item>
         <item name="colorSecondaryVariant">#DE7356</item>
         <item name="colorAccent">#DE7356</item>
+        <item name="vctr_accent">#DE7356</item>
         <item name="android:colorAccent">#DE7356</item>
     </style>
     <style name="Theme.Vector.Dark.Vibecoder" parent="Theme.Vector.Dark">
@@ -512,6 +576,7 @@
         <item name="colorSecondary">#DE7356</item>
         <item name="colorSecondaryVariant">#DE7356</item>
         <item name="colorAccent">#DE7356</item>
+        <item name="vctr_accent">#DE7356</item>
         <item name="android:colorAccent">#DE7356</item>
     </style>
     <style name="Theme.Vector.Black.Vibecoder" parent="Theme.Vector.Black">
@@ -520,40 +585,47 @@
         <item name="colorSecondary">#DE7356</item>
         <item name="colorSecondaryVariant">#DE7356</item>
         <item name="colorAccent">#DE7356</item>
+        <item name="vctr_accent">#DE7356</item>
         <item name="android:colorAccent">#DE7356</item>
     </style>
     <style name="AppTheme.SC.Light.Vibecoder" parent="AppTheme.Base.SC.Light">
         <item name="colorAccent">@color/vibecoder_accent_light</item>
+        <item name="vctr_accent">@color/vibecoder_accent_light</item>
         <item name="android:colorAccent">@color/vibecoder_accent_light</item>
         <item name="colorAccentPale">@color/vibecoder_accent_light</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Vibecoder" parent="AppTheme.Base.SC">
         <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="vctr_accent">@color/vibecoder_accent_dark</item>
         <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
         <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Dark.Vibecoder" parent="AppTheme.Base.SC.Dark">
         <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="vctr_accent">@color/vibecoder_accent_dark</item>
         <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
         <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Colored.Vibecoder" parent="AppTheme.Base.SC.Colored">
         <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="vctr_accent">@color/vibecoder_accent_dark</item>
         <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
         <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.SC.Dark.Colored.Vibecoder" parent="AppTheme.Base.SC.Dark.Colored">
         <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="vctr_accent">@color/vibecoder_accent_dark</item>
         <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
         <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
     <style name="AppTheme.AttachmentsPreview.SC.Vibecoder" parent="AppTheme.Base.SC">
         <item name="colorAccent">@color/vibecoder_accent_dark</item>
+        <item name="vctr_accent">@color/vibecoder_accent_dark</item>
         <item name="android:colorAccent">@color/vibecoder_accent_dark</item>
         <item name="colorAccentPale">@color/vibecoder_accent_dark</item>
         <item name="vctr_presence_indicator_online">?colorAccent</item>

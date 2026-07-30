@@ -86,6 +86,7 @@
         <!-- SC additions -->
         <item name="colorBackgroundFloating">@color/background_floating_sc_light</item>
         <item name="colorAccent">@color/accent_sc</item>
+        <item name="vctr_accent">@color/accent_sc</item>
         <item name="android:colorAccent">@color/accent_sc</item>
         <item name="sc_message_bg_incoming">@color/background_sc_light_secondary</item>
         <item name="sc_message_bg_outgoing">@color/accent_sc_noalpha12</item>

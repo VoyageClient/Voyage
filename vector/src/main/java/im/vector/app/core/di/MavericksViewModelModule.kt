@@ -118,11 +118,6 @@ interface HomeMavericksViewModelModule {
 
     @Binds
     @IntoMap
-    @MavericksViewModelKey("im.vector.app.features.home.room.list.home.release.ReleaseNotesViewModel")
-    fun vm20(factory: im.vector.app.features.home.room.list.home.release.ReleaseNotesViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
-
-    @Binds
-    @IntoMap
     @MavericksViewModelKey("im.vector.app.features.login.LoginViewModel")
     fun vm21(factory: im.vector.app.features.login.LoginViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 

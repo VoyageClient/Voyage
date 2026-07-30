@@ -15,6 +15,7 @@
     <style name="Vector.BottomSheet.SC.Light.Cyan">
         <item name="android:colorAccent">@color/accent_sc_light_cyan</item>
         <item name="colorAccent">@color/accent_sc_light_cyan</item>
+        <item name="vctr_accent">@color/accent_sc_light_cyan</item>
     </style>
 
 
@@ -23,6 +24,7 @@
     <style name="AppTheme.Base.SC.Light.Cyan">
         <item name="vctr_reaction_background_on">@color/accent_sc_light_cyan_noalpha12</item>
         <item name="colorAccent">@color/accent_sc_light_cyan</item>
+        <item name="vctr_accent">@color/accent_sc_light_cyan</item>
         <item name="android:colorAccent">@color/accent_sc_light_cyan</item>
         <item name="colorAccentPale">@color/accent_sc_light_cyan_pale</item>
         <item name="sc_message_bg_outgoing">@color/accent_sc_light_cyan_noalpha12</item>
