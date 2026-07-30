@@ -3,9 +3,11 @@
 
     <!-- BottomSheet theming -->
     <style name="Theme.Vector.BottomSheetDialog.Light" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
-        <item name="colorPrimary">@color/element_accent_light</item>
+        <item name="colorAccent">?vctr_accent</item>
+        <item name="android:colorAccent">?vctr_accent</item>
+        <item name="colorPrimary">?vctr_accent</item>
         <item name="colorOnPrimary">@color/palette_white</item>
-        <item name="colorSecondary">@color/element_accent_light</item>
+        <item name="colorSecondary">?vctr_accent</item>
         <item name="colorOnSecondary">@color/palette_white</item>
         <item name="colorSurface">@color/element_background_light</item>
         <item name="colorOnSurface">@color/element_content_primary_light</item>
@@ -17,9 +19,11 @@
     </style>
 
     <style name="Theme.Vector.BottomSheetDialog.Dark" parent="Theme.MaterialComponents.BottomSheetDialog">
-        <item name="colorPrimary">@color/element_accent_dark</item>
+        <item name="colorAccent">?vctr_accent</item>
+        <item name="android:colorAccent">?vctr_accent</item>
+        <item name="colorPrimary">?vctr_accent</item>
         <item name="colorOnPrimary">@color/palette_white</item>
-        <item name="colorSecondary">@color/element_accent_dark</item>
+        <item name="colorSecondary">?vctr_accent</item>
         <item name="colorOnSecondary">@color/palette_white</item>
         <item name="colorSurface">@color/element_background_dark</item>
         <item name="colorOnSurface">@color/element_content_primary_dark</item>

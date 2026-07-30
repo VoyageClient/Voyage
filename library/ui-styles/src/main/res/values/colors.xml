@@ -36,6 +36,10 @@
     <color name="android_status_bar_background_dark">@color/element_background_dark</color>
     <color name="android_navigation_bar_background_dark">@color/element_system_dark</color>
 
+    <!-- The accent, as a vctr_ attr: a Material dialog/overlay theme applied over the app theme
+         clobbers colorAccent/colorPrimary, but cannot define this one. -->
+    <attr name="vctr_accent" format="color" />
+
     <!-- Used for toolbar background -->
     <attr name="vctr_toolbar_background" format="color" />
 

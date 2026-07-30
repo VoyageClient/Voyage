@@ -10,7 +10,7 @@
         <item name="textAllCaps">false</item>
     </style>
 
-    <style name="ThemeOverlay.Vector.HomeFilterTabLayout" parent="Theme.Vector.Launcher">
+    <style name="ThemeOverlay.Vector.HomeFilterTabLayout" parent="">
         <item name="colorSurface">?vctr_toolbar_background</item>
         <item name="colorOnSurface">?vctr_content_secondary</item>
     </style>

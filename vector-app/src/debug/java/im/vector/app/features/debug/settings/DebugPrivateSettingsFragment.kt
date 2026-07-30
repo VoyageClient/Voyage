@@ -7,8 +7,6 @@
 
 package im.vector.app.features.debug.settings
 
-import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,7 +14,6 @@ import android.view.ViewGroup
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import im.vector.app.core.platform.VectorBaseFragment
-import im.vector.app.features.home.room.list.home.release.ReleaseNotesActivity
 import im.vector.application.databinding.FragmentDebugPrivateSettingsBinding
 
 class DebugPrivateSettingsFragment : VectorBaseFragment<FragmentDebugPrivateSettingsBinding>() {
@@ -39,12 +36,6 @@ class DebugPrivateSettingsFragment : VectorBaseFragment<FragmentDebugPrivateSett
         views.forceLoginFallback.setOnCheckedChangeListener { _, isChecked ->
             viewModel.handle(DebugPrivateSettingsViewActions.SetForceLoginFallbackEnabled(isChecked))
         }
-        views.releaseNotesActivityHasBeenDisplayedReset.setOnClickListener {
-            viewModel.handle(DebugPrivateSettingsViewActions.ResetReleaseNotesActivityHasBeenDisplayed)
-        }
-        views.showReleaseNotesActivity.setOnClickListener {
-            startActivity(Intent(requireActivity(), ReleaseNotesActivity::class.java))
-        }
     }
 
     override fun invalidate() = withState(viewModel) {
@@ -56,7 +47,5 @@ class DebugPrivateSettingsFragment : VectorBaseFragment<FragmentDebugPrivateSett
             viewModel.handle(DebugPrivateSettingsViewActions.SetAvatarCapabilityOverride(option))
         }
         views.forceLoginFallback.isChecked = it.forceLoginFallback
-        @SuppressLint("SetTextI18n")
-        views.releaseNotesActivityHasBeenDisplayed.text = "ReleaseNotesActivity has been displayed: ${it.releaseNotesActivityHasBeenDisplayed}"
     }
 }

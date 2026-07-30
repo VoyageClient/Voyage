@@ -23,7 +23,6 @@ import im.vector.app.core.pushers.PushersManager
 import im.vector.app.core.pushers.RegisterUnifiedPushUseCase
 import im.vector.app.core.pushers.UnregisterUnifiedPushUseCase
 import im.vector.app.core.session.EnsureSessionSyncingUseCase
-import im.vector.app.features.home.room.list.home.release.ReleaseNotesPreferencesStore
 import im.vector.app.features.login.ReAuthHelper
 import im.vector.app.features.onboarding.AuthenticationDescription
 import im.vector.app.features.raw.wellknown.ElementWellKnown
@@ -64,7 +63,6 @@ class HomeActivityViewModel @AssistedInject constructor(
         private val reAuthHelper: ReAuthHelper,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
         private val vectorPreferences: VectorPreferences,
-        private val releaseNotesPreferencesStore: ReleaseNotesPreferencesStore,
         private val pushersManager: PushersManager,
         private val registerUnifiedPushUseCase: RegisterUnifiedPushUseCase,
         private val unregisterUnifiedPushUseCase: UnregisterUnifiedPushUseCase,
@@ -103,7 +101,6 @@ class HomeActivityViewModel @AssistedInject constructor(
         observeInitialSync()
         observeCrossSigningReset()
         promptForNotifications()
-        observeReleaseNotes()
         initThreadsMigration()
     }
 
@@ -131,24 +128,6 @@ class HomeActivityViewModel @AssistedInject constructor(
     private fun unregisterUnifiedPush() {
         viewModelScope.launch {
             unregisterUnifiedPushUseCase.execute(pushersManager)
-        }
-    }
-
-    private fun observeReleaseNotes() = withState { state ->
-        if (vectorPreferences.isNewAppLayoutEnabled()) {
-            // we don't want to show release notes for new users or after relogin
-            if (state.authenticationDescription == null) {
-                releaseNotesPreferencesStore.appLayoutOnboardingShown.onEach { isAppLayoutOnboardingShown ->
-                    if (!isAppLayoutOnboardingShown) {
-                        _viewEvents.post(HomeActivityViewEvents.ShowReleaseNotes)
-                    }
-                }.launchIn(viewModelScope)
-            } else {
-                // we assume that users which came from auth flow either have seen updates already (relogin) or don't need them (new user)
-                viewModelScope.launch {
-                    releaseNotesPreferencesStore.setAppLayoutOnboardingShown(true)
-                }
-            }
         }
     }
 

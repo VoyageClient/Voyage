@@ -14,7 +14,6 @@ data class DebugPrivateSettingsViewState(
         val dialPadVisible: Boolean = false,
         val forceLoginFallback: Boolean = false,
         val homeserverCapabilityOverrides: HomeserverCapabilityOverrides = HomeserverCapabilityOverrides(),
-        val releaseNotesActivityHasBeenDisplayed: Boolean = false,
 ) : MavericksState
 
 data class HomeserverCapabilityOverrides(

@@ -48,7 +48,6 @@ import im.vector.app.features.crypto.recover.SetupMode
 import im.vector.app.features.home.room.list.actions.RoomListSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListSharedActionViewModel
 import im.vector.app.features.home.room.list.home.layout.HomeLayoutSettingBottomDialogFragment
-import im.vector.app.features.home.room.list.home.release.ReleaseNotesActivity
 import im.vector.app.features.matrixto.MatrixToBottomSheet
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.navigation.Navigator
@@ -250,7 +249,6 @@ class HomeActivity :
                 }
                 is HomeActivityViewEvents.OnCrossSignedInvalidated -> handleCrossSigningInvalidated(it)
                 HomeActivityViewEvents.ShowNotificationDialog -> handleShowNotificationDialog()
-                HomeActivityViewEvents.ShowReleaseNotes -> handleShowReleaseNotes()
                 HomeActivityViewEvents.NotifyUserForThreadsMigration -> handleNotifyUserForThreadsMigration()
                 is HomeActivityViewEvents.MigrateThreads -> migrateThreadsIfNeeded(it.checkSession)
                 is HomeActivityViewEvents.AskUserForPushDistributor -> askUserToSelectPushDistributor()
@@ -275,10 +273,6 @@ class HomeActivity :
 
     private fun handleShowNotificationDialog() {
         notificationPermissionManager.eventuallyRequestPermission(this, postPermissionLauncher)
-    }
-
-    private fun handleShowReleaseNotes() {
-        startActivity(Intent(this, ReleaseNotesActivity::class.java))
     }
 
     private fun showSpaceSettings(spaceId: String) {
