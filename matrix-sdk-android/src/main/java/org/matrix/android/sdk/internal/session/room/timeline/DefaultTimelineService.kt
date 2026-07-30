@@ -58,6 +58,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
         private val globalErrorReceiver: GlobalErrorReceiver,
         @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
         @SessionDatabase private val sessionDbDispatcher: kotlinx.coroutines.CoroutineDispatcher,
+        @org.matrix.android.sdk.internal.di.SessionDatabaseTimeline private val readDispatcher: kotlinx.coroutines.CoroutineDispatcher,
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val timelineRedactionSignal: TimelineRedactionSignal,
 ) : TimelineService {
@@ -68,7 +69,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
     }
 
     override fun createTimeline(eventId: String?, settings: TimelineSettings): Timeline {
-        val snapshotLoader = SqlChunkSnapshotLoader(database, sessionDbDispatcher, stores, timelineEventMapper)
+        val snapshotLoader = SqlChunkSnapshotLoader(database, readDispatcher, stores, timelineEventMapper)
         return SqlTimeline(
                 roomId = roomId,
                 initialEventId = eventId,
@@ -81,6 +82,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 contextOfEventTask = contextOfEventTask,
                 database = database,
                 sessionDispatcher = sessionDbDispatcher,
+                readDispatcher = readDispatcher,
                 eventDecryptor = eventDecryptorProvider.get(),
                 timelineInput = timelineInput,
                 clock = clock,

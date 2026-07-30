@@ -15,6 +15,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.DaySeparatorItem
 import im.vector.app.features.home.room.detail.timeline.item.ItemWithEvents
 import im.vector.app.features.home.room.detail.timeline.item.TimelineReadMarkerItem_
+import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import kotlin.random.Random
 import kotlin.reflect.KMutableProperty0
@@ -90,7 +91,12 @@ class TimelineControllerInterceptorHelper(
     }
 
     private fun MutableList<EpoxyModel<*>>.addBackwardPrefetchIfNeeded(timeline: Timeline?, callback: TimelineEventController.Callback?) {
-        val shouldAddBackwardPrefetch = timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS) ?: false
+        // Only worth prefetching once the list is long enough for the trigger to sit off-screen. Below that
+        // the index collapses to 0, so the item is visible the moment the tracker attaches and every fresh
+        // room open fires onLoadMore before the user has scrolled. The visible end-of-list loader already
+        // covers a list that doesn't fill the screen.
+        val shouldAddBackwardPrefetch = timeline?.hasMoreToLoad(Timeline.Direction.BACKWARDS).orFalse() &&
+                size > DEFAULT_PREFETCH_THRESHOLD
         if (shouldAddBackwardPrefetch) {
             val indexOfPrefetchBackward = (previousModelsSize - 1)
                     .coerceAtMost(size - DEFAULT_PREFETCH_THRESHOLD)

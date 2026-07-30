@@ -96,11 +96,15 @@ New features, improvements, and notable removals in this fork.
 
 - **New crypto backend: libce** — replaced vodozemac with the libce submodule, enabling builds for old devices.
 
+- **Reads off the database write thread** — the timeline and the room list each read on their own thread, so opening a room or refreshing the list no longer waits for a sync response to finish being written.
+
 - **Performance internals** — SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, and a memoized event mapper underpin the user-facing speedups above.
 
 - **Dependency & build slimming** — dropped the WYSIWYG composer, Sentry, and the unused JNA dependency; vendored markwon-html; bumped conscrypt; and enabled optimization for libopus.
 
 ## Significant bugfixes
+
+- Fixed the app showing stale rooms after being backgrounded, with no sign it was catching up — returning to the foreground now always starts an immediate sync and shows progress while it runs.
 
 - Fixed a space-hierarchy recursion that could crash the app with a stack overflow.
 

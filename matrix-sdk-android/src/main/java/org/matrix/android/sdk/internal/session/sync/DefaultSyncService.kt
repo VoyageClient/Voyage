@@ -36,6 +36,10 @@ internal class DefaultSyncService @Inject constructor(
         private val sessionState: SessionState,
         private val workManagerConfig: WorkManagerConfig,
 ) : SyncService {
+    // Guards the lazy create/start/kill of [syncThread]: startSync() is reached from the main thread
+    // (activity startup) and from background threads (foreground hook, session init) at the same time, and
+    // an unguarded check-then-create there starts two sync threads that then both poll the homeserver.
+    @Volatile
     private var syncThread: SyncThread? = null
 
     override fun requireBackgroundSync() {
@@ -60,19 +64,28 @@ internal class DefaultSyncService @Inject constructor(
         SyncWorker.stopAnyBackgroundSync(workManagerProvider)
     }
 
+    @Synchronized
     override fun startSync(fromForeground: Boolean) {
-        Timber.i("Starting sync thread")
         assert(sessionState.isOpen)
+        // A Thread cannot be started twice, so a terminated one has to be replaced rather than restarted.
+        if ((getSyncThread() as Thread).state == Thread.State.TERMINATED) {
+            Timber.w("Sync thread has terminated, recreating it")
+            syncThread = null
+        }
         val localSyncThread = getSyncThread()
-        localSyncThread.setInitialForeground(fromForeground)
         if (!localSyncThread.isAlive) {
+            Timber.i("Starting sync thread")
+            localSyncThread.setInitialForeground(fromForeground)
             localSyncThread.start()
         } else {
+            // Do not call setInitialForeground here: it writes the live state from the caller's thread and
+            // would flip a running sync to Paused. restart() is the idempotent "sync now" for a live thread.
+            Timber.i("Sync thread already running, requesting an immediate sync")
             localSyncThread.restart()
-            Timber.w("Attempt to start an already started thread")
         }
     }
 
+    @Synchronized
     override fun stopSync() {
         assert(sessionState.isOpen)
         syncThread?.kill()
@@ -93,6 +106,7 @@ internal class DefaultSyncService @Inject constructor(
         return syncTokenStore.getLastToken() != null
     }
 
+    @Synchronized
     private fun getSyncThread(): SyncThread {
         return syncThread ?: syncThreadProvider.get().also {
             syncThread = it

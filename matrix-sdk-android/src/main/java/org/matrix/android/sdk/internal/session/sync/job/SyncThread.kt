@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.sync.job
 
+import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -55,6 +56,8 @@ import kotlin.concurrent.schedule
 
 private const val RETRY_WAIT_TIME_MS = 10_000L
 
+private const val MIN_AGE_TO_CANCEL_SYNC_MS = 5_000L
+
 private val loggerTag = LoggerTag("SyncThread", LoggerTag.SYNC)
 
 internal class SyncThread @Inject constructor(
@@ -86,6 +89,23 @@ internal class SyncThread @Inject constructor(
     @Volatile
     private var inflightSyncJob: Job? = null
 
+    // Identifies the in-flight request so a burst of restart()/onConnectivityChanged() callbacks kicks a
+    // given request at most once, instead of tearing down the healthy replacement the previous kick started.
+    @Volatile
+    private var inflightSyncGeneration = 0L
+    @Volatile
+    private var cancelledSyncGeneration = -1L
+    @Volatile
+    private var inflightSyncStartedAt = 0L
+
+    // `pause()` does not interrupt the run loop, so when the app is backgrounded mid-request (and the
+    // device then dozes, freezing that request for the whole background period) the loop never reaches
+    // the Paused branch and `state` stays Running(afterPause = false). Without this flag the request
+    // issued on the next foreground would inherit afterPause = false: a silent 30s long poll with no
+    // progress bar, instead of the immediate catch-up the user is waiting for.
+    @Volatile
+    private var forceImmediateSync = false
+
     private val activeCallListObserver = Observer<MutableList<MxCall>> { activeCalls ->
         if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground) {
             pause()
@@ -104,6 +124,7 @@ internal class SyncThread @Inject constructor(
     }
 
     fun restart() = synchronized(lock) {
+        forceImmediateSync = true
         if (!isStarted) {
             Timber.tag(loggerTag.value).d("Resume sync...")
             isStarted = true
@@ -149,6 +170,9 @@ internal class SyncThread @Inject constructor(
     override fun onConnectivityChanged() {
         retryNoNetworkTask?.cancel()
         synchronized(lock) {
+            // Only force a catch-up when recovering from an actual outage. The checker also reports the
+            // current network on every resume, where the loop is already issuing one.
+            if (!canReachServer) forceImmediateSync = true
             canReachServer = true
             lock.notify()
         }
@@ -159,12 +183,19 @@ internal class SyncThread @Inject constructor(
     }
 
     private fun cancelInflightSync(reason: String) {
-        inflightSyncJob?.let { job ->
-            if (job.isActive) {
-                Timber.tag(loggerTag.value).d("Cancelling in-flight sync ($reason)")
-                job.cancel(CancellationException("Sync cancelled: $reason"))
-            }
+        val job = inflightSyncJob ?: return
+        val generation = inflightSyncGeneration
+        if (!job.isActive || generation == cancelledSyncGeneration) return
+        // Only a request old enough to have been stranded by the event is worth kicking. The connectivity
+        // checker reports the network once at startup, milliseconds after the first request goes out —
+        // cancelling that one just throws away a healthy sync and re-issues it.
+        if (SystemClock.elapsedRealtime() - inflightSyncStartedAt < MIN_AGE_TO_CANCEL_SYNC_MS) {
+            Timber.tag(loggerTag.value).d("Not cancelling a just-issued sync ($reason)")
+            return
         }
+        cancelledSyncGeneration = generation
+        Timber.tag(loggerTag.value).d("Cancelling in-flight sync ($reason)")
+        job.cancel(CancellationException("Sync cancelled: $reason"))
     }
 
     override fun run() {
@@ -202,7 +233,8 @@ internal class SyncThread @Inject constructor(
                 synchronized(lock) { lock.wait() }
                 Timber.tag(loggerTag.value).d("...unlocked")
             } else {
-                if (state !is SyncState.Running) {
+                if (forceImmediateSync || state !is SyncState.Running) {
+                    forceImmediateSync = false
                     updateStateTo(SyncState.Running(afterPause = true))
                 }
                 val afterPause = state.let { it is SyncState.Running && it.afterPause }
@@ -217,7 +249,11 @@ internal class SyncThread @Inject constructor(
                 val sync = syncScope.launch {
                     previousSyncResponseHasToDevice = doSync(params)
                 }
-                inflightSyncJob = sync
+                synchronized(lock) {
+                    inflightSyncGeneration++
+                    inflightSyncStartedAt = SystemClock.elapsedRealtime()
+                    inflightSyncJob = sync
+                }
                 runBlocking {
                     sync.join()
                 }

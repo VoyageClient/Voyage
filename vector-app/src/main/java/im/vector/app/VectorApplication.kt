@@ -35,6 +35,7 @@ import im.vector.app.core.debug.LeakDetector
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.pushers.FcmHelper
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.core.session.EnsureSessionSyncingUseCase
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.invite.InvitesAcceptor
 import im.vector.app.features.lifecycle.VectorActivityLifecycleCallbacks
@@ -73,6 +74,7 @@ class VectorApplication :
     @Inject lateinit var twemojiProvider: im.vector.app.features.emoji.TwemojiProvider
     @Inject lateinit var vectorUncaughtExceptionHandler: VectorUncaughtExceptionHandler
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    @Inject lateinit var ensureSessionSyncingUseCase: EnsureSessionSyncingUseCase
     @Inject lateinit var notificationDrawerManager: NotificationDrawerManager
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var versionProvider: VersionProvider
@@ -167,6 +169,7 @@ class VectorApplication :
                 fcmHelper.onEnterForeground(activeSessionHolder)
                 activeSessionHolder.getSafeActiveSessionAsync {
                     it?.syncService()?.stopAnyBackgroundSync()
+                    ensureSessionSyncingUseCase.execute()
                 }
             }
 

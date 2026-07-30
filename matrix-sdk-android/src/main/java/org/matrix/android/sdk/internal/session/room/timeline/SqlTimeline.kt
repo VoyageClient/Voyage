@@ -61,6 +61,7 @@ internal class SqlTimeline(
         private val contextOfEventTask: GetContextOfEventTask,
         private val database: SessionSqlDatabase,
         private val sessionDispatcher: CoroutineDispatcher,
+        private val readDispatcher: CoroutineDispatcher,
         private val eventDecryptor: TimelineEventDecryptor,
         private val timelineInput: TimelineInput,
         private val clock: Clock,
@@ -74,7 +75,11 @@ internal class SqlTimeline(
     private val forwardState = AtomicReference(Timeline.PaginationState(hasMoreToLoad = false))
     private val backwardState = AtomicReference(Timeline.PaginationState(hasMoreToLoad = true))
 
-    private val timelineScope = CoroutineScope(SupervisorJob() + sessionDispatcher)
+    // Reads only, and never on the write thread: sharing it meant a room open blocked until sync's one big
+    // transaction committed. Writes still hop to [sessionDispatcher] — opening a transaction here would only
+    // move the stall to SQLite's writer lock. Must stay single-threaded; the window bookkeeping below relies
+    // on confinement rather than locking.
+    private val timelineScope = CoroutineScope(SupervisorJob() + readDispatcher)
     // The backward loading item re-fires onLoadMore every time it's visible; in a room dominated by collapsed
     // (hidden/redacted) events it stays on screen, so serialize the requests to avoid piling up fetches.
     private val backwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -260,7 +265,8 @@ internal class SqlTimeline(
     }
 
     override suspend fun awaitPaginate(direction: Timeline.Direction, count: Int): List<TimelineEvent> {
-        loadMore(count, direction)
+        // On the read dispatcher like every other loadMore: the window bookkeeping it mutates is confined there.
+        withContext(readDispatcher) { loadMore(count, direction) }
         return builtEvents
     }
 
@@ -826,13 +832,19 @@ internal class SqlTimeline(
     override fun onNewTimelineEvents(roomId: String, eventIds: List<String>) {
         if (roomId != this.roomId || !isStarted.get() || isThreadTimeline) return
         timelineScope.launch {
-            val currentLive = loadedChunkIds.firstOrNull() ?: return@launch
-            // Only re-seed when our observed chunk was actually deleted (the limited-sync case above).
-            // After a jump into history the newest *loaded* chunk is legitimately not the room's
-            // last-forward chunk — re-seeding then would yank the user back to the live edge on every
-            // incoming message, collapsing the list under a scrolled-up viewport.
-            if (stores.chunk.getById(currentLive) != null) return@launch
-            val liveChunkId = stores.chunk.lastForward(this@SqlTimeline.roomId)?.id ?: return@launch
+            val currentLive = loadedChunkIds.firstOrNull()
+            // This fires from inside the sync transaction, so the chunk rewrite isn't committed yet and a
+            // read thread would still see the old chunk. Hopping to the write dispatcher queues behind the
+            // transaction, which is exactly the barrier we need.
+            val liveChunkId = withContext(sessionDispatcher) {
+                // Re-seed only when our chunk was deleted (the limited-sync case above), or when nothing was
+                // ever seeded because the room had no chunk at open time — seedFrom() registers no observer
+                // then, leaving the timeline empty until reopened. A jump into history legitimately leaves the
+                // newest loaded chunk behind the last-forward one; re-seeding there would yank the user back
+                // to the live edge on every incoming message.
+                if (currentLive != null && stores.chunk.getById(currentLive) != null) null
+                else stores.chunk.lastForward(this@SqlTimeline.roomId)?.id
+            } ?: return@launch
             pendingShowEventId = null
             oldestShownEventId = null
             newestShownEventId = null

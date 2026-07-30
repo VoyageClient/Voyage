@@ -20,8 +20,12 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
+import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
 
+// Session-scoped so the memo below survives across room opens. Unscoped, DefaultRoomGetter built a fresh
+// mapper per getRoom() call, so every room open re-parsed every event's JSON from cold (~110ms for 74 events).
+@SessionScope
 internal class TimelineEventMapper @Inject constructor(private val readReceiptsSummaryMapper: ReadReceiptsSummaryMapper) {
 
     // Parsing an event's JSON (2-3 Moshi passes) dominates timeline snapshot mapping (~1.5ms/event on
@@ -148,6 +152,6 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
     }
 
     private companion object {
-        private const val MEMO_MAX_SIZE = 1500
+        private const val MEMO_MAX_SIZE = 3000
     }
 }
