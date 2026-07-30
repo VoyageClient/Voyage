@@ -21,8 +21,15 @@ class EnsureSessionSyncingUseCase @Inject constructor(
 ) {
     fun execute() {
         val session = activeSessionHolder.getSafeActiveSession() ?: return
-        if (session.syncService().getSyncState() == SyncState.Idle) {
-            Timber.w("EnsureSessionSyncingUseCase: start syncing")
+        val syncService = session.syncService()
+        val syncState = syncService.getSyncState()
+        // Paused/NoNetwork are recoverable by the thread itself, but a thread that was never started or
+        // was killed (session switch, background teardown) will otherwise never sync again.
+        val needsStart = !syncService.isSyncThreadAlive() ||
+                syncState == SyncState.Idle ||
+                syncState == SyncState.Killed
+        if (needsStart) {
+            Timber.w("EnsureSessionSyncingUseCase: start syncing (state was $syncState)")
             session.startSyncing(context)
         }
     }

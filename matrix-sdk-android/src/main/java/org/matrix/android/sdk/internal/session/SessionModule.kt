@@ -54,6 +54,8 @@ import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.di.CacheDirectory
 import org.matrix.android.sdk.internal.di.DeviceId
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.di.SessionDatabaseRead
+import org.matrix.android.sdk.internal.di.SessionDatabaseTimeline
 import org.matrix.android.sdk.internal.di.SessionDownloadsDirectory
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.di.SessionId
@@ -220,6 +222,22 @@ internal abstract class SessionModule {
         @SessionScope
         fun providesSessionDbDispatcher(): CoroutineDispatcher {
             return newDatabaseDispatcher("matrix-session-db")
+        }
+
+        @JvmStatic
+        @Provides
+        @SessionDatabaseRead
+        @SessionScope
+        fun providesSessionDbReadDispatcher(): CoroutineDispatcher {
+            return newDatabaseDispatcher("matrix-session-db-read")
+        }
+
+        @JvmStatic
+        @Provides
+        @SessionDatabaseTimeline
+        @SessionScope
+        fun providesSessionDbTimelineDispatcher(): CoroutineDispatcher {
+            return newDatabaseDispatcher("matrix-session-db-tl")
         }
 
         @JvmStatic

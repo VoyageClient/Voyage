@@ -56,13 +56,14 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.di.SessionDatabaseRead
 import org.matrix.android.sdk.internal.query.matches
 import javax.inject.Inject
 import org.matrix.android.sdk.internal.database.sql.Room_summary as RoomSummaryRow
 
 internal class RoomSummaryDataSource @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
-        @SessionDatabase private val dispatcher: CoroutineDispatcher,
+        @SessionDatabaseRead private val dispatcher: CoroutineDispatcher,
         private val roomSummaryMapper: RoomSummaryMapper,
         private val localRoomSummaryMapper: LocalRoomSummaryMapper,
         private val stores: SessionStores,
@@ -115,7 +116,7 @@ internal class RoomSummaryDataSource @Inject constructor(
         return rows
     }
 
-    /** LiveData recomputing [transform] (against [allRows]) on the DB dispatcher on every room_summary change. */
+    /** LiveData recomputing [transform] (against [allRows]) on the DB read dispatcher on every room_summary change. */
     private fun <T> liveOnRoomSummaryChange(transform: () -> T): LiveData<T> =
             roomSummaryGeneration.map { transform() }.flowOn(dispatcher).asLiveData()
 

@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.sync
 
 import android.os.SystemClock
+import kotlinx.coroutines.CancellationException
 import okhttp3.ResponseBody
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
@@ -167,6 +168,12 @@ internal class DefaultSyncTask @Inject constructor(
                             readTimeOut = readTimeOut
                     )
                 }
+            } catch (cancellation: CancellationException) {
+                // The sync thread kicks its own request on foreground/connectivity changes; that is not an
+                // error state and must not surface as one.
+                Timber.tag(loggerTag.value).d("Incremental sync request cancelled")
+                syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncIdle)
+                throw cancellation
             } catch (throwable: Throwable) {
                 Timber.tag(loggerTag.value).e(throwable, "Incremental sync request error")
                 syncRequestStateTracker.setSyncRequestState(SyncRequestState.IncrementalSyncError)

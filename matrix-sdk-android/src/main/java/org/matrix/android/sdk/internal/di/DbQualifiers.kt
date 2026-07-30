@@ -30,6 +30,24 @@ internal annotation class GlobalDatabase
 @Retention(AnnotationRetention.RUNTIME)
 internal annotation class SessionDatabase
 
+/**
+ * Dispatcher for read-only session-database work (room-list and room-summary mapping). Separate from the
+ * [SessionDatabase] write thread so a UI read isn't queued behind a sync response's one big transaction;
+ * WAL gives it a consistent committed snapshot meanwhile. Never start a transaction or a write on it.
+ */
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+internal annotation class SessionDatabaseRead
+
+/**
+ * Read-only dispatcher reserved for timeline seeding and rebuilding. Kept apart from
+ * [SessionDatabaseRead] because a room open holds its thread for a couple of hundred ms, which would
+ * otherwise delay the room summary the timeline itself is waiting on to render.
+ */
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+internal annotation class SessionDatabaseTimeline
+
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 internal annotation class CryptoDatabase
