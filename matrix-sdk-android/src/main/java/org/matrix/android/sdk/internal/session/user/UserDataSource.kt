@@ -69,7 +69,9 @@ internal class UserDataSource @Inject constructor(
     fun getIgnoredUsersLive(): LiveData<List<User>> {
         return database.ignoredUserQueries.selectAll()
                 .asLiveList(dispatcher)
-                .map { ids -> ids.map { getUser(it) ?: User(userId = it) } }
+                // Skip any malformed blank id: User("") fails MatrixItem's @-prefix check, which would
+                // crash the ignored-users list (or drop the whole list) rather than just that one entry.
+                .map { ids -> ids.filter { it.isNotBlank() }.map { getUser(it) ?: User(userId = it) } }
     }
 
     fun getIgnoredUserIds(): List<String> = database.ignoredUserQueries.selectAll().executeAsList()
