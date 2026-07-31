@@ -26,6 +26,7 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/action_play"
         app:srcCompat="@drawable/ic_material_play_circle"
+        app:tint="?vctr_accent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

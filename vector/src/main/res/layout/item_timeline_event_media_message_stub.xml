@@ -37,7 +37,7 @@
             android:layout_height="40dp"
             android:contentDescription="@string/action_play"
             app:srcCompat="@drawable/ic_material_play_circle"
-            app:tint="?vctr_system"
+            app:tint="?vctr_accent"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="@id/messageThumbnailView"
             app:layout_constraintEnd_toEndOf="@id/messageThumbnailView"
