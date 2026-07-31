@@ -35,6 +35,7 @@ import org.matrix.android.sdk.internal.network.ApiInterceptor
 import org.matrix.android.sdk.internal.network.UserAgentHolder
 import org.matrix.android.sdk.internal.platform.AndroidAppStateDriver
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
+import org.matrix.android.sdk.internal.util.installAndroidHtmlConverter
 import org.matrix.android.sdk.internal.worker.MatrixWorkerFactory
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -77,6 +78,7 @@ class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
             WorkManager.initialize(appContext, configuration)
         }
         AndroidAppStateDriver(backgroundDetectionObserver).start()
+        installAndroidHtmlConverter()
     }
 
     /**

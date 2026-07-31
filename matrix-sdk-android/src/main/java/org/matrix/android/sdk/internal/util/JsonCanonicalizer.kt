@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.util
 
-import androidx.annotation.VisibleForTesting
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -38,7 +37,6 @@ internal object JsonCanonicalizer {
                 .replace("\\/", "/")
     }
 
-    @VisibleForTesting
     fun canonicalize(jsonString: String): String {
         return try {
             val jsonObject = JSONObject(jsonString)
