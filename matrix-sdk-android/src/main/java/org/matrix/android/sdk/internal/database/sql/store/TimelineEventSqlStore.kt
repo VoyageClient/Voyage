@@ -7,12 +7,8 @@
 
 package org.matrix.android.sdk.internal.database.sql.store
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
-import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sql.Timeline_event as TimelineEventRow
 
 /**
@@ -26,7 +22,7 @@ internal class TimelineEventSqlStore(
         private val readReceiptStore: ReadReceiptSqlStore,
 ) {
 
-    private val queries get() = database.timelineEventQueries
+    internal val queries get() = database.timelineEventQueries
 
     fun nextLocalId(): Long = queries.nextLocalId().executeAsOne()
 
@@ -82,12 +78,6 @@ internal class TimelineEventSqlStore(
     fun getLocalThreadNotificationsForRoom(roomId: String): List<TimelineEventEntity> =
             queries.selectLocalThreadNotificationsForRoom(roomId).executeAsList().toEntities()
 
-    fun getRootThreadsForRoomLive(roomId: String, dispatcher: CoroutineDispatcher): LiveData<List<TimelineEventEntity>> =
-            queries.selectRootThreadsForRoom(roomId).asLiveList(dispatcher).map { rows -> rows.toEntities() }
-
-    fun getLocalThreadNotificationsForRoomLive(roomId: String, dispatcher: CoroutineDispatcher): LiveData<List<TimelineEventEntity>> =
-            queries.selectLocalThreadNotificationsForRoom(roomId).asLiveList(dispatcher).map { rows -> rows.toEntities() }
-
     fun countByChunk(chunkId: Long): Long = queries.countByChunk(chunkId).executeAsOne()
 
     fun maxDisplayIndex(chunkId: Long): Long? = queries.maxDisplayIndexForChunk(chunkId).executeAsOne().max
@@ -131,7 +121,7 @@ internal class TimelineEventSqlStore(
 
     /** Bulk [toEntity]: resolve roots/annotations/receipts for the whole list in a handful of IN queries
      *  instead of ~4 per row — a chunk snapshot re-maps on every sync tick, so the N+1 dominated scroll. */
-    private fun List<TimelineEventRow>.toEntities(): List<TimelineEventEntity> {
+    internal fun List<TimelineEventRow>.toEntities(): List<TimelineEventEntity> {
         if (isEmpty()) return emptyList()
         val roots = eventStore.getByIds(mapNotNull { it.root_event_db_id })
         val eventIds = map { it.event_id }
