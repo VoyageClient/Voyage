@@ -104,6 +104,8 @@ New features, improvements, and notable removals in this fork.
 
 ## Significant bugfixes
 
+- **Plain-http homeservers** — logging into an `http://` homeserver (self-hosted, LAN IP, Tor) no longer fails with a cleartext-not-permitted error on Android 6+.
+
 - Fixed the app showing stale rooms after being backgrounded, with no sign it was catching up — returning to the foreground now always starts an immediate sync and shows progress while it runs.
 
 - Fixed a space-hierarchy recursion that could crash the app with a stack overflow.

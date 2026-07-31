@@ -31,6 +31,7 @@
         android:supportsRtl="true"
         android:taskAffinity="${applicationId}.${appTaskAffinitySuffix}"
         android:theme="@style/Theme.Vector.Light"
+        android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute">
 
         <meta-data
