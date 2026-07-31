@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.poll
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 /**
@@ -54,5 +54,5 @@ interface PollHistoryService {
     /**
      * Get currently loaded list of poll events. See [loadMore].
      */
-    fun getPollEvents(): LiveData<List<TimelineEvent>>
+    fun getPollEventsFlow(): Flow<List<TimelineEvent>>
 }

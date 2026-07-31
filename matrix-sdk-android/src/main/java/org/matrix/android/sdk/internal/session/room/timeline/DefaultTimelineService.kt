@@ -16,10 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
-import androidx.lifecycle.LiveData
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -109,8 +109,8 @@ internal class DefaultTimelineService @AssistedInject constructor(
         }
     }
 
-    override fun getTimelineEventLive(eventId: String): LiveData<Optional<TimelineEvent>> {
-        return timelineEventDataSource.getTimelineEventLive(roomId, eventId)
+    override fun getTimelineEventFlow(eventId: String): Flow<Optional<TimelineEvent>> {
+        return timelineEventDataSource.getTimelineEventFlow(roomId, eventId)
     }
 
     override fun getAttachmentMessages(): List<TimelineEvent> {

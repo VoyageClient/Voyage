@@ -9,7 +9,6 @@ package im.vector.app.core.event
 
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeFlowLiveDataConversions
-import im.vector.app.test.fakes.givenAsFlow
 import im.vector.app.test.test
 import io.mockk.every
 import io.mockk.mockk
@@ -65,10 +64,10 @@ internal class GetTimelineEventUseCaseTest {
                 .timelineService()
 
         // When
-        timelineService.givenTimelineEventLiveReturns(AN_EVENT_ID, aTimelineEvent1).givenAsFlow()
+        timelineService.givenTimelineEventLiveReturns(AN_EVENT_ID, aTimelineEvent1)
         val result1 = getTimelineEventUseCase.execute(A_ROOM_ID, AN_EVENT_ID).test(this)
 
-        timelineService.givenTimelineEventLiveReturns(AN_EVENT_ID, aTimelineEvent2).givenAsFlow()
+        timelineService.givenTimelineEventLiveReturns(AN_EVENT_ID, aTimelineEvent2)
         val result2 = getTimelineEventUseCase.execute(A_ROOM_ID, AN_EVENT_ID).test(this)
 
         // Then

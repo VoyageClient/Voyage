@@ -286,12 +286,13 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/profile/ProfileService.kt',
         'org/matrix/android/sdk/api/session/room/location/LocationSharingService.kt',
         'org/matrix/android/sdk/api/session/room/location/UpdateLiveLocationShareResult.kt',
+        'org/matrix/android/sdk/api/session/room/poll/PollHistoryService.kt',
+        'org/matrix/android/sdk/api/session/room/poll/LoadedPollsStatus.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
 // because they return LiveData/PagedList.
 def coreExcludes = [
-        'org/matrix/android/sdk/api/session/room/model/relation/RelationService.kt',
         'org/matrix/android/sdk/internal/session/filter/DefaultFilterRepository.kt',
         'org/matrix/android/sdk/internal/session/filter/GetCurrentFilterTask.kt',
         'org/matrix/android/sdk/internal/session/filter/SaveFilterTask.kt',

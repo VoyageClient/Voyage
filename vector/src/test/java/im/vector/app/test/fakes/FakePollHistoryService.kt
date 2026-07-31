@@ -7,8 +7,6 @@
 
 package im.vector.app.test.fakes
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
@@ -16,6 +14,8 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.session.room.poll.LoadedPollsStatus
 import org.matrix.android.sdk.api.session.room.poll.PollHistoryService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -30,14 +30,14 @@ class FakePollHistoryService : PollHistoryService by mockk() {
         verify { dispose() }
     }
 
-    fun givenGetPollsReturns(events: List<TimelineEvent>): LiveData<List<TimelineEvent>> {
-        return MutableLiveData(events).also {
-            every { getPollEvents() } returns it
+    fun givenGetPollsReturns(events: List<TimelineEvent>): Flow<List<TimelineEvent>> {
+        return flowOf(events).also {
+            every { getPollEventsFlow() } returns it
         }
     }
 
     fun verifyGetPolls() {
-        verify { getPollEvents() }
+        verify { getPollEventsFlow() }
     }
 
     fun givenGetLoadedPollsStatusReturns(status: LoadedPollsStatus) {

@@ -16,13 +16,15 @@
 
 package org.matrix.android.sdk.internal.session.room.poll
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
-import androidx.lifecycle.switchMap
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -109,18 +111,17 @@ internal class DefaultPollHistoryService @AssistedInject constructor(
         }
     }
 
-    override fun getPollEvents(): LiveData<List<TimelineEvent>> {
-        val pollHistoryStatusLiveData = getPollHistoryStatus()
-
-        return pollHistoryStatusLiveData.switchMap { results ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun getPollEventsFlow(): Flow<List<TimelineEvent>> {
+        return getPollHistoryStatus().flatMapLatest { results ->
             val oldestTimestamp = results.firstOrNull()?.oldestTimestampTargetReachedMs ?: clock.epochMillis()
             getPollStartEventsAfter(oldestTimestamp)
         }
     }
 
-    private fun getPollStartEventsAfter(timestampMs: Long): LiveData<List<TimelineEvent>> {
+    private fun getPollStartEventsAfter(timestampMs: Long): Flow<List<TimelineEvent>> {
         val pollTypes = (EventType.POLL_START.values + EventType.ENCRYPTED)
-        return database.timelineEventQueries.selectByRoomTypesAfterTs(roomId, pollTypes, timestampMs).asLiveList(dispatcher)
+        return database.timelineEventQueries.selectByRoomTypesAfterTs(roomId, pollTypes, timestampMs).asFlow().mapToList(dispatcher)
                 .map {
                     stores.timelineEvent.getByRoomTypesAfterTs(roomId, pollTypes, timestampMs)
                             .map { timelineEventMapper.map(it, buildReadReceipts = false) }
@@ -129,8 +130,8 @@ internal class DefaultPollHistoryService @AssistedInject constructor(
                 }
     }
 
-    private fun getPollHistoryStatus(): LiveData<List<PollHistoryStatusEntity>> {
-        return database.pollHistoryStatusQueries.selectByRoom(roomId).asLiveList(dispatcher)
+    private fun getPollHistoryStatus(): Flow<List<PollHistoryStatusEntity>> {
+        return database.pollHistoryStatusQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map { stores.pollHistory.get(roomId)?.let { listOf(it) }.orEmpty() }
     }
 }

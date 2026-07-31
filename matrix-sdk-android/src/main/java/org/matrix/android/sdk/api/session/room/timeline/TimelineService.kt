@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.timeline
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.util.Optional
 
 /**
@@ -38,7 +38,7 @@ interface TimelineService {
 
     /**
      * Returns a snapshot of TimelineEvent event with eventId.
-     * At the opposite of getTimelineEventLive which will be updated when local echo event is synced, it will return null in this case.
+     * At the opposite of getTimelineEventFlow which will be updated when local echo event is synced, it will return null in this case.
      * @param eventId the eventId to get the TimelineEvent
      */
     fun getTimelineEvent(eventId: String): TimelineEvent?
@@ -52,12 +52,12 @@ interface TimelineService {
     suspend fun fetchEventIdForTimestamp(timestampMs: Long, forward: Boolean = true): String?
 
     /**
-     * Creates a LiveData of Optional TimelineEvent event with eventId.
-     * If the eventId is a local echo eventId, it will make the LiveData be updated with the synced TimelineEvent when coming through the sync.
+     * Creates a Flow of Optional TimelineEvent event with eventId.
+     * If the eventId is a local echo eventId, it will make the Flow be updated with the synced TimelineEvent when coming through the sync.
      * In this case, makes sure to use the new synced eventId from the TimelineEvent class if you want to interact, as the local echo is removed from the SDK.
      * @param eventId the eventId to listen for TimelineEvent
      */
-    fun getTimelineEventLive(eventId: String): LiveData<Optional<TimelineEvent>>
+    fun getTimelineEventFlow(eventId: String): Flow<Optional<TimelineEvent>>
 
     /**
      * Returns a snapshot list of TimelineEvent with EventType.MESSAGE and MessageType.MSGTYPE_IMAGE or MessageType.MSGTYPE_VIDEO.

@@ -7,10 +7,12 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
@@ -25,7 +27,6 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import javax.inject.Inject
@@ -53,9 +54,10 @@ internal class SqlTimelineEventDataSource @Inject constructor(
         return localEchoRepository.get().getPendingEcho(eventId)
     }
 
-    fun getTimelineEventLive(roomId: String, eventId: String): LiveData<Optional<TimelineEvent>> =
+    fun getTimelineEventFlow(roomId: String, eventId: String): Flow<Optional<TimelineEvent>> =
             database.timelineEventQueries.selectByRoomAndEventId(roomId, eventId)
-                    .asLiveList(dispatcher)
+                    .asFlow()
+                    .mapToList(dispatcher)
                     .map { getTimelineEvent(roomId, eventId).toOptional() }
 
     fun getAttachmentMessages(roomId: String): List<TimelineEvent> =
