@@ -1,0 +1,53 @@
+// Desktop-port core gate: compiles a growing include-list of matrix-sdk-android's own sources as
+// plain JVM (no Android on the classpath), without moving files — the android module keeps
+// compiling them unchanged. Growing `coreSources` is the extraction ratchet: once a file is listed
+// it can never regress into android imports without breaking this module's build.
+//
+// Standalone module: nothing in the Android app depends on it. Build with :matrix-sdk-core:build.
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'kotlin-kapt'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+def coreSources = [
+        'org/matrix/android/sdk/api/auth/data/WellKnownBaseConfig.kt',
+        'org/matrix/android/sdk/api/extensions/Booleans.kt',
+        'org/matrix/android/sdk/api/extensions/Strings.kt',
+        'org/matrix/android/sdk/api/extensions/Try.kt',
+        'org/matrix/android/sdk/api/util/Base64.kt',
+        'org/matrix/android/sdk/api/util/Cancelable.kt',
+        'org/matrix/android/sdk/api/util/CancelableBag.kt',
+        'org/matrix/android/sdk/api/util/MimeTypes.kt',
+        'org/matrix/android/sdk/api/util/Optional.kt',
+        'org/matrix/android/sdk/api/util/StringOrderUtils.kt',
+        'org/matrix/android/sdk/api/util/TextContent.kt',
+        'org/matrix/android/sdk/api/session/uia/InteractiveAuthenticationFlow.kt',
+        'org/matrix/android/sdk/internal/util/LruCache.kt',
+        'org/matrix/android/sdk/internal/util/UriString.kt',
+        'org/matrix/android/sdk/internal/util/UrlUtils.kt',
+]
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir '../matrix-sdk-android/src/main/java'
+            setIncludes(coreSources)
+        }
+    }
+}
+
+dependencies {
+    implementation project(':library:external:timber-jvm')
+    implementation libs.jetbrains.coroutinesCore
+    implementation libs.squareup.moshi
+    kapt libs.squareup.moshiKotlin
+
+    testImplementation 'junit:junit:4.13.2'
+}

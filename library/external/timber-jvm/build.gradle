@@ -1,0 +1,17 @@
+// JVM stand-in for the Android-only Timber library (an AAR), providing the timber.log.Timber call
+// surface the matrix-sdk core uses so the same sources compile and run on desktop JVM. Nothing in
+// the Android app depends on it — the app keeps the real Timber.
+apply plugin: 'org.jetbrains.kotlin.jvm'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}
