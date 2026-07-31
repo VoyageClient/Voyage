@@ -61,7 +61,7 @@ class CreateSpaceViewModelTask @Inject constructor(
             session.spaceService().createSpace(CreateSpaceParams().apply {
                 this.name = params.spaceName
                 this.topic = params.spaceTopic
-                this.avatarUri = params.spaceAvatar
+                this.avatarUri = params.spaceAvatar?.toString()
                 if (params.isPublic) {
                     this.roomAliasName = params.spaceAlias
                     this.powerLevelContentOverride = (powerLevelContentOverride ?: PowerLevelsContent()).copy(

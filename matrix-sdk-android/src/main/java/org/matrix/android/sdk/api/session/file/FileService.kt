@@ -122,14 +122,14 @@ interface FileService {
      * Upload a (clear, unencrypted) file to the content repository and return its `mxc://` URI.
      * Used for content that is referenced by URL rather than sent as a message, e.g. MSC2545 image packs.
      */
-    suspend fun uploadFile(uri: Uri, fileName: String?, mimeType: String?): String
+    suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String
 
     /**
      * Compresses an image [uri] for upload, downscaling within [maxDimension] and re-encoding. Animated
      * GIF/APNG are re-encoded to animated WebP; small files (and animated WebP) are returned untouched.
      * Returns the compressed file's uri and resolved mime type.
      */
-    suspend fun compressImageForUpload(uri: Uri, mimeType: String?, maxDimension: Int): CompressedImageResult
+    suspend fun compressImageForUpload(uri: String, mimeType: String?, maxDimension: Int): CompressedImageResult
 
     data class CompressedImageResult(val uri: Uri, val mimeType: String?)
 

@@ -894,7 +894,7 @@ class OnboardingViewModel @AssistedInject constructor(
                         try {
                             activeSession.profileService().updateAvatar(
                                     activeSession.myUserId,
-                                    pictureUri,
+                                    pictureUri.toString(),
                                     uriFilenameResolver.getFilenameFromUri(pictureUri) ?: UUID.randomUUID().toString()
                             )
                             setState {

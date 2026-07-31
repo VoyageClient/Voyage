@@ -429,7 +429,7 @@ class VectorSettingsGeneralFragment :
 
         lifecycleScope.launch {
             val result = runCatching {
-                session.profileService().updateAvatar(session.myUserId, uri, getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
+                session.profileService().updateAvatar(session.myUserId, uri.toString(), getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
             }
             if (!isAdded) return@launch
 
@@ -467,7 +467,7 @@ class VectorSettingsGeneralFragment :
 
         lifecycleScope.launch {
             val result = runCatching {
-                session.profileService().updateBanner(session.myUserId, uri, getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
+                session.profileService().updateBanner(session.myUserId, uri.toString(), getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
             }
             if (!isAdded) return@launch
 

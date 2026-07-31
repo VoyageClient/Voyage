@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.space
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
@@ -40,7 +39,7 @@ interface SpaceService {
     suspend fun createSpace(
             name: String,
             topic: String?,
-            avatarUri: Uri?,
+            avatarUri: String?,
             isPublic: Boolean,
             roomAliasLocalPart: String? = null
     ): String

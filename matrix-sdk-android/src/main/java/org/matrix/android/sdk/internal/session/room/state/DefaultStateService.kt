@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.state
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -172,7 +171,7 @@ internal class DefaultStateService @AssistedInject constructor(
         }
     }
 
-    override suspend fun updateAvatar(avatarUri: Uri, fileName: String) {
+    override suspend fun updateAvatar(avatarUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(avatarUri, fileName, MimeTypes.Jpeg)
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_AVATAR,
@@ -189,7 +188,7 @@ internal class DefaultStateService @AssistedInject constructor(
         )
     }
 
-    override suspend fun updateBanner(bannerUri: Uri, fileName: String) {
+    override suspend fun updateBanner(bannerUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(bannerUri, fileName, MimeTypes.Jpeg)
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_BANNER.unstable,
@@ -218,7 +217,7 @@ internal class DefaultStateService @AssistedInject constructor(
         sendMyRoomMemberContent { copy(displayName = displayName) }
     }
 
-    override suspend fun updateMyRoomAvatar(avatarUri: Uri, fileName: String) {
+    override suspend fun updateMyRoomAvatar(avatarUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(avatarUri, fileName, MimeTypes.Jpeg)
         sendMyRoomMemberContent { copy(avatarUrl = response.contentUri) }
     }
@@ -227,7 +226,7 @@ internal class DefaultStateService @AssistedInject constructor(
         sendMyRoomMemberContent { copy(avatarUrl = avatarUrl) }
     }
 
-    override suspend fun updateMyRoomBanner(bannerUri: Uri, fileName: String) {
+    override suspend fun updateMyRoomBanner(bannerUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(bannerUri, fileName, MimeTypes.Jpeg)
         sendMyRoomMemberContent { copy(bannerUrl = response.contentUri) }
     }

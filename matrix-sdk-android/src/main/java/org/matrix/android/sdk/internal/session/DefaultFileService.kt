@@ -62,14 +62,14 @@ internal class DefaultFileService @Inject constructor(
         private val imageCompressor: org.matrix.android.sdk.internal.session.content.ImageCompressor,
 ) : FileService {
 
-    override suspend fun uploadFile(uri: android.net.Uri, fileName: String?, mimeType: String?): String {
+    override suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String {
         return fileUploader.uploadFromUri(uri, fileName, mimeType).contentUri
     }
 
-    override suspend fun compressImageForUpload(uri: Uri, mimeType: String?, maxDimension: Int): FileService.CompressedImageResult {
+    override suspend fun compressImageForUpload(uri: String, mimeType: String?, maxDimension: Int): FileService.CompressedImageResult {
         return withContext(coroutineDispatchers.io) {
             val workingFile = File.createTempFile("compress", null, context.cacheDir).also { dest ->
-                context.contentResolver.openInputStream(uri)?.use { input ->
+                context.contentResolver.openInputStream(Uri.parse(uri))?.use { input ->
                     dest.outputStream().use { input.copyTo(it) }
                 } ?: throw IOException("Cannot open $uri")
             }

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.room.model.create
 
-import android.net.Uri
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.session.identity.ThreePid
@@ -58,7 +57,7 @@ open class CreateRoomParams {
     /**
      * If this is not null, the image uri will be sent to the media server and will be set as a room avatar.
      */
-    var avatarUri: Uri? = null
+    var avatarUri: String? = null
 
     /**
      * A list of user IDs to invite to the room.
