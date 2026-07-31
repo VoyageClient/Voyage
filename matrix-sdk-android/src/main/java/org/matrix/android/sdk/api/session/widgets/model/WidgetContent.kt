@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.widgets.model
 
-import android.annotation.SuppressLint
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.util.JsonDict
@@ -38,7 +37,6 @@ data class WidgetContent(
 
     fun isActive() = type != null && url != null
 
-    @SuppressLint("DefaultLocale")
     fun getHumanName(): String {
         return (name ?: type ?: "").safeCapitalize()
     }

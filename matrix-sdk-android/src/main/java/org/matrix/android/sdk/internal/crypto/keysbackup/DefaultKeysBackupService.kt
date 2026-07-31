@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.keysbackup
 
-import android.os.Handler
-import android.os.Looper
 import androidx.annotation.VisibleForTesting
 import androidx.annotation.WorkerThread
 import kotlinx.coroutines.CoroutineScope
@@ -124,9 +122,7 @@ internal class DefaultKeysBackupService @Inject constructor(
         private val cryptoCoroutineScope: CoroutineScope
 ) : KeysBackupService {
 
-    private val uiHandler = Handler(Looper.getMainLooper())
-
-    private val keysBackupStateManager = KeysBackupStateManager(uiHandler)
+    private val keysBackupStateManager = KeysBackupStateManager(cryptoCoroutineScope, coroutineDispatchers)
 
     // The backup version
     override var keysBackupVersion: KeysVersionResult? = null
@@ -691,7 +687,7 @@ internal class DefaultKeysBackupService @Inject constructor(
         val progressListener = if (stepProgressListener != null) {
             object : ProgressListener {
                 override fun onProgress(progress: Int, total: Int) {
-                    uiHandler.post {
+                    cryptoCoroutineScope.launch(coroutineDispatchers.main) {
                         stepProgressListener.onStepProgress(StepProgressListener.Step.ComputingKey(progress, total))
                     }
                 }

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.room.model.message
 
-import android.webkit.MimeTypeMap
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
@@ -77,7 +76,5 @@ data class MessageFileContent(
 
     override val mimeType: String?
         get() = info?.mimeType
-                ?: MimeTypeMap.getFileExtensionFromUrl(filename ?: body)?.let { extension ->
-                    MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
-                }
+                ?: runCatching { java.net.URLConnection.guessContentTypeFromName(filename ?: body) }.getOrNull()
 }
