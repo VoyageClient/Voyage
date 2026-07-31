@@ -17,27 +17,24 @@ package org.matrix.android.sdk.internal.session.pushers
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
-import androidx.work.BackoffPolicy
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
 import org.matrix.android.sdk.api.session.pushers.Pusher
 import org.matrix.android.sdk.api.session.pushers.PushersService
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.PusherEntity
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionId
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.pushers.gateway.PushGatewayNotifyTask
-import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.task.configureWith
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 internal class DefaultPushersService @Inject constructor(
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         @SessionDatabase private val database: org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase,
         @SessionDatabase private val dispatcher: kotlinx.coroutines.CoroutineDispatcher,
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
@@ -48,7 +45,6 @@ internal class DefaultPushersService @Inject constructor(
         private val togglePusherTask: TogglePusherTask,
         private val removePusherTask: RemovePusherTask,
         private val taskExecutor: TaskExecutor,
-        private val workManagerConfig: WorkManagerConfig,
 ) : PushersService {
 
     override suspend fun testPush(
@@ -133,13 +129,9 @@ internal class DefaultPushersService @Inject constructor(
 
     private fun enqueueAddPusher(pusher: JsonPusher): UUID {
         val params = AddPusherWorker.Params(sessionId, pusher)
-        val request = workManagerProvider.matrixOneTimeWorkRequestBuilder<AddPusherWorker>()
-                .setConstraints(WorkManagerProvider.getWorkConstraints(workManagerConfig))
-                .setInputData(WorkerParamsFactory.toData(params))
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                .build()
-        workManagerProvider.workManager.enqueue(request)
-        return request.id
+        return backgroundTaskScheduler.enqueue(
+                backgroundTask(BackgroundTaskType.ADD_PUSHER, params, matrixConstraints = true)
+        ).id
     }
 
     override suspend fun removePusher(pusher: Pusher) {

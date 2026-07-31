@@ -18,23 +18,21 @@ package org.matrix.android.sdk.internal.session.sync
 
 import org.matrix.android.sdk.api.session.sync.SyncService
 import org.matrix.android.sdk.internal.di.SessionId
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.session.SessionState
 import org.matrix.android.sdk.internal.session.sync.job.SyncThread
 import org.matrix.android.sdk.internal.session.sync.job.SyncWorker
-import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
 
 internal class DefaultSyncService @Inject constructor(
         @SessionId val sessionId: String,
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val syncThreadProvider: Provider<SyncThread>,
         private val syncTokenStore: SyncTokenStore,
         private val syncRequestStateTracker: SyncRequestStateTracker,
         private val sessionState: SessionState,
-        private val workManagerConfig: WorkManagerConfig,
 ) : SyncService {
     // Guards the lazy create/start/kill of [syncThread]: startSync() is reached from the main thread
     // (activity startup) and from background threads (foreground hook, session init) at the same time, and
@@ -44,24 +42,22 @@ internal class DefaultSyncService @Inject constructor(
 
     override fun requireBackgroundSync() {
         SyncWorker.requireBackgroundSync(
-                workManagerProvider = workManagerProvider,
+                backgroundTaskScheduler = backgroundTaskScheduler,
                 sessionId = sessionId,
-                workManagerConfig = workManagerConfig,
         )
     }
 
     override fun startAutomaticBackgroundSync(timeOutInSeconds: Long, repeatDelayInSeconds: Long) {
         SyncWorker.automaticallyBackgroundSync(
-                workManagerProvider = workManagerProvider,
+                backgroundTaskScheduler = backgroundTaskScheduler,
                 sessionId = sessionId,
-                workManagerConfig = workManagerConfig,
                 serverTimeoutInSeconds = timeOutInSeconds,
                 delayInSeconds = repeatDelayInSeconds,
         )
     }
 
     override fun stopAnyBackgroundSync() {
-        SyncWorker.stopAnyBackgroundSync(workManagerProvider)
+        SyncWorker.stopAnyBackgroundSync(backgroundTaskScheduler)
     }
 
     @Synchronized

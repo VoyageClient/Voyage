@@ -76,7 +76,9 @@ import org.matrix.android.sdk.internal.network.httpclient.applyMatrixConfigurati
 import org.matrix.android.sdk.internal.network.interceptors.CurlLoggingInterceptor
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
 import org.matrix.android.sdk.internal.network.token.HomeserverAccessTokenProvider
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
+import org.matrix.android.sdk.internal.platform.WorkManagerTaskScheduler
 import org.matrix.android.sdk.internal.session.call.CallEventProcessor
 import org.matrix.android.sdk.internal.session.download.DownloadProgressInterceptor
 import org.matrix.android.sdk.internal.session.events.DefaultEventService
@@ -92,8 +94,8 @@ import org.matrix.android.sdk.internal.session.room.aggregation.poll.PollAggrega
 import org.matrix.android.sdk.internal.session.room.create.RoomCreateEventProcessor
 import org.matrix.android.sdk.internal.session.room.location.LiveLocationShareRedactionEventProcessor
 import org.matrix.android.sdk.internal.session.room.prune.RedactionEventProcessor
-import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.session.room.read.ReadReceiptQueue
+import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessorCoroutine
 import org.matrix.android.sdk.internal.session.room.tombstone.RoomTombstoneEventProcessor
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
@@ -350,6 +352,9 @@ internal abstract class SessionModule {
 
     @Binds
     abstract fun bindNetworkConnectivityChecker(checker: DefaultNetworkConnectivityChecker): NetworkConnectivityChecker
+
+    @Binds
+    abstract fun bindBackgroundTaskScheduler(scheduler: WorkManagerTaskScheduler): BackgroundTaskScheduler
 
     @Binds
     @IntoSet

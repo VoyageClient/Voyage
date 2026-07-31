@@ -26,7 +26,7 @@ import org.matrix.android.sdk.internal.di.SessionDownloadsDirectory
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UserMd5
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.session.SessionModule
 import org.matrix.android.sdk.internal.session.cache.ClearCacheTask
 import timber.log.Timber
@@ -34,7 +34,7 @@ import java.io.File
 import javax.inject.Inject
 
 internal class CleanupSession @Inject constructor(
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         @SessionId private val sessionId: String,
         private val sessionManager: SessionManager,
         private val sessionParamsStore: SessionParamsStore,
@@ -48,7 +48,7 @@ internal class CleanupSession @Inject constructor(
 
     fun stopActiveTasks() {
         Timber.d("Cleanup: cancel pending works...")
-        workManagerProvider.cancelAllWorks()
+        backgroundTaskScheduler.cancelAllTasks()
 
         Timber.d("Cleanup: stop session...")
         sessionManager.stopSession(sessionId)

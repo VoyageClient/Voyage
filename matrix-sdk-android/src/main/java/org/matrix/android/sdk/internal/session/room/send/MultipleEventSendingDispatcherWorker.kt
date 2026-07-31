@@ -17,18 +17,18 @@
 package org.matrix.android.sdk.internal.session.room.send
 
 import android.content.Context
-import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.SessionManager
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineSendEventWorkCommon
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
 import org.matrix.android.sdk.internal.worker.SessionWorkerParams
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -49,7 +49,6 @@ internal class MultipleEventSendingDispatcherWorker(context: Context, params: Wo
             override val lastFailureMessage: String? = null
     ) : SessionWorkerParams
 
-    @Inject lateinit var workManagerProvider: WorkManagerProvider
     @Inject lateinit var timelineSendEventWorkCommon: TimelineSendEventWorkCommon
     @Inject lateinit var localEchoRepository: LocalEchoRepository
 
@@ -89,10 +88,12 @@ internal class MultipleEventSendingDispatcherWorker(context: Context, params: Wo
         return params.copy(lastFailureMessage = params.lastFailureMessage ?: message)
     }
 
-    private fun createSendEventWork(sessionId: String, eventId: String, startChain: Boolean): OneTimeWorkRequest {
-        val sendContentWorkerParams = SendEventWorker.Params(sessionId = sessionId, eventId = eventId)
-        val sendWorkData = WorkerParamsFactory.toData(sendContentWorkerParams)
-
-        return timelineSendEventWorkCommon.createWork<SendEventWorker>(sendWorkData, startChain)
+    private fun createSendEventWork(sessionId: String, eventId: String, startChain: Boolean): BackgroundTaskRequest<SendEventWorker.Params> {
+        return backgroundTask(
+                type = BackgroundTaskType.SEND_EVENT,
+                params = SendEventWorker.Params(sessionId = sessionId, eventId = eventId),
+                matrixConstraints = true,
+                isolateInput = startChain,
+        )
     }
 }

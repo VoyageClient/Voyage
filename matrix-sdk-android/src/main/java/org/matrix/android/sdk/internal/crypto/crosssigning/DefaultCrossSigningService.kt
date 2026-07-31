@@ -17,8 +17,6 @@
 package org.matrix.android.sdk.internal.crypto.crosssigning
 
 import androidx.lifecycle.LiveData
-import androidx.work.BackoffPolicy
-import androidx.work.ExistingWorkPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -47,14 +45,15 @@ import org.matrix.android.sdk.internal.crypto.tasks.InitializeCrossSigningTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadSignaturesTask
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UserId
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.util.JsonCanonicalizer
 import org.matrix.android.sdk.internal.util.logLimit
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import org.matrix.olm.OlmPkSigning
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @SessionScope
@@ -67,7 +66,7 @@ internal class DefaultCrossSigningService @Inject constructor(
         private val uploadSignaturesTask: UploadSignaturesTask,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val cryptoCoroutineScope: CoroutineScope,
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val outgoingKeyRequestManager: OutgoingKeyRequestManager,
         private val crossSigningOlm: CrossSigningOlm,
         private val updateTrustWorkerDataRepository: UpdateTrustWorkerDataRepository
@@ -779,16 +778,11 @@ internal class DefaultCrossSigningService @Inject constructor(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(userIds)
         )
-        val workerData = WorkerParamsFactory.toData(workerParams)
-
-        val workRequest = workManagerProvider.matrixOneTimeWorkRequestBuilder<UpdateTrustWorker>()
-                .setInputData(workerData)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                .build()
-
-        workManagerProvider.workManager
-                .beginUniqueWork("TRUST_UPDATE_QUEUE", ExistingWorkPolicy.APPEND_OR_REPLACE, workRequest)
-                .enqueue()
+        backgroundTaskScheduler.enqueueUnique(
+                "TRUST_UPDATE_QUEUE",
+                BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                backgroundTask(BackgroundTaskType.UPDATE_TRUST, workerParams)
+        )
     }
 
     private suspend fun setUserKeysAsTrusted(otherUserId: String, trusted: Boolean) {
