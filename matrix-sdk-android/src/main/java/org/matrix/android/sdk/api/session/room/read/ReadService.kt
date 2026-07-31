@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.read
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import org.matrix.android.sdk.api.util.Optional
 
@@ -65,12 +65,12 @@ interface ReadService {
     /**
      * Returns a live read marker id for the room.
      */
-    fun getReadMarkerLive(): LiveData<Optional<String>>
+    fun getReadMarkerFlow(): Flow<Optional<String>>
 
     /**
      * Returns a live read receipt id for the room.
      */
-    fun getMyReadReceiptLive(threadId: String?): LiveData<Optional<String>>
+    fun getMyReadReceiptFlow(threadId: String?): Flow<Optional<String>>
 
     /**
      * Get the eventId from the main timeline where the read receipt for the provided user is.
@@ -84,7 +84,7 @@ interface ReadService {
      * Returns a live list of read receipts for a given event.
      * @param eventId the event
      */
-    fun getEventReadReceiptsLive(eventId: String): LiveData<List<ReadReceipt>>
+    fun getEventReadReceiptsFlow(eventId: String): Flow<List<ReadReceipt>>
 
     companion object {
         const val THREAD_ID_MAIN = ReadKeys.THREAD_ID_MAIN

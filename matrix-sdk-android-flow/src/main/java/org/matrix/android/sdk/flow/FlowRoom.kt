@@ -109,15 +109,15 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveReadMarker(): Flow<Optional<String>> {
-        return room.readService().getReadMarkerLive().asFlow()
+        return room.readService().getReadMarkerFlow()
     }
 
     fun liveReadReceipt(threadId: String?): Flow<Optional<String>> {
-        return room.readService().getMyReadReceiptLive(threadId).asFlow()
+        return room.readService().getMyReadReceiptFlow(threadId)
     }
 
     fun liveEventReadReceipts(eventId: String): Flow<List<ReadReceipt>> {
-        return room.readService().getEventReadReceiptsLive(eventId).asFlow()
+        return room.readService().getEventReadReceiptsFlow(eventId)
     }
 
     fun liveDraft(): Flow<Optional<UserDraft>> {

@@ -16,8 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.read
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -32,7 +34,6 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.ReadReceiptsSummaryMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.database.sql.store.isEventRead
 import org.matrix.android.sdk.internal.session.room.accountdata.UpdateRoomAccountDataTask
@@ -115,13 +116,13 @@ internal class DefaultReadService @AssistedInject constructor(
         return stores.isEventRead(userId, roomId, eventId)
     }
 
-    override fun getReadMarkerLive(): LiveData<Optional<String>> {
-        return database.readMarkerQueries.selectByRoom(roomId).asLiveList(dispatcher)
+    override fun getReadMarkerFlow(): Flow<Optional<String>> {
+        return database.readMarkerQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.event_id.toOptional() }
     }
 
-    override fun getMyReadReceiptLive(threadId: String?): LiveData<Optional<String>> {
-        return database.readReceiptQueries.selectReceiptForUserInRoom(roomId, userId, threadId).asLiveList(dispatcher)
+    override fun getMyReadReceiptFlow(threadId: String?): Flow<Optional<String>> {
+        return database.readReceiptQueries.selectReceiptForUserInRoom(roomId, userId, threadId).asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.event_id.toOptional() }
     }
 
@@ -129,8 +130,8 @@ internal class DefaultReadService @AssistedInject constructor(
         return database.readReceiptQueries.selectMainTimelineReceiptForUser(roomId, userId).executeAsOneOrNull()?.event_id
     }
 
-    override fun getEventReadReceiptsLive(eventId: String): LiveData<List<ReadReceipt>> {
-        return database.readReceiptQueries.selectReceiptsForEvent(eventId).asLiveList(dispatcher)
+    override fun getEventReadReceiptsFlow(eventId: String): Flow<List<ReadReceipt>> {
+        return database.readReceiptQueries.selectReceiptsForEvent(eventId).asFlow().mapToList(dispatcher)
                 .map { stores.readReceipt.getSummary(eventId)?.let { readReceiptsSummaryMapper.map(it) }.orEmpty() }
     }
 

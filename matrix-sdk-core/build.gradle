@@ -278,6 +278,7 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/pushers/HttpPusher.kt',
         'org/matrix/android/sdk/api/session/room/notification/RoomPushRuleService.kt',
         'org/matrix/android/sdk/api/session/room/notification/RoomNotificationState.kt',
+        'org/matrix/android/sdk/api/session/room/read/ReadService.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
