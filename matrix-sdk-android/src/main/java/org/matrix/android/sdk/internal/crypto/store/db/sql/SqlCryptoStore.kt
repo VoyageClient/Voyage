@@ -15,6 +15,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -163,10 +164,10 @@ internal class SqlCryptoStore @Inject constructor(
                     .map { row -> row?.let { GlobalCryptoConfig(it.global_blacklist_unverified_devices == 1L, it.global_enable_key_gossiping == 1L, it.enable_key_forwarding_on_invite == 1L) } ?: GlobalCryptoConfig(false, false, false) }
                     .flowOn(dispatcher).asLiveData()
 
-    override fun getLiveCrossSigningPrivateKeys(): LiveData<Optional<PrivateKeysInfo>> =
+    override fun getCrossSigningPrivateKeysFlow(): Flow<Optional<PrivateKeysInfo>> =
             database.cryptoMetadataQueries.selectFirst().asFlow().mapToOneOrNull(dispatcher)
                     .map { row -> row?.let { PrivateKeysInfo(it.x_sign_master_private_key, it.x_sign_self_signed_private_key, it.x_sign_user_private_key) }.toOptional() }
-                    .flowOn(dispatcher).asLiveData()
+                    .flowOn(dispatcher)
 
     // ==================== Olm sessions ====================
 
@@ -321,8 +322,8 @@ internal class SqlCryptoStore @Inject constructor(
     override fun clearOtherUserTrust() = crossSigningStore.clearOtherUserTrust(userId)
     override fun updateUsersTrust(check: (String) -> Boolean) = crossSigningStore.updateUsersTrust(userId, check)
 
-    override fun getLiveCrossSigningInfo(userId: String): LiveData<Optional<MXCrossSigningInfo>> =
-            database.cryptoCrossSigningQueries.keyInfoSelectByUser(userId).asFlow().mapToList(dispatcher).map { crossSigningStore.getCrossSigningInfo(userId).toOptional() }.flowOn(dispatcher).asLiveData()
+    override fun getCrossSigningInfoFlow(userId: String): Flow<Optional<MXCrossSigningInfo>> =
+            database.cryptoCrossSigningQueries.keyInfoSelectByUser(userId).asFlow().mapToList(dispatcher).map { crossSigningStore.getCrossSigningInfo(userId).toOptional() }.flowOn(dispatcher)
 
     override fun storeUserIdentity(userId: String, userIdentity: UserIdentity) = doStoreUserIdentity(userId, userIdentity)
 

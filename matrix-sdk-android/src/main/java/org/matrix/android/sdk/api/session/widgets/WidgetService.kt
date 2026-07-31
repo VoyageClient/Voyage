@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.widgets
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.widgets.model.Widget
@@ -68,12 +68,12 @@ interface WidgetService {
      * @param widgetTypes if you want to filter some widget type.
      * @param excludedTypes if you want to exclude some widget type.
      */
-    fun getRoomWidgetsLive(
+    fun getRoomWidgetsFlow(
             roomId: String,
             widgetId: QueryStateEventValue,
             widgetTypes: Set<String>? = null,
             excludedTypes: Set<String>? = null
-    ): LiveData<List<Widget>>
+    ): Flow<List<Widget>>
 
     /**
      * Returns the current user widgets.
@@ -94,10 +94,10 @@ interface WidgetService {
      * @param widgetTypes if you want to filter some widget type.
      * @param excludedTypes if you want to exclude some widget type.
      */
-    fun getUserWidgetsLive(
+    fun getUserWidgetsFlow(
             widgetTypes: Set<String>? = null,
             excludedTypes: Set<String>? = null
-    ): LiveData<List<Widget>>
+    ): Flow<List<Widget>>
 
     /**
      * Creates and send a new widget in a room. It makes sure you have the rights to handle this.

@@ -58,7 +58,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveSpaceSummaries(queryParams: SpaceSummaryQueryParams): Flow<List<RoomSummary>> {
-        return session.spaceService().getSpaceSummariesLive(queryParams).asFlow()
+        return session.spaceService().getSpaceSummariesFlow(queryParams)
                 .startWith(session.coroutineDispatchers.io) {
                     session.spaceService().getSpaceSummaries(queryParams)
                 }
@@ -137,14 +137,14 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveCrossSigningInfo(userId: String): Flow<Optional<MXCrossSigningInfo>> {
-        return session.cryptoService().crossSigningService().getLiveCrossSigningKeys(userId).asFlow()
+        return session.cryptoService().crossSigningService().getCrossSigningKeysFlow(userId)
                 .startWith(session.coroutineDispatchers.io) {
                     session.cryptoService().crossSigningService().getUserCrossSigningKeys(userId).toOptional()
                 }
     }
 
     fun liveCrossSigningPrivateKeys(): Flow<Optional<PrivateKeysInfo>> {
-        return session.cryptoService().crossSigningService().getLiveCrossSigningPrivateKeys().asFlow()
+        return session.cryptoService().crossSigningService().getCrossSigningPrivateKeysFlow()
                 .startWith(session.coroutineDispatchers.io) {
                     session.cryptoService().crossSigningService().getCrossSigningPrivateKeys().toOptional()
                 }
@@ -177,7 +177,7 @@ class FlowSession(private val session: Session) {
             widgetTypes: Set<String>? = null,
             excludedTypes: Set<String>? = null
     ): Flow<List<Widget>> {
-        return session.widgetService().getRoomWidgetsLive(roomId, widgetId, widgetTypes, excludedTypes).asFlow()
+        return session.widgetService().getRoomWidgetsFlow(roomId, widgetId, widgetTypes, excludedTypes)
                 .startWith(session.coroutineDispatchers.io) {
                     session.widgetService().getRoomWidgets(roomId, widgetId, widgetTypes, excludedTypes)
                 }

@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.space
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -99,11 +99,11 @@ internal class DefaultSpaceService @Inject constructor(
         return spaceGetter.get(spaceId)
     }
 
-    override fun getSpaceSummariesLive(
+    override fun getSpaceSummariesFlow(
             queryParams: SpaceSummaryQueryParams,
             sortOrder: RoomSortOrder
-    ): LiveData<List<RoomSummary>> {
-        return roomSummaryDataSource.getSpaceSummariesLive(queryParams, sortOrder)
+    ): Flow<List<RoomSummary>> {
+        return roomSummaryDataSource.getSpaceSummariesFlow(queryParams, sortOrder)
     }
 
     override fun getSpaceSummaries(

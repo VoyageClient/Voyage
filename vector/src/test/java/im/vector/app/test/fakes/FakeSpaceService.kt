@@ -7,18 +7,18 @@
 
 package im.vector.app.test.fakes
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.space.SpaceService
 
 class FakeSpaceService : SpaceService by mockk() {
 
-    fun givenGetSpaceSummariesLiveReturns(roomSummaries: List<RoomSummary>): LiveData<List<RoomSummary>> {
-        return MutableLiveData(roomSummaries).also {
-            every { getSpaceSummariesLive(any()) } returns it
+    fun givenGetSpaceSummariesLiveReturns(roomSummaries: List<RoomSummary>): Flow<List<RoomSummary>> {
+        return flowOf(roomSummaries).also {
+            every { getSpaceSummariesFlow(any()) } returns it
         }
     }
 

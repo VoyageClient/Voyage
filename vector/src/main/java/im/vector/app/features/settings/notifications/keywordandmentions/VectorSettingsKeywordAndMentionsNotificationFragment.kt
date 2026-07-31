@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.pushrules.RuleIds
+import org.matrix.android.sdk.api.session.pushrules.getKeywordsLive
 import org.matrix.android.sdk.api.session.pushrules.RuleKind
 import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import org.matrix.android.sdk.api.session.pushrules.toJson
@@ -44,7 +45,7 @@ class VectorSettingsKeywordAndMentionsNotificationFragment :
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        session.pushRuleService().getKeywords().observe(viewLifecycleOwner, this::updateWithKeywords)
+        session.pushRuleService().getKeywordsLive().observe(viewLifecycleOwner, this::updateWithKeywords)
     }
 
     override fun bindPref() {

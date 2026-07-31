@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.room.summary
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
@@ -26,6 +27,7 @@ import androidx.paging.DataSource
 import androidx.paging.PagedList
 import app.cash.sqldelight.Query
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -165,8 +167,8 @@ internal class RoomSummaryDataSource @Inject constructor(
         return liveOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).map { } }
     }
 
-    fun getSpaceSummariesLive(queryParams: SpaceSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): LiveData<List<RoomSummary>> =
-            getRoomSummariesLive(queryParams, sortOrder)
+    fun getSpaceSummariesFlow(queryParams: SpaceSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> =
+            getRoomSummariesLive(queryParams, sortOrder).asFlow()
 
     fun getSpaceSummary(roomIdOrAlias: String): RoomSummary? = getRoomSummary(roomIdOrAlias)?.takeIf { it.roomType == RoomType.SPACE }
 

@@ -16,8 +16,8 @@
 
 package org.matrix.android.sdk.internal.crypto.crosssigning
 
-import androidx.lifecycle.LiveData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -524,8 +524,8 @@ internal class DefaultCrossSigningService @Inject constructor(
         }
     }
 
-    override fun getLiveCrossSigningKeys(userId: String): LiveData<Optional<MXCrossSigningInfo>> {
-        return cryptoStore.getLiveCrossSigningInfo(userId)
+    override fun getCrossSigningKeysFlow(userId: String): Flow<Optional<MXCrossSigningInfo>> {
+        return cryptoStore.getCrossSigningInfoFlow(userId)
     }
 
     override suspend fun getMyCrossSigningKeys(): MXCrossSigningInfo? {
@@ -540,8 +540,8 @@ internal class DefaultCrossSigningService @Inject constructor(
         }
     }
 
-    override fun getLiveCrossSigningPrivateKeys(): LiveData<Optional<PrivateKeysInfo>> {
-        return cryptoStore.getLiveCrossSigningPrivateKeys()
+    override fun getCrossSigningPrivateKeysFlow(): Flow<Optional<PrivateKeysInfo>> {
+        return cryptoStore.getCrossSigningPrivateKeysFlow()
     }
 
     override fun canCrossSign(): Boolean {

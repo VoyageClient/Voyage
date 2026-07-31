@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.widgets
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.widgets.WidgetPostAPIMediator
@@ -54,20 +54,20 @@ internal class DefaultWidgetService @Inject constructor(
         return widgetManager.getWidgetComputedUrl(widget, isLightTheme, themeName)
     }
 
-    override fun getRoomWidgetsLive(
+    override fun getRoomWidgetsFlow(
             roomId: String,
             widgetId: QueryStateEventValue,
             widgetTypes: Set<String>?,
             excludedTypes: Set<String>?
-    ): LiveData<List<Widget>> {
-        return widgetManager.getRoomWidgetsLive(roomId, widgetId, widgetTypes, excludedTypes)
+    ): Flow<List<Widget>> {
+        return widgetManager.getRoomWidgetsFlow(roomId, widgetId, widgetTypes, excludedTypes)
     }
 
-    override fun getUserWidgetsLive(
+    override fun getUserWidgetsFlow(
             widgetTypes: Set<String>?,
             excludedTypes: Set<String>?
-    ): LiveData<List<Widget>> {
-        return widgetManager.getUserWidgetsLive(widgetTypes, excludedTypes)
+    ): Flow<List<Widget>> {
+        return widgetManager.getUserWidgetsFlow(widgetTypes, excludedTypes)
     }
 
     override fun getUserWidgets(
