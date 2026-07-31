@@ -231,6 +231,12 @@ def coreSources = [
         'org/matrix/android/sdk/internal/util/LruCache.kt',
         'org/matrix/android/sdk/internal/util/UriString.kt',
         'org/matrix/android/sdk/internal/util/UrlUtils.kt',
+        // Crypto REST layer: the Moshi request/response data classes for the crypto API.
+        'org/matrix/android/sdk/api/session/crypto/model/GossipingToDeviceObject.kt',
+        'org/matrix/android/sdk/api/session/crypto/crosssigning/CryptoCrossSigningKey.kt',
+        'org/matrix/android/sdk/internal/crypto/model/CryptoInfoMapper.kt',
+        'org/matrix/android/sdk/internal/crypto/model/CryptoDeviceInfo.kt',
+        'org/matrix/android/sdk/internal/crypto/model/rest/**',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
