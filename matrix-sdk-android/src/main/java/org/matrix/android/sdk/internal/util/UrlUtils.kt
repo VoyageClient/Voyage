@@ -16,11 +16,12 @@
 
 package org.matrix.android.sdk.internal.util
 
-import java.net.URL
+import java.net.URI
 
 internal fun String.isValidUrl(): Boolean {
     return try {
-        URL(this)
+        // toURL applies the same URL validation the deprecated URL(String) constructor did
+        URI(this).toURL()
         true
     } catch (t: Throwable) {
         false
