@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.space
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -79,12 +79,12 @@ interface SpaceService {
 
     /**
      * Get a live list of space summaries. This list is refreshed as soon as the data changes.
-     * @return the [LiveData] of List[RoomSummary]
+     * @return the [Flow] of List[RoomSummary]
      */
-    fun getSpaceSummariesLive(
+    fun getSpaceSummariesFlow(
             queryParams: SpaceSummaryQueryParams,
             sortOrder: RoomSortOrder = RoomSortOrder.NONE
-    ): LiveData<List<RoomSummary>>
+    ): Flow<List<RoomSummary>>
 
     fun getSpaceSummaries(
             spaceSummaryQueryParams: SpaceSummaryQueryParams,

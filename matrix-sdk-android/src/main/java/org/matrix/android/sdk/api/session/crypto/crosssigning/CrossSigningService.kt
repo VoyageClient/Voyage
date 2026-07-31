@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.crypto.crosssigning
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
@@ -68,7 +68,7 @@ interface CrossSigningService {
      */
     suspend fun getUserCrossSigningKeys(otherUserId: String): MXCrossSigningInfo?
 
-    fun getLiveCrossSigningKeys(userId: String): LiveData<Optional<MXCrossSigningInfo>>
+    fun getCrossSigningKeysFlow(userId: String): Flow<Optional<MXCrossSigningInfo>>
 
     /** Get our own public cross signing keys. */
     suspend fun getMyCrossSigningKeys(): MXCrossSigningInfo?
@@ -76,7 +76,7 @@ interface CrossSigningService {
     /** Get our own private cross signing keys. */
     suspend fun getCrossSigningPrivateKeys(): PrivateKeysInfo?
 
-    fun getLiveCrossSigningPrivateKeys(): LiveData<Optional<PrivateKeysInfo>>
+    fun getCrossSigningPrivateKeysFlow(): Flow<Optional<PrivateKeysInfo>>
 
     /**
      * Can we sign our other devices or other users?

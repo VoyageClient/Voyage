@@ -179,8 +179,7 @@ class UserVerificationViewModel @AssistedInject constructor(
         fetchOtherUserProfile(initialState.otherUserId)
 
         session.cryptoService().crossSigningService()
-                .getLiveCrossSigningKeys(initialState.otherUserId)
-                .asFlow()
+                .getCrossSigningKeysFlow(initialState.otherUserId)
                 .execute {
                     copy(otherUserIsTrusted = it.invoke()?.getOrNull()?.isTrusted().orFalse())
                 }

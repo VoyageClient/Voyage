@@ -9,7 +9,6 @@ package im.vector.app.features.spaces
 
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeFlowLiveDataConversions
-import im.vector.app.test.fakes.givenAsFlow
 import im.vector.app.test.test
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -53,7 +52,6 @@ internal class GetSpacesUseCaseTest {
         fakeActiveSessionHolder.fakeSession
                 .fakeSpaceService
                 .givenGetSpaceSummariesLiveReturns(nextSummaries)
-                .givenAsFlow()
 
         // When
         val testObserver = getSpacesUseCase.execute(queryParams).test(this)
@@ -65,7 +63,7 @@ internal class GetSpacesUseCaseTest {
                 .finish()
         verify {
             fakeActiveSessionHolder.fakeSession.fakeSpaceService.getSpaceSummaries(queryParams)
-            fakeActiveSessionHolder.fakeSession.fakeSpaceService.getSpaceSummariesLive(queryParams)
+            fakeActiveSessionHolder.fakeSession.fakeSpaceService.getSpaceSummariesFlow(queryParams)
         }
     }
 
@@ -85,7 +83,7 @@ internal class GetSpacesUseCaseTest {
                 .finish()
         verify(inverse = true) {
             fakeActiveSessionHolder.fakeSession.fakeSpaceService.getSpaceSummaries(queryParams)
-            fakeActiveSessionHolder.fakeSession.fakeSpaceService.getSpaceSummariesLive(queryParams)
+            fakeActiveSessionHolder.fakeSession.fakeSpaceService.getSpaceSummariesFlow(queryParams)
         }
     }
 

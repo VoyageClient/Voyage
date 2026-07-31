@@ -15,8 +15,10 @@
  */
 package org.matrix.android.sdk.internal.session.pushrules
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.pushrules.Action
 import org.matrix.android.sdk.api.session.pushrules.ConditionResolver
@@ -33,7 +35,6 @@ import org.matrix.android.sdk.internal.database.mapper.PushRulesMapper
 import org.matrix.android.sdk.internal.database.model.PushRuleEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.pushers.AddPushRuleTask
@@ -130,9 +131,9 @@ internal class DefaultPushRuleService @Inject constructor(
         return conditionResolver.resolveSenderNotificationPermissionCondition(event, condition)
     }
 
-    override fun getKeywords(): LiveData<Set<String>> {
+    override fun getKeywordsFlow(): Flow<Set<String>> {
         // Keywords are all content rules that don't start with '.'
-        return database.pushRulesQueries.selectRulesByScopeAndKind(RuleScope.GLOBAL, RuleSetKey.CONTENT.name).asLiveList(dispatcher)
+        return database.pushRulesQueries.selectRulesByScopeAndKind(RuleScope.GLOBAL, RuleSetKey.CONTENT.name).asFlow().mapToList(dispatcher)
                 .map {
                     stores.pushRules.get(RuleScope.GLOBAL, RuleSetKey.CONTENT)
                             ?.pushRules

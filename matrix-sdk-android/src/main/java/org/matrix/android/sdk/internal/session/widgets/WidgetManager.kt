@@ -19,8 +19,8 @@ package org.matrix.android.sdk.internal.session.widgets
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
@@ -71,19 +71,19 @@ internal class WidgetManager @Inject constructor(
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
     }
 
-    fun getRoomWidgetsLive(
+    fun getRoomWidgetsFlow(
             roomId: String,
             widgetId: QueryStateEventValue,
             widgetTypes: Set<String>? = null,
             excludedTypes: Set<String>? = null
-    ): LiveData<List<Widget>> {
+    ): Flow<List<Widget>> {
         // Get all im.vector.modular.widgets state events in the room
-        val liveWidgetEvents = stateEventDataSource.getStateEventsLive(
+        val widgetEventsFlow = stateEventDataSource.getStateEventsFlow(
                 roomId = roomId,
                 eventTypes = setOf(EventType.STATE_ROOM_WIDGET, EventType.STATE_ROOM_WIDGET_LEGACY),
                 stateKey = widgetId
         )
-        return liveWidgetEvents.map { widgetEvents ->
+        return widgetEventsFlow.map { widgetEvents ->
             widgetEvents.mapEventsToWidgets(widgetTypes, excludedTypes)
         }
     }
@@ -137,11 +137,11 @@ internal class WidgetManager @Inject constructor(
         return widgets.values.toList()
     }
 
-    fun getUserWidgetsLive(
+    fun getUserWidgetsFlow(
             widgetTypes: Set<String>? = null,
             excludedTypes: Set<String>? = null
-    ): LiveData<List<Widget>> {
-        val widgetsAccountData = userAccountDataDataSource.getLiveAccountDataEvent(UserAccountDataTypes.TYPE_WIDGETS)
+    ): Flow<List<Widget>> {
+        val widgetsAccountData = userAccountDataDataSource.getAccountDataEventFlow(UserAccountDataTypes.TYPE_WIDGETS)
         return widgetsAccountData.map {
             it.getOrNull()?.mapToWidgets(widgetTypes, excludedTypes).orEmpty()
         }

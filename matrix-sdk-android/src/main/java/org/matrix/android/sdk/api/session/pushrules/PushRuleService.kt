@@ -15,7 +15,7 @@
  */
 package org.matrix.android.sdk.api.session.pushrules
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.pushrules.rest.PushRule
 import org.matrix.android.sdk.api.session.pushrules.rest.RuleSet
@@ -60,5 +60,5 @@ interface PushRuleService {
         fun onEvents(pushEvents: PushEvents)
     }
 
-    fun getKeywords(): LiveData<Set<String>>
+    fun getKeywordsFlow(): Flow<Set<String>>
 }

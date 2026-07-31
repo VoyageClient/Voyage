@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.crypto.store
 
 import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.crypto.GlobalCryptoConfig
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
 import org.matrix.android.sdk.api.session.crypto.OutgoingKeyRequest
@@ -438,9 +439,8 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
     /** The ids of all users we have cross-signing info stored for (used to re-check trust in batch). */
     fun getCrossSigningInfoUserIds(): List<String>
 
-    fun getLiveCrossSigningInfo(userId: String): LiveData<Optional<MXCrossSigningInfo>>
+    fun getCrossSigningInfoFlow(userId: String): Flow<Optional<MXCrossSigningInfo>>
 
-//    fun getCrossSigningInfoFlow(userId: String): Flow<Optional<MXCrossSigningInfo>>
     fun setCrossSigningInfo(userId: String, info: MXCrossSigningInfo?)
 
     fun markMyMasterKeyAsLocallyTrusted(trusted: Boolean)
@@ -451,8 +451,7 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
     fun storeUSKPrivateKey(usk: String?)
 
     fun getCrossSigningPrivateKeys(): PrivateKeysInfo?
-    fun getLiveCrossSigningPrivateKeys(): LiveData<Optional<PrivateKeysInfo>>
-//    fun getCrossSigningPrivateKeysFlow():  Flow<Optional<PrivateKeysInfo>>
+    fun getCrossSigningPrivateKeysFlow(): Flow<Optional<PrivateKeysInfo>>
 
     fun getGlobalCryptoConfig(): GlobalCryptoConfig
 
