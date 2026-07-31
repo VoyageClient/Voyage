@@ -116,14 +116,14 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveThreePIds(refreshData: Boolean): Flow<List<ThreePid>> {
-        return session.profileService().getThreePidsLive(refreshData).asFlow()
+        return session.profileService().getThreePidsFlow(refreshData)
                 .startWith(session.coroutineDispatchers.io) {
                     session.profileService().getThreePids()
                 }
     }
 
     fun livePendingThreePIds(): Flow<List<ThreePid>> {
-        return session.profileService().getPendingThreePidsLive().asFlow()
+        return session.profileService().getPendingThreePidsFlow()
                 .startWith(session.coroutineDispatchers.io) {
                     session.profileService().getPendingThreePids()
                 }

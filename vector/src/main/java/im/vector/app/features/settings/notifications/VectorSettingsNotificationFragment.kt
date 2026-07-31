@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.getThreePidsLive
 import org.matrix.android.sdk.api.session.pushers.Pusher
 import org.matrix.android.sdk.api.session.pushers.getPushersLive
 import org.matrix.android.sdk.api.session.pushrules.RuleIds

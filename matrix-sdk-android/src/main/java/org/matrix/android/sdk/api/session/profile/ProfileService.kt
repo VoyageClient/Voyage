@@ -17,7 +17,7 @@
 
 package org.matrix.android.sdk.api.session.profile
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.user.model.User
@@ -122,7 +122,7 @@ interface ProfileService {
      * Get the current user 3Pids Live.
      * @param refreshData set to true to fetch data from the homeserver
      */
-    fun getThreePidsLive(refreshData: Boolean): LiveData<List<ThreePid>>
+    fun getThreePidsFlow(refreshData: Boolean): Flow<List<ThreePid>>
 
     /**
      * Get the pending 3Pids, i.e. ThreePids that have requested a token, but not yet validated by the user.
@@ -132,7 +132,7 @@ interface ProfileService {
     /**
      * Get the pending 3Pids Live.
      */
-    fun getPendingThreePidsLive(): LiveData<List<ThreePid>>
+    fun getPendingThreePidsFlow(): Flow<List<ThreePid>>
 
     /**
      * Add a 3Pids. This is the first step to add a ThreePid to an account. Then the threePid will be added to the pending threePid list.
