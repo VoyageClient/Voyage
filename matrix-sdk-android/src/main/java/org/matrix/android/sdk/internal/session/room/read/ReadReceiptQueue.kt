@@ -7,7 +7,6 @@
 
 package org.matrix.android.sdk.internal.session.room.read
 
-import android.content.Context
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.Job
@@ -22,6 +21,7 @@ import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
+import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -50,14 +50,14 @@ internal data class PendingReadReceipt(
  */
 @SessionScope
 internal class ReadReceiptQueue @Inject constructor(
-        context: Context,
+        storeFactory: KeyValueStoreFactory,
         @SessionId sessionId: String,
         private val roomApi: RoomAPI,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val taskExecutor: TaskExecutor,
 ) : SessionLifecycleObserver {
 
-    private val storage = context.getSharedPreferences("ReadReceiptQueue_$sessionId", Context.MODE_PRIVATE)
+    private val storage = storeFactory.create("ReadReceiptQueue_$sessionId")
     private val adapter = MoshiProvider.providesMoshi().adapter(PendingReadReceipt::class.java)
 
     // roomId -> latest pending read for that room
@@ -156,11 +156,11 @@ internal class ReadReceiptQueue @Inject constructor(
 
     private fun persist() {
         val set = pending.values.map { adapter.toJson(it) }.toSet()
-        storage.edit().putStringSet(PERSISTENCE_KEY, set).apply()
+        storage.putStringSet(PERSISTENCE_KEY, set)
     }
 
     private fun restore() {
-        storage.getStringSet(PERSISTENCE_KEY, null)?.forEach { json ->
+        storage.getStringSet(PERSISTENCE_KEY)?.forEach { json ->
             tryOrNull { adapter.fromJson(json) }?.let { pending[it.roomId] = it }
         }
     }

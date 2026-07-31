@@ -16,11 +16,9 @@
 
 package org.matrix.android.sdk.internal.settings
 
-import android.content.Context
-import androidx.core.content.edit
-import androidx.preference.PreferenceManager
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
+import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.session.sync.SyncPresence
 import javax.inject.Inject
 
@@ -30,16 +28,15 @@ import javax.inject.Inject
  * not for large data sets
  */
 internal class DefaultLightweightSettingsStorage @Inject constructor(
-        context: Context,
+        storeFactory: KeyValueStoreFactory,
         private val matrixConfiguration: MatrixConfiguration
 ) : LightweightSettingsStorage {
 
-    private val sdkDefaultPrefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+    // The default store on purpose: some keys are shared with app-side preferences.
+    private val sdkDefaultPrefs = storeFactory.defaultStore()
 
     override fun setThreadMessagesEnabled(enabled: Boolean) {
-        sdkDefaultPrefs.edit {
-            putBoolean(MATRIX_SDK_SETTINGS_THREAD_MESSAGES_ENABLED, enabled)
-        }
+        sdkDefaultPrefs.putBoolean(MATRIX_SDK_SETTINGS_THREAD_MESSAGES_ENABLED, enabled)
     }
 
     override fun areThreadMessagesEnabled(): Boolean {
@@ -57,9 +54,7 @@ internal class DefaultLightweightSettingsStorage @Inject constructor(
      * @param presence the presence status that should be sent on sync
      */
     internal fun setSyncPresenceStatus(presence: SyncPresence) {
-        sdkDefaultPrefs.edit {
-            putString(MATRIX_SDK_SETTINGS_FOREGROUND_PRESENCE_STATUS, presence.value)
-        }
+        sdkDefaultPrefs.putString(MATRIX_SDK_SETTINGS_FOREGROUND_PRESENCE_STATUS, presence.value)
     }
 
     /**

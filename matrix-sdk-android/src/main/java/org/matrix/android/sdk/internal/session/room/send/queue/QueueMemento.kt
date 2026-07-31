@@ -16,11 +16,11 @@
 
 package org.matrix.android.sdk.internal.session.room.send.queue
 
-import android.content.Context
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.di.SessionId
+import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import timber.log.Timber
 import javax.inject.Inject
@@ -36,14 +36,14 @@ import javax.inject.Inject
 private const val PERSISTENCE_KEY = "ManagedBySender"
 
 internal class QueueMemento @Inject constructor(
-        context: Context,
+        storeFactory: KeyValueStoreFactory,
         @SessionId sessionId: String,
         private val queuedTaskFactory: QueuedTaskFactory,
         private val localEchoRepository: LocalEchoRepository,
         private val cryptoService: CryptoService
 ) {
 
-    private val storage = context.getSharedPreferences("QueueMemento_$sessionId", Context.MODE_PRIVATE)
+    private val storage = storeFactory.create("QueueMemento_$sessionId")
     private val trackedTasks = mutableListOf<QueuedTask>()
 
     fun track(task: QueuedTask) = synchronized(trackedTasks) {
@@ -63,9 +63,7 @@ internal class QueueMemento @Inject constructor(
         trackedTasks.mapIndexedNotNull { index, queuedTask ->
             toTaskInfo(queuedTask, index)?.let { TaskInfo.map(it) }
         }.toSet().let { set ->
-            storage.edit()
-                    .putStringSet(PERSISTENCE_KEY, set)
-                    .apply()
+            storage.putStringSet(PERSISTENCE_KEY, set)
         }
     }
 
@@ -86,7 +84,7 @@ internal class QueueMemento @Inject constructor(
 
     suspend fun restoreTasks(eventProcessor: EventSenderProcessor) {
         // events should be restarted in correct order
-        storage.getStringSet(PERSISTENCE_KEY, null)?.let { pending ->
+        storage.getStringSet(PERSISTENCE_KEY)?.let { pending ->
             Timber.d("## Send - Recovering unsent events $pending")
             pending.mapNotNull { tryOrNull { TaskInfo.map(it) } }
         }

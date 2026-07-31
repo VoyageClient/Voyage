@@ -16,12 +16,12 @@
 
 package org.matrix.android.sdk.internal.crypto
 
-import android.content.Context
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.internal.crypto.model.MXKey
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysUploadBody
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysUploadResponse
 import org.matrix.android.sdk.internal.crypto.tasks.UploadKeysTask
+import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.util.JsonCanonicalizer
 import org.matrix.android.sdk.internal.util.time.Clock
@@ -41,7 +41,7 @@ internal class OneTimeKeysUploader @Inject constructor(
         private val objectSigner: ObjectSigner,
         private val uploadKeysTask: UploadKeysTask,
         private val clock: Clock,
-        context: Context
+        storeFactory: KeyValueStoreFactory
 ) {
     // tell if there is a OTK check in progress
     private var oneTimeKeyCheckInProgress = false
@@ -51,7 +51,7 @@ internal class OneTimeKeysUploader @Inject constructor(
     private var oneTimeKeyCount: Int? = null
 
     // Simple storage to remember when was uploaded the last fallback key
-    private val storage = context.getSharedPreferences("OneTimeKeysUploader_${olmDevice.deviceEd25519Key.hashCode()}", Context.MODE_PRIVATE)
+    private val storage = storeFactory.create("OneTimeKeysUploader_${olmDevice.deviceEd25519Key.hashCode()}")
 
     /**
      * Stores the current one_time_key count which will be handled later (in a call of
@@ -186,7 +186,7 @@ internal class OneTimeKeysUploader @Inject constructor(
     }
 
     private fun saveLastFallbackKeyPublishTime(timeMillis: Long) {
-        storage.edit().putLong("last_fb_key_publish", timeMillis).apply()
+        storage.putLong("last_fb_key_publish", timeMillis)
     }
 
     private fun getLastFallbackKeyPublishTime(): Long {

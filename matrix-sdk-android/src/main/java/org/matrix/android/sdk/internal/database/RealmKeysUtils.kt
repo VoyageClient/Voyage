@@ -15,11 +15,10 @@
  */
 package org.matrix.android.sdk.internal.database
 
-import android.content.Context
 import android.util.Base64
-import androidx.core.content.edit
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.securestorage.SecretStoringUtils
+import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import timber.log.Timber
 import java.security.SecureRandom
 import javax.inject.Inject
@@ -37,14 +36,14 @@ import javax.inject.Inject
  * key is encrypted with the public RSA key and stored with the encrypted key in the shared pref
  */
 internal class RealmKeysUtils @Inject constructor(
-        context: Context,
+        storeFactory: KeyValueStoreFactory,
         private val secretStoringUtils: SecretStoringUtils,
 ) {
 
     private val rng = SecureRandom()
 
     // Keep legacy preferences name for compatibility reason
-    private val sharedPreferences = context.getSharedPreferences("im.vector.matrix.android.keys", Context.MODE_PRIVATE)
+    private val store = storeFactory.create("im.vector.matrix.android.keys")
 
     private fun generateKeyForRealm(): ByteArray {
         val keyForRealm = ByteArray(64) // was Realm.ENCRYPTION_KEY_LENGTH
@@ -56,7 +55,7 @@ internal class RealmKeysUtils @Inject constructor(
      * Check if there is already a key for this alias.
      */
     private fun hasKeyForDatabase(alias: String): Boolean {
-        return sharedPreferences.contains("${ENCRYPTED_KEY_PREFIX}_$alias")
+        return store.contains("${ENCRYPTED_KEY_PREFIX}_$alias")
     }
 
     /**
@@ -70,9 +69,7 @@ internal class RealmKeysUtils @Inject constructor(
         val key = generateKeyForRealm()
         val encodedKey = Base64.encodeToString(key, Base64.NO_PADDING)
         val toStore = secretStoringUtils.securelyStoreBytes(encodedKey.toByteArray(), alias)
-        sharedPreferences.edit {
-            putString("${ENCRYPTED_KEY_PREFIX}_$alias", Base64.encodeToString(toStore, Base64.NO_PADDING))
-        }
+        store.putString("${ENCRYPTED_KEY_PREFIX}_$alias", Base64.encodeToString(toStore, Base64.NO_PADDING))
         return key
     }
 
@@ -81,7 +78,7 @@ internal class RealmKeysUtils @Inject constructor(
      * Throws if something goes wrong.
      */
     private fun extractKeyForDatabase(alias: String): ByteArray {
-        val encryptedB64 = sharedPreferences.getString("${ENCRYPTED_KEY_PREFIX}_$alias", null)
+        val encryptedB64 = store.getString("${ENCRYPTED_KEY_PREFIX}_$alias")
         val encryptedKey = Base64.decode(encryptedB64, Base64.NO_PADDING)
         val b64 = secretStoringUtils.loadSecureSecretBytes(encryptedKey, alias)
         return Base64.decode(b64, Base64.NO_PADDING)
@@ -110,9 +107,7 @@ internal class RealmKeysUtils @Inject constructor(
         if (hasKeyForDatabase(alias)) {
             secretStoringUtils.safeDeleteKey(alias)
 
-            sharedPreferences.edit {
-                remove("${ENCRYPTED_KEY_PREFIX}_$alias")
-            }
+            store.remove("${ENCRYPTED_KEY_PREFIX}_$alias")
         }
     }
 
