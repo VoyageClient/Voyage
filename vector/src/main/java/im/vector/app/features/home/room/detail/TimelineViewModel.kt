@@ -590,7 +590,7 @@ class TimelineViewModel @AssistedInject constructor(
         if (room == null) return
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                room.stateService().updateAvatar(action.newAvatarUri, action.newAvatarFileName)
+                room.stateService().updateAvatar(action.newAvatarUri.toString(), action.newAvatarFileName)
                 _viewEvents.post(RoomDetailViewEvents.ActionSuccess(action))
             } catch (failure: Throwable) {
                 _viewEvents.post(RoomDetailViewEvents.ActionFailure(action, failure))

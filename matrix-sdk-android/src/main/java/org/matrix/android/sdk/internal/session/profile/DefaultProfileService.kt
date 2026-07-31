@@ -17,7 +17,6 @@
 
 package org.matrix.android.sdk.internal.session.profile
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
 import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
@@ -74,7 +73,7 @@ internal class DefaultProfileService @Inject constructor(
         }
     }
 
-    override suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String) {
+    override suspend fun updateAvatar(userId: String, newAvatarUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(newAvatarUri, fileName, MimeTypes.Jpeg)
         setAvatarUrlTask.execute(SetAvatarUrlTask.Params(userId = userId, newAvatarUrl = response.contentUri))
         userStore.updateAvatar(userId, response.contentUri)
@@ -100,7 +99,7 @@ internal class DefaultProfileService @Inject constructor(
         deleteProfileFieldTask.execute(DeleteProfileFieldTask.Params(userId = userId, keyName = keyName))
     }
 
-    override suspend fun updateBanner(userId: String, newBannerUri: Uri, fileName: String) {
+    override suspend fun updateBanner(userId: String, newBannerUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(newBannerUri, fileName, MimeTypes.Jpeg)
         setProfileField(userId, ProfileService.BANNER_URL_KEY_UNSTABLE, response.contentUri)
         bannerPropagator.cacheBannerUrl(userId, response.contentUri)

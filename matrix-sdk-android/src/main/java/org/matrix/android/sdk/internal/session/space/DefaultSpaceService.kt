@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.space
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -76,7 +75,7 @@ internal class DefaultSpaceService @Inject constructor(
         return createRoomTask.executeRetry(params, 3)
     }
 
-    override suspend fun createSpace(name: String, topic: String?, avatarUri: Uri?, isPublic: Boolean, roomAliasLocalPart: String?): String {
+    override suspend fun createSpace(name: String, topic: String?, avatarUri: String?, isPublic: Boolean, roomAliasLocalPart: String?): String {
         return createSpace(CreateSpaceParams().apply {
             this.name = name
             this.topic = topic

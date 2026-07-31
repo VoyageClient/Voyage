@@ -288,7 +288,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 operationList.add { room.stateService().deleteAvatar() }
             }
             is RoomSettingsViewState.AvatarAction.UpdateAvatar -> {
-                operationList.add { room.stateService().updateAvatar(avatarAction.newAvatarUri, avatarAction.newAvatarFileName) }
+                operationList.add { room.stateService().updateAvatar(avatarAction.newAvatarUri.toString(), avatarAction.newAvatarFileName) }
             }
         }
         when (val bannerAction = state.bannerAction) {
@@ -297,7 +297,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 operationList.add { room.stateService().deleteBanner() }
             }
             is RoomSettingsViewState.BannerAction.UpdateBanner -> {
-                operationList.add { room.stateService().updateBanner(bannerAction.newBannerUri, bannerAction.newBannerFileName) }
+                operationList.add { room.stateService().updateBanner(bannerAction.newBannerUri.toString(), bannerAction.newBannerFileName) }
             }
         }
         if (summary?.name != state.newName) {

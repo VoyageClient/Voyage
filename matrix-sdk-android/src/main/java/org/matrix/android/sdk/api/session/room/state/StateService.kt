@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.room.state
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -60,7 +59,7 @@ interface StateService {
     /**
      * Update the avatar of the room.
      */
-    suspend fun updateAvatar(avatarUri: Uri, fileName: String)
+    suspend fun updateAvatar(avatarUri: String, fileName: String)
 
     /**
      * Delete the avatar of the room.
@@ -70,7 +69,7 @@ interface StateService {
     /**
      * Update the banner of the room (MSC4221).
      */
-    suspend fun updateBanner(bannerUri: Uri, fileName: String)
+    suspend fun updateBanner(bannerUri: String, fileName: String)
 
     /**
      * Delete the banner of the room.
@@ -86,7 +85,7 @@ interface StateService {
     /**
      * Upload an avatar and set it as the current user's avatar for this room only (the self m.room.member event).
      */
-    suspend fun updateMyRoomAvatar(avatarUri: Uri, fileName: String)
+    suspend fun updateMyRoomAvatar(avatarUri: String, fileName: String)
 
     /**
      * Set the current user's avatar for this room only (the self m.room.member event).
@@ -98,7 +97,7 @@ interface StateService {
      * Upload a banner and set it as the current user's MSC4427 banner for this room only
      * (the self m.room.member event; per-room override is a fork extension, no MSC covers it).
      */
-    suspend fun updateMyRoomBanner(bannerUri: Uri, fileName: String)
+    suspend fun updateMyRoomBanner(bannerUri: String, fileName: String)
 
     /**
      * Set the current user's MSC4427 banner for this room only (the self m.room.member event).

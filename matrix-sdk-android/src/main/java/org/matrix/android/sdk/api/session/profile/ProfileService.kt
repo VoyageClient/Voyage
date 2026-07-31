@@ -17,7 +17,6 @@
 
 package org.matrix.android.sdk.api.session.profile
 
-import android.net.Uri
 import androidx.lifecycle.LiveData
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.identity.ThreePid
@@ -59,7 +58,7 @@ interface ProfileService {
      * @param newAvatarUri the new avatar uri of the user
      * @param fileName the fileName of selected image
      */
-    suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String)
+    suspend fun updateAvatar(userId: String, newAvatarUri: String, fileName: String)
 
     /**
      * Remove the avatar for this user.
@@ -87,7 +86,7 @@ interface ProfileService {
     /**
      * Upload a banner image and set it as this user's profile banner (MSC4427).
      */
-    suspend fun updateBanner(userId: String, newBannerUri: Uri, fileName: String)
+    suspend fun updateBanner(userId: String, newBannerUri: String, fileName: String)
 
     /**
      * Remove the profile banner for this user.

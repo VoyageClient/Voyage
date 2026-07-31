@@ -7,7 +7,6 @@
 
 package im.vector.app.test.fakes
 
-import android.net.Uri
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -27,7 +26,7 @@ class FakeProfileService : ProfileService by mockk(relaxed = true) {
         coVerify { setDisplayName(userId, newName) }
     }
 
-    fun verifyAvatarUpdated(userId: String, newAvatarUri: Uri, fileName: String) {
+    fun verifyAvatarUpdated(userId: String, newAvatarUri: String, fileName: String) {
         coVerify { updateAvatar(userId, newAvatarUri, fileName) }
     }
 }

@@ -110,12 +110,12 @@ internal class FileUploader @Inject constructor(
     }
 
     suspend fun uploadFromUri(
-            uri: Uri,
+            uri: String,
             filename: String?,
             mimeType: String?,
             progressListener: ProgressRequestBody.Listener? = null
     ): ContentUploadResponse {
-        val workingFile = context.copyUriToTempFile(uri)
+        val workingFile = context.copyUriToTempFile(Uri.parse(uri))
         // Avatars, banners and image-pack stickers upload the picked bytes directly (they don't go
         // through the timeline-media worker), so scrub their EXIF/location here too when enabled.
         // Lossless only — non-images and formats that can't be scrubbed in place are left untouched.

@@ -761,7 +761,7 @@ class OnboardingViewModelTest {
                 .assertStates(expectedProfilePictureSuccessStates(initialState))
                 .assertEvents(OnboardingViewEvents.OnPersonalizationComplete)
                 .finish()
-        fakeSession.fakeProfileService.verifyAvatarUpdated(fakeSession.myUserId, fakeUri.instance, A_PICTURE_FILENAME)
+        fakeSession.fakeProfileService.verifyAvatarUpdated(fakeSession.myUserId, fakeUri.instance.toString(), A_PICTURE_FILENAME)
     }
 
     @Test

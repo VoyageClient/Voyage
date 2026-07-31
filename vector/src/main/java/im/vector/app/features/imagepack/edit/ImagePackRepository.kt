@@ -340,7 +340,7 @@ class ImagePackRepository @Inject constructor(
     // ----- Media upload -----
 
     suspend fun uploadImage(uri: Uri, fileName: String?, mimeType: String?): String {
-        return activeSessionHolder.getActiveSession().fileService().uploadFile(uri, fileName, mimeType)
+        return activeSessionHolder.getActiveSession().fileService().uploadFile(uri.toString(), fileName, mimeType)
     }
 
     // Foreground uploads have no retry (unlike the media-send worker), and a flaky TLS connection can stall
@@ -363,7 +363,7 @@ class ImagePackRepository @Inject constructor(
     }
 
     suspend fun compressImage(uri: Uri, mimeType: String?, maxDimension: Int): Pair<Uri, String?> {
-        val result = activeSessionHolder.getActiveSession().fileService().compressImageForUpload(uri, mimeType, maxDimension)
+        val result = activeSessionHolder.getActiveSession().fileService().compressImageForUpload(uri.toString(), mimeType, maxDimension)
         return result.uri to result.mimeType
     }
 

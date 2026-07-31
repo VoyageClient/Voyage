@@ -93,7 +93,7 @@ class RoomPersonalizationSettingsFragment :
             displayLoadingView()
             lifecycleScope.launch {
                 val result = runCatching {
-                    room.stateService().updateMyRoomBanner(uri, getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
+                    room.stateService().updateMyRoomBanner(uri.toString(), getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
                 }
                 if (!isAdded) return@launch
                 hideLoadingView()
@@ -221,7 +221,7 @@ class RoomPersonalizationSettingsFragment :
         displayLoadingView()
         lifecycleScope.launch {
             val result = runCatching {
-                room.stateService().updateMyRoomAvatar(uri, getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
+                room.stateService().updateMyRoomAvatar(uri.toString(), getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
             }
             if (!isAdded) return@launch
             hideLoadingView()

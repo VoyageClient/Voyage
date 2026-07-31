@@ -290,7 +290,7 @@ class CreateRoomViewModel @AssistedInject constructor(
                 .apply {
                     name = state.roomName.takeIf { it.isNotBlank() }
                     topic = state.roomTopic.takeIf { it.isNotBlank() }
-                    avatarUri = state.avatarUri
+                    avatarUri = state.avatarUri?.toString()
 
                     if (state.isSubSpace) {
                         // Space-rooms are distinguished from regular messaging rooms by the m.room.type of m.space
