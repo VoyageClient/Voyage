@@ -86,11 +86,12 @@ class StickerPickerBottomSheet :
 
         val packs = imagePackProvider.sortForDisplay(ImagePackUsageFilter.stickerPacks(imagePackProvider.getEnabledImagePacks(pickerArgs.roomId)))
                 .filter { it.images.isNotEmpty() }
-        val validStickerMxcs = packs.flatMapTo(HashSet()) { pack -> pack.images.map { it.mxcUrl } }
+        val packImagesByMxc = packs.flatMap { it.images }.associateBy { it.mxcUrl }
         // Drop deleted stickers from both the displayed list and the remote recent_stickers account data.
-        recentStickerDataSource.pruneToValidMxcs(validStickerMxcs)
+        recentStickerDataSource.pruneToValidMxcs(packImagesByMxc.keys)
+        // Re-resolve against the packs: the account data doesn't round-trip shortcode/info.
         val frequent = recentStickerDataSource.getRecentStickersSnapshot()
-                .filter { it.mxcUrl in validStickerMxcs }
+                .mapNotNull { packImagesByMxc[it.mxcUrl] }
 
         controller.setData(StickerPickerController.Data(frequentlyUsed = frequent, packs = packs))
         setupTabs(frequent, packs, layoutManager)

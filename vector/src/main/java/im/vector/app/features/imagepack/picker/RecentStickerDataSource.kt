@@ -128,7 +128,7 @@ class RecentStickerDataSource @Inject constructor(
     private fun ResolvedImage.toStickerContent(): Map<String, Any> {
         return buildMap {
             put("url", mxcUrl)
-            body?.let { put("body", it) }
+            (body ?: shortcode).takeIf { it.isNotEmpty() }?.let { put("body", it) }
             info?.let { put("info", it.toContent()) }
         }
     }
