@@ -257,6 +257,12 @@ def coreSources = [
         'org/matrix/android/sdk/internal/session/thirdparty/**',
         'org/matrix/android/sdk/api/session/typing/**',
         'org/matrix/android/sdk/internal/session/typing/**',
+        // User-interactive-auth (UIA) value types + the auth interfaces they build on.
+        'org/matrix/android/sdk/api/session/uia/**',
+        'org/matrix/android/sdk/api/auth/UIABaseAuth.kt',
+        'org/matrix/android/sdk/api/auth/UserInteractiveAuthInterceptor.kt',
+        'org/matrix/android/sdk/api/auth/UserPasswordAuth.kt',
+        'org/matrix/android/sdk/api/auth/TokenBasedAuth.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
