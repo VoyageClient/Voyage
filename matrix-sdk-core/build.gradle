@@ -17,10 +17,27 @@ kotlin {
 }
 
 def coreSources = [
+        'org/matrix/android/sdk/api/auth/data/HomeServerConnectionConfig.kt',
+        'org/matrix/android/sdk/api/auth/data/LoginFlowTypes.kt',
         'org/matrix/android/sdk/api/auth/data/WellKnownBaseConfig.kt',
+        'org/matrix/android/sdk/api/auth/registration/FlowResult.kt',
+        'org/matrix/android/sdk/api/auth/registration/RegistrationFlowResponse.kt',
+        'org/matrix/android/sdk/api/auth/registration/Stage.kt',
         'org/matrix/android/sdk/api/extensions/Booleans.kt',
         'org/matrix/android/sdk/api/extensions/Strings.kt',
         'org/matrix/android/sdk/api/extensions/Try.kt',
+        'org/matrix/android/sdk/api/failure/Failure.kt',
+        'org/matrix/android/sdk/api/failure/GlobalError.kt',
+        'org/matrix/android/sdk/api/failure/MatrixError.kt',
+        'org/matrix/android/sdk/api/failure/MatrixIdFailure.kt',
+        'org/matrix/android/sdk/api/network/ssl/Fingerprint.kt',
+        'org/matrix/android/sdk/api/session/contentscanner/ContentScannerError.kt',
+        'org/matrix/android/sdk/api/session/contentscanner/ScanFailure.kt',
+        'org/matrix/android/sdk/api/session/crypto/MXCryptoError.kt',
+        'org/matrix/android/sdk/api/session/crypto/crosssigning/DeviceTrustLevel.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/CryptoDeviceInfo.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/MXUsersDevicesMap.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/UnsignedDeviceInfo.kt',
         'org/matrix/android/sdk/api/util/Base64.kt',
         'org/matrix/android/sdk/api/util/Cancelable.kt',
         'org/matrix/android/sdk/api/util/CancelableBag.kt',
@@ -29,6 +46,14 @@ def coreSources = [
         'org/matrix/android/sdk/api/util/StringOrderUtils.kt',
         'org/matrix/android/sdk/api/util/TextContent.kt',
         'org/matrix/android/sdk/api/session/uia/InteractiveAuthenticationFlow.kt',
+        'org/matrix/android/sdk/api/util/Types.kt',
+        'org/matrix/android/sdk/internal/crypto/model/CryptoInfo.kt',
+        'org/matrix/android/sdk/internal/network/ssl/CertUtil.kt',
+        'org/matrix/android/sdk/internal/network/ssl/PinnedTrustManager.kt',
+        'org/matrix/android/sdk/internal/network/ssl/PinnedTrustManagerApi24.kt',
+        'org/matrix/android/sdk/internal/network/ssl/PinnedTrustManagerProvider.kt',
+        'org/matrix/android/sdk/internal/network/ssl/TLSSocketFactory.kt',
+        'org/matrix/android/sdk/internal/network/ssl/UnrecognizedCertificateException.kt',
         'org/matrix/android/sdk/internal/util/LruCache.kt',
         'org/matrix/android/sdk/internal/util/UriString.kt',
         'org/matrix/android/sdk/internal/util/UrlUtils.kt',
@@ -45,8 +70,10 @@ sourceSets {
 
 dependencies {
     implementation project(':library:external:timber-jvm')
+    implementation project(':library:external:olm-jvm')
     implementation libs.jetbrains.coroutinesCore
     implementation libs.squareup.moshi
+    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     kapt libs.squareup.moshiKotlin
 
     testImplementation 'junit:junit:4.13.2'
