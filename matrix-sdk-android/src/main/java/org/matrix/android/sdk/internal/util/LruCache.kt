@@ -16,9 +16,59 @@
 
 package org.matrix.android.sdk.internal.util
 
-import androidx.collection.LruCache
+/**
+ * Platform-neutral replacement for the android.util/androidx.collection LruCache subset the SDK
+ * uses (get/put/remove/evictAll + the entryRemoved hook, with android's callback semantics),
+ * backed by an access-ordered LinkedHashMap.
+ */
+internal open class LruCache<K : Any, V : Any>(private val maxSize: Int) {
 
-@Suppress("NULLABLE_TYPE_PARAMETER_AGAINST_NOT_NULL_TYPE_PARAMETER")
+    init {
+        require(maxSize > 0) { "maxSize <= 0" }
+    }
+
+    private val map = LinkedHashMap<K, V>(0, 0.75f, true)
+
+    @Synchronized
+    operator fun get(key: K): V? = map[key]
+
+    fun put(key: K, value: V): V? {
+        val previous: V?
+        var evictedKey: K? = null
+        var evictedValue: V? = null
+        synchronized(this) {
+            previous = map.put(key, value)
+            if (map.size > maxSize) {
+                val eldest = map.entries.first()
+                evictedKey = eldest.key
+                evictedValue = eldest.value
+                map.remove(eldest.key)
+            }
+        }
+        previous?.let { entryRemoved(false, key, it, value) }
+        evictedValue?.let { entryRemoved(true, evictedKey, it, null) }
+        return previous
+    }
+
+    fun remove(key: K): V? {
+        val previous = synchronized(this) { map.remove(key) }
+        previous?.let { entryRemoved(false, key, it, null) }
+        return previous
+    }
+
+    fun evictAll() {
+        val entries = synchronized(this) {
+            map.toList().also { map.clear() }
+        }
+        entries.forEach { (key, value) -> entryRemoved(true, key, value, null) }
+    }
+
+    @Synchronized
+    fun size(): Int = map.size
+
+    protected open fun entryRemoved(evicted: Boolean, key: K?, oldValue: V?, newValue: V?) {}
+}
+
 internal inline fun <K : Any, V : Any> LruCache<K, V>.getOrPut(key: K, defaultValue: () -> V): V {
     return get(key) ?: defaultValue().also { put(key, it) }
 }

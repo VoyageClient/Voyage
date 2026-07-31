@@ -16,13 +16,13 @@
 
 package org.matrix.android.sdk.internal.session.media
 
-import androidx.collection.LruCache
 import org.matrix.android.sdk.api.cache.CacheStrategy
 import org.matrix.android.sdk.api.session.media.MediaService
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLatestEventId
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.internal.util.LruCache
 import org.matrix.android.sdk.internal.util.getOrPut
 import javax.inject.Inject
 

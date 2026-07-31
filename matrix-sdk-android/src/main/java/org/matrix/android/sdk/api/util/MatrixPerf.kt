@@ -7,7 +7,6 @@
 
 package org.matrix.android.sdk.api.util
 
-import android.os.SystemClock
 import android.util.Log
 
 /**
@@ -22,36 +21,39 @@ object MatrixPerf {
     private const val TAG = "VectorPerf"
     private const val LOG_THRESHOLD_MS = 5L
 
+    @PublishedApi
+    internal fun elapsedMillis(): Long = System.nanoTime() / 1_000_000
+
     @Volatile
     @JvmField
     var isEnabled: Boolean = false
 
     inline fun <T> time(name: String, block: () -> T): T {
         if (!isEnabled) return block()
-        val start = SystemClock.elapsedRealtime()
+        val start = elapsedMillis()
         try {
             return block()
         } finally {
-            report(name, SystemClock.elapsedRealtime() - start)
+            report(name, elapsedMillis() - start)
         }
     }
 
     suspend inline fun <T> timeSuspending(name: String, block: () -> T): T {
         if (!isEnabled) return block()
-        val start = SystemClock.elapsedRealtime()
+        val start = elapsedMillis()
         try {
             return block()
         } finally {
-            report(name, SystemClock.elapsedRealtime() - start)
+            report(name, elapsedMillis() - start)
         }
     }
 
-    fun now(): Long = if (isEnabled) SystemClock.elapsedRealtime() else 0L
+    fun now(): Long = if (isEnabled) elapsedMillis() else 0L
 
     /** End of a [now]-based span; logs if over threshold. Pass a lazily-built name for cheap disable. */
     fun end(startMs: Long, name: () -> String) {
         if (!isEnabled) return
-        report(name(), SystemClock.elapsedRealtime() - startMs)
+        report(name(), elapsedMillis() - startMs)
     }
 
     @PublishedApi

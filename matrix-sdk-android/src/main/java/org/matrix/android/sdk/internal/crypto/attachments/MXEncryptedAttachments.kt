@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.attachments
 
-import android.util.Base64
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileKey
@@ -31,6 +30,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.security.MessageDigest
 import java.security.SecureRandom
+import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
@@ -98,10 +98,10 @@ internal object MXEncryptedAttachments {
                         ext = true,
                         keyOps = listOf("encrypt", "decrypt"),
                         kty = "oct",
-                        k = base64ToBase64Url(Base64.encodeToString(key, Base64.DEFAULT))
+                        k = base64ToBase64Url(Base64.getEncoder().encodeToString(key))
                 ),
-                iv = Base64.encodeToString(initVectorBytes, Base64.DEFAULT).replace("\n", "").replace("=", ""),
-                hashes = mapOf("sha256" to base64ToUnpaddedBase64(Base64.encodeToString(messageDigest.digest(), Base64.DEFAULT))),
+                iv = Base64.getEncoder().encodeToString(initVectorBytes).replace("=", ""),
+                hashes = mapOf("sha256" to base64ToUnpaddedBase64(Base64.getEncoder().encodeToString(messageDigest.digest()))),
                 v = "v2"
         )
                 .also { Timber.v("Encrypt in ${clock.epochMillis() - t0}ms") }
@@ -218,10 +218,10 @@ internal object MXEncryptedAttachments {
                                 ext = true,
                                 keyOps = listOf("encrypt", "decrypt"),
                                 kty = "oct",
-                                k = base64ToBase64Url(Base64.encodeToString(key, Base64.DEFAULT))
+                                k = base64ToBase64Url(Base64.getEncoder().encodeToString(key))
                         ),
-                        iv = Base64.encodeToString(initVectorBytes, Base64.DEFAULT).replace("\n", "").replace("=", ""),
-                        hashes = mapOf("sha256" to base64ToUnpaddedBase64(Base64.encodeToString(messageDigest.digest(), Base64.DEFAULT))),
+                        iv = Base64.getEncoder().encodeToString(initVectorBytes).replace("=", ""),
+                        hashes = mapOf("sha256" to base64ToUnpaddedBase64(Base64.getEncoder().encodeToString(messageDigest.digest()))),
                         v = "v2"
                 ),
                 encryptedByteArray = byteArrayOutputStream.toByteArray()
@@ -253,8 +253,8 @@ internal object MXEncryptedAttachments {
         val t0 = clock.epochMillis()
 
         try {
-            val key = Base64.decode(base64UrlToBase64(elementToDecrypt.k), Base64.DEFAULT)
-            val initVectorBytes = Base64.decode(elementToDecrypt.iv, Base64.DEFAULT)
+            val key = Base64.getMimeDecoder().decode(base64UrlToBase64(elementToDecrypt.k))
+            val initVectorBytes = Base64.getMimeDecoder().decode(elementToDecrypt.iv)
 
             val decryptCipher = Cipher.getInstance(CIPHER_ALGORITHM)
             val secretKeySpec = SecretKeySpec(key, SECRET_KEY_SPEC_ALGORITHM)
@@ -281,7 +281,7 @@ internal object MXEncryptedAttachments {
             decodedBytes = decryptCipher.doFinal()
             outputStream.write(decodedBytes)
 
-            val currentDigestValue = base64ToUnpaddedBase64(Base64.encodeToString(messageDigest.digest(), Base64.DEFAULT))
+            val currentDigestValue = base64ToUnpaddedBase64(Base64.getEncoder().encodeToString(messageDigest.digest()))
 
             if (elementToDecrypt.sha256 != currentDigestValue) {
                 Timber.e("## decryptAttachment() :  Digest value mismatch")
