@@ -20,6 +20,7 @@ import org.matrix.android.sdk.internal.database.sql.store.globToSqlLike
 import org.matrix.android.sdk.internal.database.sql.store.toEntity
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -102,6 +103,9 @@ internal class DefaultGetUploadsTask @Inject constructor(
 
             uploadEvents = events.mapNotNull { event ->
                 val eventId = event.eventId ?: return@mapNotNull null
+                // A synced media send leaves its local echo row in the event table; both carry the same
+                // attachment, so without this the gallery shows every self-sent upload twice.
+                if (LocalEcho.isLocalEchoId(eventId)) return@mapNotNull null
                 val messageWithAttachmentContent = if (event.isSticker()) {
                     event.getClearContent()?.toModel<MessageStickerContent>()
                 } else {
