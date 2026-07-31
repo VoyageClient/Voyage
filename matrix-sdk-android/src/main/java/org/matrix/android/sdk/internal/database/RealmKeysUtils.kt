@@ -17,8 +17,8 @@ package org.matrix.android.sdk.internal.database
 
 import android.util.Base64
 import org.matrix.android.sdk.BuildConfig
-import org.matrix.android.sdk.api.securestorage.SecretStoringUtils
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
+import org.matrix.android.sdk.internal.platform.SecureStorage
 import timber.log.Timber
 import java.security.SecureRandom
 import javax.inject.Inject
@@ -37,7 +37,7 @@ import javax.inject.Inject
  */
 internal class RealmKeysUtils @Inject constructor(
         storeFactory: KeyValueStoreFactory,
-        private val secretStoringUtils: SecretStoringUtils,
+        private val secureStorage: SecureStorage,
 ) {
 
     private val rng = SecureRandom()
@@ -68,7 +68,7 @@ internal class RealmKeysUtils @Inject constructor(
     private fun createAndSaveKeyForDatabase(alias: String): ByteArray {
         val key = generateKeyForRealm()
         val encodedKey = Base64.encodeToString(key, Base64.NO_PADDING)
-        val toStore = secretStoringUtils.securelyStoreBytes(encodedKey.toByteArray(), alias)
+        val toStore = secureStorage.encryptBytes(encodedKey.toByteArray(), alias)
         store.putString("${ENCRYPTED_KEY_PREFIX}_$alias", Base64.encodeToString(toStore, Base64.NO_PADDING))
         return key
     }
@@ -80,7 +80,7 @@ internal class RealmKeysUtils @Inject constructor(
     private fun extractKeyForDatabase(alias: String): ByteArray {
         val encryptedB64 = store.getString("${ENCRYPTED_KEY_PREFIX}_$alias")
         val encryptedKey = Base64.decode(encryptedB64, Base64.NO_PADDING)
-        val b64 = secretStoringUtils.loadSecureSecretBytes(encryptedKey, alias)
+        val b64 = secureStorage.decryptBytes(encryptedKey, alias)
         return Base64.decode(b64, Base64.NO_PADDING)
     }
 
@@ -105,7 +105,7 @@ internal class RealmKeysUtils @Inject constructor(
     // Delete elements related to the alias
     fun clear(alias: String) {
         if (hasKeyForDatabase(alias)) {
-            secretStoringUtils.safeDeleteKey(alias)
+            secureStorage.deleteKey(alias)
 
             store.remove("${ENCRYPTED_KEY_PREFIX}_$alias")
         }
