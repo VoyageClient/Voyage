@@ -29,7 +29,11 @@ internal interface PaginationTask : Task<PaginationTask.Params, TokenChunkEventP
             val roomId: String,
             val from: String,
             val direction: PaginationDirection,
-            val limit: Int
+            val limit: Int,
+            // The chunk we paginated from, so the fetched page can be linked to it deterministically
+            // (homeserver boundary tokens don't reliably match our stored ones — Synapse appends a
+            // stream suffix — so token-based linking alone strands chunks).
+            val originChunkId: Long? = null,
     )
 }
 
@@ -48,6 +52,6 @@ internal class DefaultPaginationTask @Inject constructor(
         ) {
             roomAPI.getRoomMessagesFrom(params.roomId, params.from, params.direction.value, params.limit, filter)
         }
-        return tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction)
+        return tokenChunkEventPersistor.insertInDb(chunk, params.roomId, params.direction, params.originChunkId)
     }
 }
