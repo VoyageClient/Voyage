@@ -248,6 +248,15 @@ def coreSources = [
         // Sync-filter layer: the Retrofit FilterApi, its request/response models and FilterFactory
         // (the DB-backed repository impl + save/get tasks + Dagger module stay Android for now).
         'org/matrix/android/sdk/internal/session/filter/**',
+        // Task base interface + first full network cluster (openid): Retrofit API, request task, service
+        // impl and Dagger module — proves an end-to-end API/task/service unit compiles off-Android.
+        'org/matrix/android/sdk/internal/task/Task.kt',
+        'org/matrix/android/sdk/api/session/openid/**',
+        'org/matrix/android/sdk/internal/session/openid/**',
+        'org/matrix/android/sdk/api/session/thirdparty/**',
+        'org/matrix/android/sdk/internal/session/thirdparty/**',
+        'org/matrix/android/sdk/api/session/typing/**',
+        'org/matrix/android/sdk/internal/session/typing/**',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
