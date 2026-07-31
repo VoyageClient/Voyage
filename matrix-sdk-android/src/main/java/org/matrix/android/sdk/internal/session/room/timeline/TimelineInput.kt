@@ -26,6 +26,9 @@ internal class TimelineInput @Inject constructor() {
 
     val listeners = mutableSetOf<Listener>()
 
+    /** Rooms whose displayed chain was already swept for cross-chunk duplicate rows this session. */
+    val dedupSweptRooms: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
     fun onLocalEchoCreated(roomId: String, timelineEvent: TimelineEvent) {
         listeners.toSet().forEach { it.onLocalEchoCreated(roomId, timelineEvent) }
     }

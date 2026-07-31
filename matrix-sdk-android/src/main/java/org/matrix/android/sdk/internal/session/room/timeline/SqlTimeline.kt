@@ -194,10 +194,27 @@ internal class SqlTimeline(
             }
         }
         timelineScope.launch {
+            if (!isThreadTimeline && timelineInput.dedupSweptRooms.add(roomId)) {
+                // Heal cross-chunk duplicate rows left by pagination overlap before the persistor
+                // learned to link-and-stop (once per room per session, before the first snapshot).
+                database.awaitDbTransaction(sessionDispatcher) { sweepDuplicateRows() }
+            }
             // A thread timeline gets a fresh (empty) thread chunk that the fetch task + sync then populate.
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
             seedFrom(seed)
             rebuildSnapshot()
+        }
+    }
+
+    /** Caller must be inside a DB transaction. */
+    private fun sweepDuplicateRows() {
+        val chain = LinkedHashSet<Long>()
+        var cursor = stores.chunk.lastForward(roomId)?.id
+        while (cursor != null && chain.add(cursor)) {
+            cursor = stores.chunk.getById(cursor)?.prev_chunk_id
+        }
+        if (chain.isNotEmpty()) {
+            stores.timelineEvent.deleteDuplicatesInChunks(roomId, chain)
         }
     }
 
