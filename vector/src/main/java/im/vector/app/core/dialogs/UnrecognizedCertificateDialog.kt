@@ -49,7 +49,7 @@ class UnrecognizedCertificateDialog @Inject constructor(
                 existing = true,
                 callback = callback,
                 userId = userId,
-                homeServerUrl = hsConfig.homeServerUriBase.toString(),
+                homeServerUrl = hsConfig.homeServerUriBase,
                 homeServerConnectionConfigHasFingerprints = hsConfig.allowedFingerprints.isNotEmpty()
         )
     }

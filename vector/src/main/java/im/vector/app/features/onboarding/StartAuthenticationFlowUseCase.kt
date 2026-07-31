@@ -34,7 +34,7 @@ class StartAuthenticationFlowUseCase @Inject constructor(
             config: HomeServerConnectionConfig,
             preferredLoginMode: LoginMode
     ) = SelectedHomeserverState(
-            userFacingUrl = config.homeServerUri.toString(),
+            userFacingUrl = config.homeServerUri,
             upstreamUrl = authFlow.homeServerUrl,
             preferredLoginMode = preferredLoginMode,
             supportedLoginTypes = authFlow.supportedLoginTypes,

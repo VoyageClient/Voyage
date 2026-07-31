@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.auth.data
 
-import android.net.Uri
 import com.squareup.moshi.JsonClass
 import okhttp3.CipherSuite
 import okhttp3.ConnectionSpec
@@ -29,17 +28,19 @@ import org.matrix.android.sdk.internal.util.ensureTrailingSlash
  * This data class holds how to connect to a specific Homeserver.
  * It's used with [org.matrix.android.sdk.api.auth.AuthenticationService] class.
  * You should use the [Builder] to create one.
+ * URIs are held as strings so the class stays platform-neutral; the JSON shape is unchanged from
+ * when they were android Uri (which always serialized as the plain string).
  */
 @JsonClass(generateAdapter = true)
 data class HomeServerConnectionConfig(
         // This is the homeserver URL entered by the user
-        val homeServerUri: Uri,
+        val homeServerUri: String,
         // This is the homeserver base URL for the client-server API. Default to homeServerUri,
         // but can be updated with data from .Well-Known before login, and/or with the data
         // included in the login response
-        val homeServerUriBase: Uri = homeServerUri,
-        val identityServerUri: Uri? = null,
-        val antiVirusServerUri: Uri? = null,
+        val homeServerUriBase: String = homeServerUri,
+        val identityServerUri: String? = null,
+        val antiVirusServerUri: String? = null,
         val allowedFingerprints: List<Fingerprint> = emptyList(),
         val shouldPin: Boolean = false,
         val tlsVersions: List<TlsVersion>? = null,
@@ -53,9 +54,9 @@ data class HomeServerConnectionConfig(
      * This builder should be use to create a [HomeServerConnectionConfig] instance.
      */
     class Builder {
-        private lateinit var homeServerUri: Uri
-        private var identityServerUri: Uri? = null
-        private var antiVirusServerUri: Uri? = null
+        private lateinit var homeServerUri: String
+        private var identityServerUri: String? = null
+        private var antiVirusServerUri: String? = null
         private val allowedFingerprints: MutableList<Fingerprint> = ArrayList()
         private var shouldPin: Boolean = false
         private val tlsVersions: MutableList<TlsVersion> = ArrayList()
@@ -64,47 +65,27 @@ data class HomeServerConnectionConfig(
         private var allowHttpExtension: Boolean = false
         private var forceUsageTlsVersions: Boolean = false
 
-        fun withHomeServerUri(hsUriString: String): Builder {
-            return withHomeServerUri(Uri.parse(hsUriString))
-        }
-
         /**
-         * @param hsUri The URI to use to connect to the homeserver.
+         * @param hsUriString The URI to use to connect to the homeserver.
          * @return this builder
          */
-        fun withHomeServerUri(hsUri: Uri): Builder {
-            if (hsUri.scheme != "http" && hsUri.scheme != "https") {
-                throw RuntimeException("Invalid homeserver URI: $hsUri")
+        fun withHomeServerUri(hsUriString: String): Builder {
+            if (uriScheme(hsUriString) != "http" && uriScheme(hsUriString) != "https") {
+                throw RuntimeException("Invalid homeserver URI: $hsUriString")
             }
-            // ensure trailing /
-            val hsString = hsUri.toString().ensureTrailingSlash()
-            homeServerUri = try {
-                Uri.parse(hsString)
-            } catch (e: Exception) {
-                throw RuntimeException("Invalid homeserver URI: $hsUri")
-            }
+            homeServerUri = hsUriString.ensureTrailingSlash()
             return this
         }
 
-        fun withIdentityServerUri(identityServerUriString: String): Builder {
-            return withIdentityServerUri(Uri.parse(identityServerUriString))
-        }
-
         /**
-         * @param identityServerUri The URI to use to manage identity.
+         * @param identityServerUriString The URI to use to manage identity.
          * @return this builder
          */
-        fun withIdentityServerUri(identityServerUri: Uri): Builder {
-            if (identityServerUri.scheme != "http" && identityServerUri.scheme != "https") {
-                throw RuntimeException("Invalid identity server URI: $identityServerUri")
+        fun withIdentityServerUri(identityServerUriString: String): Builder {
+            if (uriScheme(identityServerUriString) != "http" && uriScheme(identityServerUriString) != "https") {
+                throw RuntimeException("Invalid identity server URI: $identityServerUriString")
             }
-            // ensure trailing /
-            val isString = identityServerUri.toString().ensureTrailingSlash()
-            this.identityServerUri = try {
-                Uri.parse(isString)
-            } catch (e: Exception) {
-                throw RuntimeException("Invalid identity server URI: $identityServerUri")
-            }
+            this.identityServerUri = identityServerUriString.ensureTrailingSlash()
             return this
         }
 
@@ -171,21 +152,17 @@ data class HomeServerConnectionConfig(
             return this
         }
 
-        fun withAntiVirusServerUri(antivirusServerUriString: String?): Builder {
-            return withAntiVirusServerUri(antivirusServerUriString?.let { Uri.parse(it) })
-        }
-
         /**
          * Update the anti-virus server URI.
          *
-         * @param antivirusServerUri the new anti-virus uri. Can be null
+         * @param antivirusServerUriString the new anti-virus uri. Can be null
          * @return this builder
          */
-        fun withAntiVirusServerUri(antivirusServerUri: Uri?): Builder {
-            if (null != antivirusServerUri && "http" != antivirusServerUri.scheme && "https" != antivirusServerUri.scheme) {
-                throw RuntimeException("Invalid antivirus server URI: $antivirusServerUri")
+        fun withAntiVirusServerUri(antivirusServerUriString: String?): Builder {
+            if (null != antivirusServerUriString && uriScheme(antivirusServerUriString) !in listOf("http", "https")) {
+                throw RuntimeException("Invalid antivirus server URI: $antivirusServerUriString")
             }
-            this.antiVirusServerUri = antivirusServerUri
+            this.antiVirusServerUri = antivirusServerUriString
             return this
         }
 
@@ -243,6 +220,12 @@ data class HomeServerConnectionConfig(
                     allowHttpExtension = allowHttpExtension,
                     forceUsageTlsVersions = forceUsageTlsVersions
             )
+        }
+
+        companion object {
+            /** Same semantics as android.net.Uri.scheme: the text before the first ':', or null. */
+            private fun uriScheme(uriString: String): String? =
+                    uriString.substringBefore(':', missingDelimiterValue = "").takeIf { it.isNotEmpty() }
         }
     }
 }

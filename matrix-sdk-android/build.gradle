@@ -274,6 +274,7 @@ dependencies {
     testImplementation libs.tests.junit
     // Plain-JVM (JDBC) SQLDelight driver: proves the schemas run off-Android (desktop target)
     testImplementation "app.cash.sqldelight:sqlite-driver:2.0.2"
+    testImplementation "androidx.work:work-testing:2.8.1"
     // Note: version sticks to 1.9.2 due to https://github.com/mockk/mockk/issues/281
     testImplementation libs.mockk.mockk
     testImplementation libs.tests.kluent

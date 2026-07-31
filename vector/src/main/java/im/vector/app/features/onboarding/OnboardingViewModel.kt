@@ -737,7 +737,7 @@ class OnboardingViewModel @AssistedInject constructor(
             authResult: StartAuthenticationResult,
             serverTypeOverride: ServerType?
     ) {
-        rememberHomeServer(config.homeServerUri.toString())
+        rememberHomeServer(config.homeServerUri)
         if (authResult.isHomeserverOutdated) {
             _viewEvents.post(OnboardingViewEvents.OutdatedHomeserver)
         }
@@ -807,7 +807,7 @@ class OnboardingViewModel @AssistedInject constructor(
      * It is also useful to set the value again in the case of a certificate error on matrix.org.
      **/
     private fun OnboardingViewState.alignServerTypeAfterSubmission(config: HomeServerConnectionConfig, serverTypeOverride: ServerType?): ServerType {
-        return if (config.homeServerUri.toString() == matrixOrgUrl) {
+        return if (config.homeServerUri == matrixOrgUrl) {
             ServerType.MatrixOrg
         } else {
             serverTypeOverride ?: serverType

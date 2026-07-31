@@ -10,8 +10,6 @@ package im.vector.app.features.onboarding
 import im.vector.app.test.fakes.FakeAuthenticationService
 import im.vector.app.test.fakes.FakeSession
 import im.vector.app.test.fakes.FakeStringProvider
-import im.vector.app.test.fakes.FakeUri
-import im.vector.app.test.fakes.FakeUriFactory
 import im.vector.app.test.fakes.toTestString
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.test.runTest
@@ -29,8 +27,8 @@ private val A_WELLKNOWN_FAILED_WITH_CONTENT_RESULT = WellknownResult.FailPrompt(
 private val A_WELLKNOWN_FAILED_WITHOUT_CONTENT_RESULT = WellknownResult.FailPrompt(null, null)
 private val NO_HOMESERVER_CONFIG: HomeServerConnectionConfig? = null
 private val A_FALLBACK_CONFIG: HomeServerConnectionConfig = HomeServerConnectionConfig(
-        homeServerUri = FakeUri("https://${A_DIRECT_LOGIN_ACTION.matrixId.getServerName()}").instance,
-        homeServerUriBase = FakeUri(A_WELLKNOWN_SUCCESS_RESULT.homeServerUrl).instance,
+        homeServerUri = "https://${A_DIRECT_LOGIN_ACTION.matrixId.getServerName()}",
+        homeServerUriBase = A_WELLKNOWN_SUCCESS_RESULT.homeServerUrl,
         identityServerUri = null
 )
 private val AN_ERROR = RuntimeException()
@@ -41,7 +39,7 @@ class DirectLoginUseCaseTest {
     private val fakeStringProvider = FakeStringProvider()
     private val fakeSession = FakeSession()
 
-    private val useCase = DirectLoginUseCase(fakeAuthenticationService, fakeStringProvider.instance, FakeUriFactory().instance)
+    private val useCase = DirectLoginUseCase(fakeAuthenticationService, fakeStringProvider.instance)
 
     @Test
     fun `when logging in directly, then returns success with direct session result`() = runTest {

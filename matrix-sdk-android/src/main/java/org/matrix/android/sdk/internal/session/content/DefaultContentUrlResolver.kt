@@ -35,7 +35,7 @@ internal class DefaultContentUrlResolver @Inject constructor(
         private val isAuthenticatedMediaSupported: IsAuthenticatedMediaSupported,
 ) : ContentUrlResolver {
 
-    private val baseUrl = homeServerConnectionConfig.homeServerUriBase.toString().ensureTrailingSlash()
+    private val baseUrl = homeServerConnectionConfig.homeServerUriBase.ensureTrailingSlash()
     private val authenticatedMediaApiPath = baseUrl + NetworkConstants.URI_API_PREFIX_PATH_V1 + "media/"
     override val uploadUrl = baseUrl + NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "upload"
 

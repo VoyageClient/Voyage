@@ -11,7 +11,6 @@ import im.vector.app.features.login.LoginMode
 import im.vector.app.features.login.SsoState
 import im.vector.app.features.onboarding.StartAuthenticationFlowUseCase.StartAuthenticationResult
 import im.vector.app.test.fakes.FakeAuthenticationService
-import im.vector.app.test.fakes.FakeUri
 import io.mockk.coVerifyOrder
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
@@ -23,7 +22,7 @@ import org.matrix.android.sdk.api.auth.data.LoginFlowTypes
 import org.matrix.android.sdk.api.auth.data.SsoIdentityProvider
 
 private const val A_DECLARED_HOMESERVER_URL = "https://foo.bar"
-private val A_HOMESERVER_CONFIG = HomeServerConnectionConfig(homeServerUri = FakeUri().instance)
+private val A_HOMESERVER_CONFIG = HomeServerConnectionConfig(homeServerUri = "https://a-fake.uri/")
 private val FALLBACK_SSO_IDENTITY_PROVIDERS = emptyList<SsoIdentityProvider>()
 private val SSO_IDENTITY_PROVIDERS = listOf(SsoIdentityProvider(id = "id", "name", null, "sso-brand"))
 private val SSO_LOGIN_TYPE = listOf(LoginFlowTypes.SSO)

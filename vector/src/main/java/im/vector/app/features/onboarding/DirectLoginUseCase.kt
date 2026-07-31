@@ -21,7 +21,6 @@ import javax.inject.Inject
 class DirectLoginUseCase @Inject constructor(
         private val authenticationService: AuthenticationService,
         private val stringProvider: StringProvider,
-        private val uriFactory: UriFactory
 ) {
 
     suspend fun execute(action: LoginDirect, homeServerConnectionConfig: HomeServerConnectionConfig?): Result<Session> {
@@ -61,14 +60,14 @@ class DirectLoginUseCase @Inject constructor(
     }
 
     private fun HomeServerConnectionConfig.updateWith(wellKnownPrompt: WellknownResult.Prompt) = copy(
-            homeServerUriBase = uriFactory.parse(wellKnownPrompt.homeServerUrl),
-            identityServerUri = wellKnownPrompt.identityServerUrl?.let { uriFactory.parse(it) }
+            homeServerUriBase = wellKnownPrompt.homeServerUrl,
+            identityServerUri = wellKnownPrompt.identityServerUrl
     )
 
     private fun fallbackConfig(action: LoginDirect, wellKnownPrompt: WellknownResult.Prompt) = HomeServerConnectionConfig(
-            homeServerUri = uriFactory.parse("https://${action.matrixId.getServerName()}"),
-            homeServerUriBase = uriFactory.parse(wellKnownPrompt.homeServerUrl),
-            identityServerUri = wellKnownPrompt.identityServerUrl?.let { uriFactory.parse(it) }
+            homeServerUri = "https://${action.matrixId.getServerName()}",
+            homeServerUriBase = wellKnownPrompt.homeServerUrl,
+            identityServerUri = wellKnownPrompt.identityServerUrl
     )
 
     private fun onWellKnownError() = Result.failure<Session>(Exception(stringProvider.getString(CommonStrings.autodiscover_well_known_error)))

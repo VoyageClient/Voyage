@@ -51,7 +51,7 @@ internal class DefaultQrLoginTokenTask @Inject constructor(
 
     override suspend fun execute(params: QrLoginTokenTask.Params): Session {
         val client = buildClient(params.homeServerConnectionConfig)
-        val homeServerUrl = params.homeServerConnectionConfig.homeServerUriBase.toString()
+        val homeServerUrl = params.homeServerConnectionConfig.homeServerUriBase
 
         val authAPI = retrofitFactory.create(client, homeServerUrl)
                 .create(AuthAPI::class.java)
