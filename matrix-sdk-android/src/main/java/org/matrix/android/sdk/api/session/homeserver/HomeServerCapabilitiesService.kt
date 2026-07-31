@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.homeserver
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.util.Optional
 
 /**
@@ -35,7 +35,7 @@ interface HomeServerCapabilitiesService {
     fun getHomeServerCapabilities(): HomeServerCapabilities
 
     /**
-     * Get a LiveData on the HomeServer capabilities.
+     * Get a Flow on the HomeServer capabilities.
      */
-    fun getHomeServerCapabilitiesLive(): LiveData<Optional<HomeServerCapabilities>>
+    fun getHomeServerCapabilitiesFlow(): Flow<Optional<HomeServerCapabilities>>
 }
