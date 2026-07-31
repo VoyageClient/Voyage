@@ -16,8 +16,35 @@
 
 package org.matrix.android.sdk.internal.util
 
-import androidx.core.text.HtmlCompat
+/**
+ * Platform seam for HTML-to-plain-text conversion: Android swaps in an HtmlCompat-based
+ * implementation at Matrix init (see [installAndroidHtmlConverter]) to keep its exact historical
+ * rendering; the default is a basic strip-tags + unescape-entities fallback for desktop.
+ */
+internal object HtmlToPlainTextConverter {
 
-internal fun String.unescapeHtml(): String {
-    return HtmlCompat.fromHtml(this, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+    @Volatile
+    var converter: (String) -> String = ::basicHtmlToPlainText
+}
+
+internal fun String.unescapeHtml(): String = HtmlToPlainTextConverter.converter(this)
+
+private val TAG_REGEX = "<[^>]*>".toRegex()
+private val NUMERIC_ENTITY_REGEX = "&#(x[0-9a-fA-F]+|[0-9]+);".toRegex()
+
+private fun basicHtmlToPlainText(html: String): String {
+    return html
+            .replace("<br\\s*/?>".toRegex(RegexOption.IGNORE_CASE), "\n")
+            .replace(TAG_REGEX, "")
+            .replace(NUMERIC_ENTITY_REGEX) { match ->
+                val value = match.groupValues[1]
+                val code = if (value.startsWith("x")) value.drop(1).toIntOrNull(16) else value.toIntOrNull()
+                code?.let { String(Character.toChars(it)) } ?: match.value
+            }
+            .replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&quot;", "\"")
+            .replace("&apos;", "'")
+            .replace("&nbsp;", " ")
+            .replace("&amp;", "&")
 }

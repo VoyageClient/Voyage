@@ -45,9 +45,51 @@ def coreSources = [
         'org/matrix/android/sdk/api/util/Optional.kt',
         'org/matrix/android/sdk/api/util/StringOrderUtils.kt',
         'org/matrix/android/sdk/api/util/TextContent.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/EncryptedFileInfo.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/MXEventDecryptionResult.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/SendToDeviceObject.kt',
+        'org/matrix/android/sdk/api/session/crypto/verification/**',
+        'org/matrix/android/sdk/api/session/crypto/model/EncryptedFileKey.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/OlmDecryptionResult.kt',
+        'org/matrix/android/sdk/api/session/events/model/**',
+        'org/matrix/android/sdk/api/session/identity/ThreePid.kt',
+        'org/matrix/android/sdk/api/session/presence/model/**',
+        'org/matrix/android/sdk/api/session/room/model/Invite.kt',
+        'org/matrix/android/sdk/api/session/room/model/Membership.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomMemberContent.kt',
+        'org/matrix/android/sdk/api/session/accountdata/UserAccountDataEvent.kt',
+        'org/matrix/android/sdk/api/session/room/model/Signed.kt',
+        'org/matrix/android/sdk/api/session/room/model/message/**',
+        'org/matrix/android/sdk/api/session/room/model/relation/ReactionContent.kt',
+        'org/matrix/android/sdk/api/session/room/model/relation/ReactionInfo.kt',
+        'org/matrix/android/sdk/api/session/room/model/relation/RelationContent.kt',
+        'org/matrix/android/sdk/api/session/room/model/relation/RelationDefaultContent.kt',
+        'org/matrix/android/sdk/api/session/room/model/relation/ReplyToContent.kt',
+        'org/matrix/android/sdk/api/session/room/send/SendState.kt',
+        'org/matrix/android/sdk/api/session/room/sender/SenderInfo.kt',
+        'org/matrix/android/sdk/api/session/threads/ThreadDetails.kt',
+        'org/matrix/android/sdk/api/session/threads/ThreadNotificationState.kt',
+        'org/matrix/android/sdk/api/session/sync/InitialSyncStrategy.kt',
+        'org/matrix/android/sdk/api/session/sync/model/**',
+        'org/matrix/android/sdk/api/util/ContentUtils.kt',
+        'org/matrix/android/sdk/api/util/Hash.kt',
+        'org/matrix/android/sdk/api/util/MatrixJsonParser.kt',
         'org/matrix/android/sdk/api/session/uia/InteractiveAuthenticationFlow.kt',
         'org/matrix/android/sdk/api/util/Types.kt',
+        'org/matrix/android/sdk/internal/crypto/model/rest/VerificationMethodValues.kt',
+        'org/matrix/android/sdk/internal/di/FileQualifiers.kt',
+        'org/matrix/android/sdk/internal/di/MoshiProvider.kt',
+        'org/matrix/android/sdk/internal/di/SerializeNulls.kt',
+        'org/matrix/android/sdk/internal/session/sync/RoomSyncEphemeralTemporaryStore.kt',
+        'org/matrix/android/sdk/internal/session/sync/parsing/**',
+        'org/matrix/android/sdk/internal/util/StringUtils.kt',
+        'org/matrix/android/sdk/internal/network/parsing/**',
         'org/matrix/android/sdk/internal/crypto/model/CryptoInfo.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/VerificationInfo*.kt',
+        'org/matrix/android/sdk/internal/session/presence/model/**',
+        'org/matrix/android/sdk/internal/session/profile/ThirdPartyIdentifier.kt',
+        'org/matrix/android/sdk/internal/util/Html.kt',
+        'org/matrix/android/sdk/internal/util/JsonCanonicalizer.kt',
         'org/matrix/android/sdk/internal/network/ssl/CertUtil.kt',
         'org/matrix/android/sdk/internal/network/ssl/PinnedTrustManager.kt',
         'org/matrix/android/sdk/internal/network/ssl/PinnedTrustManagerApi24.kt',
@@ -73,7 +115,11 @@ dependencies {
     implementation project(':library:external:olm-jvm')
     implementation libs.jetbrains.coroutinesCore
     implementation libs.squareup.moshi
+    implementation libs.squareup.moshiAdapters
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    implementation 'com.squareup.okio:okio:3.6.0'
+    implementation 'javax.inject:javax.inject:1'
+    implementation libs.google.phonenumber
     kapt libs.squareup.moshiKotlin
 
     testImplementation 'junit:junit:4.13.2'

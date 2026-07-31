@@ -36,13 +36,11 @@ import org.matrix.android.sdk.internal.network.parsing.CipherSuiteMoshiAdapter
 import org.matrix.android.sdk.internal.network.parsing.ForceToBooleanJsonAdapter
 import org.matrix.android.sdk.internal.network.parsing.RuntimeJsonAdapterFactory
 import org.matrix.android.sdk.internal.network.parsing.TlsVersionMoshiAdapter
-import org.matrix.android.sdk.internal.network.parsing.UriMoshiAdapter
 import org.matrix.android.sdk.internal.session.sync.parsing.DefaultLazyRoomSyncEphemeralJsonAdapter
 
 internal object MoshiProvider {
 
     private val moshi: Moshi = Moshi.Builder()
-            .add(UriMoshiAdapter())
             .add(ForceToBooleanJsonAdapter())
             .add(CipherSuiteMoshiAdapter())
             .add(TlsVersionMoshiAdapter())
