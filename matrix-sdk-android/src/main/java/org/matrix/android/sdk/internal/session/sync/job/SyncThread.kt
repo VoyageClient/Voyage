@@ -17,8 +17,6 @@
 package org.matrix.android.sdk.internal.session.sync.job
 
 import android.os.SystemClock
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.squareup.moshi.JsonEncodingException
 import kotlinx.coroutines.CancellationException
@@ -70,7 +68,7 @@ internal class SyncThread @Inject constructor(
 ) : Thread("Matrix-SyncThread"), NetworkConnectivityChecker.Listener, BackgroundDetectionObserver.Listener {
 
     private var state: SyncState = SyncState.Idle
-    private var liveState = MutableLiveData(state)
+    private val liveState = kotlinx.coroutines.flow.MutableStateFlow(state)
     private val lock = Object()
     private val syncScope = CoroutineScope(SupervisorJob())
     private val debouncer = Debouncer(createUIHandler())
@@ -161,7 +159,7 @@ internal class SyncThread @Inject constructor(
 
     fun currentState() = state
 
-    fun liveState(): LiveData<SyncState> {
+    fun syncStateFlow(): kotlinx.coroutines.flow.Flow<SyncState> {
         return liveState
     }
 

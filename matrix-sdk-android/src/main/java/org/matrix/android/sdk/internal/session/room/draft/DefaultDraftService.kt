@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.draft
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -57,7 +57,7 @@ internal class DefaultDraftService @AssistedInject constructor(
         return draftRepository.getDraft(roomId)
     }
 
-    override fun getDraftLive(): LiveData<Optional<UserDraft>> {
-        return draftRepository.getDraftsLive(roomId)
+    override fun getDraftFlow(): Flow<Optional<UserDraft>> {
+        return draftRepository.getDraftsFlow(roomId)
     }
 }

@@ -16,8 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.draft
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.util.Optional
@@ -25,7 +27,6 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.DraftMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
@@ -74,8 +75,9 @@ internal class DraftRepository @Inject constructor(
     fun getDraft(roomId: String): UserDraft? =
             stores.draft.getDrafts(roomId).firstOrNull()?.let { DraftMapper.map(it) }
 
-    fun getDraftsLive(roomId: String): LiveData<Optional<UserDraft>> =
+    fun getDraftsFlow(roomId: String): Flow<Optional<UserDraft>> =
             database.draftQueries.selectByRoom(roomId)
-                    .asLiveList(dispatcher)
+                    .asFlow()
+                    .mapToList(dispatcher)
                     .map { getDraft(roomId).toOptional() }
 }
