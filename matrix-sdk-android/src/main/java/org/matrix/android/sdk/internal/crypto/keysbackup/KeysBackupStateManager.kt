@@ -16,13 +16,18 @@
 
 package org.matrix.android.sdk.internal.crypto.keysbackup
 
-import android.os.Handler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupStateListener
 import timber.log.Timber
 
-internal class KeysBackupStateManager(private val uiHandler: Handler) {
+internal class KeysBackupStateManager(
+        private val scope: CoroutineScope,
+        private val coroutineDispatchers: MatrixCoroutineDispatchers,
+) {
 
     private val listeners = ArrayList<KeysBackupStateListener>()
 
@@ -36,7 +41,7 @@ internal class KeysBackupStateManager(private val uiHandler: Handler) {
             // Notify listeners about the state change, on the ui thread
             synchronized(listeners) {
                 listeners.forEach {
-                    uiHandler.post {
+                    scope.launch(coroutineDispatchers.main) {
                         // Use newState because state may have already changed again
                         tryOrNull {
                             it.onStateChange(newState)
