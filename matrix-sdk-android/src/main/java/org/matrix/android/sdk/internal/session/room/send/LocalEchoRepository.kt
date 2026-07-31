@@ -100,9 +100,18 @@ internal class LocalEchoRepository @Inject constructor(
             pendingEchoes[event.eventId] = timelineEvent
             timelineInput.onLocalEchoCreated(roomId = roomId, timelineEvent = timelineEvent)
             database.awaitDbTransaction(dispatcher) {
-                val dbId = stores.event.insert(eventEntity)
-                stores.eventInsert.insert(event.eventId, event.type, canBeProcessed = true, insertType = EventInsertType.LOCAL_ECHO)
-                stores.timelineEvent.insert(timelineEventEntity, chunkId = null, rootEventDbId = dbId)
+                // This write is queued behind sync handling, so a fast send + sync round-trip can
+                // deliver the remote copy BEFORE the echo row exists — its reconciliation
+                // (deleteSending by transaction id) then hits nothing, and inserting the echo now
+                // would leave a stuck duplicate in the pending section forever. Skip it instead.
+                val remoteId = remoteIdsByLocalEcho[event.eventId]
+                if (remoteId != null && stores.timelineEvent.getByRoomAndEventId(roomId, remoteId) != null) {
+                    Timber.i("## Send: skip local echo insert of ${event.eventId}, remote copy $remoteId already synced")
+                } else {
+                    val dbId = stores.event.insert(eventEntity)
+                    stores.eventInsert.insert(event.eventId, event.type, canBeProcessed = true, insertType = EventInsertType.LOCAL_ECHO)
+                    stores.timelineEvent.insert(timelineEventEntity, chunkId = null, rootEventDbId = dbId)
+                }
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
             }
             pendingEchoes.remove(event.eventId)
@@ -134,8 +143,14 @@ internal class LocalEchoRepository @Inject constructor(
 
     /** Drop a stuck local echo whose remote copy has arrived. Caller must already be on the DB dispatcher. */
     fun deleteSentEcho(roomId: String, remoteEventId: String): Boolean {
-        val localEchoId = sentEchoesByRemoteId.remove(remoteEventId) ?: return false
-        val echo = stores.timelineEvent.getSendingByRoom(roomId).firstOrNull { it.eventId == localEchoId } ?: return false
+        val localEchoId = sentEchoesByRemoteId[remoteEventId] ?: return false
+        val echo = stores.timelineEvent.getSendingByRoom(roomId).firstOrNull { it.eventId == localEchoId }
+        if (echo == null) {
+            // The echo row may not be inserted yet (createLocalEcho's write is still queued):
+            // keep the mapping so the insert-time check can skip the late insert.
+            return false
+        }
+        sentEchoesByRemoteId.remove(remoteEventId)
         Timber.v("Remove stuck local echo $localEchoId for synced event $remoteEventId")
         stores.timelineEvent.deleteSending(roomId, localEchoId)
         stores.event.deleteByEventIdInRoom(roomId, localEchoId)
