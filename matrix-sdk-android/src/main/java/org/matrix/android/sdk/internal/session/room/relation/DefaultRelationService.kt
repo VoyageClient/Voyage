@@ -15,12 +15,14 @@
  */
 package org.matrix.android.sdk.internal.session.room.relation
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -38,7 +40,6 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
@@ -286,9 +287,9 @@ internal class DefaultRelationService @AssistedInject constructor(
         return stores.annotations.get(eventId)?.asDomain()
     }
 
-    override fun getEventAnnotationsSummaryLive(eventId: String): LiveData<Optional<EventAnnotationsSummary>> {
+    override fun getEventAnnotationsSummaryFlow(eventId: String): Flow<Optional<EventAnnotationsSummary>> {
         // Reactions are the dominant live-updating annotation; observe them and re-resolve the full summary.
-        return database.eventAnnotationsSummaryQueries.selectReactions(eventId).asLiveList(dispatcher)
+        return database.eventAnnotationsSummaryQueries.selectReactions(eventId).asFlow().mapToList(dispatcher)
                 .map { stores.annotations.get(eventId)?.asDomain().toOptional() }
     }
 

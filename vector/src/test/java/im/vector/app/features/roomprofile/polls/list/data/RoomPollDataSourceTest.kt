@@ -10,7 +10,6 @@ package im.vector.app.features.roomprofile.polls.list.data
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeFlowLiveDataConversions
 import im.vector.app.test.fakes.FakePollHistoryService
-import im.vector.app.test.fakes.givenAsFlow
 import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
@@ -51,7 +50,6 @@ internal class RoomPollDataSourceTest {
         val pollEvents = listOf<TimelineEvent>()
         fakePollHistoryService
                 .givenGetPollsReturns(pollEvents)
-                .givenAsFlow()
 
         // When
         val result = roomPollDataSource.getPolls(A_ROOM_ID).firstOrNull()

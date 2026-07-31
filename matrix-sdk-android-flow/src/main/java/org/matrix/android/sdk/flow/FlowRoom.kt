@@ -70,14 +70,14 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveAnnotationSummary(eventId: String): Flow<Optional<EventAnnotationsSummary>> {
-        return room.relationService().getEventAnnotationsSummaryLive(eventId).asFlow()
+        return room.relationService().getEventAnnotationsSummaryFlow(eventId)
                 .startWith(room.coroutineDispatchers.io) {
                     room.relationService().getEventAnnotationsSummary(eventId).toOptional()
                 }
     }
 
     fun liveTimelineEvent(eventId: String): Flow<Optional<TimelineEvent>> {
-        return room.timelineService().getTimelineEventLive(eventId).asFlow()
+        return room.timelineService().getTimelineEventFlow(eventId)
                 .startWith(room.coroutineDispatchers.io) {
                     room.getTimelineEvent(eventId).toOptional()
                 }

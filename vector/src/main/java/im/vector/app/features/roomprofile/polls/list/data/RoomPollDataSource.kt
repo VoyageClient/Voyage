@@ -33,7 +33,7 @@ class RoomPollDataSource @Inject constructor(
     }
 
     fun getPolls(roomId: String): Flow<List<TimelineEvent>> {
-        return getPollHistoryService(roomId).getPollEvents().asFlow()
+        return getPollHistoryService(roomId).getPollEventsFlow()
     }
 
     suspend fun getLoadedPollsStatus(roomId: String): LoadedPollsStatus {

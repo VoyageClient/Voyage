@@ -23,8 +23,7 @@ class GetTimelineEventUseCase @Inject constructor(
     fun execute(roomId: String, eventId: String): Flow<TimelineEvent> {
         return activeSessionHolder.getActiveSession().getRoom(roomId)
                 ?.timelineService()
-                ?.getTimelineEventLive(eventId)
-                ?.asFlow()
+                ?.getTimelineEventFlow(eventId)
                 ?.unwrap()
                 ?: emptyFlow()
     }

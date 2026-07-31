@@ -15,7 +15,7 @@
  */
 package org.matrix.android.sdk.api.session.room.model.relation
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -216,11 +216,11 @@ interface RelationService {
     fun getEventAnnotationsSummary(eventId: String): EventAnnotationsSummary?
 
     /**
-     * Get a LiveData of EventAnnotationsSummary for the specified eventId.
+     * Get a Flow of EventAnnotationsSummary for the specified eventId.
      * @param eventId the eventId to look for EventAnnotationsSummary
-     * @return the LiveData of EventAnnotationsSummary
+     * @return the Flow of EventAnnotationsSummary
      */
-    fun getEventAnnotationsSummaryLive(eventId: String): LiveData<Optional<EventAnnotationsSummary>>
+    fun getEventAnnotationsSummaryFlow(eventId: String): Flow<Optional<EventAnnotationsSummary>>
 
     /**
      * Creates a thread reply for an existing timeline event.
