@@ -16,12 +16,13 @@
 
 package org.matrix.android.sdk.internal.session.room
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import javax.inject.Inject
 
@@ -35,9 +36,10 @@ internal class RoomDataSource @Inject constructor(
                 ?: RoomMembersLoadStatusType.NONE
     }
 
-    fun getRoomMembersLoadStatusLive(roomId: String): LiveData<Boolean> {
+    fun getRoomMembersLoadStatusFlow(roomId: String): Flow<Boolean> {
         return database.roomQueries.selectByRoomId(roomId)
-                .asLiveList(dispatcher)
+                .asFlow()
+                .mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.members_load_status_str == RoomMembersLoadStatusType.LOADED.name }
     }
 }
