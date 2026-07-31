@@ -16,9 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.location
 
-import android.os.Looper
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,6 +24,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.After
@@ -40,7 +38,6 @@ import org.matrix.android.sdk.internal.database.mapper.LiveLocationShareAggregat
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
 import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.Shadows.shadowOf
 
 private const val A_ROOM_ID = "room_id"
 private const val AN_EVENT_ID = "event_id"
@@ -189,25 +186,25 @@ internal class DefaultLocationSharingServiceTest {
     }
 
     @Test
-    fun `livedata of live summaries is correctly computed`() {
+    fun `flow of live summaries is correctly computed`() = runTest {
         val summary = aSummary()
         db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(
                 eventId = AN_EVENT_ID, roomId = A_ROOM_ID, userId = "@u:hs", isActive = true, lastLocationContent = "{}"))
         every { fakeLiveLocationShareAggregatedSummaryMapper.map(any()) } returns summary
 
-        val result = defaultLocationSharingService.getRunningLiveLocationShareSummaries().awaitValue()
+        val result = defaultLocationSharingService.getRunningLiveLocationShareSummariesFlow().first()
 
         result shouldBeEqualTo listOf(summary)
     }
 
     @Test
-    fun `given an event id when getting livedata on corresponding live summary then it is correctly computed`() {
+    fun `given an event id when getting flow on corresponding live summary then it is correctly computed`() = runTest {
         val summary = aSummary()
         db.stores.liveLocation.upsert(LiveLocationShareAggregatedSummaryEntity(
                 eventId = AN_EVENT_ID, roomId = A_ROOM_ID, userId = "@u:hs", isActive = true, lastLocationContent = "{}"))
         every { fakeLiveLocationShareAggregatedSummaryMapper.map(any()) } returns summary
 
-        val result = defaultLocationSharingService.getLiveLocationShareSummary(AN_EVENT_ID).awaitValue()
+        val result = defaultLocationSharingService.getLiveLocationShareSummaryFlow(AN_EVENT_ID).first()
 
         result shouldBeEqualTo summary.toOptional()
     }
@@ -220,25 +217,4 @@ internal class DefaultLocationSharingServiceTest {
             lastLocationDataContent = null
     )
 
-    private fun <T> LiveData<T>.awaitValue(timeoutMs: Long = 3000): T {
-        var result: Any? = NO_VALUE
-        val observer = Observer<T> { result = it }
-        observeForever(observer)
-        try {
-            val deadline = System.currentTimeMillis() + timeoutMs
-            while (result === NO_VALUE && System.currentTimeMillis() < deadline) {
-                shadowOf(Looper.getMainLooper()).idle()
-                if (result === NO_VALUE) Thread.sleep(10)
-            }
-        } finally {
-            removeObserver(observer)
-        }
-        check(result !== NO_VALUE) { "LiveData did not emit within ${timeoutMs}ms" }
-        @Suppress("UNCHECKED_CAST")
-        return result as T
-    }
-
-    companion object {
-        private val NO_VALUE = Any()
-    }
 }

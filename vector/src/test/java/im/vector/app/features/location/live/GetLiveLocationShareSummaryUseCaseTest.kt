@@ -9,7 +9,6 @@ package im.vector.app.features.location.live
 
 import im.vector.app.test.fakes.FakeFlowLiveDataConversions
 import im.vector.app.test.fakes.FakeSession
-import im.vector.app.test.fakes.givenAsFlow
 import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -55,7 +54,6 @@ class GetLiveLocationShareSummaryUseCaseTest {
                 .getRoom(A_ROOM_ID)
                 .locationSharingService()
                 .givenLiveLocationShareSummaryReturns(AN_EVENT_ID, summary)
-                .givenAsFlow()
 
         val result = getLiveLocationShareSummaryUseCase.execute(A_ROOM_ID, AN_EVENT_ID).first()
 
@@ -68,7 +66,6 @@ class GetLiveLocationShareSummaryUseCaseTest {
                 .getRoom(A_ROOM_ID)
                 .locationSharingService()
                 .givenLiveLocationShareSummaryReturns(AN_EVENT_ID, null)
-                .givenAsFlow()
 
         val result = getLiveLocationShareSummaryUseCase.execute(A_ROOM_ID, AN_EVENT_ID).first()
 

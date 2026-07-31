@@ -16,9 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.location
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -111,8 +112,8 @@ internal class DefaultLocationSharingService @AssistedInject constructor(
         return redactLiveLocationShareTask.execute(params)
     }
 
-    override fun getRunningLiveLocationShareSummaries(): LiveData<List<LiveLocationShareAggregatedSummary>> {
-        return database.liveLocationShareAggregatedSummaryQueries.selectRunningByRoom(roomId).asLiveList(dispatcher)
+    override fun getRunningLiveLocationShareSummariesFlow(): Flow<List<LiveLocationShareAggregatedSummary>> {
+        return database.liveLocationShareAggregatedSummaryQueries.selectRunningByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map {
                     stores.liveLocation.getRunningByRoom(roomId)
                             // findRunningLiveInRoom also required a known user + a last location
@@ -121,8 +122,8 @@ internal class DefaultLocationSharingService @AssistedInject constructor(
                 }
     }
 
-    override fun getLiveLocationShareSummary(beaconInfoEventId: String): LiveData<Optional<LiveLocationShareAggregatedSummary>> {
-        return database.liveLocationShareAggregatedSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
+    override fun getLiveLocationShareSummaryFlow(beaconInfoEventId: String): Flow<Optional<LiveLocationShareAggregatedSummary>> {
+        return database.liveLocationShareAggregatedSummaryQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map {
                     stores.liveLocation.get(beaconInfoEventId)?.let { liveLocationShareAggregatedSummaryMapper.map(it) }.toOptional()
                 }
