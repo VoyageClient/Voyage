@@ -16,16 +16,18 @@
 
 package org.matrix.android.sdk.internal.util
 
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArraySet
 
-internal interface BackgroundDetectionObserver : DefaultLifecycleObserver {
+internal interface BackgroundDetectionObserver {
     val isInBackground: Boolean
 
     fun register(listener: Listener)
     fun unregister(listener: Listener)
+
+    /** Called by platform glue (e.g. ProcessLifecycleOwner on Android) on app-state transitions. */
+    fun onAppForeground()
+    fun onAppBackground()
 
     interface Listener {
         fun onMoveToForeground()
@@ -48,13 +50,13 @@ internal class DefaultBackgroundDetectionObserver : BackgroundDetectionObserver 
         listeners.remove(listener)
     }
 
-    override fun onStart(owner: LifecycleOwner) {
+    override fun onAppForeground() {
         Timber.d("App returning to foreground…")
         isInBackground = false
         listeners.forEach { it.onMoveToForeground() }
     }
 
-    override fun onStop(owner: LifecycleOwner) {
+    override fun onAppBackground() {
         Timber.d("App going to background…")
         isInBackground = true
         listeners.forEach { it.onMoveToBackground() }
