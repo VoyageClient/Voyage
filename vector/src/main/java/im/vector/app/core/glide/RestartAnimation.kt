@@ -27,8 +27,19 @@ import com.github.penfeizhou.animation.FrameAnimationDrawable
 fun Drawable.restartAnimation() {
     if (this !is Animatable || isRunning) return
     when (this) {
-        is GifDrawable -> startFromFirstFrame()
-        is WebpDrawable -> startFromFirstFrame()
+        // A drawable from Glide's memory cache shares its frame loader with every other view
+        // showing the same content; the loader can still be running for a sibling view while this
+        // drawable is stopped, and then refuses the rewind — fall back to joining the animation.
+        is GifDrawable -> try {
+            startFromFirstFrame()
+        } catch (e: IllegalArgumentException) {
+            start()
+        }
+        is WebpDrawable -> try {
+            startFromFirstFrame()
+        } catch (e: IllegalArgumentException) {
+            start()
+        }
         is FrameAnimationDrawable<*> -> {
             reset()
             start()
