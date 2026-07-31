@@ -17,9 +17,10 @@
 
 package org.matrix.android.sdk.internal.session.profile
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
@@ -134,12 +135,12 @@ internal class DefaultProfileService @Inject constructor(
         return stores.threePid.getThreePids().map { it.asDomain() }
     }
 
-    override fun getThreePidsLive(refreshData: Boolean): LiveData<List<ThreePid>> {
+    override fun getThreePidsFlow(refreshData: Boolean): Flow<List<ThreePid>> {
         if (refreshData) {
             // Force a refresh of the values
             refreshThreePids()
         }
-        return database.userThreePidQueries.selectAll().asLiveList(dispatcher)
+        return database.userThreePidQueries.selectAll().asFlow().mapToList(dispatcher)
                 .map { stores.threePid.getThreePids().map { entity -> entity.asDomain() } }
     }
 
@@ -153,8 +154,8 @@ internal class DefaultProfileService @Inject constructor(
         return stores.threePid.getPendingThreePids().map { pendingThreePidMapper.map(it).threePid }
     }
 
-    override fun getPendingThreePidsLive(): LiveData<List<ThreePid>> {
-        return database.pendingThreePidQueries.selectAll().asLiveList(dispatcher)
+    override fun getPendingThreePidsFlow(): Flow<List<ThreePid>> {
+        return database.pendingThreePidQueries.selectAll().asFlow().mapToList(dispatcher)
                 .map { stores.threePid.getPendingThreePids().map { entity -> pendingThreePidMapper.map(entity).threePid } }
     }
 
