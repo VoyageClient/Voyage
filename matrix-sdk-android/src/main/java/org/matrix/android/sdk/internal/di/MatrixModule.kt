@@ -26,6 +26,8 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
+import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
+import org.matrix.android.sdk.internal.platform.SharedPreferencesKeyValueStoreFactory
 import org.matrix.android.sdk.internal.util.createBackgroundHandler
 import org.matrix.olm.OlmManager
 import java.io.File
@@ -72,5 +74,12 @@ internal object MatrixModule {
     @MatrixScope
     fun providesSqlDriverFactory(context: Context): SqlDriverFactory {
         return FrameworkSqlDriverFactory(context)
+    }
+
+    @JvmStatic
+    @Provides
+    @MatrixScope
+    fun providesKeyValueStoreFactory(context: Context): KeyValueStoreFactory {
+        return SharedPreferencesKeyValueStoreFactory(context)
     }
 }
