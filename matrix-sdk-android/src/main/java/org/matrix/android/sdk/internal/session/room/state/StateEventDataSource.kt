@@ -17,7 +17,11 @@
 package org.matrix.android.sdk.internal.session.room.state
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.asLiveData
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -27,7 +31,6 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.query.matches
 import javax.inject.Inject
@@ -43,17 +46,21 @@ internal class StateEventDataSource @Inject constructor(
         return query(roomId, setOf(eventType), stateKey).firstOrNull()
     }
 
-    fun getStateEventLive(roomId: String, eventType: String, stateKey: QueryStateEventValue): LiveData<Optional<Event>> {
-        return queryLive(roomId, setOf(eventType), stateKey).map { it.firstOrNull().toOptional() }
+    fun getStateEventFlow(roomId: String, eventType: String, stateKey: QueryStateEventValue): Flow<Optional<Event>> {
+        return queryFlow(roomId, setOf(eventType), stateKey).map { it.firstOrNull().toOptional() }
     }
 
     fun getStateEvents(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): List<Event> {
         return query(roomId, eventTypes, stateKey)
     }
 
-    fun getStateEventsLive(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>> {
-        return queryLive(roomId, eventTypes, stateKey)
+    fun getStateEventsFlow(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): Flow<List<Event>> {
+        return queryFlow(roomId, eventTypes, stateKey)
     }
+
+    // LiveData view for the android-only internal consumers (LiveRoomStateListener/WidgetManager).
+    fun getStateEventsLive(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>> =
+            getStateEventsFlow(roomId, eventTypes, stateKey).asLiveData()
 
     private fun query(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): List<Event> {
         return database.currentStateEventQueries.selectByRoom(roomId).executeAsList()
@@ -61,9 +68,10 @@ internal class StateEventDataSource @Inject constructor(
                 .mapNotNull { it.rootEvent() }
     }
 
-    private fun queryLive(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>> {
+    private fun queryFlow(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): Flow<List<Event>> {
         return database.currentStateEventQueries.selectByRoom(roomId)
-                .asLiveList(dispatcher)
+                .asFlow()
+                .mapToList(dispatcher)
                 .map { rows -> rows.filter { it.matches(eventTypes, stateKey) }.mapNotNull { it.rootEvent() } }
     }
 

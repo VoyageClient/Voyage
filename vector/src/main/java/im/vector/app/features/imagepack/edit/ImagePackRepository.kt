@@ -64,7 +64,7 @@ class ImagePackRepository @Inject constructor(
         val session = activeSessionHolder.getSafeActiveSession() ?: return flowOf(settingsData(emptyList()))
         return if (roomId != null) {
             val trigger = session.roomService().getRoom(roomId)?.stateService()
-                    ?.getStateEventsLive(roomPackTypes, QueryStringValue.IsNotNull)?.asFlow()
+                    ?.getStateEventsFlow(roomPackTypes, QueryStringValue.IsNotNull)
                     ?: flowOf(null)
             trigger.map { withContext(Dispatchers.IO) { roomData(roomId) } }
         } else {

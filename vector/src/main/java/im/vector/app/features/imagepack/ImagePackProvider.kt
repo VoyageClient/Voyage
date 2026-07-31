@@ -306,8 +306,7 @@ class ImagePackProvider @Inject constructor(
                 )
         val roomStateFlow = roomId?.let { session.roomService().getRoom(it) }
                 ?.stateService()
-                ?.getStateEventsLive(roomPackTypes, QueryStringValue.IsNotNull)
-                ?.asFlow()
+                ?.getStateEventsFlow(roomPackTypes, QueryStringValue.IsNotNull)
                 ?: flowOf(emptyList())
         return combine(accountDataFlow, roomStateFlow) { _, _ -> getImagePacks(roomId) }
     }

@@ -17,8 +17,8 @@
 
 package org.matrix.android.sdk.internal.session.room.powerlevels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -38,34 +38,16 @@ internal fun StateEventDataSource.getRoomPowerLevels(roomId: String): RoomPowerL
     )
 }
 
-internal fun StateEventDataSource.getRoomPowerLevelsLive(roomId: String): LiveData<RoomPowerLevels> {
-    val powerLevelsEventLive = getStateEventLive(roomId, EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty)
-    val roomCreateEventLive = getStateEventLive(roomId, EventType.STATE_ROOM_CREATE, QueryStringValue.IsEmpty)
-    val resultLiveData = MediatorLiveData<RoomPowerLevels>()
-
-    fun emitIfReady(powerLevelEvent: Optional<Event>?, roomCreateEvent: Optional<Event>?) {
-        if (powerLevelEvent != null && roomCreateEvent != null) {
-            val roomPowerLevels = createRoomPowerLevels(
-                    powerLevelsEvent = powerLevelEvent.getOrNull(),
-                    roomCreateEvent = roomCreateEvent.getOrNull()
-            )
-            resultLiveData.postValue(roomPowerLevels)
-        }
+internal fun StateEventDataSource.getRoomPowerLevelsFlow(roomId: String): Flow<RoomPowerLevels> {
+    return combine(
+            getStateEventFlow(roomId, EventType.STATE_ROOM_POWER_LEVELS, QueryStringValue.IsEmpty),
+            getStateEventFlow(roomId, EventType.STATE_ROOM_CREATE, QueryStringValue.IsEmpty),
+    ) { powerLevelEvent, roomCreateEvent ->
+        createRoomPowerLevels(
+                powerLevelsEvent = powerLevelEvent.getOrNull(),
+                roomCreateEvent = roomCreateEvent.getOrNull(),
+        )
     }
-    resultLiveData.apply {
-        var powerLevelEvent: Optional<Event>? = null
-        var roomCreateEvent: Optional<Event>? = null
-
-        addSource(powerLevelsEventLive) {
-            powerLevelEvent = it
-            emitIfReady(powerLevelEvent, roomCreateEvent)
-        }
-        addSource(roomCreateEventLive) {
-            roomCreateEvent = it
-            emitIfReady(powerLevelEvent, roomCreateEvent)
-        }
-    }
-    return resultLiveData
 }
 
 private fun createRoomPowerLevels(powerLevelsEvent: Event?, roomCreateEvent: Event?): RoomPowerLevels {

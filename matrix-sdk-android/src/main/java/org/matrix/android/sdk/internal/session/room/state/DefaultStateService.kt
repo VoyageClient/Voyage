@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.state
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -44,7 +44,7 @@ import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
-import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevelsLive
+import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevelsFlow
 
 internal class DefaultStateService @AssistedInject constructor(
         @Assisted private val roomId: String,
@@ -63,24 +63,24 @@ internal class DefaultStateService @AssistedInject constructor(
         return stateEventDataSource.getStateEvent(roomId, eventType, stateKey)
     }
 
-    override fun getStateEventLive(eventType: String, stateKey: QueryStateEventValue): LiveData<Optional<Event>> {
-        return stateEventDataSource.getStateEventLive(roomId, eventType, stateKey)
+    override fun getStateEventFlow(eventType: String, stateKey: QueryStateEventValue): Flow<Optional<Event>> {
+        return stateEventDataSource.getStateEventFlow(roomId, eventType, stateKey)
     }
 
     override fun getStateEvents(eventTypes: Set<String>, stateKey: QueryStateEventValue): List<Event> {
         return stateEventDataSource.getStateEvents(roomId, eventTypes, stateKey)
     }
 
-    override fun getStateEventsLive(eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>> {
-        return stateEventDataSource.getStateEventsLive(roomId, eventTypes, stateKey)
+    override fun getStateEventsFlow(eventTypes: Set<String>, stateKey: QueryStateEventValue): Flow<List<Event>> {
+        return stateEventDataSource.getStateEventsFlow(roomId, eventTypes, stateKey)
     }
 
     override fun getRoomPowerLevels(): RoomPowerLevels {
         return stateEventDataSource.getRoomPowerLevels(roomId)
     }
 
-    override fun getRoomPowerLevelsLive(): LiveData<RoomPowerLevels> {
-        return stateEventDataSource.getRoomPowerLevelsLive(roomId)
+    override fun getRoomPowerLevelsFlow(): Flow<RoomPowerLevels> {
+        return stateEventDataSource.getRoomPowerLevelsFlow(roomId)
     }
 
     override suspend fun sendStateEvent(

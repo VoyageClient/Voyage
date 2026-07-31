@@ -9,6 +9,7 @@ package im.vector.app.features
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import com.airbnb.mvrx.test.MavericksTestRule
 import im.vector.app.features.roomprofile.RoomProfileArgs
@@ -109,10 +110,10 @@ class MemberListViewModelTest {
     private val fakeRoom: Room = mockk {
 
         val fakeStateService: StateService = mockk {
-            every { getStateEventLive(any(), any()) } returns MutableLiveData()
-            every { getStateEventsLive(any(), any()) } returns MutableLiveData()
+            every { getStateEventFlow(any(), any()) } returns emptyFlow()
+            every { getStateEventsFlow(any(), any()) } returns emptyFlow()
             every { getStateEvent(any(), any()) } returns null
-            every { getRoomPowerLevelsLive() } returns MutableLiveData()
+            every { getRoomPowerLevelsFlow() } returns emptyFlow()
         }
 
         every { stateService() } returns fakeStateService
