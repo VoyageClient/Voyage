@@ -17,10 +17,6 @@
 package org.matrix.android.sdk.internal.session.room.send
 
 import android.net.Uri
-import androidx.work.BackoffPolicy
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequest
-import androidx.work.Operation
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -29,12 +25,12 @@ import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.events.model.RelationType
-import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.Mentions
+import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
@@ -55,23 +51,20 @@ import org.matrix.android.sdk.api.util.NoOpCancellable
 import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.di.SessionId
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
-import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import org.matrix.android.sdk.internal.task.TaskExecutor
-import org.matrix.android.sdk.internal.util.CancelableWork
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
-import org.matrix.android.sdk.internal.worker.startChain
-import timber.log.Timber
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 private const val UPLOAD_WORK = "UPLOAD_WORK"
 
 internal class DefaultSendService @AssistedInject constructor(
         @Assisted private val roomId: String,
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         @SessionId private val sessionId: String,
         private val localEchoEventFactory: LocalEchoEventFactory,
         private val cryptoStore: IMXCommonCryptoStore,
@@ -79,15 +72,12 @@ internal class DefaultSendService @AssistedInject constructor(
         private val localEchoRepository: LocalEchoRepository,
         private val eventSenderProcessor: EventSenderProcessor,
         private val cancelSendTracker: CancelSendTracker,
-        private val workManagerConfig: WorkManagerConfig,
 ) : SendService {
 
     @AssistedFactory
     interface Factory {
         fun create(roomId: String): DefaultSendService
     }
-
-    private val workerFutureListenerExecutor = Executors.newSingleThreadExecutor()
 
     override fun sendEvent(eventType: String, content: JsonDict?): Cancelable {
         return localEchoEventFactory.createEvent(roomId, eventType, content)
@@ -247,9 +237,9 @@ internal class DefaultSendService @AssistedInject constructor(
         cancelSendTracker.markLocalEchoForCancel(eventId, roomId)
         // This is maybe the current task, so cancel it too
         eventSenderProcessor.cancel(eventId, roomId)
-        // CancelSendTracker is in-memory only; the WorkManager chain is persistent, so without
+        // CancelSendTracker is in-memory only; the background upload chain is persistent, so without
         // this cancel a stuck upload would survive restarts and block every subsequent send.
-        workManagerProvider.workManager.cancelAllWorkByTag(uploadWorkTag(eventId))
+        backgroundTaskScheduler.cancelAllByTag(uploadWorkTag(eventId))
         taskExecutor.executorScope.launch {
             localEchoRepository.deleteFailedEcho(roomId, eventId)
         }
@@ -377,21 +367,13 @@ internal class DefaultSendService @AssistedInject constructor(
 
                         val dispatcherWork = createMultipleEventDispatcherWork(isRoomEncrypted)
 
-                        workManagerProvider.workManager
-                                .beginUniqueWork(buildWorkName(UPLOAD_WORK), ExistingWorkPolicy.APPEND_OR_REPLACE, uploadWork)
-                                .then(dispatcherWork)
-                                .enqueue()
-                                .also { operation ->
-                                    operation.result.addListener(Runnable {
-                                        if (operation.result.isCancelled) {
-                                            Timber.e("CHAIN WAS CANCELLED")
-                                        } else if (operation.state.value is Operation.State.FAILURE) {
-                                            Timber.e("CHAIN DID FAIL")
-                                        }
-                                    }, workerFutureListenerExecutor)
-                                }
-
-                        cancelableBag.add(CancelableWork(workManagerProvider.workManager, dispatcherWork.id))
+                        val handle = backgroundTaskScheduler.enqueueUniqueChain(
+                                buildWorkName(UPLOAD_WORK),
+                                BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                                uploadWork,
+                                dispatcherWork,
+                        )
+                        cancelableBag.add(handle)
                     }
                 }
 
@@ -417,33 +399,26 @@ internal class DefaultSendService @AssistedInject constructor(
             attachment: ContentAttachmentData,
             isRoomEncrypted: Boolean,
             compressBeforeSending: Boolean
-    ): OneTimeWorkRequest {
+    ): BackgroundTaskRequest<UploadContentWorker.Params> {
         val localEchoIds = allLocalEchos.map {
             LocalEchoIdentifiers(it.roomId!!, it.eventId!!)
         }
         val uploadMediaWorkerParams = UploadContentWorker.Params(sessionId, localEchoIds, attachment, isRoomEncrypted, compressBeforeSending)
-        val uploadWorkData = WorkerParamsFactory.toData(uploadMediaWorkerParams)
-
-        return workManagerProvider.matrixOneTimeWorkRequestBuilder<UploadContentWorker>()
-                .setConstraints(WorkManagerProvider.getWorkConstraints(workManagerConfig))
-                .startChain(true)
-                .setInputData(uploadWorkData)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                .apply { localEchoIds.forEach { addTag(uploadWorkTag(it.eventId)) } }
-                .build()
+        return backgroundTask(
+                type = BackgroundTaskType.UPLOAD_CONTENT,
+                params = uploadMediaWorkerParams,
+                matrixConstraints = true,
+                isolateInput = true,
+                extraTags = localEchoIds.map { uploadWorkTag(it.eventId) },
+        )
     }
 
-    private fun createMultipleEventDispatcherWork(isRoomEncrypted: Boolean): OneTimeWorkRequest {
+    private fun createMultipleEventDispatcherWork(isRoomEncrypted: Boolean): BackgroundTaskRequest<MultipleEventSendingDispatcherWorker.Params> {
         // the list of events will be replaced by the result of the media upload work
         val params = MultipleEventSendingDispatcherWorker.Params(sessionId, emptyList(), isRoomEncrypted)
-        val workData = WorkerParamsFactory.toData(params)
-
-        return workManagerProvider.matrixOneTimeWorkRequestBuilder<MultipleEventSendingDispatcherWorker>()
-                // No constraint
-                // .setConstraints(WorkManagerProvider.workConstraints)
-                .startChain(false)
-                .setInputData(workData)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                .build()
+        return backgroundTask(
+                type = BackgroundTaskType.MULTIPLE_EVENT_DISPATCHER,
+                params = params,
+        )
     }
 }

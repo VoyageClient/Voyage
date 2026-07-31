@@ -16,22 +16,20 @@
 package org.matrix.android.sdk.internal.session.sync.job
 
 import android.content.Context
-import androidx.work.BackoffPolicy
-import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkerParameters
 import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.failure.isTokenError
 import org.matrix.android.sdk.internal.SessionManager
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.session.sync.SyncPresence
 import org.matrix.android.sdk.internal.session.sync.SyncTask
-import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
 import org.matrix.android.sdk.internal.worker.SessionWorkerParams
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
-import org.matrix.android.sdk.internal.worker.startChain
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -59,8 +57,7 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
     ) : SessionWorkerParams
 
     @Inject lateinit var syncTask: SyncTask
-    @Inject lateinit var workManagerProvider: WorkManagerProvider
-    @Inject lateinit var workManagerConfig: WorkManagerConfig
+    @Inject lateinit var backgroundTaskScheduler: BackgroundTaskScheduler
 
     override fun injectWith(injector: SessionComponent) {
         injector.inject(this)
@@ -77,9 +74,8 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
                         if (params.periodic) {
                             // we want to schedule another one after a delay, or immediately if hasToDeviceEvents
                             automaticallyBackgroundSync(
-                                    workManagerProvider = workManagerProvider,
+                                    backgroundTaskScheduler = backgroundTaskScheduler,
                                     sessionId = params.sessionId,
-                                    workManagerConfig = workManagerConfig,
                                     serverTimeoutInSeconds = params.timeout,
                                     delayInSeconds = params.delay,
                                     forceImmediate = hasToDeviceEvents
@@ -87,9 +83,8 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
                         } else if (hasToDeviceEvents) {
                             // Previous response has toDevice events, request an immediate sync request
                             requireBackgroundSync(
-                                    workManagerProvider = workManagerProvider,
+                                    backgroundTaskScheduler = backgroundTaskScheduler,
                                     sessionId = params.sessionId,
-                                    workManagerConfig = workManagerConfig,
                                     serverTimeoutInSeconds = 0
                             )
                         }
@@ -125,60 +120,52 @@ internal class SyncWorker(context: Context, workerParameters: WorkerParameters, 
         private const val BG_SYNC_WORK_NAME = "BG_SYNCP"
 
         fun requireBackgroundSync(
-                workManagerProvider: WorkManagerProvider,
+                backgroundTaskScheduler: BackgroundTaskScheduler,
                 sessionId: String,
-                workManagerConfig: WorkManagerConfig,
                 serverTimeoutInSeconds: Long = 0
         ) {
-            val data = WorkerParamsFactory.toData(
-                    Params(
-                            sessionId = sessionId,
-                            timeout = serverTimeoutInSeconds,
-                            delay = 0L,
-                            periodic = false
-                    )
+            val params = Params(
+                    sessionId = sessionId,
+                    timeout = serverTimeoutInSeconds,
+                    delay = 0L,
+                    periodic = false
             )
-            val workRequest = workManagerProvider.matrixOneTimeWorkRequestBuilder<SyncWorker>()
-                    .setConstraints(WorkManagerProvider.getWorkConstraints(workManagerConfig))
-                    .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                    .setInputData(data)
-                    .startChain(true)
-                    .build()
-            workManagerProvider.workManager
-                    .enqueueUniqueWork(BG_SYNC_WORK_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, workRequest)
+            backgroundTaskScheduler.enqueueUnique(
+                    BG_SYNC_WORK_NAME,
+                    BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                    backgroundTask(BackgroundTaskType.SYNC, params, matrixConstraints = true, isolateInput = true)
+            )
         }
 
         fun automaticallyBackgroundSync(
-                workManagerProvider: WorkManagerProvider,
+                backgroundTaskScheduler: BackgroundTaskScheduler,
                 sessionId: String,
-                workManagerConfig: WorkManagerConfig,
                 serverTimeoutInSeconds: Long = 0,
                 delayInSeconds: Long = 30,
                 forceImmediate: Boolean = false
         ) {
-            val data = WorkerParamsFactory.toData(
-                    Params(
-                            sessionId = sessionId,
-                            timeout = serverTimeoutInSeconds,
-                            delay = delayInSeconds,
-                            periodic = true,
-                            forceImmediate = forceImmediate
+            val params = Params(
+                    sessionId = sessionId,
+                    timeout = serverTimeoutInSeconds,
+                    delay = delayInSeconds,
+                    periodic = true,
+                    forceImmediate = forceImmediate
+            )
+            // Avoid risking multiple chains of syncs by replacing the existing chain
+            backgroundTaskScheduler.enqueueUnique(
+                    BG_SYNC_WORK_NAME,
+                    BackgroundQueuePolicy.REPLACE,
+                    backgroundTask(
+                            BackgroundTaskType.SYNC,
+                            params,
+                            matrixConstraints = true,
+                            initialDelayMillis = if (forceImmediate) 0 else TimeUnit.SECONDS.toMillis(delayInSeconds),
                     )
             )
-            val workRequest = workManagerProvider.matrixOneTimeWorkRequestBuilder<SyncWorker>()
-                    .setConstraints(WorkManagerProvider.getWorkConstraints(workManagerConfig))
-                    .setInputData(data)
-                    .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                    .setInitialDelay(if (forceImmediate) 0 else delayInSeconds, TimeUnit.SECONDS)
-                    .build()
-            // Avoid risking multiple chains of syncs by replacing the existing chain
-            workManagerProvider.workManager
-                    .enqueueUniqueWork(BG_SYNC_WORK_NAME, ExistingWorkPolicy.REPLACE, workRequest)
         }
 
-        fun stopAnyBackgroundSync(workManagerProvider: WorkManagerProvider) {
-            workManagerProvider.workManager
-                    .cancelUniqueWork(BG_SYNC_WORK_NAME)
+        fun stopAnyBackgroundSync(backgroundTaskScheduler: BackgroundTaskScheduler) {
+            backgroundTaskScheduler.cancelUniqueQueue(BG_SYNC_WORK_NAME)
         }
     }
 }

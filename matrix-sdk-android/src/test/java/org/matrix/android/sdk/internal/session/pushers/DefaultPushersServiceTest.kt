@@ -22,13 +22,12 @@ import org.junit.Test
 import org.junit.After
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.test.fakes.FakeAddPusherTask
+import org.matrix.android.sdk.test.fakes.FakeBackgroundTaskScheduler
 import org.matrix.android.sdk.test.fakes.FakeGetPushersTask
 import org.matrix.android.sdk.test.fakes.FakeRemovePusherTask
 import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
 import org.matrix.android.sdk.test.fakes.FakeTaskExecutor
 import org.matrix.android.sdk.test.fakes.FakeTogglePusherTask
-import org.matrix.android.sdk.test.fakes.FakeWorkManagerConfig
-import org.matrix.android.sdk.test.fakes.FakeWorkManagerProvider
 import org.matrix.android.sdk.test.fakes.internal.FakePushGatewayNotifyTask
 import org.matrix.android.sdk.test.fixtures.PusherFixture
 import org.robolectric.RobolectricTestRunner
@@ -37,7 +36,7 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class DefaultPushersServiceTest {
 
-    private val workManagerProvider = FakeWorkManagerProvider()
+    private val backgroundTaskScheduler = FakeBackgroundTaskScheduler()
     private val db = FakeSessionDatabase()
     private val sessionId = ""
     private val getPushersTask = FakeGetPushersTask()
@@ -46,10 +45,9 @@ class DefaultPushersServiceTest {
     private val togglePusherTask = FakeTogglePusherTask()
     private val removePusherTask = FakeRemovePusherTask()
     private val taskExecutor = FakeTaskExecutor()
-    private val fakeWorkManagerConfig = FakeWorkManagerConfig()
 
     private val pushersService = DefaultPushersService(
-            workManagerProvider.instance,
+            backgroundTaskScheduler.instance,
             db.database,
             db.dispatcher,
             db.stores,
@@ -60,7 +58,6 @@ class DefaultPushersServiceTest {
             togglePusherTask,
             removePusherTask,
             taskExecutor.instance,
-            fakeWorkManagerConfig,
     )
 
     @After

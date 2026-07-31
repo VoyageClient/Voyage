@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.aggregation.livelocation
 
-import androidx.work.ExistingWorkPolicy
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldContain
 import org.junit.After
@@ -31,9 +30,10 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoCo
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconLocationDataContent
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.test.fakes.FakeBackgroundTaskScheduler
 import org.matrix.android.sdk.test.fakes.FakeClock
 import org.matrix.android.sdk.test.fakes.FakeSessionDatabase
-import org.matrix.android.sdk.test.fakes.FakeWorkManagerProvider
 import org.robolectric.RobolectricTestRunner
 
 private const val A_SESSION_ID = "session_id"
@@ -50,13 +50,13 @@ private const val A_GEO_URI = "geo:$A_LATITUDE,$A_LONGITUDE;u=$A_UNCERTAINTY"
 @RunWith(RobolectricTestRunner::class)
 internal class LiveLocationAggregationProcessorTest {
 
-    private val fakeWorkManagerProvider = FakeWorkManagerProvider()
+    private val fakeBackgroundTaskScheduler = FakeBackgroundTaskScheduler()
     private val fakeClock = FakeClock()
     private val db = FakeSessionDatabase()
 
     private val liveLocationAggregationProcessor = LiveLocationAggregationProcessor(
             sessionId = A_SESSION_ID,
-            workManagerProvider = fakeWorkManagerProvider.instance,
+            backgroundTaskScheduler = fakeBackgroundTaskScheduler.instance,
             clock = fakeClock
     )
 
@@ -160,7 +160,6 @@ internal class LiveLocationAggregationProcessorTest {
                 timeout = A_TIMEOUT_MILLIS
         )
         fakeClock.givenEpoch(A_TIMESTAMP + 5000)
-        fakeWorkManagerProvider.fakeWorkManager.expectEnqueueUniqueWork()
         seedSummary(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
         val previousEventId = "${AN_EVENT_ID}1"
         seedPreviousActiveBeacon(previousEventId)
@@ -183,9 +182,9 @@ internal class LiveLocationAggregationProcessorTest {
         aggregatedEntity.endOfLiveTimestampMillis shouldBeEqualTo A_TIMESTAMP + A_TIMEOUT_MILLIS
         aggregatedEntity.lastLocationContent shouldBeEqualTo null
         db.stores.liveLocation.get(previousEventId)!!.isActive shouldBeEqualTo false
-        fakeWorkManagerProvider.fakeWorkManager.verifyEnqueueUniqueWork(
-                workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID),
-                policy = ExistingWorkPolicy.REPLACE
+        fakeBackgroundTaskScheduler.verifyEnqueueUnique(
+                queueName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID),
+                policy = BackgroundQueuePolicy.REPLACE
         )
     }
 
@@ -207,7 +206,6 @@ internal class LiveLocationAggregationProcessorTest {
                 timeout = A_TIMEOUT_MILLIS
         )
         fakeClock.givenEpoch(A_TIMESTAMP + 5000)
-        fakeWorkManagerProvider.fakeWorkManager.expectCancelUniqueWork()
         seedSummary(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
         val previousEventId = "${AN_EVENT_ID}1"
         seedPreviousActiveBeacon(previousEventId)
@@ -230,8 +228,8 @@ internal class LiveLocationAggregationProcessorTest {
         aggregatedEntity.endOfLiveTimestampMillis shouldBeEqualTo A_TIMESTAMP + A_TIMEOUT_MILLIS
         aggregatedEntity.lastLocationContent shouldBeEqualTo null
         db.stores.liveLocation.get(previousEventId)!!.isActive shouldBeEqualTo false
-        fakeWorkManagerProvider.fakeWorkManager.verifyCancelUniqueWork(
-                workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
+        fakeBackgroundTaskScheduler.verifyCancelUniqueQueue(
+                queueName = DeactivateLiveLocationShareWorker.getWorkName(eventId = AN_EVENT_ID, roomId = A_ROOM_ID)
         )
     }
 

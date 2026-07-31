@@ -16,14 +16,15 @@
 
 package org.matrix.android.sdk.internal.session.sync.handler
 
-import androidx.work.BackoffPolicy
-import androidx.work.ExistingWorkPolicy
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
 import org.matrix.android.sdk.internal.di.SessionId
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.sync.FetchUnignoredContentTask
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
@@ -31,9 +32,7 @@ import org.matrix.android.sdk.internal.session.sync.model.accountdata.toMutable
 import org.matrix.android.sdk.internal.session.user.accountdata.DirectChatsHelper
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.util.logLimit
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
@@ -41,7 +40,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         private val ephemeralTemporaryStore: RoomSyncEphemeralTemporaryStore,
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
         private val updateTrustWorkerDataRepository: UpdateTrustWorkerDataRepository,
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val roomShieldSummaryUpdater: ShieldSummaryUpdater,
         // Lazy breaks the SyncResponseHandler -> this -> FetchUnignoredContentTask -> SyncResponseHandler cycle.
         private val fetchUnignoredContentTask: dagger.Lazy<FetchUnignoredContentTask>,
@@ -106,16 +105,11 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(userIdsToFetch.toList())
         )
-        val workerData = WorkerParamsFactory.toData(workerParams)
-
-        val workRequest = workManagerProvider.matrixOneTimeWorkRequestBuilder<UpdateUserWorker>()
-                .setInputData(workerData)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                .build()
-
-        workManagerProvider.workManager
-                .beginUniqueWork("USER_UPDATE_QUEUE", ExistingWorkPolicy.APPEND_OR_REPLACE, workRequest)
-                .enqueue()
+        backgroundTaskScheduler.enqueueUnique(
+                "USER_UPDATE_QUEUE",
+                BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                backgroundTask(BackgroundTaskType.UPDATE_USER, workerParams)
+        )
     }
 
     private fun handleRefreshRoomShieldsForRooms(roomIds: Set<String>) {

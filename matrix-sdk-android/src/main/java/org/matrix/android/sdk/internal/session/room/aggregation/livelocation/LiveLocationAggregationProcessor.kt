@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.aggregation.livelocation
 
-import androidx.work.ExistingWorkPolicy
 import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -27,11 +26,12 @@ import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.model.livelocation.LiveLocationShareAggregatedSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.SessionId
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.util.time.Clock
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 /**
@@ -39,7 +39,7 @@ import javax.inject.Inject
  */
 internal class LiveLocationAggregationProcessor @Inject constructor(
         @SessionId private val sessionId: String,
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val clock: Clock,
 ) {
 
@@ -99,25 +99,24 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
         endOfLiveTimestampMillis ?: return
 
         val workParams = DeactivateLiveLocationShareWorker.Params(sessionId = sessionId, eventId = eventId, roomId = roomId)
-        val workData = WorkerParamsFactory.toData(workParams)
         val workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = eventId, roomId = roomId)
         val workDelayMillis = (endOfLiveTimestampMillis - clock.epochMillis()).coerceAtLeast(0)
         Timber.d("scheduling deactivation of $eventId after $workDelayMillis millis")
-        val workRequest = workManagerProvider.matrixOneTimeWorkRequestBuilder<DeactivateLiveLocationShareWorker>()
-                .setInitialDelay(workDelayMillis, TimeUnit.MILLISECONDS)
-                .setInputData(workData)
-                .build()
-
-        workManagerProvider.workManager.enqueueUniqueWork(
+        backgroundTaskScheduler.enqueueUnique(
                 workName,
-                ExistingWorkPolicy.REPLACE,
-                workRequest
+                BackgroundQueuePolicy.REPLACE,
+                backgroundTask(
+                        BackgroundTaskType.DEACTIVATE_LIVE_LOCATION,
+                        workParams,
+                        linearBackoff = false,
+                        initialDelayMillis = workDelayMillis,
+                )
         )
     }
 
     private fun cancelDeactivationAfterTimeout(eventId: String, roomId: String) {
         val workName = DeactivateLiveLocationShareWorker.getWorkName(eventId = eventId, roomId = roomId)
-        workManagerProvider.workManager.cancelUniqueWork(workName)
+        backgroundTaskScheduler.cancelUniqueQueue(workName)
     }
 
     /**

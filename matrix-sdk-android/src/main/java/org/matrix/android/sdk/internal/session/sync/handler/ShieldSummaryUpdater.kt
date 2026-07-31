@@ -16,23 +16,22 @@
 
 package org.matrix.android.sdk.internal.session.sync.handler
 
-import androidx.work.BackoffPolicy
-import androidx.work.ExistingWorkPolicy
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
 import org.matrix.android.sdk.internal.di.SessionId
-import org.matrix.android.sdk.internal.di.WorkManagerProvider
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.util.logLimit
-import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @SessionScope
 internal class ShieldSummaryUpdater @Inject constructor(
         @SessionId private val sessionId: String,
-        private val workManagerProvider: WorkManagerProvider,
+        private val backgroundTaskScheduler: BackgroundTaskScheduler,
         private val updateTrustWorkerDataRepository: UpdateTrustWorkerDataRepository,
 ) {
 
@@ -42,15 +41,10 @@ internal class ShieldSummaryUpdater @Inject constructor(
                 sessionId = sessionId,
                 filename = updateTrustWorkerDataRepository.createParam(emptyList(), roomIds = roomIds.toList())
         )
-        val workerData = WorkerParamsFactory.toData(workerParams)
-
-        val workRequest = workManagerProvider.matrixOneTimeWorkRequestBuilder<UpdateTrustWorker>()
-                .setInputData(workerData)
-                .setBackoffCriteria(BackoffPolicy.LINEAR, WorkManagerProvider.BACKOFF_DELAY_MILLIS, TimeUnit.MILLISECONDS)
-                .build()
-
-        workManagerProvider.workManager
-                .beginUniqueWork("TRUST_UPDATE_QUEUE", ExistingWorkPolicy.APPEND_OR_REPLACE, workRequest)
-                .enqueue()
+        backgroundTaskScheduler.enqueueUnique(
+                "TRUST_UPDATE_QUEUE",
+                BackgroundQueuePolicy.APPEND_OR_REPLACE,
+                backgroundTask(BackgroundTaskType.UPDATE_TRUST, workerParams)
+        )
     }
 }
