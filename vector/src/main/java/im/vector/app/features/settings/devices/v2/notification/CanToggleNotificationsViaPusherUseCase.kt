@@ -20,8 +20,7 @@ class CanToggleNotificationsViaPusherUseCase @Inject constructor() {
     fun execute(session: Session): Flow<Boolean> {
         return session
                 .homeServerCapabilitiesService()
-                .getHomeServerCapabilitiesLive()
-                .asFlow()
+                .getHomeServerCapabilitiesFlow()
                 .unwrap()
                 .map { it.canRemotelyTogglePushNotificationsOfDevices }
                 .distinctUntilChanged()

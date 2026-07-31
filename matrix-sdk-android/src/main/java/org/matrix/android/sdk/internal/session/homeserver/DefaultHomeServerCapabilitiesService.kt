@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.homeserver
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.util.Optional
@@ -36,7 +36,7 @@ internal class DefaultHomeServerCapabilitiesService @Inject constructor(
                 ?: HomeServerCapabilities()
     }
 
-    override fun getHomeServerCapabilitiesLive(): LiveData<Optional<HomeServerCapabilities>> {
-        return homeServerCapabilitiesDataSource.getHomeServerCapabilitiesLive()
+    override fun getHomeServerCapabilitiesFlow(): Flow<Optional<HomeServerCapabilities>> {
+        return homeServerCapabilitiesDataSource.getHomeServerCapabilitiesFlow()
     }
 }

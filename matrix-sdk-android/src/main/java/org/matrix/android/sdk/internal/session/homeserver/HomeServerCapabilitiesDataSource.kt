@@ -16,9 +16,11 @@
 
 package org.matrix.android.sdk.internal.session.homeserver
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
@@ -26,7 +28,6 @@ import org.matrix.android.sdk.internal.database.mapper.HomeServerCapabilitiesMap
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.toHomeServerCapabilitiesEntity
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import javax.inject.Inject
 
@@ -38,9 +39,10 @@ internal class HomeServerCapabilitiesDataSource @Inject constructor(
     fun getHomeServerCapabilities(): HomeServerCapabilities? =
             stores.homeServerCapabilities.get()?.let { HomeServerCapabilitiesMapper.map(it) }
 
-    fun getHomeServerCapabilitiesLive(): LiveData<Optional<HomeServerCapabilities>> {
+    fun getHomeServerCapabilitiesFlow(): Flow<Optional<HomeServerCapabilities>> {
         return database.homeServerCapabilitiesQueries.selectFirst()
-                .asLiveList(dispatcher)
+                .asFlow()
+                .mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.toHomeServerCapabilitiesEntity()?.let { HomeServerCapabilitiesMapper.map(it) }.toOptional() }
     }
 }

@@ -263,6 +263,9 @@ def coreSources = [
         'org/matrix/android/sdk/api/auth/UserInteractiveAuthInterceptor.kt',
         'org/matrix/android/sdk/api/auth/UserPasswordAuth.kt',
         'org/matrix/android/sdk/api/auth/TokenBasedAuth.kt',
+        // First service interface converted from LiveData to Flow for the core boundary; the DB-backed
+        // impl/data source stay Android, and the sole :vector consumer already wanted a Flow.
+        'org/matrix/android/sdk/api/session/homeserver/HomeServerCapabilitiesService.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

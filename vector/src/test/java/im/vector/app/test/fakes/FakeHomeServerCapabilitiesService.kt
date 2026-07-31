@@ -7,10 +7,10 @@
 
 package im.vector.app.test.fakes
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.util.Optional
@@ -22,9 +22,9 @@ class FakeHomeServerCapabilitiesService : HomeServerCapabilitiesService by mockk
         every { getHomeServerCapabilities() } returns homeServerCapabilities
     }
 
-    fun givenCapabilitiesLiveReturns(homeServerCapabilities: HomeServerCapabilities): LiveData<Optional<HomeServerCapabilities>> {
-        return MutableLiveData(homeServerCapabilities.toOptional()).also {
-            every { getHomeServerCapabilitiesLive() } returns it
+    fun givenCapabilitiesFlowReturns(homeServerCapabilities: HomeServerCapabilities): Flow<Optional<HomeServerCapabilities>> {
+        return flowOf(homeServerCapabilities.toOptional()).also {
+            every { getHomeServerCapabilitiesFlow() } returns it
         }
     }
 }

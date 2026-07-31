@@ -44,8 +44,7 @@ class CanToggleNotificationsViaPusherUseCaseTest {
         // Given
         fakeSession
                 .fakeHomeServerCapabilitiesService
-                .givenCapabilitiesLiveReturns(A_HOMESERVER_CAPABILITIES)
-                .givenAsFlow()
+                .givenCapabilitiesFlowReturns(A_HOMESERVER_CAPABILITIES)
 
         // When
         val result = canToggleNotificationsViaPusherUseCase.execute(fakeSession).firstOrNull()
