@@ -16,12 +16,12 @@
 
 package org.matrix.android.sdk.api.metrics
 
-import android.util.LruCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
+import org.matrix.android.sdk.internal.util.LruCache
 
 sealed class CryptoEvent {
 

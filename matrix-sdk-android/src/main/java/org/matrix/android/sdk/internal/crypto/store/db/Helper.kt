@@ -16,13 +16,11 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db
 
-import android.util.Base64
-import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream
+import java.util.Base64
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.system.measureTimeMillis
 
 /**
  * Serialize any Serializable object, zip it and convert to Base64 String.
@@ -38,7 +36,7 @@ internal fun serializeForRealm(o: Any?): String? {
     out.use {
         it.writeObject(o)
     }
-    return Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT)
+    return Base64.getEncoder().encodeToString(baos.toByteArray())
 }
 
 /**
@@ -49,7 +47,8 @@ internal fun <T> deserializeFromRealm(string: String?): T? {
     if (string == null) {
         return null
     }
-    val decodedB64 = Base64.decode(string.toByteArray(), Base64.DEFAULT)
+    // MIME decoder: legacy values were stored line-wrapped by android.util.Base64
+    val decodedB64 = Base64.getMimeDecoder().decode(string)
 
     val bais = decodedB64.inputStream()
     val gzis = GZIPInputStream(bais)

@@ -15,12 +15,12 @@
  */
 package org.matrix.android.sdk.internal.database
 
-import android.util.Base64
 import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.platform.SecureStorage
 import timber.log.Timber
 import java.security.SecureRandom
+import java.util.Base64
 import javax.inject.Inject
 
 /**
@@ -67,9 +67,9 @@ internal class RealmKeysUtils @Inject constructor(
      */
     private fun createAndSaveKeyForDatabase(alias: String): ByteArray {
         val key = generateKeyForRealm()
-        val encodedKey = Base64.encodeToString(key, Base64.NO_PADDING)
+        val encodedKey = Base64.getEncoder().withoutPadding().encodeToString(key)
         val toStore = secureStorage.encryptBytes(encodedKey.toByteArray(), alias)
-        store.putString("${ENCRYPTED_KEY_PREFIX}_$alias", Base64.encodeToString(toStore, Base64.NO_PADDING))
+        store.putString("${ENCRYPTED_KEY_PREFIX}_$alias", Base64.getEncoder().withoutPadding().encodeToString(toStore))
         return key
     }
 
@@ -79,9 +79,10 @@ internal class RealmKeysUtils @Inject constructor(
      */
     private fun extractKeyForDatabase(alias: String): ByteArray {
         val encryptedB64 = store.getString("${ENCRYPTED_KEY_PREFIX}_$alias")
-        val encryptedKey = Base64.decode(encryptedB64, Base64.NO_PADDING)
+        // MIME decoder: legacy values were stored line-wrapped by android.util.Base64
+        val encryptedKey = Base64.getMimeDecoder().decode(encryptedB64)
         val b64 = secureStorage.decryptBytes(encryptedKey, alias)
-        return Base64.decode(b64, Base64.NO_PADDING)
+        return Base64.getMimeDecoder().decode(b64)
     }
 
     // Expose to handle Realm migration to riotX

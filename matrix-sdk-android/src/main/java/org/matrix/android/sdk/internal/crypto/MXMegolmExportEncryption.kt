@@ -16,12 +16,12 @@
 
 package org.matrix.android.sdk.internal.crypto
 
-import android.util.Base64
 import org.matrix.android.sdk.internal.extensions.toUnsignedInt
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
 import java.security.SecureRandom
+import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
@@ -44,6 +44,16 @@ internal object MXMegolmExportEncryption {
 
     // default iteration count to export the e2e keys
     const val DEFAULT_ITERATION_COUNT = 500000
+
+    /**
+     * Byte-identical replacement for android.util.Base64.encode(data, DEFAULT), which the export
+     * file format was historically produced with: wrap at 76 chars with '\n' and always end with
+     * a line terminator.
+     */
+    internal fun encodeLikeAndroidDefault(data: ByteArray): ByteArray {
+        if (data.isEmpty()) return data
+        return Base64.getMimeEncoder(76, byteArrayOf('\n'.code.toByte())).encode(data) + '\n'.code.toByte()
+    }
 
     /**
      * Extract the AES key from the deriveKeys result.
@@ -258,8 +268,8 @@ internal object MXMegolmExportEncryption {
 
         val dataEnd = lineStart
 
-        // Receiving side
-        return Base64.decode(fileStr.substring(dataStart, dataEnd), Base64.DEFAULT)
+        // Receiving side. MIME decoder: the payload is line-wrapped base64
+        return Base64.getMimeDecoder().decode(fileStr.substring(dataStart, dataEnd))
     }
 
     /**
@@ -282,7 +292,7 @@ internal object MXMegolmExportEncryption {
             outStream.write("\n".toByteArray())
 
             val len = min(LINE_LENGTH, data.size - o)
-            outStream.write(Base64.encode(data, o, len, Base64.DEFAULT))
+            outStream.write(encodeLikeAndroidDefault(data.copyOfRange(o, o + len)))
             o += LINE_LENGTH
         }
 

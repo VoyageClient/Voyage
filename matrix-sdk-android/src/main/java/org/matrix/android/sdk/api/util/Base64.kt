@@ -16,15 +16,18 @@
 
 package org.matrix.android.sdk.api.util
 
-import android.util.Base64
 import timber.log.Timber
+import java.util.Base64
+
+// java.util.Base64 (desugared below API 26). The MIME decoder matches the leniency of the previous
+// android.util.Base64 DEFAULT decoding: it skips line breaks and accepts missing padding.
 
 fun ByteArray.toBase64NoPadding(): String {
-    return Base64.encodeToString(this, Base64.NO_PADDING or Base64.NO_WRAP)
+    return Base64.getEncoder().withoutPadding().encodeToString(this)
 }
 
 fun String.fromBase64(): ByteArray {
-    return Base64.decode(this, Base64.DEFAULT)
+    return Base64.getMimeDecoder().decode(this)
 }
 
 /**
@@ -32,7 +35,7 @@ fun String.fromBase64(): ByteArray {
  */
 internal fun String.fromBase64Safe(): ByteArray? {
     return try {
-        Base64.decode(this, Base64.DEFAULT)
+        Base64.getMimeDecoder().decode(this)
     } catch (throwable: Throwable) {
         Timber.e(throwable, "Unable to decode base64 string")
         null
