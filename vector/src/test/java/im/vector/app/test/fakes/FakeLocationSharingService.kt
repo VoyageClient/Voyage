@@ -7,14 +7,14 @@
 
 package im.vector.app.test.fakes
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.session.room.location.LocationSharingService
 import org.matrix.android.sdk.api.session.room.location.UpdateLiveLocationShareResult
 import org.matrix.android.sdk.api.session.room.model.livelocation.LiveLocationShareAggregatedSummary
@@ -24,18 +24,18 @@ class FakeLocationSharingService : LocationSharingService by mockk() {
 
     fun givenRunningLiveLocationShareSummariesReturns(
             summaries: List<LiveLocationShareAggregatedSummary>
-    ): LiveData<List<LiveLocationShareAggregatedSummary>> {
-        return MutableLiveData(summaries).also {
-            every { getRunningLiveLocationShareSummaries() } returns it
+    ): Flow<List<LiveLocationShareAggregatedSummary>> {
+        return flowOf(summaries).also {
+            every { getRunningLiveLocationShareSummariesFlow() } returns it
         }
     }
 
     fun givenLiveLocationShareSummaryReturns(
             eventId: String,
             summary: LiveLocationShareAggregatedSummary?
-    ): LiveData<Optional<LiveLocationShareAggregatedSummary>> {
-        return MutableLiveData(Optional(summary)).also {
-            every { getLiveLocationShareSummary(eventId) } returns it
+    ): Flow<Optional<LiveLocationShareAggregatedSummary>> {
+        return flowOf(Optional(summary)).also {
+            every { getLiveLocationShareSummaryFlow(eventId) } returns it
         }
     }
 

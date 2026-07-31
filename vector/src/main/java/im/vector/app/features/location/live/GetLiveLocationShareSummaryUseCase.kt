@@ -26,8 +26,7 @@ class GetLiveLocationShareSummaryUseCase @Inject constructor(
         Timber.d("getting flow for roomId=$roomId and eventId=$eventId")
         session.getRoom(roomId)
                 ?.locationSharingService()
-                ?.getLiveLocationShareSummary(eventId)
-                ?.asFlow()
+                ?.getLiveLocationShareSummaryFlow(eventId)
                 ?.map { it.getOrNull() }
                 ?: emptyFlow()
     }

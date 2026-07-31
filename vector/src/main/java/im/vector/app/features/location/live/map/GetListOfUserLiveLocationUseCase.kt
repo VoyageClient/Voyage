@@ -23,8 +23,7 @@ class GetListOfUserLiveLocationUseCase @Inject constructor(
     fun execute(roomId: String): Flow<List<UserLiveLocationViewState>> {
         return session.getRoom(roomId)
                 ?.locationSharingService()
-                ?.getRunningLiveLocationShareSummaries()
-                ?.asFlow()
+                ?.getRunningLiveLocationShareSummariesFlow()
                 ?.mapLatest { it.mapNotNull { summary -> userLiveLocationViewStateMapper.map(summary) } }
                 ?: emptyFlow()
     }
