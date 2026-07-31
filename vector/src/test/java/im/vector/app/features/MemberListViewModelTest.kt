@@ -9,6 +9,7 @@ package im.vector.app.features
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.flowOf
 import com.airbnb.mvrx.test.MavericksTestRule
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.app.features.roomprofile.members.RoomMemberListComparator
@@ -95,9 +96,9 @@ class MemberListViewModelTest {
 
         every { getRoomMembers(any()) } returns memberList
 
-        every { getRoomMembersLive(any()) } returns MutableLiveData(memberList)
+        every { getRoomMembersFlow(any()) } returns flowOf(memberList)
 
-        every { areAllMembersLoadedLive() } returns MutableLiveData(true)
+        every { areAllMembersLoadedFlow() } returns flowOf(true)
 
         coEvery { areAllMembersLoaded() } returns true
     }

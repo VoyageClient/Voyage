@@ -56,14 +56,14 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveRoomMembers(queryParams: RoomMemberQueryParams): Flow<List<RoomMemberSummary>> {
-        return room.membershipService().getRoomMembersLive(queryParams).asFlow()
+        return room.membershipService().getRoomMembersFlow(queryParams)
                 .startWith(room.coroutineDispatchers.io) {
                     room.membershipService().getRoomMembers(queryParams)
                 }
     }
 
     fun liveAreAllMembersLoaded(): Flow<Boolean> {
-        return room.membershipService().areAllMembersLoadedLive().asFlow()
+        return room.membershipService().areAllMembersLoadedFlow()
                 .startWith(room.coroutineDispatchers.io) {
                     room.membershipService().areAllMembersLoaded()
                 }

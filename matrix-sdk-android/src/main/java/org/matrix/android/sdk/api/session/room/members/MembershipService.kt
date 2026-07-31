@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.members
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 
@@ -42,7 +42,7 @@ interface MembershipService {
     /**
      * Live version for [areAllMembersLoaded].
      */
-    fun areAllMembersLoadedLive(): LiveData<Boolean>
+    fun areAllMembersLoadedFlow(): Flow<Boolean>
 
     /**
      * Return the roomMember with userId or null.
@@ -64,7 +64,7 @@ interface MembershipService {
      * @param queryParams the params to query for
      * @return a [LiveData] of roomMember list.
      */
-    fun getRoomMembersLive(queryParams: RoomMemberQueryParams): LiveData<List<RoomMemberSummary>>
+    fun getRoomMembersFlow(queryParams: RoomMemberQueryParams): Flow<List<RoomMemberSummary>>
 
     fun getNumberOfJoinedMembers(): Int
 

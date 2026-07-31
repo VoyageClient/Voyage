@@ -16,8 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.membership
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -37,7 +39,6 @@ import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.crypto.model.SessionInfo
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.query.matches
 import org.matrix.android.sdk.internal.di.UserId
@@ -76,8 +77,8 @@ internal class DefaultMembershipService @AssistedInject constructor(
         return status == RoomMembersLoadStatusType.LOADED
     }
 
-    override fun areAllMembersLoadedLive(): LiveData<Boolean> {
-        return roomDataSource.getRoomMembersLoadStatusLive(roomId)
+    override fun areAllMembersLoadedFlow(): Flow<Boolean> {
+        return roomDataSource.getRoomMembersLoadStatusFlow(roomId)
     }
 
     override fun getRoomMember(userId: String): RoomMemberSummary? {
@@ -88,8 +89,8 @@ internal class DefaultMembershipService @AssistedInject constructor(
         return roomMembersFiltered(queryParams).map { it.asDomain() }
     }
 
-    override fun getRoomMembersLive(queryParams: RoomMemberQueryParams): LiveData<List<RoomMemberSummary>> {
-        return database.roomMemberSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
+    override fun getRoomMembersFlow(queryParams: RoomMemberQueryParams): Flow<List<RoomMemberSummary>> {
+        return database.roomMemberSummaryQueries.selectByRoom(roomId).asFlow().mapToList(dispatcher)
                 .map { roomMembersFiltered(queryParams).map { entity -> entity.asDomain() } }
     }
 
