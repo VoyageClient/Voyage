@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.user.model
 
-import org.matrix.android.sdk.api.session.profile.ProfileService
+import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.util.JsonDict
 
 /**
@@ -36,8 +36,8 @@ data class User(
 
         fun fromJson(userId: String, json: JsonDict) = User(
                 userId = userId,
-                displayName = json[ProfileService.DISPLAY_NAME_KEY] as? String,
-                avatarUrl = json[ProfileService.AVATAR_URL_KEY] as? String
+                displayName = json[ProfileKeys.DISPLAY_NAME] as? String,
+                avatarUrl = json[ProfileKeys.AVATAR_URL] as? String
         )
     }
 }
