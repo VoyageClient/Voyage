@@ -195,9 +195,13 @@ internal class SqlTimeline(
         }
         timelineScope.launch {
             if (!isThreadTimeline && timelineInput.dedupSweptRooms.add(roomId)) {
-                // Heal cross-chunk duplicate rows left by pagination overlap before the persistor
-                // learned to link-and-stop (once per room per session, before the first snapshot).
-                database.awaitDbTransaction(sessionDispatcher) { sweepDuplicateRows() }
+                // Heal chunk-graph corruption left by the earlier link-and-stop pagination bug, then
+                // clear any leftover cross-chunk duplicate rows (once per room per session, before the
+                // first snapshot).
+                database.awaitDbTransaction(sessionDispatcher) {
+                    healCorruptChunkGraph()
+                    sweepDuplicateRows()
+                }
             }
             // A thread timeline gets a fresh (empty) thread chunk that the fetch task + sync then populate.
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
@@ -206,7 +210,49 @@ internal class SqlTimeline(
         }
     }
 
-    /** Caller must be inside a DB transaction. */
+    /**
+     * Heal a corrupt chunk graph left by the earlier link-and-stop pagination bug. That bug could
+     * link chunks into cycles and, worse, drop whole backward pages (stopping at the first
+     * already-known boundary event) leaving empty chunks — some wrongly flagged is_last_backward, so
+     * the timeline believed the room had no history and stopped fetching.
+     *
+     * Detection: a cycle in the prev-walk from the live edge, or a chunk whose prev and next point at
+     * the same neighbour. Recovery: drop every non-live chunk and reset the live chunk (clear links
+     * and is_last_backward, keep its prev_token) so pagination re-fetches history cleanly — now that
+     * the persistor skips overlaps per-event instead of dropping the page. Caller is in a transaction.
+     */
+    private fun healCorruptChunkGraph() {
+        val chunks = stores.chunk.getByRoom(roomId)
+        val byId = chunks.associateBy { it.id }
+        val liveId = chunks.firstOrNull { it.is_last_forward != 0L }?.id ?: return
+
+        val visited = mutableSetOf<Long>()
+        var cursor: Long? = liveId
+        var corrupt = false
+        while (cursor != null) {
+            val chunk = byId[cursor]
+            if (chunk != null && chunk.prev_chunk_id != null && chunk.prev_chunk_id == chunk.next_chunk_id) {
+                corrupt = true
+                break
+            }
+            if (!visited.add(cursor)) {
+                corrupt = true
+                break
+            }
+            cursor = chunk?.prev_chunk_id
+        }
+        if (!corrupt) return
+
+        Timber.w("SqlTimeline $roomId: corrupt chunk graph (${chunks.size} chunks), collapsing to live chunk $liveId to re-paginate")
+        chunks.filter { it.id != liveId }.forEach { chunk ->
+            stores.timelineEvent.deleteByChunk(chunk.id)
+            stores.chunk.deleteById(chunk.id)
+        }
+        stores.chunk.updatePrevChunkId(liveId, null)
+        stores.chunk.updateNextChunkId(liveId, null)
+        stores.chunk.setLastBackward(liveId, false)
+    }
+
     private fun sweepDuplicateRows() {
         val chain = LinkedHashSet<Long>()
         var cursor = stores.chunk.lastForward(roomId)?.id
@@ -411,7 +457,7 @@ internal class SqlTimeline(
                         revealAfterBackwardFetch()
                     }
                     oldest.prev_token != null -> {
-                        paginate(oldest.prev_token, Timeline.Direction.BACKWARDS, count)
+                        paginate(oldest.prev_token, Timeline.Direction.BACKWARDS, count, oldest.id)
                         // The server page is persisted as a new chunk linked into our chain; walk the whole
                         // prev_chunk_id chain so a page that bridges to an existing older chunk is fully picked up.
                         extendLoadedChunks(Timeline.Direction.BACKWARDS)
@@ -451,7 +497,7 @@ internal class SqlTimeline(
                         rebuildSnapshot()
                     }
                     newest.next_token != null -> {
-                        paginate(newest.next_token, Timeline.Direction.FORWARDS, count)
+                        paginate(newest.next_token, Timeline.Direction.FORWARDS, count, newest.id)
                         extendLoadedChunks(Timeline.Direction.FORWARDS)
                         rebuildSnapshot()
                     }
@@ -518,10 +564,10 @@ internal class SqlTimeline(
         rebuildSnapshot()
     }
 
-    private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int) {
+    private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null) {
         updateState(direction) { it.copy(loading = true) }
         tryOrNull("SqlTimeline $roomId pagination failed") {
-            paginationTask.execute(PaginationTask.Params(roomId, token, toPaginationDirection(direction), count))
+            paginationTask.execute(PaginationTask.Params(roomId, token, toPaginationDirection(direction), count, originChunkId))
         }
         updateState(direction) { it.copy(loading = false) }
     }

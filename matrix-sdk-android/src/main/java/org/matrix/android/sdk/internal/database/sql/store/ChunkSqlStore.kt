@@ -32,11 +32,15 @@ internal class ChunkSqlStore(private val database: SessionSqlDatabase) {
     fun findByTokens(roomId: String, prevToken: String?, nextToken: String?): ChunkRow? =
             queries.selectByTokens(roomId, prevToken, nextToken).executeAsOneOrNull()
 
+    // A null token means "no boundary" (e.g. the live chunk's next_token, a reached-room-start
+    // chunk's prev_token). It must never MATCH another such chunk: `next_token IS NULL` would link a
+    // backward page that reached room-start to the live chunk, forming a chunk-graph cycle that traps
+    // pagination. Only real tokens identify a shared boundary.
     fun findByNextToken(roomId: String, nextToken: String?): ChunkRow? =
-            queries.selectByNextToken(roomId, nextToken).executeAsOneOrNull()
+            nextToken?.let { queries.selectByNextToken(roomId, it).executeAsOneOrNull() }
 
     fun findByPrevToken(roomId: String, prevToken: String?): ChunkRow? =
-            queries.selectByPrevToken(roomId, prevToken).executeAsOneOrNull()
+            prevToken?.let { queries.selectByPrevToken(roomId, it).executeAsOneOrNull() }
 
     fun lastBackward(roomId: String): ChunkRow? = queries.selectLastBackward(roomId).executeAsOneOrNull()
 
