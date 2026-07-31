@@ -49,6 +49,7 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
         private val cryptoService: dagger.Lazy<CryptoService>,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
         private val eventIndexer: EventIndexer,
+        private val decryptionSignal: TimelineDecryptionSignal,
 ) {
 
     internal sealed class Message {
@@ -126,6 +127,9 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
                 }
             }
             eventIndexer.onEventsDecrypted(listOf(event to result))
+            // The write above lands in the event table, which an open timeline's row flow doesn't
+            // observe — signal it so the newly-decrypted preview event stops showing as encrypted.
+            event.roomId?.let { decryptionSignal.onDecrypted(it) }
         } catch (failure: Throwable) {
             Timber.v(failure, "Failed to decrypt event ${event.eventId}")
             // We don't need to get more details, just mark this session in failures

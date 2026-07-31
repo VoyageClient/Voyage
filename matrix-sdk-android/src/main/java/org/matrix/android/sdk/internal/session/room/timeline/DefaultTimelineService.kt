@@ -61,6 +61,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
         @org.matrix.android.sdk.internal.di.SessionDatabaseTimeline private val readDispatcher: kotlinx.coroutines.CoroutineDispatcher,
         private val stores: org.matrix.android.sdk.internal.database.sql.store.SessionStores,
         private val timelineRedactionSignal: TimelineRedactionSignal,
+        private val timelineDecryptionSignal: TimelineDecryptionSignal,
 ) : TimelineService {
 
     @AssistedFactory
@@ -87,6 +88,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 timelineInput = timelineInput,
                 clock = clock,
                 redactionSignal = timelineRedactionSignal,
+                decryptionSignal = timelineDecryptionSignal,
         )
     }
 
