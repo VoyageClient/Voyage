@@ -87,6 +87,6 @@ interface ReadService {
     fun getEventReadReceiptsLive(eventId: String): LiveData<List<ReadReceipt>>
 
     companion object {
-        const val THREAD_ID_MAIN = "main"
+        const val THREAD_ID_MAIN = ReadKeys.THREAD_ID_MAIN
     }
 }

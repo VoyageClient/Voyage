@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-import org.matrix.android.sdk.api.session.room.read.ReadService
+import org.matrix.android.sdk.api.session.room.read.ReadKeys
 
 internal open class TimelineEventEntity(
         var localId: Long = 0,
@@ -35,11 +35,9 @@ internal open class TimelineEventEntity(
         var readReceipts: ReadReceiptsSummaryEntity? = null
 ) {
 
-
     companion object
 }
 
-
 internal fun TimelineEventEntity.getThreadId(): String {
-    return root?.rootThreadEventId ?: ReadService.THREAD_ID_MAIN
+    return root?.rootThreadEventId ?: ReadKeys.THREAD_ID_MAIN
 }

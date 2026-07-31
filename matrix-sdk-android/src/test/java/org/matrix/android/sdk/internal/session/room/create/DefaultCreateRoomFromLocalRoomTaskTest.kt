@@ -65,7 +65,7 @@ internal class DefaultCreateRoomFromLocalRoomTaskTest {
     fun setup() {
         // The post-creation awaits observe real DB Flows; under runTest's virtual clock the timeout would
         // fire before the async emission, so short-circuit them (the orchestration is what we assert).
-        mockkStatic("org.matrix.android.sdk.internal.database.sqldelight.DbReactiveKt")
+        mockkStatic("org.matrix.android.sdk.internal.database.sqldelight.DbReactiveCoroutinesKt")
         coJustRun { awaitNotEmptyResult<Any>(query = any(), timeoutMillis = any(), dispatcher = any()) }
     }
 

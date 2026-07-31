@@ -6,6 +6,59 @@
 // Standalone module: nothing in the Android app depends on it. Build with :matrix-sdk-core:build.
 apply plugin: 'org.jetbrains.kotlin.jvm'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'app.cash.sqldelight'
+
+buildscript {
+    repositories {
+        maven { url 'https://repo1.maven.org/maven2' }
+    }
+    dependencies {
+        classpath "app.cash.sqldelight:gradle-plugin:2.0.2"
+    }
+}
+
+// Generate the SQLDelight databases from the android module's .sq files — same schemas, same
+// generated API, verified here to compile as plain JVM. The desktop driver is JDBC (proven by
+// matrix-sdk-android's JdbcSqlDriverTest); the android module keeps its FrameworkSqliteDriver.
+sqldelight {
+    databases {
+        GlobalSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.database.global"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/global")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        AuthSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.auth.db"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/auth")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        IdentitySqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.session.identity.db"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/identity")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        ContentScannerSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.session.contentscanner.db"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/contentscanner")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        CryptoSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.crypto.store.db.sql"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/crypto")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        SessionSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.database.sql"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/session")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+        EventIndexSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.session.search.index.db"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/eventindex")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
+    }
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -146,6 +199,20 @@ def coreSources = [
         'org/matrix/android/sdk/internal/network/interceptors/**',
         'org/matrix/android/sdk/internal/network/parsing/**',
         'org/matrix/android/sdk/internal/network/token/**',
+        'org/matrix/android/sdk/api/session/homeserver/HomeServerCapabilities.kt',
+        'org/matrix/android/sdk/api/session/pushers/Pusher.kt',
+        'org/matrix/android/sdk/api/session/room/model/LocalRoomCreationState.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomNameContent.kt',
+        'org/matrix/android/sdk/api/session/homeserver/RoomVersionModel.kt',
+        'org/matrix/android/sdk/api/session/room/model/**',
+        'org/matrix/android/sdk/api/session/room/powerlevels/**',
+        'org/matrix/android/sdk/internal/session/room/membership/RoomName.kt',
+        'org/matrix/android/sdk/internal/session/room/poll/PollConstants.kt',
+        'org/matrix/android/sdk/internal/util/Glob.kt',
+        'org/matrix/android/sdk/api/session/room/read/ReadKeys.kt',
+        'org/matrix/android/sdk/internal/database/DBConstants.kt',
+        'org/matrix/android/sdk/internal/database/sqldelight/DbReactiveCoroutines.kt',
+        'org/matrix/android/sdk/internal/database/sqldelight/SqlDriverFactory.kt',
         'org/matrix/android/sdk/internal/crypto/model/CryptoInfo.kt',
         'org/matrix/android/sdk/internal/crypto/verification/VerificationInfo*.kt',
         'org/matrix/android/sdk/internal/session/presence/model/**',
@@ -166,12 +233,19 @@ def coreSources = [
         'org/matrix/android/sdk/internal/util/UrlUtils.kt',
 ]
 
+// Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
+// because they return LiveData/PagedList.
+def coreExcludes = [
+        'org/matrix/android/sdk/api/session/room/model/relation/RelationService.kt',
+]
+
 sourceSets {
     main {
         kotlin {
             srcDir '../matrix-sdk-android/src/main/java'
             srcDir '../matrix-sdk-android/src/release/java'
             setIncludes(coreSources)
+            setExcludes(coreExcludes)
         }
     }
 }
@@ -180,6 +254,8 @@ dependencies {
     implementation project(':library:external:timber-jvm')
     implementation project(':library:external:olm-jvm')
     implementation libs.jetbrains.coroutinesCore
+    implementation "app.cash.sqldelight:runtime:2.0.2"
+    implementation "app.cash.sqldelight:coroutines-extensions:2.0.2"
     implementation libs.squareup.moshi
     implementation libs.squareup.moshiAdapters
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
