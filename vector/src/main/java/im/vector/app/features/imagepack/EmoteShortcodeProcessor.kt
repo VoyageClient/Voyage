@@ -38,7 +38,12 @@ class EmoteShortcodeProcessor @Inject constructor(
     private fun baseOf(shortcode: String) = shortcode.takeWhile { it != '/' && it != '@' }
 
     fun process(roomId: String, text: CharSequence): CharSequence {
-        val emoticons = imagePackProvider.getEmoticons(roomId)
+        // Runs inline on the composer's single-slot send-preparation lane, so it must never do the
+        // synchronous space-hierarchy DB walk of getEmoticons() — under DB contention (e.g. a /join
+        // bringing a large room via sync) that read stalls for seconds and, holding the only lane
+        // slot, blocks every following send. Use the in-memory cache the open room's live flow keeps
+        // warm; only a never-opened room (cold cache) falls back to the synchronous read.
+        val emoticons = imagePackProvider.cachedEmoticons(roomId).ifEmpty { imagePackProvider.getEmoticons(roomId) }
         if (emoticons.isEmpty()) return text
         // Resolve the typed token by its exact (possibly disambiguated) shortcode first; otherwise by its
         // base, which covers a bare `:foo:` that now only exists disambiguated (→ best candidate) AND a stale
