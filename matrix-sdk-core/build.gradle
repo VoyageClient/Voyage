@@ -237,12 +237,21 @@ def coreSources = [
         'org/matrix/android/sdk/internal/crypto/model/CryptoInfoMapper.kt',
         'org/matrix/android/sdk/internal/crypto/model/CryptoDeviceInfo.kt',
         'org/matrix/android/sdk/internal/crypto/model/rest/**',
+        // Crypto model layer: internal + api crypto data models and the cross-signing key graph
+        // (the LiveData CryptoService/CrossSigningService interfaces stay for the adapter round).
+        'org/matrix/android/sdk/internal/crypto/model/**',
+        'org/matrix/android/sdk/api/session/crypto/model/**',
+        'org/matrix/android/sdk/api/session/crypto/crosssigning/**',
+        'org/matrix/android/sdk/api/interfaces/DatedObject.kt',
+        'org/matrix/android/sdk/internal/util/time/Clock.kt',
+        'org/matrix/android/sdk/internal/crypto/MegolmSessionData.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
 // because they return LiveData/PagedList.
 def coreExcludes = [
         'org/matrix/android/sdk/api/session/room/model/relation/RelationService.kt',
+        'org/matrix/android/sdk/api/session/crypto/crosssigning/CrossSigningService.kt',
 ]
 
 sourceSets {
