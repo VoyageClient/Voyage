@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.network.ssl
 
-import android.os.Build
 import org.matrix.android.sdk.api.network.ssl.Fingerprint
 import javax.net.ssl.X509ExtendedTrustManager
 import javax.net.ssl.X509TrustManager
@@ -25,11 +24,15 @@ internal object PinnedTrustManagerProvider {
     // Set to false to perform some tests
     private const val USE_DEFAULT_TRUST_MANAGER = true
 
+    // X509ExtendedTrustManager exists on Android N+ and every desktop JVM
+    private val extendedTrustManagerAvailable =
+            runCatching { Class.forName("javax.net.ssl.X509ExtendedTrustManager") }.isSuccess
+
     fun provide(
             fingerprints: List<Fingerprint>?,
             defaultTrustManager: X509TrustManager?
     ): X509TrustManager {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && defaultTrustManager is X509ExtendedTrustManager) {
+        return if (extendedTrustManagerAvailable && defaultTrustManager is X509ExtendedTrustManager) {
             PinnedTrustManagerApi24(
                     fingerprints.orEmpty(),
                     defaultTrustManager.takeIf { USE_DEFAULT_TRUST_MANAGER }
