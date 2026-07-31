@@ -30,12 +30,12 @@ import org.matrix.android.sdk.api.util.Optional
 interface ProfileService {
 
     companion object Constants {
-        const val DISPLAY_NAME_KEY = "displayname"
-        const val AVATAR_URL_KEY = "avatar_url"
+        const val DISPLAY_NAME_KEY = ProfileKeys.DISPLAY_NAME
+        const val AVATAR_URL_KEY = ProfileKeys.AVATAR_URL
 
         // MSC4427 profile banner. Read both keys, write the unstable one.
-        const val BANNER_URL_KEY = "m.banner_url"
-        const val BANNER_URL_KEY_UNSTABLE = "chat.commet.profile_banner"
+        const val BANNER_URL_KEY = ProfileKeys.BANNER_URL
+        const val BANNER_URL_KEY_UNSTABLE = ProfileKeys.BANNER_URL_UNSTABLE
     }
 
     /**

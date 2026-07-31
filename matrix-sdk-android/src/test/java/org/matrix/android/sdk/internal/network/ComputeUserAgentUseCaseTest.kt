@@ -43,7 +43,7 @@ class ComputeUserAgentUseCaseTest {
     private val applicationInfo = mockk<ApplicationInfo>()
     private val packageInfo = mockk<PackageInfo>()
 
-    private val computeUserAgentUseCase = ComputeUserAgentUseCase(context)
+    private val computeUserAgentUseCase = AndroidComputeUserAgentUseCase(context)
 
     @Before
     fun setUp() {

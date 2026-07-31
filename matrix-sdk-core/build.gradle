@@ -17,8 +17,16 @@ kotlin {
 }
 
 def coreSources = [
+        'org/matrix/android/sdk/BuildConfig.kt',
+        'org/matrix/android/sdk/api/MatrixConfiguration.kt',
+        'org/matrix/android/sdk/api/SyncConfig.kt',
+        'org/matrix/android/sdk/api/logger/LoggerTag.kt',
+        'org/matrix/android/sdk/api/auth/LoginType.kt',
+        'org/matrix/android/sdk/api/auth/data/Credentials.kt',
+        'org/matrix/android/sdk/api/auth/data/DiscoveryInformation.kt',
         'org/matrix/android/sdk/api/auth/data/HomeServerConnectionConfig.kt',
         'org/matrix/android/sdk/api/auth/data/LoginFlowTypes.kt',
+        'org/matrix/android/sdk/api/auth/data/SessionParams.kt',
         'org/matrix/android/sdk/api/auth/data/WellKnownBaseConfig.kt',
         'org/matrix/android/sdk/api/auth/registration/FlowResult.kt',
         'org/matrix/android/sdk/api/auth/registration/RegistrationFlowResponse.kt',
@@ -26,10 +34,13 @@ def coreSources = [
         'org/matrix/android/sdk/api/extensions/Booleans.kt',
         'org/matrix/android/sdk/api/extensions/Strings.kt',
         'org/matrix/android/sdk/api/extensions/Try.kt',
+        'org/matrix/android/sdk/api/failure/Extensions.kt',
         'org/matrix/android/sdk/api/failure/Failure.kt',
         'org/matrix/android/sdk/api/failure/GlobalError.kt',
         'org/matrix/android/sdk/api/failure/MatrixError.kt',
         'org/matrix/android/sdk/api/failure/MatrixIdFailure.kt',
+        'org/matrix/android/sdk/api/network/ApiInterceptorListener.kt',
+        'org/matrix/android/sdk/api/network/ApiPath.kt',
         'org/matrix/android/sdk/api/network/ssl/Fingerprint.kt',
         'org/matrix/android/sdk/api/session/contentscanner/ContentScannerError.kt',
         'org/matrix/android/sdk/api/session/contentscanner/ScanFailure.kt',
@@ -39,6 +50,10 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/crypto/model/MXUsersDevicesMap.kt',
         'org/matrix/android/sdk/api/session/crypto/model/UnsignedDeviceInfo.kt',
         'org/matrix/android/sdk/api/util/Base64.kt',
+        'org/matrix/android/sdk/api/crypto/CryptoConstants.kt',
+        'org/matrix/android/sdk/api/crypto/MXCryptoConfig.kt',
+        'org/matrix/android/sdk/api/metrics/**',
+        'org/matrix/android/sdk/api/provider/**',
         'org/matrix/android/sdk/api/util/Cancelable.kt',
         'org/matrix/android/sdk/api/util/CancelableBag.kt',
         'org/matrix/android/sdk/api/util/MimeTypes.kt',
@@ -58,6 +73,27 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/room/model/Membership.kt',
         'org/matrix/android/sdk/api/session/room/model/RoomMemberContent.kt',
         'org/matrix/android/sdk/api/session/accountdata/UserAccountDataEvent.kt',
+        'org/matrix/android/sdk/api/session/room/model/EditAggregatedSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/PollResponseAggregatedSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/PollSummaryContent.kt',
+        'org/matrix/android/sdk/api/session/room/model/ReactionAggregatedSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/ReadReceipt.kt',
+        'org/matrix/android/sdk/api/session/room/model/ReferencesAggregatedSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/livelocation/LiveLocationShareAggregatedSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/EventAnnotationsSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomEncryptionAlgorithm.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomJoinRules.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomJoinRulesAllowEntry.kt',
+        'org/matrix/android/sdk/api/session/room/model/roomdirectory/PublicRoom.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomJoinRulesContent.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomMemberSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/RoomType.kt',
+        'org/matrix/android/sdk/api/session/room/model/SpaceChildInfo.kt',
+        'org/matrix/android/sdk/api/session/room/model/VersioningState.kt',
+        'org/matrix/android/sdk/api/session/room/model/SpaceParentInfo.kt',
+        'org/matrix/android/sdk/api/session/room/model/tag/RoomTag.kt',
+        'org/matrix/android/sdk/api/session/room/model/tag/RoomTagContent.kt',
         'org/matrix/android/sdk/api/session/room/model/Signed.kt',
         'org/matrix/android/sdk/api/session/room/model/message/**',
         'org/matrix/android/sdk/api/session/room/model/relation/ReactionContent.kt',
@@ -66,27 +102,56 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/room/model/relation/RelationDefaultContent.kt',
         'org/matrix/android/sdk/api/session/room/model/relation/ReplyToContent.kt',
         'org/matrix/android/sdk/api/session/room/send/SendState.kt',
+        'org/matrix/android/sdk/api/session/room/send/UserDraft.kt',
         'org/matrix/android/sdk/api/session/room/sender/SenderInfo.kt',
         'org/matrix/android/sdk/api/session/threads/ThreadDetails.kt',
         'org/matrix/android/sdk/api/session/threads/ThreadNotificationState.kt',
+        'org/matrix/android/sdk/api/session/crypto/model/RoomEncryptionTrustLevel.kt',
+        'org/matrix/android/sdk/api/session/room/timeline/TimelineEvent.kt',
         'org/matrix/android/sdk/api/session/sync/InitialSyncStrategy.kt',
+        'org/matrix/android/sdk/api/session/sync/filter/SyncFilterParams.kt',
+        'org/matrix/android/sdk/api/session/user/model/User.kt',
         'org/matrix/android/sdk/api/session/sync/model/**',
         'org/matrix/android/sdk/api/util/ContentUtils.kt',
         'org/matrix/android/sdk/api/util/Hash.kt',
+        'org/matrix/android/sdk/api/util/MatrixItem.kt',
         'org/matrix/android/sdk/api/util/MatrixJsonParser.kt',
         'org/matrix/android/sdk/api/session/uia/InteractiveAuthenticationFlow.kt',
         'org/matrix/android/sdk/api/util/Types.kt',
         'org/matrix/android/sdk/internal/crypto/model/rest/VerificationMethodValues.kt',
         'org/matrix/android/sdk/internal/di/FileQualifiers.kt',
+        'org/matrix/android/sdk/internal/di/MatrixScope.kt',
         'org/matrix/android/sdk/internal/di/MoshiProvider.kt',
         'org/matrix/android/sdk/internal/di/SerializeNulls.kt',
+        'org/matrix/android/sdk/internal/di/StringQualifiers.kt',
         'org/matrix/android/sdk/internal/session/sync/RoomSyncEphemeralTemporaryStore.kt',
         'org/matrix/android/sdk/internal/session/sync/parsing/**',
         'org/matrix/android/sdk/internal/util/StringUtils.kt',
+        'org/matrix/android/sdk/internal/network/AccessTokenInterceptor.kt',
+        'org/matrix/android/sdk/internal/network/ApiInterceptor.kt',
+        'org/matrix/android/sdk/internal/network/ComputeUserAgentUseCase.kt',
+        'org/matrix/android/sdk/internal/network/GlobalErrorReceiver.kt',
+        'org/matrix/android/sdk/internal/network/HttpHeaders.kt',
+        'org/matrix/android/sdk/internal/network/NetworkConstants.kt',
+        'org/matrix/android/sdk/internal/network/ProgressRequestBody.kt',
+        'org/matrix/android/sdk/internal/network/Request.kt',
+        'org/matrix/android/sdk/internal/network/RequestExecutor.kt',
+        'org/matrix/android/sdk/internal/network/RetrofitExtensions.kt',
+        'org/matrix/android/sdk/internal/network/RetrofitFactory.kt',
+        'org/matrix/android/sdk/internal/network/TimeOutInterceptor.kt',
+        'org/matrix/android/sdk/internal/network/UnitConverterFactory.kt',
+        'org/matrix/android/sdk/internal/network/UserAgentHolder.kt',
+        'org/matrix/android/sdk/internal/network/UserAgentInterceptor.kt',
+        'org/matrix/android/sdk/internal/network/httpclient/**',
+        'org/matrix/android/sdk/internal/network/interceptors/**',
         'org/matrix/android/sdk/internal/network/parsing/**',
+        'org/matrix/android/sdk/internal/network/token/**',
         'org/matrix/android/sdk/internal/crypto/model/CryptoInfo.kt',
         'org/matrix/android/sdk/internal/crypto/verification/VerificationInfo*.kt',
         'org/matrix/android/sdk/internal/session/presence/model/**',
+        'org/matrix/android/sdk/internal/session/SessionScope.kt',
+        'org/matrix/android/sdk/api/session/profile/ProfileKeys.kt',
+        'org/matrix/android/sdk/internal/auth/SessionParamsStore.kt',
         'org/matrix/android/sdk/internal/session/profile/ThirdPartyIdentifier.kt',
         'org/matrix/android/sdk/internal/util/Html.kt',
         'org/matrix/android/sdk/internal/util/JsonCanonicalizer.kt',
@@ -105,6 +170,7 @@ sourceSets {
     main {
         kotlin {
             srcDir '../matrix-sdk-android/src/main/java'
+            srcDir '../matrix-sdk-android/src/release/java'
             setIncludes(coreSources)
         }
     }
@@ -117,8 +183,13 @@ dependencies {
     implementation libs.squareup.moshi
     implementation libs.squareup.moshiAdapters
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.13'
     implementation 'com.squareup.okio:okio:3.6.0'
     implementation 'javax.inject:javax.inject:1'
+    implementation libs.dagger.dagger
+    implementation libs.squareup.retrofit
+    implementation libs.squareup.retrofitMoshi
+    implementation 'org.json:json:20240303'
     implementation libs.google.phonenumber
     kapt libs.squareup.moshiKotlin
 
