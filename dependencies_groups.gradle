@@ -230,6 +230,7 @@ ext.groups = [
                         'org.testng',
                         'org.threeten',
                         'org.webjars',
+                        'org.xerial',
                         'org.yaml',
                         'xerces',
                         'xml-apis',

@@ -64,7 +64,7 @@ import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.sql.CryptoSqlDatabase
 import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlClearCacheTask
 import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlCryptoStore
-import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.crypto.tasks.ClaimOneTimeKeysForUsersDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultClaimOneTimeKeysForUsersDevice
@@ -115,9 +115,10 @@ internal abstract class CryptoModule {
         @SessionScope
         fun providesCryptoSqlDatabase(
                 @SessionFilesDirectory directory: File,
+                driverFactory: SqlDriverFactory,
         ): CryptoSqlDatabase {
             return CryptoSqlDatabase(
-                    FrameworkSqliteDriver.create(File(directory, "crypto_store.db"), CryptoSqlDatabase.Schema)
+                    driverFactory.create(CryptoSqlDatabase.Schema, File(directory, "crypto_store.db"))
             )
         }
 

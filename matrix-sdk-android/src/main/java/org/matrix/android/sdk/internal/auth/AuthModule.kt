@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.auth
 
-import android.content.Context
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -30,7 +29,7 @@ import org.matrix.android.sdk.internal.auth.login.DefaultDirectLoginTask
 import org.matrix.android.sdk.internal.auth.login.DefaultQrLoginTokenTask
 import org.matrix.android.sdk.internal.auth.login.DirectLoginTask
 import org.matrix.android.sdk.internal.auth.login.QrLoginTokenTask
-import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.AuthDatabase
 import org.matrix.android.sdk.internal.di.MatrixScope
@@ -45,8 +44,8 @@ internal abstract class AuthModule {
         @Provides
         @AuthDatabase
         @MatrixScope
-        fun providesAuthSqlDatabase(context: Context): AuthSqlDatabase {
-            return AuthSqlDatabase(FrameworkSqliteDriver.create(context, "matrix-sdk-auth.db", AuthSqlDatabase.Schema))
+        fun providesAuthSqlDatabase(driverFactory: SqlDriverFactory): AuthSqlDatabase {
+            return AuthSqlDatabase(driverFactory.create(AuthSqlDatabase.Schema, "matrix-sdk-auth.db"))
         }
 
         @JvmStatic

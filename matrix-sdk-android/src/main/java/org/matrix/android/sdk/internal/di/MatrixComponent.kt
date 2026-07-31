@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.auth.AuthModule
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.debug.DebugModule
 import org.matrix.android.sdk.internal.raw.RawModule
 import org.matrix.android.sdk.internal.session.MockHttpInterceptor
@@ -100,6 +101,8 @@ internal interface MatrixComponent {
     fun sessionManager(): SessionManager
 
     fun secureStorageService(): SecureStorageService
+
+    fun sqlDriverFactory(): SqlDriverFactory
 
     fun matrixWorkerFactory(): MatrixWorkerFactory
 

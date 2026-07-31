@@ -17,7 +17,6 @@
 
 package org.matrix.android.sdk.internal.raw
 
-import android.content.Context
 import dagger.Binds
 import dagger.Lazy
 import dagger.Module
@@ -26,7 +25,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.internal.database.global.GlobalSqlDatabase
-import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.GlobalDatabase
 import org.matrix.android.sdk.internal.di.MatrixScope
@@ -42,8 +41,8 @@ internal abstract class RawModule {
         @Provides
         @GlobalDatabase
         @MatrixScope
-        fun providesGlobalSqlDatabase(context: Context): GlobalSqlDatabase {
-            return GlobalSqlDatabase(FrameworkSqliteDriver.create(context, "matrix-sdk-global.db", GlobalSqlDatabase.Schema))
+        fun providesGlobalSqlDatabase(driverFactory: SqlDriverFactory): GlobalSqlDatabase {
+            return GlobalSqlDatabase(driverFactory.create(GlobalSqlDatabase.Schema, "matrix-sdk-global.db"))
         }
 
         @JvmStatic
