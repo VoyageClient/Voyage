@@ -32,7 +32,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomThirdPartyInviteContent
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -139,7 +139,7 @@ class RoomMemberListFragment :
     private fun renderRoomSummary(state: RoomMemberListViewState) {
         state.roomSummary()?.let {
             views.roomSettingGeneric.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            avatarRenderer.render(it.toMatrixItem(), views.roomSettingGeneric.roomSettingsToolbarAvatarImageView)
+            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingGeneric.roomSettingsToolbarAvatarImageView)
             views.roomSettingGeneric.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }
     }

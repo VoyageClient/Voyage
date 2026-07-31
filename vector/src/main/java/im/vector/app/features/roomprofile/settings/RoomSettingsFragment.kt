@@ -44,7 +44,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import java.util.UUID
 import javax.inject.Inject
 
@@ -182,7 +182,7 @@ class RoomSettingsFragment :
 
         state.roomSummary()?.let {
             views.roomSettingsToolbarTitleView.text = it.displayName.prepareForDisplay()
-            avatarRenderer.render(it.toMatrixItem(), views.roomSettingsToolbarAvatarImageView)
+            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomSettingsToolbarAvatarImageView)
             views.roomSettingsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
         }
 

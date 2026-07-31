@@ -37,6 +37,7 @@ import me.gujun.android.span.span
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
 import im.vector.app.core.extensions.marginEndCompat
 import im.vector.app.core.extensions.textAlignmentCompat
@@ -176,7 +177,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
         renderRoomDescription(holder)
         renderRoomTopic(holder)
 
-        val roomItem = roomSummary?.toMatrixItem()
+        val roomItem = roomSummary?.toDisplayMatrixItem()
         val shouldSetAvatar = attributes.canChangeAvatar &&
                 (roomSummary?.isDirect == false || (isDirectRoom && membersCount >= 2)) &&
                 roomItem?.avatarUrl.isNullOrBlank()

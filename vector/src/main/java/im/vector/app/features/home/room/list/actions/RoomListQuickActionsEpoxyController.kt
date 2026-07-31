@@ -19,7 +19,7 @@ import im.vector.app.features.roomprofile.notifications.notificationOptions
 import im.vector.app.features.roomprofile.notifications.notificationStateMapped
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 /**
@@ -41,7 +41,7 @@ class RoomListQuickActionsEpoxyController @Inject constructor(
         bottomSheetRoomPreviewItem {
             id("room_preview")
             avatarRenderer(host.avatarRenderer)
-            matrixItem(roomSummary.toMatrixItem())
+            matrixItem(roomSummary.toDisplayMatrixItem())
             stringProvider(host.stringProvider)
             colorProvider(host.colorProvider)
             izLowPriority(roomSummary.isLowPriority)
