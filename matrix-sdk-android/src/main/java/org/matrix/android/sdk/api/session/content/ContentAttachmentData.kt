@@ -16,9 +16,7 @@
 
 package org.matrix.android.sdk.api.session.content
 
-import android.net.Uri
 import android.os.Parcelable
-import androidx.exifinterface.media.ExifInterface
 import com.squareup.moshi.JsonClass
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.util.MimeTypes.normalizeMimeType
@@ -32,9 +30,10 @@ data class ContentAttachmentData(
         val date: Long = 0,
         val height: Long? = 0,
         val width: Long? = 0,
-        val exifOrientation: Int = ExifInterface.ORIENTATION_UNDEFINED,
+        val exifOrientation: Int = 0, // ExifInterface.ORIENTATION_UNDEFINED
         val name: String? = null,
-        val queryUri: Uri,
+        /** URI of the content to send, as a string — parse with [queryUriAndroid] on Android. */
+        val queryUri: String,
         val mimeType: String?,
         val type: Type,
         val waveform: List<Int>? = null

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
-import android.net.Uri
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -177,7 +176,7 @@ internal class DefaultSendService @AssistedInject constructor(
                             width = messageContent.info.width.toLong(),
                             height = messageContent.info.height.toLong(),
                             name = messageContent.body,
-                            queryUri = Uri.parse(messageContent.url),
+                            queryUri = messageContent.url.orEmpty(),
                             type = ContentAttachmentData.Type.IMAGE
                     )
                     localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
@@ -191,7 +190,7 @@ internal class DefaultSendService @AssistedInject constructor(
                             height = messageContent.videoInfo?.height?.toLong(),
                             duration = messageContent.videoInfo?.duration?.toLong(),
                             name = messageContent.body,
-                            queryUri = Uri.parse(messageContent.url),
+                            queryUri = messageContent.url.orEmpty(),
                             type = ContentAttachmentData.Type.VIDEO
                     )
                     localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
@@ -202,7 +201,7 @@ internal class DefaultSendService @AssistedInject constructor(
                             size = messageContent.info!!.size,
                             mimeType = messageContent.mimeType,
                             name = messageContent.getFileName(),
-                            queryUri = Uri.parse(messageContent.url),
+                            queryUri = messageContent.url.orEmpty(),
                             type = ContentAttachmentData.Type.FILE
                     )
                     localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
@@ -214,7 +213,7 @@ internal class DefaultSendService @AssistedInject constructor(
                             duration = messageContent.audioInfo?.duration?.toLong() ?: 0L,
                             mimeType = messageContent.mimeType,
                             name = messageContent.body,
-                            queryUri = Uri.parse(messageContent.url),
+                            queryUri = messageContent.url.orEmpty(),
                             type = ContentAttachmentData.Type.AUDIO,
                             waveform = messageContent.audioWaveformInfo?.waveform?.filterNotNull()
                     )

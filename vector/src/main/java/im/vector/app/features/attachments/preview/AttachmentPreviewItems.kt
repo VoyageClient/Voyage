@@ -22,6 +22,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.platform.CheckableImageView
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.content.queryUriAndroid
 
 abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRes layoutId: Int) : VectorEpoxyModel<H>(layoutId) {
 
@@ -35,7 +36,7 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                 // hand Glide that hint.
                 Glide.with(holder.view.context)
                         .asBitmap()
-                        .load(attachment.queryUri)
+                        .load(attachment.queryUriAndroid)
                         .apply(RequestOptions().frame(0))
                         .into(holder.imageView)
             }
@@ -45,7 +46,7 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
                 // and animated WebPs preview correctly without us reading the file on the main
                 // thread.
                 Glide.with(holder.view.context)
-                        .load(attachment.queryUri)
+                        .load(attachment.queryUriAndroid)
                         .into(holder.imageView)
             }
             else -> {

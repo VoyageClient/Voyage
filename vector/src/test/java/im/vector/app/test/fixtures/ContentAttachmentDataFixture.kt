@@ -7,14 +7,13 @@
 
 package im.vector.app.test.fixtures
 
-import im.vector.app.test.fakes.FakeUri
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 
 object ContentAttachmentDataFixture {
 
     fun aContentAttachmentData() = ContentAttachmentData(
             type = ContentAttachmentData.Type.AUDIO,
-            queryUri = FakeUri().instance,
+            queryUri = "content://a.fake.uri",
             mimeType = null,
     )
 }

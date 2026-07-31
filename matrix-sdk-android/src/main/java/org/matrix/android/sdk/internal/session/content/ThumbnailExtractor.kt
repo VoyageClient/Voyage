@@ -22,6 +22,7 @@ import android.media.MediaMetadataRetriever
 import com.vanniktech.blurhash.BlurHash
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
@@ -48,7 +49,7 @@ internal class ThumbnailExtractor @Inject constructor(
      */
     fun extractThumbnail(attachment: ContentAttachmentData, withBlurHash: Boolean = true): ThumbnailData? {
         return if (attachment.type == ContentAttachmentData.Type.VIDEO) {
-            extractVideoThumbnail(withBlurHash) { setDataSource(context, attachment.queryUri) }
+            extractVideoThumbnail(withBlurHash) { setDataSource(context, attachment.queryUriAndroid) }
         } else {
             null
         }

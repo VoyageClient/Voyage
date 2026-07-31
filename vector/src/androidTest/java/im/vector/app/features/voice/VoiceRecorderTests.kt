@@ -38,7 +38,7 @@ class VoiceRecorderTests {
     fun findVoiceFileSearchesInDirectory() {
         val filename = "someFile.ogg"
         val attachment = ContentAttachmentData(
-                queryUri = Uri.parse(filename),
+                queryUri = filename,
                 mimeType = "ogg",
                 type = ContentAttachmentData.Type.AUDIO
         )

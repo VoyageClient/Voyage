@@ -21,6 +21,7 @@ import android.media.MediaMetadataRetriever
 import androidx.exifinterface.media.ExifInterface
 import org.matrix.android.sdk.api.extensions.ensureNotEmpty
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -556,7 +557,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         height = height?.toInt() ?: 0,
                         size = attachment.size
                 ),
-                url = attachment.queryUri.toString(),
+                url = attachment.queryUri,
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
                 mentions = mentions,
         )
@@ -576,7 +577,7 @@ internal class LocalEchoEventFactory @Inject constructor(
     ): Event {
         val mediaDataRetriever = MediaMetadataRetriever()
         val (width, height) = try {
-            mediaDataRetriever.setDataSource(context, attachment.queryUri)
+            mediaDataRetriever.setDataSource(context, attachment.queryUriAndroid)
             val rawW = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt() ?: 0
             val rawH = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt() ?: 0
             val rotation = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
@@ -617,10 +618,10 @@ internal class LocalEchoEventFactory @Inject constructor(
                         size = attachment.size,
                         duration = attachment.duration?.toInt() ?: 0,
                         // Glide will be able to use the local path and extract a thumbnail.
-                        thumbnailUrl = attachment.queryUri.toString(),
+                        thumbnailUrl = attachment.queryUri,
                         thumbnailInfo = thumbnailInfo
                 ),
-                url = attachment.queryUri.toString(),
+                url = attachment.queryUri,
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
                 mentions = mentions,
         )
@@ -651,7 +652,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         mimeType = attachment.getSafeMimeType()?.takeIf { it.isNotBlank() },
                         size = attachment.size
                 ),
-                url = attachment.queryUri.toString(),
+                url = attachment.queryUri,
                 audioWaveformInfo = if (!isVoiceMessage) null else AudioWaveformInfo(
                         duration = attachment.duration?.toInt(),
                         waveform = waveformSanitizer.sanitize(attachment.waveform)
@@ -685,7 +686,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         mimeType = attachment.getSafeMimeType()?.takeIf { it.isNotBlank() },
                         size = attachment.size
                 ),
-                url = attachment.queryUri.toString(),
+                url = attachment.queryUri,
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) },
                 mentions = mentions,
         )

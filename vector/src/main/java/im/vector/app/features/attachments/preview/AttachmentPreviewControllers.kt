@@ -16,7 +16,7 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
     override fun buildModels(data: AttachmentsPreviewViewState) {
         data.attachments.forEach {
             attachmentBigPreviewItem {
-                id(it.queryUri.toString())
+                id(it.queryUri)
                 attachment(it)
             }
         }
@@ -35,7 +35,7 @@ class AttachmentMiniaturePreviewController @Inject constructor() : TypedEpoxyCon
         val host = this
         data.attachments.forEachIndexed { index, contentAttachmentData ->
             attachmentMiniaturePreviewItem {
-                id(contentAttachmentData.queryUri.toString())
+                id(contentAttachmentData.queryUri)
                 attachment(contentAttachmentData)
                 checked(data.currentAttachmentIndex == index)
                 clickListener { _ ->

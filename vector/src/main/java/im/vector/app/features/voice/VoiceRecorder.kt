@@ -71,7 +71,7 @@ internal fun VoiceRecorder.ensureAudioDirectory(context: Context): File {
 }
 
 internal fun ContentAttachmentData.findVoiceFile(baseDirectory: File): File {
-    return File(baseDirectory, queryUri.takePathAfter(baseDirectory.name))
+    return File(baseDirectory, Uri.parse(queryUri).takePathAfter(baseDirectory.name))
 }
 
 private fun Uri.takePathAfter(after: String): String {
