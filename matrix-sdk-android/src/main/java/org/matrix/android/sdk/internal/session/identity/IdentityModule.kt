@@ -22,7 +22,7 @@ import dagger.Provides
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.session.identity.IdentityService
-import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.di.AuthenticatedIdentity
 import org.matrix.android.sdk.internal.di.IdentityDatabase
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
@@ -63,9 +63,10 @@ internal abstract class IdentityModule {
         @SessionScope
         fun providesIdentitySqlDatabase(
                 @SessionFilesDirectory directory: File,
+                driverFactory: SqlDriverFactory,
         ): IdentitySqlDatabase {
             return IdentitySqlDatabase(
-                    FrameworkSqliteDriver.create(File(directory, "matrix-sdk-identity.db"), IdentitySqlDatabase.Schema)
+                    driverFactory.create(IdentitySqlDatabase.Schema, File(directory, "matrix-sdk-identity.db"))
             )
         }
     }

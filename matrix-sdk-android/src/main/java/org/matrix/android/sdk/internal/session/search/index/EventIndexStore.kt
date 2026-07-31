@@ -9,7 +9,7 @@ package org.matrix.android.sdk.internal.session.search.index
 
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.search.index.db.EventIndexSqlDatabase
@@ -43,6 +43,7 @@ internal data class IndexCheckpoint(
 @SessionScope
 internal class EventIndexStore @Inject constructor(
         @SessionFilesDirectory private val directory: File,
+        private val driverFactory: SqlDriverFactory,
 ) {
 
     // Like the session database, the driver and its thread live as long as the session component:
@@ -53,7 +54,7 @@ internal class EventIndexStore @Inject constructor(
 
     private val database by lazy {
         EventIndexSqlDatabase(
-                FrameworkSqliteDriver.create(File(directory, "event_index.db"), EventIndexSqlDatabase.Schema)
+                driverFactory.create(EventIndexSqlDatabase.Schema, File(directory, "event_index.db"))
         )
     }
 

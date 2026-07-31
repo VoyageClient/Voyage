@@ -48,7 +48,7 @@ import org.matrix.android.sdk.internal.crypto.tasks.DefaultRedactEventTask
 import org.matrix.android.sdk.internal.crypto.tasks.RedactEventTask
 import org.matrix.android.sdk.internal.database.EventInsertLiveObserver
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
-import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.di.CacheDirectory
@@ -210,9 +210,12 @@ internal abstract class SessionModule {
         @Provides
         @SessionDatabase
         @SessionScope
-        fun providesSessionSqlDatabase(@SessionFilesDirectory directory: File): SessionSqlDatabase {
+        fun providesSessionSqlDatabase(
+                @SessionFilesDirectory directory: File,
+                driverFactory: SqlDriverFactory,
+        ): SessionSqlDatabase {
             return SessionSqlDatabase(
-                    FrameworkSqliteDriver.create(File(directory, "session_store.db"), SessionSqlDatabase.Schema)
+                    driverFactory.create(SessionSqlDatabase.Schema, File(directory, "session_store.db"))
             )
         }
 
