@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
+import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.di.UserId
@@ -38,21 +39,30 @@ internal class DefaultUpdateIgnoredUserIdsTask @Inject constructor(
         private val stores: SessionStores,
         @UserId private val userId: String,
         private val globalErrorReceiver: GlobalErrorReceiver,
+        private val ignoredUsersUpdater: IgnoredUsersUpdater,
 ) : UpdateIgnoredUserIdsTask {
 
     override suspend fun execute(params: UpdateIgnoredUserIdsTask.Params) {
-        // Get current list (the actual DB list update happens when the resulting sync is processed)
-        val ignoredUserIds = stores.user.getIgnoredUserIds().toMutableSet()
-        val original = ignoredUserIds.toSet()
-        ignoredUserIds.removeAll { it in params.userIdsToUnIgnore }
-        ignoredUserIds.addAll(params.userIdsToIgnore)
-        if (original == ignoredUserIds) {
-            // No change
-            return
-        }
-        val body = IgnoredUsersContent.createWithUserIds(ignoredUserIds.toList())
-        executeRequest(globalErrorReceiver) {
-            accountDataApi.setAccountData(userId, UserAccountDataTypes.TYPE_IGNORED_USER_LIST, body)
+        // Serialize with the last-pushed set as the base (not the not-yet-synced DB), so back-to-back
+        // (un)ignores don't each read the stale list and undo one another.
+        ignoredUsersUpdater.mutex.withLock {
+            val original = ignoredUsersUpdater.lastKnownIds ?: stores.user.getIgnoredUserIds().toSet()
+            val ignoredUserIds = original.toMutableSet()
+            ignoredUserIds.removeAll { it in params.userIdsToUnIgnore }
+            ignoredUserIds.addAll(params.userIdsToIgnore)
+            // Never persist a blank id: a stray "" corrupts m.ignored_user_list (crashing / blanking the
+            // ignored-users screen), and dropping it here self-heals an already-corrupt list on next write.
+            ignoredUserIds.removeAll { it.isBlank() }
+            if (original == ignoredUserIds) {
+                // No change (record the base so the next update reuses it)
+                ignoredUsersUpdater.lastKnownIds = ignoredUserIds
+                return
+            }
+            val body = IgnoredUsersContent.createWithUserIds(ignoredUserIds.toList())
+            executeRequest(globalErrorReceiver) {
+                accountDataApi.setAccountData(userId, UserAccountDataTypes.TYPE_IGNORED_USER_LIST, body)
+            }
+            ignoredUsersUpdater.lastKnownIds = ignoredUserIds
         }
     }
 }

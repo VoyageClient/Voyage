@@ -34,6 +34,7 @@ import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.toMutable
 import org.matrix.android.sdk.internal.session.user.accountdata.DirectChatsHelper
+import org.matrix.android.sdk.internal.session.user.accountdata.IgnoredUsersUpdater
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import javax.inject.Inject
 
@@ -46,6 +47,7 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
         private val directChatsHelper: DirectChatsHelper,
         private val updateUserAccountDataTask: UpdateUserAccountDataTask,
         private val roomSummaryUpdater: SqlRoomSummaryUpdater,
+        private val ignoredUsersUpdater: IgnoredUsersUpdater,
 ) {
 
     // If we get some direct chat invites, synchronize the user account data including those.
@@ -137,7 +139,12 @@ internal class SqlUserAccountDataSyncHandler @Inject constructor(
     }
 
     private fun handleIgnoredUsers(event: UserAccountDataEvent, aggregator: SyncResponsePostTreatmentAggregator) {
-        val newIgnoredUserIds = event.content.toModel<IgnoredUsersContent>()?.ignoredUsers?.keys ?: return
+        // Drop blank ids: a malformed "" key in the account-data map would otherwise be stored and then
+        // crash / blank the ignored-users screen (User("") fails MatrixItem's @-prefix check).
+        val newIgnoredUserIds = event.content.toModel<IgnoredUsersContent>()?.ignoredUsers?.keys
+                ?.filter { it.isNotBlank() } ?: return
+        // The list just changed server-side; drop the cached base so the next local update re-reads it.
+        ignoredUsersUpdater.lastKnownIds = null
         val currentIgnoredUserIds = stores.user.getIgnoredUserIds()
         val newlyUnIgnored = currentIgnoredUserIds.filter { it !in newIgnoredUserIds }
         val newlyIgnored = newIgnoredUserIds.filter { it !in currentIgnoredUserIds }
