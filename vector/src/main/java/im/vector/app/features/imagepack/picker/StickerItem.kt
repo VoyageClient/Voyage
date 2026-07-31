@@ -15,6 +15,7 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.glide.AnimatedContentImageViewTarget
 import im.vector.app.core.glide.GlideApp
 
 @EpoxyModelClass
@@ -22,6 +23,7 @@ abstract class StickerItem : VectorEpoxyModel<StickerItem.Holder>(R.layout.item_
 
     @EpoxyAttribute var resolvedUrl: String? = null
     @EpoxyAttribute var contentDescription: String? = null
+    @EpoxyAttribute var autoplay: Boolean = true
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var onClickListener: ClickListener? = null
 
     override fun bind(holder: Holder) {
@@ -31,7 +33,10 @@ abstract class StickerItem : VectorEpoxyModel<StickerItem.Holder>(R.layout.item_
         GlideApp.with(holder.image)
                 .load(resolvedUrl)
                 .override(128, 128)
-                .into(holder.image)
+                // Glide derives this from the view's scale type only for a bare ImageView target.
+                .optionalFitCenter()
+                .let { if (autoplay) it else it.dontAnimate() }
+                .into(AnimatedContentImageViewTarget(holder.image, autoplay))
         holder.image.onClick(onClickListener)
     }
 

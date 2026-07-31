@@ -19,8 +19,10 @@ class FakeVectorPreferences {
     val instance = mockk<VectorPreferences>(relaxUnitFun = true)
 
     init {
-        // Fork-added pref the room-list path reads unconditionally; default to its prod value.
+        // Fork-added prefs read unconditionally on the room-list / session-start paths; prod defaults.
         every { instance.overrideDirectChatDisplay() } returns true
+        every { instance.searchEncryptedRoomsEnabled() } returns true
+        every { instance.searchUnencryptedRoomsOnServer() } returns false
     }
 
     fun givenUseCompleteNotificationFormat(value: Boolean) {

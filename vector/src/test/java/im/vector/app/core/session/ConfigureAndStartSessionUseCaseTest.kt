@@ -60,6 +60,7 @@ class ConfigureAndStartSessionUseCaseTest {
             updateNotificationSettingsAccountDataUseCase = fakeUpdateNotificationSettingsAccountDataUseCase,
             pushRulesUpdater = fakePushRulesUpdater.instance,
             accountInfoCache = fakeAccountInfoCache,
+            quickReactionsDataSource = mockk(relaxed = true),
     )
 
     @Before

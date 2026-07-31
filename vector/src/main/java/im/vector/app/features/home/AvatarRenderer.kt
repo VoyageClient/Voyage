@@ -18,6 +18,8 @@ import android.net.Uri
 import android.widget.ImageView
 import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
+import androidx.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting.Companion.PRIVATE
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import com.amulyakhare.textdrawable.TextDrawable
@@ -36,7 +38,13 @@ import im.vector.app.core.glide.ClippedDrawableImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
+import im.vector.app.core.glide.RememberServedVariant
+import im.vector.app.core.glide.RestartAnimationListener
 import im.vector.app.core.glide.RoundedCornersPercent
+import im.vector.app.core.glide.ThumbnailAttempt
+import im.vector.app.core.glide.ThumbnailVariants
+import im.vector.app.core.glide.chainAttempts
+import im.vector.app.core.glide.thumbnailAttempts
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.displayname.getBestName
@@ -62,6 +70,7 @@ class AvatarRenderer @Inject constructor(
         private val stringProvider: StringProvider,
         private val vectorPreferences: VectorPreferences,
         private val twemojiProvider: TwemojiProvider,
+        private val thumbnailVariants: ThumbnailVariants,
 ) {
 
     companion object {
@@ -84,9 +93,12 @@ class AvatarRenderer @Inject constructor(
     // Clips avatars to the configured shape (circle / rounded square / square) for animated drawables
     // and placeholders too — a cross-version replacement for clipToOutline (API 21+). Static images are
     // already shaped by the Glide transforms below and pass through untouched.
-    private fun avatarTarget(imageView: ImageView, matrixItem: MatrixItem): DrawableImageViewTarget {
+    @VisibleForTesting(otherwise = PRIVATE)
+    internal fun avatarTarget(imageView: ImageView, matrixItem: MatrixItem): DrawableImageViewTarget {
         val oval = shapeFor(matrixItem) == AvatarShape.CIRCLE
-        return ClippedDrawableImageViewTarget(imageView, cornerPercent(matrixItem), oval = oval)
+        return ClippedDrawableImageViewTarget(
+                imageView, cornerPercent(matrixItem), oval = oval, animate = vectorPreferences.autoplayAnimatedImages()
+        )
     }
 
     // Spaces always render as rounded squares, regardless of the avatar-shape setting.
@@ -142,7 +154,7 @@ class AvatarRenderer @Inject constructor(
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(localUri?.let { File(localUri.path!!) })
-                .transform(avatarTransform(matrixItem))
+                .optionalTransform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
                 .into(avatarTarget(imageView, matrixItem))
     }
@@ -159,7 +171,7 @@ class AvatarRenderer @Inject constructor(
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(mappedContact.photoURI)
-                .transform(avatarTransform(matrixItem))
+                .optionalTransform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
                 .into(avatarTarget(imageView, matrixItem))
     }
@@ -176,7 +188,7 @@ class AvatarRenderer @Inject constructor(
         val placeholder = getPlaceholderDrawable(matrixItem)
         GlideApp.with(imageView)
                 .load(profileInfo.fullAvatarUrl)
-                .transform(avatarTransform(matrixItem))
+                .optionalTransform(avatarTransform(matrixItem))
                 .placeholder(placeholder)
                 .into(avatarTarget(imageView, matrixItem))
     }
@@ -187,11 +199,7 @@ class AvatarRenderer @Inject constructor(
             matrixItem: MatrixItem,
             target: Target<Drawable>
     ) {
-        val placeholder = getPlaceholderDrawable(matrixItem)
-        glideRequests.loadResolvedUrl(matrixItem.avatarUrl)
-                .transform(avatarTransform(matrixItem))
-                .placeholder(placeholder)
-                .into(target)
+        glideRequests.loadAvatar(matrixItem).into(target)
     }
 
     @AnyThread
@@ -225,7 +233,8 @@ class AvatarRenderer @Inject constructor(
 
     private fun GlideRequest<Bitmap>.avatarOrText(matrixItem: MatrixItem, iconSize: Int): GlideRequest<Bitmap> {
         return this.let {
-            val resolvedUrl = resolvedUrl(matrixItem.avatarUrl)
+            // A shortcut icon is a Bitmap, and an animated thumbnail has no bitmap decoder to fall to.
+            val resolvedUrl = thumbnailUrl(matrixItem.avatarUrl, animated = false)
             if (resolvedUrl != null) {
                 it.load(resolvedUrl)
             } else {
@@ -244,9 +253,7 @@ class AvatarRenderer @Inject constructor(
 
     @AnyThread
     fun getCachedDrawable(glideRequests: GlideRequests, matrixItem: MatrixItem): Drawable {
-        return glideRequests.loadResolvedUrl(matrixItem.avatarUrl)
-                .onlyRetrieveFromCache(true)
-                .transform(avatarTransform(matrixItem))
+        return glideRequests.loadAvatar(matrixItem, cacheOnly = true)
                 .submit()
                 .get()
     }
@@ -281,17 +288,45 @@ class AvatarRenderer @Inject constructor(
 
     // PRIVATE API *********************************************************************************
 
-    private fun GlideRequests.loadResolvedUrl(avatarUrl: String?): GlideRequest<Drawable> {
-        val resolvedUrl = resolvedUrl(avatarUrl)
-        return load(resolvedUrl)
+    private fun GlideRequests.loadAvatar(matrixItem: MatrixItem, cacheOnly: Boolean = false): GlideRequest<Drawable> {
+        val placeholder = getPlaceholderDrawable(matrixItem)
+        val transformation = avatarTransform(matrixItem)
+        val autoplay = vectorPreferences.autoplayAnimatedImages()
+
+        // A required Bitmap transform fails animated (WebP / APNG) loads outright; the target shapes those instead.
+        // dontAnimate asks the decoders that can for a still bitmap, which the shape can be baked into.
+        fun requestFor(url: String?, retrieveFromCacheOnly: Boolean) = load(url)
+                .optionalTransform(transformation)
+                .placeholder(placeholder)
+                .onlyRetrieveFromCache(retrieveFromCacheOnly)
+                .let { if (autoplay) it.addListener(RestartAnimationListener) else it.dontAnimate() }
+
+        // Once every attempt is cache-only the two still ones are the same request.
+        val attempts = avatarAttempts(matrixItem.avatarUrl, autoplay)
+                ?.let { if (cacheOnly) it.distinctBy(ThumbnailAttempt::url) else it }
+                ?: return requestFor(null, cacheOnly)
+        val remember = RememberServedVariant(thumbnailVariants, matrixItem.avatarUrl.orEmpty())
+        return chainAttempts(
+                attempts,
+                load = { requestFor(it.url, cacheOnly || it.cacheOnly).addListener(remember) },
+                fallingBackTo = { request, fallback -> request.error(fallback) },
+        )
     }
 
-    private fun resolvedUrl(avatarUrl: String?): String? {
+    @VisibleForTesting(otherwise = PRIVATE)
+    internal fun avatarAttempts(
+            avatarUrl: String?,
+            autoplay: Boolean = vectorPreferences.autoplayAnimatedImages(),
+    ): List<ThumbnailAttempt>? {
+        val attempts = thumbnailAttempts(autoplay) { animated -> thumbnailUrl(avatarUrl, animated) } ?: return null
+        // Only a request Glide can answer from memory resolves without putting the placeholder up first.
+        val served = avatarUrl?.let(thumbnailVariants::servedBy) ?: return attempts
+        return attempts.sortedByDescending { it.url == served }
+    }
+
+    private fun thumbnailUrl(avatarUrl: String?, animated: Boolean): String? {
         return activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
-                ?.resolveThumbnail(
-                        avatarUrl, THUMBNAIL_SIZE, THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE,
-                        animated = vectorPreferences.autoplayAnimatedImages()
-                )
+                ?.resolveThumbnail(avatarUrl, THUMBNAIL_SIZE, THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE, animated)
     }
 
     /**

@@ -334,6 +334,7 @@ class OnboardingViewModelTest {
                 .assertStatesChanges(
                         initialState,
                         { copy(signMode = SignMode.SignUp) },
+                        { copy(onboardingFlow = OnboardingFlow.SignUp) },
                         { copy(isLoading = true) },
                         { copy(isLoading = false) }
                 )

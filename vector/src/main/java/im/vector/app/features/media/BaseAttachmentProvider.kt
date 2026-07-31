@@ -9,6 +9,7 @@ package im.vector.app.features.media
 
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.content.Context
+import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageView
@@ -90,6 +91,9 @@ abstract class BaseAttachmentProvider<Type>(
                 }
 
                 override fun onResourceCleared(placeholder: Drawable?) {
+                    // Nothing draws it now, but it would keep running — and a running drawable is one
+                    // the next open leaves where it is rather than rewinding.
+                    (target.contextView().drawable as? Animatable)?.stop()
                     target.onResourceCleared(info.uid, placeholder)
                 }
 
@@ -108,6 +112,9 @@ abstract class BaseAttachmentProvider<Type>(
                 }
 
                 override fun onResourceCleared(placeholder: Drawable?) {
+                    // Nothing draws it now, but it would keep running — and a running drawable is one
+                    // the next open leaves where it is rather than rewinding.
+                    (target.contextView().drawable as? Animatable)?.stop()
                     target.onResourceCleared(info.uid, placeholder)
                 }
 

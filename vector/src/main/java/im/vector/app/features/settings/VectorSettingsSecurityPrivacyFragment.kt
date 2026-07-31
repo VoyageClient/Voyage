@@ -28,7 +28,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.SwitchPreference
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -36,6 +35,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.dialogs.ExportKeysDialog
 import im.vector.app.core.extensions.queryExportKeys
 import im.vector.app.core.extensions.registerStartForActivityResult
+import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.intent.ExternalIntentData
 import im.vector.app.core.intent.analyseIntent
 import im.vector.app.core.intent.getFilenameFromUri
@@ -91,6 +91,7 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var rawService: RawService
     @Inject lateinit var navigator: Navigator
     @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var mediaCache: MediaCache
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var pgpServiceManager: PgpServiceManager
     @Inject lateinit var pgpKeyStore: PgpKeyStore
@@ -495,12 +496,7 @@ class VectorSettingsSecurityPrivacyFragment :
         // (or previously-hidden) version until its cache expires. Drop it whenever the toggle flips.
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_HIDE_INVITE_AVATARS_KEY)
                 ?.setOnPreferenceChangeListener { _, _ ->
-                    lifecycleScope.launch {
-                        Glide.get(requireContext()).clearMemory()
-                        withContext(Dispatchers.IO) {
-                            Glide.get(requireContext()).clearDiskCache()
-                        }
-                    }
+                    lifecycleScope.launch { mediaCache.clearThumbnails() }
                     true
                 }
     }

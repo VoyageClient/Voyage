@@ -11,7 +11,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import com.amulyakhare.textdrawable.TextDrawable
-import com.bumptech.glide.request.target.DrawableImageViewTarget
 
 /**
  * A Glide target that clips its drawable to a rounded rectangle / circle for any content that
@@ -21,18 +20,24 @@ import com.bumptech.glide.request.target.DrawableImageViewTarget
  *
  * Already-shaped [BitmapDrawable]s (the output of Glide's transforms) are passed through untouched
  * so the common static-image path keeps its efficient pre-rounded bitmap.
+ *
+ * @param animate false still gets animated content, since [thumbnailAttempts] may serve a cached
+ *   animated variant once autoplay is off.
  */
 class ClippedDrawableImageViewTarget(
         view: ImageView,
         private val cornerPercent: Float,
         private val oval: Boolean,
-) : DrawableImageViewTarget(view) {
+        animate: Boolean = true,
+) : AnimatedContentImageViewTarget(view, animate) {
 
-    private fun clip(drawable: Drawable?): Drawable? = when (drawable) {
+    private fun clip(drawable: Drawable?): Drawable? = when {
         // Already-shaped content passes through untouched: BitmapDrawables are shaped by Glide's
         // transforms, and TextDrawable placeholders shape themselves. Only animated drawables
         // (GIF / WebP / APNG) actually need runtime clipping here.
-        null, is BitmapDrawable, is TextDrawable -> drawable
+        drawable == null || drawable is BitmapDrawable || drawable is TextDrawable -> drawable
+        // A square avatar has nothing to mask, and masking costs a saveLayer on every frame.
+        cornerPercent == 0f && !oval -> drawable
         else -> RoundedClipDrawable(drawable, cornerPercent, oval)
     }
 

@@ -22,8 +22,6 @@ import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.SwitchPreference
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.cache.DiskCache
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
@@ -35,6 +33,7 @@ import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.hidePassword
 import im.vector.app.core.extensions.toMvRxBundle
+import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.platform.SimpleTextWatcher
 import im.vector.app.core.preference.UserAvatarPreference
@@ -43,7 +42,6 @@ import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.core.utils.TextUtils
-import im.vector.app.core.utils.getSizeOfFiles
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.DialogChangePasswordBinding
@@ -61,7 +59,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.isInvalidPassword
 import org.matrix.android.sdk.api.session.getUser
@@ -70,7 +67,6 @@ import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerS
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
-import java.io.File
 import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
@@ -82,6 +78,7 @@ class VectorSettingsGeneralFragment :
 
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
     @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
+    @Inject lateinit var mediaCache: MediaCache
 
     override var titleRes = CommonStrings.settings_general_title
     override val preferenceXmlRes = R.xml.vector_settings_general
@@ -353,16 +350,9 @@ class VectorSettingsGeneralFragment :
                 it.summary = TextUtils.formatFileSize(requireContext(), size)
                 it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
                     lifecycleScope.launch(Dispatchers.Main) {
-                        // On UI Thread
                         displayLoadingView()
-                        Glide.get(requireContext()).clearMemory()
-                        session.fileService().clearCache()
-                        val newSize = withContext(Dispatchers.IO) {
-                            // On BG thread
-                            Glide.get(requireContext()).clearDiskCache()
-                            getCacheSize()
-                        }
-                        it.summary = TextUtils.formatFileSize(requireContext(), newSize)
+                        mediaCache.clear(session)
+                        it.summary = TextUtils.formatFileSize(requireContext(), getCacheSize())
                         hideLoadingView()
                     }
                     false
@@ -388,10 +378,7 @@ class VectorSettingsGeneralFragment :
         mDeactivateAccountCategory.isVisible = homeServerCapabilities.delegatedOidcAuthEnabled.not()
     }
 
-    private suspend fun getCacheSize(): Long = withContext(Dispatchers.IO) {
-        getSizeOfFiles(File(requireContext().cacheDir, DiskCache.Factory.DEFAULT_DISK_CACHE_DIR)) +
-                session.fileService().getCacheSize()
-    }
+    private suspend fun getCacheSize(): Long = mediaCache.size(session)
 
     override fun onResume() {
         super.onResume()

@@ -154,6 +154,16 @@ class VectorSettingsPreferencesFragment :
             }
         }
 
+        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_AUTOPLAY_ANIMATED_IMAGES)!!.let { pref ->
+            pref.setOnPreferenceChangeListener { _, _ ->
+                // Part of the configuration hash, so the screens behind this one rebuild their bound
+                // thumbnails on resume. Acknowledging is posted because the new value is only
+                // persisted once this listener returns, and it keeps this screen from restarting too.
+                view?.post { (activity as? VectorBaseActivity<*>)?.acknowledgeConfigurationChange() }
+                true
+            }
+        }
+
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_PREF_SPACE_SHOW_ALL_ROOM_IN_HOME)!!.let { pref ->
             pref.isChecked = vectorPreferences.prefSpacesShowAllRoomInHome()
             pref.setOnPreferenceChangeListener { _, _ ->

@@ -330,6 +330,16 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     private fun startPlaying() {
+        // Page selection and every entersForeground() both land here — twice for one open transition —
+        // and rebuilding the player would replay the opening second of the video.
+        mediaPlayer?.let { player ->
+            if (isPrepared && !wasPaused && !player.isPlaying) {
+                player.start()
+                ensureTickTimer()
+            }
+            return
+        }
+
         views.videoLoaderProgress.isVisible = false
         views.videoView.alpha = 0f
         views.videoView.isVisible = true

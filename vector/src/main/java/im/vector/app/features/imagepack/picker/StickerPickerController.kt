@@ -14,6 +14,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
 import im.vector.app.features.imagepack.ResolvedImage
 import im.vector.app.features.imagepack.ResolvedImagePack
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
@@ -21,6 +22,7 @@ import javax.inject.Inject
 class StickerPickerController @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val stringProvider: StringProvider,
+        private val vectorPreferences: VectorPreferences,
 ) : TypedEpoxyController<StickerPickerController.Data>() {
 
     data class Data(
@@ -68,6 +70,7 @@ class StickerPickerController @Inject constructor(
                     // Full (original) file: it animates, and server thumbnails flatten transparency.
                     resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
                     contentDescription(image.body ?: image.shortcode)
+                    autoplay(host.vectorPreferences.autoplayAnimatedImages())
                     onClickListener { host.listener?.onStickerClicked(image) }
                 }
             }
@@ -86,6 +89,7 @@ class StickerPickerController @Inject constructor(
                     // Full (original) file: it animates, and server thumbnails flatten transparency.
                     resolvedUrl(contentUrlResolver?.resolveFullSize(image.mxcUrl))
                     contentDescription(image.body ?: image.shortcode)
+                    autoplay(host.vectorPreferences.autoplayAnimatedImages())
                     onClickListener { host.listener?.onStickerClicked(image) }
                 }
             }
