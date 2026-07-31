@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.session
 
 import android.content.Context
-import android.os.Build
 import dagger.Binds
 import dagger.Lazy
 import dagger.Module
@@ -66,12 +65,10 @@ import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificateWithProg
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.di.UserMd5
 import org.matrix.android.sdk.internal.network.DefaultNetworkConnectivityChecker
-import org.matrix.android.sdk.internal.network.FallbackNetworkCallbackStrategy
 import org.matrix.android.sdk.internal.network.GlobalErrorHandler
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.NetworkCallbackStrategy
 import org.matrix.android.sdk.internal.network.NetworkConnectivityChecker
-import org.matrix.android.sdk.internal.network.PreferredNetworkCallbackStrategy
 import org.matrix.android.sdk.internal.network.RetrofitFactory
 import org.matrix.android.sdk.internal.network.httpclient.addAccessTokenInterceptor
 import org.matrix.android.sdk.internal.network.httpclient.addSocketFactory
@@ -79,6 +76,7 @@ import org.matrix.android.sdk.internal.network.httpclient.applyMatrixConfigurati
 import org.matrix.android.sdk.internal.network.interceptors.CurlLoggingInterceptor
 import org.matrix.android.sdk.internal.network.token.AccessTokenProvider
 import org.matrix.android.sdk.internal.network.token.HomeserverAccessTokenProvider
+import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
 import org.matrix.android.sdk.internal.session.call.CallEventProcessor
 import org.matrix.android.sdk.internal.session.download.DownloadProgressInterceptor
 import org.matrix.android.sdk.internal.session.events.DefaultEventService
@@ -106,7 +104,6 @@ import org.matrix.android.sdk.internal.session.workmanager.DefaultWorkManagerCon
 import org.matrix.android.sdk.internal.session.workmanager.WorkManagerConfig
 import retrofit2.Retrofit
 import java.io.File
-import javax.inject.Provider
 import javax.inject.Qualifier
 
 @Qualifier
@@ -329,15 +326,8 @@ internal abstract class SessionModule {
         @JvmStatic
         @Provides
         @SessionScope
-        fun providesNetworkCallbackStrategy(
-                fallbackNetworkCallbackStrategy: Provider<FallbackNetworkCallbackStrategy>,
-                preferredNetworkCallbackStrategy: Provider<PreferredNetworkCallbackStrategy>
-        ): NetworkCallbackStrategy {
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                preferredNetworkCallbackStrategy.get()
-            } else {
-                fallbackNetworkCallbackStrategy.get()
-            }
+        fun providesNetworkCallbackStrategy(networkCallbackStrategyFactory: NetworkCallbackStrategyFactory): NetworkCallbackStrategy {
+            return networkCallbackStrategyFactory.create()
         }
 
         @JvmStatic
