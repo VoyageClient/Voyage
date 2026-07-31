@@ -16,8 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.notification
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -27,7 +29,6 @@ import org.matrix.android.sdk.api.session.room.notification.RoomNotificationStat
 import org.matrix.android.sdk.api.session.room.notification.RoomPushRuleService
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 
 internal class DefaultRoomPushRuleService @AssistedInject constructor(
@@ -43,7 +44,7 @@ internal class DefaultRoomPushRuleService @AssistedInject constructor(
         fun create(roomId: String): DefaultRoomPushRuleService
     }
 
-    override fun getLiveRoomNotificationState(): LiveData<RoomNotificationState> {
+    override fun getRoomNotificationStateFlow(): Flow<RoomNotificationState> {
         return getPushRuleForRoom().map {
             it?.toRoomNotificationState() ?: RoomNotificationState.ALL_MESSAGES
         }
@@ -53,9 +54,10 @@ internal class DefaultRoomPushRuleService @AssistedInject constructor(
         setRoomNotificationStateTask.execute(SetRoomNotificationStateTask.Params(roomId, roomNotificationState))
     }
 
-    private fun getPushRuleForRoom(): LiveData<RoomPushRule?> {
+    private fun getPushRuleForRoom(): Flow<RoomPushRule?> {
         return database.pushRulesQueries.selectRuleByScopeAndRuleId(RuleScope.GLOBAL, roomId)
-                .asLiveList(dispatcher)
+                .asFlow()
+                .mapToList(dispatcher)
                 .map { _ ->
                     stores.pushRules.findRule(RuleScope.GLOBAL, roomId)?.let { (kind, entity) -> entity.toRoomPushRule(kind) }
                 }

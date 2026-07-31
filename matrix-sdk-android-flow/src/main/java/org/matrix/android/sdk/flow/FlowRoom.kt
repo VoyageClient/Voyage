@@ -128,7 +128,7 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveNotificationState(): Flow<RoomNotificationState> {
-        return room.roomPushRuleService().getLiveRoomNotificationState().asFlow()
+        return room.roomPushRuleService().getRoomNotificationStateFlow()
     }
 
     fun liveThreadList(): Flow<List<ThreadRootEvent>> {

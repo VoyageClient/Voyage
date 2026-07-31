@@ -16,11 +16,11 @@
 
 package org.matrix.android.sdk.api.session.room.notification
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 
 interface RoomPushRuleService {
 
-    fun getLiveRoomNotificationState(): LiveData<RoomNotificationState>
+    fun getRoomNotificationStateFlow(): Flow<RoomNotificationState>
 
     suspend fun setRoomNotificationState(roomNotificationState: RoomNotificationState)
 }
