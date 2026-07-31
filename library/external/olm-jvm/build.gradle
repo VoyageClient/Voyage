@@ -1,0 +1,74 @@
+// Plain-JVM packaging of the org.matrix.olm bindings for the desktop app: reuses the shared
+// binding sources from the Android olm-sdk module, swaps in a resource-extracting loader, and
+// bundles per-platform native libraries built from the same libce C sources.
+//
+// Standalone module: nothing in the Android app depends on it. macOS natives must be built on a
+// mac host with the same script and dropped into the natives resource tree.
+apply plugin: 'java-library'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+def sharedJavaSrc = file('../libce/android/olm-sdk/src/main/java')
+
+// The desktop variant replaces OlmManager (the Android one uses Context/BuildConfig/R), so the
+// shared sources are synced minus that file rather than added as a source dir.
+def syncSharedOlmSources = tasks.register('syncSharedOlmSources', Sync) {
+    from(sharedJavaSrc) {
+        exclude '**/OlmManager.java'
+    }
+    into layout.buildDirectory.dir('shared-olm-src')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir syncSharedOlmSources
+        }
+    }
+}
+
+def nativeInputs = {
+    it.inputs.dir file('../libce/src')
+    it.inputs.dir file('../libce/lib')
+    it.inputs.dir file('../libce/include')
+    it.inputs.dir file('../libce/android/olm-sdk/src/main/jni')
+    it.inputs.file file('native/build-native.sh')
+}
+
+def compileLinuxNative = tasks.register('compileLinuxNative', Exec) {
+    nativeInputs(it)
+    def outDir = layout.buildDirectory.dir('natives/linux-x86_64')
+    outputs.dir outDir
+    commandLine 'bash', file('native/build-native.sh'), 'linux-x86_64', outDir.get().asFile.absolutePath
+}
+
+def compileWindowsNative = tasks.register('compileWindowsNative', Exec) {
+    nativeInputs(it)
+    it.inputs.file file('native/win32-jni/jni_md.h')
+    def outDir = layout.buildDirectory.dir('natives/windows-x86_64')
+    outputs.dir outDir
+    commandLine 'bash', file('native/build-native.sh'), 'windows-x86_64', outDir.get().asFile.absolutePath
+    onlyIf {
+        def found = ['bash', '-c', 'command -v x86_64-w64-mingw32-gcc'].execute().waitFor() == 0
+        if (!found) logger.lifecycle('mingw-w64 not found, skipping Windows olm native build')
+        found
+    }
+}
+
+processResources {
+    from(compileLinuxNative) {
+        into 'org/matrix/olm/natives/linux-x86_64'
+    }
+    from(compileWindowsNative) {
+        into 'org/matrix/olm/natives/windows-x86_64'
+    }
+}
+
+dependencies {
+    // Desktop stand-in for Android's built-in org.json, which the bindings use
+    api 'org.json:json:20240303'
+    testImplementation 'junit:junit:4.13.2'
+}

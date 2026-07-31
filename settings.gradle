@@ -20,6 +20,7 @@ include ':library:external:barcodescanner:zxing'
 
 include ':library:external:libce'
 project(':library:external:libce').projectDir = new File(rootProject.projectDir, 'library/external/libce/android/olm-sdk')
+include ':library:external:olm-jvm'
 include ':library:external:libopus'
 include ':matrix-sdk-android'
 include ':matrix-sdk-android-flow'
