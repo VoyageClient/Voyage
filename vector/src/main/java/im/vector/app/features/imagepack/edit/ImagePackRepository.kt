@@ -69,13 +69,13 @@ class ImagePackRepository @Inject constructor(
             trigger.map { withContext(Dispatchers.IO) { roomData(roomId) } }
         } else {
             // Settings: show the personal pack + last scan instantly, then reconcile with a fresh scan.
-            val trigger = session.accountDataService().getLiveUserAccountDataEvents(
+            val trigger = session.accountDataService().getUserAccountDataEventsFlow(
                     setOf(
                             UserAccountDataTypes.TYPE_USER_EMOTES,
                             UserAccountDataTypes.TYPE_IMAGE_PACK_ROOMS,
                             UserAccountDataTypes.TYPE_IMAGE_PACK_ROOMS_UNSTABLE,
                     )
-            ).asFlow()
+            )
             val userId = session.myUserId
             flow {
                 // 1. Instant — computed on IO (it does Realm + file reads): the warm in-memory scan, else

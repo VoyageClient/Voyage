@@ -9,7 +9,6 @@ package im.vector.app.features.settings.devices.v2.notification
 
 import im.vector.app.test.fakes.FakeFlowLiveDataConversions
 import im.vector.app.test.fakes.FakeSession
-import im.vector.app.test.fakes.givenAsFlow
 import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.test.runTest
@@ -44,11 +43,10 @@ class GetNotificationSettingsAccountDataUpdatesUseCaseTest {
         val expectedContent = LocalNotificationSettingsContent(isSilenced = true)
         aSession
                 .accountDataService()
-                .givenGetLiveUserAccountDataEventReturns(
+                .givenGetUserAccountDataEventFlowReturns(
                         type = UserAccountDataTypes.TYPE_LOCAL_NOTIFICATION_SETTINGS + aDeviceId,
                         content = expectedContent.toContent(),
                 )
-                .givenAsFlow()
 
         // When
         val result = getNotificationSettingsAccountDataUpdatesUseCase.execute(aSession, aDeviceId).firstOrNull()
@@ -64,11 +62,10 @@ class GetNotificationSettingsAccountDataUpdatesUseCaseTest {
         val aSession = FakeSession()
         aSession
                 .accountDataService()
-                .givenGetLiveUserAccountDataEventReturns(
+                .givenGetUserAccountDataEventFlowReturns(
                         type = UserAccountDataTypes.TYPE_LOCAL_NOTIFICATION_SETTINGS + aDeviceId,
                         content = null,
                 )
-                .givenAsFlow()
 
         // When
         val result = getNotificationSettingsAccountDataUpdatesUseCase.execute(aSession, aDeviceId).firstOrNull()
@@ -85,11 +82,10 @@ class GetNotificationSettingsAccountDataUpdatesUseCaseTest {
         val expectedContent = LocalNotificationSettingsContent(isSilenced = null)
         aSession
                 .accountDataService()
-                .givenGetLiveUserAccountDataEventReturns(
+                .givenGetUserAccountDataEventFlowReturns(
                         type = UserAccountDataTypes.TYPE_LOCAL_NOTIFICATION_SETTINGS + aDeviceId,
                         content = expectedContent.toContent(),
                 )
-                .givenAsFlow()
 
         // When
         val result = getNotificationSettingsAccountDataUpdatesUseCase.execute(aSession, aDeviceId).firstOrNull()

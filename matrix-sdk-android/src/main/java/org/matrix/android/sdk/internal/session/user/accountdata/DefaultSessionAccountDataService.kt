@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
@@ -48,20 +48,20 @@ internal class DefaultSessionAccountDataService @Inject constructor(
     override fun getUserAccountDataEvent(type: String): UserAccountDataEvent? =
             userAccountDataDataSource.getAccountDataEvent(type)
 
-    override fun getLiveUserAccountDataEvent(type: String): LiveData<Optional<UserAccountDataEvent>> =
-            userAccountDataDataSource.getLiveAccountDataEvent(type)
+    override fun getUserAccountDataEventFlow(type: String): Flow<Optional<UserAccountDataEvent>> =
+            userAccountDataDataSource.getAccountDataEventFlow(type)
 
     override fun getUserAccountDataEvents(types: Set<String>): List<UserAccountDataEvent> =
             userAccountDataDataSource.getAccountDataEvents(types)
 
-    override fun getLiveUserAccountDataEvents(types: Set<String>): LiveData<List<UserAccountDataEvent>> =
-            userAccountDataDataSource.getLiveAccountDataEvents(types)
+    override fun getUserAccountDataEventsFlow(types: Set<String>): Flow<List<UserAccountDataEvent>> =
+            userAccountDataDataSource.getAccountDataEventsFlow(types)
 
     override fun getRoomAccountDataEvents(types: Set<String>): List<RoomAccountDataEvent> =
             roomAccountDataDataSource.getAccountDataEvents(null, types)
 
-    override fun getLiveRoomAccountDataEvents(types: Set<String>): LiveData<List<RoomAccountDataEvent>> =
-            roomAccountDataDataSource.getLiveAccountDataEvents(null, types)
+    override fun getRoomAccountDataEventsFlow(types: Set<String>): Flow<List<RoomAccountDataEvent>> =
+            roomAccountDataDataSource.getAccountDataEventsFlow(null, types)
 
     override suspend fun updateUserAccountData(type: String, content: Content) {
         val params = UpdateUserAccountDataTask.AnyParams(type = type, any = content)

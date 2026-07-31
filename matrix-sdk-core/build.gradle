@@ -271,6 +271,9 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/sync/SyncRequestState.kt',
         'org/matrix/android/sdk/api/session/sync/InitialSyncStep.kt',
         'org/matrix/android/sdk/api/session/room/send/DraftService.kt',
+        'org/matrix/android/sdk/api/session/accountdata/SessionAccountDataService.kt',
+        'org/matrix/android/sdk/api/session/room/accountdata/RoomAccountDataService.kt',
+        'org/matrix/android/sdk/api/session/room/accountdata/RoomAccountDataEvent.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

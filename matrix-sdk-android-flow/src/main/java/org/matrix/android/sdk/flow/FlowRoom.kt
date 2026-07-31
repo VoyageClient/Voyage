@@ -98,7 +98,7 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveRoomAccountData(types: Set<String>): Flow<List<RoomAccountDataEvent>> {
-        return room.roomAccountDataService().getLiveAccountDataEvents(types).asFlow()
+        return room.roomAccountDataService().getAccountDataEventsFlow(types)
                 .startWith(room.coroutineDispatchers.io) {
                     room.roomAccountDataService().getAccountDataEvents(types)
                 }

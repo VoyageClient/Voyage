@@ -297,14 +297,13 @@ class ImagePackProvider @Inject constructor(
     fun getImagePacksLive(roomId: String?): Flow<List<ResolvedImagePack>> {
         val session = activeSessionHolder.getSafeActiveSession() ?: return flowOf(emptyList())
         val accountDataFlow = session.accountDataService()
-                .getLiveUserAccountDataEvents(
+                .getUserAccountDataEventsFlow(
                         setOf(
                                 UserAccountDataTypes.TYPE_USER_EMOTES,
                                 UserAccountDataTypes.TYPE_IMAGE_PACK_ROOMS,
                                 UserAccountDataTypes.TYPE_IMAGE_PACK_ROOMS_UNSTABLE,
                         )
                 )
-                .asFlow()
         val roomStateFlow = roomId?.let { session.roomService().getRoom(it) }
                 ?.stateService()
                 ?.getStateEventsLive(roomPackTypes, QueryStringValue.IsNotNull)
