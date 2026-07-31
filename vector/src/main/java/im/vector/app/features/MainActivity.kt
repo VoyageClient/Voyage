@@ -24,12 +24,12 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.viewModel
-import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.dalvik.DalvikVerifierGate
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.extensions.vectorStore
+import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.session.SwitchAccountUseCase
 import im.vector.app.core.utils.deleteAllFiles
@@ -168,6 +168,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var authenticationService: AuthenticationService
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
     @Inject lateinit var accountInfoCache: AccountInfoCache
+    @Inject lateinit var mediaCache: MediaCache
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -361,8 +362,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     }
 
     private suspend fun doLocalCleanup(clearPreferences: Boolean, vectorSessionStore: VectorSessionStore) {
-        // On UI Thread
-        Glide.get(this@MainActivity).clearMemory()
+        mediaCache.clearThumbnails()
 
         if (clearPreferences) {
             vectorPreferences.clearPreferences()
@@ -373,9 +373,6 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             lockScreenKeyRepository.deleteSystemKey()
         }
         withContext(Dispatchers.IO) {
-            // On BG thread
-            Glide.get(this@MainActivity).clearDiskCache()
-
             // Also clear cache (Logs, etc...)
             deleteAllFiles(this@MainActivity.cacheDir)
         }

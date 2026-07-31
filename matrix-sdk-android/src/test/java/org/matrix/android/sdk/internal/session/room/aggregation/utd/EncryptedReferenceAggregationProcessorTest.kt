@@ -115,6 +115,7 @@ internal class EncryptedReferenceAggregationProcessorTest {
     private fun givenAnEvent(eventId: String): Event {
         return mockk<Event>().also {
             every { it.eventId } returns eventId
+            every { it.roomId } returns A_ROOM_ID
         }
     }
 }

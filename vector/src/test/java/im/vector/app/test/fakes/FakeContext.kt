@@ -33,6 +33,7 @@ class FakeContext(
 
     fun givenFileDescriptor(uri: Uri, mode: String, factory: () -> ParcelFileDescriptor?) {
         val fileDescriptor = factory()
+        every { contentResolver.openFileDescriptor(uri, mode) } returns fileDescriptor
         every { contentResolver.openFileDescriptor(uri, mode, null) } returns fileDescriptor
     }
 

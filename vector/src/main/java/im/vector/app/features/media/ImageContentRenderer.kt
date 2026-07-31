@@ -14,6 +14,8 @@ import android.os.Parcelable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting.Companion.PRIVATE
 import androidx.core.view.updateLayoutParams
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Transformation
@@ -27,11 +29,14 @@ import com.bumptech.glide.request.target.Target
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.files.LocalFilesHelper
+import im.vector.app.core.glide.AnimatedContentImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
 import im.vector.app.core.glide.GlideRequests
+import im.vector.app.core.glide.RestartAnimationListener
 import im.vector.app.core.ui.model.Size
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -59,6 +64,7 @@ class ImageContentRenderer @Inject constructor(
         private val localFilesHelper: LocalFilesHelper,
         private val activeSessionHolder: ActiveSessionHolder,
         private val dimensionConverter: DimensionConverter,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     @Parcelize
@@ -113,8 +119,9 @@ class ImageContentRenderer @Inject constructor(
         imageView.contentDescription = data.filename
 
         createGlideRequest(data, Mode.THUMBNAIL, imageView, Size(size, size))
+                .dontAnimate()
                 .placeholder(R.drawable.ic_image)
-                .into(imageView)
+                .intoView(imageView, animate = false)
     }
 
     fun render(
@@ -145,14 +152,37 @@ class ImageContentRenderer @Inject constructor(
         // a11y
         imageView.contentDescription = data.filename
 
+        val animate = animates(mode)
         createGlideRequest(data, mode, imageView, size)
-                .let { if (mode != Mode.ANIMATED_THUMBNAIL && !crossFade) it.dontAnimate() else it }
+                .let { if (animate) it else it.dontAnimate() }
                 .let { if (crossFade) it.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS)) else it }
-                // For animated content the corners are clipped at the view level (clipToOutline /
-                // RoundedCornerImageView). A Bitmap RoundedCorners here would round GIF frames at their
-                // small native resolution and upscale the result, giving over-rounded, pixelated corners.
-                .let { if (mode != Mode.ANIMATED_THUMBNAIL) it.optionalTransform(cornerTransformation) else it }
-                .into(imageView)
+                // A Bitmap RoundedCorners would round GIF frames at their small native resolution and
+                // upscale the result, giving over-rounded, pixelated corners; animated content is
+                // clipped at the view level instead (clipToOutline / RoundedCornerImageView).
+                .let { if (mode == Mode.ANIMATED_THUMBNAIL) it else it.optionalTransform(cornerTransformation) }
+                .intoView(imageView, animate)
+    }
+
+    @VisibleForTesting(otherwise = PRIVATE)
+    internal fun animates(mode: Mode) = when (mode) {
+        // The timeline asks for these only when autoplay is on, and the viewer is opened deliberately.
+        Mode.ANIMATED_THUMBNAIL,
+        Mode.FULL_SIZE -> true
+        // Stickers have no still variant to fall back on, so autoplay is all there is to go on.
+        Mode.STICKER -> vectorPreferences.autoplayAnimatedImages()
+        // An encrypted room has no server-rendered still, so this decodes the whole animated file.
+        Mode.THUMBNAIL -> false
+    }
+
+    @VisibleForTesting(otherwise = PRIVATE)
+    internal fun GlideRequest<Drawable>.intoView(imageView: ImageView, animate: Boolean) {
+        if (animate) {
+            // A bare ImageView target is the only one Glide derives a scale-type transformation for,
+            // so the rewind rides along as a listener rather than as a target of our own.
+            addListener(RestartAnimationListener).into(imageView)
+        } else {
+            into(AnimatedContentImageViewTarget(imageView, animate = false))
+        }
     }
 
     /**
@@ -234,6 +264,8 @@ class ImageContentRenderer @Inject constructor(
         req
                 .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                 .optionalFitCenter()
+                // Whatever the mime type claimed: the still-image target would never start it otherwise.
+                .addListener(RestartAnimationListener)
                 .into(target)
     }
 
@@ -277,6 +309,8 @@ class ImageContentRenderer @Inject constructor(
                 return false
             }
         })
+                // Appended, not listener(): that one drops whatever was registered before it.
+                .addListener(RestartAnimationListener)
                 .optionalFitCenter()
                 .into(imageView)
     }

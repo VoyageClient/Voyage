@@ -111,11 +111,13 @@ class VectorConfiguration @Inject constructor(
      * @return the local status value
      */
     fun getHash(): String {
+        val preferences = PreferenceManager.getDefaultSharedPreferences(context)
         return (vectorLocale.applicationLocale.toString() +
                 "_" + fontScalePreferences.getResolvedFontScaleValue().preferenceValue +
                 "_" + ThemeUtils.getApplicationTheme(context) +
                 "_" + ThemeUtils.getApplicationThemeAccent(context) +
-                "_" + PreferenceManager.getDefaultSharedPreferences(context)
-                .getBoolean(VectorPreferences.SETTINGS_UGLIER_USERNAME_COLORS_KEY, false))
+                "_" + preferences.getBoolean(VectorPreferences.SETTINGS_UGLIER_USERNAME_COLORS_KEY, false) +
+                // Avatars and thumbnails resolve their variant at bind time, so bound ones need rebuilding.
+                "_" + preferences.getBoolean(VectorPreferences.SETTINGS_AUTOPLAY_ANIMATED_IMAGES, true))
     }
 }

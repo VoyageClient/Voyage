@@ -11,6 +11,7 @@ import android.graphics.drawable.Drawable
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
 import com.bumptech.glide.load.engine.Resource
+import com.bumptech.glide.load.resource.gif.GifOptions
 import com.github.penfeizhou.animation.apng.APNGDrawable
 import com.github.penfeizhou.animation.apng.decode.APNGParser
 import com.github.penfeizhou.animation.io.ByteBufferReader
@@ -54,9 +55,11 @@ internal class AnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
         if (!runCatching { APNGParser.isAPNG(ByteBufferReader(buffer.asReadOnlyBuffer())) }.getOrDefault(false)) {
             return null
         }
+        // penfeizhou's autoPlay restarts the animation on every setVisible(true), outliving a target's stop().
+        val autoPlay = options.get(GifOptions.DISABLE_ANIMATION) != true
         return object : Resource<Drawable> {
             override fun getResourceClass(): Class<Drawable> = Drawable::class.java
-            override fun get(): Drawable = APNGDrawable(loader).apply { setAutoPlay(true) }
+            override fun get(): Drawable = APNGDrawable(loader).apply { setAutoPlay(autoPlay) }
             override fun getSize(): Int = buffer.capacity()
             override fun recycle() = Unit
         }
