@@ -66,6 +66,7 @@ internal class SqlTimeline(
         private val timelineInput: TimelineInput,
         private val clock: Clock,
         private val redactionSignal: TimelineRedactionSignal,
+        private val decryptionSignal: TimelineDecryptionSignal,
 ) : Timeline, TimelineInput.Listener, UIEchoManager.Listener {
 
     override val timelineID = UUID.randomUUID().toString()
@@ -89,6 +90,7 @@ internal class SqlTimeline(
     private var ignoredJob: Job? = null
     private var annotationsJob: Job? = null
     private var decryptedJob: Job? = null
+    private var decryptionSignalJob: Job? = null
 
     // Decryption writes the event table, which the timeline_event chunk flow doesn't observe, so a decrypt
     // completion won't re-map on its own. Coalesce a burst of decryptions (e.g. a key import) into one
@@ -193,6 +195,12 @@ internal class SqlTimeline(
                 rebuildSnapshot()
             }
         }
+        // A decrypt done by another component (the room-summary decryptor decrypts this room's latest
+        // event) writes to the event table without hitting our decryptor's listener — fold it into the
+        // same debounced refresh so the preview event stops rendering as encrypted.
+        decryptionSignalJob = timelineScope.launch {
+            decryptionSignal.rooms.collect { if (it == roomId) decryptedSignal.trySend(Unit) }
+        }
         timelineScope.launch {
             if (!isThreadTimeline && timelineInput.dedupSweptRooms.add(roomId)) {
                 // Heal chunk-graph corruption left by the earlier link-and-stop pagination bug, then
@@ -274,6 +282,7 @@ internal class SqlTimeline(
         ignoredJob?.cancel()
         annotationsJob?.cancel()
         decryptedJob?.cancel()
+        decryptionSignalJob?.cancel()
         val rootId = threadRootId
         if (rootId != null) {
             // Drop the temporary thread chunk; keep the scope alive just long enough to commit it.
