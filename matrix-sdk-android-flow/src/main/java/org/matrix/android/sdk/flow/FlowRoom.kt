@@ -121,7 +121,7 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveDraft(): Flow<Optional<UserDraft>> {
-        return room.draftService().getDraftLive().asFlow()
+        return room.draftService().getDraftFlow()
                 .startWith(room.coroutineDispatchers.io) {
                     room.draftService().getDraft().toOptional()
                 }

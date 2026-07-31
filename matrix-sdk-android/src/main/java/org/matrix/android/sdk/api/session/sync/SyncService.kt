@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.sync
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 
@@ -60,9 +60,9 @@ interface SyncService {
 
     /**
      * This method allows to listen the sync state.
-     * @return a [LiveData] of [SyncState].
+     * @return a [Flow] of [SyncState].
      */
-    fun getSyncStateLive(): LiveData<SyncState>
+    fun getSyncStateFlow(): Flow<SyncState>
 
     /**
      * Get the [SyncRequestState] as a SharedFlow.

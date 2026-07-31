@@ -88,7 +88,7 @@ internal class DefaultSyncService @Inject constructor(
         syncThread = null
     }
 
-    override fun getSyncStateLive() = getSyncThread().liveState()
+    override fun getSyncStateFlow() = getSyncThread().syncStateFlow()
 
     override fun syncFlow() = getSyncThread().syncFlow()
 

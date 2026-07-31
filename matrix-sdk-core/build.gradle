@@ -263,9 +263,14 @@ def coreSources = [
         'org/matrix/android/sdk/api/auth/UserInteractiveAuthInterceptor.kt',
         'org/matrix/android/sdk/api/auth/UserPasswordAuth.kt',
         'org/matrix/android/sdk/api/auth/TokenBasedAuth.kt',
-        // First service interface converted from LiveData to Flow for the core boundary; the DB-backed
-        // impl/data source stay Android, and the sole :vector consumer already wanted a Flow.
+        // Service interfaces converted from LiveData to Flow for the core boundary; the DB/thread-backed
+        // impls stay Android, consumers that still want LiveData use android-only *Android.kt extensions.
         'org/matrix/android/sdk/api/session/homeserver/HomeServerCapabilitiesService.kt',
+        'org/matrix/android/sdk/api/session/sync/SyncService.kt',
+        'org/matrix/android/sdk/api/session/sync/SyncState.kt',
+        'org/matrix/android/sdk/api/session/sync/SyncRequestState.kt',
+        'org/matrix/android/sdk/api/session/sync/InitialSyncStep.kt',
+        'org/matrix/android/sdk/api/session/room/send/DraftService.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

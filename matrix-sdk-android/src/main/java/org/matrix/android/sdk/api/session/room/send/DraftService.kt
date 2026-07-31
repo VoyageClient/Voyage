@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.send
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.util.Optional
 
 interface DraftService {
@@ -39,5 +39,5 @@ interface DraftService {
     /**
      * Return the current draft if any, as a live data.
      */
-    fun getDraftLive(): LiveData<Optional<UserDraft>>
+    fun getDraftFlow(): Flow<Optional<UserDraft>>
 }
