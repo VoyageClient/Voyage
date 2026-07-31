@@ -31,7 +31,7 @@ import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -106,7 +106,7 @@ class RoomUploadsFragment :
         state.roomSummary()?.let {
             views.roomUploadsToolbarTitleView.text = it.displayName.prepareForDisplay()
             views.roomUploadsDecorationToolbarAvatarImageView.render(it.roomEncryptionTrustLevel)
-            avatarRenderer.render(it.toMatrixItem(), views.roomUploadsToolbarAvatarImageView)
+            avatarRenderer.render(it.toDisplayMatrixItem(), views.roomUploadsToolbarAvatarImageView)
         }
     }
 

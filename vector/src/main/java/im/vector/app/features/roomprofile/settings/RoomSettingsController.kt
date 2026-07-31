@@ -24,7 +24,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
 
 class RoomSettingsController @Inject constructor(
@@ -66,12 +66,12 @@ class RoomSettingsController @Inject constructor(
                     // Use the current value
                     avatarRenderer(host.avatarRenderer)
                     // We do not want to use the fallback avatar url, which can be the other user avatar, or the current user avatar.
-                    matrixItem(roomSummary.toMatrixItem().updateAvatar(data.currentRoomAvatarUrl))
+                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(data.currentRoomAvatarUrl))
                 }
                 // Render the letter placeholder right away, as the room will look once saved
                 RoomSettingsViewState.AvatarAction.DeleteAvatar -> {
                     avatarRenderer(host.avatarRenderer)
-                    matrixItem(roomSummary.toMatrixItem().updateAvatar(null))
+                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(null))
                 }
                 is RoomSettingsViewState.AvatarAction.UpdateAvatar -> avatarImageUri(avatarAction.newAvatarUri)
             }

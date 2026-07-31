@@ -56,7 +56,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
-import org.matrix.android.sdk.api.util.toMatrixItem
+import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -271,7 +271,7 @@ class RoomProfileFragment :
                 views.matrixProfileToolbarTitleView.text = it.displayName.prepareForDisplay()
                 headerViews.roomProfileAliasView.setTextOrHide(it.canonicalAlias?.neutralizeDirectionOverrides())
                 headerViews.roomProfileAliasView.setCopySource(it.canonicalAlias)
-                val matrixItem = it.toMatrixItem()
+                val matrixItem = it.toDisplayMatrixItem()
                 avatarRenderer.render(matrixItem, headerViews.roomProfileAvatarView)
                 bannerRenderer.applyAvatarStroke(headerViews.roomProfileAvatarView, matrixItem, state.bannerUrl != null)
                 avatarRenderer.render(matrixItem, views.matrixProfileToolbarAvatarImageView)
@@ -413,7 +413,7 @@ class RoomProfileFragment :
     }
 
     private fun onAvatarClicked() = withState(roomProfileViewModel) { state ->
-        state.roomSummary()?.toMatrixItem()?.let { matrixItem ->
+        state.roomSummary()?.toDisplayMatrixItem()?.let { matrixItem ->
             navigator.openBigImageViewer(requireActivity(), matrixItem)
         }
     }
