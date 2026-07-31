@@ -315,7 +315,7 @@ internal abstract class SessionModule {
                 sessionParams: SessionParams,
                 retrofitFactory: RetrofitFactory
         ): Retrofit {
-            var uri = sessionParams.homeServerConnectionConfig.homeServerUriBase.toString()
+            var uri = sessionParams.homeServerConnectionConfig.homeServerUriBase
             if (uri == "http://localhost:8080") {
                 uri = "http://10.0.2.2:8080"
             } else if (uri == "http://localhost:8081") {

@@ -613,13 +613,13 @@ class LoginViewModel @AssistedInject constructor(
     ) {
         val alteredHomeServerConnectionConfig = homeServerConnectionConfig
                 ?.copy(
-                        homeServerUriBase = Uri.parse(wellKnownPrompt.homeServerUrl),
-                        identityServerUri = wellKnownPrompt.identityServerUrl?.let { Uri.parse(it) }
+                        homeServerUriBase = wellKnownPrompt.homeServerUrl,
+                        identityServerUri = wellKnownPrompt.identityServerUrl
                 )
                 ?: HomeServerConnectionConfig(
-                        homeServerUri = Uri.parse("https://${action.username.getServerName()}"),
-                        homeServerUriBase = Uri.parse(wellKnownPrompt.homeServerUrl),
-                        identityServerUri = wellKnownPrompt.identityServerUrl?.let { Uri.parse(it) }
+                        homeServerUri = "https://${action.username.getServerName()}",
+                        homeServerUriBase = wellKnownPrompt.homeServerUrl,
+                        identityServerUri = wellKnownPrompt.identityServerUrl
                 )
 
         val data = try {
@@ -778,7 +778,7 @@ class LoginViewModel @AssistedInject constructor(
                         asyncHomeServerLoginFlowRequest = Loading(),
                         // If user has entered https://matrix.org, ensure that server type is ServerType.MatrixOrg
                         // It is also useful to set the value again in the case of a certificate error on matrix.org
-                        serverType = if (homeServerConnectionConfig.homeServerUri.toString() == matrixOrgUrl) {
+                        serverType = if (homeServerConnectionConfig.homeServerUri == matrixOrgUrl) {
                             ServerType.MatrixOrg
                         } else {
                             serverTypeOverride ?: serverType
@@ -804,7 +804,7 @@ class LoginViewModel @AssistedInject constructor(
 
             // Valid Homeserver, add it to the history.
             // Note: we add what the user has input, data.homeServerUrlBase can be different
-            rememberHomeServer(homeServerConnectionConfig.homeServerUri.toString())
+            rememberHomeServer(homeServerConnectionConfig.homeServerUri)
 
             val loginMode = when {
                 // SSO login is taken first
@@ -821,7 +821,7 @@ class LoginViewModel @AssistedInject constructor(
             setState {
                 copy(
                         asyncHomeServerLoginFlowRequest = Uninitialized,
-                        homeServerUrlFromUser = homeServerConnectionConfig.homeServerUri.toString(),
+                        homeServerUrlFromUser = homeServerConnectionConfig.homeServerUri,
                         homeServerUrl = data.homeServerUrl,
                         loginMode = loginMode,
                         loginModeSupportedTypes = data.supportedLoginTypes.toList()

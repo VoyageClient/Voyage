@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.auth
 
-import android.net.Uri
 import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
@@ -59,18 +58,17 @@ internal class DefaultSessionParamsCreator @Inject constructor(
                     ?.trim { it == '/' }
                     ?.takeIf { it.isNotBlank() }
                     // It can be the same value, so in this case, do not check again the validity
-                    ?.takeIf { it != homeServerConnectionConfig.homeServerUriBase.toString() }
+                    ?.takeIf { it != homeServerConnectionConfig.homeServerUriBase }
                     ?.also { Timber.d("Overriding homeserver url to $it (will check if valid)") }
-                    ?.let { Uri.parse(it) }
                     ?.takeIf { validateUri(it, homeServerConnectionConfig) }
 
-    private suspend fun validateUri(uri: Uri, homeServerConnectionConfig: HomeServerConnectionConfig) =
+    private suspend fun validateUri(uri: String, homeServerConnectionConfig: HomeServerConnectionConfig) =
             // Validate the URL, if the configuration is wrong server side, do not override
             tryOrNull {
                 performClientServerApiValidation(uri, homeServerConnectionConfig)
             } ?: true // In case of other error (no network, etc.), consider it is valid...
 
-    private suspend fun performClientServerApiValidation(uri: Uri, homeServerConnectionConfig: HomeServerConnectionConfig) =
+    private suspend fun performClientServerApiValidation(uri: String, homeServerConnectionConfig: HomeServerConnectionConfig) =
             isValidClientServerApiTask.execute(
                     IsValidClientServerApiTask.Params(homeServerConnectionConfig.copy(homeServerUriBase = uri))
             ).also { Timber.d("Overriding homeserver url: $it") }
@@ -79,5 +77,4 @@ internal class DefaultSessionParamsCreator @Inject constructor(
             ?.trim { it == '/' }
             ?.takeIf { it.isNotBlank() }
             ?.also { Timber.d("Overriding identity server url to $it") }
-            ?.let { Uri.parse(it) }
 }

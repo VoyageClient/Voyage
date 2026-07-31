@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.auth.data
 
 import org.matrix.android.sdk.api.auth.LoginType
+import org.matrix.android.sdk.internal.util.uriHost
 
 /**
  * This data class holds necessary data to open a session.
@@ -60,21 +61,21 @@ data class SessionParams(
     /**
      * The homeserver Url entered by the user during the login phase.
      */
-    val homeServerUrl = homeServerConnectionConfig.homeServerUri.toString()
+    val homeServerUrl = homeServerConnectionConfig.homeServerUri
 
     /**
      * The current homeserver Url for client-server API. It can be different that the homeserver url entered
      * during login phase, because a redirection may have occurred
      */
-    val homeServerUrlBase = homeServerConnectionConfig.homeServerUriBase.toString()
+    val homeServerUrlBase = homeServerConnectionConfig.homeServerUriBase
 
     /**
      * The current homeserver host, using what has been entered by the user during login phase.
      */
-    val homeServerHost = homeServerConnectionConfig.homeServerUri.host
+    val homeServerHost = homeServerConnectionConfig.homeServerUri.uriHost()
 
     /**
      * The default identity server url if any, returned by the homeserver during login phase.
      */
-    val defaultIdentityServerUrl = homeServerConnectionConfig.identityServerUri?.toString()
+    val defaultIdentityServerUrl = homeServerConnectionConfig.identityServerUri
 }

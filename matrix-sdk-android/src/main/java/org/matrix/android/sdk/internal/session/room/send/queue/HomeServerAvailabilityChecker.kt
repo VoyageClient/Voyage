@@ -17,6 +17,8 @@
 package org.matrix.android.sdk.internal.session.room.send.queue
 
 import org.matrix.android.sdk.api.auth.data.SessionParams
+import org.matrix.android.sdk.internal.util.uriHost
+import org.matrix.android.sdk.internal.util.uriPort
 import timber.log.Timber
 import java.io.IOException
 import java.net.InetAddress
@@ -26,8 +28,8 @@ import java.net.Socket
 internal class HomeServerAvailabilityChecker(val sessionParams: SessionParams) {
 
     fun check(): Boolean {
-        val host = sessionParams.homeServerConnectionConfig.homeServerUriBase.host ?: return false
-        val port = sessionParams.homeServerConnectionConfig.homeServerUriBase.port.takeIf { it != -1 } ?: 80
+        val host = sessionParams.homeServerConnectionConfig.homeServerUriBase.uriHost() ?: return false
+        val port = sessionParams.homeServerConnectionConfig.homeServerUriBase.uriPort().takeIf { it != -1 } ?: 80
         val timeout = 30_000
         try {
             // Socket implements Closeable only on API 19+, so kotlin's `use` is unavailable; close explicitly.
