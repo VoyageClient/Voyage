@@ -86,7 +86,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun livePushers(): Flow<List<Pusher>> {
-        return session.pushersService().getPushersLive().asFlow()
+        return session.pushersService().getPushersFlow()
     }
 
     fun liveUser(userId: String): Flow<Optional<User>> {
