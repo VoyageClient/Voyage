@@ -15,13 +15,14 @@
  */
 package org.matrix.android.sdk.internal.session.pushers
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.pushers.HttpPusher
 import org.matrix.android.sdk.api.session.pushers.Pusher
 import org.matrix.android.sdk.api.session.pushers.PushersService
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
@@ -151,8 +152,8 @@ internal class DefaultPushersService @Inject constructor(
         removePusherTask.execute(params)
     }
 
-    override fun getPushersLive(): LiveData<List<Pusher>> {
-        return database.pusherQueries.selectAll().asLiveList(dispatcher)
+    override fun getPushersFlow(): Flow<List<Pusher>> {
+        return database.pusherQueries.selectAll().asFlow().mapToList(dispatcher)
                 .map { stores.pushers.getAll().map { entity -> entity.asDomain() } }
     }
 

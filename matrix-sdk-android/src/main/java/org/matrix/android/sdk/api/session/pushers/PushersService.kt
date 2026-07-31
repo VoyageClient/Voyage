@@ -15,7 +15,7 @@
  */
 package org.matrix.android.sdk.api.session.pushers
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 interface PushersService {
@@ -111,9 +111,9 @@ interface PushersService {
     suspend fun removeEmailPusher(email: String)
 
     /**
-     * Get the current pushers, as a LiveData.
+     * Get the current pushers, as a Flow.
      */
-    fun getPushersLive(): LiveData<List<Pusher>>
+    fun getPushersFlow(): Flow<List<Pusher>>
 
     /**
      * Get the current pushers.
