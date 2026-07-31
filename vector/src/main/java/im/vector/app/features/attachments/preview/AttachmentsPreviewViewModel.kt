@@ -32,7 +32,7 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
     private fun handleUpdatePathOfCurrentAttachment(action: AttachmentsPreviewAction.UpdatePathOfCurrentAttachment) = withState {
         val attachments = it.attachments.mapIndexed { index, contentAttachmentData ->
             if (index == it.currentAttachmentIndex) {
-                contentAttachmentData.copy(queryUri = action.newUri)
+                contentAttachmentData.copy(queryUri = action.newUri.toString())
             } else {
                 contentAttachmentData
             }

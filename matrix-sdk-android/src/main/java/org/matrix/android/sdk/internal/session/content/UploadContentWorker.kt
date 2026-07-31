@@ -28,6 +28,7 @@ import com.vanniktech.blurhash.BlurHash
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -126,9 +127,9 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         if (isCancelled(params)) {
             Timber.e("## Send: Work cancelled by user")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.revokeUriPermission(context.packageName, params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                context.revokeUriPermission(context.packageName, params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } else {
-                context.revokeUriPermission(params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                context.revokeUriPermission(params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             return Result.failure()
         }
@@ -144,7 +145,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             suspend fun workingFile(): File {
                 cachedWorkingFile?.let { return it }
                 val f = temporaryFileCreator.create().also { filesToDelete.add(it) }
-                val input = context.contentResolver.openInputStream(attachment.queryUri)
+                val input = context.contentResolver.openInputStream(attachment.queryUriAndroid)
                         ?: throw IOException("Cannot openInputStream for file: ${attachment.queryUri}")
                 input.use { inStream -> f.outputStream().use { inStream.copyTo(it) } }
                 cachedWorkingFile = f
@@ -306,7 +307,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 // Picked audio uses a MediaStore URI we don't own — let the delete fail quietly.
                 if (params.attachment.type == ContentAttachmentData.Type.VOICE_MESSAGE) {
                     tryOrNull("Failed to delete voice message source") {
-                        context.contentResolver.delete(params.attachment.queryUri, null, null)
+                        context.contentResolver.delete(params.attachment.queryUriAndroid, null, null)
                     }
                 }
 
@@ -359,7 +360,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 notifyTracker(params) { contentUploadStateTracker.setCompressingVideo(it, progress.toFloat()) }
             }
         }
-        return when (val result = videoCompressor.compress(params.attachment.queryUri, params.attachment.size, progressListener)) {
+        return when (val result = videoCompressor.compress(params.attachment.queryUriAndroid, params.attachment.size, progressListener)) {
             is VideoCompressionResult.Success -> {
                 // Transcoding produces a fresh container with no source metadata atoms.
                 val compressedFile = result.compressedFile.also { filesToDelete.add(it) }
@@ -530,9 +531,9 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             Timber.v("## handleSuccess $attachmentUrl, work is stopped $isStopped")
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.revokeUriPermission(context.packageName, params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                context.revokeUriPermission(context.packageName, params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             } else {
-                context.revokeUriPermission(params.attachment.queryUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                context.revokeUriPermission(params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
     }

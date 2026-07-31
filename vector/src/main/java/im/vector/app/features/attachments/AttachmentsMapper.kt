@@ -61,7 +61,7 @@ fun MultiPickerFileType.toContentAttachmentData(): ContentAttachmentData {
             type = mapType(),
             size = size,
             name = displayName,
-            queryUri = contentUri
+            queryUri = contentUri.toString()
     )
 }
 
@@ -73,7 +73,7 @@ fun MultiPickerAudioType.toContentAttachmentData(isVoiceMessage: Boolean): Conte
             size = size,
             name = displayName,
             duration = duration,
-            queryUri = contentUri,
+            queryUri = contentUri.toString(),
             waveform = waveform
     )
 }
@@ -115,7 +115,7 @@ fun MultiPickerImageType.toContentAttachmentData(): ContentAttachmentData {
             height = height.toLong(),
             width = width.toLong(),
             exifOrientation = orientation,
-            queryUri = contentUri
+            queryUri = contentUri.toString()
     )
 }
 
@@ -133,6 +133,6 @@ fun MultiPickerVideoType.toContentAttachmentData(): ContentAttachmentData {
             width = (if (sideways) height else width).toLong(),
             duration = duration,
             name = displayName,
-            queryUri = contentUri
+            queryUri = contentUri.toString()
     )
 }

@@ -52,6 +52,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import java.io.File
 import javax.inject.Inject
 
@@ -217,7 +218,7 @@ class AttachmentsPreviewFragment :
     private fun handleEditAction() = withState(viewModel) {
         val currentAttachment = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
         val destinationFile = File(requireContext().cacheDir, currentAttachment.name.insertBeforeLast("_edited_image_${clock.epochMillis()}"))
-        val uri = currentAttachment.queryUri
+        val uri = currentAttachment.queryUriAndroid
         createUCropWithDefaultSettings(colorProvider, uri, destinationFile.toUri(), currentAttachment.name)
                 .getIntent(requireContext())
                 .apply { setClass(requireContext(), VectorUCropActivity::class.java) }
