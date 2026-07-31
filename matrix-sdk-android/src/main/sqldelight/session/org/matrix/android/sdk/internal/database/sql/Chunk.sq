@@ -71,6 +71,12 @@ UPDATE chunk SET prev_token = ? WHERE id = ?;
 selectChunkIdIncludingEvent:
 SELECT chunk_id FROM timeline_event WHERE room_id = ? AND event_id = ? AND chunk_id IS NOT NULL LIMIT 1;
 
+selectMainChunkIdIncludingEvent:
+SELECT te.chunk_id FROM timeline_event te
+JOIN chunk c ON c.id = te.chunk_id
+WHERE te.room_id = ? AND te.event_id = ? AND c.root_thread_event_id IS NULL
+LIMIT 1;
+
 updateLinks:
 UPDATE chunk SET prev_chunk_id = ?, next_chunk_id = ? WHERE id = ?;
 

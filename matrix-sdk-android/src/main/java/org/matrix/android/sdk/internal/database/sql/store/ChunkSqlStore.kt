@@ -74,6 +74,10 @@ internal class ChunkSqlStore(private val database: SessionSqlDatabase) {
     fun findChunkIdIncludingEvent(roomId: String, eventId: String): Long? =
             queries.selectChunkIdIncludingEvent(roomId, eventId).executeAsOneOrNull()
 
+    /** Like [findChunkIdIncludingEvent] but ignores thread-timeline chunks (which duplicate main-timeline events by design). */
+    fun findMainChunkIdIncludingEvent(roomId: String, eventId: String): Long? =
+            queries.selectMainChunkIdIncludingEvent(roomId, eventId).executeAsOneOrNull()?.chunk_id
+
     fun updateLinks(id: Long, prevChunkId: Long?, nextChunkId: Long?) = queries.updateLinks(prevChunkId, nextChunkId, id)
 
     fun updatePrevChunkId(id: Long, prevChunkId: Long?) = queries.updatePrevChunkId(prevChunkId, id)

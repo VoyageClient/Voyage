@@ -110,8 +110,16 @@ internal class TokenChunkEventPersistor @Inject constructor(
                 roomMemberContentsByUser[stateKey] = stateEvent.content.toModel<RoomMemberContent>()
             }
         }
-        receivedChunk.events.forEach { event ->
-            if (event.eventId == null || event.senderId == null || event.type == null) return@forEach
+        for (event in receivedChunk.events) {
+            if (event.eventId == null || event.senderId == null || event.type == null) continue
+            // A pagination response can overlap events already stored in another chunk (server token
+            // boundaries don't align with ours). Adding them again would duplicate them in the
+            // timeline: instead link the chunks — the remaining events all live there already.
+            val knownChunkId = stores.chunk.findMainChunkIdIncludingEvent(roomId, event.eventId)
+            if (knownChunkId != null && knownChunkId != currentChunkId) {
+                linkToKnownChunk(direction, currentChunkId, knownChunkId, event.eventId)
+                break
+            }
             val ageLocalTs = now - (event.unsignedData?.age ?: 0)
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
             val dbId = insertEventOrIgnore(entity, EventInsertType.PAGINATION)
@@ -122,6 +130,40 @@ internal class TokenChunkEventPersistor @Inject constructor(
             }
             liveEventManager.get().dispatchPaginatedEventReceived(event, roomId)
             stores.timelineWriter.addTimelineEvent(currentChunkId, roomId, dbId, entity, isLastForward = false, direction, roomMemberContentsByUser = roomMemberContentsByUser)
+        }
+    }
+
+    /**
+     * Pagination reached an event that another main chunk already contains: link the two chunks
+     * (in the pagination direction) instead of duplicating events. Existing conflicting links are
+     * left alone — the chunks then stay unlinked here, which only costs an extra pagination later.
+     */
+    private fun linkToKnownChunk(direction: PaginationDirection, currentChunkId: Long, knownChunkId: Long, eventId: String) {
+        Timber.i("Pagination $direction reached known event $eventId of chunk $knownChunkId, linking chunk $currentChunkId to it")
+        val current = stores.chunk.getById(currentChunkId) ?: return
+        val known = stores.chunk.getById(knownChunkId) ?: return
+        if (direction == PaginationDirection.BACKWARDS) {
+            if (current.prev_chunk_id == null || current.prev_chunk_id == knownChunkId) {
+                stores.chunk.updatePrevChunkId(currentChunkId, knownChunkId)
+            } else {
+                Timber.w("Not linking: chunk $currentChunkId already has prev ${current.prev_chunk_id}")
+            }
+            if (known.next_chunk_id == null || known.next_chunk_id == currentChunkId) {
+                stores.chunk.updateNextChunkId(knownChunkId, currentChunkId)
+            } else {
+                Timber.w("Not linking: chunk $knownChunkId already has next ${known.next_chunk_id}")
+            }
+        } else {
+            if (current.next_chunk_id == null || current.next_chunk_id == knownChunkId) {
+                stores.chunk.updateNextChunkId(currentChunkId, knownChunkId)
+            } else {
+                Timber.w("Not linking: chunk $currentChunkId already has next ${current.next_chunk_id}")
+            }
+            if (known.prev_chunk_id == null || known.prev_chunk_id == currentChunkId) {
+                stores.chunk.updatePrevChunkId(knownChunkId, currentChunkId)
+            } else {
+                Timber.w("Not linking: chunk $knownChunkId already has prev ${known.prev_chunk_id}")
+            }
         }
     }
 
