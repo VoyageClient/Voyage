@@ -17,7 +17,11 @@
 package org.matrix.android.sdk.internal.session.room.accountdata
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import androidx.lifecycle.asLiveData
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.util.Optional
@@ -25,7 +29,6 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.AccountDataMapper
 import org.matrix.android.sdk.internal.database.model.RoomAccountDataEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import javax.inject.Inject
 import org.matrix.android.sdk.internal.database.sql.Room_account_data as RoomAccountDataRow
@@ -41,8 +44,8 @@ internal class RoomAccountDataDataSource @Inject constructor(
         return getAccountDataEvents(roomId, setOf(type)).firstOrNull()
     }
 
-    fun getLiveAccountDataEvent(roomId: String, type: String): LiveData<Optional<RoomAccountDataEvent>> {
-        return getLiveAccountDataEvents(roomId, setOf(type)).map { it.firstOrNull().toOptional() }
+    fun getAccountDataEventFlow(roomId: String, type: String): Flow<Optional<RoomAccountDataEvent>> {
+        return getAccountDataEventsFlow(roomId, setOf(type)).map { it.firstOrNull().toOptional() }
     }
 
     fun getAccountDataEvents(roomId: String?, types: Set<String>): List<RoomAccountDataEvent> {
@@ -50,12 +53,19 @@ internal class RoomAccountDataDataSource @Inject constructor(
         return rows.filter { types.isEmpty() || it.type in types }.map { it.toEvent() }
     }
 
-    fun getLiveAccountDataEvents(roomId: String?, types: Set<String>): LiveData<List<RoomAccountDataEvent>> {
+    fun getAccountDataEventsFlow(roomId: String?, types: Set<String>): Flow<List<RoomAccountDataEvent>> {
         val query = if (roomId != null) queries.selectByRoom(roomId) else queries.selectAll()
-        return query.asLiveList(dispatcher).map { rows ->
+        return query.asFlow().mapToList(dispatcher).map { rows ->
             rows.filter { types.isEmpty() || it.type in types }.map { it.toEvent() }
         }
     }
+
+    // LiveData views for the android-only internal consumers (IntegrationManager/WidgetManager etc.).
+    fun getLiveAccountDataEvent(roomId: String, type: String): LiveData<Optional<RoomAccountDataEvent>> =
+            getAccountDataEventFlow(roomId, type).asLiveData()
+
+    fun getLiveAccountDataEvents(roomId: String?, types: Set<String>): LiveData<List<RoomAccountDataEvent>> =
+            getAccountDataEventsFlow(roomId, types).asLiveData()
 
     private fun RoomAccountDataRow.toEvent(): RoomAccountDataEvent =
             accountDataMapper.map(room_id, RoomAccountDataEntity(type = type, contentStr = content_str))

@@ -280,8 +280,7 @@ class SpaceListViewModel @AssistedInject constructor(
         combine(
                 getSpacesUseCase.execute(params),
                 session.accountDataService()
-                        .getLiveRoomAccountDataEvents(setOf(RoomAccountDataTypes.EVENT_TYPE_SPACE_ORDER))
-                        .asFlow()
+                        .getRoomAccountDataEventsFlow(setOf(RoomAccountDataTypes.EVENT_TYPE_SPACE_ORDER))
         ) { spaces, _ ->
             spaces
         }.execute { asyncSpaces ->
@@ -307,8 +306,7 @@ class SpaceListViewModel @AssistedInject constructor(
 
         // clear local echos on update
         session.accountDataService()
-                .getLiveRoomAccountDataEvents(setOf(RoomAccountDataTypes.EVENT_TYPE_SPACE_ORDER))
-                .asFlow()
+                .getRoomAccountDataEventsFlow(setOf(RoomAccountDataTypes.EVENT_TYPE_SPACE_ORDER))
                 .execute {
                     copy(
                             spaceOrderLocalEchos = emptyMap()

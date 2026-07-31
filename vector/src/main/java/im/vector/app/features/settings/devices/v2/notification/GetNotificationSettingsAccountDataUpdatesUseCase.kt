@@ -21,8 +21,7 @@ class GetNotificationSettingsAccountDataUpdatesUseCase @Inject constructor() {
     fun execute(session: Session, deviceId: String): Flow<LocalNotificationSettingsContent?> {
         return session
                 .accountDataService()
-                .getLiveUserAccountDataEvent(UserAccountDataTypes.TYPE_LOCAL_NOTIFICATION_SETTINGS + deviceId)
-                .asFlow()
+                .getUserAccountDataEventFlow(UserAccountDataTypes.TYPE_LOCAL_NOTIFICATION_SETTINGS + deviceId)
                 .map { it.getOrNull()?.content?.toModel<LocalNotificationSettingsContent>() }
     }
 }

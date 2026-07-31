@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.accountdata
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -40,16 +40,16 @@ internal class DefaultRoomAccountDataService @AssistedInject constructor(
         return dataSource.getAccountDataEvent(roomId, type)
     }
 
-    override fun getLiveAccountDataEvent(type: String): LiveData<Optional<RoomAccountDataEvent>> {
-        return dataSource.getLiveAccountDataEvent(roomId, type)
+    override fun getAccountDataEventFlow(type: String): Flow<Optional<RoomAccountDataEvent>> {
+        return dataSource.getAccountDataEventFlow(roomId, type)
     }
 
     override fun getAccountDataEvents(types: Set<String>): List<RoomAccountDataEvent> {
         return dataSource.getAccountDataEvents(roomId, types)
     }
 
-    override fun getLiveAccountDataEvents(types: Set<String>): LiveData<List<RoomAccountDataEvent>> {
-        return dataSource.getLiveAccountDataEvents(roomId, types)
+    override fun getAccountDataEventsFlow(types: Set<String>): Flow<List<RoomAccountDataEvent>> {
+        return dataSource.getAccountDataEventsFlow(roomId, types)
     }
 
     override suspend fun updateAccountData(type: String, content: Content) {

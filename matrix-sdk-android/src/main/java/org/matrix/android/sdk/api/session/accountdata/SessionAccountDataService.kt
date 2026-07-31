@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.accountdata
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.util.Optional
@@ -33,7 +33,7 @@ interface SessionAccountDataService {
     /**
      * Observe the account data with the provided type.
      */
-    fun getLiveUserAccountDataEvent(type: String): LiveData<Optional<UserAccountDataEvent>>
+    fun getUserAccountDataEventFlow(type: String): Flow<Optional<UserAccountDataEvent>>
 
     /**
      * Retrieve the account data with the provided types. The return list can have a different size that
@@ -45,7 +45,7 @@ interface SessionAccountDataService {
     /**
      * Observe the account data with the provided types. If an empty set is provided, all the AccountData are observed
      */
-    fun getLiveUserAccountDataEvents(types: Set<String>): LiveData<List<UserAccountDataEvent>>
+    fun getUserAccountDataEventsFlow(types: Set<String>): Flow<List<UserAccountDataEvent>>
 
     /**
      * Retrieve the room account data with the provided types. The return list can have a different size that
@@ -57,7 +57,7 @@ interface SessionAccountDataService {
     /**
      * Observe the room account data with the provided types. If an empty set is provided, AccountData of every room are observed
      */
-    fun getLiveRoomAccountDataEvents(types: Set<String>): LiveData<List<RoomAccountDataEvent>>
+    fun getRoomAccountDataEventsFlow(types: Set<String>): Flow<List<RoomAccountDataEvent>>
 
     /**
      * Update the account data with the provided type and the provided account data content.
