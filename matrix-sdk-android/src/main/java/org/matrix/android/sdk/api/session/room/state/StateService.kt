@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.state
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
@@ -132,7 +132,7 @@ interface StateService {
      * @param eventType An eventType.
      * @param stateKey the query which will be done on the stateKey
      */
-    fun getStateEventLive(eventType: String, stateKey: QueryStateEventValue): LiveData<Optional<Event>>
+    fun getStateEventFlow(eventType: String, stateKey: QueryStateEventValue): Flow<Optional<Event>>
 
     /**
      * Get state events of the room.
@@ -146,12 +146,12 @@ interface StateService {
      * @param eventTypes Set of eventType to observe. If empty, all state events will be observed
      * @param stateKey the query which will be done on the stateKey
      */
-    fun getStateEventsLive(eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>>
+    fun getStateEventsFlow(eventTypes: Set<String>, stateKey: QueryStateEventValue): Flow<List<Event>>
 
     suspend fun setJoinRulePublic()
     suspend fun setJoinRuleInviteOnly()
     suspend fun setJoinRuleKnock()
     suspend fun setJoinRuleRestricted(allowList: List<String>)
     fun getRoomPowerLevels(): RoomPowerLevels
-    fun getRoomPowerLevelsLive(): LiveData<RoomPowerLevels>
+    fun getRoomPowerLevelsFlow(): Flow<RoomPowerLevels>
 }

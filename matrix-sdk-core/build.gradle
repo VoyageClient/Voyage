@@ -282,6 +282,7 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/room/members/MembershipService.kt',
         'org/matrix/android/sdk/api/session/room/members/RoomMemberQueryParams.kt',
         'org/matrix/android/sdk/api/query/**',
+        'org/matrix/android/sdk/api/session/room/state/StateService.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

@@ -84,14 +84,14 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveStateEvent(eventType: String, stateKey: QueryStateEventValue): Flow<Optional<Event>> {
-        return room.stateService().getStateEventLive(eventType, stateKey).asFlow()
+        return room.stateService().getStateEventFlow(eventType, stateKey)
                 .startWith(room.coroutineDispatchers.io) {
                     room.getStateEvent(eventType, stateKey).toOptional()
                 }
     }
 
     fun liveStateEvents(eventTypes: Set<String>, stateKey: QueryStateEventValue): Flow<List<Event>> {
-        return room.stateService().getStateEventsLive(eventTypes, stateKey).asFlow()
+        return room.stateService().getStateEventsFlow(eventTypes, stateKey)
                 .startWith(room.coroutineDispatchers.io) {
                     room.stateService().getStateEvents(eventTypes, stateKey)
                 }
@@ -105,7 +105,7 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveRoomPowerLevels(): Flow<RoomPowerLevels> {
-        return room.stateService().getRoomPowerLevelsLive().asFlow()
+        return room.stateService().getRoomPowerLevelsFlow()
     }
 
     fun liveReadMarker(): Flow<Optional<String>> {
