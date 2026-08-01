@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.session.room
 
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
@@ -128,13 +129,13 @@ interface RoomService {
      * A live [RoomSummary] associated with the room with id [roomId].
      * You can observe this summary to get dynamic data from this room, even if the room is not joined yet
      */
-    fun getRoomSummaryLive(roomId: String): LiveData<Optional<RoomSummary>>
+    fun getRoomSummaryFlow(roomId: String): Flow<Optional<RoomSummary>>
 
     /**
      * A live [LocalRoomSummary] associated with the room with id [roomId].
      * You can observe this summary to get dynamic data from this room, even if the room is not joined yet
      */
-    fun getLocalRoomSummaryLive(roomId: String): LiveData<Optional<LocalRoomSummary>>
+    fun getLocalRoomSummaryFlow(roomId: String): Flow<Optional<LocalRoomSummary>>
 
     /**
      * Get a snapshot list of room summaries.

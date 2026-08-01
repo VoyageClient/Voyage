@@ -483,8 +483,7 @@ class TimelineViewModel @AssistedInject constructor(
         if (room == null) return
         val threadNotificationsSupported = session.homeServerCapabilitiesService().getHomeServerCapabilities().canUseThreadReadReceiptsAndNotifications
         if (threadNotificationsSupported) {
-            room.getRoomSummaryLive()
-                    .asFlow()
+            room.getRoomSummaryFlow()
                     .onEach {
                         it.getOrNull()?.let {
                             setState {

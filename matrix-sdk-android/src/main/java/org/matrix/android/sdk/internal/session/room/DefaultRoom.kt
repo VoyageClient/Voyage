@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataService
@@ -77,16 +77,16 @@ internal class DefaultRoom(
         override val coroutineDispatchers: MatrixCoroutineDispatchers
 ) : Room {
 
-    override fun getRoomSummaryLive(): LiveData<Optional<RoomSummary>> {
-        return roomSummaryDataSource.getRoomSummaryLive(roomId)
+    override fun getRoomSummaryFlow(): Flow<Optional<RoomSummary>> {
+        return roomSummaryDataSource.getRoomSummaryFlow(roomId)
     }
 
     override fun roomSummary(): RoomSummary? {
         return roomSummaryDataSource.getRoomSummary(roomId)
     }
 
-    override fun getLocalRoomSummaryLive(): LiveData<Optional<LocalRoomSummary>> {
-        return roomSummaryDataSource.getLocalRoomSummaryLive(roomId)
+    override fun getLocalRoomSummaryFlow(): Flow<Optional<LocalRoomSummary>> {
+        return roomSummaryDataSource.getLocalRoomSummaryFlow(roomId)
     }
 
     override fun localRoomSummary(): LocalRoomSummary? {

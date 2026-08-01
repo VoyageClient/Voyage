@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataService
 import org.matrix.android.sdk.api.session.room.alias.AliasService
@@ -60,13 +60,13 @@ interface Room {
      * A live [RoomSummary] associated with the room.
      * You can observe this summary to get dynamic data from this room.
      */
-    fun getRoomSummaryLive(): LiveData<Optional<RoomSummary>>
+    fun getRoomSummaryFlow(): Flow<Optional<RoomSummary>>
 
     /**
      * A live [LocalRoomSummary] associated with the room.
      * You can observe this summary to get dynamic data from this room.
      */
-    fun getLocalRoomSummaryLive(): LiveData<Optional<LocalRoomSummary>>
+    fun getLocalRoomSummaryFlow(): Flow<Optional<LocalRoomSummary>>
 
     /**
      * A current snapshot of [RoomSummary] associated with the room.
