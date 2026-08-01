@@ -35,8 +35,8 @@ class GetDeviceFullInfoUseCase @Inject constructor(
         return activeSessionHolder.getSafeActiveSession()?.let { session ->
             combine(
                     getCurrentSessionCrossSigningInfoUseCase.execute(),
-                    session.cryptoService().getMyDevicesInfoLive(deviceId).asFlow(),
-                    session.cryptoService().getLiveCryptoDeviceInfoWithId(deviceId).asFlow()
+                    session.cryptoService().getMyDevicesInfoFlow(deviceId),
+                    session.cryptoService().getCryptoDeviceInfoWithIdFlow(deviceId)
             ) { currentSessionCrossSigningInfo, deviceInfo, cryptoDeviceInfo ->
                 val info = deviceInfo.getOrNull()
                 val cryptoInfo = cryptoDeviceInfo.getOrNull()

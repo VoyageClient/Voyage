@@ -8,8 +8,6 @@
 package org.matrix.android.sdk.internal.crypto.store.db.sql
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map
 import androidx.paging.PagedList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -159,10 +157,10 @@ internal class SqlCryptoStore @Inject constructor(
     override fun storeUSKPrivateKey(usk: String?) = metadataStore.storeUSKPrivateKey(usk)
     override fun getCrossSigningPrivateKeys(): PrivateKeysInfo? = metadataStore.getCrossSigningPrivateKeys()
 
-    override fun getLiveGlobalCryptoConfig(): LiveData<GlobalCryptoConfig> =
+    override fun getGlobalCryptoConfigFlow(): Flow<GlobalCryptoConfig> =
             database.cryptoMetadataQueries.selectFirst().asFlow().mapToOneOrNull(dispatcher)
                     .map { row -> row?.let { GlobalCryptoConfig(it.global_blacklist_unverified_devices == 1L, it.global_enable_key_gossiping == 1L, it.enable_key_forwarding_on_invite == 1L) } ?: GlobalCryptoConfig(false, false, false) }
-                    .flowOn(dispatcher).asLiveData()
+                    .flowOn(dispatcher)
 
     override fun getCrossSigningPrivateKeysFlow(): Flow<Optional<PrivateKeysInfo>> =
             database.cryptoMetadataQueries.selectFirst().asFlow().mapToOneOrNull(dispatcher)
@@ -266,17 +264,17 @@ internal class SqlCryptoStore @Inject constructor(
     override fun getUserDevices(userId: String): Map<String, CryptoDeviceInfo>? = deviceStore.getUserDevices(userId)
     override fun getUserDeviceList(userId: String): List<CryptoDeviceInfo>? = deviceStore.getUserDeviceList(userId)
 
-    override fun getLiveDeviceList(userId: String): LiveData<List<CryptoDeviceInfo>> =
-            database.cryptoDevicesQueries.deviceSelectByUserId(userId).asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher).asLiveData()
+    override fun getDeviceListFlow(userId: String): Flow<List<CryptoDeviceInfo>> =
+            database.cryptoDevicesQueries.deviceSelectByUserId(userId).asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher)
 
-    override fun getLiveDeviceList(userIds: List<String>): LiveData<List<CryptoDeviceInfo>> =
-            database.cryptoDevicesQueries.deviceSelectByUserIds(userIds.distinct()).asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher).asLiveData()
+    override fun getDeviceListFlow(userIds: List<String>): Flow<List<CryptoDeviceInfo>> =
+            database.cryptoDevicesQueries.deviceSelectByUserIds(userIds.distinct()).asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher)
 
-    override fun getLiveDeviceList(): LiveData<List<CryptoDeviceInfo>> =
-            database.cryptoDevicesQueries.deviceSelectAll().asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher).asLiveData()
+    override fun getDeviceListFlow(): Flow<List<CryptoDeviceInfo>> =
+            database.cryptoDevicesQueries.deviceSelectAll().asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapDeviceRow) }.flowOn(dispatcher)
 
-    override fun getLiveDeviceWithId(deviceId: String): LiveData<Optional<CryptoDeviceInfo>> =
-            getLiveDeviceList().map { devices -> devices.firstOrNull { it.deviceId == deviceId }.toOptional() }
+    override fun getDeviceWithIdFlow(deviceId: String): Flow<Optional<CryptoDeviceInfo>> =
+            getDeviceListFlow().map { devices -> devices.firstOrNull { it.deviceId == deviceId }.toOptional() }
 
     override fun getDeviceTrackingStatuses(): Map<String, Int> = deviceStore.getDeviceTrackingStatuses()
     override fun saveDeviceTrackingStatuses(deviceTrackingStatuses: Map<String, Int>) = deviceStore.saveDeviceTrackingStatuses(deviceTrackingStatuses)
@@ -285,11 +283,11 @@ internal class SqlCryptoStore @Inject constructor(
     override fun saveMyDevicesInfo(info: List<DeviceInfo>) = deviceStore.saveMyDevicesInfo(info)
     override fun getMyDevicesInfo(): List<DeviceInfo> = deviceStore.getMyDevicesInfo()
 
-    override fun getLiveMyDevicesInfo(): LiveData<List<DeviceInfo>> =
-            database.cryptoDevicesQueries.myDeviceSelectAll().asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapMyDeviceRow) }.flowOn(dispatcher).asLiveData()
+    override fun getMyDevicesInfoFlow(): Flow<List<DeviceInfo>> =
+            database.cryptoDevicesQueries.myDeviceSelectAll().asFlow().mapToList(dispatcher).map { it.map(deviceStore::mapMyDeviceRow) }.flowOn(dispatcher)
 
-    override fun getLiveMyDevicesInfo(deviceId: String): LiveData<Optional<DeviceInfo>> =
-            database.cryptoDevicesQueries.myDeviceSelectByDeviceId(deviceId).asFlow().mapToOneOrNull(dispatcher).map { it?.let(deviceStore::mapMyDeviceRow).toOptional() }.flowOn(dispatcher).asLiveData()
+    override fun getMyDevicesInfoFlow(deviceId: String): Flow<Optional<DeviceInfo>> =
+            database.cryptoDevicesQueries.myDeviceSelectByDeviceId(deviceId).asFlow().mapToOneOrNull(dispatcher).map { it?.let(deviceStore::mapMyDeviceRow).toOptional() }.flowOn(dispatcher)
 
     // ==================== Room crypto ====================
 
@@ -306,8 +304,8 @@ internal class SqlCryptoStore @Inject constructor(
     override fun getBlockUnverifiedDevices(roomId: String): Boolean = roomStore.getBlockUnverifiedDevices(roomId)
     override fun getRoomsListBlacklistUnverifiedDevices(): List<String> = roomStore.getRoomsListBlacklistUnverifiedDevices()
 
-    override fun getLiveBlockUnverifiedDevices(roomId: String): LiveData<Boolean> =
-            database.cryptoRoomQueries.roomSelectById(roomId).asFlow().mapToOneOrNull(dispatcher).map { it?.blacklist_unverified_devices == 1L }.flowOn(dispatcher).asLiveData()
+    override fun getBlockUnverifiedDevicesFlow(roomId: String): Flow<Boolean> =
+            database.cryptoRoomQueries.roomSelectById(roomId).asFlow().mapToOneOrNull(dispatcher).map { it?.blacklist_unverified_devices == 1L }.flowOn(dispatcher)
 
     // ==================== Cross signing ====================
 

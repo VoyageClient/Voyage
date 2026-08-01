@@ -7,11 +7,13 @@
 
 package im.vector.app.test.fakes
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
 import im.vector.app.test.fixtures.CryptoDeviceInfoFixture.aCryptoDeviceInfo
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
@@ -35,17 +37,17 @@ class FakeCryptoService(
 
     override suspend fun exportRoomKeys(password: String) = roomKeysExport
 
-    override fun getLiveCryptoDeviceInfo() = MutableLiveData(cryptoDeviceInfos.values.toList())
+    override fun getCryptoDeviceInfoFlow() = flowOf(cryptoDeviceInfos.values.toList())
 
-    override fun getLiveCryptoDeviceInfo(userId: String): LiveData<List<CryptoDeviceInfo>> {
-        return MutableLiveData(
+    override fun getCryptoDeviceInfoFlow(userId: String): Flow<List<CryptoDeviceInfo>> {
+        return flowOf(
                 cryptoDeviceInfos.filterKeys { it == userId }.values.toList()
         )
     }
 
-    override fun getLiveCryptoDeviceInfoWithId(deviceId: String) = cryptoDeviceInfoWithIdLiveData
+    override fun getCryptoDeviceInfoWithIdFlow(deviceId: String) = cryptoDeviceInfoWithIdLiveData.asFlow()
 
-    override fun getMyDevicesInfoLive(deviceId: String) = myDevicesInfoWithIdLiveData
+    override fun getMyDevicesInfoFlow(deviceId: String) = myDevicesInfoWithIdLiveData.asFlow()
 
     fun givenSetDeviceNameSucceeds() {
         coEvery { setDeviceName(any(), any()) } answers {

@@ -203,14 +203,14 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
 
 //    fun getUserDeviceListFlow(userId: String): Flow<List<CryptoDeviceInfo>>
 
-    fun getLiveDeviceList(userId: String): LiveData<List<CryptoDeviceInfo>>
+    fun getDeviceListFlow(userId: String): Flow<List<CryptoDeviceInfo>>
 
-    fun getLiveDeviceList(userIds: List<String>): LiveData<List<CryptoDeviceInfo>>
+    fun getDeviceListFlow(userIds: List<String>): Flow<List<CryptoDeviceInfo>>
 
     // TODO temp
-    fun getLiveDeviceList(): LiveData<List<CryptoDeviceInfo>>
+    fun getDeviceListFlow(): Flow<List<CryptoDeviceInfo>>
 
-    fun getLiveDeviceWithId(deviceId: String): LiveData<Optional<CryptoDeviceInfo>>
+    fun getDeviceWithIdFlow(deviceId: String): Flow<Optional<CryptoDeviceInfo>>
 
     /**
      * Store the crypto algorithm for a room.

@@ -25,6 +25,7 @@ import dagger.Lazy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -267,16 +268,16 @@ internal class DefaultCryptoService @Inject constructor(
         data.devices.orEmpty()
     }
 
-    override fun getMyDevicesInfoLive(): LiveData<List<DeviceInfo>> {
-        return cryptoStore.getLiveMyDevicesInfo()
+    override fun getMyDevicesInfoFlow(): Flow<List<DeviceInfo>> {
+        return cryptoStore.getMyDevicesInfoFlow()
     }
 
     override suspend fun fetchDeviceInfo(deviceId: String): DeviceInfo = withContext(coroutineDispatchers.io) {
         getDeviceInfoTask.execute(GetDeviceInfoTask.Params(deviceId))
     }
 
-    override fun getMyDevicesInfoLive(deviceId: String): LiveData<Optional<DeviceInfo>> {
-        return cryptoStore.getLiveMyDevicesInfo(deviceId)
+    override fun getMyDevicesInfoFlow(deviceId: String): Flow<Optional<DeviceInfo>> {
+        return cryptoStore.getMyDevicesInfoFlow(deviceId)
     }
 
     override fun getMyDevicesInfo(): List<DeviceInfo> {
@@ -548,20 +549,20 @@ internal class DefaultCryptoService @Inject constructor(
 //        return cryptoStore.getUserDeviceListFlow(userId)
 //    }
 
-    override fun getLiveCryptoDeviceInfo(): LiveData<List<CryptoDeviceInfo>> {
-        return cryptoStore.getLiveDeviceList()
+    override fun getCryptoDeviceInfoFlow(): Flow<List<CryptoDeviceInfo>> {
+        return cryptoStore.getDeviceListFlow()
     }
 
-    override fun getLiveCryptoDeviceInfoWithId(deviceId: String): LiveData<Optional<CryptoDeviceInfo>> {
-        return cryptoStore.getLiveDeviceWithId(deviceId)
+    override fun getCryptoDeviceInfoWithIdFlow(deviceId: String): Flow<Optional<CryptoDeviceInfo>> {
+        return cryptoStore.getDeviceWithIdFlow(deviceId)
     }
 
-    override fun getLiveCryptoDeviceInfo(userId: String): LiveData<List<CryptoDeviceInfo>> {
-        return cryptoStore.getLiveDeviceList(userId)
+    override fun getCryptoDeviceInfoFlow(userId: String): Flow<List<CryptoDeviceInfo>> {
+        return cryptoStore.getDeviceListFlow(userId)
     }
 
-    override fun getLiveCryptoDeviceInfo(userIds: List<String>): LiveData<List<CryptoDeviceInfo>> {
-        return cryptoStore.getLiveDeviceList(userIds)
+    override fun getCryptoDeviceInfoFlow(userIds: List<String>): Flow<List<CryptoDeviceInfo>> {
+        return cryptoStore.getDeviceListFlow(userIds)
     }
 
     /**
@@ -1218,8 +1219,8 @@ internal class DefaultCryptoService @Inject constructor(
         return cryptoStore.getGlobalBlacklistUnverifiedDevices()
     }
 
-    override fun getLiveGlobalCryptoConfig(): LiveData<GlobalCryptoConfig> {
-        return cryptoStore.getLiveGlobalCryptoConfig()
+    override fun getGlobalCryptoConfigFlow(): Flow<GlobalCryptoConfig> {
+        return cryptoStore.getGlobalCryptoConfigFlow()
     }
 
     /**
@@ -1240,8 +1241,8 @@ internal class DefaultCryptoService @Inject constructor(
      *
      * @return Live status
      */
-    override fun getLiveBlockUnverifiedDevices(roomId: String): LiveData<Boolean> {
-        return cryptoStore.getLiveBlockUnverifiedDevices(roomId)
+    override fun getBlockUnverifiedDevicesFlow(roomId: String): Flow<Boolean> {
+        return cryptoStore.getBlockUnverifiedDevicesFlow(roomId)
     }
 
     /**
