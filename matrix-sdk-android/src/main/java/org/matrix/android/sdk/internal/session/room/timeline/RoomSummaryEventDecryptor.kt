@@ -144,7 +144,7 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
 
                 if (failure.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID ||
                         failure.errorType == MXCryptoError.ErrorType.UNKNOWN_MESSAGE_INDEX) {
-                    (event.content["session_id"] as? String)?.let { sessionId ->
+                    (event.content?.get("session_id") as? String)?.let { sessionId ->
                         unknownSessionsFailure.getOrPut(sessionId) { mutableSetOf() }
                                 .add(event)
                     }

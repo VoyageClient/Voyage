@@ -167,8 +167,10 @@ internal class EventDecryptor @Inject constructor(
                                 mxCryptoError.errorType == MXCryptoError.ErrorType.BAD_ENCRYPTED_MESSAGE) {
                             // need to find sending device
                             val olmContent = event.content.toModel<OlmEventContent>()
-                            if (event.senderId != null && olmContent?.senderKey != null) {
-                                markOlmSessionForUnwedging(event.senderId, olmContent.senderKey)
+                            val senderId = event.senderId
+                            val senderKey = olmContent?.senderKey
+                            if (senderId != null && senderKey != null) {
+                                markOlmSessionForUnwedging(senderId, senderKey)
                             } else {
                                 Timber.tag(loggerTag.value).d("Can't mark as wedge malformed")
                             }

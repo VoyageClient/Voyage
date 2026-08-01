@@ -141,12 +141,13 @@ internal class DefaultGetWellknownTask @Inject constructor(
             return WellknownResult.FailError
         }
 
-        return if (wellKnown.identityServer == null) {
+        val identityServer = wellKnown.identityServer
+        return if (identityServer == null) {
             // No identity server
             WellknownResult.Prompt(homeServerBaseUrl, null, wellKnown)
         } else {
             // if m.identity_server is present it must be valid
-            val identityServerBaseUrl = wellKnown.identityServer.baseURL
+            val identityServerBaseUrl = identityServer.baseURL
             if (identityServerBaseUrl.isNullOrBlank()) {
                 WellknownResult.FailError
             } else {

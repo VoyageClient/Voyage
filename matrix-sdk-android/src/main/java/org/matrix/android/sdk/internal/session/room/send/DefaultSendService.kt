@@ -170,11 +170,12 @@ internal class DefaultSendService @AssistedInject constructor(
             return when (messageContent) {
                 is MessageImageContent -> {
                     // The image has not yet been sent
+                    val info = messageContent.info!!
                     val attachmentData = ContentAttachmentData(
-                            size = messageContent.info!!.size,
+                            size = info.size,
                             mimeType = messageContent.mimeType,
-                            width = messageContent.info.width.toLong(),
-                            height = messageContent.info.height.toLong(),
+                            width = info.width.toLong(),
+                            height = info.height.toLong(),
                             name = messageContent.body,
                             queryUri = messageContent.url.orEmpty(),
                             type = ContentAttachmentData.Type.IMAGE

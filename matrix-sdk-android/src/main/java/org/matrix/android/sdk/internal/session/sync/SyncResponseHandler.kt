@@ -205,10 +205,11 @@ internal class SyncResponseHandler @Inject constructor(
         measureSpan("task", "sql_session_transaction") {
             MatrixPerf.timeSuspending("sync.transaction rooms=${syncResponse.rooms?.join?.size ?: 0}j/${syncResponse.rooms?.invite?.size ?: 0}i presence=${syncResponse.presence?.events?.size ?: 0}") {
                 database.awaitDbTransaction(sessionDbDispatcher) {
-                    if (syncResponse.rooms != null) {
+                    val rooms = syncResponse.rooms
+                    if (rooms != null) {
                         reportSubtask(reporter, InitialSyncStep.ImportingAccountRoom, 1, 0.8f) {
                             MatrixPerf.time("sync.roomSyncHandler") {
-                                roomSyncHandler.handle(stores, syncResponse.rooms, isInitialSync, aggregator, reporter)
+                                roomSyncHandler.handle(stores, rooms, isInitialSync, aggregator, reporter)
                             }
                         }
                     }

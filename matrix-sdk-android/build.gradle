@@ -156,10 +156,10 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
-// SQLDelight databases. Each maps to one of the legacy Realm databases and is driven by the
-// custom FrameworkSqliteDriver (raw android.database.sqlite, no androidx.sqlite floor). The
-// dialect is pinned to the lowest SQLDelight offers (3.18); .sq files are authored within the
-// SQLite 3.6 feature set so the schema runs on very old Android.
+// SQLDelight databases. These generated classes are consumed only by this module's own store
+// impls (which stay here, excluded from :matrix-sdk-core); core's included files reference the
+// plain entity/mapper types, not the generated queries, so core filters them out of its jar and
+// there is no cross-module duplication.
 sqldelight {
     databases {
         GlobalSqlDatabase {
@@ -192,8 +192,6 @@ sqldelight {
             srcDirs.setFrom("src/main/sqldelight/session")
             dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
         }
-        // Local full-text index of decrypted events in encrypted rooms (seshat equivalent). Its own
-        // file so it can grow/clear independently and survive session-schema drops.
         EventIndexSqlDatabase {
             packageName = "org.matrix.android.sdk.internal.session.search.index.db"
             srcDirs.setFrom("src/main/sqldelight/eventindex")
@@ -203,6 +201,9 @@ sqldelight {
 }
 
 dependencies {
+    // Phase 5: the plain-JVM core module compiles the android-free subset of this module's own
+    // sources; those files are excluded from this module's compile below and consumed from core.
+    api project(':matrix-sdk-core')
     implementation libs.jetbrains.coroutinesCore
     implementation libs.jetbrains.coroutinesAndroid
 
@@ -301,4 +302,37 @@ dependencies {
     androidTestImplementation libs.tests.timberJunitRule
 
     androidTestUtil libs.androidx.orchestrator
+}
+
+// Phase 5 module inversion: :matrix-sdk-core compiles the android-free subset of THIS module's
+// sources into a plain-JVM jar. Exclude exactly those files from this module's own compilation to
+// avoid duplicate classes, and use Kotlin friend-paths so this module still sees core's `internal`
+// declarations (the friend path must be core's jar, the actual compile-classpath entry).
+evaluationDependsOn(':matrix-sdk-core')
+def coreProject = project(':matrix-sdk-core')
+def coreSrcRoot = file('src/main/java')
+def resolveCorePatterns = { patterns ->
+    def result = [] as Set
+    patterns.each { pat ->
+        if (pat.endsWith('/**')) {
+            fileTree(dir: coreSrcRoot, includes: [pat.substring(0, pat.length() - 3) + '/**/*.kt']).files.each {
+                result << coreSrcRoot.toPath().relativize(it.toPath()).toString()
+            }
+        } else if (pat.endsWith('.kt') && new File(coreSrcRoot, pat).exists()) {
+            result << pat
+        }
+    }
+    result
+}
+def coreCompiledFiles = resolveCorePatterns(coreProject.coreSources) - resolveCorePatterns(coreProject.coreExcludes)
+// BuildConfig.kt is generated for this module and only a no-op entry in coreSources; keep it here.
+coreCompiledFiles.remove('org/matrix/android/sdk/BuildConfig.kt')
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
+    task.exclude { coreCompiledFiles.contains(it.relativePath.pathString) }
+    // Friend path must be the exact classpath entry, which AGP jetifies/transforms to a cache path;
+    // derive it from the resolved compile classpath rather than the original jar location.
+    task.friendPaths.from(providers.provider {
+        task.libraries.files.findAll { it.name.contains('matrix-sdk-core') }
+    })
 }

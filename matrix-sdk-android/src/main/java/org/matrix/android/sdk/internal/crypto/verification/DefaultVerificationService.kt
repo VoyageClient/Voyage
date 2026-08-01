@@ -608,11 +608,11 @@ internal class DefaultVerificationService @Inject constructor(
                 )
 
         val validCancelReq = cancelReq?.asValidObject() ?: return
-        event.senderId ?: return
+        val senderId = event.senderId ?: return
         stateMachine.send(
                 VerificationIntent.OnCancelReceived(
                         viaRoom = roomId,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         validCancel = validCancelReq
                 )
         )
@@ -634,11 +634,11 @@ internal class DefaultVerificationService @Inject constructor(
         val cancelReq = event.getClearContent().toModel<KeyVerificationCancel>()?.asValidObject()
                 ?: return
 
-        event.senderId ?: return
+        val senderId = event.senderId ?: return
         stateMachine.send(
                 VerificationIntent.OnCancelReceived(
                         viaRoom = null,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         validCancel = cancelReq
                 )
         )
@@ -738,7 +738,8 @@ internal class DefaultVerificationService @Inject constructor(
                         relatesTo = event.content.toModel<MessageRelationContent>()?.relatesTo
                 )
                 ?.asValidObject()
-        if (macReq == null || event.senderId == null) {
+        val senderId = event.senderId
+        if (macReq == null || senderId == null) {
             // ignore
             Timber.e("## SAS Received invalid mac request")
             // TODO should we cancel?
@@ -747,7 +748,7 @@ internal class DefaultVerificationService @Inject constructor(
         stateMachine.send(
                 VerificationIntent.OnMacReceived(
                         viaRoom = roomId,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         validMac = macReq
                 )
         )
@@ -761,7 +762,8 @@ internal class DefaultVerificationService @Inject constructor(
                 )
                 ?.asValidObject()
 
-        if (readyReq == null || event.senderId == null) {
+        val senderId = event.senderId
+        if (readyReq == null || senderId == null) {
             // ignore
             Timber.e("## SAS Received invalid room ready request $readyReq senderId=${event.senderId}")
             Timber.e("## SAS Received invalid room ready content=${event.getClearContent()}")
@@ -772,7 +774,7 @@ internal class DefaultVerificationService @Inject constructor(
         stateMachine.send(
                 VerificationIntent.OnReadyReceived(
                         transactionId = readyReq.transactionId,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         viaRoom = roomId,
                         readyInfo = readyReq
                 )
@@ -798,7 +800,8 @@ internal class DefaultVerificationService @Inject constructor(
         val readyReq = event.getClearContent().toModel<KeyVerificationReady>()?.asValidObject()
         Timber.v("## SAS onReadyReceived $readyReq")
 
-        if (readyReq == null || event.senderId == null) {
+        val senderId = event.senderId
+        if (readyReq == null || senderId == null) {
             // ignore
             Timber.e("## SAS Received invalid ready request $readyReq senderId=${event.senderId}")
             Timber.e("## SAS Received invalid ready content=${event.getClearContent()}")
@@ -809,7 +812,7 @@ internal class DefaultVerificationService @Inject constructor(
         stateMachine.send(
                 VerificationIntent.OnReadyReceived(
                         transactionId = readyReq.transactionId,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         viaRoom = null,
                         readyInfo = readyReq
                 )
@@ -828,7 +831,8 @@ internal class DefaultVerificationService @Inject constructor(
     private suspend fun onDoneReceived(event: Event) {
         Timber.v("## onDoneReceived")
         val doneReq = event.getClearContent().toModel<KeyVerificationDone>()?.asValidObject()
-        if (doneReq == null || event.senderId == null) {
+        val senderId = event.senderId
+        if (doneReq == null || senderId == null) {
             // ignore
             Timber.e("## SAS Received invalid done request ${doneReq}")
             return
@@ -836,7 +840,7 @@ internal class DefaultVerificationService @Inject constructor(
         stateMachine.send(
                 VerificationIntent.OnDoneReceived(
                         transactionId = doneReq.transactionId,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         viaRoom = null,
                 )
         )
@@ -892,7 +896,8 @@ internal class DefaultVerificationService @Inject constructor(
                 )
                 ?.asValidObject()
 
-        if (doneReq == null || event.senderId == null) {
+        val senderId = event.senderId
+        if (doneReq == null || senderId == null) {
             // ignore
             Timber.e("## SAS Received invalid Done request ${doneReq}")
             // TODO should we cancel?
@@ -902,7 +907,7 @@ internal class DefaultVerificationService @Inject constructor(
         stateMachine.send(
                 VerificationIntent.OnDoneReceived(
                         transactionId = doneReq.transactionId,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         viaRoom = roomId,
                 )
         )
@@ -911,7 +916,8 @@ internal class DefaultVerificationService @Inject constructor(
     private suspend fun onMacReceived(event: Event) {
         val macReq = event.getClearContent().toModel<KeyVerificationMac>()?.asValidObject()
 
-        if (macReq == null || event.senderId == null) {
+        val senderId = event.senderId
+        if (macReq == null || senderId == null) {
             // ignore
             Timber.e("## SAS Received invalid mac request")
             return
@@ -919,7 +925,7 @@ internal class DefaultVerificationService @Inject constructor(
         stateMachine.send(
                 VerificationIntent.OnMacReceived(
                         viaRoom = null,
-                        fromUser = event.senderId,
+                        fromUser = senderId,
                         validMac = macReq
                 )
         )

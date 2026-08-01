@@ -93,11 +93,13 @@ internal class QueueMemento @Inject constructor(
                     try {
                         when (info) {
                             is SendEventTaskInfo -> {
-                                localEchoRepository.getUpToDateEcho(info.localEchoId)?.let {
-                                    if (it.sendState.isSending() && it.eventId != null && it.roomId != null) {
-                                        localEchoRepository.updateSendState(it.eventId, it.roomId, SendState.UNSENT)
+                                localEchoRepository.getUpToDateEcho(info.localEchoId)?.let { echo ->
+                                    val eventId = echo.eventId
+                                    val roomId = echo.roomId
+                                    if (echo.sendState.isSending() && eventId != null && roomId != null) {
+                                        localEchoRepository.updateSendState(eventId, roomId, SendState.UNSENT)
                                         Timber.d("## Send -Reschedule send $info")
-                                        eventProcessor.postTask(queuedTaskFactory.createSendTask(it, info.encrypt ?: cryptoService.isRoomEncrypted(it.roomId)))
+                                        eventProcessor.postTask(queuedTaskFactory.createSendTask(echo, info.encrypt ?: cryptoService.isRoomEncrypted(roomId)))
                                     }
                                 }
                             }
@@ -106,10 +108,12 @@ internal class QueueMemento @Inject constructor(
                                 // cold launch. Rescheduling a bulk redaction's hundreds of echoes just left
                                 // them stuck in "sending" forever — instead, drop the stale echo. If the
                                 // redaction actually reached the server it comes back via sync anyway.
-                                info.redactionLocalEcho?.let { localEchoRepository.getUpToDateEcho(it) }?.let {
-                                    if (it.eventId != null && it.roomId != null) {
+                                info.redactionLocalEcho?.let { localEchoRepository.getUpToDateEcho(it) }?.let { echo ->
+                                    val eventId = echo.eventId
+                                    val roomId = echo.roomId
+                                    if (eventId != null && roomId != null) {
                                         Timber.d("## Send -Dropping stale redact echo $info")
-                                        localEchoRepository.deleteFailedEcho(it.roomId, it.eventId)
+                                        localEchoRepository.deleteFailedEcho(roomId, eventId)
                                     }
                                 }
                             }

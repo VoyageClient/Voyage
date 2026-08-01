@@ -35,6 +35,7 @@ class SenderNotificationPermissionCondition(
     override fun technicalDescription() = "User power level <$key>"
 
     fun isSatisfied(event: Event, roomPowerLevels: RoomPowerLevels): Boolean {
-        return event.senderId != null && roomPowerLevels.isUserAbleToTriggerNotification(event.senderId, key)
+        val senderId = event.senderId ?: return false
+        return roomPowerLevels.isUserAbleToTriggerNotification(senderId, key)
     }
 }

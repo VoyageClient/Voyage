@@ -335,7 +335,8 @@ internal class SqlCryptoStore @Inject constructor(
         val existing = crossSigningStore.getCrossSigningInfo(userId)
         val masterChanged = existing?.masterKey()?.unpaddedBase64PublicKey != masterKey.unpaddedBase64PublicKey
         val selfChanged = existing?.selfSigningKey()?.unpaddedBase64PublicKey != selfSigningKey.unpaddedBase64PublicKey
-        val userChanged = userIdentity.userSigningKey != null && existing?.userKey()?.unpaddedBase64PublicKey != userIdentity.userSigningKey.unpaddedBase64PublicKey
+        val userSigningKey = userIdentity.userSigningKey
+        val userChanged = userSigningKey != null && existing?.userKey()?.unpaddedBase64PublicKey != userSigningKey.unpaddedBase64PublicKey
 
         database.transaction {
             var shouldResetMyDevicesLocalTrust = false

@@ -49,12 +49,13 @@ internal class DefaultPollAggregationProcessor @Inject constructor(
 
     override fun handlePollStartEvent(stores: SessionStores, event: Event): Boolean {
         val content = event.getClearContent()?.toModel<MessagePollContent>()
-        if (content?.relatesTo?.type != RelationType.REPLACE) {
+        val relatesTo = content?.relatesTo
+        if (relatesTo?.type != RelationType.REPLACE) {
             return false
         }
 
         val roomId = event.roomId ?: return false
-        val targetEventId = content.relatesTo.eventId ?: return false
+        val targetEventId = relatesTo.eventId ?: return false
 
         val summary = stores.annotations.get(targetEventId)
                 ?: EventAnnotationsSummaryEntity(eventId = targetEventId, roomId = roomId)

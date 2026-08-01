@@ -113,7 +113,10 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                 // We ignore all the already known members
                 val now = clock.epochMillis()
                 for (roomMemberEvent in roomMemberEvents) {
-                    if (roomMemberEvent.eventId == null || roomMemberEvent.stateKey == null || roomMemberEvent.type == null) {
+                    val memberEventId = roomMemberEvent.eventId
+                    val memberStateKey = roomMemberEvent.stateKey
+                    val memberType = roomMemberEvent.type
+                    if (memberEventId == null || memberStateKey == null || memberType == null) {
                         continue
                     }
                     val ageLocalTs = now - (roomMemberEvent.unsignedData?.age ?: 0)
@@ -122,7 +125,7 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                         stores.eventInsert.insert(entity.eventId, entity.type, canBeProcessed = true, insertType = EventInsertType.PAGINATION)
                         stores.event.insert(entity)
                     }
-                    stores.currentStateEvent.upsert(roomId, roomMemberEvent.type, roomMemberEvent.stateKey, roomMemberEvent.eventId, roomMemberEvent.eventId)
+                    stores.currentStateEvent.upsert(roomId, memberType, memberStateKey, memberEventId, memberEventId)
                     roomMemberEventHandler.handle(stores, roomId, roomMemberEvent, false)
                 }
             }

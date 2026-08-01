@@ -154,7 +154,10 @@ internal class DefaultCreateLocalRoomTask @Inject constructor(
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
 
         for (event in localStateEventList) {
-            if (event.eventId == null || event.senderId == null || event.type == null) {
+            val eventId = event.eventId
+            val senderId = event.senderId
+            val eventType = event.type
+            if (eventId == null || senderId == null || eventType == null) {
                 continue
             }
 
@@ -164,10 +167,11 @@ internal class DefaultCreateLocalRoomTask @Inject constructor(
                 stores.eventInsert.insert(entity.eventId, entity.type, canBeProcessed = true, insertType = EventInsertType.INCREMENTAL_SYNC)
                 stores.event.insert(entity)
             }
-            if (event.stateKey != null) {
-                stores.currentStateEvent.upsert(roomId, event.type, event.stateKey, event.eventId, event.eventId)
-                if (event.type == EventType.STATE_ROOM_MEMBER) {
-                    roomMemberContentsByUser[event.stateKey] = event.getFixedRoomMemberContent()
+            val stateKey = event.stateKey
+            if (stateKey != null) {
+                stores.currentStateEvent.upsert(roomId, eventType, stateKey, eventId, eventId)
+                if (eventType == EventType.STATE_ROOM_MEMBER) {
+                    roomMemberContentsByUser[stateKey] = event.getFixedRoomMemberContent()
                     roomMemberEventHandler.handle(stores, roomId, event, false)
                 }
 
@@ -177,9 +181,9 @@ internal class DefaultCreateLocalRoomTask @Inject constructor(
                 }
             }
 
-            roomMemberContentsByUser.getOrPut(event.senderId) {
+            roomMemberContentsByUser.getOrPut(senderId) {
                 // If we don't have any new state on this user, get it from db
-                stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, event.senderId)
+                stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)
                         ?.root?.asDomain()?.getFixedRoomMemberContent()
             }
 

@@ -109,15 +109,20 @@ internal class SqlRoomSyncHandler @Inject constructor(
         stores.room.upsert(roomEntity)
 
         roomSync.state?.events?.forEach { event ->
-            if (event.eventId == null || event.stateKey == null || event.type == null) return@forEach
+            val eventId = event.eventId
+            val stateKey = event.stateKey
+            val type = event.type
+            if (eventId == null || stateKey == null || type == null) return@forEach
             val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
             insertEventOrIgnore(stores, event.toEntity(roomId, SendState.SYNCED, ageLocalTs), insertType)
-            stores.currentStateEvent.upsert(roomId, event.type, event.stateKey, event.eventId, event.eventId)
+            stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
             roomMemberEventHandler.handle(stores, roomId, event, isInitialSync, aggregator)
         }
-        if (roomSync.timeline?.events?.isNotEmpty() == true) {
-            MatrixPerf.time("sync.room.timelineEvents n=${roomSync.timeline.events.size}") {
-                handleTimelineEvents(stores, roomId, roomSync.timeline.events, roomSync.timeline.prevToken, roomSync.timeline.limited, insertType, syncTs)
+        val timeline = roomSync.timeline
+        val timelineEvents = timeline?.events
+        if (timelineEvents?.isNotEmpty() == true) {
+            MatrixPerf.time("sync.room.timelineEvents n=${timelineEvents.size}") {
+                handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, timeline.limited, insertType, syncTs)
             }
         }
         val hasRoomMember = (roomSync.state?.events.orEmpty() + roomSync.timeline?.events.orEmpty())
@@ -173,11 +178,13 @@ internal class SqlRoomSyncHandler @Inject constructor(
         roomEntity.membership = Membership.INVITE
         stores.room.upsert(roomEntity)
         roomSync.inviteState?.events?.forEach { event ->
-            if (event.stateKey == null || event.type == null) return@forEach
+            val stateKey = event.stateKey
+            val type = event.type
+            if (stateKey == null || type == null) return@forEach
             val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
             insertEventOrIgnore(stores, entity, insertType)
-            stores.currentStateEvent.upsert(roomId, event.type, event.stateKey, entity.eventId, entity.eventId)
+            stores.currentStateEvent.upsert(roomId, type, stateKey, entity.eventId, entity.eventId)
             roomMemberEventHandler.handle(stores, roomId, event, isInitialSync)
         }
         val inviterEvent = roomSync.inviteState?.events?.lastOrNull { it.type == EventType.STATE_ROOM_MEMBER }
@@ -196,11 +203,13 @@ internal class SqlRoomSyncHandler @Inject constructor(
         roomEntity.membership = Membership.KNOCK
         stores.room.upsert(roomEntity)
         roomSync.knockState?.events?.forEach { event ->
-            if (event.stateKey == null || event.type == null) return@forEach
+            val stateKey = event.stateKey
+            val type = event.type
+            if (stateKey == null || type == null) return@forEach
             val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
             insertEventOrIgnore(stores, entity, insertType)
-            stores.currentStateEvent.upsert(roomId, event.type, event.stateKey, entity.eventId, entity.eventId)
+            stores.currentStateEvent.upsert(roomId, type, stateKey, entity.eventId, entity.eventId)
             roomMemberEventHandler.handle(stores, roomId, event, isInitialSync)
         }
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.KNOCK)
@@ -215,11 +224,14 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val roomEntity = stores.room.get(roomId) ?: RoomEntity(roomId = roomId)
         aggregator.spaceHierarchyChanged = true
         (roomSync.state?.events.orEmpty() + roomSync.timeline?.events.orEmpty()).forEach { event ->
-            if (event.eventId == null || event.stateKey == null || event.type == null) return@forEach
+            val eventId = event.eventId
+            val stateKey = event.stateKey
+            val type = event.type
+            if (eventId == null || stateKey == null || type == null) return@forEach
             val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
             insertEventOrIgnore(stores, event.toEntity(roomId, SendState.SYNCED, ageLocalTs), insertType)
-            stores.currentStateEvent.upsert(roomId, event.type, event.stateKey, event.eventId, event.eventId)
-            if (event.type == EventType.STATE_ROOM_MEMBER) {
+            stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
+            if (type == EventType.STATE_ROOM_MEMBER) {
                 roomMemberEventHandler.handle(stores, roomId, event, isInitialSync)
             }
         }
@@ -254,21 +266,25 @@ internal class SqlRoomSyncHandler @Inject constructor(
         for (rawEvent in eventList) {
             val ageLocalTs = syncTs - (rawEvent.unsignedData?.age ?: 0)
             val event = rawEvent.copyAll(roomId = roomId).also { it.ageLocalTs = ageLocalTs }
-            if (event.eventId == null || event.senderId == null || event.type == null) continue
-            eventIds.add(event.eventId)
+            val eventId = event.eventId
+            val senderId = event.senderId
+            val type = event.type
+            if (eventId == null || senderId == null || type == null) continue
+            eventIds.add(eventId)
             if (!isInitialSync) liveEventService.get().dispatchLiveEventReceived(event, roomId)
 
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
             val eventDbId = insertEventOrIgnore(stores, entity, insertType)
-            if (event.stateKey != null) {
-                stores.currentStateEvent.upsert(roomId, event.type, event.stateKey, event.eventId, event.eventId)
-                if (event.type == EventType.STATE_ROOM_MEMBER) {
-                    roomMemberContentsByUser[event.stateKey] = event.getFixedRoomMemberContent()
+            val stateKey = event.stateKey
+            if (stateKey != null) {
+                stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
+                if (type == EventType.STATE_ROOM_MEMBER) {
+                    roomMemberContentsByUser[stateKey] = event.getFixedRoomMemberContent()
                     roomMemberEventHandler.handle(stores, roomId, event, isInitialSync)
                 }
             }
-            roomMemberContentsByUser.getOrPut(event.senderId) {
-                stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, event.senderId)
+            roomMemberContentsByUser.getOrPut(senderId) {
+                stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)
                         ?.root?.asDomain()?.getFixedRoomMemberContent()
             }
             stores.timelineWriter.addTimelineEvent(chunkId, roomId, eventDbId, entity, isLastForward, PaginationDirection.FORWARDS, roomMemberContentsByUser = roomMemberContentsByUser)
@@ -305,7 +321,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 stores.timelineEvent.deleteSending(roomId, txId)
                 fixUpEditLocalEcho(stores, event, txId)
             }
-            stores.timelineEvent.deleteSending(roomId, event.eventId)
+            stores.timelineEvent.deleteSending(roomId, eventId)
         }
         // Mark root events of any thread we received replies for with their reply count + latest reply, so
         // the thread badge, thread list, and inline latest-message preview pick them up.

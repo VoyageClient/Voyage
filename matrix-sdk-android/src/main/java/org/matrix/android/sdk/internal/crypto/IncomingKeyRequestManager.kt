@@ -345,23 +345,24 @@ internal class IncomingKeyRequestManager @Inject constructor(
     }
 
     suspend fun manuallyAcceptRoomKeyRequest(request: IncomingRoomKeyRequest) {
-        request.requestId ?: return
-        request.deviceId ?: return
-        request.userId ?: return
-        request.requestBody?.roomId ?: return
-        request.requestBody.senderKey ?: return
-        request.requestBody.sessionId ?: return
+        val requestId = request.requestId ?: return
+        val deviceId = request.deviceId ?: return
+        val userId = request.userId ?: return
+        val requestBody = request.requestBody ?: return
+        val roomId = requestBody.roomId ?: return
+        val senderKey = requestBody.senderKey ?: return
+        val sessionId = requestBody.sessionId ?: return
         val validReq = ValidMegolmRequestBody(
-                requestId = request.requestId,
-                requestingDeviceId = request.deviceId,
-                requestingUserId = request.userId,
-                roomId = request.requestBody.roomId,
-                senderKey = request.requestBody.senderKey,
-                sessionId = request.requestBody.sessionId,
+                requestId = requestId,
+                requestingDeviceId = deviceId,
+                requestingUserId = userId,
+                roomId = roomId,
+                senderKey = senderKey,
+                sessionId = sessionId,
                 action = MegolmRequestAction.Request
         )
         val requestingDevice =
-                cryptoStore.getUserDevice(request.userId, request.deviceId)
+                cryptoStore.getUserDevice(userId, deviceId)
                         ?: return Unit.also {
                             Timber.tag(loggerTag.value).d("Ignoring key request: ${validReq.shortDbgString()}")
                         }

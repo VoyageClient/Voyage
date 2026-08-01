@@ -141,13 +141,14 @@ internal class TokenChunkEventPersistor @Inject constructor(
             }
         }
         for (event in receivedChunk.events) {
-            if (event.eventId == null || event.senderId == null || event.type == null) continue
+            val eventId = event.eventId
+            if (eventId == null || event.senderId == null || event.type == null) continue
             // A pagination response overlaps events already stored in another chunk (server token
             // boundaries don't align with ours) — typically the boundary event(s) at the near end of
             // the page. Skip just those to avoid duplicating them in the timeline, but keep going:
             // the rest of the page is genuinely new (older/newer) history. Stopping at the first
             // overlap would drop the whole page and leave an empty chunk.
-            if (stores.chunk.findMainChunkIdIncludingEvent(roomId, event.eventId)?.let { it != currentChunkId } == true) {
+            if (stores.chunk.findMainChunkIdIncludingEvent(roomId, eventId)?.let { it != currentChunkId } == true) {
                 continue
             }
             val ageLocalTs = now - (event.unsignedData?.age ?: 0)

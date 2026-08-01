@@ -48,13 +48,15 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
      * @return true if it has been processed, false if ignored.
      */
     fun handleBeaconInfo(stores: SessionStores, event: Event, content: MessageBeaconInfoContent, roomId: String, isLocalEcho: Boolean): Boolean {
-        if (event.senderId.isNullOrEmpty() || isLocalEcho) {
+        val senderId = event.senderId
+        if (senderId.isNullOrEmpty() || isLocalEcho) {
             return false
         }
+        val eventId = event.eventId
 
         val isLive = content.isLive.orTrue()
         val targetEventId = if (isLive) {
-            event.eventId
+            eventId
         } else {
             // when live is set to false, we use the id of the event that should have been replaced
             event.unsignedData?.replacesState
@@ -68,9 +70,9 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
         val aggregatedSummary = stores.liveLocation.get(targetEventId)
                 ?: LiveLocationShareAggregatedSummaryEntity(eventId = targetEventId, roomId = roomId)
 
-        if (!isLive && !event.eventId.isNullOrEmpty()) {
+        if (!isLive && !eventId.isNullOrEmpty()) {
             // in this case, the received event is a new state event related to the previous one
-            addRelatedEventId(event.eventId, aggregatedSummary)
+            addRelatedEventId(eventId, aggregatedSummary)
         }
 
         // remote event can stay with isLive == true while the local summary is no more active
@@ -81,10 +83,10 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
         aggregatedSummary.startOfLiveTimestampMillis = content.getBestTimestampMillis()
         aggregatedSummary.endOfLiveTimestampMillis = endOfLiveTimestampMillis
         aggregatedSummary.isActive = isActive
-        aggregatedSummary.userId = event.senderId
+        aggregatedSummary.userId = senderId
         stores.liveLocation.upsert(aggregatedSummary)
 
-        deactivateAllPreviousBeacons(stores, roomId, event.senderId, targetEventId, content.getBestTimestampMillis() ?: 0)
+        deactivateAllPreviousBeacons(stores, roomId, senderId, targetEventId, content.getBestTimestampMillis() ?: 0)
 
         if (isActive) {
             scheduleDeactivationAfterTimeout(targetEventId, roomId, endOfLiveTimestampMillis)
@@ -143,8 +145,9 @@ internal class LiveLocationAggregationProcessor @Inject constructor(
         val aggregatedSummary = stores.liveLocation.get(relatedEventId)
                 ?: LiveLocationShareAggregatedSummaryEntity(eventId = relatedEventId, roomId = roomId)
 
-        if (!event.eventId.isNullOrEmpty()) {
-            addRelatedEventId(event.eventId, aggregatedSummary)
+        val eventId = event.eventId
+        if (!eventId.isNullOrEmpty()) {
+            addRelatedEventId(eventId, aggregatedSummary)
         }
 
         val updatedLocationTimestamp = content.getBestTimestampMillis() ?: 0

@@ -33,31 +33,36 @@ internal class DecryptRoomEventUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(event: Event, requestKeysOnFail: Boolean = true): MXEventDecryptionResult {
-        if (event.roomId.isNullOrBlank()) {
+        val roomId = event.roomId
+        if (roomId.isNullOrBlank()) {
             throw MXCryptoError.Base(MXCryptoError.ErrorType.MISSING_FIELDS, MXCryptoError.MISSING_FIELDS_REASON)
         }
 
         val encryptedEventContent = event.content.toModel<EncryptedEventContent>()
                 ?: throw MXCryptoError.Base(MXCryptoError.ErrorType.MISSING_FIELDS, MXCryptoError.MISSING_FIELDS_REASON)
 
-        if (encryptedEventContent.senderKey.isNullOrBlank() ||
-                encryptedEventContent.sessionId.isNullOrBlank() ||
-                encryptedEventContent.ciphertext.isNullOrBlank()) {
+        val ciphertext = encryptedEventContent.ciphertext
+        val sessionId = encryptedEventContent.sessionId
+        val senderKey = encryptedEventContent.senderKey
+        if (senderKey.isNullOrBlank() ||
+                sessionId.isNullOrBlank() ||
+                ciphertext.isNullOrBlank()) {
             throw MXCryptoError.Base(MXCryptoError.ErrorType.MISSING_FIELDS, MXCryptoError.MISSING_FIELDS_REASON)
         }
 
         try {
             val olmDecryptionResult = olmDevice.decryptGroupMessage(
-                    encryptedEventContent.ciphertext,
-                    event.roomId,
+                    ciphertext,
+                    roomId,
                     "",
                     eventId = event.eventId.orEmpty(),
-                    encryptedEventContent.sessionId,
-                    encryptedEventContent.senderKey
+                    sessionId,
+                    senderKey
             )
-            if (olmDecryptionResult.payload != null) {
+            val payload = olmDecryptionResult.payload
+            if (payload != null) {
                 return MXEventDecryptionResult(
-                        clearEvent = olmDecryptionResult.payload,
+                        clearEvent = payload,
                         senderCurve25519Key = olmDecryptionResult.senderKey,
                         claimedEd25519Key = olmDecryptionResult.keysClaimed?.get("ed25519"),
                         forwardingCurve25519KeyChain = olmDecryptionResult.forwardingCurve25519KeyChain
@@ -73,7 +78,7 @@ internal class DecryptRoomEventUseCase @Inject constructor(
                 if (throwable.olmException.message == "UNKNOWN_MESSAGE_INDEX") {
                     // So we know that session, but it's ratcheted and we can't decrypt at that index
                     // Check if partially withheld
-                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(event.roomId, encryptedEventContent.sessionId)
+                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(roomId, sessionId)
                     if (withHeldInfo != null) {
                         // Encapsulate as withHeld exception
                         throw MXCryptoError.Base(
@@ -91,7 +96,7 @@ internal class DecryptRoomEventUseCase @Inject constructor(
                 }
 
                 val reason = String.format(MXCryptoError.OLM_REASON, throwable.olmException.message)
-                val detailedReason = String.format(MXCryptoError.DETAILED_OLM_REASON, encryptedEventContent.ciphertext, reason)
+                val detailedReason = String.format(MXCryptoError.DETAILED_OLM_REASON, ciphertext, reason)
 
                 throw MXCryptoError.Base(
                         MXCryptoError.ErrorType.OLM,
@@ -102,7 +107,7 @@ internal class DecryptRoomEventUseCase @Inject constructor(
             if (throwable is MXCryptoError.Base) {
                 if (throwable.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID) {
                     // Check if it was withheld by sender to enrich error code
-                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(event.roomId, encryptedEventContent.sessionId)
+                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(roomId, sessionId)
                     if (withHeldInfo != null) {
                         if (requestKeysOnFail) {
                             requestKeysForEvent(event)

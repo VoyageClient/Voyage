@@ -340,8 +340,10 @@ internal class OutgoingKeyRequestManager @Inject constructor(
     private fun internalQueueRequest(requestBody: RoomKeyRequestBody, recipients: Map<String, List<String>>, fromIndex: Int, force: Boolean) {
         if (!cryptoStore.isKeyGossipingEnabled()) {
             // we might want to try backup?
-            if (requestBody.roomId != null && requestBody.sessionId != null) {
-                requestDiscardedBecauseAlreadySentThatCouldBeTriedWithBackup.push(requestBody.roomId to requestBody.sessionId)
+            val roomId = requestBody.roomId
+            val sessionId = requestBody.sessionId
+            if (roomId != null && sessionId != null) {
+                requestDiscardedBecauseAlreadySentThatCouldBeTriedWithBackup.push(roomId to sessionId)
             }
             Timber.tag(loggerTag.value).d("discarding request for ${requestBody.sessionId} as gossiping is disabled")
             return
@@ -366,8 +368,10 @@ internal class OutgoingKeyRequestManager @Inject constructor(
                     Timber.tag(loggerTag.value).d(".. force to request  ${requestBody.sessionId}")
                     cryptoStore.updateOutgoingRoomKeyRequestState(existing.requestId, OutgoingRoomKeyRequestState.CANCELLATION_PENDING_AND_WILL_RESEND)
                 } else {
-                    if (existing.roomId != null && existing.sessionId != null) {
-                        requestDiscardedBecauseAlreadySentThatCouldBeTriedWithBackup.push(existing.roomId to existing.sessionId)
+                    val existingRoomId = existing.roomId
+                    val existingSessionId = existing.sessionId
+                    if (existingRoomId != null && existingSessionId != null) {
+                        requestDiscardedBecauseAlreadySentThatCouldBeTriedWithBackup.push(existingRoomId to existingSessionId)
                     }
                 }
             }

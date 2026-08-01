@@ -97,9 +97,10 @@ internal class DefaultIdentityBulkLookupTask @Inject constructor(
             // Catch invalid hash pepper and retry
             if (canRetry && failure is Failure.ServerError && failure.error.code == MatrixError.M_INVALID_PEPPER) {
                 // This is not documented, but the error can contain the new pepper!
-                val newHashDetailResponse = if (!failure.error.newLookupPepper.isNullOrEmpty()) {
+                val newLookupPepper = failure.error.newLookupPepper
+                val newHashDetailResponse = if (!newLookupPepper.isNullOrEmpty()) {
                     // Store it and use it right now
-                    hashDetailResponse.copy(pepper = failure.error.newLookupPepper)
+                    hashDetailResponse.copy(pepper = newLookupPepper)
                 } else {
                     // Retrieve the new hash details
                     fetchHashDetails(identityAPI)

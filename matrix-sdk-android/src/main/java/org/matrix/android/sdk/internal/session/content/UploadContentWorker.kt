@@ -584,13 +584,15 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 encryptedFileInfo = encryptedFileInfo?.copy(url = url),
                 body = if (rewriteBody) renameForMime(body, newMime) ?: body else body,
                 filename = if (rewriteFilename) renameForMime(filename, newMime) else filename,
-                info = info?.copy(
-                        width = newAttachmentAttributes?.newWidth ?: info.width,
-                        height = newAttachmentAttributes?.newHeight ?: info.height,
-                        size = newAttachmentAttributes?.newFileSize ?: info.size,
-                        mimeType = newMime ?: info.mimeType,
-                        blurHash = blurHash ?: info.blurHash,
-                )
+                info = info?.let { info ->
+                    info.copy(
+                            width = newAttachmentAttributes?.newWidth ?: info.width,
+                            height = newAttachmentAttributes?.newHeight ?: info.height,
+                            size = newAttachmentAttributes?.newFileSize ?: info.size,
+                            mimeType = newMime ?: info.mimeType,
+                            blurHash = blurHash ?: info.blurHash,
+                    )
+                }
         )
     }
 
@@ -619,19 +621,23 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         return copy(
                 url = if (encryptedFileInfo == null) url else null,
                 encryptedFileInfo = encryptedFileInfo?.copy(url = url),
-                videoInfo = videoInfo?.copy(
-                        thumbnailUrl = if (thumbnailEncryptedFileInfo == null) thumbnailUrl else null,
-                        thumbnailFile = thumbnailEncryptedFileInfo?.copy(url = thumbnailUrl),
-                        width = newAttachmentAttributes?.newWidth ?: videoInfo.width,
-                        height = newAttachmentAttributes?.newHeight ?: videoInfo.height,
-                        size = newAttachmentAttributes?.newFileSize ?: videoInfo.size,
-                        blurHash = thumbnail?.blurHash ?: videoInfo.blurHash,
-                        thumbnailInfo = videoInfo.thumbnailInfo?.copy(
-                                width = thumbnail?.width ?: videoInfo.thumbnailInfo.width,
-                                height = thumbnail?.height ?: videoInfo.thumbnailInfo.height,
-                                size = thumbnail?.size ?: videoInfo.thumbnailInfo.size,
-                        ),
-                )
+                videoInfo = videoInfo?.let { videoInfo ->
+                    videoInfo.copy(
+                            thumbnailUrl = if (thumbnailEncryptedFileInfo == null) thumbnailUrl else null,
+                            thumbnailFile = thumbnailEncryptedFileInfo?.copy(url = thumbnailUrl),
+                            width = newAttachmentAttributes?.newWidth ?: videoInfo.width,
+                            height = newAttachmentAttributes?.newHeight ?: videoInfo.height,
+                            size = newAttachmentAttributes?.newFileSize ?: videoInfo.size,
+                            blurHash = thumbnail?.blurHash ?: videoInfo.blurHash,
+                            thumbnailInfo = videoInfo.thumbnailInfo?.let { thumbnailInfo ->
+                                thumbnailInfo.copy(
+                                        width = thumbnail?.width ?: thumbnailInfo.width,
+                                        height = thumbnail?.height ?: thumbnailInfo.height,
+                                        size = thumbnail?.size ?: thumbnailInfo.size,
+                                )
+                            },
+                    )
+                }
         )
     }
 
