@@ -34,4 +34,7 @@ internal abstract class ContentModule {
 
     @Binds
     abstract fun bindContentUrlResolver(resolver: DefaultContentUrlResolver): ContentUrlResolver
+
+    @Binds
+    abstract fun bindContentUriResolver(resolver: AndroidContentUriResolver): ContentUriResolver
 }
