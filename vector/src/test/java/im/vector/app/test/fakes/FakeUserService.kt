@@ -7,10 +7,10 @@
 
 package im.vector.app.test.fakes
 
-import androidx.lifecycle.MutableLiveData
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
@@ -21,6 +21,6 @@ class FakeUserService : UserService by mockk() {
 
     init {
         every { getUser(capture(userIdSlot)) } answers { User(userId = userIdSlot.captured) }
-        every { getUserLive(any()) } returns MutableLiveData(Optional.empty())
+        every { getUserFlow(any()) } returns flowOf(Optional.empty())
     }
 }

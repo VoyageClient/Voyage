@@ -130,7 +130,7 @@ class MemberListViewModelTest {
     }
 
     private val fakeUserService: UserService = mockk {
-        every { getIgnoredUsersLive() } returns MutableLiveData()
+        every { getIgnoredUsersFlow() } returns emptyFlow()
     }
 
     val fakeSession: Session = mockk {

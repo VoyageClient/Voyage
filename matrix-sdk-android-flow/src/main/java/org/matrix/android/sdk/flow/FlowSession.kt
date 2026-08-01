@@ -90,7 +90,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveUser(userId: String): Flow<Optional<User>> {
-        return session.userService().getUserLive(userId).asFlow()
+        return session.userService().getUserFlow(userId)
                 .startWith(session.coroutineDispatchers.io) {
                     session.userService().getUser(userId).toOptional()
                 }
@@ -104,11 +104,11 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveUsers(): Flow<List<User>> {
-        return session.userService().getUsersLive().asFlow()
+        return session.userService().getUsersFlow()
     }
 
     fun liveIgnoredUsers(): Flow<List<User>> {
-        return session.userService().getIgnoredUsersLive().asFlow()
+        return session.userService().getIgnoredUsersFlow()
     }
 
     fun livePagedUsers(filter: String? = null, excludedUserIds: Set<String>? = null): Flow<PagedList<User>> {

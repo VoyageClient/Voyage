@@ -70,8 +70,7 @@ class SpaceListViewModel @AssistedInject constructor(
     companion object : MavericksViewModelFactory<SpaceListViewModel, SpaceListViewState> by hiltMavericksViewModelFactory()
 
     init {
-        session.userService().getUserLive(session.myUserId)
-                .asFlow()
+        session.userService().getUserFlow(session.myUserId)
                 .setOnEach {
                     copy(
                             myMxItem = it.getOrNull()?.toMatrixItem()?.let { Success(it) } ?: Loading()

@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.session.user
 
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
@@ -52,13 +53,13 @@ interface UserService {
      * @param userId the userId to look for.
      * @return a LiveData of user with userId
      */
-    fun getUserLive(userId: String): LiveData<Optional<User>>
+    fun getUserFlow(userId: String): Flow<Optional<User>>
 
     /**
      * Observe a live list of users sorted alphabetically.
      * @return a Livedata of users
      */
-    fun getUsersLive(): LiveData<List<User>>
+    fun getUsersFlow(): Flow<List<User>>
 
     /**
      * Observe a live [PagedList] of users sorted alphabetically. You can filter the users.
@@ -71,7 +72,7 @@ interface UserService {
     /**
      * Get list of ignored users.
      */
-    fun getIgnoredUsersLive(): LiveData<List<User>>
+    fun getIgnoredUsersFlow(): Flow<List<User>>
 
     /**
      * Synchronously get the ids of the currently ignored users.
