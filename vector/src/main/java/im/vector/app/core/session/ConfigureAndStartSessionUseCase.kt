@@ -69,8 +69,7 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         val newJob = session.coroutineScope.launch {
             // Initial seed — we own this regardless of whether the live data has emitted yet.
             accountInfoCache.storeForActive(session)
-            session.userService().getUserLive(session.myUserId)
-                    .asFlow()
+            session.userService().getUserFlow(session.myUserId)
                     .map { it.getOrNull()?.let { user -> user.displayName to user.avatarUrl } }
                     .distinctUntilChanged()
                     .drop(1) // skip the replay of the value we just seeded

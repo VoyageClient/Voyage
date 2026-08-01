@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.user
 
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
 import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.user.model.User
@@ -45,20 +46,20 @@ internal class DefaultUserService @Inject constructor(
         }
     }
 
-    override fun getUserLive(userId: String): LiveData<Optional<User>> {
-        return userDataSource.getUserLive(userId)
+    override fun getUserFlow(userId: String): Flow<Optional<User>> {
+        return userDataSource.getUserFlow(userId)
     }
 
-    override fun getUsersLive(): LiveData<List<User>> {
-        return userDataSource.getUsersLive()
+    override fun getUsersFlow(): Flow<List<User>> {
+        return userDataSource.getUsersFlow()
     }
 
     override fun getPagedUsersLive(filter: String?, excludedUserIds: Set<String>?): LiveData<PagedList<User>> {
         return userDataSource.getPagedUsersLive(filter, excludedUserIds)
     }
 
-    override fun getIgnoredUsersLive(): LiveData<List<User>> {
-        return userDataSource.getIgnoredUsersLive()
+    override fun getIgnoredUsersFlow(): Flow<List<User>> {
+        return userDataSource.getIgnoredUsersFlow()
     }
 
     override fun getIgnoredUserIds(): List<String> {

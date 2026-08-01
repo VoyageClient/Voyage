@@ -17,7 +17,9 @@
 package org.matrix.android.sdk.internal.session.user
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
+import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.user.model.User
@@ -41,16 +43,18 @@ internal class UserDataSource @Inject constructor(
 
     fun getUserOrDefault(userId: String): User = getUser(userId) ?: User(userId)
 
-    fun getUserLive(userId: String): LiveData<Optional<User>> {
+    fun getUserFlow(userId: String): Flow<Optional<User>> {
         return database.userQueries.selectByUserId(userId)
                 .asLiveList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.toUser().toOptional() }
+                .asFlow()
     }
 
-    fun getUsersLive(): LiveData<List<User>> {
+    fun getUsersFlow(): Flow<List<User>> {
         return database.userQueries.selectAll()
                 .asLiveList(dispatcher)
                 .map { rows -> rows.map { it.toUser() } }
+                .asFlow()
     }
 
     fun getPagedUsersLive(filter: String?, excludedUserIds: Set<String>?): LiveData<PagedList<User>> {
@@ -66,12 +70,13 @@ internal class UserDataSource @Inject constructor(
         }
     }
 
-    fun getIgnoredUsersLive(): LiveData<List<User>> {
+    fun getIgnoredUsersFlow(): Flow<List<User>> {
         return database.ignoredUserQueries.selectAll()
                 .asLiveList(dispatcher)
                 // Skip any malformed blank id: User("") fails MatrixItem's @-prefix check, which would
                 // crash the ignored-users list (or drop the whole list) rather than just that one entry.
                 .map { ids -> ids.filter { it.isNotBlank() }.map { getUser(it) ?: User(userId = it) } }
+                .asFlow()
     }
 
     fun getIgnoredUserIds(): List<String> = database.ignoredUserQueries.selectAll().executeAsList()
