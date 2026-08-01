@@ -169,6 +169,9 @@ internal class RoomSummaryDataSource @Inject constructor(
         return liveOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).map { } }
     }
 
+    fun getRoomSummariesFlow(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> =
+            getRoomSummariesLive(queryParams, sortOrder).asFlow()
+
     fun getSpaceSummariesFlow(queryParams: SpaceSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> =
             getRoomSummariesLive(queryParams, sortOrder).asFlow()
 

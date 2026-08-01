@@ -150,10 +150,10 @@ interface RoomService {
      * Get a live list of room summaries. This list is refreshed as soon as the data changes.
      * @return the [LiveData] of List[RoomSummary]
      */
-    fun getRoomSummariesLive(
+    fun getRoomSummariesFlow(
             queryParams: RoomSummaryQueryParams,
             sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
-    ): LiveData<List<RoomSummary>>
+    ): Flow<List<RoomSummary>>
 
     /**
      * Get a snapshot list of Breadcrumbs.

@@ -43,6 +43,7 @@ import org.matrix.android.sdk.api.session.room.model.create.RestrictedRoomPreset
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
+import org.matrix.android.sdk.api.session.room.getRoomSummariesLive
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.common.CommonTestHelper.Companion.runSessionTest
 import org.matrix.android.sdk.common.SessionTestParams
