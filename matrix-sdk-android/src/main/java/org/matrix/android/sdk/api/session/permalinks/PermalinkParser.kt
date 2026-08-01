@@ -16,10 +16,10 @@
 
 package org.matrix.android.sdk.api.session.permalinks
 
-import android.net.Uri
-import android.net.UrlQuerySanitizer
 import org.matrix.android.sdk.api.MatrixPatterns
+import org.matrix.android.sdk.internal.util.uriQueryParameter
 import timber.log.Timber
+import java.net.URI
 import java.net.URLDecoder
 
 /**
@@ -47,8 +47,7 @@ object PermalinkParser {
         synchronized(parseCache) {
             parseCache[uriString]?.let { return it }
         }
-        val uri = Uri.parse(uriString)
-        val result = parse(uri)
+        val result = parseInternal(uriString)
         synchronized(parseCache) {
             parseCache[uriString] = result
         }
@@ -56,20 +55,19 @@ object PermalinkParser {
     }
 
     /**
-     * Turns a uri to a [PermalinkData].
      * https://github.com/matrix-org/matrix-doc/blob/master/proposals/1704-matrix.to-permalinks.md
      */
-    fun parse(uri: Uri): PermalinkData {
+    private fun parseInternal(uriString: String): PermalinkData {
         // the client or element-based domain permalinks (e.g. https://app.element.io/#/user/@chagai95:matrix.org) don't have the
         // mxid in the first param (like matrix.to does - https://matrix.to/#/@chagai95:matrix.org) but rather in the second after /user/ so /user/mxid
         // so convert URI to matrix.to to simplify parsing process
-        val matrixToUri = MatrixToConverter.convert(uri) ?: return PermalinkData.FallbackLink(uri)
+        val matrixToUri = MatrixToConverter.convert(uriString) ?: return PermalinkData.FallbackLink(uriString)
 
-        // We can't use uri.fragment as it is decoding to early and it will break the parsing
-        // of parameters that represents url (like signurl)
-        val fragment = matrixToUri.toString().substringAfter("#") // uri.fragment
+        // We can't decode the fragment early as it would break the parsing of parameters that
+        // represent a url (like signurl), so we work on the raw string after the '#'.
+        val fragment = matrixToUri.substringAfter("#")
         if (fragment.isEmpty()) {
-            return PermalinkData.FallbackLink(uri)
+            return PermalinkData.FallbackLink(uriString)
         }
         val safeFragment = fragment.substringBefore('?')
         val viaQueryParameters = fragment.getViaParameters()
@@ -87,7 +85,7 @@ object PermalinkParser {
         val decodedIdentifier = decodedParams.getOrNull(0)
         val extraParameter = decodedParams.getOrNull(1)
         return when {
-            identifier.isNullOrEmpty() || decodedIdentifier.isNullOrEmpty() -> PermalinkData.FallbackLink(uri)
+            identifier.isNullOrEmpty() || decodedIdentifier.isNullOrEmpty() -> PermalinkData.FallbackLink(uriString)
             MatrixPatterns.isUserId(decodedIdentifier) -> PermalinkData.UserLink(userId = decodedIdentifier)
             MatrixPatterns.isRoomId(decodedIdentifier) -> {
                 handleRoomIdCase(fragment, decodedIdentifier, matrixToUri, extraParameter, viaQueryParameters)
@@ -100,25 +98,26 @@ object PermalinkParser {
                         viaParameters = viaQueryParameters
                 )
             }
-            else -> PermalinkData.FallbackLink(uri, MatrixPatterns.isGroupId(identifier))
+            else -> PermalinkData.FallbackLink(uriString, MatrixPatterns.isGroupId(identifier))
         }
     }
 
-    private fun handleRoomIdCase(fragment: String, identifier: String, uri: Uri, extraParameter: String?, viaQueryParameters: List<String>): PermalinkData {
+    private fun handleRoomIdCase(fragment: String, identifier: String, matrixToUriString: String, extraParameter: String?, viaQueryParameters: List<String>): PermalinkData {
         // Can't rely on built in parsing because it's messing around the signurl
         val paramList = safeExtractParams(fragment)
         val signUrl = paramList.firstOrNull { it.first == "signurl" }?.second
         val email = paramList.firstOrNull { it.first == "email" }?.second
         return if (signUrl.isNullOrEmpty().not() && email.isNullOrEmpty().not()) {
             try {
-                val signValidUri = Uri.parse(signUrl)
-                val identityServerHost = signValidUri.authority ?: throw IllegalArgumentException()
-                val token = signValidUri.getQueryParameter("token") ?: throw IllegalArgumentException()
-                val privateKey = signValidUri.getQueryParameter("private_key") ?: throw IllegalArgumentException()
+                val validSignUrl = signUrl!!
+                val validEmail = email!!
+                val identityServerHost = URI(validSignUrl).authority ?: throw IllegalArgumentException()
+                val token = validSignUrl.uriQueryParameter("token") ?: throw IllegalArgumentException()
+                val privateKey = validSignUrl.uriQueryParameter("private_key") ?: throw IllegalArgumentException()
                 PermalinkData.RoomEmailInviteLink(
                         roomId = identifier,
-                        email = email!!,
-                        signUrl = signUrl!!,
+                        email = validEmail,
+                        signUrl = validSignUrl,
                         roomName = paramList.firstOrNull { it.first == "room_name" }?.second,
                         inviterName = paramList.firstOrNull { it.first == "inviter_name" }?.second,
                         roomAvatarUrl = paramList.firstOrNull { it.first == "room_avatar_url" }?.second,
@@ -129,7 +128,7 @@ object PermalinkParser {
                 )
             } catch (failure: Throwable) {
                 Timber.i("## Permalink: Failed to parse permalink $signUrl")
-                PermalinkData.FallbackLink(uri)
+                PermalinkData.FallbackLink(matrixToUriString)
             }
         } else {
             PermalinkData.RoomLink(
@@ -150,12 +149,10 @@ object PermalinkParser {
             }
 
     private fun String.getViaParameters(): List<String> {
-        return UrlQuerySanitizer(this)
-                .parameterList
-                .filter {
-                    it.mParameter == "via"
-                }.map {
-                    URLDecoder.decode(it.mValue, "UTF-8")
-                }
+        return substringAfter('?', "")
+                .split('&')
+                .mapNotNull { it.split('=', limit = 2).takeIf { part -> part.size == 2 } }
+                .filter { it[0] == "via" }
+                .map { URLDecoder.decode(it[1], "UTF-8") }
     }
 }

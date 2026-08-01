@@ -16,9 +16,9 @@
 
 package org.matrix.android.sdk.internal.session.permalinks
 
-import androidx.core.net.toUri
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
+import org.matrix.android.sdk.internal.util.uriHost
 import javax.inject.Inject
 
 internal class DefaultPermalinkService @Inject constructor(
@@ -51,6 +51,6 @@ internal class DefaultPermalinkService @Inject constructor(
 
     override fun isPermalinkSupported(supportedHosts: Array<String>, url: String): Boolean {
         return url.startsWith(PermalinkService.MATRIX_TO_URL_BASE) ||
-                supportedHosts.any { url.toUri().host == it }
+                supportedHosts.any { url.uriHost() == it }
     }
 }

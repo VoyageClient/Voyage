@@ -84,6 +84,11 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/terms/TermsResponse.kt',
         'org/matrix/android/sdk/api/session/terms/GetTermsResponse.kt',
         'org/matrix/android/sdk/internal/auth/data/LoginFlowResponse.kt',
+        // Phase 4: android.net.Uri removed from permalink parsing (java.net.URI + string helpers).
+        'org/matrix/android/sdk/api/session/permalinks/PermalinkData.kt',
+        'org/matrix/android/sdk/api/session/permalinks/PermalinkParser.kt',
+        'org/matrix/android/sdk/api/session/permalinks/MatrixToConverter.kt',
+        'org/matrix/android/sdk/api/session/permalinks/PermalinkService.kt',
         'org/matrix/android/sdk/BuildConfig.kt',
         'org/matrix/android/sdk/api/MatrixConfiguration.kt',
         'org/matrix/android/sdk/api/SyncConfig.kt',
