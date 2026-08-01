@@ -65,7 +65,7 @@ class PermalinkHandler @Inject constructor(
             else -> {
                 tryOrNull {
                     withContext(Dispatchers.Default) {
-                        val permalinkData = PermalinkParser.parse(deepLink)
+                        val permalinkData = PermalinkParser.parse(deepLink.toString())
                         handlePermalink(permalinkData, deepLink, fragmentActivity, navigationInterceptor, buildTask)
                     }
                 } ?: false

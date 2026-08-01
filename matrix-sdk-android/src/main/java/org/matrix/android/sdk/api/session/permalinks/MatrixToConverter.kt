@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.api.session.permalinks
 
-import android.net.Uri
-
 /**
  * Mapping of an input URI to a matrix.to compliant URI.
  */
@@ -31,16 +29,14 @@ object MatrixToConverter {
      * - https://app.element.io/#/room/#element-android:matrix.org   ->  https://matrix.to/#/#element-android:matrix.org
      * - https://www.example.org/#/room/#element-android:matrix.org  ->  https://matrix.to/#/#element-android:matrix.org
      */
-    fun convert(uri: Uri): Uri? {
-        val uriString = uri.toString()
-
+    fun convert(uriString: String): String? {
         return when {
             // URL is already a matrix.to
-            uriString.startsWith(PermalinkService.MATRIX_TO_URL_BASE) -> uri
+            uriString.startsWith(PermalinkService.MATRIX_TO_URL_BASE) -> uriString
             // Web or client url
             SUPPORTED_PATHS.any { it in uriString } -> {
                 val path = SUPPORTED_PATHS.first { it in uriString }
-                Uri.parse(PermalinkService.MATRIX_TO_URL_BASE + uriString.substringAfter(path))
+                PermalinkService.MATRIX_TO_URL_BASE + uriString.substringAfter(path)
             }
             // URL is not supported
             else -> null
