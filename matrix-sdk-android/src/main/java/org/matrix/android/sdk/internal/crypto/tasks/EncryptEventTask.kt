@@ -87,7 +87,9 @@ internal class DefaultEncryptEventTask @Inject constructor(
             null
         }
 
-        localEchoRepository.updateEcho(localEvent.eventId) { localEcho ->
+        // Async: the send only needs the in-memory encrypted event; awaiting this write would stall
+        // the room's send queue behind the DB write dispatcher.
+        localEchoRepository.updateEchoAsync(localEvent.eventId) { localEcho ->
             localEcho.type = EventType.ENCRYPTED
             localEcho.content = ContentMapper.map(modifiedContent)
             // Set the clear local-echo decryption result directly (the entity is an unmanaged SQL DTO,

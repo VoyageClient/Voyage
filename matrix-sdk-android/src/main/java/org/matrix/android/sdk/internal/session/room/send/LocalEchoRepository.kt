@@ -133,10 +133,14 @@ internal class LocalEchoRepository @Inject constructor(
     suspend fun onEventSent(roomId: String, localEchoId: String, remoteEventId: String) {
         sentEchoesByRemoteId[remoteEventId] = localEchoId
         remoteIdsByLocalEcho[localEchoId] = remoteEventId
-        database.awaitDbTransaction(dispatcher) {
-            val remoteExists = stores.timelineEvent.getByRoomAndEventId(roomId, remoteEventId) != null
-            if (remoteExists) {
-                deleteSentEcho(roomId, remoteEventId)
+        // Fire-and-forget: this reconciliation must not hold the room's send queue behind the DB
+        // write dispatcher. Ordering with createLocalEcho's deferred insert is preserved (same queue).
+        taskExecutor.executorScope.launch {
+            database.awaitDbTransaction(dispatcher) {
+                val remoteExists = stores.timelineEvent.getByRoomAndEventId(roomId, remoteEventId) != null
+                if (remoteExists) {
+                    deleteSentEcho(roomId, remoteEventId)
+                }
             }
         }
     }
