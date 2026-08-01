@@ -16,10 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.content
 
-import android.content.Context
-import android.net.Uri
 import com.squareup.moshi.Moshi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl
 import okhttp3.MediaType
@@ -41,9 +38,7 @@ import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.ProgressRequestBody
 import org.matrix.android.sdk.internal.network.awaitResponse
 import org.matrix.android.sdk.internal.network.toFailure
-import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 import javax.inject.Inject
 
@@ -51,8 +46,7 @@ internal class FileUploader @Inject constructor(
         @Authenticated private val okHttpClient: OkHttpClient,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
-        private val context: Context,
-        private val temporaryFileCreator: TemporaryFileCreator,
+        private val contentUriResolver: ContentUriResolver,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val imageExifTagRemover: ImageExifTagRemover,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
@@ -115,7 +109,7 @@ internal class FileUploader @Inject constructor(
             mimeType: String?,
             progressListener: ProgressRequestBody.Listener? = null
     ): ContentUploadResponse {
-        val workingFile = context.copyUriToTempFile(Uri.parse(uri))
+        val workingFile = contentUriResolver.copyToTempFile(uri)
         // Avatars, banners and image-pack stickers upload the picked bytes directly (they don't go
         // through the timeline-media worker), so scrub their EXIF/location here too when enabled.
         // Lossless only — non-images and formats that can't be scrubbed in place are left untouched.
@@ -127,18 +121,6 @@ internal class FileUploader @Inject constructor(
         return uploadFile(fileToUpload, filename, mimeType, progressListener).also {
             tryOrNull { workingFile.delete() }
             if (fileToUpload !== workingFile) tryOrNull { fileToUpload.delete() }
-        }
-    }
-
-    private suspend fun Context.copyUriToTempFile(uri: Uri): File {
-        return withContext(Dispatchers.IO) {
-            val inputStream = contentResolver.openInputStream(uri) ?: throw FileNotFoundException()
-            val workingFile = temporaryFileCreator.create()
-            workingFile.outputStream().use {
-                inputStream.copyTo(it)
-            }
-            inputStream.close()
-            workingFile
         }
     }
 
