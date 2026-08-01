@@ -132,14 +132,14 @@ class FlowRoom(private val room: Room) {
     }
 
     fun liveThreadList(): Flow<List<ThreadRootEvent>> {
-        return room.threadsLocalService().getAllThreadsLive().asFlow()
+        return room.threadsLocalService().getAllThreadsFlow()
                 .startWith(room.coroutineDispatchers.io) {
                     room.threadsLocalService().getAllThreads()
                 }
     }
 
     fun liveLocalUnreadThreadList(): Flow<List<ThreadRootEvent>> {
-        return room.threadsLocalService().getMarkedThreadNotificationsLive().asFlow()
+        return room.threadsLocalService().getMarkedThreadNotificationsFlow()
                 .startWith(room.coroutineDispatchers.io) {
                     room.threadsLocalService().getMarkedThreadNotifications()
                 }

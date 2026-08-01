@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room.threads.local
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 
 /**
@@ -29,7 +29,7 @@ interface ThreadsLocalService {
     /**
      * Returns a [LiveData] list of all the thread root TimelineEvents that exists at the room level.
      */
-    fun getAllThreadsLive(): LiveData<List<TimelineEvent>>
+    fun getAllThreadsFlow(): Flow<List<TimelineEvent>>
 
     /**
      * Returns a list of all the thread root TimelineEvents that exists at the room level.
@@ -39,7 +39,7 @@ interface ThreadsLocalService {
     /**
      * Returns a [LiveData] list of all the marked unread threads that exists at the room level.
      */
-    fun getMarkedThreadNotificationsLive(): LiveData<List<TimelineEvent>>
+    fun getMarkedThreadNotificationsFlow(): Flow<List<TimelineEvent>>
 
     /**
      * Returns a list of all the marked unread threads that exists at the room level.

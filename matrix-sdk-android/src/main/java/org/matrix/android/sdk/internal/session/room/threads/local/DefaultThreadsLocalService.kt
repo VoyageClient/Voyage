@@ -16,8 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.threads.local
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -29,8 +29,8 @@ import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sql.store.getLocalThreadNotificationsForRoomLive
-import org.matrix.android.sdk.internal.database.sql.store.getRootThreadsForRoomLive
+import org.matrix.android.sdk.internal.database.sql.store.getLocalThreadNotificationsForRoomFlow
+import org.matrix.android.sdk.internal.database.sql.store.getRootThreadsForRoomFlow
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
@@ -49,15 +49,15 @@ internal class DefaultThreadsLocalService @AssistedInject constructor(
         fun create(roomId: String): DefaultThreadsLocalService
     }
 
-    override fun getMarkedThreadNotificationsLive(): LiveData<List<TimelineEvent>> =
-            stores.timelineEvent.getLocalThreadNotificationsForRoomLive(roomId, dispatcher)
+    override fun getMarkedThreadNotificationsFlow(): Flow<List<TimelineEvent>> =
+            stores.timelineEvent.getLocalThreadNotificationsForRoomFlow(roomId, dispatcher)
                     .map { entities -> entities.map { timelineEventMapper.map(it) } }
 
     override fun getMarkedThreadNotifications(): List<TimelineEvent> =
             stores.timelineEvent.getLocalThreadNotificationsForRoom(roomId).map { timelineEventMapper.map(it) }
 
-    override fun getAllThreadsLive(): LiveData<List<TimelineEvent>> =
-            stores.timelineEvent.getRootThreadsForRoomLive(roomId, dispatcher)
+    override fun getAllThreadsFlow(): Flow<List<TimelineEvent>> =
+            stores.timelineEvent.getRootThreadsForRoomFlow(roomId, dispatcher)
                     .map { entities -> entities.map { timelineEventMapper.map(it) }.sortByLatest() }
 
     override fun getAllThreads(): List<TimelineEvent> =

@@ -7,17 +7,17 @@
 
 package org.matrix.android.sdk.internal.database.sql.store
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 
-// LiveData views of TimelineEventSqlStore, kept in the android layer; the core module observes the
-// underlying queries as Flow instead.
+// Flow views of TimelineEventSqlStore's thread queries.
 
-internal fun TimelineEventSqlStore.getRootThreadsForRoomLive(roomId: String, dispatcher: CoroutineDispatcher): LiveData<List<TimelineEventEntity>> =
-        queries.selectRootThreadsForRoom(roomId).asLiveList(dispatcher).map { rows -> with(this) { rows.toEntities() } }
+internal fun TimelineEventSqlStore.getRootThreadsForRoomFlow(roomId: String, dispatcher: CoroutineDispatcher): Flow<List<TimelineEventEntity>> =
+        queries.selectRootThreadsForRoom(roomId).asFlow().mapToList(dispatcher).map { rows -> with(this) { rows.toEntities() } }
 
-internal fun TimelineEventSqlStore.getLocalThreadNotificationsForRoomLive(roomId: String, dispatcher: CoroutineDispatcher): LiveData<List<TimelineEventEntity>> =
-        queries.selectLocalThreadNotificationsForRoom(roomId).asLiveList(dispatcher).map { rows -> with(this) { rows.toEntities() } }
+internal fun TimelineEventSqlStore.getLocalThreadNotificationsForRoomFlow(roomId: String, dispatcher: CoroutineDispatcher): Flow<List<TimelineEventEntity>> =
+        queries.selectLocalThreadNotificationsForRoom(roomId).asFlow().mapToList(dispatcher).map { rows -> with(this) { rows.toEntities() } }
