@@ -213,9 +213,12 @@ internal abstract class SessionModule {
                 @SessionFilesDirectory directory: File,
                 driverFactory: SqlDriverFactory,
         ): SessionSqlDatabase {
-            return SessionSqlDatabase(
-                    driverFactory.create(SessionSqlDatabase.Schema, File(directory, "session_store.db"))
-            )
+            val driver = driverFactory.create(SessionSqlDatabase.Schema, File(directory, "session_store.db"))
+            // Indexes added after the schema shipped: a version bump would drop-and-recreate the DB
+            // (full re-sync), so additive indexes are applied idempotently here instead.
+            driver.execute(null, "CREATE INDEX IF NOT EXISTS event_room_event ON event(room_id, event_id)", 0)
+            driver.execute(null, "CREATE INDEX IF NOT EXISTS timeline_event_room_event ON timeline_event(room_id, event_id)", 0)
+            return SessionSqlDatabase(driver)
         }
 
         @JvmStatic

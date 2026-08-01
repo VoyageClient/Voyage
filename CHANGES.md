@@ -108,6 +108,8 @@ New features, improvements, and notable removals in this fork.
 
 - Fixed link previews, images, GIFs and reply previews flashing or reloading at the moment a sent message is confirmed by the server (and blurhash fades replaying while sending).
 
+- Fixed message sending growing sluggish the longer the app stays open, with messages queueing up and batching out.
+
 - **Plain-http homeservers** — logging into an `http://` homeserver (self-hosted, LAN IP, Tor) no longer fails with a cleartext-not-permitted error on Android 6+.
 
 - Fixed the app showing stale rooms after being backgrounded, with no sign it was catching up — returning to the foreground now always starts an immediate sync and shows progress while it runs.
