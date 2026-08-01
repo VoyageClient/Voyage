@@ -760,6 +760,15 @@ sourceSets {
     }
 }
 
+// These classes must exist for core's own compile but are compiled again by the android module
+// (BuildConfig is AGP-generated; CurlLoggingInterceptor is per-variant under src/debug|release) —
+// shipping core's copy too fails the app's dex merge with duplicate classes. A desktop runtime
+// consumer must supply them itself.
+jar {
+    exclude 'org/matrix/android/sdk/BuildConfig*'
+    exclude 'org/matrix/android/sdk/internal/network/interceptors/CurlLoggingInterceptor*'
+}
+
 dependencies {
     implementation project(':library:external:timber-jvm')
     implementation project(':library:external:olm-jvm')
