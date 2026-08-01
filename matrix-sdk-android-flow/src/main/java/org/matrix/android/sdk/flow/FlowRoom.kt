@@ -42,14 +42,14 @@ typealias ThreadRootEvent = TimelineEvent
 class FlowRoom(private val room: Room) {
 
     fun liveRoomSummary(): Flow<Optional<RoomSummary>> {
-        return room.getRoomSummaryLive().asFlow()
+        return room.getRoomSummaryFlow()
                 .startWith(room.coroutineDispatchers.io) {
                     room.roomSummary().toOptional()
                 }
     }
 
     fun liveLocalRoomSummary(): Flow<Optional<LocalRoomSummary>> {
-        return room.getLocalRoomSummaryLive().asFlow()
+        return room.getLocalRoomSummaryFlow()
                 .startWith(room.coroutineDispatchers.io) {
                     room.localRoomSummary().toOptional()
                 }

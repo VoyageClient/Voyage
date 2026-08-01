@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.room
 
 import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import androidx.lifecycle.map
 import androidx.paging.PagedList
 import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
@@ -105,12 +106,12 @@ internal class DefaultRoomService @Inject constructor(
         return roomSummaryDataSource.getRoomSummary(roomIdOrAlias)
     }
 
-    override fun getRoomSummaryLive(roomId: String): LiveData<Optional<RoomSummary>> {
-        return roomSummaryDataSource.getRoomSummaryLive(roomId)
+    override fun getRoomSummaryFlow(roomId: String): Flow<Optional<RoomSummary>> {
+        return roomSummaryDataSource.getRoomSummaryFlow(roomId)
     }
 
-    override fun getLocalRoomSummaryLive(roomId: String): LiveData<Optional<LocalRoomSummary>> {
-        return roomSummaryDataSource.getLocalRoomSummaryLive(roomId)
+    override fun getLocalRoomSummaryFlow(roomId: String): Flow<Optional<LocalRoomSummary>> {
+        return roomSummaryDataSource.getLocalRoomSummaryFlow(roomId)
     }
 
     override fun getRoomSummaries(

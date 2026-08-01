@@ -142,9 +142,10 @@ internal class RoomSummaryDataSource @Inject constructor(
         return row?.toDomain()
     }
 
-    fun getRoomSummaryLive(roomId: String): LiveData<Optional<RoomSummary>> {
+    fun getRoomSummaryFlow(roomId: String): Flow<Optional<RoomSummary>> {
         return queries.selectByRoomId(roomId).asLiveList(dispatcher)
                 .map { rows -> rows.firstOrNull { !it.display_name.isNullOrEmpty() }?.toDomain().toOptional() }
+                .asFlow()
     }
 
     fun getRoomSummaries(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): List<RoomSummary> {
@@ -154,9 +155,10 @@ internal class RoomSummaryDataSource @Inject constructor(
     fun getLocalRoomSummary(roomId: String): LocalRoomSummary? =
             stores.localRoomSummary.get(roomId)?.let { localRoomSummaryMapper.map(it) }
 
-    fun getLocalRoomSummaryLive(roomId: String): LiveData<Optional<LocalRoomSummary>> {
+    fun getLocalRoomSummaryFlow(roomId: String): Flow<Optional<LocalRoomSummary>> {
         return database.localRoomSummaryQueries.selectByRoomId(roomId).asLiveList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.let { stores.localRoomSummary.get(it.room_id) }?.let { localRoomSummaryMapper.map(it) }.toOptional() }
+                .asFlow()
     }
 
     fun getRoomSummariesLive(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): LiveData<List<RoomSummary>> {

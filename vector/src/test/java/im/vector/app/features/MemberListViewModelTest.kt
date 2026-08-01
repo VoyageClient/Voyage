@@ -120,7 +120,7 @@ class MemberListViewModelTest {
 
         every { coroutineDispatchers } returns testCoroutineDispatchers
 
-        every { getRoomSummaryLive() } returns MutableLiveData<Optional<RoomSummary>>(Optional(fakeRoomSummary))
+        every { getRoomSummaryFlow() } returns flowOf<Optional<RoomSummary>>(Optional(fakeRoomSummary))
 
         every { membershipService() } returns fakeMembershipservice
 
