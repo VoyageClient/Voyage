@@ -229,7 +229,7 @@ class NotifiableEventResolver @Inject constructor(
             getVectorLastMessageContent()?.takeAs<MessageWithAttachmentContent>()?.let { imageMessage ->
                 val fileService = session.fileService()
                 fileService.downloadFile(imageMessage)
-                fileService.getTemporarySharableURI(imageMessage)
+                fileService.getTemporarySharableURI(imageMessage)?.let { Uri.parse(it) }
             }
         }.onFailure {
             Timber.e(it, "Failed to download and export image for notification")

@@ -78,10 +78,10 @@ internal class DefaultFileService @Inject constructor(
             // (the kept one is a cache file the caller deletes once the upload finishes).
             if (compressed.file != workingFile && compressed.file.length() >= workingFile.length()) {
                 compressed.file.delete()
-                FileService.CompressedImageResult(Uri.fromFile(workingFile), mimeType)
+                FileService.CompressedImageResult(Uri.fromFile(workingFile).toString(), mimeType)
             } else {
                 if (compressed.file != workingFile) workingFile.delete()
-                FileService.CompressedImageResult(Uri.fromFile(compressed.file), compressed.mimeType ?: mimeType)
+                FileService.CompressedImageResult(Uri.fromFile(compressed.file).toString(), compressed.mimeType ?: mimeType)
             }
         }
     }
@@ -374,13 +374,13 @@ internal class DefaultFileService @Inject constructor(
             fileName: String,
             mimeType: String?,
             elementToDecrypt: ElementToDecrypt?
-    ): Uri? {
+    ): String? {
         mxcUrl ?: return null
         // this string could be extracted no?
         val authority = "${context.packageName}.mx-sdk.fileprovider"
         val targetFile = getFiles(mxcUrl, fileName, mimeType, elementToDecrypt != null).getClearFile()
         if (!targetFile.exists()) return null
-        return FileProvider.getUriForFile(context, authority, targetFile)
+        return FileProvider.getUriForFile(context, authority, targetFile).toString()
     }
 
     override fun getCacheSize(): Long {

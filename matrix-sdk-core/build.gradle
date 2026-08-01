@@ -76,6 +76,7 @@ def coreSources = [
         // Phase 4: de-Parcelize'd attachment value types (now java.io.Serializable).
         'org/matrix/android/sdk/api/session/crypto/attachments/ElementToDecrypt.kt',
         'org/matrix/android/sdk/api/session/content/ContentAttachmentData.kt',
+        'org/matrix/android/sdk/api/session/file/FileService.kt',
         'org/matrix/android/sdk/BuildConfig.kt',
         'org/matrix/android/sdk/api/MatrixConfiguration.kt',
         'org/matrix/android/sdk/api/SyncConfig.kt',

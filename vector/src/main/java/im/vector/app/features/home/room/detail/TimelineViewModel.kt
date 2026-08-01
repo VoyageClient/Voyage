@@ -1017,10 +1017,10 @@ private fun handleSelectStickerAttachment() {
 
                 if (canOpen) {
                     // We can now open the file
-                    session.fileService().getTemporarySharableURI(action.messageFileContent)?.let { uri ->
+                    session.fileService().getTemporarySharableURI(action.messageFileContent)?.let { uriString ->
                         _viewEvents.post(
                                 RoomDetailViewEvents.OpenFile(
-                                        uri,
+                                        Uri.parse(uriString),
                                         action.messageFileContent.mimeType
                                 )
                         )
