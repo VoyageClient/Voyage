@@ -348,6 +348,30 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/pushrules/RuleScope.kt',
         'org/matrix/android/sdk/api/session/pushrules/RuleSetKey.kt',
         'org/matrix/android/sdk/api/session/pushrules/RuleIds.kt',
+        // Sync value types: the /sync JSON response model graph plus sync-state/strategy value classes.
+        'org/matrix/android/sdk/api/session/sync/model/**',
+        'org/matrix/android/sdk/internal/session/sync/model/**',
+        'org/matrix/android/sdk/api/session/sync/SyncState.kt',
+        'org/matrix/android/sdk/api/session/sync/SyncRequestState.kt',
+        'org/matrix/android/sdk/api/session/sync/InitialSyncStep.kt',
+        'org/matrix/android/sdk/api/session/sync/InitialSyncStrategy.kt',
+        // Auth/registration value types: well-known discovery models, MAS auth metadata, 3pid + availability.
+        'org/matrix/android/sdk/api/auth/data/AuthMetadata.kt',
+        'org/matrix/android/sdk/api/auth/data/DelegatedAuthConfig.kt',
+        'org/matrix/android/sdk/api/auth/data/WellKnown.kt',
+        'org/matrix/android/sdk/api/auth/registration/RegisterThreePid.kt',
+        'org/matrix/android/sdk/api/auth/registration/RegistrationAvailability.kt',
+        // Content-scanner + media + misc value types.
+        'org/matrix/android/sdk/api/session/contentscanner/ScanState.kt',
+        'org/matrix/android/sdk/api/session/media/PreviewUrlData.kt',
+        'org/matrix/android/sdk/api/MatrixCallback.kt',
+        'org/matrix/android/sdk/api/util/SuspendMatrixCallback.kt',
+        'org/matrix/android/sdk/api/util/UrlExtensions.kt',
+        // Widget/integration-manager/call/account-data standalone value types.
+        'org/matrix/android/sdk/api/session/widgets/model/**',
+        'org/matrix/android/sdk/api/session/integrationmanager/IntegrationManagerConfig.kt',
+        'org/matrix/android/sdk/api/session/call/TurnServerResponse.kt',
+        'org/matrix/android/sdk/api/session/accountdata/UserAccountDataTypes.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
