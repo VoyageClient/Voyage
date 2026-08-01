@@ -199,12 +199,16 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
     private val canReachServer = AtomicBoolean(true)
 
     private suspend fun QueuedTask.waitForNetwork() = waitForNetworkSequencer.post {
+        // Probe before sleeping: any transient IOException flips canReachServer false, and this
+        // sequencer is global — sleeping first stalls every room's queue even when the server is fine.
         while (!canReachServer.get()) {
-            Timber.v("## $this cannot reach server wait for $$RETRY_WAIT_TIME_MS ms")
-            delay(RETRY_WAIT_TIME_MS)
-            withContext(Dispatchers.IO) {
-                val hostAvailable = HomeServerAvailabilityChecker(sessionParams).check()
-                canReachServer.set(hostAvailable)
+            val hostAvailable = withContext(Dispatchers.IO) {
+                HomeServerAvailabilityChecker(sessionParams).check()
+            }
+            canReachServer.set(hostAvailable)
+            if (!hostAvailable) {
+                Timber.v("## $this cannot reach server wait for $$RETRY_WAIT_TIME_MS ms")
+                delay(RETRY_WAIT_TIME_MS)
             }
         }
     }
