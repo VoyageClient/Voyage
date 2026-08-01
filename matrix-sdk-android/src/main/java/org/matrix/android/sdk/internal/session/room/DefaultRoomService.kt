@@ -17,8 +17,9 @@
 package org.matrix.android.sdk.internal.session.room
 
 import androidx.lifecycle.LiveData
-import kotlinx.coroutines.flow.Flow
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
+import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
 import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
@@ -190,8 +191,8 @@ internal class DefaultRoomService @Inject constructor(
         return roomSummaryDataSource.getUpdatablePagedRoomSummariesLive(queryParams, pagedListConfig, sortOrder)
     }
 
-    override fun getRoomCountLive(queryParams: RoomSummaryQueryParams): LiveData<Int> {
-        return roomSummaryDataSource.getCountLive(queryParams)
+    override fun getRoomCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int> {
+        return roomSummaryDataSource.getCountFlow(queryParams)
     }
 
     override fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount {
@@ -202,8 +203,8 @@ internal class DefaultRoomService @Inject constructor(
         return roomSummaryDataSource.getBreadcrumbs(queryParams)
     }
 
-    override fun getBreadcrumbsLive(queryParams: RoomSummaryQueryParams): LiveData<List<RoomSummary>> {
-        return roomSummaryDataSource.getBreadcrumbsLive(queryParams)
+    override fun getBreadcrumbsFlow(queryParams: RoomSummaryQueryParams): Flow<List<RoomSummary>> {
+        return roomSummaryDataSource.getBreadcrumbsFlow(queryParams)
     }
 
     override suspend fun onRoomDisplayed(roomId: String) {
@@ -249,8 +250,8 @@ internal class DefaultRoomService @Inject constructor(
         return roomChangeMembershipStateDataSource.getState(roomIdOrAlias)
     }
 
-    override fun getChangeMembershipsLive(): LiveData<Map<String, ChangeMembershipState>> {
-        return roomChangeMembershipStateDataSource.getLiveStates()
+    override fun getChangeMembershipsFlow(): Flow<Map<String, ChangeMembershipState>> {
+        return roomChangeMembershipStateDataSource.getStatesFlow()
     }
 
     override fun getRoomMember(userId: String, roomId: String): RoomMemberSummary? {
@@ -258,9 +259,10 @@ internal class DefaultRoomService @Inject constructor(
                 .getLastRoomMember(userId)?.asDomain()
     }
 
-    override fun getRoomMemberLive(userId: String, roomId: String): LiveData<Optional<RoomMemberSummary>> {
+    override fun getRoomMemberFlow(userId: String, roomId: String): Flow<Optional<RoomMemberSummary>> {
         return database.roomMemberSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
                 .map { stores.roomMember.getByRoomAndUser(roomId, userId)?.asDomain().toOptional() }
+                .asFlow()
     }
 
     override suspend fun getRoomState(roomId: String): List<Event> {

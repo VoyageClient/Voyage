@@ -167,7 +167,7 @@ interface RoomService {
      * @param queryParams parameters to query the room summaries. It can be use to keep only joined rooms, for instance.
      * @return the [LiveData] of [RoomSummary]
      */
-    fun getBreadcrumbsLive(queryParams: RoomSummaryQueryParams): LiveData<List<RoomSummary>>
+    fun getBreadcrumbsFlow(queryParams: RoomSummaryQueryParams): Flow<List<RoomSummary>>
 
     /**
      * Inform the Matrix SDK that a room is displayed.
@@ -195,7 +195,7 @@ interface RoomService {
 
     /**
      * Return the current local changes membership for the given room.
-     * see [getChangeMembershipsLive] for more details.
+     * see [getChangeMembershipsFlow] for more details.
      */
     fun getChangeMemberships(roomIdOrAlias: String): ChangeMembershipState
 
@@ -205,7 +205,7 @@ interface RoomService {
      * It won't know anything about change being done in other client.
      * Keys are roomId or roomAlias, depending of what you used as parameter for the join/leave action
      */
-    fun getChangeMembershipsLive(): LiveData<Map<String, ChangeMembershipState>>
+    fun getChangeMembershipsFlow(): Flow<Map<String, ChangeMembershipState>>
 
     /**
      * Return the roomId of an existing DM with the other user, or null if such room does not exist.
@@ -234,7 +234,7 @@ interface RoomService {
      * @param roomId the roomId to look for.
      * @return a LiveData of the optional found room member
      */
-    fun getRoomMemberLive(userId: String, roomId: String): LiveData<Optional<RoomMemberSummary>>
+    fun getRoomMemberFlow(userId: String, roomId: String): Flow<Optional<RoomMemberSummary>>
 
     /**
      * Get some state events about a room.
@@ -283,7 +283,7 @@ interface RoomService {
      * Return a LiveData on the number of rooms.
      * @param queryParams parameters to query the room summaries. It can be use to keep only joined rooms, for instance.
      */
-    fun getRoomCountLive(queryParams: RoomSummaryQueryParams): LiveData<Int>
+    fun getRoomCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int>
 
     /**
      * TODO Doc.
