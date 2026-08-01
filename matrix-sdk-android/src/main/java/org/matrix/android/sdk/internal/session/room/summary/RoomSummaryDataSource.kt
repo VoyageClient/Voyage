@@ -60,9 +60,14 @@ import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabaseRead
 import org.matrix.android.sdk.internal.query.matches
+import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
 import org.matrix.android.sdk.internal.database.sql.Room_summary as RoomSummaryRow
 
+// Session-scoped: init registers a driver-level query listener that is never removed, and the
+// snapshot/mapping caches only dedupe when shared. Unscoped, every DefaultRoom resolution leaked
+// a listener, slowing every DB commit's notify pass as they accumulated.
+@SessionScope
 internal class RoomSummaryDataSource @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
         @SessionDatabaseRead private val dispatcher: CoroutineDispatcher,
