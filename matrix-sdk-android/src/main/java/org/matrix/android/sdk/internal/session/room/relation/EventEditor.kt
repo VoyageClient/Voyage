@@ -48,7 +48,8 @@ internal class EventEditor @Inject constructor(
             compatibilityBodyText: String
     ): Cancelable {
         val roomId = targetEvent.roomId
-        if (targetEvent.root.sendState.hasFailed()) {
+        val remoteId = localEchoRepository.getRemoteEchoId(targetEvent.eventId)
+        if (remoteId == null && targetEvent.root.sendState.hasFailed()) {
             // We create a new in memory event for the EventSenderProcessor but we keep the eventId of the failed event.
             val editedEvent = if (newBodyFormattedText != null) {
                 val content = TextContent(newBodyText.toString(), newBodyFormattedText.toString())
@@ -59,15 +60,12 @@ internal class EventEditor @Inject constructor(
                     eventId = targetEvent.eventId
             )
             return sendFailedEvent(targetEvent, editedEvent)
-        } else if (targetEvent.root.sendState.isSent()) {
-            val event = eventFactory
-                    .createReplaceTextEvent(roomId, targetEvent.eventId, newBodyText, newBodyFormattedText, newBodyAutoMarkdown, msgType, compatibilityBodyText)
-            return sendReplaceEvent(event)
-        } else {
-            // Should we throw?
-            Timber.w("Can't edit a sending event")
-            return NoOpCancellable
         }
+        // Sent or still sending. A still-sending target is safe: the per-room queue is sequential
+        // and rewrites local relation ids at send time, so the replace lands after the original.
+        val event = eventFactory
+                .createReplaceTextEvent(roomId, remoteId ?: targetEvent.eventId, newBodyText, newBodyFormattedText, newBodyAutoMarkdown, msgType, compatibilityBodyText)
+        return sendReplaceEvent(event)
     }
 
     fun editMediaCaption(
@@ -93,19 +91,16 @@ internal class EventEditor @Inject constructor(
             options: List<String>
     ): Cancelable {
         val roomId = targetEvent.roomId
-        if (targetEvent.root.sendState.hasFailed()) {
+        val remoteId = localEchoRepository.getRemoteEchoId(targetEvent.eventId)
+        if (remoteId == null && targetEvent.root.sendState.hasFailed()) {
             val editedEvent = eventFactory.createPollEvent(roomId, pollType, question, options).copy(
                     eventId = targetEvent.eventId
             )
             return sendFailedEvent(targetEvent, editedEvent)
-        } else if (targetEvent.root.sendState.isSent()) {
-            val event = eventFactory
-                    .createPollReplaceEvent(roomId, pollType, targetEvent.eventId, question, options)
-            return sendReplaceEvent(event)
-        } else {
-            Timber.w("Can't edit a sending event")
-            return NoOpCancellable
         }
+        val event = eventFactory
+                .createPollReplaceEvent(roomId, pollType, remoteId ?: targetEvent.eventId, question, options)
+        return sendReplaceEvent(event)
     }
 
     private fun sendFailedEvent(targetEvent: TimelineEvent, editedEvent: Event): Cancelable {
@@ -127,7 +122,8 @@ internal class EventEditor @Inject constructor(
             compatibilityBodyText: String
     ): Cancelable {
         val roomId = replyToEdit.roomId
-        if (replyToEdit.root.sendState.hasFailed()) {
+        val remoteId = localEchoRepository.getRemoteEchoId(replyToEdit.eventId)
+        if (remoteId == null && replyToEdit.root.sendState.hasFailed()) {
             // We create a new in memory event for the EventSenderProcessor but we keep the eventId of the failed event.
             val editedEvent = eventFactory.createReplyTextEvent(
                     roomId = roomId,
@@ -141,24 +137,19 @@ internal class EventEditor @Inject constructor(
             ) ?: return NoOpCancellable
             updateFailedEchoWithEvent(roomId, replyToEdit.eventId, editedEvent)
             return eventSenderProcessor.postEvent(editedEvent)
-        } else if (replyToEdit.root.sendState.isSent()) {
-            val event = eventFactory.createReplaceTextOfReply(
-                    roomId,
-                    replyToEdit,
-                    originalTimelineEvent,
-                    newBodyText,
-                    newBodyFormattedText,
-                    true,
-                    MessageType.MSGTYPE_TEXT,
-                    compatibilityBodyText
-            )
-                    .also { localEchoRepository.createLocalEcho(it) }
-            return eventSenderProcessor.postEvent(event)
-        } else {
-            // Should we throw?
-            Timber.w("Can't edit a sending event")
-            return NoOpCancellable
         }
+        val event = eventFactory.createReplaceTextOfReply(
+                roomId,
+                replyToEdit,
+                originalTimelineEvent,
+                newBodyText,
+                newBodyFormattedText,
+                true,
+                MessageType.MSGTYPE_TEXT,
+                compatibilityBodyText,
+                targetEventId = remoteId ?: replyToEdit.eventId
+        )
+        return sendReplaceEvent(event)
     }
 
     private fun updateFailedEchoWithEvent(roomId: String, failedEchoEventId: String, editedEvent: Event) {

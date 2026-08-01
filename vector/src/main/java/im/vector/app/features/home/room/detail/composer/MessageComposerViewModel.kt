@@ -900,8 +900,12 @@ class MessageComposerViewModel @AssistedInject constructor(
                     }
                 }
                 is SendMode.Edit -> {
+                    // Re-resolve the snapshot taken when edit mode was entered: the message may have
+                    // finished sending since (local echo swapped for the remote event).
+                    val targetEvent = room.getTimelineEvent(state.sendMode.timelineEvent.eventId)
+                            ?: state.sendMode.timelineEvent
                     // is original event a reply?
-                    val relationContent = state.sendMode.timelineEvent.getRelationContent()
+                    val relationContent = targetEvent.getRelationContent()
                     val inReplyTo = if (state.rootThreadEventId != null) {
                         // Thread event
                         if (relationContent?.shouldRenderInThread() == true) {
@@ -923,10 +927,10 @@ class MessageComposerViewModel @AssistedInject constructor(
                     if (inReplyTo != null) {
                         // TODO check if same content?
                         room.getTimelineEvent(inReplyTo)?.let {
-                            room.relationService().editReply(state.sendMode.timelineEvent, it, editText, editFormatted)
+                            room.relationService().editReply(targetEvent, it, editText, editFormatted)
                         }
                     } else {
-                        val messageContent = state.sendMode.timelineEvent.getVectorLastMessageContent()
+                        val messageContent = targetEvent.getVectorLastMessageContent()
                         if (messageContent is MessageWithAttachmentContent) {
                             // Media event: edit/add/remove its caption. Empty text removes it.
                             val existingCaption = if (editFormatted != null) {
@@ -935,7 +939,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 messageContent.getCaption().orEmpty()
                             }
                             val newCaption = (editFormatted ?: editText).toString()
-                            val editedEvent = state.sendMode.timelineEvent
+                            val editedEvent = targetEvent
                             if (existingCaption != newCaption) {
                                 if (pgpRoomEncryptor.isRoomPgpActive(room) && editText.toString().isNotBlank()) {
                                     // Encrypt the edited caption rather than leaking it as plaintext.
@@ -969,7 +973,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                 when (val outcome = pgpRoomEncryptor.encryptForRoom(room, editText, pgpFormatted)) {
                                     is PgpRoomEncryptor.Outcome.Encrypted ->
                                         room.relationService().editTextMessage(
-                                                state.sendMode.timelineEvent,
+                                                targetEvent,
                                                 messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
                                                 outcome.armoredBody,
                                                 outcome.armoredFormatted,
@@ -990,7 +994,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                             }
                             if (needsEdit) {
                                 room.relationService().editTextMessage(
-                                        state.sendMode.timelineEvent,
+                                        targetEvent,
                                         messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
                                         editText,
                                         editFormatted,

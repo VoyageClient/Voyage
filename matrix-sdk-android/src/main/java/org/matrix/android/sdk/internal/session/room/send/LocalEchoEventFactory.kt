@@ -398,6 +398,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             msgType: String,
             compatibilityText: String,
             additionalContent: Content? = null,
+            targetEventId: String? = null,
     ): Event {
         // Modern reply edit: the new_content carries only the user-typed reply text. No
         // legacy "> <@user:server>" quote prefix in body, no <mx-reply> block in
@@ -416,7 +417,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                 MessageTextContent(
                         msgType = msgType,
                         body = compatibilityText,
-                        relatesTo = RelationDefaultContent(RelationType.REPLACE, eventReplaced.root.eventId),
+                        relatesTo = RelationDefaultContent(RelationType.REPLACE, targetEventId ?: eventReplaced.root.eventId),
                         newContent = MessageTextContent(
                                 msgType = msgType,
                                 format = if (isFormatted) MessageFormat.FORMAT_MATRIX_HTML else null,
