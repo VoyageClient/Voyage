@@ -15,8 +15,8 @@ import im.vector.app.core.extensions.addFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivitySimpleBinding
 import im.vector.app.features.themes.ActivityOtherThemes
-import im.vector.lib.core.utils.compat.getParcelableArrayListExtraCompat
 import im.vector.lib.core.utils.compat.getParcelableCompat
+import im.vector.lib.core.utils.compat.getSerializableExtraCompat
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 
 @AndroidEntryPoint
@@ -34,7 +34,7 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         }
 
         fun getOutput(intent: Intent): List<ContentAttachmentData> {
-            return intent.getParcelableArrayListExtraCompat<ContentAttachmentData>(ATTACHMENTS_PREVIEW_RESULT).orEmpty()
+            return intent.getSerializableExtraCompat<ArrayList<ContentAttachmentData>>(ATTACHMENTS_PREVIEW_RESULT).orEmpty()
         }
 
         fun getKeepOriginalSize(intent: Intent): Boolean {
@@ -60,7 +60,7 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
 
     fun setResultAndFinish(data: List<ContentAttachmentData>, keepOriginalImageSize: Boolean) {
         val resultIntent = Intent().apply {
-            putParcelableArrayListExtra(ATTACHMENTS_PREVIEW_RESULT, ArrayList(data))
+            putExtra(ATTACHMENTS_PREVIEW_RESULT, ArrayList(data))
             putExtra(KEEP_ORIGINAL_IMAGES_SIZE, keepOriginalImageSize)
         }
         setResult(RESULT_OK, resultIntent)

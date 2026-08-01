@@ -16,13 +16,11 @@
 
 package org.matrix.android.sdk.api.session.content
 
-import android.os.Parcelable
 import com.squareup.moshi.JsonClass
-import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.util.MimeTypes.normalizeMimeType
 import org.matrix.android.sdk.internal.di.MoshiProvider
+import java.io.Serializable
 
-@Parcelize
 @JsonClass(generateAdapter = true)
 data class ContentAttachmentData(
         val size: Long = 0,
@@ -37,7 +35,7 @@ data class ContentAttachmentData(
         val mimeType: String?,
         val type: Type,
         val waveform: List<Int>? = null
-) : Parcelable {
+) : Serializable {
 
     @JsonClass(generateAdapter = false)
     enum class Type {

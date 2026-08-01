@@ -73,8 +73,9 @@ def coreSources = [
         // Platform seam (Phase 1): the android-free KeyValueStore interface; the SharedPreferences
         // impl stays in the android module.
         'org/matrix/android/sdk/internal/platform/KeyValueStore.kt',
-        // Phase 4: de-Parcelize'd attachment value type (now java.io.Serializable).
+        // Phase 4: de-Parcelize'd attachment value types (now java.io.Serializable).
         'org/matrix/android/sdk/api/session/crypto/attachments/ElementToDecrypt.kt',
+        'org/matrix/android/sdk/api/session/content/ContentAttachmentData.kt',
         'org/matrix/android/sdk/BuildConfig.kt',
         'org/matrix/android/sdk/api/MatrixConfiguration.kt',
         'org/matrix/android/sdk/api/SyncConfig.kt',
