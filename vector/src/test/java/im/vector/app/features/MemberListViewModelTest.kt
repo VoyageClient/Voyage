@@ -227,8 +227,8 @@ class MemberListViewModelTest {
             every { crossSigningService() } returns fakeCrossSigningService
 
             every {
-                getLiveCryptoDeviceInfo(listOf(aliceMxid, bobMxid, marcMxid))
-            } returns MutableLiveData(
+                getCryptoDeviceInfoFlow(listOf(aliceMxid, bobMxid, marcMxid))
+            } returns flowOf(
                     listOf(
                             aliceDevice1, aliceDevice2, bobDevice1, bobDevice2, markDevice
                     )

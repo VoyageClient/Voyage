@@ -101,8 +101,8 @@ class GetDeviceFullInfoUseCaseTest {
             fakeActiveSessionHolder.instance.getSafeActiveSession()
             getCurrentSessionCrossSigningInfoUseCase.execute()
             getEncryptionTrustLevelForDeviceUseCase.execute(currentSessionCrossSigningInfo, cryptoDeviceInfo)
-            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getMyDevicesInfoLive(A_DEVICE_ID).asFlow()
-            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getLiveCryptoDeviceInfoWithId(A_DEVICE_ID).asFlow()
+            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getMyDevicesInfoFlow(A_DEVICE_ID)
+            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getCryptoDeviceInfoWithIdFlow(A_DEVICE_ID)
             checkIfSessionIsInactiveUseCase.execute(A_TIMESTAMP)
             getMatrixClientInfoUseCase.execute(fakeActiveSessionHolder.fakeSession, A_DEVICE_ID)
         }
@@ -140,8 +140,8 @@ class GetDeviceFullInfoUseCaseTest {
             fakeActiveSessionHolder.instance.getSafeActiveSession()
             getCurrentSessionCrossSigningInfoUseCase.execute()
             getEncryptionTrustLevelForDeviceUseCase.execute(currentSessionCrossSigningInfo, cryptoDeviceInfo)
-            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getMyDevicesInfoLive(A_DEVICE_ID).asFlow()
-            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getLiveCryptoDeviceInfoWithId(A_DEVICE_ID).asFlow()
+            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getMyDevicesInfoFlow(A_DEVICE_ID)
+            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getCryptoDeviceInfoWithIdFlow(A_DEVICE_ID)
             checkIfSessionIsInactiveUseCase.execute(A_TIMESTAMP)
             getMatrixClientInfoUseCase.execute(fakeActiveSessionHolder.fakeSession, A_DEVICE_ID)
         }
@@ -163,8 +163,8 @@ class GetDeviceFullInfoUseCaseTest {
         deviceFullInfo.shouldBeNull()
         verify {
             fakeActiveSessionHolder.instance.getSafeActiveSession()
-            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getMyDevicesInfoLive(A_DEVICE_ID).asFlow()
-            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getLiveCryptoDeviceInfoWithId(A_DEVICE_ID).asFlow()
+            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getMyDevicesInfoFlow(A_DEVICE_ID)
+            fakeActiveSessionHolder.fakeSession.fakeCryptoService.getCryptoDeviceInfoWithIdFlow(A_DEVICE_ID)
         }
     }
 

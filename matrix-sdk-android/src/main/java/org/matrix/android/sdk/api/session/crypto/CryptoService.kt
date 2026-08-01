@@ -20,6 +20,7 @@ import android.content.Context
 import androidx.annotation.Size
 import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
@@ -69,7 +70,7 @@ interface CryptoService {
 
     fun isRoomBlacklistUnverifiedDevices(roomId: String?): Boolean
 
-    fun getLiveBlockUnverifiedDevices(roomId: String): LiveData<Boolean>
+    fun getBlockUnverifiedDevicesFlow(roomId: String): Flow<Boolean>
 
     fun setWarnOnUnknownDevices(warn: Boolean)
 
@@ -81,7 +82,7 @@ interface CryptoService {
 
     fun setGlobalBlacklistUnverifiedDevices(block: Boolean)
 
-    fun getLiveGlobalCryptoConfig(): LiveData<GlobalCryptoConfig>
+    fun getGlobalCryptoConfigFlow(): Flow<GlobalCryptoConfig>
 
     fun supportsDisablingKeyGossiping(): Boolean
 
@@ -136,13 +137,13 @@ interface CryptoService {
 
 //    fun getCryptoDeviceInfoFlow(userId: String): Flow<List<CryptoDeviceInfo>>
 
-    fun getLiveCryptoDeviceInfo(): LiveData<List<CryptoDeviceInfo>>
+    fun getCryptoDeviceInfoFlow(): Flow<List<CryptoDeviceInfo>>
 
-    fun getLiveCryptoDeviceInfoWithId(deviceId: String): LiveData<Optional<CryptoDeviceInfo>>
+    fun getCryptoDeviceInfoWithIdFlow(deviceId: String): Flow<Optional<CryptoDeviceInfo>>
 
-    fun getLiveCryptoDeviceInfo(userId: String): LiveData<List<CryptoDeviceInfo>>
+    fun getCryptoDeviceInfoFlow(userId: String): Flow<List<CryptoDeviceInfo>>
 
-    fun getLiveCryptoDeviceInfo(userIds: List<String>): LiveData<List<CryptoDeviceInfo>>
+    fun getCryptoDeviceInfoFlow(userIds: List<String>): Flow<List<CryptoDeviceInfo>>
 
     suspend fun reRequestRoomKeyForEvent(event: Event)
 
@@ -154,9 +155,9 @@ interface CryptoService {
 
     fun getMyDevicesInfo(): List<DeviceInfo>
 
-    fun getMyDevicesInfoLive(): LiveData<List<DeviceInfo>>
+    fun getMyDevicesInfoFlow(): Flow<List<DeviceInfo>>
 
-    fun getMyDevicesInfoLive(deviceId: String): LiveData<Optional<DeviceInfo>>
+    fun getMyDevicesInfoFlow(deviceId: String): Flow<Optional<DeviceInfo>>
 
     suspend fun fetchDeviceInfo(deviceId: String): DeviceInfo
 

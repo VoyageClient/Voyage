@@ -87,16 +87,14 @@ class RoomProfileViewModel @AssistedInject constructor(
     }
 
     private fun observeCryptoSettings(flowRoom: FlowRoom) {
-        val perRoomBlockStatus = session.cryptoService().getLiveBlockUnverifiedDevices(initialState.roomId)
-                .asFlow()
+        val perRoomBlockStatus = session.cryptoService().getBlockUnverifiedDevicesFlow(initialState.roomId)
 
         perRoomBlockStatus
                 .execute {
                     copy(encryptToVerifiedDeviceOnly = it)
                 }
 
-        val globalBlockStatus = session.cryptoService().getLiveGlobalCryptoConfig()
-                .asFlow()
+        val globalBlockStatus = session.cryptoService().getGlobalCryptoConfigFlow()
 
         globalBlockStatus
                 .execute {
@@ -110,7 +108,7 @@ class RoomProfileViewModel @AssistedInject constructor(
                 flowRoom.liveRoomMembers(roomMemberQueryParams { memberships = Membership.activeMemberships() })
                         .map { it.map { it.userId } }
                         .flatMapLatest {
-                            session.cryptoService().getLiveCryptoDeviceInfo(it).asFlow()
+                            session.cryptoService().getCryptoDeviceInfoFlow(it)
                         }
             } else {
                 flowOf(emptyList())

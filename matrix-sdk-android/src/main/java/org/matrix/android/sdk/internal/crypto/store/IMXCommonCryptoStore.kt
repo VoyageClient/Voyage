@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.crypto.store
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.crypto.GlobalCryptoConfig
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.CryptoRoomInfo
@@ -55,10 +55,10 @@ interface IMXCommonCryptoStore {
     fun getMyDevicesInfo(): List<DeviceInfo>
 
     // questionable that it's stored in crypto store
-    fun getLiveMyDevicesInfo(): LiveData<List<DeviceInfo>>
+    fun getMyDevicesInfoFlow(): Flow<List<DeviceInfo>>
 
     // questionable that it's stored in crypto store
-    fun getLiveMyDevicesInfo(deviceId: String): LiveData<Optional<DeviceInfo>>
+    fun getMyDevicesInfoFlow(deviceId: String): Flow<Optional<DeviceInfo>>
 
     /**
      * open any existing crypto store.
@@ -114,7 +114,7 @@ interface IMXCommonCryptoStore {
      */
     fun setGlobalBlacklistUnverifiedDevices(block: Boolean)
 
-    fun getLiveGlobalCryptoConfig(): LiveData<GlobalCryptoConfig>
+    fun getGlobalCryptoConfigFlow(): Flow<GlobalCryptoConfig>
 
     /**
      * @return true to unilaterally blacklist all unverified devices.
@@ -126,7 +126,7 @@ interface IMXCommonCryptoStore {
      *
      * @return Live status
      */
-    fun getLiveBlockUnverifiedDevices(roomId: String): LiveData<Boolean>
+    fun getBlockUnverifiedDevicesFlow(roomId: String): Flow<Boolean>
 
     /**
      * Tell if unverified devices should be blacklisted when sending keys.
