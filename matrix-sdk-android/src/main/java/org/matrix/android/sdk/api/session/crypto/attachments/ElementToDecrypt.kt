@@ -16,9 +16,8 @@
 
 package org.matrix.android.sdk.api.session.crypto.attachments
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.crypto.model.EncryptedFileInfo
+import java.io.Serializable
 
 fun EncryptedFileInfo.toElementToDecrypt(): ElementToDecrypt? {
     // Check the validity of some fields
@@ -37,9 +36,8 @@ fun EncryptedFileInfo.toElementToDecrypt(): ElementToDecrypt? {
 /**
  * Represent data to decode an attachment.
  */
-@Parcelize
 data class ElementToDecrypt(
         val iv: String,
         val k: String,
         val sha256: String
-) : Parcelable
+) : Serializable
