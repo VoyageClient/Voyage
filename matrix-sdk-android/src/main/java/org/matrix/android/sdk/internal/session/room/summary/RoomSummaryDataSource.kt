@@ -200,13 +200,13 @@ internal class RoomSummaryDataSource @Inject constructor(
                 .mapNotNull { it.toDomain() }
     }
 
-    fun getBreadcrumbsLive(queryParams: RoomSummaryQueryParams): LiveData<List<RoomSummary>> {
+    fun getBreadcrumbsFlow(queryParams: RoomSummaryQueryParams): Flow<List<RoomSummary>> {
         return liveOnRoomSummaryChange {
             filteredSortedRows(queryParams, RoomSortOrder.NONE)
                     .filter { it.breadcrumbs_index > RoomSummary.NOT_IN_BREADCRUMBS }
                     .sortedBy { it.breadcrumbs_index }
                     .mapNotNull { it.toDomain() }
-        }
+        }.asFlow()
     }
 
     fun getSortedPagedRoomSummariesLive(
@@ -249,8 +249,8 @@ internal class RoomSummaryDataSource @Inject constructor(
         return result
     }
 
-    fun getCountLive(queryParams: RoomSummaryQueryParams): LiveData<Int> {
-        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, RoomSortOrder.NONE).size }
+    fun getCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int> {
+        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, RoomSortOrder.NONE).size }.asFlow()
     }
 
     fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount =

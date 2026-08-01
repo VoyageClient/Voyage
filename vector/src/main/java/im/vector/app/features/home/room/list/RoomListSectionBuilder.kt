@@ -453,7 +453,7 @@ class RoomListSectionBuilder(
                     onUpdatable(updatableFilterLivePageResult)
 
                     val itemCountFlow = updatableFilterLivePageResult.livePagedList.asFlow()
-                            .flatMapLatest { session.roomService().getRoomCountLive(updatableFilterLivePageResult.queryParams).asFlow() }
+                            .flatMapLatest { session.roomService().getRoomCountFlow(updatableFilterLivePageResult.queryParams) }
                             .distinctUntilChanged()
 
                     sections.add(
@@ -481,7 +481,7 @@ class RoomListSectionBuilder(
             val liveQueryParams = MutableStateFlow(updatedQueryParams)
             val itemCountFlow = liveQueryParams
                     .flatMapLatest {
-                        session.roomService().getRoomCountLive(it).asFlow()
+                        session.roomService().getRoomCountFlow(it)
                     }
                     .flowOn(Dispatchers.Main)
                     .distinctUntilChanged()

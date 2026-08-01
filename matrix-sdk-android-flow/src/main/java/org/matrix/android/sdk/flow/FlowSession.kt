@@ -65,7 +65,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveBreadcrumbs(queryParams: RoomSummaryQueryParams): Flow<List<RoomSummary>> {
-        return session.roomService().getBreadcrumbsLive(queryParams).asFlow()
+        return session.roomService().getBreadcrumbsFlow(queryParams)
                 .startWith(session.coroutineDispatchers.io) {
                     session.roomService().getBreadcrumbs(queryParams)
                 }
@@ -97,7 +97,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveRoomMember(userId: String, roomId: String): Flow<Optional<RoomMemberSummary>> {
-        return session.roomService().getRoomMemberLive(userId, roomId).asFlow()
+        return session.roomService().getRoomMemberFlow(userId, roomId)
                 .startWith(session.coroutineDispatchers.io) {
                     session.roomService().getRoomMember(userId, roomId).toOptional()
                 }
@@ -184,7 +184,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveRoomChangeMembershipState(): Flow<Map<String, ChangeMembershipState>> {
-        return session.roomService().getChangeMembershipsLive().asFlow()
+        return session.roomService().getChangeMembershipsFlow()
     }
 }
 

@@ -16,8 +16,9 @@
 
 package org.matrix.android.sdk.internal.session.room.membership
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.internal.session.SessionScope
@@ -48,8 +49,8 @@ internal class RoomChangeMembershipStateDataSource @Inject constructor() {
         mutableLiveStates.postValue(states.toMap())
     }
 
-    fun getLiveStates(): LiveData<Map<String, ChangeMembershipState>> {
-        return mutableLiveStates
+    fun getStatesFlow(): Flow<Map<String, ChangeMembershipState>> {
+        return mutableLiveStates.asFlow()
     }
 
     fun getState(roomId: String): ChangeMembershipState {
