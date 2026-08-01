@@ -89,7 +89,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         super.bind(holder)
         renderSendState(holder.voiceLayout, null)
         if (!attributes.informationData.sendState.hasFailed()) {
-            contentUploadStateTrackerBinder.bind(attributes.informationData.eventId, izLocalFile, holder.progressLayout)
+            contentUploadStateTrackerBinder.bind(attributes.informationData.stableId, izLocalFile, holder.progressLayout)
         } else {
             holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_cross)
             holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.error_voice_message_unable_to_play)
@@ -153,7 +153,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
                 is AudioMessagePlaybackTracker.Listener.State.Paused -> renderPausedState(holder, state, waveformColorIdle, waveformColorPlayed)
                 is AudioMessagePlaybackTracker.Listener.State.Recording -> Unit
             }
-        }.also { audioMessagePlaybackTracker.track(attributes.informationData.eventId, it) }
+        }.also { audioMessagePlaybackTracker.track(attributes.informationData.stableId, it) }
     }
 
     private fun getTouchedPositionPercentage(motionEvent: MotionEvent, view: View) = (motionEvent.x / view.width).coerceIn(0f, 1f)
@@ -183,9 +183,9 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
 
     override fun unbind(holder: Holder) {
         super.unbind(holder)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
-        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.eventId, it) }
+        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.stableId, it) }
         playbackTrackerListener = null
     }
 

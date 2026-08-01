@@ -17,6 +17,9 @@ import org.matrix.android.sdk.api.util.MatrixItem
 @Parcelize
 data class MessageInformationData(
         val eventId: String,
+        // Survives the local-echo → remote-id swap (see timelineStableId). Key per-message async UI
+        // state by this, never by eventId.
+        val stableId: String = eventId,
         val senderId: String,
         val sendState: SendState,
         val time: CharSequence? = null,

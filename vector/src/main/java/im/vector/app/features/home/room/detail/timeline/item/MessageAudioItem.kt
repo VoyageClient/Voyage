@@ -112,7 +112,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
                     holder.view.context.getString(CommonStrings.error_audio_message_unable_to_play, filename)
             holder.progressLayout.isVisible = false
         } else {
-            contentUploadStateTrackerBinder.bind(attributes.informationData.eventId, izLocalFile, holder.progressLayout)
+            contentUploadStateTrackerBinder.bind(attributes.informationData.stableId, izLocalFile, holder.progressLayout)
         }
     }
 
@@ -170,7 +170,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
                 is AudioMessagePlaybackTracker.Listener.State.Paused -> renderPausedState(holder, state)
                 is AudioMessagePlaybackTracker.Listener.State.Recording -> Unit
             }
-        }.also { audioMessagePlaybackTracker.track(attributes.informationData.eventId, it) }
+        }.also { audioMessagePlaybackTracker.track(attributes.informationData.stableId, it) }
     }
 
     private fun renderIdleState(holder: Holder) {
@@ -210,9 +210,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
 
     override fun unbind(holder: Holder) {
         super.unbind(holder)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
-        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.eventId, it) }
+        playbackTrackerListener?.let { audioMessagePlaybackTracker.untrack(attributes.informationData.stableId, it) }
         playbackTrackerListener = null
     }
 

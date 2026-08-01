@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.image
 
+import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
@@ -26,6 +27,7 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int): ImageContentRen
                 ?.let { messageImageContent ->
                     ImageContentRenderer.Data(
                             eventId = eventId,
+                            stableId = timelineStableId(),
                             filename = messageImageContent.body,
                             mimeType = messageImageContent.mimeType,
                             url = messageImageContent.getFileUrl(),
@@ -43,6 +45,7 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int): ImageContentRen
                     val videoInfo = messageVideoContent.videoInfo
                     ImageContentRenderer.Data(
                             eventId = eventId,
+                            stableId = timelineStableId(),
                             filename = messageVideoContent.body,
                             mimeType = videoInfo?.thumbnailInfo?.mimeType,
                             url = videoInfo?.getThumbnailUrl(),
@@ -59,6 +62,7 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int): ImageContentRen
                 ?.let { stickerContent ->
                     ImageContentRenderer.Data(
                             eventId = eventId,
+                            stableId = timelineStableId(),
                             filename = stickerContent.body,
                             mimeType = stickerContent.mimeType,
                             url = stickerContent.getFileUrl(),

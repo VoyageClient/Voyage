@@ -158,13 +158,13 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             holder.replyToView?.delegate = inReplyToClickCallback
             // Stamp the source event before addListener (which renders the current state synchronously):
             // ReplyViewUpdater matches on sourceEventId to drop stale async updates onto a reused view.
-            holder.replyToView?.sourceEventId = attributes.informationData.eventId
+            holder.replyToView?.sourceEventId = attributes.informationData.stableId
             holder.replyToView?.sourceIsSent = attributes.informationData.sendState.isSent()
             val safeReplyPreviewRetriever = replyPreviewRetriever
             if (safeReplyPreviewRetriever == null) {
                 holder.replyToView?.isVisible = false
             } else {
-                safeReplyPreviewRetriever.addListener(attributes.informationData.eventId, replyViewUpdater)
+                safeReplyPreviewRetriever.addListener(attributes.informationData.stableId, replyViewUpdater)
             }
         }
         replyMarker.end()
@@ -188,7 +188,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         holder.memberNameView.setOnLongClickListener(null)
         attributes.avatarRenderer.clear(holder.threadSummaryAvatarImageView)
         holder.threadSummaryConstraintLayout.setOnClickListener(null)
-        replyPreviewRetriever?.removeListener(attributes.informationData.eventId, replyViewUpdater)
+        replyPreviewRetriever?.removeListener(attributes.informationData.stableId, replyViewUpdater)
         replyViewUpdater.replyView = null
         super.unbind(holder)
     }
@@ -203,7 +203,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             // A rebind (notifyItemChanged) doesn't unbind the previous model, so its updater stays
             // registered with a replyView that RecyclerView may later reuse for another message. Ignore
             // the update unless the view still hosts this event, else one reply flashes another's preview.
-            if (view.sourceEventId != attributes.informationData.eventId) return
+            if (view.sourceEventId != attributes.informationData.stableId) return
             replyPreviewRetriever?.let {
                 view.render(
                         state,

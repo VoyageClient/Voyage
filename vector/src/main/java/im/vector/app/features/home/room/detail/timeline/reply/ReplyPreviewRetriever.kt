@@ -19,6 +19,7 @@ package im.vector.app.features.home.room.detail.timeline.reply
 
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
+import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
@@ -98,7 +99,7 @@ class ReplyPreviewRetriever(
         }
     }
 
-    // Keys are the main eventId
+    // Keyed by the containing event's timelineStableId, so state survives the local-echo → remote-id swap.
     private val data = mutableMapOf<String, ReplyPreviewUiState>()
     private val listeners = mutableMapOf<String, MutableSet<PreviewReplyRetrieverListener>>()
     // Cache which replied-to events we already looked up successfully: key is main eventId, value is the getCacheId() value.
@@ -148,7 +149,7 @@ class ReplyPreviewRetriever(
     }
 
     fun getReplyTo(event: TimelineEvent) {
-        val eventId = event.root.eventId ?: return
+        val eventId = event.timelineStableId()
         val now = System.currentTimeMillis()
 
         synchronized(data) {
