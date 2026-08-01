@@ -364,7 +364,7 @@ class ImagePackRepository @Inject constructor(
 
     suspend fun compressImage(uri: Uri, mimeType: String?, maxDimension: Int): Pair<Uri, String?> {
         val result = activeSessionHolder.getActiveSession().fileService().compressImageForUpload(uri.toString(), mimeType, maxDimension)
-        return result.uri to result.mimeType
+        return Uri.parse(result.uri) to result.mimeType
     }
 
     companion object {

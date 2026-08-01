@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.file
 
-import android.net.Uri
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
@@ -75,17 +74,17 @@ interface FileService {
             )
 
     /**
-     * Use this URI and pass it to intent using flag Intent.FLAG_GRANT_READ_URI_PERMISSION
-     * (if not other app won't be able to access it).
+     * Returns a temporary sharable URI (as a string) for the file; on Android parse it and pass it to
+     * an intent with Intent.FLAG_GRANT_READ_URI_PERMISSION (otherwise other apps can't access it).
      */
     fun getTemporarySharableURI(
             mxcUrl: String?,
             fileName: String,
             mimeType: String?,
             elementToDecrypt: ElementToDecrypt?
-    ): Uri?
+    ): String?
 
-    fun getTemporarySharableURI(messageContent: MessageWithAttachmentContent): Uri? =
+    fun getTemporarySharableURI(messageContent: MessageWithAttachmentContent): String? =
             getTemporarySharableURI(
                     mxcUrl = messageContent.getFileUrl(),
                     fileName = messageContent.getFileName(),
@@ -131,7 +130,7 @@ interface FileService {
      */
     suspend fun compressImageForUpload(uri: String, mimeType: String?, maxDimension: Int): CompressedImageResult
 
-    data class CompressedImageResult(val uri: Uri, val mimeType: String?)
+    data class CompressedImageResult(val uri: String, val mimeType: String?)
 
     /**
      * Clears all the files downloaded by the service, including decrypted files.
