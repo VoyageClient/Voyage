@@ -37,6 +37,9 @@ CREATE INDEX event_sender ON event(sender);
 CREATE INDEX event_root_thread ON event(root_thread_event_id);
 -- room-list preview: newest previewable message per room, ordered by timestamp (selectByRoomTypesNewest).
 CREATE INDEX event_room_ts ON event(room_id, origin_server_ts);
+-- Point lookups by (room_id, event_id): without this the planner picks event_room_id and scans the
+-- whole room. Existing DBs get it via the CREATE INDEX IF NOT EXISTS pass in SessionModule.
+CREATE INDEX event_room_event ON event(room_id, event_id);
 
 selectById:
 SELECT * FROM event WHERE id = ?;

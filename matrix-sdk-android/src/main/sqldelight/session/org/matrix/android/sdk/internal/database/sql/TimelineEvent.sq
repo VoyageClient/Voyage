@@ -20,6 +20,8 @@ CREATE INDEX timeline_event_event_id ON timeline_event(event_id);
 CREATE INDEX timeline_event_room_id ON timeline_event(room_id);
 CREATE INDEX timeline_event_chunk ON timeline_event(chunk_id);
 CREATE INDEX timeline_event_display_index ON timeline_event(display_index);
+-- See event_room_event: same room-scan trap for getByRoomAndEventId.
+CREATE INDEX timeline_event_room_event ON timeline_event(room_id, event_id);
 
 selectByChunk:
 SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY display_index DESC;
