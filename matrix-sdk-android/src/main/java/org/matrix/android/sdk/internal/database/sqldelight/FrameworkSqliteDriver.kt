@@ -159,7 +159,14 @@ internal class FrameworkSqliteDriver private constructor(
 
     override fun addListener(vararg queryKeys: String, listener: Query.Listener) {
         synchronized(listeners) {
-            queryKeys.forEach { listeners.getOrPut(it) { linkedSetOf() }.add(listener) }
+            queryKeys.forEach {
+                val set = listeners.getOrPut(it) { linkedSetOf() }
+                set.add(listener)
+                // A listener leak degrades every commit's notify pass on the write thread — scream early.
+                if (set.size % 2048 == 0) {
+                    android.util.Log.w("FrameworkSqliteDriver", "Query listener count for '$it' is ${set.size} — probable listener leak")
+                }
+            }
         }
     }
 

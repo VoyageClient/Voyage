@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.session.room.send
 
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -63,6 +64,27 @@ internal class LocalEchoRepository @Inject constructor(
 
     private val sentEchoesByRemoteId = java.util.Collections.synchronizedMap(HashMap<String, String>())
 
+    // Deferred echo DB writes run through one FIFO queue: independent launches on the multi-threaded
+    // executor scope can reach the DB dispatcher out of order (a SENT write overtaken by its earlier
+    // SENDING write leaves the echo stuck "sending").
+    private val deferredDbTasks = Channel<suspend () -> Unit>(Channel.UNLIMITED)
+
+    init {
+        taskExecutor.executorScope.launch {
+            for (task in deferredDbTasks) {
+                try {
+                    task()
+                } catch (failure: Throwable) {
+                    Timber.e(failure, "Deferred echo DB task failed")
+                }
+            }
+        }
+    }
+
+    private fun enqueueDbTask(task: suspend () -> Unit) {
+        deferredDbTasks.trySend(task)
+    }
+
     // The DB insert of a local echo is deferred (see createLocalEcho), and once sent the echo row is
     // replaced by the remote event under a different id. These maps let lookups by the local echo id
     // (e.g. the long-press action sheet, or a redact/reaction targeting a still-sending message)
@@ -80,7 +102,7 @@ internal class LocalEchoRepository @Inject constructor(
         val eventId = event.eventId ?: throw IllegalStateException("You should have set an eventId for your event")
         val eventType = event.type ?: throw IllegalStateException("You should have set a type for your event")
 
-        taskExecutor.executorScope.launch {
+        enqueueDbTask {
             // Build and announce the echo BEFORE queueing the DB write: the session DB dispatcher can
             // run hundreds of ms behind (sync handling, timeline mapping), and the message must show in
             // the timeline the instant it is sent. WAL lets the member reads run on this pool thread.
@@ -135,7 +157,7 @@ internal class LocalEchoRepository @Inject constructor(
         remoteIdsByLocalEcho[localEchoId] = remoteEventId
         // Fire-and-forget: this reconciliation must not hold the room's send queue behind the DB
         // write dispatcher. Ordering with createLocalEcho's deferred insert is preserved (same queue).
-        taskExecutor.executorScope.launch {
+        enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {
                 val remoteExists = stores.timelineEvent.getByRoomAndEventId(roomId, remoteEventId) != null
                 if (remoteExists) {
@@ -172,7 +194,7 @@ internal class LocalEchoRepository @Inject constructor(
     }
 
     fun updateEchoAsync(eventId: String, block: (EventEntity) -> Unit) {
-        taskExecutor.executorScope.launch {
+        enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {
                 stores.event.getByEventId(eventId)?.let { entity ->
                     block(entity)
@@ -205,7 +227,7 @@ internal class LocalEchoRepository @Inject constructor(
     fun deleteFailedEchoAsync(roomId: String, eventId: String?) {
         eventId ?: return
         pendingEchoes.remove(eventId)
-        taskExecutor.executorScope.launch {
+        enqueueDbTask {
             database.awaitDbTransaction(dispatcher) {
                 stores.timelineEvent.deleteSending(roomId, eventId)
                 stores.event.deleteByEventIdInRoom(roomId, eventId)
