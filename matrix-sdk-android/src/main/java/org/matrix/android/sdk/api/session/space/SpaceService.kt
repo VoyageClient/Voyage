@@ -23,8 +23,6 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.space.model.SpaceChildSummaryEvent
 import org.matrix.android.sdk.api.session.space.peeking.SpacePeekResult
 
-typealias SpaceSummaryQueryParams = RoomSummaryQueryParams
-
 interface SpaceService {
 
     /**

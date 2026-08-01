@@ -289,6 +289,19 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/room/poll/PollHistoryService.kt',
         'org/matrix/android/sdk/api/session/room/poll/LoadedPollsStatus.kt',
         'org/matrix/android/sdk/api/session/room/threads/local/ThreadsLocalService.kt',
+        // Value-type ratchet: room query params + the space/peek data-model graph (the SpaceService
+        // interface itself stays out — it references the whole Room-interface service graph).
+        'org/matrix/android/sdk/api/MatrixConstants.kt',
+        'org/matrix/android/sdk/api/MatrixPatterns.kt',
+        'org/matrix/android/sdk/api/session/room/RoomSortOrder.kt',
+        'org/matrix/android/sdk/api/session/room/RoomSummaryQueryParams.kt',
+        'org/matrix/android/sdk/api/session/space/SpaceSummaryQueryParams.kt',
+        'org/matrix/android/sdk/api/session/room/peeking/**',
+        'org/matrix/android/sdk/api/session/space/SpaceHierarchyData.kt',
+        'org/matrix/android/sdk/api/session/space/JoinSpaceResult.kt',
+        'org/matrix/android/sdk/api/session/space/CreateSpaceParams.kt',
+        'org/matrix/android/sdk/api/session/space/peeking/**',
+        'org/matrix/android/sdk/api/session/space/model/**',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
