@@ -187,11 +187,8 @@ sqldelight {
             srcDirs.setFrom("src/main/sqldelight/crypto")
             dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
         }
-        SessionSqlDatabase {
-            packageName = "org.matrix.android.sdk.internal.database.sql"
-            srcDirs.setFrom("src/main/sqldelight/session")
-            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
-        }
+        // SessionSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the session
+        // store stack); this module consumes it across the module boundary.
         EventIndexSqlDatabase {
             packageName = "org.matrix.android.sdk.internal.session.search.index.db"
             srcDirs.setFrom("src/main/sqldelight/eventindex")

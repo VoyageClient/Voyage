@@ -458,6 +458,7 @@ internal class SqlTimeline(
                     if (isWindowed) rebuildSnapshot(reuseLiveChunk = true)
                     return
                 }
+                val oldestPrevToken = oldest.prev_token
                 when {
                     // is_last_backward is the room start: nothing older, whatever a stale prev link says.
                     oldest.is_last_backward != 0L -> if (isWindowed) rebuildSnapshot(reuseLiveChunk = true) else updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
@@ -465,8 +466,8 @@ internal class SqlTimeline(
                         extendLoadedChunks(Timeline.Direction.BACKWARDS)
                         revealAfterBackwardFetch()
                     }
-                    oldest.prev_token != null -> {
-                        paginate(oldest.prev_token, Timeline.Direction.BACKWARDS, count, oldest.id)
+                    oldestPrevToken != null -> {
+                        paginate(oldestPrevToken, Timeline.Direction.BACKWARDS, count, oldest.id)
                         // The server page is persisted as a new chunk linked into our chain; walk the whole
                         // prev_chunk_id chain so a page that bridges to an existing older chunk is fully picked up.
                         extendLoadedChunks(Timeline.Direction.BACKWARDS)
@@ -499,14 +500,15 @@ internal class SqlTimeline(
                     if (liveEdgeLoaded) newestShownEventId = null
                 }
                 val newest = loadedChunkIds.firstOrNull()?.let { stores.chunk.getById(it) } ?: return
+                val newestNextToken = newest.next_token
                 when {
                     newest.is_last_forward != 0L -> updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
                     newest.next_chunk_id != null -> {
                         extendLoadedChunks(Timeline.Direction.FORWARDS)
                         rebuildSnapshot()
                     }
-                    newest.next_token != null -> {
-                        paginate(newest.next_token, Timeline.Direction.FORWARDS, count, newest.id)
+                    newestNextToken != null -> {
+                        paginate(newestNextToken, Timeline.Direction.FORWARDS, count, newest.id)
                         extendLoadedChunks(Timeline.Direction.FORWARDS)
                         rebuildSnapshot()
                     }
