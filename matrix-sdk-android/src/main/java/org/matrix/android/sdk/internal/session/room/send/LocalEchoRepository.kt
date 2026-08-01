@@ -77,8 +77,8 @@ internal class LocalEchoRepository @Inject constructor(
     fun createLocalEcho(event: Event) {
         val roomId = event.roomId ?: throw IllegalStateException("You should have set a roomId for your event")
         val senderId = event.senderId ?: throw IllegalStateException("You should have set a senderId for your event")
-        event.eventId ?: throw IllegalStateException("You should have set an eventId for your event")
-        event.type ?: throw IllegalStateException("You should have set a type for your event")
+        val eventId = event.eventId ?: throw IllegalStateException("You should have set an eventId for your event")
+        val eventType = event.type ?: throw IllegalStateException("You should have set a type for your event")
 
         taskExecutor.executorScope.launch {
             // Build and announce the echo BEFORE queueing the DB write: the session DB dispatcher can
@@ -90,7 +90,7 @@ internal class LocalEchoRepository @Inject constructor(
             val localId = UUID.randomUUID().mostSignificantBits
             val timelineEventEntity = TimelineEventEntity(localId).also {
                 it.root = eventEntity
-                it.eventId = event.eventId
+                it.eventId = eventId
                 it.roomId = roomId
                 it.senderName = myUser?.let { u -> u.displayName ?: "" }
                 it.senderAvatar = myUser?.let { u -> u.avatarUrl ?: "" }
@@ -109,7 +109,7 @@ internal class LocalEchoRepository @Inject constructor(
                     Timber.i("## Send: skip local echo insert of ${event.eventId}, remote copy $remoteId already synced")
                 } else {
                     val dbId = stores.event.insert(eventEntity)
-                    stores.eventInsert.insert(event.eventId, event.type, canBeProcessed = true, insertType = EventInsertType.LOCAL_ECHO)
+                    stores.eventInsert.insert(eventId, eventType, canBeProcessed = true, insertType = EventInsertType.LOCAL_ECHO)
                     stores.timelineEvent.insert(timelineEventEntity, chunkId = null, rootEventDbId = dbId)
                 }
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)

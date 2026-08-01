@@ -184,7 +184,9 @@ internal class CallSignalingHandler @Inject constructor(
             // ignore invites you send
             return
         }
-        if (event.roomId == null || event.senderId == null) {
+        val roomId = event.roomId
+        val senderId = event.senderId
+        if (roomId == null || senderId == null) {
             return
         }
         val now = clock.epochMillis()
@@ -195,18 +197,18 @@ internal class CallSignalingHandler @Inject constructor(
         }
         val content = event.getClearContent().toModel<CallInviteContent>() ?: return
 
-        content.callId ?: return
-        if (invitedCallIds.contains(content.callId)) {
+        val callId = content.callId ?: return
+        if (invitedCallIds.contains(callId)) {
             // Call is already known, maybe due to fast lane. Ignore
             Timber.tag(loggerTag.value).d("Ignoring already known call invite")
             return
         }
         val incomingCall = mxCallFactory.createIncomingCall(
-                roomId = event.roomId,
-                opponentUserId = event.senderId,
+                roomId = roomId,
+                opponentUserId = senderId,
                 content = content
         ) ?: return
-        invitedCallIds.add(content.callId)
+        invitedCallIds.add(callId)
         activeCallHandler.addCall(incomingCall)
         callListenersDispatcher.onCallInviteReceived(incomingCall, content)
     }
@@ -218,10 +220,11 @@ internal class CallSignalingHandler @Inject constructor(
             // Ignore remote echo
             return
         }
-        if (event.roomId == null || event.senderId == null) {
+        val senderId = event.senderId
+        if (event.roomId == null || senderId == null) {
             return
         }
-        if (event.senderId == userId) {
+        if (senderId == userId) {
             // discard current call, it's answered by another of my session
             activeCallHandler.removeCall(call.callId)
             callListenersDispatcher.onCallManagedByOtherSession(content.callId)
@@ -231,7 +234,7 @@ internal class CallSignalingHandler @Inject constructor(
                         .v("Ignoring answer from party ID ${content.partyId} we already have an answer from ${call.opponentPartyId}")
                 return
             }
-            mxCallFactory.updateOutgoingCallWithOpponentData(call, event.senderId, content, content.capabilities)
+            mxCallFactory.updateOutgoingCallWithOpponentData(call, senderId, content, content.capabilities)
             callListenersDispatcher.onCallAnswerReceived(content)
         }
     }

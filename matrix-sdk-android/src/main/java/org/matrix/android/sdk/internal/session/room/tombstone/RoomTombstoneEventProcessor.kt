@@ -30,12 +30,12 @@ import javax.inject.Inject
 internal class RoomTombstoneEventProcessor @Inject constructor() : EventInsertLiveProcessor {
 
     override fun process(stores: SessionStores, event: Event) {
-        if (event.roomId == null) return
+        val roomId = event.roomId ?: return
         val createRoomContent = event.getClearContent().toModel<RoomTombstoneContent>()
         if (createRoomContent?.replacementRoomId == null) return
 
-        val predecessorRoomSummary = stores.roomSummary.get(event.roomId)
-                ?: RoomSummaryEntity(event.roomId)
+        val predecessorRoomSummary = stores.roomSummary.get(roomId)
+                ?: RoomSummaryEntity(roomId)
         if (predecessorRoomSummary.versioningState == VersioningState.NONE) {
             predecessorRoomSummary.versioningState = VersioningState.UPGRADED_ROOM_NOT_JOINED
         }

@@ -346,13 +346,14 @@ internal class DefaultKeysBackupService @Inject constructor(
             keysBackupVersion: KeysVersionResult,
     ): KeysBackupVersionTrust {
         val authData = keysBackupVersion.getAuthDataAsMegolmBackupAuthData()
+        val signatures = authData?.signatures
 
-        if (authData == null || authData.publicKey.isEmpty() || authData.signatures.isNullOrEmpty()) {
+        if (authData == null || authData.publicKey.isEmpty() || signatures.isNullOrEmpty()) {
             Timber.v("getKeysBackupTrust: Key backup is absent or missing required data")
             return KeysBackupVersionTrust(usable = false)
         }
 
-        val mySigs = authData.signatures[userId]
+        val mySigs = signatures[userId]
         if (mySigs.isNullOrEmpty()) {
             Timber.v("getKeysBackupTrust: Ignoring key backup because it lacks any signatures from this user")
             return KeysBackupVersionTrust(usable = false)
@@ -376,7 +377,7 @@ internal class DefaultKeysBackupService @Inject constructor(
 
                 var isSignatureValid = false
                 try {
-                    crossSigningOlm.verifySignature(CrossSigningOlm.KeyType.MASTER, authData.signalableJSONDictionary(), authData.signatures)
+                    crossSigningOlm.verifySignature(CrossSigningOlm.KeyType.MASTER, authData.signalableJSONDictionary(), signatures)
                     isSignatureValid = true
                 } catch (failure: Throwable) {
                     Timber.w(failure, "getKeysBackupTrust: Bad signature from my user MSK")
@@ -944,15 +945,17 @@ internal class DefaultKeysBackupService @Inject constructor(
             return null
         }
 
-        if (authData.privateKeySalt.isNullOrBlank() ||
-                authData.privateKeyIterations == null) {
+        val privateKeySalt = authData.privateKeySalt
+        val privateKeyIterations = authData.privateKeyIterations
+        if (privateKeySalt.isNullOrBlank() ||
+                privateKeyIterations == null) {
             Timber.w("recoveryKeyFromPassword: Salt and/or iterations not found in key backup auth data")
 
             return null
         }
 
         // Extract the recovery key from the passphrase
-        val data = retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations, progressListener)
+        val data = retrievePrivateKeyWithPassword(password, privateKeySalt, privateKeyIterations, progressListener)
 
         return computeRecoveryKey(data)
     }
@@ -1180,15 +1183,15 @@ internal class DefaultKeysBackupService @Inject constructor(
     @VisibleForTesting
     @WorkerThread
     suspend fun encryptGroupSession(olmInboundGroupSessionWrapper: MXInboundMegolmSessionWrapper): KeyBackupData? {
-        olmInboundGroupSessionWrapper.safeSessionId ?: return null
-        olmInboundGroupSessionWrapper.senderKey ?: return null
+        val safeSessionId = olmInboundGroupSessionWrapper.safeSessionId ?: return null
+        val senderKey = olmInboundGroupSessionWrapper.senderKey ?: return null
         // Gather information for each key
-        val device = cryptoStore.deviceWithIdentityKey(olmInboundGroupSessionWrapper.senderKey)
+        val device = cryptoStore.deviceWithIdentityKey(senderKey)
 
         // Build the m.megolm_backup.v1.curve25519-aes-sha2 data as defined at
         // https://github.com/uhoreg/matrix-doc/blob/e2e_backup/proposals/1219-storing-megolm-keys-serverside.md#mmegolm_backupv1curve25519-aes-sha2-key-format
         val sessionData = inboundGroupSessionStore
-                .getInboundGroupSession(olmInboundGroupSessionWrapper.safeSessionId, olmInboundGroupSessionWrapper.senderKey)
+                .getInboundGroupSession(safeSessionId, senderKey)
                 ?.let {
                     withContext(coroutineDispatchers.computation) {
                         it.mutex.withLock { it.wrapper.exportKeys() }

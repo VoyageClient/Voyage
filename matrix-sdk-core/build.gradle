@@ -69,7 +69,7 @@ kotlin {
     jvmToolchain(21)
 }
 
-def coreSources = [
+ext.coreSources = [
         // Platform seam (Phase 1): the android-free KeyValueStore interface; the SharedPreferences
         // impl stays in the android module.
         'org/matrix/android/sdk/internal/platform/KeyValueStore.kt',
@@ -742,7 +742,7 @@ def coreSources = [
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
 // because they return LiveData/PagedList.
-def coreExcludes = [
+ext.coreExcludes = [
         'org/matrix/android/sdk/internal/session/filter/DefaultFilterRepository.kt',
         'org/matrix/android/sdk/internal/session/filter/GetCurrentFilterTask.kt',
         'org/matrix/android/sdk/internal/session/filter/SaveFilterTask.kt',
@@ -778,6 +778,9 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation libs.google.phonenumber
     kapt libs.squareup.moshiKotlin
+    // Generate the Dagger @Provides/@Inject factories for the @Modules that live in core; the
+    // components that consume them are generated in :matrix-sdk-android.
+    kapt libs.dagger.daggerCompiler
 
     testImplementation 'junit:junit:4.13.2'
 }

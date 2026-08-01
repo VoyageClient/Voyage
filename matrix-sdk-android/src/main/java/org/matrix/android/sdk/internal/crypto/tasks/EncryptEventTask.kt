@@ -48,10 +48,12 @@ internal class DefaultEncryptEventTask @Inject constructor(
         // don't want to wait for any query
         // if (!params.crypto.isRoomEncrypted(params.roomId)) return params.event
         val localEvent = params.event
-        require(localEvent.eventId != null)
-        require(localEvent.type != null)
+        val eventId = localEvent.eventId
+        val type = localEvent.type
+        require(eventId != null)
+        require(type != null)
 
-        localEchoRepository.updateSendState(localEvent.eventId, localEvent.roomId, SendState.ENCRYPTING)
+        localEchoRepository.updateSendState(eventId, localEvent.roomId, SendState.ENCRYPTING)
 
         val localMutableContent = localEvent.content?.toMutableMap() ?: mutableMapOf()
         params.keepKeys?.forEach {
@@ -59,7 +61,7 @@ internal class DefaultEncryptEventTask @Inject constructor(
         }
 
         // let it throws
-        val result = cryptoService.get().encryptEventContent(localMutableContent, localEvent.type, params.roomId)
+        val result = cryptoService.get().encryptEventContent(localMutableContent, type, params.roomId)
 
         val modifiedContent = HashMap(result.eventContent)
         params.keepKeys?.forEach { toKeep ->
@@ -89,7 +91,7 @@ internal class DefaultEncryptEventTask @Inject constructor(
 
         // Async: the send only needs the in-memory encrypted event; awaiting this write would stall
         // the room's send queue behind the DB write dispatcher.
-        localEchoRepository.updateEchoAsync(localEvent.eventId) { localEcho ->
+        localEchoRepository.updateEchoAsync(eventId) { localEcho ->
             localEcho.type = EventType.ENCRYPTED
             localEcho.content = ContentMapper.map(modifiedContent)
             // Set the clear local-echo decryption result directly (the entity is an unmanaged SQL DTO,

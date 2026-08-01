@@ -224,7 +224,8 @@ internal class DefaultCryptoService @Inject constructor(
 
         // handle verification
         if (!isInitialSync) {
-            if (event.type != null && verificationMessageProcessor.shouldProcess(event.type)) {
+            val eventType = event.type
+            if (eventType != null && verificationMessageProcessor.shouldProcess(eventType)) {
                 withContext(coroutineDispatchers.dmVerif) {
                     verificationMessageProcessor.process(roomId, event)
                 }
@@ -455,9 +456,10 @@ internal class DefaultCryptoService @Inject constructor(
             deviceListManager.refreshOutdatedDeviceLists()
             // The presence of device_unused_fallback_key_types indicates that the server supports fallback keys.
             // If there's no unused signed_curve25519 fallback key we need a new one.
-            if (syncResponse.deviceUnusedFallbackKeyTypes != null &&
+            val deviceUnusedFallbackKeyTypes = syncResponse.deviceUnusedFallbackKeyTypes
+            if (deviceUnusedFallbackKeyTypes != null &&
                     // Generate a fallback key only if the server does not already have an unused fallback key.
-                    !syncResponse.deviceUnusedFallbackKeyTypes.contains(KEY_SIGNED_CURVE_25519_TYPE)) {
+                    !deviceUnusedFallbackKeyTypes.contains(KEY_SIGNED_CURVE_25519_TYPE)) {
                 oneTimeKeysUploader.needsNewFallback()
             }
 
@@ -876,15 +878,15 @@ internal class DefaultCryptoService @Inject constructor(
         val senderId = event.senderId ?: return Unit.also {
             Timber.tag(loggerTag.value).i("Malformed onKeyWithHeldReceived() : missing fields")
         }
-        withHeldContent.sessionId ?: return
-        withHeldContent.algorithm ?: return
-        withHeldContent.roomId ?: return
-        withHeldContent.senderKey ?: return
+        val withHeldSessionId = withHeldContent.sessionId ?: return
+        val withHeldAlgorithm = withHeldContent.algorithm ?: return
+        val withHeldRoomId = withHeldContent.roomId ?: return
+        val withHeldSenderKey = withHeldContent.senderKey ?: return
         outgoingKeyRequestManager.onRoomKeyWithHeld(
-                sessionId = withHeldContent.sessionId,
-                algorithm = withHeldContent.algorithm,
-                roomId = withHeldContent.roomId,
-                senderKey = withHeldContent.senderKey,
+                sessionId = withHeldSessionId,
+                algorithm = withHeldAlgorithm,
+                roomId = withHeldRoomId,
+                senderKey = withHeldSenderKey,
                 fromDevice = withHeldContent.fromDevice,
                 event = Event(
                         type = EventType.ROOM_KEY_WITHHELD.stable,

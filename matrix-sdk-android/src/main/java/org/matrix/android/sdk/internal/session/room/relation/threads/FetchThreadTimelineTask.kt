@@ -127,13 +127,15 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
             val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
 
             for (event in threadList) {
-                if (event.eventId == null || event.senderId == null || event.type == null) continue
-                if (stores.timelineEvent.getInChunkByEventId(threadChunkId, event.eventId) != null) {
-                    Timber.i("###THREADS event ${event.eventId} already in thread chunk, skip")
+                val eventId = event.eventId
+                val senderId = event.senderId
+                if (eventId == null || senderId == null || event.type == null) continue
+                if (stores.timelineEvent.getInChunkByEventId(threadChunkId, eventId) != null) {
+                    Timber.i("###THREADS event $eventId already in thread chunk, skip")
                     continue
                 }
                 val (eventDbId, entity) = insertOrGetEvent(params.roomId, event)
-                addSenderState(roomMemberContentsByUser, params.roomId, event.senderId)
+                addSenderState(roomMemberContentsByUser, params.roomId, senderId)
                 stores.timelineWriter.addTimelineEvent(
                         chunkId = threadChunkId,
                         roomId = params.roomId,

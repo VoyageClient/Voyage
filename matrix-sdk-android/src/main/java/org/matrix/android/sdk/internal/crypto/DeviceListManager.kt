@@ -453,12 +453,14 @@ internal class DeviceListManager @Inject constructor(
             return false
         }
 
-        if (null == deviceKeys.keys) {
+        val deviceKeysKeys = deviceKeys.keys
+        if (null == deviceKeysKeys) {
             Timber.e("## CRYPTO | validateDeviceKeys() : deviceKeys.keys is null from $userId:$deviceId")
             return false
         }
 
-        if (null == deviceKeys.signatures) {
+        val deviceKeysSignatures = deviceKeys.signatures
+        if (null == deviceKeysSignatures) {
             Timber.e("## CRYPTO | validateDeviceKeys() : deviceKeys.signatures is null from $userId:$deviceId")
             return false
         }
@@ -475,14 +477,14 @@ internal class DeviceListManager @Inject constructor(
         }
 
         val signKeyId = "ed25519:" + deviceKeys.deviceId
-        val signKey = deviceKeys.keys[signKeyId]
+        val signKey = deviceKeysKeys[signKeyId]
 
         if (null == signKey) {
             Timber.e("## CRYPTO | validateDeviceKeys() : Device $userId:${deviceKeys.deviceId} has no ed25519 key")
             return false
         }
 
-        val signatureMap = deviceKeys.signatures[userId]
+        val signatureMap = deviceKeysSignatures[userId]
 
         if (null == signatureMap) {
             Timber.e("## CRYPTO | validateDeviceKeys() : Device $userId:${deviceKeys.deviceId} has no map for $userId")

@@ -56,12 +56,15 @@ internal class DefaultCreateRoomFromLocalRoomTask @Inject constructor(
                 ?: error("## CreateRoomFromLocalRoomTask - Cannot retrieve LocalRoomSummary with roomId ${params.localRoomId}")
 
         // If a room has already been created for the given local room, return the existing roomId
-        if (localRoomSummary.replacementRoomId != null) {
-            return localRoomSummary.replacementRoomId
+        val replacementRoomId = localRoomSummary.replacementRoomId
+        if (replacementRoomId != null) {
+            return replacementRoomId
         }
 
-        if (localRoomSummary.createRoomParams != null && localRoomSummary.roomSummary != null) {
-            return createRoom(params.localRoomId, localRoomSummary.roomSummary, localRoomSummary.createRoomParams)
+        val createRoomParams = localRoomSummary.createRoomParams
+        val roomSummary = localRoomSummary.roomSummary
+        if (createRoomParams != null && roomSummary != null) {
+            return createRoom(params.localRoomId, roomSummary, createRoomParams)
         } else {
             error("## CreateRoomFromLocalRoomTask - Invalid LocalRoomSummary: $localRoomSummary")
         }

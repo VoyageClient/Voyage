@@ -237,6 +237,7 @@ internal class IntegrationManager @Inject constructor(
     }
 
     private fun WidgetContent.extractIntegrationManagerConfig(): IntegrationManagerConfig? {
+        val url = url
         if (url.isNullOrBlank()) {
             return null
         }

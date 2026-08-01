@@ -326,7 +326,8 @@ internal class SecretShareManager @Inject constructor(
 
         // As per spec:
         // Clients should ignore m.secret.send events received from devices that it did not send an m.secret.request event to.
-        if (existingRequest?.secretName == null) {
+        val secretName = existingRequest?.secretName
+        if (existingRequest == null || secretName == null) {
             Timber.tag(loggerTag.value).i("onSecretSend() : Ignore secret that was not requested: ${secretContent.requestId}")
             return
         }
@@ -336,7 +337,7 @@ internal class SecretShareManager @Inject constructor(
             outgoingSecretRequests.remove(existingRequest)
         }
 
-        if (!handleGossip(existingRequest.secretName, secretContent.secretValue)) {
+        if (!handleGossip(secretName, secretContent.secretValue)) {
             // TODO Ask to application layer?
             Timber.tag(loggerTag.value).v("onSecretSend() : secret not handled by SDK")
         }

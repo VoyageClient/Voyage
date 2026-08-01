@@ -65,18 +65,19 @@ internal class RedactionEventProcessor @Inject constructor(
 
     /** Applies [redactionEvent] to the local copy of its target. The redaction itself needn't be in the DB. */
     fun prune(stores: SessionStores, redactionEvent: Event) {
-        if (redactionEvent.redacts.isNullOrBlank()) {
+        val redacts = redactionEvent.redacts
+        if (redacts.isNullOrBlank()) {
             return
         }
         val roomId = redactionEvent.roomId ?: return
 
         val isLocalEcho = LocalEcho.isLocalEchoId(redactionEvent.eventId ?: "")
-        Timber.v("Redact event for ${redactionEvent.redacts} localEcho=$isLocalEcho")
+        Timber.v("Redact event for $redacts localEcho=$isLocalEcho")
 
         // The target may exist only in the search index (crawled history), so don't gate on the DB row.
-        eventIndexer.onEventRedacted(redactionEvent.redacts)
+        eventIndexer.onEventRedacted(redacts)
 
-        val pruneDbId = stores.event.getDbId(roomId, redactionEvent.redacts) ?: return
+        val pruneDbId = stores.event.getDbId(roomId, redacts) ?: return
         val eventToPrune = stores.event.getById(pruneDbId) ?: return
 
         discardEditionOfRedactedReplace(stores, eventToPrune)

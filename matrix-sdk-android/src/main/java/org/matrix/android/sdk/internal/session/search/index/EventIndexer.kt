@@ -202,10 +202,12 @@ internal class EventIndexer @Inject constructor(
      * Returns null for events we don't index (matches element-web's isValidEvent()).
      */
     private fun toIndexable(event: Event, clearType: String, clearContent: Content?): IndexableEvent? {
-        if (event.eventId.isNullOrEmpty() || event.roomId.isNullOrEmpty()) return null
+        val eventId = event.eventId
+        val roomId = event.roomId
+        if (eventId.isNullOrEmpty() || roomId.isNullOrEmpty()) return null
         // Local echoes carry a fake event id; the remote echo is indexed instead (the sweep would
         // otherwise index sent messages twice — once per id).
-        if (LocalEcho.isLocalEchoId(event.eventId)) return null
+        if (LocalEcho.isLocalEchoId(eventId)) return null
         if (event.isRedacted()) return null
         var msgtype: String? = null
         val text = when (clearType) {
@@ -227,17 +229,17 @@ internal class EventIndexer @Inject constructor(
         val mentions = if (clearType == EventType.MESSAGE) extractMentionedUserIds(clearContent) else emptyList()
         val clearEvent = Event(
                 type = clearType,
-                eventId = event.eventId,
+                eventId = eventId,
                 content = clearContent,
                 originServerTs = event.originServerTs,
                 senderId = event.senderId,
                 stateKey = event.stateKey,
-                roomId = event.roomId,
+                roomId = roomId,
                 unsignedData = event.unsignedData,
         )
         return IndexableEvent(
-                eventId = event.eventId,
-                roomId = event.roomId,
+                eventId = eventId,
+                roomId = roomId,
                 sender = event.senderId,
                 originServerTs = event.originServerTs ?: 0L,
                 // Rich-reply fallback is stripped from display, so it must not be searchable text.

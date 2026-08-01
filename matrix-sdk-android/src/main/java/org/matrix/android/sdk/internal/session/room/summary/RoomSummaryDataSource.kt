@@ -304,8 +304,9 @@ internal class RoomSummaryDataSource @Inject constructor(
             return false
         }
         roomSummary.spaceParents?.forEach { info ->
-            if (info.roomSummary != null && !info.roomSummary.membership.isLeft()) {
-                if (!isOrphan(info.roomSummary)) return false
+            val parentSummary = info.roomSummary
+            if (parentSummary != null && !parentSummary.membership.isLeft()) {
+                if (!isOrphan(parentSummary)) return false
             }
         }
         for (spaceSummary in getSpaceSummaries(spaceSummaryQueryParams { memberships = Membership.activeMemberships() })) {

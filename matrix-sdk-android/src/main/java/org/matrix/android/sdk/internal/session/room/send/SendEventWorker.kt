@@ -61,24 +61,26 @@ internal class SendEventWorker(context: Context, params: WorkerParameters, sessi
 
     override suspend fun doSafeWork(params: Params): Result {
         val event = localEchoRepository.getUpToDateEcho(params.eventId)
-        if (event?.eventId == null || event.roomId == null) {
-            localEchoRepository.updateSendState(params.eventId, event?.roomId, SendState.UNDELIVERED)
+        val eventId = event?.eventId
+        val roomId = event?.roomId
+        if (event == null || eventId == null || roomId == null) {
+            localEchoRepository.updateSendState(params.eventId, roomId, SendState.UNDELIVERED)
             return Result.success()
                     .also { Timber.e("Work cancelled due to bad input data") }
         }
 
-        if (cancelSendTracker.isCancelRequestedFor(params.eventId, event.roomId)) {
+        if (cancelSendTracker.isCancelRequestedFor(params.eventId, roomId)) {
             return Result.success()
                     .also {
-                        cancelSendTracker.markCancelled(event.eventId, event.roomId)
+                        cancelSendTracker.markCancelled(eventId, roomId)
                         Timber.e("## SendEvent: Event sending has been cancelled ${params.eventId}")
                     }
         }
 
         if (params.lastFailureMessage != null) {
             localEchoRepository.updateSendState(
-                    eventId = event.eventId,
-                    roomId = event.roomId,
+                    eventId = eventId,
+                    roomId = roomId,
                     sendState = SendState.UNDELIVERED,
                     sendStateDetails = params.lastFailureMessage
             )
@@ -89,14 +91,14 @@ internal class SendEventWorker(context: Context, params: WorkerParameters, sessi
 
         Timber.v("## SendEvent: Send event ${params.eventId}")
         return try {
-            sendEventTask.execute(SendEventTask.Params(event, params.isEncrypted ?: cryptoService.isRoomEncrypted(event.roomId)))
+            sendEventTask.execute(SendEventTask.Params(event, params.isEncrypted ?: cryptoService.isRoomEncrypted(roomId)))
             Result.success()
         } catch (exception: Throwable) {
             if (/*currentAttemptCount >= MAX_NUMBER_OF_RETRY_BEFORE_FAILING ||**/ !exception.shouldBeRetried()) {
                 Timber.e("## SendEvent: Send event Failed cannot retry ${params.eventId} > ${exception.localizedMessage}")
                 localEchoRepository.updateSendState(
-                        eventId = event.eventId,
-                        roomId = event.roomId,
+                        eventId = eventId,
+                        roomId = roomId,
                         sendState = SendState.UNDELIVERED,
                         sendStateDetails = exception.toMatrixErrorStr()
                 )

@@ -66,35 +66,40 @@ internal class MXMegolmDecryption(
     @Throws(MXCryptoError::class)
     private suspend fun decryptEvent(event: Event, timeline: String, requestKeysOnFail: Boolean): MXEventDecryptionResult {
         Timber.tag(loggerTag.value).v("decryptEvent ${event.eventId}, requestKeysOnFail:$requestKeysOnFail")
-        if (event.roomId.isNullOrBlank()) {
+        val roomId = event.roomId
+        if (roomId.isNullOrBlank()) {
             throw MXCryptoError.Base(MXCryptoError.ErrorType.MISSING_FIELDS, MXCryptoError.MISSING_FIELDS_REASON)
         }
 
         val encryptedEventContent = event.content.toModel<EncryptedEventContent>()
                 ?: throw MXCryptoError.Base(MXCryptoError.ErrorType.MISSING_FIELDS, MXCryptoError.MISSING_FIELDS_REASON)
 
-        if (encryptedEventContent.senderKey.isNullOrBlank() ||
-                encryptedEventContent.sessionId.isNullOrBlank() ||
-                encryptedEventContent.ciphertext.isNullOrBlank()) {
+        val ciphertext = encryptedEventContent.ciphertext
+        val sessionId = encryptedEventContent.sessionId
+        val senderKey = encryptedEventContent.senderKey
+        if (senderKey.isNullOrBlank() ||
+                sessionId.isNullOrBlank() ||
+                ciphertext.isNullOrBlank()) {
             throw MXCryptoError.Base(MXCryptoError.ErrorType.MISSING_FIELDS, MXCryptoError.MISSING_FIELDS_REASON)
         }
 
         return runCatching {
             olmDevice.decryptGroupMessage(
-                    encryptedEventContent.ciphertext,
-                    event.roomId,
+                    ciphertext,
+                    roomId,
                     timeline,
                     eventId = event.eventId.orEmpty(),
-                    encryptedEventContent.sessionId,
-                    encryptedEventContent.senderKey
+                    sessionId,
+                    senderKey
             )
         }
                 .fold(
                         { olmDecryptionResult ->
                             // the decryption succeeds
-                            if (olmDecryptionResult.payload != null) {
+                            val payload = olmDecryptionResult.payload
+                            if (payload != null) {
                                 MXEventDecryptionResult(
-                                        clearEvent = olmDecryptionResult.payload,
+                                        clearEvent = payload,
                                         senderCurve25519Key = olmDecryptionResult.senderKey,
                                         claimedEd25519Key = olmDecryptionResult.keysClaimed?.get("ed25519"),
                                         forwardingCurve25519KeyChain = olmDecryptionResult.forwardingCurve25519KeyChain
@@ -118,7 +123,7 @@ internal class MXMegolmDecryption(
                                         requestKeysForEvent(event)
                                     }
                                     // Check if partially withheld
-                                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(event.roomId, encryptedEventContent.sessionId)
+                                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(roomId, sessionId)
                                     if (withHeldInfo != null) {
                                         // Encapsulate as withHeld exception
                                         throw MXCryptoError.Base(
@@ -147,7 +152,7 @@ internal class MXMegolmDecryption(
                             if (throwable is MXCryptoError.Base) {
                                 if (throwable.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID) {
                                     // Check if it was withheld by sender to enrich error code
-                                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(event.roomId, encryptedEventContent.sessionId)
+                                    val withHeldInfo = cryptoStore.getWithHeldMegolmSession(roomId, sessionId)
                                     if (withHeldInfo != null) {
                                         if (requestKeysOnFail) {
                                             requestKeysForEvent(event)
@@ -206,7 +211,10 @@ internal class MXMegolmDecryption(
         var keysClaimed: MutableMap<String, String> = HashMap()
         val forwardingCurve25519KeyChain: MutableList<String> = ArrayList()
 
-        if (roomKeyContent.roomId.isNullOrEmpty() || roomKeyContent.sessionId.isNullOrEmpty() || roomKeyContent.sessionKey.isNullOrEmpty()) {
+        val roomId = roomKeyContent.roomId
+        val sessionId = roomKeyContent.sessionId
+        val sessionKey = roomKeyContent.sessionKey
+        if (roomId.isNullOrEmpty() || sessionId.isNullOrEmpty() || sessionKey.isNullOrEmpty()) {
             Timber.tag(loggerTag.value).e("onRoomKeyEvent() :  Key event is missing fields")
             return
         }
@@ -231,12 +239,13 @@ internal class MXMegolmDecryption(
                 Timber.tag(loggerTag.value).e("onRoomKeyEvent() : forwarded_room_key event is missing sender_key field")
             }
 
-            if (null == forwardedRoomKeyContent.senderClaimedEd25519Key) {
+            val senderClaimedEd25519Key = forwardedRoomKeyContent.senderClaimedEd25519Key
+            if (null == senderClaimedEd25519Key) {
                 Timber.tag(loggerTag.value).e("forwarded_room_key_event is missing sender_claimed_ed25519_key field")
                 return
             }
 
-            keysClaimed["ed25519"] = forwardedRoomKeyContent.senderClaimedEd25519Key
+            keysClaimed["ed25519"] = senderClaimedEd25519Key
 
             // checking if was requested once.
             // should we check if the request is sort of active?
@@ -251,9 +260,9 @@ internal class MXMegolmDecryption(
 
             if (!forceAccept && wasNotRequested) {
 //                val senderId = cryptoStore.deviceWithIdentityKey(event.getSenderKey().orEmpty())?.userId.orEmpty()
-                unrequestedForwardManager.onUnRequestedKeyForward(roomKeyContent.roomId, event, clock.epochMillis())
+                unrequestedForwardManager.onUnRequestedKeyForward(roomId, event, clock.epochMillis())
                 // Ignore unsolicited
-                Timber.tag(loggerTag.value).w("Ignoring forwarded_room_key_event for ${roomKeyContent.sessionId} that was not requested")
+                Timber.tag(loggerTag.value).w("Ignoring forwarded_room_key_event for $sessionId that was not requested")
                 return
             }
 
@@ -289,9 +298,9 @@ internal class MXMegolmDecryption(
 
         Timber.tag(loggerTag.value).i("onRoomKeyEvent addInboundGroupSession ${roomKeyContent.sessionId}")
         val addSessionResult = olmDevice.addInboundGroupSession(
-                sessionId = roomKeyContent.sessionId,
-                sessionKey = roomKeyContent.sessionKey,
-                roomId = roomKeyContent.roomId,
+                sessionId = sessionId,
+                sessionKey = sessionKey,
+                roomId = roomId,
                 senderKey = sessionInitiatorSenderKey,
                 forwardingCurve25519KeyChain = forwardingCurve25519KeyChain,
                 keysClaimed = keysClaimed,
@@ -309,9 +318,9 @@ internal class MXMegolmDecryption(
         }?.let { index ->
             if (event.getClearType() == EventType.FORWARDED_ROOM_KEY) {
                 outgoingKeyRequestManager.onRoomKeyForwarded(
-                        sessionId = roomKeyContent.sessionId,
+                        sessionId = sessionId,
                         algorithm = roomKeyContent.algorithm ?: "",
-                        roomId = roomKeyContent.roomId,
+                        roomId = roomId,
                         senderKey = sessionInitiatorSenderKey,
                         fromIndex = index,
                         fromDevice = fromDevice?.deviceId,
@@ -319,8 +328,8 @@ internal class MXMegolmDecryption(
                 )
 
                 cryptoStore.saveIncomingForwardKeyAuditTrail(
-                        roomId = roomKeyContent.roomId,
-                        sessionId = roomKeyContent.sessionId,
+                        roomId = roomId,
+                        sessionId = sessionId,
                         senderKey = sessionInitiatorSenderKey,
                         algorithm = roomKeyContent.algorithm ?: "",
                         userId = event.senderId.orEmpty(),
@@ -329,7 +338,7 @@ internal class MXMegolmDecryption(
                 )
 
                 // The index is used to decide if we cancel sent request or if we wait for a better key
-                outgoingKeyRequestManager.postCancelRequestForSessionIfNeeded(roomKeyContent.sessionId, roomKeyContent.roomId, sessionInitiatorSenderKey, index)
+                outgoingKeyRequestManager.postCancelRequestForSessionIfNeeded(sessionId, roomId, sessionInitiatorSenderKey, index)
             }
         }
 
@@ -338,7 +347,7 @@ internal class MXMegolmDecryption(
                     .d("onRoomKeyEvent(${event.getClearType()}) : Added megolm session ${roomKeyContent.sessionId} in ${roomKeyContent.roomId}")
             defaultKeysBackupService.maybeBackupKeys()
 
-            onNewSession(roomKeyContent.roomId, sessionInitiatorSenderKey, roomKeyContent.sessionId)
+            onNewSession(roomId, sessionInitiatorSenderKey, sessionId)
         }
     }
 

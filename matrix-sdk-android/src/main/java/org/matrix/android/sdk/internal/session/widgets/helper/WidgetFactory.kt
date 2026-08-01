@@ -43,14 +43,16 @@ internal class WidgetFactory @Inject constructor(
         if (widgetContent?.url == null) return null
         val widgetId = widgetEvent.stateKey ?: return null
         val type = widgetContent.type ?: return null
-        val senderInfo = if (widgetEvent.senderId == null || widgetEvent.roomId == null) {
+        val senderId = widgetEvent.senderId
+        val roomId = widgetEvent.roomId
+        val senderInfo = if (senderId == null || roomId == null) {
             null
         } else {
             run {
-                val roomMemberHelper = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, widgetEvent.roomId)
-                val roomMemberSummaryEntity = roomMemberHelper.getLastRoomMember(widgetEvent.senderId)
+                val roomMemberHelper = org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper(stores, roomId)
+                val roomMemberSummaryEntity = roomMemberHelper.getLastRoomMember(senderId)
                 SenderInfo(
-                        userId = widgetEvent.senderId,
+                        userId = senderId,
                         displayName = roomMemberSummaryEntity?.displayName,
                         isUniqueDisplayName = roomMemberHelper.isUniqueDisplayName(roomMemberSummaryEntity?.displayName),
                         avatarUrl = roomMemberSummaryEntity?.avatarUrl

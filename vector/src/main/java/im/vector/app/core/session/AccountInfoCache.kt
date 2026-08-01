@@ -8,6 +8,7 @@
 package im.vector.app.core.session
 
 import android.content.Context
+import android.net.Uri
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.core.dispatchers.CoroutineDispatchers
@@ -68,8 +69,8 @@ class AccountInfoCache @Inject constructor(
                     userId = params.userId,
                     displayName = displayNameFor(sessionId),
                     homeServerHost = if (ambiguous) {
-                        params.homeServerConnectionConfig.homeServerUriBase.host
-                                ?: params.homeServerConnectionConfig.homeServerUri.host
+                        Uri.parse(params.homeServerConnectionConfig.homeServerUriBase).host
+                                ?: Uri.parse(params.homeServerConnectionConfig.homeServerUri).host
                     } else null,
             )
         }

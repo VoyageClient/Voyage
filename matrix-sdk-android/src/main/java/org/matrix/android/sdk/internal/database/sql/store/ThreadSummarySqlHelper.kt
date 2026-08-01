@@ -58,14 +58,15 @@ internal class ThreadSummarySqlHelper @Inject constructor(
     ): ThreadSummaryEntity? {
         rootThreadEvent ?: return null
         val rootEventId = rootThreadEvent.eventId ?: return null
-        rootThreadEvent.senderId ?: return null
-        val numberOfThreads = rootThreadEvent.unsignedData?.relations?.latestThread?.count ?: return null
+        val rootSenderId = rootThreadEvent.senderId ?: return null
+        val latestThread = rootThreadEvent.unsignedData?.relations?.latestThread ?: return null
+        val numberOfThreads = latestThread.count ?: return null
         if (numberOfThreads <= 0) return null
 
         val summary = stores.threadSummary.getByRootEventId(roomId, rootEventId) ?: ThreadSummaryEntity(rootThreadEventId = rootEventId)
 
         val rootEntity = insertOrGetEvent(stores, roomId, rootThreadEvent, currentTimeMillis)
-        val latestEvent = rootThreadEvent.unsignedData.relations.latestThread.event
+        val latestEvent = latestThread.event
         val latestEntity = latestEvent?.let {
             it.senderId?.let { sender -> addSenderState(stores, roomMemberContentsByUser, roomId, sender) }
             insertOrGetEvent(stores, roomId, it, currentTimeMillis)
@@ -74,9 +75,9 @@ internal class ThreadSummarySqlHelper @Inject constructor(
         // encrypted ones for async decryption — their thread-list previews then show plaintext.
         requestDecryptionIfNeeded(roomId, rootThreadEvent)
         latestEvent?.let { requestDecryptionIfNeeded(roomId, it) }
-        val isUserParticipating = rootThreadEvent.unsignedData.relations.latestThread.isUserParticipating == true ||
-                rootThreadEvent.senderId == userId
-        addSenderState(stores, roomMemberContentsByUser, roomId, rootThreadEvent.senderId)
+        val isUserParticipating = latestThread.isUserParticipating == true ||
+                rootSenderId == userId
+        addSenderState(stores, roomMemberContentsByUser, roomId, rootSenderId)
 
         updateThreadSummary(summary, rootEntity, numberOfThreads, latestEntity, isUserParticipating, roomMemberContentsByUser)
         persist(stores, roomId, summary, rootEntity, latestEntity)

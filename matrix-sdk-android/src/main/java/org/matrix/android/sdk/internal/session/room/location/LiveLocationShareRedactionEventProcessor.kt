@@ -36,11 +36,12 @@ internal class LiveLocationShareRedactionEventProcessor @Inject constructor() : 
     }
 
     override fun process(stores: SessionStores, event: Event) {
-        if (event.redacts.isNullOrBlank() || LocalEcho.isLocalEchoId(event.eventId.orEmpty())) {
+        val redacts = event.redacts
+        if (redacts.isNullOrBlank() || LocalEcho.isLocalEchoId(event.eventId.orEmpty())) {
             return
         }
 
-        val redactedEvent = stores.event.getByEventId(event.redacts) ?: return
+        val redactedEvent = stores.event.getByEventId(redacts) ?: return
 
         if (redactedEvent.type in EventType.STATE_ROOM_BEACON_INFO.values) {
             val liveSummary = stores.liveLocation.get(redactedEvent.eventId)

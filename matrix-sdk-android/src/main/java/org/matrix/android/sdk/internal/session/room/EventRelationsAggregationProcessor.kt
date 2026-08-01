@@ -133,8 +133,9 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
                     processEncryptedContent(encryptedEventContent, stores, event, roomId, isLocalEcho)
                 }
                 EventType.MESSAGE -> {
-                    if (event.unsignedData?.relations?.annotations != null && SHOULD_HANDLE_SERVER_AGREGGATION) {
-                        handleInitialAggregatedRelations(stores, event, roomId, event.unsignedData.relations.annotations)
+                    val annotations = event.unsignedData?.relations?.annotations
+                    if (annotations != null && SHOULD_HANDLE_SERVER_AGREGGATION) {
+                        handleInitialAggregatedRelations(stores, event, roomId, annotations)
                     }
                     val relationContent = event.getRelationContent()
                     if (relationContent?.type == RelationType.REPLACE) {
@@ -151,8 +152,9 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
                 EventType.KEY_VERIFICATION_KEY -> {
                     Timber.v("## SAS REF in room $roomId for event ${event.eventId}")
                     event.content.toModel<MessageRelationContent>()?.relatesTo?.let {
-                        if (it.type == RelationType.REFERENCE && it.eventId != null) {
-                            handleVerification(stores, event, roomId, isLocalEcho, it.eventId)
+                        val relatedEventId = it.eventId
+                        if (it.type == RelationType.REFERENCE && relatedEventId != null) {
+                            handleVerification(stores, event, roomId, isLocalEcho, relatedEventId)
                         }
                     }
                 }
@@ -166,9 +168,10 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
                 }
                 in EventType.POLL_START.values -> {
                     val content: MessagePollContent? = event.content.toModel()
-                    if (content?.relatesTo?.type == RelationType.REPLACE) {
+                    val relatesTo = content?.relatesTo
+                    if (relatesTo?.type == RelationType.REPLACE) {
                         Timber.v("###REPLACE poll in room $roomId for event ${event.eventId}")
-                        handleReplace(stores, event, roomId, isLocalEcho, content.relatesTo.eventId)
+                        handleReplace(stores, event, roomId, isLocalEcho, relatesTo.eventId)
                     }
                 }
                 in EventType.POLL_RESPONSE.values -> {
@@ -215,24 +218,25 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
             roomId: String,
             isLocalEcho: Boolean,
     ) {
-        when (encryptedEventContent?.relatesTo?.type) {
+        val relatesTo = encryptedEventContent?.relatesTo
+        when (relatesTo?.type) {
             RelationType.REPLACE -> {
                 Timber.w("## UTD replace in room $roomId for event ${event.eventId}")
             }
             RelationType.RESPONSE -> {
-                Timber.w("## UTD response in room $roomId related to ${encryptedEventContent.relatesTo.eventId}")
+                Timber.w("## UTD response in room $roomId related to ${relatesTo.eventId}")
             }
             RelationType.REFERENCE -> {
-                Timber.w("## UTD reference in room $roomId related to ${encryptedEventContent.relatesTo.eventId}")
+                Timber.w("## UTD reference in room $roomId related to ${relatesTo.eventId}")
                 encryptedReferenceAggregationProcessor.handle(
                         stores = stores,
                         event = event,
                         isLocalEcho = isLocalEcho,
-                        relatedEventId = encryptedEventContent.relatesTo.eventId,
+                        relatedEventId = relatesTo.eventId,
                 )
             }
             RelationType.ANNOTATION -> {
-                Timber.w("## UTD annotation in room $roomId related to ${encryptedEventContent.relatesTo.eventId}")
+                Timber.w("## UTD annotation in room $roomId related to ${relatesTo.eventId}")
             }
             else -> Unit
         }
@@ -361,12 +365,13 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
             return
         }
         // rel_type must be m.annotation
-        if (RelationType.ANNOTATION != content.relatesTo?.type) {
-            Timber.e("Unknown relation type ${content.relatesTo?.type} for event ${event.eventId}")
+        val relatesTo = content.relatesTo
+        if (RelationType.ANNOTATION != relatesTo?.type) {
+            Timber.e("Unknown relation type ${relatesTo?.type} for event ${event.eventId}")
             return
         }
-        val reaction = content.relatesTo.key
-        val relatedEventID = content.relatesTo.eventId
+        val reaction = relatesTo.key
+        val relatedEventID = relatesTo.eventId
         val reactionEventId = event.eventId
         Timber.v("Reaction $reactionEventId relates to $relatedEventID")
         val eventSummary = stores.annotations.get(relatedEventID)
@@ -425,8 +430,9 @@ internal class EventRelationsAggregationProcessor @Inject constructor(
         Timber.v("REDACTION of reaction ${eventToPrune.eventId}")
         // delete a reaction, need to update the annotation summary if any
         val reactionContent: ReactionContent = eventToPrune.asDomain().content.toModel() ?: return
-        val eventThatWasReacted = reactionContent.relatesTo?.eventId ?: return
-        val reactionKey = reactionContent.relatesTo.key
+        val relatesTo = reactionContent.relatesTo ?: return
+        val eventThatWasReacted = relatesTo.eventId
+        val reactionKey = relatesTo.key
         Timber.v("REMOVE reaction for key $reactionKey")
         val summary = stores.annotations.get(eventThatWasReacted)
         if (summary == null) {

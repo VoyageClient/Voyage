@@ -36,10 +36,12 @@ internal class PermalinkFactory @Inject constructor(
 ) {
 
     fun createPermalink(event: Event, forceMatrixTo: Boolean): String? {
-        if (event.roomId.isNullOrEmpty() || event.eventId.isNullOrEmpty()) {
+        val roomId = event.roomId
+        val eventId = event.eventId
+        if (roomId.isNullOrEmpty() || eventId.isNullOrEmpty()) {
             return null
         }
-        return createPermalink(event.roomId, event.eventId, forceMatrixTo)
+        return createPermalink(roomId, eventId, forceMatrixTo)
     }
 
     fun createPermalink(id: String, forceMatrixTo: Boolean): String? {
