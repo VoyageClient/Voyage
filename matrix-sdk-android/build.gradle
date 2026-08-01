@@ -203,7 +203,12 @@ sqldelight {
 dependencies {
     // Phase 5: the plain-JVM core module compiles the android-free subset of this module's own
     // sources; those files are excluded from this module's compile below and consumed from core.
-    api project(':matrix-sdk-core')
+    api(project(':matrix-sdk-core')) {
+        // Desktop-only stubs of org.matrix.olm / timber.log; the app packages the real Android
+        // artifacts, and letting these through fails dex merging with duplicate classes.
+        exclude module: 'olm-jvm'
+        exclude module: 'timber-jvm'
+    }
     implementation libs.jetbrains.coroutinesCore
     implementation libs.jetbrains.coroutinesAndroid
 
