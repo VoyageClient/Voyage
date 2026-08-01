@@ -41,12 +41,15 @@ internal class EventInsertLiveObserver @Inject constructor(
 ) : SqlLiveEntityObserver(dispatcher) {
 
     private val lock = Mutex()
-    override val query = database.eventInsertQueries.selectAll()
+
+    // Processable rows only: undecryptable events pile up as can_be_processed=0 (their key may never
+    // arrive), and this runs on every commit.
+    override val query = database.eventInsertQueries.selectProcessable()
 
     override suspend fun onChange() {
         lock.withLock {
             database.awaitDbTransaction(dispatcher) {
-                val inserts = stores.eventInsert.getAll().filter { it.canBeProcessed }
+                val inserts = stores.eventInsert.getProcessable()
                 if (inserts.isEmpty()) return@awaitDbTransaction
                 Timber.v("EventInsert processing ${inserts.size} events")
                 val idsToDelete = ArrayList<String>()

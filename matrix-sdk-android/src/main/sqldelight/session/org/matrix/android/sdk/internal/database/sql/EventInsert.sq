@@ -9,8 +9,8 @@ CREATE TABLE event_insert (
 
 CREATE INDEX event_insert_event_id ON event_insert(event_id);
 
-selectAll:
-SELECT * FROM event_insert;
+selectProcessable:
+SELECT * FROM event_insert WHERE can_be_processed = 1;
 
 selectByEventId:
 SELECT * FROM event_insert WHERE event_id = ?;
