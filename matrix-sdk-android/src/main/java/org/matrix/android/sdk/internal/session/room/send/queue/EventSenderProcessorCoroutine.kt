@@ -125,8 +125,13 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
             SemaphoreCoroutineSequencer()
         }
         Timber.v("## post $task")
+        val postedAt = System.currentTimeMillis()
         return taskExecutor.executorScope
                 .launchWith(sequencer) {
+                    val waited = System.currentTimeMillis() - postedAt
+                    if (waited > 1_000) {
+                        Timber.w("## Send: $task waited ${waited}ms behind its room queue")
+                    }
                     executeTask(task)
                 }.toCancelable()
                 .also {
@@ -151,8 +156,17 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
                 Timber.v("## $task has been cancelled, try next task")
                 return
             }
+            val beforeNetwork = System.currentTimeMillis()
             task.waitForNetwork()
+            val beforeExecute = System.currentTimeMillis()
+            if (beforeExecute - beforeNetwork > 1_000) {
+                Timber.w("## Send: $task waited ${beforeExecute - beforeNetwork}ms for network")
+            }
             task.execute()
+            val executed = System.currentTimeMillis() - beforeExecute
+            if (executed > 2_000) {
+                Timber.w("## Send: $task took ${executed}ms to execute")
+            }
         } catch (exception: Throwable) {
             when {
                 exception is IOException || exception is Failure.NetworkConnection -> {
