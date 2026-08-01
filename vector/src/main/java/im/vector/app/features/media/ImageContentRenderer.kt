@@ -81,6 +81,8 @@ class ImageContentRenderer @Inject constructor(
             // If true will load non mxc url, be careful to set it only for images sent by you
             override val allowNonMxcUrls: Boolean = false,
             val blurHash: String? = null,
+            // Survives the local-echo → remote-id swap (see MessageInformationData.stableId).
+            val stableId: String = eventId,
     ) : AttachmentData
 
     enum class Mode {
@@ -124,6 +126,14 @@ class ImageContentRenderer @Inject constructor(
                 .intoView(imageView, animate = false)
     }
 
+    // Tagged on the view so a rebind can tell "same message, new event id" (the local-echo → remote
+    // swap) apart from a recycle onto a different message.
+    private data class LastRender(val stableId: String, val data: Data, val mode: Mode, var completed: Boolean)
+
+    private fun ImageView.lastRender() = getTag(R.id.image_renderer_last_render) as? LastRender
+
+    private val Data.isLocalContent get() = allowNonMxcUrls && url?.startsWith("content://") == true
+
     fun render(
             data: Data,
             mode: Mode,
@@ -132,6 +142,14 @@ class ImageContentRenderer @Inject constructor(
             crossFade: Boolean = false,
     ) {
         val size = processSize(data, mode)
+        // Local-echo → remote swap of a fully-rendered message: the media is byte-identical to what
+        // is on screen (we just uploaded it) — reloading would only flash the blurhash and restart
+        // animations. Keep the completed local render.
+        val last = imageView.lastRender()
+        if (last != null && last.completed && last.stableId == data.stableId && last.mode == mode &&
+                last.data.isLocalContent && !data.isLocalContent) {
+            return
+        }
         if (data.hasKnownDimensions()) {
             imageView.adjustViewBounds = false
             imageView.updateLayoutParams {
@@ -152,8 +170,21 @@ class ImageContentRenderer @Inject constructor(
         // a11y
         imageView.contentDescription = data.filename
 
+        // An identical rebind may reuse the still-current Glide request (no new onResourceReady),
+        // so keep the existing record and its completed flag.
+        val thisRender = last?.takeIf { it.stableId == data.stableId && it.data == data && it.mode == mode }
+                ?: LastRender(data.stableId, data, mode, completed = false)
+        imageView.setTag(R.id.image_renderer_last_render, thisRender)
         val animate = animates(mode)
         createGlideRequest(data, mode, imageView, size)
+                .addListener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean) = false
+
+                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        thisRender.completed = true
+                        return false
+                    }
+                })
                 .let { if (animate) it else it.dontAnimate() }
                 .let { if (crossFade) it.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS)) else it }
                 // A Bitmap RoundedCorners would round GIF frames at their small native resolution and
@@ -197,6 +228,7 @@ class ImageContentRenderer @Inject constructor(
             height = size.height
         }
         imageView.contentDescription = data.filename
+        imageView.setTag(R.id.image_renderer_last_render, null)
         tryOrNull { GlideApp.with(imageView).clear(imageView) }
         val placeholder = if (forceSolidColor) null else data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height, pulse = false) }
         if (placeholder != null) {
@@ -224,6 +256,7 @@ class ImageContentRenderer @Inject constructor(
     }
 
     fun clear(imageView: ImageView) {
+        imageView.setTag(R.id.image_renderer_last_render, null)
         // It can be called after recycler view is destroyed, just silently catch
         // We'd better keep ref to requestManager, but we don't have it
         tryOrNull {
@@ -367,8 +400,17 @@ class ImageContentRenderer @Inject constructor(
         return decorateWithBlurHash(request, data)
     }
 
+    // Glide's request-equivalence check compares placeholders by reference: a fresh BlurHashDrawable
+    // per bind makes every rebind a "new" request, resetting to the blurhash and replaying the fade.
+    private val blurHashPlaceholders = android.util.LruCache<String, BlurHashDrawable>(64)
+
     private fun decorateWithBlurHash(request: GlideRequest<Drawable>, data: Data): GlideRequest<Drawable> {
-        val placeholder = data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height) } ?: return request
+        val blurHash = data.blurHash ?: return request
+        val key = "${data.stableId}:$blurHash:${data.width}x${data.height}"
+        val placeholder = synchronized(blurHashPlaceholders) {
+            blurHashPlaceholders.get(key)
+                    ?: BlurHashDrawable.from(blurHash, data.width, data.height)?.also { blurHashPlaceholders.put(key, it) }
+        } ?: return request
         return request.placeholder(placeholder)
                 .transition(DrawableTransitionOptions.with(BLURHASH_FADE_FACTORY))
     }

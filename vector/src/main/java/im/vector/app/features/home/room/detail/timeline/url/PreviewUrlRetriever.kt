@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.url
 
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,7 +30,7 @@ class PreviewUrlRetriever(
             val previewUrlUiState: PreviewUrlUiState
     )
 
-    // Keys are the main eventId
+    // Keyed by the event's timelineStableId, so state survives the local-echo → remote-id swap.
     private val data = mutableMapOf<String, EventIdPreviewUrlUiState>()
     private val listeners = mutableMapOf<String, MutableSet<PreviewUrlRetrieverListener>>()
 
@@ -37,7 +38,7 @@ class PreviewUrlRetriever(
     private val blockedUrl = mutableSetOf<String>()
 
     fun getPreviewUrl(event: TimelineEvent) {
-        val eventId = event.root.eventId ?: return
+        val eventId = event.timelineStableId()
         val latestEventId = event.getLatestEventId()
 
         synchronized(data) {

@@ -383,7 +383,7 @@ class MessageItemFactory @Inject constructor(
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
                 .fileSize(messageContent.audioInfo?.size ?: 0L)
-                .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.eventId, duration, it) }
+                .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.stableId, duration, it) }
                 .mxcUrl(fileUrl)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
@@ -413,7 +413,7 @@ class MessageItemFactory @Inject constructor(
             params: TimelineItemFactoryParams,
     ) = object : ClickListener {
         override fun invoke(view: View) {
-            params.callback?.onVoiceControlButtonClicked(informationData.eventId, messageContent)
+            params.callback?.onVoiceControlButtonClicked(informationData.stableId, messageContent)
         }
     }
 
@@ -437,12 +437,12 @@ class MessageItemFactory @Inject constructor(
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
             override fun onWaveformTouchedUp(percentage: Float) {
                 val duration = messageContent.audioInfo?.duration ?: 0
-                params.callback?.onVoiceWaveformTouchedUp(informationData.eventId, duration, percentage)
+                params.callback?.onVoiceWaveformTouchedUp(informationData.stableId, duration, percentage)
             }
 
             override fun onWaveformMovedTo(percentage: Float) {
                 val duration = messageContent.audioInfo?.duration ?: 0
-                params.callback?.onVoiceWaveformMovedTo(informationData.eventId, duration, percentage)
+                params.callback?.onVoiceWaveformMovedTo(informationData.stableId, duration, percentage)
             }
         }
 
@@ -608,6 +608,7 @@ class MessageItemFactory @Inject constructor(
         val mediaFilename = (messageContent as? MessageWithAttachmentContent)?.getFileName() ?: messageContent.body
         val data = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
+                stableId = informationData.stableId,
                 filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),
@@ -683,6 +684,7 @@ class MessageItemFactory @Inject constructor(
         val mediaFilename = messageContent.getFileName()
         val thumbnailData = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
+                stableId = informationData.stableId,
                 filename = mediaFilename,
                 mimeType = messageContent.mimeType,
                 url = messageContent.videoInfo?.getThumbnailUrl(),
@@ -756,7 +758,7 @@ class MessageItemFactory @Inject constructor(
             val retriever = callback?.getPgpDecryptionRetriever()
             if (formattedArmored != null && retriever != null) {
                 val armored = PgpUtils.extractArmoredBlock(formattedArmored) ?: formattedArmored
-                val state = retriever.getOrRequest(informationData.eventId, armored, cacheKey = informationData.eventId + PGP_FORMATTED_CACHE_SUFFIX)
+                val state = retriever.getOrRequest(informationData.eventId, armored, cacheKey = informationData.stableId + PGP_FORMATTED_CACHE_SUFFIX)
                 if (state is PgpDecryptionRetriever.State.Decrypted) {
                     return buildFormattedTextItem(state.text, informationData, highlight, callback, attributes)
                 }
@@ -786,7 +788,7 @@ class MessageItemFactory @Inject constructor(
     ): CharSequence? {
         val retriever = callback?.getPgpDecryptionRetriever() ?: return null
         val armored = PgpUtils.extractArmoredBlock(body) ?: body
-        return when (val state = retriever.getOrRequest(informationData.eventId, armored)) {
+        return when (val state = retriever.getOrRequest(informationData.eventId, armored, cacheKey = informationData.stableId)) {
             null -> null
             is PgpDecryptionRetriever.State.Decrypted -> state.text
             is PgpDecryptionRetriever.State.Pending -> stringProvider.getString(CommonStrings.pgp_decrypting)

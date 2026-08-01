@@ -75,7 +75,7 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         renderSendState(holder.fileLayout, holder.filenameView)
 
         if (!attributes.informationData.sendState.hasFailed()) {
-            contentUploadStateTrackerBinder.bind(attributes.informationData.eventId, izLocalFile, holder.progressLayout)
+            contentUploadStateTrackerBinder.bind(attributes.informationData.stableId, izLocalFile, holder.progressLayout)
         } else {
             holder.fileImageView.setImageResource(R.drawable.ic_cross)
             holder.progressLayout.isVisible = false
@@ -125,7 +125,7 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
 
     override fun unbind(holder: Holder) {
         super.unbind(holder)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
     }
 

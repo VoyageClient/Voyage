@@ -154,6 +154,7 @@ class MessageInformationDataFactory @Inject constructor(
 
         return MessageInformationData(
                 eventId = eventId,
+                stableId = event.timelineStableId(),
                 senderId = senderId,
                 sendState = event.root.sendState,
                 time = time,

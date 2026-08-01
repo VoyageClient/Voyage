@@ -2,4 +2,5 @@
 <resources>
     <item name="space_item_home" type="id" />
     <item name="copy_on_long_click_source" type="id" />
+    <item name="image_renderer_last_render" type="id" />
 </resources>

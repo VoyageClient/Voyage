@@ -106,7 +106,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         if (safePreviewUrlRetriever == null) {
             holder.previewUrlView.isVisible = false
         } else {
-            safePreviewUrlRetriever.addListener(attributes.informationData.eventId, previewUrlViewUpdater)
+            safePreviewUrlRetriever.addListener(attributes.informationData.stableId, previewUrlViewUpdater)
         }
         holder.previewUrlView.delegate = previewUrlCallback
         holder.previewUrlView.renderMessageLayout(attributes.informationData.messageLayout)
@@ -149,7 +149,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             messageView.textSize = 15.5F
         }
         val showBlocked = blockedMessage != null &&
-                mediaRevealManager?.isRevealed(attributes.informationData.eventId) != true
+                mediaRevealManager?.isRevealed(attributes.informationData.stableId) != true
         val activeMessage = (if (showBlocked) blockedMessage else message)?.charSequence
         val activeOptions = if (showBlocked) blockedBindingOptions else bindingOptions
         if (searchForPills) {
@@ -169,7 +169,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         if (showBlocked) {
             // Tap any blocked inline image to reveal all of this message's images, then re-bind.
             messageView.onClick {
-                mediaRevealManager?.reveal(attributes.informationData.eventId)
+                mediaRevealManager?.reveal(attributes.informationData.stableId)
                 bind(holder)
             }
         } else {
@@ -210,7 +210,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         super.unbind(holder)
         previewUrlViewUpdater.previewUrlView = null
         previewUrlViewUpdater.imageContentRenderer = null
-        previewUrlRetriever?.removeListener(attributes.informationData.eventId, previewUrlViewUpdater)
+        previewUrlRetriever?.removeListener(attributes.informationData.stableId, previewUrlViewUpdater)
     }
 
     // Overlay the inline timestamp on a single text view; the rich-body (reply) path keeps the footer below.

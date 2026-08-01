@@ -134,7 +134,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             }
         }
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
-        val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.eventId)
+        val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.stableId)
         if (hidden) {
             imageContentRenderer.renderHidden(mediaData, mode, holder.imageView, hiddenMediaSolidColor)
         } else {
@@ -145,7 +145,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         holder.mediaShowButton.isVisible = hidden
         if (hidden) {
             val reveal = View.OnClickListener {
-                mediaRevealManager.reveal(mediaData.eventId)
+                mediaRevealManager.reveal(mediaData.stableId)
                 holder.mediaShowButton.isVisible = false
                 // Render the real content underneath, then fade the dark scrim away to it.
                 imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
@@ -166,7 +166,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         }
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(
-                    attributes.informationData.eventId,
+                    attributes.informationData.stableId,
                     LocalFilesHelper(holder.view.context).isLocalFile(mediaData.url),
                     holder.progressLayout
             )
@@ -204,7 +204,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     override fun unbind(holder: Holder) {
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
-        contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
+        contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
         holder.imageView.setOnClickListener(null)
         holder.imageView.setOnLongClickListener(null)
         holder.mediaShowButton.setOnClickListener(null)
