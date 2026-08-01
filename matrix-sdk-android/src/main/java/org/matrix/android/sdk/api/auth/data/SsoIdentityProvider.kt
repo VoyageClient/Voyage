@@ -16,13 +16,11 @@
 
 package org.matrix.android.sdk.api.auth.data
 
-import android.os.Parcelable
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import kotlinx.parcelize.Parcelize
+import java.io.Serializable
 
 @JsonClass(generateAdapter = true)
-@Parcelize
 data class SsoIdentityProvider(
         /**
          * The id field would be opaque with the accepted characters matching unreserved URI characters as defined in RFC3986
@@ -48,7 +46,7 @@ data class SsoIdentityProvider(
          */
         @Json(name = "brand") val brand: String?
 
-) : Parcelable, Comparable<SsoIdentityProvider> {
+) : Serializable, Comparable<SsoIdentityProvider> {
 
     companion object {
         const val BRAND_GOOGLE = "google"

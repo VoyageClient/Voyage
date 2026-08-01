@@ -77,6 +77,8 @@ def coreSources = [
         'org/matrix/android/sdk/api/session/crypto/attachments/ElementToDecrypt.kt',
         'org/matrix/android/sdk/api/session/content/ContentAttachmentData.kt',
         'org/matrix/android/sdk/api/session/file/FileService.kt',
+        'org/matrix/android/sdk/api/auth/data/SsoIdentityProvider.kt',
+        'org/matrix/android/sdk/api/auth/data/LocalizedFlowDataLoginTerms.kt',
         'org/matrix/android/sdk/BuildConfig.kt',
         'org/matrix/android/sdk/api/MatrixConfiguration.kt',
         'org/matrix/android/sdk/api/SyncConfig.kt',
