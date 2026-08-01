@@ -51,7 +51,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun liveRoomSummaries(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> {
-        return session.roomService().getRoomSummariesLive(queryParams, sortOrder).asFlow()
+        return session.roomService().getRoomSummariesFlow(queryParams, sortOrder)
                 .startWith(session.coroutineDispatchers.io) {
                     session.roomService().getRoomSummaries(queryParams, sortOrder)
                 }

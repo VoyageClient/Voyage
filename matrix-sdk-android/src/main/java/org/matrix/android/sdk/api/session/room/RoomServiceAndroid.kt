@@ -13,6 +13,15 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.Optional
 
 /**
+ * Android-only LiveData view over [RoomService.getRoomSummariesFlow], for consumers that observe via a
+ * lifecycle owner.
+ */
+fun RoomService.getRoomSummariesLive(
+        queryParams: RoomSummaryQueryParams,
+        sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY,
+): LiveData<List<RoomSummary>> = getRoomSummariesFlow(queryParams, sortOrder).asLiveData()
+
+/**
  * Android-only LiveData views over the room-summary Flows. The services expose platform-neutral Flows
  * (so they can live in the shared core); consumers that still want LiveData use these. Not part of the
  * core module.
