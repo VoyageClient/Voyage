@@ -738,6 +738,33 @@ ext.coreSources = [
         'org/matrix/android/sdk/userstories/Us400RoomSendContent.kt',
         'org/matrix/android/sdk/userstories/Us500Notification.kt',
         'org/matrix/android/sdk/userstories/Us600SyncWithTheServer.kt',
+        // Retrofit client-server APIs + their tasks that resolve entirely against core (task infra +
+        // request/response models already gated); found by parallel per-area compile-bisect agents.
+        'org/matrix/android/sdk/internal/crypto/keysbackup/api/RoomKeysApi.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/CreateKeysBackupVersionTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/DeleteBackupTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/DeleteRoomSessionDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/DeleteRoomSessionsDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/DeleteSessionsDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/GetKeysBackupLastVersionTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/GetKeysBackupVersionTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/GetRoomSessionDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/GetRoomSessionsDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/GetSessionsDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/StoreRoomSessionDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/StoreRoomSessionsDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/StoreSessionsDataTask.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/tasks/UpdateKeysBackupVersionTask.kt',
+        'org/matrix/android/sdk/internal/crypto/store/db/Helper.kt',
+        'org/matrix/android/sdk/internal/session/room/send/queue/QueuedTask.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/SendingEventsDataSource.kt',
+        'org/matrix/android/sdk/internal/session/search/SearchAPI.kt',
+        'org/matrix/android/sdk/internal/session/sync/SyncAPI.kt',
+        'org/matrix/android/sdk/internal/session/user/SearchUserAPI.kt',
+        'org/matrix/android/sdk/internal/session/user/accountdata/AccountDataAPI.kt',
+        'org/matrix/android/sdk/internal/session/user/accountdata/DeleteUserAccountDataTask.kt',
+        'org/matrix/android/sdk/internal/session/user/accountdata/UpdateUserAccountDataTask.kt',
+        'org/matrix/android/sdk/internal/session/user/model/SearchUserTask.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
