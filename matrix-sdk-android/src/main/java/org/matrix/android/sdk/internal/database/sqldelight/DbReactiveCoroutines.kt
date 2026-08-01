@@ -17,6 +17,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import timber.log.Timber
 import java.util.concurrent.Executors
 
 /**
@@ -34,8 +35,20 @@ internal fun newDatabaseDispatcher(name: String): CoroutineDispatcher =
 internal suspend fun <T> Transacter.awaitDbTransaction(
         dispatcher: CoroutineDispatcher,
         body: TransactionWithReturn<T>.() -> T,
-): T = withContext(dispatcher) {
-    transactionWithResult(bodyWithReturn = body)
+): T {
+    val enqueuedAt = System.currentTimeMillis()
+    return withContext(dispatcher) {
+        val startedAt = System.currentTimeMillis()
+        val result = transactionWithResult(bodyWithReturn = body)
+        val finishedAt = System.currentTimeMillis()
+        val waited = startedAt - enqueuedAt
+        val ran = finishedAt - startedAt
+        // The lambda class name identifies the call site hogging (ran) or stuck behind (waited) the dispatcher.
+        if (waited > 500 || ran > 500) {
+            Timber.w("## DB: slow transaction ${body.javaClass.name}: waited ${waited}ms, ran ${ran}ms")
+        }
+        result
+    }
 }
 
 /**
