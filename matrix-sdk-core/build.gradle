@@ -765,6 +765,8 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/user/accountdata/DeleteUserAccountDataTask.kt',
         'org/matrix/android/sdk/internal/session/user/accountdata/UpdateUserAccountDataTask.kt',
         'org/matrix/android/sdk/internal/session/user/model/SearchUserTask.kt',
+        // SQLDelight session store stack: the generated SessionSqlDatabase + the hand-written stores.
+        'org/matrix/android/sdk/internal/database/sql/**',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
@@ -774,6 +776,8 @@ ext.coreExcludes = [
         'org/matrix/android/sdk/internal/session/filter/GetCurrentFilterTask.kt',
         'org/matrix/android/sdk/internal/session/filter/SaveFilterTask.kt',
         'org/matrix/android/sdk/internal/session/filter/FilterModule.kt',
+        // Needs RoomSummaryEventDecryptor (android crypto/timeline); only android sync handlers use it.
+        'org/matrix/android/sdk/internal/database/sql/store/ThreadSummarySqlHelper.kt',
 ]
 
 sourceSets {
