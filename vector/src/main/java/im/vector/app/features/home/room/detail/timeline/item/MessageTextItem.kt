@@ -21,8 +21,9 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
-import im.vector.app.core.epoxy.onLongClickIgnoringLinks
+import im.vector.app.core.epoxy.onLongClickIgnoringLinksSelectingCode
 import im.vector.app.core.ui.views.AbstractFooteredTextView
+import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
@@ -164,6 +165,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             }
         }
         im.vector.app.core.utils.PerfTrace.time("bind.text.super") { super.bind(holder) }
+        messageView.setReadOnlySelectable(true)
         messageView.movementMethod = movementMethod
         renderSendState(messageView, messageView)
         if (showBlocked) {
@@ -175,7 +177,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         } else {
             messageView.onClick(attributes.itemClickListener)
         }
-        messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
+        messageView.onLongClickIgnoringLinksSelectingCode(attributes.itemLongClickListener)
         val defaultColorAttr = if (noticeStyle) {
             im.vector.lib.ui.styles.R.attr.vctr_content_secondary
         } else {
@@ -197,7 +199,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     }
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {
-        if (bindingOptions?.canUseTextFuture.orFalse() && message != null) {
+        // Selectable views need a spannable buffer; don't hand them precomputed text.
+        if (bindingOptions?.canUseTextFuture.orFalse() && message != null && !isTextSelectable) {
             val textFuture = PrecomputedTextCompat.getTextFuture(message, TextViewCompat.getTextMetricsParams(this), null)
             setTextFuture(textFuture)
         } else {

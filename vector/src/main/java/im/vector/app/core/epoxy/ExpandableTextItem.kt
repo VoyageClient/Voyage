@@ -10,6 +10,7 @@ package im.vector.app.core.epoxy
 import android.animation.ObjectAnimator
 import android.text.TextUtils
 import android.text.method.MovementMethod
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.doOnPreDraw
@@ -17,8 +18,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
-import im.vector.app.core.extensions.copyOnLongClick
-import im.vector.app.core.extensions.setCopySource
+import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.strings.CommonStrings
 
@@ -40,8 +40,7 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.content.text = content.prepareForDisplay()
-        holder.content.setCopySource(content)
-        holder.content.copyOnLongClick()
+        holder.content.setReadOnlySelectable(true)
         holder.content.movementMethod = movementMethod
 
         holder.content.doOnPreDraw {
@@ -49,13 +48,16 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
                 expandedLines = holder.content.lineCount
                 holder.content.maxLines = maxLines
 
-                holder.view.setOnClickListener {
+                val toggle = View.OnClickListener {
                     if (isExpanded) {
                         collapse(holder)
                     } else {
                         expand(holder)
                     }
                 }
+                holder.view.setOnClickListener(toggle)
+                // The selectable text view consumes taps, so it needs the toggle too
+                holder.content.setOnClickListener(toggle)
                 holder.arrow.isVisible = true
             } else {
                 holder.arrow.isVisible = false
