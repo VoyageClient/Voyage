@@ -865,6 +865,24 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/room/Room.kt',
         'org/matrix/android/sdk/api/session/space/Space.kt',
         'org/matrix/android/sdk/api/session/room/RoomService.kt',
+        'org/matrix/android/sdk/internal/task/TaskExecutor.kt',
+        'org/matrix/android/sdk/internal/session/presence/di/PresenceModule.kt',
+        'org/matrix/android/sdk/internal/auth/login/GetProfileTask.kt',
+        'org/commonmark/ext/maths/InlineMaths.kt',
+        'org/commonmark/ext/maths/internal/DollarMathsDelimiterProcessor.kt',
+        'org/commonmark/ext/maths/internal/MathsNodeRenderer.kt',
+        'org/matrix/android/sdk/userstories/Us150VerifySession.kt',
+        'org/matrix/android/sdk/internal/session/DefaultToDeviceService.kt',
+        'org/matrix/android/sdk/internal/session/cache/CacheModule.kt',
+        'org/matrix/android/sdk/internal/federation/DefaultFederationService.kt',
+        'org/matrix/android/sdk/internal/network/GlobalErrorHandler.kt',
+        'org/matrix/android/sdk/internal/session/cache/DefaultCacheService.kt',
+        'org/matrix/android/sdk/internal/federation/FederationModule.kt',
+        'org/matrix/android/sdk/internal/session/presence/service/DefaultPresenceService.kt',
+        'org/matrix/android/sdk/internal/session/DefaultEventStreamService.kt',
+        'org/matrix/android/sdk/internal/session/homeserver/HomeServerPinger.kt',
+        'org/commonmark/ext/maths/DisplayMaths.kt',
+        'org/matrix/android/sdk/internal/task/ConfigurableTask.kt',
         'org/matrix/android/sdk/api/auth/HomeServerHistoryService.kt',
         'org/matrix/android/sdk/api/debug/DebugService.kt',
         'org/matrix/android/sdk/api/federation/FederationService.kt',
@@ -1067,6 +1085,8 @@ dependencies {
     implementation libs.squareup.retrofitMoshi
     implementation 'org.json:json:20240303'
     implementation libs.google.phonenumber
+    api "com.atlassian.commonmark:commonmark:0.13.0"
+    api "com.atlassian.commonmark:commonmark-ext-gfm-tables:0.13.0"
     kapt libs.squareup.moshiKotlin
     // Generate the Dagger @Provides/@Inject factories for the @Modules that live in core; the
     // components that consume them are generated in :matrix-sdk-android.
