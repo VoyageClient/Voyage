@@ -1276,6 +1276,11 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/sync/handler/room/SqlRoomSyncHandler.kt',
         'org/matrix/android/sdk/internal/wellknown/GetWellknownTask.kt',
         'org/matrix/android/sdk/internal/wellknown/WellknownModule.kt',
+        // UserDataSource neutralized (Flow methods primary via SqlDelight; getPagedUsersLive moved
+        // to UserDataSourceAndroid); lands it + the widget helpers that use it.
+        'org/matrix/android/sdk/internal/session/user/UserDataSource.kt',
+        'org/matrix/android/sdk/internal/session/widgets/helper/UserAccountWidgets.kt',
+        'org/matrix/android/sdk/internal/session/widgets/helper/WidgetFactory.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

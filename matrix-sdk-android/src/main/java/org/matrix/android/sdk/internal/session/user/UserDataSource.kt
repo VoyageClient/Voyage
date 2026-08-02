@@ -16,28 +16,27 @@
 
 package org.matrix.android.sdk.internal.session.user
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
-import androidx.paging.PagedList
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
-import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import javax.inject.Inject
 import org.matrix.android.sdk.internal.database.sql.User as UserRow
 
 internal class UserDataSource @Inject constructor(
-        @SessionDatabase private val database: SessionSqlDatabase,
+        @SessionDatabase internal val database: SessionSqlDatabase,
         @SessionDatabase private val dispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
 ) {
+
+    internal fun rowToUser(row: UserRow): User = User(row.user_id, row.display_name, row.avatar_url)
 
     fun getUser(userId: String): User? = stores.user.getUser(userId)?.let { User(it.userId, it.displayName, it.avatarUrl) }
 
@@ -45,38 +44,22 @@ internal class UserDataSource @Inject constructor(
 
     fun getUserFlow(userId: String): Flow<Optional<User>> {
         return database.userQueries.selectByUserId(userId)
-                .asLiveList(dispatcher)
+                .asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.toUser().toOptional() }
-                .asFlow()
     }
 
     fun getUsersFlow(): Flow<List<User>> {
         return database.userQueries.selectAll()
-                .asLiveList(dispatcher)
+                .asFlow().mapToList(dispatcher)
                 .map { rows -> rows.map { it.toUser() } }
-                .asFlow()
-    }
-
-    fun getPagedUsersLive(filter: String?, excludedUserIds: Set<String>?): LiveData<PagedList<User>> {
-        val query = if (filter.isNullOrEmpty()) {
-            database.userQueries.selectAll()
-        } else {
-            database.userQueries.searchByDisplayName(filter, filter)
-        }
-        return livePaged(query, pageSize = 100) {
-            query.executeAsList()
-                    .filter { excludedUserIds.isNullOrEmpty() || it.user_id !in excludedUserIds }
-                    .map { it.toUser() }
-        }
     }
 
     fun getIgnoredUsersFlow(): Flow<List<User>> {
         return database.ignoredUserQueries.selectAll()
-                .asLiveList(dispatcher)
+                .asFlow().mapToList(dispatcher)
                 // Skip any malformed blank id: User("") fails MatrixItem's @-prefix check, which would
                 // crash the ignored-users list (or drop the whole list) rather than just that one entry.
                 .map { ids -> ids.filter { it.isNotBlank() }.map { getUser(it) ?: User(userId = it) } }
-                .asFlow()
     }
 
     fun getIgnoredUserIds(): List<String> = database.ignoredUserQueries.selectAll().executeAsList()
