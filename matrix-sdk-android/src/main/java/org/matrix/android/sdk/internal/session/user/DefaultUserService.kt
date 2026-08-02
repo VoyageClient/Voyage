@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.user
 import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
+import org.matrix.android.sdk.api.session.user.UserPagingService
 import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
@@ -32,7 +33,7 @@ internal class DefaultUserService @Inject constructor(
         private val searchUserTask: SearchUserTask,
         private val updateIgnoredUserIdsTask: UpdateIgnoredUserIdsTask,
         private val getProfileInfoTask: GetProfileInfoTask
-) : UserService {
+) : UserService, UserPagingService {
 
     override fun getUser(userId: String): User? {
         return userDataSource.getUser(userId)

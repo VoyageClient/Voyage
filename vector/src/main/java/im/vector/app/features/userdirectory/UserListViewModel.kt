@@ -40,6 +40,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.identity.IdentityServiceError
 import org.matrix.android.sdk.api.session.identity.IdentityServiceListener
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.user.UserPagingService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.toMatrixItem
 import kotlin.random.Random
@@ -198,7 +199,7 @@ class UserListViewModel @AssistedInject constructor(
         knownUsersSearch
                 .sample(300)
                 .flatMapLatest { search ->
-                    session.userService().getPagedUsersLive(search, state.excludedUserIds).asFlow()
+                    (session.userService() as UserPagingService).getPagedUsersLive(search, state.excludedUserIds).asFlow()
                 }
                 .execute {
                     copy(knownUsers = it)

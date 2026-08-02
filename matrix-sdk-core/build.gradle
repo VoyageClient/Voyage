@@ -846,6 +846,8 @@ ext.coreSources = [
         // helper moved to the android-only CryptoDevtoolsService, leaving the interface plain-JVM.
         'org/matrix/android/sdk/api/session/crypto/keysbackup/KeysBackupService.kt',
         'org/matrix/android/sdk/api/session/crypto/CryptoService.kt',
+        // UserService interface: its getPagedUsersLive moved to the android-only UserPagingService.
+        'org/matrix/android/sdk/api/session/user/UserService.kt',
         // Call handling (ActiveCallHandler converted off LiveData); untested — the app has no calling UI.
         'org/matrix/android/sdk/api/session/call/**',
         'org/matrix/android/sdk/internal/session/EventInsertLiveProcessor.kt',
