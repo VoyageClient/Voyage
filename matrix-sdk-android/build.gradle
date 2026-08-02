@@ -179,11 +179,7 @@ sqldelight {
         // sub-stores); this module consumes it across the boundary.
         // SessionSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the session
         // store stack); this module consumes it across the module boundary.
-        EventIndexSqlDatabase {
-            packageName = "org.matrix.android.sdk.internal.session.search.index.db"
-            srcDirs.setFrom("src/main/sqldelight/eventindex")
-            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
-        }
+        // EventIndexSqlDatabase is generated and compiled by :matrix-sdk-core; android consumes it.
     }
 }
 
