@@ -695,6 +695,11 @@ ext.coreSources = [
         // Identity DB stack: core owns IdentitySqlDatabase generation (glob pulls generated code +
         // SqlIdentityStore); removed from android's sqldelight block to avoid duplicate classes.
         'org/matrix/android/sdk/internal/session/identity/db/**',
+        // EventIndex DB stack: core owns EventIndexSqlDatabase generation + the local search store
+        // (EventIndexer/DefaultEventIndexService/LocalEventSearchTask reference the Session facade /
+        // EventIndexer, so they stay android and consume EventIndexStore cross-module).
+        'org/matrix/android/sdk/internal/session/search/index/db/**',
+        'org/matrix/android/sdk/internal/session/search/index/EventIndexStore.kt',
         'org/matrix/android/sdk/internal/session/integrationmanager/IntegrationManagerConfigExtractor.kt',
         'org/matrix/android/sdk/internal/session/media/IsAuthenticatedMediaSupported.kt',
         'org/matrix/android/sdk/internal/session/media/PreviewUrlMapper.kt',
