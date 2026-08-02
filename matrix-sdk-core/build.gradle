@@ -426,6 +426,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/typing/TypingEventContent.kt',
         'org/matrix/android/sdk/internal/session/room/summary/GraphUtils.kt',
         'org/matrix/android/sdk/internal/session/room/summary/RoomSummaryPreviewInvalidation.kt',
+        // Room-list data source: LiveData/PagedList surface relocated to RoomSummaryDataSourceAndroid.kt;
+        // the Flow methods are primary and the pure query/mapping helpers are internal.
+        'org/matrix/android/sdk/internal/session/room/summary/RoomSummaryDataSource.kt',
         // Internal REST value types across profile/identity/pushers/user/auth and other feature packages.
         'org/matrix/android/sdk/internal/session/profile/PendingThreePid.kt',
         'org/matrix/android/sdk/internal/session/profile/SetAvatarUrlBody.kt',
@@ -1127,7 +1130,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/user/accountdata/UserAccountDataDataSource.kt',
         // MatrixPerf: its only android coupling is android.util.Log, resolved on core's classpath
         // by the olm-jvm stand-in (real android.util.Log is used at runtime on device).
-        'org/matrix/android/sdk/session/SessionComponent.ktorg/matrix/android/sdk/api/util/MatrixPerf.kt',
+        'org/matrix/android/sdk/api/util/MatrixPerf.kt',
         // ContentScanner service cluster: the api getLiveStatusForFile(LiveData) became
         // getStatusFlowForFile(Flow) with an android-only getLiveStatusForFile extension (zero
         // :vector consumers in this fork), landing the whole service+task+module cluster.
@@ -1138,6 +1141,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/contentscanner/DisabledContentScannerService.kt',
         'org/matrix/android/sdk/internal/session/contentscanner/tasks/ScanEncryptedTask.kt',
         'org/matrix/android/sdk/internal/session/contentscanner/tasks/ScanMediaTask.kt',
+        // Unblocked by RoomSummaryDataSource landing in core.
+        'org/matrix/android/sdk/internal/session/room/membership/leaving/LeaveRoomTask.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/SqlChunkSnapshotLoader.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
