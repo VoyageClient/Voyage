@@ -509,4 +509,6 @@
 
     <string name="dev_tools_explore_room_account_data" translatable="false">Room Account Data</string>
     <string name="dev_tools_success_account_data" translatable="false">Account data updated!</string>
+
+    <string name="action_copy_table" translatable="false">Copy table</string>
 </resources>

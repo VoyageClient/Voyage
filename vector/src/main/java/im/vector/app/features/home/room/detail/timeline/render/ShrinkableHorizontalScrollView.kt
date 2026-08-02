@@ -32,6 +32,8 @@ class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(co
     var allowShrink: Boolean = true
 
     private val shrinkFactor: Float = 0.25f
+    private var lastAvailable = -1
+    private var lastNatural = -1
     private val touchSlop: Int = ViewConfiguration.get(context).scaledTouchSlop
     private var downX = 0f
     private var downY = 0f
@@ -61,15 +63,18 @@ class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(co
             return
         }
         val available = MeasureSpec.getSize(widthMeasureSpec)
-        child.isShrinkAllColumns = false
-        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-        child.measure(unbounded, heightMeasureSpec)
-        val natural = child.measuredWidth
-        if (allowShrink && natural > available && natural <= (available / (1f - shrinkFactor)).toInt()) {
-            child.isShrinkAllColumns = true
-        } else {
+        // The unbounded probe re-lays-out every cell's text to find the table's natural width, which is
+        // fixed once the tree is built — so probe only on the first measure or a width change, not on
+        // every relayout (selection-handle drags requestLayout the whole table per pixel). super.onMeasure
+        // below still lays the child out.
+        if (lastNatural < 0 || available != lastAvailable) {
             child.isShrinkAllColumns = false
+            val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+            child.measure(unbounded, heightMeasureSpec)
+            lastNatural = child.measuredWidth
+            lastAvailable = available
         }
+        child.isShrinkAllColumns = allowShrink && lastNatural > available && lastNatural <= (available / (1f - shrinkFactor)).toInt()
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
@@ -109,6 +114,14 @@ class ShrinkableHorizontalScrollView(context: Context) : HorizontalScrollView(co
                 postDelayed(resetAllowAwaken, SCROLLBAR_USER_WINDOW_AFTER_RELEASE_MS)
             }
         }
+    }
+
+    // Tapping a selectable cell/code view focuses it, and stock requestChildFocus scrolls to reveal
+    // the whole focused view — jumping the table on a mere tap. Keep the scroll position instead.
+    override fun requestChildFocus(child: View?, focused: View?) {
+        val savedX = scrollX
+        super.requestChildFocus(child, focused)
+        if (scrollX != savedX) scrollTo(savedX, scrollY)
     }
 
     override fun onDetachedFromWindow() {

@@ -23,7 +23,9 @@ import android.widget.TableRow
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
 import im.vector.app.R
+import im.vector.app.core.epoxy.onLongClickIgnoringLinksSelectingCode
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.core.utils.setReadOnlySelectable
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.html.Alignment
 import im.vector.app.features.html.BodySegment
@@ -71,25 +73,61 @@ class RichMessageBodyRenderer @Inject constructor(
     ) {
         val ctx = container.context
         val defaultColorAttr = if (noticeStyle) im.vector.lib.ui.styles.R.attr.vctr_content_secondary else im.vector.lib.ui.styles.R.attr.vctr_content_primary
+
+        // Rebuilding the whole view tree (removeAllViews + re-add) on every bind is the dominant
+        // timeline cost for tables/code; a rebind with unchanged body content (read receipts, reply
+        // or sync updates) reuses the existing tree and only refreshes the per-bind click lambdas.
+        val binding = (container.getTag(R.id.rich_body_binding) as? RichBodyBinding)
+                ?: RichBodyBinding().also { container.setTag(R.id.rich_body_binding, it) }
+        binding.onClick = onClick
+        binding.onLongClick = onLongClick
+        if (container.childCount > 0 &&
+                binding.segments == segments &&
+                binding.interactive == interactive &&
+                binding.fullBleed == fullBleed &&
+                binding.noticeStyle == noticeStyle &&
+                binding.hasMovement == (movementMethod != null) &&
+                binding.replyHeader?.toString() == replyHeader?.toString()) {
+            return
+        }
+        binding.segments = segments
+        binding.interactive = interactive
+        binding.fullBleed = fullBleed
+        binding.noticeStyle = noticeStyle
+        binding.hasMovement = movementMethod != null
+        binding.replyHeader = replyHeader
+
         container.removeAllViews()
         if (replyHeader != null) {
-            container.addView(buildReplyHeaderView(ctx, replyHeader, movementMethod, onClick, onLongClick))
+            container.addView(buildReplyHeaderView(ctx, replyHeader, movementMethod, binding))
         }
         segments.forEach { segment ->
             when (segment) {
-                is BodySegment.Html -> container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
-                is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr, interactive))
-                is BodySegment.Code -> container.addView(buildCodeBlock(ctx, segment.code, interactive, fullBleed, onClick, onLongClick))
+                is BodySegment.Html -> container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, binding, defaultColorAttr, interactive))
+                is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, binding, defaultColorAttr, interactive))
+                is BodySegment.Code -> container.addView(buildCodeBlock(ctx, segment.code, interactive, fullBleed, binding))
             }
         }
+    }
+
+    // Per-container render state: the current click lambdas (read at click time so an unchanged
+    // tree needn't be re-wired) and the inputs the tree was last built from.
+    private class RichBodyBinding {
+        var onClick: (View) -> Unit = {}
+        var onLongClick: (View) -> Boolean = { false }
+        var segments: List<BodySegment>? = null
+        var interactive = false
+        var fullBleed = false
+        var noticeStyle = false
+        var hasMovement = false
+        var replyHeader: CharSequence? = null
     }
 
     private fun buildReplyHeaderView(
             ctx: Context,
             header: CharSequence,
             movementMethod: MovementMethod?,
-            onClick: (View) -> Unit,
-            onLongClick: (View) -> Boolean,
+            binding: RichBodyBinding,
     ): AppCompatTextView {
         val tv = AppCompatTextView(ctx)
         tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
@@ -97,8 +135,8 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
         tv.setTextColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
-        tv.setOnClickListener(onClick)
-        tv.setOnLongClickListener(onLongClick)
+        tv.setOnClickListener { binding.onClick(it) }
+        tv.setOnLongClickListener { binding.onLongClick(it) }
         htmlRenderer.get().setTextWithPlugins(tv, header)
         // After the plugin pass: Markwon's CorePlugin force-installs a LinkMovementMethod on a
         // movement-less view, so a deliberate null (inert links) has to be re-asserted.
@@ -111,20 +149,22 @@ class RichMessageBodyRenderer @Inject constructor(
             html: String,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
-            onClick: (View) -> Unit,
-            onLongClick: (View) -> Boolean,
+            binding: RichBodyBinding,
             defaultColorAttr: Int,
+            interactive: Boolean,
     ): AppCompatTextView {
-        val tv = AppCompatTextView(ctx)
+        val tv = ReadOnlySelectableTextView(ctx)
         tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
         tv.setTextColor(themeColor(ctx, defaultColorAttr))
         htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(html, *postProcessors))
-        // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView).
+        tv.setReadOnlySelectable(interactive)
+        // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView),
+        // and after the selectable toggle, which installs its own movement method.
         tv.movementMethod = movementMethod
         tv.applySpoilerRenderLayer()
-        tv.setOnClickListener(onClick)
-        tv.setOnLongClickListener(onLongClick)
+        tv.setOnClickListener { binding.onClick(it) }
+        tv.onLongClickIgnoringLinksSelectingCode(View.OnLongClickListener { binding.onLongClick(it) })
         return tv
     }
 
@@ -138,8 +178,7 @@ class RichMessageBodyRenderer @Inject constructor(
             code: String,
             interactive: Boolean,
             fullBleed: Boolean,
-            onClick: (View) -> Unit,
-            onLongClick: (View) -> Boolean,
+            binding: RichBodyBinding,
     ): View {
         val codeColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
         val gutterColor = themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
@@ -161,8 +200,8 @@ class RichMessageBodyRenderer @Inject constructor(
             val padH = dim.dpToPx(10)
             val padV = dim.dpToPx(8)
             setPadding(padH, padV, padH, padV)
-            setOnClickListener(onClick)
-            setOnLongClickListener(onLongClick)
+            setOnClickListener { binding.onClick(it) }
+            setOnLongClickListener { binding.onLongClick(it) }
         }
 
         val gutter = AppCompatTextView(ctx).apply {
@@ -175,14 +214,18 @@ class RichMessageBodyRenderer @Inject constructor(
             text = (1..lineCount).joinToString("\n")
         }
 
-        val codeView = AppCompatTextView(ctx).apply {
+        val codeView = (if (interactive) ReadOnlySelectableTextView(ctx, selectable = true) else AppCompatTextView(ctx)).apply {
             typeface = Typeface.MONOSPACE
             setTextSize(TypedValue.COMPLEX_UNIT_SP, CODE_TEXT_SIZE_SP)
             setTextColor(codeColor)
             setHorizontallyScrolling(!wrap)
             text = code
-            setOnClickListener(onClick)
-            setOnLongClickListener(onLongClick)
+            setOnClickListener { binding.onClick(it) }
+            if (!interactive) {
+                // When selectable, a long-click listener would consume the press that starts selection;
+                // the gutter/panel keeps the message menu reachable.
+                setOnLongClickListener { binding.onLongClick(it) }
+            }
         }
 
         outer.addView(gutter)
@@ -217,8 +260,7 @@ class RichMessageBodyRenderer @Inject constructor(
             rows: List<TableRowData>,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
-            onClick: (View) -> Unit,
-            onLongClick: (View) -> Boolean,
+            binding: RichBodyBinding,
             defaultColorAttr: Int,
             interactive: Boolean,
     ): View {
@@ -228,8 +270,11 @@ class RichMessageBodyRenderer @Inject constructor(
             setBackgroundResource(R.drawable.bg_rich_table_cell)
         }
         val colCount = rows.maxOfOrNull { it.cells.size } ?: 0
+        val cellRows = ArrayList<List<AppCompatTextView>>(rows.size)
         rows.forEach { row ->
-            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
+            val rowCells = ArrayList<AppCompatTextView>(colCount)
+            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod, binding, defaultColorAttr, interactive, rowCells))
+            cellRows.add(rowCells)
         }
         if (!interactive) {
             // Previews: no scroll view (it would steal the tap/gesture from the surrounding view).
@@ -262,6 +307,8 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         table.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         scroll.addView(table)
+        // Each cell exposes the whole table, so a cell selection's menu can offer "Copy table"
+        cellRows.forEach { cells -> cells.forEach { (it as? ReadOnlySelectableTextView)?.tableCellRows = cellRows } }
         return scroll
     }
 
@@ -271,9 +318,10 @@ class RichMessageBodyRenderer @Inject constructor(
             colCount: Int,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
-            onClick: (View) -> Unit,
-            onLongClick: (View) -> Boolean,
+            binding: RichBodyBinding,
             defaultColorAttr: Int,
+            interactive: Boolean,
+            cellCollector: MutableList<AppCompatTextView>,
     ): TableRow {
         val tr = TableRow(ctx)
         tr.layoutParams = TableLayout.LayoutParams(
@@ -282,7 +330,9 @@ class RichMessageBodyRenderer @Inject constructor(
         )
         for (i in 0 until colCount) {
             val cell = row.cells.getOrNull(i)
-            tr.addView(buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod, onClick, onLongClick, defaultColorAttr))
+            val cellView = buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod, binding, defaultColorAttr, interactive)
+            cellCollector.add(cellView)
+            tr.addView(cellView)
         }
         return tr
     }
@@ -293,12 +343,12 @@ class RichMessageBodyRenderer @Inject constructor(
             rowIsHeader: Boolean,
             postProcessors: Array<EventHtmlRenderer.PostProcessor>,
             movementMethod: MovementMethod?,
-            onClick: (View) -> Unit,
-            onLongClick: (View) -> Boolean,
+            binding: RichBodyBinding,
             defaultColorAttr: Int,
+            interactive: Boolean,
     ): AppCompatTextView {
         val isHeader = rowIsHeader || (cell?.isHeader == true)
-        val tv = AppCompatTextView(ctx)
+        val tv = ReadOnlySelectableTextView(ctx)
         val padH = dim.dpToPx(12)
         val padV = dim.dpToPx(8)
         tv.setPadding(padH, padV, padH, padV)
@@ -306,12 +356,17 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.setTextColor(themeColor(ctx, defaultColorAttr))
         if (isHeader) {
             tv.setTypeface(tv.typeface, Typeface.BOLD)
-            tv.setBackgroundResource(R.drawable.bg_rich_table_cell_header)
+            // Built in code: theme attrs in drawable XML don't resolve pre-21
+            ViewCompat.setBackground(tv, GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                setColor(themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_quinary))
+                setStroke(dim.dpToPx(1), themeColor(ctx, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary))
+            })
         } else {
             tv.setBackgroundResource(R.drawable.bg_rich_table_cell)
         }
-        tv.setOnClickListener(onClick)
-        tv.setOnLongClickListener(onLongClick)
+        tv.setOnClickListener { binding.onClick(it) }
+        tv.onLongClickIgnoringLinksSelectingCode(View.OnLongClickListener { binding.onLongClick(it) })
         tv.gravity = when (cell?.alignment) {
             Alignment.CENTER -> Gravity.CENTER
             Alignment.RIGHT -> Gravity.END or Gravity.CENTER_VERTICAL
@@ -327,7 +382,9 @@ class RichMessageBodyRenderer @Inject constructor(
         tv.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT)
         val cellHtml = cell?.html?.trim().orEmpty()
         if (cellHtml.isEmpty()) tv.text = "" else htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(cellHtml, *postProcessors))
-        // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView).
+        tv.setReadOnlySelectable(interactive)
+        // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView),
+        // and after the selectable toggle, which installs its own movement method.
         tv.movementMethod = movementMethod
         return tv
     }

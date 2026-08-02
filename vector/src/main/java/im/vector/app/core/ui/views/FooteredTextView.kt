@@ -9,14 +9,27 @@ package im.vector.app.core.ui.views
 
 import android.content.Context
 import android.graphics.Canvas
+import android.os.Build
 import android.text.Layout
 import android.text.Spanned
 import android.text.style.LeadingMarginSpan
 import android.util.AttributeSet
+import android.view.ActionMode
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
+import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.getSpans
+import im.vector.app.core.utils.CodeSelectionBoundsHost
+import im.vector.app.core.utils.clampSelectionToCodeSpans
+import im.vector.app.core.utils.mirrorPressedToRowFlash
+import im.vector.app.core.utils.readOnlySelectionInputConnection
+import im.vector.app.core.utils.releasePressedRippleOnSelection
+import im.vector.app.core.utils.replaySwallowedTap
+import im.vector.app.core.utils.startActionModeGuarded
 import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.html.HtmlCodeSpan
 import kotlin.math.ceil
@@ -26,7 +39,7 @@ class FooteredTextView @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0,
-) : AppCompatTextView(context, attrs, defStyleAttr), AbstractFooteredTextView {
+) : AppCompatTextView(context, attrs, defStyleAttr), AbstractFooteredTextView, CodeSelectionBoundsHost {
 
     override val footerState: AbstractFooteredTextView.FooterState = AbstractFooteredTextView.FooterState()
     override fun getAppCompatTextView(): AppCompatTextView = this
@@ -87,4 +100,42 @@ class FooteredTextView @JvmOverloads constructor(
         updateFooterOnPreDraw(canvas)
         super.onDraw(canvas)
     }
+
+    override var codeSelectionBounds: IntRange? = null
+
+    override fun onSelectionChanged(selStart: Int, selEnd: Int) {
+        super.onSelectionChanged(selStart, selEnd)
+        codeSelectionBounds = clampSelectionToCodeSpans(codeSelectionBounds)
+        releasePressedRippleOnSelection(selStart, selEnd)
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val wasFocused = isFocused
+        val handled = super.onTouchEvent(event)
+        replaySwallowedTap(event, wasFocused)
+        return handled
+    }
+
+    // Touch-only focus: focus search landing on a selectable view churns selection spans, and
+    // every span change relayouts the whole row (see ReadOnlySelectableTextView)
+    override fun addFocusables(views: ArrayList<View>, direction: Int, focusableMode: Int) {
+        if (!isTextSelectable) super.addFocusables(views, direction, focusableMode)
+    }
+
+    override fun onCheckIsTextEditor(): Boolean = isTextSelectable
+
+    override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? =
+            if (isTextSelectable) readOnlySelectionInputConnection(outAttrs) else super.onCreateInputConnection(outAttrs)
+
+    override fun setPressed(pressed: Boolean) {
+        super.setPressed(pressed)
+        mirrorPressedToRowFlash(pressed)
+    }
+
+    override fun startActionMode(callback: ActionMode.Callback?): ActionMode? =
+            startActionModeGuarded { super.startActionMode(callback) }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun startActionMode(callback: ActionMode.Callback?, type: Int): ActionMode? =
+            startActionModeGuarded { super.startActionMode(callback, type) }
 }

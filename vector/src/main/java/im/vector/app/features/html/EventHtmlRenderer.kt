@@ -23,6 +23,7 @@ import android.graphics.drawable.Drawable
 import android.text.Spannable
 import android.text.Spanned
 import android.text.SpannableStringBuilder
+import android.text.style.RelativeSizeSpan
 import android.text.style.StrikethroughSpan
 import android.text.style.URLSpan
 import android.text.style.UnderlineSpan
@@ -43,6 +44,7 @@ import io.noties.markwon.Markwon
 import io.noties.markwon.MarkwonPlugin
 import io.noties.markwon.MarkwonSpansFactory
 import io.noties.markwon.PrecomputedFutureTextSetterCompat
+import io.noties.markwon.core.CoreProps
 import io.noties.markwon.core.MarkwonTheme
 import io.noties.markwon.core.spans.BulletListItemSpan
 import io.noties.markwon.core.spans.EmphasisSpan
@@ -65,6 +67,7 @@ import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin
 import me.gujun.android.span.style.CustomTypefaceSpan
 import org.commonmark.node.BlockQuote
 import org.commonmark.node.Emphasis
+import org.commonmark.node.ListItem
 import org.commonmark.node.Node
 import org.commonmark.parser.Parser
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
@@ -167,6 +170,20 @@ class EventHtmlRenderer @Inject constructor(
         }
     }
 
+    // Source-exposing subclasses of the stock spans, so rendered text can be mapped back to its
+    // markdown source (list markers become literal characters in materializeListMarkers).
+    private val sourceSpansPlugin = object : AbstractMarkwonPlugin() {
+        override fun configureSpansFactory(builder: MarkwonSpansFactory.Builder) {
+            builder.setFactory(ListItem::class.java) { configuration, props ->
+                if (CoreProps.LIST_ITEM_TYPE.require(props) == CoreProps.ListItemType.BULLET) {
+                    SourceBulletListItemSpan(configuration.theme(), CoreProps.BULLET_LIST_ITEM_LEVEL.require(props))
+                } else {
+                    SourceOrderedListItemSpan(configuration.theme(), CoreProps.ORDERED_LIST_ITEM_NUMBER.require(props))
+                }
+            }
+        }
+    }
+
     // Bind every custom-emoticon span to the TextView after the text is set, so each starts loading its
     // image and invalidates the view when ready (the span already reserves its size, so no relayout).
     private val emoticonBinderPlugin = object : AbstractMarkwonPlugin() {
@@ -226,6 +243,7 @@ class EventHtmlRenderer @Inject constructor(
     private fun buildMarkwon() = Markwon.builder(context)
             .usePlugin(HtmlRootTagPlugin())
             .usePlugin(HtmlPlugin.create(htmlConfigure))
+            .usePlugin(sourceSpansPlugin)
             .usePlugin(removeLeadingNewlineForInlineElement)
             .usePlugin(glidePlugin)
             .usePlugin(codeThemePlugin)
@@ -306,6 +324,7 @@ class EventHtmlRenderer @Inject constructor(
         collapseBlockQuotePadding(renderedText)
         separateBlockQuoteTrailingContent(renderedText)
         collapsePhantomWhitespaceLines(renderedText)
+        materializeListMarkers(renderedText)
         // Block elements (a trailing <p>/<br>) leave a dangling newline/space Markwon doesn't strip. The
         // timeline happens to hide it, but the non-timeline surfaces that set this text directly (long-press,
         // reply header, reply composer) render it as a blank trailing line. Drop the trailing whitespace run
@@ -329,6 +348,38 @@ class EventHtmlRenderer @Inject constructor(
     // commonmark, so it can't say which gaps were typed blank; its <p> padding carries the spacing,
     // like element-web. A run between two paragraphs of the SAME item keeps its blank line like
     // top-level paragraphs; non-list runs and code spans are untouched.
+    // Selection can only cover real characters, so replace the margin-drawn list markers with
+    // literal ones ("• " / "1. ", space-indented when nested); the Markwon spans and their
+    // margins go away. ListMarkerSpan carries each marker's markdown source for copy.
+    private fun materializeListMarkers(text: SpannableStringBuilder) {
+        val spans = text.getSpans(0, text.length, BulletListItemSpan::class.java).asList() +
+                text.getSpans(0, text.length, OrderedListItemSpan::class.java)
+        if (spans.isEmpty()) return
+        val markers = spans.map { span ->
+            val start = text.getSpanStart(span)
+            val depth = spans.count {
+                it !== span && text.getSpanStart(it) <= start && text.getSpanEnd(it) >= text.getSpanEnd(span)
+            }
+            Triple(span, start, depth)
+        }.sortedWith(compareByDescending<Triple<Any, Int, Int>> { it.second }.thenByDescending { it.third })
+        for ((span, start, depth) in markers) {
+            if (start < 0) continue
+            text.removeSpan(span)
+            val (display, source) = if (span is SourceOrderedListItemSpan) {
+                "${span.number}. " to "${span.number}. "
+            } else {
+                "● " to "- "
+            }
+            val indent = "   ".repeat(depth)
+            text.insert(start, indent + display)
+            if (span !is SourceOrderedListItemSpan) {
+                // The small • glyph reads undersized next to the old drawn bullet; a scaled ● matches it
+                text.setSpan(RelativeSizeSpan(0.8f), start + indent.length, start + indent.length + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            }
+            text.setSpan(ListMarkerSpan(indent + source), start, start + indent.length + display.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+    }
+
     private fun collapsePhantomWhitespaceLines(text: SpannableStringBuilder) {
         val listRanges = (
                 text.getSpans(0, text.length, BulletListItemSpan::class.java).asList() +
