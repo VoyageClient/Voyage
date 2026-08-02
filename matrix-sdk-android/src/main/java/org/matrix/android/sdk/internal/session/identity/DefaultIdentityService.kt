@@ -52,6 +52,7 @@ import org.matrix.android.sdk.internal.session.profile.UnbindThreePidsTask
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.IdentityServerContent
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UserAccountDataDataSource
+import org.matrix.android.sdk.internal.session.user.accountdata.getLiveAccountDataEvent
 import org.matrix.android.sdk.internal.util.ensureProtocol
 import timber.log.Timber
 import javax.inject.Inject

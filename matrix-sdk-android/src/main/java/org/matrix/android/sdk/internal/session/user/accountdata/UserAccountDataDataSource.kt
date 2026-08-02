@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
@@ -47,13 +45,6 @@ internal class UserAccountDataDataSource @Inject constructor(
     fun getAccountDataEventFlow(type: String): Flow<Optional<UserAccountDataEvent>> {
         return getAccountDataEventsFlow(setOf(type)).map { it.firstOrNull().toOptional() }
     }
-
-    // LiveData views for the android-only internal consumers (IntegrationManager/WidgetManager etc.).
-    fun getLiveAccountDataEvent(type: String): LiveData<Optional<UserAccountDataEvent>> =
-            getAccountDataEventFlow(type).asLiveData()
-
-    fun getLiveAccountDataEvents(types: Set<String>): LiveData<List<UserAccountDataEvent>> =
-            getAccountDataEventsFlow(types).asLiveData()
 
     fun getAccountDataEvents(types: Set<String>): List<UserAccountDataEvent> {
         val rows = if (types.isEmpty()) queries.selectAll().executeAsList() else queries.selectByTypes(types).executeAsList()
