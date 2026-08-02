@@ -21,6 +21,7 @@ import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.widgets.WidgetPostAPIMediator
 import org.matrix.android.sdk.api.session.widgets.WidgetService
+import org.matrix.android.sdk.api.session.widgets.WidgetServiceAndroid
 import org.matrix.android.sdk.api.session.widgets.WidgetURLFormatter
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import javax.inject.Inject
@@ -31,7 +32,8 @@ internal class DefaultWidgetService @Inject constructor(
         private val widgetURLFormatter: WidgetURLFormatter,
         private val widgetPostAPIMediator: Provider<WidgetPostAPIMediator>
 ) :
-        WidgetService {
+        WidgetService,
+        WidgetServiceAndroid {
 
     override fun getWidgetURLFormatter(): WidgetURLFormatter {
         return widgetURLFormatter
