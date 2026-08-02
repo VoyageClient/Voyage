@@ -72,7 +72,7 @@ internal class EventIndexer @Inject constructor(
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val backgroundDetectionObserver: BackgroundDetectionObserver,
-) : SessionLifecycleObserver, EventInsertLiveProcessor {
+) : SessionLifecycleObserver, EventInsertLiveProcessor, DecryptedEventIndexer {
 
     private val enabled = AtomicBoolean(false)
     private val includeUnencrypted = AtomicBoolean(true)
@@ -157,7 +157,7 @@ internal class EventIndexer @Inject constructor(
     /**
      * Called by the decryptors right after they persist successful decryption results.
      */
-    fun onEventsDecrypted(events: List<Pair<Event, MXEventDecryptionResult>>) {
+    override fun onEventsDecrypted(events: List<Pair<Event, MXEventDecryptionResult>>) {
         val currentScope = scope ?: return
         if (!enabled.get()) return
         val indexables = events.mapNotNull { (event, result) ->
