@@ -38,16 +38,10 @@ import javax.inject.Inject
  * Possible previous worker: Always [UploadContentWorker].
  * Possible next worker    : None, but it will post new work to send events, encrypted or not.
  */
-internal class MultipleEventSendingDispatcherWorker(context: Context, params: WorkerParameters, sessionManager: SessionManager) :
-        SessionSafeCoroutineWorker<MultipleEventSendingDispatcherWorker.Params>(context, params, sessionManager, Params::class.java) {
+private typealias Params = MultipleEventSendingDispatcherWorkerParams
 
-    @JsonClass(generateAdapter = true)
-    internal data class Params(
-            override val sessionId: String,
-            val localEchoIds: List<LocalEchoIdentifiers>,
-            val isEncrypted: Boolean,
-            override val lastFailureMessage: String? = null
-    ) : SessionWorkerParams
+internal class MultipleEventSendingDispatcherWorker(context: Context, params: WorkerParameters, sessionManager: SessionManager) :
+        SessionSafeCoroutineWorker<MultipleEventSendingDispatcherWorkerParams>(context, params, sessionManager, Params::class.java) {
 
     @Inject lateinit var timelineSendEventWorkCommon: TimelineSendEventWorkCommon
     @Inject lateinit var localEchoRepository: LocalEchoRepository

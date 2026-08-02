@@ -51,7 +51,7 @@ import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoIdentifiers
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
-import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherWorker
+import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherWorkerParams
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 import org.matrix.android.sdk.internal.util.time.Clock
 import org.matrix.android.sdk.internal.util.toMatrixErrorStr
@@ -74,18 +74,10 @@ private data class NewAttachmentAttributes(
  * Possible previous worker: None.
  * Possible next worker    : Always [MultipleEventSendingDispatcherWorker].
  */
-internal class UploadContentWorker(val context: Context, params: WorkerParameters, sessionManager: SessionManager) :
-        SessionSafeCoroutineWorker<UploadContentWorker.Params>(context, params, sessionManager, Params::class.java) {
+private typealias Params = UploadContentWorkerParams
 
-    @JsonClass(generateAdapter = true)
-    internal data class Params(
-            override val sessionId: String,
-            val localEchoIds: List<LocalEchoIdentifiers>,
-            val attachment: ContentAttachmentData,
-            val isEncrypted: Boolean,
-            val compressBeforeSending: Boolean,
-            override val lastFailureMessage: String? = null
-    ) : SessionWorkerParams
+internal class UploadContentWorker(val context: Context, params: WorkerParameters, sessionManager: SessionManager) :
+        SessionSafeCoroutineWorker<UploadContentWorkerParams>(context, params, sessionManager, Params::class.java) {
 
     @Inject lateinit var fileUploader: FileUploader
     @Inject lateinit var contentUploadStateTracker: DefaultContentUploadStateTracker
@@ -522,7 +514,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
         }
 
-        val sendParams = MultipleEventSendingDispatcherWorker.Params(
+        val sendParams = MultipleEventSendingDispatcherWorkerParams(
                 sessionId = params.sessionId,
                 localEchoIds = params.localEchoIds,
                 isEncrypted = params.isEncrypted
