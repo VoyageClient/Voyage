@@ -55,10 +55,10 @@ internal class DefaultEncryptEventTask @Inject constructor(
 
         localEchoRepository.updateSendState(eventId, localEvent.roomId, SendState.ENCRYPTING)
 
+        // keepKeys stay inside the encrypted payload too (as element-web sends them): our replies carry
+        // no mx-reply fallback, so a payload without m.relates_to loses the reply entirely on clients
+        // that read relations from decrypted content only.
         val localMutableContent = localEvent.content?.toMutableMap() ?: mutableMapOf()
-        params.keepKeys?.forEach {
-            localMutableContent.remove(it)
-        }
 
         // let it throws
         val result = cryptoService.get().encryptEventContent(localMutableContent, type, params.roomId)
