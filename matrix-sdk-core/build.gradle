@@ -840,10 +840,13 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/widgets/token/ScalarTokenStore.kt',
         // Reactive-surface: in-memory LiveData state holder -> MutableStateFlow (behaviourally equivalent).
         'org/matrix/android/sdk/internal/session/room/membership/RoomChangeMembershipStateDataSource.kt',
+        // Reactive-surface: Flow-based data source; its LiveData bridges moved to an android extension.
+        'org/matrix/android/sdk/internal/session/room/accountdata/RoomAccountDataDataSource.kt',
         // Call handling (ActiveCallHandler converted off LiveData); untested — the app has no calling UI.
         'org/matrix/android/sdk/api/session/call/**',
         'org/matrix/android/sdk/internal/session/EventInsertLiveProcessor.kt',
         'org/matrix/android/sdk/internal/session/call/**',
+        'org/matrix/android/sdk/internal/session/room/SqlRoomAvatarResolver.kt',
         // EventInsertLiveProcessor cascade: event processors unblocked now the base interface is in core.
         'org/matrix/android/sdk/internal/session/room/tombstone/RoomTombstoneEventProcessor.kt',
         'org/matrix/android/sdk/internal/session/room/create/RoomCreateEventProcessor.kt',

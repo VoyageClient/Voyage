@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.accountdata
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
@@ -59,13 +57,6 @@ internal class RoomAccountDataDataSource @Inject constructor(
             rows.filter { types.isEmpty() || it.type in types }.map { it.toEvent() }
         }
     }
-
-    // LiveData views for the android-only internal consumers (IntegrationManager/WidgetManager etc.).
-    fun getLiveAccountDataEvent(roomId: String, type: String): LiveData<Optional<RoomAccountDataEvent>> =
-            getAccountDataEventFlow(roomId, type).asLiveData()
-
-    fun getLiveAccountDataEvents(roomId: String?, types: Set<String>): LiveData<List<RoomAccountDataEvent>> =
-            getAccountDataEventsFlow(roomId, types).asLiveData()
 
     private fun RoomAccountDataRow.toEvent(): RoomAccountDataEvent =
             accountDataMapper.map(room_id, RoomAccountDataEntity(type = type, contentStr = content_str))
