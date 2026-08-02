@@ -1118,6 +1118,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/terms/TermsModule.kt',
         'org/matrix/android/sdk/internal/session/user/accountdata/DefaultSessionAccountDataService.kt',
         'org/matrix/android/sdk/internal/session/user/accountdata/UserAccountDataDataSource.kt',
+        // MatrixPerf: its only android coupling is android.util.Log, resolved on core's classpath
+        // by the olm-jvm stand-in (real android.util.Log is used at runtime on device).
+        'org/matrix/android/sdk/session/SessionComponent.ktorg/matrix/android/sdk/api/util/MatrixPerf.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
