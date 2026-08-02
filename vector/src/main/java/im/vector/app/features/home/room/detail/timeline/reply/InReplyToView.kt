@@ -74,6 +74,10 @@ class InReplyToView @JvmOverloads constructor(
     var delegate: TimelineEventController.InReplyToClickCallback? = null
     var sourceEventId: String? = null
 
+    // Echo-swap-stable identity of the host message, for stale-update guards; sourceEventId is the
+    // real event id for navigation, which local echoes change on sync.
+    var sourceStableId: String? = null
+
     // Clicking the reply while its host message is still sending only has a local-echo id to jump
     // back to, which fails the later jump-to-bottom. Stay inert until the message is sent.
     var sourceIsSent: Boolean = true

@@ -156,11 +156,11 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         if (holder.replyToView != null) {
             replyViewUpdater.replyView = holder.replyToView
             holder.replyToView?.delegate = inReplyToClickCallback
-            // Stamp the source event before addListener (which renders the current state synchronously):
-            // ReplyViewUpdater matches on sourceEventId to drop stale async updates onto a reused view.
-            // The real event id, not stableId: the jump-back navigation resolves it against the
-            // timeline, where a local echo's transaction id matches nothing once synced.
+            // Stamp the source ids before addListener (which renders the current state synchronously):
+            // ReplyViewUpdater matches on sourceStableId to drop stale async updates onto a reused view,
+            // while navigation needs the real event id (a transaction id resolves to nothing).
             holder.replyToView?.sourceEventId = attributes.informationData.eventId
+            holder.replyToView?.sourceStableId = attributes.informationData.stableId
             holder.replyToView?.sourceIsSent = attributes.informationData.sendState.isSent()
             val safeReplyPreviewRetriever = replyPreviewRetriever
             if (safeReplyPreviewRetriever == null) {
@@ -205,7 +205,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             // A rebind (notifyItemChanged) doesn't unbind the previous model, so its updater stays
             // registered with a replyView that RecyclerView may later reuse for another message. Ignore
             // the update unless the view still hosts this event, else one reply flashes another's preview.
-            if (view.sourceEventId != attributes.informationData.stableId) return
+            if (view.sourceStableId != attributes.informationData.stableId) return
             replyPreviewRetriever?.let {
                 view.render(
                         state,

@@ -162,7 +162,8 @@ class MessageComposerViewModel @AssistedInject constructor(
             replyTo != null -> RelationDefaultContent(
                     type = rootThreadEventId?.let { RelationType.THREAD },
                     eventId = rootThreadEventId,
-                    isFallingBack = false,
+                    // Only meaningful on thread relations (MSC3440); a plain reply must not carry it
+                    isFallingBack = rootThreadEventId?.let { false },
                     inReplyTo = ReplyToContent(eventId = replyTo.eventId),
             )
             rootThreadEventId != null -> RelationDefaultContent(
