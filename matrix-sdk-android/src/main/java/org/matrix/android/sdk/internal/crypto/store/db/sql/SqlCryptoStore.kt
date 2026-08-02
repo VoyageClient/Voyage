@@ -42,6 +42,7 @@ import org.matrix.android.sdk.internal.crypto.model.MXInboundMegolmSessionWrappe
 import org.matrix.android.sdk.internal.crypto.model.OlmSessionWrapper
 import org.matrix.android.sdk.internal.crypto.model.OutboundGroupSessionWrapper
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
+import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStorePaging
 import org.matrix.android.sdk.internal.crypto.store.UserDataToStore
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
 import org.matrix.android.sdk.internal.crypto.store.db.deserializeFromRealm
@@ -72,7 +73,7 @@ internal class SqlCryptoStore @Inject constructor(
         @DeviceId private val deviceId: String,
         private val clock: Clock,
         myDeviceLastSeenInfoEntityMapper: MyDeviceLastSeenInfoEntityMapper,
-) : IMXCryptoStore {
+) : IMXCryptoStore, IMXCryptoStorePaging {
 
     private val metadataStore = CryptoMetadataStore(database)
     private val olmSessionStore = OlmSessionSqlStore(database)
