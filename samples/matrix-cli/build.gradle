@@ -1,0 +1,41 @@
+// Desktop boot sample (Phase 6): a plain kotlin-jvm application that runs :matrix-sdk-core off-Android.
+// It supplies the platform impls (JDBC SqlDriverFactory, file KeyValueStore, ...) that the android app
+// provides via :matrix-sdk-android, and proves the SDK's persistence/crypto/store layers run on a JVM.
+apply plugin: 'org.jetbrains.kotlin.jvm'
+apply plugin: 'application'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+application {
+    mainClass = 'im.vector.matrixcli.MainKt'
+}
+
+dependencies {
+    implementation project(':matrix-sdk-core')
+    implementation project(':library:external:olm-jvm')
+    implementation project(':library:external:timber-jvm')
+    implementation libs.jetbrains.coroutinesCore
+    implementation "app.cash.sqldelight:runtime:2.0.2"
+    implementation "app.cash.sqldelight:coroutines-extensions:2.0.2"
+    implementation "app.cash.sqldelight:jdbc-driver:2.0.2"
+    implementation "app.cash.sqldelight:sqlite-driver:2.0.2"
+    implementation libs.squareup.moshi
+    implementation 'com.squareup.okhttp3:okhttp:3.12.13'
+    implementation 'com.squareup.okio:okio:3.6.0'
+    implementation 'javax.inject:javax.inject:1'
+}
+
+// Friend path to reach :matrix-sdk-core's internal SDK machinery (stores, tasks, di), exactly as
+// :matrix-sdk-android does. Plain kotlin-jvm has no AGP jetify step, so the resolved jar matches.
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { task ->
+    task.friendPaths.from(providers.provider {
+        task.libraries.files.findAll { it.name.contains('matrix-sdk-core') }
+    })
+}
