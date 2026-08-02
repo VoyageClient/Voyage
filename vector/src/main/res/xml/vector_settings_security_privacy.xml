@@ -146,7 +146,7 @@
 
     <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_MEDIA_AND_AVATARS_CATEGORY"
-        android:title="@string/settings_media_and_avatars">
+        android:title="@string/settings_visual">
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
@@ -179,6 +179,18 @@
             android:key="SETTINGS_HIDE_INVITE_AVATARS_KEY"
             android:summary="@string/settings_hide_invite_avatars_summary"
             android:title="@string/settings_hide_invite_avatars_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY"
+            android:summary="@string/settings_hide_key_backup_shield_summary"
+            android:title="@string/settings_hide_key_backup_shield" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY"
+            android:summary="@string/settings_hide_encryption_warning_shield_summary"
+            android:title="@string/settings_hide_encryption_warning_shield" />
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 

@@ -131,6 +131,8 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SHOW_READ_RECEIPTS_KEY = "SETTINGS_SHOW_READ_RECEIPTS_KEY"
         private const val SETTINGS_SHOW_REDACTED_KEY = "SETTINGS_SHOW_REDACTED_KEY"
         private const val SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY = "SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY"
+        private const val SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY = "SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY"
+        private const val SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY = "SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY"
         private const val SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY = "SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY"
         private const val SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY = "SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY"
         private const val SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY = "SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY"
@@ -888,6 +890,14 @@ class VectorPreferences @Inject constructor(
 
     fun skipRedactionConfirmation(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SKIP_REDACTION_CONFIRMATION_KEY, false)
+    }
+
+    fun hideKeyBackupShield(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY, false)
+    }
+
+    fun hideEncryptionWarningShield(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY, false)
     }
 
     /**

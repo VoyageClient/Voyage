@@ -40,9 +40,11 @@ New features, improvements, and notable removals in this fork.
 
 - **Direction-override (RLO) spoofing protection** — hostile Unicode direction-override characters in display names, messages, mention pills, and room names no longer flip the surrounding text backwards (a trick used to spoof user IDs and file extensions); they now show as a visible placeholder box instead. Genuine right-to-left text is unaffected.
 
-- **Metadata stripping on upload** — sent photos and videos no longer leak embedded metadata (GPS location, capture timestamps, camera make/model & serial numbers, and the hidden EXIF thumbnail). JPEG, PNG and WebP are scrubbed losslessly while keeping display orientation; formats that can't be scrubbed in place (e.g. HEIC) are re-encoded; videos are re-muxed to drop their location atoms without re-encoding; and images sent through the file picker, as well as profile/room avatars and banners, are covered too. Controlled by a new "Remove metadata from sent media" toggle in Settings → Security & Privacy → Media and avatars (on by default).
+- **Metadata stripping on upload** — sent photos and videos no longer leak embedded metadata (GPS location, capture timestamps, camera make/model & serial numbers, and the hidden EXIF thumbnail). JPEG, PNG and WebP are scrubbed losslessly while keeping display orientation; formats that can't be scrubbed in place (e.g. HEIC) are re-encoded; videos are re-muxed to drop their location atoms without re-encoding; and images sent through the file picker, as well as profile/room avatars and banners, are covered too. Controlled by a new "Remove metadata from sent media" toggle in Settings → Security & Privacy → Visual (on by default).
 
 - **Media hiding** — hide media, and inline images/emoji, in the timeline until tapped.
+
+- **Hideable message shields** — toggles in Settings → Security & Privacy → Visual to hide the grey key-backup shield (messages decrypted with a key restored from secure backup) and the red encryption-warning shield (unencrypted messages in encrypted rooms, or messages from unverified/unknown/deleted sessions); reactions and redactions, which are always sent unencrypted, no longer get a red shield in encrypted rooms.
 
 - **Voice messages overhaul** — an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.
 

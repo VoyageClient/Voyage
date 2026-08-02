@@ -19,7 +19,7 @@
     <string name="send_file_step_processing_audio" translatable="false">Processing audio…</string>
     <string name="settings_enable_voice_message_button_title" translatable="false">Show voice message button</string>
 
-    <string name="settings_media_and_avatars" translatable="false">Media and avatars</string>
+    <string name="settings_visual" translatable="false">Visual</string>
     <string name="settings_strip_media_metadata_title" translatable="false">Strip metadata from media uploads</string>
     <string name="settings_strip_media_metadata_summary" translatable="false">Strip EXIF data from media before uploading.</string>
     <string name="settings_media_preview_title" translatable="false">Show media in timeline</string>
@@ -33,6 +33,10 @@
     <string name="settings_hide_avatars_summary" translatable="false">Also show the default avatar in the timeline, member list and member profiles of rooms where media is hidden</string>
     <string name="settings_hide_invite_avatars_title" translatable="false">Hide avatars on invites</string>
     <string name="settings_hide_invite_avatars_summary" translatable="false">Show the default avatar for incoming room and direct message invites in your room and space lists</string>
+    <string name="settings_hide_key_backup_shield" translatable="false">Hide key backup shields</string>
+    <string name="settings_hide_key_backup_shield_summary" translatable="false">Don\'t show the grey shield on messages decrypted with a key restored from secure backup, whose authenticity can\'t be re-verified on this device</string>
+    <string name="settings_hide_encryption_warning_shield" translatable="false">Hide encryption warning shields</string>
+    <string name="settings_hide_encryption_warning_shield_summary" translatable="false">Don\'t show the red shield on messages sent unencrypted in an encrypted room, or sent from an unverified, unknown or deleted session</string>
     <string name="action_show_media" translatable="false">Show</string>
     <string name="settings_enable_voice_message_button_summary" translatable="false">Show the microphone next to the message box.</string>
     <string name="no_value_placeholder" translatable="false">–</string>
