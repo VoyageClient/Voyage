@@ -33,6 +33,8 @@
     <string name="settings_hide_avatars_summary" translatable="false">Also show the default avatar in the timeline, member list and member profiles of rooms where media is hidden</string>
     <string name="settings_hide_invite_avatars_title" translatable="false">Hide avatars on invites</string>
     <string name="settings_hide_invite_avatars_summary" translatable="false">Show the default avatar for incoming room and direct message invites in your room and space lists</string>
+    <string name="settings_auto_dismiss_jump_to_unread" translatable="false">Auto-dismiss "Jump to unread"</string>
+    <string name="settings_auto_dismiss_jump_to_unread_summary" translatable="false">Dismiss the Jump to unread banner and mark the room as read whenever the timeline is at its end: when a room opens at the bottom, or when you scroll down to it</string>
     <string name="settings_hide_key_backup_shield" translatable="false">Hide key backup shields</string>
     <string name="settings_hide_key_backup_shield_summary" translatable="false">Don\'t show the grey shield on messages decrypted with a key restored from secure backup, whose authenticity can\'t be re-verified on this device</string>
     <string name="settings_hide_encryption_warning_shield" translatable="false">Hide encryption warning shields</string>

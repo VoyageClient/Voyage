@@ -1304,6 +1304,13 @@ class TimelineFragment :
             }
         })
 
+        // The banner check reads scroll position but is otherwise only re-run on layout/unread changes
+        views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) updateJumpToReadMarkerViewVisibility()
+            }
+        })
+
         // onScrolled fires ~once per frame during a fling, so a large gap between callbacks is a dropped frame.
         if (PerfTrace.isEnabled) {
             views.timelineRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -1401,7 +1408,14 @@ class TimelineFragment :
                             }
                         }
                     }
-                    views.jumpToReadMarkerView.isVisible = showJumpToUnreadBanner
+                    val atLiveEdge = layoutManager.findFirstVisibleItemPosition() <= 1 && timelineViewModel.timeline?.isLive != false
+                    if (showJumpToUnreadBanner && atLiveEdge && vectorPreferences.autoDismissJumpToUnread()) {
+                        // Same effect as tapping the banner's close icon, before it ever becomes visible
+                        timelineViewModel.handle(RoomDetailAction.MarkAllAsRead)
+                        views.jumpToReadMarkerView.isVisible = false
+                    } else {
+                        views.jumpToReadMarkerView.isVisible = showJumpToUnreadBanner
+                    }
                 }
             }
         }
