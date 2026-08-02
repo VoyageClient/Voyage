@@ -36,6 +36,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.space.SpaceSummaryQueryParams
 import org.matrix.android.sdk.api.session.sync.SyncState
+import org.matrix.android.sdk.api.session.user.UserPagingService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.util.Optional
@@ -112,7 +113,7 @@ class FlowSession(private val session: Session) {
     }
 
     fun livePagedUsers(filter: String? = null, excludedUserIds: Set<String>? = null): Flow<PagedList<User>> {
-        return session.userService().getPagedUsersLive(filter, excludedUserIds).asFlow()
+        return (session.userService() as UserPagingService).getPagedUsersLive(filter, excludedUserIds).asFlow()
     }
 
     fun liveThreePIds(refreshData: Boolean): Flow<List<ThreePid>> {

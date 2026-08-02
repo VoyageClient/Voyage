@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
 import org.matrix.android.sdk.api.session.widgets.WidgetManagementFailure
+import org.matrix.android.sdk.api.session.widgets.WidgetServiceAndroid
 import org.matrix.android.sdk.flow.flow
 import timber.log.Timber
 import javax.net.ssl.HttpsURLConnection
@@ -54,7 +55,7 @@ class WidgetViewModel @AssistedInject constructor(
     private val widgetService = session.widgetService()
     private val integrationManagerService = session.integrationManagerService()
     private val widgetURLFormatter = widgetService.getWidgetURLFormatter()
-    private val postAPIMediator = widgetService.getWidgetPostAPIMediator()
+    private val postAPIMediator = (widgetService as WidgetServiceAndroid).getWidgetPostAPIMediator()
     private var widgetPostAPIHandler: WidgetPostAPIHandler? = null
 
     // Flag to avoid infinite loop

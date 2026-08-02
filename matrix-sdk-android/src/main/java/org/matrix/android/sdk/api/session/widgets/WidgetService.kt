@@ -32,13 +32,6 @@ interface WidgetService {
     fun getWidgetURLFormatter(): WidgetURLFormatter
 
     /**
-     * Returns a new instance of [WidgetPostAPIMediator].
-     * Be careful to call clearWebView method and setHandler to null to avoid memory leaks.
-     * This is to be used for "admin" widgets so you can interact through JS.
-     */
-    fun getWidgetPostAPIMediator(): WidgetPostAPIMediator
-
-    /**
      * Returns the current room widgets defined through state events.
      * Some widgets can be deactivated, so be sure to check for isActive if needed.
      *
