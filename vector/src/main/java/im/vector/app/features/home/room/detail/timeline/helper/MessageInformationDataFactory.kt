@@ -85,7 +85,7 @@ class MessageInformationDataFactory @Inject constructor(
                 prevDisplayableEvent?.root?.localDateTime()?.toLocalDate() != date.toLocalDate()
 
         val time = dateFormatter.format(event.root.originServerTs, DateFormatKind.MESSAGE_SIMPLE)
-        val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root)
+        val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root).applyShieldPreferences()
         // PGP-over-plaintext lock indicator (not tied to e2eDecoration). Parse content only when PGP is
         // enabled — otherwise this deserialization runs for every event for nothing.
         val isPgp = pgpKeyStore.isEnabled &&
@@ -346,15 +346,31 @@ class MessageInformationDataFactory @Inject constructor(
     }
 
     private fun e2EDecorationForClearEventInE2ERoom(event: Event, roomSummary: RoomSummary) =
-            if (event.isStateEvent()) {
+            when {
                 // Do not warn for state event, they are always in clear
-                E2EDecoration.NONE
-            } else {
-                val ts = roomSummary.encryptionEventTs ?: 0
-                val eventTs = event.originServerTs ?: 0
-                // If event is in clear after the room enabled encryption we should warn
-                if (eventTs > ts) E2EDecoration.WARN_IN_CLEAR else E2EDecoration.NONE
+                event.isStateEvent() -> E2EDecoration.NONE
+                // Types the client itself always sends in clear, even in encrypted rooms
+                event.type in alwaysClearEventTypes -> E2EDecoration.NONE
+                else -> {
+                    val ts = roomSummary.encryptionEventTs ?: 0
+                    val eventTs = event.originServerTs ?: 0
+                    // If event is in clear after the room enabled encryption we should warn
+                    if (eventTs > ts) E2EDecoration.WARN_IN_CLEAR else E2EDecoration.NONE
+                }
             }
+
+    private val alwaysClearEventTypes = setOf(EventType.REACTION, EventType.REDACTION)
+
+    private fun E2EDecoration.applyShieldPreferences(): E2EDecoration = when (this) {
+        E2EDecoration.WARN_UNSAFE_KEY ->
+            if (vectorPreferences.hideKeyBackupShield()) E2EDecoration.NONE else this
+        E2EDecoration.WARN_IN_CLEAR,
+        E2EDecoration.WARN_SENT_BY_UNVERIFIED,
+        E2EDecoration.WARN_SENT_BY_UNKNOWN,
+        E2EDecoration.WARN_SENT_BY_DELETED_SESSION ->
+            if (vectorPreferences.hideEncryptionWarningShield()) E2EDecoration.NONE else this
+        E2EDecoration.NONE -> this
+    }
 
     /**
      * Tiles type message never show the sender information (like verification request), so we should repeat it for next message
