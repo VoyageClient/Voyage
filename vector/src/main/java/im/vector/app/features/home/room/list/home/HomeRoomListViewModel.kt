@@ -51,6 +51,7 @@ import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getUserOrDefault
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
@@ -97,7 +98,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         }
         val params = getFilteredQueryParams(initialState.headersData.currentFilter, builder.build())
         val sortOrder = RoomSortOrder.ACTIVITY
-        session.roomService().getFilteredPagedRoomSummariesLive(
+        (session.roomService() as RoomPagingService).getFilteredPagedRoomSummariesLive(
                 params,
                 pagedListConfig,
                 sortOrder
