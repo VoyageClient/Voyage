@@ -8,12 +8,15 @@
 package im.vector.matrixcli
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import im.vector.matrixcli.platform.FileKeyValueStoreFactory
+import im.vector.matrixcli.platform.JdbcSqlDriverFactory
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.internal.auth.db.AuthSqlDatabase
+import java.nio.file.Files
 
 /**
  * Exercises the plain-JVM building blocks of :matrix-sdk-core with no Android on the classpath:
@@ -65,6 +68,40 @@ class DesktopBootSmoke {
             "auth db created, sessionParams rows=$count"
         }
 
+        val dataDir = Files.createTempDirectory("matrix-cli-smoke").toFile()
+
+        check("desktop JdbcSqlDriverFactory file persistence") {
+            val factory = JdbcSqlDriverFactory(dataDir)
+            // First open creates the schema; write a row and close.
+            factory.create(AuthSqlDatabase.Schema, "auth.db").let { driver ->
+                AuthSqlDatabase(driver).sessionParamsQueries.upsert(
+                        session_id = "s1", user_id = "@bob:matrix.org",
+                        credentials_json = "{}", home_server_connection_config_json = "{}",
+                        is_token_valid = 1, login_type = "PASSWORD",
+                )
+                driver.close()
+            }
+            // Reopen the same file via the factory: schema must NOT be recreated, row must persist.
+            val reopened = factory.create(AuthSqlDatabase.Schema, "auth.db")
+            val rows = AuthSqlDatabase(reopened).sessionParamsQueries.selectAll().executeAsList()
+            reopened.close()
+            require(rows.size == 1 && rows.first().user_id == "@bob:matrix.org") { "expected the persisted row, got $rows" }
+            "row survived reopen: userId=${rows.first().user_id}"
+        }
+
+        check("desktop FileKeyValueStore persistence") {
+            val factory = FileKeyValueStoreFactory(dataDir)
+            factory.create("settings").putString("access_token", "syt_secret")
+            factory.create("settings").putStringSet("rooms", setOf("!a:hs", "!b:hs"))
+            // A fresh factory/store instance must read the persisted file.
+            val reread = FileKeyValueStoreFactory(dataDir).create("settings")
+            val token = reread.getString("access_token")
+            val rooms = reread.getStringSet("rooms")
+            require(token == "syt_secret" && rooms == setOf("!a:hs", "!b:hs")) { "token=$token rooms=$rooms" }
+            "persisted token + ${rooms?.size} rooms across reopen"
+        }
+
+        dataDir.deleteRecursively()
         println("== smoke complete: $passed passed, $failed failed ==")
     }
 }
