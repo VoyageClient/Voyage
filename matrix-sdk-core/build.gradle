@@ -844,6 +844,10 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/call/**',
         'org/matrix/android/sdk/internal/session/EventInsertLiveProcessor.kt',
         'org/matrix/android/sdk/internal/session/call/**',
+        // EventInsertLiveProcessor cascade: event processors unblocked now the base interface is in core.
+        'org/matrix/android/sdk/internal/session/room/tombstone/RoomTombstoneEventProcessor.kt',
+        'org/matrix/android/sdk/internal/session/room/create/RoomCreateEventProcessor.kt',
+        'org/matrix/android/sdk/internal/session/room/location/LiveLocationShareRedactionEventProcessor.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
