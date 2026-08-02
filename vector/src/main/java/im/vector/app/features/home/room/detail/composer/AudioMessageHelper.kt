@@ -30,6 +30,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import javax.inject.Inject
+import kotlin.math.sqrt
 
 private const val AMPLITUDE_INTERVAL_MS = 50
 
@@ -102,7 +103,7 @@ class AudioMessageHelper @Inject constructor(
                                 amplitudeList
                             } else {
                                 amplitudeList.chunked(amplitudeList.size / 50) { items -> items.maxOrNull() ?: 0 }
-                            }
+                            }.normalizeWaveform()
                         }
             }
         } catch (e: FileNotFoundException) {
@@ -312,4 +313,10 @@ class AudioMessageHelper @Inject constructor(
         }
         return audioType
     }
+}
+
+// Peak-normalize with sqrt companding so bar heights stay legible regardless of recording volume
+private fun List<Int>.normalizeWaveform(): List<Int> {
+    val peak = maxOrNull()?.takeIf { it > 0 } ?: return this
+    return map { (sqrt(it.coerceAtLeast(0) / peak.toDouble()) * 1024).toInt() }
 }

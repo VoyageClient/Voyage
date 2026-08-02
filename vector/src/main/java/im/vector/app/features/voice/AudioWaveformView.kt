@@ -14,7 +14,6 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import kotlin.math.max
-import kotlin.random.Random
 
 class AudioWaveformView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -47,6 +46,8 @@ class AudioWaveformView @JvmOverloads constructor(
 
     private val rawFftList = mutableListOf<FFT>()
     private var visibleBarHeights = mutableListOf<FFT>()
+    private var isSummarized = false
+    private var playedColors: Triple<Float, Int, Int>? = null
 
     private val barPaint = Paint()
 
@@ -83,28 +84,56 @@ class AudioWaveformView @JvmOverloads constructor(
     }
 
     fun initialize(fftList: List<FFT>) {
-        handleNewFftList(fftList)
+        fftList.forEach { handleNewFft(it) }
         invalidate()
     }
 
     fun add(fft: FFT) {
-        handleNewFftList(listOf(fft))
+        handleNewFft(fft)
         invalidate()
     }
 
     fun summarize() {
         if (rawFftList.isEmpty()) return
-
-        val maxVisibleBarCount = getMaxVisibleBarCount()
-        val summarizedFftList = rawFftList.summarize(maxVisibleBarCount)
-        clear()
-        handleNewFftList(summarizedFftList)
+        isSummarized = true
+        flow = Flow.LTR
+        rebuildVisibleBars()
         invalidate()
     }
 
     fun updateColors(limitPercentage: Float, colorBefore: Int, colorAfter: Int) {
-        val size = visibleBarHeights.size
-        val limitIndex = (size * limitPercentage).toInt()
+        playedColors = Triple(limitPercentage, colorBefore, colorAfter)
+        applyColors()
+        invalidate()
+    }
+
+    fun clear() {
+        rawFftList.clear()
+        visibleBarHeights.clear()
+        isSummarized = false
+        playedColors = null
+        invalidate()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        rebuildVisibleBars()
+    }
+
+    private fun rebuildVisibleBars() {
+        val maxVisibleBarCount = getMaxVisibleBarCount()
+        if (maxVisibleBarCount <= 0 || rawFftList.isEmpty()) {
+            visibleBarHeights = mutableListOf()
+            return
+        }
+        val source = if (isSummarized) rawFftList.summarize(maxVisibleBarCount) else rawFftList.takeLast(maxVisibleBarCount)
+        visibleBarHeights = source.mapTo(mutableListOf()) { FFT(toBarHeight(it.value), it.color) }
+        applyColors()
+    }
+
+    private fun applyColors() {
+        val (limitPercentage, colorBefore, colorAfter) = playedColors ?: return
+        val limitIndex = (visibleBarHeights.size * limitPercentage).toInt()
         visibleBarHeights.forEachIndexed { index, fft ->
             fft.color = if (index < limitIndex) {
                 colorBefore
@@ -112,48 +141,20 @@ class AudioWaveformView @JvmOverloads constructor(
                 colorAfter
             }
         }
-        invalidate()
     }
 
-    fun clear() {
-        rawFftList.clear()
-        visibleBarHeights.clear()
-    }
+    private fun List<FFT>.summarize(target: Int): List<FFT> = List(target) { i -> get(i * size / target) }
 
-    private fun List<FFT>.summarize(target: Int): List<FFT> {
-        flow = Flow.LTR
-        val result = mutableListOf<FFT>()
-        if (size <= target) {
-            result.addAll(this)
-            val missingItemCount = target - size
-            repeat(missingItemCount) {
-                val index = Random.nextInt(result.size)
-                result.add(index, result[index])
-            }
-        } else {
-            val step = (size.toDouble() - 1) / (target - 1)
-            var index = 0.0
-            while (index < size) {
-                result.add(get(index.toInt()))
-                index += step
-            }
-        }
-        return result
-    }
-
-    private fun handleNewFftList(fftList: List<FFT>) {
+    private fun handleNewFft(fft: FFT) {
+        rawFftList.add(fft)
+        visibleBarHeights.add(FFT(toBarHeight(fft.value), fft.color))
         val maxVisibleBarCount = getMaxVisibleBarCount()
-
-        fftList.forEach { fft ->
-            rawFftList.add(fft)
-            val barHeight = max(fft.value / MAX_FFT * (height - verticalPadding * 2), barMinHeight)
-            visibleBarHeights.add(FFT(barHeight, fft.color))
-
-            if (visibleBarHeights.size > maxVisibleBarCount) {
-                visibleBarHeights = visibleBarHeights.takeLast(maxVisibleBarCount).toMutableList()
-            }
+        if (maxVisibleBarCount > 0 && visibleBarHeights.size > maxVisibleBarCount) {
+            visibleBarHeights = visibleBarHeights.takeLast(maxVisibleBarCount).toMutableList()
         }
     }
+
+    private fun toBarHeight(value: Float) = max(value / MAX_FFT * (height - verticalPadding * 2), barMinHeight)
 
     private fun getMaxVisibleBarCount() = ((width - horizontalPadding * 2) / (barWidth + barSpace)).toInt()
 

@@ -213,8 +213,10 @@ class VoiceMessageViews(
     fun renderRecordingWaveform(amplitudeList: List<Int>) {
         views.voicePlaybackWaveform.doOnLayout { waveFormView ->
             val waveformColor = ThemeUtils.getColor(waveFormView.context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
-            amplitudeList.forEach {
-                (waveFormView as AudioWaveformView).add(AudioWaveformView.FFT(it.toFloat(), waveformColor))
+            (waveFormView as AudioWaveformView).apply {
+                // The tracker resends the full amplitude list each tick, so rebuild instead of appending
+                clear()
+                amplitudeList.forEach { add(AudioWaveformView.FFT(it.toFloat(), waveformColor)) }
             }
         }
     }
