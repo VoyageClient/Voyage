@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.api.session.contentscanner
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.util.Optional
 
@@ -28,7 +28,7 @@ interface ContentScannerService {
     fun setScannerUrl(url: String?)
     fun enableScanner(enabled: Boolean)
     fun isScannerEnabled(): Boolean
-    fun getLiveStatusForFile(mxcUrl: String, fetchIfNeeded: Boolean = true, fileInfo: ElementToDecrypt? = null): LiveData<Optional<ScanStatusInfo>>
+    fun getStatusFlowForFile(mxcUrl: String, fetchIfNeeded: Boolean = true, fileInfo: ElementToDecrypt? = null): Flow<Optional<ScanStatusInfo>>
     fun getCachedScanResultForFile(mxcUrl: String): ScanStatusInfo?
 
     /**
