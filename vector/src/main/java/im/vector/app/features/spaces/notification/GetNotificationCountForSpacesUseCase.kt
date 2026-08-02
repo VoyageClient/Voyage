@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.sample
 import org.matrix.android.sdk.api.query.SpaceFilter
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
@@ -34,8 +35,7 @@ class GetNotificationCountForSpacesUseCase @Inject constructor(
             this.memberships = listOf(Membership.JOIN)
             this.spaceFilter = spaceFilter
         }
-        return session
-                ?.roomService()
+        return (session?.roomService() as? RoomPagingService)
                 ?.getPagedRoomSummariesLive(queryParams = spaceQueryParams, sortOrder = RoomSortOrder.NONE)
                 ?.asFlow()
                 ?.sample(300)

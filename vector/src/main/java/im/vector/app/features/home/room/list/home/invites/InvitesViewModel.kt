@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
@@ -137,7 +138,7 @@ class InvitesViewModel @AssistedInject constructor(
         val builder = RoomSummaryQueryParams.Builder().also {
             it.memberships = listOf(Membership.INVITE)
         }
-        val pagedList = session.roomService().getPagedRoomSummariesLive(
+        val pagedList = (session.roomService() as RoomPagingService).getPagedRoomSummariesLive(
                 queryParams = builder.build(),
                 pagedListConfig = pagedListConfig,
                 sortOrder = RoomSortOrder.ACTIVITY

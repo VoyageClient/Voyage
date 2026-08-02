@@ -44,6 +44,7 @@ import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.query.toActiveSpaceOrOrphanRooms
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -449,7 +450,7 @@ class RoomListSectionBuilder(
                 },
                 { queryParams ->
                     val name = stringProvider.getString(CommonStrings.bottom_action_rooms)
-                    val updatableFilterLivePageResult = session.roomService().getFilteredPagedRoomSummariesLive(queryParams)
+                    val updatableFilterLivePageResult = (session.roomService() as RoomPagingService).getFilteredPagedRoomSummariesLive(queryParams)
                     onUpdatable(updatableFilterLivePageResult)
 
                     val itemCountFlow = updatableFilterLivePageResult.livePagedList.asFlow()
@@ -487,7 +488,7 @@ class RoomListSectionBuilder(
                     .distinctUntilChanged()
 
             val name = stringProvider.getString(nameRes)
-            val filteredPagedRoomSummariesLive = session.roomService().getFilteredPagedRoomSummariesLive(
+            val filteredPagedRoomSummariesLive = (session.roomService() as RoomPagingService).getFilteredPagedRoomSummariesLive(
                     roomQueryParams.process(spaceFilterStrategy, spaceStateHandler.getSafeActiveSpaceId()),
                     pagedListConfig
             )

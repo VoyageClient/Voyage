@@ -36,6 +36,7 @@ import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.query.toActiveSpaceOrOrphanRooms
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
@@ -191,7 +192,7 @@ class HomeDetailViewModel @AssistedInject constructor(
         spaceStateHandler.getSelectedSpaceFlow().distinctUntilChanged().flatMapLatest {
             // we use it as a trigger to all changes in room, but do not really load
             // the actual models
-            session.roomService().getPagedRoomSummariesLive(
+            (session.roomService() as RoomPagingService).getPagedRoomSummariesLive(
                     roomSummaryQueryParams {
                         memberships = Membership.activeMemberships()
                     },
