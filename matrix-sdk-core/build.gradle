@@ -1210,6 +1210,21 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/summary/SqlRoomSummaryUpdater.kt',
         'org/matrix/android/sdk/internal/session/room/send/LocalEchoRepository.kt',
         'org/matrix/android/sdk/internal/session/room/send/LocalEchoEventFactory.kt',
+        // Worker task-input Params extracted to standalone core files (UploadContentWorkerParams,
+        // MultipleEventSendingDispatcherWorkerParams) so the enqueue sites don't pull the workers;
+        // unblocks these crypto/membership/relation/timeline/sync leaves. The send SERVICE + queue
+        // stay android (EventSenderProcessor is a SessionLifecycleObserver -> needs the Session facade).
+        'org/matrix/android/sdk/internal/crypto/tasks/EncryptEventTask.kt',
+        'org/matrix/android/sdk/internal/crypto/tasks/SendVerificationMessageTask.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/VerificationTransportLayer.kt',
+        'org/matrix/android/sdk/internal/session/content/UploadContentWorkerParams.kt',
+        'org/matrix/android/sdk/internal/session/room/membership/DefaultMembershipService.kt',
+        'org/matrix/android/sdk/internal/session/room/membership/LoadRoomMembersTask.kt',
+        'org/matrix/android/sdk/internal/session/room/relation/FetchEditHistoryTask.kt',
+        'org/matrix/android/sdk/internal/session/room/send/MultipleEventSendingDispatcherWorkerParams.kt',
+        'org/matrix/android/sdk/internal/session/room/send/queue/RedactQueuedTask.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/SqlTimelineEventDataSource.kt',
+        'org/matrix/android/sdk/internal/session/sync/handler/SqlUserAccountDataSyncHandler.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

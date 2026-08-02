@@ -1,0 +1,23 @@
+/*
+ * Copyright 2026 Voyage Client
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only
+ * Please see LICENSE files in the repository root for full details.
+ */
+
+package org.matrix.android.sdk.internal.session.content
+
+import com.squareup.moshi.JsonClass
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.internal.session.room.send.LocalEchoIdentifiers
+import org.matrix.android.sdk.internal.worker.SessionWorkerParams
+
+@JsonClass(generateAdapter = true)
+internal data class UploadContentWorkerParams(
+        override val sessionId: String,
+        val localEchoIds: List<LocalEchoIdentifiers>,
+        val attachment: ContentAttachmentData,
+        val isEncrypted: Boolean,
+        val compressBeforeSending: Boolean,
+        override val lastFailureMessage: String? = null
+) : SessionWorkerParams

@@ -55,7 +55,7 @@ import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
-import org.matrix.android.sdk.internal.session.content.UploadContentWorker
+import org.matrix.android.sdk.internal.session.content.UploadContentWorkerParams
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.task.TaskExecutor
 
@@ -399,11 +399,11 @@ internal class DefaultSendService @AssistedInject constructor(
             attachment: ContentAttachmentData,
             isRoomEncrypted: Boolean,
             compressBeforeSending: Boolean
-    ): BackgroundTaskRequest<UploadContentWorker.Params> {
+    ): BackgroundTaskRequest<UploadContentWorkerParams> {
         val localEchoIds = allLocalEchos.map {
             LocalEchoIdentifiers(it.roomId!!, it.eventId!!)
         }
-        val uploadMediaWorkerParams = UploadContentWorker.Params(sessionId, localEchoIds, attachment, isRoomEncrypted, compressBeforeSending)
+        val uploadMediaWorkerParams = UploadContentWorkerParams(sessionId, localEchoIds, attachment, isRoomEncrypted, compressBeforeSending)
         return backgroundTask(
                 type = BackgroundTaskType.UPLOAD_CONTENT,
                 params = uploadMediaWorkerParams,
@@ -413,9 +413,9 @@ internal class DefaultSendService @AssistedInject constructor(
         )
     }
 
-    private fun createMultipleEventDispatcherWork(isRoomEncrypted: Boolean): BackgroundTaskRequest<MultipleEventSendingDispatcherWorker.Params> {
+    private fun createMultipleEventDispatcherWork(isRoomEncrypted: Boolean): BackgroundTaskRequest<MultipleEventSendingDispatcherWorkerParams> {
         // the list of events will be replaced by the result of the media upload work
-        val params = MultipleEventSendingDispatcherWorker.Params(sessionId, emptyList(), isRoomEncrypted)
+        val params = MultipleEventSendingDispatcherWorkerParams(sessionId, emptyList(), isRoomEncrypted)
         return backgroundTask(
                 type = BackgroundTaskType.MULTIPLE_EVENT_DISPATCHER,
                 params = params,
