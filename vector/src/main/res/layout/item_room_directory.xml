@@ -82,6 +82,7 @@
         android:contentDescription="@string/a11y_selected"
         android:padding="8dp"
         app:srcCompat="@drawable/ic_check_on"
+        app:tint="?colorPrimary"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
