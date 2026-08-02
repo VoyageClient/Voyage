@@ -8,6 +8,7 @@
 package im.vector.matrixcli
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import im.vector.matrixcli.platform.DesktopSecureStorage
 import im.vector.matrixcli.platform.FileKeyValueStoreFactory
 import im.vector.matrixcli.platform.JdbcSqlDriverFactory
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
@@ -99,6 +100,18 @@ class DesktopBootSmoke {
             val rooms = reread.getStringSet("rooms")
             require(token == "syt_secret" && rooms == setOf("!a:hs", "!b:hs")) { "token=$token rooms=$rooms" }
             "persisted token + ${rooms?.size} rooms across reopen"
+        }
+
+        check("desktop SecureStorage AES round-trip") {
+            val secureStorage = DesktopSecureStorage(java.io.File(dataDir, "secure.key"))
+            val secret = "syt_access_token_secret".toByteArray()
+            val encrypted = secureStorage.encryptBytes(secret, alias = "session_token")
+            val decrypted = secureStorage.decryptBytes(encrypted, alias = "session_token")
+            require(decrypted.contentEquals(secret)) { "round-trip mismatch" }
+            // A different alias (GCM associated-data) must fail to decrypt.
+            val wrongAlias = runCatching { secureStorage.decryptBytes(encrypted, alias = "other") }.isFailure
+            require(wrongAlias) { "decrypt under a wrong alias should fail" }
+            "encrypted ${secret.size}B, decrypt ok, wrong-alias rejected"
         }
 
         dataDir.deleteRecursively()
