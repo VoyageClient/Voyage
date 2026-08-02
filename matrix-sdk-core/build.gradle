@@ -575,11 +575,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/room/state/StateServiceExtension.kt',
         'org/matrix/android/sdk/api/session/room/timeline/Timeline.kt',
         'org/matrix/android/sdk/api/session/room/timeline/TimelineSettings.kt',
-        'org/matrix/android/sdk/internal/auth/db/PendingSessionData.kt',
-        'org/matrix/android/sdk/internal/auth/db/PendingSessionEntity.kt',
-        'org/matrix/android/sdk/internal/auth/db/PendingSessionMapper.kt',
-        'org/matrix/android/sdk/internal/auth/db/SessionParamsEntity.kt',
-        'org/matrix/android/sdk/internal/auth/db/SessionParamsMapper.kt',
+        // Auth DB stack: core owns the AuthSqlDatabase generation (glob pulls the generated code +
+        // hand-written stores); removed from android's sqldelight block to avoid duplicate classes.
+        'org/matrix/android/sdk/internal/auth/db/**',
         'org/matrix/android/sdk/internal/auth/registration/UIAExt.kt',
         'org/matrix/android/sdk/internal/crypto/MegolmSessionImportManager.kt',
         'org/matrix/android/sdk/internal/crypto/crosssigning/UpdateTrustWorkerDataRepository.kt',
@@ -694,8 +692,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/displayname/DisplayNameResolver.kt',
         'org/matrix/android/sdk/internal/session/events/EventExt.kt',
         'org/matrix/android/sdk/internal/session/identity/Sha256Converter.kt',
-        'org/matrix/android/sdk/internal/session/identity/db/IdentityDataEntity.kt',
-        'org/matrix/android/sdk/internal/session/identity/db/IdentityPendingBindingEntity.kt',
+        // Identity DB stack: core owns IdentitySqlDatabase generation (glob pulls generated code +
+        // SqlIdentityStore); removed from android's sqldelight block to avoid duplicate classes.
+        'org/matrix/android/sdk/internal/session/identity/db/**',
         'org/matrix/android/sdk/internal/session/integrationmanager/IntegrationManagerConfigExtractor.kt',
         'org/matrix/android/sdk/internal/session/media/IsAuthenticatedMediaSupported.kt',
         'org/matrix/android/sdk/internal/session/media/PreviewUrlMapper.kt',

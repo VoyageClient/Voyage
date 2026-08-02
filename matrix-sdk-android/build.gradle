@@ -167,16 +167,9 @@ sqldelight {
             srcDirs.setFrom("src/main/sqldelight/global")
             dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
         }
-        AuthSqlDatabase {
-            packageName = "org.matrix.android.sdk.internal.auth.db"
-            srcDirs.setFrom("src/main/sqldelight/auth")
-            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
-        }
-        IdentitySqlDatabase {
-            packageName = "org.matrix.android.sdk.internal.session.identity.db"
-            srcDirs.setFrom("src/main/sqldelight/identity")
-            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
-        }
+        // AuthSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the auth
+        // db stack); android consumes the generated classes cross-module.
+        // IdentitySqlDatabase is generated and compiled by :matrix-sdk-core; android consumes it.
         ContentScannerSqlDatabase {
             packageName = "org.matrix.android.sdk.internal.session.contentscanner.db"
             srcDirs.setFrom("src/main/sqldelight/contentscanner")
