@@ -34,6 +34,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Read receipts** — private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms.
 
+- **Auto-dismiss "Jump to unread"** — optional: whenever the timeline is at its end (opening a room at the bottom, or scrolling down to it), the Jump to unread banner is dismissed and the room marked as read instead of the banner appearing.
+
 - **Intentional Mentions (MSC3952)** — proper support, plus mention-rendering improvements (mentions backed by a single character rather than the full display name).
 
 - **Timeline polish** — consecutive hidden events collapse into a single "N hidden events" tile, overhauled state-change notices, room-list previews that reflect message edits, an always-show-timestamps option, and a jump-to-present button that returns to the message you jumped from.

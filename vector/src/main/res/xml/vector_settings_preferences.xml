@@ -215,6 +215,12 @@
             android:title="@string/settings_show_read_receipts" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY"
+            android:summary="@string/settings_auto_dismiss_jump_to_unread_summary"
+            android:title="@string/settings_auto_dismiss_jump_to_unread" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
             android:key="SETTINGS_SHOW_REDACTED_KEY"
             android:summary="@string/settings_show_redacted_summary"
