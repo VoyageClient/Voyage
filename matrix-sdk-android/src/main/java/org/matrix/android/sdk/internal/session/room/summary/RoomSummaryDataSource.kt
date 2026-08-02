@@ -17,15 +17,9 @@
 
 package org.matrix.android.sdk.internal.session.room.summary
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map
-import androidx.lifecycle.switchMap
-import androidx.paging.DataSource
-import androidx.paging.PagedList
 import app.cash.sqldelight.Query
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,16 +29,13 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.query.isNormalized
-import org.matrix.android.sdk.api.session.room.ResultBoundaries
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
-import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
 import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.RoomType
-import java.util.concurrent.atomic.AtomicReference
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.spaceSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
@@ -55,8 +46,6 @@ import org.matrix.android.sdk.internal.database.mapper.LocalRoomSummaryMapper
 import org.matrix.android.sdk.internal.database.mapper.RoomSummaryMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
-import org.matrix.android.sdk.internal.database.sqldelight.livePaged
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionDatabaseRead
 import org.matrix.android.sdk.internal.query.matches
@@ -69,20 +58,20 @@ import org.matrix.android.sdk.internal.database.sql.Room_summary as RoomSummaryR
 // a listener, slowing every DB commit's notify pass as they accumulated.
 @SessionScope
 internal class RoomSummaryDataSource @Inject constructor(
-        @SessionDatabase private val database: SessionSqlDatabase,
-        @SessionDatabaseRead private val dispatcher: CoroutineDispatcher,
+        @SessionDatabase internal val database: SessionSqlDatabase,
+        @SessionDatabaseRead internal val dispatcher: CoroutineDispatcher,
         private val roomSummaryMapper: RoomSummaryMapper,
         private val localRoomSummaryMapper: LocalRoomSummaryMapper,
         private val stores: SessionStores,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
 ) {
-    private val queries get() = database.roomSummaryQueries
+    internal val queries get() = database.roomSummaryQueries
 
     // The room list's sections each get their own paged list; on the default IO pool they load
     // concurrently and the smallest (usually Low priority) wins the race and briefly shows first. Loading
     // them on one thread makes them populate in the order they're observed (Favourites, Rooms/DMs, Low
     // priority) instead.
-    private val sectionFetchExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { runnable ->
+    internal val sectionFetchExecutor = java.util.concurrent.Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "room-list-section-paging")
     }
 
@@ -123,11 +112,11 @@ internal class RoomSummaryDataSource @Inject constructor(
         return rows
     }
 
-    /** LiveData recomputing [transform] (against [allRows]) on the DB read dispatcher on every room_summary change. */
-    private fun <T> liveOnRoomSummaryChange(transform: () -> T): LiveData<T> =
-            roomSummaryGeneration.map { transform() }.flowOn(dispatcher).asLiveData()
+    /** Flow recomputing [transform] (against [allRows]) on the DB read dispatcher on every room_summary change. */
+    internal fun <T> flowOnRoomSummaryChange(transform: () -> T): Flow<T> =
+            roomSummaryGeneration.map { transform() }.flowOn(dispatcher)
 
-    private fun RoomSummaryRow.toDomain(): RoomSummary? {
+    internal fun RoomSummaryRow.toDomain(): RoomSummary? {
         summaryCache[this]?.let { return it }
         val perfStart = MatrixPerf.now()
         val mapped = stores.roomSummary.get(room_id)?.let { roomSummaryMapper.map(it) } ?: return null
@@ -137,6 +126,13 @@ internal class RoomSummaryDataSource @Inject constructor(
         summaryCache[this] = mapped
         return mapped
     }
+
+    // Non-extension bridges so the android LiveData/PagedList extensions (RoomSummaryDataSourceAndroid)
+    // can map rows without a cross-module member-extension call.
+    internal fun rowToDomain(row: RoomSummaryRow): RoomSummary? = row.toDomain()
+
+    internal fun filteredSortedSummaries(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummary> =
+            filteredSortedRows(queryParams, sortOrder).mapNotNull { it.toDomain() }
 
     fun getRoomSummary(roomIdOrAlias: String): RoomSummary? {
         val row = if (roomIdOrAlias.startsWith("!")) {
@@ -148,9 +144,8 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     fun getRoomSummaryFlow(roomId: String): Flow<Optional<RoomSummary>> {
-        return queries.selectByRoomId(roomId).asLiveList(dispatcher)
+        return queries.selectByRoomId(roomId).asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull { !it.display_name.isNullOrEmpty() }?.toDomain().toOptional() }
-                .asFlow()
     }
 
     fun getRoomSummaries(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): List<RoomSummary> {
@@ -161,32 +156,17 @@ internal class RoomSummaryDataSource @Inject constructor(
             stores.localRoomSummary.get(roomId)?.let { localRoomSummaryMapper.map(it) }
 
     fun getLocalRoomSummaryFlow(roomId: String): Flow<Optional<LocalRoomSummary>> {
-        return database.localRoomSummaryQueries.selectByRoomId(roomId).asLiveList(dispatcher)
+        return database.localRoomSummaryQueries.selectByRoomId(roomId).asFlow().mapToList(dispatcher)
                 .map { rows -> rows.firstOrNull()?.let { stores.localRoomSummary.get(it.room_id) }?.let { localRoomSummaryMapper.map(it) }.toOptional() }
-                .asFlow()
-    }
-
-    fun getRoomSummariesLive(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): LiveData<List<RoomSummary>> {
-        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).mapNotNull { row -> row.toDomain() } }
-    }
-
-    fun getRoomSummariesChangesLive(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): LiveData<List<Unit>> {
-        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).map { } }
     }
 
     fun getRoomSummariesFlow(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> =
-            getRoomSummariesLive(queryParams, sortOrder).asFlow()
+            flowOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).mapNotNull { row -> row.toDomain() } }
 
     fun getSpaceSummariesFlow(queryParams: SpaceSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): Flow<List<RoomSummary>> =
-            getRoomSummariesLive(queryParams, sortOrder).asFlow()
+            getRoomSummariesFlow(queryParams, sortOrder)
 
     fun getSpaceSummary(roomIdOrAlias: String): RoomSummary? = getRoomSummary(roomIdOrAlias)?.takeIf { it.roomType == RoomType.SPACE }
-
-    fun getSpaceSummaryLive(roomId: String): LiveData<Optional<RoomSummary>> {
-        return queries.selectByRoomId(roomId).asLiveList(dispatcher).map { rows ->
-            rows.firstOrNull { !it.display_name.isNullOrEmpty() && it.room_type == RoomType.SPACE }?.toDomain().toOptional()
-        }
-    }
 
     fun getSpaceSummaries(spaceSummaryQueryParams: SpaceSummaryQueryParams, sortOrder: RoomSortOrder = RoomSortOrder.NONE): List<RoomSummary> =
             getRoomSummaries(spaceSummaryQueryParams, sortOrder)
@@ -209,56 +189,16 @@ internal class RoomSummaryDataSource @Inject constructor(
     }
 
     fun getBreadcrumbsFlow(queryParams: RoomSummaryQueryParams): Flow<List<RoomSummary>> {
-        return liveOnRoomSummaryChange {
+        return flowOnRoomSummaryChange {
             filteredSortedRows(queryParams, RoomSortOrder.NONE)
                     .filter { it.breadcrumbs_index > RoomSummary.NOT_IN_BREADCRUMBS }
                     .sortedBy { it.breadcrumbs_index }
                     .mapNotNull { it.toDomain() }
-        }.asFlow()
-    }
-
-    fun getSortedPagedRoomSummariesLive(
-            queryParams: RoomSummaryQueryParams,
-            pagedListConfig: PagedList.Config,
-            sortOrder: RoomSortOrder,
-    ): LiveData<PagedList<RoomSummary>> {
-        return livePaged(queries.selectAll(), pagedListConfig) {
-            filteredSortedRows(queryParams, sortOrder).mapNotNull { it.toDomain() }
         }
-    }
-
-    fun getUpdatablePagedRoomSummariesLive(
-            queryParams: RoomSummaryQueryParams,
-            pagedListConfig: PagedList.Config,
-            sortOrder: RoomSortOrder,
-    ): UpdatableLivePageResult {
-        val boundaries = MutableLiveData(ResultBoundaries())
-        // selectAll() only re-emits on DB writes, so reassigning queryParams/sortOrder must invalidate the
-        // DataSource to re-run the filter — else the list wouldn't refresh until the next sync.
-        val dataSourceRef = AtomicReference<DataSource<Int, RoomSummary>?>(null)
-        val result = object : UpdatableLivePageResult {
-            override var queryParams: RoomSummaryQueryParams = queryParams
-                set(value) {
-                    field = value
-                    dataSourceRef.get()?.invalidate()
-                }
-            override var sortOrder: RoomSortOrder = sortOrder
-                set(value) {
-                    field = value
-                    dataSourceRef.get()?.invalidate()
-                }
-            override val liveBoundaries: LiveData<ResultBoundaries> get() = boundaries
-            override val livePagedList: LiveData<PagedList<RoomSummary>> =
-                    livePaged(queries.selectAll(), pagedListConfig, onDataSourceCreated = { dataSourceRef.set(it) }, fetchExecutor = sectionFetchExecutor) {
-                        filteredSortedRows(this.queryParams, this.sortOrder).mapNotNull { it.toDomain() }
-                                .also { boundaries.postValue(ResultBoundaries(zeroItemLoaded = it.isEmpty())) }
-                    }
-        }
-        return result
     }
 
     fun getCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int> {
-        return liveOnRoomSummaryChange { filteredSortedRows(queryParams, RoomSortOrder.NONE).size }.asFlow()
+        return flowOnRoomSummaryChange { filteredSortedRows(queryParams, RoomSortOrder.NONE).size }
     }
 
     fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount =
@@ -277,17 +217,6 @@ internal class RoomSummaryDataSource @Inject constructor(
         return result
     }
 
-    fun getAllRoomSummaryChildOfLive(spaceId: String, memberShips: List<Membership>): LiveData<List<RoomSummary>> {
-        val mediatorLiveData = HierarchyLiveDataHelper(spaceId, memberShips, this).liveData()
-        return mediatorLiveData.switchMap { allIds ->
-            queries.selectAll().asLiveList(dispatcher).map { rows ->
-                rows.filter {
-                    it.room_id in allIds && it.membership_str in memberShips.map { m -> m.name } && it.is_direct == 0L
-                }.mapNotNull { it.toDomain() }
-            }
-        }
-    }
-
     fun getFlattenOrphanRooms(): List<RoomSummary> {
         return getRoomSummaries(roomSummaryQueryParams {
             memberships = Membership.activeMemberships()
@@ -296,15 +225,7 @@ internal class RoomSummaryDataSource @Inject constructor(
         }).filter { isOrphan(it) }
     }
 
-    fun getFlattenOrphanRoomsLive(): LiveData<List<RoomSummary>> {
-        return getRoomSummariesLive(roomSummaryQueryParams {
-            memberships = Membership.activeMemberships()
-            excludeType = listOf(RoomType.SPACE)
-            roomCategoryFilter = RoomCategoryFilter.ONLY_ROOMS
-        }).map { it.filter { summary -> isOrphan(summary) } }
-    }
-
-    private fun isOrphan(roomSummary: RoomSummary): Boolean {
+    internal fun isOrphan(roomSummary: RoomSummary): Boolean {
         if (roomSummary.roomType == RoomType.SPACE && roomSummary.membership.isActive()) {
             return false
         }
@@ -362,7 +283,7 @@ internal class RoomSummaryDataSource @Inject constructor(
         }
     }
 
-    private fun filteredSortedRows(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> {
+    internal fun filteredSortedRows(queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> {
         val all = allRows()
         val filterStart = MatrixPerf.now()
         return applyFilterAndSort(all, queryParams, sortOrder)

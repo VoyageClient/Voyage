@@ -59,6 +59,11 @@ import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
+import org.matrix.android.sdk.internal.session.room.summary.getAllRoomSummaryChildOfLive
+import org.matrix.android.sdk.internal.session.room.summary.getFlattenOrphanRoomsLive
+import org.matrix.android.sdk.internal.session.room.summary.getRoomSummariesChangesLive
+import org.matrix.android.sdk.internal.session.room.summary.getSortedPagedRoomSummariesLive
+import org.matrix.android.sdk.internal.session.room.summary.getUpdatablePagedRoomSummariesLive
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateBreadcrumbsTask
 import javax.inject.Inject
 
