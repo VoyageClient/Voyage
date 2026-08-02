@@ -405,6 +405,7 @@
     <string name="image_pack_personal_pack" translatable="false">Personal pack</string>
     <string name="image_pack_your_personal_pack" translatable="false">Your personal pack</string>
     <string name="image_pack_global_packs_title" translatable="false">Globally enabled packs</string>
+    <string name="image_pack_list_empty" translatable="false">No Image Packs</string>
     <string name="image_pack_create" translatable="false">Create pack</string>
     <string name="image_pack_create_account" translatable="false">Create personal pack</string>
     <string name="image_pack_create_room" translatable="false">Create Pack</string>
