@@ -27,15 +27,12 @@ SOURCES=(
     "$LIBCE_ROOT"/src/utility.c
     "$LIBCE_ROOT"/src/pk.c
     "$LIBCE_ROOT"/src/sas.c
-    "$LIBCE_ROOT"/src/ed25519.c
     "$LIBCE_ROOT"/src/error.c
     "$LIBCE_ROOT"/src/inbound_group_session.c
     "$LIBCE_ROOT"/src/megolm.c
     "$LIBCE_ROOT"/src/outbound_group_session.c
     "$LIBCE_ROOT"/src/pickle_encoding.c
-    "$LIBCE_ROOT"/lib/crypto-algorithms/sha256.c
     "$LIBCE_ROOT"/lib/crypto-algorithms/aes.c
-    "$LIBCE_ROOT"/lib/curve25519-donna/curve25519-donna.c
     "$JNI_DIR"/olm_account.c
     "$JNI_DIR"/olm_session.c
     "$JNI_DIR"/olm_jni_helper.c
@@ -60,10 +57,11 @@ mkdir -p "$OUT_DIR"
 
 case "$TARGET" in
     linux-x86_64)
+        # libce delegates curve25519/ed25519/hashing to libsodium; link the system library.
         gcc "${COMMON_FLAGS[@]}" -fPIC \
             -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux" \
             -Wl,-z,relro,-z,now \
-            -o "$OUT_DIR/libolm.so" "${SOURCES[@]}"
+            -o "$OUT_DIR/libolm.so" "${SOURCES[@]}" -lsodium
         ;;
     windows-x86_64)
         # jni.h is platform-independent; only jni_md.h is platform-specific, so pair the
