@@ -16,8 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.contentscanner
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import org.matrix.android.sdk.api.session.contentscanner.ContentScannerService
 import org.matrix.android.sdk.api.session.contentscanner.ScanStatusInfo
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
@@ -56,8 +56,8 @@ internal class DisabledContentScannerService @Inject constructor() : ContentScan
         return false
     }
 
-    override fun getLiveStatusForFile(mxcUrl: String, fetchIfNeeded: Boolean, fileInfo: ElementToDecrypt?): LiveData<Optional<ScanStatusInfo>> {
-        return MutableLiveData()
+    override fun getStatusFlowForFile(mxcUrl: String, fetchIfNeeded: Boolean, fileInfo: ElementToDecrypt?): Flow<Optional<ScanStatusInfo>> {
+        return emptyFlow()
     }
 
     override fun getCachedScanResultForFile(mxcUrl: String): ScanStatusInfo? {

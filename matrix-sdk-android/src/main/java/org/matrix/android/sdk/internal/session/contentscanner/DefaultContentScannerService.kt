@@ -16,8 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.contentscanner
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
+import kotlinx.coroutines.flow.Flow
 import dagger.Lazy
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
@@ -120,8 +119,8 @@ internal class DefaultContentScannerService @Inject constructor(
         return contentScannerStore.getScanResult(mxcUrl)
     }
 
-    override fun getLiveStatusForFile(mxcUrl: String, fetchIfNeeded: Boolean, fileInfo: ElementToDecrypt?): LiveData<Optional<ScanStatusInfo>> {
-        val data = contentScannerStore.getScanResultFlow(mxcUrl).asLiveData()
+    override fun getStatusFlowForFile(mxcUrl: String, fetchIfNeeded: Boolean, fileInfo: ElementToDecrypt?): Flow<Optional<ScanStatusInfo>> {
+        val data = contentScannerStore.getScanResultFlow(mxcUrl)
         if (fetchIfNeeded && !contentScannerStore.isScanResultKnownOrInProgress(mxcUrl, getContentScannerServer())) {
             taskExecutor.executorScope.launch {
                 try {
