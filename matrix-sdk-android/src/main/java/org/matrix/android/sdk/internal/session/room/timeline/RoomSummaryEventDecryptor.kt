@@ -35,7 +35,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryPreviewInvalidation
-import org.matrix.android.sdk.internal.session.search.index.EventIndexer
+import org.matrix.android.sdk.internal.session.search.index.DecryptedEventIndexer
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -48,7 +48,7 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
         cryptoCoroutineScope: CoroutineScope,
         private val cryptoService: dagger.Lazy<CryptoService>,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
-        private val eventIndexer: EventIndexer,
+        private val eventIndexer: DecryptedEventIndexer,
         private val decryptionSignal: TimelineDecryptionSignal,
 ) {
 
@@ -144,7 +144,7 @@ internal class RoomSummaryEventDecryptor @Inject constructor(
 
                 if (failure.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID ||
                         failure.errorType == MXCryptoError.ErrorType.UNKNOWN_MESSAGE_INDEX) {
-                    (event.content?.get("session_id") as? String)?.let { sessionId ->
+                    (event.content.get("session_id") as? String)?.let { sessionId ->
                         unknownSessionsFailure.getOrPut(sessionId) { mutableSetOf() }
                                 .add(event)
                     }
