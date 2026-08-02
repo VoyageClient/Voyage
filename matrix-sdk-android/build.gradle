@@ -162,11 +162,7 @@ configurations.all {
 // there is no cross-module duplication.
 sqldelight {
     databases {
-        GlobalSqlDatabase {
-            packageName = "org.matrix.android.sdk.internal.database.global"
-            srcDirs.setFrom("src/main/sqldelight/global")
-            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
-        }
+        // GlobalSqlDatabase is generated and compiled by :matrix-sdk-core; android consumes it.
         // AuthSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the auth
         // db stack); android consumes the generated classes cross-module.
         // IdentitySqlDatabase is generated and compiled by :matrix-sdk-core; android consumes it.
