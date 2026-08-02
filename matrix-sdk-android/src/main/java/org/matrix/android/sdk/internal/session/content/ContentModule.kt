@@ -27,6 +27,9 @@ import org.matrix.android.sdk.internal.session.download.DefaultContentDownloadSt
 internal abstract class ContentModule {
 
     @Binds
+    abstract fun bindThumbnailExtractor(extractor: AndroidThumbnailExtractor): ThumbnailExtractor
+
+    @Binds
     abstract fun bindContentUploadStateTracker(tracker: DefaultContentUploadStateTracker): ContentUploadStateTracker
 
     @Binds

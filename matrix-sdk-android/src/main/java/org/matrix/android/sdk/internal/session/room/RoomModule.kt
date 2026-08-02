@@ -28,6 +28,10 @@ import org.commonmark.node.BlockQuote
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 import org.matrix.android.sdk.api.session.file.FileService
+import org.matrix.android.sdk.internal.session.room.send.AndroidVideoMetadataExtractor
+import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
+import org.matrix.android.sdk.internal.session.room.send.pills.AndroidTextPillsUtils
+import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.api.session.room.RoomDirectoryService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.space.SpaceService
@@ -148,21 +152,6 @@ import org.matrix.android.sdk.internal.session.room.version.DefaultRoomVersionUp
 import org.matrix.android.sdk.internal.session.room.version.RoomVersionUpgradeTask
 import org.matrix.android.sdk.internal.session.space.DefaultSpaceService
 import retrofit2.Retrofit
-import javax.inject.Qualifier
-
-/**
- * Used to inject the simple commonmark Parser.
- */
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-internal annotation class SimpleCommonmarkParser
-
-/**
- * Used to inject the advanced commonmark Parser.
- */
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-internal annotation class AdvancedCommonmarkParser
 
 @Module
 internal abstract class RoomModule {
@@ -219,6 +208,12 @@ internal abstract class RoomModule {
                     .build()
         }
     }
+
+    @Binds
+    abstract fun bindVideoMetadataExtractor(extractor: AndroidVideoMetadataExtractor): VideoMetadataExtractor
+
+    @Binds
+    abstract fun bindTextPillsUtils(utils: AndroidTextPillsUtils): TextPillsUtils
 
     @Binds
     abstract fun bindRoomFactory(factory: DefaultRoomFactory): RoomFactory
