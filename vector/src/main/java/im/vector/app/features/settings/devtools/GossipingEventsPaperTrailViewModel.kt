@@ -23,6 +23,7 @@ import im.vector.app.core.platform.EmptyAction
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.crypto.CryptoDevtoolsService
 import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
 
 data class GossipingEventsPaperTrailState(
@@ -44,7 +45,7 @@ class GossipingEventsPaperTrailViewModel @AssistedInject constructor(
             copy(events = Loading())
         }
         if (session.cryptoService().supportKeyRequestInspection()) {
-            session.cryptoService().getGossipingEventsTrail()
+            (session.cryptoService() as CryptoDevtoolsService).getGossipingEventsTrail()
                     .asFlow()
                     .execute {
                         copy(events = it)

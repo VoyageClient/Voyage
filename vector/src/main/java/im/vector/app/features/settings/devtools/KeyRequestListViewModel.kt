@@ -23,6 +23,7 @@ import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.crypto.CryptoDevtoolsService
 import org.matrix.android.sdk.api.session.crypto.OutgoingKeyRequest
 import org.matrix.android.sdk.api.session.crypto.model.IncomingRoomKeyRequest
 
@@ -43,12 +44,12 @@ class KeyRequestListViewModel @AssistedInject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            session.cryptoService().getOutgoingRoomKeyRequestsPaged().asFlow()
+            (session.cryptoService() as CryptoDevtoolsService).getOutgoingRoomKeyRequestsPaged().asFlow()
                     .execute {
                         copy(outgoingRoomKeyRequests = it)
                     }
 
-            session.cryptoService().getIncomingRoomKeyRequestsPaged()
+            (session.cryptoService() as CryptoDevtoolsService).getIncomingRoomKeyRequestsPaged()
                     .asFlow()
                     .execute {
                         copy(incomingRequests = it)
