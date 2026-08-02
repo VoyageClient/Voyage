@@ -1267,6 +1267,15 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/search/index/LocalEventSearchTask.kt',
         'org/matrix/android/sdk/internal/session/space/JoinSpaceTask.kt',
         'org/matrix/android/sdk/internal/session/space/SpaceModule.kt',
+        // Wellknown + homeserver-caps clusters: GetWellknownTask's only coupling was
+        // android.util.MalformedJsonException, now a stand-in in olm-jvm (real one used on device).
+        'org/matrix/android/sdk/internal/session/homeserver/DefaultHomeServerCapabilitiesService.kt',
+        'org/matrix/android/sdk/internal/session/homeserver/GetHomeServerCapabilitiesTask.kt',
+        'org/matrix/android/sdk/internal/session/homeserver/HomeServerCapabilitiesModule.kt',
+        'org/matrix/android/sdk/internal/session/room/relation/threads/FetchThreadSummariesTask.kt',
+        'org/matrix/android/sdk/internal/session/sync/handler/room/SqlRoomSyncHandler.kt',
+        'org/matrix/android/sdk/internal/wellknown/GetWellknownTask.kt',
+        'org/matrix/android/sdk/internal/wellknown/WellknownModule.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
