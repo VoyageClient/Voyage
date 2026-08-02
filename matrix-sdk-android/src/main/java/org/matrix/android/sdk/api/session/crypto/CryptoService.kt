@@ -16,10 +16,6 @@
 
 package org.matrix.android.sdk.api.session.crypto
 
-import android.content.Context
-import androidx.annotation.Size
-import androidx.lifecycle.LiveData
-import androidx.paging.PagedList
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.listeners.ProgressListener
@@ -60,9 +56,7 @@ interface CryptoService {
 
     suspend fun deleteDevice(deviceId: String, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor)
 
-    suspend fun deleteDevices(@Size(min = 1) deviceIds: List<String>, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor)
-
-    fun getCryptoVersion(context: Context, longFormat: Boolean): String
+    suspend fun deleteDevices(deviceIds: List<String>, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor)
 
     fun exportSecrets(): Result<String>
 
@@ -195,10 +189,8 @@ interface CryptoService {
     fun supportKeyRequestInspection(): Boolean
 
     fun getOutgoingRoomKeyRequests(): List<OutgoingKeyRequest>
-    fun getOutgoingRoomKeyRequestsPaged(): LiveData<PagedList<OutgoingKeyRequest>>
 
     fun getIncomingRoomKeyRequests(): List<IncomingRoomKeyRequest>
-    fun getIncomingRoomKeyRequestsPaged(): LiveData<PagedList<IncomingRoomKeyRequest>>
 
     /**
      * Can be called by the app layer to accept a request manually.
@@ -206,7 +198,6 @@ interface CryptoService {
      */
     suspend fun manuallyAcceptRoomKeyRequest(request: IncomingRoomKeyRequest)
 
-    fun getGossipingEventsTrail(): LiveData<PagedList<AuditTrail>>
     fun getGossipingEvents(): List<AuditTrail>
 
     // For testing shared session

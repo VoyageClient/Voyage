@@ -842,6 +842,10 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/membership/RoomChangeMembershipStateDataSource.kt',
         // Reactive-surface: Flow-based data source; its LiveData bridges moved to an android extension.
         'org/matrix/android/sdk/internal/session/room/accountdata/RoomAccountDataDataSource.kt',
+        // CryptoService interface: its LiveData<PagedList> devtools methods + Context-taking version
+        // helper moved to the android-only CryptoDevtoolsService, leaving the interface plain-JVM.
+        'org/matrix/android/sdk/api/session/crypto/keysbackup/KeysBackupService.kt',
+        'org/matrix/android/sdk/api/session/crypto/CryptoService.kt',
         // Call handling (ActiveCallHandler converted off LiveData); untested — the app has no calling UI.
         'org/matrix/android/sdk/api/session/call/**',
         'org/matrix/android/sdk/internal/session/EventInsertLiveProcessor.kt',

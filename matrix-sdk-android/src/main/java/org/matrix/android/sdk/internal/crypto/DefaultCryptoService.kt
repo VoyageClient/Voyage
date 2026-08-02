@@ -40,6 +40,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.logger.LoggerTag
+import org.matrix.android.sdk.api.session.crypto.CryptoDevtoolsService
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.GlobalCryptoConfig
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
@@ -190,7 +191,7 @@ internal class DefaultCryptoService @Inject constructor(
         private val liveEventManager: Lazy<StreamEventsManager>,
         private val unrequestedForwardManager: UnRequestedForwardManager,
         private val cryptoSyncHandler: CryptoSyncHandler,
-) : CryptoService, DeviceListManager.UserDevicesUpdateListener {
+) : CryptoService, CryptoDevtoolsService, DeviceListManager.UserDevicesUpdateListener {
 
     private val isStarting = AtomicBoolean(false)
     private val isStarted = AtomicBoolean(false)
