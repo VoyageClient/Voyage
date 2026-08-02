@@ -848,6 +848,19 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/crypto/CryptoService.kt',
         // UserService interface: its getPagedUsersLive moved to the android-only UserPagingService.
         'org/matrix/android/sdk/api/session/user/UserService.kt',
+        // Room sub-service interfaces (android-clean) toward landing the Room + RoomService graph.
+        'org/matrix/android/sdk/api/session/room/alias/AliasService.kt',
+        'org/matrix/android/sdk/api/session/room/call/RoomCallService.kt',
+        'org/matrix/android/sdk/api/session/room/crypto/RoomCryptoService.kt',
+        'org/matrix/android/sdk/api/session/room/model/relation/RelationService.kt',
+        'org/matrix/android/sdk/api/session/room/reporting/ReportingService.kt',
+        'org/matrix/android/sdk/api/session/room/RoomDirectoryService.kt',
+        'org/matrix/android/sdk/api/session/room/send/SendService.kt',
+        'org/matrix/android/sdk/api/session/room/tags/TagsService.kt',
+        'org/matrix/android/sdk/api/session/room/timeline/TimelineService.kt',
+        'org/matrix/android/sdk/api/session/room/typing/TypingService.kt',
+        'org/matrix/android/sdk/api/session/room/uploads/UploadsService.kt',
+        'org/matrix/android/sdk/api/session/room/version/RoomVersionService.kt',
         // Call handling (ActiveCallHandler converted off LiveData); untested — the app has no calling UI.
         'org/matrix/android/sdk/api/session/call/**',
         'org/matrix/android/sdk/internal/session/EventInsertLiveProcessor.kt',
