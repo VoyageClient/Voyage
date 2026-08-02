@@ -1281,6 +1281,14 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/user/UserDataSource.kt',
         'org/matrix/android/sdk/internal/session/widgets/helper/UserAccountWidgets.kt',
         'org/matrix/android/sdk/internal/session/widgets/helper/WidgetFactory.kt',
+        // Auth flow logic: split SessionCreator interface from DefaultSessionCreator (which needs
+        // the android SessionManager/DaggerSessionComponent), landing the login/registration wizards
+        // and login tasks.
+        'org/matrix/android/sdk/internal/auth/SessionCreator.kt',
+        'org/matrix/android/sdk/internal/auth/login/DefaultLoginWizard.kt',
+        'org/matrix/android/sdk/internal/auth/login/DirectLoginTask.kt',
+        'org/matrix/android/sdk/internal/auth/login/QrLoginTokenTask.kt',
+        'org/matrix/android/sdk/internal/auth/registration/DefaultRegistrationWizard.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

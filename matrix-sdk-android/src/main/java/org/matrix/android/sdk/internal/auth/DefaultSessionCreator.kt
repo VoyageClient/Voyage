@@ -20,12 +20,29 @@ import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.internal.SessionManager
+import javax.inject.Inject
 
-internal interface SessionCreator {
+internal class DefaultSessionCreator @Inject constructor(
+        private val sessionParamsStore: SessionParamsStore,
+        private val sessionManager: SessionManager,
+        private val pendingSessionStore: PendingSessionStore,
+        private val sessionParamsCreator: SessionParamsCreator,
+) : SessionCreator {
 
-    suspend fun createSession(
+    /**
+     * Credentials can affect the homeServerConnectionConfig, override homeserver url and/or
+     * identity server url if provided in the credentials.
+     */
+    override suspend fun createSession(
             credentials: Credentials,
             homeServerConnectionConfig: HomeServerConnectionConfig,
             loginType: LoginType,
-    ): Session
+    ): Session {
+        // We can cleanup the pending session params
+        pendingSessionStore.delete()
+        val sessionParams = sessionParamsCreator.create(credentials, homeServerConnectionConfig, loginType)
+        sessionParamsStore.save(sessionParams)
+        return sessionManager.getOrCreateSession(sessionParams)
+    }
 }
