@@ -8,6 +8,7 @@
 package im.vector.matrixcli
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import im.vector.matrixcli.platform.AssumeOnlineNetworkCallbackStrategyFactory
 import im.vector.matrixcli.platform.DesktopSecureStorage
 import im.vector.matrixcli.platform.FileKeyValueStoreFactory
 import im.vector.matrixcli.platform.JdbcSqlDriverFactory
@@ -112,6 +113,13 @@ class DesktopBootSmoke {
             val wrongAlias = runCatching { secureStorage.decryptBytes(encrypted, alias = "other") }.isFailure
             require(wrongAlias) { "decrypt under a wrong alias should fail" }
             "encrypted ${secret.size}B, decrypt ok, wrong-alias rejected"
+        }
+
+        check("desktop NetworkCallbackStrategy (assume-online)") {
+            val strategy = AssumeOnlineNetworkCallbackStrategyFactory().create()
+            strategy.register { }
+            strategy.unregister()
+            "assume-online strategy satisfies the seam"
         }
 
         dataDir.deleteRecursively()
