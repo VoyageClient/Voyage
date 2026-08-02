@@ -16,12 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.send
 
-import android.content.Context
-import android.media.MediaMetadataRetriever
-import androidx.exifinterface.media.ExifInterface
 import org.matrix.android.sdk.api.extensions.ensureNotEmpty
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -90,7 +86,7 @@ import javax.inject.Inject
  * The transactionId is used as loc
  */
 internal class LocalEchoEventFactory @Inject constructor(
-        private val context: Context,
+        private val videoMetadataExtractor: VideoMetadataExtractor,
         @UserId private val userId: String,
         private val markdownParser: MarkdownParser,
         private val textPillsUtils: TextPillsUtils,
@@ -534,15 +530,11 @@ internal class LocalEchoEventFactory @Inject constructor(
         var width = attachment.width
         var height = attachment.height
 
-        when (attachment.exifOrientation) {
-            ExifInterface.ORIENTATION_ROTATE_90,
-            ExifInterface.ORIENTATION_TRANSVERSE,
-            ExifInterface.ORIENTATION_ROTATE_270,
-            ExifInterface.ORIENTATION_TRANSPOSE -> {
-                val tmp = width
-                width = height
-                height = tmp
-            }
+        // EXIF orientations that swap width/height: TRANSPOSE(5), ROTATE_90(6), TRANSVERSE(7), ROTATE_270(8).
+        if (attachment.exifOrientation in EXIF_ORIENTATIONS_SWAPPING_SIZE) {
+            val tmp = width
+            width = height
+            height = tmp
         }
 
         val body = buildMediaBody(attachment, "image", captionText, captionFormattedText, autoMarkdown)
@@ -576,17 +568,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             autoMarkdown: Boolean = false,
             mentions: Mentions? = null,
     ): Event {
-        val mediaDataRetriever = MediaMetadataRetriever()
-        val (width, height) = try {
-            mediaDataRetriever.setDataSource(context, attachment.queryUriAndroid)
-            val rawW = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt() ?: 0
-            val rawH = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt() ?: 0
-            val rotation = mediaDataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
-            val swap = rotation == 90 || rotation == 270
-            (if (swap) rawH else rawW) to (if (swap) rawW else rawH)
-        } finally {
-            mediaDataRetriever.release()
-        }
+        val (width, height) = videoMetadataExtractor.getVideoSize(attachment)
 
         val thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment, withBlurHash = false)?.let {
             ThumbnailInfo(
@@ -1046,6 +1028,8 @@ internal class LocalEchoEventFactory @Inject constructor(
     }
 
     companion object {
+        private val EXIF_ORIENTATIONS_SWAPPING_SIZE = setOf(5, 6, 7, 8)
+
         // <mx-reply>
         //     <blockquote>
         //         <a href="https://matrix.to/#/!somewhere:domain.com/$event:domain.com">In reply to</a>

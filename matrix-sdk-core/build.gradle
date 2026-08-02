@@ -412,6 +412,14 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/send/pills/MentionLinkSpec.kt',
         'org/matrix/android/sdk/internal/session/room/send/pills/MentionLinkSpecComparator.kt',
         'org/matrix/android/sdk/internal/session/room/send/WaveFormSanitizer.kt',
+        // Media/text platform seams: interfaces are core; android impls (AndroidVideoMetadataExtractor,
+        // AndroidThumbnailExtractor, AndroidTextPillsUtils) stay android. MarkdownParser + its commonmark
+        // qualifier annotations come along.
+        'org/matrix/android/sdk/internal/session/room/send/VideoMetadataExtractor.kt',
+        'org/matrix/android/sdk/internal/session/content/ThumbnailExtractor.kt',
+        'org/matrix/android/sdk/internal/session/room/send/pills/TextPillsUtils.kt',
+        'org/matrix/android/sdk/internal/session/room/send/MarkdownParser.kt',
+        'org/matrix/android/sdk/internal/session/room/CommonmarkParserQualifiers.kt',
         'org/matrix/android/sdk/internal/session/room/send/TextContentExtension.kt',
         'org/matrix/android/sdk/internal/session/room/state/SafePowerLevelContent.kt',
         'org/matrix/android/sdk/internal/session/room/tags/TagBody.kt',
