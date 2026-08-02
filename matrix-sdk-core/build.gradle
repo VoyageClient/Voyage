@@ -1057,6 +1057,50 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/crypto/crosssigning/ComputeTrustTask.kt',
         'org/matrix/android/sdk/internal/crypto/crosssigning/CrossSigningOlm.kt',
         'org/matrix/android/sdk/internal/crypto/store/IMXCryptoStore.kt',
+        // Annotation-only + MXOlmDevice crypto cascade: with the pure-JVM androidx.annotation jar
+        // on core's classpath, MXOlmDevice and the megolm/olm decryption engine leaves that were
+        // coupled only by @VisibleForTesting/@WorkerThread/etc. now compile as plain JVM.
+        'org/matrix/android/sdk/api/session/crypto/keysbackup/BackupUtils.kt',
+        'org/matrix/android/sdk/api/session/securestorage/KeyRef.kt',
+        'org/matrix/android/sdk/api/session/securestorage/SharedSecretStorageService.kt',
+        'org/matrix/android/sdk/api/session/securestorage/SsssKeyCreationInfo.kt',
+        'org/matrix/android/sdk/api/session/securestorage/SsssKeySpec.kt',
+        'org/matrix/android/sdk/api/util/BuildVersionSdkIntProvider.kt',
+        'org/matrix/android/sdk/internal/crypto/DecryptRoomEventUseCase.kt',
+        'org/matrix/android/sdk/internal/crypto/DeviceListManager.kt',
+        'org/matrix/android/sdk/internal/crypto/IncomingKeyRequestManager.kt',
+        'org/matrix/android/sdk/internal/crypto/MXOlmDevice.kt',
+        'org/matrix/android/sdk/internal/crypto/MyDeviceInfoHolder.kt',
+        'org/matrix/android/sdk/internal/crypto/ObjectSigner.kt',
+        'org/matrix/android/sdk/internal/crypto/OneTimeKeysUploader.kt',
+        'org/matrix/android/sdk/internal/crypto/OutgoingKeyRequestManager.kt',
+        'org/matrix/android/sdk/internal/crypto/RoomDecryptorProvider.kt',
+        'org/matrix/android/sdk/internal/crypto/RoomEncryptorsStore.kt',
+        'org/matrix/android/sdk/internal/crypto/SecretShareManager.kt',
+        'org/matrix/android/sdk/internal/crypto/actions/EnsureOlmSessionsForDevicesAction.kt',
+        'org/matrix/android/sdk/internal/crypto/actions/EnsureOlmSessionsForUsersAction.kt',
+        'org/matrix/android/sdk/internal/crypto/actions/MegolmSessionDataImporter.kt',
+        'org/matrix/android/sdk/internal/crypto/actions/MessageEncrypter.kt',
+        'org/matrix/android/sdk/internal/crypto/actions/SetDeviceVerificationAction.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/IMXDecrypting.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/megolm/MXMegolmDecryption.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/megolm/MXMegolmDecryptionFactory.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/megolm/MXMegolmEncryption.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/megolm/MXMegolmEncryptionFactory.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/megolm/UnRequestedForwardManager.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/olm/MXOlmDecryption.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/olm/MXOlmDecryptionFactory.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/olm/MXOlmEncryption.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/olm/MXOlmEncryptionFactory.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/DefaultKeysBackupService.kt',
+        'org/matrix/android/sdk/internal/crypto/keysbackup/KeysBackupPassword.kt',
+        'org/matrix/android/sdk/internal/crypto/secrets/DefaultSharedSecretStorageService.kt',
+        'org/matrix/android/sdk/internal/crypto/task/InitializeCrossSigningTask.kt',
+        'org/matrix/android/sdk/internal/crypto/tasks/DeleteDeviceTask.kt',
+        'org/matrix/android/sdk/internal/crypto/verification/VerificationTrustBackend.kt',
+        'org/matrix/android/sdk/internal/session/room/relation/threads/FetchThreadTimelineTask.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/GetEventTask.kt',
+        'org/matrix/android/sdk/internal/util/FileSaver.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
@@ -1109,6 +1153,8 @@ dependencies {
     implementation project(':library:external:timber-jvm')
     implementation project(':library:external:olm-jvm')
     implementation libs.jetbrains.coroutinesCore
+    // Pure-JVM annotations jar (no android platform code); lets annotation-only files compile in core.
+    implementation 'androidx.annotation:annotation-jvm:1.6.0'
     implementation "app.cash.sqldelight:runtime:2.0.2"
     implementation "app.cash.sqldelight:coroutines-extensions:2.0.2"
     implementation libs.squareup.moshi
