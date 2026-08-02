@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.threads.FetchThreadsResult
+import org.matrix.android.sdk.api.session.room.threads.ThreadsPagingService
 import org.matrix.android.sdk.api.session.room.threads.ThreadFilter
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
 import org.matrix.android.sdk.api.session.threads.ThreadTimelineEvent
@@ -113,7 +114,7 @@ class ThreadListViewModel @AssistedInject constructor(
 
             livePagedList?.removeObserver(internalPagedListObserver)
 
-            room?.threadsService()
+            (room?.threadsService() as? ThreadsPagingService)
                     ?.getPagedThreadsList(state.shouldFilterThreads, defaultPagedListConfig)?.let { result ->
                         livePagedList = result.livePagedList
 

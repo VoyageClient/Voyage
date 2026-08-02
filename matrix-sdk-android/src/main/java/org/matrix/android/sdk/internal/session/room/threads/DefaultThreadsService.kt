@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.session.room.ResultBoundaries
 import org.matrix.android.sdk.api.session.room.threads.FetchThreadsResult
 import org.matrix.android.sdk.api.session.room.threads.ThreadFilter
 import org.matrix.android.sdk.api.session.room.threads.ThreadLivePageResult
+import org.matrix.android.sdk.api.session.room.threads.ThreadsPagingService
 import org.matrix.android.sdk.api.session.room.threads.ThreadsService
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
 import org.matrix.android.sdk.internal.database.mapper.ThreadSummaryMapper
@@ -43,7 +44,7 @@ internal class DefaultThreadsService @AssistedInject constructor(
         private val stores: SessionStores,
         private val threadSummaryMapper: ThreadSummaryMapper,
         private val fetchThreadSummariesTask: FetchThreadSummariesTask,
-) : ThreadsService {
+) : ThreadsService, ThreadsPagingService {
 
     @AssistedFactory
     interface Factory {
