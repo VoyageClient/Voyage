@@ -7,16 +7,17 @@
 
 package org.matrix.android.sdk.internal.session.contentscanner.db
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.contentscanner.ScanState
 import org.matrix.android.sdk.api.session.contentscanner.ScanStatusInfo
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveOneOrNull
 import org.matrix.android.sdk.internal.di.ContentScannerDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.contentscanner.data.ContentScannerStore
@@ -97,10 +98,11 @@ internal class SqlContentScannerStore @Inject constructor(
     override fun getScanResult(mxcUrl: String): ScanStatusInfo? =
             findScanResult(mxcUrl, getScannerUrl())?.toScanStatusInfo()
 
-    override fun getLiveScanResult(mxcUrl: String): LiveData<Optional<ScanStatusInfo>> {
+    override fun getScanResultFlow(mxcUrl: String): Flow<Optional<ScanStatusInfo>> {
         // Matches the Realm version: always an exact (null-safe) scanner_url match.
         return scanResultQueries.selectByMediaAndScanner(mxcUrl, getScannerUrl())
-                .asLiveOneOrNull(dispatcher)
+                .asFlow()
+                .mapToOneOrNull(dispatcher)
                 .map { it?.toScanStatusInfo().toOptional() }
     }
 

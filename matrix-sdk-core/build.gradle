@@ -687,8 +687,11 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/StreamEventsManager.kt',
         'org/matrix/android/sdk/internal/session/TestInterceptor.kt',
         'org/matrix/android/sdk/internal/session/content/VideoCompressionResult.kt',
-        'org/matrix/android/sdk/internal/session/contentscanner/db/ContentScanResultEntity.kt',
-        'org/matrix/android/sdk/internal/session/contentscanner/db/ContentScannerInfoEntity.kt',
+        // ContentScanner DB stack: core owns ContentScannerSqlDatabase generation (glob pulls
+        // generated code + SqlContentScannerStore, whose LiveData was converted to Flow); the store
+        // interface joins it. Removed from android's sqldelight block to avoid duplicate classes.
+        'org/matrix/android/sdk/internal/session/contentscanner/db/**',
+        'org/matrix/android/sdk/internal/session/contentscanner/data/ContentScannerStore.kt',
         'org/matrix/android/sdk/internal/session/displayname/DisplayNameResolver.kt',
         'org/matrix/android/sdk/internal/session/events/EventExt.kt',
         'org/matrix/android/sdk/internal/session/identity/Sha256Converter.kt',

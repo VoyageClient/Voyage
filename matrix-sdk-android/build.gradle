@@ -170,11 +170,7 @@ sqldelight {
         // AuthSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the auth
         // db stack); android consumes the generated classes cross-module.
         // IdentitySqlDatabase is generated and compiled by :matrix-sdk-core; android consumes it.
-        ContentScannerSqlDatabase {
-            packageName = "org.matrix.android.sdk.internal.session.contentscanner.db"
-            srcDirs.setFrom("src/main/sqldelight/contentscanner")
-            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
-        }
+        // ContentScannerSqlDatabase is generated and compiled by :matrix-sdk-core; android consumes it.
         // CryptoSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the crypto
         // sub-stores); this module consumes it across the boundary.
         // SessionSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the session
