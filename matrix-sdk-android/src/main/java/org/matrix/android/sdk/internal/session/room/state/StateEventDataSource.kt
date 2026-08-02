@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.state
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
@@ -57,10 +55,6 @@ internal class StateEventDataSource @Inject constructor(
     fun getStateEventsFlow(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): Flow<List<Event>> {
         return queryFlow(roomId, eventTypes, stateKey)
     }
-
-    // LiveData view for the android-only internal consumers (LiveRoomStateListener/WidgetManager).
-    fun getStateEventsLive(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): LiveData<List<Event>> =
-            getStateEventsFlow(roomId, eventTypes, stateKey).asLiveData()
 
     private fun query(roomId: String, eventTypes: Set<String>, stateKey: QueryStateEventValue): List<Event> {
         return database.currentStateEventQueries.selectByRoom(roomId).executeAsList()

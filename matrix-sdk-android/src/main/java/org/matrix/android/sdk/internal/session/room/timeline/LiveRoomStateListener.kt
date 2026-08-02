@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
+import org.matrix.android.sdk.internal.session.room.state.getStateEventsLive
 
 /**
  * Helper to observe and query the live room state.

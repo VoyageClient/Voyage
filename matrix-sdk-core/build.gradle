@@ -1101,6 +1101,17 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/relation/threads/FetchThreadTimelineTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/GetEventTask.kt',
         'org/matrix/android/sdk/internal/util/FileSaver.kt',
+        // StateEventDataSource neutralized (getStateEventsLive moved to an android-only extension);
+        // that unblocks HomeServerCapabilities data source/mapper and a few clean task/service leaves.
+        'org/matrix/android/sdk/internal/crypto/tasks/RedactEventTask.kt',
+        'org/matrix/android/sdk/internal/database/mapper/HomeServerCapabilitiesMapper.kt',
+        'org/matrix/android/sdk/internal/session/homeserver/HomeServerCapabilitiesDataSource.kt',
+        'org/matrix/android/sdk/internal/session/room/location/CheckIfExistingActiveLiveTask.kt',
+        'org/matrix/android/sdk/internal/session/room/location/GetActiveBeaconInfoForUserTask.kt',
+        'org/matrix/android/sdk/internal/session/room/powerlevels/RoomPowerLevels.kt',
+        'org/matrix/android/sdk/internal/session/room/state/StateEventDataSource.kt',
+        'org/matrix/android/sdk/internal/session/room/version/DefaultRoomVersionService.kt',
+        'org/matrix/android/sdk/internal/session/workmanager/DefaultWorkManagerConfig.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
