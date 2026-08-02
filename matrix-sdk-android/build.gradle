@@ -182,11 +182,8 @@ sqldelight {
             srcDirs.setFrom("src/main/sqldelight/contentscanner")
             dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
         }
-        CryptoSqlDatabase {
-            packageName = "org.matrix.android.sdk.internal.crypto.store.db.sql"
-            srcDirs.setFrom("src/main/sqldelight/crypto")
-            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
-        }
+        // CryptoSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the crypto
+        // sub-stores); this module consumes it across the boundary.
         // SessionSqlDatabase is generated and compiled by :matrix-sdk-core (which owns the session
         // store stack); this module consumes it across the module boundary.
         EventIndexSqlDatabase {

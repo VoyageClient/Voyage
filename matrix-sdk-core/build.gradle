@@ -767,6 +767,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/user/model/SearchUserTask.kt',
         // SQLDelight session store stack: the generated SessionSqlDatabase + the hand-written stores.
         'org/matrix/android/sdk/internal/database/sql/**',
+        // SQLDelight crypto store stack: generated CryptoSqlDatabase + the sub-stores (SqlCryptoStore
+        // facade stays android).
+        'org/matrix/android/sdk/internal/crypto/store/db/sql/**',
         // SessionStores-cascade: SQL handlers/helpers, profile/account/presence tasks + APIs, and
         // account-data/user tasks that resolve now the session store facade is in core.
         'org/matrix/android/sdk/internal/crypto/verification/VerificationRequestsStore.kt',
@@ -814,6 +817,12 @@ ext.coreExcludes = [
         'org/matrix/android/sdk/internal/session/filter/FilterModule.kt',
         // Needs RoomSummaryEventDecryptor (android crypto/timeline); only android sync handlers use it.
         'org/matrix/android/sdk/internal/database/sql/store/ThreadSummarySqlHelper.kt',
+        // Android-coupled crypto store facade (IMXCryptoStore impl used by DefaultCryptoService).
+        'org/matrix/android/sdk/internal/crypto/store/db/sql/SqlCryptoStore.kt',
+        // Crypto sub-stores blocked on android/olm-tainted deps (CryptoRoomEntity, BackupUtils, ClearCacheTask).
+        'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoRoomSqlStore.kt',
+        'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoMetadataStore.kt',
+        'org/matrix/android/sdk/internal/crypto/store/db/sql/SqlClearCacheTask.kt',
 ]
 
 sourceSets {
