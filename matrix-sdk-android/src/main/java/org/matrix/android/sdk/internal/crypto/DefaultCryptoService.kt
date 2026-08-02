@@ -94,6 +94,7 @@ import org.matrix.android.sdk.internal.crypto.model.rest.KeysUploadBody
 import org.matrix.android.sdk.internal.crypto.model.toRest
 import org.matrix.android.sdk.internal.crypto.repository.WarnOnUnknownDeviceRepository
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
+import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStorePaging
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
 import org.matrix.android.sdk.internal.crypto.tasks.DeleteDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDeviceInfoTask
@@ -1352,7 +1353,7 @@ internal class DefaultCryptoService @Inject constructor(
     }
 
     override fun getOutgoingRoomKeyRequestsPaged(): LiveData<PagedList<OutgoingKeyRequest>> {
-        return cryptoStore.getOutgoingRoomKeyRequestsPaged()
+        return (cryptoStore as IMXCryptoStorePaging).getOutgoingRoomKeyRequestsPaged()
     }
 
     override fun getIncomingRoomKeyRequests(): List<IncomingRoomKeyRequest> {
@@ -1363,7 +1364,7 @@ internal class DefaultCryptoService @Inject constructor(
     }
 
     override fun getIncomingRoomKeyRequestsPaged(): LiveData<PagedList<IncomingRoomKeyRequest>> {
-        return cryptoStore.getGossipingEventsTrail(TrailType.IncomingKeyRequest) {
+        return (cryptoStore as IMXCryptoStorePaging).getGossipingEventsTrail(TrailType.IncomingKeyRequest) {
             IncomingRoomKeyRequest.fromEvent(it)
                     ?: IncomingRoomKeyRequest(localCreationTimestamp = 0L)
         }
@@ -1378,7 +1379,7 @@ internal class DefaultCryptoService @Inject constructor(
     }
 
     override fun getGossipingEventsTrail(): LiveData<PagedList<AuditTrail>> {
-        return cryptoStore.getGossipingEventsTrail()
+        return (cryptoStore as IMXCryptoStorePaging).getGossipingEventsTrail()
     }
 
     override fun getGossipingEvents(): List<AuditTrail> {

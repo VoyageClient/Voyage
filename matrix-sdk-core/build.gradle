@@ -1046,6 +1046,17 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/search/SearchTask.kt',
         'org/matrix/androidsdk/crypto/data/MXDeviceInfo.java',
         'org/matrix/androidsdk/crypto/data/MXOlmInboundGroupSession2.java',
+        // Crypto store/engine leaves unblocked by neutralizing IMXCryptoStore's PagedList surface
+        // (its device/cross-signing methods were already Flow; 3 LiveData<PagedList> devtools
+        // methods moved to the android-only IMXCryptoStorePaging).
+        'org/matrix/android/sdk/internal/crypto/InboundGroupSessionStore.kt',
+        'org/matrix/android/sdk/internal/crypto/OlmSessionStore.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/IMXEncrypting.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/megolm/MXOutboundSessionInfo.kt',
+        'org/matrix/android/sdk/internal/crypto/algorithms/megolm/SharedWithHelper.kt',
+        'org/matrix/android/sdk/internal/crypto/crosssigning/ComputeTrustTask.kt',
+        'org/matrix/android/sdk/internal/crypto/crosssigning/CrossSigningOlm.kt',
+        'org/matrix/android/sdk/internal/crypto/store/IMXCryptoStore.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

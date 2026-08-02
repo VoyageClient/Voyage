@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store
 
-import androidx.lifecycle.LiveData
-import androidx.paging.PagedList
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.crypto.GlobalCryptoConfig
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
@@ -31,7 +29,6 @@ import org.matrix.android.sdk.api.session.crypto.model.AuditTrail
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
 import org.matrix.android.sdk.api.session.crypto.model.RoomKeyRequestBody
-import org.matrix.android.sdk.api.session.crypto.model.TrailType
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyWithHeldContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
@@ -491,9 +488,6 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
     // Dev tools
 
     fun getOutgoingRoomKeyRequests(): List<OutgoingKeyRequest>
-    fun getOutgoingRoomKeyRequestsPaged(): LiveData<PagedList<OutgoingKeyRequest>>
-    fun getGossipingEventsTrail(): LiveData<PagedList<AuditTrail>>
-    fun <T> getGossipingEventsTrail(type: TrailType, mapper: ((AuditTrail) -> T)): LiveData<PagedList<T>>
     fun getGossipingEvents(): List<AuditTrail>
 
     fun setDeviceKeysUploaded(uploaded: Boolean)
