@@ -294,6 +294,10 @@ class TimelineFragment :
     // not be loaded at all (the forward chain from the target can be far from the live edge), so its
     // position can only be judged by timestamp.
     private var replyJumpSourceTs: Long? = null
+
+    // Also captured at click time (the live edge may not be loaded afterwards): a source within one
+    // screen of the latest message doesn't deserve an intermediate stop — jump-to-latest shows it anyway.
+    private var replyJumpSourceNearLiveEdge = false
     private var modelBuildListener: OnModelBuildFinishedListener? = null
     private var pinnedBannerJumpApplied = false
 
@@ -855,8 +859,7 @@ class TimelineFragment :
     }
 
     private fun jumpToBottom() {
-        replyJumpSourceEventId = null
-        replyJumpSourceTs = null
+        clearReplyJumpSource()
         timelineEventController.setBuildFocusEventId(null)
         timelineViewModel.handle(RoomDetailAction.ExitTrackingUnreadMessagesState)
         views.jumpToBottomView.visibility = View.INVISIBLE
@@ -872,8 +875,23 @@ class TimelineFragment :
         }
     }
 
+    private fun captureReplyJumpSource(sourceEventId: String?) {
+        replyJumpSourceEventId = sourceEventId
+        replyJumpSourceTs = timelineEventController.findEventInSnapshot(sourceEventId)?.root?.originServerTs
+        // childCount ≈ rows per screen, so "position < childCount" ≈ within one viewport of the bottom
+        replyJumpSourceNearLiveEdge = timelineViewModel.timeline?.isLive != false &&
+                timelineEventController.searchPositionOfEvent(sourceEventId).let { it != null && it < layoutManager.childCount }
+    }
+
+    private fun clearReplyJumpSource() {
+        replyJumpSourceEventId = null
+        replyJumpSourceTs = null
+        replyJumpSourceNearLiveEdge = false
+    }
+
     private fun shouldJumpToReplySource(sourceEventId: String): Boolean {
         if (!vectorPreferences.jumpBackToReplySource()) return false
+        if (replyJumpSourceNearLiveEdge) return false
         val sourcePosition = timelineEventController.searchPositionOfEvent(sourceEventId)
         // The timeline is reverse-laid-out, so smaller positions sit nearer the bottom. Only stop
         // at the reply source if it's below the current viewport (off-screen toward the bottom);
@@ -895,8 +913,7 @@ class TimelineFragment :
         views.jumpToBottomView.debouncedClicks {
             val sourceId = replyJumpSourceEventId
             if (sourceId != null && shouldJumpToReplySource(sourceId)) {
-                replyJumpSourceEventId = null
-                replyJumpSourceTs = null
+                clearReplyJumpSource()
                 timelineViewModel.handle(RoomDetailAction.NavigateToEvent(sourceId, highlight = true))
             } else {
                 jumpToBottom()
@@ -1646,8 +1663,7 @@ class TimelineFragment :
                                 } else {
                                     // Highlight and scroll to this event; remember the linking message so
                                     // the jump-to-bottom FAB can return to it (like the reply-header jump).
-                                    replyJumpSourceEventId = LinkClickSourceHolder.consume()
-                                    replyJumpSourceTs = timelineEventController.findEventInSnapshot(replyJumpSourceEventId)?.root?.originServerTs
+                                    captureReplyJumpSource(LinkClickSourceHolder.consume())
                                     timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, true))
                                     true
                                 }
@@ -1657,8 +1673,7 @@ class TimelineFragment :
                                     true
                                 } else if (rootThreadEventId == getRootThreadEventId() && eventId != null) {
                                     // we are in the same thread
-                                    replyJumpSourceEventId = LinkClickSourceHolder.consume()
-                                    replyJumpSourceTs = timelineEventController.findEventInSnapshot(replyJumpSourceEventId)?.root?.originServerTs
+                                    captureReplyJumpSource(LinkClickSourceHolder.consume())
                                     timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, true))
                                     true
                                 } else {
@@ -1900,8 +1915,7 @@ class TimelineFragment :
     }
 
     override fun onRepliedToEventClicked(sourceEventId: String?, targetEventId: String) {
-        replyJumpSourceEventId = sourceEventId
-        replyJumpSourceTs = timelineEventController.findEventInSnapshot(sourceEventId)?.root?.originServerTs
+        captureReplyJumpSource(sourceEventId)
         timelineViewModel.handle(RoomDetailAction.NavigateToEvent(targetEventId, highlight = true))
     }
 

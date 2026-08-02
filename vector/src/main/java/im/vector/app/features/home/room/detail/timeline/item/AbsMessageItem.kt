@@ -158,7 +158,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             holder.replyToView?.delegate = inReplyToClickCallback
             // Stamp the source event before addListener (which renders the current state synchronously):
             // ReplyViewUpdater matches on sourceEventId to drop stale async updates onto a reused view.
-            holder.replyToView?.sourceEventId = attributes.informationData.stableId
+            // The real event id, not stableId: the jump-back navigation resolves it against the
+            // timeline, where a local echo's transaction id matches nothing once synced.
+            holder.replyToView?.sourceEventId = attributes.informationData.eventId
             holder.replyToView?.sourceIsSent = attributes.informationData.sendState.isSent()
             val safeReplyPreviewRetriever = replyPreviewRetriever
             if (safeReplyPreviewRetriever == null) {
