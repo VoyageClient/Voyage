@@ -1112,6 +1112,12 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/state/StateEventDataSource.kt',
         'org/matrix/android/sdk/internal/session/room/version/DefaultRoomVersionService.kt',
         'org/matrix/android/sdk/internal/session/workmanager/DefaultWorkManagerConfig.kt',
+        // UserAccountDataDataSource neutralized (live wrappers moved to an android extension);
+        // that lands DefaultSessionAccountDataService and the terms service cluster.
+        'org/matrix/android/sdk/internal/session/terms/DefaultTermsService.kt',
+        'org/matrix/android/sdk/internal/session/terms/TermsModule.kt',
+        'org/matrix/android/sdk/internal/session/user/accountdata/DefaultSessionAccountDataService.kt',
+        'org/matrix/android/sdk/internal/session/user/accountdata/UserAccountDataDataSource.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

@@ -37,6 +37,7 @@ import org.matrix.android.sdk.internal.extensions.observeNotNull
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateUserAccountDataTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UserAccountDataDataSource
+import org.matrix.android.sdk.internal.session.user.accountdata.getLiveAccountDataEvent
 import org.matrix.android.sdk.internal.session.widgets.helper.WidgetFactory
 import org.matrix.android.sdk.internal.session.widgets.helper.extractWidgetSequence
 import timber.log.Timber
