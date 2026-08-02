@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.contentscanner.data
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.contentscanner.ScanState
 import org.matrix.android.sdk.api.session.contentscanner.ScanStatusInfo
 import org.matrix.android.sdk.api.util.Optional
@@ -32,7 +32,7 @@ internal interface ContentScannerStore {
     fun isScanEnabled(): Boolean
 
     fun getScanResult(mxcUrl: String): ScanStatusInfo?
-    fun getLiveScanResult(mxcUrl: String): LiveData<Optional<ScanStatusInfo>>
+    fun getScanResultFlow(mxcUrl: String): Flow<Optional<ScanStatusInfo>>
     fun isScanResultKnownOrInProgress(mxcUrl: String, scannerUrl: String?): Boolean
 
     fun updateStateForContent(mxcUrl: String, state: ScanState, scannerUrl: String?)
