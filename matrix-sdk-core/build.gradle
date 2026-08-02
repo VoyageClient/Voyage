@@ -838,6 +838,8 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/widgets/WidgetsAPIProvider.kt',
         'org/matrix/android/sdk/internal/session/widgets/token/GetScalarTokenTask.kt',
         'org/matrix/android/sdk/internal/session/widgets/token/ScalarTokenStore.kt',
+        // Reactive-surface: in-memory LiveData state holder -> MutableStateFlow (behaviourally equivalent).
+        'org/matrix/android/sdk/internal/session/room/membership/RoomChangeMembershipStateDataSource.kt',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer

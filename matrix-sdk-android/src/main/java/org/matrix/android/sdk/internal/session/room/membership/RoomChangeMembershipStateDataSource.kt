@@ -16,9 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.room.membership
 
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.internal.session.SessionScope
@@ -31,7 +30,7 @@ import javax.inject.Inject
 @SessionScope
 internal class RoomChangeMembershipStateDataSource @Inject constructor() {
 
-    private val mutableLiveStates = MutableLiveData<Map<String, ChangeMembershipState>>(emptyMap())
+    private val mutableStates = MutableStateFlow<Map<String, ChangeMembershipState>>(emptyMap())
     private val states = ConcurrentHashMap<String, ChangeMembershipState>()
 
     /**
@@ -46,11 +45,11 @@ internal class RoomChangeMembershipStateDataSource @Inject constructor() {
 
     fun updateState(roomId: String, state: ChangeMembershipState) {
         states[roomId] = state
-        mutableLiveStates.postValue(states.toMap())
+        mutableStates.value = states.toMap()
     }
 
     fun getStatesFlow(): Flow<Map<String, ChangeMembershipState>> {
-        return mutableLiveStates.asFlow()
+        return mutableStates
     }
 
     fun getState(roomId: String): ChangeMembershipState {
