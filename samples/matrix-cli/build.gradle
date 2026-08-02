@@ -30,6 +30,11 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.squareup.okio:okio:3.6.0'
     implementation 'javax.inject:javax.inject:1'
+    implementation libs.squareup.retrofit
+    implementation libs.squareup.retrofitMoshi
+    // Reflection-based Kotlin adapter (KotlinJsonAdapterFactory) for the sample's own models, since
+    // the sample doesn't run Moshi's kapt codegen.
+    implementation 'com.squareup.moshi:moshi-kotlin:1.15.1'
 }
 
 // Friend path to reach :matrix-sdk-core's internal SDK machinery (stores, tasks, di), exactly as

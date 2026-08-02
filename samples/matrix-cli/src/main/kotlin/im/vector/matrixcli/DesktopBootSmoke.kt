@@ -8,6 +8,9 @@
 package im.vector.matrixcli
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import org.matrix.android.sdk.internal.network.RetrofitFactory
 import im.vector.matrixcli.platform.AssumeOnlineNetworkCallbackStrategyFactory
 import im.vector.matrixcli.platform.DesktopSecureStorage
 import im.vector.matrixcli.platform.FileKeyValueStoreFactory
@@ -135,6 +138,17 @@ class DesktopBootSmoke {
             } finally {
                 account.releaseAccount()
             }
+        }
+
+        check("core Retrofit/OkHttp/Moshi network (matrix.org /versions)") {
+            val moshi = MatrixJsonParser.getMoshi().newBuilder()
+                    .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
+                    .build()
+            val retrofit = RetrofitFactory(moshi)
+                    .create(OkHttpClient.Builder().build(), "https://matrix.org/")
+            val versions = runBlocking { retrofit.create(VersionsApi::class.java).versions() }
+            require(versions.versions.isNotEmpty()) { "no client versions returned" }
+            "matrix.org advertises ${versions.versions.size} versions, latest ${versions.versions.last()}"
         }
 
         dataDir.deleteRecursively()
