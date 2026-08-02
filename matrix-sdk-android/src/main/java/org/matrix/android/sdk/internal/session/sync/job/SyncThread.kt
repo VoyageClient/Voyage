@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.session.sync.job
 
 import android.os.SystemClock
-import androidx.lifecycle.Observer
 import com.squareup.moshi.JsonEncodingException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +34,6 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.isTokenError
 import org.matrix.android.sdk.api.logger.LoggerTag
-import org.matrix.android.sdk.api.session.call.MxCall
 import org.matrix.android.sdk.api.session.sync.SyncState
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.internal.network.NetworkConnectivityChecker
@@ -104,11 +102,7 @@ internal class SyncThread @Inject constructor(
     @Volatile
     private var forceImmediateSync = false
 
-    private val activeCallListObserver = Observer<MutableList<MxCall>> { activeCalls ->
-        if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground) {
-            pause()
-        }
-    }
+    private var activeCallsJob: Job? = null
 
     private val _syncFlow = MutableSharedFlow<SyncResponse>()
 
@@ -267,15 +261,18 @@ internal class SyncThread @Inject constructor(
     }
 
     private fun registerActiveCallsObserver() {
-        syncScope.launch(Dispatchers.Main) {
-            activeCallHandler.getActiveCallsLiveData().observeForever(activeCallListObserver)
+        activeCallsJob = syncScope.launch(Dispatchers.Main) {
+            activeCallHandler.getActiveCallsFlow().collect { activeCalls ->
+                if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground) {
+                    pause()
+                }
+            }
         }
     }
 
     private fun unregisterActiveCallsObserver() {
-        syncScope.launch(Dispatchers.Main) {
-            activeCallHandler.getActiveCallsLiveData().removeObserver(activeCallListObserver)
-        }
+        activeCallsJob?.cancel()
+        activeCallsJob = null
     }
 
     /**
@@ -334,7 +331,7 @@ internal class SyncThread @Inject constructor(
     }
 
     override fun onMoveToBackground() {
-        if (activeCallHandler.getActiveCallsLiveData().value.isNullOrEmpty()) {
+        if (activeCallHandler.getActiveCallsFlow().value.isEmpty()) {
             pause()
         }
     }

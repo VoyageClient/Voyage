@@ -54,7 +54,7 @@ internal class DefaultCallSignalingService @Inject constructor(
     }
 
     override fun isThereAnyActiveCall(): Boolean {
-        return activeCallHandler.getActiveCallsLiveData().value?.isNotEmpty() == true
+        return activeCallHandler.getActiveCallsFlow().value.isNotEmpty()
     }
 
     companion object {

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.matrix.android.sdk.api.session.call;
+package org.matrix.android.sdk.api.session.call
 
 /**
  * This is a copy of https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/connectionState
  * to avoid having the dependency over WebRtc library on sdk.
  */
-public enum MxPeerConnectionState {
+enum class MxPeerConnectionState {
     NEW,
     CONNECTING,
     CONNECTED,
