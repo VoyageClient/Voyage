@@ -16,8 +16,9 @@
 
 package org.matrix.android.sdk.internal.session.call
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import org.matrix.android.sdk.api.session.call.MxCall
 import org.matrix.android.sdk.internal.session.SessionScope
 import javax.inject.Inject
@@ -25,21 +26,21 @@ import javax.inject.Inject
 @SessionScope
 internal class ActiveCallHandler @Inject constructor() {
 
-    private val activeCallListLiveData: MutableLiveData<MutableList<MxCall>> by lazy {
-        MutableLiveData<MutableList<MxCall>>(mutableListOf())
-    }
+    // update {} publishes a new list each time so the StateFlow always emits (an in-place mutation
+    // of the same reference would not).
+    private val activeCalls = MutableStateFlow<List<MxCall>>(emptyList())
 
     fun addCall(call: MxCall) {
-        activeCallListLiveData.postValue(activeCallListLiveData.value?.apply { add(call) })
+        activeCalls.update { it + call }
     }
 
     fun removeCall(callId: String) {
-        activeCallListLiveData.postValue(activeCallListLiveData.value?.apply { removeAll { it.callId == callId } })
+        activeCalls.update { calls -> calls.filterNot { it.callId == callId } }
     }
 
     fun getCallWithId(callId: String): MxCall? {
-        return activeCallListLiveData.value?.find { it.callId == callId }
+        return activeCalls.value.find { it.callId == callId }
     }
 
-    fun getActiveCallsLiveData(): LiveData<MutableList<MxCall>> = activeCallListLiveData
+    fun getActiveCallsFlow(): StateFlow<List<MxCall>> = activeCalls
 }

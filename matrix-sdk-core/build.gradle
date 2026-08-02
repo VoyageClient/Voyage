@@ -840,6 +840,10 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/widgets/token/ScalarTokenStore.kt',
         // Reactive-surface: in-memory LiveData state holder -> MutableStateFlow (behaviourally equivalent).
         'org/matrix/android/sdk/internal/session/room/membership/RoomChangeMembershipStateDataSource.kt',
+        // Call handling (ActiveCallHandler converted off LiveData); untested — the app has no calling UI.
+        'org/matrix/android/sdk/api/session/call/**',
+        'org/matrix/android/sdk/internal/session/EventInsertLiveProcessor.kt',
+        'org/matrix/android/sdk/internal/session/call/**',
 ]
 
 // Service interfaces swept in by the coreSources globs but deferred to the android/adapter layer
@@ -853,6 +857,15 @@ ext.coreExcludes = [
         'org/matrix/android/sdk/internal/database/sql/store/ThreadSummarySqlHelper.kt',
         // Android-coupled crypto store facade (IMXCryptoStore impl used by DefaultCryptoService).
         'org/matrix/android/sdk/internal/crypto/store/db/sql/SqlCryptoStore.kt',
+        // Call impl/factory need the local-echo/sender send-path; TurnServerDataSource uses android
+        // SystemClock; the signaling handler/service + module depend on those, so they stay android.
+        'org/matrix/android/sdk/internal/session/call/model/MxCallImpl.kt',
+        'org/matrix/android/sdk/internal/session/call/MxCallFactory.kt',
+        'org/matrix/android/sdk/internal/session/call/TurnServerDataSource.kt',
+        'org/matrix/android/sdk/internal/session/call/CallSignalingHandler.kt',
+        'org/matrix/android/sdk/internal/session/call/DefaultCallSignalingService.kt',
+        'org/matrix/android/sdk/internal/session/call/CallModule.kt',
+        'org/matrix/android/sdk/internal/session/call/CallEventProcessor.kt',
         // Crypto sub-stores blocked on android/olm-tainted deps (CryptoRoomEntity, BackupUtils, ClearCacheTask).
         'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoRoomSqlStore.kt',
         'org/matrix/android/sdk/internal/crypto/store/db/sql/CryptoMetadataStore.kt',
