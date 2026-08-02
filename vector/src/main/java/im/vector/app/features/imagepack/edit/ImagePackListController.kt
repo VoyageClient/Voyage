@@ -12,7 +12,10 @@ import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import javax.inject.Inject
 
 class ImagePackListController @Inject constructor(
@@ -42,6 +45,14 @@ class ImagePackListController @Inject constructor(
         val host = this
         val contentUrlResolver = activeSessionHolder.getSafeActiveSession()?.contentUrlResolver()
 
+        val showsCreateOptions = data.inRoom && data.canCreateRoomPack
+        if (data.packs.isEmpty() && !showsCreateOptions) {
+            genericFooterItem {
+                id("empty")
+                text(host.stringProvider.getString(CommonStrings.image_pack_list_empty).toEpoxyCharSequence())
+            }
+        }
+
         data.packs.forEachIndexed { index, pack ->
             val key = "${pack.kind}_${pack.roomId}_${pack.stateKey}"
             // Divider only between packs, never above the first or below the last.
@@ -59,7 +70,10 @@ class ImagePackListController @Inject constructor(
                 id(key)
                 title(title)
                 subtitle(host.subtitleFor(pack))
-                resolvedAvatarUrl((pack.avatarUrl ?: pack.firstImageUrl)?.let { contentUrlResolver?.resolveFullSize(it) })
+                // Thumbnail, not full size: pack avatars can be multi-megabyte originals
+                resolvedAvatarUrl((pack.avatarUrl ?: pack.firstImageUrl)?.let {
+                    contentUrlResolver?.resolveThumbnail(it, AVATAR_THUMBNAIL_SIZE, AVATAR_THUMBNAIL_SIZE, ContentUrlResolver.ThumbnailMethod.SCALE)
+                })
                 showGlobalSwitch(pack.canToggleGlobal)
                 globalEnabled(pack.isGloballyEnabled)
                 onGlobalToggled { enabled -> host.listener?.onGlobalToggled(pack, enabled) }
@@ -67,7 +81,7 @@ class ImagePackListController @Inject constructor(
             }
         }
 
-        if (data.inRoom && data.canCreateRoomPack) {
+        if (showsCreateOptions) {
             if (data.packs.isNotEmpty()) dividerItem { id("divider_create_room") }
             imagePackListItem {
                 id("create_room")
@@ -99,5 +113,10 @@ class ImagePackListController @Inject constructor(
                 }
         )
         return "$source · $count"
+    }
+
+    private companion object {
+        // 40dp list avatar at up to ~4x density
+        const val AVATAR_THUMBNAIL_SIZE = 160
     }
 }
