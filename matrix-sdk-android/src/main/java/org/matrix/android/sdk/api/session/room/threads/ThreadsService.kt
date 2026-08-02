@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.room.threads
 
-import androidx.paging.PagedList
 import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
 
 /**
@@ -26,8 +25,6 @@ import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummary
  * then [org.matrix.android.sdk.api.session.room.threads.local.ThreadsLocalService] should be used instead
  */
 interface ThreadsService {
-
-    suspend fun getPagedThreadsList(userParticipating: Boolean, pagedListConfig: PagedList.Config): ThreadLivePageResult
 
     suspend fun fetchThreadList(nextBatchId: String?, limit: Int, filter: ThreadFilter = ThreadFilter.ALL): FetchThreadsResult
 
