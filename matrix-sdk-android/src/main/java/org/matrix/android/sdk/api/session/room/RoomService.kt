@@ -16,9 +16,7 @@
 
 package org.matrix.android.sdk.api.session.room
 
-import androidx.lifecycle.LiveData
 import kotlinx.coroutines.flow.Flow
-import androidx.paging.PagedList
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasDescription
@@ -249,37 +247,6 @@ interface RoomService {
     suspend fun peekRoom(roomIdOrAlias: String): PeekResult
 
     /**
-     * TODO Doc.
-     */
-    fun getPagedRoomSummariesLive(
-            queryParams: RoomSummaryQueryParams,
-            pagedListConfig: PagedList.Config = defaultPagedListConfig,
-            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
-    ): LiveData<PagedList<RoomSummary>>
-
-    /**
-     * Only notifies when this query has changes.
-     * It doesn't load any items in memory
-     */
-    fun roomSummariesChangesLive(
-            queryParams: RoomSummaryQueryParams,
-            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
-    ): LiveData<List<Unit>>
-
-    /**
-     * Get's a live paged list from a filter that can be dynamically updated.
-     *
-     * @param queryParams The filter to use
-     * @param pagedListConfig The paged list configuration (page size, initial load, prefetch distance...)
-     * @param sortOrder defines how to sort the results
-     */
-    fun getFilteredPagedRoomSummariesLive(
-            queryParams: RoomSummaryQueryParams,
-            pagedListConfig: PagedList.Config = defaultPagedListConfig,
-            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY,
-    ): UpdatableLivePageResult
-
-    /**
      * Return a LiveData on the number of rooms.
      * @param queryParams parameters to query the room summaries. It can be use to keep only joined rooms, for instance.
      */
@@ -290,23 +257,7 @@ interface RoomService {
      */
     fun getNotificationCountForRooms(queryParams: RoomSummaryQueryParams): RoomAggregateNotificationCount
 
-    private val defaultPagedListConfig
-        get() = PagedList.Config.Builder()
-                .setPageSize(10)
-                .setInitialLoadSizeHint(20)
-                .setEnablePlaceholders(false)
-                .setPrefetchDistance(10)
-                .build()
-
     fun getFlattenRoomSummaryChildrenOf(spaceId: String?, memberships: List<Membership> = Membership.activeMemberships()): List<RoomSummary>
-
-    /**
-     * Returns all the children of this space, as LiveData.
-     */
-    fun getFlattenRoomSummaryChildrenOfLive(
-            spaceId: String?,
-            memberships: List<Membership> = Membership.activeMemberships()
-    ): LiveData<List<RoomSummary>>
 
     /**
      * Refreshes the RoomSummary LatestPreviewContent for the given @param roomId.
