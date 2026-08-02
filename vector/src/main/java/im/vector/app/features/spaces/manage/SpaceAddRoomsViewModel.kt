@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -58,7 +59,7 @@ class SpaceAddRoomsViewModel @AssistedInject constructor(
     private val roomService = session.roomService()
 
     val spaceUpdatableLivePageResult: UpdatableLivePageResult by lazy {
-        roomService.getFilteredPagedRoomSummariesLive(
+        (roomService as RoomPagingService).getFilteredPagedRoomSummariesLive(
                 roomSummaryQueryParams {
                     this.memberships = listOf(Membership.JOIN)
                     this.excludeType = null
@@ -83,7 +84,7 @@ class SpaceAddRoomsViewModel @AssistedInject constructor(
     }
 
     val roomUpdatableLivePageResult: UpdatableLivePageResult by lazy {
-        roomService.getFilteredPagedRoomSummariesLive(
+        (roomService as RoomPagingService).getFilteredPagedRoomSummariesLive(
                 roomSummaryQueryParams {
                     this.memberships = listOf(Membership.JOIN)
                     this.excludeType = listOf(RoomType.SPACE)
@@ -109,7 +110,7 @@ class SpaceAddRoomsViewModel @AssistedInject constructor(
     }
 
     val dmUpdatableLivePageResult: UpdatableLivePageResult by lazy {
-        roomService.getFilteredPagedRoomSummariesLive(
+        (roomService as RoomPagingService).getFilteredPagedRoomSummariesLive(
                 roomSummaryQueryParams {
                     this.memberships = listOf(Membership.JOIN)
                     this.excludeType = listOf(RoomType.SPACE)

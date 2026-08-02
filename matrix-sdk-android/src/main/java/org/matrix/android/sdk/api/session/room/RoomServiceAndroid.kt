@@ -9,6 +9,8 @@ package org.matrix.android.sdk.api.session.room
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
+import androidx.paging.PagedList
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.util.Optional
 
@@ -29,3 +31,41 @@ fun RoomService.getRoomSummariesLive(
 fun Room.getRoomSummaryLive(): LiveData<Optional<RoomSummary>> = getRoomSummaryFlow().asLiveData()
 
 fun RoomService.getRoomSummaryLive(roomId: String): LiveData<Optional<RoomSummary>> = getRoomSummaryFlow(roomId).asLiveData()
+
+/**
+ * Android-only paged / LiveData room-summary views, kept off [RoomService] (which stays plain-JVM, no
+ * androidx.paging/lifecycle). The android RoomService impl also implements this; cast roomService() to
+ * reach it.
+ */
+interface RoomPagingService {
+
+    fun getPagedRoomSummariesLive(
+            queryParams: RoomSummaryQueryParams,
+            pagedListConfig: PagedList.Config = defaultPagedListConfig,
+            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
+    ): LiveData<PagedList<RoomSummary>>
+
+    fun roomSummariesChangesLive(
+            queryParams: RoomSummaryQueryParams,
+            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
+    ): LiveData<List<Unit>>
+
+    fun getFilteredPagedRoomSummariesLive(
+            queryParams: RoomSummaryQueryParams,
+            pagedListConfig: PagedList.Config = defaultPagedListConfig,
+            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY,
+    ): UpdatableLivePageResult
+
+    fun getFlattenRoomSummaryChildrenOfLive(
+            spaceId: String?,
+            memberships: List<Membership> = Membership.activeMemberships()
+    ): LiveData<List<RoomSummary>>
+
+    private val defaultPagedListConfig
+        get() = PagedList.Config.Builder()
+                .setPageSize(10)
+                .setInitialLoadSizeHint(20)
+                .setEnablePlaceholders(false)
+                .setPrefetchDistance(10)
+                .build()
+}

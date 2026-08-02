@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
@@ -66,7 +67,7 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
     private val roomService = session.roomService()
 
     init {
-        roomService.roomSummariesChangesLive(
+        (roomService as RoomPagingService).roomSummariesChangesLive(
                 roomSummaryQueryParams {
                     this.memberships = listOf(Membership.JOIN)
                     this.spaceFilter = SpaceFilter.OrphanRooms
@@ -102,7 +103,7 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
         combine(
                 spaceStateHandler.getSelectedSpaceFlow().distinctUntilChanged(),
                 spaceStateHandler.getSelectedSpaceFlow().flatMapLatest {
-                    roomService.roomSummariesChangesLive(
+                    (roomService as RoomPagingService).roomSummariesChangesLive(
                             roomSummaryQueryParams {
                                 this.memberships = Membership.activeMemberships()
                             }, sortOrder = RoomSortOrder.NONE

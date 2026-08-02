@@ -864,6 +864,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/room/threads/ThreadsService.kt',
         'org/matrix/android/sdk/api/session/room/Room.kt',
         'org/matrix/android/sdk/api/session/space/Space.kt',
+        'org/matrix/android/sdk/api/session/room/RoomService.kt',
         // Call handling (ActiveCallHandler converted off LiveData); untested — the app has no calling UI.
         'org/matrix/android/sdk/api/session/call/**',
         'org/matrix/android/sdk/internal/session/EventInsertLiveProcessor.kt',

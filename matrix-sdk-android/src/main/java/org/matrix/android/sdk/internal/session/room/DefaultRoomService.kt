@@ -26,6 +26,7 @@ import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
@@ -81,7 +82,7 @@ internal class DefaultRoomService @Inject constructor(
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val leaveRoomTask: LeaveRoomTask,
         private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
-) : RoomService {
+) : RoomService, RoomPagingService {
 
     override suspend fun createRoom(createRoomParams: CreateRoomParams): String {
         return createRoomTask.executeRetry(createRoomParams, 3)
