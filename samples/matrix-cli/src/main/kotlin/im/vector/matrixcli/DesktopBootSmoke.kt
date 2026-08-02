@@ -18,6 +18,8 @@ import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.internal.auth.db.AuthSqlDatabase
+import org.matrix.olm.OlmAccount
+import org.matrix.olm.OlmManager
 import java.nio.file.Files
 
 /**
@@ -120,6 +122,19 @@ class DesktopBootSmoke {
             strategy.register { }
             strategy.unregister()
             "assume-online strategy satisfies the seam"
+        }
+
+        check("olm native crypto (identity keys)") {
+            OlmManager()
+            val account = OlmAccount()
+            try {
+                val keys = account.identityKeys()
+                val curve = keys[OlmAccount.JSON_KEY_IDENTITY_KEY]
+                require(!curve.isNullOrEmpty()) { "no curve25519 identity key produced" }
+                "olm loaded, curve25519 key len=${curve.length}"
+            } finally {
+                account.releaseAccount()
+            }
         }
 
         dataDir.deleteRecursively()
