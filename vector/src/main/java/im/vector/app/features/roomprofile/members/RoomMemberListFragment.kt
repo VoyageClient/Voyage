@@ -61,7 +61,9 @@ class RoomMemberListFragment :
                 .allowBack()
         setupSearchView()
         setupInviteUsersButton()
-        views.roomSettingGeneric.roomSettingsRecyclerView.configureWith(roomMemberListController, hasFixedSize = true)
+        // Item animations run RecyclerView's predictive-animation layout over the whole adapter; on a
+        // very large membership that froze the main thread (ANR). The list doesn't need them.
+        views.roomSettingGeneric.roomSettingsRecyclerView.configureWith(roomMemberListController, hasFixedSize = true, disableItemAnimation = true)
     }
 
     private fun setupInviteUsersButton() {
