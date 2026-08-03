@@ -312,6 +312,45 @@ internal class SqlTimeline(
         }
     }
 
+    override suspend fun restartAtRoomStart(targetEventId: String?): String? = withContext(readDispatcher) {
+        // Prefer the true first event: /context on it resolves a chunk for most room versions. It 403s on
+        // room v12 (the create event's id is the room hash) and under restricted history — reaching the real
+        // origin would then mean paginating the entire room, so we instead fall back to the oldest event we
+        // already have loaded. Instant, no network.
+        val targetChunk = targetEventId?.let { chunkForEvent(it) }
+        val seedChunk: Long?
+        val anchor: String?
+        if (targetChunk != null) {
+            seedChunk = targetChunk
+            anchor = targetEventId
+        } else {
+            seedChunk = oldestLoadedChunkId()
+            anchor = seedChunk?.let { oldestEventIdInChunk(it) }
+        }
+        pendingShowEventId = anchor
+        oldestShownEventId = null
+        newestShownEventId = null
+        viewAtLiveEdge = false
+        seedFrom(seedChunk ?: resolveSeedChunkId())
+        rebuildSnapshot()
+        anchor
+    }
+
+    /** The oldest chunk reachable by walking prev_chunk_id back from the live edge — the oldest event we can
+     *  show without a server round-trip. Stops at is_last_backward (true room start) or a broken/absent link. */
+    private fun oldestLoadedChunkId(): Long? {
+        var chunk = stores.chunk.lastForward(roomId) ?: return null
+        while (chunk.is_last_backward == 0L) {
+            val prevId = chunk.prev_chunk_id ?: break
+            chunk = stores.chunk.getById(prevId) ?: break
+        }
+        return chunk.id
+    }
+
+    // Newest event has the largest display_index (the window sorts DESC), so the oldest is the minimum.
+    private fun oldestEventIdInChunk(chunkId: Long): String? =
+            stores.timelineEvent.getByChunk(chunkId).minByOrNull { it.displayIndex }?.eventId
+
     override fun setViewAtLiveEdge(atLiveEdge: Boolean) {
         viewAtLiveEdge = atLiveEdge
     }

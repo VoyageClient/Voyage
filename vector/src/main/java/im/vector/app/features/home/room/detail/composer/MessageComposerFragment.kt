@@ -700,7 +700,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             event.notFoundMessage?.let { showSnackWithMessage(it) }
             return
         }
-        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
+        timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true, toRoomStart = event.toRoomStart))
     }
 
     private val contentAttachmentActivityResultLauncher = registerStartForActivityResult { activityResult ->

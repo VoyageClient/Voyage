@@ -52,7 +52,7 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
      * Result of a /jumpto or /jumptostart command. [eventId] is the resolved target — null
      * when the command failed to resolve (e.g. unknown event id, no room-create event found).
      */
-    data class JumpToEvent(val eventId: String?, val notFoundMessage: String? = null) : MessageComposerViewEvents()
+    data class JumpToEvent(val eventId: String?, val notFoundMessage: String? = null, val toRoomStart: Boolean = false) : MessageComposerViewEvents()
 
     /** OpenKeychain needs the user (passphrase / key picker) before it can encrypt. */
     data class LaunchPgpInteraction(val pendingIntent: android.app.PendingIntent) : MessageComposerViewEvents()

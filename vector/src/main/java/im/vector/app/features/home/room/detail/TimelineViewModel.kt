@@ -1052,18 +1052,29 @@ private fun handleSelectStickerAttachment() {
     }
 
     private fun handleNavigateToEvent(action: RoomDetailAction.NavigateToEvent) {
-        if (timeline == null) return
+        val timeline = timeline ?: return
+        if (action.toRoomStart) {
+            viewModelScope.launch {
+                val landedEventId = timeline.restartAtRoomStart(action.eventId) ?: return@launch
+                navigateToLandedEvent(landedEventId, action, restart = false)
+            }
+            return
+        }
         val targetEventId: String = action.eventId
         val indexOfEvent = timeline.getIndexOfEvent(targetEventId)
-        if (indexOfEvent == null) {
+        navigateToLandedEvent(targetEventId, action, restart = indexOfEvent == null)
+    }
+
+    private fun navigateToLandedEvent(eventId: String, action: RoomDetailAction.NavigateToEvent, restart: Boolean) {
+        if (restart) {
             // Event is not already in RAM
-            timeline.restartWithEventId(targetEventId)
+            timeline?.restartWithEventId(eventId)
         }
         if (action.highlight) {
-            setState { copy(highlightedEventId = targetEventId, highlightNonce = highlightNonce + 1) }
-            scheduleHighlightClear(targetEventId)
+            setState { copy(highlightedEventId = eventId, highlightNonce = highlightNonce + 1) }
+            scheduleHighlightClear(eventId)
         }
-        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(targetEventId, action.isFirstUnreadEvent))
+        _viewEvents.post(RoomDetailViewEvents.NavigateToEvent(eventId, action.isFirstUnreadEvent))
     }
 
     private fun handleResendEvent(action: RoomDetailAction.ResendMessage) {

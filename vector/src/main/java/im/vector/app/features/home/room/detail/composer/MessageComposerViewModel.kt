@@ -853,7 +853,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                                     .getStateEvent(EventType.STATE_ROOM_CREATE, QueryStringValue.IsEmpty)
                                     ?.eventId
                             if (createEventId != null) {
-                                _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = createEventId))
+                                _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = createEventId, toRoomStart = true))
                                 _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                                 popDraft(room, state.sendMode)
                             } else {
