@@ -18,7 +18,9 @@ package org.matrix.android.sdk.internal.session.room.membership
 
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
@@ -36,11 +38,13 @@ import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.RoomDataSource
+import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.sync.SyncTokenStore
 import org.matrix.android.sdk.internal.task.Task
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -52,6 +56,7 @@ internal interface LoadRoomMembersTask : Task<LoadRoomMembersTask.Params, Unit> 
     )
 }
 
+@SessionScope
 internal class DefaultLoadRoomMembersTask @Inject constructor(
         private val roomAPI: RoomAPI,
         @SessionDatabase private val database: SessionSqlDatabase,
@@ -67,11 +72,17 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
         private val clock: Clock,
 ) : LoadRoomMembersTask {
 
+    // Rooms with a /members request genuinely in flight in this process. A persisted LOADING marker alone can't
+    // be trusted: a request cancelled with its caller's scope (or an app killed mid-load) leaves LOADING behind
+    // with nothing running, which would otherwise wedge the member list until a 1-minute timeout on each reopen.
+    private val inFlightRoomIds = Collections.synchronizedSet(HashSet<String>())
+
     override suspend fun execute(params: LoadRoomMembersTask.Params) {
-        when (roomDataSource.getRoomMembersLoadStatus(params.roomId)) {
-            RoomMembersLoadStatusType.NONE -> doRequest(params)
-            RoomMembersLoadStatusType.LOADING -> waitPreviousRequestToFinish(params)
-            RoomMembersLoadStatusType.LOADED -> Unit
+        when {
+            roomDataSource.getRoomMembersLoadStatus(params.roomId) == RoomMembersLoadStatusType.LOADED -> Unit
+            params.roomId in inFlightRoomIds -> waitPreviousRequestToFinish(params)
+            // NONE, or a stale LOADING left by a dead/cancelled request — fetch either way.
+            else -> doRequest(params)
         }
     }
 
@@ -83,26 +94,40 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
                     dispatcher = dispatcher,
             )
         } catch (exception: TimeoutCancellationException) {
-            // Timeout, do the request anyway (?)
             doRequest(params)
         }
     }
 
     private suspend fun doRequest(params: LoadRoomMembersTask.Params) {
-        setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.LOADING)
+        inFlightRoomIds.add(params.roomId)
+        try {
+            setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.LOADING)
 
-        val lastToken = syncTokenStore.getLastToken()
-        val response = try {
-            executeRequest(globalErrorReceiver) {
-                roomAPI.getMembers(params.roomId, lastToken, null, params.excludeMembership)
+            val lastToken = syncTokenStore.getLastToken()
+            val response = try {
+                executeRequest(globalErrorReceiver) {
+                    roomAPI.getMembers(params.roomId, lastToken, null, params.excludeMembership)
+                }
+            } catch (throwable: Throwable) {
+                // NonCancellable so the revert still runs if the caller's scope died mid-request; otherwise the
+                // marker stays stuck at LOADING.
+                withContext(NonCancellable) {
+                    setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE)
+                }
+                throw throwable
             }
-        } catch (throwable: Throwable) {
-            // Revert status to NONE
-            setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE)
-            throw throwable
+            try {
+                // This will also set the status to LOADED
+                insertInDb(response, params.roomId)
+            } catch (throwable: Throwable) {
+                withContext(NonCancellable) {
+                    setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE)
+                }
+                throw throwable
+            }
+        } finally {
+            inFlightRoomIds.remove(params.roomId)
         }
-        // This will also set the status to LOADED
-        insertInDb(response, params.roomId)
     }
 
     private suspend fun insertInDb(response: RoomMembersResponse, roomId: String) {
