@@ -25,7 +25,6 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.getSpans
 import im.vector.app.core.utils.CodeSelectionBoundsHost
 import im.vector.app.core.utils.clampSelectionToCodeSpans
-import im.vector.app.core.utils.mirrorPressedToRowFlash
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
 import im.vector.app.core.utils.replaySwallowedTap
@@ -126,11 +125,6 @@ class FooteredTextView @JvmOverloads constructor(
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection? =
             if (isTextSelectable) readOnlySelectionInputConnection(outAttrs) else super.onCreateInputConnection(outAttrs)
-
-    override fun setPressed(pressed: Boolean) {
-        super.setPressed(pressed)
-        mirrorPressedToRowFlash(pressed)
-    }
 
     override fun startActionMode(callback: ActionMode.Callback?): ActionMode? =
             startActionModeGuarded { super.startActionMode(callback) }
