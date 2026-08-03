@@ -46,6 +46,10 @@ data class RoomSummary(
          */
         val topic: String = "",
         /**
+         * The HTML rendering of the topic (MSC3765), or null when the topic is plain text only.
+         */
+        val topicFormatted: String? = null,
+        /**
          * The value of the live state event `m.room.avatar`.
          */
         val avatarUrl: String = "",

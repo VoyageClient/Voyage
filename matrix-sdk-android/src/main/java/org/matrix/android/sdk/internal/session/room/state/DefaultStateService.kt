@@ -36,6 +36,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesAllowEntry
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.state.StateService
 import org.matrix.android.sdk.api.util.JsonDict
@@ -105,10 +106,22 @@ internal class DefaultStateService @AssistedInject constructor(
         }
     }
 
-    override suspend fun updateTopic(topic: String) {
+    override suspend fun updateTopic(topic: String, formattedTopic: String?) {
+        // Keep the legacy `topic` field for backwards compatibility (MSC3765).
+        val body = mutableMapOf<String, Any>("topic" to topic)
+        if (topic.isNotEmpty()) {
+            // Richest first: a client rendering the first mimetype it understands (MSC3765) gets HTML.
+            val representations = buildList {
+                if (!formattedTopic.isNullOrEmpty()) {
+                    add(mapOf("body" to formattedTopic, "mimetype" to MimeTypes.Html))
+                }
+                add(mapOf("body" to topic, "mimetype" to MimeTypes.PlainText))
+            }
+            body[RoomTopicContent.TOPIC_MSC3765] = mapOf("m.text" to representations)
+        }
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_TOPIC,
-                body = mapOf("topic" to topic),
+                body = body,
                 stateKey = ""
         )
     }

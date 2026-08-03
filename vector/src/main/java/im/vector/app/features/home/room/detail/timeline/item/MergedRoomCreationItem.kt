@@ -258,7 +258,7 @@ abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.H
                         span(holder.view.resources.getString(CommonStrings.topic_prefix)) {
                             textStyle = "bold"
                         }
-                        +topic.formatTopic(roomSummary?.roomId, attributes.callback)
+                        +topic.formatTopic(roomSummary?.roomId, roomSummary?.topicFormatted, attributes.callback)
                     }
             )
         }

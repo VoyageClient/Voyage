@@ -119,7 +119,7 @@ class SpaceSettingsMenuBottomSheet : VectorBaseBottomSheetDialogFragment<BottomS
             avatarRenderer.render(it, views.spaceAvatarImageView)
         }
         views.spaceNameView.text = state.spaceSummary?.displayName?.prepareForDisplay()
-        views.spaceDescription.setTextOrHide(state.spaceSummary?.topic?.takeIf { it.isNotEmpty() }?.formatTopic(state.spaceSummary.roomId))
+        views.spaceDescription.setTextOrHide(state.spaceSummary?.topic?.takeIf { it.isNotEmpty() }?.formatTopic(state.spaceSummary.roomId, state.spaceSummary.topicFormatted))
 
         views.spaceSettings.isVisible = state.canEditSettings
 

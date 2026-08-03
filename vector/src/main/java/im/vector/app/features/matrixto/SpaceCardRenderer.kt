@@ -49,7 +49,7 @@ class SpaceCardRenderer @Inject constructor(
             avatarRenderer.render(spaceSummary.toMatrixItem().let { if (hideAvatar) it.updateAvatar(null) else it }, inCard.matrixToCardAvatar)
             inCard.matrixToCardNameText.text = spaceSummary.name.prepareForDisplay()
             inCard.matrixToCardAliasText.setTextOrHide(spaceSummary.canonicalAlias)
-            inCard.matrixToCardDescText.setTextOrHide(spaceSummary.topic.formatTopic(spaceSummary.roomId, matrixLinkCallback))
+            inCard.matrixToCardDescText.setTextOrHide(spaceSummary.topic.formatTopic(spaceSummary.roomId, spaceSummary.topicFormatted, matrixLinkCallback))
             if (spaceSummary.isPublic) {
                 inCard.matrixToAccessText.setTextOrHide(stringProvider.getString(CommonStrings.public_space))
                 inCard.matrixToAccessImage.isVisible = true
@@ -99,7 +99,7 @@ class SpaceCardRenderer @Inject constructor(
             avatarRenderer.render(spaceChildInfo.toMatrixItem(), inCard.matrixToCardAvatar)
             inCard.matrixToCardNameText.setTextOrHide(spaceChildInfo.name?.prepareForDisplay())
             inCard.matrixToCardAliasText.setTextOrHide(spaceChildInfo.canonicalAlias)
-            inCard.matrixToCardDescText.setTextOrHide(spaceChildInfo.topic?.formatTopic(spaceChildInfo.childRoomId, matrixLinkCallback))
+            inCard.matrixToCardDescText.setTextOrHide(spaceChildInfo.topic?.formatTopic(spaceChildInfo.childRoomId, callback = matrixLinkCallback))
             if (spaceChildInfo.worldReadable) {
                 inCard.matrixToAccessText.setTextOrHide(stringProvider.getString(CommonStrings.public_space))
                 inCard.matrixToAccessImage.isVisible = true

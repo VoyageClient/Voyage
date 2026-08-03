@@ -10,6 +10,7 @@ CREATE TABLE room_summary (
     avatar_url TEXT,
     name TEXT,
     topic TEXT,
+    topic_formatted TEXT,
     latest_previewable_event_id TEXT,
     last_activity_time INTEGER,
     heroes TEXT NOT NULL DEFAULT '',
@@ -102,7 +103,7 @@ UPDATE room_summary SET is_hidden_from_user = ? WHERE room_id = ?;
 
 upsert:
 INSERT OR REPLACE INTO room_summary(
-    room_id, room_type, display_name, normalized_display_name, avatar_url, name, topic,
+    room_id, room_type, display_name, normalized_display_name, avatar_url, name, topic, topic_formatted,
     latest_previewable_event_id, last_activity_time, heroes, joined_members_count, invited_members_count,
     is_direct, direct_user_id, other_member_ids, notification_count, highlight_count,
     thread_notification_count, thread_highlight_count, read_marker_id, has_unread_messages, marked_unread,
@@ -112,7 +113,7 @@ INSERT OR REPLACE INTO room_summary(
     is_hidden_from_user, versioning_state_str, join_rules_str, direct_parent_names
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 updateEncryptionTrustLevel:

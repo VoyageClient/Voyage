@@ -335,7 +335,8 @@ class NoticeEventFormatter @Inject constructor(
 
     private fun formatRoomTopicEvent(event: Event, senderName: String?): CharSequence? {
         val content = event.content.toModel<RoomTopicContent>() ?: return null
-        return if (content.topic.isNullOrEmpty()) {
+        val topic = content.getBestTopic()
+        return if (topic.isNullOrEmpty()) {
             if (event.isSentByCurrentUser()) {
                 sp.getString(CommonStrings.notice_room_topic_removed_by_you)
             } else {
@@ -343,9 +344,9 @@ class NoticeEventFormatter @Inject constructor(
             }
         } else {
             if (event.isSentByCurrentUser()) {
-                sp.getString(CommonStrings.notice_room_topic_changed_by_you, content.topic)
+                sp.getString(CommonStrings.notice_room_topic_changed_by_you, topic)
             } else {
-                sp.getString(CommonStrings.notice_room_topic_changed, senderName, content.topic)
+                sp.getString(CommonStrings.notice_room_topic_changed, senderName, topic)
             }
         }
     }

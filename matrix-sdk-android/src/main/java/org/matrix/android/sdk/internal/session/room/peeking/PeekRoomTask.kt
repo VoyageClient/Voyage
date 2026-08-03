@@ -146,7 +146,7 @@ internal class DefaultPeekRoomTask @Inject constructor(
 
             val topic = stateEvents
                     .lastOrNull { it.type == EventType.STATE_ROOM_TOPIC && it.stateKey == "" }
-                    ?.let { it.content?.toModel<RoomTopicContent>()?.topic }
+                    ?.let { it.content?.toModel<RoomTopicContent>()?.getBestTopic() }
 
             val avatarUrl = stateEvents
                     .lastOrNull { it.type == EventType.STATE_ROOM_AVATAR }

@@ -49,11 +49,12 @@ var messageEmojiSpanify: EmojiSpanify? = null
 var messageTopicRenderer: RoomTopicRenderer? = null
 
 /**
- * Render a room topic for display: HTML + composer-style markdown + pills, with matrix ids/aliases made
- * clickable (routed to [callback]). Falls back to plain linkify when the renderer isn't wired yet.
+ * Render a room topic for display, preferring its [formattedTopic] HTML body and falling back to
+ * markdown rendering of the plain text, then pills + matrix ids/aliases made clickable (routed to
+ * [callback]). Falls back to plain linkify when the renderer isn't wired yet.
  */
-fun CharSequence.formatTopic(roomId: String?, callback: TimelineEventController.UrlClickCallback? = null): CharSequence {
-    return messageTopicRenderer?.render(this, roomId, callback)
+fun CharSequence.formatTopic(roomId: String?, formattedTopic: String? = null, callback: TimelineEventController.UrlClickCallback? = null): CharSequence {
+    return messageTopicRenderer?.render(this, formattedTopic, roomId, callback)
             ?: linkify(callback).prepareForDisplay()
 }
 

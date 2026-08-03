@@ -21,10 +21,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Renders a room topic for display: markdown (as the composer applies on send) is converted to HTML,
- * literal HTML in the topic is preserved, the combined HTML is rendered like a timeline message
- * (pills for permalinks), then bare matrix ids/aliases are linkified so they are clickable. Reached
- * from non-DI epoxy/view call sites through [formatTopic].
+ * Renders a room topic for display, mirroring how messages handle formatting: when the topic carries
+ * an HTML body (MSC3765) that is rendered like a timeline message (pills for permalinks); otherwise
+ * the plain text is rendered as markdown as a fallback. Bare matrix ids/aliases are then linkified so
+ * they are clickable. Reached from non-DI epoxy/view call sites through [formatTopic].
  */
 @Singleton
 class RoomTopicRenderer @Inject constructor(
@@ -34,14 +34,13 @@ class RoomTopicRenderer @Inject constructor(
         private val pillsPostProcessorFactory: PillsPostProcessor.Factory,
         private val textRendererFactory: EventTextRenderer.Factory,
 ) {
-    fun render(topic: CharSequence, roomId: String?, callback: TimelineEventController.UrlClickCallback?): CharSequence {
+    fun render(topic: CharSequence, formattedTopic: String?, roomId: String?, callback: TimelineEventController.UrlClickCallback?): CharSequence {
         val plain = topic.toString()
-        // Markdown -> HTML (commonmark passes any literal HTML in the topic through untouched), then the
-        // combined HTML is rendered. A null result means the topic is genuinely plain: skip HTML parsing
-        // so literal '<' / '&' survive.
-        val html = activeSessionHolder.getSafeActiveSession()
-                ?.roomService()
-                ?.computeFormattedHtml(plain, autoMarkdown = true)
+        // A null result means the plain topic isn't markdown either, so it renders verbatim below.
+        val html = formattedTopic?.takeIf { it.isNotEmpty() }
+                ?: activeSessionHolder.getSafeActiveSession()
+                        ?.roomService()
+                        ?.computeFormattedHtml(plain, autoMarkdown = true)
         val base: CharSequence = if (html != null) {
             val pills = pillsPostProcessorFactory.create(roomId)
             val compressed = htmlCompressor.compress(html)
