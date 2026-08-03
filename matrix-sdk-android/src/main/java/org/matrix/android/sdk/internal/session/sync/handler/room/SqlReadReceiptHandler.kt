@@ -49,23 +49,25 @@ internal class SqlReadReceiptHandler @Inject constructor(
     ) {
         content ?: return
         try {
+            val ignoredUserIds = stores.user.getIgnoredUserIds().toSet()
             if (isInitialSync) {
-                initialSyncStrategy(stores, roomId, content)
+                initialSyncStrategy(stores, roomId, content, ignoredUserIds)
             } else {
-                incrementalSyncStrategy(stores, roomId, content, aggregator)
+                incrementalSyncStrategy(stores, roomId, content, ignoredUserIds, aggregator)
             }
         } catch (exception: Exception) {
             Timber.e("Fail to handle read receipt for room $roomId")
         }
     }
 
-    private fun initialSyncStrategy(stores: SessionStores, roomId: String, content: ReadReceiptContent) {
+    private fun initialSyncStrategy(stores: SessionStores, roomId: String, content: ReadReceiptContent, ignoredUserIds: Set<String>) {
         for ((eventId, receiptDict) in content) {
             val handledUserIds = HashSet<String>()
             val receipts = ArrayList<ReadReceiptEntity>()
             for (receiptKey in RECEIPT_KEYS) {
                 val userIdsDict = receiptDict[receiptKey] ?: continue
                 for ((userId, paramsDict) in userIdsDict) {
+                    if (userId in ignoredUserIds) continue
                     // m.read wins over m.read.private for the same user/event (iterated first).
                     if (!handledUserIds.add(userId)) continue
                     val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
@@ -84,23 +86,25 @@ internal class SqlReadReceiptHandler @Inject constructor(
             stores: SessionStores,
             roomId: String,
             content: ReadReceiptContent,
+            ignoredUserIds: Set<String>,
             aggregator: SyncResponsePostTreatmentAggregator?,
     ) {
         getContentFromInitSync(roomId)?.let {
             Timber.d("INIT_SYNC Insert during incremental sync RR for room $roomId")
-            doIncrementalSyncStrategy(stores, roomId, it)
+            doIncrementalSyncStrategy(stores, roomId, it, ignoredUserIds)
             aggregator?.ephemeralFilesToDelete?.add(roomId)
         }
-        doIncrementalSyncStrategy(stores, roomId, content)
+        doIncrementalSyncStrategy(stores, roomId, content, ignoredUserIds)
     }
 
-    private fun doIncrementalSyncStrategy(stores: SessionStores, roomId: String, content: ReadReceiptContent) {
+    private fun doIncrementalSyncStrategy(stores: SessionStores, roomId: String, content: ReadReceiptContent, ignoredUserIds: Set<String>) {
         for ((eventId, receiptDict) in content) {
             if (RECEIPT_KEYS.none { receiptDict.containsKey(it) }) continue
             stores.readReceipt.upsertSummary(eventId, roomId)
             for (receiptKey in RECEIPT_KEYS) {
                 val userIdsDict = receiptDict[receiptKey] ?: continue
                 for ((userId, paramsDict) in userIdsDict) {
+                    if (userId in ignoredUserIds) continue
                     val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
                     val threadId = paramsDict[THREAD_ID_KEY] as String?
                     val existing = stores.readReceipt.getReceipt(roomId, userId, threadId)
