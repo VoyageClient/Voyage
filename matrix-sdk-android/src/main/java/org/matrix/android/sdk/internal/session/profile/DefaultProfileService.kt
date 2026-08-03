@@ -25,6 +25,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MimeTypes
@@ -57,7 +58,8 @@ internal class DefaultProfileService @Inject constructor(
         private val pendingThreePidMapper: PendingThreePidMapper,
         private val userStore: UserStore,
         private val fileUploader: FileUploader,
-        private val bannerPropagator: ProfileBannerPropagator
+        private val bannerPropagator: ProfileBannerPropagator,
+        private val extendedProfileCache: ExtendedProfileCache
 ) : ProfileService {
 
     override suspend fun getDisplayName(userId: String): Optional<String> {
@@ -124,10 +126,40 @@ internal class DefaultProfileService @Inject constructor(
         return bannerPropagator.getCachedBannerUrl(userId)
     }
 
+    override suspend fun setPronouns(userId: String, pronouns: List<Pronoun>) {
+        if (pronouns.isEmpty()) {
+            deleteProfileField(userId, ProfileService.PRONOUNS_KEY_UNSTABLE)
+        } else {
+            setProfileFieldTask.execute(
+                    SetProfileFieldTask.Params(userId, ProfileService.PRONOUNS_KEY_UNSTABLE, pronouns.toProfileValue())
+            )
+        }
+        extendedProfileCache.cachePronouns(userId, pronouns)
+    }
+
+    override suspend fun setTimezone(userId: String, timezone: String) {
+        if (timezone.isBlank()) {
+            deleteProfileField(userId, ProfileService.TIMEZONE_KEY_UNSTABLE)
+            extendedProfileCache.cacheTimezone(userId, null)
+        } else {
+            setProfileField(userId, ProfileService.TIMEZONE_KEY_UNSTABLE, timezone)
+            extendedProfileCache.cacheTimezone(userId, timezone)
+        }
+    }
+
+    override fun getCachedPronouns(userId: String): List<Pronoun>? = extendedProfileCache.getCachedPronouns(userId)
+
+    override fun getCachedTimezone(userId: String): String? = extendedProfileCache.getCachedTimezone(userId)
+
+    override fun prefetchProfileFields(userId: String) = extendedProfileCache.prefetch(userId)
+
+    override fun getPronounsUpdateFlow() = extendedProfileCache.pronounsUpdateFlow
+
     override suspend fun getProfile(userId: String): JsonDict {
         val params = GetProfileInfoTask.Params(userId)
         return getProfileInfoTask.execute(params).also {
             bannerPropagator.cacheBannerUrl(userId, it.profileBannerUrl())
+            extendedProfileCache.cacheFromProfile(userId, it)
         }
     }
 

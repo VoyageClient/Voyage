@@ -298,6 +298,7 @@ class RoomMemberProfileFragment :
                 }
             }
         }
+        headerViews.memberProfileFieldsView.setTextOrHide(state.profileFieldsLine)
         headerViews.memberProfilePowerLevelView.setTextOrHide(state.userPowerLevelString())
         roomMemberProfileController.setData(state)
     }

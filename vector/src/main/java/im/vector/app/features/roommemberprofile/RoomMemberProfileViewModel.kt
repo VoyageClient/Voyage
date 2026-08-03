@@ -18,6 +18,7 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.core.profile.ProfileFieldsFormatter
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.createdirect.DirectRoomHelper
@@ -63,6 +64,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         private val matrixItemColorProvider: MatrixItemColorProvider,
         private val directRoomHelper: DirectRoomHelper,
         private val massRedactionManager: MassRedactionManager,
+        private val profileFieldsFormatter: ProfileFieldsFormatter,
         private val session: Session
 ) : VectorViewModel<RoomMemberProfileViewState, RoomMemberProfileAction, RoomMemberProfileViewEvents>(initialState) {
 
@@ -127,8 +129,10 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                             ?.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(initialState.userId))
                             ?.content?.toModel<RoomMemberContent>()?.bannerUrl,
                     globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId),
+                    profileFieldsLine = cachedProfileFieldsLine(),
             )
         }
+        session.profileService().prefetchProfileFields(initialState.userId)
         observeIgnoredState()
         observeAccountData()
         viewModelScope.launch(Dispatchers.Main) {
@@ -398,7 +402,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
             copy(
                     userMatrixItem = Success(item),
                     // On fetch failure keep the seeded cache value rather than blanking the banner
-                    globalBannerUrl = if (profile != null) profile.bannerUrl() else globalBannerUrl
+                    globalBannerUrl = if (profile != null) profile.bannerUrl() else globalBannerUrl,
+                    profileFieldsLine = cachedProfileFieldsLine(),
             )
         }
     }
@@ -414,8 +419,16 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         viewModelScope.launch {
             // 403 (profiles limited to shared-room users) just means no banner
             val profile = tryOrNull { session.profileService().getProfile(initialState.userId) } ?: return@launch
-            setState { copy(globalBannerUrl = profile.bannerUrl()) }
+            setState { copy(globalBannerUrl = profile.bannerUrl(), profileFieldsLine = cachedProfileFieldsLine()) }
         }
+    }
+
+    // getProfile() populates the extended-field cache before returning, so this reads the fresh values.
+    private fun cachedProfileFieldsLine(): String? {
+        return profileFieldsFormatter.format(
+                session.profileService().getCachedPronouns(initialState.userId),
+                session.profileService().getCachedTimezone(initialState.userId),
+        )
     }
 
     private fun JsonDict.bannerUrl(): String? {

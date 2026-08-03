@@ -19,6 +19,7 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.core.profile.ProfileFieldsFormatter
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.lib.strings.CommonStrings
@@ -42,6 +43,7 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
         private val session: Session,
         private val stringProvider: StringProvider,
         private val directRoomHelper: DirectRoomHelper,
+        private val profileFieldsFormatter: ProfileFieldsFormatter,
         private val errorFormatter: ErrorFormatter,
 ) : VectorViewModel<MatrixToBottomSheetState, MatrixToAction, MatrixToViewEvents>(initialState) {
 
@@ -93,6 +95,13 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                             startChattingState = Success(Unit)
                     )
                 }
+                // getProfile() populates the extended-field cache; format the pronouns/tz line from it.
+                tryOrNull { session.profileService().getProfile(permalinkData.userId) }
+                val line = profileFieldsFormatter.format(
+                        session.profileService().getCachedPronouns(permalinkData.userId),
+                        session.profileService().getCachedTimezone(permalinkData.userId),
+                )
+                setState { copy(userProfileFieldsLine = line) }
             }
             is PermalinkData.RoomLink -> {
                 // could this room be already known

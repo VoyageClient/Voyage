@@ -9,6 +9,8 @@ package im.vector.app.features.home.room.detail.timeline.format
 
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.ActiveSessionDataSource
+import im.vector.app.core.profile.PronounHelper
+import im.vector.app.core.profile.forViewerLanguage
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
@@ -66,6 +68,20 @@ class NoticeEventFormatter @Inject constructor(
         get() = activeSessionDataSource.currentValue?.orNull()?.myUserId
 
     private fun Event.isSentByCurrentUser() = senderId != null && senderId == currentUserId
+
+    // MSC4247 possessive determiner for the sender's preferred pronoun; null keeps the neutral "their".
+    // Best-effort from cache — a miss kicks off a background fetch that a later rebind picks up.
+    private fun possessiveDeterminer(userId: String?): String? {
+        userId ?: return null
+        val session = activeSessionDataSource.currentValue?.orNull() ?: return null
+        val pronouns = session.profileService().getCachedPronouns(userId)
+        if (pronouns == null) {
+            session.profileService().prefetchProfileFields(userId)
+            return null
+        }
+        val preferred = pronouns.forViewerLanguage().firstOrNull() ?: return null
+        return PronounHelper.possessiveDeterminer(preferred)
+    }
 
     private fun resolveDisplayName(event: TimelineEvent): String {
         val senderId = event.senderInfo.userId
@@ -749,24 +765,32 @@ class NoticeEventFormatter @Inject constructor(
 
     private fun buildProfileNotice(event: Event, senderName: String?, eventContent: RoomMemberContent?, prevEventContent: RoomMemberContent?): String? {
         val displayText = StringBuilder()
+        // Possessive determiner for the acting user, null keeps the neutral "their" phrasing.
+        val possessive = if (event.isSentByCurrentUser()) null else possessiveDeterminer(event.senderId)
         // Check display name has been changed
         if (eventContent?.displayName != prevEventContent?.displayName) {
             val displayNameText = when {
                 prevEventContent?.displayName.isNullOrEmpty() ->
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_display_name_set_by_you, eventContent?.displayName)
+                    } else if (possessive != null) {
+                        sp.getString(CommonStrings.notice_display_name_set_gendered, senderName ?: event.senderId, possessive, eventContent?.displayName)
                     } else {
                         sp.getString(CommonStrings.notice_display_name_set, senderName ?: event.senderId, eventContent?.displayName)
                     }
                 eventContent?.displayName.isNullOrEmpty() ->
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_display_name_removed_by_you, prevEventContent?.displayName)
+                    } else if (possessive != null) {
+                        sp.getString(CommonStrings.notice_display_name_removed_gendered, senderName ?: event.senderId, possessive, prevEventContent?.displayName)
                     } else {
                         sp.getString(CommonStrings.notice_display_name_removed, senderName ?: event.senderId, prevEventContent?.displayName)
                     }
                 else ->
                     if (event.isSentByCurrentUser()) {
                         sp.getString(CommonStrings.notice_display_name_changed_from_by_you, prevEventContent?.displayName, eventContent?.displayName)
+                    } else if (possessive != null) {
+                        sp.getString(CommonStrings.notice_display_name_changed_to_gendered, prevEventContent?.displayName, possessive, eventContent?.displayName)
                     } else {
                         sp.getString(CommonStrings.notice_display_name_changed_to, prevEventContent?.displayName, eventContent?.displayName)
                     }
@@ -782,8 +806,10 @@ class NoticeEventFormatter @Inject constructor(
             } else {
                 when {
                     avatarRemoved && event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_avatar_removed_by_you)
+                    avatarRemoved && possessive != null -> sp.getString(CommonStrings.notice_avatar_removed_gendered, senderName, possessive)
                     avatarRemoved -> sp.getString(CommonStrings.notice_avatar_removed, senderName)
                     event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_avatar_url_changed_by_you)
+                    possessive != null -> sp.getString(CommonStrings.notice_avatar_url_changed_gendered, senderName, possessive)
                     else -> sp.getString(CommonStrings.notice_avatar_url_changed, senderName)
                 }
             }
@@ -798,8 +824,10 @@ class NoticeEventFormatter @Inject constructor(
             } else {
                 when {
                     bannerRemoved && event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_banner_removed_by_you)
+                    bannerRemoved && possessive != null -> sp.getString(CommonStrings.notice_member_banner_removed_gendered, senderName, possessive)
                     bannerRemoved -> sp.getString(CommonStrings.notice_member_banner_removed, senderName)
                     event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_banner_changed_by_you)
+                    possessive != null -> sp.getString(CommonStrings.notice_member_banner_changed_gendered, senderName, possessive)
                     else -> sp.getString(CommonStrings.notice_member_banner_changed, senderName)
                 }
             }

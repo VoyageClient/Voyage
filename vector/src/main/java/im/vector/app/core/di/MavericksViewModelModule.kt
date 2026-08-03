@@ -285,6 +285,11 @@ interface SettingsMavericksViewModelModule {
     @IntoMap
     @MavericksViewModelKey("im.vector.app.features.settings.threepids.ThreePidsSettingsViewModel")
     fun vm23(factory: im.vector.app.features.settings.threepids.ThreePidsSettingsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
+    @MavericksViewModelKey("im.vector.app.features.settings.timezone.TimezonePickerViewModel")
+    fun vm24s(factory: im.vector.app.features.settings.timezone.TimezonePickerViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 }
 
 @InstallIn(SpacesMavericksViewModelComponent::class)
