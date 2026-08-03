@@ -46,16 +46,16 @@ class RoomProfileController @Inject constructor(
     // Persisted here (not in the recreated epoxy model) so the topic stays expanded across rebuilds.
     private var isTopicExpanded = false
 
-    // formatTopic() allocates a fresh Spannable each build; caching by (topic, roomId) keeps the epoxy
-    // content attribute stable so the item isn't needlessly rebound (which flickered the expand state) and
-    // the markdown/HTML render doesn't run on every state emission.
-    private var topicCacheKey: Pair<String, String>? = null
+    // formatTopic() allocates a fresh Spannable each build; caching by (topic, formattedTopic, roomId)
+    // keeps the epoxy content attribute stable so the item isn't needlessly rebound (which flickered the
+    // expand state) and the HTML/markdown render doesn't run on every state emission.
+    private var topicCacheKey: Triple<String, String?, String>? = null
     private var topicCacheValue: CharSequence? = null
 
-    private fun formattedTopic(topic: String, roomId: String, callback: TimelineEventController.UrlClickCallback): CharSequence {
-        val key = topic to roomId
+    private fun formattedTopic(topic: String, formattedTopic: String?, roomId: String, callback: TimelineEventController.UrlClickCallback): CharSequence {
+        val key = Triple(topic, formattedTopic, roomId)
         topicCacheValue?.let { if (topicCacheKey == key) return it }
-        return topic.formatTopic(roomId, callback).also {
+        return topic.formatTopic(roomId, formattedTopic, callback).also {
             topicCacheKey = key
             topicCacheValue = it
         }
@@ -111,7 +111,7 @@ class RoomProfileController @Inject constructor(
                     }
                     expandableTextItem {
                         id("topic")
-                        content(host.formattedTopic(it, roomSummary.roomId, topicCallback))
+                        content(host.formattedTopic(it, roomSummary.topicFormatted, roomSummary.roomId, topicCallback))
                         maxLines(2)
                         expanded(host.isTopicExpanded)
                         onExpandedChange { host.isTopicExpanded = it }

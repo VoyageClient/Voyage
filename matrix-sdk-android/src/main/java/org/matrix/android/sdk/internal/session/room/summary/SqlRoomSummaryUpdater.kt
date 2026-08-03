@@ -138,7 +138,9 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         entity.setDisplayName(roomDisplayNameResolver.resolve(stores, roomId))
         entity.avatarUrl = roomAvatarResolver.resolve(stores, roomId)
         entity.name = ContentMapper.map(lastNameEvent?.content).toModel<RoomNameContent>()?.name
-        entity.topic = ContentMapper.map(lastTopicEvent?.content).toModel<RoomTopicContent>()?.topic
+        val topicContent = ContentMapper.map(lastTopicEvent?.content).toModel<RoomTopicContent>()
+        entity.topic = topicContent?.getBestTopic()
+        entity.topicFormatted = topicContent?.getBestFormattedTopic()
         entity.joinRules = ContentMapper.map(joinRulesEvent?.content).toModel<RoomJoinRulesContent>()?.joinRules
         // Only replace the preview when we actually found one — don't wipe a known-good last message just
         // because the current chunk's newest events are non-previewable.

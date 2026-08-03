@@ -51,6 +51,7 @@ internal class RoomSummaryMapper @Inject constructor(
                 displayName = roomSummaryEntity.displayName() ?: "",
                 name = roomSummaryEntity.name ?: "",
                 topic = roomSummaryEntity.topic ?: "",
+                topicFormatted = roomSummaryEntity.topicFormatted,
                 avatarUrl = roomSummaryEntity.avatarUrl ?: "",
                 joinRules = roomSummaryEntity.joinRules,
                 isDirect = roomSummaryEntity.isDirect,

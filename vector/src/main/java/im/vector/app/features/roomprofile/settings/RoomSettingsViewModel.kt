@@ -304,7 +304,9 @@ class RoomSettingsViewModel @AssistedInject constructor(
             operationList.add { room.stateService().updateName(state.newName ?: "") }
         }
         if (summary?.topic != state.newTopic) {
-            operationList.add { room.stateService().updateTopic(state.newTopic ?: "") }
+            val newTopic = state.newTopic ?: ""
+            val formattedTopic = newTopic.takeIf { it.isNotEmpty() }?.let { room.sendService().computeFormattedHtml(it, autoMarkdown = true) }
+            operationList.add { room.stateService().updateTopic(newTopic, formattedTopic) }
         }
 
         if (state.newHistoryVisibility != null) {

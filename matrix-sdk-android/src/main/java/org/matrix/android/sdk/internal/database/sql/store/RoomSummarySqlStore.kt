@@ -144,6 +144,7 @@ internal class RoomSummarySqlStore(
                 avatar_url = entity.avatarUrl,
                 name = entity.name,
                 topic = entity.topic,
+                topic_formatted = entity.topicFormatted,
                 latest_previewable_event_id = entity.latestPreviewableEvent?.eventId,
                 last_activity_time = entity.lastActivityTime,
                 heroes = entity.heroes.toList().joinToColumn(),
@@ -240,6 +241,7 @@ internal class RoomSummarySqlStore(
         entity.avatarUrl = avatar_url
         entity.name = name
         entity.topic = topic
+        entity.topicFormatted = topic_formatted
         entity.latestPreviewableEvent = latest_previewable_event_id?.let { timelineEventStore.getByRoomAndEventId(room_id, it) }
         entity.lastActivityTime = last_activity_time
         entity.heroes = heroes.splitToRealmList()

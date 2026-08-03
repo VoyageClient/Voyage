@@ -30,9 +30,10 @@ import org.matrix.android.sdk.api.util.Optional
 interface StateService {
 
     /**
-     * Update the topic of the room.
+     * Update the topic of the room. [formattedTopic] is the HTML rendering to publish alongside the
+     * plain text (MSC3765 extensible topics); pass null for a plain-text-only topic.
      */
-    suspend fun updateTopic(topic: String)
+    suspend fun updateTopic(topic: String, formattedTopic: String? = null)
 
     /**
      * Update the name of the room.

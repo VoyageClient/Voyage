@@ -39,6 +39,7 @@ object MimeTypes {
     const val Ogg = "audio/ogg"
 
     const val PlainText = "text/plain"
+    const val Html = "text/html"
 
     fun String?.normalizeMimeType() = if (this == BadJpg) Jpeg else this
 

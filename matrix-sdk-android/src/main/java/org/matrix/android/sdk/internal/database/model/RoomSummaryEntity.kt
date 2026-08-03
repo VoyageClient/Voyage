@@ -67,6 +67,10 @@ internal open class RoomSummaryEntity(
         set(value) {
             if (value != field) field = value
         }
+    var topicFormatted: String? = null
+        set(value) {
+            if (value != field) field = value
+        }
 
     var latestPreviewableEvent: TimelineEventEntity? = null
         set(value) {
