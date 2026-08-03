@@ -8,7 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.factory
 
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.core.extensions.prevOrNull
+import im.vector.app.core.extensions.localDateTime
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -33,8 +33,22 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getRoomPowerLevels
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.threeten.bp.LocalDate
+import java.util.Objects
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
+/**
+ * Groups consecutive timeline events into collapsible "merged" summaries (membership/ACL/image-pack changes,
+ * redacted messages, hidden debug events, and the room-creation block).
+ *
+ * The set of runs is derived from scratch on every snapshot by [computeRuns] — a single forward walk that
+ * classifies each event into exactly one merge kind — so a structural change (e.g. a redaction splitting a
+ * run) can never leave events stuck in a stale hidden-set. Collapse state is stored per run identity and
+ * reconciled against the freshly computed runs each pass; the derived collapsed-id set is what the controller
+ * hides. Toggling collapse only records intent + bumps [collapseGeneration]; the actual set is recomputed on
+ * the next build pass, so the main-thread click and the background build never race on shared mutable sets.
+ */
 class MergedHeaderItemFactory @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val avatarRenderer: AvatarRenderer,
@@ -48,391 +62,363 @@ class MergedHeaderItemFactory @Inject constructor(
             EventType.STATE_ROOM_IMAGE_PACK,
             EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE,
     )
-    private val collapsedEventIds = linkedSetOf<Long>()
-    private val mergeItemCollapseStates = HashMap<Long, Boolean>()
 
-    /** Bumped on every collapse toggle so cached merged-header models can detect staleness. */
-    var collapseGeneration = 0
-        private set
+    private enum class RunKind { SAME_TYPE, REDACTED, HIDDEN, ROOM_CREATION }
 
     /**
-     * @param event the main timeline event
-     * @param nextEvent is an older event than event
-     * @param items all known items, sorted from newer event to oldest event
-     * @param partialState partial state data
-     * @param addDaySeparator true to add a day separator
-     * @param currentPosition the current position
-     * @param eventIdToHighlight if not null the event which has to be highlighted
-     * @param callback callback for user event
-     * @param requestModelBuild lambda to let the built Item request a model build when the collapse state is changed
+     * A maximal run of consecutive events that collapse into one summary.
+     * @param identity stable-ish key for collapse persistence (newest member's localId, or the create event's).
+     * @param anchorLocalId the oldest member; the header model is attached to this position.
+     * @param members all member events, ordered oldest→newest (index-descending); includes the anchor.
+     */
+    private data class MergedRun(
+            val kind: RunKind,
+            val identity: Long,
+            val anchorLocalId: Long,
+            val members: List<TimelineEvent>,
+            val epoxyId: String,
+            val summaryTitleResId: Int?,
+            val encryptionAlgorithm: String? = null,
+            val hasEncryption: Boolean = false,
+    )
+
+    // Guards collapseStates. The derived sets/maps below are swapped wholesale (immutable snapshots) so
+    // readers on the build thread never need the lock.
+    private val collapseLock = Any()
+    // Desired collapse per run identity; true = collapsed. Migrated across snapshots by member localId.
+    private val collapseStates = HashMap<Long, Boolean>()
+
+    @Volatile private var collapsedLocalIds: Set<Long> = emptySet()
+    @Volatile private var anchorLocalIds: Set<Long> = emptySet()
+    @Volatile private var runsByAnchor: Map<Long, MergedRun> = emptyMap()
+
+    /** Bumped on every collapse toggle so the controller invalidates its per-snapshot processing cache. */
+    private val collapseGenerationCounter = AtomicInteger(0)
+    val collapseGeneration: Int get() = collapseGenerationCounter.get()
+
+    /**
+     * Recompute all runs for [snapshot] and reconcile collapse state. Must run in the controller's
+     * per-snapshot preprocess, before the displayable-neighbour computation (which excludes collapsed
+     * members) and the per-position build loop (which reads [isCollapsed] / [isMergedAnchor]).
+     *
+     * @return per-position "shown in timeline" flags (ignoring collapse) computed as a side effect, so the
+     *   controller can reuse them for neighbour computation instead of running [shouldShowEvent] again.
+     */
+    fun updateRuns(
+            snapshot: List<TimelineEvent>,
+            partialState: TimelineEventController.PartialState,
+            forcedVisibleEventIds: Set<String>,
+    ): BooleanArray {
+        val shown = BooleanArray(snapshot.size)
+        val runs = computeRuns(snapshot, partialState, forcedVisibleEventIds, shown)
+        synchronized(collapseLock) {
+            val newStates = HashMap<Long, Boolean>(runs.size)
+            val collapsed = HashSet<Long>()
+            val anchors = HashSet<Long>(runs.size)
+            val byAnchor = HashMap<Long, MergedRun>(runs.size)
+            runs.forEach { run ->
+                val prior = collapseStates[run.identity]
+                        ?: run.members.firstNotNullOfOrNull { collapseStates[it.localId] }
+                        ?: true
+                newStates[run.identity] = prior
+                anchors.add(run.anchorLocalId)
+                byAnchor[run.anchorLocalId] = run
+                if (prior) run.members.forEach { collapsed.add(it.localId) }
+            }
+            collapseStates.clear()
+            collapseStates.putAll(newStates)
+            collapsedLocalIds = collapsed
+            anchorLocalIds = anchors
+            runsByAnchor = byAnchor
+        }
+        return shown
+    }
+
+    private fun computeRuns(
+            snapshot: List<TimelineEvent>,
+            partialState: TimelineEventController.PartialState,
+            forcedVisibleEventIds: Set<String>,
+            shown: BooleanArray,
+    ): List<MergedRun> {
+        val runs = ArrayList<MergedRun>()
+        // Room creation is a special, contiguous block anchored on the (immutable) create event; compute it
+        // first and exclude its members from the generic walk so no event lands in two runs.
+        val creationRun = computeRoomCreationRun(snapshot)
+        creationRun?.let { runs.add(it) }
+        val creationMemberIds = creationRun?.members?.mapTo(HashSet()) { it.localId } ?: emptySet<Long>()
+
+        val highlightId = partialState.highlightedEventId
+        val isThread = partialState.isFromThreadTimeline()
+        val rootThreadId = partialState.rootThreadEventId
+
+        var members: ArrayList<TimelineEvent>? = null
+        var kind: RunKind? = null
+        var groupType: String? = null
+        var date: LocalDate? = null
+
+        fun flush() {
+            val m = members
+            val k = kind
+            if (m != null && k != null) addSimilarRunIfBigEnough(runs, k, m)
+            members = null; kind = null; groupType = null; date = null
+        }
+
+        // Snapshot is newest→oldest (index 0 = newest). Walking index-ascending visits newest first, so a
+        // collected list is [newest … oldest]; runs are stored oldest→newest to match the legacy avatar order.
+        for (i in snapshot.indices) {
+            val event = snapshot[i]
+            val isShown = timelineEventVisibilityHelper.shouldShowEvent(event, highlightId, isThread, rootThreadId, forcedVisibleEventIds)
+            shown[i] = isShown
+            if (event.localId in creationMemberIds) { flush(); continue }
+            when (val cls = classify(event, isShown, isThread, rootThreadId)) {
+                Classification.Skip -> Unit // transparent: neither joins nor breaks a run
+                Classification.Wall -> flush()
+                is Classification.Run -> {
+                    val eventDate = event.root.localDateTime().toLocalDate()
+                    val continues = members != null && kind == cls.kind &&
+                            (cls.kind != RunKind.SAME_TYPE || groupType == cls.groupType) &&
+                            date == eventDate
+                    if (!continues) {
+                        flush()
+                        members = ArrayList()
+                        kind = cls.kind
+                        groupType = cls.groupType
+                        date = eventDate
+                    }
+                    members!!.add(event)
+                }
+            }
+        }
+        flush()
+        return runs
+    }
+
+    private sealed interface Classification {
+        object Skip : Classification
+        object Wall : Classification
+        data class Run(val kind: RunKind, val groupType: String?) : Classification
+    }
+
+    private fun classify(
+            event: TimelineEvent,
+            shown: Boolean,
+            isThread: Boolean,
+            rootThreadId: String?,
+    ): Classification {
+        val redacted = event.root.isRedacted()
+        if (redacted) {
+            // A shown redaction groups into the redacted summary; a hidden one (e.g. a redacted reaction) is
+            // transparent so it neither fragments a surrounding run nor renders on its own.
+            return if (shown) Classification.Run(RunKind.REDACTED, null) else Classification.Skip
+        }
+        if (timelineEventVisibilityHelper.isHiddenEvent(event, rootThreadId, isThread)) {
+            return Classification.Run(RunKind.HIDDEN, null)
+        }
+        if (!shown) return Classification.Skip
+        if (event.root.getClearType() in mergeableEventTypes) {
+            return Classification.Run(RunKind.SAME_TYPE, event.root.timelineMergeGroupType())
+        }
+        return Classification.Wall
+    }
+
+    private fun addSimilarRunIfBigEnough(runs: MutableList<MergedRun>, kind: RunKind, collected: List<TimelineEvent>) {
+        if (collected.size < MIN_NUMBER_OF_MERGED_EVENTS) return
+        val members = collected.asReversed() // oldest→newest
+        val newest = collected.first()
+        val oldest = members.first()
+        val title = when (kind) {
+            RunKind.HIDDEN -> CommonPlurals.merged_hidden_events
+            RunKind.REDACTED -> CommonPlurals.room_redacted_messages
+            RunKind.SAME_TYPE -> sameTypeTitle(oldest.root) ?: return
+            RunKind.ROOM_CREATION -> return
+        }
+        runs.add(
+                MergedRun(
+                        kind = kind,
+                        identity = newest.localId,
+                        anchorLocalId = oldest.localId,
+                        members = members.toList(),
+                        epoxyId = "merged_${newest.localId}",
+                        summaryTitleResId = title,
+                )
+        )
+    }
+
+    private fun sameTypeTitle(event: Event): Int? = when (event.getClearType()) {
+        EventType.STATE_ROOM_MEMBER -> CommonPlurals.membership_changes
+        EventType.STATE_ROOM_SERVER_ACL -> CommonPlurals.notice_room_server_acl_changes
+        EventType.STATE_ROOM_IMAGE_PACK,
+        EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> CommonPlurals.image_pack_changes
+        else -> null
+    }
+
+    private fun computeRoomCreationRun(snapshot: List<TimelineEvent>): MergedRun? {
+        val createIndex = snapshot.indexOfFirst { it.root.getClearType() == EventType.STATE_ROOM_CREATE }
+        if (createIndex <= 0) return null
+        val createEvent = snapshot[createIndex]
+        val creator = createEvent.root.getClearContent().toModel<RoomCreateContent>()?.creator
+        // The anchor is the config event directly newer than create; it may be the creator's own join, so it
+        // is matched against the creator. The rest of the block is pure (non-member) configuration.
+        val anchor = snapshot[createIndex - 1]
+        if (!anchor.isRoomConfiguration(creator)) return null
+        val members = ArrayList<TimelineEvent>()
+        members.add(anchor)
+        var pos = createIndex - 2
+        while (pos >= 0) {
+            val candidate = snapshot[pos]
+            if (!candidate.isRoomConfiguration(null)) break
+            members.add(candidate)
+            pos--
+        }
+        if (members.size <= MIN_NUMBER_OF_MERGED_EVENTS) return null
+        var hasEncryption = false
+        var encryptionAlgorithm: String? = null
+        members.forEach { member ->
+            if (member.root.isStateEvent() && member.root.getClearType() == EventType.STATE_ROOM_ENCRYPTION) {
+                hasEncryption = true
+                encryptionAlgorithm = member.root.getClearContent().toModel<EncryptionEventContent>()?.algorithm
+            }
+        }
+        return MergedRun(
+                kind = RunKind.ROOM_CREATION,
+                identity = createEvent.localId,
+                anchorLocalId = anchor.localId,
+                members = members, // oldest→newest
+                epoxyId = "creation_${createEvent.localId}",
+                summaryTitleResId = null,
+                encryptionAlgorithm = encryptionAlgorithm,
+                hasEncryption = hasEncryption,
+        )
+    }
+
+    /** True when [localId] is the anchor (oldest member) of a run — i.e. the position carrying its header. */
+    fun isMergedAnchor(localId: Long): Boolean = localId in anchorLocalIds
+
+    fun isCollapsed(localId: Long): Boolean = localId in collapsedLocalIds
+
+    /**
+     * A cheap signature over the run anchored at [localId] (its identity, member set, and collapsed flag), so
+     * the controller's enrichment can detect when a header needs rebuilding even though the event's own
+     * neighbours are unchanged (e.g. a nearby redaction grew or split the run).
+     */
+    fun mergeSignatureAt(localId: Long): Int {
+        val run = runsByAnchor[localId] ?: return 0
+        return Objects.hash(run.identity, run.members.map { it.localId }, localId in collapsedLocalIds)
+    }
+
+    private fun setCollapsed(identity: Long, collapsed: Boolean, requestModelBuild: () -> Unit) {
+        synchronized(collapseLock) { collapseStates[identity] = collapsed }
+        collapseGenerationCounter.incrementAndGet()
+        requestModelBuild()
+    }
+
+    /**
+     * Build the merged-header model for the run anchored at [event], or null if [event] is not an anchor.
      */
     fun create(
             event: TimelineEvent,
-            nextEvent: TimelineEvent?,
-            items: List<TimelineEvent>,
             partialState: TimelineEventController.PartialState,
-            addDaySeparator: Boolean,
-            currentPosition: Int,
             eventIdToHighlight: String?,
-            nextDisplayableEvent: TimelineEvent?,
             callback: TimelineEventController.Callback?,
-            requestModelBuild: () -> Unit
+            requestModelBuild: () -> Unit,
     ): BasedMergedItem<*>? {
-        return when {
-            isStartOfRoomCreationSummary(event, nextEvent) ->
-                buildRoomCreationMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-            isStartOfSameTypeEventsSummary(event, nextEvent, partialState, addDaySeparator) ->
-                buildSameTypeEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-            isStartOfRedactedEventsSummary(event, nextDisplayableEvent, addDaySeparator) ->
-                buildRedactedEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-            isStartOfHiddenEventsSummary(event, nextEvent, partialState, addDaySeparator) ->
-                buildHiddenEventsMergedSummary(currentPosition, items, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-            else -> null
+        val run = runsByAnchor[event.localId] ?: return null
+        return when (run.kind) {
+            RunKind.ROOM_CREATION -> buildRoomCreationHeader(run, partialState, eventIdToHighlight, callback, requestModelBuild)
+            else -> buildSimilarEventsHeader(run, partialState, eventIdToHighlight, callback, requestModelBuild)
         }
     }
 
-    /**
-     * True when [event] begins ANY kind of merged summary (room-creation, same-type membership/ACL/image-pack,
-     * redacted, or hidden run). The controller uses this to exempt a merge anchor from the per-pass build
-     * budget: deferring the anchor leaves its run rendered as individual (un-collapsed) events until a later
-     * pass builds it — the compact<->expand flicker. [nextDisplayableEvent] is the controller's precomputed
-     * next shown neighbour (keeps the redacted check O(1)).
-     */
-    fun startsMergedSummary(
-            event: TimelineEvent,
-            nextEvent: TimelineEvent?,
-            nextDisplayableEvent: TimelineEvent?,
+    private fun buildSimilarEventsHeader(
+            run: MergedRun,
             partialState: TimelineEventController.PartialState,
-            addDaySeparator: Boolean,
-    ): Boolean {
-        return isStartOfRoomCreationSummary(event, nextEvent) ||
-                isStartOfSameTypeEventsSummary(event, nextEvent, partialState, addDaySeparator) ||
-                isStartOfRedactedEventsSummary(event, nextDisplayableEvent, addDaySeparator) ||
-                isStartOfHiddenEventsSummary(event, nextEvent, partialState, addDaySeparator)
-    }
-
-    /**
-     * @param event the main timeline event
-     * @param nextEvent is an older event than event
-     * @param addDaySeparator true to add a day separator
-     */
-    private fun isStartOfHiddenEventsSummary(
-            event: TimelineEvent,
-            nextEvent: TimelineEvent?,
-            partialState: TimelineEventController.PartialState,
-            addDaySeparator: Boolean,
-    ): Boolean {
-        return isHiddenRunMember(event, partialState) &&
-                (nextEvent == null || addDaySeparator || !isHiddenRunMember(nextEvent, partialState))
-    }
-
-    // A redacted event that is also "hidden" (e.g. a redacted m.room.redaction) is owned by the redacted
-    // summary (checked first in create()), so it must NOT extend a hidden run — otherwise the boundary between
-    // the two never forms and the hidden events before it are left with no anchor / header.
-    private fun isHiddenRunMember(event: TimelineEvent, partialState: TimelineEventController.PartialState): Boolean {
-        return !event.root.isRedacted() &&
-                timelineEventVisibilityHelper.isHiddenEvent(event, partialState.rootThreadEventId, partialState.isFromThreadTimeline())
-    }
-
-    /**
-     * @param event the main timeline event
-     * @param nextEvent is an older event than event
-     */
-    private fun isStartOfRoomCreationSummary(
-            event: TimelineEvent,
-            nextEvent: TimelineEvent?,
-    ): Boolean {
-        // It's the first item before room.create
-        // Collapse all room configuration events
-        return nextEvent?.root?.getClearType() == EventType.STATE_ROOM_CREATE &&
-                event.isRoomConfiguration(nextEvent.root.getClearContent()?.toModel<RoomCreateContent>()?.creator)
-    }
-
-    /**
-     * @param event the main timeline event
-     * @param nextEvent is an older event than event
-     * @param addDaySeparator true to add a day separator
-     */
-    private fun isStartOfSameTypeEventsSummary(
-            event: TimelineEvent,
-            nextEvent: TimelineEvent?,
-            partialState: TimelineEventController.PartialState,
-            addDaySeparator: Boolean,
-    ): Boolean {
-        // Hidden/debug events (e.g. repeated knocks) must not start nor join a membership-changes merge;
-        // they are compacted separately as a "hidden events" summary instead.
-        if (timelineEventVisibilityHelper.isHiddenEvent(event, partialState.rootThreadEventId, partialState.isFromThreadTimeline())) {
-            return false
-        }
-        return event.root.getClearType() in mergeableEventTypes &&
-                (nextEvent?.root?.timelineMergeGroupType() != event.root.timelineMergeGroupType() || addDaySeparator)
-    }
-
-    /**
-     * @param event the main timeline event
-     * @param items all known items, sorted from newer event to oldest event
-     * @param currentPosition the current position
-     * @param partialState partial state data
-     * @param addDaySeparator true to add a day separator
-     */
-    private fun isStartOfRedactedEventsSummary(
-            event: TimelineEvent,
-            nextDisplayableEvent: TimelineEvent?,
-            addDaySeparator: Boolean,
-    ): Boolean {
-        // [nextDisplayableEvent] is precomputed once per pass by the controller (O(n) total); scanning for it
-        // here per redacted event made passes O(n²) — catastrophic in a room full of redactions.
-        if (!event.root.isRedacted()) return false
-        // nextDisplayableEvent == null means the run reaches the bottom of what's loaded — treat that as a
-        // boundary too, so the redactions collapse immediately instead of only after scrolling up loads an
-        // older non-redacted event below them.
-        return nextDisplayableEvent == null || nextDisplayableEvent.root.isRedacted() == false || addDaySeparator
-    }
-
-    private fun buildSameTypeEventsMergedSummary(
-            currentPosition: Int,
-            items: List<TimelineEvent>,
-            partialState: TimelineEventController.PartialState,
-            event: TimelineEvent,
             eventIdToHighlight: String?,
-            requestModelBuild: () -> Unit,
-            callback: TimelineEventController.Callback?
-    ): MergedSimilarEventsItem_? {
-        val mergedEvents = timelineEventVisibilityHelper.prevSameTypeEvents(
-                items,
-                currentPosition,
-                MIN_NUMBER_OF_MERGED_EVENTS,
-                eventIdToHighlight,
-                partialState.rootThreadEventId,
-                partialState.isFromThreadTimeline()
-        )
-        return buildSimilarEventsMergedSummary(mergedEvents, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-    }
-
-    private fun buildRedactedEventsMergedSummary(
-            currentPosition: Int,
-            items: List<TimelineEvent>,
-            partialState: TimelineEventController.PartialState,
-            event: TimelineEvent,
-            eventIdToHighlight: String?,
-            requestModelBuild: () -> Unit,
-            callback: TimelineEventController.Callback?
-    ): MergedSimilarEventsItem_? {
-        val mergedEvents = timelineEventVisibilityHelper.prevRedactedEvents(
-                items,
-                currentPosition,
-                MIN_NUMBER_OF_MERGED_EVENTS,
-                eventIdToHighlight,
-                partialState.rootThreadEventId,
-                partialState.isFromThreadTimeline()
-        )
-        return buildSimilarEventsMergedSummary(mergedEvents, partialState, event, eventIdToHighlight, requestModelBuild, callback)
-    }
-
-    private fun buildHiddenEventsMergedSummary(
-            currentPosition: Int,
-            items: List<TimelineEvent>,
-            partialState: TimelineEventController.PartialState,
-            event: TimelineEvent,
-            eventIdToHighlight: String?,
-            requestModelBuild: () -> Unit,
-            callback: TimelineEventController.Callback?
-    ): MergedSimilarEventsItem_? {
-        val mergedEvents = timelineEventVisibilityHelper.prevHiddenEvents(
-                items,
-                currentPosition,
-                MIN_NUMBER_OF_MERGED_EVENTS,
-                partialState.rootThreadEventId,
-                partialState.isFromThreadTimeline()
-        )
-        return buildSimilarEventsMergedSummary(
-                mergedEvents, partialState, event, eventIdToHighlight, requestModelBuild, callback, CommonPlurals.merged_hidden_events
-        )
-    }
-
-    private fun buildSimilarEventsMergedSummary(
-            mergedEvents: List<TimelineEvent>,
-            partialState: TimelineEventController.PartialState,
-            event: TimelineEvent,
-            eventIdToHighlight: String?,
-            requestModelBuild: () -> Unit,
             callback: TimelineEventController.Callback?,
-            forcedSummaryTitleResId: Int? = null
-    ): MergedSimilarEventsItem_? {
-        return if (mergedEvents.isEmpty()) {
-            null
-        } else {
-            var highlighted = false
-            val mergedData = ArrayList<BasedMergedItem.Data>(mergedEvents.size)
-            mergedEvents.forEach { mergedEvent ->
-                if (!highlighted && mergedEvent.root.eventId == eventIdToHighlight) {
-                    highlighted = true
-                }
-                val data = BasedMergedItem.Data(
-                        roomId = mergedEvent.root.roomId,
-                        userId = mergedEvent.root.senderId ?: "",
-                        avatarUrl = mergedEvent.senderInfo.avatarUrl,
-                        memberName = mergedEvent.senderInfo.disambiguatedDisplayName,
-                        localId = mergedEvent.localId,
-                        eventId = mergedEvent.root.eventId ?: "",
-                        isDirectRoom = partialState.isDirectRoom()
-                )
-                mergedData.add(data)
-            }
-            val mergedEventIds = mergedEvents.map { it.localId }.toSet()
-            // We try to find if one of the item id were used as mergeItemCollapseStates key
-            // => handle case where paginating from mergeable events and we get more
-            val previousCollapseStateKey = mergedEventIds.intersect(mergeItemCollapseStates.keys).firstOrNull()
-            val initialCollapseState = mergeItemCollapseStates.remove(previousCollapseStateKey)
-                    ?: true
-            val isCollapsed = mergeItemCollapseStates.getOrPut(event.localId) { initialCollapseState }
-            if (isCollapsed) {
-                collapsedEventIds.addAll(mergedEventIds)
-            } else {
-                collapsedEventIds.removeAll(mergedEventIds)
-            }
-            // Anchor the epoxy id on the NEWEST event of the run. The merge itself anchors on the oldest
-            // event (whose older neighbour is non-redacted), which moves every time older events paginate in
-            // — so keying the id on it made epoxy replace the whole item each fetch (the compact<->expand
-            // flicker). The newest member is stable under backward pagination, so the item just rebinds.
-            val stableAnchorId = mergedEvents.maxByOrNull { it.root.originServerTs ?: 0L }?.localId ?: event.localId
-            val mergeId = "merged_$stableAnchorId"
-            (forcedSummaryTitleResId ?: getSummaryTitleResId(event.root))?.let { summaryTitle ->
-                val attributes = MergedSimilarEventsItem.Attributes(
-                        summaryTitleResId = summaryTitle,
-                        isCollapsed = isCollapsed,
-                        mergeData = mergedData,
-                        avatarRenderer = avatarRenderer,
-                        onCollapsedStateChanged = {
-                            mergeItemCollapseStates[event.localId] = it
-                            // Update the hidden-set now, not on the next buildSummaryItem: member positions
-                            // build before the (older) run-start in the model pass, so a stale set leaves
-                            // their invisible collapsed placeholders in place and the expanded run is empty.
-                            if (it) collapsedEventIds.addAll(mergedEventIds) else collapsedEventIds.removeAll(mergedEventIds)
-                            collapseGeneration++
-                            requestModelBuild()
-                        }
-                )
-                MergedSimilarEventsItem_()
-                        .id(mergeId)
-                        .leftGuideline(avatarSizeProvider.leftGuideline)
-                        .highlighted(isCollapsed && highlighted)
-                        .attributes(attributes)
-                        .also {
-                            it.setOnVisibilityStateChanged(MergedTimelineEventVisibilityStateChangedListener(callback, mergedEvents))
-                        }
-            }
-        }
-    }
-
-    private fun getSummaryTitleResId(event: Event): Int? {
-        val type = event.getClearType()
-        return when {
-            type == EventType.STATE_ROOM_MEMBER -> CommonPlurals.membership_changes
-            type == EventType.STATE_ROOM_SERVER_ACL -> CommonPlurals.notice_room_server_acl_changes
-            type == EventType.STATE_ROOM_IMAGE_PACK ||
-                    type == EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE -> CommonPlurals.image_pack_changes
-            event.isRedacted() -> CommonPlurals.room_redacted_messages
-            else -> null
-        }
-    }
-
-    private fun buildRoomCreationMergedSummary(
-            currentPosition: Int,
-            items: List<TimelineEvent>,
-            partialState: TimelineEventController.PartialState,
-            event: TimelineEvent,
-            eventIdToHighlight: String?,
             requestModelBuild: () -> Unit,
-            callback: TimelineEventController.Callback?
-    ): MergedRoomCreationItem_? {
-        var prevEvent = items.prevOrNull(currentPosition)
-        var tmpPos = currentPosition - 1
-        val mergedEvents = mutableListOf(event)
-        var hasEncryption = false
-        var encryptionAlgorithm: String? = null
-        while (prevEvent != null && prevEvent.isRoomConfiguration(null)) {
-            if (prevEvent.root.isStateEvent() && prevEvent.root.getClearType() == EventType.STATE_ROOM_ENCRYPTION) {
-                hasEncryption = true
-                encryptionAlgorithm = prevEvent.root.getClearContent()?.toModel<EncryptionEventContent>()?.algorithm
+    ): MergedSimilarEventsItem_? {
+        val summaryTitle = run.summaryTitleResId ?: return null
+        var highlighted = false
+        val mergedData = ArrayList<BasedMergedItem.Data>(run.members.size)
+        run.members.forEach { mergedEvent ->
+            if (!highlighted && mergedEvent.root.eventId == eventIdToHighlight) {
+                highlighted = true
             }
-            mergedEvents.add(prevEvent)
-            tmpPos--
-            prevEvent = items.getOrNull(tmpPos)
+            mergedData.add(mergedEvent.toMergedData(partialState))
         }
-        return if (mergedEvents.size > MIN_NUMBER_OF_MERGED_EVENTS) {
-            var highlighted = false
-            val mergedData = ArrayList<BasedMergedItem.Data>(mergedEvents.size)
-            mergedEvents.reversed()
-                    .forEach { mergedEvent ->
-                        if (!highlighted && mergedEvent.root.eventId == eventIdToHighlight) {
-                            highlighted = true
-                        }
-                        val data = BasedMergedItem.Data(
-                                roomId = mergedEvent.root.roomId,
-                                userId = mergedEvent.root.senderId ?: "",
-                                avatarUrl = mergedEvent.senderInfo.avatarUrl,
-                                memberName = mergedEvent.senderInfo.disambiguatedDisplayName,
-                                localId = mergedEvent.localId,
-                                eventId = mergedEvent.root.eventId ?: "",
-                                isDirectRoom = partialState.isDirectRoom()
-                        )
-                        mergedData.add(data)
-                    }
-            val mergedEventIds = mergedEvents.map { it.localId }
-            // We try to find if one of the item id were used as mergeItemCollapseStates key
-            // => handle case where paginating from mergeable events and we get more
-            val previousCollapseStateKey = mergedEventIds.intersect(mergeItemCollapseStates.keys).firstOrNull()
-            val initialCollapseState = mergeItemCollapseStates.remove(previousCollapseStateKey)
-                    ?: true
-            val isCollapsed = mergeItemCollapseStates.getOrPut(event.localId) { initialCollapseState }
-            if (isCollapsed) {
-                collapsedEventIds.addAll(mergedEventIds)
-            } else {
-                collapsedEventIds.removeAll(mergedEventIds)
-            }
-            val mergeId = mergedEventIds.joinToString(separator = "_") { it.toString() }
-            val roomPowerLevels = activeSessionHolder.getSafeActiveSession()?.getRoom(event.roomId)?.getRoomPowerLevels()
-            val currentUserId = activeSessionHolder.getSafeActiveSession()?.myUserId ?: ""
-            val attributes = MergedRoomCreationItem.Attributes(
-                    isCollapsed = isCollapsed,
-                    mergeData = mergedData,
-                    avatarRenderer = avatarRenderer,
-                    onCollapsedStateChanged = {
-                        mergeItemCollapseStates[event.localId] = it
-                        // Same eager update as the similar-events summary — see there.
-                        if (it) collapsedEventIds.addAll(mergedEventIds) else collapsedEventIds.removeAll(mergedEventIds)
-                        collapseGeneration++
-                        requestModelBuild()
-                    },
-                    hasEncryptionEvent = hasEncryption,
-                    isEncryptionAlgorithmSecure = encryptionAlgorithm == MXCRYPTO_ALGORITHM_MEGOLM,
-                    callback = callback,
-                    currentUserId = currentUserId,
-                    roomSummary = partialState.roomSummary,
-                    canInvite = roomPowerLevels?.isUserAbleToInvite(currentUserId) ?: false,
-                    canChangeAvatar = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_AVATAR) ?: false,
-                    canChangeTopic = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_TOPIC) ?: false,
-                    canChangeName = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_NAME) ?: false
-            )
-            MergedRoomCreationItem_()
-                    .id(mergeId)
-                    .leftGuideline(avatarSizeProvider.leftGuideline)
-                    .highlighted(isCollapsed && highlighted)
-                    .attributes(attributes)
-                    .movementMethod(createLinkMovementMethod(callback))
-                    .also {
-                        it.setOnVisibilityStateChanged(MergedTimelineEventVisibilityStateChangedListener(callback, mergedEvents))
-                    }
-        } else null
+        val isCollapsed = isCollapsed(run.anchorLocalId)
+        val attributes = MergedSimilarEventsItem.Attributes(
+                summaryTitleResId = summaryTitle,
+                isCollapsed = isCollapsed,
+                mergeData = mergedData,
+                avatarRenderer = avatarRenderer,
+                onCollapsedStateChanged = { setCollapsed(run.identity, it, requestModelBuild) }
+        )
+        return MergedSimilarEventsItem_()
+                .id(run.epoxyId)
+                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .highlighted(isCollapsed && highlighted)
+                .attributes(attributes)
+                .also {
+                    it.setOnVisibilityStateChanged(MergedTimelineEventVisibilityStateChangedListener(callback, run.members))
+                }
     }
+
+    private fun buildRoomCreationHeader(
+            run: MergedRun,
+            partialState: TimelineEventController.PartialState,
+            eventIdToHighlight: String?,
+            callback: TimelineEventController.Callback?,
+            requestModelBuild: () -> Unit,
+    ): MergedRoomCreationItem_? {
+        var highlighted = false
+        val mergedData = ArrayList<BasedMergedItem.Data>(run.members.size)
+        run.members.asReversed().forEach { mergedEvent ->
+            if (!highlighted && mergedEvent.root.eventId == eventIdToHighlight) {
+                highlighted = true
+            }
+            mergedData.add(mergedEvent.toMergedData(partialState))
+        }
+        val isCollapsed = isCollapsed(run.anchorLocalId)
+        val roomPowerLevels = activeSessionHolder.getSafeActiveSession()?.getRoom(run.members.first().roomId)?.getRoomPowerLevels()
+        val currentUserId = activeSessionHolder.getSafeActiveSession()?.myUserId ?: ""
+        val attributes = MergedRoomCreationItem.Attributes(
+                isCollapsed = isCollapsed,
+                mergeData = mergedData,
+                avatarRenderer = avatarRenderer,
+                onCollapsedStateChanged = { setCollapsed(run.identity, it, requestModelBuild) },
+                hasEncryptionEvent = run.hasEncryption,
+                isEncryptionAlgorithmSecure = run.encryptionAlgorithm == MXCRYPTO_ALGORITHM_MEGOLM,
+                callback = callback,
+                currentUserId = currentUserId,
+                roomSummary = partialState.roomSummary,
+                canInvite = roomPowerLevels?.isUserAbleToInvite(currentUserId) ?: false,
+                canChangeAvatar = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_AVATAR) ?: false,
+                canChangeTopic = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_TOPIC) ?: false,
+                canChangeName = roomPowerLevels?.isUserAllowedToSend(currentUserId, true, EventType.STATE_ROOM_NAME) ?: false
+        )
+        return MergedRoomCreationItem_()
+                .id(run.epoxyId)
+                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .highlighted(isCollapsed && highlighted)
+                .attributes(attributes)
+                .movementMethod(createLinkMovementMethod(callback))
+                .also {
+                    it.setOnVisibilityStateChanged(MergedTimelineEventVisibilityStateChangedListener(callback, run.members))
+                }
+    }
+
+    private fun TimelineEvent.toMergedData(partialState: TimelineEventController.PartialState) = BasedMergedItem.Data(
+            roomId = root.roomId,
+            userId = root.senderId ?: "",
+            avatarUrl = senderInfo.avatarUrl,
+            memberName = senderInfo.disambiguatedDisplayName,
+            localId = localId,
+            eventId = root.eventId ?: "",
+            isDirectRoom = partialState.isDirectRoom()
+    )
 
     private fun TimelineEventController.PartialState.isDirectRoom(): Boolean {
         return roomSummary?.isDirect.orFalse()
-    }
-
-    fun isCollapsed(localId: Long): Boolean {
-        return collapsedEventIds.contains(localId)
     }
 
     companion object {
