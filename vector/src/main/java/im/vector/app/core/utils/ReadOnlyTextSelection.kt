@@ -13,14 +13,12 @@ import android.text.Spannable
 import android.text.Spanned
 import android.view.ActionMode
 import android.view.MotionEvent
-import android.view.View
 import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
-import im.vector.app.core.ui.views.TapFlashRelativeLayout
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.lib.strings.CommonStrings
 import timber.log.Timber
@@ -174,18 +172,6 @@ fun TextView.replaySwallowedTap(event: MotionEvent, wasFocused: Boolean) {
     if (event.actionMasked == MotionEvent.ACTION_UP && !wasFocused && isFocused && !hasSelection()) {
         performClick()
     }
-}
-
-/**
- * A clickable child consumes its taps, so its pressed state never reaches the row's state merge.
- * Hand it (framework-timed) straight to the row's flash drawable; call from setPressed after
- * super. State-only — View pressed flags stay untouched, so nothing cascades back down the tree.
- */
-fun View.mirrorPressedToRowFlash(pressed: Boolean) {
-    generateSequence(parent as? View) { it.parent as? View }
-            .filterIsInstance<TapFlashRelativeLayout>()
-            .firstOrNull()
-            ?.setFlashPressed(pressed)
 }
 
 /**

@@ -20,7 +20,6 @@ import im.vector.app.core.utils.CodeSelectionBoundsHost
 import im.vector.app.core.utils.TableSourceProvider
 import im.vector.app.core.utils.buildTableMarkdown
 import im.vector.app.core.utils.clampSelectionToCodeSpans
-import im.vector.app.core.utils.mirrorPressedToRowFlash
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
 import im.vector.app.core.utils.replaySwallowedTap
@@ -50,11 +49,6 @@ class ReadOnlySelectableTextView(context: Context, selectable: Boolean = false) 
         super.onSelectionChanged(selStart, selEnd)
         codeSelectionBounds = clampSelectionToCodeSpans(codeSelectionBounds)
         releasePressedRippleOnSelection(selStart, selEnd)
-    }
-
-    override fun setPressed(pressed: Boolean) {
-        super.setPressed(pressed)
-        mirrorPressedToRowFlash(pressed)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<im.vector.app.core.ui.views.TapFlashRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<im.vector.app.core.ui.views.SelectionAwareRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:addStatesFromChildren="true"
+    android:background="?attr/selectableItemBackground"
     tools:viewBindingIgnore="true">
 
     <im.vector.app.core.platform.CheckableView
@@ -196,4 +197,4 @@
         <include layout="@layout/view_thread_room_summary" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</im.vector.app.core.ui.views.TapFlashRelativeLayout>
+</im.vector.app.core.ui.views.SelectionAwareRelativeLayout>
