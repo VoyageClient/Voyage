@@ -42,6 +42,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Selectable message & topic text** — select text directly from timeline messages: double-tap starts a selection anywhere, long-press on a code block or inline code starts one locked to that code (Select all expands it to the whole message), links and plain text keep their long-press actions, and the selection menu is trimmed to Copy, Share and Select all; the room profile topic is selectable the same way, replacing long-press-to-copy.
 
+- **Rich room topics** — room and space topics now render HTML like timeline messages and markdown like the composer, and the room IDs, aliases and user IDs in a topic show as tappable pills (previously only the homeserver part of an alias was a link). In the room profile, tapping a matrix link opens the room/user in-app and other links open in the browser.
+
 - **Timeline polish** — consecutive hidden events collapse into a single "N hidden events" tile, overhauled state-change notices, room-list previews that reflect message edits, an always-show-timestamps option, and a jump-to-present button that returns to the message you jumped from.
 
 - **Direction-override (RLO) spoofing protection** — hostile Unicode direction-override characters in display names, messages, mention pills, and room names no longer flip the surrounding text backwards (a trick used to spoof user IDs and file extensions); they now show as a visible placeholder box instead. Genuine right-to-left text is unaffected.

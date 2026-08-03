@@ -22,6 +22,7 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.material.button.MaterialButton
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -83,11 +84,12 @@ abstract class SpaceChildInfoItem : VectorEpoxyModel<SpaceChildInfoItem.Holder>(
                 +" $memberCount"
                 apply {
                     topic?.let {
-                        +" - $topic"
+                        +" - "
+                        +it.formatTopic(matrixItem.id)
                     }
                 }
             }
-        }.prepareForDisplay()
+        }
 
         holder.suggestedTag.visibility = if (suggested) View.VISIBLE else View.GONE
         holder.joinButton.text = buttonLabel

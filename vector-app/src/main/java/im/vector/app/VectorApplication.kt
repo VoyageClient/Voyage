@@ -71,6 +71,7 @@ class VectorApplication :
     @Inject lateinit var vectorConfiguration: VectorConfiguration
     @Inject lateinit var emojiCompatFontProvider: EmojiCompatFontProvider
     @Inject lateinit var emojiCompatWrapper: EmojiCompatWrapper
+    @Inject lateinit var roomTopicRenderer: im.vector.app.features.home.room.detail.timeline.tools.RoomTopicRenderer
     @Inject lateinit var twemojiProvider: im.vector.app.features.emoji.TwemojiProvider
     @Inject lateinit var vectorUncaughtExceptionHandler: VectorUncaughtExceptionHandler
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
@@ -144,6 +145,8 @@ class VectorApplication :
         // Shared entry point for emoji rendering across all message-text surfaces (see prepareForDisplay()).
         im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify = emojiCompatWrapper
         org.billcarsonfr.jsonviewer.jsonViewerEmojiSpanify = emojiCompatWrapper::spanify
+        // Shared entry point for rich topic rendering across the non-DI topic display surfaces (see formatTopic()).
+        im.vector.app.features.home.room.detail.timeline.tools.messageTopicRenderer = roomTopicRenderer
         if (twemojiProvider.enabled) {
             // Twemoji draws emoji from bundled sprites (forced below KitKat, opt-in above) and bypasses
             // EmojiCompat, so don't init it or load its 10MB font. The reaction picker uses the sprites too.

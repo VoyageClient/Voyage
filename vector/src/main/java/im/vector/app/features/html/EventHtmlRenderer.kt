@@ -212,32 +212,40 @@ class EventHtmlRenderer @Inject constructor(
     private val removeLeadingNewlineForInlineElement = object : AbstractMarkwonPlugin() {
         override fun afterSetText(textView: TextView) {
             super.afterSetText(textView)
-
-            // Runs on every bind, so only allocate/rewrite when a span actually starts on a newline.
+            // Runs on every bind, so only rewrite when the workaround actually changes something.
             val current = textView.text as? Spanned ?: return
-            val length = current.length
-            val spans = arrayOf(
-                    EmphasisSpan::class.java,
-                    CustomTypefaceSpan::class.java,
-                    StrongEmphasisSpan::class.java,
-                    UnderlineSpan::class.java,
-                    URLSpan::class.java,
-                    StrikethroughSpan::class.java
-            ).flatMap { current.getSpans(0, length, it).asList() }
-                    .plus(current.getSpans(0, length, HtmlCodeSpan::class.java).filter { !it.isBlock })
-
-            if (spans.none { val start = current.getSpanStart(it); start in 0 until length && current[start] == '\n' }) return
-
-            val text = SpannableStringBuilder(current)
-            spans.forEach { span ->
-                val start = text.getSpanStart(span)
-                if (start in 0 until text.length && text[start] == '\n') {
-                    text.replace(start, start + 1, "")
-                }
-            }
-
-            textView.text = text
+            val fixed = removeLeadingNewlineForInlineElement(current)
+            if (fixed !== current) textView.text = fixed
         }
+    }
+
+    /**
+     * Markwon strands a leading newline in front of an inline element (link/emphasis/etc.) — see the
+     * plugin above. That plugin only fires via afterSetText when the text is set on a TextView through
+     * Markwon; callers that render to a plain CharSequence (e.g. room topics) must apply it themselves.
+     */
+    fun removeLeadingNewlineForInlineElement(current: Spanned): CharSequence {
+        val length = current.length
+        val spans = arrayOf(
+                EmphasisSpan::class.java,
+                CustomTypefaceSpan::class.java,
+                StrongEmphasisSpan::class.java,
+                UnderlineSpan::class.java,
+                URLSpan::class.java,
+                StrikethroughSpan::class.java
+        ).flatMap { current.getSpans(0, length, it).asList() }
+                .plus(current.getSpans(0, length, HtmlCodeSpan::class.java).filter { !it.isBlock })
+
+        if (spans.none { val start = current.getSpanStart(it); start in 0 until length && current[start] == '\n' }) return current
+
+        val text = SpannableStringBuilder(current)
+        spans.forEach { span ->
+            val start = text.getSpanStart(span)
+            if (start in 0 until text.length && text[start] == '\n') {
+                text.replace(start, start + 1, "")
+            }
+        }
+        return text
     }
 
     private fun buildMarkwon() = Markwon.builder(context)

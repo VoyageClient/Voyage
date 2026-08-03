@@ -7,9 +7,11 @@
 
 package im.vector.app.core.epoxy
 
-import android.animation.ObjectAnimator
+import android.text.Spanned
 import android.text.TextUtils
 import android.text.method.MovementMethod
+import android.text.style.ClickableSpan
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -19,14 +21,13 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.utils.setReadOnlySelectable
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.strings.CommonStrings
 
 @EpoxyModelClass
 abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(R.layout.item_expandable_textview) {
 
     @EpoxyAttribute
-    lateinit var content: String
+    lateinit var content: CharSequence
 
     @EpoxyAttribute
     var maxLines: Int = 3
@@ -34,26 +35,63 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var movementMethod: MovementMethod? = null
 
-    private var isExpanded = false
-    private var expandedLines = 0
+    // Persisted by the caller so the expanded state survives model rebuilds (app resume, room-state reloads).
+    @EpoxyAttribute
+    var expanded: Boolean = false
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var onExpandedChange: ((Boolean) -> Unit)? = null
+
+    private var isExpanded = false
+
+    // The content view is selectable, so a tap on a link runs the link movement method AND the view's
+    // own performClick (the expand/collapse toggle) — both fire. Record whether the last tap landed on a
+    // clickable span so the toggle can bow out and let the link win.
+    private var lastTapHitLink = false
+
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.content.text = content.prepareForDisplay()
+        // Order matters: setTextIsSelectable() re-creates the editor and resets the movement method, so make
+        // the view selectable and attach the link movement method BEFORE setting the (span-bearing) text —
+        // otherwise link taps aren't caught and fall through to the expand/collapse toggle below.
         holder.content.setReadOnlySelectable(true)
+        // Read-only text: keep selection (copy) but never raise the soft keyboard when it takes focus
+        // (e.g. after tapping a link and returning to the screen).
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            holder.content.showSoftInputOnFocus = false
+        }
         holder.content.movementMethod = movementMethod
+        isExpanded = expanded
+        // Apply the final collapsed/expanded state before the text is laid out, so a reused holder never
+        // flashes the full height before settling — that flash was the flicker on open.
+        applyMaxLines(holder.content)
+        holder.content.text = content
+        holder.content.setOnTouchListener { v, event ->
+            if (event.actionMasked == MotionEvent.ACTION_UP) {
+                lastTapHitLink = (v as TextView).hasClickableSpanAt(event)
+            }
+            false
+        }
 
         holder.content.doOnPreDraw {
-            if (holder.content.lineCount > maxLines) {
-                expandedLines = holder.content.lineCount
-                holder.content.maxLines = maxLines
-
+            // Measure the full line count off-view (a selectable TextView doesn't reliably report ellipsis,
+            // and reading it off the live view would need a full-height pass — the flicker we're avoiding).
+            val fullLines = holder.content.fullLineCount()
+            if (fullLines > maxLines) {
+                updateArrow(holder)
                 val toggle = View.OnClickListener {
-                    if (isExpanded) {
-                        collapse(holder)
-                    } else {
-                        expand(holder)
+                    if (lastTapHitLink) {
+                        lastTapHitLink = false
+                        return@OnClickListener
                     }
+                    isExpanded = !isExpanded
+                    onExpandedChange?.invoke(isExpanded)
+                    // Set maxLines directly rather than animating it: animating maxLines on a selectable
+                    // (DynamicLayout) TextView crashes in getLineTop(-1) when a re-measure races the animation,
+                    // which rapid link taps rebinding the screen readily trigger.
+                    applyMaxLines(holder.content)
+                    updateArrow(holder)
                 }
                 holder.view.setOnClickListener(toggle)
                 // The selectable text view consumes taps, so it needs the toggle too
@@ -65,28 +103,43 @@ abstract class ExpandableTextItem : VectorEpoxyModel<ExpandableTextItem.Holder>(
         }
     }
 
-    private fun expand(holder: Holder) {
-        ObjectAnimator
-                .ofInt(holder.content, "maxLines", expandedLines)
-                .setDuration(200)
-                .start()
-
-        holder.content.ellipsize = null
-        holder.arrow.setImageResource(R.drawable.ic_expand_less)
-        holder.arrow.contentDescription = holder.view.context.getString(CommonStrings.merged_events_collapse)
-        isExpanded = true
+    private fun applyMaxLines(textView: TextView) {
+        textView.maxLines = if (isExpanded) Integer.MAX_VALUE else maxLines
+        textView.ellipsize = if (isExpanded) null else TextUtils.TruncateAt.END
     }
 
-    private fun collapse(holder: Holder) {
-        ObjectAnimator
-                .ofInt(holder.content, "maxLines", maxLines)
-                .setDuration(200)
-                .start()
+    private fun updateArrow(holder: Holder) {
+        holder.arrow.setImageResource(if (isExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more)
+        holder.arrow.contentDescription = holder.view.context.getString(
+                if (isExpanded) CommonStrings.merged_events_collapse else CommonStrings.merged_events_expand
+        )
+    }
 
-        holder.content.ellipsize = TextUtils.TruncateAt.END
-        holder.arrow.setImageResource(R.drawable.ic_expand_more)
-        holder.arrow.contentDescription = holder.view.context.getString(CommonStrings.merged_events_expand)
-        isExpanded = false
+    // Full line count the text would occupy at the current width, independent of the view's own maxLines /
+    // selectable state — so expandability is detected without flashing the whole topic on screen.
+    private fun TextView.fullLineCount(): Int {
+        val available = width - compoundPaddingLeft - compoundPaddingRight
+        if (available <= 0) return 0
+        val sdk = android.os.Build.VERSION.SDK_INT
+        val mult = if (sdk >= android.os.Build.VERSION_CODES.JELLY_BEAN) lineSpacingMultiplier else 1f
+        val extra = if (sdk >= android.os.Build.VERSION_CODES.JELLY_BEAN) lineSpacingExtra else 0f
+        val includePad = if (sdk >= android.os.Build.VERSION_CODES.JELLY_BEAN) includeFontPadding else true
+        @Suppress("DEPRECATION")
+        return android.text.StaticLayout(
+                text, paint, available, android.text.Layout.Alignment.ALIGN_NORMAL, mult, extra, includePad
+        ).lineCount
+    }
+
+    private fun TextView.hasClickableSpanAt(event: MotionEvent): Boolean {
+        val spanned = text as? Spanned ?: return false
+        val layout = layout ?: return false
+        val x = event.x.toInt() - totalPaddingLeft + scrollX
+        val y = event.y.toInt() - totalPaddingTop + scrollY
+        val line = layout.getLineForVertical(y)
+        // getOffsetForHorizontal clamps to the line, so guard against taps past the line's end.
+        if (x < layout.getLineLeft(line) || x > layout.getLineRight(line)) return false
+        val offset = layout.getOffsetForHorizontal(line, x.toFloat())
+        return spanned.getSpans(offset, offset, ClickableSpan::class.java).isNotEmpty()
     }
 
     class Holder : VectorEpoxyHolder() {

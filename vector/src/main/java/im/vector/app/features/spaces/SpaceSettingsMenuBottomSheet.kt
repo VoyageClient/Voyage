@@ -18,6 +18,7 @@ import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
@@ -118,7 +119,7 @@ class SpaceSettingsMenuBottomSheet : VectorBaseBottomSheetDialogFragment<BottomS
             avatarRenderer.render(it, views.spaceAvatarImageView)
         }
         views.spaceNameView.text = state.spaceSummary?.displayName?.prepareForDisplay()
-        views.spaceDescription.setTextOrHide(state.spaceSummary?.topic?.takeIf { it.isNotEmpty() }?.prepareForDisplay())
+        views.spaceDescription.setTextOrHide(state.spaceSummary?.topic?.takeIf { it.isNotEmpty() }?.formatTopic(state.spaceSummary.roomId))
 
         views.spaceSettings.isVisible = state.canEditSettings
 

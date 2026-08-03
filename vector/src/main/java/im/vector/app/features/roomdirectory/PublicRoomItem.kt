@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -59,7 +60,7 @@ abstract class PublicRoomItem : VectorEpoxyModel<PublicRoomItem.Holder>(R.layout
         avatarRenderer.render(matrixItem, holder.avatarView)
         holder.nameView.text = matrixItem.displayName?.prepareForDisplay()
         holder.aliasView.setTextOrHide(roomAlias)
-        holder.topicView.setTextOrHide(roomTopic?.prepareForDisplay())
+        holder.topicView.setTextOrHide(roomTopic?.formatTopic(matrixItem.id))
         // TODO Use formatter for big numbers?
         holder.counterView.text = "$nbOfMembers"
 

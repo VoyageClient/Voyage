@@ -16,7 +16,7 @@ import im.vector.app.databinding.FragmentMatrixToRoomSpaceCardBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
-import im.vector.app.features.home.room.detail.timeline.tools.linkify
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
@@ -49,7 +49,7 @@ class SpaceCardRenderer @Inject constructor(
             avatarRenderer.render(spaceSummary.toMatrixItem().let { if (hideAvatar) it.updateAvatar(null) else it }, inCard.matrixToCardAvatar)
             inCard.matrixToCardNameText.text = spaceSummary.name.prepareForDisplay()
             inCard.matrixToCardAliasText.setTextOrHide(spaceSummary.canonicalAlias)
-            inCard.matrixToCardDescText.setTextOrHide(spaceSummary.topic.linkify(matrixLinkCallback).prepareForDisplay())
+            inCard.matrixToCardDescText.setTextOrHide(spaceSummary.topic.formatTopic(spaceSummary.roomId, matrixLinkCallback))
             if (spaceSummary.isPublic) {
                 inCard.matrixToAccessText.setTextOrHide(stringProvider.getString(CommonStrings.public_space))
                 inCard.matrixToAccessImage.isVisible = true
@@ -99,7 +99,7 @@ class SpaceCardRenderer @Inject constructor(
             avatarRenderer.render(spaceChildInfo.toMatrixItem(), inCard.matrixToCardAvatar)
             inCard.matrixToCardNameText.setTextOrHide(spaceChildInfo.name?.prepareForDisplay())
             inCard.matrixToCardAliasText.setTextOrHide(spaceChildInfo.canonicalAlias)
-            inCard.matrixToCardDescText.setTextOrHide(spaceChildInfo.topic?.linkify(matrixLinkCallback)?.prepareForDisplay())
+            inCard.matrixToCardDescText.setTextOrHide(spaceChildInfo.topic?.formatTopic(spaceChildInfo.childRoomId, matrixLinkCallback))
             if (spaceChildInfo.worldReadable) {
                 inCard.matrixToAccessText.setTextOrHide(stringProvider.getString(CommonStrings.public_space))
                 inCard.matrixToAccessImage.isVisible = true

@@ -21,6 +21,7 @@ import im.vector.app.features.form.formSwitchItem
 import im.vector.app.features.home.ShortcutCreator
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonPlurals
@@ -42,6 +43,24 @@ class RoomProfileController @Inject constructor(
 
     var callback: Callback? = null
 
+    // Persisted here (not in the recreated epoxy model) so the topic stays expanded across rebuilds.
+    private var isTopicExpanded = false
+
+    // formatTopic() allocates a fresh Spannable each build; caching by (topic, roomId) keeps the epoxy
+    // content attribute stable so the item isn't needlessly rebound (which flickered the expand state) and
+    // the markdown/HTML render doesn't run on every state emission.
+    private var topicCacheKey: Pair<String, String>? = null
+    private var topicCacheValue: CharSequence? = null
+
+    private fun formattedTopic(topic: String, roomId: String, callback: TimelineEventController.UrlClickCallback): CharSequence {
+        val key = topic to roomId
+        topicCacheValue?.let { if (topicCacheKey == key) return it }
+        return topic.formatTopic(roomId, callback).also {
+            topicCacheKey = key
+            topicCacheValue = it
+        }
+    }
+
     interface Callback {
         fun onLearnMoreClicked()
         fun onEnableEncryptionClicked()
@@ -61,6 +80,7 @@ class RoomProfileController @Inject constructor(
         fun onRoomPermissionsClicked()
         fun onRoomIdClicked()
         fun onRoomDevToolsClicked()
+        fun onUrlInTopicClicked(url: String): Boolean
         fun onUrlInTopicLongClicked(url: String)
         fun doMigrateToVersion(newVersion: String)
         fun restoreEncryptionState()
@@ -79,20 +99,23 @@ class RoomProfileController @Inject constructor(
                 .takeIf { it.isNotEmpty() }
                 ?.let {
                     buildProfileSection(stringProvider.getString(CommonStrings.room_settings_topic))
+                    val topicCallback = object : TimelineEventController.UrlClickCallback {
+                        override fun onUrlClicked(url: String, title: String): Boolean {
+                            return host.callback?.onUrlInTopicClicked(url) ?: false
+                        }
+
+                        override fun onUrlLongClicked(url: String): Boolean {
+                            host.callback?.onUrlInTopicLongClicked(url)
+                            return true
+                        }
+                    }
                     expandableTextItem {
                         id("topic")
-                        content(it)
+                        content(host.formattedTopic(it, roomSummary.roomId, topicCallback))
                         maxLines(2)
-                        movementMethod(createLinkMovementMethod(object : TimelineEventController.UrlClickCallback {
-                            override fun onUrlClicked(url: String, title: String): Boolean {
-                                return false
-                            }
-
-                            override fun onUrlLongClicked(url: String): Boolean {
-                                host.callback?.onUrlInTopicLongClicked(url)
-                                return true
-                            }
-                        }))
+                        expanded(host.isTopicExpanded)
+                        onExpandedChange { host.isTopicExpanded = it }
+                        movementMethod(createLinkMovementMethod(topicCallback))
                     }
                 }
 

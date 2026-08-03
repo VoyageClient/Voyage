@@ -30,6 +30,7 @@ import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
+import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
@@ -54,6 +55,7 @@ import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
@@ -76,6 +78,8 @@ class RoomProfileFragment :
     @Inject lateinit var bannerRenderer: BannerRenderer
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
+    @Inject lateinit var permalinkHandler: im.vector.app.features.permalink.PermalinkHandler
+    @Inject lateinit var activeSessionHolder: im.vector.app.core.di.ActiveSessionHolder
 
     private lateinit var headerViews: ViewStubRoomProfileHeaderBinding
 
@@ -238,6 +242,16 @@ class RoomProfileFragment :
         views.matrixProfileRecyclerView.configureWith(roomProfileController, hasFixedSize = true, disableItemAnimation = true)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // The read-only, selectable topic can hold focus and re-raise the soft keyboard when the screen is
+        // re-entered (app switch / back). This screen has no text input, so keep the keyboard down.
+        view?.let {
+            it.clearFocus()
+            it.hideKeyboard()
+        }
+    }
+
     override fun onDestroyView() {
         roomProfileController.callback = null
         views.matrixProfileAppBarLayout.removeOnOffsetChangedListener(appBarStateChangeListener)
@@ -384,6 +398,29 @@ class RoomProfileFragment :
 
     override fun onRoomDevToolsClicked() {
         navigator.openDevTools(requireContext(), roomProfileArgs.roomId)
+    }
+
+    override fun onUrlInTopicClicked(url: String): Boolean {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // PermalinkHandler opens a room you're already in directly; if it can't (e.g. an unjoined alias
+            // whose server lookup fails, which it swallows as "not managed") fall back to the in-app matrix.to
+            // card for any matrix permalink, and only open a genuine external URL in the browser.
+            val isManaged = permalinkHandler.launch(requireActivity(), url)
+            if (!isManaged) {
+                if (isSupportedPermalink(url)) {
+                    navigator.openMatrixToBottomSheet(requireActivity(), url, im.vector.app.features.matrixto.OriginOfMatrixTo.LINK)
+                } else {
+                    im.vector.app.core.utils.openUrlInExternalBrowser(requireContext(), url)
+                }
+            }
+        }
+        return true
+    }
+
+    private fun isSupportedPermalink(url: String): Boolean {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return false
+        val supportedHosts = resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts)
+        return session.permalinkService().isPermalinkSupported(supportedHosts, url)
     }
 
     override fun onUrlInTopicLongClicked(url: String) {
