@@ -30,11 +30,13 @@ import javax.inject.Inject
 internal class SqlPresenceSyncHandler @Inject constructor() {
 
     fun handle(stores: SessionStores, presenceSyncResponse: PresenceSyncResponse?) {
+        val ignoredUserIds = stores.user.getIgnoredUserIds().toSet()
         presenceSyncResponse?.events
                 ?.filter { event -> event.type == EventType.PRESENCE }
                 ?.forEach { event ->
                     val content = event.getPresenceContent() ?: return@forEach
                     val userId = event.senderId ?: return@forEach
+                    if (userId in ignoredUserIds) return@forEach
                     val entity = UserPresenceEntity(
                             userId = userId,
                             lastActiveAgo = content.lastActiveAgo,

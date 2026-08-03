@@ -34,6 +34,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Read receipts** — private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms.
 
+- **Ignored users fully silenced** — read receipts and presence from ignored users are now dropped during sync, alongside the typing notifications already filtered.
+
 - **Auto-dismiss "Jump to unread"** — optional: whenever the timeline is at its end (opening a room at the bottom, or scrolling down to it), the Jump to unread banner is dismissed and the room marked as read instead of the banner appearing.
 
 - **Intentional Mentions (MSC3952)** — proper support, plus mention-rendering improvements (mentions backed by a single character rather than the full display name).
