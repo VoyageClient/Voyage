@@ -44,6 +44,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Intentional Mentions (MSC3952)** — proper support, plus mention-rendering improvements (mentions backed by a single character rather than the full display name).
 
+- **Frecency-ranked @-mentions** — the `@`-autocomplete now lists the people you mention most often in a room first, instead of plain alphabetical order; these per-room counts are backed up to account data so the ranking follows you across devices.
+
 - **Selectable message & topic text** — select text directly from timeline messages: double-tap starts a selection anywhere, long-press on a code block or inline code starts one locked to that code (Select all expands it to the whole message), links and plain text keep their long-press actions, and the selection menu is trimmed to Copy, Share and Select all; the room profile topic is selectable the same way, replacing long-press-to-copy.
 
 - **Rich room topics** — room and space topics now render HTML like timeline messages and markdown like the composer, and the room IDs, aliases and user IDs in a topic show as tappable pills (previously only the homeserver part of an alias was a link). In the room profile, tapping a matrix link opens the room/user in-app and other links open in the browser.
