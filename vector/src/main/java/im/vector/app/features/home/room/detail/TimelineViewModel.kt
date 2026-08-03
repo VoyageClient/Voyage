@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail
 
+import android.content.SharedPreferences
 import android.net.Uri
 import androidx.annotation.IdRes
 import androidx.core.net.toUri
@@ -41,6 +42,7 @@ import im.vector.app.features.home.room.detail.sticker.StickerPickerActionHandle
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineFactory
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineRetrieversFactory
 import im.vector.app.features.home.room.typing.TypingHelper
+import im.vector.app.features.VectorOverrides
 import im.vector.app.features.location.live.StopLiveLocationShareUseCase
 import im.vector.app.features.location.live.tracking.LocationSharingServiceConnection
 import im.vector.app.features.notifications.NotificationDrawerManager
@@ -56,11 +58,17 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.flow.chunk
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -77,6 +85,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
+import org.matrix.android.sdk.api.session.crypto.crosssigning.UserIdentityChangeState
 import org.matrix.android.sdk.api.session.crypto.verification.EVerificationState
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -141,6 +150,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val recentEmojiDataSource: RecentEmojiDataSource,
         timelineRetrieversFactory: TimelineRetrieversFactory,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
+        private val vectorOverrides: VectorOverrides,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -218,6 +228,7 @@ class TimelineViewModel @AssistedInject constructor(
         observePowerLevel()
         observePinnedEvents()
         observeMassRedaction()
+        observeUserIdentityChanges()
         setupPreviewUrlObservers()
         setupInReplyToObserver()
         viewModelScope.launch(Dispatchers.IO) {
@@ -348,6 +359,97 @@ class TimelineViewModel @AssistedInject constructor(
         massRedactionManager.stream()
                 .onEach { state -> setState { copy(massRedactionState = state) } }
                 .launchIn(viewModelScope)
+    }
+
+    private fun observeUserIdentityChanges() {
+        if (room == null || !room.roomCryptoService().isEncrypted()) return
+        val queryParams = roomMemberQueryParams {
+            displayName = QueryStringValue.NoCondition
+            memberships = Membership.activeMemberships()
+        }
+        val membersWithTrust = room.flow().liveRoomMembers(queryParams)
+                .flatMapLatest { members ->
+                    // Re-emit the member list whenever any of their cross-signing keys change.
+                    session.cryptoService().getCryptoDeviceInfoFlow(members.map { it.userId })
+                            .catch { Timber.e(it) }
+                            .map { members }
+                }
+        combine(membersWithTrust, vectorOverrides.forceIdentityChangeBanner, hideIdentityChangeBannerFlow()) { members, force, hide ->
+            computeUserIdentityChangePrompt(members, force, hide)
+        }
+                .onEach { prompt -> setState { copy(userIdentityChangePrompt = prompt) } }
+                .launchIn(viewModelScope)
+    }
+
+    private fun hideIdentityChangeBannerFlow(): Flow<Boolean> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+            trySend(vectorPreferences.hideIdentityChangeBanner())
+        }
+        trySend(vectorPreferences.hideIdentityChangeBanner())
+        vectorPreferences.subscribeToChanges(listener)
+        awaitClose { vectorPreferences.unsubscribeToChanges(listener) }
+    }.distinctUntilChanged()
+
+    private suspend fun computeUserIdentityChangePrompt(
+            members: List<RoomMemberSummary>,
+            forceShow: Boolean,
+            hideBanner: Boolean,
+    ): UserIdentityChangePrompt? {
+        val crossSigningService = session.cryptoService().crossSigningService()
+        val violations = mutableListOf<UserIdentityChangePrompt>()
+        for (member in members) {
+            if (member.userId == session.myUserId) continue
+            val state = crossSigningService.getUserIdentityChangeState(member.userId)
+            if (state == UserIdentityChangeState.NONE) continue
+            violations.add(
+                    UserIdentityChangePrompt(
+                            userId = member.userId,
+                            displayName = member.displayName,
+                            avatarUrl = member.avatarUrl,
+                            critical = state == UserIdentityChangeState.VERIFICATION_VIOLATION,
+                    )
+            )
+        }
+        if (hideBanner) {
+            // Accept (pin) every outstanding change so it stays dismissed even if this setting is later disabled.
+            violations.forEach { crossSigningService.pinCurrentUserIdentity(it.userId) }
+            return null
+        }
+        if (violations.isEmpty() && forceShow) {
+            members.firstOrNull { it.userId != session.myUserId }?.let { member ->
+                violations.add(
+                        UserIdentityChangePrompt(
+                                userId = member.userId,
+                                displayName = member.displayName,
+                                avatarUrl = member.avatarUrl,
+                                critical = false,
+                        )
+                )
+            }
+        }
+        // Match element-web: pick the first violation ordered by user id.
+        return violations
+                .sortedBy { it.userId }
+                .firstOrNull()
+    }
+
+    private fun handleDismissUserIdentityChange(userId: String) {
+        val room = room ?: return
+        viewModelScope.launch {
+            session.cryptoService().crossSigningService().pinCurrentUserIdentity(userId)
+            // Re-derive in case another member still has an outstanding change.
+            val queryParams = roomMemberQueryParams {
+                displayName = QueryStringValue.NoCondition
+                memberships = Membership.activeMemberships()
+            }
+            val forceShow = vectorOverrides.forceIdentityChangeBanner.first()
+            val prompt = computeUserIdentityChangePrompt(
+                    room.membershipService().getRoomMembers(queryParams),
+                    forceShow,
+                    vectorPreferences.hideIdentityChangeBanner(),
+            )
+            setState { copy(userIdentityChangePrompt = prompt) }
+        }
     }
 
     private fun observeActiveRoomWidgets() {
@@ -578,6 +680,7 @@ class TimelineViewModel @AssistedInject constructor(
             RoomDetailAction.StopLiveLocationSharing -> handleStopLiveLocationSharing()
             RoomDetailAction.MassRedactionPauseToggle -> massRedactionManager.togglePause()
             RoomDetailAction.MassRedactionCancel -> massRedactionManager.cancel()
+            is RoomDetailAction.DismissUserIdentityChange -> handleDismissUserIdentityChange(action.userId)
         }
     }
 

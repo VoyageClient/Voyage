@@ -77,6 +77,10 @@ internal class CrossSigningSqlStore(
 
     fun getAllUserIds(): List<String> = queries.xsignSelectAllUserIds().executeAsList()
 
+    fun getPinnedMasterKey(userId: String): String? = queries.identityPinSelect(userId).executeAsOneOrNull()
+
+    fun pinMasterKey(userId: String, masterKey: String) = queries.identityPinUpsert(userId, masterKey)
+
     fun setUserKeysAsTrusted(userId: String, trusted: Boolean) {
         database.transaction {
             queries.keyInfoUpdateTrustByUser(trusted.toLong(), trusted.toLong(), userId)

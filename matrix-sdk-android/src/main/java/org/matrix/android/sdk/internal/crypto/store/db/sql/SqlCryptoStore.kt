@@ -315,6 +315,8 @@ internal class SqlCryptoStore @Inject constructor(
     override fun getCrossSigningInfo(userId: String): MXCrossSigningInfo? = crossSigningStore.getCrossSigningInfo(userId)
     override fun getCrossSigningInfoUserIds(): List<String> = crossSigningStore.getAllUserIds()
     override fun setCrossSigningInfo(userId: String, info: MXCrossSigningInfo?) = crossSigningStore.setCrossSigningInfo(userId, info)
+    override fun getPinnedMasterKey(userId: String): String? = crossSigningStore.getPinnedMasterKey(userId)
+    override fun pinMasterKey(userId: String, masterKey: String) = crossSigningStore.pinMasterKey(userId, masterKey)
     override fun markMyMasterKeyAsLocallyTrusted(trusted: Boolean) = crossSigningStore.markMasterKeyAsLocallyTrusted(userId, trusted)
     override fun setUserKeysAsTrusted(userId: String, trusted: Boolean) = crossSigningStore.setUserKeysAsTrusted(userId, trusted)
     override fun setDeviceTrust(userId: String, deviceId: String, crossSignedVerified: Boolean, locallyVerified: Boolean?) = deviceStore.setDeviceTrust(userId, deviceId, crossSignedVerified, locallyVerified)

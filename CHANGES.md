@@ -60,6 +60,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Hideable message shields** — toggles in Settings → Security & Privacy → Visual to hide the grey key-backup shield (messages decrypted with a key restored from secure backup) and the red encryption-warning shield (unencrypted messages in encrypted rooms, or messages from unverified/unknown/deleted sessions); reactions and redactions, which are always sent unencrypted, no longer get a red shield in encrypted rooms.
 
+- **Identity-change banner** — backported from Element Web: a banner at the top of an encrypted room warns when a member's cross-signing identity changes, shown in red for someone you had previously verified. Dismissing it (or "Withdraw verification" for the verified case) pins their current identity, so it only reappears if their identity resets again. Identity pinning is tracked in the crypto store, and a Settings → Security & Privacy → Visual toggle can hide the banner outright while still accepting any current changes.
+
 - **Voice messages overhaul** — an Opus decoder, playback of audio while it still uploads, scheduled playback for not-yet-downloaded audio, and a processing-stage indicator when sending.
 
 - **Media viewer with pinch-to-zoom** — a reworked image/video viewer that supports pinch-to-zoom on still images, animated images (GIFs / animated WebP), and videos, an overhauled compression pipeline (compress by the shorter side so long media isn't squished), and correct thumbnail stubs during upload.

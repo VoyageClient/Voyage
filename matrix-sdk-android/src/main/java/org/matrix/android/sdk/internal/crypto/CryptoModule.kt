@@ -117,9 +117,16 @@ internal abstract class CryptoModule {
                 @SessionFilesDirectory directory: File,
                 driverFactory: SqlDriverFactory,
         ): CryptoSqlDatabase {
-            return CryptoSqlDatabase(
-                    driverFactory.create(CryptoSqlDatabase.Schema, File(directory, "crypto_store.db"))
+            val driver = driverFactory.create(CryptoSqlDatabase.Schema, File(directory, "crypto_store.db"))
+            // The driver drops-and-recreates on a schema version bump (no migrations), so add the
+            // identity_pin table idempotently here to avoid wiping crypto keys on databases that
+            // predate it.
+            driver.execute(
+                    null,
+                    "CREATE TABLE IF NOT EXISTS identity_pin (user_id TEXT NOT NULL PRIMARY KEY, pinned_master_key TEXT NOT NULL)",
+                    0,
             )
+            return CryptoSqlDatabase(driver)
         }
 
         @JvmStatic

@@ -134,6 +134,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY = "SETTINGS_AUTO_DISMISS_JUMP_TO_UNREAD_KEY"
         private const val SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY = "SETTINGS_HIDE_KEY_BACKUP_SHIELD_KEY"
         private const val SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY = "SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY"
+        const val SETTINGS_HIDE_IDENTITY_CHANGE_BANNER_KEY = "SETTINGS_HIDE_IDENTITY_CHANGE_BANNER_KEY"
         private const val SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY = "SETTINGS_SHOW_ROOM_MEMBER_STATE_EVENTS_KEY"
         private const val SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY = "SETTINGS_SHOW_JOIN_LEAVE_MESSAGES_KEY"
         private const val SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY = "SETTINGS_SHOW_AVATAR_DISPLAY_NAME_CHANGES_MESSAGES_KEY"
@@ -903,6 +904,10 @@ class VectorPreferences @Inject constructor(
 
     fun hideEncryptionWarningShield(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_HIDE_ENCRYPTION_WARNING_SHIELD_KEY, false)
+    }
+
+    fun hideIdentityChangeBanner(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_HIDE_IDENTITY_CHANGE_BANNER_KEY, false)
     }
 
     /**

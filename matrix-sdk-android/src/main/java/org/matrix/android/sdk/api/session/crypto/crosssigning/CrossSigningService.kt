@@ -22,6 +22,20 @@ import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.util.Optional
 
+/**
+ * Whether a user's cross-signing identity currently warrants a warning, and how severe it is.
+ */
+enum class UserIdentityChangeState {
+    /** Identity is trusted, unchanged since we pinned it, or not yet known. */
+    NONE,
+
+    /** The pinned identity changed for a user we never verified. */
+    PIN_VIOLATION,
+
+    /** A previously verified user's identity is no longer trusted — the more severe case. */
+    VERIFICATION_VIOLATION,
+}
+
 interface CrossSigningService {
     /**
      * Is our published identity trusted.
@@ -67,6 +81,15 @@ interface CrossSigningService {
      * @param otherUserId The ID of the user for which we would like to fetch the cross signing keys.
      */
     suspend fun getUserCrossSigningKeys(otherUserId: String): MXCrossSigningInfo?
+
+    /**
+     * Evaluate whether a user's identity changed against the master key we last accepted, pinning
+     * the current key on first sight of an unverified identity so future changes can be detected.
+     */
+    suspend fun getUserIdentityChangeState(otherUserId: String): UserIdentityChangeState
+
+    /** Accept the user's current identity so [getUserIdentityChangeState] stops warning until it resets again. */
+    suspend fun pinCurrentUserIdentity(otherUserId: String)
 
     fun getCrossSigningKeysFlow(userId: String): Flow<Optional<MXCrossSigningInfo>>
 

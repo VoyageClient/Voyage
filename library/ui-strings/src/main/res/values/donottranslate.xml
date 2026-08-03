@@ -539,4 +539,10 @@
 
     <string name="room_member_profile_mutual_rooms" translatable="false">Mutual Rooms</string>
     <string name="room_member_profile_no_mutual_rooms" translatable="false">No mutual rooms</string>
+
+    <string name="identity_reset_banner" translatable="false">%1$s\'s (&lt;b>%2$s&lt;/b>) identity was reset. &lt;a href="https://element.io/help#encryption18">Learn more&lt;/a></string>
+    <string name="identity_reset_banner_no_displayname" translatable="false">&lt;b>%1$s&lt;/b>\'s identity was reset. &lt;a href="https://element.io/help#encryption18">Learn more&lt;/a></string>
+    <string name="identity_reset_withdraw_verification" translatable="false">Withdraw verification</string>
+    <string name="settings_hide_identity_change_banner" translatable="false">Hide identity change banner</string>
+    <string name="settings_hide_identity_change_banner_summary" translatable="false">Never show the banner warning that a contact\'s identity changed. Turning this on also accepts (pins) any current changes, so they stay dismissed even if you turn this back off.</string>
 </resources>

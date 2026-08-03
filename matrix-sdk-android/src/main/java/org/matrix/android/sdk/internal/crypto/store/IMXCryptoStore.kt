@@ -440,6 +440,11 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
 
     fun setCrossSigningInfo(userId: String, info: MXCrossSigningInfo?)
 
+    /** The cross-signing master key we last accepted for a user (identity pinning). */
+    fun getPinnedMasterKey(userId: String): String?
+
+    fun pinMasterKey(userId: String, masterKey: String)
+
     fun markMyMasterKeyAsLocallyTrusted(trusted: Boolean)
 
     fun storePrivateKeysInfo(msk: String?, usk: String?, ssk: String?)
