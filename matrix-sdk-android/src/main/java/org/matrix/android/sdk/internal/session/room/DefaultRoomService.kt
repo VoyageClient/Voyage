@@ -270,6 +270,10 @@ internal class DefaultRoomService @Inject constructor(
                 .getLastRoomMember(userId)?.asDomain()
     }
 
+    override fun getRoomIdsWithUserActiveMembership(userId: String): List<String> {
+        return stores.roomSummary.roomIdsWithActiveMembers(listOf(userId))
+    }
+
     override fun getRoomMemberFlow(userId: String, roomId: String): Flow<Optional<RoomMemberSummary>> {
         return database.roomMemberSummaryQueries.selectByRoom(roomId).asLiveList(dispatcher)
                 .map { stores.roomMember.getByRoomAndUser(roomId, userId)?.asDomain().toOptional() }

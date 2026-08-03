@@ -234,6 +234,12 @@ interface RoomService {
     fun getRoomMember(userId: String, roomId: String): RoomMemberSummary?
 
     /**
+     * Return the ids of the rooms we're in (join/invite) that have [userId] as an active member.
+     * Backed by a single indexed lookup, unlike iterating [getRoomMember] over every room.
+     */
+    fun getRoomIdsWithUserActiveMembership(userId: String): List<String>
+
+    /**
      * Observe a live room member for the tuple {userId,roomId}.
      * @param userId the userId to look for.
      * @param roomId the roomId to look for.

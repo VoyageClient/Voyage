@@ -512,4 +512,7 @@
     <string name="dev_tools_success_account_data" translatable="false">Account data updated!</string>
 
     <string name="action_copy_table" translatable="false">Copy table</string>
+
+    <string name="room_member_profile_mutual_rooms" translatable="false">Mutual Rooms</string>
+    <string name="room_member_profile_no_mutual_rooms" translatable="false">No mutual rooms</string>
 </resources>
