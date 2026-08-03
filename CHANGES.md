@@ -26,6 +26,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Room & profile banners (MSC4221 / MSC4427)** — Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings, with a per-room override of your own banner in the room's personalization tab; banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
 
+- **Mutual Rooms in profiles** — a user's profile has a Mutual Rooms button opening a compact list of the rooms you share, grouped under their spaces (with rounded-square space avatars) and DMs included; tap a room to open it, or tap a space to filter the room list to it.
+
 - **Message pinning** — pin and unpin messages, sorted by most recent, with a pinned-messages banner (toggleable).
 
 - **Message forwarding** — forward messages (using their most recent edit), with a custom Forward icon.

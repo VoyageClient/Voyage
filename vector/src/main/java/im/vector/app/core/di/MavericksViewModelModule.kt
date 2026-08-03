@@ -450,6 +450,11 @@ interface RoomProfileMavericksViewModelModule {
     @IntoMap
     @MavericksViewModelKey("im.vector.app.features.roomprofile.uploads.RoomUploadsViewModel")
     fun vm15(factory: im.vector.app.features.roomprofile.uploads.RoomUploadsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
+
+    @Binds
+    @IntoMap
+    @MavericksViewModelKey("im.vector.app.features.roommemberprofile.mutualrooms.MutualRoomsViewModel")
+    fun vm16(factory: im.vector.app.features.roommemberprofile.mutualrooms.MutualRoomsViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 }
 
 @InstallIn(MiscMavericksViewModelComponent::class)

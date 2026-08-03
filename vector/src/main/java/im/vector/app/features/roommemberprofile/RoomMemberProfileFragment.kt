@@ -49,6 +49,7 @@ import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.roommemberprofile.devices.DeviceListBottomSheet
+import im.vector.app.features.roommemberprofile.mutualrooms.MutualRoomsActivity
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.roommemberprofile.powerlevel.EditPowerLevelDialogs
 import im.vector.lib.strings.CommonStrings
@@ -471,5 +472,9 @@ class RoomMemberProfileFragment :
 
     override fun onInviteClicked() {
         viewModel.handle(RoomMemberProfileAction.InviteUser)
+    }
+
+    override fun onMutualRoomsClicked() {
+        startActivity(MutualRoomsActivity.newIntent(requireContext(), fragmentArgs.userId))
     }
 }

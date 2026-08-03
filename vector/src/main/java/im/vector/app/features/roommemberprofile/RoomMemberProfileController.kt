@@ -28,6 +28,7 @@ class RoomMemberProfileController @Inject constructor(
     var callback: Callback? = null
 
     interface Callback {
+        fun onMutualRoomsClicked()
         fun onIgnoreClicked()
         fun onTapVerify()
         fun onShowDeviceList()
@@ -56,23 +57,27 @@ class RoomMemberProfileController @Inject constructor(
     }
 
     private fun buildUserActions(state: RoomMemberProfileViewState) {
-        val ignoreActionTitle = state.buildIgnoreActionTitle() ?: return
+        val ignoreActionTitle = state.buildIgnoreActionTitle()
+        if (ignoreActionTitle == null && state.isMine) return
         // More
         buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_more))
-        buildProfileAction(
-                id = "ignore",
-                title = ignoreActionTitle,
-                destructive = true,
-                editable = false,
-                divider = false,
-                action = { callback?.onIgnoreClicked() }
-        )
         if (!state.isMine) {
             buildProfileAction(
                     id = "direct",
                     editable = false,
                     title = stringProvider.getString(CommonStrings.room_member_open_or_create_dm),
                     action = { callback?.onOpenDmClicked() }
+            )
+        }
+        buildMutualRoomsAction(state)
+        if (ignoreActionTitle != null) {
+            buildProfileAction(
+                    id = "ignore",
+                    title = ignoreActionTitle,
+                    destructive = true,
+                    editable = false,
+                    divider = false,
+                    action = { callback?.onIgnoreClicked() }
             )
         }
     }
@@ -83,6 +88,17 @@ class RoomMemberProfileController @Inject constructor(
         }
         buildMoreSection(state)
         buildAdminSection(state)
+    }
+
+    private fun buildMutualRoomsAction(state: RoomMemberProfileViewState) {
+        if (state.isMine) return
+        buildProfileAction(
+                id = "mutual_rooms",
+                editable = true,
+                divider = true,
+                title = stringProvider.getString(CommonStrings.room_member_profile_mutual_rooms),
+                action = { callback?.onMutualRoomsClicked() }
+        )
     }
 
     private fun buildSecuritySection(state: RoomMemberProfileViewState) {
@@ -203,7 +219,7 @@ class RoomMemberProfileController @Inject constructor(
                         id = "mention",
                         title = stringProvider.getString(CommonStrings.room_participants_action_mention),
                         editable = false,
-                        divider = ignoreActionTitle != null,
+                        divider = true,
                         action = { callback?.onMentionClicked() }
                 )
             }
@@ -220,6 +236,8 @@ class RoomMemberProfileController @Inject constructor(
                         action = { callback?.onInviteClicked() }
                 )
             }
+            buildMutualRoomsAction(state)
+
             if (ignoreActionTitle != null) {
                 buildProfileAction(
                         id = "ignore",
