@@ -31,6 +31,12 @@
                 android:layout_height="wrap_content"
                 android:text="Force login and registration fallback" />
 
+            <CheckBox
+                android:id="@+id/forceIdentityChangeBanner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Force show identity-change banner" />
+
             <im.vector.app.features.debug.settings.OverrideDropdownView
                 android:id="@+id/forceChangeDisplayNameCapability"
                 android:layout_width="match_parent"

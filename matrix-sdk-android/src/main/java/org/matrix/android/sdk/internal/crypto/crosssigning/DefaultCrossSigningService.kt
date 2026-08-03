@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustLevel
 import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustResult
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
 import org.matrix.android.sdk.api.session.crypto.crosssigning.PrivateKeysInfo
+import org.matrix.android.sdk.api.session.crypto.crosssigning.UserIdentityChangeState
 import org.matrix.android.sdk.api.session.crypto.crosssigning.UserTrustResult
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isCrossSignedVerified
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isLocallyVerified
@@ -521,6 +522,43 @@ internal class DefaultCrossSigningService @Inject constructor(
     override suspend fun getUserCrossSigningKeys(otherUserId: String): MXCrossSigningInfo? {
         return withContext(coroutineDispatchers.io) {
             cryptoStore.getCrossSigningInfo(otherUserId)
+        }
+    }
+
+    override suspend fun getUserIdentityChangeState(otherUserId: String): UserIdentityChangeState {
+        return withContext(coroutineDispatchers.io) {
+            val info = cryptoStore.getCrossSigningInfo(otherUserId) ?: return@withContext UserIdentityChangeState.NONE
+            val masterKey = info.masterKey()?.unpaddedBase64PublicKey ?: return@withContext UserIdentityChangeState.NONE
+            val pinned = cryptoStore.getPinnedMasterKey(otherUserId)
+
+            if (info.isTrusted()) {
+                // Current identity is verified: accept it and clear any stale pin mismatch.
+                if (pinned != masterKey) cryptoStore.pinMasterKey(otherUserId, masterKey)
+                return@withContext UserIdentityChangeState.NONE
+            }
+            // Was verified before but the current identity isn't trusted — a violation on its own,
+            // independent of pin history.
+            val verificationViolation = info.wasTrustedOnce
+
+            if (pinned == null) {
+                if (!verificationViolation) {
+                    // First sight of an unverified identity — pin it silently.
+                    cryptoStore.pinMasterKey(otherUserId, masterKey)
+                    return@withContext UserIdentityChangeState.NONE
+                }
+            } else if (pinned == masterKey) {
+                return@withContext UserIdentityChangeState.NONE
+            }
+
+            if (verificationViolation) UserIdentityChangeState.VERIFICATION_VIOLATION else UserIdentityChangeState.PIN_VIOLATION
+        }
+    }
+
+    override suspend fun pinCurrentUserIdentity(otherUserId: String) {
+        withContext(coroutineDispatchers.io) {
+            val masterKey = cryptoStore.getCrossSigningInfo(otherUserId)?.masterKey()?.unpaddedBase64PublicKey
+                    ?: return@withContext
+            cryptoStore.pinMasterKey(otherUserId, masterKey)
         }
     }
 

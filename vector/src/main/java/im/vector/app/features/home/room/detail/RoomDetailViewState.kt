@@ -33,6 +33,14 @@ sealed class UnreadState {
     data class HasUnread(val firstUnreadEventId: String, val readMarkerId: String) : UnreadState()
 }
 
+data class UserIdentityChangePrompt(
+        val userId: String,
+        val displayName: String?,
+        val avatarUrl: String?,
+        // A previously verified user whose identity changed — more severe than a plain pin change.
+        val critical: Boolean,
+)
+
 data class RoomDetailViewState(
         val roomId: String,
         val eventId: String?,
@@ -65,6 +73,7 @@ data class RoomDetailViewState(
         val sharedData: SharedData? = null,
         val pinnedEvents: List<TimelineEvent> = emptyList(),
         val massRedactionState: MassRedactionState? = null,
+        val userIdentityChangePrompt: UserIdentityChangePrompt? = null,
 ) : MavericksState {
 
     constructor(args: TimelineArgs) : this(

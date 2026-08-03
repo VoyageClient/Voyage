@@ -100,4 +100,6 @@ sealed class RoomDetailAction : VectorViewModelAction {
     // Mass redaction
     object MassRedactionPauseToggle : RoomDetailAction()
     object MassRedactionCancel : RoomDetailAction()
+
+    data class DismissUserIdentityChange(val userId: String) : RoomDetailAction()
 }

@@ -86,6 +86,7 @@ import im.vector.app.core.ui.views.FailedMessagesWarningView
 import im.vector.app.core.ui.views.NotificationAreaView
 import im.vector.app.core.ui.views.MassRedactionBannerView
 import im.vector.app.core.ui.views.PinnedMessagesBannerView
+import im.vector.app.core.ui.views.UserIdentityWarningView
 import im.vector.app.core.utils.Debouncer
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.KeyboardStateUtils
@@ -341,6 +342,7 @@ class TimelineFragment :
         setupJumpToBottomView()
         setupPinnedMessagesBanner()
         setupMassRedactionBanner()
+        setupUserIdentityWarning()
         setupLiveLocationIndicator()
         setupBackPressHandling()
         setupVoiceRecorderStacking()
@@ -792,6 +794,23 @@ class TimelineFragment :
                         .show()
             }
         }
+    }
+
+    private fun setupUserIdentityWarning() {
+        views.userIdentityWarningView.callback = object : UserIdentityWarningView.Callback {
+            override fun onUserIdentityWarningDismissed(userId: String) {
+                timelineViewModel.handle(RoomDetailAction.DismissUserIdentityChange(userId))
+            }
+        }
+    }
+
+    private fun renderUserIdentityWarning(prompt: UserIdentityChangePrompt?) {
+        if (prompt == null) {
+            views.userIdentityWarningView.isVisible = false
+            return
+        }
+        views.userIdentityWarningView.isVisible = true
+        views.userIdentityWarningView.render(prompt, avatarRenderer)
     }
 
     private fun setupPinnedMessagesBanner() {
@@ -1461,6 +1480,7 @@ class TimelineFragment :
         val summary = mainState.asyncRoomSummary()
         renderToolbar(summary)
         renderPinnedMessagesBanner(mainState)
+        renderUserIdentityWarning(mainState.userIdentityChangePrompt)
         views.massRedactionBanner.render(mainState.massRedactionState)
         if (mainState.hasFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.isVisible = true

@@ -45,6 +45,9 @@ class DebugPrivateSettingsViewModel @AssistedInject constructor(
         debugVectorOverrides.forceLoginFallback.setOnEach {
             copy(forceLoginFallback = it)
         }
+        debugVectorOverrides.forceIdentityChangeBanner.setOnEach {
+            copy(forceIdentityChangeBanner = it)
+        }
         debugVectorOverrides.forceHomeserverCapabilities.setOnEach {
             val activeDisplayNameOption = BooleanHomeserverCapabilitiesOverride.from(it.canChangeDisplayName)
             val activeAvatarOption = BooleanHomeserverCapabilitiesOverride.from(it.canChangeAvatar)
@@ -61,6 +64,7 @@ class DebugPrivateSettingsViewModel @AssistedInject constructor(
         when (action) {
             is DebugPrivateSettingsViewActions.SetDialPadVisibility -> handleSetDialPadVisibility(action)
             is DebugPrivateSettingsViewActions.SetForceLoginFallbackEnabled -> handleSetForceLoginFallbackEnabled(action)
+            is DebugPrivateSettingsViewActions.SetForceIdentityChangeBanner -> handleSetForceIdentityChangeBanner(action)
             is SetDisplayNameCapabilityOverride -> handleSetDisplayNameCapabilityOverride(action)
             is SetAvatarCapabilityOverride -> handleSetAvatarCapabilityOverride(action)
         }
@@ -75,6 +79,12 @@ class DebugPrivateSettingsViewModel @AssistedInject constructor(
     private fun handleSetForceLoginFallbackEnabled(action: DebugPrivateSettingsViewActions.SetForceLoginFallbackEnabled) {
         viewModelScope.launch {
             debugVectorOverrides.setForceLoginFallback(action.force)
+        }
+    }
+
+    private fun handleSetForceIdentityChangeBanner(action: DebugPrivateSettingsViewActions.SetForceIdentityChangeBanner) {
+        viewModelScope.launch {
+            debugVectorOverrides.setForceIdentityChangeBanner(action.force)
         }
     }
 

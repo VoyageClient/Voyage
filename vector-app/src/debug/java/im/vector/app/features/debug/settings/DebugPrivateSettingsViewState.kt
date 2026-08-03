@@ -13,6 +13,7 @@ import im.vector.app.features.debug.settings.OverrideDropdownView.OverrideDropdo
 data class DebugPrivateSettingsViewState(
         val dialPadVisible: Boolean = false,
         val forceLoginFallback: Boolean = false,
+        val forceIdentityChangeBanner: Boolean = false,
         val homeserverCapabilityOverrides: HomeserverCapabilityOverrides = HomeserverCapabilityOverrides(),
 ) : MavericksState
 

@@ -36,6 +36,9 @@ class DebugPrivateSettingsFragment : VectorBaseFragment<FragmentDebugPrivateSett
         views.forceLoginFallback.setOnCheckedChangeListener { _, isChecked ->
             viewModel.handle(DebugPrivateSettingsViewActions.SetForceLoginFallbackEnabled(isChecked))
         }
+        views.forceIdentityChangeBanner.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.handle(DebugPrivateSettingsViewActions.SetForceIdentityChangeBanner(isChecked))
+        }
     }
 
     override fun invalidate() = withState(viewModel) {
@@ -47,5 +50,6 @@ class DebugPrivateSettingsFragment : VectorBaseFragment<FragmentDebugPrivateSett
             viewModel.handle(DebugPrivateSettingsViewActions.SetAvatarCapabilityOverride(option))
         }
         views.forceLoginFallback.isChecked = it.forceLoginFallback
+        views.forceIdentityChangeBanner.isChecked = it.forceIdentityChangeBanner
     }
 }

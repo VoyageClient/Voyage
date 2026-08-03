@@ -18,6 +18,14 @@ CREATE TABLE key_info (
 
 CREATE INDEX key_info_user ON key_info(cross_signing_user_id);
 
+-- The cross-signing master key we last accepted for a user (identity pinning). A warning is raised
+-- when their current master key differs from the pinned one. Created idempotently at store open
+-- (see CryptoModule) so it also appears on databases that predate this table.
+CREATE TABLE identity_pin (
+    user_id TEXT NOT NULL PRIMARY KEY,
+    pinned_master_key TEXT NOT NULL
+);
+
 -- cross_signing_info
 xsignSelectByUserId:
 SELECT * FROM cross_signing_info WHERE user_id = ?;
@@ -59,3 +67,10 @@ WHERE cross_signing_user_id != ?;
 keyInfoUpdateLocalTrustById:
 UPDATE key_info SET has_trust_level = 1, trust_locally_verified = ?
 WHERE id = ?;
+
+-- identity_pin
+identityPinSelect:
+SELECT pinned_master_key FROM identity_pin WHERE user_id = ?;
+
+identityPinUpsert:
+INSERT OR REPLACE INTO identity_pin(user_id, pinned_master_key) VALUES (?, ?);
