@@ -40,7 +40,16 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class RoomProfileActivity :
-        VectorBaseActivity<ActivitySimpleBinding>() {
+        VectorBaseActivity<ActivitySimpleBinding>(),
+        im.vector.app.features.matrixto.MatrixToBottomSheet.InteractionListener {
+
+    override fun mxToBottomSheetNavigateToRoom(roomId: String) {
+        navigator.openRoom(this, roomId)
+    }
+
+    override fun mxToBottomSheetSwitchToSpace(spaceId: String) {
+        navigator.switchToSpace(this, spaceId, im.vector.app.features.navigation.Navigator.PostSwitchSpaceAction.None)
+    }
 
     companion object {
 

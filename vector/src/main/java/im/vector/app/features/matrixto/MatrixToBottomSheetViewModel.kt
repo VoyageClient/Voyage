@@ -253,13 +253,21 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
         }
     }
 
+    // A room id / alias can only be joined via a server that is already in the room. The peek/permalink
+    // via servers sometimes omit the room's own home server (which created and hosts it), so always try the
+    // alias/id domain FIRST, then any provided vias, then matrix.org — otherwise the join can 404 M_NOT_FOUND.
+    private fun viaServersOrFallback(idOrAlias: String, provided: List<String>?): List<String> {
+        val domain = idOrAlias.substringAfter(":", "").takeIf { it.isNotEmpty() }
+        return (listOfNotNull(domain) + provided.orEmpty() + "matrix.org").distinct().take(5)
+    }
+
     private fun handleJoinSpace(joinSpace: MatrixToAction.JoinSpace) {
         setState {
             copy(startChattingState = Loading())
         }
         viewModelScope.launch {
             try {
-                val joinResult = session.spaceService().joinSpace(joinSpace.spaceID, null, joinSpace.viaServers?.take(3) ?: emptyList())
+                val joinResult = session.spaceService().joinSpace(joinSpace.spaceID, null, viaServersOrFallback(joinSpace.spaceID, joinSpace.viaServers))
                 if (joinResult.isSuccess()) {
                     _viewEvents.post(MatrixToViewEvents.NavigateToSpace(joinSpace.spaceID))
                 } else {
@@ -286,7 +294,7 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                 session.roomService().joinRoom(
                         roomIdOrAlias = action.roomIdOrAlias,
                         reason = null,
-                        viaServers = action.viaServers?.take(3) ?: emptyList()
+                        viaServers = viaServersOrFallback(action.roomIdOrAlias, action.viaServers)
                 )
 
                 val roomId = getRoomIdFromRoomIdOrAlias(action.roomIdOrAlias)
@@ -311,7 +319,7 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                 session.roomService().knock(
                         roomIdOrAlias = action.roomIdOrAlias,
                         reason = action.reason,
-                        viaServers = action.viaServers?.take(3) ?: emptyList()
+                        viaServers = viaServersOrFallback(action.roomIdOrAlias, action.viaServers)
                 )
                 // No confirmation popup: dismissing the sheet communicates that the request was sent.
                 _viewEvents.post(MatrixToViewEvents.Dismiss)

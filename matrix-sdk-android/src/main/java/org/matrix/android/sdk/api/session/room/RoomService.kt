@@ -67,6 +67,13 @@ interface RoomService {
     }
 
     /**
+     * The formatted (HTML) body the SDK would derive for [text] using the same markdown + mention/pill
+     * rendering as a normal message send, or null when it would be plain. Session-level (no [Room]
+     * instance needed) so callers can format arbitrary text such as the topic of a room they haven't joined.
+     */
+    fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String?
+
+    /**
      * Join a room by id.
      * @param roomIdOrAlias the roomId or the room alias of the room to join
      * @param reason optional reason for joining the room

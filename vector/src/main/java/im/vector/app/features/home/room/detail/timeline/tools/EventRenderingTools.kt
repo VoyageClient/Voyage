@@ -43,6 +43,20 @@ import org.matrix.android.sdk.api.session.permalinks.MatrixPermalinkSpan
 @Volatile
 var messageEmojiSpanify: EmojiSpanify? = null
 
+// Set once at app start so the shared topic helper reaches the (injectable) renderer from the many
+// non-DI epoxy/custom-view sites that display a room topic.
+@Volatile
+var messageTopicRenderer: RoomTopicRenderer? = null
+
+/**
+ * Render a room topic for display: HTML + composer-style markdown + pills, with matrix ids/aliases made
+ * clickable (routed to [callback]). Falls back to plain linkify when the renderer isn't wired yet.
+ */
+fun CharSequence.formatTopic(roomId: String?, callback: TimelineEventController.UrlClickCallback? = null): CharSequence {
+    return messageTopicRenderer?.render(this, roomId, callback)
+            ?: linkify(callback).prepareForDisplay()
+}
+
 /** Prepare user-provided text for display: neutralize Unicode direction-override characters (shown as an
  *  unsupported-glyph box, see [neutralizeDirectionOverrides]) and apply the app's emoji rendering
  *  (Twemoji sprites / emoji2 / system font). */

@@ -13,7 +13,6 @@
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autoLink="web"
         android:ellipsize="end"
         app:layout_constraintBottom_toTopOf="@id/expandableArrow"
         app:layout_constraintEnd_toEndOf="parent"

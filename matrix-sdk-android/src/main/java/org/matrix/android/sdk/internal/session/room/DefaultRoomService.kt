@@ -86,8 +86,13 @@ internal class DefaultRoomService @Inject constructor(
         private val roomSummaryDataSource: RoomSummaryDataSource,
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val leaveRoomTask: LeaveRoomTask,
-        private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
+        private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater,
+        private val localEchoEventFactory: org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory,
 ) : RoomService, RoomPagingService {
+
+    override fun computeFormattedHtml(text: CharSequence, autoMarkdown: Boolean): String? {
+        return localEchoEventFactory.computeFormattedHtml(text, autoMarkdown)
+    }
 
     override suspend fun createRoom(createRoomParams: CreateRoomParams): String {
         return createRoomTask.executeRetry(createRoomParams, 3)
