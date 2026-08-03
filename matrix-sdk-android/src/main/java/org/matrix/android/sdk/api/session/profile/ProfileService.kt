@@ -36,6 +36,12 @@ interface ProfileService {
         // MSC4427 profile banner. Read both keys, write the unstable one.
         const val BANNER_URL_KEY = ProfileKeys.BANNER_URL
         const val BANNER_URL_KEY_UNSTABLE = ProfileKeys.BANNER_URL_UNSTABLE
+
+        // MSC4247 pronouns / MSC4175 time zone. Read both keys (stable preferred), write the unstable one.
+        const val PRONOUNS_KEY = ProfileKeys.PRONOUNS
+        const val PRONOUNS_KEY_UNSTABLE = ProfileKeys.PRONOUNS_UNSTABLE
+        const val TIMEZONE_KEY = ProfileKeys.TIMEZONE
+        const val TIMEZONE_KEY_UNSTABLE = ProfileKeys.TIMEZONE_UNSTABLE
     }
 
     /**
@@ -103,6 +109,36 @@ interface ProfileService {
      * or null when none is known. Synchronous, for seeding UI ahead of a network refresh.
      */
     fun getCachedBannerUrl(userId: String): String?
+
+    /**
+     * Set this user's pronouns (MSC4247). An empty list clears the field.
+     */
+    suspend fun setPronouns(userId: String, pronouns: List<Pronoun>)
+
+    /**
+     * Set this user's IANA time zone (MSC4175), e.g. "Europe/Paris". Blank clears the field.
+     */
+    suspend fun setTimezone(userId: String, timezone: String)
+
+    /**
+     * Pronouns/time zone this session has last seen for this user, or null when not yet known.
+     * Synchronous, for seeding UI and gendered notices ahead of a network refresh.
+     */
+    fun getCachedPronouns(userId: String): List<Pronoun>?
+
+    fun getCachedTimezone(userId: String): String?
+
+    /**
+     * Emits a userId once that user's pronouns become known (from a background prefetch or fetch),
+     * so views already rendered with the neutral fallback can rebuild with the gendered wording.
+     */
+    fun getPronounsUpdateFlow(): Flow<String>
+
+    /**
+     * Kick off a best-effort background fetch of this user's extended profile fields (pronouns/tz)
+     * if not already cached, so a later [getCachedPronouns]/[getCachedTimezone] can succeed.
+     */
+    fun prefetchProfileFields(userId: String)
 
     /**
      * Get the combined profile information for this user.

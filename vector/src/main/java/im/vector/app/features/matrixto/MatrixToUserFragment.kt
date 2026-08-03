@@ -54,13 +54,16 @@ class MatrixToUserFragment :
         when (val item = state.matrixItem) {
             Uninitialized -> {
                 views.matrixToCardUserContentVisibility.isVisible = false
+                views.matrixToCardProfileFieldsText.isVisible = false
             }
             is Loading -> {
                 views.matrixToCardUserContentVisibility.isVisible = false
+                views.matrixToCardProfileFieldsText.isVisible = false
             }
             is Success -> {
                 views.matrixToCardUserContentVisibility.isVisible = true
                 views.matrixToCardNameText.setTextOrHide(item.invoke().displayName?.prepareForDisplay())
+                views.matrixToCardProfileFieldsText.setTextOrHide(state.userProfileFieldsLine)
                 views.matrixToCardUserIdText.setTextOrHide(item.invoke().id)
                 avatarRenderer.render(item.invoke(), views.matrixToCardAvatar)
             }

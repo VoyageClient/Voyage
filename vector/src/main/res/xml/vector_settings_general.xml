@@ -21,6 +21,17 @@
             android:title="@string/settings_display_name" />
 
         <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_PRONOUNS_PREFERENCE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_pronouns" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_TIMEZONE_PREFERENCE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_timezone"
+            app:fragment="im.vector.app.features.settings.timezone.TimezonePickerFragment" />
+
+        <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_CHANGE_PASSWORD_PREFERENCE_KEY"
             android:summary="@string/change_password_summary"
             android:title="@string/settings_password" />

@@ -13,4 +13,12 @@ object ProfileKeys {
     const val AVATAR_URL = "avatar_url"
     const val BANNER_URL = "m.banner_url"
     const val BANNER_URL_UNSTABLE = "chat.commet.profile_banner"
+
+    // MSC4247 pronouns. Read both keys (stable preferred), write the unstable one.
+    const val PRONOUNS = "m.pronouns"
+    const val PRONOUNS_UNSTABLE = "io.fsky.nyx.pronouns"
+
+    // MSC4175 time zone. Read both keys (stable preferred), write the unstable one.
+    const val TIMEZONE = "m.tz"
+    const val TIMEZONE_UNSTABLE = "us.cloke.msc4175.tz"
 }

@@ -14,6 +14,8 @@ import android.os.Bundle
 import android.text.Editable
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
@@ -41,6 +43,8 @@ import im.vector.app.core.preference.UserBannerPreference
 import im.vector.app.core.preference.VectorPreference
 import im.vector.app.core.preference.VectorPreferenceCategory
 import im.vector.app.core.preference.VectorSwitchPreference
+import im.vector.app.core.profile.PronounHelper
+import im.vector.app.core.profile.TimezoneFormatter
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.core.utils.toast
@@ -52,6 +56,7 @@ import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.profile.Pronoun
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
@@ -79,6 +84,7 @@ class VectorSettingsGeneralFragment :
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
     @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
     @Inject lateinit var mediaCache: MediaCache
+    @Inject lateinit var timezoneFormatter: TimezoneFormatter
 
     override var titleRes = CommonStrings.settings_general_title
     override val preferenceXmlRes = R.xml.vector_settings_general
@@ -114,6 +120,12 @@ class VectorSettingsGeneralFragment :
     }
     private val mDisplayNamePreference by lazy {
         findPreference<EditTextPreference>("SETTINGS_DISPLAY_NAME_PREFERENCE_KEY")!!
+    }
+    private val mPronounsPreference by lazy {
+        findPreference<VectorPreference>("SETTINGS_PRONOUNS_PREFERENCE_KEY")!!
+    }
+    private val mTimezonePreference by lazy {
+        findPreference<VectorPreference>("SETTINGS_TIMEZONE_PREFERENCE_KEY")!!
     }
     private val mPasswordPreference by lazy {
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_CHANGE_PASSWORD_PREFERENCE_KEY)!!
@@ -167,6 +179,34 @@ class VectorSettingsGeneralFragment :
         observeUserAvatar()
         observeUserDisplayName()
         refreshBanner()
+        refreshProfileFields()
+    }
+
+    // Custom profile fields (pronouns/tz) have no live store; seed from cache then fetch fresh.
+    private fun refreshProfileFields() {
+        updatePronounsSummary(session.profileService().getCachedPronouns(session.myUserId))
+        updateTimezoneSummary(session.profileService().getCachedTimezone(session.myUserId))
+        lifecycleScope.launch {
+            tryOrNull { session.profileService().getProfile(session.myUserId) }
+            if (isAdded) {
+                updatePronounsSummary(session.profileService().getCachedPronouns(session.myUserId))
+                updateTimezoneSummary(session.profileService().getCachedTimezone(session.myUserId))
+            }
+        }
+    }
+
+    private fun updatePronounsSummary(pronouns: List<Pronoun>?) {
+        val text = pronouns?.mapNotNull { it.summary.takeIf { s -> s.isNotBlank() } }
+                ?.takeIf { it.isNotEmpty() }
+                ?.joinToString(", ")
+        mPronounsPreference.summary = text ?: getString(CommonStrings.settings_pronouns_not_set)
+    }
+
+    private fun updateTimezoneSummary(timezoneId: String?) {
+        mTimezonePreference.summary = when {
+            timezoneId.isNullOrBlank() -> getString(CommonStrings.settings_timezone_not_set)
+            else -> timezoneFormatter.formatToShort(timezoneId)?.let { "$timezoneId ($it)" } ?: timezoneId
+        }
     }
 
     // There is no live store for custom profile fields, so seed from the session cache
@@ -239,6 +279,12 @@ class VectorSettingsGeneralFragment :
                         ?.let { value -> onDisplayNameChanged(value) }
                 false
             }
+        }
+
+        // Pronouns
+        mPronounsPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            showPronounsDialog()
+            true
         }
 
         val homeServerCapabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
@@ -386,6 +432,8 @@ class VectorSettingsGeneralFragment :
         mIdentityServerPreference.summary = session.identityService().getCurrentIdentityServerUrl() ?: getString(CommonStrings.identity_server_not_defined)
         refreshIntegrationManagerSettings()
         session.integrationManagerService().addListener(integrationServiceListener)
+        // Time zone is edited on a separate picker screen; refresh its summary on return.
+        refreshProfileFields()
     }
 
     override fun onPause() {
@@ -651,6 +699,69 @@ class VectorSettingsGeneralFragment :
                         }
                 )
             }
+        }
+    }
+
+    private fun showPronounsDialog() {
+        val presets = listOf(
+                getString(CommonStrings.settings_pronouns_she_her),
+                getString(CommonStrings.settings_pronouns_he_him),
+                getString(CommonStrings.settings_pronouns_they_them),
+                getString(CommonStrings.settings_pronouns_it_its),
+        )
+        // Multiple pronoun sets are allowed (preference-ordered); pre-check what's already set.
+        val current = session.profileService().getCachedPronouns(session.myUserId).orEmpty()
+        val checked = BooleanArray(presets.size) { i -> current.any { it.summary.equals(presets[i], ignoreCase = true) } }
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.settings_pronouns)
+                .setMultiChoiceItems(presets.toTypedArray(), checked) { _, which, isChecked -> checked[which] = isChecked }
+                .setPositiveButton(CommonStrings.action_save) { _, _ ->
+                    val selected = presets.filterIndexed { i, _ -> checked[i] }.map { PronounHelper.build(it) }
+                    savePronouns(selected)
+                }
+                .setNeutralButton(CommonStrings.settings_pronouns_custom) { _, _ -> showCustomPronounsDialog() }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    private fun showCustomPronounsDialog() {
+        val existing = session.profileService().getCachedPronouns(session.myUserId).orEmpty()
+                .joinToString(", ") { it.summary }
+        val editText = EditText(requireContext()).apply {
+            hint = getString(CommonStrings.settings_pronouns_custom_hint)
+            setText(existing)
+            setSingleLine()
+        }
+        val inset = (24 * resources.displayMetrics.density).toInt()
+        val container = FrameLayout(requireContext()).apply {
+            setPadding(inset, 0, inset, 0)
+            addView(editText)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.settings_pronouns_custom_title)
+                .setView(container)
+                .setPositiveButton(CommonStrings.ok) { _, _ ->
+                    // Comma-separated, preference-ordered — supports multiple sets.
+                    val summaries = editText.text?.toString().orEmpty()
+                            .split(',')
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+                    savePronouns(summaries.map { PronounHelper.build(it) })
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    private fun savePronouns(pronouns: List<Pronoun>) {
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = runCatching { session.profileService().setPronouns(session.myUserId, pronouns) }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            result.fold(
+                    onSuccess = { updatePronounsSummary(pronouns) },
+                    onFailure = { displayErrorDialog(it) }
+            )
         }
     }
 }

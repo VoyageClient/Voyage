@@ -141,6 +141,30 @@
     <string name="notice_banner_changed_too" translatable="false">(banner was changed too)</string>
     <string name="notice_banner_removed_too" translatable="false">(banner was removed too)</string>
 
+    <!-- MSC4247 pronouns / MSC4175 time zone profile fields -->
+    <string name="settings_pronouns" translatable="false">Pronouns</string>
+    <string name="settings_pronouns_not_set" translatable="false">Not set</string>
+    <string name="settings_pronouns_custom" translatable="false">Custom…</string>
+    <string name="settings_pronouns_custom_title" translatable="false">Custom pronouns</string>
+    <string name="settings_pronouns_custom_hint" translatable="false">e.g. she/her, they/them</string>
+    <string name="settings_pronouns_she_her" translatable="false">she/her</string>
+    <string name="settings_pronouns_he_him" translatable="false">he/him</string>
+    <string name="settings_pronouns_they_them" translatable="false">they/them</string>
+    <string name="settings_pronouns_it_its" translatable="false">it/its</string>
+    <string name="settings_timezone" translatable="false">Time zone</string>
+    <string name="settings_timezone_not_set" translatable="false">Not set</string>
+    <string name="settings_timezone_none" translatable="false">None</string>
+    <string name="settings_timezone_search_hint" translatable="false">Search time zones</string>
+
+    <!-- MSC4247: gendered variants of the profile-change notices; %2$s is the possessive determiner (her/his/its). -->
+    <string name="notice_display_name_set_gendered" translatable="false">%1$s set %2$s display name to %3$s</string>
+    <string name="notice_display_name_changed_to_gendered" translatable="false">%1$s changed %2$s display name to %3$s</string>
+    <string name="notice_display_name_removed_gendered" translatable="false">%1$s removed %2$s display name (it was %3$s)</string>
+    <string name="notice_avatar_url_changed_gendered" translatable="false">%1$s changed %2$s avatar</string>
+    <string name="notice_avatar_removed_gendered" translatable="false">%1$s removed %2$s avatar</string>
+    <string name="notice_member_banner_changed_gendered" translatable="false">%1$s changed %2$s banner</string>
+    <string name="notice_member_banner_removed_gendered" translatable="false">%1$s removed %2$s banner</string>
+
     <string name="tag_favourites" translatable="false">Favorites</string>
     <string name="tag_low_priority" translatable="false">Low Priority</string>
     <string name="tag_server_notice" translatable="false">System Alerts</string>

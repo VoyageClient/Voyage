@@ -422,6 +422,29 @@ class TimelineEventController @Inject constructor(
     }
 
     /**
+     * Drop cached models of events sent by any of [userIds], then rebuild. Used when a sender's
+     * MSC4247 pronouns arrive after the fact, so their profile-change notices re-render gendered.
+     */
+    fun invalidateEventCachesForSenders(userIds: Collection<String>) {
+        if (userIds.isEmpty()) return
+        val ids = userIds.toHashSet()
+        backgroundHandler.post {
+            var dirty = false
+            synchronized(modelCache) {
+                currentSnapshot.forEachIndexed { index, event ->
+                    if (index >= modelCache.size) return@forEachIndexed
+                    if (modelCache[index] == null) return@forEachIndexed
+                    if (event.senderInfo.userId in ids) {
+                        modelCache[index] = null
+                        dirty = true
+                    }
+                }
+            }
+            if (dirty) requestModelBuild()
+        }
+    }
+
+    /**
      * Drop only the cached models of events that are replies, then rebuild. A reply's preview header
      * renders the replied-to message's plaintext via the shared PgpDecryptor (peeked at bind time),
      * so when an off-timeline decrypt finishes only reply items need re-binding — invalidating the

@@ -20,6 +20,8 @@ data class MatrixToBottomSheetState(
         val deepLink: String,
         val linkType: PermalinkData,
         val matrixItem: Async<MatrixItem> = Uninitialized,
+        // "she/her • PST" line from MSC4247 pronouns + MSC4175 time zone, for a user link
+        val userProfileFieldsLine: String? = null,
         val startChattingState: Async<Unit> = Uninitialized,
         val roomPeekResult: Async<RoomInfoResult> = Uninitialized,
         val peopleYouKnow: Async<List<MatrixItem.UserItem>> = Uninitialized,

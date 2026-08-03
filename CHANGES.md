@@ -28,6 +28,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Mutual Rooms in profiles** — a user's profile has a Mutual Rooms button opening a compact list of the rooms you share, grouped under their spaces (with rounded-square space avatars) and DMs included; tap a room to open it, or tap a space to filter the room list to it.
 
+- **Pronouns & time zone in profiles (MSC4247 / MSC4175 / MSC4133)** — set your pronouns (common presets or custom text, multiple allowed) and IANA time zone in account settings; a user's pronouns and current time-zone abbreviation show under their name on profile pages as e.g. `she/her • PST` (DST-aware), and their pronouns gender timeline notices such as "changed **her** avatar". Reads the stable field keys and writes the unstable ones, and interoperates with other clients' pronoun schemas.
+
 - **Message pinning** — pin and unpin messages, sorted by most recent, with a pinned-messages banner (toggleable).
 
 - **Message forwarding** — forward messages (using their most recent edit), with a custom Forward icon.

@@ -395,6 +395,20 @@ class TimelineFragment :
                 .onEach { pendingIntent -> launchPgpPendingIntent(pendingIntent) }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
+        // A sender's MSC4247 pronouns are fetched lazily; when they land, rebuild that sender's
+        // notices so "changed their avatar" settles on the gendered wording. Batch like PGP above.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val pendingSenders = LinkedHashSet<String>()
+            session.profileService().getPronounsUpdateFlow()
+                    .onEach { userId -> pendingSenders.add(userId) }
+                    .debounce(200)
+                    .collect {
+                        val batch = pendingSenders.toList()
+                        pendingSenders.clear()
+                        timelineEventController.invalidateEventCachesForSenders(batch)
+                    }
+        }
+
         // When a reply target (or any non-timeline-body) PGP block finishes decrypting, rebuild so
         // reply headers settle on the plaintext.
         pgpDecryptor.updates
