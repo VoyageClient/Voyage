@@ -57,6 +57,15 @@ interface Timeline {
     fun restartWithEventId(eventId: String?)
 
     /**
+     * Restarts the timeline for "jump to start". First tries to resolve the room's first event
+     * ([targetEventId], the create event) via /context, which works for most room versions; when that
+     * fails (room v12's create-event id is the room hash and 403s, or history is restricted) it falls
+     * back to the oldest event already loaded locally — no network. Returns the event id it anchored
+     * on, so the caller can highlight/scroll to it, or null if the room has nothing to show.
+     */
+    suspend fun restartAtRoomStart(targetEventId: String? = null): String?
+
+    /**
      * UI hint: whether the user is currently viewing the live edge (bottom of the room).
      * Lets the timeline trim its shown window as sync appends events, without pulling
      * content out from under a user who has scrolled up. Optional to implement.

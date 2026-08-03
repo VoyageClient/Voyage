@@ -118,6 +118,10 @@ class MergedTimelines(
         mainTimeline.restartWithEventId(eventId)
     }
 
+    override suspend fun restartAtRoomStart(targetEventId: String?): String? {
+        return mainTimeline.restartAtRoomStart(targetEventId)
+    }
+
     override fun hasMoreToLoad(direction: Timeline.Direction): Boolean {
         return mainTimeline.hasMoreToLoad(direction) || secondaryTimeline.hasMoreToLoad(direction)
     }
