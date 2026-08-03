@@ -25,6 +25,7 @@ import im.vector.app.features.autocomplete.emoji.AutocompleteEmojiData
 import im.vector.app.features.autocomplete.emoji.AutocompleteEmojiPresenter
 import im.vector.app.features.autocomplete.member.AutocompleteMemberItem
 import im.vector.app.features.autocomplete.member.AutocompleteMemberPresenter
+import im.vector.app.features.autocomplete.member.MentionFrequencyDataSource
 import im.vector.app.features.autocomplete.room.AutocompleteRoomPresenter
 import im.vector.app.features.command.Command
 import im.vector.app.features.displayname.getBestName
@@ -57,6 +58,7 @@ class AutoCompleter @AssistedInject constructor(
         private val autocompleteEmojiPresenter: AutocompleteEmojiPresenter,
         private val vectorPreferences: VectorPreferences,
         private val imagePackProvider: ImagePackProvider,
+        private val mentionFrequencyDataSource: MentionFrequencyDataSource,
 ) {
 
     private lateinit var autocompleteMemberPresenter: AutocompleteMemberPresenter
@@ -151,6 +153,7 @@ class AutoCompleter @AssistedInject constructor(
                         val matrixItem = when (item) {
                             is AutocompleteMemberItem.Header -> null // do nothing header is not clickable
                             is AutocompleteMemberItem.RoomMember -> item.roomMemberSummary.toMatrixItem()
+                                    .also { mentionFrequencyDataSource.record(roomId, item.roomMemberSummary.userId) }
                             is AutocompleteMemberItem.Everyone -> item.roomSummary.toEveryoneInRoomMatrixItem()
                         } ?: return false
 

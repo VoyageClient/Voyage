@@ -44,4 +44,7 @@ object UserAccountDataTypes {
 
     // The message long-press quick-reaction row, as an ordered list of emojis / emote mxc urls.
     const val TYPE_QUICK_REACTIONS = "im.voyage.setting.quick_reactions"
+
+    // Per-room mention counts (roomId -> userId -> count), used to rank the @-autocomplete list.
+    const val TYPE_MENTION_FREQUENCY = "im.voyage.setting.mention_frequency"
 }

@@ -38,6 +38,7 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
         context: Context,
         @Assisted val roomId: String,
         private val session: Session,
+        private val mentionFrequencyDataSource: MentionFrequencyDataSource,
         private val controller: AutocompleteMemberController
 ) : RecyclerViewPresenter<AutocompleteMemberItem>(context), AutocompleteClickListener<AutocompleteMemberItem> {
 
@@ -138,14 +139,20 @@ class AutocompleteMemberPresenter @AssistedInject constructor(
                     context.getString(CommonStrings.room_message_autocomplete_users)
             )
 
-    private fun createMemberItems(queryParams: RoomMemberQueryParams) =
-            room.membershipService()
-                    .getRoomMembers(queryParams)
-                    .asSequence()
-                    .sortedBy { it.displayName }
-                    .disambiguate()
-                    .map { AutocompleteMemberItem.RoomMember(it) }
-                    .toList()
+    private fun createMemberItems(queryParams: RoomMemberQueryParams): List<AutocompleteMemberItem.RoomMember> {
+        // Most-mentioned first, alphabetical for members with no mention history.
+        val frequencies = mentionFrequencyDataSource.frequencies(roomId)
+        return room.membershipService()
+                .getRoomMembers(queryParams)
+                .asSequence()
+                .sortedWith(
+                        compareByDescending<RoomMemberSummary> { frequencies[it.userId] ?: 0 }
+                                .thenBy { it.displayName }
+                )
+                .disambiguate()
+                .map { AutocompleteMemberItem.RoomMember(it) }
+                .toList()
+    }
 
     private fun createEveryoneHeader() =
             AutocompleteMemberItem.Header(
