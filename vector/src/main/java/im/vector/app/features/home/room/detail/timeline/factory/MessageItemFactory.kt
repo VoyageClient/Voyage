@@ -87,7 +87,9 @@ import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
+import androidx.annotation.StringRes
 import im.vector.lib.strings.CommonStrings
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
@@ -189,7 +191,12 @@ class MessageItemFactory @Inject constructor(
         if (event.root.isRedacted()) {
             // message is redacted
             val attributes = messageItemAttributesFactory.create(null, informationData, callback, params.reactionsSummaryEvents, threadDetails)
-            return buildRedactedItem(attributes, highlight)
+            val redactedTextRes = if (event.root.getClearType() == EventType.REACTION) {
+                CommonStrings.reaction_redacted
+            } else {
+                CommonStrings.event_redacted
+            }
+            return buildRedactedItem(attributes, highlight, redactedTextRes)
         }
 
         val messageContent = event.getVectorLastMessageContent()
@@ -1081,11 +1088,13 @@ class MessageItemFactory @Inject constructor(
     private fun buildRedactedItem(
             attributes: AbsMessageItem.Attributes,
             highlight: Boolean,
+            @StringRes redactedTextRes: Int,
     ): RedactedMessageItem? {
         return RedactedMessageItem_()
                 .layout(attributes.informationData.messageLayout.layoutRes)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .attributes(attributes)
+                .redactedTextRes(redactedTextRes)
                 .highlighted(highlight)
     }
 

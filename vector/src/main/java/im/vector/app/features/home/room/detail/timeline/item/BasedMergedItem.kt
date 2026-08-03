@@ -34,8 +34,14 @@ abstract class BasedMergedItem<H : BasedMergedItem.Holder>(@LayoutRes layoutId: 
         }
     }
 
+    // One entry per user, preferring one that actually carries an avatar: a user's oldest event in the run
+    // (e.g. an initial join) can have a blank avatarUrl, and a plain distinctBy would keep that blank entry
+    // and render no avatar even though later events in the same run do have one.
     protected val distinctMergeData by lazy {
-        attributes.mergeData.distinctBy { it.userId }
+        attributes.mergeData
+                .groupBy { it.userId }
+                .values
+                .map { entries -> entries.lastOrNull { !it.avatarUrl.isNullOrBlank() } ?: entries.first() }
     }
 
     override fun getEventIds(): List<String> {

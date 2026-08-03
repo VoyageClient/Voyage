@@ -57,8 +57,11 @@ class TimelineItemFactory @Inject constructor(
                 )
             }
 
-            // Manage state event differently, to check validity
-            if (event.root.isStateEvent()) {
+            // A redacted event of any original type collapses to a single redacted tile, so route it straight
+            // to the redacted renderer before the per-type dispatch below.
+            if (event.root.isRedacted()) {
+                messageItemFactory.create(params)
+            } else if (event.root.isStateEvent()) {
                 // state event are not e2e
                 when (event.root.type) {
                     EventType.STATE_ROOM_TOMBSTONE,
@@ -123,21 +126,9 @@ class TimelineItemFactory @Inject constructor(
                     EventType.CALL_SELECT_ANSWER,
                     EventType.CALL_REPLACES,
                     in EventType.POLL_RESPONSE.values -> noticeItemFactory.create(params)
-                    in EventType.BEACON_LOCATION_DATA.values -> {
-                        if (event.root.isRedacted()) {
-                            messageItemFactory.create(params)
-                        } else {
-                            noticeItemFactory.create(params)
-                        }
-                    }
+                    in EventType.BEACON_LOCATION_DATA.values -> noticeItemFactory.create(params)
                     // Crypto
-                    EventType.ENCRYPTED -> {
-                        when {
-                            // Redacted event, let the MessageItemFactory handle it
-                            event.root.isRedacted() -> messageItemFactory.create(params)
-                            else -> encryptedItemFactory.create(params)
-                        }
-                    }
+                    EventType.ENCRYPTED -> encryptedItemFactory.create(params)
                     EventType.KEY_VERIFICATION_CANCEL,
                     EventType.KEY_VERIFICATION_DONE -> {
                         verificationConclusionItemFactory.create(params)

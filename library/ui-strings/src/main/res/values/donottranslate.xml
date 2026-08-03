@@ -283,6 +283,7 @@
     <string name="action_redact" translatable="false">Redact</string>
     <string name="message_action_item_redact" translatable="false">Redact…</string>
     <string name="event_redacted" translatable="false">Message redacted</string>
+    <string name="reaction_redacted" translatable="false">Reaction redacted</string>
     <string name="settings_show_redacted" translatable="false">Show redacted messages</string>
     <string name="settings_show_redacted_summary" translatable="false">Show a placeholder for redacted messages</string>
     <string name="redact_event_dialog_title" translatable="false">Confirm redaction</string>
