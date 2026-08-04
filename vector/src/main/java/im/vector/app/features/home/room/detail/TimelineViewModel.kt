@@ -349,7 +349,7 @@ class TimelineViewModel @AssistedInject constructor(
         if (room == null) return
         getPinnedEventsUseCase.execute(room)
                 .onEach { pinnedEvents ->
-                    setState { copy(pinnedEvents = pinnedEvents) }
+                    setState { copy(pinnedEvents = pinnedEvents, pinnedEventsTick = pinnedEventsTick + 1) }
                 }
                 .launchIn(viewModelScope)
     }

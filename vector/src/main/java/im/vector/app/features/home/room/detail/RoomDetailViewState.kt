@@ -72,6 +72,9 @@ data class RoomDetailViewState(
         val showKeyboardWhenPresented: Boolean = false,
         val sharedData: SharedData? = null,
         val pinnedEvents: List<TimelineEvent> = emptyList(),
+        // Event equality ignores the transient decryption result, so a decrypt-triggered re-emission
+        // can produce an == list; bump this so Mavericks still notifies and the banner re-renders.
+        val pinnedEventsTick: Int = 0,
         val massRedactionState: MassRedactionState? = null,
         val userIdentityChangePrompt: UserIdentityChangePrompt? = null,
 ) : MavericksState {
