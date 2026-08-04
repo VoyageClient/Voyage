@@ -87,7 +87,12 @@ class EmojiPickerView @JvmOverloads constructor(
      * holding then repeats like a hardware key. Non-focusable so it never steals focus from the composer.
      */
     @SuppressLint("ClickableViewAccessibility")
-    fun setTrailingAction(@DrawableRes iconRes: Int, @StringRes contentDescriptionRes: Int, onClick: () -> Unit) {
+    fun setTrailingAction(
+            @DrawableRes iconRes: Int,
+            @StringRes contentDescriptionRes: Int,
+            onPressChanged: (pressed: Boolean) -> Unit,
+            onClick: () -> Unit,
+    ) {
         val button = views.emojiPickerTrailing
         views.emojiPickerTrailingDivider.isVisible = true
         button.isVisible = true
@@ -111,6 +116,7 @@ class EmojiPickerView @JvmOverloads constructor(
                     v.isPressed = true
                     // Keep the scrolling tab strip from stealing fast, slightly-imprecise taps mid-gesture.
                     v.parent?.requestDisallowInterceptTouchEvent(true)
+                    onPressChanged(true)
                     onClick()
                     repeatHandler.removeCallbacks(repeat)
                     repeat.interval = REPEAT_FIRST_MS
@@ -121,6 +127,7 @@ class EmojiPickerView @JvmOverloads constructor(
                 android.view.MotionEvent.ACTION_CANCEL -> {
                     v.isPressed = false
                     repeatHandler.removeCallbacks(repeat)
+                    onPressChanged(false)
                     true
                 }
                 else -> false

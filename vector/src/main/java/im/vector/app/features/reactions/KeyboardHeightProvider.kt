@@ -38,9 +38,10 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
 
     init {
         contentView = popupView
+        // Resize-only: STATE_ALWAYS_VISIBLE would re-raise the IME on every resume targeted at this
+        // non-focusable window, so the keyboard returns with nothing focused to type into.
         @Suppress("DEPRECATION")
-        softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
-                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+        softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
         inputMethodMode = INPUT_METHOD_NEEDED
         width = 0
         height = ViewGroup.LayoutParams.MATCH_PARENT

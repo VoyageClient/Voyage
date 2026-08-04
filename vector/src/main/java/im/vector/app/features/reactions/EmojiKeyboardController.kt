@@ -18,7 +18,10 @@ import android.widget.EditText
 import android.widget.PopupWindow
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Drives the inline emoji + custom-emote keyboard. To occupy the keyboard region without hiding the
@@ -37,7 +40,6 @@ class EmojiKeyboardController(
 
     private val keyboardView = EmojiPickerView(activity).apply {
         onEmojiClick = EmojiPickerView.OnEmojiClickListener { insert(it) }
-        setTrailingAction(im.vector.app.R.drawable.ic_backspace, im.vector.lib.strings.CommonStrings.action_delete) { backspace() }
     }
     private val popup = PopupWindow(keyboardView, ViewGroup.LayoutParams.MATCH_PARENT, 0).apply {
         setBackgroundDrawable(ColorDrawable(0))
@@ -54,7 +56,10 @@ class EmojiKeyboardController(
     }
     private val heightProvider = KeyboardHeightProvider(activity)
     private var lastKeyboardHeight = 0
+    private var currentKeyboardHeight = 0
+    private var backspaceHeld = false
     private var pendingShow = false
+    private var reloadJob: Job? = null
     private val closeRunnable = Runnable {
         lastKeyboardHeight = 0
         if (popup.isShowing) dismiss()
@@ -63,7 +68,16 @@ class EmojiKeyboardController(
     val isShowing: Boolean get() = popup.isShowing
 
     init {
+        keyboardView.setTrailingAction(
+                im.vector.app.R.drawable.ic_backspace,
+                im.vector.lib.strings.CommonStrings.action_delete,
+                onPressChanged = { pressed ->
+                    backspaceHeld = pressed
+                    if (!pressed && popup.isShowing && currentKeyboardHeight <= MIN_KEYBOARD_HEIGHT) scheduleClose()
+                },
+        ) { backspace() }
         heightProvider.onKeyboardHeightChanged = { height ->
+            currentKeyboardHeight = height
             if (height > MIN_KEYBOARD_HEIGHT) {
                 rootView.removeCallbacks(closeRunnable)
                 lastKeyboardHeight = height
@@ -74,16 +88,20 @@ class EmojiKeyboardController(
                     popup.update(ViewGroup.LayoutParams.MATCH_PARENT, height)
                 }
             } else if (popup.isShowing) {
-                // The IME restarts (briefly reporting height 0) on each edit, e.g. when holding backspace.
-                // Debounce so a transient dip doesn't dismiss the panel and flip back to the keyboard; a real
-                // close (back button) stays below the threshold and fires the runnable.
-                rootView.removeCallbacks(closeRunnable)
-                rootView.postDelayed(closeRunnable, KEYBOARD_CLOSE_DEBOUNCE_MS)
+                scheduleClose()
             } else {
                 lastKeyboardHeight = 0
             }
         }
         rootView.post { heightProvider.start() }
+    }
+
+    // The IME restarts (briefly reporting height 0) on each edit, so only treat a sustained dip as a real close
+    // (back button). A held backspace restarts it faster than any debounce, so wait until the key is released.
+    private fun scheduleClose() {
+        rootView.removeCallbacks(closeRunnable)
+        if (backspaceHeld) return
+        rootView.postDelayed(closeRunnable, KEYBOARD_CLOSE_DEBOUNCE_MS)
     }
 
     fun toggle() {
@@ -131,9 +149,15 @@ class EmojiKeyboardController(
         heightProvider.close()
     }
 
+    fun prewarm() = reload()
+
     private fun reload() {
-        scope.launch {
-            keyboardView.setSections(sectionFactory.build(roomId))
+        if (reloadJob?.isActive == true) return
+        reloadJob = scope.launch {
+            // Off-main: the pack aggregation walks account data + room state + the space hierarchy, and the
+            // emoji categories build ~1800 items. Safe there — each SDK read opens its own Realm.
+            val sections = withContext(Dispatchers.Default) { sectionFactory.build(roomId) }
+            keyboardView.setSections(sections)
         }
     }
 

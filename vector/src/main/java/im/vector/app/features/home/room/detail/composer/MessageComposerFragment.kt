@@ -129,6 +129,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     // Custom inline emoji+emote keyboard, works on all API levels (the old vanniktech popup needed API 21+).
     private var emojiKeyboardController: EmojiKeyboardController? = null
+    private var composerHadFocus = false
 
     private val glideRequests by lazy {
         GlideApp.with(this)
@@ -246,8 +247,20 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        // Coming back from background can leave the IME up with nothing focused, so typing goes nowhere.
+        if (composerHadFocus && (composer as? View)?.isVisible == true && !composer.editText.hasFocus()) {
+            composer.editText.requestFocus()
+        }
+    }
+
     override fun onPause() {
         super.onPause()
+
+        composerHadFocus = composer.editText.hasFocus()
+        emojiKeyboardController?.dismiss()
 
         withState(messageComposerViewModel) {
             when {
@@ -563,9 +576,12 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun setupEmojiButton() {
-        composer.emojiButton?.debouncedClicks {
+        val emojiButton = composer.emojiButton ?: return
+        emojiButton.debouncedClicks {
             emojiKeyboard().toggle()
         }
+        // So the first tap doesn't pay for the inflate, the emoji-data parse and the pack aggregation.
+        views.root.post { if (view != null) emojiKeyboard().prewarm() }
         // Tapping the input returns to normal keyboard typing: dismiss the emoji panel (the soft
         // keyboard is still open behind it).
         composer.editText.setOnTouchListener { _, _ ->
