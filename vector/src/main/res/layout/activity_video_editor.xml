@@ -16,12 +16,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Sized to the video's aspect ratio once the player reports its dimensions. -->
-        <TextureView
-            android:id="@+id/videoEditorTextureView"
+        <!-- Sized to the crop window; the video is transformed underneath and clipped to it. -->
+        <FrameLayout
+            android:id="@+id/videoEditorCropWindow"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center" />
+            android:layout_gravity="center">
+
+            <TextureView
+                android:id="@+id/videoEditorTextureView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <im.vector.app.features.attachments.editor.video.VideoCropFrameView
+            android:id="@+id/videoEditorCropFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
         <ImageView
             android:id="@+id/videoEditorPlayBadge"

@@ -30,7 +30,6 @@ object VideoEditExporter {
             spec: VideoEditSpec,
             progressListener: VideoEditProgressListener? = null,
     ): VideoEditOutput = coroutineScope {
-        require(spec.crop == null) { "Cropping requires the transcode path" }
         progressListener?.onProgress(0)
         // Probing opens an extractor and a retriever, so it belongs off the caller's thread along
         // with the export itself. Deleting inside this context too, so a partial file is still
@@ -43,7 +42,7 @@ object VideoEditExporter {
                 if (canRemuxLosslessly(context, spec, source)) {
                     LosslessTrimExporter(context).export(spec, source, progressListener) { isActive }
                 } else {
-                    TranscodeTrimExporter(context).export(spec, source, progressListener) { isActive }
+                    TranscodeExporter(context).export(spec, source, progressListener) { isActive }
                 }
             }.onFailure { t ->
                 Timber.w(t, "VideoEdit: export failed")
@@ -60,6 +59,8 @@ object VideoEditExporter {
      */
     @RequiresApi(18)
     private fun canRemuxLosslessly(context: Context, spec: VideoEditSpec, source: MediaSourceInfo): Boolean {
+        // Only the GL stage inside the transcode path can change geometry.
+        if (spec.crop != null) return false
         // A codec an mp4 cannot hold has to be re-encoded whatever the trim looks like.
         if (!MuxableFormats.isMuxableVideo(source.videoMime)) return false
         val syncUs = SyncFrameLocator.previousSyncUs(context, spec.sourceUri, spec.startUs)

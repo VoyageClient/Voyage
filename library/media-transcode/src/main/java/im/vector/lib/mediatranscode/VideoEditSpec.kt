@@ -12,7 +12,8 @@ import android.net.Uri
 import java.io.File
 
 /**
- * @property crop normalised source rectangle (0..1) to keep, or null for the whole frame.
+ * @property crop normalised rectangle (0..1) of the frame to keep, or null for the whole frame. It
+ * is read in *display* space, i.e. after both the source orientation and [rotationDegrees].
  * @property rotationDegrees extra clockwise rotation applied on top of the source orientation.
  * @property muted drops the audio track entirely.
  */
