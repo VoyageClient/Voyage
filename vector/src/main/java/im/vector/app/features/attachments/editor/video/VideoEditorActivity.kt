@@ -31,6 +31,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
@@ -47,7 +48,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
-import kotlin.math.min
 
 // Only reachable through ContentAttachmentData.isVideoEditable(), which requires API 18.
 @SuppressLint("NewApi")
@@ -57,12 +57,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private lateinit var sourceUri: Uri
     private var displayName: String? = null
 
+    private lateinit var cropController: VideoCropController
+
     private var player: MediaPlayer? = null
     private var audioPlayer: MediaPlayer? = null
     private var audioReady = false
     private var surface: Surface? = null
-    private var videoWidth = 0
-    private var videoHeight = 0
     private var durationUs = 0L
     private var frameRate = 30f
 
@@ -102,7 +102,13 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         tintProgressBar(accent)
         views.videoEditorSaveButton.setOnClickListener { save() }
         views.videoEditorExportCancel.setOnClickListener { exportJob?.cancel() }
-        views.videoEditorSurfaceContainer.setOnClickListener { togglePlayback() }
+        cropController = VideoCropController(
+                container = views.videoEditorSurfaceContainer,
+                window = views.videoEditorCropWindow,
+                textureView = views.videoEditorTextureView,
+                frame = views.videoEditorCropFrame,
+                onTap = { togglePlayback() }
+        )
 
         views.videoEditorTimeline.listener = VideoTimelineStripView.Listener { start, end, dragging ->
             // Null means neither edge moved, and a mere grab must not disturb playback.
@@ -168,6 +174,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 resetEdits()
                 true
             }
+            R.id.videoEditorCropAction -> {
+                chooseCropRatio()
+                true
+            }
             R.id.videoEditorRotateAction -> {
                 rotateClockwise()
                 true
@@ -180,13 +190,24 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
+    /** Pinch and pan crop freely; the ratios only fix the shape of the window they work inside. */
+    private fun chooseCropRatio() {
+        val labels = CROP_RATIOS.map { getString(it.first) }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+                .setTitle(CommonStrings.video_editor_crop)
+                .setItems(labels) { _, which ->
+                    cropController.aspectRatio = CROP_RATIOS[which].second
+                }
+                .show()
+    }
+
     private fun resetEdits() {
         if (durationUs <= 0) return
         startUs = 0
         endUs = durationUs
         userRotation = 0
         if (muted) toggleMute()
-        resizeTextureView()
+        cropController.reset()
         views.videoEditorTimeline.setTrim(startUs, endUs)
         updateDurationLabel()
         seekTo(startUs)
@@ -215,7 +236,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
             userRotation = edits?.rotationDegrees ?: 0
             if (edits?.muted == true) toggleMute()
-            resizeTextureView()
+            cropController.rotationDegrees = userRotation
+            cropController.applyCropRect(edits?.crop)
             views.videoEditorTimeline.setTrim(startUs, endUs)
             updateDurationLabel()
             extractThumbnails()
@@ -308,9 +330,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         player = MediaPlayer().apply {
             setSurface(this@VideoEditorActivity.surface)
             setOnPreparedListener {
-                this@VideoEditorActivity.videoWidth = it.videoWidth
-                this@VideoEditorActivity.videoHeight = it.videoHeight
-                resizeTextureView()
+                cropController.setVideoSize(it.videoWidth, it.videoHeight)
                 applyVolume()
                 seekTo(startUs)
                 // A seek before playback starts does not reliably render a frame, so an idle
@@ -337,24 +357,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    /** Sized to fit the container *after* rotation, so a quarter turn is not cropped by it. */
-    private fun resizeTextureView() {
-        if (videoWidth <= 0 || videoHeight <= 0) return
-        val container = views.videoEditorSurfaceContainer
-        val swapped = userRotation % 180 == 90
-        val displayWidth = if (swapped) videoHeight else videoWidth
-        val displayHeight = if (swapped) videoWidth else videoHeight
-        val scale = min(container.width.toFloat() / displayWidth, container.height.toFloat() / displayHeight)
-        val params = views.videoEditorTextureView.layoutParams
-        params.width = (videoWidth * scale).toInt()
-        params.height = (videoHeight * scale).toInt()
-        views.videoEditorTextureView.layoutParams = params
-        views.videoEditorTextureView.rotation = userRotation.toFloat()
-    }
-
     private fun rotateClockwise() {
         userRotation = (userRotation + 90) % 360
-        resizeTextureView()
+        cropController.rotationDegrees = userRotation
     }
 
     /** Mutes the preview as well: the export is what the editor is showing. */
@@ -526,7 +531,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 endUs = endUs,
                 durationUs = durationUs,
                 rotationDegrees = userRotation,
-                muted = muted
+                muted = muted,
+                crop = cropController.cropRect
         )
         if (!edits.hasChanges) {
             finish()
@@ -630,6 +636,14 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         private const val PLAYHEAD_INTERVAL_MS = 60L
         private const val SEEK_THROTTLE_MS = 40L
         private const val AUDIO_BLIP_MS = 120L
+
+        private val CROP_RATIOS = listOf(
+                CommonStrings.video_editor_crop_original to null,
+                CommonStrings.video_editor_crop_square to 1f,
+                CommonStrings.video_editor_crop_portrait to 4f / 5f,
+                CommonStrings.video_editor_crop_wide to 16f / 9f,
+                CommonStrings.video_editor_crop_tall to 9f / 16f,
+        )
 
         private const val EXTRA_SOURCE_URI = "EXTRA_SOURCE_URI"
         private const val EXTRA_DISPLAY_NAME = "EXTRA_DISPLAY_NAME"

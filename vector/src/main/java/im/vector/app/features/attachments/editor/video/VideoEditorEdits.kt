@@ -7,6 +7,7 @@
 
 package im.vector.app.features.attachments.editor.video
 
+import android.graphics.RectF
 import im.vector.app.features.attachments.editor.AttachmentEdits
 import kotlinx.parcelize.Parcelize
 
@@ -21,8 +22,10 @@ data class VideoEditorEdits(
         val durationUs: Long = 0,
         val rotationDegrees: Int = 0,
         val muted: Boolean = false,
+        /** Normalised region of the displayed frame to keep, or null for all of it. */
+        val crop: RectF? = null,
 ) : AttachmentEdits {
 
     override val hasChanges: Boolean
-        get() = rotationDegrees != 0 || muted || (durationUs > 0 && (startUs > 0 || endUs < durationUs))
+        get() = rotationDegrees != 0 || muted || crop != null || (durationUs > 0 && (startUs > 0 || endUs < durationUs))
 }

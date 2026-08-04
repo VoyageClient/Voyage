@@ -574,4 +574,10 @@
     <string name="video_editor_no_space" translatable="false">Not enough free space to save this video</string>
     <string name="video_editor_unsupported" translatable="false">This video format can\'t be edited</string>
     <string name="video_editor_audio_dropped" translatable="false">The audio track couldn\'t be kept and was dropped</string>
+    <string name="video_editor_crop" translatable="false">Crop</string>
+    <string name="video_editor_crop_original" translatable="false">Original</string>
+    <string name="video_editor_crop_square" translatable="false">1:1</string>
+    <string name="video_editor_crop_portrait" translatable="false">4:5</string>
+    <string name="video_editor_crop_wide" translatable="false">16:9</string>
+    <string name="video_editor_crop_tall" translatable="false">9:16</string>
 </resources>

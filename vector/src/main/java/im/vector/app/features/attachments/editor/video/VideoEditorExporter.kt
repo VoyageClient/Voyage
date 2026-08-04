@@ -50,7 +50,7 @@ object VideoEditorExporter {
                             sourceUri = source,
                             startUs = edits.startUs,
                             endUs = edits.endUs,
-                            crop = null,
+                            crop = edits.crop,
                             rotationDegrees = edits.rotationDegrees,
                             muted = edits.muted,
                             outputFile = destination
