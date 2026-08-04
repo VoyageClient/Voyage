@@ -11,13 +11,15 @@ import android.content.Context
 import android.graphics.PointF
 import android.os.Build
 import android.view.ActionMode
-import androidx.annotation.RequiresApi
-import androidx.appcompat.widget.AppCompatTextView
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.AppCompatTextView
 import im.vector.app.core.utils.CodeSelectionBoundsHost
+import im.vector.app.core.utils.ReadOnlySelectionFocus
+import im.vector.app.core.utils.SelectionFocusHost
 import im.vector.app.core.utils.TableSourceProvider
 import im.vector.app.core.utils.buildTableMarkdown
 import im.vector.app.core.utils.clampSelectionToCodeSpans
@@ -33,13 +35,15 @@ import im.vector.app.core.utils.startActionModeGuarded
  * up front (code blocks), or callers enable it later once the rendered spans are known.
  */
 class ReadOnlySelectableTextView(context: Context, selectable: Boolean = false) :
-        AppCompatTextView(context), CodeSelectionBoundsHost, TableSourceProvider {
+        AppCompatTextView(context), CodeSelectionBoundsHost, TableSourceProvider, SelectionFocusHost {
 
     init {
         if (selectable) setReadOnlySelectable(true)
     }
 
     override var codeSelectionBounds: IntRange? = null
+
+    override val selectionFocus = ReadOnlySelectionFocus(this)
 
     private val lastTouch = PointF()
 
@@ -63,9 +67,21 @@ class ReadOnlySelectableTextView(context: Context, selectable: Boolean = false) 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         lastTouch.set(event.x, event.y)
         val wasFocused = isFocused
+        selectionFocus.beforeTouch(event)
         val handled = super.onTouchEvent(event)
         replaySwallowedTap(event, wasFocused)
+        selectionFocus.afterTouch(event)
         return handled
+    }
+
+    override fun performLongClick(): Boolean {
+        selectionFocus.beforeLongClick()
+        return super.performLongClick()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        selectionFocus.detach()
     }
 
     // Touch-only focus: focus search (e.g. HorizontalScrollView.fling grabbing the nearest

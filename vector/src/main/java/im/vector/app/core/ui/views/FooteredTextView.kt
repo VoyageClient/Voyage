@@ -25,6 +25,8 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.getSpans
 import im.vector.app.core.utils.CodeSelectionBoundsHost
+import im.vector.app.core.utils.ReadOnlySelectionFocus
+import im.vector.app.core.utils.SelectionFocusHost
 import im.vector.app.core.utils.clampSelectionToCodeSpans
 import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
@@ -40,11 +42,13 @@ class FooteredTextView @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0,
-) : AppCompatTextView(context, attrs, defStyleAttr), AbstractFooteredTextView, CodeSelectionBoundsHost {
+) : AppCompatTextView(context, attrs, defStyleAttr), AbstractFooteredTextView, CodeSelectionBoundsHost, SelectionFocusHost {
 
     override val footerState: AbstractFooteredTextView.FooterState = AbstractFooteredTextView.FooterState()
 
     private val lastTouch = PointF()
+
+    override val selectionFocus = ReadOnlySelectionFocus(this)
 
     override fun getAppCompatTextView(): AppCompatTextView = this
     override fun setMeasuredDimensionExposed(measuredWidth: Int, measuredHeight: Int) = setMeasuredDimension(measuredWidth, measuredHeight)
@@ -121,9 +125,21 @@ class FooteredTextView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         lastTouch.set(event.x, event.y)
         val wasFocused = isFocused
+        selectionFocus.beforeTouch(event)
         val handled = super.onTouchEvent(event)
         replaySwallowedTap(event, wasFocused)
+        selectionFocus.afterTouch(event)
         return handled
+    }
+
+    override fun performLongClick(): Boolean {
+        selectionFocus.beforeLongClick()
+        return super.performLongClick()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        selectionFocus.detach()
     }
 
     // Touch-only focus: focus search landing on a selectable view churns selection spans, and
