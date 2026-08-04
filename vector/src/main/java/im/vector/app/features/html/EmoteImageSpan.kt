@@ -75,8 +75,7 @@ class EmoteImageSpan(
             drawable = resource
             resource.callback = drawableCallback
             (resource as? Animatable)?.start()
-            // Size is already reserved, so only a redraw is needed — no relayout, no flicker.
-            tv?.get()?.invalidate()
+            repaint()
         }
     }
 
@@ -84,6 +83,20 @@ class EmoteImageSpan(
         override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
             val textView = tv?.get() ?: return
             drawable = BitmapDrawable(textView.resources, resource)
+            repaint()
+        }
+    }
+
+    // A bare invalidate() is not enough here: the TextView re-records its display list from the
+    // cached text Layout, which (observed on Android 14+) can skip re-running this span's draw,
+    // leaving the placeholder on screen until an unrelated full rebind. Re-setting the text forces
+    // the Layout to be rebuilt; the reserved box keeps size unchanged so there's no visible reflow.
+    private fun repaint() {
+        val textView = tv?.get() ?: return
+        val spanned = textView.text as? Spanned
+        if (spanned != null && spanned.getSpanStart(this) >= 0) {
+            textView.text = textView.text
+        } else {
             textView.invalidate()
         }
     }
