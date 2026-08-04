@@ -158,7 +158,7 @@ class RecentEmoteDataSource @Inject constructor(
 
     companion object {
         private const val CONTENT_KEY = "recent_emoticons"
-        private const val STORAGE_LIMIT = 32
+        private const val STORAGE_LIMIT = 64
         private const val FLUSH_DEBOUNCE_MS = 2_000L
     }
 }

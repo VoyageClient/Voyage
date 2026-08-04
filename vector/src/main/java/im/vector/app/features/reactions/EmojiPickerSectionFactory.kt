@@ -156,6 +156,6 @@ class EmojiPickerSectionFactory @Inject constructor(
     private fun ContentUrlResolver.fullSize(mxc: String) = resolveFullSize(mxc)
 
     companion object {
-        private const val FREQUENT_LIMIT = 24
+        private const val FREQUENT_LIMIT = 48
     }
 }
