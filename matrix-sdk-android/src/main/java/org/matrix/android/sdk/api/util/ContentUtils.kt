@@ -20,6 +20,16 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.internal.util.unescapeHtml
 
 object ContentUtils {
+    /**
+     * @param formattedBody the event's formatted body, when it has one. Its fallback is explicitly
+     * delimited by <mx-reply>, so it settles whether the plain body carries one too — without it, a body
+     * that merely opens with a blockquote is indistinguishable from a legacy fallback.
+     */
+    fun extractUsefulTextFromReply(repliedBody: String, formattedBody: String?): String {
+        if (formattedBody != null && !formattedBody.startsWith(MX_REPLY_START_TAG)) return repliedBody
+        return extractUsefulTextFromReply(repliedBody)
+    }
+
     fun extractUsefulTextFromReply(repliedBody: String): String {
         val lines = repliedBody.lines()
         var wellFormed = repliedBody.startsWith(">")
@@ -36,7 +46,7 @@ object ContentUtils {
                 usefulLines.add(it)
             }
         }
-        return usefulLines.joinToString("\n").takeIf { wellFormed } ?: repliedBody
+        return usefulLines.joinToString("\n").takeIf { wellFormed && it.isNotEmpty() } ?: repliedBody
     }
 
     fun extractUsefulTextFromHtmlReply(repliedBody: String): String {

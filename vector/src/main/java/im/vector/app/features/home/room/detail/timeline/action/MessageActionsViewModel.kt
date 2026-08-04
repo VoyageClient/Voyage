@@ -63,6 +63,7 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
@@ -405,7 +406,11 @@ class MessageActionsViewModel @AssistedInject constructor(
     private suspend fun pgpCopyBody(timelineEvent: TimelineEvent, messageContent: MessageContent): String {
         computePgpDecryptedBody(timelineEvent)?.let { return it.toString() }
         val body = messageContent.body
-        return if (messageContent.relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(body) else body
+        return if (messageContent.relatesTo?.inReplyTo?.eventId != null) {
+            ContentUtils.extractUsefulTextFromReply(body, (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody)
+        } else {
+            body
+        }
     }
 
     private suspend fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent) {
