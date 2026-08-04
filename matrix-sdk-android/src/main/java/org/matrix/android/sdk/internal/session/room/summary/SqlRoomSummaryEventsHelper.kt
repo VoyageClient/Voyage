@@ -68,6 +68,8 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         if (domain.senderId != null && domain.senderId in ignored) return false
         if (domain.isRedacted()) return false
         if (domain.getRelationContent()?.type == RelationType.REPLACE) return false
+        // thread replies belong to their own timeline, not the room's conversation
+        if (domain.getRelationContent()?.type == RelationType.THREAD) return false
         return true
     }
 }

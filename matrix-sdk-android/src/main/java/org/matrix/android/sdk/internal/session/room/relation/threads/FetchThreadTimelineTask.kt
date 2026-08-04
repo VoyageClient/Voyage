@@ -136,13 +136,14 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                 }
                 val (eventDbId, entity) = insertOrGetEvent(params.roomId, event)
                 addSenderState(roomMemberContentsByUser, params.roomId, senderId)
+                // /relations answers newest-first, so indices must walk downwards for the root to land oldest.
                 stores.timelineWriter.addTimelineEvent(
                         chunkId = threadChunkId,
                         roomId = params.roomId,
                         eventDbId = eventDbId,
                         event = entity,
                         isLastForward = true,
-                        direction = PaginationDirection.FORWARDS,
+                        direction = PaginationDirection.BACKWARDS,
                         ownedByThreadChunk = true,
                         roomMemberContentsByUser = roomMemberContentsByUser,
                 )
@@ -157,7 +158,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                             rootEntity.sender?.let { addSenderState(roomMemberContentsByUser, params.roomId, it) }
                             stores.timelineWriter.addTimelineEvent(
                                     chunkId = threadChunkId, roomId = params.roomId, eventDbId = existingRootDbId, event = rootEntity,
-                                    isLastForward = true, direction = PaginationDirection.FORWARDS, ownedByThreadChunk = true,
+                                    isLastForward = true, direction = PaginationDirection.BACKWARDS, ownedByThreadChunk = true,
                                     roomMemberContentsByUser = roomMemberContentsByUser,
                             )
                         }
@@ -167,7 +168,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                         addSenderState(roomMemberContentsByUser, params.roomId, threadRootEvent.senderId!!)
                         stores.timelineWriter.addTimelineEvent(
                                 chunkId = threadChunkId, roomId = params.roomId, eventDbId = rootDbId, event = rootEntity,
-                                isLastForward = true, direction = PaginationDirection.FORWARDS, ownedByThreadChunk = true,
+                                isLastForward = true, direction = PaginationDirection.BACKWARDS, ownedByThreadChunk = true,
                                 roomMemberContentsByUser = roomMemberContentsByUser,
                         )
                     }
