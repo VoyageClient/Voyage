@@ -45,12 +45,13 @@ SELECT * FROM timeline_event WHERE id = ? LIMIT 1;
 selectInChunkByEventId:
 SELECT * FROM timeline_event WHERE chunk_id = ? AND event_id = ? LIMIT 1;
 
--- latest (highest display index) thread reply for a root, used for the root tile's preview
+-- most recent thread reply for a root, used for the root tile's preview. By timestamp, not display_index:
+-- that is only comparable within a chunk and this scans every chunk of the room.
 selectLatestThreadReplyId:
 SELECT timeline_event.id FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.room_id = ? AND event.root_thread_event_id = ?
-ORDER BY timeline_event.display_index DESC LIMIT 1;
+ORDER BY event.origin_server_ts DESC LIMIT 1;
 
 selectByEventId:
 SELECT * FROM timeline_event WHERE event_id = ? LIMIT 1;
@@ -73,6 +74,7 @@ selectByRoomTypesNewest:
 SELECT timeline_event.* FROM timeline_event
 JOIN event ON timeline_event.root_event_db_id = event.id
 WHERE timeline_event.room_id = ? AND event.type IN ?
+    AND event.root_thread_event_id IS NULL
     AND (event.unsigned_data IS NULL OR event.unsigned_data NOT LIKE '%redacted_because%')
 ORDER BY event.origin_server_ts DESC LIMIT ?;
 

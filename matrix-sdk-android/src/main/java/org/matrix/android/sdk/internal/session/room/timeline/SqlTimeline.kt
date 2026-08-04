@@ -603,15 +603,21 @@ internal class SqlTimeline(
             updateState(Timeline.Direction.FORWARDS) { it.copy(hasMoreToLoad = false) }
             return
         }
-        val threadChunkId = loadedChunkIds.firstOrNull() ?: return
-        val prevToken = stores.chunk.getById(threadChunkId)?.prev_token
-        updateState(Timeline.Direction.BACKWARDS) { it.copy(loading = true) }
-        val result = tryOrNull("SqlTimeline $roomId thread pagination failed") {
-            fetchThreadTimelineTask.execute(FetchThreadTimelineTask.Params(roomId, threadRootId!!, prevToken, count))
+        // Overlapping calls would re-fetch the same prevToken; the loading item fires this continuously.
+        if (!backwardPaginating.compareAndSet(false, true)) return
+        try {
+            val threadChunkId = loadedChunkIds.firstOrNull() ?: return
+            val prevToken = stores.chunk.getById(threadChunkId)?.prev_token
+            updateState(Timeline.Direction.BACKWARDS) { it.copy(loading = true) }
+            val result = tryOrNull("SqlTimeline $roomId thread pagination failed") {
+                fetchThreadTimelineTask.execute(FetchThreadTimelineTask.Params(roomId, threadRootId!!, prevToken, count))
+            }
+            val reachedEnd = result == DefaultFetchThreadTimelineTask.Result.REACHED_END
+            updateState(Timeline.Direction.BACKWARDS) { it.copy(loading = false, hasMoreToLoad = !reachedEnd) }
+            rebuildSnapshot()
+        } finally {
+            backwardPaginating.set(false)
         }
-        val reachedEnd = result == DefaultFetchThreadTimelineTask.Result.REACHED_END
-        updateState(Timeline.Direction.BACKWARDS) { it.copy(loading = false, hasMoreToLoad = !reachedEnd) }
-        rebuildSnapshot()
     }
 
     private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null) {
