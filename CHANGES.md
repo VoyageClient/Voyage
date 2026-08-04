@@ -22,6 +22,10 @@ New features, improvements, and notable removals in this fork.
 
 - **SchildiChat layout & behaviour options** — a combined people+rooms Overview list, mark chats as read/unread (MSC2867) synced with compatible clients, URL previews in encrypted rooms, opening a room at its first unread message, jump-to-bottom when sending, remembered collapsed list sections, and showing/hiding space members as people.
 
+- **Image editor before sending** — crop, rotate and black out parts of a photo from the attachment preview, with pinch-zoom and panning for precise work. Censor boxes are drawn straight onto the image, so nothing recoverable is left behind. Edits are remembered per attachment, so reopening the editor lets you adjust what you did rather than starting again from the flattened result.
+
+- **Zoom and playback in the attachment preview** — pinch-zoom and pan photos before sending them, and play videos in place with a tap.
+
 - **Media captions & replies** — add/edit/remove captions on media, reply to or comment alongside media, rich reply previews with embedded image/video/sticker thumbnails, and the ability to reply to and redact non-message events (reactions, joins, leaves, redactions).
 
 - **Room & profile banners (MSC4221 / MSC4427)** — Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings, with a per-room override of your own banner in the room's personalization tab; banner changes show as timeline notices. Interoperable with the Haven element-web patchset.

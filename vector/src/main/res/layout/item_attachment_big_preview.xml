@@ -1,16 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/black"
     tools:viewBindingIgnore="true">
 
-    <ImageView
+    <TextureView
+        android:id="@+id/attachmentBigVideoView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:visibility="gone" />
+
+    <im.vector.app.features.attachments.preview.ZoomableImageView
         android:id="@+id/attachmentBigImageView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@string/a11y_image"
         tools:src="@tools:sample/backgrounds/scenic" />
+
+    <ImageView
+        android:id="@+id/attachmentBigPlayBadge"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:contentDescription="@string/action_play"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_material_play_circle"
+        tools:ignore="MissingPrefix"
+        tools:visibility="visible" />
 
 </FrameLayout>

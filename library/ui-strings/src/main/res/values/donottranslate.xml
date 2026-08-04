@@ -553,4 +553,12 @@
     <string name="homeserver_urls_remove" translatable="false">Remove mirror</string>
     <string name="homeserver_urls_hint" translatable="false">https://example.org</string>
     <string name="homeserver_urls_invalid" translatable="false">Enter at least one URL, each starting with http:// or https://</string>
+
+    <string name="image_editor_title" translatable="false">Edit image</string>
+    <string name="image_editor_censor" translatable="false">Censor</string>
+    <string name="image_editor_rotate" translatable="false">Rotate</string>
+    <string name="image_editor_reset" translatable="false">Reset</string>
+    <string name="image_editor_censor_hint" translatable="false">Drag on the image to add a black box</string>
+    <string name="image_editor_load_failed" translatable="false">Couldn\'t open this image</string>
+    <string name="image_editor_save_failed" translatable="false">Couldn\'t save the edited image</string>
 </resources>

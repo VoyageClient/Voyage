@@ -13,5 +13,12 @@ import im.vector.app.core.platform.VectorViewModelAction
 sealed class AttachmentsPreviewAction : VectorViewModelAction {
     object RemoveCurrentAttachment : AttachmentsPreviewAction()
     data class SetCurrentAttachment(val index: Int) : AttachmentsPreviewAction()
-    data class UpdatePathOfCurrentAttachment(val newUri: Uri) : AttachmentsPreviewAction()
+    data class UpdateCurrentAttachment(
+            val newUri: Uri,
+            val width: Long? = null,
+            val height: Long? = null,
+            val size: Long? = null,
+            val mimeType: String? = null,
+            val editRecord: EditRecord? = null
+    ) : AttachmentsPreviewAction()
 }

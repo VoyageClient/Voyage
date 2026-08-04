@@ -13,11 +13,23 @@ import javax.inject.Inject
 
 class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyController<AttachmentsPreviewViewState>() {
 
+    var playbackAllowed: Boolean = true
+        set(value) {
+            if (field == value) return
+            field = value
+            // TypedEpoxyController forbids requestModelBuild(); re-submitting the retained data
+            // is the supported way to rebuild.
+            currentData?.let { setData(it) }
+        }
+
     override fun buildModels(data: AttachmentsPreviewViewState) {
-        data.attachments.forEach {
+        val host = this
+        data.attachments.forEachIndexed { index, contentAttachmentData ->
             attachmentBigPreviewItem {
-                id(it.queryUri)
-                attachment(it)
+                id(data.stableIdOf(contentAttachmentData))
+                attachment(contentAttachmentData)
+                activePage(data.currentAttachmentIndex == index)
+                playbackAllowed(host.playbackAllowed)
             }
         }
     }
@@ -35,7 +47,7 @@ class AttachmentMiniaturePreviewController @Inject constructor() : TypedEpoxyCon
         val host = this
         data.attachments.forEachIndexed { index, contentAttachmentData ->
             attachmentMiniaturePreviewItem {
-                id(contentAttachmentData.queryUri)
+                id(data.stableIdOf(contentAttachmentData))
                 attachment(contentAttachmentData)
                 checked(data.currentAttachmentIndex == index)
                 clickListener { _ ->
