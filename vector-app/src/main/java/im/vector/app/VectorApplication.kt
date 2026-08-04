@@ -36,6 +36,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.pushers.FcmHelper
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.session.EnsureSessionSyncingUseCase
+import im.vector.app.core.session.HomeserverMirrorRefresher
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.invite.InvitesAcceptor
 import im.vector.app.features.lifecycle.VectorActivityLifecycleCallbacks
@@ -83,6 +84,7 @@ class VectorApplication :
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var popupAlertManager: PopupAlertManager
     @Inject lateinit var pinLocker: PinLocker
+    @Inject lateinit var homeserverMirrorRefresher: HomeserverMirrorRefresher
     @Inject lateinit var invitesAcceptor: InvitesAcceptor
     @Inject lateinit var vectorFileLogger: VectorFileLogger
     @Inject lateinit var matrix: Matrix
@@ -183,6 +185,7 @@ class VectorApplication :
         })
         ProcessLifecycleOwner.get().lifecycle.addObserver(spaceStateHandler)
         ProcessLifecycleOwner.get().lifecycle.addObserver(pinLocker)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(homeserverMirrorRefresher)
         // This should be done as early as possible
         // initKnownEmojiHashSet(appContext)
         ContextCompat.registerReceiver(

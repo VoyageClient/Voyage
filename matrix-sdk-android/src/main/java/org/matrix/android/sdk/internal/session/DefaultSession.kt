@@ -42,6 +42,7 @@ import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
+import org.matrix.android.sdk.api.session.homeserver.HomeServerUrlsService
 import org.matrix.android.sdk.api.session.identity.IdentityService
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
 import org.matrix.android.sdk.api.session.media.MediaService
@@ -110,6 +111,7 @@ internal class DefaultSession @Inject constructor(
         private val typingUsersTracker: TypingUsersTracker,
         private val contentDownloadStateTracker: ContentDownloadStateTracker,
         private val homeServerCapabilitiesService: Lazy<HomeServerCapabilitiesService>,
+        private val homeServerUrlsService: Lazy<HomeServerUrlsService>,
         private val accountDataService: Lazy<SessionAccountDataService>,
         private val sharedSecretStorageService: Lazy<SharedSecretStorageService>,
         private val accountService: Lazy<AccountService>,
@@ -199,6 +201,7 @@ internal class DefaultSession @Inject constructor(
     override fun contentScannerService(): ContentScannerService = contentScannerService.get()
     override fun identityService(): IdentityService = identityService.get()
     override fun homeServerCapabilitiesService(): HomeServerCapabilitiesService = homeServerCapabilitiesService.get()
+    override fun homeServerUrlsService(): HomeServerUrlsService = homeServerUrlsService.get()
     override fun roomService(): RoomService = roomService.get()
     override fun roomDirectoryService(): RoomDirectoryService = roomDirectoryService.get()
     override fun userService(): UserService = userService.get()

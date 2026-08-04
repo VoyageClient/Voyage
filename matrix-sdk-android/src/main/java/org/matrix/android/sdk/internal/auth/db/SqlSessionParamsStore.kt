@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.auth.db
 
 import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.auth.data.Credentials
+import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.auth.data.sessionId
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
@@ -58,6 +59,16 @@ internal class SqlSessionParamsStore @Inject constructor(
             val current = queries.selectById(sessionId).executeAsOneOrNull()?.toDomain()
                     ?: error("Session param not found for id $sessionId")
             val columns = mapper.toColumns(current.copy(credentials = newCredentials, isTokenValid = true))
+                    ?: return@awaitDbTransaction
+            queries.upsert(columns)
+        }
+    }
+
+    override suspend fun updateHomeServerConnectionConfig(sessionId: String, transform: (HomeServerConnectionConfig) -> HomeServerConnectionConfig) {
+        database.awaitDbTransaction(dispatcher) {
+            val current = queries.selectById(sessionId).executeAsOneOrNull()?.toDomain()
+                    ?: error("Session param not found for id $sessionId")
+            val columns = mapper.toColumns(current.copy(homeServerConnectionConfig = transform(current.homeServerConnectionConfig)))
                     ?: return@awaitDbTransaction
             queries.upsert(columns)
         }

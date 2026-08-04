@@ -39,6 +39,9 @@ data class HomeServerConnectionConfig(
         // but can be updated with data from .Well-Known before login, and/or with the data
         // included in the login response
         val homeServerUriBase: String = homeServerUri,
+        // Mirrors of [homeServerUriBase] (same homeserver, different entry points), tried in order when the
+        // base is unreachable
+        val fallbackHomeServerUriBases: List<String> = emptyList(),
         val identityServerUri: String? = null,
         val antiVirusServerUri: String? = null,
         val allowedFingerprints: List<Fingerprint> = emptyList(),

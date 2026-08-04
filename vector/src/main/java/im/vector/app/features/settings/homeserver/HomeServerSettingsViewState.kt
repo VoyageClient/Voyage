@@ -15,7 +15,9 @@ import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 
 data class HomeServerSettingsViewState(
         val homeserverUrl: String = "",
-        val homeserverClientServerApiUrl: String = "",
+        // Client-server API URLs, primary first, the rest being mirrors to fall back to.
+        val homeserverUrls: List<String> = emptyList(),
+        val activeHomeserverUrl: String = "",
         val homeServerCapabilities: HomeServerCapabilities = HomeServerCapabilities(),
         val federationVersion: Async<FederationVersion> = Uninitialized
 ) : MavericksState

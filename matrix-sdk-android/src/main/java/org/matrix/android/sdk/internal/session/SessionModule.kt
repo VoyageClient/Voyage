@@ -67,6 +67,7 @@ import org.matrix.android.sdk.internal.di.UserMd5
 import org.matrix.android.sdk.internal.network.DefaultNetworkConnectivityChecker
 import org.matrix.android.sdk.internal.network.GlobalErrorHandler
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
+import org.matrix.android.sdk.internal.network.HomeServerFallbackInterceptor
 import org.matrix.android.sdk.internal.network.NetworkCallbackStrategy
 import org.matrix.android.sdk.internal.network.NetworkConnectivityChecker
 import org.matrix.android.sdk.internal.network.RetrofitFactory
@@ -252,10 +253,12 @@ internal abstract class SessionModule {
         fun providesOkHttpClientWithCertificate(
                 @Unauthenticated okHttpClient: OkHttpClient,
                 homeServerConnectionConfig: HomeServerConnectionConfig,
+                homeServerFallbackInterceptor: HomeServerFallbackInterceptor,
         ): OkHttpClient {
             return okHttpClient
                     .newBuilder()
                     .addSocketFactory(homeServerConnectionConfig)
+                    .addInterceptor(homeServerFallbackInterceptor)
                     .build()
         }
 

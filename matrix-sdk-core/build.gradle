@@ -206,6 +206,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/network/ApiInterceptor.kt',
         'org/matrix/android/sdk/internal/network/ComputeUserAgentUseCase.kt',
         'org/matrix/android/sdk/internal/network/GlobalErrorReceiver.kt',
+        'org/matrix/android/sdk/internal/network/HomeServerFallbackInterceptor.kt',
+        'org/matrix/android/sdk/internal/network/HomeServerFallbackTracker.kt',
+        'org/matrix/android/sdk/internal/network/HomeServerMirrorProbe.kt',
         'org/matrix/android/sdk/internal/network/HttpHeaders.kt',
         'org/matrix/android/sdk/internal/network/NetworkConstants.kt',
         'org/matrix/android/sdk/internal/network/ProgressRequestBody.kt',
@@ -289,6 +292,7 @@ ext.coreSources = [
         // Service interfaces converted from LiveData to Flow for the core boundary; the DB/thread-backed
         // impls stay Android, consumers that still want LiveData use android-only *Android.kt extensions.
         'org/matrix/android/sdk/api/session/homeserver/HomeServerCapabilitiesService.kt',
+        'org/matrix/android/sdk/api/session/homeserver/HomeServerUrlsService.kt',
         'org/matrix/android/sdk/api/session/sync/SyncService.kt',
         'org/matrix/android/sdk/api/session/sync/SyncState.kt',
         'org/matrix/android/sdk/api/session/sync/SyncRequestState.kt',
@@ -1275,6 +1279,7 @@ ext.coreSources = [
         // Wellknown + homeserver-caps clusters: GetWellknownTask's only coupling was
         // android.util.MalformedJsonException, now a stand-in in olm-jvm (real one used on device).
         'org/matrix/android/sdk/internal/session/homeserver/DefaultHomeServerCapabilitiesService.kt',
+        'org/matrix/android/sdk/internal/session/homeserver/DefaultHomeServerUrlsService.kt',
         'org/matrix/android/sdk/internal/session/homeserver/GetHomeServerCapabilitiesTask.kt',
         'org/matrix/android/sdk/internal/session/homeserver/HomeServerCapabilitiesModule.kt',
         'org/matrix/android/sdk/internal/session/room/relation/threads/FetchThreadSummariesTask.kt',

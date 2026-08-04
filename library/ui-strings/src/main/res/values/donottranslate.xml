@@ -545,4 +545,12 @@
     <string name="identity_reset_withdraw_verification" translatable="false">Withdraw verification</string>
     <string name="settings_hide_identity_change_banner" translatable="false">Hide identity change banner</string>
     <string name="settings_hide_identity_change_banner_summary" translatable="false">Never show the banner warning that a contact\'s identity changed. Turning this on also accepts (pins) any current changes, so they stay dismissed even if you turn this back off.</string>
+
+    <string name="homeserver_urls_apply" translatable="false">Apply</string>
+    <string name="homeserver_urls_refresh" translatable="false">Recheck homeserver mirrors</string>
+    <string name="homeserver_urls_in_use" translatable="false">in use</string>
+    <string name="homeserver_urls_add" translatable="false">Add mirror</string>
+    <string name="homeserver_urls_remove" translatable="false">Remove mirror</string>
+    <string name="homeserver_urls_hint" translatable="false">https://example.org</string>
+    <string name="homeserver_urls_invalid" translatable="false">Enter at least one URL, each starting with http:// or https://</string>
 </resources>

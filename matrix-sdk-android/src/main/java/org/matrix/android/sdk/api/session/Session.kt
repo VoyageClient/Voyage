@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
+import org.matrix.android.sdk.api.session.homeserver.HomeServerUrlsService
 import org.matrix.android.sdk.api.session.identity.IdentityService
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
 import org.matrix.android.sdk.api.session.media.MediaService
@@ -141,6 +142,11 @@ interface Session {
      * Returns the HomeServerCapabilities service associated with the session.
      */
     fun homeServerCapabilitiesService(): HomeServerCapabilitiesService
+
+    /**
+     * Returns the service managing the homeserver URLs (primary and mirrors) of this session.
+     */
+    fun homeServerUrlsService(): HomeServerUrlsService
 
     /**
      * Returns the RoomService associated with the session.

@@ -21,6 +21,7 @@ import im.vector.app.core.ui.list.genericWithValueItem
 import im.vector.app.features.discovery.settingsCenteredImageItem
 import im.vector.app.features.discovery.settingsInfoItem
 import im.vector.app.features.discovery.settingsSectionTitleItem
+import im.vector.app.features.imagepack.edit.imagePackListItem
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -37,9 +38,23 @@ class HomeserverSettingsController @Inject constructor(
 
     var callback: Callback? = null
 
+    /**
+     * The URL rows as they are on screen, owned by the fragment: they are edited in place and outlive the
+     * state updates that rebuild the rest of the screen.
+     */
+    var editableUrls: List<EditableHomeserverUrl> = emptyList()
+
     interface Callback {
         fun retry()
+        fun refreshHomeserverUrls()
+        fun addHomeserverUrl()
+        fun deleteHomeserverUrl(url: EditableHomeserverUrl)
+        fun onHomeserverUrlEdited()
     }
+
+    // Current order as shown (the drag helper reorders the models, not the fragment's list).
+    fun currentOrderedUrls(): List<EditableHomeserverUrl> =
+            adapter.copyOfModels.filterIsInstance<HomeserverUrlEditItem_>().map { it.url() }
 
     override fun buildModels(data: HomeServerSettingsViewState?) {
         data ?: return
@@ -65,27 +80,54 @@ class HomeserverSettingsController @Inject constructor(
     }
 
     private fun buildHeader(state: HomeServerSettingsViewState) {
+        val host = this
         settingsCenteredImageItem {
             id("icon")
             drawableRes(R.drawable.ic_layers)
         }
-        settingsSectionTitleItem {
-            id("urlTitle")
-            titleResId(CommonStrings.hs_url)
-        }
-        settingsInfoItem {
-            id("urlValue")
-            helperText(state.homeserverUrl)
-        }
-        if (vectorPreferences.developerMode()) {
+
+        // The entered URL only gets its own section when delegation makes it differ from the API URL below.
+        // Read from the saved config, not the rows: unapplied edits must not move the sections around.
+        val enteredUrl = state.homeserverUrl.trimEnd('/')
+        val savedPrimary = state.homeserverUrls.firstOrNull()?.trimEnd('/')
+        val delegated = savedPrimary != null && savedPrimary != enteredUrl
+        if (delegated) {
             settingsSectionTitleItem {
-                id("urlApiTitle")
-                titleResId(CommonStrings.hs_client_url)
+                id("urlTitle")
+                titleResId(CommonStrings.hs_url)
             }
             settingsInfoItem {
-                id("urlApiValue")
-                helperText(state.homeserverClientServerApiUrl)
+                id("urlValue")
+                helperText(enteredUrl)
             }
+        }
+
+        homeserverUrlsItem {
+            id("apiUrlTitle")
+            titleResId(if (delegated) CommonStrings.hs_client_url else CommonStrings.hs_url)
+            // Rechecking works off the saved mirrors, so unapplied rows must not offer it.
+            showRefresh(state.homeserverUrls.size > 1)
+            onRefreshClick { host.callback?.refreshHomeserverUrls() }
+        }
+        val active = state.activeHomeserverUrl.trimEnd('/')
+        val hasSavedMirrors = state.homeserverUrls.size > 1
+        editableUrls.forEach { url ->
+            homeserverUrlEditItem {
+                // Stable id (object identity) so live edits don't recreate the row / lose focus.
+                id(System.identityHashCode(url).toLong())
+                url(url)
+                // Any entry can go as long as one is left to talk to.
+                deletable(host.editableUrls.size > 1)
+                inUse(hasSavedMirrors && url.value.trimEnd('/') == active)
+                onDeleteClick { host.callback?.deleteHomeserverUrl(url) }
+                onEdited { host.callback?.onHomeserverUrlEdited() }
+            }
+        }
+        imagePackListItem {
+            id("addUrl")
+            title(host.stringProvider.getString(CommonStrings.homeserver_urls_add))
+            placeholderIconRes(R.drawable.ic_plus)
+            onClickListener { host.callback?.addHomeserverUrl() }
         }
     }
 

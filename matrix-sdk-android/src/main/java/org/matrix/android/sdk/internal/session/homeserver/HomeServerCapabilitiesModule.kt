@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.homeserver
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import org.matrix.android.sdk.api.session.homeserver.HomeServerUrlsService
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.wellknown.WellknownModule
 import retrofit2.Retrofit
@@ -45,4 +46,7 @@ internal abstract class HomeServerCapabilitiesModule {
 
     @Binds
     abstract fun bindGetHomeServerCapabilitiesTask(task: DefaultGetHomeServerCapabilitiesTask): GetHomeServerCapabilitiesTask
+
+    @Binds
+    abstract fun bindHomeServerUrlsService(service: DefaultHomeServerUrlsService): HomeServerUrlsService
 }

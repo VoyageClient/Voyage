@@ -13,6 +13,8 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import com.airbnb.epoxy.EpoxyModel
+import com.airbnb.epoxy.EpoxyViewHolder
 import im.vector.app.features.themes.ThemeUtils
 
 /**
@@ -20,31 +22,44 @@ import im.vector.app.features.themes.ThemeUtils
  * drag-reordering only moves item models (no divider insert/remove), which keeps the scroll position stable.
  * A matching item offset reserves the line's height so opaque item backgrounds don't paint over it.
  */
-class ListDividerDecoration(context: Context) : RecyclerView.ItemDecoration() {
+class ListDividerDecoration(
+        context: Context,
+        /**
+         * Which rows get a separator under them. Defaults to every row but the last; pass a predicate to
+         * separate only part of a mixed list.
+         */
+        private val drawUnder: ((EpoxyModel<*>) -> Boolean)? = null,
+        /**
+         * Whether a separator follows its row as it is dragged, rather than staying at the layout gap.
+         */
+        private val followItemTranslation: Boolean = false,
+) : RecyclerView.ItemDecoration() {
 
     private val paint = Paint().apply {
         color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_list_separator)
     }
-    private val thickness = context.resources.displayMetrics.density.toInt().coerceAtLeast(1)
+    private val thickness = context.resources.displayMetrics.density.coerceAtLeast(1f)
 
     override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
-        val position = parent.getChildAdapterPosition(view)
-        val lastDrawablePosition = (parent.adapter?.itemCount ?: 0) - 1
-        outRect.bottom = if (position != RecyclerView.NO_POSITION && position < lastDrawablePosition) thickness else 0
+        outRect.bottom = if (hasSeparator(parent, view)) thickness.toInt() else 0
     }
 
     override fun onDraw(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         val left = parent.paddingLeft.toFloat()
         val right = (parent.width - parent.paddingRight).toFloat()
-        val lastDrawablePosition = (parent.adapter?.itemCount ?: 0) - 1
         for (i in 0 until parent.childCount) {
             val child = parent.getChildAt(i)
-            val position = parent.getChildAdapterPosition(child)
-            if (position == RecyclerView.NO_POSITION || position >= lastDrawablePosition) continue
-            // Draw at the static layout gap (no translationY): during a drag the separators stay put as part
-            // of the list while the dragged item floats over them, instead of one lone line tracking the item.
-            val top = child.bottom
-            canvas.drawRect(left, top.toFloat(), right, (top + thickness).toFloat(), paint)
+            if (!hasSeparator(parent, child)) continue
+            val top = child.bottom + if (followItemTranslation) child.translationY else 0f
+            canvas.drawRect(left, top, right, top + thickness, paint)
         }
+    }
+
+    private fun hasSeparator(parent: RecyclerView, child: View): Boolean {
+        val position = parent.getChildAdapterPosition(child)
+        if (position == RecyclerView.NO_POSITION) return false
+        val predicate = drawUnder ?: return position < (parent.adapter?.itemCount ?: 0) - 1
+        val model = (parent.getChildViewHolder(child) as? EpoxyViewHolder)?.model ?: return false
+        return predicate(model)
     }
 }
