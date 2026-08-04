@@ -8,7 +8,7 @@
 package im.vector.app.features.attachments.editor.image
 
 import android.graphics.RectF
-import android.os.Parcelable
+import im.vector.app.features.attachments.editor.AttachmentEdits
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -21,9 +21,9 @@ data class ImageEditorEdits(
         val userRotation: Int = 0,
         val crop: RectF = RectF(0f, 0f, 1f, 1f),
         val censors: List<RectF> = emptyList()
-) : Parcelable {
+) : AttachmentEdits {
 
-    val hasChanges: Boolean
+    override val hasChanges: Boolean
         get() = userRotation != 0 || censors.isNotEmpty() ||
                 crop.left > 0.001f || crop.top > 0.001f || crop.right < 0.999f || crop.bottom < 0.999f
 }

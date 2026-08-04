@@ -24,6 +24,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Image editor before sending** — crop, rotate and black out parts of a photo from the attachment preview, with pinch-zoom and panning for precise work. Censor boxes are drawn straight onto the image, so nothing recoverable is left behind. Edits are remembered per attachment, so reopening the editor lets you adjust what you did rather than starting again from the flattened result.
 
+- **Video editor before sending** — trim a video to the part you want from the attachment preview, on a filmstrip timeline with draggable handles, and rotate or mute it. Holding a handle zooms the timeline to a per-frame ruler for exact cuts, with a haptic tick on every frame. Trimming is lossless wherever it can be — the video is re-wrapped rather than re-encoded, which is near-instant and costs no quality — and only falls back to re-encoding when the cut has to land between keyframes. Like the image editor, edits are remembered per attachment and replayed against the original.
+
 - **Zoom and playback in the attachment preview** — pinch-zoom and pan photos before sending them, and play videos in place with a tap.
 
 - **Media captions & replies** — add/edit/remove captions on media, reply to or comment alongside media, rich reply previews with embedded image/video/sticker thumbnails, and the ability to reply to and redact non-message events (reactions, joins, leaves, redactions).

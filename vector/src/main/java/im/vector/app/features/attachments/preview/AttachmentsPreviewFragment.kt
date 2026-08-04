@@ -41,6 +41,9 @@ import im.vector.app.core.utils.SnapOnScrollListener
 import im.vector.app.core.utils.attachSnapHelperWithListener
 import im.vector.app.databinding.FragmentAttachmentsPreviewBinding
 import im.vector.app.features.attachments.editor.image.ImageEditorActivity
+import im.vector.app.features.attachments.editor.image.ImageEditorEdits
+import im.vector.app.features.attachments.editor.video.VideoEditorActivity
+import im.vector.app.features.attachments.editor.video.VideoEditorEdits
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
@@ -94,6 +97,28 @@ class AttachmentsPreviewFragment :
                 views.attachmentPreviewerSendImageOriginalSize,
                 ColorStateList.valueOf(accent)
         )
+    }
+
+    private val videoEditorActivityResultLauncher = registerStartForActivityResult { activityResult ->
+        if (activityResult.resultCode == RESULT_OK) {
+            val output = activityResult.data?.let { VideoEditorActivity.getOutput(it) }
+            if (output != null) {
+                discardSupersededExport()
+                viewModel.handle(
+                        AttachmentsPreviewAction.UpdateCurrentAttachment(
+                                newUri = output.uri,
+                                width = output.width.toLong(),
+                                height = output.height.toLong(),
+                                size = output.size,
+                                mimeType = output.mimeType,
+                                duration = output.durationMs,
+                                editRecord = pendingEditOriginalUri?.let { EditRecord(it, output.edits) }
+                        )
+                )
+            } else {
+                Toast.makeText(requireContext(), getString(CommonStrings.video_editor_export_failed), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private val imageEditorActivityResultLauncher = registerStartForActivityResult { activityResult ->
@@ -246,7 +271,7 @@ class AttachmentsPreviewFragment :
         val current = state.attachments.getOrNull(state.currentAttachmentIndex) ?: return@withState
         if (!state.editRecords.containsKey(current.queryUri)) return@withState
         runCatching { requireContext().contentResolver.delete(current.queryUriAndroid, null, null) }
-                .onFailure { Timber.w(it, "Could not delete superseded edited image") }
+                .onFailure { Timber.w(it, "Could not delete superseded export") }
     }
 
     private fun handleEditAction() = withState(viewModel) { state ->
@@ -255,15 +280,27 @@ class AttachmentsPreviewFragment :
         // through the editor don't compound cropping and JPEG loss.
         val record = state.editRecords[currentAttachment.queryUri]
         pendingEditOriginalUri = record?.originalUri ?: currentAttachment.queryUri
-        imageEditorActivityResultLauncher.launch(
-                ImageEditorActivity.newIntent(
-                        requireContext(),
-                        record?.originalUri?.toUri() ?: currentAttachment.queryUriAndroid,
-                        currentAttachment.name,
-                        currentAttachment.getSafeMimeType(),
-                        record?.edits
-                )
-        )
+        val source = record?.originalUri?.toUri() ?: currentAttachment.queryUriAndroid
+        if (currentAttachment.isVideoEditable()) {
+            videoEditorActivityResultLauncher.launch(
+                    VideoEditorActivity.newIntent(
+                            requireContext(),
+                            source,
+                            currentAttachment.name,
+                            record?.edits as? VideoEditorEdits
+                    )
+            )
+        } else {
+            imageEditorActivityResultLauncher.launch(
+                    ImageEditorActivity.newIntent(
+                            requireContext(),
+                            source,
+                            currentAttachment.name,
+                            currentAttachment.getSafeMimeType(),
+                            record?.edits as? ImageEditorEdits
+                    )
+            )
+        }
     }
 
     private fun setupRecyclerViews() {

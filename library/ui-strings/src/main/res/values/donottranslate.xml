@@ -561,4 +561,17 @@
     <string name="image_editor_censor_hint" translatable="false">Drag on the image to add a black box</string>
     <string name="image_editor_load_failed" translatable="false">Couldn\'t open this image</string>
     <string name="image_editor_save_failed" translatable="false">Couldn\'t save the edited image</string>
+
+    <string name="video_editor_title" translatable="false">Edit video</string>
+    <string name="video_editor_play" translatable="false">Play</string>
+    <string name="video_editor_reset" translatable="false">Reset</string>
+    <string name="video_editor_rotate" translatable="false">Rotate</string>
+    <string name="video_editor_mute" translatable="false">Mute audio</string>
+    <string name="video_editor_range" translatable="false">%1$s – %2$s</string>
+    <string name="video_editor_exporting" translatable="false">Saving video…</string>
+    <string name="video_editor_load_failed" translatable="false">Couldn\'t open this video</string>
+    <string name="video_editor_export_failed" translatable="false">Couldn\'t save the edited video</string>
+    <string name="video_editor_no_space" translatable="false">Not enough free space to save this video</string>
+    <string name="video_editor_unsupported" translatable="false">This video format can\'t be edited</string>
+    <string name="video_editor_audio_dropped" translatable="false">The audio track couldn\'t be kept and was dropped</string>
 </resources>
