@@ -21,7 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.getRetryDelay
 import org.matrix.android.sdk.api.failure.isLimitExceededError
@@ -29,6 +28,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.util.Cancelable
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
+import org.matrix.android.sdk.internal.network.HomeServerFallbackTracker
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.task.CoroutineSequencer
 import org.matrix.android.sdk.internal.task.SemaphoreCoroutineSequencer
@@ -55,7 +55,7 @@ private const val MAX_RETRY_COUNT = 3
 @SessionScope
 internal class EventSenderProcessorCoroutine @Inject constructor(
         private val cryptoStore: IMXCommonCryptoStore,
-        private val sessionParams: SessionParams,
+        private val homeServerFallbackTracker: HomeServerFallbackTracker,
         private val queuedTaskFactory: QueuedTaskFactory,
         private val taskExecutor: TaskExecutor,
         private val localEchoRepository: org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository,
@@ -217,7 +217,7 @@ internal class EventSenderProcessorCoroutine @Inject constructor(
         // sequencer is global — sleeping first stalls every room's queue even when the server is fine.
         while (!canReachServer.get()) {
             val hostAvailable = withContext(Dispatchers.IO) {
-                HomeServerAvailabilityChecker(sessionParams).check()
+                HomeServerAvailabilityChecker(homeServerFallbackTracker).check()
             }
             canReachServer.set(hostAvailable)
             if (!hostAvailable) {

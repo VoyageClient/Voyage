@@ -36,6 +36,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Mass redactions** — bulk redaction via a `/massredact` command (with cooldown); redacting a message also redacts its edits and reactions and is applied live to open timelines, "remove" is renamed to "redact", and there's a toggle to skip the confirmation dialog.
 
+- **Homeserver mirrors** — the homeserver entry in settings is now an editable, reorderable list. Add mirrors of your homeserver (alternate domains, a reverse proxy, an onion address) and the app falls back to the next one whenever the current one can't be reached or answers with a gateway error. Your ordering is never rewritten: the mirrors above the one in use are rechecked every few minutes while the app is open (or on demand from the recheck button), and the app moves back up as soon as one is reachable again.
+
 - **Read receipts** — private read receipts, a toggle for sending them at all, and queued receipts that retry until the server confirms.
 
 - **Ignored users fully silenced** — read receipts and presence from ignored users are now dropped during sync, alongside the typing notifications already filtered.

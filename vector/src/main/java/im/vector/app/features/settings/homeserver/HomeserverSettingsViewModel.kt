@@ -19,7 +19,9 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import kotlinx.coroutines.launch
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
+import timber.log.Timber
 
 class HomeserverSettingsViewModel @AssistedInject constructor(
         @Assisted initialState: HomeServerSettingsViewState,
@@ -37,7 +39,8 @@ class HomeserverSettingsViewModel @AssistedInject constructor(
         setState {
             copy(
                     homeserverUrl = session.sessionParams.homeServerUrl,
-                    homeserverClientServerApiUrl = session.sessionParams.homeServerUrlBase,
+                    homeserverUrls = session.homeServerUrlsService().getHomeServerUrls(),
+                    activeHomeserverUrl = session.homeServerUrlsService().getActiveHomeServerUrl(),
                     homeServerCapabilities = session.homeServerCapabilitiesService().getHomeServerCapabilities()
             )
         }
@@ -87,6 +90,34 @@ class HomeserverSettingsViewModel @AssistedInject constructor(
     override fun handle(action: HomeserverSettingsAction) {
         when (action) {
             HomeserverSettingsAction.Refresh -> fetchHomeserverVersion()
+            is HomeserverSettingsAction.SetHomeserverUrls -> setHomeserverUrls(action.urls)
+            HomeserverSettingsAction.RefreshHomeserverUrls -> refreshActiveHomeserverUrl()
+        }
+    }
+
+    private fun setHomeserverUrls(urls: List<String>) {
+        viewModelScope.launch {
+            try {
+                session.homeServerUrlsService().setHomeServerUrls(urls)
+            } catch (failure: Throwable) {
+                Timber.e(failure, "Failed to save homeserver URLs")
+                return@launch
+            }
+            setState {
+                copy(
+                        homeserverUrls = session.homeServerUrlsService().getHomeServerUrls(),
+                        activeHomeserverUrl = session.homeServerUrlsService().getActiveHomeServerUrl(),
+                )
+            }
+        }
+    }
+
+    private fun refreshActiveHomeserverUrl() {
+        viewModelScope.launch {
+            val active = tryOrNull { session.homeServerUrlsService().refreshActiveHomeServerUrl() } ?: return@launch
+            setState {
+                copy(activeHomeserverUrl = active)
+            }
         }
     }
 }

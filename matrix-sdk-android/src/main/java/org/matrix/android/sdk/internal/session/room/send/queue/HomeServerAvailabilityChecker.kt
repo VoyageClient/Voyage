@@ -16,7 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.send.queue
 
-import org.matrix.android.sdk.api.auth.data.SessionParams
+import org.matrix.android.sdk.internal.network.HomeServerFallbackTracker
 import org.matrix.android.sdk.internal.util.uriHost
 import org.matrix.android.sdk.internal.util.uriPort
 import timber.log.Timber
@@ -25,19 +25,23 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 
-internal class HomeServerAvailabilityChecker(val sessionParams: SessionParams) {
+internal class HomeServerAvailabilityChecker(private val tracker: HomeServerFallbackTracker) {
 
-    fun check(): Boolean {
-        val host = sessionParams.homeServerConnectionConfig.homeServerUriBase.uriHost() ?: return false
-        val port = sessionParams.homeServerConnectionConfig.homeServerUriBase.uriPort().takeIf { it != -1 } ?: 80
-        val timeout = 30_000
+    /**
+     * The queue may resume as soon as any mirror answers, so check them in the order requests would use.
+     */
+    fun check(): Boolean = tracker.candidates().any { it.isReachable() }
+
+    private fun String.isReachable(): Boolean {
+        val host = uriHost() ?: return false
+        val port = uriPort().takeIf { it != -1 } ?: 80
         try {
             // Socket implements Closeable only on API 19+, so kotlin's `use` is unavailable; close explicitly.
             val socket = Socket()
             try {
                 val inetAddress: InetAddress = InetAddress.getByName(host)
                 val inetSocketAddress = InetSocketAddress(inetAddress, port)
-                socket.connect(inetSocketAddress, timeout)
+                socket.connect(inetSocketAddress, CONNECT_TIMEOUT_MILLIS)
                 return true
             } finally {
                 socket.close()
@@ -46,5 +50,9 @@ internal class HomeServerAvailabilityChecker(val sessionParams: SessionParams) {
             Timber.v("## EventSender isHostAvailable failure ${e.localizedMessage}")
             return false
         }
+    }
+
+    companion object {
+        private const val CONNECT_TIMEOUT_MILLIS = 10_000
     }
 }

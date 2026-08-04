@@ -11,4 +11,6 @@ import im.vector.app.core.platform.VectorViewModelAction
 
 sealed class HomeserverSettingsAction : VectorViewModelAction {
     object Refresh : HomeserverSettingsAction()
+    data class SetHomeserverUrls(val urls: List<String>) : HomeserverSettingsAction()
+    object RefreshHomeserverUrls : HomeserverSettingsAction()
 }

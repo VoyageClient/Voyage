@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.auth
 
 import org.matrix.android.sdk.api.auth.data.Credentials
+import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.data.SessionParams
 
 internal interface SessionParamsStore {
@@ -32,6 +33,12 @@ internal interface SessionParamsStore {
     suspend fun setTokenInvalid(sessionId: String)
 
     suspend fun updateCredentials(newCredentials: Credentials)
+
+    /**
+     * Read-modify-write inside the transaction, so callers holding a stale copy of the config cannot revert
+     * fields they did not mean to touch.
+     */
+    suspend fun updateHomeServerConnectionConfig(sessionId: String, transform: (HomeServerConnectionConfig) -> HomeServerConnectionConfig)
 
     suspend fun delete(sessionId: String)
 

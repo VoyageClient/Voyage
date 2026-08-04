@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="afterDescendants"
+    android:focusableInTouchMode="true"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/layout_horizontal_margin"
+    android:paddingLeft="@dimen/layout_horizontal_margin"
+    android:paddingEnd="8dp"
+    android:paddingRight="8dp">
+
+    <im.vector.app.core.ui.views.ClearFocusOnImeBackEditText
+        android:id="@+id/homeserverUrlEditField"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:background="@null"
+        android:hint="@string/homeserver_urls_hint"
+        android:imeOptions="actionDone"
+        android:inputType="textUri"
+        android:maxLines="1"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:singleLine="true"
+        android:textColor="?vctr_content_primary"
+        tools:text="https://matrix.example.org" />
+
+    <TextView
+        android:id="@+id/homeserverUrlEditInUse"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingLeft="8dp"
+        android:paddingEnd="4dp"
+        android:paddingRight="4dp"
+        android:text="@string/homeserver_urls_in_use"
+        android:textColor="?vctr_content_tertiary" />
+
+    <ImageButton
+        android:id="@+id/homeserverUrlEditDelete"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/homeserver_urls_remove"
+        app:srcCompat="@drawable/ic_trash_24"
+        app:tint="?vctr_content_secondary" />
+
+</LinearLayout>
