@@ -801,21 +801,22 @@ class TimelineEventController @Inject constructor(
     // Nearest displayable event before / after each position, via one forward + one backward pass.
     private fun computeDisplayableNeighbours(shown: BooleanArray): Pair<Array<TimelineEvent?>, Array<TimelineEvent?>> {
         val size = currentSnapshot.size
-        val displayable = BooleanArray(size) { position ->
-            // A member collapsed into a merged run (its anchor included — that slot shows the header, not a
-            // bubble) is not a grouping neighbour, so a message next to a collapsed run groups as if the run
-            // weren't there; expanding it flips these back and regroups.
-            shown[position] && !mergedHeaderItemFactory.isCollapsed(currentSnapshot[position].localId)
-        }
+        // A member collapsed into a merged run (its anchor included — that slot shows the header, not a
+        // bubble) is no one's grouping neighbour, but the run's header still sits between its neighbours
+        // on screen, so it breaks the chain: messages on either side each start a fresh group.
+        val collapsed = BooleanArray(size) { mergedHeaderItemFactory.isCollapsed(currentSnapshot[it].localId) }
+        val displayable = BooleanArray(size) { shown[it] && !collapsed[it] }
         val prev = arrayOfNulls<TimelineEvent>(size)
         var lastDisplayable: TimelineEvent? = null
         for (position in 0 until size) {
+            if (collapsed[position]) lastDisplayable = null
             prev[position] = lastDisplayable
             if (displayable[position]) lastDisplayable = currentSnapshot[position]
         }
         val next = arrayOfNulls<TimelineEvent>(size)
         var nextDisplayable: TimelineEvent? = null
         for (position in size - 1 downTo 0) {
+            if (collapsed[position]) nextDisplayable = null
             next[position] = nextDisplayable
             if (displayable[position]) nextDisplayable = currentSnapshot[position]
         }
