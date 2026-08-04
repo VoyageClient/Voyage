@@ -284,6 +284,11 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:label="@string/app_name"
             android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
+        <activity
+            android:name=".features.attachments.editor.video.VideoEditorActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
         <activity android:name=".features.terms.ReviewTermsActivity" />
         <activity
             android:name=".features.widgets.WidgetActivity"

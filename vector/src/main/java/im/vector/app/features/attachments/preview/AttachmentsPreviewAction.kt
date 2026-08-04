@@ -19,6 +19,7 @@ sealed class AttachmentsPreviewAction : VectorViewModelAction {
             val height: Long? = null,
             val size: Long? = null,
             val mimeType: String? = null,
+            val duration: Long? = null,
             val editRecord: EditRecord? = null
     ) : AttachmentsPreviewAction()
 }

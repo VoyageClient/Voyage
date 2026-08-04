@@ -178,6 +178,7 @@ dependencies {
     implementation project(":library:core-utils")
     implementation project(":library:attachment-viewer")
     implementation project(":library:multipicker")
+    implementation project(":library:media-transcode")
 
     implementation libs.jetbrains.coroutinesCore
     implementation libs.jetbrains.coroutinesAndroid

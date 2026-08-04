@@ -8,11 +8,11 @@
 package im.vector.app.features.attachments.preview
 
 import com.airbnb.mvrx.MavericksState
-import im.vector.app.features.attachments.editor.image.ImageEditorEdits
+import im.vector.app.features.attachments.editor.AttachmentEdits
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 
 /** What an edited attachment was made from, so the editor can reopen against the original. */
-data class EditRecord(val originalUri: String, val edits: ImageEditorEdits)
+data class EditRecord(val originalUri: String, val edits: AttachmentEdits)
 
 data class AttachmentsPreviewViewState(
         val attachments: List<ContentAttachmentData>,

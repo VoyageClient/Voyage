@@ -7,15 +7,26 @@
 
 package im.vector.app.features.attachments.preview
 
+import im.vector.lib.mediatranscode.VideoEditExporter
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeImage
+import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 
 /**
  * All images are editable, expect Gif.
  */
-fun ContentAttachmentData.isEditable(): Boolean {
+fun ContentAttachmentData.isImageEditable(): Boolean {
     return type == ContentAttachmentData.Type.IMAGE &&
             getSafeMimeType()?.isMimeTypeImage() == true &&
             getSafeMimeType() != MimeTypes.Gif
 }
+
+/** Video editing needs MediaMuxer, so it is unavailable below API 18 — see [VideoEditExporter]. */
+fun ContentAttachmentData.isVideoEditable(): Boolean {
+    return type == ContentAttachmentData.Type.VIDEO &&
+            getSafeMimeType()?.isMimeTypeVideo() == true &&
+            VideoEditExporter.isSupported()
+}
+
+fun ContentAttachmentData.isEditable(): Boolean = isImageEditable() || isVideoEditable()

@@ -44,7 +44,8 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
                         width = action.width ?: contentAttachmentData.width,
                         height = action.height ?: contentAttachmentData.height,
                         size = action.size ?: contentAttachmentData.size,
-                        mimeType = action.mimeType ?: contentAttachmentData.mimeType
+                        mimeType = action.mimeType ?: contentAttachmentData.mimeType,
+                        duration = action.duration ?: contentAttachmentData.duration
                 )
             } else {
                 contentAttachmentData
