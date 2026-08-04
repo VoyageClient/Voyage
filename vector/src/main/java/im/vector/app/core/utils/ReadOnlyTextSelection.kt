@@ -13,12 +13,14 @@ import android.text.Spannable
 import android.text.Spanned
 import android.view.ActionMode
 import android.view.MotionEvent
+import android.view.View
 import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
+import im.vector.app.core.ui.views.SelectionAwareRelativeLayout
 import im.vector.app.features.html.HtmlCodeSpan
 import im.vector.lib.strings.CommonStrings
 import timber.log.Timber
@@ -175,6 +177,27 @@ fun TextView.replaySwallowedTap(event: MotionEvent, wasFocused: Boolean) {
 }
 
 /**
+ * Feeds a pressed state to the timeline row's ripple, with [x]/[y] (view coordinates) translated
+ * into the row's for the hotspot. Call from setPressed after super — a view that handles its own
+ * taps never gets its pressed state merged up into the row.
+ */
+fun View.mirrorPressedToRowRipple(pressed: Boolean, x: Float, y: Float) {
+    var view: View = this
+    var hotspotX = x
+    var hotspotY = y
+    while (true) {
+        val parent = view.parent as? View ?: return
+        hotspotX += view.left - parent.scrollX
+        hotspotY += view.top - parent.scrollY
+        if (parent is SelectionAwareRelativeLayout) {
+            parent.setDescendantPressed(pressed, hotspotX, hotspotY)
+            return
+        }
+        view = parent
+    }
+}
+
+/**
  * When a selectable-but-not-editable view takes focus, the IME rebinds to a TYPE_NULL dummy and
  * some keyboards switch layout (e.g. grow a number row). Report a plain-text editor instead —
  * pair with `onCheckIsTextEditor() = isTextSelectable` — so an open keyboard keeps its layout;
@@ -188,7 +211,7 @@ fun TextView.readOnlySelectionInputConnection(outAttrs: EditorInfo): InputConnec
 
 /**
  * A starting selection (long-press or double-tap) hijacks the touch stream, so the pressed state
- * — and the row ripple fed by it through addStatesFromChildren — can stay stuck mid-animation.
+ * — and the row ripple fed by it — can stay stuck mid-animation.
  * Call from onSelectionChanged to release it as soon as a selection exists.
  */
 fun TextView.releasePressedRippleOnSelection(selStart: Int, selEnd: Int) {

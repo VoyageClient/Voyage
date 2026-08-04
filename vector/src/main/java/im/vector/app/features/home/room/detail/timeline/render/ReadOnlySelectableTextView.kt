@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.render
 
 import android.content.Context
+import android.graphics.PointF
 import android.os.Build
 import android.view.ActionMode
 import androidx.annotation.RequiresApi
@@ -20,6 +21,7 @@ import im.vector.app.core.utils.CodeSelectionBoundsHost
 import im.vector.app.core.utils.TableSourceProvider
 import im.vector.app.core.utils.buildTableMarkdown
 import im.vector.app.core.utils.clampSelectionToCodeSpans
+import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
 import im.vector.app.core.utils.replaySwallowedTap
@@ -39,6 +41,8 @@ class ReadOnlySelectableTextView(context: Context, selectable: Boolean = false) 
 
     override var codeSelectionBounds: IntRange? = null
 
+    private val lastTouch = PointF()
+
     // When this view is a table cell, the whole table's cells, so the selection menu can offer
     // "Copy table". Selection itself never leaves the cell.
     var tableCellRows: List<List<AppCompatTextView>>? = null
@@ -51,7 +55,13 @@ class ReadOnlySelectableTextView(context: Context, selectable: Boolean = false) 
         releasePressedRippleOnSelection(selStart, selEnd)
     }
 
+    override fun setPressed(pressed: Boolean) {
+        super.setPressed(pressed)
+        mirrorPressedToRowRipple(pressed, lastTouch.x, lastTouch.y)
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        lastTouch.set(event.x, event.y)
         val wasFocused = isFocused
         val handled = super.onTouchEvent(event)
         replaySwallowedTap(event, wasFocused)
