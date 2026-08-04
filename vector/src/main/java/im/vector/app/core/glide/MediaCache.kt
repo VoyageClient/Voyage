@@ -18,19 +18,27 @@ import org.matrix.android.sdk.api.session.Session
 import java.io.File
 import javax.inject.Inject
 
-/** Glide's thumbnail cache, both variants of each thumbnail, plus the SDK's full-size file cache. */
+/**
+ * Glide's thumbnail cache, both variants of each thumbnail, the SDK's full-size file cache, and
+ * attachments rewritten by the image editor.
+ */
 class MediaCache @Inject constructor(
         private val context: Context,
 ) {
 
     suspend fun size(session: Session): Long = withContext(Dispatchers.IO) {
-        getSizeOfFiles(File(context.cacheDir, DiskCache.Factory.DEFAULT_DISK_CACHE_DIR)) + session.fileService().getCacheSize()
+        getSizeOfFiles(File(context.cacheDir, DiskCache.Factory.DEFAULT_DISK_CACHE_DIR)) +
+                getSizeOfFiles(editedMediaDirectory(context)) +
+                session.fileService().getCacheSize()
     }
 
     @MainThread
     suspend fun clear(session: Session) {
         clearThumbnails()
         session.fileService().clearCache()
+        withContext(Dispatchers.IO) {
+            editedMediaDirectory(context).deleteRecursively()
+        }
     }
 
     @MainThread
@@ -40,5 +48,14 @@ class MediaCache @Inject constructor(
         withContext(Dispatchers.IO) {
             Glide.get(context).clearDiskCache()
         }
+    }
+
+    companion object {
+        /**
+         * Edited attachments waiting to be sent. Has to sit under filesDir/media because that is
+         * the only tree the multipicker FileProvider exposes, and the upload reads it through a
+         * content uri — but it is cache in spirit, so it is counted and cleared with the rest.
+         */
+        fun editedMediaDirectory(context: Context) = File(File(context.filesDir, "media"), "edited")
     }
 }

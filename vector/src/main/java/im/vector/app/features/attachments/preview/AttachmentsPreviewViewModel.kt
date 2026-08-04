@@ -15,7 +15,7 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
     override fun handle(action: AttachmentsPreviewAction) {
         when (action) {
             is AttachmentsPreviewAction.SetCurrentAttachment -> handleSetCurrentAttachment(action)
-            is AttachmentsPreviewAction.UpdatePathOfCurrentAttachment -> handleUpdatePathOfCurrentAttachment(action)
+            is AttachmentsPreviewAction.UpdateCurrentAttachment -> handleUpdateCurrentAttachment(action)
             AttachmentsPreviewAction.RemoveCurrentAttachment -> handleRemoveCurrentAttachment()
         }
     }
@@ -25,20 +25,37 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         val attachments = it.attachments.minusElement(currentAttachment)
         val newAttachmentIndex = it.currentAttachmentIndex.coerceAtMost(attachments.size - 1)
         setState {
-            copy(attachments = attachments, currentAttachmentIndex = newAttachmentIndex)
+            copy(
+                    attachments = attachments,
+                    currentAttachmentIndex = newAttachmentIndex,
+                    editRecords = editRecords - currentAttachment.queryUri
+            )
         }
     }
 
-    private fun handleUpdatePathOfCurrentAttachment(action: AttachmentsPreviewAction.UpdatePathOfCurrentAttachment) = withState {
+    private fun handleUpdateCurrentAttachment(action: AttachmentsPreviewAction.UpdateCurrentAttachment) = withState {
+        val previousUri = it.attachments.getOrNull(it.currentAttachmentIndex)?.queryUri
         val attachments = it.attachments.mapIndexed { index, contentAttachmentData ->
             if (index == it.currentAttachmentIndex) {
-                contentAttachmentData.copy(queryUri = action.newUri.toString())
+                // Editing changes the dimensions and size too; leaving the originals in place
+                // would upload the file described by the wrong metadata.
+                contentAttachmentData.copy(
+                        queryUri = action.newUri.toString(),
+                        width = action.width ?: contentAttachmentData.width,
+                        height = action.height ?: contentAttachmentData.height,
+                        size = action.size ?: contentAttachmentData.size,
+                        mimeType = action.mimeType ?: contentAttachmentData.mimeType
+                )
             } else {
                 contentAttachmentData
             }
         }
+        val editRecords = it.editRecords.toMutableMap().apply {
+            previousUri?.let { uri -> remove(uri) }
+            action.editRecord?.let { record -> put(action.newUri.toString(), record) }
+        }
         setState {
-            copy(attachments = attachments)
+            copy(attachments = attachments, editRecords = editRecords)
         }
     }
 

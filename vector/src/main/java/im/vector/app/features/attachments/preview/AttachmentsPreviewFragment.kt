@@ -9,8 +9,8 @@ package im.vector.app.features.attachments.preview
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
-import android.os.Build
 import android.content.res.ColorStateList
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -30,30 +30,25 @@ import androidx.recyclerview.widget.PagerSnapHelper
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
-import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
-import im.vector.app.core.extensions.insertBeforeLast
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.platform.VectorBaseFragment
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.core.platform.VectorMenuProvider
-import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.OnSnapPositionChangeListener
 import im.vector.app.core.utils.SnapOnScrollListener
 import im.vector.app.core.utils.attachSnapHelperWithListener
 import im.vector.app.databinding.FragmentAttachmentsPreviewBinding
-import im.vector.app.features.media.VectorUCropActivity
-import im.vector.app.features.media.createUCropWithDefaultSettings
-import im.vector.lib.core.utils.timer.Clock
+import im.vector.app.features.attachments.editor.image.ImageEditorActivity
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.queryUriAndroid
-import java.io.File
+import timber.log.Timber
 import javax.inject.Inject
 
 @Parcelize
@@ -69,11 +64,14 @@ class AttachmentsPreviewFragment :
 
     @Inject lateinit var attachmentMiniaturePreviewController: AttachmentMiniaturePreviewController
     @Inject lateinit var attachmentBigPreviewController: AttachmentBigPreviewController
-    @Inject lateinit var colorProvider: ColorProvider
-    @Inject lateinit var clock: Clock
 
     private val fragmentArgs: AttachmentsPreviewArgs by args()
     private val viewModel: AttachmentsPreviewViewModel by fragmentViewModel()
+
+    private var lastScrolledIndex = -1
+
+    /** Source the editor was opened against, needed to record the edit when it returns. */
+    private var pendingEditOriginalUri: String? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentAttachmentsPreviewBinding {
         return FragmentAttachmentsPreviewBinding.inflate(inflater, container, false)
@@ -98,13 +96,23 @@ class AttachmentsPreviewFragment :
         )
     }
 
-    private val uCropActivityResultLauncher = registerStartForActivityResult { activityResult ->
+    private val imageEditorActivityResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == RESULT_OK) {
-            val resultUri = activityResult.data?.let { UCrop.getOutput(it) }
-            if (resultUri != null) {
-                viewModel.handle(AttachmentsPreviewAction.UpdatePathOfCurrentAttachment(resultUri))
+            val output = activityResult.data?.let { ImageEditorActivity.getOutput(it) }
+            if (output != null) {
+                discardSupersededExport()
+                viewModel.handle(
+                        AttachmentsPreviewAction.UpdateCurrentAttachment(
+                                newUri = output.uri,
+                                width = output.width.toLong(),
+                                height = output.height.toLong(),
+                                size = output.size,
+                                mimeType = output.mimeType,
+                                editRecord = pendingEditOriginalUri?.let { EditRecord(it, output.edits) }
+                        )
+                )
             } else {
-                Toast.makeText(requireContext(), "Cannot retrieve cropped value", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(CommonStrings.image_editor_save_failed), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -133,6 +141,16 @@ class AttachmentsPreviewFragment :
 
     override fun getMenuRes() = R.menu.vector_attachments_preview
 
+    override fun onResume() {
+        super.onResume()
+        attachmentBigPreviewController.playbackAllowed = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        attachmentBigPreviewController.playbackAllowed = false
+    }
+
     override fun onDestroyView() {
         views.attachmentPreviewerMiniatureList.cleanup()
         views.attachmentPreviewerBigList.cleanup()
@@ -148,8 +166,13 @@ class AttachmentsPreviewFragment :
         } else {
             attachmentMiniaturePreviewController.setData(state)
             attachmentBigPreviewController.setData(state)
-            views.attachmentPreviewerBigList.scrollToPosition(state.currentAttachmentIndex)
-            views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
+            // Scrolling on every state emission would yank the pager out from under an in-progress
+            // swipe, now that playback changes also re-emit state.
+            if (state.currentAttachmentIndex != lastScrolledIndex) {
+                lastScrolledIndex = state.currentAttachmentIndex
+                views.attachmentPreviewerBigList.scrollToPosition(state.currentAttachmentIndex)
+                views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
+            }
             views.attachmentPreviewerSendImageOriginalSize.text = getCheckboxText(state)
         }
     }
@@ -215,14 +238,32 @@ class AttachmentsPreviewFragment :
         viewModel.handle(AttachmentsPreviewAction.RemoveCurrentAttachment)
     }
 
-    private fun handleEditAction() = withState(viewModel) {
-        val currentAttachment = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
-        val destinationFile = File(requireContext().cacheDir, currentAttachment.name.insertBeforeLast("_edited_image_${clock.epochMillis()}"))
-        val uri = currentAttachment.queryUriAndroid
-        createUCropWithDefaultSettings(colorProvider, uri, destinationFile.toUri(), currentAttachment.name)
-                .getIntent(requireContext())
-                .apply { setClass(requireContext(), VectorUCropActivity::class.java) }
-                .let { intent -> uCropActivityResultLauncher.launch(intent) }
+    /**
+     * Exports live in filesDir, which nothing reclaims, so editing the same attachment repeatedly
+     * would leave a full-size file behind each time. The one being replaced is ours to delete.
+     */
+    private fun discardSupersededExport() = withState(viewModel) { state ->
+        val current = state.attachments.getOrNull(state.currentAttachmentIndex) ?: return@withState
+        if (!state.editRecords.containsKey(current.queryUri)) return@withState
+        runCatching { requireContext().contentResolver.delete(current.queryUriAndroid, null, null) }
+                .onFailure { Timber.w(it, "Could not delete superseded edited image") }
+    }
+
+    private fun handleEditAction() = withState(viewModel) { state ->
+        val currentAttachment = state.attachments.getOrNull(state.currentAttachmentIndex) ?: return@withState
+        // Always edit the untouched original, replaying the previous edits, so repeated trips
+        // through the editor don't compound cropping and JPEG loss.
+        val record = state.editRecords[currentAttachment.queryUri]
+        pendingEditOriginalUri = record?.originalUri ?: currentAttachment.queryUri
+        imageEditorActivityResultLauncher.launch(
+                ImageEditorActivity.newIntent(
+                        requireContext(),
+                        record?.originalUri?.toUri() ?: currentAttachment.queryUriAndroid,
+                        currentAttachment.name,
+                        currentAttachment.getSafeMimeType(),
+                        record?.edits
+                )
+        )
     }
 
     private fun setupRecyclerViews() {
