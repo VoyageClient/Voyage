@@ -16,6 +16,9 @@
 
 package org.matrix.android.sdk.internal.session.events
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.EventService
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -24,6 +27,8 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.session.call.CallEventProcessor
 import org.matrix.android.sdk.internal.session.room.timeline.GetContextOfEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
+import org.matrix.android.sdk.internal.session.room.timeline.RoomSummaryEventDecryptor
+import org.matrix.android.sdk.internal.session.room.timeline.TimelineDecryptionSignal
 import javax.inject.Inject
 
 internal class DefaultEventService @Inject constructor(
@@ -31,6 +36,8 @@ internal class DefaultEventService @Inject constructor(
         private val getContextOfEventTask: GetContextOfEventTask,
         private val callEventProcessor: CallEventProcessor,
         private val stores: SessionStores,
+        private val roomSummaryEventDecryptor: RoomSummaryEventDecryptor,
+        private val decryptionSignal: TimelineDecryptionSignal,
 ) : EventService {
 
     override suspend fun getEvent(roomId: String, eventId: String): Event {
@@ -56,5 +63,13 @@ internal class DefaultEventService @Inject constructor(
         // TimelineEventEntity rows), which UpdatedReplyDecorator needs to resolve reply targets.
         tryOrNull { getContextOfEventTask.execute(GetContextOfEventTask.Params(roomId, eventId)) } ?: return cached
         return getEventFromCache(roomId, eventId)
+    }
+
+    override fun requestDecryption(event: Event) {
+        roomSummaryEventDecryptor.requestDecryption(event)
+    }
+
+    override fun decryptionUpdates(roomId: String): Flow<Unit> {
+        return decryptionSignal.rooms.filter { it == roomId }.map { }
     }
 }

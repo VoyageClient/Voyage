@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.api.session.events
 
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.events.model.Event
 
 interface EventService {
@@ -54,4 +55,18 @@ interface EventService {
             eventId: String,
             requireTimelineEvent: Boolean = false
     ): Event?
+
+    /**
+     * Ask for [event] (still `m.room.encrypted`) to be decrypted in the background and the result
+     * persisted to the event cache. No-op for non-encrypted events; if the key is missing, the
+     * attempt is retried automatically when it arrives. Completion surfaces via [decryptionUpdates].
+     */
+    fun requestDecryption(event: Event)
+
+    /**
+     * Emits whenever an event in [roomId] is decrypted and persisted, by any decryptor. Screens
+     * showing individual events outside a Timeline must re-read them on this signal, since
+     * decryption rewrites the event row without touching what timeline-event flows observe.
+     */
+    fun decryptionUpdates(roomId: String): Flow<Unit>
 }

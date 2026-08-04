@@ -44,6 +44,7 @@ internal class TimelineEventDecryptor @Inject constructor(
         private val cryptoService: CryptoService,
         private val previewInvalidation: RoomSummaryPreviewInvalidation,
         private val eventIndexer: EventIndexer,
+        private val decryptionSignal: TimelineDecryptionSignal,
 ) {
 
     private val newSessionListener = object : NewSessionListener {
@@ -205,6 +206,7 @@ internal class TimelineEventDecryptor @Inject constructor(
         if (successes.isNotEmpty()) {
             eventIndexer.onEventsDecrypted(successes)
             onDecryptedListeners.forEach { it.onEventsDecrypted() }
+            successes.mapNotNullTo(HashSet()) { it.first.roomId }.forEach { decryptionSignal.onDecrypted(it) }
         }
     }
 

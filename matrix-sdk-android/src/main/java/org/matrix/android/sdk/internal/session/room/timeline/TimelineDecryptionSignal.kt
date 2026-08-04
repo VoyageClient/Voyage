@@ -16,10 +16,10 @@ import javax.inject.Inject
 
 /**
  * Session-wide "an event was decrypted" fan-out, keyed by room. A decryption result is written to the
- * `event` table, which the timeline's `timeline_event` flow doesn't observe — so a decrypt done by a
- * decryptor other than the timeline's own (notably [RoomSummaryEventDecryptor], which decrypts the
- * room's latest event for the room-list preview) leaves any open timeline showing "Encrypted message"
- * until it is reopened. Timelines subscribe here and refresh on a matching room id.
+ * `event` table, which the timeline's `timeline_event` flow doesn't observe — so without a signal a
+ * decrypt done elsewhere (another timeline, [RoomSummaryEventDecryptor] for the room-list preview)
+ * leaves any open timeline showing "Encrypted message" until it is reopened. All decryptors emit here;
+ * timelines and other event-displaying screens (e.g. pinned messages) refresh on a matching room id.
  */
 @SessionScope
 internal class TimelineDecryptionSignal @Inject constructor() {

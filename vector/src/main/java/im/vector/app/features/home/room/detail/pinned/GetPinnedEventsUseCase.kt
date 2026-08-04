@@ -8,9 +8,13 @@
 package im.vector.app.features.home.room.detail.pinned
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
@@ -37,15 +41,32 @@ class GetPinnedEventsUseCase @Inject constructor(
                 .distinctUntilChanged()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun execute(room: Room): Flow<List<TimelineEvent>> {
         return getPinnedEventIds(room)
-                .map { ids -> resolve(room, ids) }
+                .flatMapLatest { ids ->
+                    if (ids.isEmpty()) {
+                        flowOf(emptyList())
+                    } else {
+                        // Re-resolve whenever something in the room gets decrypted, so pins stop
+                        // showing "Encrypted message" once their keys arrive.
+                        session.eventService().decryptionUpdates(room.roomId)
+                                .onStart { emit(Unit) }
+                                .map { resolve(room, ids) }
+                    }
+                }
     }
 
     private suspend fun resolve(room: Room, ids: List<String>): List<TimelineEvent> = withContext(Dispatchers.IO) {
         ids.mapNotNull { eventId ->
             tryOrNull { session.eventService().ensureEventCached(room.roomId, eventId, requireTimelineEvent = true) }
-            room.getTimelineEvent(eventId)?.takeUnless { it.root.isRedacted() }
+            room.getTimelineEvent(eventId)
+                    ?.takeUnless { it.root.isRedacted() }
+                    ?.also { event ->
+                        if (event.root.getClearType() == EventType.ENCRYPTED) {
+                            session.eventService().requestDecryption(event.root)
+                        }
+                    }
         }
                 // Order by the pinned event's own date (oldest first), not by when it was pinned.
                 .sortedBy { it.root.originServerTs ?: 0 }

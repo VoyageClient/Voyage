@@ -16,6 +16,9 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 data class RoomPinnedMessagesViewState(
         val roomId: String,
         val pinnedEvents: Async<List<TimelineEvent>> = Uninitialized,
+        // Event equality ignores the transient decryption result, so a decrypt-triggered re-emission
+        // can produce an == list; bump this so Mavericks still notifies and the list re-renders.
+        val pinnedEventsTick: Int = 0,
         val canEditPinnedEvents: Boolean = false,
 ) : MavericksState {
 
