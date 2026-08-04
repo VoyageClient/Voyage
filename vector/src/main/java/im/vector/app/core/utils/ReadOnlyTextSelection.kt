@@ -12,13 +12,15 @@ import android.text.Selection
 import android.text.Spannable
 import android.text.Spanned
 import android.view.ActionMode
+import android.view.Menu
+import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
-import android.view.Menu
-import android.view.MenuItem
+import android.widget.EditText
 import android.widget.TextView
 import im.vector.app.core.ui.views.SelectionAwareRelativeLayout
 import im.vector.app.features.html.HtmlCodeSpan
@@ -73,8 +75,9 @@ class ReadOnlySelectionActionModeCallback(private val textView: TextView) : Acti
     }
 
     override fun onDestroyActionMode(mode: ActionMode) {
-        // Drop the focus the long-press gave the view, so no focus highlight lingers on it
-        textView.clearFocus()
+        val host = textView as? SelectionFocusHost
+        // Drop the focus the selection gesture took, so no focus highlight lingers on the view
+        if (host == null) textView.clearFocus() else host.selectionFocus.endSelection()
     }
 
     private fun filterMenu(menu: Menu) {
@@ -173,6 +176,58 @@ fun TextView.clampSelectionToCodeSpans(active: IntRange?): IntRange? {
 fun TextView.replaySwallowedTap(event: MotionEvent, wasFocused: Boolean) {
     if (event.actionMasked == MotionEvent.ACTION_UP && !wasFocused && isFocused && !hasSelection()) {
         performClick()
+    }
+}
+
+/** Gives [ReadOnlySelectionActionModeCallback] access to the view's [ReadOnlySelectionFocus]. */
+interface SelectionFocusHost {
+    val selectionFocus: ReadOnlySelectionFocus
+}
+
+/**
+ * Selectable text is focusable in touch mode, so every plain tap pulls focus off the composer and
+ * makes the IME rebind to a view that can't be typed into — the keyboard visibly resets and stays
+ * dead until focus comes back. Keep focusability off until a gesture that actually starts a
+ * selection needs it (long-press, or the second tap of a double-tap), and hand focus back to the
+ * editor it came from once the selection ends. Drive it from the view's touch/long-click overrides.
+ */
+class ReadOnlySelectionFocus(private val textView: TextView) {
+
+    // The editor focus was taken from; cleared once handed back
+    private var focusBeforeSelection: View? = null
+    private var lastTapUpTime = 0L
+
+    fun beforeTouch(event: MotionEvent) {
+        if (event.actionMasked != MotionEvent.ACTION_DOWN) return
+        // While we hold focus a selection is in progress, so keep the editor we already recorded
+        if (!textView.isFocused) focusBeforeSelection = textView.rootView?.findFocus() as? EditText
+        textView.isFocusableInTouchMode = textView.isTextSelectable &&
+                event.eventTime - lastTapUpTime < ViewConfiguration.getDoubleTapTimeout()
+    }
+
+    fun afterTouch(event: MotionEvent) {
+        if (event.actionMasked != MotionEvent.ACTION_UP) return
+        lastTapUpTime = event.eventTime
+        if (!textView.hasSelection()) endSelection()
+    }
+
+    fun beforeLongClick() {
+        textView.isFocusableInTouchMode = textView.isTextSelectable
+    }
+
+    /** Call from onDetachedFromWindow: a recycled view must not arrive focusable, or holding a dead editor. */
+    fun detach() {
+        focusBeforeSelection = null
+        textView.isFocusableInTouchMode = false
+    }
+
+    fun endSelection() {
+        textView.isFocusableInTouchMode = false
+        if (!textView.isFocused) return
+        val previousFocus = focusBeforeSelection
+        focusBeforeSelection = null
+        // Move focus in one step rather than clearing first, so the IME never sees an unfocused window
+        if (previousFocus?.requestFocus() != true) textView.clearFocus()
     }
 }
 

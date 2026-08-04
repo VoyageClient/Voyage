@@ -24,6 +24,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.text.buildSpannedString
@@ -250,8 +251,19 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     override fun onResume() {
         super.onResume()
 
-        // Coming back from background can leave the IME up with nothing focused, so typing goes nowhere.
-        if (composerHadFocus && (composer as? View)?.isVisible == true && !composer.editText.hasFocus()) {
+        restoreComposerFocusIfLost()
+        // Focus restoration by the window itself lands after onResume, so re-check once it has settled.
+        (composer as? View)?.post { if (view != null) restoreComposerFocusIfLost() }
+    }
+
+    // Coming back from background can leave the IME up with nothing focused — or with a selectable
+    // message body focused, which can't be typed into — so typing goes nowhere.
+    private fun restoreComposerFocusIfLost() {
+        if (!isResumed || (composer as? View)?.isVisible != true) return
+        val focused = view?.rootView?.findFocus()
+        if (focused === composer.editText) return
+        val focusedIsSelectableText = focused is TextView && focused !is EditText && focused.isTextSelectable
+        if (composerHadFocus || focusedIsSelectableText) {
             composer.editText.requestFocus()
         }
     }
@@ -259,7 +271,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     override fun onPause() {
         super.onPause()
 
-        composerHadFocus = composer.editText.hasFocus()
         emojiKeyboardController?.dismiss()
 
         withState(messageComposerViewModel) {
@@ -526,8 +537,12 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 .launchIn(viewLifecycleOwner.lifecycleScope)
 
         composer.editText.focusChanges()
-                .onEach {
-                    timelineViewModel.handle(RoomDetailAction.ComposerFocusChange(it))
+                .onEach { hasFocus ->
+                    // Focus lost to something that can't be typed into (a selectable message body,
+                    // or nothing at all once a selection ends) still counts as ours to take back.
+                    if (hasFocus) composerHadFocus = true
+                    else if (composerHadFocus) composerHadFocus = view?.rootView?.findFocus() !is EditText
+                    timelineViewModel.handle(RoomDetailAction.ComposerFocusChange(hasFocus))
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
     }
