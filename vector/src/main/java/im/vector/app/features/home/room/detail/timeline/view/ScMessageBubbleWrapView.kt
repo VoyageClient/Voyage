@@ -40,6 +40,7 @@ import im.vector.app.core.extensions.setPaddingRelativeCompat
 import im.vector.app.core.resources.DefaultLocaleProvider
 import im.vector.app.core.resources.getLayoutDirectionFromCurrentLocale
 import im.vector.app.core.ui.views.BubbleDependentView
+import im.vector.app.core.ui.views.SelectionAwareRelativeLayout
 import im.vector.app.databinding.ViewMessageBubbleScBinding
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.AnonymousReadReceipt
@@ -61,7 +62,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0,
-) : RelativeLayout(context, attrs, defStyleAttr), TimelineMessageLayoutRenderer {
+) : SelectionAwareRelativeLayout(context, attrs, defStyleAttr), TimelineMessageLayoutRenderer {
 
     companion object {
         private const val OUTGOING_TINT_RATIO = 0.20f

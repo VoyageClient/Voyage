@@ -9,6 +9,7 @@ package im.vector.app.core.ui.views
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.PointF
 import android.os.Build
 import android.text.Layout
 import android.text.Spanned
@@ -25,6 +26,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.getSpans
 import im.vector.app.core.utils.CodeSelectionBoundsHost
 import im.vector.app.core.utils.clampSelectionToCodeSpans
+import im.vector.app.core.utils.mirrorPressedToRowRipple
 import im.vector.app.core.utils.readOnlySelectionInputConnection
 import im.vector.app.core.utils.releasePressedRippleOnSelection
 import im.vector.app.core.utils.replaySwallowedTap
@@ -41,6 +43,9 @@ class FooteredTextView @JvmOverloads constructor(
 ) : AppCompatTextView(context, attrs, defStyleAttr), AbstractFooteredTextView, CodeSelectionBoundsHost {
 
     override val footerState: AbstractFooteredTextView.FooterState = AbstractFooteredTextView.FooterState()
+
+    private val lastTouch = PointF()
+
     override fun getAppCompatTextView(): AppCompatTextView = this
     override fun setMeasuredDimensionExposed(measuredWidth: Int, measuredHeight: Int) = setMeasuredDimension(measuredWidth, measuredHeight)
 
@@ -108,7 +113,13 @@ class FooteredTextView @JvmOverloads constructor(
         releasePressedRippleOnSelection(selStart, selEnd)
     }
 
+    override fun setPressed(pressed: Boolean) {
+        super.setPressed(pressed)
+        mirrorPressedToRowRipple(pressed, lastTouch.x, lastTouch.y)
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        lastTouch.set(event.x, event.y)
         val wasFocused = isFocused
         val handled = super.onTouchEvent(event)
         replaySwallowedTap(event, wasFocused)
