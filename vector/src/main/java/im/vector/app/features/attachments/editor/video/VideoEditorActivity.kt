@@ -55,8 +55,12 @@ import timber.log.Timber
 import java.io.File
 import java.util.Locale
 
-// The video path is gated on API 18 by isVideoEditable(); animated images reach it from 14.
-@SuppressLint("NewApi")
+/**
+ * Editor for both videos and animated images. Only the video half needs API 18, and it is only
+ * reachable through `isVideoEditable()`, which checks for it; an animated image opens this from 14,
+ * so the two members that call the API-18 exporter are suppressed one at a time rather than the
+ * whole class being exempted from lint.
+ */
 @AndroidEntryPoint
 class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
@@ -283,6 +287,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         views.videoEditorExportProgress.progressDrawable?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
     }
 
+    /** The probe is API 16, and only the video path — which needs 18 anyway — reaches it. */
+    @SuppressLint("NewApi")
     private fun loadMetadata() {
         if (isAnimated) {
             loadAnimatedMetadata()
@@ -750,6 +756,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
+    /** The video branch needs API 18, and is only reached when there is no animated source. */
+    @SuppressLint("NewApi")
     private suspend fun runExport(edits: VideoEditorEdits): VideoEditorExporter.Result {
         val progress = VideoEditProgressListener { percent ->
             handler.post { views.videoEditorExportProgress.progress = percent }
