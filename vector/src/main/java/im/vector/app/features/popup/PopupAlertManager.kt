@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat
 import com.tapadoo.alerter.Alerter
 import im.vector.app.R
 import im.vector.app.core.extensions.giveAccessibilityFocus
+import im.vector.app.core.extensions.importantForAccessibilityCompat
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.isAnimationEnabled
@@ -29,7 +30,6 @@ import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 import javax.inject.Singleton
-import im.vector.app.core.extensions.importantForAccessibilityCompat
 
 /**
  * Responsible of displaying important popup alerts on top of the screen.

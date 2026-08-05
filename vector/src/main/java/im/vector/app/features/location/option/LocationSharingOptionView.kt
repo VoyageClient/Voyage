@@ -17,10 +17,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.use
 import androidx.core.view.setPadding
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.tintBackground
 import im.vector.app.databinding.ViewLocationSharingOptionBinding
-import im.vector.app.core.extensions.backgroundCompat
 
 /**
  * Custom view to display a location sharing option.

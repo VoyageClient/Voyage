@@ -14,10 +14,10 @@ import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.databinding.ViewButtonStateBinding
 
 class ButtonStateView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) :

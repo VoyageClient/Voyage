@@ -22,7 +22,6 @@ import androidx.viewbinding.ViewBinding
 import com.airbnb.mvrx.MavericksView
 import dagger.hilt.android.EntryPointAccessors
 import im.vector.app.core.di.ActivityEntryPoint
-import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.extensions.toMvRxBundle
 import im.vector.app.features.themes.ThemeUtils
 import kotlinx.coroutines.flow.launchIn

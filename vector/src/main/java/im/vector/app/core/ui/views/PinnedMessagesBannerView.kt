@@ -13,9 +13,9 @@ import android.view.Gravity
 import android.view.View
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
+import im.vector.app.R
 import im.vector.app.core.extensions.marginEndCompat
 import im.vector.app.core.extensions.marginStartCompat
-import im.vector.app.R
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewPinnedMessagesBannerBinding
 import im.vector.app.features.themes.ThemeUtils

@@ -8,10 +8,8 @@
 package im.vector.app.features.imagepack.edit
 
 import android.net.Uri
-import androidx.lifecycle.asFlow
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.imagepack.ImagePackProvider
-import im.vector.app.features.imagepack.ImagePackSource
 import im.vector.app.features.imagepack.ResolvedImagePack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -24,8 +22,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import java.io.IOException
-import kotlin.coroutines.coroutineContext
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -37,7 +33,9 @@ import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackRoomsCon
 import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
 import org.matrix.android.sdk.api.session.room.state.StateService
 import org.matrix.android.sdk.api.util.JsonDict
+import java.io.IOException
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 
 /**
  * Reads and writes MSC2545 image packs for the authoring UI. Reading tolerates legacy ids; writing always

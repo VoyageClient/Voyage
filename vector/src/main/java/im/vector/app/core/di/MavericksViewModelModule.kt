@@ -596,4 +596,3 @@ interface MiscMavericksViewModelModule {
     @MavericksViewModelKey("im.vector.app.features.widgets.permissions.RoomWidgetPermissionViewModel")
     fun vm26(factory: im.vector.app.features.widgets.permissions.RoomWidgetPermissionViewModel.Factory): MavericksAssistedViewModelFactory<*, *>
 }
-

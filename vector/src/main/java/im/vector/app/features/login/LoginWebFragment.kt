@@ -12,8 +12,8 @@ package im.vector.app.features.login
 import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.graphics.Bitmap
-import android.os.Build
 import android.net.http.SslError
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.LayoutInflater

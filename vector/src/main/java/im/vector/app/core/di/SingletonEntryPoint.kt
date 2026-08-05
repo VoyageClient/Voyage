@@ -39,13 +39,11 @@ interface SingletonEntryPoint {
 
     fun errorFormatter(): ErrorFormatter
 
-
     fun vectorPreferences(): VectorPreferences
 
     fun uiStateRepository(): UiStateRepository
 
     fun pinLocker(): PinLocker
-
 
     fun appCoroutineScope(): CoroutineScope
 }

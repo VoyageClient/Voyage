@@ -17,12 +17,12 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.extensions.copyOnLongClick
 import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import org.matrix.android.sdk.api.util.MatrixItem
 
 data class AccountSwitcherEntry(

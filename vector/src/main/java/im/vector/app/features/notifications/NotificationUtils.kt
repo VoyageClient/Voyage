@@ -37,7 +37,6 @@ import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.IconCompat
 import androidx.fragment.app.Fragment
 import im.vector.app.R
 import im.vector.app.core.extensions.createIgnoredUri
@@ -46,7 +45,6 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.startNotificationChannelSettingsIntent
 import im.vector.app.features.MainActivity
-import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.home.room.detail.RoomDetailActivity
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
@@ -107,7 +105,6 @@ class NotificationUtils @Inject constructor(
         fun openSystemSettingsForNoisyCategory(fragment: Fragment) {
             startNotificationChannelSettingsIntent(fragment, NOISY_NOTIFICATION_CHANNEL_ID)
         }
-
     }
 
     private val notificationManager = NotificationManagerCompat.from(context)

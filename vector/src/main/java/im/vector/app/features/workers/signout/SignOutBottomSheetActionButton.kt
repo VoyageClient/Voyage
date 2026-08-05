@@ -14,12 +14,12 @@ import android.util.AttributeSet
 import android.widget.FrameLayout
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.databinding.ViewSignOutBottomSheetActionButtonBinding
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.ui.styles.R
-import androidx.core.widget.ImageViewCompat
 
 class SignOutBottomSheetActionButton @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0

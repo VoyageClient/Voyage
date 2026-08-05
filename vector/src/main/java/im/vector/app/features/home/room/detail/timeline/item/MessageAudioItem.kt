@@ -22,6 +22,7 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
@@ -29,10 +30,9 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
-import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
-import io.noties.markwon.MarkwonPlugin
 import im.vector.lib.strings.CommonStrings
+import io.noties.markwon.MarkwonPlugin
 
 @EpoxyModelClass
 abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {

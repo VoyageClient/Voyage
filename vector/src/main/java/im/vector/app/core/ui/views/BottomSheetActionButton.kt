@@ -16,13 +16,13 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.setDrawableOrHide
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.databinding.ViewBottomSheetActionButtonBinding
 import im.vector.app.features.themes.ThemeUtils
-import androidx.core.widget.ImageViewCompat
 
 class BottomSheetActionButton @JvmOverloads constructor(
         context: Context,

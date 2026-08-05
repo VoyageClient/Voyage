@@ -16,7 +16,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.core.util.Pair
 import androidx.fragment.app.FragmentActivity
 import im.vector.app.features.crypto.recover.SetupMode
-import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs
 import im.vector.app.features.location.LocationData
 import im.vector.app.features.location.LocationSharingMode
@@ -115,7 +114,6 @@ interface Navigator {
     fun openBigImageViewer(activity: Activity, matrixItem: MatrixItem)
 
     fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?)
-
 
     fun openPinCode(
             context: Context,

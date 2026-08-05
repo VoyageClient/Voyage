@@ -7,29 +7,28 @@
 
 package im.vector.app.features.imagepack
 
-import androidx.lifecycle.asFlow
 import im.vector.app.core.di.ActiveSessionHolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import java.util.concurrent.ConcurrentHashMap
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.room.model.Membership
-import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackRoomsContent
-import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
+import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
 import org.matrix.android.sdk.api.session.room.model.imagepack.resolveUsages
+import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 

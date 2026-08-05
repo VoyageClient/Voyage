@@ -20,17 +20,16 @@ package im.vector.app.features.home.room.detail.timeline.reply
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
-import im.vector.app.features.pgp.PgpDecryptor
-import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
-import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.CoroutineScope
@@ -102,16 +101,21 @@ class ReplyPreviewRetriever(
     // Keyed by the containing event's timelineStableId, so state survives the local-echo → remote-id swap.
     private val data = mutableMapOf<String, ReplyPreviewUiState>()
     private val listeners = mutableMapOf<String, MutableSet<PreviewReplyRetrieverListener>>()
+
     // Cache which replied-to events we already looked up successfully: key is main eventId, value is the getCacheId() value.
     private val lookedUpEvents = mutableMapOf<String, String>()
+
     // Timestamps of allowed server requests for individual events, to not spam the server.
     private val serverRequests = mutableMapOf<String, Long>()
+
     // eventToRetrieveId-specific locking
     private val retrieveEventLocks = mutableMapOf<String, Any>()
+
     // In-flight fetches keyed by parent eventId (value = target being fetched). Guards against launching a
     // second coroutine for a reply still loading: the retrieveEventLock only serializes the fetch, not the
     // state update, so a redundant fetch could land its (stale) result last and clobber a good preview.
     private val inFlightRetrievals = mutableMapOf<String, String>()
+
     // Refreshed once per snapshot; a reply whose author is ignored is shown as unavailable, not their text.
     @Volatile
     private var ignoredUserIds: Set<String> = emptySet()

@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.timeline.format
 
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.ActiveSessionDataSource
 import im.vector.app.core.profile.PronounHelper
 import im.vector.app.core.profile.forViewerLanguage
@@ -16,8 +15,10 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.roomprofile.permissions.RoleFormatter
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
+import me.gujun.android.span.span
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.extensions.appendNl
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -29,7 +30,6 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
-import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.RoomAliasesContent
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomBannerContent
@@ -45,13 +45,13 @@ import org.matrix.android.sdk.api.session.room.model.RoomServerAclContent
 import org.matrix.android.sdk.api.session.room.model.RoomThirdPartyInviteContent
 import org.matrix.android.sdk.api.session.room.model.RoomTopicContent
 import org.matrix.android.sdk.api.session.room.model.call.CallInviteContent
+import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
+import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetContent
-import me.gujun.android.span.span
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -1105,5 +1105,4 @@ class NoticeEventFormatter @Inject constructor(
                     }
                 }
     }
-
 }

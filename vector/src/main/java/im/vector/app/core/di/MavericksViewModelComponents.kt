@@ -112,4 +112,3 @@ interface CreateMiscMavericksViewModelComponent {
 interface MiscHiltMavericksEntryPoint {
     val viewModelFactories: Map<String, @JvmSuppressWildcards Provider<MavericksAssistedViewModelFactory<*, *>>>
 }
-

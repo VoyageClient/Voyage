@@ -13,9 +13,9 @@ import android.content.Intent
 import androidx.core.app.RemoteInput
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
-import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.session.coroutineScope
+import im.vector.app.features.settings.VectorPreferences
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch

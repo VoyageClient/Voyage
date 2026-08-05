@@ -7,7 +7,6 @@
 
 package im.vector.app.features.roomprofile.polls.list.data
 
-import androidx.lifecycle.asFlow
 import im.vector.app.core.di.ActiveSessionHolder
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.getRoom

@@ -17,8 +17,8 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import im.vector.app.core.ui.PerformanceMode
 import com.vanniktech.blurhash.BlurHash
+import im.vector.app.core.ui.PerformanceMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

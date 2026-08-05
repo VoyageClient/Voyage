@@ -23,31 +23,32 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
-import im.vector.lib.core.utils.compat.use
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.viewModels
-import com.bumptech.glide.load.MultiTransformation
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import im.vector.app.core.glide.RoundedCornersPercent
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.args
+import com.bumptech.glide.load.MultiTransformation
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.safeOpenOutputStream
+import im.vector.app.core.glide.RoundedCornersPercent
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
-import im.vector.lib.core.utils.timer.Clock
 import im.vector.app.core.utils.saveMedia
 import im.vector.app.core.utils.toast
-import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.databinding.FragmentImagePackEditBinding
+import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.compat.use
+import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -57,16 +58,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileNotFoundException
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackImage
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackMeta
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackUsage
 import org.matrix.android.sdk.api.session.room.model.imagepack.effectiveImages
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
+import java.io.File
+import java.io.FileNotFoundException
 import javax.inject.Inject
-import im.vector.app.core.extensions.backgroundCompat
 
 // Same rounded-square ratio as space avatars (RoundedCornersPercent), so rounding stays proportional to size.
 private const val ROUNDED_CORNER_PERCENT = 0.20f
@@ -101,10 +101,12 @@ class ImagePackEditFragment :
     private var packAvatarUrl: String?
         get() = editViewModel.packAvatarUrl
         set(value) { editViewModel.packAvatarUrl = value }
+
     // False for the create flow (no state event yet) — nothing to delete, so hide the trashcan.
     private var packExists: Boolean
         get() = editViewModel.packExists
         set(value) { editViewModel.packExists = value }
+
     // Pack-level usage (MSC2545); null/empty = usable as both (spec default). Set from the Image Pack Type
     // menu; images without their own usage inherit it.
     private var packUsage: List<String>?
@@ -115,7 +117,6 @@ class ImagePackEditFragment :
     private var initialContent: ImagePackContent?
         get() = editViewModel.initialContent
         set(value) { editViewModel.initialContent = value }
-
 
     private val pickImagesLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {

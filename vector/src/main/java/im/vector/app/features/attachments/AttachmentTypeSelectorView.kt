@@ -10,8 +10,8 @@ package im.vector.app.features.attachments
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Context
-import android.os.Build
 import android.graphics.drawable.BitmapDrawable
+import android.os.Build
 import android.util.Pair
 import android.view.Gravity
 import android.view.LayoutInflater

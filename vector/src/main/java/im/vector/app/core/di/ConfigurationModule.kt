@@ -40,5 +40,4 @@ object ConfigurationModule {
     fun providesLocationSharingConfig() = LocationSharingConfig(
             mapTilerKey = Config.LOCATION_MAP_TILER_KEY,
     )
-
 }

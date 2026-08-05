@@ -13,11 +13,9 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import android.text.SpannableString
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Build
 import android.os.Bundle
+import android.text.SpannableString
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +24,8 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.text.buildSpannedString
 import androidx.core.view.isVisible
@@ -35,7 +35,6 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.parentFragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import im.vector.app.features.reactions.EmojiKeyboardController
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.error.fatalError
@@ -45,7 +44,6 @@ import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.platform.VectorBaseFragment
-import im.vector.app.core.platform.lifecycleAwareLazy
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.ExpandingBottomSheetBehavior
@@ -60,7 +58,6 @@ import im.vector.app.features.attachments.AttachmentTypeSelectorSharedActionView
 import im.vector.app.features.attachments.AttachmentTypeSelectorView
 import im.vector.app.features.attachments.AttachmentTypeSelectorViewModel
 import im.vector.app.features.attachments.AttachmentsHelper
-import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
@@ -68,7 +65,6 @@ import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.command.Command
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.AvatarRenderer
-import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.home.room.detail.AutoCompleter
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.TimelineViewModel
@@ -79,10 +75,13 @@ import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.html.expandPillSpans
 import im.vector.app.features.html.setPillSpan
+import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.location.LocationSharingMode
-import im.vector.app.features.redaction.MassRedactionManager
+import im.vector.app.features.matrixto.OriginOfMatrixTo
+import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.poll.PollMode
-import im.vector.app.features.reactions.data.RecentEmojiDataSource
+import im.vector.app.features.reactions.EmojiKeyboardController
+import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.SharedData
 import im.vector.app.features.voice.VoiceFailure
@@ -92,7 +91,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import im.vector.app.features.media.MediaContentRevealManager
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData

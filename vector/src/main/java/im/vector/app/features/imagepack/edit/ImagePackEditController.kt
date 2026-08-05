@@ -10,8 +10,8 @@ package im.vector.app.features.imagepack.edit
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
-import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.epoxy.loadingItem
+import im.vector.app.core.resources.StringProvider
 import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
@@ -23,14 +23,17 @@ class ImagePackEditController @Inject constructor(
     interface Listener {
         fun onDeleteImage(image: EditableImage)
         fun onAddImage()
+
         // A row's shortcode / usage was edited in place (so the screen can refresh the Apply state).
         fun onImageEdited()
     }
 
     var listener: Listener? = null
     var editable: Boolean = true
+
     // Hidden when the pack declares a single usage (the usage is then decided by the pack).
     var showUsageToggles: Boolean = true
+
     // Shows a spinner where the picked image will land while its upload is in flight.
     var uploading: Boolean = false
 

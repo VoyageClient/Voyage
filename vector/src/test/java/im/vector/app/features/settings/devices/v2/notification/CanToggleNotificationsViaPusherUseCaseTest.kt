@@ -9,7 +9,6 @@ package im.vector.app.features.settings.devices.v2.notification
 
 import im.vector.app.test.fakes.FakeFlowLiveDataConversions
 import im.vector.app.test.fakes.FakeSession
-import im.vector.app.test.fakes.givenAsFlow
 import im.vector.app.test.fixtures.aHomeServerCapabilities
 import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.firstOrNull

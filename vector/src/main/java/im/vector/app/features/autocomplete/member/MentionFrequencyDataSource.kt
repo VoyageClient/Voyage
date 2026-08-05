@@ -43,6 +43,7 @@ class MentionFrequencyDataSource @Inject constructor(
 
     // Held in memory so the autocomplete query path can rank synchronously.
     private val counts = mutableMapOf<String, MutableMap<String, Int>>()
+
     // Increments not yet flushed to the server.
     private val pending = mutableMapOf<String, MutableMap<String, Int>>()
     private var flushJob: Job? = null

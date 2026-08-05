@@ -8,7 +8,6 @@
 package im.vector.app.features.settings.devices.v2.overview
 
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asFlow
 import im.vector.app.core.session.clientinfo.GetMatrixClientInfoUseCase
 import im.vector.app.core.session.clientinfo.MatrixClientInfoContent
 import im.vector.app.features.settings.devices.v2.DeviceFullInfo

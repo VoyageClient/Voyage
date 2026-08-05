@@ -8,7 +8,6 @@
 package im.vector.app.features.home.room.detail.timeline.item
 
 import android.text.Spanned
-import android.text.method.MovementMethod
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewStub
@@ -24,16 +23,16 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinksSelectingCode
 import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.core.utils.setReadOnlySelectable
-import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
-import im.vector.app.features.html.BodySegment
-import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
+import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
+import im.vector.app.features.html.BodySegment
+import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence

@@ -24,7 +24,6 @@ import androidx.core.view.updateLayoutParams
 import com.airbnb.epoxy.EpoxyAttribute
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.ui.views.SendStateImageView
 import im.vector.app.features.home.AvatarRenderer
@@ -33,6 +32,7 @@ import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.reply.InReplyToView
 import im.vector.app.features.home.room.detail.timeline.reply.PreviewReplyUiState
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
 import org.matrix.android.sdk.api.util.MatrixItem

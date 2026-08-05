@@ -7,7 +7,6 @@
 
 package im.vector.app.features.crypto.verification.user
 
-import androidx.lifecycle.asFlow
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading

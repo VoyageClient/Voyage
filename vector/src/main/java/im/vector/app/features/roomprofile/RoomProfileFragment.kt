@@ -33,7 +33,6 @@ import im.vector.app.core.extensions.copyOnLongClick
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
@@ -43,15 +42,16 @@ import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomProfileHeaderBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.BannerRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.imagepack.edit.ImagePackListActivity
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListQuickActionsSharedActionViewModel
+import im.vector.app.features.imagepack.edit.ImagePackListActivity
 import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.room.LeaveRoomPrompt
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach

@@ -7,7 +7,6 @@
 
 package im.vector.app.features.widgets
 
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
@@ -38,6 +37,7 @@ import im.vector.app.features.widgets.permissions.RoomWidgetPermissionViewEvents
 import im.vector.app.features.widgets.permissions.RoomWidgetPermissionViewModel
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import im.vector.lib.core.utils.compat.getSerializableCompat
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import im.vector.lib.ui.styles.R
 import org.matrix.android.sdk.api.extensions.orFalse

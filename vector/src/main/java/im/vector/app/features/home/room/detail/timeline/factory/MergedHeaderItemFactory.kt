@@ -85,6 +85,7 @@ class MergedHeaderItemFactory @Inject constructor(
     // Guards collapseStates. The derived sets/maps below are swapped wholesale (immutable snapshots) so
     // readers on the build thread never need the lock.
     private val collapseLock = Any()
+
     // Desired collapse per run identity; true = collapsed. Migrated across snapshots by member localId.
     private val collapseStates = HashMap<Long, Boolean>()
 

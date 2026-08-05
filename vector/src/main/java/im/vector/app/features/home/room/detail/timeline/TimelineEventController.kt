@@ -22,9 +22,9 @@ import im.vector.app.core.epoxy.LoadingItem_
 import im.vector.app.core.epoxy.TimelineEmptyItem_
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.core.extensions.nextOrNull
+import im.vector.app.core.extensions.prevOrNull
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.PerfTrace
-import im.vector.app.core.extensions.prevOrNull
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.RoomDetailViewState
@@ -54,8 +54,8 @@ import im.vector.app.features.home.room.detail.timeline.item.ReactionsSummaryEve
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptData
 import im.vector.app.features.home.room.detail.timeline.item.ReadReceiptsItem
 import im.vector.app.features.home.room.detail.timeline.item.TypingItem_
-import im.vector.app.features.home.room.detail.timeline.readreceipts.ReadReceiptsCache
 import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
+import im.vector.app.features.home.room.detail.timeline.readreceipts.ReadReceiptsCache
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.media.AttachmentData
@@ -250,8 +250,10 @@ class TimelineEventController @Inject constructor(
     private val timelineEventsGroups = TimelineEventsGroups()
     private val readReceiptsCache = ReadReceiptsCache()
     private val modelCache = arrayListOf<CacheItemData?>()
+
     // A pass hit its budget with events left to build; see addWhenLoading.
     @Volatile private var hasUnbuiltEvents = false
+
     // Per-snapshot O(n) work (reverse preprocess, displayable-neighbour arrays, receipts) is identical across
     // the multiple budget-limited build passes over one snapshot; recomputing it each pass was the bulk of the
     // per-pass cost on a big (e.g. redaction-heavy) window. Cache it, keyed on the snapshot + partial-state
@@ -259,6 +261,7 @@ class TimelineEventController @Inject constructor(
     // a sound key.
     private var processedSnapshot: List<TimelineEvent>? = null
     private var processedPartialState: PartialState? = null
+
     // A collapse toggle mutates run visibility without changing the snapshot; bumping the factory's
     // generation invalidates this cache so the runs/collapsed-set/neighbours recompute.
     private var processedCollapseGeneration: Int = -1
@@ -266,6 +269,7 @@ class TimelineEventController @Inject constructor(
     private var cachedNextDisplayable: Array<TimelineEvent?> = emptyArray()
     private var cachedReceiptsByEvent: Map<String, List<ReadReceipt>> = emptyMap()
     private var cachedLastSentWithoutRr: String? = null
+
     // Volatile: replaced wholesale on the background thread, read (never mutated) from main-thread
     // position lookups under positionsLock only.
     @Volatile private var currentSnapshot: List<TimelineEvent> = emptyList()
@@ -656,8 +660,9 @@ class TimelineEventController @Inject constructor(
         val focusIdx = (partialState.highlightedEventId ?: buildFocusEventId)
                 ?.let { id -> currentSnapshot.indexOfFirst { it.eventId == id } }
                 ?.takeIf { it > 0 }
-        val buildOrder = if (focusIdx == null) (0 until modelCache.size).asSequence() else
+        val buildOrder = if (focusIdx == null) (0 until modelCache.size).asSequence() else {
             (0 until modelCache.size).sortedBy { kotlin.math.abs(it - focusIdx) }.asSequence()
+        }
         // The small per-pass budget exists so a just-sent message renders fast — a live-edge concern.
         // With a jump/scroll focus active the user is deep in history and each pass carries a large
         // fixed cost (interceptor + diff over the whole list), so bigger passes fill the huge

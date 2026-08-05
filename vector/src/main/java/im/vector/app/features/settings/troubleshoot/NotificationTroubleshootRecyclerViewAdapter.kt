@@ -10,11 +10,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import im.vector.app.R
 import im.vector.app.databinding.ItemNotificationTroubleshootBinding
 import im.vector.app.features.themes.ThemeUtils
-import androidx.core.widget.ImageViewCompat
 
 class NotificationTroubleshootRecyclerViewAdapter(val tests: ArrayList<TroubleshootTest>) :
         RecyclerView.Adapter<NotificationTroubleshootRecyclerViewAdapter.ViewHolder>() {

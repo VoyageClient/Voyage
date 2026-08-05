@@ -7,7 +7,6 @@
 
 package im.vector.app.features.voice
 
-import android.net.Uri
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.Dispatchers
 import org.amshove.kluent.shouldBeEqualTo

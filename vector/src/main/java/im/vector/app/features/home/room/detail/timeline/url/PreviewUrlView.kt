@@ -11,8 +11,8 @@ import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
-import androidx.core.view.isVisible
 import androidx.cardview.widget.CardView
+import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.utils.DimensionConverter

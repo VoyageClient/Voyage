@@ -23,13 +23,13 @@ import com.airbnb.epoxy.EpoxyTouchHelper
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
+import im.vector.app.core.epoxy.ListDividerDecoration
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentQuickReactionsSettingsBinding
-import im.vector.app.core.epoxy.ListDividerDecoration
 import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.reactions.EmojiReactionPickerActivity
 import im.vector.app.features.reactions.data.EmojiDataSource

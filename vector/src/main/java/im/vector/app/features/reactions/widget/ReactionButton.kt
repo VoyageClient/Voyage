@@ -36,8 +36,8 @@ import im.vector.app.core.extensions.layoutDirectionCompat
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.utils.TextUtils
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.databinding.ReactionButtonBinding
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import javax.inject.Inject

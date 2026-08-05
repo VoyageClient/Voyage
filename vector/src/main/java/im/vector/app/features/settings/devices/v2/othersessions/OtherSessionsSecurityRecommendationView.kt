@@ -13,12 +13,12 @@ import android.content.res.TypedArray
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.use
+import androidx.core.view.ViewCompat
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.setTextWithColoredPart
 import im.vector.app.databinding.ViewOtherSessionSecurityRecommendationBinding
 import im.vector.lib.strings.CommonStrings
-import androidx.core.view.ViewCompat
 
 @AndroidEntryPoint
 class OtherSessionsSecurityRecommendationView @JvmOverloads constructor(
