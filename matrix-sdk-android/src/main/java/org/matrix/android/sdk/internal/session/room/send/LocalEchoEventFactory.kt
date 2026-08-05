@@ -128,7 +128,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             createTextContent(text, autoMarkdown).formattedText
 
     fun createFormattedTextEvent(roomId: String, textContent: TextContent, msgType: String, additionalContent: Content? = null): Event {
-        return createMessageEvent(roomId, textContent.toMessageTextContent(msgType), additionalContent)
+        return createMessageEvent(roomId, textContent.toMessageTextContent(msgType, selfUserId = userId), additionalContent)
     }
 
     fun createReplaceTextEvent(
@@ -142,9 +142,9 @@ internal class LocalEchoEventFactory @Inject constructor(
             additionalContent: Content? = null,
     ): Event {
         val content = if (newBodyFormattedText != null) {
-            TextContent(newBodyText.toString(), newBodyFormattedText.toString()).toMessageTextContent(msgType)
+            TextContent(newBodyText.toString(), newBodyFormattedText.toString()).toMessageTextContent(msgType, selfUserId = userId)
         } else {
-            createTextContent(newBodyText, newBodyAutoMarkdown).toMessageTextContent(msgType)
+            createTextContent(newBodyText, newBodyAutoMarkdown).toMessageTextContent(msgType, selfUserId = userId)
         }.toContent()
         return createMessageEvent(
                 roomId,
@@ -750,7 +750,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                 content.toThreadTextContent(
                         rootThreadEventId = rootThreadEventId,
                         latestThreadEventId = localEchoRepository.getLatestThreadEvent(rootThreadEventId),
-                        msgType = msgType
+                        msgType = msgType,
+                        selfUserId = userId,
                 ).toContent().plus(additionalContent.orEmpty())
         )
     }
@@ -778,7 +779,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         // replied-to event via m.relates_to.m.in_reply_to. No legacy "> <@user:server>" quote
         // prefix in body, no <mx-reply> block in formatted_body — these duplicate the preview
         // and cause inconsistencies on edit. MSC3952 m.mentions carries the replied-to sender
-        // as a hint for clients that haven't fetched the target yet.
+        // alongside everyone pilled in the reply text.
         val plainBody = replyText.toString()
         // Honour an explicitly-provided formatted body verbatim (as sendFormattedTextMessage does);
         // otherwise only auto-format when markdown is on and genuinely produced formatting — a plain
@@ -800,7 +801,12 @@ internal class LocalEchoEventFactory @Inject constructor(
                         rootThreadEventId = rootThreadEventId,
                         showInThread = showInThread
                 ),
-                mentions = repliedSenderId?.let { Mentions(userIds = listOf(it)) },
+                mentions = IntentionalMentions.build(
+                        body = plainBody,
+                        formattedBody = htmlBody,
+                        extraUserIds = listOfNotNull(repliedSenderId),
+                        selfUserId = userId,
+                ),
         )
     }
 
@@ -986,7 +992,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                     textContent.toThreadTextContent(
                             rootThreadEventId = rootThreadEventId,
                             latestThreadEventId = localEchoRepository.getLatestThreadEvent(rootThreadEventId),
-                            msgType = MessageType.MSGTYPE_TEXT
+                            msgType = MessageType.MSGTYPE_TEXT,
+                            selfUserId = userId,
                     ),
                     additionalContent,
             )
