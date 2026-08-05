@@ -16,7 +16,6 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import com.amulyakhare.textdrawable.TextDrawable
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -108,6 +107,9 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     var showSelected: Boolean = false
 
     @EpoxyAttribute
+    var showCheckbox: Boolean = false
+
+    @EpoxyAttribute
     var useSingleLineForLastEvent: Boolean = false
 
     @EpoxyAttribute
@@ -118,9 +120,13 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         super.bind(holder)
 
         renderDisplayMode(holder)
-        holder.rootView.onClick(itemClickListener)
+        holder.rootView.onClick { view ->
+            flipCheckboxOptimistically(holder)
+            itemClickListener?.invoke(view)
+        }
         holder.rootView.setOnLongClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            flipCheckboxOptimistically(holder)
             itemLongClickListener?.onLongClick(it) ?: false
         }
         holder.titleView.text = matrixItem.getBestName().prepareForDisplay()
@@ -179,15 +185,16 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         super.unbind(holder)
     }
 
+    // Rebuilding the whole list to reflect the new selection takes a beat, so the tick is flipped
+    // up front and the rebuild confirms it.
+    private fun flipCheckboxOptimistically(holder: Holder) {
+        if (showCheckbox) holder.selectionCheckBox.renderRoomSelectionCheckbox(!showSelected)
+    }
+
     private fun renderSelection(holder: Holder, isSelected: Boolean) {
-        if (isSelected) {
-            holder.avatarCheckedImageView.visibility = View.VISIBLE
-            val backgroundColor = ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorPrimary)
-            val backgroundDrawable = TextDrawable.builder().buildRound("", backgroundColor)
-            holder.avatarImageView.setImageDrawable(backgroundDrawable)
-        } else {
-            holder.avatarCheckedImageView.visibility = View.GONE
-            avatarRenderer.render(matrixItem, holder.avatarImageView)
+        holder.selectionCheckBox.isVisible = showCheckbox
+        if (showCheckbox) {
+            holder.selectionCheckBox.renderRoomSelectionCheckbox(isSelected)
         }
     }
 
@@ -199,7 +206,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         val typingView by bind<TextView>(R.id.roomTypingView)
         val draftView by bind<ImageView>(R.id.roomDraftBadge)
         val lastEventTimeView by bind<TextView>(R.id.roomLastEventTimeView)
-        val avatarCheckedImageView by bind<ImageView>(R.id.roomAvatarCheckedImageView)
+        val selectionCheckBox by bind<ImageView>(R.id.roomSelectionCheckBox)
         val avatarImageView by bind<ImageView>(R.id.roomAvatarImageView)
         val roomAvatarDecorationImageView by bind<ShieldImageView>(R.id.roomAvatarDecorationImageView)
         val roomAvatarPublicDecorationImageView by bind<ImageView>(R.id.roomAvatarPublicDecorationImageView)

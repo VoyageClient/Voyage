@@ -39,16 +39,6 @@
             android:importantForAccessibility="no"
             tools:src="@sample/room_round_avatars" />
 
-        <ImageView
-            android:id="@+id/roomAvatarCheckedImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:contentDescription="@string/a11y_checked"
-            android:scaleType="centerInside"
-            app:srcCompat="@drawable/ic_material_done"
-            app:tint="@android:color/white"
-            tools:ignore="MissingPrefix" />
-
     </FrameLayout>
 
     <ImageView
@@ -187,9 +177,23 @@
         android:layout_marginRight="8dp"
         android:textColor="?vctr_content_secondary"
         app:layout_constraintBottom_toBottomOf="@id/roomNameView"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/roomSelectionCheckBox"
         app:layout_constraintTop_toTopOf="@id/roomNameView"
         tools:text="@tools:sample/date/hhmm" />
+
+    <ImageView
+        android:id="@+id/roomSelectionCheckBox"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:contentDescription="@string/a11y_checked"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/roomAvatarContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/roomAvatarContainer"
+        tools:src="@drawable/ic_checkbox_selection_on"
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/subtitleView"
@@ -203,7 +207,7 @@
         android:lines="2"
         android:textAlignment="viewStart"
         android:textColor="?vctr_content_secondary"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/roomSelectionCheckBox"
         app:layout_constraintStart_toStartOf="@id/roomNameView"
         app:layout_constraintTop_toBottomOf="@id/roomNameView"
         tools:text="@sample/messages.json/data/message" />
@@ -221,7 +225,7 @@
         android:textAlignment="viewStart"
         android:textColor="?colorPrimary"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/roomSelectionCheckBox"
         app:layout_constraintStart_toStartOf="@id/roomNameView"
         app:layout_constraintTop_toBottomOf="@id/roomNameView"
         tools:text="Alice is typing…"

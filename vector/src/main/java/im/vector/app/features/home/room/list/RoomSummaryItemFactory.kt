@@ -129,6 +129,7 @@ class RoomSummaryItemFactory @Inject constructor(
             singleLineLastEvent: Boolean,
             onClick: ((RoomSummary) -> Unit)?,
             onLongClick: ((RoomSummary) -> Boolean)?,
+            showCheckbox: Boolean = false,
     ): VectorEpoxyModel<*> {
         val subtitle = getSearchResultSubtitle(roomSummary)
         val unreadCount = roomSummary.notificationCount
@@ -151,11 +152,12 @@ class RoomSummaryItemFactory @Inject constructor(
                 .orEmpty()
 
         return if (subtitle.isBlank() && displayMode == RoomListDisplayMode.FILTERED) {
-            createCenteredRoomSummaryItem(roomSummary, displayMode, showSelected, unreadCount, onClick, onLongClick)
+            createCenteredRoomSummaryItem(roomSummary, displayMode, showSelected, showCheckbox, unreadCount, onClick, onLongClick)
         } else {
             createRoomSummaryItem(
                     roomSummary, displayMode, subtitle, latestEventTime, typingMessage, latestFormattedEvent,
-                    latestEvent?.root?.isRedacted() == true, showHighlighted, showSelected, unreadCount, singleLineLastEvent, onClick, onLongClick
+                    latestEvent?.root?.isRedacted() == true, showHighlighted, showSelected, showCheckbox, unreadCount,
+                    singleLineLastEvent, onClick, onLongClick
             )
         }
     }
@@ -170,6 +172,7 @@ class RoomSummaryItemFactory @Inject constructor(
             latestEventRedacted: Boolean,
             showHighlighted: Boolean,
             showSelected: Boolean,
+            showCheckbox: Boolean,
             unreadCount: Int,
             singleLineLastEvent: Boolean,
             onClick: ((RoomSummary) -> Unit)?,
@@ -193,6 +196,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .lastEventRedacted(latestEventRedacted)
             .showHighlighted(showHighlighted)
             .showSelected(showSelected)
+            .showCheckbox(showCheckbox)
             .hasFailedSending(roomSummary.hasFailedSending)
             .unreadNotificationCount(unreadCount)
             .hasUnreadMessage(roomSummary.hasUnreadMessages || roomSummary.markedUnread)
@@ -205,6 +209,7 @@ class RoomSummaryItemFactory @Inject constructor(
             roomSummary: RoomSummary,
             displayMode: RoomListDisplayMode,
             showSelected: Boolean,
+            showCheckbox: Boolean,
             unreadCount: Int,
             onClick: ((RoomSummary) -> Unit)?,
             onLongClick: ((RoomSummary) -> Boolean)?
@@ -220,6 +225,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .userPresence(roomSummary.directUserPresence)
             .matrixItem(roomSummary.toDisplayMatrixItem())
             .showSelected(showSelected)
+            .showCheckbox(showCheckbox)
             .hasFailedSending(roomSummary.hasFailedSending)
             .unreadNotificationCount(unreadCount)
             .hasUnreadMessage(roomSummary.hasUnreadMessages || roomSummary.markedUnread)

@@ -16,6 +16,5 @@ data class IncomingShareViewState(
         val sharedData: SharedData? = null,
         val roomSummaries: Async<List<RoomSummary>> = Uninitialized,
         val filteredRoomSummaries: Async<List<RoomSummary>> = Uninitialized,
-        val selectedRoomIds: Set<String> = emptySet(),
-        val isInMultiSelectionMode: Boolean = false
+        val selectedRoomIds: Set<String> = emptySet()
 ) : MavericksState

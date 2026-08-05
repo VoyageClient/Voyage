@@ -14,12 +14,11 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 sealed class IncomingShareViewEvents : VectorViewEvents {
     data class ShareToRoom(
             val roomSummary: RoomSummary,
-            val sharedData: SharedData,
-            val showAlert: Boolean
+            val sharedData: SharedData
     ) : IncomingShareViewEvents()
 
     data class EditMediaBeforeSending(val contentAttachmentData: List<ContentAttachmentData>) : IncomingShareViewEvents()
-    data class MultipleRoomsShareDone(val roomId: String) : IncomingShareViewEvents()
-    data class ForwardDone(val roomId: String) : IncomingShareViewEvents()
+    data class MultipleRoomsShareDone(val roomId: String?) : IncomingShareViewEvents()
+    data class ForwardDone(val roomId: String?) : IncomingShareViewEvents()
     object ForwardFailed : IncomingShareViewEvents()
 }
