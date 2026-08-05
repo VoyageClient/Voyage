@@ -13,6 +13,8 @@ import javax.inject.Inject
 
 class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyController<AttachmentsPreviewViewState>() {
 
+    var playbackListener: VideoPlaybackListener? = null
+
     var playbackAllowed: Boolean = true
         set(value) {
             if (field == value) return
@@ -25,11 +27,15 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
     override fun buildModels(data: AttachmentsPreviewViewState) {
         val host = this
         data.attachments.forEachIndexed { index, contentAttachmentData ->
+            val settings = data.compressionSettings[data.stableIdOf(contentAttachmentData)]
             attachmentBigPreviewItem {
                 id(data.stableIdOf(contentAttachmentData))
                 attachment(contentAttachmentData)
                 activePage(data.currentAttachmentIndex == index)
                 playbackAllowed(host.playbackAllowed)
+                playbackListener(host.playbackListener)
+                // So the preview is shaped like what will actually be sent.
+                targetSize(settings?.width?.let { width -> settings.height?.let { width to it } })
             }
         }
     }

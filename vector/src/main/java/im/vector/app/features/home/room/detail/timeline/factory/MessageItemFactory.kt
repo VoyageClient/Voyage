@@ -18,6 +18,7 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.view.View
+import androidx.annotation.StringRes
 import dagger.Lazy
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -36,10 +37,10 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
 import im.vector.app.features.home.room.detail.timeline.helper.MessageInformationDataFactory
 import im.vector.app.features.home.room.detail.timeline.helper.MessageItemAttributesFactory
-import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineMediaSizeProvider
 import im.vector.app.features.home.room.detail.timeline.item.AbsMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.BaseEventItem
+import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
 import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
@@ -59,20 +60,20 @@ import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem
 import im.vector.app.features.home.room.detail.timeline.item.RedactedMessageItem_
 import im.vector.app.features.home.room.detail.timeline.item.VerificationRequestItem
 import im.vector.app.features.home.room.detail.timeline.item.VerificationRequestItem_
+import im.vector.app.features.home.room.detail.timeline.pgp.PgpDecryptionRetriever
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
-import im.vector.app.features.html.BodySegment
-import im.vector.app.features.html.EmoteImageSpan
-import im.vector.app.features.html.HiddenImageSpan
-import im.vector.app.features.html.HtmlBodySegmenter
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
-import im.vector.app.features.html.EventHtmlRenderer
-import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.html.BodySegment
+import im.vector.app.features.html.EmoteImageSpan
+import im.vector.app.features.html.EventHtmlRenderer
+import im.vector.app.features.html.HiddenImageSpan
+import im.vector.app.features.html.HtmlBodySegmenter
+import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.SpanUtils
-import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.location.INITIAL_MAP_ZOOM_IN_TIMELINE
 import im.vector.app.features.location.UrlMapProvider
@@ -80,19 +81,18 @@ import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.AudioWaveformView
-import im.vector.app.features.home.room.detail.timeline.item.BindingOptions
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.core.utils.timer.Clock
-import androidx.annotation.StringRes
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.isThread
@@ -115,14 +115,11 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.asMessageAudioEvent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getFormattedCaption
-import org.matrix.android.sdk.api.session.room.model.message.getMentionHint
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
-import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -689,6 +686,8 @@ class MessageItemFactory @Inject constructor(
     ): MessageImageVideoItem? {
         val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
         val mediaFilename = messageContent.getFileName()
+        // Size the box to the thumbnail, not the video: a mismatched one would be letterboxed.
+        val thumbnailInfo = messageContent.videoInfo?.thumbnailInfo?.takeIf { it.width > 0 && it.height > 0 }
         val thumbnailData = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
                 stableId = informationData.stableId,
@@ -696,9 +695,9 @@ class MessageItemFactory @Inject constructor(
                 mimeType = messageContent.mimeType,
                 url = messageContent.videoInfo?.getThumbnailUrl(),
                 elementToDecrypt = messageContent.videoInfo?.thumbnailFile?.toElementToDecrypt(),
-                height = messageContent.videoInfo?.height,
+                height = thumbnailInfo?.height ?: messageContent.videoInfo?.height,
                 maxHeight = maxHeight,
-                width = messageContent.videoInfo?.width,
+                width = thumbnailInfo?.width ?: messageContent.videoInfo?.width,
                 maxWidth = maxWidth,
                 allowNonMxcUrls = informationData.sendState.isSending(),
                 blurHash = messageContent.videoInfo?.blurHash,
@@ -730,6 +729,7 @@ class MessageItemFactory @Inject constructor(
                 .hiddenMediaSolidColor(vectorPreferences.useSolidColorForHiddenMedia())
                 .mediaRevealManager(mediaContentRevealManager)
                 .playable(true)
+                .mediaDurationMs(messageContent.videoInfo?.duration ?: 0)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)
                 .caption(renderedCaption?.epoxy)
@@ -925,7 +925,6 @@ class MessageItemFactory @Inject constructor(
                 useBigFont = containsOnlyEmojisAndEmotes(linkified, emoteRanges, MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT),
         )
     }
-
 
     private fun buildMessageTextItem(
             body: CharSequence,

@@ -131,7 +131,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:constraint_referenced_ids="overlayBottomBackground,overlayBackButton,overlayPlayPauseButton,overlaySeekBar"
+        app:constraint_referenced_ids="overlayBottomBackground,overlayBackButton,overlayPlayPauseButton,overlaySeekBar,overlayVideoTime"
         tools:visibility="visible" />
 
     <View
@@ -174,7 +174,20 @@
         android:progressBackgroundTint="?colorOnPrimary"
         android:thumbTint="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
-        app:layout_constraintEnd_toEndOf="@id/overlayBottomBackground"
+        app:layout_constraintEnd_toStartOf="@id/overlayVideoTime"
         app:layout_constraintStart_toEndOf="@id/overlayPlayPauseButton"
         app:layout_constraintTop_toTopOf="@id/overlayBottomBackground" />
+
+    <TextView
+        android:id="@+id/overlayVideoTime"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:textColor="?colorOnPrimary"
+        app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
+        app:layout_constraintEnd_toEndOf="@id/overlayBottomBackground"
+        app:layout_constraintTop_toTopOf="@id/overlayBottomBackground"
+        tools:text="1:12 / 3:40" />
 </merge>

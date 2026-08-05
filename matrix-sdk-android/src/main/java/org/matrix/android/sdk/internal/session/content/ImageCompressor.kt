@@ -21,6 +21,10 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Build
 import androidx.exifinterface.media.ExifInterface
+import im.vector.lib.animatedimage.AnimatedFrame
+import im.vector.lib.animatedimage.AnimatedWebpEncoder
+import im.vector.lib.animatedimage.ApngFrameReader
+import im.vector.lib.animatedimage.GifFrameReader
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
@@ -34,23 +38,29 @@ internal class ImageCompressor @Inject constructor(
 ) {
     data class CompressedImage(val file: File, val mimeType: String?)
 
+    /**
+     * @param exactSize scales to exactly [desiredWidth] x [desiredHeight] rather than bounding the
+     * shorter side, for a size the sender typed in themselves.
+     */
     suspend fun compress(
             imageFile: File,
             desiredWidth: Int,
             desiredHeight: Int,
             desiredQuality: Int = 80,
+            exactSize: Boolean = false,
     ): CompressedImage {
         return withContext(coroutineDispatchers.io) {
-            if (imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES) {
+            // A size or quality the sender chose is honoured however small the file already is.
+            if (!exactSize && imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES) {
                 return@withContext CompressedImage(imageFile, mimeType = null)
             }
 
             val format = sniffFormat(imageFile)
             when (format) {
-                SourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality)
-                SourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality)
-                SourceFormat.XPM -> compressXpm(imageFile, desiredWidth, desiredHeight, desiredQuality)
-                SourceFormat.FARBFELD -> compressFarbfeld(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                SourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
+                SourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
+                SourceFormat.XPM -> compressXpm(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
+                SourceFormat.FARBFELD -> compressFarbfeld(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
                 // Re-encoding would drop to the first frame and strip the animation.
                 SourceFormat.ANIMATED_WEBP -> CompressedImage(imageFile, mimeType = "image/webp")
                 // Platform WebP has no alpha/lossless support before 4.2.1: decoding either fails
@@ -59,9 +69,9 @@ internal class ImageCompressor @Inject constructor(
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
                         CompressedImage(imageFile, mimeType = "image/webp")
                     } else {
-                        compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                        compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
                     }
-                SourceFormat.OTHER -> compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality)
+                SourceFormat.OTHER -> compressBitmap(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
             }
         }
     }
@@ -83,7 +93,13 @@ internal class ImageCompressor @Inject constructor(
         }
     }
 
-    private suspend fun compressBitmap(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+    private suspend fun compressBitmap(
+            imageFile: File,
+            desiredWidth: Int,
+            desiredHeight: Int,
+            desiredQuality: Int,
+            exactSize: Boolean = false,
+    ): CompressedImage {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         decodeBitmap(imageFile, bounds)
         val srcWidth = bounds.outWidth
@@ -98,21 +114,29 @@ internal class ImageCompressor @Inject constructor(
         val downsampled = decodeBitmap(imageFile, downsampleOptions)?.let {
             rotateBitmap(imageFile, it)
         } ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeBitmap(imageFile, downsampled, desiredWidth, desiredHeight, desiredQuality)
+        return encodeBitmap(imageFile, downsampled, desiredWidth, desiredHeight, desiredQuality, exactSize)
     }
 
-    private suspend fun compressXpm(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+    private suspend fun compressXpm(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
         val decoded = XpmBitmapReader.decode(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
+        return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality, exactSize)
     }
 
-    private suspend fun compressFarbfeld(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+    private suspend fun compressFarbfeld(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
         val decoded = FarbfeldBitmapReader.decode(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality)
+        return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality, exactSize)
     }
 
-    private suspend fun encodeBitmap(originalFile: File, sourceBitmap: Bitmap, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
-        val compressedBitmap = scaleBitmapToFit(sourceBitmap, desiredWidth, desiredHeight)
+    @Suppress("LongParameterList")
+    private suspend fun encodeBitmap(
+            originalFile: File,
+            sourceBitmap: Bitmap,
+            desiredWidth: Int,
+            desiredHeight: Int,
+            desiredQuality: Int,
+            exactSize: Boolean,
+    ): CompressedImage {
+        val compressedBitmap = scaleBitmapToFit(sourceBitmap, desiredWidth, desiredHeight, exactSize)
         // Transparent images must not become WebP: homeservers thumbnail WebP as JPEG (no alpha),
         // blacking out the background wherever a server thumbnail is shown — and Bitmap.compress(WEBP)
         // can't even write alpha before 4.2.1. PNG avoids both.
@@ -132,27 +156,29 @@ internal class ImageCompressor @Inject constructor(
         return CompressedImage(destinationFile, mimeType = mimeType)
     }
 
-    private suspend fun compressGif(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+    private suspend fun compressGif(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
         val frames = GifFrameReader.readFrames(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality)
+        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality, exactSize)
     }
 
-    private suspend fun compressApng(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int): CompressedImage {
+    private suspend fun compressApng(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
         val frames = ApngFrameReader.readFrames(imageFile) ?: return CompressedImage(imageFile, mimeType = null)
-        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality)
+        return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality, exactSize)
     }
 
+    @Suppress("LongParameterList")
     private suspend fun encodeFramesToAnimatedWebp(
             originalFile: File,
             frames: List<AnimatedFrame>,
             desiredWidth: Int,
             desiredHeight: Int,
             desiredQuality: Int,
+            exactSize: Boolean,
     ): CompressedImage {
         if (frames.isEmpty()) return CompressedImage(originalFile, mimeType = null)
         // ANMF requires uniform canvas dims; scale every frame to fit the same bounds.
         val scaled = frames.map { frame ->
-            val out = scaleBitmapToFit(frame.bitmap, desiredWidth, desiredHeight)
+            val out = scaleBitmapToFit(frame.bitmap, desiredWidth, desiredHeight, exactSize)
             if (out !== frame.bitmap) frame.bitmap.recycle()
             AnimatedFrame(out, frame.durationMs)
         }
@@ -264,7 +290,15 @@ internal class ImageCompressor @Inject constructor(
         return false
     }
 
-    private fun scaleBitmapToFit(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+    private fun scaleBitmapToFit(bitmap: Bitmap, maxWidth: Int, maxHeight: Int, exactSize: Boolean = false): Bitmap {
+        if (exactSize) {
+            val width = maxWidth.coerceAtLeast(1)
+            val height = maxHeight.coerceAtLeast(1)
+            if (bitmap.width == width && bitmap.height == height) return bitmap
+            return Bitmap.createScaledBitmap(bitmap, width, height, true).also {
+                if (it !== bitmap) bitmap.recycle()
+            }
+        }
         // Cap the *smaller* side to the limit (never upscaling), so the larger side scales
         // proportionally. This keeps long/wide images from being squished down to e.g. 100x640;
         // their smaller side stays at the limit (or its original value if already below it).

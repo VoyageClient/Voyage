@@ -17,6 +17,8 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
             is AttachmentsPreviewAction.SetCurrentAttachment -> handleSetCurrentAttachment(action)
             is AttachmentsPreviewAction.UpdateCurrentAttachment -> handleUpdateCurrentAttachment(action)
             AttachmentsPreviewAction.RemoveCurrentAttachment -> handleRemoveCurrentAttachment()
+            AttachmentsPreviewAction.RestoreOriginalAttachment -> handleRestoreOriginalAttachment()
+            is AttachmentsPreviewAction.SetCompression -> handleSetCompression(action)
         }
     }
 
@@ -30,6 +32,29 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
                     currentAttachmentIndex = newAttachmentIndex,
                     editRecords = editRecords - currentAttachment.queryUri
             )
+        }
+    }
+
+    private fun handleSetCompression(action: AttachmentsPreviewAction.SetCompression) = withState {
+        val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
+        val key = it.stableIdOf(current)
+        setState {
+            copy(
+                    compressionSettings = if (action.settings.isDefault) {
+                        compressionSettings - key
+                    } else {
+                        compressionSettings + (key to action.settings)
+                    }
+            )
+        }
+    }
+
+    private fun handleRestoreOriginalAttachment() = withState {
+        val current = it.attachments.getOrNull(it.currentAttachmentIndex) ?: return@withState
+        val record = it.editRecords[current.queryUri] ?: return@withState
+        val attachments = it.attachments.toMutableList().apply { set(it.currentAttachmentIndex, record.original) }
+        setState {
+            copy(attachments = attachments, editRecords = editRecords - current.queryUri)
         }
     }
 

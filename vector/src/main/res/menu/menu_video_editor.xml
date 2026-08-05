@@ -3,16 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/videoEditorCropAction"
-        android:icon="@drawable/ic_image_editor_crop"
-        android:title="@string/video_editor_crop"
+        android:id="@+id/videoEditorRotateAction"
+        android:icon="@drawable/ic_image_editor_rotate"
+        android:title="@string/video_editor_rotate"
         app:iconTint="?colorOnPrimary"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/videoEditorRotateAction"
-        android:icon="@drawable/ic_image_editor_rotate"
-        android:title="@string/video_editor_rotate"
+        android:id="@+id/videoEditorSpeedAction"
+        android:icon="@drawable/ic_timer"
+        android:title="@string/video_editor_speed"
         app:iconTint="?colorOnPrimary"
         app:showAsAction="always" />
 

@@ -75,6 +75,7 @@ import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.internal.util.time.Clock
 import java.util.UUID
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 /**
  * Creates local echo of events for room events.
@@ -527,11 +528,12 @@ internal class LocalEchoEventFactory @Inject constructor(
             autoMarkdown: Boolean = false,
             mentions: Mentions? = null,
     ): Event {
-        var width = attachment.width
-        var height = attachment.height
+        var width = attachment.outputWidth
+        var height = attachment.outputHeight
 
-        // EXIF orientations that swap width/height: TRANSPOSE(5), ROTATE_90(6), TRANSVERSE(7), ROTATE_270(8).
-        if (attachment.exifOrientation in EXIF_ORIENTATIONS_SWAPPING_SIZE) {
+        // A size the sender chose is already in display orientation, so it must not be swapped again.
+        if (attachment.compressionWidth == null &&
+                attachment.exifOrientation in ContentAttachmentData.EXIF_ORIENTATIONS_SWAPPING_SIZE) {
             val tmp = width
             width = height
             height = tmp
@@ -570,7 +572,7 @@ internal class LocalEchoEventFactory @Inject constructor(
     ): Event {
         val (width, height) = videoMetadataExtractor.getVideoSize(attachment)
 
-        val thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment, withBlurHash = false)?.let {
+        var thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment, withBlurHash = false)?.let {
             ThumbnailInfo(
                     width = it.width,
                     height = it.height,
@@ -586,7 +588,21 @@ internal class LocalEchoEventFactory @Inject constructor(
         val frameH = thumbnailInfo?.height ?: 0
         val aspectDisagrees = frameW > 0 && frameH > 0 && width > 0 && height > 0 &&
                 kotlin.math.abs(width.toFloat() / height - frameW.toFloat() / frameH) > 0.01f * (frameW.toFloat() / frameH)
-        val (finalWidth, finalHeight) = if (aspectDisagrees) frameW to frameH else width to height
+        var (finalWidth, finalHeight) = if (aspectDisagrees) frameW to frameH else width to height
+        // A size the sender chose wins over anything measured from the source, and the thumbnail is
+        // declared at the same shape so the two never disagree — a deliberate stretch is applied to
+        // the still as well, which is what the video will look like.
+        val targetWidth = attachment.compressionWidth
+        val targetHeight = attachment.compressionHeight
+        if (targetWidth != null && targetHeight != null && targetWidth > 0 && targetHeight > 0) {
+            finalWidth = targetWidth
+            finalHeight = targetHeight
+            thumbnailInfo = thumbnailInfo?.let {
+                val thumbnailHeight = it.height.coerceAtLeast(1)
+                val thumbnailWidth = (thumbnailHeight.toFloat() * targetWidth / targetHeight).roundToInt()
+                it.copy(width = thumbnailWidth.coerceAtLeast(1), height = thumbnailHeight)
+            }
+        }
         val body = buildMediaBody(attachment, "video", captionText, captionFormattedText, autoMarkdown)
         val content = MessageVideoContent(
                 msgType = MessageType.MSGTYPE_VIDEO,
@@ -1028,8 +1044,6 @@ internal class LocalEchoEventFactory @Inject constructor(
     }
 
     companion object {
-        private val EXIF_ORIENTATIONS_SWAPPING_SIZE = setOf(5, 6, 7, 8)
-
         // <mx-reply>
         //     <blockquote>
         //         <a href="https://matrix.to/#/!somewhere:domain.com/$event:domain.com">In reply to</a>

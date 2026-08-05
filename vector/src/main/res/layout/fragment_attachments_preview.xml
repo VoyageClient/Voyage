@@ -8,11 +8,11 @@
     <im.vector.app.features.attachments.preview.PinchFriendlyRecyclerView
         android:id="@+id/attachmentPreviewerBigList"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerBottomContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
         tools:listitem="@layout/item_attachment_big_preview" />
 
     <com.google.android.material.appbar.AppBarLayout
@@ -61,11 +61,56 @@
             android:layout_height="wrap_content"
             android:padding="8dp"
             android:textColor="@android:color/white"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerVideoControls"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerMiniatureList"
             tools:text="@plurals/send_images_with_original_size" />
+
+        <LinearLayout
+            android:id="@+id/attachmentPreviewerVideoControls"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="4dp"
+            android:paddingRight="12dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerSendImageOriginalSize"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/attachmentPreviewerVideoPlayPause"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_play"
+                android:padding="6dp"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/ic_play_arrow"
+                app:tint="@android:color/white"
+                tools:ignore="MissingPrefix" />
+
+            <SeekBar
+                android:id="@+id/attachmentPreviewerVideoSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/attachmentPreviewerVideoTime"
+                style="@style/Widget.Vector.TextView.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:textColor="@android:color/white"
+                tools:text="0:12 / 0:42" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

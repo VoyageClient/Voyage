@@ -5,13 +5,13 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package org.matrix.android.sdk.internal.session.content
+package im.vector.lib.animatedimage
 
 import android.graphics.Bitmap
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 
-internal data class AnimatedFrame(val bitmap: Bitmap, val durationMs: Int)
+data class AnimatedFrame(val bitmap: Bitmap, val durationMs: Int)
 
 /**
  * Builds an animated WebP file from a sequence of frames + per-frame durations. Each frame is
@@ -21,7 +21,7 @@ internal data class AnimatedFrame(val bitmap: Bitmap, val durationMs: Int)
  *
  * Spec reference: https://developers.google.com/speed/webp/docs/riff_container
  */
-internal object AnimatedWebpEncoder {
+object AnimatedWebpEncoder {
 
     /**
      * @param frames           the frames to write (must be non-empty, all same dimensions).
@@ -83,7 +83,7 @@ internal object AnimatedWebpEncoder {
     private fun writeVP8XChunk(out: OutputStream, w: Int, h: Int, animated: Boolean, hasAlpha: Boolean) {
         out.write(ASCII_VP8X)
         writeUInt32LE(out, 10)
-        // Flags byte: bit 1 = ICC, bit 2 = alpha, bit 3 = EXIF, bit 4 = XMP, bit 5 = ANIM.
+        // VP8X flags: 0x02 = ANIM, 0x10 = alpha.
         var flags = 0
         if (animated) flags = flags or (1 shl 1)
         if (hasAlpha) flags = flags or (1 shl 4)

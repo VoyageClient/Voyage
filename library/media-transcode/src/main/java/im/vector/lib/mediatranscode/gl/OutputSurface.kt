@@ -7,7 +7,6 @@
 
 package im.vector.lib.mediatranscode.gl
 
-import android.graphics.RectF
 import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.HandlerThread
@@ -25,9 +24,9 @@ import java.util.concurrent.TimeUnit
  * loop cannot both block waiting and dispatch the callback.
  */
 @RequiresApi(17)
-internal class OutputSurface(crop: RectF, rotationDegrees: Int, outputWidth: Int, outputHeight: Int) {
+internal class OutputSurface(textureCoords: FloatArray, outputWidth: Int, outputHeight: Int) {
 
-    private val renderer = CropTextureRenderer(crop, rotationDegrees, outputWidth, outputHeight)
+    private val renderer = CropTextureRenderer(textureCoords, outputWidth, outputHeight)
     private val callbackThread = HandlerThread("VideoEditFrameCallback").apply { start() }
     private val transformMatrix = FloatArray(MATRIX_SIZE)
     private val frameLock = Object()

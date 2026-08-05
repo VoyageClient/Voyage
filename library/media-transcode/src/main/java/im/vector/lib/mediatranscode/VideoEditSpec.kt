@@ -16,6 +16,12 @@ import java.io.File
  * is read in *display* space, i.e. after both the source orientation and [rotationDegrees].
  * @property rotationDegrees extra clockwise rotation applied on top of the source orientation.
  * @property muted drops the audio track entirely.
+ * @property targetWidth,targetHeight output size, or null to keep the cropped size. Resizing needs
+ * the GL stage, so asking for one rules out the lossless remux exactly as a crop does.
+ * @property targetBitrate output bitrate, or null to keep the source's (scaled down by how much of
+ * the frame survives a crop or a resize).
+ * @property speed how much faster the result runs; 1 leaves the timing alone.
+ * @property changePitch whether the audio pitch rides along with [speed], as tape does.
  */
 data class VideoEditSpec(
         val sourceUri: Uri,
@@ -25,7 +31,18 @@ data class VideoEditSpec(
         val rotationDegrees: Int,
         val muted: Boolean,
         val outputFile: File,
-)
+        val targetWidth: Int? = null,
+        val targetHeight: Int? = null,
+        val targetBitrate: Int? = null,
+        val speed: Float = 1f,
+        val changePitch: Boolean = true,
+) {
+    /** Re-timing needs the GL stage too: frame timestamps can only be set from there. */
+    val isRetimed get() = SpeedTimeMap.retimes(speed)
+
+    /** Only the GL stage can change geometry, and only re-encoding can change the bitrate. */
+    val needsTranscode get() = crop != null || targetWidth != null || targetBitrate != null || isRetimed
+}
 
 data class VideoEditOutput(
         val file: File,

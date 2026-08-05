@@ -5,7 +5,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package org.matrix.android.sdk.internal.session.content
+package im.vector.lib.animatedimage
 
 import android.graphics.Bitmap
 import com.bumptech.glide.gifdecoder.GifDecoder
@@ -15,7 +15,7 @@ import timber.log.Timber
 import java.io.File
 import java.nio.ByteBuffer
 
-internal object GifFrameReader {
+object GifFrameReader {
 
     fun readFrames(file: File): List<AnimatedFrame>? {
         val data = try {
@@ -56,8 +56,4 @@ internal object GifFrameReader {
         override fun obtainIntArray(size: Int): IntArray = IntArray(size)
         override fun release(array: IntArray) { /* no-op */ }
     }
-
-    // Browsers and image viewers clamp very small / zero-delay GIFs to ~100 ms; do the same so
-    // the resulting animated WebP plays at a sane speed.
-    private const val MIN_FRAME_DELAY_MS = 20
 }

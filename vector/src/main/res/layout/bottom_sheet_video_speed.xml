@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="24dp"
+    android:paddingTop="20dp"
+    android:paddingRight="24dp"
+    android:paddingBottom="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/video_editor_speed_title"
+        android:textColor="?vctr_content_primary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/speedStepDown"
+            android:layout_width="56dp"
+            android:layout_height="48dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:textColor="?vctr_content_primary"
+            android:textStyle="bold"
+            tools:text="−5%" />
+
+        <TextView
+            android:id="@+id/speedValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="?vctr_content_primary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="1.00x" />
+
+        <TextView
+            android:id="@+id/speedStepUp"
+            android:layout_width="56dp"
+            android:layout_height="48dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:textColor="?vctr_content_primary"
+            android:textStyle="bold"
+            tools:text="+5%" />
+
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/speedSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/speedMinimum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?vctr_content_secondary"
+            android:textSize="12sp"
+            tools:text="0.10x" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/speedMaximum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?vctr_content_secondary"
+            android:textSize="12sp"
+            tools:text="3.00x" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/speedStepSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/video_editor_speed_step"
+            android:textColor="?vctr_content_secondary"
+            android:textSize="13sp" />
+
+        <!-- One button per step size, added in code from PlaybackSpeed.STEP_PERCENTAGES. -->
+
+    </LinearLayout>
+
+    <CheckBox
+        android:id="@+id/speedChangePitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/video_editor_speed_change_pitch"
+        android:textColor="?vctr_content_primary" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/speedCancel"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/action_cancel"
+            android:textColor="?vctr_content_secondary" />
+
+        <Button
+            android:id="@+id/speedReset"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/video_editor_reset"
+            android:textColor="?vctr_content_secondary" />
+
+        <Button
+            android:id="@+id/speedDone"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ok" />
+
+    </LinearLayout>
+
+</LinearLayout>

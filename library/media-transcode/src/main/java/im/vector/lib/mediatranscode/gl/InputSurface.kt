@@ -19,8 +19,10 @@ import androidx.annotation.RequiresApi
 /**
  * Owns the EGL context and wraps an encoder input [Surface] as the draw target. Each
  * [swapBuffers] hands one frame to the encoder, stamped by the preceding [setPresentationTime].
+ *
+ * EGL14 itself is API 17, but stamping the frame needs EGLExt, which is 18.
  */
-@RequiresApi(17)
+@RequiresApi(18)
 internal class InputSurface(surface: Surface) {
 
     private var display: EGLDisplay = EGL14.EGL_NO_DISPLAY

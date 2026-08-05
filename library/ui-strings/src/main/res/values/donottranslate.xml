@@ -562,22 +562,44 @@
     <string name="image_editor_load_failed" translatable="false">Couldn\'t open this image</string>
     <string name="image_editor_save_failed" translatable="false">Couldn\'t save the edited image</string>
 
+    <string name="video_position_of_duration" translatable="false">%1$s / %2$s</string>
+
     <string name="video_editor_title" translatable="false">Edit video</string>
-    <string name="video_editor_play" translatable="false">Play</string>
     <string name="video_editor_reset" translatable="false">Reset</string>
     <string name="video_editor_rotate" translatable="false">Rotate</string>
     <string name="video_editor_mute" translatable="false">Mute audio</string>
     <string name="video_editor_range" translatable="false">%1$s – %2$s</string>
+    <string name="video_editor_range_output" translatable="false">%1$s – %2$s → %3$s</string>
+    <string name="video_editor_speed" translatable="false">Speed</string>
+    <string name="video_editor_speed_title" translatable="false">Playback speed</string>
+    <string name="video_editor_speed_value" translatable="false">%1$sx</string>
+    <string name="video_editor_speed_step" translatable="false">Step</string>
+    <string name="video_editor_speed_step_value" translatable="false">%1$d%%</string>
+    <string name="video_editor_speed_step_down" translatable="false">−%1$d%%</string>
+    <string name="video_editor_speed_step_up" translatable="false">+%1$d%%</string>
+    <string name="video_editor_speed_change_pitch" translatable="false">Change pitch</string>
+    <string name="video_editor_speed_preview_unsupported" translatable="false">This device can\'t preview the new speed, but the saved video will use it</string>
     <string name="video_editor_exporting" translatable="false">Saving video…</string>
     <string name="video_editor_load_failed" translatable="false">Couldn\'t open this video</string>
     <string name="video_editor_export_failed" translatable="false">Couldn\'t save the edited video</string>
     <string name="video_editor_no_space" translatable="false">Not enough free space to save this video</string>
     <string name="video_editor_unsupported" translatable="false">This video format can\'t be edited</string>
     <string name="video_editor_audio_dropped" translatable="false">The audio track couldn\'t be kept and was dropped</string>
-    <string name="video_editor_crop" translatable="false">Crop</string>
-    <string name="video_editor_crop_original" translatable="false">Original</string>
-    <string name="video_editor_crop_square" translatable="false">1:1</string>
-    <string name="video_editor_crop_portrait" translatable="false">4:5</string>
-    <string name="video_editor_crop_wide" translatable="false">16:9</string>
-    <string name="video_editor_crop_tall" translatable="false">9:16</string>
+
+    <string name="animated_image_editor_title" translatable="false">Edit animated image</string>
+    <string name="animated_image_editor_exporting" translatable="false">Saving animated image…</string>
+    <string name="animated_image_editor_load_failed" translatable="false">Couldn\'t open this animated image</string>
+    <string name="animated_image_editor_export_failed" translatable="false">Couldn\'t save the edited animated image</string>
+    <string name="animated_image_editor_no_transparency" translatable="false">This version of Android can\'t save an animated image with transparency</string>
+
+    <string name="attachment_compression_title" translatable="false">Compression</string>
+    <string name="attachment_compression_quality" translatable="false">Quality</string>
+    <string name="attachment_compression_resolution" translatable="false">Resolution</string>
+    <string name="attachment_compression_width" translatable="false">Width</string>
+    <string name="attachment_compression_height" translatable="false">Height</string>
+    <string name="attachment_compression_by" translatable="false">×</string>
+    <string name="attachment_compression_link" translatable="false">Lock aspect ratio</string>
+    <string name="attachment_compression_source" translatable="false">Original: %1$d × %2$d</string>
+    <string name="attachment_compression_reset" translatable="false">Reset</string>
+    <string name="attachment_compression_percent" translatable="false">%1$d%%</string>
 </resources>

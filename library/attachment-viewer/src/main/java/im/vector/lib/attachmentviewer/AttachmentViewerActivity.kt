@@ -252,8 +252,13 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     private fun handleSingleTap(event: MotionEvent, isOverlayWasClicked: Boolean) {
+        if (isOverlayWasClicked) return
+        // A video takes the tap for itself, to play or pause; only a still image toggles the chrome.
+        val consumed = (attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? BaseViewHolder)
+                ?.onTapped() == true
+        if (consumed) return
         // TODO if there is no overlay, we should at least toggle system bars?
-        if (overlayView != null && !isOverlayWasClicked) {
+        if (overlayView != null) {
             toggleOverlayViewVisibility()
             super.dispatchTouchEvent(event)
         }

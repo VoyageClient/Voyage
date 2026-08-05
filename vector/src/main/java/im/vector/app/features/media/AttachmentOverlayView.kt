@@ -9,6 +9,7 @@ package im.vector.app.features.media
 
 import android.content.Context
 import android.graphics.Color
+import android.text.format.DateUtils
 import android.util.AttributeSet
 import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -16,6 +17,7 @@ import im.vector.app.R
 import im.vector.app.databinding.MergeImageAttachmentOverlayBinding
 import im.vector.lib.attachmentviewer.AttachmentEventListener
 import im.vector.lib.attachmentviewer.AttachmentEvents
+import im.vector.lib.strings.CommonStrings
 
 class AttachmentOverlayView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -61,6 +63,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
         })
     }
 
+    private fun elapsed(milliseconds: Int) = DateUtils.formatElapsedTime((milliseconds / 1000).toLong())
+
     fun updateWith(counter: String, senderInfo: String) {
         views.overlayCounterText.text = counter
         views.overlayInfoText.text = senderInfo
@@ -70,6 +74,9 @@ class AttachmentOverlayView @JvmOverloads constructor(
         when (event) {
             is AttachmentEvents.VideoEvent -> {
                 views.overlayPlayPauseButton.setImageResource(if (!event.isPlaying) R.drawable.ic_play_arrow else R.drawable.ic_pause)
+                views.overlayVideoTime.text = context.getString(
+                        CommonStrings.video_position_of_duration, elapsed(event.progress), elapsed(event.duration)
+                )
                 if (!suspendSeekBarUpdate) {
                     val safeDuration = (if (event.duration == 0) 100 else event.duration).toFloat()
                     val percent = ((event.progress / safeDuration) * 100f).toInt().coerceAtMost(100)

@@ -7,9 +7,9 @@
 
 package org.matrix.android.sdk.internal.session.contentscanner.db
 
-import android.os.Looper
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.junit.After
@@ -110,34 +110,18 @@ class SqlContentScannerStoreTest {
     }
 
     @Test
-    fun `getLiveScanResult reflects the stored result`() {
+    fun `the observable result reflects the stored one`() {
         store.setScannerUrl(scannerUrl)
         store.updateScanResultForContent(mediaUrl, scannerUrl, ScanState.TRUSTED, "ok")
 
-        val value = store.getLiveScanResult(mediaUrl).awaitValue()
+        val value = runBlocking {
+            withTimeout(TIMEOUT_MS) { store.getScanResultFlow(mediaUrl).first() }
+        }
 
         value.getOrNull()?.state shouldBeEqualTo ScanState.TRUSTED
     }
 
-    private fun <T> LiveData<T>.awaitValue(timeoutMs: Long = 3000): T {
-        var result: Any? = NO_VALUE
-        val observer = Observer<T> { result = it }
-        observeForever(observer)
-        try {
-            val deadline = System.currentTimeMillis() + timeoutMs
-            while (result === NO_VALUE && System.currentTimeMillis() < deadline) {
-                shadowOf(Looper.getMainLooper()).idle()
-                if (result === NO_VALUE) Thread.sleep(10)
-            }
-        } finally {
-            removeObserver(observer)
-        }
-        check(result !== NO_VALUE) { "LiveData did not emit within ${timeoutMs}ms" }
-        @Suppress("UNCHECKED_CAST")
-        return result as T
-    }
-
     companion object {
-        private val NO_VALUE = Any()
+        private const val TIMEOUT_MS = 3_000L
     }
 }

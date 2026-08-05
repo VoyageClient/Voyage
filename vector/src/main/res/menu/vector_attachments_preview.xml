@@ -12,6 +12,13 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/attachmentsPreviewCompressionAction"
+        android:icon="@drawable/ic_compression"
+        android:title="@string/attachment_compression_title"
+        app:iconTint="?colorOnPrimary"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/attachmentsPreviewEditAction"
         android:icon="@drawable/ic_edit"
         android:title="@string/edit"

@@ -18,34 +18,27 @@ package org.matrix.android.sdk.internal.session.content
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.media.MediaCodec
-import android.media.MediaCodecInfo
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
-import android.media.MediaMuxer
 import android.net.Uri
-import android.os.Build
-import android.os.SystemClock
-import kotlinx.coroutines.Dispatchers
+import im.vector.lib.mediatranscode.MediaSourceInfo
+import im.vector.lib.mediatranscode.VideoEditExporter
+import im.vector.lib.mediatranscode.VideoEditProgressListener
+import im.vector.lib.mediatranscode.VideoEditSpec
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 import timber.log.Timber
 import java.io.File
-import java.nio.ByteBuffer
 import javax.inject.Inject
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
- * Re-encodes a video to H.264 at a reduced bitrate using the platform [MediaCodec] / [MediaMuxer]
- * stack. MediaMuxer is API 18+, so below that the original is uploaded unchanged: API 14-15 have no
- * MediaCodec at all and a software transcode is impractically slow on that hardware, so uncompressed
- * upload is the deliberate behavior there. Transcode is surface-to-surface (decoder output Surface ==
- * encoder input Surface) so we never touch pixels on the CPU; audio is copied through untouched. Every
- * blocking codec call uses a timeout plus an overall stall watchdog so a wedged codec falls back to
- * "keep the original" rather than hanging the upload.
+ * Re-encodes a video to H.264 at a reduced bitrate, and optionally at a smaller frame, through
+ * `:library:media-transcode` — the same pipeline the attachment editor exports with, so a fix to
+ * one is a fix to both. MediaMuxer is API 18+, so below that the original is uploaded unchanged:
+ * API 14-15 have no MediaCodec at all and a software transcode is impractically slow on that
+ * hardware, so uncompressed upload is the deliberate behaviour there.
  */
 @SuppressLint("NewApi")
 internal class VideoCompressor @Inject constructor(
@@ -53,48 +46,70 @@ internal class VideoCompressor @Inject constructor(
         private val temporaryFileCreator: TemporaryFileCreator,
 ) {
 
+    /**
+     * @param targetWidth,targetHeight an explicit output size chosen by the sender, or null to
+     * bound the shortest side at [TARGET_SHORTEST_SIDE].
+     * @param targetBitrate an explicit bitrate chosen by the sender, or null for [TARGET_BITRATE].
+     */
     suspend fun compress(
             sourceUri: Uri,
             sourceSize: Long,
+            targetWidth: Int? = null,
+            targetHeight: Int? = null,
+            targetBitrate: Int? = null,
             progressListener: ProgressListener?,
     ): VideoCompressionResult = coroutineScope {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        if (!VideoEditExporter.isSupported()) {
             return@coroutineScope VideoCompressionResult.CompressionNotNeeded
         }
-        if (isAlreadyWithinTargets(sourceUri, sourceSize)) {
+        // An explicit request is always honoured; only the automatic pass may decide to skip.
+        val chosenBySender = targetWidth != null || targetHeight != null || targetBitrate != null
+        if (!chosenBySender && isAlreadyWithinTargets(sourceUri, sourceSize)) {
             Timber.d("Compressing: source already within targets, skipping transcode")
             return@coroutineScope VideoCompressionResult.CompressionNotNeeded
         }
 
+        val source = MediaSourceInfo.probe(context, sourceUri)
+        if (source == null || source.durationUs <= 0) {
+            Timber.w("Compressing: cannot probe $sourceUri")
+            return@coroutineScope VideoCompressionResult.CompressionNotNeeded
+        }
+        val size = requestedSize(source, targetWidth, targetHeight) ?: boundedSize(source)
         val destinationFile = temporaryFileCreator.create()
         progressListener?.onProgress(0, 100)
 
-        val result = withContext(Dispatchers.Default) {
-            runCatching {
-                transcode(sourceUri, destinationFile, progressListener) { isActive }
-            }
+        val result = runCatching {
+            VideoEditExporter.export(
+                    context,
+                    VideoEditSpec(
+                            sourceUri = sourceUri,
+                            startUs = 0,
+                            endUs = source.durationUs,
+                            crop = null,
+                            rotationDegrees = 0,
+                            muted = false,
+                            outputFile = destinationFile,
+                            targetWidth = size.first,
+                            targetHeight = size.second,
+                            targetBitrate = targetBitrate ?: TARGET_BITRATE,
+                    ),
+                    VideoEditProgressListener { percent -> progressListener?.onProgress(percent, 100) }
+            )
         }
 
         result.fold(
-                onSuccess = { completed ->
-                    if (!completed) {
-                        deleteFile(destinationFile)
-                        return@coroutineScope VideoCompressionResult.CompressionFailed(
-                                IllegalStateException("Transcoder stalled or was cancelled")
-                        )
-                    }
-                },
+                onSuccess = { progressListener?.onProgress(100, 100) },
                 onFailure = { t ->
+                    // The exporter already removed its own partial file.
+                    if (t is InterruptedException) return@coroutineScope VideoCompressionResult.CompressionCancelled
                     Timber.w(t, "Compressing: transcode failed")
-                    deleteFile(destinationFile)
                     return@coroutineScope VideoCompressionResult.CompressionFailed(t)
                 }
         )
 
-        progressListener?.onProgress(100, 100)
-        // Safety net: re-encoding can produce a larger file than the source (already-efficient
-        // inputs). If that happens, discard the re-encode and keep the original.
-        if (sourceSize > 0 && destinationFile.length() >= sourceSize) {
+        // Re-encoding can produce a larger file than the source (already-efficient inputs). Keep
+        // the original then — unless the sender asked for a specific size, which they still get.
+        if (!chosenBySender && sourceSize > 0 && destinationFile.length() >= sourceSize) {
             Timber.d("Compressing: result ${destinationFile.length()} >= source $sourceSize, keeping original")
             deleteFile(destinationFile)
             return@coroutineScope VideoCompressionResult.CompressionNotNeeded
@@ -102,250 +117,24 @@ internal class VideoCompressor @Inject constructor(
         VideoCompressionResult.Success(destinationFile)
     }
 
-    /**
-     * @return true if the transcode ran to completion, false if it was abandoned (stall/cancel).
-     */
-    private fun transcode(
-            sourceUri: Uri,
-            destinationFile: File,
-            progressListener: ProgressListener?,
-            isActive: () -> Boolean,
-    ): Boolean {
-        val videoExtractor = MediaExtractor()
-        var audioExtractor: MediaExtractor? = null
-        var decoder: MediaCodec? = null
-        var encoder: MediaCodec? = null
-        var inputSurface: android.view.Surface? = null
-        var muxer: MediaMuxer? = null
-
-        try {
-            videoExtractor.setDataSource(context, sourceUri, null)
-            val videoTrackIndex = videoExtractor.firstTrackOf("video/") ?: return false
-            videoExtractor.selectTrack(videoTrackIndex)
-            val sourceFormat = videoExtractor.getTrackFormat(videoTrackIndex)
-
-            val width = sourceFormat.getInteger(MediaFormat.KEY_WIDTH)
-            val height = sourceFormat.getInteger(MediaFormat.KEY_HEIGHT)
-            val durationUs = if (sourceFormat.containsKey(MediaFormat.KEY_DURATION)) sourceFormat.getLong(MediaFormat.KEY_DURATION) else 0L
-            val frameRate = if (sourceFormat.containsKey(MediaFormat.KEY_FRAME_RATE)) sourceFormat.getInteger(MediaFormat.KEY_FRAME_RATE) else DEFAULT_FRAME_RATE
-
-            // Encode at the source resolution (changing resolution would need a GL pipeline); the
-            // win comes from capping the bitrate. Never raise it above the target.
-            val targetFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height).apply {
-                setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
-                setInteger(MediaFormat.KEY_BIT_RATE, TARGET_BITRATE.toInt())
-                setInteger(MediaFormat.KEY_FRAME_RATE, frameRate)
-                setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL_SECONDS)
-            }
-
-            encoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC).apply {
-                configure(targetFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-            }
-            inputSurface = encoder.createInputSurface()
-            encoder.start()
-
-            decoder = MediaCodec.createDecoderByType(sourceFormat.getString(MediaFormat.KEY_MIME)!!).apply {
-                configure(sourceFormat, inputSurface, null, 0)
-                start()
-            }
-
-            muxer = MediaMuxer(destinationFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
-            readRotation(sourceUri)?.let { muxer.setOrientationHint(it) }
-
-            // Optional audio passthrough (no re-encode).
-            val audioCopier = AudioPassthrough.create(context, sourceUri, muxer)
-            audioExtractor = audioCopier?.extractor
-
-            val completed = runVideoLoop(
-                    videoExtractor, decoder, encoder, muxer, audioCopier, durationUs, progressListener, isActive
-            )
-            if (completed) audioCopier?.copyAll(isActive)
-            return completed
-        } finally {
-            runCatching { decoder?.stop() }
-            runCatching { decoder?.release() }
-            runCatching { encoder?.stop() }
-            runCatching { encoder?.release() }
-            runCatching { inputSurface?.release() }
-            runCatching { muxer?.stop() }
-            runCatching { muxer?.release() }
-            runCatching { videoExtractor.release() }
-            runCatching { audioExtractor?.release() }
+    /** The size the sender asked for, with a missing axis taken from the source's shape. */
+    private fun requestedSize(source: MediaSourceInfo, width: Int?, height: Int?): Pair<Int, Int>? {
+        val aspect = source.displayWidth.toFloat() / source.displayHeight.coerceAtLeast(1)
+        return when {
+            width != null && height != null -> width to height
+            width != null -> width to (width / aspect).roundToInt().coerceAtLeast(1)
+            height != null -> (height * aspect).roundToInt().coerceAtLeast(1) to height
+            else -> null
         }
     }
 
-    // The indexed getInputBuffer/getOutputBuffer accessors are API 21+; KitKat needs the legacy
-    // ByteBuffer[] arrays, so we deliberately use the deprecated API here.
-    @Suppress("LongParameterList", "DEPRECATION")
-    private fun runVideoLoop(
-            extractor: MediaExtractor,
-            decoder: MediaCodec,
-            encoder: MediaCodec,
-            muxer: MediaMuxer,
-            audioCopier: AudioPassthrough?,
-            durationUs: Long,
-            progressListener: ProgressListener?,
-            isActive: () -> Boolean,
-    ): Boolean {
-        val bufferInfo = MediaCodec.BufferInfo()
-        var decoderInputBuffers = decoder.inputBuffers
-        var encoderOutputBuffers = encoder.outputBuffers
-        var muxerStarted = false
-        var outVideoTrack = -1
-        var inputDone = false
-        var decoderDone = false
-        var encoderDone = false
-        var lastProgressAt = SystemClock.elapsedRealtime()
-        var lastReportedProgress = -1
-
-        while (!encoderDone) {
-            if (!isActive()) return false
-            if (SystemClock.elapsedRealtime() - lastProgressAt > STALL_TIMEOUT_MS) {
-                Timber.w("Compressing: no progress for >${STALL_TIMEOUT_MS}ms, abandoning transcode")
-                return false
-            }
-
-            // 1) Feed the decoder from the extractor.
-            if (!inputDone) {
-                val inIndex = decoder.dequeueInputBuffer(TIMEOUT_US)
-                if (inIndex >= 0) {
-                    val inBuf = decoderInputBuffers[inIndex].apply { clear() }
-                    val sampleSize = extractor.readSampleData(inBuf, 0)
-                    if (sampleSize < 0) {
-                        decoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-                        inputDone = true
-                    } else {
-                        decoder.queueInputBuffer(inIndex, 0, sampleSize, extractor.sampleTime, 0)
-                        extractor.advance()
-                        lastProgressAt = SystemClock.elapsedRealtime()
-                    }
-                }
-            }
-
-            // 2) Drain the decoder onto the encoder input surface.
-            if (!decoderDone) {
-                val outIndex = decoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
-                if (outIndex >= 0) {
-                    val render = bufferInfo.size > 0
-                    decoder.releaseOutputBuffer(outIndex, render)
-                    if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
-                        decoderDone = true
-                        encoder.signalEndOfInputStream()
-                    }
-                }
-            }
-
-            // 3) Drain the encoder to the muxer.
-            val encIndex = encoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
-            when {
-                encIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
-                    encoderOutputBuffers = encoder.outputBuffers
-                }
-                encIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                    outVideoTrack = muxer.addTrack(encoder.outputFormat)
-                    audioCopier?.addTrack(muxer)
-                    muxer.start()
-                    muxerStarted = true
-                }
-                encIndex >= 0 -> {
-                    val encoded = encoderOutputBuffers[encIndex]
-                    if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
-                        bufferInfo.size = 0
-                    }
-                    if (bufferInfo.size > 0 && muxerStarted) {
-                        encoded.position(bufferInfo.offset)
-                        encoded.limit(bufferInfo.offset + bufferInfo.size)
-                        muxer.writeSampleData(outVideoTrack, encoded, bufferInfo)
-                        lastProgressAt = SystemClock.elapsedRealtime()
-                        if (durationUs > 0) {
-                            val progress = (bufferInfo.presentationTimeUs * 100 / durationUs).toInt().coerceIn(0, 99)
-                            if (progress != lastReportedProgress) {
-                                lastReportedProgress = progress
-                                progressListener?.onProgress(progress, 100)
-                            }
-                        }
-                    }
-                    encoder.releaseOutputBuffer(encIndex, false)
-                    if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
-                        encoderDone = true
-                    }
-                }
-            }
-        }
-        return muxerStarted
-    }
-
-    /** Copies a single audio track through to the muxer without re-encoding. */
-    private class AudioPassthrough private constructor(
-            val extractor: MediaExtractor,
-            private val format: MediaFormat,
-            private val muxer: MediaMuxer,
-    ) {
-        private var track = -1
-
-        fun addTrack(muxer: MediaMuxer) {
-            track = muxer.addTrack(format)
-        }
-
-        fun copyAll(isActive: () -> Boolean) {
-            if (track < 0) return
-            val maxSize = if (format.containsKey(MediaFormat.KEY_MAX_INPUT_SIZE)) {
-                format.getInteger(MediaFormat.KEY_MAX_INPUT_SIZE)
-            } else {
-                DEFAULT_AUDIO_BUFFER
-            }
-            val buffer = ByteBuffer.allocate(maxSize)
-            val info = MediaCodec.BufferInfo()
-            while (isActive()) {
-                val size = extractor.readSampleData(buffer, 0)
-                if (size < 0) break
-                info.offset = 0
-                info.size = size
-                info.presentationTimeUs = extractor.sampleTime
-                info.flags = extractor.sampleFlagsCompat()
-                muxer.writeSampleData(track, buffer, info)
-                extractor.advance()
-            }
-        }
-
-        companion object {
-            fun create(context: Context, sourceUri: Uri, muxer: MediaMuxer): AudioPassthrough? {
-                val extractor = MediaExtractor()
-                return try {
-                    extractor.setDataSource(context, sourceUri, null)
-                    val index = extractor.firstTrackOf("audio/")
-                    if (index == null) {
-                        extractor.release()
-                        null
-                    } else {
-                        extractor.selectTrack(index)
-                        AudioPassthrough(extractor, extractor.getTrackFormat(index), muxer)
-                    }
-                } catch (e: Exception) {
-                    Timber.w(e, "Compressing: no audio track to copy")
-                    runCatching { extractor.release() }
-                    null
-                }
-            }
-        }
-    }
-
-    private fun readRotation(sourceUri: Uri): Int? {
-        val retriever = MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(context, sourceUri)
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()
-        } catch (e: Exception) {
-            null
-        } finally {
-            retriever.release()
-        }
-    }
-
-    private suspend fun deleteFile(file: File) {
-        withContext(Dispatchers.IO) {
-            file.delete()
-        }
+    private fun boundedSize(source: MediaSourceInfo): Pair<Int, Int> {
+        val width = source.displayWidth
+        val height = source.displayHeight
+        val shortest = min(width, height)
+        if (shortest <= TARGET_SHORTEST_SIDE) return width to height
+        val scale = TARGET_SHORTEST_SIDE.toFloat() / shortest
+        return (width * scale).roundToInt() to (height * scale).roundToInt()
     }
 
     private fun isAlreadyWithinTargets(sourceUri: Uri, sourceSize: Long): Boolean {
@@ -356,44 +145,22 @@ internal class VideoCompressor @Inject constructor(
             val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: return false
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: return false
             val shortestSide = minOf(width, height)
-            val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
-            val estimatedBitrate = if (durationMs > 0 && sourceSize > 0) (sourceSize * 8_000 / durationMs) else Long.MAX_VALUE
-            shortestSide <= TARGET_SHORTEST_SIDE && estimatedBitrate <= TARGET_BITRATE
-        } catch (e: Exception) {
-            Timber.w(e, "Compressing: failed to inspect source, will transcode")
+            val bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toLongOrNull() ?: return false
+            shortestSide <= TARGET_SHORTEST_SIDE && bitrate <= TARGET_BITRATE
+        } catch (t: Throwable) {
             false
         } finally {
-            retriever.release()
+            runCatching { retriever.release() }
         }
+    }
+
+    private fun deleteFile(file: File) {
+        runCatching { file.delete() }
     }
 
     companion object {
         private const val TARGET_SHORTEST_SIDE = 720
-        private const val TARGET_BITRATE = 2_000_000L
+        private const val TARGET_BITRATE = 2_000_000
         private const val SKIP_TRANSCODE_BYTES = 4L * 1024 * 1024
-        private const val DEFAULT_FRAME_RATE = 30
-        private const val I_FRAME_INTERVAL_SECONDS = 1
-        private const val TIMEOUT_US = 10_000L
-        private const val STALL_TIMEOUT_MS = 15_000L
-        private const val DEFAULT_AUDIO_BUFFER = 256 * 1024
     }
-}
-
-@SuppressLint("NewApi")
-private fun MediaExtractor.firstTrackOf(mimePrefix: String): Int? {
-    for (i in 0 until trackCount) {
-        val mime = getTrackFormat(i).getString(MediaFormat.KEY_MIME).orEmpty()
-        if (mime.startsWith(mimePrefix)) return i
-    }
-    return null
-}
-
-@SuppressLint("NewApi")
-private fun MediaExtractor.sampleFlagsCompat(): Int {
-    var flags = 0
-    if (sampleFlags and MediaExtractor.SAMPLE_FLAG_SYNC != 0) {
-        @Suppress("DEPRECATION")
-        flags = flags or MediaCodec.BUFFER_FLAG_SYNC_FRAME
-    }
-    return flags
 }

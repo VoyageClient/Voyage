@@ -36,9 +36,13 @@ class MediaCacheTest {
     @get:Rule
     val cacheDir = TemporaryFolder()
 
+    @get:Rule
+    val filesDir = TemporaryFolder()
+
     private val context = mockk<Context> {
-        // Answered lazily: the rule only creates the folder once the test starts.
+        // Answered lazily: the rules only create the folders once the test starts.
         every { cacheDir } answers { this@MediaCacheTest.cacheDir.root }
+        every { filesDir } answers { this@MediaCacheTest.filesDir.root }
     }
 
     private val mediaCache = MediaCache(context)
@@ -55,11 +59,27 @@ class MediaCacheTest {
 
     @Test
     fun `clearing the media cache drops every cached thumbnail and every downloaded file`() = runTest {
+        val edited = MediaCache.editedMediaDirectory(context).also { it.mkdirs() }
+        edited.resolve("an-edited-attachment").writeBytes(ByteArray(size = 128))
+
         mediaCache.clear(session)
 
         verify { glide.clearMemory() }
         verify { glide.clearDiskCache() }
         verify { fileService.clearCache() }
+        // Exports are full-size copies that nothing else reclaims.
+        edited.exists() shouldBeEqualTo false
+    }
+
+    @Test
+    fun `an edited attachment counts towards the reported size`() = runTest {
+        every { fileService.getCacheSize() } returns 0L
+        val edited = MediaCache.editedMediaDirectory(context).also { it.mkdirs() }
+        val sizeWithoutEdits = mediaCache.size(session)
+
+        edited.resolve("an-edited-attachment").writeBytes(ByteArray(size = 256))
+
+        mediaCache.size(session) shouldBeEqualTo sizeWithoutEdits + 256
     }
 
     @Test

@@ -11,43 +11,22 @@
         android:id="@+id/videoEditorSurfaceContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@id/videoEditorTimeline"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/videoEditorAppBar">
 
-        <!-- Sized to the crop window; the video is transformed underneath and clipped to it. -->
-        <FrameLayout
-            android:id="@+id/videoEditorCropWindow"
+        <!-- Fills the container; the crop overlay hands it the transform to draw the frame with. -->
+        <TextureView
+            android:id="@+id/videoEditorTextureView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center">
+            android:layout_height="match_parent" />
 
-            <TextureView
-                android:id="@+id/videoEditorTextureView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </FrameLayout>
-
-        <im.vector.app.features.attachments.editor.video.VideoCropFrameView
-            android:id="@+id/videoEditorCropFrame"
+        <im.vector.app.features.attachments.editor.video.VideoCropOverlayView
+            android:id="@+id/videoEditorCropOverlay"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            tools:visibility="visible" />
-
-        <ImageView
-            android:id="@+id/videoEditorPlayBadge"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/video_editor_play"
-            android:visibility="gone"
-            app:srcCompat="@drawable/ic_material_play_circle"
-            tools:ignore="MissingPrefix"
-            tools:visibility="visible" />
+            android:layout_height="match_parent" />
 
     </FrameLayout>
 
@@ -64,6 +43,7 @@
         android:id="@+id/videoEditorDurationLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="24dp"
         android:layout_marginStart="24dp"
         android:textColor="@android:color/white"
         android:textSize="14sp"
@@ -122,6 +102,7 @@
             android:max="100" />
 
         <TextView
+            android:id="@+id/videoEditorExportLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"

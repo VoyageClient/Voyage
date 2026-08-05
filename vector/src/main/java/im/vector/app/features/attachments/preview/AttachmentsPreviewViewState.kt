@@ -11,15 +11,22 @@ import com.airbnb.mvrx.MavericksState
 import im.vector.app.features.attachments.editor.AttachmentEdits
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 
-/** What an edited attachment was made from, so the editor can reopen against the original. */
-data class EditRecord(val originalUri: String, val edits: AttachmentEdits)
+/**
+ * What an edited attachment was made from, so the editor can reopen against the original — and so
+ * undoing every edit can put the original attachment back, metadata and all.
+ */
+data class EditRecord(val original: ContentAttachmentData, val edits: AttachmentEdits) {
+    val originalUri: String get() = original.queryUri
+}
 
 data class AttachmentsPreviewViewState(
         val attachments: List<ContentAttachmentData>,
         val currentAttachmentIndex: Int = 0,
         val sendImagesWithOriginalSize: Boolean = false,
         /** Keyed by the attachment's current queryUri. */
-        val editRecords: Map<String, EditRecord> = emptyMap()
+        val editRecords: Map<String, EditRecord> = emptyMap(),
+        /** Keyed by [stableIdOf], so editing an attachment does not lose its compression choice. */
+        val compressionSettings: Map<String, CompressionSettings> = emptyMap()
 ) : MavericksState {
 
     constructor(args: AttachmentsPreviewArgs) : this(attachments = args.attachments)

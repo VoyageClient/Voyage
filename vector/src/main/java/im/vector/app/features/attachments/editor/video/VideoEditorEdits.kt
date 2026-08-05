@@ -24,8 +24,10 @@ data class VideoEditorEdits(
         val muted: Boolean = false,
         /** Normalised region of the displayed frame to keep, or null for all of it. */
         val crop: RectF? = null,
+        val speed: PlaybackSpeed = PlaybackSpeed(),
 ) : AttachmentEdits {
 
     override val hasChanges: Boolean
-        get() = rotationDegrees != 0 || muted || crop != null || (durationUs > 0 && (startUs > 0 || endUs < durationUs))
+        get() = rotationDegrees != 0 || muted || crop != null || !speed.isDefault ||
+                (durationUs > 0 && (startUs > 0 || endUs < durationUs))
 }

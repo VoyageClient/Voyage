@@ -7,22 +7,18 @@
 
 package im.vector.lib.mediatranscode.gl
 
-import android.graphics.RectF
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import androidx.annotation.RequiresApi
 
 /**
- * Draws the decoder's external-OES texture onto a full-viewport quad, taking only [crop] and
- * turning it by [rotationDegrees]. Both live in the *texture coordinates* of the quad corners, so
- * the geometry never changes and the decoder's own transform matrix can still be applied on top.
- *
- * @param crop normalised rectangle of the rotated frame to keep, y running downwards.
+ * Draws the decoder's external-OES texture onto a full-viewport quad. Crop and rotation arrive
+ * already folded into [textureCoords] (see [im.vector.lib.mediatranscode.CropGeometry]), so the
+ * geometry never changes and the decoder's own transform matrix still composes on top.
  */
 @RequiresApi(17)
 internal class CropTextureRenderer(
-        private val crop: RectF,
-        private val rotationDegrees: Int,
+        textureCoords: FloatArray,
         private val outputWidth: Int,
         private val outputHeight: Int,
 ) {
@@ -44,7 +40,7 @@ internal class CropTextureRenderer(
             )
     )
 
-    private val textureCoords = GlUtil.floatBuffer(buildTextureCoords())
+    private val textureCoordBuffer = GlUtil.floatBuffer(textureCoords)
 
     fun setup() {
         program = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER)
@@ -72,7 +68,7 @@ internal class CropTextureRenderer(
 
         GLES20.glVertexAttribPointer(positionHandle, POSITION_COMPONENTS, GLES20.GL_FLOAT, false, 0, positions)
         GLES20.glEnableVertexAttribArray(positionHandle)
-        GLES20.glVertexAttribPointer(textureCoordHandle, TEXTURE_COMPONENTS, GLES20.GL_FLOAT, false, 0, textureCoords)
+        GLES20.glVertexAttribPointer(textureCoordHandle, TEXTURE_COMPONENTS, GLES20.GL_FLOAT, false, 0, textureCoordBuffer)
         GLES20.glEnableVertexAttribArray(textureCoordHandle)
         GLES20.glUniformMatrix4fv(stMatrixHandle, 1, false, stMatrix, 0)
 
@@ -92,40 +88,6 @@ internal class CropTextureRenderer(
         if (program != 0) {
             GLES20.glDeleteProgram(program)
             program = 0
-        }
-    }
-
-    /**
-     * The quad corners, in the same order as [positions], expressed as coordinates of the source
-     * texture. Rotation is inverted here rather than baked into a matrix so that the output frame
-     * is already the right way up and the mp4 needs no orientation hint.
-     */
-    private fun buildTextureCoords(): FloatArray {
-        // Quad corners as fractions of the crop rectangle, y downwards.
-        val corners = arrayOf(
-                0f to 1f,
-                1f to 1f,
-                0f to 0f,
-                1f to 0f,
-        )
-        val result = FloatArray(corners.size * TEXTURE_COMPONENTS)
-        corners.forEachIndexed { index, (fx, fy) ->
-            val u = crop.left + fx * crop.width()
-            val v = crop.top + fy * crop.height()
-            val (p, q) = unrotate(u, v)
-            result[index * TEXTURE_COMPONENTS] = p
-            result[index * TEXTURE_COMPONENTS + 1] = 1f - q
-        }
-        return result
-    }
-
-    /** Maps a point of the displayed (rotated) frame back onto the frame the decoder emits. */
-    private fun unrotate(u: Float, v: Float): Pair<Float, Float> {
-        return when (((rotationDegrees % 360) + 360) % 360) {
-            90 -> v to 1f - u
-            180 -> 1f - u to 1f - v
-            270 -> 1f - v to u
-            else -> u to v
         }
     }
 

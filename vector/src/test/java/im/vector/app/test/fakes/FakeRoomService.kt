@@ -12,13 +12,18 @@ import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagedList
 import io.mockk.every
 import io.mockk.mockk
+import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
 
+/**
+ * The paged views live on [RoomPagingService] rather than [RoomService], which stays plain-JVM, and
+ * callers reach them by casting. The fake implements both so that cast still lands.
+ */
 class FakeRoomService(
         private val fakeRoom: FakeRoom = FakeRoom()
-) : RoomService by mockk() {
+) : RoomService by mockk(), RoomPagingService by mockk() {
 
     override fun getRoom(roomId: String) = fakeRoom
 

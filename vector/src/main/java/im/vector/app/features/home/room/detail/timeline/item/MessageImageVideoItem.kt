@@ -8,10 +8,13 @@
 package im.vector.app.features.home.room.detail.timeline.item
 
 import android.graphics.Outline
+import android.graphics.RectF
+import android.text.format.DateUtils
 import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
+import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
@@ -22,22 +25,22 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
-import im.vector.app.core.ui.PerformanceMode
+import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.ui.PerformanceMode
+import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.core.ui.views.RoundedCornerImageView
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
-import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.noties.markwon.MarkwonPlugin
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import im.vector.app.core.extensions.backgroundCompat
 
 @EpoxyModelClass
 abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Holder>() {
@@ -47,6 +50,10 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute
     var playable: Boolean = false
+
+    /** Length of a video message, in milliseconds; zero for anything else. */
+    @EpoxyAttribute
+    var mediaDurationMs: Int = 0
 
     @EpoxyAttribute
     var mode = ImageContentRenderer.Mode.THUMBNAIL
@@ -173,7 +180,12 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         } else {
             holder.progressLayout.isVisible = false
         }
-        holder.imageView.onClick(clickListener)
+        holder.imageView.onClick(clickListener?.let { listener ->
+            { view: View ->
+                holder.hideDurationForViewer()
+                listener.invoke(view)
+            }
+        })
         holder.imageView.setOnLongClickListener(attributes.itemLongClickListener)
         ViewCompat.setTransitionName(holder.imageView, "imagePreview_${id()}")
         holder.mediaContentView.onClick(attributes.itemClickListener)
@@ -192,6 +204,16 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         )
     }
 
+    override fun onViewAttachedToWindow(holder: Holder) {
+        super.onViewAttachedToWindow(holder)
+        holder.startAligningDuration()
+    }
+
+    override fun onViewDetachedFromWindow(holder: Holder) {
+        holder.stopAligningDuration()
+        super.onViewDetachedFromWindow(holder)
+    }
+
     private fun bindPlayButton(holder: Holder, isImageMessage: Boolean, hidden: Boolean) {
         holder.playContentView.visibility = when {
             hidden -> View.GONE
@@ -199,9 +221,16 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             playable -> View.VISIBLE
             else -> View.GONE
         }
+        // Only videos carry one; an animated image is playable but has no length worth showing.
+        val showDuration = !hidden && mediaDurationMs > 0
+        if (showDuration) {
+            holder.durationView.text = DateUtils.formatElapsedTime((mediaDurationMs / 1000).toLong())
+        }
+        holder.showDuration(showDuration)
     }
 
     override fun unbind(holder: Holder) {
+        holder.showDuration(false)
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.stableId)
@@ -249,9 +278,82 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     }
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
+
+        private var durationAligner: ViewTreeObserver.OnPreDrawListener? = null
+        private val drawnThumbnail = RectF()
+        private var wantsDuration = false
+        private var viewerHandover = ViewerHandover.NONE
+
+        fun showDuration(enabled: Boolean) {
+            wantsDuration = enabled
+            viewerHandover = ViewerHandover.NONE
+            if (!enabled) {
+                durationView.isVisible = false
+                durationView.translationX = 0f
+                durationView.translationY = 0f
+            }
+            alignDurationToThumbnail()
+        }
+
+        /**
+         * Registered against the window's observer, which a view only has while attached — removing
+         * it from the detached view's own throwaway observer would silently leave it running.
+         */
+        fun startAligningDuration() {
+            if (durationAligner != null) return
+            durationAligner = ViewTreeObserver.OnPreDrawListener {
+                alignDurationToThumbnail()
+                true
+            }.also { imageView.viewTreeObserver.addOnPreDrawListener(it) }
+        }
+
+        fun stopAligningDuration() {
+            val aligner = durationAligner ?: return
+            durationAligner = null
+            imageView.viewTreeObserver.takeIf { it.isAlive }?.removeOnPreDrawListener(aligner)
+        }
+
+        /** The thumbnail flies into the viewer while the badge stays behind, and would be drawn over. */
+        fun hideDurationForViewer() {
+            if (!wantsDuration) return
+            viewerHandover = ViewerHandover.OPENING
+            durationView.isVisible = false
+        }
+
+        /**
+         * A thumbnail whose shape does not match the video's is letterboxed by FIT_CENTER, so the
+         * badge follows the drawn picture rather than the space reserved for it. Watched every draw
+         * because the thumbnail arrives from Glide long after layout.
+         */
+        private fun alignDurationToThumbnail() {
+            // Only the viewer takes focus off a thumbnail that was just tapped; waiting for it to
+            // come back is what distinguishes that from a bottom sheet opening over the timeline.
+            val focused = imageView.hasWindowFocus()
+            when {
+                viewerHandover == ViewerHandover.OPENING && !focused -> viewerHandover = ViewerHandover.OPEN
+                viewerHandover == ViewerHandover.OPEN && focused -> viewerHandover = ViewerHandover.NONE
+                else -> Unit
+            }
+            durationView.isVisible = wantsDuration && viewerHandover == ViewerHandover.NONE
+            val drawable = imageView.drawable
+            if (drawable == null || drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) return
+            drawnThumbnail.set(0f, 0f, drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat())
+            imageView.imageMatrix.mapRect(drawnThumbnail)
+            // The badge is pinned to the layout's end, which is the left edge under RTL.
+            durationView.translationX = if (ViewCompat.getLayoutDirection(imageView) == ViewCompat.LAYOUT_DIRECTION_RTL) {
+                drawnThumbnail.left.coerceAtLeast(0f)
+            } else {
+                -(imageView.width - drawnThumbnail.right).coerceAtLeast(0f)
+            }
+            durationView.translationY = -(imageView.height - drawnThumbnail.bottom).coerceAtLeast(0f)
+        }
+
+        private enum class ViewerHandover { NONE, OPENING, OPEN }
+
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)
         val imageView by bind<RoundedCornerImageView>(R.id.messageThumbnailView)
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
+        val durationView by bind<AppCompatTextView>(R.id.messageMediaDurationView)
         val mediaHiddenScrim by bind<View>(R.id.messageMediaHiddenScrim)
         val mediaShowButton by bind<AppCompatTextView>(R.id.messageMediaShowButton)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
