@@ -74,11 +74,13 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
                         avatarUrl = timelineEventEntity.senderAvatar
                 ),
                 ownedByThreadChunk = timelineEventEntity.ownedByThreadChunk,
+                // Sort before dedup: a user can have several receipt rows (threads) and distinctBy
+                // keeps the first, so dedup-first would surface an arbitrary row's timestamp.
                 readReceipts = readReceipts
-                        ?.distinctBy {
-                            it.roomMember
-                        }?.sortedByDescending {
+                        ?.sortedByDescending {
                             it.originServerTs
+                        }?.distinctBy {
+                            it.roomMember
                         }.orEmpty()
         )
     }

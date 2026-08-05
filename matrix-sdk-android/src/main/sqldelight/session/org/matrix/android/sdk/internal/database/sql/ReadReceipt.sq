@@ -48,6 +48,28 @@ upsertReceipt:
 INSERT OR REPLACE INTO read_receipt(primary_key, event_id, room_id, user_id, thread_id, origin_server_ts)
 VALUES (?, ?, ?, ?, ?, ?);
 
+-- Legacy rows: receipts used to be keyed by the raw thread_id, so an unthreaded receipt (NULL) and the
+-- synthesized main-timeline one landed under different primary keys and could never supersede each other.
+-- The three statements below collapse each (room, user) pair onto the 'main' key, keeping the newer ts.
+deleteSupersededUnthreadedReceipts:
+DELETE FROM read_receipt WHERE thread_id IS NULL AND EXISTS (
+    SELECT 1 FROM read_receipt main_row WHERE main_row.thread_id = 'main'
+        AND main_row.room_id = read_receipt.room_id
+        AND main_row.user_id = read_receipt.user_id
+        AND main_row.origin_server_ts >= read_receipt.origin_server_ts
+);
+
+deleteMainSupersededByUnthreadedReceipts:
+DELETE FROM read_receipt WHERE thread_id = 'main' AND EXISTS (
+    SELECT 1 FROM read_receipt unthreaded_row WHERE unthreaded_row.thread_id IS NULL
+        AND unthreaded_row.room_id = read_receipt.room_id
+        AND unthreaded_row.user_id = read_receipt.user_id
+);
+
+rekeyUnthreadedReceiptsToMain:
+UPDATE read_receipt SET thread_id = 'main', primary_key = room_id || '_' || user_id || '_main'
+WHERE thread_id IS NULL;
+
 deleteReceiptsForEvent:
 DELETE FROM read_receipt WHERE event_id = ?;
 
