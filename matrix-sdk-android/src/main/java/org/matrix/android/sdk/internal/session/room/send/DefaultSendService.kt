@@ -28,7 +28,6 @@ import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.model.message.Mentions
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
@@ -50,6 +49,7 @@ import org.matrix.android.sdk.api.util.NoOpCancellable
 import org.matrix.android.sdk.api.util.TextContent
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.di.SessionId
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
 import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
@@ -65,6 +65,7 @@ internal class DefaultSendService @AssistedInject constructor(
         @Assisted private val roomId: String,
         private val backgroundTaskScheduler: BackgroundTaskScheduler,
         @SessionId private val sessionId: String,
+        @UserId private val userId: String,
         private val localEchoEventFactory: LocalEchoEventFactory,
         private val cryptoStore: IMXCommonCryptoStore,
         private val taskExecutor: TaskExecutor,
@@ -331,7 +332,12 @@ internal class DefaultSendService @AssistedInject constructor(
             else -> null
         }
         val rootThreadForFactory = if (effectiveRelatesTo != null) null else rootThreadId
-        val mentions = replyToEvent?.root?.senderId?.let { Mentions(userIds = listOf(it)) }
+        val mentions = IntentionalMentions.build(
+                body = captionText?.toString(),
+                formattedBody = captionFormattedText,
+                extraUserIds = listOfNotNull(replyToEvent?.root?.senderId),
+                selfUserId = userId,
+        )
 
         // Create local echo for each room
         val allLocalEchoes = allRoomIds.map {

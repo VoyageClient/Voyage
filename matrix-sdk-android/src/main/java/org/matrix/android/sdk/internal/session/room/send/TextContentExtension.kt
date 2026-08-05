@@ -26,12 +26,13 @@ import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromHtmlRep
 import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromReply
 import org.matrix.android.sdk.api.util.TextContent
 
-internal fun TextContent.toMessageTextContent(msgType: String = MessageType.MSGTYPE_TEXT): MessageTextContent {
+internal fun TextContent.toMessageTextContent(msgType: String = MessageType.MSGTYPE_TEXT, selfUserId: String? = null): MessageTextContent {
     return MessageTextContent(
             msgType = msgType,
             format = MessageFormat.FORMAT_MATRIX_HTML.takeIf { formattedText != null },
             body = text,
-            formattedBody = formattedText
+            formattedBody = formattedText,
+            mentions = IntentionalMentions.build(text, formattedText, selfUserId = selfUserId),
     )
 }
 
@@ -43,10 +44,12 @@ internal fun TextContent.toMessageTextContent(msgType: String = MessageType.MSGT
 internal fun TextContent.toThreadTextContent(
         rootThreadEventId: String,
         latestThreadEventId: String,
-        msgType: String = MessageType.MSGTYPE_TEXT
+        msgType: String = MessageType.MSGTYPE_TEXT,
+        selfUserId: String? = null,
 ): MessageTextContent {
     return MessageTextContent(
             msgType = msgType,
+            mentions = IntentionalMentions.build(text, formattedText, selfUserId = selfUserId),
             format = MessageFormat.FORMAT_MATRIX_HTML.takeIf { formattedText != null },
             body = text,
             relatesTo = RelationDefaultContent(

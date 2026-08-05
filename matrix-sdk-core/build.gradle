@@ -429,6 +429,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/send/MarkdownParser.kt',
         'org/matrix/android/sdk/internal/session/room/CommonmarkParserQualifiers.kt',
         'org/matrix/android/sdk/internal/session/room/send/TextContentExtension.kt',
+        'org/matrix/android/sdk/internal/session/room/send/IntentionalMentions.kt',
         'org/matrix/android/sdk/internal/session/room/state/SafePowerLevelContent.kt',
         'org/matrix/android/sdk/internal/session/room/tags/TagBody.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/EventContextResponse.kt',
