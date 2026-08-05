@@ -13,6 +13,7 @@ import android.util.AttributeSet
 import android.widget.LinearLayout
 import androidx.core.text.HtmlCompat
 import im.vector.app.R
+import im.vector.app.core.linkify.stripLinkUnderlines
 import im.vector.app.databinding.ViewUserIdentityWarningBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.UserIdentityChangePrompt
@@ -55,7 +56,7 @@ class UserIdentityWarningView @JvmOverloads constructor(
         } else {
             resources.getString(CommonStrings.identity_reset_banner, displayName, prompt.userId)
         }
-        views.userIdentityWarningText.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
+        views.userIdentityWarningText.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY).stripLinkUnderlines()
         val textColorAttr = if (prompt.critical) {
             com.google.android.material.R.attr.colorError
         } else {

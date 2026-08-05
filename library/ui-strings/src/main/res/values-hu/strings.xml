@@ -756,8 +756,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="message_add_reaction">Reakció hozzáadása</string>
     <string name="message_view_reaction">Reakciók megjelenítése</string>
     <string name="reactions">Reakciók</string>
-    <string name="event_redacted_by_user_reason">Az eseményt a felhasználó törölte</string>
-    <string name="event_redacted_by_admin_reason">Az eseményt a szoba adminisztrátora moderálta</string>
     <string name="malformed_message">Hibás esemény, nem lehet megjeleníteni</string>
     <string name="create_new_room">Új szoba készítése</string>
     <string name="error_no_network">Nincs hálózat. Ellenőrizd az Internet kapcsolatodat.</string>
@@ -1204,8 +1202,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
         <item quantity="other">Képek küldése eredeti méretben</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Ok megadása</string>
-    <string name="event_redacted_by_user_reason_with_reason">Az eseményt a felhasználó törölte, ezért: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Az eseményt a szoba adminisztrátora moderálta, ezért: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">A kulcsok már frissek!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Kulcs kérések</string>

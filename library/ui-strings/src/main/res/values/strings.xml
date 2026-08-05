@@ -1598,9 +1598,6 @@
     <string name="message_view_reaction">View Reactions</string>
     <string name="reactions">Reactions</string>
 
-    <string name="event_redacted_by_user_reason">Event deleted by user</string>
-    <string name="event_redacted_by_admin_reason">Event moderated by room admin</string>
-
     <string name="malformed_message">Malformed event, cannot display</string>
     <string name="create_new_room">Create New Room</string>
     <string name="create_new_space">Create New Space</string>
@@ -2402,9 +2399,6 @@
     <string name="send_images_and_video_with_original_size">Send media with the original size</string>
 
     <string name="delete_event_dialog_reason_checkbox">Include a reason</string>
-
-    <string name="event_redacted_by_user_reason_with_reason">Event deleted by user, reason: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Event moderated by room admin, reason: %1$s</string>
 
     <string name="keys_backup_restore_success_title_already_up_to_date">Keys are already up to date!</string>
 

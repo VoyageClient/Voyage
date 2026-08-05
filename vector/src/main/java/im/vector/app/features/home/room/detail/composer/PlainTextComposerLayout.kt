@@ -25,7 +25,9 @@ import androidx.core.view.isVisible
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setTextIfDifferent
 import im.vector.app.core.extensions.showKeyboard
 import im.vector.app.core.glide.GlideApp
@@ -406,6 +408,11 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             im.vector.lib.ui.styles.R.attr.vctr_message_text_color
         }
         views.composerRelatedMessageContent.setTextColor(ThemeUtils.getColor(context, contentColorAttr))
+        if (event.root.isRedacted()) {
+            views.composerRelatedMessageContent.setRedactedPreviewStyle()
+        } else {
+            views.composerRelatedMessageContent.clearDrawables()
+        }
 
         // Image Event
         relatedMessageEvent = event

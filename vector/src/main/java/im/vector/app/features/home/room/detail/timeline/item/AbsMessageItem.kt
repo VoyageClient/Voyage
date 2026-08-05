@@ -34,6 +34,7 @@ import im.vector.app.features.home.room.detail.timeline.reply.PreviewReplyUiStat
 import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetriever
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
+import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -137,6 +138,17 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
                 holder.threadSummaryConstraintLayout.isVisible = threadDetails.isRootThread
                 holder.threadSummaryCounterTextView.text = "${threadDetails.numberOfThreads}"
                 holder.threadSummaryInfoTextView.text = (attributes.threadSummaryFormatted ?: attributes.decryptionErrorMessage)?.prepareForDisplay()
+                // Colour only: this one-line chip already sits behind a counter and avatar, so the trash icon would crowd it.
+                holder.threadSummaryInfoTextView.setTextColor(
+                        ThemeUtils.getColor(
+                                holder.view.context,
+                                if (attributes.threadSummaryRedacted) {
+                                    im.vector.lib.ui.styles.R.attr.vctr_content_tertiary
+                                } else {
+                                    im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+                                }
+                        )
+                )
 
                 val userId = threadDetails.threadSummarySenderInfo?.userId ?: return@let
                 val displayName = threadDetails.threadSummarySenderInfo?.displayName
@@ -252,6 +264,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             val emojiTypeFace: Typeface? = null,
             val decryptionErrorMessage: String? = null,
             val threadSummaryFormatted: String? = null,
+            val threadSummaryRedacted: Boolean = false,
             val threadDetails: ThreadDetails? = null,
             val areThreadMessagesEnabled: Boolean = false,
             val autoplayAnimatedImages: Boolean = false,

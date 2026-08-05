@@ -149,7 +149,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:autoLink="web"
             android:maxLines="4"
             android:textAlignment="textStart"
             android:textColor="?vctr_content_secondary"

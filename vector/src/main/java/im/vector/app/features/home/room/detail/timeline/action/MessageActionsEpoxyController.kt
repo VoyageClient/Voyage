@@ -132,6 +132,7 @@ class MessageActionsEpoxyController @Inject constructor(
             userClicked { host.listener?.didSelectMenuAction(EventSharedAction.OpenUserProfile(state.informationData.senderId)) }
             bindingOptions(bindingOptions)
             body(body.prepareForDisplay().toEpoxyCharSequence())
+            redacted(state.timelineEvent()?.root?.isRedacted() == true)
             bodyDetails(host.eventDetailsFormatter.format(state.timelineEvent()?.root)?.toEpoxyCharSequence())
             time(formattedDate)
             locationUiData(locationUiData)

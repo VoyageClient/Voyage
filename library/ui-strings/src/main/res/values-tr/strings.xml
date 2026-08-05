@@ -648,8 +648,6 @@
     <string name="message_add_reaction">Bir Tepki Ekle</string>
     <string name="message_view_reaction">Tekpileri Görüntüle</string>
     <string name="reactions">Tepkiler</string>
-    <string name="event_redacted_by_user_reason">Etkinlik kullanıcı tarafından silindi</string>
-    <string name="event_redacted_by_admin_reason">Etkinlik oda yöneticisi tarafından yönetildi</string>
     <string name="malformed_message">Hatalı etkinlik, görüntülenemiyor</string>
     <string name="create_new_room">Yeni Oda Oluştur</string>
     <string name="error_no_network">Internet yok. Lütfen internet bağlantını kontrol et.</string>

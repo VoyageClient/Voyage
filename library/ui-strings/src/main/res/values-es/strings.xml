@@ -816,8 +816,6 @@
     <string name="message_add_reaction">Añadir reacción</string>
     <string name="message_view_reaction">Ver reacciones</string>
     <string name="reactions">Reacciones</string>
-    <string name="event_redacted_by_user_reason">Evento borrado por el usuario</string>
-    <string name="event_redacted_by_admin_reason">Evento moderado por el administrador de la sala</string>
     <string name="malformed_message">Evento con error, no se puede mostrar</string>
     <string name="create_new_room">Crear sala</string>
     <string name="error_no_network">No hay red, por favor comprueba tu conexión a internet.</string>
@@ -1425,8 +1423,6 @@
         <item quantity="one">Enviar imagen con el tamaño original</item>
         <item quantity="other">Envía imágenes con el tamaño original</item>
     </plurals>
-    <string name="event_redacted_by_user_reason_with_reason">Evento eliminado por el usuario, motivo: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Evento moderado por el administrador de la sala, motivo: %1$s</string>
     <string name="settings_key_requests">Solicitudes clave</string>
     <string name="e2e_use_keybackup">Desbloquear el historial de mensajes cifrados</string>
     <string name="verify_new_session_notice">Utilice esta sesión para verificar su nuevo, otorgándole acceso a mensajes cifrados.</string>

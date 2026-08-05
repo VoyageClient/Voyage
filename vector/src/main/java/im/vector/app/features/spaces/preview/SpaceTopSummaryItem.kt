@@ -14,6 +14,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 
 @EpoxyModelClass
@@ -25,9 +26,12 @@ abstract class SpaceTopSummaryItem : VectorEpoxyModel<SpaceTopSummaryItem.Holder
     @EpoxyAttribute
     lateinit var formattedMemberCount: String
 
+    private val topicMovementMethod by lazy { createLinkMovementMethod(null) }
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.spaceTopicText.setTextOrHide(topic?.formatTopic(null))
+        holder.spaceTopicText.movementMethod = topicMovementMethod
         holder.memberCountText.text = formattedMemberCount
     }
 

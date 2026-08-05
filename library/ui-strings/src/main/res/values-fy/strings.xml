@@ -172,7 +172,6 @@
     <string name="error_no_network">Gjin netwurk. Kontrolearje jo ynternetferbining.</string>
     <string name="create_new_room">Nije keamer meitsje</string>
     <string name="malformed_message">Net krekt foarme evenemint, kin net toand wurde</string>
-    <string name="event_redacted_by_user_reason">Barren troch brûker fuortsmiten</string>
     <string name="reactions">Reaksjes</string>
     <string name="create_room_public_description">Elkenien kin dizze keamer binnen gean</string>
     <string name="create_room_public_title">Iepenbier</string>

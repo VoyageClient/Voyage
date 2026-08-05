@@ -59,6 +59,7 @@ class MessageItemAttributesFactory @Inject constructor(
                 emojiTypeFace = emojiCompatFontProvider.typeface,
                 decryptionErrorMessage = stringProvider.getString(CommonStrings.encrypted_message),
                 threadSummaryFormatted = displayableEventFormatter.formatThreadSummary(threadDetails?.threadSummaryLatestEvent).toString(),
+                threadSummaryRedacted = threadDetails?.threadSummaryLatestEvent?.isRedacted() == true,
                 threadDetails = threadDetails,
                 reactionsSummaryEvents = reactionsSummaryEvents,
                 areThreadMessagesEnabled = preferencesProvider.areThreadMessagesEnabled(),

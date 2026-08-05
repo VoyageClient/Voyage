@@ -13,6 +13,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import im.vector.app.core.linkify.stripLinkUnderlines
 import im.vector.app.features.discovery.ServerAndPolicies
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.link
@@ -60,7 +61,7 @@ fun Context.showIdentityServerConsentDialog(
     }
     MaterialAlertDialogBuilder(this)
             .setTitle(getString(CommonStrings.identity_server_consent_dialog_title_2, identityServerWithTerms?.serverUrl.orEmpty()))
-            .setMessage(content)
+            .setMessage(content.stripLinkUnderlines())
             .setPositiveButton(CommonStrings.action_agree) { _, _ ->
                 consentCallBack.invoke()
             }

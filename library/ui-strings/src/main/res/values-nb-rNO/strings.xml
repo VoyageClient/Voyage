@@ -692,7 +692,6 @@
     <string name="room_list_catchup_empty_body">Du har ikke flere uleste meldinger</string>
     <string name="action_agree">Godta</string>
     <string name="message_view_reaction">Se reaksjoner</string>
-    <string name="event_redacted_by_user_reason">Arrangement slettet av bruker</string>
     <string name="error_no_network">Ingen nettverk. Kontroller Internett-tilkoblingen din.</string>
     <string name="change_room_directory_network">Bytt nettverk</string>
     <string name="room_preview_no_preview">Dette rommet kan ikke forhåndsvises</string>

@@ -801,8 +801,6 @@
     <string name="message_add_reaction">新增反應</string>
     <string name="message_view_reaction">檢視反應</string>
     <string name="reactions">反應</string>
-    <string name="event_redacted_by_user_reason">使用者刪除的事件</string>
-    <string name="event_redacted_by_admin_reason">聊天室管理員刪除的事件</string>
     <string name="malformed_message">事件格式錯誤，無法顯示</string>
     <string name="create_new_room">建立新聊天室</string>
     <string name="error_no_network">沒有網路。請確認您的網路連線。</string>
@@ -1244,8 +1242,6 @@
         <item quantity="other">使用原始大小傳送圖片</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">包含理由</string>
-    <string name="event_redacted_by_user_reason_with_reason">使用者刪除事件，理由：%1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">聊天室管理員刪除了事件，理由：%1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">金鑰已為最新！</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">金鑰請求</string>

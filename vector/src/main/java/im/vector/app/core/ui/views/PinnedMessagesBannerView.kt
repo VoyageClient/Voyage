@@ -14,8 +14,10 @@ import android.view.View
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.marginEndCompat
 import im.vector.app.core.extensions.marginStartCompat
+import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewPinnedMessagesBannerBinding
 import im.vector.app.features.themes.ThemeUtils
@@ -37,7 +39,7 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
 
     private val dimensionConverter = DimensionConverter(resources)
     private var eventIds: List<String> = emptyList()
-    private var previewProvider: (String) -> CharSequence = { "" }
+    private var previewProvider: (String) -> Preview = { Preview("", isRedacted = false) }
     private var currentIndex: Int = 0
 
     init {
@@ -48,11 +50,13 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
         views.pinnedMessagesViewAll.setOnClickListener { callback?.onViewAllPinnedMessagesClicked() }
     }
 
+    data class Preview(val text: CharSequence, val isRedacted: Boolean)
+
     /**
      * @param eventIds pinned event ids, in server (oldest first) order
-     * @param previewProvider one-line preview text for a given event id
+     * @param previewProvider one-line preview for a given event id
      */
-    fun render(eventIds: List<String>, previewProvider: (String) -> CharSequence) {
+    fun render(eventIds: List<String>, previewProvider: (String) -> Preview) {
         val pinsChanged = eventIds != this.eventIds
         this.eventIds = eventIds
         this.previewProvider = previewProvider
@@ -101,7 +105,14 @@ class PinnedMessagesBannerView @JvmOverloads constructor(
 
     private fun updateUi() {
         val eventId = eventIds.getOrNull(currentIndex) ?: return
-        views.pinnedMessagesPreview.text = previewProvider(eventId)
+        val preview = previewProvider(eventId)
+        views.pinnedMessagesPreview.text = preview.text
+        if (preview.isRedacted) {
+            views.pinnedMessagesPreview.setRedactedPreviewStyle()
+        } else {
+            views.pinnedMessagesPreview.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+            views.pinnedMessagesPreview.clearDrawables()
+        }
         views.pinnedMessagesLabel.text = if (eventIds.size > 1) {
             resources.getString(CommonStrings.pinned_messages_title) + " · ${currentIndex + 1}/${eventIds.size}"
         } else {

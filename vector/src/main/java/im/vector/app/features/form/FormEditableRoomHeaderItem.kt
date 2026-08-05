@@ -46,6 +46,10 @@ abstract class FormEditableRoomHeaderItem : VectorEpoxyModel<FormEditableRoomHea
     @EpoxyAttribute
     var avatarEnabled: Boolean = true
 
+    // Whether the room has an m.room.avatar to delete — the rendered avatar may be a DM fallback, which is not deletable.
+    @EpoxyAttribute
+    var hasRoomAvatar: Boolean = false
+
     @EpoxyAttribute
     var bannerMxcUrl: String? = null
 
@@ -95,7 +99,7 @@ abstract class FormEditableRoomHeaderItem : VectorEpoxyModel<FormEditableRoomHea
         }
         val hasAvatar = avatarImageUri != null || matrixItem != null
         bannerRenderer?.applyAvatarStroke(holder.avatarImage, matrixItem, hasAvatar)
-        holder.avatarDelete.isVisible = avatarEnabled && (avatarImageUri != null || matrixItem?.avatarUrl?.isNotEmpty() == true)
+        holder.avatarDelete.isVisible = avatarEnabled && (avatarImageUri != null || hasRoomAvatar)
         holder.avatarDelete.onClick(avatarDeleteListener?.takeIf { avatarEnabled })
     }
 

@@ -1296,8 +1296,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="error_no_network">Tidak ada jaringan. Mohon cek koneksi Internet Anda.</string>
     <string name="create_new_room">Buat Ruangan Baru</string>
     <string name="malformed_message">Peristiwa salah, tidak dapat ditampilkan</string>
-    <string name="event_redacted_by_admin_reason">Peristiwa dihapus oleh admin ruangan</string>
-    <string name="event_redacted_by_user_reason">Peristiwa dihapus oleh pengguna</string>
     <string name="reactions">Reaksi</string>
     <string name="message_view_reaction">Tampilkan Reaksi</string>
     <string name="message_add_reaction">Tambah Reaksi</string>
@@ -1972,8 +1970,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="settings_key_requests">Permintaan Kunci</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Kunci telah mutakhir!</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Peristiwa dimoderasi oleh admin ruangan, alasannya: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">Peristiwa dihapus oleh pengguna, alasannya: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">Sertakan alasannya</string>
     <string name="send_images_and_video_with_original_size">Kirim media dengan ukuran asli</string>
     <plurals name="send_videos_with_original_size">

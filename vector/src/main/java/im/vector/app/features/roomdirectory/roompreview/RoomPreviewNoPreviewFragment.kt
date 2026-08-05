@@ -32,6 +32,7 @@ import im.vector.app.core.utils.styleMatchingText
 import im.vector.app.core.utils.tappableMatchingText
 import im.vector.app.databinding.FragmentRoomPreviewNoPreviewBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.navigation.Navigator
@@ -244,5 +245,6 @@ class RoomPreviewNoPreviewFragment :
         // Screen
         views.roomPreviewNoPreviewName.text = roomName.prepareForDisplay()
         views.roomPreviewNoPreviewTopic.setTextOrHide(topic?.formatTopic(matrixItem?.id))
+        views.roomPreviewNoPreviewTopic.movementMethod = createLinkMovementMethod(null)
     }
 }

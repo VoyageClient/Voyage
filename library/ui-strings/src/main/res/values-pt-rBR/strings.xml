@@ -918,8 +918,6 @@
     <string name="message_add_reaction">Adicionar Reação</string>
     <string name="message_view_reaction">Visualizar Reações</string>
     <string name="reactions">Reações</string>
-    <string name="event_redacted_by_user_reason">Evento deletado por usuária(o)</string>
-    <string name="event_redacted_by_admin_reason">Evento moderado por admin da sala</string>
     <string name="malformed_message">Evento malformado, não dá para exibir</string>
     <string name="create_new_room">Criar Nova Sala</string>
     <string name="error_no_network">Sem rede. Por favor cheque sua conexão de Internet.</string>
@@ -1345,8 +1343,6 @@
         <item quantity="other">Enviar imagens com o tamanho original</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Incluir uma razão</string>
-    <string name="event_redacted_by_user_reason_with_reason">Evento deletado por usuária(o), razão: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Evento moderado por admin de sala, razão: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Chaves já estão atualizadas!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Requisições de Chave</string>

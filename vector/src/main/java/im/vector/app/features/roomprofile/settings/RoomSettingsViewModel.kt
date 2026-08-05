@@ -18,7 +18,10 @@ import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.features.home.resolveRoomBannerUrl
 import im.vector.app.features.settings.VectorPreferences
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -29,10 +32,13 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
+import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomAvatarContent
 import org.matrix.android.sdk.api.session.room.model.RoomGuestAccessContent
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibilityContent
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesContent
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.mapOptional
 import org.matrix.android.sdk.flow.unwrap
@@ -63,6 +69,7 @@ class RoomSettingsViewModel @AssistedInject constructor(
         observeJoinRule()
         observeGuestAccess()
         observeRoomAvatar()
+        observeDirectUserAvatar()
         observeRoomBanner()
         observeState()
 
@@ -191,7 +198,8 @@ class RoomSettingsViewModel @AssistedInject constructor(
     }
 
     /**
-     * We do not want to use the fallback avatar url, which can be the other user avatar, or the current user avatar.
+     * The room's own avatar, read from the state event rather than from the summary's resolved avatar url, so that
+     * editing acts on m.room.avatar only. The DM fallback is tracked separately by [observeDirectUserAvatar].
      */
     private fun observeRoomAvatar() {
         room.flow()
@@ -201,6 +209,32 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 .setOnEach {
                     copy(currentRoomAvatarUrl = it.avatarUrl)
                 }
+    }
+
+    // The peer avatar a DM falls back to when it has no m.room.avatar, so the header can show it and
+    // preview it. Approximates SqlRoomAvatarResolver: the direct member, else the other member of a
+    // two-person room, else (peer already left) whoever left with an avatar.
+    private fun observeDirectUserAvatar() {
+        room.flow().liveRoomSummary().unwrap()
+                .flatMapLatest { summary ->
+                    if (!summary.isDirect) {
+                        flowOf(null)
+                    } else {
+                        room.flow().liveRoomMembers(roomMemberQueryParams { memberships = Membership.all() })
+                                .map { members -> members.resolveDirectUserAvatarUrl(summary.directUserId) }
+                    }
+                }
+                .setOnEach { copy(directUserAvatarUrl = it) }
+    }
+
+    private fun List<RoomMemberSummary>.resolveDirectUserAvatarUrl(directUserId: String?): String? {
+        val active = filter { it.membership.isActive() }
+        val avatarUrl = active.firstOrNull { it.userId == directUserId }?.avatarUrl
+                ?: active.takeIf { it.size == 2 }?.firstOrNull { it.userId != session.myUserId }?.avatarUrl
+                ?: takeIf { active.size <= 1 }
+                        ?.firstOrNull { it.membership == Membership.LEAVE && !it.avatarUrl.isNullOrEmpty() }
+                        ?.avatarUrl
+        return avatarUrl?.takeIf { it.isNotEmpty() }
     }
 
     private fun observeRoomBanner() {

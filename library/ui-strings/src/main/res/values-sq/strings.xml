@@ -815,8 +815,6 @@
     <string name="message_add_reaction">Shtoni Reagim</string>
     <string name="message_view_reaction">Shihni Reagime</string>
     <string name="reactions">Reagime</string>
-    <string name="event_redacted_by_user_reason">Veprimtari e fshirë nga përdorues</string>
-    <string name="event_redacted_by_admin_reason">Veprimtari e moderuar nga përgjegjës dhome</string>
     <string name="malformed_message">Veprimtari e keqformuar, s’mund të shfaqet</string>
     <string name="create_new_room">Krijoni Dhomë të Re</string>
     <string name="error_no_network">S’ka rrjet. Ju lutemi, kontrolloni lidhjen tuaj në Internet.</string>
@@ -1262,8 +1260,6 @@
         <item quantity="other">Dërgoji figurat në madhësinë origjinale</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Përfshini një arsye</string>
-    <string name="event_redacted_by_user_reason_with_reason">Veprimtari e fshirë nga përdorues, arsye: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Veprimtari e moderuar nga përgjegjësi i dhomës, arsye: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Kyçet janë tashmë të përditësuar!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Kërkesa Kyçi</string>

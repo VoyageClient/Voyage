@@ -20,8 +20,7 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.clearDrawables
-import im.vector.app.core.extensions.setLeftDrawable
-import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -54,9 +53,7 @@ abstract class ThreadListItem : VectorEpoxyModel<ThreadListItem.Holder>(R.layout
         holder.dateTextView.text = date
         if (rootMessageDeleted) {
             holder.rootMessageTextView.text = holder.view.context.getString(CommonStrings.event_redacted)
-            holder.rootMessageTextView.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
-            holder.rootMessageTextView.setLeftDrawable(R.drawable.ic_trash_16, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
-            holder.rootMessageTextView.compoundDrawablePadding = DimensionConverter(holder.view.context.resources).dpToPx(10)
+            holder.rootMessageTextView.setRedactedPreviewStyle()
         } else {
             holder.rootMessageTextView.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
             holder.rootMessageTextView.text = rootMessage.prepareForDisplay()

@@ -1111,8 +1111,6 @@
         <item quantity="other">Wyślij obrazów w oryginalnym rozmiarze</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Podaj przyczynę</string>
-    <string name="event_redacted_by_user_reason_with_reason">Wydarzenie usunięte przez użytkownika, przyczyna: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Wydarzenie moderowane przez administratora pokoju, przyczyna: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Klucze są już aktualne!</string>
     <string name="action_decline">Zrezygnuj</string>
     <string name="identity_server_not_defined">Nie korzystasz z serwera tożsamości</string>
@@ -1123,8 +1121,6 @@
     <string name="title_activity_emoji_reaction_picker">Reakcje</string>
     <string name="action_agree">Zgoda</string>
     <string name="message_view_reaction">Zobacz reakcje</string>
-    <string name="event_redacted_by_user_reason">Zdarzenie usunięte przez użytkownika</string>
-    <string name="event_redacted_by_admin_reason">Zdarzenie moderowane przez administratora pokoju</string>
     <string name="settings_general_title">Ogólne</string>
     <string name="settings_push_rules">Zasady push</string>
     <string name="settings_push_gateway_no_pushers">Brak zarejestrowanych bramek push</string>

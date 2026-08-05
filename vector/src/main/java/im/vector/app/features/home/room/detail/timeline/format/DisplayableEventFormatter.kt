@@ -14,21 +14,17 @@ import android.text.style.URLSpan
 import dagger.Lazy
 import im.vector.app.R
 import im.vector.app.core.extensions.getVectorLastMessageContent
-import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
-import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillImageSpan
-import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
-import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -47,11 +43,9 @@ class DisplayableEventFormatter @Inject constructor(
         private val colorProvider: ColorProvider,
         private val drawableProvider: DrawableProvider,
         private val noticeEventFormatter: NoticeEventFormatter,
+        private val reactionFormatter: ReactionFormatter,
         private val htmlRenderer: Lazy<EventHtmlRenderer>,
         private val pgpDecryptor: PgpDecryptor,
-        private val imagePackProvider: Lazy<im.vector.app.features.imagepack.ImagePackProvider>,
-        private val activeSessionHolder: Lazy<im.vector.app.core.di.ActiveSessionHolder>,
-        private val vectorPreferences: im.vector.app.features.settings.VectorPreferences,
         private val pillsPostProcessorFactory: im.vector.app.features.html.PillsPostProcessor.Factory,
         private val textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory,
 ) {
@@ -67,40 +61,8 @@ class DisplayableEventFormatter @Inject constructor(
         pillsPostProcessorFactory.create(roomId) to textRendererFactory.create(roomId)
     }
 
-    /**
-     * Build the "Reacted with …" text for a reaction key. Unicode keys render as the emoji; a custom
-     * emote (`mxc://`) key renders as the inline image (resolved by mxc whether or not it's in a known
-     * pack), falling back to ❓ when the image can't be resolved or — matching the timeline — when media is
-     * hidden for the room and the reaction wasn't sent by us (so it's never fetched).
-     */
-    private fun formatReaction(roomId: String?, key: String, reactionSenderId: String?): CharSequence {
-        if (key.isMxcUrl()) {
-            val session = activeSessionHolder.get().getSafeActiveSession()
-            val addedByMe = reactionSenderId != null && reactionSenderId == session?.myUserId
-            val blockMedia = session == null || (!addedByMe && isMediaHiddenInRoom(roomId, session, vectorPreferences))
-            val rendered = if (!blockMedia) {
-                val shortcode = roomId?.let { id -> imagePackProvider.get().getEmoticons(id).firstOrNull { it.mxcUrl == key } }?.shortcode.orEmpty()
-                val html = "<img data-mx-emoticon src=\"$key\" alt=\":$shortcode:\" title=\"$shortcode\" height=\"32\"/>"
-                htmlRenderer.get().render(html).takeIf { (it as? Spanned)?.getSpans(0, it.length, EmoteImageSpan::class.java)?.isNotEmpty() == true }
-            } else {
-                null
-            }
-            return reactionTemplate(rendered ?: QUESTION_MARK_EMOJI.prepareForDisplay())
-        }
-        return stringProvider.getString(CommonStrings.sent_a_reaction, key).prepareForDisplay()
-    }
-
-    // Insert [display] (which may carry emote image spans) into the "Reacted with: %s" template.
-    private fun reactionTemplate(display: CharSequence): CharSequence {
-        val marker = "\u0001"
-        val template = stringProvider.getString(CommonStrings.sent_a_reaction, marker)
-        val idx = template.indexOf(marker)
-        if (idx < 0) return display
-        return android.text.SpannableStringBuilder()
-                .append(template.subSequence(0, idx))
-                .append(display)
-                .append(template.subSequence(idx + marker.length, template.length))
-    }
+    private fun formatReaction(roomId: String?, key: String, reactionSenderId: String?): CharSequence =
+            reactionFormatter.format(CommonStrings.sent_a_reaction, roomId, key, reactionSenderId)
 
     fun format(timelineEvent: TimelineEvent, isDm: Boolean, appendAuthor: Boolean, unhandledFallback: Boolean = false): CharSequence {
         if (timelineEvent.root.isRedacted()) {
@@ -423,9 +385,5 @@ class DisplayableEventFormatter @Inject constructor(
             append(": ")
             append(emojiBody)
         }
-    }
-
-    companion object {
-        private const val QUESTION_MARK_EMOJI = "❓"
     }
 }

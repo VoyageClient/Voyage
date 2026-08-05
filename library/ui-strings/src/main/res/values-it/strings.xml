@@ -817,8 +817,6 @@
     <string name="message_add_reaction">Aggiungi reazione</string>
     <string name="message_view_reaction">Vedi le reazioni</string>
     <string name="reactions">Reazioni</string>
-    <string name="event_redacted_by_user_reason">Evento eliminato dall\'utente</string>
-    <string name="event_redacted_by_admin_reason">Evento moderato da un admin della stanza</string>
     <string name="malformed_message">Evento malformato, impossibile visualizzarlo</string>
     <string name="create_new_room">Crea nuova stanza</string>
     <string name="error_no_network">Nessuna rete. Controlla la tua connessione internet.</string>
@@ -1261,8 +1259,6 @@
         <item quantity="other">Invia immagini nella dimensione originale</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Includi un motivo</string>
-    <string name="event_redacted_by_user_reason_with_reason">Evento eliminato dall\'utente, motivo: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Evento moderato dll\'Amministratore della stanza, motivo: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Le chiavi sono già aggiornate!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Richieste di chiavi</string>

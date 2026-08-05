@@ -856,8 +856,13 @@ class TimelineFragment :
                 eventIds = pinnedEvents.map { it.eventId },
         ) { eventId ->
             pinnedEvents.firstOrNull { it.eventId == eventId }
-                    ?.let { displayableEventFormatter.format(it, isDm = isDirect, appendAuthor = true) }
-                    ?: ""
+                    ?.let {
+                        PinnedMessagesBannerView.Preview(
+                                text = displayableEventFormatter.format(it, isDm = isDirect, appendAuthor = true),
+                                isRedacted = it.root.isRedacted()
+                        )
+                    }
+                    ?: PinnedMessagesBannerView.Preview("", isRedacted = false)
         }
         // When opening the room directly at a pinned event (e.g. from the pinned list), suggest the
         // next pin from there right away, instead of staying on the newest until the user scrolls.
@@ -2164,6 +2169,9 @@ class TimelineFragment :
                 } else {
                     requireActivity().toast(CommonStrings.error_voice_message_cannot_reply_or_edit)
                 }
+            }
+            is EventSharedAction.JumpToRelation -> {
+                onRepliedToEventClicked(action.sourceEventId, action.targetEventId)
             }
             is EventSharedAction.CopyPermalink -> {
                 val permalink = permalinkFactory.createPermalink(timelineArgs.roomId, action.eventId)

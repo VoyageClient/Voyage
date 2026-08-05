@@ -592,7 +592,6 @@
     <string name="no_message_edits_found">Engar breytingar fundust</string>
     <string name="settings_other_third_party_notices">Aðrar tilkynningar frá utanaðkomandi aðilum</string>
     <string name="error_no_network">Ekkert netkerfi. Athugaðu nettenginguna þína.</string>
-    <string name="event_redacted_by_admin_reason">Atburður undir umsjón stjórnanda spjallrásar</string>
     <string name="keys_backup_settings_delete_backup_button">Eyða öryggisafriti</string>
     <string name="keys_backup_restore_success_title">Öryggisafrit endurheimti %s !</string>
     <string name="keys_backup_recovery_code_empty_error_message">Settu inn endurheimtulykil</string>
@@ -1949,7 +1948,6 @@
     <string name="room_preview_not_found">Þessi spjallrás er ekki aðgengileg í augnablikinu.
 \nPrófaðu aftur síðar, eða spurðu einhvern stjórnanda hvort þú hafir aðgang.</string>
     <string name="malformed_message">Rangt sniðinn atburður, get ekki birt hann</string>
-    <string name="event_redacted_by_user_reason">Atburði eytt af notanda</string>
     <string name="keys_backup_banner_update_line1">Nýjir lyklar fyrir örugg skilaboð</string>
     <string name="analytics_opt_in_content">Hjálpaðu okkur við að greina vandamál og bæta ${app_name} með því að deila nafnlausum gögnum varðandi notkun. Til að skilja hvernig fólk notar saman mörg tæki, munum við útbúa tilviljanakennt auðkenni, sem tækin þín deila.
 \n

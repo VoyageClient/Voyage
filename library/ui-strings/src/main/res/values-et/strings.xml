@@ -460,8 +460,6 @@
     <string name="action_agree">Nõus</string>
     <string name="message_add_reaction">Lisa reaktsioon</string>
     <string name="reactions">Reageerimised</string>
-    <string name="event_redacted_by_user_reason">Kasutaja kustutas sündmuse</string>
-    <string name="event_redacted_by_admin_reason">Jututoa haldur on sündmust modereerinud</string>
     <string name="malformed_message">Vigaselt vormindatud sündmus ja kuvamine pole seetõttu võimalik</string>
     <string name="error_no_network">Võrguühendus puudub. Palun kontrolli oma internetiühendust.</string>
     <string name="action_change">Muuda</string>
@@ -1501,8 +1499,6 @@
         <item quantity="other">Saada pildid algupärases suuruses</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Lisa põhjus</string>
-    <string name="event_redacted_by_user_reason_with_reason">Kasutaja kustutas sündmuse, põhjusena %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Jututoa haldur on sündmust modereerinud, põhjusena %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Krüptovõtmed on juba uuendatud!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Päringud võtmete laadimiseks</string>

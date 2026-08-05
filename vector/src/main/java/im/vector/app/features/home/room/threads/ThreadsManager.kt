@@ -11,6 +11,7 @@ import android.app.Activity
 import android.text.Spanned
 import androidx.annotation.StringRes
 import androidx.core.text.HtmlCompat
+import im.vector.app.core.linkify.stripLinkUnderlines
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
@@ -46,7 +47,7 @@ class ThreadsManager @Inject constructor(
         val learnMoreUrl = stringProvider.getString(im.vector.app.config.R.string.threads_learn_more_url)
         val href = "<a href='$learnMoreUrl'>$learnMore</a>.<br><br>"
         val message = stringProvider.getString(messageId, href)
-        return HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_LEGACY)
+        return HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_LEGACY).stripLinkUnderlines()
     }
 
     fun getBetaEnableThreadsMessage(): Spanned =

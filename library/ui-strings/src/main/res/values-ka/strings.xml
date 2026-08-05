@@ -908,7 +908,6 @@
     <string name="room_list_filter_people">ადამიანები</string>
     <string name="title_activity_emoji_reaction_picker">რეაქციები</string>
     <string name="reactions">რეაქციები</string>
-    <string name="event_redacted_by_admin_reason">ოთახის ადმინისტრატორის მიერ მოდერირებული მოვლენა</string>
     <string name="create_new_room">ახალი ოთახის შექმნა</string>
     <string name="create_new_space">ახალი სივრცის შექმნა</string>
     <string name="error_check_network" tools:ignore="UnusedResources">რაღაც ვერ მოხდა. გთხოვთ, შეამოწმოთ თქვენი ქსელის კავშირი და სცადოთ ხელახლა.</string>
@@ -1004,7 +1003,6 @@
     <string name="editing">რედაქტირება მიმდინარეობს</string>
     <string name="message_add_reaction">რეაქციის დამატება</string>
     <string name="message_view_reaction">რეაქციების ნახვა</string>
-    <string name="event_redacted_by_user_reason">მომხმარებლის მიერ წაშლილი მოვლენა</string>
     <string name="malformed_message">არასწორი მოვლენა, ჩვენება შეუძლებელია</string>
     <string name="error_no_network">ქსელი არაა. გთხოვთ, შეამოწმოთ თქვენი ინტერნეტ კავშირი.</string>
     <string name="please_wait">გთხოვთ, მოიცადოთ…</string>
@@ -1519,7 +1517,6 @@
     <string name="enter_secret_storage_invalid">შეიძლება ვერ იპოვოთ საიდუმლოებები საცავში</string>
     <string name="send_images_and_video_with_original_size">გაგზავნეთ მედია ორიგინალი ზომით</string>
     <string name="delete_event_dialog_reason_checkbox">მოიცავს მიზეზს</string>
-    <string name="event_redacted_by_user_reason_with_reason">მომხმარებელმა წაშალა მოვლენა, მიზეზი: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">გასაღებები უკვე განახლებულია!</string>
     <string name="settings_key_requests">გასაღებების მოთხოვნები</string>
     <string name="settings_export_trail">ექსპორტის აუდიტი</string>
@@ -2044,7 +2041,6 @@
 \n
 \nგაფრთხილდით, შეიძლება გამოიწვიოს გაუთვალისწინებელი ქცევა.</string>
     <string name="share_confirm_room">გსურთ ეს დანართი გაგზავნოთ %1$s\?</string>
-    <string name="event_redacted_by_admin_reason_with_reason">ოთახის ადმინისტრატორმა მოდერაციაში გაუშვა მოვლენა, მიზეზი: %1$s</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_nightly_build_update">მიიღეთ უახლესი ვერსია (შენიშვნა: შესაძლოა გქონდეთ სირთულეები შესვლასთან დაკავშირებით)</string>
     <string name="new_session">ახალი შესვლა. ეს თქვენ იყავით\?</string>

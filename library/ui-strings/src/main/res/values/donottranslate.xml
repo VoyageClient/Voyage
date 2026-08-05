@@ -307,6 +307,9 @@
     <string name="action_redact" translatable="false">Redact</string>
     <string name="message_action_item_redact" translatable="false">Redact…</string>
     <string name="event_redacted" translatable="false">Message redacted</string>
+    <string name="event_redacted_with_reason" translatable="false">Message redacted, reason: %1$s</string>
+    <string name="event_redacted_by_admin" translatable="false">Message redacted by room admin</string>
+    <string name="event_redacted_by_admin_with_reason" translatable="false">Message redacted by room admin, reason: %1$s</string>
     <string name="reaction_redacted" translatable="false">Reaction redacted</string>
     <string name="settings_show_redacted" translatable="false">Show redacted messages</string>
     <string name="settings_show_redacted_summary" translatable="false">Show a placeholder for redacted messages</string>
@@ -602,4 +605,6 @@
     <string name="attachment_compression_source" translatable="false">Original: %1$d × %2$d</string>
     <string name="attachment_compression_reset" translatable="false">Reset</string>
     <string name="attachment_compression_percent" translatable="false">%1$d%%</string>
+
+    <string name="message_action_jump_to_relation" translatable="false">Jump to Relation</string>
 </resources>

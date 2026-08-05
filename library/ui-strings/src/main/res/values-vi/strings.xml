@@ -1722,8 +1722,6 @@
     <string name="create_new_space">Tạo Space mới</string>
     <string name="create_new_room">Tạo phòng mới</string>
     <string name="malformed_message">Sự kiện bị hỏng, không thể hiển thị</string>
-    <string name="event_redacted_by_admin_reason">Sự kiện được vận hành bởi người quản trị phòng</string>
-    <string name="event_redacted_by_user_reason">Sự kiện bị xóa bởi người dùng</string>
     <string name="reactions">Phản ứng</string>
     <string name="message_view_reaction">Xem phản ứng</string>
     <string name="message_add_reaction">Thêm phản ứng</string>
@@ -1856,8 +1854,6 @@
     <string name="settings_key_requests">Yêu cầu chìa khóa</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Chìa khóa đã được cập nhật!</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Sự kiện được kiểm duyệt bởi người quản trị phòng, lý do: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">Sự kiện bị người dùng xóa, lý do: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">Bao gồm một lý do</string>
     <string name="send_images_and_video_with_original_size">Gửi media với kích thước ban đầu</string>
     <string name="share_confirm_room">Bạn có muốn gửi tệp đính kèm này đến %1$s\?</string>

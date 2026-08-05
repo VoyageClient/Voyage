@@ -1097,8 +1097,6 @@
     <string name="error_no_network">אין רשת. אנא בדוק את חיבור האינטרנט שלך.</string>
     <string name="create_new_room">צור חדר חדש</string>
     <string name="malformed_message">אירוע לקוי, לא יכול להופיע</string>
-    <string name="event_redacted_by_admin_reason">האירוע בהנחיית מנהל החדר</string>
-    <string name="event_redacted_by_user_reason">האירוע נמחק על ידי המשתמש</string>
     <string name="reactions">תגובות</string>
     <string name="message_view_reaction">צפה בתגובות</string>
     <string name="message_add_reaction">הוסף תגובה</string>
@@ -1283,8 +1281,6 @@
     <string name="settings_key_requests">בקשות מפתח</string>
     <string name="login_default_session_public_name">אלמנט אנדרואיד</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">המפתחות כבר מעודכנים!</string>
-    <string name="event_redacted_by_admin_reason_with_reason">האירוע בהנחיית מנהל החדר, סיבה: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">האירוע נמחק על ידי המשתמש, הסיבה: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">כלול סיבה</string>
     <string name="share_confirm_room">האם אתה רוצה לשלוח את הקובץ המצורף ל- %1$s\?</string>
     <string name="enter_secret_storage_invalid">לא ניתן למצוא סודות באחסון</string>

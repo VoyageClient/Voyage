@@ -1191,8 +1191,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="change_room_directory_network">Mainīt tīklu</string>
     <string name="error_no_network">Nav tīkla. Lūgums pārbaudīt savu interneta savienojumu.</string>
     <string name="malformed_message">Malformēts notikums, nevar parādīt</string>
-    <string name="event_redacted_by_admin_reason">Notikumu pārvalda administrators</string>
-    <string name="event_redacted_by_user_reason">Lietotājs izdzēsa notikumu</string>
     <string name="message_view_reaction">Apskatīt reakcijas</string>
     <string name="message_add_reaction">Pievienot reakciju</string>
     <string name="action_agree">Piekrist</string>
@@ -1436,8 +1434,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="e2e_use_keybackup">Atbloķēt šifrēto ziņu vēsturi</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Atslēgas jau ir atjauninātas!</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Pasākumu moderē telpas administrators, iemesls: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">Lietotājs izdzēsa notikumu, iemesls: %1$s</string>
     <string name="delete_account_data_warning">Izdzēst %1$s veida konta datus\?
 \n
 \nJāizmanto piesardzīgi, jo tas var izraisīt neparedzētu uzvedību.</string>

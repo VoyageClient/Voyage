@@ -18,8 +18,11 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.clearDrawables
+import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass
@@ -38,6 +41,9 @@ abstract class PinnedMessageItem : VectorEpoxyModel<PinnedMessageItem.Holder>(R.
     lateinit var body: CharSequence
 
     @EpoxyAttribute
+    var redacted: Boolean = false
+
+    @EpoxyAttribute
     var formattedDate: String? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
@@ -54,6 +60,13 @@ abstract class PinnedMessageItem : VectorEpoxyModel<PinnedMessageItem.Holder>(R.
         avatarRenderer.render(matrixItem, holder.avatar)
         holder.sender.text = senderName.prepareForDisplay()
         holder.body.text = body
+        if (redacted) {
+            holder.body.setRedactedPreviewStyle()
+        } else {
+            holder.body.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+            holder.body.clearDrawables()
+        }
+
         holder.timestamp.text = formattedDate
     }
 

@@ -8,6 +8,7 @@
 package im.vector.app.core.extensions
 
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextPaint
@@ -20,7 +21,7 @@ import android.widget.TextView
 import androidx.annotation.AttrRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.core.content.ContextCompat
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import im.vector.app.R
@@ -110,13 +111,15 @@ fun TextView.setTextWithColoredPart(
 }
 
 fun TextView.setLeftDrawable(@DrawableRes iconRes: Int, @AttrRes tintColor: Int? = null) {
+    // AppCompatResources, not ContextCompat: these are <vector> assets, which the framework loader
+    // cannot inflate below API 21.
     val icon = if (tintColor != null) {
         val tint = ThemeUtils.getColor(context, tintColor)
-        ContextCompat.getDrawable(context, iconRes)?.also {
+        AppCompatResources.getDrawable(context, iconRes)?.also {
             DrawableCompat.setTint(it.mutate(), tint)
         }
     } else {
-        ContextCompat.getDrawable(context, iconRes)
+        AppCompatResources.getDrawable(context, iconRes)
     }
     setLeftDrawable(icon)
 }
@@ -127,6 +130,25 @@ fun TextView.setLeftDrawable(drawable: Drawable?) {
 
 fun TextView.clearDrawables() {
     setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+    }
+}
+
+/** Style a preview of a deleted message like [R.layout.item_timeline_event_redacted_stub] does in the timeline. */
+fun TextView.setRedactedPreviewStyle() {
+    val color = im.vector.lib.ui.styles.R.attr.vctr_content_tertiary
+    setTextColor(ThemeUtils.getColor(context, color))
+    // AppCompatResources, not ContextCompat: ic_trash_16 is a <vector>, which the framework loader
+    // cannot inflate below API 21.
+    val icon = AppCompatResources.getDrawable(context, R.drawable.ic_trash_16)
+            ?.also { DrawableCompat.setTint(it.mutate(), ThemeUtils.getColor(context, color)) }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null)
+    } else {
+        setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null)
+    }
+    compoundDrawablePadding = (8 * resources.displayMetrics.density).toInt()
 }
 
 /**

@@ -801,8 +801,6 @@
     <string name="message_add_reaction">Ajouter une réaction</string>
     <string name="message_view_reaction">Voir les réactions</string>
     <string name="reactions">Réactions</string>
-    <string name="event_redacted_by_user_reason">Évènement supprimé par l’utilisateur</string>
-    <string name="event_redacted_by_admin_reason">Évènement modéré par l’administrateur du salon</string>
     <string name="malformed_message">Évènement malformé, affichage impossible</string>
     <string name="create_new_room">Créer un nouveau salon</string>
     <string name="error_no_network">Aucun réseau. Vérifiez votre connexion Internet.</string>
@@ -1247,8 +1245,6 @@
         <item quantity="other">Envoyer les images en taille d’origine</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Fournir un motif</string>
-    <string name="event_redacted_by_user_reason_with_reason">Évènement supprimé par l’utilisateur, motif : %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Évènement modéré par l’administrateur du salon, motif : %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Les clés sont déjà à jour !</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Demandes de clé</string>
