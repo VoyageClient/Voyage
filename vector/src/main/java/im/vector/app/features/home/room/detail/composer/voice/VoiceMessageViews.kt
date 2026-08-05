@@ -16,6 +16,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
+import androidx.core.view.MarginLayoutParamsCompat
 import androidx.core.view.updateLayoutParams
 import im.vector.app.R
 import im.vector.app.core.extensions.importantForAccessibilityCompat
@@ -36,6 +37,15 @@ class VoiceMessageViews(
 
     private val distanceToCancel = dimensionConverter.dpToPx(120).toFloat()
     private val rtlXMultiplier = resources.getInteger(im.vector.lib.ui.styles.R.integer.rtl_x_multiplier)
+
+    fun applyClassicComposerStyle(micEndMarginPx: Int) {
+        views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            // MarginLayoutParams.setMarginEnd is API 17+; rightMargin is what actually applies below it.
+            MarginLayoutParamsCompat.setMarginEnd(this, micEndMarginPx)
+            rightMargin = micEndMarginPx
+        }
+        views.voiceMessageMicButton.background = null
+    }
 
     fun start(actions: Actions) {
         views.voiceMessageSendButton.setOnClickListener {

@@ -141,6 +141,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_VIBRATE_ON_MENTION_KEY = "SETTINGS_VIBRATE_ON_MENTION_KEY"
         private const val SETTINGS_SEND_MESSAGE_WITH_ENTER = "SETTINGS_SEND_MESSAGE_WITH_ENTER"
         private const val SETTINGS_SHOW_EMOJI_KEYBOARD = "SETTINGS_SHOW_EMOJI_KEYBOARD"
+        private const val SETTINGS_CLASSIC_COMPOSER = "SETTINGS_CLASSIC_COMPOSER"
         private const val SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY = "SETTINGS_RANDOMIZE_UPLOAD_FILENAMES_KEY"
         private const val SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT = "SETTINGS_RENDER_BLOCKQUOTES_AS_GREENTEXT"
         const val SETTINGS_UGLIER_USERNAME_COLORS_KEY = "SETTINGS_UGLIER_USERNAME_COLORS_KEY"
@@ -298,6 +299,7 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_PREVIEW_MEDIA_BEFORE_SENDING_KEY,
                 SETTINGS_SEND_MESSAGE_WITH_ENTER,
                 SETTINGS_SHOW_EMOJI_KEYBOARD,
+                SETTINGS_CLASSIC_COMPOSER,
 
                 SETTINGS_PIN_UNREAD_MESSAGES_PREFERENCE_KEY,
                 SETTINGS_PIN_MISSED_NOTIFICATIONS_PREFERENCE_KEY,
@@ -1085,6 +1087,13 @@ class VectorPreferences @Inject constructor(
      */
     fun showEmojiKeyboard(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SHOW_EMOJI_KEYBOARD, true)
+    }
+
+    /**
+     * Tells if the composer should use the flat classic layout instead of the boxed modern one.
+     */
+    fun useClassicComposer(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_CLASSIC_COMPOSER, true)
     }
 
     /**

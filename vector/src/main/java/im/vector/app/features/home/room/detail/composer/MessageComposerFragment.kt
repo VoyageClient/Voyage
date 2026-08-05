@@ -12,18 +12,22 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.SpannableString
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -84,6 +88,7 @@ import im.vector.app.features.reactions.EmojiKeyboardController
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.SharedData
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.VoiceFailure
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.debounce
@@ -121,6 +126,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var emojiPickerSectionFactory: im.vector.app.features.reactions.EmojiPickerSectionFactory
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var massRedactionManager: MassRedactionManager
+    @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
 
     private val roomId: String get() = withState(timelineViewModel) { it.roomId }
 
@@ -144,7 +150,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private var suppressStaleComposerRender = false
 
     private lateinit var attachmentsHelper: AttachmentsHelper
-    private lateinit var attachmentTypeSelector: AttachmentTypeSelectorView
+    private val attachmentTypeSelector: AttachmentTypeSelectorView get() = views.attachmentTypeSelector
     private var bottomSheetBehavior: ExpandingBottomSheetBehavior<View>? = null
 
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
@@ -177,6 +183,26 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
 
         views.composerLayout.isVisible = true
+
+        if (vectorPreferences.useClassicComposer()) {
+            val background = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+            views.root.setBackgroundColor(background)
+            tintNavigationBarStrip(background)
+            attachmentTypeSelector.applyClassicComposerStyle()
+        }
+
+        attachmentTypeSelector.callback = this
+        attachmentTypeSelector.setAttachmentVisibility(AttachmentType.LOCATION, vectorFeatures.isLocationSharingEnabled())
+        // No maplibre below API 21: keep the entry visible but dimmed and inert.
+        attachmentTypeSelector.setAttachmentEnabled(AttachmentType.LOCATION, Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        attachmentTypeSelector.setAttachmentVisibility(AttachmentType.POLL, !isThreadTimeLine())
+
+        val closeSelectorOnBack = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() = attachmentTypeSelector.hide()
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, closeSelectorOnBack)
+        attachmentTypeSelector.onOpenChanged = { isOpen -> closeSelectorOnBack.isEnabled = isOpen }
+        dismissSelectorOnTouchOutside()
 
         messageComposerViewModel.observeViewEvents {
             when (it) {
@@ -295,8 +321,15 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     override fun invalidate() = withState(
             timelineViewModel, messageComposerViewModel, attachmentViewModel
-    ) { _, messageComposerState, _ ->
+    ) { timelineState, messageComposerState, _ ->
         (composer as? View)?.isVisible = messageComposerState.isComposerVisible
+        timelineState.asyncRoomSummary()?.let { summary ->
+            composer.renderRoomEncryption(
+                    isEncrypted = summary.isEncrypted,
+                    trustLevel = summary.roomEncryptionTrustLevel,
+                    isPgp = pgpKeyStore.isEnabled && !summary.isEncrypted && pgpKeyStore.isRoomPgpEnabled(summary.roomId),
+            )
+        }
         val recorderClaimsSlot = vectorPreferences.isVoiceMessageButtonEnabled() &&
                 messageComposerState.voiceRecordingUiState !is VoiceMessageRecorderView.RecordingUiState.Recording
         composer.sendButton.visibility = when {
@@ -398,21 +431,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         }
         composer.callback = object : Callback {
             override fun onAddAttachment() {
-                if (!::attachmentTypeSelector.isInitialized) {
-                    attachmentTypeSelector = AttachmentTypeSelectorView(vectorBaseActivity, vectorBaseActivity.layoutInflater, this@MessageComposerFragment)
-                    attachmentTypeSelector.setAttachmentVisibility(
-                            AttachmentType.LOCATION,
-                            vectorFeatures.isLocationSharingEnabled(),
-                    )
-                    // No maplibre below API 21: keep the entry visible but dimmed and inert.
-                    attachmentTypeSelector.setAttachmentEnabled(
-                            AttachmentType.LOCATION,
-                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP,
-                    )
-                    attachmentTypeSelector.setAttachmentVisibility(
-                            AttachmentType.POLL, !isThreadTimeLine()
-                    )
-                }
                 attachmentTypeSelector.show(composer.attachmentButton)
             }
 
@@ -442,6 +460,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             }
 
             override fun onTextChanged(text: CharSequence) {
+                attachmentTypeSelector.hide()
                 messageComposerViewModel.handle(MessageComposerAction.OnTextChanged(composer.formattedText ?: text))
             }
 
@@ -517,6 +536,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private fun renderSpecialMode(mode: MessageComposerMode.Special) {
         // Entering reply/edit/quote means we're past any send-clear; don't keep swallowing renders.
         suppressStaleComposerRender = false
+        // The funnel for swipe-to-reply and every other route into reply/edit/quote.
+        attachmentTypeSelector.hide()
         val allowCommands = mode is MessageComposerMode.Reply
         autoCompleters.values.forEach { it.enterSpecialMode(allowCommands) }
         composer.renderComposerMode(mode)
@@ -1000,6 +1021,36 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     /**
      * Returns true if the current room is a Thread room, false otherwise.
      */
+    /**
+     * The selector sits in the composer's layout, so it can't see touches landing anywhere else. Watch
+     * them at the activity, where every touch passes, without consuming any.
+     */
+    private fun dismissSelectorOnTouchOutside() {
+        vectorBaseActivity.observeTouchEvents(viewLifecycleOwner) { event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN &&
+                    attachmentTypeSelector.isOpen &&
+                    !attachmentTypeSelector.containsScreenPoint(event.rawX, event.rawY)) {
+                attachmentTypeSelector.hide()
+            }
+        }
+    }
+
+    /**
+     * The activity pads its root by the system-bar insets and consumes them, so the strip under the
+     * navigation bar shows the root's own background. Paint only that strip, leaving the status-bar
+     * one at the top on the window background it had.
+     */
+    private fun tintNavigationBarStrip(color: Int) {
+        val root = vectorBaseActivity.rootView
+        val windowBackground = ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
+        val layers = LayerDrawable(arrayOf(ColorDrawable(windowBackground), ColorDrawable(color)))
+        root.background = layers
+        root.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            layers.setLayerInset(1, 0, (v.height - v.paddingBottom).coerceAtLeast(0), 0, 0)
+            v.invalidate()
+        }
+    }
+
     private fun isThreadTimeLine(): Boolean = withState(timelineViewModel) { it.isThreadTimeline() }
 
     /** Set whether the keyboard should disable personalized learning. */

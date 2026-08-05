@@ -606,4 +606,7 @@
     <string name="attachment_compression_percent" translatable="false">%1$d%%</string>
 
     <string name="message_action_jump_to_relation" translatable="false">Jump to Relation</string>
+
+    <string name="settings_classic_composer" translatable="false">Classic Composer</string>
+    <string name="settings_classic_composer_summary" translatable="false">Use the older flat composer layout, without the rounded input box</string>
 </resources>

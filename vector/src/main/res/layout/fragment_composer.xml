@@ -15,4 +15,13 @@
         android:visibility="gone"
         tools:visibility="gone" />
 
+    <!-- Covers the composer's input row. Same parent as the composer so the two stay aligned. -->
+    <im.vector.app.features.attachments.AttachmentTypeSelectorView
+        android:id="@+id/attachmentTypeSelector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="gone"
+        tools:visibility="gone" />
+
 </FrameLayout>
