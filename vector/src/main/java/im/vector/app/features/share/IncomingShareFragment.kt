@@ -11,26 +11,26 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.isVisible
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentIncomingShareBinding
 import im.vector.app.features.attachments.ShareIntentHandler
 import im.vector.app.features.attachments.preview.AttachmentsPreviewActivity
 import im.vector.app.features.attachments.preview.AttachmentsPreviewArgs
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -43,6 +43,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class IncomingShareFragment :
         VectorBaseFragment<FragmentIncomingShareBinding>(),
+        VectorMenuProvider,
         IncomingShareController.Callback {
 
     @Inject lateinit var incomingShareController: IncomingShareController
@@ -54,10 +55,30 @@ class IncomingShareFragment :
         return FragmentIncomingShareBinding.inflate(inflater, container, false)
     }
 
+    override fun getMenuRes() = R.menu.menu_incoming_share
+
+    override fun handlePrepareMenu(menu: Menu) {
+        val sendItem = menu.findItem(R.id.incomingShareSend) ?: return
+        val enabled = withState(viewModel) { it.selectedRoomIds.isNotEmpty() }
+        sendItem.isEnabled = enabled
+        sendItem.icon?.mutate()?.setAlpha(if (enabled) 255 else 100)
+    }
+
+    override fun handleMenuItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.incomingShareSend -> {
+                viewModel.handle(IncomingShareAction.ShareToSelectedRooms)
+                true
+            }
+            else -> false
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupToolbar(views.incomingShareToolbar)
+        viewModel.onEach(IncomingShareViewState::selectedRoomIds) { invalidateOptionsMenu() }
 
         viewModel.observeViewEvents {
             when (it) {
@@ -65,10 +86,12 @@ class IncomingShareFragment :
                 is IncomingShareViewEvents.EditMediaBeforeSending -> handleEditMediaBeforeSending(it)
                 is IncomingShareViewEvents.MultipleRoomsShareDone -> handleMultipleRoomsShareDone(it)
                 is IncomingShareViewEvents.ForwardDone -> {
-                    navigator.openRoom(
-                            context = requireActivity(),
-                            roomId = it.roomId,
-                    )
+                    it.roomId?.let { roomId ->
+                        navigator.openRoom(
+                                context = requireActivity(),
+                                roomId = roomId,
+                        )
+                    }
                     requireActivity().finish()
                 }
                 IncomingShareViewEvents.ForwardFailed -> {
@@ -118,9 +141,6 @@ class IncomingShareFragment :
                 return true
             }
         })
-        views.sendShareButton.debouncedClicks {
-            handleSendShare()
-        }
     }
 
     private fun handleIncomingShareIntent(intent: Intent) = shareIntentHandler.handleIncomingShareIntent(
@@ -136,12 +156,14 @@ class IncomingShareFragment :
     )
 
     private fun handleMultipleRoomsShareDone(viewEvent: IncomingShareViewEvents.MultipleRoomsShareDone) {
-        requireActivity().let {
-            navigator.openRoom(
-                    context = it,
-                    roomId = viewEvent.roomId,
-            )
-            it.finish()
+        requireActivity().let { activity ->
+            viewEvent.roomId?.let { roomId ->
+                navigator.openRoom(
+                        context = activity,
+                        roomId = roomId,
+                )
+            }
+            activity.finish()
         }
     }
 
@@ -161,34 +183,7 @@ class IncomingShareFragment :
     }
 
     private fun handleShareToRoom(event: IncomingShareViewEvents.ShareToRoom) {
-        if (event.sharedData is SharedData.Forward) {
-            if (event.showAlert) {
-                showForwardConfirmationDialog(event.roomSummary)
-            } else {
-                viewModel.handle(IncomingShareAction.ShareToRoom(event.roomSummary.roomId))
-            }
-            return
-        }
-        if (event.showAlert) {
-            showConfirmationDialog(event.roomSummary, event.sharedData)
-        } else {
-            navigator.openRoomForSharingAndFinish(requireActivity(), event.roomSummary.roomId, event.sharedData)
-        }
-    }
-
-    private fun showForwardConfirmationDialog(roomSummary: RoomSummary) {
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.action_forward)
-                .setMessage(getString(CommonStrings.forward_to_room_confirmation, roomSummary.displayName).prepareForDisplay())
-                .setPositiveButton(CommonStrings.action_send) { _, _ ->
-                    viewModel.handle(IncomingShareAction.ShareToRoom(roomSummary.roomId))
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
-    }
-
-    private fun handleSendShare() {
-        viewModel.handle(IncomingShareAction.ShareToSelectedRooms)
+        navigator.openRoomForSharingAndFinish(requireActivity(), event.roomSummary.roomId, event.sharedData)
     }
 
     override fun onDestroyView() {
@@ -207,28 +202,16 @@ class IncomingShareFragment :
         requireActivity().finish()
     }
 
-    private fun showConfirmationDialog(roomSummary: RoomSummary, sharedData: SharedData) {
-        MaterialAlertDialogBuilder(requireActivity())
-                .setTitle(CommonStrings.send_attachment)
-                .setMessage(getString(CommonStrings.share_confirm_room, roomSummary.displayName).prepareForDisplay())
-                .setPositiveButton(CommonStrings.action_send) { _, _ ->
-                    navigator.openRoomForSharingAndFinish(requireActivity(), roomSummary.roomId, sharedData)
-                }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
-    }
-
     override fun invalidate() = withState(viewModel) {
-        views.sendShareButton.isVisible = it.isInMultiSelectionMode
         incomingShareController.setData(it)
     }
 
     override fun onRoomClicked(roomSummary: RoomSummary) {
-        viewModel.handle(IncomingShareAction.SelectRoom(roomSummary, false))
+        viewModel.handle(IncomingShareAction.SelectRoom(roomSummary))
     }
 
     override fun onRoomLongClicked(roomSummary: RoomSummary): Boolean {
-        viewModel.handle(IncomingShareAction.SelectRoom(roomSummary, true))
+        viewModel.handle(IncomingShareAction.SelectRoom(roomSummary))
         return true
     }
 }

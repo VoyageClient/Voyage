@@ -53,7 +53,8 @@ class IncomingShareController @Inject constructor(
                                 RoomListDisplayMode.FILTERED,
                                 singleLineLastEvent = false,
                                 callback?.let { it::onRoomClicked },
-                                callback?.let { it::onRoomLongClicked }
+                                callback?.let { it::onRoomLongClicked },
+                                showCheckbox = true
                         )
                         .addTo(this)
             }

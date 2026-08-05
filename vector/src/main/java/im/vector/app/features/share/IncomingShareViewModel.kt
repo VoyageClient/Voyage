@@ -15,7 +15,6 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.extensions.toggle
 import im.vector.app.core.platform.VectorViewModel
-import im.vector.app.features.attachments.isPreviewable
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.home.room.list.BreadcrumbsRoomComparator
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -102,11 +101,13 @@ class IncomingShareViewModel @AssistedInject constructor(
 
     private fun handleShareToSelectedRooms() = withState { state ->
         val sharedData = state.sharedData ?: return@withState
-        if (state.selectedRoomIds.size == 1) {
+        if (state.selectedRoomIds.isEmpty()) return@withState
+        // A forward is sent straight away, so it never goes through the room screen.
+        if (state.selectedRoomIds.size == 1 && sharedData !is SharedData.Forward) {
             // In this case the edition of the media will be handled by the RoomDetailFragment
             val selectedRoomId = state.selectedRoomIds.first()
             val selectedRoom = state.roomSummaries()?.find { it.roomId == selectedRoomId } ?: return@withState
-            _viewEvents.post(IncomingShareViewEvents.ShareToRoom(selectedRoom, sharedData, showAlert = false))
+            _viewEvents.post(IncomingShareViewEvents.ShareToRoom(selectedRoom, sharedData))
         } else {
             when (sharedData) {
                 is SharedData.Text -> {
@@ -114,8 +115,7 @@ class IncomingShareViewModel @AssistedInject constructor(
                         val room = session.getRoom(roomId)
                         room?.sendService()?.sendTextMessage(sharedData.text)
                     }
-                    // This is it, pass the first roomId to let the screen open it
-                    _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(state.selectedRoomIds.first()))
+                    _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(state.selectedRoomIds.singleOrNull()))
                 }
                 is SharedData.Attachments -> {
                     shareAttachments(sharedData.attachmentData, state.selectedRoomIds, proposeMediaEdition = true, compressMediaBeforeSending = false)
@@ -136,17 +136,14 @@ class IncomingShareViewModel @AssistedInject constructor(
         roomIds.forEach { roomId ->
             session.getRoom(roomId)?.sendService()?.sendEvent(forward.eventType, content)
         }
-        _viewEvents.post(IncomingShareViewEvents.ForwardDone(roomIds.first()))
+        // Opening a room only makes sense when there is exactly one to open.
+        _viewEvents.post(IncomingShareViewEvents.ForwardDone(roomIds.singleOrNull()))
     }
 
     private fun handleShareToRoom(action: IncomingShareAction.ShareToRoom) = withState { state ->
         val sharedData = state.sharedData ?: return@withState
         val roomSummary = session.getRoomSummary(action.roomId) ?: return@withState
-        if (sharedData is SharedData.Forward) {
-            forwardToRooms(sharedData, setOf(roomSummary.roomId))
-            return@withState
-        }
-        _viewEvents.post(IncomingShareViewEvents.ShareToRoom(roomSummary, sharedData, showAlert = false))
+        _viewEvents.post(IncomingShareViewEvents.ShareToRoom(roomSummary, sharedData))
     }
 
     private fun handleShareMediaToSelectedRooms(action: IncomingShareAction.ShareMedia) = withState { state ->
@@ -182,8 +179,7 @@ class IncomingShareViewModel @AssistedInject constructor(
                 // In case of multiple share of media, edit them first
                 _viewEvents.post(IncomingShareViewEvents.EditMediaBeforeSending(grouped.previewables))
             } else {
-                // This is it, pass the first roomId to let the screen open it
-                _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(selectedRoomIds.first()))
+                _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(selectedRoomIds.singleOrNull()))
             }
         } else {
             // Pick the first room to send the media
@@ -191,36 +187,11 @@ class IncomingShareViewModel @AssistedInject constructor(
                     ?.let { roomId -> session.getRoom(roomId) }
                     ?.sendService()
                     ?.sendMedias(attachmentData, compressMediaBeforeSending, selectedRoomIds)
-            // This is it, pass the first roomId to let the screen open it
-            _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(selectedRoomIds.first()))
+            _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(selectedRoomIds.singleOrNull()))
         }
     }
 
-    private fun handleSelectRoom(action: IncomingShareAction.SelectRoom) = withState { state ->
-        if (state.isInMultiSelectionMode) {
-            // One room is clicked (or long clicked) while in multi selection mode -> toggle this room
-            val selectedRooms = state.selectedRoomIds
-            val newSelectedRooms = selectedRooms.toggle(action.roomSummary.roomId)
-            setState { copy(isInMultiSelectionMode = newSelectedRooms.isNotEmpty(), selectedRoomIds = newSelectedRooms) }
-        } else if (action.enableMultiSelect) {
-            // One room is long clicked, not in multi selection mode -> enable multi selection mode
-            setState { copy(isInMultiSelectionMode = true, selectedRoomIds = setOf(action.roomSummary.roomId)) }
-        } else {
-            // One room is clicked, not in multi selection mode -> direct share
-            val sharedData = state.sharedData ?: return@withState
-            val doNotShowAlert = when (sharedData) {
-                is SharedData.Attachments -> {
-                    // Do not show alert if the shared data contains only previewable attachments, because the user will get another chance to cancel the share
-                    sharedData.attachmentData.all { it.isPreviewable() }
-                }
-                is SharedData.Text -> {
-                    // Do not show alert when sharing text to one room, because it will just fill the composer
-                    true
-                }
-                // Forward sends immediately without composer, so always confirm.
-                is SharedData.Forward -> false
-            }
-            _viewEvents.post(IncomingShareViewEvents.ShareToRoom(action.roomSummary, sharedData, !doNotShowAlert))
-        }
+    private fun handleSelectRoom(action: IncomingShareAction.SelectRoom) = setState {
+        copy(selectedRoomIds = selectedRoomIds.toggle(action.roomSummary.roomId))
     }
 }
