@@ -33,11 +33,6 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), AudioMessagePlaybackTracker.Listener {
 
-    companion object {
-        // Clears the classic composer's send (36dp + 4dp margin) and emoji (36dp) buttons.
-        private const val CLASSIC_MIC_END_MARGIN_DP = 76
-    }
-
     interface Callback {
         fun onVoiceRecordingStarted()
         fun onVoiceRecordingEnded()
@@ -74,8 +69,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
                 dimensionConverter
         )
         if (vectorPreferences.useClassicComposer()) {
-            // The classic composer gives the mic its own slot rather than sharing the send button's.
-            voiceMessageViews.applyClassicComposerStyle(dimensionConverter.dpToPx(CLASSIC_MIC_END_MARGIN_DP))
+            voiceMessageViews.applyClassicComposerStyle()
         }
 
         initListeners()
