@@ -657,8 +657,6 @@
     <string name="create_new_space">ສ້າງພື້ນທີ່ໃຫມ່</string>
     <string name="create_new_room">ສ້າງຫ້ອງໃຫມ່</string>
     <string name="malformed_message">ເຫດການບໍ່ຖືກຕ້ອງ, ບໍ່ສາມາດສະແດງໄດ້</string>
-    <string name="event_redacted_by_admin_reason">ຄວບຄຸມເຫດການໂດຍຜູ້ເບິ່ງແຍງຫ້ອງ</string>
-    <string name="event_redacted_by_user_reason">ເຫດການທີ່ຖືກລຶບໂດຍຜູ້ໃຊ້</string>
     <string name="reactions">ການໂຕ້ຕອບ</string>
     <string name="message_view_reaction">ເບິ່ງການໂຕ້ຕອບ</string>
     <string name="message_add_reaction">ເພີ່ມປະຕິກິລິຍາ</string>
@@ -1990,8 +1988,6 @@
     <string name="settings_key_requests">ການຮ້ອງຂໍທີ່ສຳຄັນ</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">ລະຫັດແມ່ນທັນສະໄຫມແລ້ວ!</string>
-    <string name="event_redacted_by_admin_reason_with_reason">ເຫດການຖືກກວດສອບໂດຍຜູ້ເບິ່ງແຍງຫ້ອງ, ເຫດຜົນ: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">ເຫດການທີ່ຖືກລຶບໂດຍຜູ້ໃຊ້, ເຫດຜົນ: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">ລວມທັງເຫດຜົນ</string>
     <string name="send_images_and_video_with_original_size">ສົ່ງສື່ຕາມຂະຫນາດຕົ້ນສະບັບ</string>
     <plurals name="send_videos_with_original_size">

@@ -16,6 +16,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.glide.GlideApp
+import im.vector.app.core.linkify.NoUnderlineUrlSpan
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.html.HtmlCodeSpan
@@ -152,7 +153,7 @@ class EventTextRenderer @AssistedInject constructor(
             // setPillSpan collapsed the link text to a single placeholder char, dropping any underlying
             // URLSpan — re-add one over the pill so the movement method still routes taps to onUrlClicked
             // (otherwise a "Message in …" / permalink pill renders but is inert).
-            text.setSpan(URLSpan(it.url), it.start, it.start + PILL_PLACEHOLDER.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            text.setSpan(NoUnderlineUrlSpan(it.url), it.start, it.start + PILL_PLACEHOLDER.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
     }
 

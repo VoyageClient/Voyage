@@ -393,8 +393,6 @@
     <string name="message_add_reaction">افزودن بازخورد</string>
     <string name="message_view_reaction">دیدن بازخوردها</string>
     <string name="reactions">بازخوردها</string>
-    <string name="event_redacted_by_user_reason">رویداد به دست کاربر حذف شد</string>
-    <string name="event_redacted_by_admin_reason">رویداد به دست مدیر اتاق مدیریت شد</string>
     <string name="malformed_message">رویداد بدشکل. نمی‌توان نمایش داد</string>
     <string name="create_new_room">ایجاد اتاق جدید</string>
     <string name="error_no_network">بدون شبکه. لطفاً اتّصال اینترنتیتان را بررسی کنید.</string>
@@ -1237,8 +1235,6 @@
     <string name="verify_new_session_compromized">ممکن است اکانت شما هک شده باشد</string>
     <string name="verify_new_session_notice">با استفاده از این نشست، نشست جدید خود را تأیید کرده و به آن دسترسی مشاهده‌ی پیام‌های رمزشده را بدهید.</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">کلیدها به روز هستند!</string>
-    <string name="event_redacted_by_admin_reason_with_reason">رویداد توسط ادمین به این دلیل تغییر داده شد: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">رویداد توسط کاربر به این دلیل حذف شد: %1$s</string>
     <string name="enter_secret_storage_invalid">رمزی در حافظه پیدا نشد</string>
     <string name="delete_account_data_warning">داده‌های حساب از نوع %1$s حذف شوند؟
 \n

@@ -10,6 +10,7 @@ package im.vector.app.core.error
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.core.text.HtmlCompat
+import im.vector.app.core.linkify.stripLinkUnderlines
 import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -39,7 +40,7 @@ class ResourceLimitErrorFormatter(private val context: Context) {
         val contact = if (clickable && matrixError.adminUri != null) {
             val contactSubString = uriAsLink(matrixError.adminUri!!)
             val contactFullString = context.getString(mode.contactRes, contactSubString)
-            HtmlCompat.fromHtml(contactFullString, HtmlCompat.FROM_HTML_MODE_LEGACY)
+            HtmlCompat.fromHtml(contactFullString, HtmlCompat.FROM_HTML_MODE_LEGACY).stripLinkUnderlines()
         } else {
             val contactSubString = context.getString(CommonStrings.resource_limit_contact_admin)
             context.getString(mode.contactRes, contactSubString)

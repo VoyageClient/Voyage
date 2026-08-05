@@ -733,8 +733,6 @@
     <string name="message_add_reaction">Reactie Toevoegen</string>
     <string name="message_view_reaction">Reacties Bekijken</string>
     <string name="reactions">Reacties</string>
-    <string name="event_redacted_by_user_reason">Gebeurtenis verwijderd door persoon</string>
-    <string name="event_redacted_by_admin_reason">Gebeurtenis gemodereerd door gesprek beheerder</string>
     <string name="malformed_message">Niet correcte gebeurtenis, kan niet weergeven</string>
     <string name="create_new_room">Nieuwe kamer aanmaken</string>
     <string name="error_no_network">Geen netwerk. Controleer je internet verbinding.</string>
@@ -1825,8 +1823,6 @@
     <string name="settings_export_trail">Exportcontrole</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Sleutels zijn al up-to-date!</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Gebeurtenis gemodereerd door kamer beheerder, reden: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">Gebeurtenis verwijderd door persoon, reden: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">Geef een reden op</string>
     <string name="send_images_and_video_with_original_size">Media versturen in het originele formaat</string>
     <plurals name="send_videos_with_original_size">

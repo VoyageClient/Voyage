@@ -27,6 +27,8 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.clearDrawables
+import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.views.RoundedCornerImageView
@@ -40,6 +42,7 @@ import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProces
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.HtmlBodySegmenter
+import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -59,6 +62,9 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
 
     @EpoxyAttribute
     lateinit var body: EpoxyCharSequence
+
+    @EpoxyAttribute
+    var redacted: Boolean = false
 
     @EpoxyAttribute
     var bindingOptions: BindingOptions? = null
@@ -141,7 +147,14 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
         } else {
             holder.body.text = body.charSequence
         }
+        if (redacted) {
+            holder.body.setRedactedPreviewStyle()
+        } else {
+            holder.body.setTextColor(ThemeUtils.getColor(holder.body.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+            holder.body.clearDrawables()
+        }
         holder.bodyDetails.setTextOrHide(bodyDetails?.charSequence)
+        holder.body.bindEmoteImageSpans()
         body.charSequence.findPillsAndProcess(coroutineScope) { it.bind(holder.body) }
         holder.timestamp.setTextOrHide(time)
 

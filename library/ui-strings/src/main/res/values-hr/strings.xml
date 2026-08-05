@@ -461,8 +461,6 @@
     <string name="message_add_reaction">Dodaj reakciju</string>
     <string name="message_view_reaction">Pogledaj reakcije</string>
     <string name="reactions">Reakcije</string>
-    <string name="event_redacted_by_user_reason">Događaj je izbrisao korisnik</string>
-    <string name="event_redacted_by_admin_reason">Sobni administrator je moderirao događaj</string>
     <string name="malformed_message">Nije moguće prikazati izobličen događaj</string>
     <string name="create_new_room">Izradi novu sobu</string>
     <string name="error_no_network">Nema mreže. Provjerite Vašu vezu na Internet.</string>

@@ -49,6 +49,7 @@ import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.model.imagepack.ImagePackContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetContent
@@ -61,6 +62,7 @@ class NoticeEventFormatter @Inject constructor(
         private val roleFormatter: RoleFormatter,
         private val vectorPreferences: VectorPreferences,
         private val colorProvider: ColorProvider,
+        private val reactionFormatter: ReactionFormatter,
         private val sp: StringProvider
 ) {
 
@@ -125,12 +127,12 @@ class NoticeEventFormatter @Inject constructor(
             EventType.CALL_REJECT,
             EventType.CALL_ANSWER -> formatCallEvent(type, event, senderName)
             EventType.MESSAGE -> formatMessageEvent(event, senderName)
+            EventType.REACTION -> formatReactionEvent(event)
             STATE_ROOM_VOICE_BROADCAST_INFO -> formatVoiceBroadcastEvent(event, senderName)
             in EventType.STATE_ROOM_BEACON_INFO.values -> formatLocationNotice(event, senderName)
             EventType.CALL_NEGOTIATE,
             EventType.CALL_SELECT_ANSWER,
             EventType.CALL_REPLACES,
-            EventType.REACTION,
             EventType.KEY_VERIFICATION_START,
             EventType.KEY_VERIFICATION_CANCEL,
             EventType.KEY_VERIFICATION_ACCEPT,
@@ -271,6 +273,11 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     private data class ImagePackNoticeKeys(val byYou: Int, val other: Int, val namedByYou: Int, val named: Int)
+
+    private fun formatReactionEvent(event: Event): CharSequence {
+        val relatesTo = event.getClearContent().toModel<ReactionContent>()?.relatesTo ?: return formatDebug(event)
+        return reactionFormatter.format(CommonStrings.sent_a_reaction, event.roomId, relatesTo.key, event.senderId)
+    }
 
     private fun formatDebug(event: Event): CharSequence {
         val threadPrefix = if (event.isThread()) "thread" else ""
@@ -1092,15 +1099,15 @@ class NoticeEventFormatter @Inject constructor(
                 .let { reason ->
                     if (reason == null) {
                         if (event.isRedactedBySameUser()) {
-                            sp.getString(CommonStrings.event_redacted_by_user_reason)
+                            sp.getString(CommonStrings.event_redacted)
                         } else {
-                            sp.getString(CommonStrings.event_redacted_by_admin_reason)
+                            sp.getString(CommonStrings.event_redacted_by_admin)
                         }
                     } else {
                         if (event.isRedactedBySameUser()) {
-                            sp.getString(CommonStrings.event_redacted_by_user_reason_with_reason, reason.neutralizeDirectionOverrides())
+                            sp.getString(CommonStrings.event_redacted_with_reason, reason.neutralizeDirectionOverrides())
                         } else {
-                            sp.getString(CommonStrings.event_redacted_by_admin_reason_with_reason, reason.neutralizeDirectionOverrides())
+                            sp.getString(CommonStrings.event_redacted_by_admin_with_reason, reason.neutralizeDirectionOverrides())
                         }
                     }
                 }

@@ -859,8 +859,6 @@
     <string name="message_view_reaction">Просмотреть реакции</string>
     <string name="settings_integration_manager">Менеджер интеграции</string>
     <string name="reactions">Реакции</string>
-    <string name="event_redacted_by_user_reason">Событие удалено пользователем</string>
-    <string name="event_redacted_by_admin_reason">Событие модерируется администратором комнаты</string>
     <string name="malformed_message">Некорректное событие, не могу отобразить</string>
     <string name="create_new_room">Создать комнату</string>
     <string name="error_no_network">Нет сети. Пожалуйста, проверьте подключение к Интернету.</string>
@@ -1425,8 +1423,6 @@
         <item quantity="many">Отправить изображения в оригинальном размере</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Укажите причину</string>
-    <string name="event_redacted_by_user_reason_with_reason">Событие удалено пользователем, Причина: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Событие модерируется администратором комнаты, Причина: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Ключи успешно обновлены!</string>
     <string name="login_default_session_public_name">${app_name} для Android</string>
     <string name="refresh">Обновить</string>

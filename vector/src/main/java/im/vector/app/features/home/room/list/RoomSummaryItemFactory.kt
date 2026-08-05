@@ -154,8 +154,8 @@ class RoomSummaryItemFactory @Inject constructor(
             createCenteredRoomSummaryItem(roomSummary, displayMode, showSelected, unreadCount, onClick, onLongClick)
         } else {
             createRoomSummaryItem(
-                    roomSummary, displayMode, subtitle, latestEventTime, typingMessage,
-                    latestFormattedEvent, showHighlighted, showSelected, unreadCount, singleLineLastEvent, onClick, onLongClick
+                    roomSummary, displayMode, subtitle, latestEventTime, typingMessage, latestFormattedEvent,
+                    latestEvent?.root?.isRedacted() == true, showHighlighted, showSelected, unreadCount, singleLineLastEvent, onClick, onLongClick
             )
         }
     }
@@ -167,6 +167,7 @@ class RoomSummaryItemFactory @Inject constructor(
             latestEventTime: String,
             typingMessage: String,
             latestFormattedEvent: CharSequence,
+            latestEventRedacted: Boolean,
             showHighlighted: Boolean,
             showSelected: Boolean,
             unreadCount: Int,
@@ -189,6 +190,7 @@ class RoomSummaryItemFactory @Inject constructor(
             .typingMessage(typingMessage)
             .loadMentionAvatars(!shouldHideAvatars(roomSummary, vectorPreferences))
             .lastFormattedEvent(latestFormattedEvent.toEpoxyCharSequence())
+            .lastEventRedacted(latestEventRedacted)
             .showHighlighted(showHighlighted)
             .showSelected(showSelected)
             .hasFailedSending(roomSummary.hasFailedSending)

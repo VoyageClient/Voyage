@@ -31,6 +31,8 @@ import android.view.ViewOutlineProvider
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.extensions.clearDrawables
+import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.databinding.ViewInReplyToBinding
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
@@ -157,6 +159,7 @@ class InReplyToView @JvmOverloads constructor(
         views.replyTextView.text = null
         // Reset colour in case this recycled view previously rendered a (muted) notice.
         views.replyTextView.setTextColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_primary))
+        views.replyTextView.clearDrawables()
         views.replyTextView.movementMethod = null
         // A recycled reply must not keep a previous message's full-width-code stretch.
         views.replyTextView.fullWidthBlockCode = false
@@ -245,6 +248,7 @@ class InReplyToView @JvmOverloads constructor(
 
     private fun renderRedacted() {
         views.replyTextView.isVisible = true
+        views.replyTextView.setRedactedPreviewStyle()
         views.replyTextView.setText(CommonStrings.event_redacted)
     }
 

@@ -7,6 +7,8 @@
 package im.vector.app.core.linkify
 
 import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.URLSpan
 import android.text.util.Linkify
@@ -18,6 +20,20 @@ class NoUnderlineUrlSpan(url: String) : URLSpan(url) {
         ds.color = ds.linkColor
         ds.isUnderlineText = false
     }
+}
+
+// HtmlCompat.fromHtml emits stock underlined URLSpans; swap them so hand-built HTML matches rendered content.
+fun Spanned.stripLinkUnderlines(): Spanned {
+    val spannable = this as? Spannable ?: SpannableStringBuilder(this)
+    spannable.getSpans(0, spannable.length, URLSpan::class.java).forEach { urlSpan ->
+        if (urlSpan is NoUnderlineUrlSpan) return@forEach
+        val start = spannable.getSpanStart(urlSpan)
+        val end = spannable.getSpanEnd(urlSpan)
+        val flags = spannable.getSpanFlags(urlSpan)
+        spannable.removeSpan(urlSpan)
+        spannable.setSpan(NoUnderlineUrlSpan(urlSpan.url), start, end, flags)
+    }
+    return spannable
 }
 
 object VectorLinkify {

@@ -778,8 +778,6 @@
     <string name="message_add_reaction">Добави реакция</string>
     <string name="message_view_reaction">Виж реакциите</string>
     <string name="reactions">Реакции</string>
-    <string name="event_redacted_by_user_reason">Събитие изтрито от потребителя</string>
-    <string name="event_redacted_by_admin_reason">Събитие модерирано от администратор на стаята</string>
     <string name="malformed_message">Повредено събитие, не може да се покаже</string>
     <string name="create_new_room">Създай нова стая</string>
     <string name="error_no_network">Няма мрежа. Проверете интернет връзката си.</string>
@@ -1313,8 +1311,6 @@
     <string name="room_participants_unban_title">Премахване на блокиране</string>
     <string name="room_participants_ban_reason">Причина за блокирането</string>
     <string name="room_participants_ban_title">Блокиране на потребител</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Събитието бе модерирано от администратор на стаята, причина: %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">Събитието бе изтрито от потребител, причина: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">Укажете причина</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Изпрати снимката с оригинален размер</item>

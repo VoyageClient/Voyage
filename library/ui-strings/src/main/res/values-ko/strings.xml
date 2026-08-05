@@ -651,8 +651,6 @@
     <string name="message_add_reaction">리액션 추가</string>
     <string name="message_view_reaction">리액션 보기</string>
     <string name="reactions">리액션</string>
-    <string name="event_redacted_by_user_reason">사용자가 감춘 이벤트</string>
-    <string name="event_redacted_by_admin_reason">방 관리자가 감춘 이벤트</string>
     <string name="malformed_message">잘못된 이벤트, 표시할 수 없음</string>
     <string name="create_new_room">새 방 만들기</string>
     <string name="error_no_network">네트워크 없음. 인터넷 연결 상태를 확인하세요.</string>

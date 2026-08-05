@@ -19,6 +19,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.ui.views.ShieldImageView
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.html.bindEmoteImageSpans
 import im.vector.app.features.reactions.widget.ReactionButton
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 
@@ -45,6 +46,7 @@ abstract class NoticeItem : BaseEventItem<NoticeItem.Holder>(R.layout.item_timel
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.noticeTextView.text = attributes.noticeText.charSequence
+        holder.noticeTextView.bindEmoteImageSpans()
         attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)
         holder.view.setOnLongClickListener(attributes.itemLongClickListener)
         holder.avatarImageView.onClick(attributes.avatarClickListener)

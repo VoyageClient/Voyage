@@ -820,8 +820,6 @@
     <string name="message_add_reaction">Reaktion hinzufügen</string>
     <string name="message_view_reaction">Reaktionen ansehen</string>
     <string name="reactions">Reaktionen</string>
-    <string name="event_redacted_by_user_reason">Ereignis von Benutzer gelöscht</string>
-    <string name="event_redacted_by_admin_reason">Ereignis durch einen Raum-Administrator moderiert</string>
     <string name="create_new_room">Neuen Raum erstellen</string>
     <string name="error_no_network">Kein Netzwerk. Bitte überprüfe deine Internetverbindung.</string>
     <string name="action_change">Ändern</string>
@@ -1269,8 +1267,6 @@
         <item quantity="other">Sende Bilder in Originalgröße</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Grund hinzufügen</string>
-    <string name="event_redacted_by_user_reason_with_reason">Ereignis durch den Benutzer gelöscht, Grund: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Ereignis vom Raumadministrator moderiert, Grund: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Schlüssel sind bereits aktuell!</string>
     <string name="spoiler">Spoiler</string>
     <string name="login_default_session_public_name">${app_name} Android</string>

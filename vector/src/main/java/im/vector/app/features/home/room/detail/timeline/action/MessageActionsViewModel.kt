@@ -74,6 +74,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageVerification
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
+import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
@@ -340,31 +341,6 @@ class MessageActionsViewModel @AssistedInject constructor(
         } ?: ""
     }
 
-    private fun getRedactionReason(timelineEvent: TimelineEvent): String {
-        return (timelineEvent
-                .root
-                .unsignedData
-                ?.redactedEvent
-                ?.content
-                ?.get("reason") as? String)
-                ?.takeIf { it.isNotBlank() }
-                .let { reason ->
-                    if (reason == null) {
-                        if (timelineEvent.root.isRedactedBySameUser()) {
-                            stringProvider.getString(CommonStrings.event_redacted_by_user_reason)
-                        } else {
-                            stringProvider.getString(CommonStrings.event_redacted_by_admin_reason)
-                        }
-                    } else {
-                        if (timelineEvent.root.isRedactedBySameUser()) {
-                            stringProvider.getString(CommonStrings.event_redacted_by_user_reason_with_reason, reason)
-                        } else {
-                            stringProvider.getString(CommonStrings.event_redacted_by_admin_reason_with_reason, reason)
-                        }
-                    }
-                }
-    }
-
     private suspend fun actionsForEvent(timelineEvent: TimelineEvent, actionPermissions: ActionPermissions): List<EventSharedAction> {
         val messageContent = timelineEvent.getVectorLastMessageContent()
         val msgType = messageContent?.msgType
@@ -542,6 +518,7 @@ class MessageActionsViewModel @AssistedInject constructor(
 
         if (vectorPreferences.developerMode()) {
             add(EventSharedAction.CopyEventId(eventId))
+            relatedEventId(timelineEvent)?.let { add(EventSharedAction.JumpToRelation(eventId, it)) }
             if (timelineEvent.isEncrypted() && timelineEvent.root.mCryptoError != null) {
                 val keysBackupService = session.cryptoService().keysBackupService()
                 if (keysBackupService.getState() == KeysBackupState.NotTrusted ||
@@ -561,6 +538,17 @@ class MessageActionsViewModel @AssistedInject constructor(
         if (session.myUserId != timelineEvent.root.senderId) {
             add(EventSharedAction.Separator)
             add(EventSharedAction.IgnoreUser(timelineEvent.root.senderId))
+        }
+    }
+
+    // Redactions and reactions only surface in the timeline with hidden events shown, itself a developer-mode
+    // setting, so the jump to the event they act on lives with the other developer actions.
+    private fun relatedEventId(timelineEvent: TimelineEvent): String? {
+        return when (timelineEvent.root.getClearType()) {
+            // Room v11 (MSC2174) moved `redacts` from the event into its content.
+            EventType.REDACTION -> timelineEvent.root.redacts ?: timelineEvent.root.content?.get("redacts") as? String
+            EventType.REACTION -> timelineEvent.root.getClearContent().toModel<ReactionContent>()?.relatesTo?.eventId
+            else -> null
         }
     }
 

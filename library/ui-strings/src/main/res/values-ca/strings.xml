@@ -822,8 +822,6 @@
     <string name="message_add_reaction">Afegir reacció</string>
     <string name="message_view_reaction">Veure reaccions</string>
     <string name="reactions">Reaccions</string>
-    <string name="event_redacted_by_user_reason">Esdeveniment eliminat per usuari</string>
-    <string name="event_redacted_by_admin_reason">Esdeveniment moderat per l\'administrador de la sala</string>
     <string name="malformed_message">Esdeveniment mal format, no es pot mostrar</string>
     <string name="create_new_room">Crea sala nova</string>
     <string name="error_no_network">No hi ha xarxa. Si us plau comproveu la vostra connexió a internet.</string>
@@ -1430,8 +1428,6 @@
     <string name="refresh">Actualitza</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Les claus ja estan actualitzades!</string>
-    <string name="event_redacted_by_user_reason_with_reason">Esdeveniment eliminat per un usuari, motiu: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Esdeveniment moderat per un administrador de sala, motiu: %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">Afegeix un motiu</string>
     <plurals name="send_images_with_original_size">
         <item quantity="one">Envia la imatge a mida real</item>

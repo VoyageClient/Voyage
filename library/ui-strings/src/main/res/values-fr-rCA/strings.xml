@@ -44,8 +44,6 @@
     <string name="settings_key_requests">Demandes de clé</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Les clés sont déjà à jour !</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Évènement modéré par l’administrateur du salon, motif : %1$s</string>
-    <string name="event_redacted_by_user_reason_with_reason">Évènement supprimé par l’utilisateur, motif : %1$s</string>
     <string name="delete_event_dialog_reason_checkbox">Fournir un motif</string>
     <string name="share_confirm_room">Voulez-vous envoyer cette pièce jointe à %1$s \?</string>
     <string name="enter_secret_storage_invalid">Impossible de trouver les secrets dans le stockage</string>
@@ -352,8 +350,6 @@
     <string name="error_no_network">Aucun réseau. Vérifiez votre connexion Internet.</string>
     <string name="create_new_room">Créer un nouveau salon</string>
     <string name="malformed_message">Évènement malformé, affichage impossible</string>
-    <string name="event_redacted_by_admin_reason">Évènement modéré par l’administrateur du salon</string>
-    <string name="event_redacted_by_user_reason">Évènement supprimé par l’utilisateur</string>
     <string name="reactions">Réactions</string>
     <string name="message_view_reaction">Voir les réactions</string>
     <string name="message_add_reaction">Ajouter une réaction</string>

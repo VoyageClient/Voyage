@@ -893,8 +893,6 @@
     <string name="message_add_reaction">Pridať reakciu</string>
     <string name="message_view_reaction">Zobraziť reakcie</string>
     <string name="reactions">Reakcie</string>
-    <string name="event_redacted_by_user_reason">Udalosť odstránená používateľom</string>
-    <string name="event_redacted_by_admin_reason">Udalosť moderovaná správcom</string>
     <string name="malformed_message">Nesprávne vytvorená udalosť, nie je možné zobraziť</string>
     <string name="create_new_room">Vytvoriť novú miestnosť</string>
     <string name="error_no_network">Žiadna sieť. Prosím skontrolujte pripojenie na internet.</string>
@@ -2228,7 +2226,6 @@
     <string name="settings_developer_mode_show_info_on_screen_title">Zobraziť informácie o ladení chýb na obrazovke</string>
     <string name="room_member_override_nick_color">Nahradiť farbu zobrazovaného mena</string>
     <string name="ftue_auth_use_case_join_existing_server">Chcete sa pripojiť k existujúcemu serveru\?</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Udalosť bola upravená administrátorom miestnosti, dôvod: %1$s</string>
     <string name="room_preview_not_found">Táto miestnosť je momentálne neprístupná.
 \nSkúste to neskôr alebo požiadajte správcu miestnosti, aby skontroloval, či máte prístup.</string>
     <string name="joining_replacement_room">Pripojiť sa k náhradnej miestnosti</string>
@@ -2252,7 +2249,6 @@
     <string name="dev_tools_explore_room_state">Preskúmať stav miestnosti</string>
     <string name="share_by_text">Zdieľať pomocou textu</string>
     <string name="bootstrap_crosssigning_progress_initializing">Zverejňovanie vytvorených kľúčov totožnosti</string>
-    <string name="event_redacted_by_user_reason_with_reason">Udalosť vymazaná používateľom, dôvod: %1$s</string>
     <string name="rendering_event_error_exception">${app_name} sa stretol s problémom pri vykresľovaní obsahu udalosti s id \'%1$s\'</string>
     <string name="sent_a_reaction">Reagoval/a: %s</string>
     <string name="settings_developer_mode_fail_fast_summary">${app_name} môže padať častejšie, keď sa vyskytne neočakávaná chyba</string>

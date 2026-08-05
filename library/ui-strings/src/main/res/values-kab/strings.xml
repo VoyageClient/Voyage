@@ -1224,8 +1224,6 @@
     <string name="room_list_catchup_empty_body">Ur tesɛiḍ ara iznan-nniḍen ur nettwaɣra ara</string>
     <string name="message_add_reaction">Rnu asedmar</string>
     <string name="message_view_reaction">Wali isedmaren</string>
-    <string name="event_redacted_by_user_reason">Yettewekkes uneḍru sɣur aseqdac</string>
-    <string name="event_redacted_by_admin_reason">Aneḍru yellan s lmendad n unedbal n texxamt</string>
     <string name="malformed_message">Aneḍru ur nemsil ara, ulamek ara d-yettwaskan</string>
     <string name="error_no_network">Ulac azeṭṭa. Ma ulac aɣilif senqed tuqqna-inek·inem ɣer Internet.</string>
     <string name="please_wait">Ma ulac aɣilif ṛǧu…</string>
@@ -1427,8 +1425,6 @@
         <item quantity="other">Azen tuniwin s teɣzi taneẓlit</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Rnu taɣzint</string>
-    <string name="event_redacted_by_user_reason_with_reason">Yettewekkes uneḍru sɣur aseqdac, taɣzint: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Aneḍru yella-d s lmendad n unedbal n texxamt, taɣzint: %1$s</string>
     <string name="e2e_use_keybackup">Serreḥ i umazray n yiznan yettwawgelhen</string>
     <string name="verify_new_session_notice">Seqdec tiɣimit-a i usenqed tiɣimit-ik·im tamaynut, ayen ara tt-yeǧǧen ad tekcem ɣer yiznan yettwawgelhen.</string>
     <string name="verify_new_session_was_not_me">Mačči d nekk</string>

@@ -56,6 +56,7 @@ class RoomSettingsController @Inject constructor(
     override fun buildModels(data: RoomSettingsViewState?) {
         val roomSummary = data?.roomSummary?.invoke() ?: return
         val host = this
+        val roomAvatarUrl = data.currentRoomAvatarUrl?.takeIf { it.isNotEmpty() }
 
         formEditableRoomHeaderItem {
             id("header")
@@ -66,13 +67,13 @@ class RoomSettingsController @Inject constructor(
                 RoomSettingsViewState.AvatarAction.None -> {
                     // Use the current value
                     avatarRenderer(host.avatarRenderer)
-                    // We do not want to use the fallback avatar url, which can be the other user avatar, or the current user avatar.
-                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(data.currentRoomAvatarUrl))
+                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(roomAvatarUrl ?: data.directUserAvatarUrl))
+                    hasRoomAvatar(roomAvatarUrl != null)
                 }
-                // Render the letter placeholder right away, as the room will look once saved
+                // Render right away how the room will look once saved: the DM fallback if there is one, else the letter placeholder
                 RoomSettingsViewState.AvatarAction.DeleteAvatar -> {
                     avatarRenderer(host.avatarRenderer)
-                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(null))
+                    matrixItem(roomSummary.toDisplayMatrixItem().updateAvatar(data.directUserAvatarUrl))
                 }
                 is RoomSettingsViewState.AvatarAction.UpdateAvatar -> avatarImageUri(avatarAction.newAvatarUri)
             }

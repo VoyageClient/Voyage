@@ -23,6 +23,8 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.applyThemeShapeColorCompat
+import im.vector.app.core.extensions.clearDrawables
+import im.vector.app.core.extensions.setRedactedPreviewStyle
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.ui.views.PresenceStateImageView
 import im.vector.app.core.ui.views.ShieldImageView
@@ -59,6 +61,9 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
 
     @EpoxyAttribute
     lateinit var lastFormattedEvent: EpoxyCharSequence
+
+    @EpoxyAttribute
+    var lastEventRedacted: Boolean = false
 
     @EpoxyAttribute
     lateinit var lastEventTime: String
@@ -137,16 +142,23 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         perfMarker.end()
     }
 
-    private fun renderDisplayMode(holder: Holder) = when (displayMode) {
-        RoomListDisplayMode.ROOMS,
-        RoomListDisplayMode.PEOPLE,
-        RoomListDisplayMode.ALL,
-        RoomListDisplayMode.NOTIFICATIONS -> renderForDefaultDisplayMode(holder)
-        RoomListDisplayMode.FILTERED -> renderForFilteredDisplayMode(holder)
+    private fun renderDisplayMode(holder: Holder) {
+        // Reset before dispatching: only the default mode styles a redacted preview, and holders are
+        // shared with the filtered mode.
+        holder.subtitleView.setTextColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
+        holder.subtitleView.clearDrawables()
+        when (displayMode) {
+            RoomListDisplayMode.ROOMS,
+            RoomListDisplayMode.PEOPLE,
+            RoomListDisplayMode.ALL,
+            RoomListDisplayMode.NOTIFICATIONS -> renderForDefaultDisplayMode(holder)
+            RoomListDisplayMode.FILTERED -> renderForFilteredDisplayMode(holder)
+        }
     }
 
     private fun renderForDefaultDisplayMode(holder: Holder) {
         holder.subtitleView.text = lastFormattedEvent.charSequence
+        if (lastEventRedacted) holder.subtitleView.setRedactedPreviewStyle()
         holder.subtitleView.bindEmoteImageSpans()
         if (loadMentionAvatars) holder.subtitleView.bindPillImageSpans()
         // A spoiler in the preview keeps its blur; the BlurMaskFilter only paints on a software layer.

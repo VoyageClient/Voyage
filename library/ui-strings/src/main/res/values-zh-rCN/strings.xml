@@ -757,7 +757,6 @@
     <string name="message_add_reaction">添加回应</string>
     <string name="message_view_reaction">查看回应</string>
     <string name="reactions">反应</string>
-    <string name="event_redacted_by_user_reason">事件被用户删除</string>
     <string name="create_new_room">创建新房间</string>
     <string name="action_change">修改</string>
     <string name="please_wait">请稍候……</string>
@@ -880,7 +879,6 @@
     <string name="error_user_already_logged_in">你似乎正在试图连接到另一个家服务器。你想要登出吗？</string>
     <string name="room_list_catchup_empty_title">你已经跟上了！</string>
     <string name="room_list_catchup_empty_body">你没有未读消息</string>
-    <string name="event_redacted_by_admin_reason">事件被房间管理员删除</string>
     <string name="malformed_message">格式错误事件，无法显示</string>
     <string name="error_no_network">无网络。请检查你的网络连接。</string>
     <string name="change_room_directory_network">更改网络</string>
@@ -1273,7 +1271,6 @@
         <item quantity="other">发送原始尺寸图片</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">附加理由</string>
-    <string name="event_redacted_by_user_reason_with_reason">事件被用户删除，理由：%1$s</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">密钥请求</string>
     <string name="e2e_use_keybackup">解锁加密消息历史</string>
@@ -1321,7 +1318,6 @@
     <string name="reaction_search_type_hint">输入关键字以查找反应。</string>
     <string name="seen_by">已读</string>
     <string name="room_member_jump_to_read_receipt">跳至已读回执</string>
-    <string name="event_redacted_by_admin_reason_with_reason">事件被房间管理员删除，理由：%1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">密钥已是最新！</string>
     <string name="bootstrap_crosssigning_save_usb">保存到优盘或者备份盘</string>
     <string name="bootstrap_crosssigning_save_cloud">复制到你的个人云存储</string>

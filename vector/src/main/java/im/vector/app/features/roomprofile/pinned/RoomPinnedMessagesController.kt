@@ -53,6 +53,7 @@ class RoomPinnedMessagesController @Inject constructor(
                 matrixItem(event.senderInfo.toMatrixItem())
                 senderName(event.senderInfo.disambiguatedDisplayName)
                 body(host.displayableEventFormatter.format(event, isDm = false, appendAuthor = false))
+                redacted(event.root.isRedacted())
                 formattedDate(host.dateFormatter.format(event.root.originServerTs, DateFormatKind.DEFAULT_DATE_AND_TIME))
                 itemClickListener { host.callback?.onMessageClicked(eventId) }
                 if (data.canEditPinnedEvents) {

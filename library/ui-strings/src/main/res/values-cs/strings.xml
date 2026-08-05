@@ -893,8 +893,6 @@
     <string name="message_add_reaction">Přidat reakci</string>
     <string name="message_view_reaction">Ukázat reakce</string>
     <string name="reactions">Reakce</string>
-    <string name="event_redacted_by_user_reason">Událost smazána uživatelem</string>
-    <string name="event_redacted_by_admin_reason">Událost moderována správcem místnosti</string>
     <string name="malformed_message">Nečitelná událost, nelze zobrazit</string>
     <string name="create_new_room">Vytvořit novou místnost</string>
     <string name="error_no_network">Žádná síť. Prosím, zkontrolujte své spojení do internetu.</string>
@@ -1295,8 +1293,6 @@
         <item quantity="other">Odeslat obrázky v původní velikosti</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Udejte důvod</string>
-    <string name="event_redacted_by_user_reason_with_reason">Událost smazána uživatelem, důvod: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Událost moderována správcem místnosti, důvod: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Klíče jsou již aktuální!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Požadavky na klíče</string>

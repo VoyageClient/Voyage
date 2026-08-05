@@ -1221,8 +1221,6 @@
     <string name="message_add_reaction">Lägg till reaktion</string>
     <string name="message_view_reaction">Visa reaktioner</string>
     <string name="reactions">Reaktioner</string>
-    <string name="event_redacted_by_user_reason">Händelsen raderades av användaren</string>
-    <string name="event_redacted_by_admin_reason">Händelsen modererades av en rumsadministratör</string>
     <string name="malformed_message">Felformaterad händelse, kan inte visa</string>
     <string name="error_no_network">Inget nätverk. Vänligen kolla din internetanslutning.</string>
     <string name="action_change">Ändra</string>
@@ -1447,8 +1445,6 @@
         <item quantity="other">Skicka bilder i originalstorlek</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Inkludera en anledning</string>
-    <string name="event_redacted_by_user_reason_with_reason">Händelsen raderades av användaren, anledning: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Händelsen modererades av rumsadministratören. Anledning: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Nycklarna är redan uppdaterade!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="refresh">Ladda om</string>

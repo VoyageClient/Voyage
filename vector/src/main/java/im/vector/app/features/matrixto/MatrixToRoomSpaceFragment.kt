@@ -26,6 +26,7 @@ import im.vector.app.core.platform.ButtonStateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentMatrixToRoomSpaceCardBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
 import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.strings.CommonPlurals
@@ -82,6 +83,7 @@ class MatrixToRoomSpaceFragment :
                         views.matrixToCardNameText.setTextOrHide(peek.name.prepareForDisplay())
                         views.matrixToCardAliasText.setTextOrHide(peek.alias)
                         views.matrixToCardDescText.setTextOrHide(peek.topic.formatTopic(peek.roomItem.id))
+                        views.matrixToCardDescText.movementMethod = createLinkMovementMethod(null)
                         val memberCount = peek.memberCount
                         if (memberCount != null) {
                             views.matrixToMemberPills.isVisible = true

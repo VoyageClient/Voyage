@@ -762,8 +762,6 @@
     <string name="message_add_reaction">Lisää reaktio</string>
     <string name="message_view_reaction">Näytä reaktiot</string>
     <string name="reactions">Reaktiot</string>
-    <string name="event_redacted_by_user_reason">Käyttäjä poisti tapahtuman</string>
-    <string name="event_redacted_by_admin_reason">Huoneen ylläpitäjä moderoi tapahtuman</string>
     <string name="malformed_message">Epämuotoinen tapahtuma, ei voida näyttää</string>
     <string name="create_new_room">Luo uusi huone</string>
     <string name="error_no_network">Ei verkkoa. Tarkista internet-yhteytesi.</string>
@@ -1198,8 +1196,6 @@
         <item quantity="other">Lähetä kuvat alkuperäisessä koossa</item>
     </plurals>
     <string name="delete_event_dialog_reason_checkbox">Anna syy</string>
-    <string name="event_redacted_by_user_reason_with_reason">Käyttäjä poistanut tapahtuman, syynä: %1$s</string>
-    <string name="event_redacted_by_admin_reason_with_reason">Huoneen ylläpitäjä moderoi tapahtuman, syy: %1$s</string>
     <string name="keys_backup_restore_success_title_already_up_to_date">Avaimet ovat jo ajan tasalla!</string>
     <string name="login_default_session_public_name">${app_name} Android</string>
     <string name="settings_key_requests">Avainpyynnöt</string>

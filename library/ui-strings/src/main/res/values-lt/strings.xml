@@ -1473,8 +1473,6 @@
     <string name="error_no_network">Tinklo nėra. Patikrinkite interneto ryšį.</string>
     <string name="create_new_room">Sukurti naują kambarį</string>
     <string name="malformed_message">Neteisingai suformuotas įvykis, negalima rodyti</string>
-    <string name="event_redacted_by_admin_reason">Įvykis moderuotas kambario admino</string>
-    <string name="event_redacted_by_user_reason">Naudotojo ištrintas įvykis</string>
     <string name="reactions">Reakcijos</string>
     <string name="message_view_reaction">Peržiūrėti reakcijas</string>
     <string name="message_add_reaction">Pridėti reakciją</string>
