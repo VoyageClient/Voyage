@@ -20,13 +20,13 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import im.vector.app.R
 import im.vector.app.core.epoxy.TextListener
-import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
-import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.addTextChangedListenerOnce
 import im.vector.app.core.epoxy.setValueOnce
 import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
+import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 
 @EpoxyModelClass
 abstract class FormEditTextItem : VectorEpoxyModel<FormEditTextItem.Holder>(R.layout.item_form_text_input) {

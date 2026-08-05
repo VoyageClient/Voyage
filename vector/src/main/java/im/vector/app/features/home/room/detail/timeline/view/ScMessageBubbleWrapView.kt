@@ -28,7 +28,6 @@ import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.backgroundCompat
@@ -49,6 +48,7 @@ import im.vector.app.features.home.room.detail.timeline.item.E2EDecoration
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.SendStateDecoration
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.BubbleThemeUtils
 import im.vector.app.features.themes.BubbleThemeUtils.Companion.BUBBLE_TIME_BOTTOM
 import im.vector.app.features.themes.BubbleThemeUtils.Companion.BUBBLE_TIME_TOP
@@ -324,7 +324,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                 } else {
                     base
                 }
-                bubbleView.backgroundCompat =ScBubbleBackgroundDrawable(
+                bubbleView.backgroundCompat = ScBubbleBackgroundDrawable(
                         fillColor = color,
                         cornerRadius = messageLayout.bubbleAppearance.getBubbleRadiusPx(bubbleView.context).toFloat(),
                         tailWidth = bubbleView.resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.sc_bubble_tail_size).toFloat(),
@@ -465,16 +465,16 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
                 }
             }
         } else { // no bubbles
-            bubbleView.backgroundCompat =null
-            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginStartCompat =0
-            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginEndCompat =0
+            bubbleView.backgroundCompat = null
+            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginStartCompat = 0
+            (bubbleView.layoutParams as ViewGroup.MarginLayoutParams).marginEndCompat = 0
             bubbleView.setPadding(0, 0, 0, 0)
             views.messageMemberNameView.setPadding(0, 0, 0, 0)
         }
 
         (views.bubbleView.layoutParams as FrameLayout.LayoutParams).gravity = if (messageLayout.reverseBubble) Gravity.END else Gravity.START
         setFlatRtl(views.reactionsContainer, if (messageLayout.reverseBubble) reverseDirection else defaultDirection, defaultDirection)
-        views.messageThreadSummaryContainer.layoutDirectionCompat =if (messageLayout.reverseBubble) reverseDirection else defaultDirection
+        views.messageThreadSummaryContainer.layoutDirectionCompat = if (messageLayout.reverseBubble) reverseDirection else defaultDirection
         // Layout is broken if bubbleView is RTL (for some reason, Android uses left/end padding for right/start as well...)
         setFlatRtl(views.bubbleView, View.LAYOUT_DIRECTION_LTR, defaultDirection)
     }
@@ -533,7 +533,7 @@ class ScMessageBubbleWrapView @JvmOverloads constructor(
     }
 
     private fun removeFooterOverlayStyle() {
-        views.bubbleFootView.backgroundCompat =null
+        views.bubbleFootView.backgroundCompat = null
         tintFooter(ThemeUtils.getColor(views.bubbleFootView.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary))
         views.bubbleFootView.setPaddingRelativeCompat(
                 0,
@@ -673,12 +673,12 @@ fun getBubbleTimeLocation(messageLayout: TimelineMessageLayout.ScBubble): String
 }
 
 fun setFlatRtl(layout: ViewGroup, direction: Int, childDirection: Int, depth: Int = 1) {
-    layout.layoutDirectionCompat =direction
+    layout.layoutDirectionCompat = direction
     for (child in layout.children) {
         if (depth > 1 && child is ViewGroup) {
             setFlatRtl(child, direction, childDirection, depth - 1)
         } else {
-            child.layoutDirectionCompat =childDirection
+            child.layoutDirectionCompat = childDirection
         }
     }
 }

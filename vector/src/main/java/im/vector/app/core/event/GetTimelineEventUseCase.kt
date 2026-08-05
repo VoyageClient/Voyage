@@ -7,7 +7,6 @@
 
 package im.vector.app.core.event
 
-import androidx.lifecycle.asFlow
 import im.vector.app.core.di.ActiveSessionHolder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow

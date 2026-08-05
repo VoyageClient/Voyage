@@ -18,9 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -28,7 +26,6 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOption
 import javax.inject.Inject
@@ -70,7 +67,6 @@ class SpaceStateHandlerImpl @Inject constructor(
         if (sameSpaceSelected) {
             return
         }
-
 
         if (isForwardNavigation) {
             addToBackstack(spaceToLeave, spaceToSet)

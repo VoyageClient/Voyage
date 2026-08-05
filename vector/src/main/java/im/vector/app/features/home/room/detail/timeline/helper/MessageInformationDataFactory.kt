@@ -23,8 +23,6 @@ import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.BubbleThemeUtils
 import org.matrix.android.sdk.api.extensions.orFalse
-import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
-import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.model.MessageVerificationState
 import org.matrix.android.sdk.api.session.crypto.verification.VerificationState
@@ -35,14 +33,16 @@ import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.events.model.toValidDecryptedEvent
+import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReferencesAggregatedContent
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
-import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited

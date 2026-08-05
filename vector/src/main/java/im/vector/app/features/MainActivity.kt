@@ -31,12 +31,12 @@ import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.extensions.vectorStore
 import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.platform.VectorBaseActivity
+import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.core.session.SwitchAccountUseCase
 import im.vector.app.core.utils.deleteAllFiles
 import im.vector.app.databinding.ActivityMainBinding
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.home.ShortcutsHandler
-import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.features.home.room.detail.RoomDetailActivity
 import im.vector.app.features.home.room.threads.ThreadsActivity
 import im.vector.app.features.location.live.map.LiveLocationMapViewActivity

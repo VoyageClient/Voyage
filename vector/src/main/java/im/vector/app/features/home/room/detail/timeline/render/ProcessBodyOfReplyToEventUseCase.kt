@@ -26,12 +26,12 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getPollQuestion
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isAudioMessage
-import org.matrix.android.sdk.api.session.events.model.isReply
 import org.matrix.android.sdk.api.session.events.model.isFileMessage
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isLiveLocation
 import org.matrix.android.sdk.api.session.events.model.isPollEnd
 import org.matrix.android.sdk.api.session.events.model.isPollStart
+import org.matrix.android.sdk.api.session.events.model.isReply
 import org.matrix.android.sdk.api.session.events.model.isSticker
 import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.events.model.isVoiceMessage
@@ -40,8 +40,8 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
-import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.relation.ReplyToContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
@@ -82,11 +82,13 @@ class ProcessBodyOfReplyToEventUseCase @Inject constructor(
     // preview on the next render (which will fire from Realm changes, scroll bind, etc).
     private val fetchedEvents: MutableMap<String, Event> = Collections.synchronizedMap(HashMap())
     private val inflightFetches: MutableSet<String> = Collections.synchronizedSet(HashSet())
+
     // Events whose fetch failed (404, network error, etc). We don't retry for the lifetime
     // of the process — without this, every render would re-launch a doomed fetch and the
     // resulting churn could keep the unresolved-reply block in a permanent half-fetched
     // limbo. Cleared on app restart so transient network issues recover.
     private val failedFetches: MutableSet<String> = Collections.synchronizedSet(HashSet())
+
     // Reply targets we're polling for decryption to avoid launching duplicate watchers.
     private val decryptionWatches: MutableSet<String> = Collections.synchronizedSet(HashSet())
     private val fetchScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

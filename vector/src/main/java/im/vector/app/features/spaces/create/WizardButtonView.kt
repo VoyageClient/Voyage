@@ -16,11 +16,11 @@ import android.util.TypedValue
 import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.withStyledAttributes
+import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.extensions.getDrawableCompat
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.databinding.ViewSpaceTypeButtonBinding
-import androidx.core.widget.ImageViewCompat
 
 class WizardButtonView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) :
         ConstraintLayout(context, attrs, defStyle) {

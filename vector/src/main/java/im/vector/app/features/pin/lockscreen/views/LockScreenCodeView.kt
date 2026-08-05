@@ -12,9 +12,9 @@ import android.content.Context
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.ContextThemeWrapper
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import androidx.core.view.setMargins

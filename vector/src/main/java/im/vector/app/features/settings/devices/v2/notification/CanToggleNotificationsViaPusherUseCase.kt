@@ -7,7 +7,6 @@
 
 package im.vector.app.features.settings.devices.v2.notification
 
-import androidx.lifecycle.asFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map

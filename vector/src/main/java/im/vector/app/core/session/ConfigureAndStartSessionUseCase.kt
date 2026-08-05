@@ -8,7 +8,6 @@
 package im.vector.app.core.session
 
 import android.content.Context
-import androidx.lifecycle.asFlow
 import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.notification.NotificationsSettingUpdater

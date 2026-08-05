@@ -25,7 +25,6 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
-import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary

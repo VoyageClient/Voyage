@@ -25,10 +25,10 @@ import com.airbnb.epoxy.EpoxyAttribute
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
-import im.vector.app.core.platform.CheckableView
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.marginStartCompat
+import im.vector.app.core.platform.CheckableView
+import im.vector.app.features.themes.ThemeUtils
 
 /**
  * Children must override getViewType().

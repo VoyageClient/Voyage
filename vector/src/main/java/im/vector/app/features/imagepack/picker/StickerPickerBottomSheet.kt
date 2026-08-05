@@ -16,8 +16,6 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.setFragmentResult
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import im.vector.app.features.reactions.EmojiPickerSection
-import im.vector.app.features.reactions.pauseImageAnimationsWhileScrolling
 import com.airbnb.mvrx.args
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -29,6 +27,8 @@ import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.imagepack.ResolvedImage
 import im.vector.app.features.imagepack.ResolvedImagePack
+import im.vector.app.features.reactions.EmojiPickerSection
+import im.vector.app.features.reactions.pauseImageAnimationsWhileScrolling
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import javax.inject.Inject

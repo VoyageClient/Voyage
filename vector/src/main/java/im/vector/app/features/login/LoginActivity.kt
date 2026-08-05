@@ -79,7 +79,6 @@ open class LoginActivity : VectorBaseActivity<ActivityLoginBinding>(), UnlockedA
         get() = views.coordinatorLayout
 
     override fun initUiAndData() {
-
         if (isFirstCreation()) {
             addFirstFragment()
         }

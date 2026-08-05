@@ -7,27 +7,26 @@
 
 package im.vector.app.features.home.room.detail.timeline.format
 
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.URLSpan
 import dagger.Lazy
-import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.extensions.getVectorLastMessageContent
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
-import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.core.extensions.orEmpty
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.DrawableProvider
 import im.vector.app.core.resources.StringProvider
-import android.text.Spanned
-import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
-import android.text.style.URLSpan
+import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.EmoteImageSpan
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillImageSpan
 import im.vector.app.features.media.isMediaHiddenInRoom
+import im.vector.app.features.pgp.PgpDecryptor
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
-import me.gujun.android.span.image
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -38,7 +37,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.message.asMessageAudioEvent
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.ContentUtils

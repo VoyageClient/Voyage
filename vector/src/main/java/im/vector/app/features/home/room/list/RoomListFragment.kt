@@ -30,10 +30,10 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.platform.OnBackPressed
-import im.vector.app.core.utils.PerfTrace
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.resources.UserPreferencesProvider
+import im.vector.app.core.utils.PerfTrace
 import im.vector.app.databinding.FragmentRoomListBinding
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.filtered.FilteredRoomFooterItem

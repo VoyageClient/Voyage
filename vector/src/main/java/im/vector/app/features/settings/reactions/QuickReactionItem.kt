@@ -27,8 +27,10 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 abstract class QuickReactionItem : VectorEpoxyModel<QuickReactionItem.Holder>(R.layout.item_quick_reaction) {
 
     @EpoxyAttribute lateinit var reaction: String
+
     // A human-readable label: an emoji's name, a custom emote's `:shortcode:`, or empty for text reactions.
     @EpoxyAttribute var label: String = ""
+
     // Resolved when the reaction is a custom emote (mxc); null for a plain unicode emoji.
     @EpoxyAttribute var resolvedUrl: String? = null
     @EpoxyAttribute lateinit var fontProvider: EmojiCompatFontProvider

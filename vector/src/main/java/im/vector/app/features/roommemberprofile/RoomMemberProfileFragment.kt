@@ -32,7 +32,6 @@ import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.extensions.copyOnLongClick
 import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
@@ -43,15 +42,16 @@ import im.vector.app.features.crypto.verification.user.UserVerificationBottomShe
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.BannerRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.media.shouldHideAvatars
 import im.vector.app.features.roommemberprofile.devices.DeviceListBottomSheet
 import im.vector.app.features.roommemberprofile.mutualrooms.MutualRoomsActivity
-import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.roommemberprofile.powerlevel.EditPowerLevelDialogs
+import im.vector.app.features.settings.VectorPreferences
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.Session

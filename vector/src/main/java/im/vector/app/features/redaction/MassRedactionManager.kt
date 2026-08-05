@@ -20,12 +20,12 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -238,6 +238,7 @@ class MassRedactionManager @Inject constructor(
                     null
                 }
             }
+
             // Prefetch the next page while the current one's redactions run, so the network round-trip
             // overlaps the redaction work instead of serializing with it. The result MUST be wrapped in
             // runCatching inside the async: a failed async child fails the whole job even when nobody
@@ -404,9 +405,11 @@ class MassRedactionManager @Inject constructor(
     companion object {
         private const val PERSIST_EVERY = 20
         private const val MAX_REMOTE_PAGES = 500
+
         // Concurrent redactions in flight when the user chose no delay; enough to hide round-trip
         // latency, small enough not to trip typical rate limits.
         private const val REDACT_PARALLELISM = 5
+
         // Floor between redactions so a burst can't saturate the session dispatcher and stall sync app-wide.
         private const val MIN_COOLDOWN_MS = 30L
         private const val ACTIVE = "active"

@@ -10,7 +10,6 @@ package im.vector.app.features.createdirect
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
 import im.vector.app.features.settings.VectorPreferences
-import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session

@@ -29,7 +29,6 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import reactivecircus.flowbinding.android.widget.queryTextChanges
 import javax.inject.Inject
 

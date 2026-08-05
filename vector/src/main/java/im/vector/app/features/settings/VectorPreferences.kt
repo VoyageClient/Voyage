@@ -9,12 +9,11 @@ package im.vector.app.features.settings
 import android.content.Context
 import android.content.SharedPreferences
 import android.media.RingtoneManager
-import android.os.Build
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.BoolRes
 import androidx.core.content.edit
-import im.vector.lib.core.utils.compat.use
 import de.spiritcroc.matrixsdk.StaticScSdkHelper
 import im.vector.app.core.di.DefaultPreferences
 import im.vector.app.core.resources.BuildMeta
@@ -24,6 +23,7 @@ import im.vector.app.features.home.ShortcutsHandler
 import im.vector.app.features.homeserver.ServerUrlsRepository
 import im.vector.app.features.reactions.data.EmojiDataSource
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.compat.use
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -227,7 +227,6 @@ class VectorPreferences @Inject constructor(
         // SETTINGS_LABS_HIDE_TECHNICAL_E2E_ERRORS
         private const val SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM = "SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM"
         const val SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB = "SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB"
-
 
         // Security
         const val SETTINGS_SECURITY_USE_FLAG_SECURE = "SETTINGS_SECURITY_USE_FLAG_SECURE"
@@ -1176,7 +1175,6 @@ class VectorPreferences @Inject constructor(
     fun useGracePeriod(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SECURITY_USE_GRACE_PERIOD_FLAG, true)
     }
-
 
     fun directShareEnabled(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_ENABLE_DIRECT_SHARE, true)

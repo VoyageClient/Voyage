@@ -20,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.extensions.copyOnLongClick
@@ -36,6 +35,7 @@ import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.home.accountswitcher.AccountSwitcherAdapter
 import im.vector.app.features.home.accountswitcher.AccountSwitcherEntry
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.onboarding.OnboardingActivity
 import im.vector.app.features.roomdirectory.pendingrequests.PendingJoinRequestsActivity
 import im.vector.app.features.settings.VectorPreferences
@@ -45,8 +45,8 @@ import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.getRoomSummariesLive
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.user.getUserLive
 import org.matrix.android.sdk.api.util.toMatrixItem

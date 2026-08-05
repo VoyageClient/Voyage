@@ -34,7 +34,6 @@ import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.chip.ChipDrawable
 import im.vector.app.R
 import im.vector.app.core.extensions.isMatrixId
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.features.displayname.getBestName
@@ -42,6 +41,7 @@ import im.vector.app.features.emoji.TwemojiSpan
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan

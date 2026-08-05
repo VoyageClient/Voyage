@@ -20,7 +20,6 @@ import androidx.lifecycle.withResumed
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.withState
-import im.vector.app.core.ui.views.EmojiChip
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
@@ -29,6 +28,7 @@ import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.setupAsSearch
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
+import im.vector.app.core.ui.views.EmojiChip
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.showIdentityServerConsentDialog
 import im.vector.app.databinding.FragmentUserListBinding

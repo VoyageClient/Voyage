@@ -19,8 +19,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SessionListener @Inject constructor(
-) : Session.Listener {
+class SessionListener @Inject constructor() : Session.Listener {
 
     private val _globalErrorLiveData = MutableLiveData<LiveEvent<GlobalError>>()
     val globalErrorLiveData: LiveData<LiveEvent<GlobalError>>

@@ -7,7 +7,6 @@
 
 package im.vector.app.features.spaces
 
-import androidx.lifecycle.asFlow
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.Success

@@ -83,5 +83,4 @@ class FakeVectorPreferences {
     fun verifySetIpAddressVisibilityInDeviceManagerScreens(isVisible: Boolean) {
         verify { instance.setIpAddressVisibilityInDeviceManagerScreens(isVisible) }
     }
-
 }

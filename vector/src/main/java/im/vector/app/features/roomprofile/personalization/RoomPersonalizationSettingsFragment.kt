@@ -16,8 +16,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.preference.EditTextPreferenceDialogFragmentCompat
 import androidx.preference.Preference
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.R
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
@@ -25,12 +23,13 @@ import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.preference.UserAvatarPreference
 import im.vector.app.core.preference.UserBannerPreference
 import im.vector.app.core.preference.VectorEditTextPreference
+import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
+import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.features.settings.VectorSettingsBaseFragment
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -66,6 +65,7 @@ class RoomPersonalizationSettingsFragment :
     private var memberContentLoaded = false
     private var currentAvatarUrl: String? = null
     private var currentDisplayName: String? = null
+
     // Raw member-event banner field: "" = explicitly hidden in this room. Global banner changes are
     // propagated into every member event (like avatars), so a value merely equal to the account
     // banner is not a personalization — only a differing one is.

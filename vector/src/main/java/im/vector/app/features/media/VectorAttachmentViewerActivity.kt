@@ -78,12 +78,14 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     private val viewModel: VectorAttachmentViewerViewModel by viewModel()
     private val errorFormatter by lazy(LazyThreadSafetyMode.NONE) { singletonEntryPoint().errorFormatter() }
     private var initialIndex = 0
+
     // Restored from saved state (e.g. after process death) so we reopen on the page the user was viewing, not the first one.
     private var restoredPosition = -1
     private var isAnimatingOut = false
     private var currentSourceProvider: BaseAttachmentProvider<*>? = null
     private var providerInstalled = false
     private var handoffPending = false
+
     // Absolute pixel corner radius for rounded shared elements.
     private var transitionCornerPx = 0f
     private var cornerAnimator: android.animation.ValueAnimator? = null

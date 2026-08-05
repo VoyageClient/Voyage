@@ -18,12 +18,12 @@ import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetSpaceSettingsBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.formatTopic
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.roomprofile.RoomProfileActivity
 import im.vector.app.features.spaces.leave.SpaceLeaveAdvancedActivity

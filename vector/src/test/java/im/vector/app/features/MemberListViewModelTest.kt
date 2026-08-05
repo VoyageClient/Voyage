@@ -8,9 +8,6 @@
 package im.vector.app.features
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import com.airbnb.mvrx.test.MavericksTestRule
 import im.vector.app.features.roomprofile.RoomProfileArgs
 import im.vector.app.features.roomprofile.members.RoomMemberListComparator
@@ -21,6 +18,8 @@ import im.vector.app.test.testCoroutineDispatchers
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Rule
 import org.junit.Test
 import org.matrix.android.sdk.api.session.Session

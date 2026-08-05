@@ -10,12 +10,12 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.text.Layout
 import android.text.StaticLayout
-import androidx.emoji2.text.EmojiCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.emoji2.text.EmojiCompat
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView

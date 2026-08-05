@@ -8,7 +8,6 @@
 package im.vector.app.features.login
 
 import android.content.Context
-import android.net.Uri
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.MavericksViewModelFactory

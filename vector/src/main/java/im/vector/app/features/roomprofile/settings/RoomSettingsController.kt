@@ -40,6 +40,7 @@ class RoomSettingsController @Inject constructor(
         // Delete the avatar, or cancel an avatar change
         fun onAvatarDelete()
         fun onAvatarChange()
+
         // Delete the banner, or cancel a banner change
         fun onBannerDelete()
         fun onBannerChange()

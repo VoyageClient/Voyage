@@ -46,5 +46,4 @@ data class UserListViewState(
                     }
                 }
     }
-
 }

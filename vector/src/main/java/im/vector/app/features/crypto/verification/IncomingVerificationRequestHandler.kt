@@ -6,7 +6,6 @@
  */
 package im.vector.app.features.crypto.verification
 
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.content.Context
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
@@ -18,6 +17,7 @@ import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.session.coroutineScope
 import im.vector.lib.core.utils.compat.getParcelableCompat
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope

@@ -73,10 +73,10 @@ class MessageBubbleView @JvmOverloads constructor(
                 View.LAYOUT_DIRECTION_LTR
             }
         }
-        views.informationBottom.layoutDirectionCompat =layoutDirectionToSet
-        views.messageThreadSummaryContainer.layoutDirectionCompat =layoutDirectionToSet
-        views.bubbleWrapper.layoutDirectionCompat =layoutDirectionToSet
-        views.bubbleView.layoutDirectionCompat =currentLayoutDirection
+        views.informationBottom.layoutDirectionCompat = layoutDirectionToSet
+        views.messageThreadSummaryContainer.layoutDirectionCompat = layoutDirectionToSet
+        views.bubbleWrapper.layoutDirectionCompat = layoutDirectionToSet
+        views.bubbleView.layoutDirectionCompat = currentLayoutDirection
 
         bubbleDrawable = MaterialShapeDrawable()
         rippleMaskDrawable = MaterialShapeDrawable()

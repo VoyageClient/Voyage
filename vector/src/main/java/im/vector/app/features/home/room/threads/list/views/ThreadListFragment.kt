@@ -19,7 +19,6 @@ import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
@@ -28,6 +27,7 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentThreadListBinding
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.animation.TimelineItemAnimator
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.threads.ThreadsActivity
 import im.vector.app.features.home.room.threads.arguments.ThreadListArgs
 import im.vector.app.features.home.room.threads.arguments.ThreadTimelineArgs

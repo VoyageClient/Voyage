@@ -13,10 +13,10 @@ import android.content.res.TypedArray
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.res.use
+import androidx.core.view.ViewCompat
 import im.vector.app.R
 import im.vector.app.databinding.ViewSecurityRecommendationBinding
 import im.vector.lib.strings.CommonStrings
-import androidx.core.view.ViewCompat
 
 class SecurityRecommendationView @JvmOverloads constructor(
         context: Context,

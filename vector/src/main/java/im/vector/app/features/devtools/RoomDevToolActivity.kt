@@ -11,8 +11,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
 import android.view.Menu
-import androidx.activity.addCallback
 import android.view.MenuItem
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.Loading

@@ -22,11 +22,11 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.EmojiCompatFontProvider
 import im.vector.app.R
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 
 /**
  * A quick reaction list for bottom sheet. Emojis wrap onto more rows by default; in compact mode they

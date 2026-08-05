@@ -15,8 +15,8 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import im.vector.app.databinding.ViewLocationSharingOptionPickerBinding
 import im.vector.app.core.extensions.backgroundCompat
+import im.vector.app.databinding.ViewLocationSharingOptionPickerBinding
 
 /**
  * Custom view to display the location sharing option picker.

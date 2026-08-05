@@ -8,13 +8,13 @@ package im.vector.app.features.notifications
 
 import android.net.Uri
 import im.vector.app.core.extensions.getVectorLastMessageContent
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.app.core.extensions.takeAs
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventFormatter
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse

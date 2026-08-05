@@ -7,7 +7,6 @@
 
 package im.vector.app.features.roomprofile
 
-import androidx.lifecycle.asFlow
 import com.airbnb.mvrx.MavericksViewModelFactory
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory

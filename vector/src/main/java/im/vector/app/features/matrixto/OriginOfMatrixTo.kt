@@ -7,7 +7,6 @@
 
 package im.vector.app.features.matrixto
 
-
 enum class OriginOfMatrixTo {
     LINK,
     NOTIFICATION,

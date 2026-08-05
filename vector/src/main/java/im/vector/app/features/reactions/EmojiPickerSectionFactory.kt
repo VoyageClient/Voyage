@@ -14,8 +14,8 @@ import im.vector.app.features.imagepack.ImagePackProvider
 import im.vector.app.features.imagepack.ImagePackSource
 import im.vector.app.features.imagepack.ImagePackUsageFilter
 import im.vector.app.features.reactions.data.EmojiDataSource
-import im.vector.app.features.reactions.data.RecentEmote
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
+import im.vector.app.features.reactions.data.RecentEmote
 import im.vector.app.features.reactions.data.RecentEmoteDataSource
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl

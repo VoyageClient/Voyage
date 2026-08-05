@@ -21,8 +21,8 @@ import android.content.res.Resources
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.Spannable
-import android.text.Spanned
 import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.style.RelativeSizeSpan
 import android.text.style.StrikethroughSpan
 import android.text.style.URLSpan
@@ -415,6 +415,7 @@ class EventHtmlRenderer @Inject constructor(
         }
 
         fun Char.isWs() = this == ' ' || this == '\t' || this == '\n'
+
         // Item spans swallow adjacent phantom whitespace, so classify a run by the items owning the
         // nearest real content on each side, not by span overlap with the run itself.
         fun innermostItem(index: Int) = listRanges.filter { (s, e) -> index in s until e }.minByOrNull { (s, e) -> e - s }

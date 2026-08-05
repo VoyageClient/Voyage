@@ -18,6 +18,7 @@ import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import im.vector.app.R
+import im.vector.app.core.extensions.importantForAccessibilityCompat
 import im.vector.app.core.extensions.setAttributeBackground
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewVoiceMessageRecorderBinding
@@ -26,7 +27,6 @@ import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlayb
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.lib.strings.CommonStrings
-import im.vector.app.core.extensions.importantForAccessibilityCompat
 
 class VoiceMessageViews(
         private val resources: Resources,

@@ -19,9 +19,9 @@ import im.vector.app.features.voice.VoiceFailure
 import im.vector.app.features.voice.VoiceRecorder
 import im.vector.app.features.voice.VoiceRecorderProvider
 import im.vector.lib.core.utils.timer.CountUpTimer
-import io.element.android.opusencoder.OggOpusDecoder
 import im.vector.lib.multipicker.entity.MultiPickerAudioType
 import im.vector.lib.multipicker.utils.toMultiPickerAudioType
+import io.element.android.opusencoder.OggOpusDecoder
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData

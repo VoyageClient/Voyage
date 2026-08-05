@@ -26,13 +26,13 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.onLongClickIgnoringLinksSelectingCode
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.setReadOnlySelectable
-import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.html.Alignment
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
-import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
 import im.vector.app.features.html.TableCellData
 import im.vector.app.features.html.TableRowData
+import im.vector.app.features.settings.VectorPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
 

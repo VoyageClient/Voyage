@@ -11,9 +11,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
-import android.util.TypedValue
 import android.os.Build
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -45,7 +45,6 @@ import com.airbnb.mvrx.MavericksView
 import com.bumptech.glide.util.Util
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.EntryPointAccessors
 import im.vector.app.R

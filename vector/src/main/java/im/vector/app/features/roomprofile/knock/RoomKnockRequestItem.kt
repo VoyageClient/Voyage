@@ -7,7 +7,6 @@
 
 package im.vector.app.features.roomprofile.knock
 
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -15,7 +14,6 @@ import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import com.google.android.material.button.MaterialButton
-import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyHolder
@@ -24,6 +22,8 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import org.matrix.android.sdk.api.util.MatrixItem
 
 @EpoxyModelClass

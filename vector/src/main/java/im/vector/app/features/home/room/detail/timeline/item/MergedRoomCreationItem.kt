@@ -23,7 +23,9 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.marginEndCompat
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.core.extensions.textAlignmentCompat
 import im.vector.app.core.utils.tappableMatchingText
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.RoomDetailAction
@@ -39,8 +41,6 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import org.matrix.android.sdk.api.util.toMatrixItem
-import im.vector.app.core.extensions.marginEndCompat
-import im.vector.app.core.extensions.textAlignmentCompat
 
 @EpoxyModelClass
 abstract class MergedRoomCreationItem : BasedMergedItem<MergedRoomCreationItem.Holder>(R.layout.item_timeline_event_base_noinfo) {

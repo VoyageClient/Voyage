@@ -20,13 +20,13 @@ import im.vector.app.features.home.room.list.home.HomeRoomListAction
 import im.vector.app.features.home.room.list.home.HomeRoomListViewModel
 import im.vector.app.features.home.room.list.home.HomeRoomListViewState
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
+import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.app.test.fakes.FakeDrawableProvider
 import im.vector.app.test.fakes.FakeHomeLayoutPreferencesStore
 import im.vector.app.test.fakes.FakeSession
 import im.vector.app.test.fakes.FakeSpaceStateHandler
 import im.vector.app.test.fakes.FakeStringProvider
 import im.vector.app.test.fakes.FakeVectorPreferences
-import im.vector.app.features.spaces.tags.TagFilterStateHandler
 import im.vector.app.test.fixtures.RoomSummaryFixture.aRoomSummary
 import im.vector.app.test.test
 import im.vector.lib.strings.CommonStrings

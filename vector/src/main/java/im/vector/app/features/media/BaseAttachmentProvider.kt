@@ -7,7 +7,6 @@
 
 package im.vector.app.features.media
 
-import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import android.content.Context
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
@@ -23,6 +22,7 @@ import im.vector.lib.attachmentviewer.AttachmentInfo
 import im.vector.lib.attachmentviewer.AttachmentSourceProvider
 import im.vector.lib.attachmentviewer.ImageLoaderTarget
 import im.vector.lib.attachmentviewer.VideoLoaderTarget
+import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

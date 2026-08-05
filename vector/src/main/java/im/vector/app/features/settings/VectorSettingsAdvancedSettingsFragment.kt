@@ -31,7 +31,6 @@ class VectorSettingsAdvancedSettingsFragment :
     @Inject lateinit var nightlyProxy: NightlyProxy
     @Inject lateinit var vectorPreferences: VectorPreferences
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }

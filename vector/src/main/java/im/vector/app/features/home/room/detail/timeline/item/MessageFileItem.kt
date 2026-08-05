@@ -21,12 +21,12 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.themes.ThemeUtils
-import im.vector.app.core.extensions.setMediaPillColorCompat
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.noties.markwon.MarkwonPlugin
 

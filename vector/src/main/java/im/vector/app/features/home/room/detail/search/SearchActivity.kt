@@ -14,10 +14,10 @@ import android.view.View
 import androidx.appcompat.widget.SearchView
 import com.airbnb.mvrx.Mavericks
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.core.extensions.addFragment
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivitySearchBinding
+import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.lib.core.utils.compat.getParcelableCompat
 
 @AndroidEntryPoint
