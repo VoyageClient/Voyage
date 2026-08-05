@@ -7,8 +7,10 @@
 
 package org.matrix.android.sdk.internal.session.sync.handler.room
 
+import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.internal.database.model.ReadReceiptEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.sync.RoomSyncEphemeralTemporaryStore
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
 import timber.log.Timber
@@ -21,9 +23,12 @@ private const val TIMESTAMP_KEY = "ts"
 private const val THREAD_ID_KEY = "thread_id"
 
 /** SQLDelight write-path counterpart of the former Realm ReadReceiptHandler. Runs inside the session DB transaction. */
+@SessionScope
 internal class SqlReadReceiptHandler @Inject constructor(
         private val roomSyncEphemeralTemporaryStore: RoomSyncEphemeralTemporaryStore,
 ) {
+
+    @Volatile private var normalizedLegacyReceipts = false
 
     companion object {
         fun createContent(
@@ -48,6 +53,7 @@ internal class SqlReadReceiptHandler @Inject constructor(
             aggregator: SyncResponsePostTreatmentAggregator?,
     ) {
         content ?: return
+        normalizeLegacyReceipts(stores)
         try {
             val ignoredUserIds = stores.user.getIgnoredUserIds().toSet()
             if (isInitialSync) {
@@ -57,6 +63,16 @@ internal class SqlReadReceiptHandler @Inject constructor(
             }
         } catch (exception: Exception) {
             Timber.e("Fail to handle read receipt for room $roomId")
+        }
+    }
+
+    private fun normalizeLegacyReceipts(stores: SessionStores) {
+        if (normalizedLegacyReceipts) return
+        try {
+            stores.readReceipt.normalizeUnthreadedReceipts()
+            normalizedLegacyReceipts = true
+        } catch (exception: Exception) {
+            Timber.e(exception, "Fail to normalize legacy read receipts")
         }
     }
 
@@ -71,13 +87,20 @@ internal class SqlReadReceiptHandler @Inject constructor(
                     // m.read wins over m.read.private for the same user/event (iterated first).
                     if (!handledUserIds.add(userId)) continue
                     val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
-                    val threadId = paramsDict[THREAD_ID_KEY] as String?
+                    val threadId = paramsDict[THREAD_ID_KEY] as? String ?: ReadService.THREAD_ID_MAIN
                     receipts.add(receiptEntity(roomId, eventId, userId, threadId, ts))
                 }
             }
             if (receipts.isNotEmpty()) {
                 stores.readReceipt.upsertSummary(eventId, roomId)
-                receipts.forEach { stores.readReceipt.upsertReceipt(it) }
+                receipts.forEach { receipt ->
+                    // Shares a key with the receipt synthesized when a user sends an event, so an
+                    // unguarded write could move that user's receipt backwards in time.
+                    val existing = stores.readReceipt.getReceipt(receipt.roomId, receipt.userId, receipt.threadId)
+                    if (existing == null || receipt.originServerTs > existing.originServerTs) {
+                        stores.readReceipt.upsertReceipt(receipt)
+                    }
+                }
             }
         }
     }
@@ -106,7 +129,7 @@ internal class SqlReadReceiptHandler @Inject constructor(
                 for ((userId, paramsDict) in userIdsDict) {
                     if (userId in ignoredUserIds) continue
                     val ts = paramsDict[TIMESTAMP_KEY] as? Double ?: 0.0
-                    val threadId = paramsDict[THREAD_ID_KEY] as String?
+                    val threadId = paramsDict[THREAD_ID_KEY] as? String ?: ReadService.THREAD_ID_MAIN
                     val existing = stores.readReceipt.getReceipt(roomId, userId, threadId)
                     if (existing == null || ts > existing.originServerTs) {
                         // upsertReceipt replaces the row at the same primary key, moving it to the new event/ts.
@@ -117,18 +140,15 @@ internal class SqlReadReceiptHandler @Inject constructor(
         }
     }
 
-    private fun receiptEntity(roomId: String, eventId: String, userId: String, threadId: String?, ts: Double) =
+    private fun receiptEntity(roomId: String, eventId: String, userId: String, threadId: String, ts: Double) =
             ReadReceiptEntity(
-                    primaryKey = buildPrimaryKey(roomId, userId, threadId),
+                    primaryKey = "${roomId}_${userId}_$threadId",
                     eventId = eventId,
                     roomId = roomId,
                     userId = userId,
                     threadId = threadId,
                     originServerTs = ts,
             )
-
-    private fun buildPrimaryKey(roomId: String, userId: String, threadId: String?): String =
-            if (threadId == null) "${roomId}_$userId" else "${roomId}_${userId}_$threadId"
 
     fun getContentFromInitSync(roomId: String): ReadReceiptContent? {
         val dataFromFile = roomSyncEphemeralTemporaryStore.read(roomId) ?: return null

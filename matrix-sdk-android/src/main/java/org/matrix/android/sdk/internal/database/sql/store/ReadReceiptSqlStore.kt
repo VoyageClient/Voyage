@@ -51,6 +51,13 @@ internal class ReadReceiptSqlStore(private val database: SessionSqlDatabase) {
             origin_server_ts = entity.originServerTs,
     )
 
+    /** Collapses pre-normalization NULL-thread rows onto the 'main' key, keeping the newer timestamp. */
+    fun normalizeUnthreadedReceipts() {
+        queries.deleteSupersededUnthreadedReceipts()
+        queries.deleteMainSupersededByUnthreadedReceipts()
+        queries.rekeyUnthreadedReceiptsToMain()
+    }
+
     fun deleteReceiptsForEvent(eventId: String) = queries.deleteReceiptsForEvent(eventId)
 
     fun deleteSummary(eventId: String) = queries.deleteSummary(eventId)
