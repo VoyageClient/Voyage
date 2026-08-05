@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.composer.voice
 
+import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.text.format.DateUtils
 import android.view.MotionEvent
@@ -16,8 +17,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
-import androidx.core.view.MarginLayoutParamsCompat
 import androidx.core.view.updateLayoutParams
+import androidx.core.widget.ImageViewCompat
 import im.vector.app.R
 import im.vector.app.core.extensions.importantForAccessibilityCompat
 import im.vector.app.core.extensions.setAttributeBackground
@@ -38,13 +39,19 @@ class VoiceMessageViews(
     private val distanceToCancel = dimensionConverter.dpToPx(120).toFloat()
     private val rtlXMultiplier = resources.getInteger(im.vector.lib.ui.styles.R.integer.rtl_x_multiplier)
 
-    fun applyClassicComposerStyle(micEndMarginPx: Int) {
-        views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            // MarginLayoutParams.setMarginEnd is API 17+; rightMargin is what actually applies below it.
-            MarginLayoutParamsCompat.setMarginEnd(this, micEndMarginPx)
-            rightMargin = micEndMarginPx
-        }
+    private var classicComposer = false
+
+    fun applyClassicComposerStyle() {
+        classicComposer = true
+        applyClassicMicStyle()
+    }
+
+    // Match the classic composer's other buttons: accent tint, no ripple. The mic drawable is
+    // hardcoded to ?vctr_content_tertiary, so it needs an explicit tint rather than a theme attr.
+    private fun applyClassicMicStyle() {
         views.voiceMessageMicButton.background = null
+        val accent = ThemeUtils.getColor(views.voiceMessageMicButton.context, com.google.android.material.R.attr.colorAccent)
+        ImageViewCompat.setImageTintList(views.voiceMessageMicButton, ColorStateList.valueOf(accent))
     }
 
     fun start(actions: Actions) {
@@ -150,6 +157,7 @@ class VoiceMessageViews(
                 setMargins(0, 0, dimensionConverter.dpToPx(12), dimensionConverter.dpToPx(12))
             }
         }
+        if (classicComposer) applyClassicMicStyle()
     }
 
     fun hideToast() {
