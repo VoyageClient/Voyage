@@ -22,6 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityImageEditorBinding
+import im.vector.app.features.attachments.editor.restoreOriginalResult
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
@@ -122,6 +123,7 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     private fun save() {
         val edits = views.imageEditorView.currentEdits()
         if (!edits.hasChanges) {
+            setResult(RESULT_OK, restoreOriginalResult())
             finish()
             return
         }

@@ -427,6 +427,22 @@ class VideoViewHolder constructor(itemView: View) :
         }
     }
 
+    /** The overlay's button stays in step by itself: the tick timer reports what the player is doing. */
+    override fun onTapped(): Boolean {
+        val player = mediaPlayer?.takeIf { isPrepared } ?: return false
+        return runCatching {
+            if (player.isPlaying) {
+                wasPaused = true
+                player.pause()
+            } else {
+                wasPaused = false
+                player.start()
+                ensureTickTimer()
+            }
+            true
+        }.getOrDefault(false)
+    }
+
     override fun handleCommand(commands: AttachmentCommands) {
         if (!isSelected) return
         val player = mediaPlayer ?: return

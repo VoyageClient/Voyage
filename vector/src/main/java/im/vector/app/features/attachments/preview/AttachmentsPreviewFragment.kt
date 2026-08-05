@@ -10,26 +10,33 @@ package im.vector.app.features.attachments.preview
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
 import android.content.res.ColorStateList
+import android.graphics.PorterDuff
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import android.widget.Toast
-import androidx.core.net.toUri
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.core.widget.CompoundButtonCompat
+import androidx.core.widget.ImageViewCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.extensions.cleanup
@@ -39,18 +46,22 @@ import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.utils.OnSnapPositionChangeListener
 import im.vector.app.core.utils.SnapOnScrollListener
 import im.vector.app.core.utils.attachSnapHelperWithListener
+import im.vector.app.databinding.BottomSheetAttachmentCompressionBinding
 import im.vector.app.databinding.FragmentAttachmentsPreviewBinding
 import im.vector.app.features.attachments.editor.image.ImageEditorActivity
 import im.vector.app.features.attachments.editor.image.ImageEditorEdits
+import im.vector.app.features.attachments.editor.isRestoreOriginal
 import im.vector.app.features.attachments.editor.video.VideoEditorActivity
 import im.vector.app.features.attachments.editor.video.VideoEditorEdits
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.animatedimage.AnimatedImageFormat
 import im.vector.lib.strings.CommonPlurals
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.queryUriAndroid
+import org.matrix.android.sdk.api.util.MimeTypes.isMimeTypeVideo
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -63,6 +74,7 @@ data class AttachmentsPreviewArgs(
 class AttachmentsPreviewFragment :
         VectorBaseFragment<FragmentAttachmentsPreviewBinding>(),
         AttachmentMiniaturePreviewController.Callback,
+        VideoPlaybackListener,
         VectorMenuProvider {
 
     @Inject lateinit var attachmentMiniaturePreviewController: AttachmentMiniaturePreviewController
@@ -73,8 +85,12 @@ class AttachmentsPreviewFragment :
 
     private var lastScrolledIndex = -1
 
-    /** Source the editor was opened against, needed to record the edit when it returns. */
-    private var pendingEditOriginalUri: String? = null
+    /** Attachment the editor was opened against, needed to record the edit when it returns. */
+    private var pendingEditOriginal: ContentAttachmentData? = null
+    private val animatedFormats = mutableMapOf<String, AnimatedImageFormat?>()
+
+    private var videoControls: VideoPlaybackControls? = null
+    private var scrubbingVideo = false
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentAttachmentsPreviewBinding {
         return FragmentAttachmentsPreviewBinding.inflate(inflater, container, false)
@@ -97,10 +113,61 @@ class AttachmentsPreviewFragment :
                 views.attachmentPreviewerSendImageOriginalSize,
                 ColorStateList.valueOf(accent)
         )
+        setupVideoControls(accent)
     }
+
+    /**
+     * The bar belongs to the fragment rather than the attachment on show: it sits under the send
+     * options, and whichever video is on screen hands it the player to drive.
+     */
+    private fun setupVideoControls(accent: Int) {
+        // progressTintList is API 21+, and this fork runs from 14.
+        @Suppress("DEPRECATION")
+        views.attachmentPreviewerVideoSeekBar.apply {
+            progressDrawable?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
+            thumb?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
+        }
+        views.attachmentPreviewerVideoPlayPause.setOnClickListener { videoControls?.togglePlayback() }
+        views.attachmentPreviewerVideoSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                if (fromUser) views.attachmentPreviewerVideoTime.text = videoTimeLabel(progress, seekBar.max)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                scrubbingVideo = true
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                scrubbingVideo = false
+                videoControls?.seekTo(seekBar.progress)
+            }
+        })
+    }
+
+    override fun onVideoControlsAvailable(controls: VideoPlaybackControls?) {
+        videoControls = controls
+        views.attachmentPreviewerVideoControls.isVisible = controls != null
+    }
+
+    override fun onVideoProgress(positionMs: Int, durationMs: Int, isPlaying: Boolean) {
+        views.attachmentPreviewerVideoPlayPause.setImageResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow)
+        views.attachmentPreviewerVideoSeekBar.max = durationMs.coerceAtLeast(1)
+        if (!scrubbingVideo) views.attachmentPreviewerVideoSeekBar.progress = positionMs.coerceIn(0, durationMs)
+        views.attachmentPreviewerVideoTime.text = videoTimeLabel(positionMs, durationMs)
+    }
+
+    private fun videoTimeLabel(positionMs: Int, durationMs: Int) = getString(
+            CommonStrings.video_position_of_duration,
+            DateUtils.formatElapsedTime((positionMs / 1000).toLong()),
+            DateUtils.formatElapsedTime((durationMs / 1000).toLong())
+    )
 
     private val videoEditorActivityResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == RESULT_OK) {
+            if (activityResult.data?.isRestoreOriginal() == true) {
+                restoreOriginal()
+                return@registerStartForActivityResult
+            }
             val output = activityResult.data?.let { VideoEditorActivity.getOutput(it) }
             if (output != null) {
                 discardSupersededExport()
@@ -111,8 +178,10 @@ class AttachmentsPreviewFragment :
                                 height = output.height.toLong(),
                                 size = output.size,
                                 mimeType = output.mimeType,
-                                duration = output.durationMs,
-                                editRecord = pendingEditOriginalUri?.let { EditRecord(it, output.edits) }
+                                // An animated image comes back through the same editor, and a
+                                // duration on an image attachment means nothing.
+                                duration = output.durationMs.takeIf { output.mimeType.isMimeTypeVideo() },
+                                editRecord = pendingEditOriginal?.let { EditRecord(it, output.edits) }
                         )
                 )
             } else {
@@ -123,6 +192,10 @@ class AttachmentsPreviewFragment :
 
     private val imageEditorActivityResultLauncher = registerStartForActivityResult { activityResult ->
         if (activityResult.resultCode == RESULT_OK) {
+            if (activityResult.data?.isRestoreOriginal() == true) {
+                restoreOriginal()
+                return@registerStartForActivityResult
+            }
             val output = activityResult.data?.let { ImageEditorActivity.getOutput(it) }
             if (output != null) {
                 discardSupersededExport()
@@ -133,7 +206,7 @@ class AttachmentsPreviewFragment :
                                 height = output.height.toLong(),
                                 size = output.size,
                                 mimeType = output.mimeType,
-                                editRecord = pendingEditOriginalUri?.let { EditRecord(it, output.edits) }
+                                editRecord = pendingEditOriginal?.let { EditRecord(it, output.edits) }
                         )
                 )
             } else {
@@ -152,16 +225,148 @@ class AttachmentsPreviewFragment :
                 handleEditAction()
                 true
             }
+            R.id.attachmentsPreviewCompressionAction -> {
+                showCompressionSheet()
+                true
+            }
             else -> false
         }
     }
 
     override fun handlePrepareMenu(menu: Menu) {
         withState(viewModel) { state ->
-            val editMenuItem = menu.findItem(R.id.attachmentsPreviewEditAction)
-            val showEditMenuItem = state.attachments.getOrNull(state.currentAttachmentIndex)?.isEditable().orFalse()
-            editMenuItem.setVisible(showEditMenuItem)
+            val current = state.attachments.getOrNull(state.currentAttachmentIndex)
+            val editable = current?.isEditable(animated = animatedFormatOf(current) != null)
+            menu.findItem(R.id.attachmentsPreviewEditAction).setVisible(editable.orFalse())
+            menu.findItem(R.id.attachmentsPreviewCompressionAction).setVisible(current?.isCompressible().orFalse())
         }
+    }
+
+    /**
+     * Telling an animated image from a still one means reading its header, and the menu is prepared
+     * far more often than the selection changes, so the answer is kept.
+     */
+    private fun animatedFormatOf(attachment: ContentAttachmentData): AnimatedImageFormat? {
+        // Not getOrPut: "this one is a still image" is a null, and that is worth remembering too.
+        val key = attachment.queryUri
+        if (!animatedFormats.containsKey(key)) {
+            animatedFormats[key] = attachment.animatedImageFormat(requireContext())
+        }
+        return animatedFormats[key]
+    }
+
+    /**
+     * Compression belongs to the preview rather than an editor: it is about the upload, not the
+     * picture, and the SDK's own compressors act on it at send time.
+     */
+    private fun showCompressionSheet() = withState(viewModel) { state ->
+        val current = state.attachments.getOrNull(state.currentAttachmentIndex) ?: return@withState
+        // This screen's own theme has no accent variant, so ?colorAccent inside it is always the
+        // default green. Hosting the sheet in the configured application theme fixes every widget
+        // at once — seek bar, buttons, the text cursor and its selection handles — rather than
+        // tinting drawables one at a time and missing the ones with no drawable to tint.
+        val themedContext = ContextThemeWrapper(requireContext(), ThemeUtils.getApplicationThemeRes(requireContext()))
+        val binding = BottomSheetAttachmentCompressionBinding.inflate(LayoutInflater.from(themedContext))
+        val dialog = BottomSheetDialog(themedContext).apply { setContentView(binding.root) }
+        // As the picture appears, not as it is stored: a photo carrying an EXIF quarter-turn would
+        // otherwise be offered its sides the wrong way round, and typing a size against those
+        // numbers squashes the image — the compressor rotates before it scales.
+        val sourceWidth = current.displayWidth?.toInt() ?: 0
+        val sourceHeight = current.displayHeight?.toInt() ?: 0
+        val aspect = if (sourceWidth > 0 && sourceHeight > 0) sourceWidth.toFloat() / sourceHeight else 1f
+        // Seeded with the source size so the model always holds what the boxes show: tracking only
+        // the box the user typed in left the other null, and a half-specified size does nothing.
+        var settings = state.compressionSettings[state.stableIdOf(current)]
+                ?: CompressionSettings(width = sourceWidth.takeIf { it > 0 }, height = sourceHeight.takeIf { it > 0 })
+        // "Original size" is a quality decision of its own, so the slider has nothing left to say.
+        val originalSize = views.attachmentPreviewerSendImageOriginalSize.isChecked
+
+        // Writing the linked dimension back into its field would otherwise re-enter this watcher.
+        var updating = false
+        fun render(fields: Boolean) {
+            updating = true
+            binding.compressionQualityValue.text = getString(CommonStrings.attachment_compression_percent, settings.quality)
+            binding.compressionQualitySeekBar.progress = settings.quality
+            binding.compressionLinkToggle.setImageResource(
+                    if (settings.linked) R.drawable.ic_aspect_linked else R.drawable.ic_aspect_unlinked
+            )
+            // Accent only while it is doing something; the broken chain reads as an inactive control.
+            // Not colorControlNormal: AppCompat defines that as a ColorStateList, and resolving it
+            // as a plain colour yields the resource id, which tints the icon to nothing.
+            val toggleAttribute = if (settings.linked) {
+                com.google.android.material.R.attr.colorAccent
+            } else {
+                im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+            }
+            ImageViewCompat.setImageTintList(
+                    binding.compressionLinkToggle,
+                    ColorStateList.valueOf(ThemeUtils.getColor(themedContext, toggleAttribute))
+            )
+            if (fields) {
+                // Prefilled with the source size, so it is edited from rather than typed from scratch.
+                binding.compressionWidth.setText((settings.width ?: sourceWidth).takeIf { it > 0 }?.toString().orEmpty())
+                binding.compressionHeight.setText((settings.height ?: sourceHeight).takeIf { it > 0 }?.toString().orEmpty())
+            }
+            updating = false
+        }
+
+        binding.compressionSourceLabel.isVisible = sourceWidth > 0 && sourceHeight > 0
+        binding.compressionSourceLabel.text = getString(CommonStrings.attachment_compression_source, sourceWidth, sourceHeight)
+        binding.compressionQualitySeekBar.isEnabled = !originalSize
+        if (originalSize) settings = settings.copy(quality = CompressionSettings.MAX_QUALITY)
+        render(fields = true)
+
+        binding.compressionQualitySeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                settings = settings.copy(quality = progress)
+                binding.compressionQualityValue.text = getString(CommonStrings.attachment_compression_percent, progress)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar) = Unit
+        })
+
+        binding.compressionWidth.doAfterTextChanged {
+            if (updating) return@doAfterTextChanged
+            val value = it?.toString()?.toIntOrNull()?.takeIf { typed -> typed > 0 } ?: return@doAfterTextChanged
+            settings = settings.withWidth(value, aspect)
+            if (settings.linked) {
+                updating = true
+                binding.compressionHeight.setText(settings.height?.toString().orEmpty())
+                updating = false
+            }
+        }
+        binding.compressionHeight.doAfterTextChanged {
+            if (updating) return@doAfterTextChanged
+            val value = it?.toString()?.toIntOrNull()?.takeIf { typed -> typed > 0 } ?: return@doAfterTextChanged
+            settings = settings.withHeight(value, aspect)
+            if (settings.linked) {
+                updating = true
+                binding.compressionWidth.setText(settings.width?.toString().orEmpty())
+                updating = false
+            }
+        }
+
+        binding.compressionLinkToggle.setOnClickListener {
+            settings = settings.copy(linked = !settings.linked)
+            // Re-linking pulls the height back onto the source's shape straight away.
+            settings.width?.takeIf { settings.linked }?.let { settings = settings.withWidth(it, aspect) }
+            render(fields = settings.linked)
+        }
+        binding.compressionReset.setOnClickListener {
+            settings = CompressionSettings(
+                    quality = if (originalSize) CompressionSettings.MAX_QUALITY else CompressionSettings.STANDARD_QUALITY,
+                    width = sourceWidth.takeIf { it > 0 },
+                    height = sourceHeight.takeIf { it > 0 }
+            )
+            render(fields = true)
+        }
+        binding.compressionDone.setOnClickListener { dialog.dismiss() }
+        dialog.setOnDismissListener {
+            val chosen = settings.withoutRedundantSize(sourceWidth, sourceHeight)
+            viewModel.handle(AttachmentsPreviewAction.SetCompression(chosen))
+        }
+        dialog.show()
     }
 
     override fun getMenuRes() = R.menu.vector_attachments_preview
@@ -180,6 +385,8 @@ class AttachmentsPreviewFragment :
         views.attachmentPreviewerMiniatureList.cleanup()
         views.attachmentPreviewerBigList.cleanup()
         attachmentMiniaturePreviewController.callback = null
+        attachmentBigPreviewController.playbackListener = null
+        videoControls = null
         super.onDestroyView()
     }
 
@@ -216,11 +423,20 @@ class AttachmentsPreviewFragment :
         viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(position))
     }
 
-    private fun setResultAndFinish() = withState(viewModel) {
-        (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(
-                it.attachments,
-                views.attachmentPreviewerSendImageOriginalSize.isChecked
-        )
+    private fun setResultAndFinish() = withState(viewModel) { state ->
+        val originalSize = views.attachmentPreviewerSendImageOriginalSize.isChecked
+        val attachments = state.attachments.map { attachment ->
+            val settings = state.compressionSettings[state.stableIdOf(attachment)]
+            if (settings == null && !originalSize) return@map attachment
+            // Sending at original size still honours a size that was typed, at full quality.
+            val quality = if (originalSize) CompressionSettings.MAX_QUALITY else settings?.quality
+            attachment.copy(
+                    compressionQuality = quality?.takeIf { it != CompressionSettings.STANDARD_QUALITY },
+                    compressionWidth = settings?.width,
+                    compressionHeight = settings?.height
+            )
+        }
+        (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(attachments, originalSize)
     }
 
     private fun applyInsets() {
@@ -263,6 +479,12 @@ class AttachmentsPreviewFragment :
         viewModel.handle(AttachmentsPreviewAction.RemoveCurrentAttachment)
     }
 
+    /** Everything was undone in the editor, so the untouched attachment takes its place again. */
+    private fun restoreOriginal() {
+        discardSupersededExport()
+        viewModel.handle(AttachmentsPreviewAction.RestoreOriginalAttachment)
+    }
+
     /**
      * Exports live in filesDir, which nothing reclaims, so editing the same attachment repeatedly
      * would leave a full-size file behind each time. The one being replaced is ours to delete.
@@ -279,15 +501,21 @@ class AttachmentsPreviewFragment :
         // Always edit the untouched original, replaying the previous edits, so repeated trips
         // through the editor don't compound cropping and JPEG loss.
         val record = state.editRecords[currentAttachment.queryUri]
-        pendingEditOriginalUri = record?.originalUri ?: currentAttachment.queryUri
-        val source = record?.originalUri?.toUri() ?: currentAttachment.queryUriAndroid
-        if (currentAttachment.isVideoEditable()) {
+        val original = record?.original ?: currentAttachment
+        pendingEditOriginal = original
+        val source = original.queryUriAndroid
+        val animatedFormat = animatedFormatOf(currentAttachment)
+        if (currentAttachment.isVideoEditable() || animatedFormat != null) {
+            // The editor shows the shape it will be sent at, not the source's.
+            val compression = state.compressionSettings[state.stableIdOf(currentAttachment)]
             videoEditorActivityResultLauncher.launch(
                     VideoEditorActivity.newIntent(
                             requireContext(),
                             source,
                             currentAttachment.name,
-                            record?.edits as? VideoEditorEdits
+                            record?.edits as? VideoEditorEdits,
+                            compression?.width?.let { width -> compression.height?.let { width to it } },
+                            animatedFormat
                     )
             )
         } else {
@@ -324,6 +552,7 @@ class AttachmentsPreviewFragment :
                     })
             it.setHasFixedSize(true)
             it.adapter = attachmentBigPreviewController.adapter
+            attachmentBigPreviewController.playbackListener = this
         }
     }
 }

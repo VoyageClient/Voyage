@@ -239,16 +239,16 @@ dependencies {
     // Logging
     implementation libs.jakewharton.timber
 
-    // Video compression uses the platform MediaCodec/MediaMuxer stack directly (works on KitKat,
-    // no native deps) — see VideoCompressor.
-    // Frame-level GIF decoding for the animated GIF -> animated WebP recompress path.
-    implementation 'com.github.bumptech.glide:gifdecoder:4.16.0'
-
     // Exif data handling
     implementation libs.apache.commonsImaging
 
     implementation libs.google.phonenumber
 
+    // Video compression uses the platform MediaCodec/MediaMuxer stack directly (works on KitKat,
+    // no native deps) — see VideoCompressor.
+    implementation project(':library:media-transcode')
+    // GIF/APNG/WebP frame decoding for the animated -> animated WebP recompress path.
+    implementation project(':library:animated-image')
     implementation project(':library:external:libce')
     implementation project(':library:external:libopus')
 

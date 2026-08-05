@@ -7,19 +7,16 @@
 
 package im.vector.app.features.auth
 
-import android.util.Base64
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeMatrix
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import io.mockk.runs
 import io.mockk.unmockkAll
 import io.mockk.verify
 import org.amshove.kluent.shouldBe
 import org.junit.After
-import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.matrix.android.sdk.api.auth.UIABaseAuth
@@ -29,7 +26,9 @@ import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-private const val A_PASSWORD = "a-password"
+// Really decoded now that the handler uses the SDK's fromBase64 rather than android.util.Base64,
+// so this has to be valid base64 ("a-password").
+private const val A_PASSWORD = "YS1wYXNzd29yZA=="
 private const val A_SESSION_ID = "session-id"
 
 class PendingAuthHandlerTest {
@@ -41,11 +40,6 @@ class PendingAuthHandlerTest {
             matrix = fakeMatrix.instance,
             activeSessionHolder = fakeActiveSessionHolder.instance,
     )
-
-    @Before
-    fun setUp() {
-        mockkStatic(Base64::class)
-    }
 
     @After
     fun tearDown() {
@@ -95,8 +89,6 @@ class PendingAuthHandlerTest {
         pendingAuthHandler.pendingAuth = pendingAuth
         pendingAuthHandler.uiaContinuation = continuation
         val decryptedPwd = "decrypted-pwd"
-        val decodedPwd = byteArrayOf()
-        every { Base64.decode(A_PASSWORD, any()) } returns decodedPwd
         fakeMatrix.fakeSecureStorageService.givenLoadSecureSecretReturns(decryptedPwd)
         val expectedAuth = UserPasswordAuth(
                 session = A_SESSION_ID,

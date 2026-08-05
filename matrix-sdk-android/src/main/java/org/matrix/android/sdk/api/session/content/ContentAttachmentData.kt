@@ -34,8 +34,31 @@ data class ContentAttachmentData(
         val queryUri: String,
         val mimeType: String?,
         val type: Type,
-        val waveform: List<Int>? = null
+        val waveform: List<Int>? = null,
+        /**
+         * How hard the sender asked for this to be squeezed, chosen in the attachment preview.
+         * Null leaves the automatic behaviour alone. [compressionQuality] is 0..100.
+         */
+        val compressionQuality: Int? = null,
+        val compressionWidth: Int? = null,
+        val compressionHeight: Int? = null,
 ) : Serializable {
+
+    /** True when the sender asked for something the automatic pass would not have done. */
+    val hasCustomCompression: Boolean
+        get() = compressionQuality != null || compressionWidth != null
+
+    /** The size this will be sent at, so a local echo is laid out at its final shape. */
+    val outputWidth: Long? get() = compressionWidth?.toLong() ?: width
+    val outputHeight: Long? get() = compressionHeight?.toLong() ?: height
+
+    /**
+     * The size as the picture appears, which for a photo carrying an EXIF quarter-turn is not the
+     * size stored in the file. Anything the sender is shown or types is in these terms, and so is
+     * everything downstream: the compressor rotates before it scales.
+     */
+    val displayWidth: Long? get() = if (exifOrientation in EXIF_ORIENTATIONS_SWAPPING_SIZE) height else width
+    val displayHeight: Long? get() = if (exifOrientation in EXIF_ORIENTATIONS_SWAPPING_SIZE) width else height
 
     @JsonClass(generateAdapter = false)
     enum class Type {
@@ -53,6 +76,9 @@ data class ContentAttachmentData(
     }
 
     companion object {
+        /** TRANSPOSE, ROTATE_90, TRANSVERSE and ROTATE_270: the four that exchange the two sides. */
+        val EXIF_ORIENTATIONS_SWAPPING_SIZE = setOf(5, 6, 7, 8)
+
         fun fromJsonString(json: String): ContentAttachmentData? {
             return MoshiProvider.providesMoshi().adapter(ContentAttachmentData::class.java).fromJson(json)
         }

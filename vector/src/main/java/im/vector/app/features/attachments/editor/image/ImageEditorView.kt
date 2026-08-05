@@ -22,8 +22,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.animation.DecelerateInterpolator
+import im.vector.app.features.attachments.ZoomPanGesture
 import kotlin.math.abs
-import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 
@@ -36,14 +36,6 @@ private const val MIN_ZOOM = 0.15f
 private const val MAX_ZOOM = 20f
 
 private const val EDGE_INSET_FRACTION = 0.06f
-
-/**
- * Floor for the pinch span. Fingers can meet or cross, and the span is an absolute distance, so it
- * collapses toward zero and grows again; below this the ratio is also dominated by touch noise.
- */
-private const val MIN_PINCH_SPAN_PX = 32f
-
-private const val MAX_PINCH_RATIO_PER_FRAME = 2f
 
 /**
  * Renders the image being edited plus its crop window and censor rectangles, and turns touches
@@ -120,84 +112,22 @@ class ImageEditorView @JvmOverloads constructor(
     private var animatedRotation = 0f
     private var rotationAnimator: ValueAnimator? = null
 
-    private var zoom = 1f
-    private var panX = 0f
-    private var panY = 0f
-
-    /** Size the image occupies at 1x. Zoom-independent, so clamping never lags a frame behind. */
-    private var fittedWidth = 0f
-    private var fittedHeight = 0f
-    private var lastSpan = 0f
-    private var pinchActive = false
-
-    /**
-     * Pinch is tracked from the raw pointer span rather than ScaleGestureDetector, which stops
-     * reporting once the fingers converge inside its ~27mm minimum span — the point you reach part
-     * way through zooming out.
-     */
-    private fun applyPinch(event: MotionEvent) {
-        // Floored rather than dropping the frame, which would leave a stale lastSpan for the next
-        // one to divide by.
-        val span = max(spanOf(event), MIN_PINCH_SPAN_PX)
-        val previousZoom = zoom
-        // A per-frame safety net; a legitimate pinch never doubles the span between touch events.
-        val ratio = (span / lastSpan).coerceIn(1f / MAX_PINCH_RATIO_PER_FRAME, MAX_PINCH_RATIO_PER_FRAME)
-        zoom = (zoom * ratio).coerceIn(MIN_ZOOM, MAX_ZOOM)
-        val factor = zoom / previousZoom
-        val focusX = focusX(event)
-        val focusY = focusY(event)
-        // Scale about the focus point only. Following the focus as well would turn a pinch into a
-        // pan, because holding one finger still drags the midpoint toward it as the other moves.
-        val centreX = width / 2f + panX
-        val centreY = height / 2f + panY
-        panX = focusX - factor * (focusX - centreX) - width / 2f
-        panY = focusY - factor * (focusY - centreY) - height / 2f
-        lastSpan = span
-        clampPan()
-        invalidate()
+    private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM) { invalidate() }.apply {
+        onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
     }
-
-    private fun spanOf(event: MotionEvent): Float {
-        if (event.pointerCount < 2) return 0f
-        return hypot(event.getX(0) - event.getX(1), event.getY(0) - event.getY(1))
-    }
-
-    private fun focusX(event: MotionEvent) =
-            if (event.pointerCount < 2) event.x else (event.getX(0) + event.getX(1)) / 2f
-
-    private fun focusY(event: MotionEvent) =
-            if (event.pointerCount < 2) event.y else (event.getY(0) + event.getY(1)) / 2f
 
     private fun beginPinch(event: MotionEvent) {
-        pinchActive = true
         // The first finger already staked out a zero-size censor; abandoning the drag here would
         // otherwise strand it in the list, invisible but enough to count as an edit.
         if (dragMode == DragMode.CENSOR_CREATE) discardPendingCensor()
         dragMode = DragMode.NONE
-        lastSpan = max(spanOf(event), MIN_PINCH_SPAN_PX)
+        gesture.beginPinch(event)
     }
 
     private fun discardPendingCensor() {
         if (selectedCensor !in censors.indices) return
         censors.removeAt(selectedCensor)
         selectedCensor = -1
-    }
-
-    /**
-     * Mirrors the media viewer's clampUserTranslation: once the image is no larger than the
-     * viewport it is forced back to centre. Anchoring a pinch-out on an off-centre focus otherwise
-     * shrinks the image *toward* that point, which reads as the zoom turning into a pan.
-     */
-    private fun clampPan() {
-        if (zoom <= 1f) {
-            panX = 0f
-            panY = 0f
-            return
-        }
-        val maxX = max(0f, (fittedWidth * zoom - width) / 2f)
-        val maxY = max(0f, (fittedHeight * zoom - height) / 2f)
-        panX = panX.coerceIn(-maxX, maxX)
-        panY = panY.coerceIn(-maxY, maxY)
     }
 
     private enum class DragMode { NONE, PAN, CROP_MOVE, CROP_RESIZE, CENSOR_MOVE, CENSOR_RESIZE, CENSOR_CREATE }
@@ -212,7 +142,7 @@ class ImageEditorView @JvmOverloads constructor(
         userRotation = (userRotation + 90) % 360
         rotateNormalised(crop)
         censors.forEach { rotateNormalised(it) }
-        clampPan()
+        gesture.clampPan()
         animateRotation()
     }
 
@@ -244,9 +174,7 @@ class ImageEditorView @JvmOverloads constructor(
         crop.set(0f, 0f, 1f, 1f)
         censors.clear()
         selectedCensor = -1
-        zoom = 1f
-        panX = 0f
-        panY = 0f
+        gesture.reset()
         invalidate()
     }
 
@@ -326,13 +254,15 @@ class ImageEditorView @JvmOverloads constructor(
         // Zooming imageRect is enough for the whole screen: the crop window, censors and handles
         // are all projected through it.
         val fittedScale = min(availableW / srcW, availableH / srcH)
-        fittedWidth = srcW * fittedScale
-        fittedHeight = srcH * fittedScale
-        val scale = fittedScale * zoom
+        gesture.contentWidth = srcW * fittedScale
+        gesture.contentHeight = srcH * fittedScale
+        gesture.viewportWidth = width.toFloat()
+        gesture.viewportHeight = height.toFloat()
+        val scale = fittedScale * gesture.zoom
         val drawnW = srcW * scale
         val drawnH = srcH * scale
-        val cx = width / 2f + panX
-        val cy = height / 2f + panY
+        val cx = width / 2f + gesture.panX
+        val cy = height / 2f + gesture.panY
         imageRect.set(cx - drawnW / 2f, cy - drawnH / 2f, cx + drawnW / 2f, cy + drawnH / 2f)
 
         drawMatrix.reset()
@@ -392,16 +322,7 @@ class ImageEditorView @JvmOverloads constructor(
             invalidate()
             return true
         }
-        if (pinchActive) {
-            when (event.actionMasked) {
-                MotionEvent.ACTION_MOVE -> if (event.pointerCount >= 2) applyPinch(event)
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    pinchActive = false
-                    parent?.requestDisallowInterceptTouchEvent(false)
-                }
-            }
-            return true
-        }
+        if (gesture.isPinching) return gesture.onTouchEvent(event)
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -461,7 +382,7 @@ class ImageEditorView @JvmOverloads constructor(
         }
         // Once zoomed, dragging navigates the image — otherwise a tall image zoomed in would only
         // be pannable with two fingers. At 1x there is nowhere to pan, so drag moves the crop box.
-        if (zoom > 1f) return DragMode.PAN
+        if (gesture.zoom > 1f) return DragMode.PAN
         return if (rect.contains(x, y)) DragMode.CROP_MOVE else DragMode.NONE
     }
 
@@ -516,11 +437,7 @@ class ImageEditorView @JvmOverloads constructor(
         val ny = ((y - imageRect.top) / imageRect.height()).coerceIn(0f, 1f)
 
         when (dragMode) {
-            DragMode.PAN -> {
-                panX += x - lastTouchX
-                panY += y - lastTouchY
-                clampPan()
-            }
+            DragMode.PAN -> gesture.panBy(x - lastTouchX, y - lastTouchY)
             DragMode.CROP_MOVE -> translateWithinBounds(crop, dx, dy)
             DragMode.CROP_RESIZE -> resizeCorner(crop, nx, ny)
             DragMode.CENSOR_MOVE -> censors.getOrNull(selectedCensor)?.let { translateWithinBounds(it, dx, dy) }

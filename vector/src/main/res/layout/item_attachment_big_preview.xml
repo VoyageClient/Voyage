@@ -7,7 +7,7 @@
     android:background="@android:color/black"
     tools:viewBindingIgnore="true">
 
-    <TextureView
+    <im.vector.app.features.attachments.preview.ZoomableTextureView
         android:id="@+id/attachmentBigVideoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -20,16 +20,5 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/a11y_image"
         tools:src="@tools:sample/backgrounds/scenic" />
-
-    <ImageView
-        android:id="@+id/attachmentBigPlayBadge"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_gravity="center"
-        android:contentDescription="@string/action_play"
-        android:visibility="gone"
-        app:srcCompat="@drawable/ic_material_play_circle"
-        tools:ignore="MissingPrefix"
-        tools:visibility="visible" />
 
 </FrameLayout>

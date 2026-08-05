@@ -152,6 +152,11 @@ class ImageContentRenderer @Inject constructor(
         }
         if (data.hasKnownDimensions()) {
             imageView.adjustViewBounds = false
+            // A local echo renders the untouched source file inside a box sized from the event's
+            // declared dimensions. When the sender resized the media those two disagree until the
+            // upload lands, and fitting inside the box shows the old shape letterboxed within the
+            // new one. Filling it instead is what the recipient will see.
+            imageView.scaleType = if (data.isLocalContent) ImageView.ScaleType.FIT_XY else ImageView.ScaleType.FIT_CENTER
             imageView.updateLayoutParams {
                 width = size.width
                 height = size.height
@@ -159,6 +164,8 @@ class ImageContentRenderer @Inject constructor(
         } else {
             // Unknown dimensions (e.g. a sticker whose info has no w/h): wrap the view to the loaded
             // image, bounded by the max size, so it isn't letterboxed in a max-size box (gaps around it).
+            // Reset explicitly: a recycled view may carry FIT_XY over from a local echo.
+            imageView.scaleType = ImageView.ScaleType.FIT_CENTER
             imageView.adjustViewBounds = true
             imageView.maxWidth = data.maxWidth
             imageView.maxHeight = data.maxHeight

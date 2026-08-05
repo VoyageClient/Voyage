@@ -42,4 +42,8 @@ dependencies {
 
     // Annotations only — compileOnly keeps AndroidX out of this module's runtime graph.
     compileOnly "androidx.annotation:annotation:1.7.1"
+
+    // TESTS
+    testImplementation libs.tests.junit
+    testImplementation libs.tests.kluent
 }

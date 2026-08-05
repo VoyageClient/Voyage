@@ -17,8 +17,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * Applies a [VideoEditSpec] to produce an mp4. Editing needs MediaMuxer (18) and, for cropping,
- * EGL14 (17), so it is unavailable below API 18 — see [isSupported].
+ * Applies a [VideoEditSpec] to produce an mp4. Editing needs MediaMuxer, and the GL stage needs
+ * EGLExt to stamp frame timestamps, so it is unavailable below API 18 — see [isSupported].
  */
 object VideoEditExporter {
 
@@ -59,8 +59,7 @@ object VideoEditExporter {
      */
     @RequiresApi(18)
     private fun canRemuxLosslessly(context: Context, spec: VideoEditSpec, source: MediaSourceInfo): Boolean {
-        // Only the GL stage inside the transcode path can change geometry.
-        if (spec.crop != null) return false
+        if (spec.needsTranscode) return false
         // A codec an mp4 cannot hold has to be re-encoded whatever the trim looks like.
         if (!MuxableFormats.isMuxableVideo(source.videoMime)) return false
         val syncUs = SyncFrameLocator.previousSyncUs(context, spec.sourceUri, spec.startUs)

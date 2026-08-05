@@ -5,7 +5,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package org.matrix.android.sdk.internal.session.content
+package im.vector.lib.animatedimage
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -24,18 +24,19 @@ import java.util.zip.CRC32
  * standalone PNG (IHDR with frame-local dimensions + ancillaries + IDAT(s) + IEND), decodes via
  * [BitmapFactory], then composites onto an output canvas honouring fcTL `dispose_op`/`blend_op`.
  */
-internal object ApngFrameReader {
+object ApngFrameReader {
 
     fun readFrames(file: File): List<AnimatedFrame>? {
-        val data = try {
-            file.readBytes()
+        // A truncated or hand-made file reaches the chunk walk with payloads shorter than the
+        // fields it reads out of them, so parsing is inside the guard along with the read.
+        return try {
+            val parsed = parseChunks(file.readBytes()) ?: return null
+            if (parsed.frames.isEmpty()) return null
+            composeFrames(parsed)
         } catch (t: Throwable) {
-            Timber.w(t, "APNG: cannot read source")
-            return null
+            Timber.w(t, "APNG: cannot read $file")
+            null
         }
-        val parsed = parseChunks(data) ?: return null
-        if (parsed.frames.isEmpty()) return null
-        return composeFrames(parsed)
     }
 
     private data class FrameChunk(
@@ -130,14 +131,24 @@ internal object ApngFrameReader {
         var snapshot: Bitmap? = null
         val output = ArrayList<AnimatedFrame>(parsed.frames.size)
 
+        fun abandon(): List<AnimatedFrame>? {
+            // Every frame here is a full-canvas ARGB bitmap; leaking a run of them is how a long
+            // animation exhausts a small heap.
+            output.forEach { it.bitmap.recycle() }
+            canvas.recycle()
+            snapshot?.recycle()
+            return null
+        }
+
         for (frame in parsed.frames) {
             // Snapshot the soon-to-be-overwritten region if this frame wants DISPOSE_PREVIOUS.
             if (frame.disposeOp == DISPOSE_PREVIOUS) {
+                snapshot?.recycle()
                 snapshot = canvas.copy(Bitmap.Config.ARGB_8888, true)
             }
 
-            val framePng = buildPng(parsed.ihdrPayload, parsed.ancillaries, frame) ?: return null
-            val frameBitmap = BitmapFactory.decodeByteArray(framePng, 0, framePng.size) ?: return null
+            val framePng = buildPng(parsed.ihdrPayload, parsed.ancillaries, frame) ?: return abandon()
+            val frameBitmap = BitmapFactory.decodeByteArray(framePng, 0, framePng.size) ?: return abandon()
 
             val rect = Rect(frame.x, frame.y, frame.x + frame.width, frame.y + frame.height)
             c.save()
@@ -240,5 +251,4 @@ internal object ApngFrameReader {
     private const val DISPOSE_BACKGROUND = 1
     private const val DISPOSE_PREVIOUS = 2
     private const val BLEND_SOURCE = 0
-    private const val MIN_FRAME_DELAY_MS = 20
 }

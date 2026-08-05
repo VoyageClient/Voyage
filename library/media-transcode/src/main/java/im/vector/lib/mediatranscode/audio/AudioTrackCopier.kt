@@ -5,7 +5,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package im.vector.lib.mediatranscode
+package im.vector.lib.mediatranscode.audio
 
 import android.content.Context
 import android.media.MediaCodec
@@ -13,6 +13,11 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import androidx.annotation.RequiresApi
+import im.vector.lib.mediatranscode.MuxableFormats
+import im.vector.lib.mediatranscode.MuxerSession
+import im.vector.lib.mediatranscode.firstTrackOf
+import im.vector.lib.mediatranscode.getIntOrNull
+import im.vector.lib.mediatranscode.sampleFlagsCompat
 import timber.log.Timber
 import java.nio.ByteBuffer
 
@@ -23,26 +28,33 @@ import java.nio.ByteBuffer
 @RequiresApi(18)
 internal class AudioTrackCopier private constructor(
         private val extractor: MediaExtractor,
-        val format: MediaFormat,
+        override val format: MediaFormat,
         private val endUs: Long,
-) {
+) : AudioTrackWriter {
 
     private var buffer = ByteBuffer.allocate(format.getIntOrNull(MediaFormat.KEY_MAX_INPUT_SIZE) ?: DEFAULT_BUFFER)
     private val info = MediaCodec.BufferInfo()
     private var baseUs = 0L
     private var finished = false
 
-    fun seekTo(baseUs: Long) {
+    override fun rebase(baseUs: Long) {
         this.baseUs = baseUs
         extractor.seekTo(baseUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
     }
 
     /** Writes audio up to [videoPtsUs] (rebased). Pass [Long.MAX_VALUE] to drain the window. */
-    fun pumpUpTo(videoPtsUs: Long, muxer: MuxerSession) {
+    override fun pumpUpTo(videoPtsUs: Long, muxer: MuxerSession) {
         if (finished || !muxer.hasAudioTrack) return
         while (true) {
+            // End of stream is sampleTrackIndex, not sampleTime: AAC priming samples carry a
+            // legitimately negative timestamp, and reading -1 as "no more samples" drops the whole
+            // track before the first write.
+            if (extractor.sampleTrackIndex < 0) {
+                finished = true
+                return
+            }
             val sampleTime = extractor.sampleTime
-            if (sampleTime < 0 || sampleTime > endUs) {
+            if (sampleTime > endUs) {
                 finished = true
                 return
             }
@@ -72,7 +84,7 @@ internal class AudioTrackCopier private constructor(
         }
     }
 
-    fun release() {
+    override fun release() {
         runCatching { extractor.release() }
     }
 

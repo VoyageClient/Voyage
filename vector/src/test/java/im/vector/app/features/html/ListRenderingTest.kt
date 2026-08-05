@@ -23,6 +23,10 @@ import org.robolectric.annotation.Config
  * The compressor turns the newlines markdown leaves between tags into single spaces, which Markwon
  * strands on lines of their own around list boundaries; and a loose markdown list wraps each item in
  * a redundant `<p>`. Both must render like the plain tight list.
+ *
+ * The markers are literal text rather than margins so a selection can cover them, so they show up in
+ * the rendered string too, each followed by a non-breaking space that keeps it with the first word
+ * when the line wraps — see EventHtmlRenderer.materializeListMarkers.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -46,13 +50,13 @@ class ListRenderingTest {
     @Test
     fun `numbered list does not start with a phantom blank line`() {
         val rendered = render("<ol>\n<li>first</li>\n<li>second</li>\n<li>third</li>\n</ol>\n")
-        assertEquals("first \nsecond \nthird", rendered.toString())
+        assertEquals("1.\u00A0first \n2.\u00A0second \n3.\u00A0third", rendered.toString())
     }
 
     @Test
     fun `phantom blank lines between text and list are dropped`() {
         val rendered = render("<p>changelog:</p>\n<ol>\n<li>first</li>\n<li>second</li>\n</ol>\n")
-        assertEquals("changelog:\nfirst \nsecond", rendered.toString())
+        assertEquals("changelog:\n1.\u00A0first \n2.\u00A0second", rendered.toString())
     }
 
     @Test
@@ -60,7 +64,7 @@ class ListRenderingTest {
         val loose = render(
                 "<ul>\n<li>\n<p>first item</p>\n</li>\n<li>\n<p>second item</p>\n</li>\n<li>\n<p>third item</p>\n</li>\n</ul>\n"
         )
-        assertEquals("first item\nsecond item\nthird item", loose.toString())
+        assertEquals("●\u00A0first item\n●\u00A0second item\n●\u00A0third item", loose.toString())
         val paddingSpans = (loose as Spanned).getSpans(0, loose.length, VerticalPaddingSpan::class.java)
         assertEquals(3, paddingSpans.size)
     }
@@ -70,7 +74,7 @@ class ListRenderingTest {
         val rendered = render(
                 "<ul>\n<li>\n<p>first</p>\n<br />\n</li>\n<li>\n<p>second</p>\n</li>\n</ul>\n"
         )
-        assertEquals("first\n\nsecond", rendered.toString())
+        assertEquals("●\u00A0first\n\n●\u00A0second", rendered.toString())
     }
 
     @Test
@@ -78,7 +82,7 @@ class ListRenderingTest {
         val rendered = render(
                 "<ol>\n<li>Test<br />2<br />\n<br />\n</li>\n<li>3</li>\n<li>4</li>\n</ol>\n"
         )
-        assertEquals("Test\n2\n\n3 \n4", rendered.toString())
+        assertEquals("1.\u00A0Test\n2\n\n2.\u00A03 \n3.\u00A04", rendered.toString())
     }
 
     @Test
@@ -86,6 +90,6 @@ class ListRenderingTest {
         val rendered = render(
                 "<ul>\n<li>first<br />\n<br />\n</li>\n<li>second</li>\n</ul>\n"
         )
-        assertEquals("first\n\nsecond", rendered.toString())
+        assertEquals("●\u00A0first\n\n●\u00A0second", rendered.toString())
     }
 }

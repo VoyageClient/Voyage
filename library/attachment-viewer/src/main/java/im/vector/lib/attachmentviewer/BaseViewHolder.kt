@@ -25,6 +25,9 @@ abstract class BaseViewHolder constructor(itemView: View) :
 
     open fun handleCommand(commands: AttachmentCommands) {}
 
+    /** @return whether the tap was used, in which case it must not also toggle the chrome. */
+    open fun onTapped(): Boolean = false
+
     var boundResourceUid: String? = null
 
     open fun bind(attachmentInfo: AttachmentInfo) {

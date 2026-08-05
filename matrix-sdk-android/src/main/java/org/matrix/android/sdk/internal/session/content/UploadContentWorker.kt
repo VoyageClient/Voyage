@@ -170,13 +170,23 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
                 val stripMetadata = lightweightSettingsStorage.shouldStripMediaMetadata()
 
-                if (attachment.type == ContentAttachmentData.Type.IMAGE && params.compressBeforeSending) {
+                // Anything the sender chose is honoured even at "original size", which only means
+                // "don't apply the automatic downscale".
+                if (attachment.type == ContentAttachmentData.Type.IMAGE &&
+                        (params.compressBeforeSending || attachment.hasCustomCompression)) {
                     notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
 
-                    val compressed = imageCompressor.compress(workingFile(), MAX_IMAGE_SIZE, MAX_IMAGE_SIZE)
+                    val compressed = imageCompressor.compress(
+                            workingFile(),
+                            attachment.compressionWidth ?: MAX_IMAGE_SIZE,
+                            attachment.compressionHeight ?: MAX_IMAGE_SIZE,
+                            imageQualityFor(attachment.compressionQuality ?: STANDARD_QUALITY),
+                            exactSize = attachment.compressionWidth != null,
+                    )
                     fileToUpload = compressed.file.also { filesToDelete.add(it) }
                     newAttachmentAttributes = measureImageAttributes(fileToUpload, compressed.mimeType)
-                } else if (attachment.type == ContentAttachmentData.Type.VIDEO && params.compressBeforeSending) {
+                } else if (attachment.type == ContentAttachmentData.Type.VIDEO &&
+                        (params.compressBeforeSending || attachment.hasCustomCompression)) {
                     val outcome = compressVideo(params, newAttachmentAttributes, filesToDelete, ::workingFile, stripMetadata)
                     fileToUpload = outcome.fileToUpload
                     newAttachmentAttributes = outcome.attributes
@@ -352,7 +362,16 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 notifyTracker(params) { contentUploadStateTracker.setCompressingVideo(it, progress.toFloat()) }
             }
         }
-        return when (val result = videoCompressor.compress(params.attachment.queryUriAndroid, params.attachment.size, progressListener)) {
+        val attachment = params.attachment
+        val result = videoCompressor.compress(
+                attachment.queryUriAndroid,
+                attachment.size,
+                targetWidth = attachment.compressionWidth,
+                targetHeight = attachment.compressionHeight,
+                targetBitrate = attachment.compressionQuality?.let { videoBitrateFor(it) },
+                progressListener = progressListener,
+        )
+        return when (result) {
             is VideoCompressionResult.Success -> {
                 // Transcoding produces a fresh container with no source metadata atoms.
                 val compressedFile = result.compressedFile.also { filesToDelete.add(it) }
@@ -725,6 +744,32 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
     companion object {
         private const val MAX_IMAGE_SIZE = 640
+
+        /**
+         * The slider is anchored so that [STANDARD_QUALITY] reproduces exactly what compression did
+         * before it existed; below that trades quality for size, above it the other way.
+         */
+        private const val STANDARD_QUALITY = 70
+        private const val MIN_IMAGE_QUALITY = 40
+        private const val STANDARD_IMAGE_QUALITY = 80
+        private const val MIN_VIDEO_BITRATE = 200_000
+        private const val STANDARD_VIDEO_BITRATE = 2_000_000
+        private const val MAX_VIDEO_BITRATE = 8_000_000
+
+        private fun imageQualityFor(quality: Int) =
+                anchoredScale(quality, MIN_IMAGE_QUALITY, STANDARD_IMAGE_QUALITY, 100)
+
+        private fun videoBitrateFor(quality: Int) =
+                anchoredScale(quality, MIN_VIDEO_BITRATE, STANDARD_VIDEO_BITRATE, MAX_VIDEO_BITRATE)
+
+        private fun anchoredScale(quality: Int, low: Int, standard: Int, high: Int): Int {
+            val clamped = quality.coerceIn(0, 100)
+            return if (clamped <= STANDARD_QUALITY) {
+                low + (standard - low) * clamped / STANDARD_QUALITY
+            } else {
+                standard + (high - standard) * (clamped - STANDARD_QUALITY) / (100 - STANDARD_QUALITY)
+            }
+        }
         private const val BLURHASH_DECODE_MAX = 128
     }
 }

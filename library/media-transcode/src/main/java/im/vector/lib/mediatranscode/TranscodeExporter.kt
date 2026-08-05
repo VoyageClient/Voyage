@@ -14,21 +14,23 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import im.vector.lib.mediatranscode.audio.AudioTrackCopier
+import im.vector.lib.mediatranscode.audio.AudioTrackTranscoder
+import im.vector.lib.mediatranscode.audio.AudioTrackWriter
 import im.vector.lib.mediatranscode.gl.InputSurface
 import im.vector.lib.mediatranscode.gl.OutputSurface
 import timber.log.Timber
-import kotlin.math.roundToInt
 
 /**
  * Re-encodes the selected range. This is the path for an exact trim — an mp4 can only *start* at a
  * sync frame, so a remux would have to begin at the one before the requested point, and decoding
  * lets us drop the frames in between — and the only path that can change geometry.
  *
- * Without a crop the decoder renders straight onto the encoder's input surface: no pixels touch the
- * CPU and there is no GL stage at all. A crop inserts one, decoder → SurfaceTexture → GLES2 →
- * encoder, and with it a different rotation convention: the GL stage turns the picture itself and
- * the output carries no orientation hint, where the direct path leaves geometry alone and rotates
- * through the hint.
+ * Left at the source geometry the decoder renders straight onto the encoder's input surface: no
+ * pixels touch the CPU and there is no GL stage at all. A crop or a resize inserts one, decoder →
+ * SurfaceTexture → GLES2 → encoder, and with it a different rotation convention: the GL stage turns
+ * the picture itself and the output carries no orientation hint, where the direct path leaves
+ * geometry alone and rotates through the hint.
  */
 @RequiresApi(18)
 internal class TranscodeExporter(private val context: Context) {
@@ -47,17 +49,25 @@ internal class TranscodeExporter(private val context: Context) {
         var inputSurface: InputSurface? = null
         var outputSurface: OutputSurface? = null
         var muxer: MuxerSession? = null
-        var audioCopier: AudioTrackCopier? = null
+        var audio: AudioTrackWriter? = null
 
         if (!CodecAvailability.hasAvcEncoder()) throw VideoEditException.UnsupportedCodec(source.videoMime)
 
-        val crop = spec.crop
         val rotation = ((source.rotationDegrees + spec.rotationDegrees) % 360 + 360) % 360
         val swapped = rotation % 180 == 90
         val displayWidth = if (swapped) source.height else source.width
         val displayHeight = if (swapped) source.width else source.height
-        val outputWidth = if (crop == null) source.width else encodeDimension(displayWidth * crop.width(), displayWidth)
-        val outputHeight = if (crop == null) source.height else encodeDimension(displayHeight * crop.height(), displayHeight)
+        val timeMap = SpeedTimeMap(spec.startUs, spec.speed)
+        // Any geometry change needs the GL stage, and so does re-timing — it is the only place a
+        // frame's timestamp can be set. A crop-free resize just keeps the whole frame.
+        val geometry = if (spec.crop == null && spec.targetWidth == null && !spec.isRetimed) {
+            null
+        } else {
+            val crop = spec.crop?.let { floatArrayOf(it.left, it.top, it.right, it.bottom) } ?: WHOLE_FRAME
+            CropGeometry.outputFor(displayWidth, displayHeight, crop, spec.targetWidth, spec.targetHeight)
+        }
+        val outputWidth = geometry?.width ?: source.width
+        val outputHeight = geometry?.height ?: source.height
 
         try {
             extractor.setDataSource(context, spec.sourceUri, null)
@@ -67,7 +77,7 @@ internal class TranscodeExporter(private val context: Context) {
 
             val targetFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, outputWidth, outputHeight).apply {
                 setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
-                setInteger(MediaFormat.KEY_BIT_RATE, targetBitrate(source))
+                setInteger(MediaFormat.KEY_BIT_RATE, targetBitrate(source, spec, displayWidth, displayHeight, outputWidth, outputHeight))
                 setInteger(MediaFormat.KEY_FRAME_RATE, sourceFormat.getIntOrNull(MediaFormat.KEY_FRAME_RATE) ?: DEFAULT_FRAME_RATE)
                 setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL_SECONDS)
             }
@@ -75,10 +85,10 @@ internal class TranscodeExporter(private val context: Context) {
                 configure(targetFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             }
             encoderSurface = encoder.createInputSurface()
-            if (crop != null) {
+            if (geometry != null) {
                 inputSurface = InputSurface(encoderSurface)
                 inputSurface.makeCurrent()
-                outputSurface = OutputSurface(crop, rotation, outputWidth, outputHeight)
+                outputSurface = OutputSurface(CropGeometry.textureCoords(geometry.crop, rotation), outputWidth, outputHeight)
             }
             encoder.start()
 
@@ -88,24 +98,24 @@ internal class TranscodeExporter(private val context: Context) {
             }
 
             muxer = MuxerSession(spec.outputFile.absolutePath).apply {
-                setOrientationHint(if (crop == null) rotation else 0)
+                setOrientationHint(if (geometry == null) rotation else 0)
             }
-            audioCopier = if (spec.muted) null else AudioTrackCopier.create(context, spec.sourceUri, spec.endUs)
+            audio = if (spec.muted) null else createAudioWriter(spec, timeMap)
 
             extractor.seekTo(spec.startUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
             val durationUs = runLoop(
-                    Pipeline(extractor, decoder, encoder, inputSurface, outputSurface, muxer, audioCopier),
-                    spec, progressListener, isActive,
+                    Pipeline(extractor, decoder, encoder, inputSurface, outputSurface, muxer, audio),
+                    spec, timeMap, progressListener, isActive,
             )
-            audioCopier?.pumpUpTo(Long.MAX_VALUE, muxer)
+            audio?.pumpUpTo(Long.MAX_VALUE, muxer)
 
             return VideoEditOutput(
                     file = spec.outputFile,
-                    width = if (crop == null) displayWidth else outputWidth,
-                    height = if (crop == null) displayHeight else outputHeight,
+                    width = if (geometry == null) displayWidth else outputWidth,
+                    height = if (geometry == null) displayHeight else outputHeight,
                     durationMs = durationUs / 1000,
                     actualStartUs = spec.startUs,
-                    audioDropped = !spec.muted && audioCopier == null && source.audioMime != null,
+                    audioDropped = !spec.muted && audio == null && source.audioMime != null,
             )
         } finally {
             runCatching { decoder?.stop() }
@@ -117,9 +127,25 @@ internal class TranscodeExporter(private val context: Context) {
             runCatching { inputSurface?.release() }
             runCatching { encoderSurface?.release() }
             runCatching { extractor.release() }
-            audioCopier?.release()
+            audio?.release()
             muxer?.release()
         }
+    }
+
+    private fun createAudioWriter(spec: VideoEditSpec, timeMap: SpeedTimeMap): AudioTrackWriter? {
+        if (!spec.isRetimed) return AudioTrackCopier.create(context, spec.sourceUri, spec.endUs)
+        val transcoder = AudioTrackTranscoder.create(
+                context, spec.sourceUri, spec.startUs, spec.endUs, timeMap, spec.changePitch
+        ) ?: return null
+        // The muxer needs every track's format before it starts, and the encoded one only exists
+        // once the encoder has seen some sound. A device with no usable AAC encoder loses its
+        // audio rather than the whole export.
+        val primed = runCatching { transcoder.prime() }
+                .onFailure { Timber.w(it, "VideoEdit: cannot re-encode the audio, dropping it") }
+                .getOrDefault(false)
+        if (primed) return transcoder
+        transcoder.release()
+        return null
     }
 
     private class Pipeline(
@@ -129,7 +155,7 @@ internal class TranscodeExporter(private val context: Context) {
             val inputSurface: InputSurface?,
             val outputSurface: OutputSurface?,
             val muxer: MuxerSession,
-            val audioCopier: AudioTrackCopier?,
+            val audio: AudioTrackWriter?,
     )
 
     /** @return the duration written, in microseconds. */
@@ -137,6 +163,7 @@ internal class TranscodeExporter(private val context: Context) {
     private fun runLoop(
             pipeline: Pipeline,
             spec: VideoEditSpec,
+            timeMap: SpeedTimeMap,
             progressListener: VideoEditProgressListener?,
             isActive: () -> Boolean,
     ): Long {
@@ -146,13 +173,13 @@ internal class TranscodeExporter(private val context: Context) {
         val inputSurface = pipeline.inputSurface
         val outputSurface = pipeline.outputSurface
         val muxer = pipeline.muxer
-        val audioCopier = pipeline.audioCopier
+        val audio = pipeline.audio
         // The indexed buffer accessors are API 21+, so the legacy arrays are deliberate here.
         val decoderInputBuffers = decoder.inputBuffers
         var encoderOutputBuffers = encoder.outputBuffers
         val info = MediaCodec.BufferInfo()
         val watchdog = StallWatchdog()
-        val rangeUs = (spec.endUs - spec.startUs).coerceAtLeast(1)
+        val rangeUs = timeMap.outputUsFor(spec.endUs).coerceAtLeast(1)
 
         var baseUs = -1L
         var lastWrittenUs = 0L
@@ -172,16 +199,16 @@ internal class TranscodeExporter(private val context: Context) {
                     // Every track must be added before start(), and the encoded video format is
                     // only known now, so the audio track waits for this moment too.
                     muxer.addVideoTrack(encoder.outputFormat)
-                    audioCopier?.let { muxer.addAudioTrack(it.format) }
+                    audio?.format?.let { muxer.addAudioTrack(it) }
                     muxer.start()
-                    audioCopier?.seekTo(if (baseUs >= 0) baseUs else spec.startUs)
+                    audio?.rebase(if (baseUs >= 0) baseUs else spec.startUs)
                 }
                 encIndex >= 0 -> {
                     if (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) info.size = 0
                     if (info.size > 0 && muxer.isStarted) {
                         info.presentationTimeUs = (info.presentationTimeUs - baseUs.coerceAtLeast(0)).coerceAtLeast(0)
                         muxer.writeVideo(encoderOutputBuffers[encIndex], info)
-                        audioCopier?.pumpUpTo(info.presentationTimeUs, muxer)
+                        audio?.pumpUpTo(info.presentationTimeUs, muxer)
                         lastWrittenUs = info.presentationTimeUs
                         watchdog.poke()
                         val progress = (lastWrittenUs * 100 / rangeUs).toInt().coerceIn(0, 99)
@@ -229,7 +256,9 @@ internal class TranscodeExporter(private val context: Context) {
                     // yields a broken stts, so the duplicate goes rather than the ordering.
                     val render = info.size > 0 && presentationTimeUs >= spec.startUs && !pastEnd &&
                             (outputSurface == null || presentationTimeUs > lastRenderedUs)
-                    if (render && baseUs < 0) baseUs = presentationTimeUs
+                    // Re-timed output is already measured from the cut by the map, so there is
+                    // nothing left to rebase — and rebasing it again would undo the map's zero.
+                    if (render && baseUs < 0) baseUs = if (spec.isRetimed) 0 else presentationTimeUs
                     decoder.releaseOutputBuffer(outIndex, render)
                     if (render && outputSurface != null && inputSurface != null) {
                         lastRenderedUs = presentationTimeUs
@@ -238,7 +267,8 @@ internal class TranscodeExporter(private val context: Context) {
                         while (drainEncoder(0) && !encoderDone) Unit
                         if (!outputSurface.awaitNewImage()) throw VideoEditException.Stalled()
                         outputSurface.drawImage()
-                        inputSurface.setPresentationTime(presentationTimeUs * 1000)
+                        val outputUs = if (spec.isRetimed) timeMap.outputUsFor(presentationTimeUs) else presentationTimeUs
+                        inputSurface.setPresentationTime(outputUs * 1000)
                         inputSurface.swapBuffers()
                     }
                     // Decoding a long run-up to the cut writes nothing, and would otherwise look
@@ -259,22 +289,25 @@ internal class TranscodeExporter(private val context: Context) {
         return lastWrittenUs
     }
 
-    /** Keep the source bitrate — the upload pipeline compresses afterwards if it needs to. */
-    private fun targetBitrate(source: MediaSourceInfo): Int {
-        if (source.bitrate > 0) return source.bitrate.coerceAtMost(MAX_BITRATE)
-        return DEFAULT_BITRATE
-    }
-
     /**
-     * Pre-21 OMX encoders emit green bands, or refuse to configure at all, on dimensions that are
-     * not a multiple of 16.
+     * The caller's bitrate, or the source's scaled by how much of the frame survives — spending the
+     * whole budget on a quarter of the pixels only makes the file bigger for no visible gain.
      */
-    private fun encodeDimension(value: Float, sourceValue: Int): Int {
-        val ceiling = alignDown(sourceValue).coerceAtLeast(ALIGNMENT)
-        return alignDown(value.roundToInt()).coerceIn(MIN_DIMENSION.coerceAtMost(ceiling), ceiling)
+    private fun targetBitrate(
+            source: MediaSourceInfo,
+            spec: VideoEditSpec,
+            displayWidth: Int,
+            displayHeight: Int,
+            outputWidth: Int,
+            outputHeight: Int,
+    ): Int {
+        spec.targetBitrate?.let { return it.coerceIn(MIN_BITRATE, MAX_BITRATE) }
+        val base = if (source.bitrate > 0) source.bitrate.coerceAtMost(MAX_BITRATE) else DEFAULT_BITRATE
+        val sourcePixels = (displayWidth.toLong() * displayHeight).coerceAtLeast(1)
+        val outputPixels = outputWidth.toLong() * outputHeight
+        val scaled = base * (outputPixels.toDouble() / sourcePixels).coerceAtMost(1.0)
+        return scaled.toInt().coerceIn(MIN_BITRATE, MAX_BITRATE)
     }
-
-    private fun alignDown(value: Int) = value / ALIGNMENT * ALIGNMENT
 
     companion object {
         private const val DEFAULT_FRAME_RATE = 30
@@ -282,7 +315,8 @@ internal class TranscodeExporter(private val context: Context) {
         private const val TIMEOUT_US = 10_000L
         private const val MAX_BITRATE = 20_000_000
         private const val DEFAULT_BITRATE = 2_000_000
-        private const val ALIGNMENT = 16
-        private const val MIN_DIMENSION = 128
+        private const val MIN_BITRATE = 100_000
+
+        private val WHOLE_FRAME = floatArrayOf(0f, 0f, 1f, 1f)
     }
 }

@@ -8,10 +8,10 @@
 package im.vector.app.features.attachments.preview
 
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
@@ -113,6 +113,11 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
     /** False while the hosting fragment is not resumed. */
     @EpoxyAttribute var playbackAllowed: Boolean = true
 
+    /** The size the attachment will be sent at, when the sender has chosen one. */
+    @EpoxyAttribute var targetSize: Pair<Int, Int>? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var playbackListener: VideoPlaybackListener? = null
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         applyPlaybackState(holder)
@@ -129,6 +134,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
     }
 
     override fun unbind(holder: Holder) {
+        // The fragment's controls must let go of a recycled holder, or they would drive whatever
+        // attachment its views are rebound to next.
+        holder.releasePlaybackControls(playbackListener)
         holder.release()
         holder.resetZoom()
         super.unbind(holder)
@@ -136,8 +144,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
     private fun applyPlaybackState(holder: Holder) {
         val isVideo = attachment.type == ContentAttachmentData.Type.VIDEO
-        holder.setVideo(attachment.queryUriAndroid.takeIf { isVideo })
-        // Zoom is for stills; on a video the same surface is a tap target for play/pause.
+        holder.setTargetSize(targetSize)
+        holder.setVideo(attachment.queryUriAndroid.takeIf { isVideo }, (attachment.duration ?: 0L).toInt())
+        // Each surface owns its own zoom, so the still and the video never fight over the gesture.
         holder.setZoomEnabled(!isVideo)
         // Swiping away drops any zoom, so coming back lands at 1x.
         if (!activePage) holder.resetZoom()
@@ -147,17 +156,23 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             return
         }
         holder.view.setOnClickListener { holder.togglePlayback() }
-        if (!activePage || !playbackAllowed) {
-            holder.release()
+        // Only whichever attachment is on show drives the controls under the send options, and only
+        // it may claim them: a sibling binding afterwards would otherwise take them away again.
+        holder.setPlaybackListener(playbackListener.takeIf { activePage })
+        if (activePage) playbackListener?.onVideoControlsAvailable(holder)
+        when {
+            // A different attachment is on show now, so this one starts from the top next time.
+            !activePage -> holder.release()
+            !playbackAllowed -> holder.suspendPlayback()
+            else -> holder.resumePlaybackIfNeeded()
         }
     }
 
-    class Holder : AttachmentPreviewItem.Holder() {
+    class Holder : AttachmentPreviewItem.Holder(), VideoPlaybackControls {
         override val imageView: ImageView
             get() = bigImageView
         private val bigImageView by bind<ZoomableImageView>(R.id.attachmentBigImageView)
-        private val videoView by bind<TextureView>(R.id.attachmentBigVideoView)
-        private val playBadge by bind<ImageView>(R.id.attachmentBigPlayBadge)
+        private val videoView by bind<ZoomableTextureView>(R.id.attachmentBigVideoView)
 
         private var videoUri: Uri? = null
         private var mediaPlayer: MediaPlayer? = null
@@ -168,46 +183,91 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private var videoWidth = 0
         private var videoHeight = 0
         private var listenerAttached = false
-        private val transform = Matrix()
 
-        fun resetZoom() = bigImageView.resetZoom()
+        /** Leaving the app tears the surface down and with it the player; this is where it was. */
+        private var resumePositionMs = 0
+        private var resumeWasPlaying = false
+
+        /** The attachment's own length, so the bar reads correctly before anything is prepared. */
+        private var declaredDurationMs = 0
+        private var listener: VideoPlaybackListener? = null
+        private val ticker = Runnable { onTick() }
+
+        fun resetZoom() {
+            bigImageView.resetZoom()
+            videoView.resetZoom()
+        }
+
+        fun setTargetSize(size: Pair<Int, Int>?) {
+            bigImageView.contentSizeOverride = size
+            videoView.contentSizeOverride = size
+        }
 
         fun setZoomEnabled(enabled: Boolean) {
             bigImageView.zoomEnabled = enabled
         }
 
-        fun setVideo(uri: Uri?) {
+        fun setVideo(uri: Uri?, durationMs: Int) {
             if (videoUri != uri) {
                 releasePlayer()
                 videoUri = uri
                 resetToThumbnail()
             }
+            declaredDurationMs = durationMs
             if (uri != null) {
                 attachSurfaceListener()
-                // ?vctr_accent would resolve against this activity's theme, which has no accent
-                // variant and so always yields the default green. ThemeUtils resolves the
-                // configured application theme instead.
-                playBadge.setColorFilter(ThemeUtils.getColor(view.context, com.google.android.material.R.attr.colorAccent))
+                // Once the video is showing it owns the touches, so the root's click never fires.
+                videoView.setOnClickListener { togglePlayback() }
             }
         }
 
-        fun togglePlayback() {
+        /** The controls live in the fragment, below the send options, and drive this holder. */
+        fun setPlaybackListener(listener: VideoPlaybackListener?) {
+            this.listener = listener
+            if (listener != null) reportProgress()
+        }
+
+        fun releasePlaybackControls(owner: VideoPlaybackListener?) {
+            if (listener != null) owner?.onVideoControlsAvailable(null)
+            listener = null
+        }
+
+        override fun seekTo(positionMs: Int) {
+            // Nothing prepared yet, so remember it as the point playback will pick up from.
+            mediaPlayer?.takeIf { isPrepared }?.seekToPrecise(positionMs) ?: run { resumePositionMs = positionMs }
+            reportProgress()
+        }
+
+        private fun durationMs() = mediaPlayer?.takeIf { isPrepared }?.let {
+            runCatching { it.duration }.getOrDefault(0)
+        }?.takeIf { it > 0 } ?: declaredDurationMs
+
+        private fun onTick() {
+            reportProgress()
+            if (mediaPlayer?.isPlayingSafe() == true) videoView.postDelayed(ticker, PROGRESS_INTERVAL_MS)
+        }
+
+        private fun reportProgress() {
+            val position = mediaPlayer?.takeIf { isPrepared }?.let { runCatching { it.currentPosition }.getOrDefault(0) }
+                    ?: resumePositionMs
+            listener?.onVideoProgress(position, durationMs(), mediaPlayer?.isPlayingSafe() == true)
+        }
+
+        override fun togglePlayback() {
             val player = mediaPlayer
             if (player != null) {
                 // Still preparing — the prepared listener will start it.
                 if (!isPrepared) return
                 if (player.isPlayingSafe()) {
                     player.pause()
-                    playBadge.isVisible = true
                 } else {
                     player.start()
-                    playBadge.isVisible = false
+                    startTicking()
                 }
                 return
             }
             wantsPlayback = true
             waitingForFirstFrame = true
-            playBadge.isVisible = false
             // A gone TextureView never gets a SurfaceTexture, so reveal it (still transparent)
             // before waiting for the surface.
             videoView.alpha = 0f
@@ -217,9 +277,23 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             }
         }
 
+        /** Done with this attachment altogether: drop the player and go back to the poster. */
         fun release() {
             releasePlayer()
             resetToThumbnail()
+        }
+
+        /** Backgrounded: drop the player but keep the place — [release] would revert to the poster. */
+        fun suspendPlayback() {
+            mediaPlayer?.let {
+                resumePositionMs = runCatching { it.currentPosition }.getOrDefault(0)
+                resumeWasPlaying = it.isPlayingSafe()
+            }
+            releasePlayer()
+        }
+
+        fun resumePlaybackIfNeeded() {
+            if (mediaPlayer == null && wantsPlayback && surface != null) startPlayer()
         }
 
         private fun attachSurfaceListener() {
@@ -232,14 +306,19 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                     if (wantsPlayback && mediaPlayer == null) {
                         startPlayer()
                     }
-                    applyAspectMatrix()
+                    videoView.setVideoSize(videoWidth, videoHeight)
                 }
 
                 override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
-                    applyAspectMatrix()
+                    videoView.setVideoSize(videoWidth, videoHeight)
                 }
 
                 override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+                    // Remembered before the player goes, or coming back would start the clip again.
+                    mediaPlayer?.let {
+                        resumePositionMs = runCatching { it.currentPosition }.getOrDefault(0)
+                        resumeWasPlaying = it.isPlayingSafe()
+                    }
                     releasePlayer()
                     surface?.release()
                     surface = null
@@ -267,17 +346,27 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                     setOnVideoSizeChangedListener { _, width, height ->
                         this@Holder.videoWidth = width
                         this@Holder.videoHeight = height
-                        applyAspectMatrix()
+                        videoView.setVideoSize(width, height)
                     }
                     setOnPreparedListener {
                         isPrepared = true
-                        applyAspectMatrix()
-                        if (wantsPlayback) it.start()
+                        videoView.setVideoSize(this@Holder.videoWidth, this@Holder.videoHeight)
+                        val resuming = resumePositionMs > 0
+                        // Seeking a prepared player paints the frame, so a video left paused comes
+                        // back showing where it was rather than black.
+                        if (resuming) it.seekToPrecise(resumePositionMs)
+                        if (wantsPlayback && (!resuming || resumeWasPlaying)) {
+                            it.start()
+                            startTicking()
+                        }
+                        reportProgress()
                     }
                     setOnCompletionListener {
                         wantsPlayback = false
-                        playBadge.isVisible = true
+                        resumePositionMs = 0
+                        resumeWasPlaying = false
                         it.seekTo(0)
+                        reportProgress()
                     }
                     setOnErrorListener { _, _, _ ->
                         this@Holder.release()
@@ -291,7 +380,13 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             }
         }
 
+        private fun startTicking() {
+            videoView.removeCallbacks(ticker)
+            videoView.post(ticker)
+        }
+
         private fun releasePlayer() {
+            videoView.removeCallbacks(ticker)
             isPrepared = false
             mediaPlayer?.let {
                 try {
@@ -307,26 +402,32 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         private fun resetToThumbnail() {
             wantsPlayback = false
             waitingForFirstFrame = false
+            resumePositionMs = 0
+            resumeWasPlaying = false
             videoWidth = 0
             videoHeight = 0
+            // The view keeps its own aspect matrix, which would squeeze the next clip into the
+            // shape of the one this holder was showing before.
+            videoView.setVideoSize(0, 0)
+            videoView.resetZoom()
             videoView.isVisible = false
             videoView.alpha = 0f
             bigImageView.isVisible = true
-            playBadge.isVisible = videoUri != null
+            reportProgress()
         }
 
-        private fun applyAspectMatrix() {
-            val viewWidth = videoView.width.toFloat()
-            val viewHeight = videoView.height.toFloat()
-            if (viewWidth <= 0f || viewHeight <= 0f || videoWidth <= 0 || videoHeight <= 0) return
-            val scale = minOf(viewWidth / videoWidth, viewHeight / videoHeight)
-            val drawnWidth = videoWidth * scale
-            val drawnHeight = videoHeight * scale
-            transform.reset()
-            transform.setScale(drawnWidth / viewWidth, drawnHeight / viewHeight)
-            transform.postTranslate((viewWidth - drawnWidth) / 2f, (viewHeight - drawnHeight) / 2f)
-            videoView.setTransform(transform)
-            videoView.invalidate()
+        /**
+         * Plain seekTo lands on the previous sync frame, which on a typical clip is seconds
+         * earlier — coming back from the background would jump to whatever keyframe preceded where
+         * you actually were. Frame-accurate seeking only exists from API 26; below it the platform
+         * offers nothing better.
+         */
+        private fun MediaPlayer.seekToPrecise(positionMs: Int) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                seekTo(positionMs.toLong(), MediaPlayer.SEEK_CLOSEST)
+            } else {
+                seekTo(positionMs)
+            }
         }
 
         private fun MediaPlayer.isPlayingSafe() = try {
@@ -334,5 +435,22 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         } catch (_: IllegalStateException) {
             false
         }
+
+        companion object {
+            private const val PROGRESS_INTERVAL_MS = 100L
+        }
     }
+}
+
+/** What the fragment's playback controls can ask of whichever attachment is on show. */
+interface VideoPlaybackControls {
+    fun togglePlayback()
+    fun seekTo(positionMs: Int)
+}
+
+interface VideoPlaybackListener {
+    /** Null when the attachment on show is not a video, and the controls should go away. */
+    fun onVideoControlsAvailable(controls: VideoPlaybackControls?)
+
+    fun onVideoProgress(positionMs: Int, durationMs: Int, isPlaying: Boolean)
 }

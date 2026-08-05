@@ -12,6 +12,7 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import androidx.annotation.RequiresApi
+import im.vector.lib.mediatranscode.audio.AudioTrackCopier
 import timber.log.Timber
 import java.nio.ByteBuffer
 
@@ -55,7 +56,7 @@ internal class LosslessTrimExporter(private val context: Context) {
                 }
                 start()
             }
-            audioCopier?.seekTo(actualStartUs)
+            audioCopier?.rebase(actualStartUs)
 
             val lastPtsUs = copyVideo(extractor, videoFormat, muxer, audioCopier, spec, actualStartUs, progressListener, isActive)
             audioCopier?.pumpUpTo(Long.MAX_VALUE, muxer)

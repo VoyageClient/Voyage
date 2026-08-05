@@ -8,6 +8,7 @@ include ':library:ui-styles'
 include ':library:attachment-viewer'
 include ':library:multipicker'
 include ':library:media-transcode'
+include ':library:animated-image'
 
 include ':library:external:jsonviewer'
 include ':library:external:diff-match-patch'

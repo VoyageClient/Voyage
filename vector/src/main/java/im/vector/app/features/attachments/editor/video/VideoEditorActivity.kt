@@ -28,36 +28,40 @@ import android.view.TextureView
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.net.toUri
+import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.databinding.ActivityVideoEditorBinding
+import im.vector.app.features.attachments.editor.restoreOriginalResult
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.animatedimage.AnimatedImageFormat
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.mediatranscode.MediaSourceInfo
 import im.vector.lib.mediatranscode.VideoEditException
+import im.vector.lib.mediatranscode.VideoEditProgressListener
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import java.util.Locale
 
-// Only reachable through ContentAttachmentData.isVideoEditable(), which requires API 18.
+// The video path is gated on API 18 by isVideoEditable(); animated images reach it from 14.
 @SuppressLint("NewApi")
 @AndroidEntryPoint
 class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private lateinit var sourceUri: Uri
     private var displayName: String? = null
-
-    private lateinit var cropController: VideoCropController
 
     private var player: MediaPlayer? = null
     private var audioPlayer: MediaPlayer? = null
@@ -78,8 +82,22 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var pendingEditedUs: Long? = null
     private var audioBurstActive = false
     private var pendingAudioUs: Long? = null
-    private var userRotation = 0
     private var muted = false
+    private var playbackSpeed = PlaybackSpeed()
+    private var warnedAboutSpeedPreview = false
+    private var exporting = false
+
+    /** Where playback was when the surface went away, so coming back does not start over. */
+    private var resumePositionUs = 0L
+    private var resumePlaying = false
+    private var pauseOnFirstFrame = false
+
+    /** An animated image has no audio and no codec: a frame ticker plays it, and the export writes WebP. */
+    private var animatedFormat: AnimatedImageFormat? = null
+    private var animatedSource: File? = null
+    private var animatedPlayer: AnimatedFramePlayer? = null
+
+    private val isAnimated get() = animatedFormat != null
 
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
 
@@ -91,24 +109,30 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     override fun initUiAndData() {
         sourceUri = intent.getStringExtra(EXTRA_SOURCE_URI)?.toUri() ?: run { finish(); return }
         displayName = intent.getStringExtra(EXTRA_DISPLAY_NAME)
+        animatedFormat = intent.getStringExtra(EXTRA_ANIMATED_FORMAT)?.let { name ->
+            runCatching { AnimatedImageFormat.valueOf(name) }.getOrNull()
+        }
 
         setupToolbar(views.videoEditorToolbar).allowBack()
+        views.videoEditorToolbar.setTitle(
+                if (isAnimated) CommonStrings.animated_image_editor_title else CommonStrings.video_editor_title
+        )
+        views.videoEditorExportLabel.setText(
+                if (isAnimated) CommonStrings.animated_image_editor_exporting else CommonStrings.video_editor_exporting
+        )
 
         // This activity's theme has no accent variant, so ?colorAccent resolves to the default
         // green; ThemeUtils reads the configured application theme instead.
         val accent = ThemeUtils.getColor(this, com.google.android.material.R.attr.colorAccent)
         views.videoEditorSaveButton.backgroundTintList = ColorStateList.valueOf(accent)
-        views.videoEditorPlayBadge.setColorFilter(accent)
         tintProgressBar(accent)
         views.videoEditorSaveButton.setOnClickListener { save() }
         views.videoEditorExportCancel.setOnClickListener { exportJob?.cancel() }
-        cropController = VideoCropController(
-                container = views.videoEditorSurfaceContainer,
-                window = views.videoEditorCropWindow,
-                textureView = views.videoEditorTextureView,
-                frame = views.videoEditorCropFrame,
-                onTap = { togglePlayback() }
-        )
+        views.videoEditorCropOverlay.onTransform = {
+            views.videoEditorTextureView.setTransform(it)
+            views.videoEditorTextureView.invalidate()
+        }
+        views.videoEditorCropOverlay.onTap = { togglePlayback() }
 
         views.videoEditorTimeline.listener = VideoTimelineStripView.Listener { start, end, dragging ->
             // Null means neither edge moved, and a mere grab must not disturb playback.
@@ -119,6 +143,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             }
             startUs = start
             endUs = end
+            applyTrimToAnimatedPlayer()
             updateDurationLabel()
             if (dragging) {
                 beginScrubbing()
@@ -162,9 +187,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
-        menu.findItem(R.id.videoEditorMuteAction)?.setIcon(
-                if (muted) R.drawable.ic_mic_off else R.drawable.ic_mic_on
-        )
+        menu.findItem(R.id.videoEditorMuteAction)?.apply {
+            // There is no sound in an animated image to mute.
+            isVisible = !isAnimated
+            setIcon(if (muted) R.drawable.ic_mic_off else R.drawable.ic_mic_on)
+        }
+        // Changing an edit while it is being written would export something nobody asked for.
+        for (index in 0 until menu.size()) {
+            menu.getItem(index).isEnabled = !exporting
+        }
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -172,10 +203,6 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         return when (item.itemId) {
             R.id.videoEditorResetAction -> {
                 resetEdits()
-                true
-            }
-            R.id.videoEditorCropAction -> {
-                chooseCropRatio()
                 true
             }
             R.id.videoEditorRotateAction -> {
@@ -186,29 +213,66 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 toggleMute()
                 true
             }
+            R.id.videoEditorSpeedAction -> {
+                showSpeedDialog()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    /** Pinch and pan crop freely; the ratios only fix the shape of the window they work inside. */
-    private fun chooseCropRatio() {
-        val labels = CROP_RATIOS.map { getString(it.first) }.toTypedArray()
-        MaterialAlertDialogBuilder(this)
-                .setTitle(CommonStrings.video_editor_crop)
-                .setItems(labels) { _, which ->
-                    cropController.aspectRatio = CROP_RATIOS[which].second
+    /** The preview only follows the speed on API 23+; the export applies it either way. */
+    private fun showSpeedDialog() {
+        PlaybackSpeedDialog(
+                context = ContextThemeWrapper(this, ThemeUtils.getApplicationThemeRes(this)),
+                initial = playbackSpeed,
+                // Pitch is meaningless without a sound track.
+                allowPitchChoice = !isAnimated,
+                onChanged = { speed ->
+                    playbackSpeed = speed
+                    applyPlaybackSpeed()
+                    updateDurationLabel()
                 }
-                .show()
+        ).show()
+    }
+
+    /** How long the export will be: the trimmed range at the chosen speed. */
+    private fun outputDurationUs(): Long = ((endUs - startUs).coerceAtLeast(0) / playbackSpeed.speed).toLong()
+
+    private fun applyPlaybackSpeed() {
+        animatedPlayer?.let {
+            it.speed = playbackSpeed.speed
+            return
+        }
+        val player = player ?: return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            if (!playbackSpeed.isDefault && !warnedAboutSpeedPreview) {
+                warnedAboutSpeedPreview = true
+                Toast.makeText(this, getString(CommonStrings.video_editor_speed_preview_unsupported), Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        runCatching {
+            val playing = player.isPlaying
+            player.playbackParams = player.playbackParams
+                    .setSpeed(playbackSpeed.speed)
+                    // Tape behaviour is pitch riding along with the speed; the alternative holds it.
+                    .setPitch(if (playbackSpeed.changePitch) playbackSpeed.speed else 1f)
+            // Setting the parameters starts a paused player, which would run off the frame being set.
+            if (!playing) player.pause()
+        }.onFailure { Timber.w(it, "VideoEditor: cannot preview speed ${playbackSpeed.speed}") }
     }
 
     private fun resetEdits() {
         if (durationUs <= 0) return
         startUs = 0
         endUs = durationUs
-        userRotation = 0
         if (muted) toggleMute()
-        cropController.reset()
+        playbackSpeed = PlaybackSpeed()
+        applyPlaybackSpeed()
+        views.videoEditorCropOverlay.resetEdits()
         views.videoEditorTimeline.setTrim(startUs, endUs)
+        applyTrimToAnimatedPlayer()
         updateDurationLabel()
         seekTo(startUs)
     }
@@ -220,6 +284,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     private fun loadMetadata() {
+        if (isAnimated) {
+            loadAnimatedMetadata()
+            return
+        }
         lifecycleScope.launch {
             val info = withContext(Dispatchers.IO) { MediaSourceInfo.probe(this@VideoEditorActivity, sourceUri) }
             if (info == null || info.durationUs <= 0) {
@@ -234,10 +302,14 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             val edits = intent.getParcelableExtraCompat<VideoEditorEdits>(EXTRA_EDITS)
             startUs = edits?.startUs ?: 0L
             endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
-            userRotation = edits?.rotationDegrees ?: 0
             if (edits?.muted == true) toggleMute()
-            cropController.rotationDegrees = userRotation
-            cropController.applyCropRect(edits?.crop)
+            edits?.speed?.let { playbackSpeed = it }
+            // The probe's dimensions, not the player's: MediaPlayer reports the coded frame rather
+            // than the displayed one on some devices, which shows a portrait clip stretched.
+            views.videoEditorCropOverlay.setVideoSize(info.displayWidth, info.displayHeight)
+            // Whatever shape the previewer's compression settings will send it at.
+            applyTargetSizeOverride()
+            views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop)
             views.videoEditorTimeline.setTrim(startUs, endUs)
             updateDurationLabel()
             extractThumbnails()
@@ -245,9 +317,86 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     /**
-     * Frames are decoded one at a time and scaled to strip height immediately — getFrameAtTime is
-     * 100-300ms and a full-size frame each on the oldest devices this fork supports.
+     * The frame readers work from a file, and the source is a content:// uri, so it is copied out
+     * once here and reused by the export.
      */
+    private fun loadAnimatedMetadata() {
+        lifecycleScope.launch {
+            val loaded = withContext(Dispatchers.IO) {
+                val file = copySourceToCache() ?: return@withContext null
+                AnimatedImageSource.load(file, animatedFormat)?.let { file to it }
+            }
+            if (loaded == null) {
+                Toast.makeText(
+                        this@VideoEditorActivity, getString(CommonStrings.animated_image_editor_load_failed), Toast.LENGTH_SHORT
+                ).show()
+                finish()
+                return@launch
+            }
+            val (file, source) = loaded
+            animatedSource = file
+            durationUs = source.durationUs
+            frameRate = source.frameRate
+            views.videoEditorTimeline.durationUs = durationUs
+            views.videoEditorTimeline.frameRate = frameRate
+            val edits = intent.getParcelableExtraCompat<VideoEditorEdits>(EXTRA_EDITS)
+            startUs = edits?.startUs ?: 0L
+            endUs = edits?.endUs?.takeIf { it > 0 } ?: durationUs
+            edits?.speed?.let { playbackSpeed = it }
+            views.videoEditorCropOverlay.setVideoSize(source.width, source.height)
+            applyTargetSizeOverride()
+            views.videoEditorCropOverlay.restoreEdits(edits?.rotationDegrees ?: 0, edits?.crop)
+            views.videoEditorTimeline.setTrim(startUs, endUs)
+            updateDurationLabel()
+            addAnimatedThumbnails(source)
+            animatedPlayer = AnimatedFramePlayer(source, views.videoEditorTextureView, handler) { positionUs ->
+                views.videoEditorTimeline.playheadUs = positionUs
+            }
+            applyPlaybackSpeed()
+            applyTrimToAnimatedPlayer()
+            startPlayback()
+        }
+    }
+
+    private fun addAnimatedThumbnails(source: AnimatedImageSource) = views.videoEditorTimeline.doOnLayout {
+        val count = THUMBNAIL_COUNT.coerceAtMost(source.frames.size)
+        if (count <= 0) return@doOnLayout
+        views.videoEditorTimeline.prepareThumbnails(count)
+        val targetHeight = views.videoEditorTimeline.height
+        for (index in 0 until count) {
+            val frame = source.frames[index * source.frames.size / count].bitmap
+            val scale = targetHeight.toFloat() / frame.height
+            val scaled = runCatching {
+                Bitmap.createScaledBitmap(frame, (frame.width * scale).toInt().coerceAtLeast(1), targetHeight, true)
+            }.getOrNull() ?: continue
+            views.videoEditorTimeline.addThumbnail(scaled)
+        }
+    }
+
+    private fun copySourceToCache(): File? = runCatching {
+        val destination = File(cacheDir, "animated-edit-source")
+        contentResolver.openInputStream(sourceUri)?.use { input ->
+            destination.outputStream().use { input.copyTo(it) }
+        } ?: return null
+        destination
+    }.onFailure { Timber.w(it, "VideoEditor: cannot read $sourceUri") }.getOrNull()
+
+    private fun applyTargetSizeOverride() {
+        val targetWidth = intent.getIntExtra(EXTRA_TARGET_WIDTH, 0)
+        val targetHeight = intent.getIntExtra(EXTRA_TARGET_HEIGHT, 0)
+        if (targetWidth > 0 && targetHeight > 0) {
+            views.videoEditorCropOverlay.contentSizeOverride = targetWidth to targetHeight
+        }
+    }
+
+    private fun applyTrimToAnimatedPlayer() {
+        animatedPlayer?.apply {
+            loopStartUs = startUs
+            loopEndUs = if (endUs > 0) endUs else durationUs
+        }
+    }
+
+    /** getFrameAtTime costs 100-300ms and a full-size bitmap each, so scale as we go. */
     private fun extractThumbnails() = views.videoEditorTimeline.doOnLayout {
         val count = THUMBNAIL_COUNT
         views.videoEditorTimeline.prepareThumbnails(count)
@@ -280,6 +429,11 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private val surfaceListener = object : TextureView.SurfaceTextureListener {
         override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
+            if (isAnimated) {
+                // The surface only exists now, and an editor opened paused would show nothing.
+                animatedPlayer?.draw()
+                return
+            }
             surface = Surface(texture)
             preparePlayer()
         }
@@ -287,13 +441,26 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) = Unit
 
         override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+            // Leaving the editor tears the surface down and with it the player, so where playback
+            // had got to has to be remembered here or coming back starts the clip again.
+            player?.let {
+                resumePositionUs = it.currentPosition * 1000L
+                resumePlaying = it.isPlaying
+            }
             releasePlayer()
             surface?.release()
             surface = null
             return true
         }
 
-        override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
+        override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
+            // A seek alone does not reliably paint a frame, so a player that should be paused is
+            // started and stopped again the moment it has shown one.
+            if (pauseOnFirstFrame) {
+                pauseOnFirstFrame = false
+                pausePlayback()
+            }
+        }
     }
 
     /** Only ever seeked and briefly started, to sound out the frame under the finger. */
@@ -330,11 +497,13 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         player = MediaPlayer().apply {
             setSurface(this@VideoEditorActivity.surface)
             setOnPreparedListener {
-                cropController.setVideoSize(it.videoWidth, it.videoHeight)
                 applyVolume()
-                seekTo(startUs)
+                applyPlaybackSpeed()
+                seekTo(resumePositionUs.takeIf { position -> position > startUs } ?: startUs)
                 // A seek before playback starts does not reliably render a frame, so an idle
-                // editor would show nothing at all.
+                // editor would show nothing at all: play either way, and stop on the first frame
+                // when playback was not running when we left.
+                pauseOnFirstFrame = resumePositionUs > 0 && !resumePlaying
                 startPlayback()
             }
             // Reaching the end of the file bypasses the ticker's loop check, and playback stops
@@ -357,10 +526,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
-    private fun rotateClockwise() {
-        userRotation = (userRotation + 90) % 360
-        cropController.rotationDegrees = userRotation
-    }
+    private fun rotateClockwise() = views.videoEditorCropOverlay.rotateClockwise()
 
     /** Mutes the preview as well: the export is what the editor is showing. */
     private fun toggleMute() {
@@ -376,31 +542,29 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     private fun togglePlayback() {
-        val player = player ?: return
-        if (player.isPlaying) pausePlayback() else startPlayback()
+        if (isPlaying()) pausePlayback() else startPlayback()
     }
 
+    private fun isPlaying() = animatedPlayer?.isPlaying ?: (player?.isPlaying == true)
+
     private fun startPlayback() {
+        animatedPlayer?.let {
+            it.start()
+            return
+        }
         val player = player ?: return
         if (endUs > 0 && player.currentPosition * 1000L >= endUs) seekTo(startUs)
         player.start()
         handler.post(playbackTicker)
-        syncPlayBadge()
     }
 
     private fun pausePlayback() {
+        animatedPlayer?.let {
+            it.pause()
+            return
+        }
         handler.removeCallbacks(playbackTicker)
         player?.takeIf { it.isPlaying }?.pause()
-        syncPlayBadge()
-    }
-
-    /**
-     * Driven from the player rather than set per call site, so no path can leave it out of step.
-     * Mid-gesture it is parked between audio blips, which is not a pause worth advertising.
-     */
-    private fun syncPlayBadge() {
-        val paused = !scrubbing && player?.isPlaying != true
-        views.videoEditorPlayBadge.visibility = if (paused) View.VISIBLE else View.GONE
     }
 
     /** Playback loops the trimmed window so what plays is what will be exported. */
@@ -412,7 +576,6 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             // endUs is zero until the metadata probe lands, and looping against it then would drag
             // playback back to the start every tick.
             if (endUs > 0 && positionUs >= endUs) seekTo(startUs)
-            syncPlayBadge()
             handler.postDelayed(this, PLAYHEAD_INTERVAL_MS)
         }
     }
@@ -424,7 +587,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private fun beginScrubbing() {
         if (scrubbing) return
         scrubbing = true
-        resumeAfterScrub = player?.isPlaying == true
+        resumeAfterScrub = isPlaying()
         handler.removeCallbacks(playbackTicker)
         pausePlayback()
     }
@@ -449,7 +612,8 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
             } else {
                 audioPlayer.seekTo((us / 1000).toInt())
             }
-        }
+            // A seek that threw never completes, and the flag would latch scrub audio off for good.
+        }.onFailure { audioBurstActive = false }
     }
 
     private val stopBlipRunnable = Runnable {
@@ -494,6 +658,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private fun seekTo(us: Long) {
         views.videoEditorTimeline.playheadUs = us
+        animatedPlayer?.let {
+            it.seekTo(us)
+            return
+        }
         val player = player ?: return
         runCatching {
             // Plain seekTo() lands on the previous sync frame, which on a sparsely keyframed video
@@ -507,9 +675,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     }
 
     private fun updateDurationLabel() {
-        views.videoEditorDurationLabel.text = getString(
-                CommonStrings.video_editor_range, formatTime(startUs), formatTime(endUs)
-        )
+        views.videoEditorDurationLabel.text = if (playbackSpeed.isDefault) {
+            getString(CommonStrings.video_editor_range, formatTime(startUs), formatTime(endUs))
+        } else {
+            // The resulting length is the useful number once the speed is no longer 1x.
+            getString(
+                        CommonStrings.video_editor_range_output,
+                    formatTime(startUs), formatTime(endUs), formatTime(outputDurationUs())
+            )
+        }
     }
 
     /** Per-frame trimming reads against frames, not fractions of a second: m:ss:frame. */
@@ -530,11 +704,13 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 startUs = startUs,
                 endUs = endUs,
                 durationUs = durationUs,
-                rotationDegrees = userRotation,
+                rotationDegrees = views.videoEditorCropOverlay.rotationDegrees,
                 muted = muted,
-                crop = cropController.cropRect
+                crop = views.videoEditorCropOverlay.currentCrop(),
+                speed = playbackSpeed
         )
         if (!edits.hasChanges) {
+            setResult(RESULT_OK, restoreOriginalResult())
             finish()
             return
         }
@@ -542,14 +718,12 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         showExportOverlay(true)
         exportJob = lifecycleScope.launch {
             val result = try {
-                runCatching {
-                    VideoEditorExporter.export(this@VideoEditorActivity, sourceUri, displayName, edits) { percent ->
-                        handler.post { views.videoEditorExportProgress.progress = percent }
-                    }
-                }
+                runCatching { runExport(edits) }
             } finally {
                 showExportOverlay(false)
             }
+            // Cancelling comes back as a failed Result; complaining about it would be nonsense.
+            if (result.exceptionOrNull() is CancellationException) return@launch
             result.fold(
                     onSuccess = { output ->
                         if (output.audioDropped) {
@@ -576,14 +750,44 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
+    private suspend fun runExport(edits: VideoEditorEdits): VideoEditorExporter.Result {
+        val progress = VideoEditProgressListener { percent ->
+            handler.post { views.videoEditorExportProgress.progress = percent }
+        }
+        val animatedSource = animatedSource
+        return if (animatedSource != null) {
+            val targetWidth = intent.getIntExtra(EXTRA_TARGET_WIDTH, 0)
+            val targetHeight = intent.getIntExtra(EXTRA_TARGET_HEIGHT, 0)
+            AnimatedImageExporter.export(
+                    context = this,
+                    source = animatedSource,
+                    format = animatedFormat,
+                    displayName = displayName,
+                    edits = edits,
+                    targetSize = (targetWidth to targetHeight).takeIf { targetWidth > 0 && targetHeight > 0 },
+                    progressListener = progress
+            )
+        } else {
+            VideoEditorExporter.export(this, sourceUri, displayName, edits, progress)
+        }
+    }
+
     private fun messageFor(error: Throwable): String = when (error) {
         is VideoEditException.NotEnoughSpace -> getString(CommonStrings.video_editor_no_space)
         is VideoEditException.UnsupportedCodec -> getString(CommonStrings.video_editor_unsupported)
+        is AnimatedImageExporter.TransparencyUnsupportedException -> getString(CommonStrings.animated_image_editor_no_transparency)
+        is AnimatedImageExporter.AnimatedImageException -> getString(CommonStrings.animated_image_editor_export_failed)
         else -> getString(CommonStrings.video_editor_export_failed)
     }
 
     private fun showExportOverlay(visible: Boolean) {
+        exporting = visible
         views.videoEditorExportOverlay.visibility = if (visible) View.VISIBLE else View.GONE
+        // The overlay covers everything, but the save button and the app bar are raised above it on
+        // API 21+, where elevation decides what a touch lands on rather than the order in the layout.
+        ViewCompat.setElevation(views.videoEditorExportOverlay, if (visible) EXPORT_OVERLAY_ELEVATION else 0f)
+        views.videoEditorSaveButton.isEnabled = !visible
+        invalidateOptionsMenu()
         views.videoEditorExportProgress.progress = 0
         if (visible) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -600,6 +804,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     override fun onDestroy() {
         handler.removeCallbacks(playbackTicker)
         releasePlayer()
+        animatedPlayer?.release()
+        animatedPlayer = null
+        // Only ever a copy of the source; the export has already read what it needs.
+        animatedSource?.delete()
         surface?.release()
         surface = null
         super.onDestroy()
@@ -637,17 +845,15 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         private const val SEEK_THROTTLE_MS = 40L
         private const val AUDIO_BLIP_MS = 120L
 
-        private val CROP_RATIOS = listOf(
-                CommonStrings.video_editor_crop_original to null,
-                CommonStrings.video_editor_crop_square to 1f,
-                CommonStrings.video_editor_crop_portrait to 4f / 5f,
-                CommonStrings.video_editor_crop_wide to 16f / 9f,
-                CommonStrings.video_editor_crop_tall to 9f / 16f,
-        )
+        /** Above the save button's 6dp and the app bar's 4dp, so neither takes a touch. */
+        private const val EXPORT_OVERLAY_ELEVATION = 16f
 
         private const val EXTRA_SOURCE_URI = "EXTRA_SOURCE_URI"
         private const val EXTRA_DISPLAY_NAME = "EXTRA_DISPLAY_NAME"
         private const val EXTRA_EDITS = "EXTRA_EDITS"
+        private const val EXTRA_ANIMATED_FORMAT = "EXTRA_ANIMATED_FORMAT"
+        private const val EXTRA_TARGET_WIDTH = "EXTRA_TARGET_WIDTH"
+        private const val EXTRA_TARGET_HEIGHT = "EXTRA_TARGET_HEIGHT"
         private const val EXTRA_RESULT_URI = "EXTRA_RESULT_URI"
         private const val EXTRA_RESULT_WIDTH = "EXTRA_RESULT_WIDTH"
         private const val EXTRA_RESULT_HEIGHT = "EXTRA_RESULT_HEIGHT"
@@ -656,11 +862,23 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         private const val EXTRA_RESULT_MIME_TYPE = "EXTRA_RESULT_MIME_TYPE"
         private const val EXTRA_RESULT_EDITS = "EXTRA_RESULT_EDITS"
 
-        fun newIntent(context: Context, source: Uri, displayName: String?, edits: VideoEditorEdits?): Intent {
+        fun newIntent(
+                context: Context,
+                source: Uri,
+                displayName: String?,
+                edits: VideoEditorEdits?,
+                targetSize: Pair<Int, Int>? = null,
+                animatedFormat: AnimatedImageFormat? = null,
+        ): Intent {
             return Intent(context, VideoEditorActivity::class.java).apply {
                 putExtra(EXTRA_SOURCE_URI, source.toString())
                 putExtra(EXTRA_DISPLAY_NAME, displayName)
                 putExtra(EXTRA_EDITS, edits)
+                putExtra(EXTRA_ANIMATED_FORMAT, animatedFormat?.name)
+                targetSize?.let {
+                    putExtra(EXTRA_TARGET_WIDTH, it.first)
+                    putExtra(EXTRA_TARGET_HEIGHT, it.second)
+                }
             }
         }
 

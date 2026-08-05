@@ -45,6 +45,24 @@
             app:layout_constraintTop_toTopOf="@id/messageThumbnailView"
             tools:visibility="visible" />
 
+        <TextView
+            android:id="@+id/messageMediaDurationView"
+            style="@style/Widget.Vector.TextView.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_media_duration"
+            android:paddingLeft="6dp"
+            android:paddingTop="2dp"
+            android:paddingRight="6dp"
+            android:paddingBottom="2dp"
+            android:textColor="@android:color/white"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/messageThumbnailView"
+            app:layout_constraintEnd_toEndOf="@id/messageThumbnailView"
+            tools:text="0:42"
+            tools:visibility="visible" />
+
         <View
             android:id="@+id/messageMediaHiddenScrim"
             android:layout_width="0dp"
