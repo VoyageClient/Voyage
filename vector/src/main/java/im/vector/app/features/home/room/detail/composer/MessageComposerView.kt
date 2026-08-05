@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.composer
 import android.text.Editable
 import android.widget.EditText
 import android.widget.ImageButton
+import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 
 interface MessageComposerView {
 
@@ -39,6 +40,9 @@ interface MessageComposerView {
     /** Re-render the replied-to/related-message media preview in place (e.g. after the user reveals
      *  hidden media elsewhere), without touching the composer's typed text. */
     fun refreshRelatedMessageMedia() = Unit
+
+    /** Show the room's encryption shield beside the input. Only the classic composer has the slot. */
+    fun renderRoomEncryption(isEncrypted: Boolean, trustLevel: RoomEncryptionTrustLevel?, isPgp: Boolean) = Unit
 }
 
 interface Callback : ComposerEditText.Callback {

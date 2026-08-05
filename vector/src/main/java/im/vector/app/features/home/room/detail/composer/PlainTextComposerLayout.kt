@@ -21,7 +21,12 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.text.toSpannable
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
+import androidx.transition.ChangeBounds
+import androidx.transition.Fade
+import androidx.transition.TransitionManager
+import androidx.transition.TransitionSet
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
@@ -60,6 +65,7 @@ import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.DirectionOverridesTransformation
 import im.vector.lib.strings.CommonStrings
 import org.commonmark.parser.Parser
+import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
@@ -109,6 +115,8 @@ class PlainTextComposerLayout @JvmOverloads constructor(
 
     private val views: ComposerLayoutBinding
 
+    private val classic = vectorPreferences.useClassicComposer()
+
     // The replied-to/related event currently shown in the preview, so its media can be re-rendered
     // in place when revealed elsewhere.
     private var relatedMessageEvent: TimelineEvent? = null
@@ -134,7 +142,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         get() = views.attachmentButton
 
     init {
-        inflate(context, R.layout.composer_layout, this)
+        inflate(context, if (classic) R.layout.composer_layout_classic else R.layout.composer_layout, this)
         views = ComposerLayoutBinding.bind(this)
 
         views.composerEditText.maxLines = MessageComposerView.MAX_LINES_WHEN_COLLAPSED
@@ -161,7 +169,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             views.composerRelatedMessageImage.setCornerRadii(imageCornerRadius, imageCornerRadius, imageCornerRadius, imageCornerRadius)
         }
 
-        collapse()
+        collapse(animate = false)
 
         // Render emoji the user types/pastes as Twemoji sprites in the input box (the platform/emoji2
         // can't on ICS or when Twemoji is forced). setSpan doesn't retrigger text watchers, so no loop.
@@ -197,16 +205,34 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
     }
 
-    private fun collapse(transitionComplete: (() -> Unit)? = null) {
+    private fun collapse(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
+        if (animate) beginClassicTransition()
         views.relatedMessageGroup.isVisible = false
+        views.composerTopDivider.isVisible = classic
         transitionComplete?.invoke()
         callback?.onExpandOrCompactChange()
     }
 
-    private fun expand(transitionComplete: (() -> Unit)? = null) {
+    private fun expand(animate: Boolean = true, transitionComplete: (() -> Unit)? = null) {
+        if (animate) beginClassicTransition()
         views.relatedMessageGroup.isVisible = true
+        // The preview brings its own top separator.
+        views.composerTopDivider.isVisible = false
         transitionComplete?.invoke()
         callback?.onExpandOrCompactChange()
+    }
+
+    private fun beginClassicTransition() {
+        if (!classic || !ViewCompat.isAttachedToWindow(this)) return
+        val transition = TransitionSet().apply {
+            ordering = TransitionSet.ORDERING_SEQUENTIAL
+            addTransition(ChangeBounds())
+            addTransition(Fade(Fade.IN))
+            duration = RELATED_MESSAGE_ANIMATION_DURATION
+            // Target the preview only; untargeted, this also animates the input row.
+            addTarget(views.relatedMessageGroup)
+        }
+        TransitionManager.beginDelayedTransition(this, transition)
     }
 
     override fun setTextIfDifferent(text: CharSequence?): Boolean {
@@ -314,7 +340,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
                 setImageResource(R.drawable.ic_composer_rich_text_save)
             } else {
                 contentDescription = resources.getString(CommonStrings.action_send)
-                setImageResource(R.drawable.ic_rich_composer_send)
+                setImageResource(if (classic) R.drawable.ic_send else R.drawable.ic_rich_composer_send)
             }
         }
     }
@@ -466,6 +492,15 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         )
     }
 
+    override fun renderRoomEncryption(isEncrypted: Boolean, trustLevel: RoomEncryptionTrustLevel?, isPgp: Boolean) {
+        if (!classic) return
+        if (isEncrypted || isPgp) {
+            views.composerShield.renderRoomShield(trustLevel, isPgp)
+        } else {
+            views.composerShield.isVisible = false
+        }
+    }
+
     private fun getAudioContentBodyText(messageContent: MessageAudioContent): String {
         val formattedDuration = DateUtils.formatElapsedTime(((messageContent.audioInfo?.duration ?: 0) / 1000).toLong())
         return if (messageContent.voiceMessageIndicator != null) {
@@ -473,5 +508,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         } else {
             resources.getString(CommonStrings.audio_message_reply_content, messageContent.body, formattedDuration)
         }
+    }
+
+    companion object {
+        private const val RELATED_MESSAGE_ANIMATION_DURATION = 100L
     }
 }

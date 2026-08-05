@@ -33,6 +33,11 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr), AudioMessagePlaybackTracker.Listener {
 
+    companion object {
+        // Clears the classic composer's send (36dp + 4dp margin) and emoji (36dp) buttons.
+        private const val CLASSIC_MIC_END_MARGIN_DP = 76
+    }
+
     interface Callback {
         fun onVoiceRecordingStarted()
         fun onVoiceRecordingEnded()
@@ -48,6 +53,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
 
     @Inject lateinit var clock: Clock
     @Inject lateinit var voiceMessageConfig: VoiceMessageConfig
+    @Inject lateinit var vectorPreferences: im.vector.app.features.settings.VectorPreferences
 
     // We need to define views as lateinit var to be able to check if initialized for the bug fix on api 21 and 22.
     @Suppress("UNNECESSARY_LATEINIT")
@@ -67,6 +73,11 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
                 ViewVoiceMessageRecorderBinding.bind(this),
                 dimensionConverter
         )
+        if (vectorPreferences.useClassicComposer()) {
+            // The classic composer gives the mic its own slot rather than sharing the send button's.
+            voiceMessageViews.applyClassicComposerStyle(dimensionConverter.dpToPx(CLASSIC_MIC_END_MARGIN_DP))
+        }
+
         initListeners()
     }
 

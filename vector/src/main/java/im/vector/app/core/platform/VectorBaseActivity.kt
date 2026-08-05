@@ -17,6 +17,7 @@ import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.TextView
@@ -35,7 +36,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -91,9 +94,28 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.GlobalError
 import reactivecircus.flowbinding.android.view.clicks
 import timber.log.Timber
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
 
 abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), MavericksView {
+
+    private val touchObservers = CopyOnWriteArrayList<(MotionEvent) -> Unit>()
+
+    /** Observe, never consume, every touch dispatched to this activity until [owner] is destroyed. */
+    fun observeTouchEvents(owner: LifecycleOwner, observer: (MotionEvent) -> Unit) {
+        touchObservers.add(observer)
+        owner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                touchObservers.remove(observer)
+            }
+        })
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        touchObservers.forEach { it(ev) }
+        return super.dispatchTouchEvent(ev)
+    }
+
     /* ==========================================================================================
      * View
      * ========================================================================================== */

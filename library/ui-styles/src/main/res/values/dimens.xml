@@ -46,6 +46,9 @@
     <!-- Composer -->
     <dimen name="composer_min_height">56dp</dimen>
     <dimen name="composer_attachment_size">52dp</dimen>
+    <dimen name="composer_classic_button_size">40dp</dimen>
+    <dimen name="composer_classic_button_margin">4dp</dimen>
+    <dimen name="composer_classic_plus_padding">7dp</dimen>
     <dimen name="composer_attachment_margin">1dp</dimen>
     <dimen name="rich_text_composer_corner_radius_single_line">28dp</dimen>
     <dimen name="rich_text_composer_corner_radius_expanded">14dp</dimen>
