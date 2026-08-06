@@ -27,7 +27,7 @@ class MessageItemAttributesFactory @Inject constructor(
         private val stringProvider: StringProvider,
         private val displayableEventFormatter: DisplayableEventFormatter,
         private val preferencesProvider: UserPreferencesProvider,
-        private val emojiCompatFontProvider: EmojiCompatFontProvider
+        private val emojiCompatFontProvider: EmojiCompatFontProvider,
 ) {
 
     fun create(
@@ -63,7 +63,7 @@ class MessageItemAttributesFactory @Inject constructor(
                 threadDetails = threadDetails,
                 reactionsSummaryEvents = reactionsSummaryEvents,
                 areThreadMessagesEnabled = preferencesProvider.areThreadMessagesEnabled(),
-                autoplayAnimatedImages = preferencesProvider.autoplayAnimatedImages()
+                autoplayAnimatedImages = preferencesProvider.autoplayAnimatedImages(),
         )
     }
 }

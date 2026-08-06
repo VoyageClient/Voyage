@@ -84,6 +84,28 @@ internal class EventIndexStore @Inject constructor(
         added
     }
 
+    /** Replaces the row if it is already there, unlike [addEvents] which only fills gaps. */
+    suspend fun putEvent(event: IndexableEvent) = withContext(dispatcher) {
+        queries.upsertEvent(
+                event.eventId,
+                event.roomId,
+                event.sender,
+                event.originServerTs,
+                event.contentText,
+                event.eventJson,
+                event.msgtype,
+                event.mentions,
+        )
+    }
+
+    suspend fun eventJson(eventId: String): String? = withContext(dispatcher) {
+        queries.eventJson(eventId).executeAsOneOrNull()
+    }
+
+    suspend fun updateEventJson(eventId: String, json: String) = withContext(dispatcher) {
+        queries.updateEventJson(json, eventId)
+    }
+
     suspend fun deleteEvent(eventId: String) = withContext(dispatcher) {
         queries.deleteEvent(eventId)
     }

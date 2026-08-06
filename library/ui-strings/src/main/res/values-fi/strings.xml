@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s liittyi huoneeseen</string>
     <string name="notice_room_leave">%1$s poistui huoneesta</string>
     <string name="notice_room_reject">%1$s hylkäsi kutsun</string>
-    <string name="notice_room_remove">%1$s poisti käyttäjän %2$s</string>
     <string name="notice_room_unban">%1$s poisti porttikiellon käyttäjältä %2$s</string>
     <string name="notice_room_ban">%1$s antoi porttikiellon käyttäjälle %2$s</string>
     <string name="notice_room_withdraw">%1$s veti takaisin kutsun käyttäjälle %2$s</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s liittyi huoneeseen. Syy: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s poistui huoneesta. Syy: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s hylkäsi kutsun. Syy: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s poisti käyttäjän %2$s huoneesta. Syy: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s poisti porttikiellon käyttäjältä %2$s. Syy: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s antoi porttikiellon käyttäjälle %2$s. Syy: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s hyväksyi kutsun liityäkseen huoneeseen %2$s. Syy: %3$s</string>
@@ -85,7 +83,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Hyväksyit käyttäjän %1$s kutsun. Syy: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Estit käyttäjän %1$s. Syy: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Peruutit eston %1$s. Syy: %2$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Poistit käyttäjän %1$s. Syy: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">Hylkäsit kutsun. Syy: %1$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Poistuit. Syy: %1$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s poistui. Syy: %2$s</string>
@@ -154,7 +151,6 @@
     <string name="notice_room_withdraw_by_you">Peruutit %1$sn kutsun</string>
     <string name="notice_room_ban_by_you">Estit %1$s</string>
     <string name="notice_room_unban_by_you">Poistit eston %1$s</string>
-    <string name="notice_room_remove_by_you">Poistit %1$s</string>
     <string name="notice_room_reject_by_you">Hylkäsit kutsun</string>
     <string name="notice_direct_room_leave_by_you">Poistuit huoneesta</string>
     <string name="notice_direct_room_leave">%1$s poistui huoneesta</string>
@@ -427,7 +423,6 @@
     <string name="group_details_home">Koti</string>
     <string name="rooms">Huoneet</string>
     <string name="invited">Kutsuttu</string>
-    <string name="has_been_removed">Sinut poistettiin %1$s käyttäjän %2$s toimesta</string>
     <string name="has_been_banned">Sinut estettiin %1$s käyttäjän %2$s toimesta</string>
     <string name="reason_colon">Syy: %1$s</string>
     <string name="settings_send_markdown">Markdown-muotoilu</string>
@@ -561,7 +556,6 @@
     <string name="settings_send_typing_notifs_summary">Ilmoita muille, että olet kirjoittamassa viestiä.</string>
     <string name="settings_send_markdown_summary">Muotoile viestit Markdownilla ennen niiden lähettämistä. Tämä sallii edistyneen muotoilun, kuten asteriskien käytön kursivoidun tekstin aikaansaamiseksi.</string>
     <string name="settings_show_read_receipts_summary">Paina lukukuittauksesta nähdäksesi tarkemman listan.</string>
-    <string name="settings_show_join_leave_messages_summary">Ei vaikuta kutsuihin, poistamisiin ja porttikieltoihin.</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Sisältää hahmokuvat ja näyttönimien vaihdot.</string>
     <string name="encryption_export_notice">Luo salalause salataksesi viedyt avaimet. Tarvitset saman salalauseen avainten tuomiseen.</string>
     <string name="encryption_message_recovery">Salattujen viestien palautus</string>

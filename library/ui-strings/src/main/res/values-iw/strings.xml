@@ -612,7 +612,6 @@
     <string name="avatar">אווטאר</string>
     <string name="reason_colon">סיבה: %1$s</string>
     <string name="has_been_banned">חסום על ידי %2$s מ- %1$s</string>
-    <string name="has_been_removed">אתה נבעט מ- %1$s על ידי %2$s</string>
     <string name="invited">הוזמנו</string>
     <string name="rooms">חדרים</string>
     <string name="group_details_home">בית</string>
@@ -647,7 +646,6 @@
     <string name="settings_vibrate_on_mention">רטוט בעת אזכור משתמש</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">כולל שינויים באווטאר ושמות תצוגה.</string>
     <string name="settings_show_avatar_display_name_changes_messages">הצג אירועי חשבון</string>
-    <string name="settings_show_join_leave_messages_summary">הזמנות, הסרות ואיסורים אינם מושפעים.</string>
     <string name="settings_show_join_leave_messages">הראה אירועי הצטרפות ועזיבה</string>
     <string name="settings_show_read_receipts_summary">לחץ על אישורי הקריאה לרשימה מפורטת.</string>
     <string name="settings_show_read_receipts">הצג קבלות הצג קבלות קריאה</string>
@@ -1627,8 +1625,6 @@
     <string name="notice_room_ban">%1$s חסם/ה את %2$s</string>
     <string name="notice_room_unban_by_you">הסרת את החסימה של %1$s</string>
     <string name="notice_room_unban">%1$s הסיר/ה מחסימה את %2$s</string>
-    <string name="notice_room_remove_by_you">הרחקת את %1$s</string>
-    <string name="notice_room_remove">%1$s הרחיק/ה את %2$s</string>
     <string name="notice_room_reject_by_you">דחית את ההזמנה</string>
     <string name="notice_room_reject">%1$s דחה את ההזמנה</string>
     <string name="notice_direct_room_leave_by_you">עזבת את החדר</string>
@@ -1655,8 +1651,6 @@
     <string name="notice_room_ban_with_reason">%1$s חסם את %2$s. סיבה: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">ביטלת את החסימה של %1$s. סיבה: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s ביטל החסימה של %2$s. סיבה: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">הסרת את %1$s. סיבה: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s הסיר את %2$s. סיבה: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">דחית את ההזמנה. סיבה: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s דחה את ההזמנה. סיבה: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">עזבת. סיבה: %1$s</string>

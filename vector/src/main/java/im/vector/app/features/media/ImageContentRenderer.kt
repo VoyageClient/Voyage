@@ -80,6 +80,10 @@ class ImageContentRenderer @Inject constructor(
             val maxWidth: Int,
             // If true will load non mxc url, be careful to set it only for images sent by you
             override val allowNonMxcUrls: Boolean = false,
+            // A copy kept locally because the message was redacted. Loaded directly: the mxc url it
+            // came from is usually purged server-side by the time this renders, and Glide's url/uri
+            // resolution only accepts mxc or content:// anyway.
+            val preservedFile: java.io.File? = null,
             val blurHash: String? = null,
             // Survives the local-echo → remote-id swap (see MessageInformationData.stableId).
             val stableId: String = eventId,
@@ -278,6 +282,13 @@ class ImageContentRenderer @Inject constructor(
      * gets visibly blurry once magnified.
      */
     fun render(data: Data, contextView: View, target: CustomViewTarget<*, Drawable>) {
+        data.preservedFile?.let { file ->
+            GlideApp.with(contextView)
+                    .load(file)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .into(target)
+            return
+        }
         val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
         val req = if (data.elementToDecrypt != null) {
             // Encrypted image
@@ -360,6 +371,9 @@ class ImageContentRenderer @Inject constructor(
     }
 
     fun createGlideRequest(data: Data, mode: Mode, glideRequests: GlideRequests, size: Size = processSize(data, mode)): GlideRequest<Drawable> {
+        data.preservedFile?.let { file ->
+            return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE)
+        }
         val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
         val isLocalVideoContentUri = isLocalContentUri && data.mimeType?.startsWith("video/") == true
         val request = if (isLocalVideoContentUri) {

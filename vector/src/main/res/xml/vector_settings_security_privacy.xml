@@ -201,6 +201,41 @@
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_REDACTIONS_CATEGORY_KEY"
+        android:title="@string/settings_redactions">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_REDACTION_PRESERVE_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_redaction_preserve_summary"
+            android:title="@string/settings_redaction_preserve" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_REDACTION_PRESERVE_MEDIA_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_preserve_media" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_max_media_sizes"
+            android:entryValues="@array/redaction_max_media_size_values"
+            android:key="SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_max_media_size" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_REDACTION_WIFI_ONLY_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_wifi_only" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:key="SETTINGS_REDACTION_CLEAR_WITH_APP_CACHE_KEY"
+            android:persistent="false"
+            android:summary="@string/settings_redaction_clear_with_app_cache_summary"
+            android:title="@string/settings_redaction_clear_with_app_cache" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_SECURITY_OTHER_CATEGORY"
         android:title="@string/settings_other">
 

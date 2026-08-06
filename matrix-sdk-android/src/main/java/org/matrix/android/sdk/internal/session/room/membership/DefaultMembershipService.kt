@@ -120,7 +120,7 @@ internal class DefaultMembershipService @AssistedInject constructor(
         membershipAdminTask.execute(params)
     }
 
-    override suspend fun remove(userId: String, reason: String?) {
+    override suspend fun kick(userId: String, reason: String?) {
         val params = MembershipAdminTask.Params(MembershipAdminTask.Type.KICK, roomId, userId, reason)
         membershipAdminTask.execute(params)
     }

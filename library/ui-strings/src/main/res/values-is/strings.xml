@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s gekk í hópinn</string>
     <string name="notice_room_leave">%1$s hætti í spjallrásinni</string>
     <string name="notice_room_reject">%1$s hafnaði boðinu</string>
-    <string name="notice_room_remove">%1$s fjarlægði %2$s</string>
     <string name="notice_room_unban">%1$s afbannaði %2$s</string>
     <string name="notice_room_ban">%1$s bannaði %2$s</string>
     <string name="notice_avatar_url_changed">%1$s breyttu auðkennismynd sinni</string>
@@ -244,7 +243,6 @@
     <string name="encryption_information_verified">Sannreynt</string>
     <string name="room_add_matrix_apps">Bæta við Matrix-forritum</string>
     <string name="start_verification">Hefja sannvottun</string>
-    <string name="has_been_removed">Þér hefur verið sparkað úr %1$s af %2$s</string>
     <string name="has_been_banned">Þú hefur verið settur í bann á %1$s af %2$s</string>
     <string name="room_settings_labs_pref_title">Tilraunir</string>
     <string name="report_content">Kæra efni</string>
@@ -461,8 +459,6 @@
     <string name="notice_room_ban_with_reason">%1$s bannaði %2$s. Ástæða: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Þú tókst %1$s úr banni. Ástæða: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s tók %2$s úr banni. Ástæða: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Þú fjarlægðir %1$s. Ástæða: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s fjarlægði %2$s. Ástæða: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">Þú hafnaðir boðinu. Ástæða: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s hafnaði boðinu. Ástæða: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Þú hættir. Ástæða: %1$s</string>
@@ -655,7 +651,6 @@
     <string name="notice_room_withdraw_by_you">Þú tókst til baka boð til %1$s</string>
     <string name="notice_room_ban_by_you">Þú bannaðir %1$s</string>
     <string name="notice_room_unban_by_you">Þú afbannaðir %1$s</string>
-    <string name="notice_room_remove_by_you">Þú fjarlægðir %1$s</string>
     <string name="notice_room_reject_by_you">Þú hafnaðir boðinu</string>
     <string name="notice_direct_room_leave_by_you">Þú hættir í spjallrásinni</string>
     <string name="notice_direct_room_leave">%1$s hætti í spjallrásinni</string>
@@ -736,7 +731,6 @@
     <string name="settings_integration_allow">Leyfa samþættingar</string>
     <string name="settings_show_emoji_keyboard">Sýna lyklaborð með tjáningartáknum</string>
     <string name="settings_send_message_with_enter">Senda skilaboð með \'Enter\'</string>
-    <string name="settings_show_join_leave_messages_summary">Hefur ekki áhrif á boð/fjarlægingu/bönn.</string>
     <string name="settings_show_join_leave_messages">Birta taka-þátt og hætta skilaboð</string>
     <string name="settings_integrations_summary">Notaðu samþættingarstýringu til að stýra vélmennum, viðmótshlutum og límmerkjapökkum.
 \nSamþættingarstýringar taka við stillingagögnum og geta breytt viðmótshlutum, sent boð í spjallrásir, auk þess að geta úthlutað völdum fyrir þína hönd.</string>

@@ -10,9 +10,11 @@ package im.vector.app.features.home.room.detail
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.text.Editable
+import android.text.Spannable
 import android.widget.EditText
 import com.otaliastudios.autocomplete.Autocomplete
 import com.otaliastudios.autocomplete.AutocompleteCallback
+import com.otaliastudios.autocomplete.AutocompletePolicy
 import com.otaliastudios.autocomplete.CharPolicy
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -86,8 +88,34 @@ class AutoCompleter @AssistedInject constructor(
     private lateinit var glideRequests: GlideRequests
     private val autocompletes: MutableSet<Autocomplete<*>> = hashSetOf()
 
-    private val emojiCharPolicy = CharPolicy(TRIGGER_AUTO_COMPLETE_EMOJIS, true)
+    /**
+     * Gate on the inline emoji keyboard: it searches the same emoji and emotes itself, and its panel only
+     * stays up while the soft keyboard is open behind it — so a `:` popup appearing over it drags that
+     * keyboard back to the front.
+     */
+    var isEmojiAutocompleteSuppressed: () -> Boolean = { false }
+
+    // needSpaceBefore = true: only trigger when `:` starts a word, so things like `https://`, `host:port`
+    // and `12:30` don't pop the emoji picker per keystroke.
+    private val emojiCharPolicy = object : AutocompletePolicy {
+        private val delegate = CharPolicy(TRIGGER_AUTO_COMPLETE_EMOJIS, true)
+
+        override fun getQuery(text: Spannable): CharSequence = delegate.getQuery(text)
+
+        override fun onDismiss(text: Spannable) = delegate.onDismiss(text)
+
+        override fun shouldShowPopup(text: Spannable, cursorPos: Int): Boolean =
+                !isEmojiAutocompleteSuppressed() && delegate.shouldShowPopup(text, cursorPos)
+
+        override fun shouldDismissPopup(text: Spannable, cursorPos: Int): Boolean =
+                isEmojiAutocompleteSuppressed() || delegate.shouldDismissPopup(text, cursorPos)
+    }
     private var emojiAutocomplete: Autocomplete<AutocompleteEmojiData>? = null
+
+    /** Close the `:` popup now, e.g. as the inline emoji keyboard opens over it. */
+    fun dismissEmojiPopup() {
+        emojiAutocomplete?.dismissPopup()
+    }
 
     fun setup(editText: EditText) {
         this.editText = editText
@@ -200,8 +228,6 @@ class AutoCompleter @AssistedInject constructor(
                 .launchIn(emoteScope)
 
         emojiAutocomplete = Autocomplete.on<AutocompleteEmojiData>(editText)
-                // needSpaceBefore = true: only trigger when `:` starts a word, so things like
-                // `https://`, `host:port`, `12:30` don't pop the emoji picker per keystroke.
                 .with(emojiCharPolicy)
                 .with(autocompleteEmojiPresenter)
                 .with(ELEVATION_DP)

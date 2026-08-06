@@ -82,6 +82,9 @@ decryption_error_code = NULL, decryption_error_reason = NULL WHERE id = ?;
 updateUnsignedDataById:
 UPDATE event SET unsigned_data = ? WHERE id = ?;
 
+markUselessById:
+UPDATE event SET is_useless = 1 WHERE id = ?;
+
 -- on-demand decryption success: store the clear result, clear any prior error (content is untouched;
 -- EventMapper derives the clear payload from decryption_result_json)
 updateDecryptionResultByEventId:

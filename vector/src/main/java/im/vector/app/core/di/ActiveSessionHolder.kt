@@ -16,6 +16,8 @@ import im.vector.app.core.session.LastActiveSessionStore
 import im.vector.app.features.crypto.keysrequest.KeyRequestHandler
 import im.vector.app.features.crypto.verification.IncomingVerificationRequestHandler
 import im.vector.app.features.notifications.PushRuleTriggerListener
+import im.vector.app.features.redaction.preservation.RedactedContentRepository
+import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.SessionListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -27,6 +29,7 @@ import org.matrix.android.sdk.api.util.toOption
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
@@ -35,6 +38,9 @@ class ActiveSessionHolder @Inject constructor(
         private val keyRequestHandler: KeyRequestHandler,
         private val incomingVerificationRequestHandler: IncomingVerificationRequestHandler,
         private val pushRuleTriggerListener: PushRuleTriggerListener,
+        // Provider: these reach ActiveSessionHolder themselves, so a direct injection would cycle.
+        private val redactionPreservationService: Provider<RedactionPreservationService>,
+        private val redactedContentRepository: Provider<RedactedContentRepository>,
         private val sessionListener: SessionListener,
         private val imageManager: ImageManager,
         private val guardServiceStarter: GuardServiceStarter,
@@ -148,6 +154,10 @@ class ActiveSessionHolder @Inject constructor(
         keyRequestHandler.stop()
         incomingVerificationRequestHandler.stop()
         pushRuleTriggerListener.stop()
+        // Without this the app-scoped singletons keep the released Session (and its whole component
+        // graph) alive, and go on serving the previous account's preserved content.
+        redactionPreservationService.get().stop()
+        redactedContentRepository.get().clearCaches()
     }
 
     suspend fun applyPendingRelease() {

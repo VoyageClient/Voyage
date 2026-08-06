@@ -45,6 +45,9 @@ class AttachmentOverlayView @JvmOverloads constructor(
         views.overlayForwardButton.setOnClickListener {
             interactionListener?.onForward()
         }
+        views.overlayShowInChatButton.setOnClickListener {
+            interactionListener?.onShowInChat()
+        }
         views.overlayPlayPauseButton.setOnClickListener {
             interactionListener?.onPlayPause(!isPlaying)
         }

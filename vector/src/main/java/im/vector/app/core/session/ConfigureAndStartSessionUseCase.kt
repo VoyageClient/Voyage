@@ -14,6 +14,7 @@ import im.vector.app.core.notification.NotificationsSettingUpdater
 import im.vector.app.core.notification.PushRulesUpdater
 import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
 import im.vector.app.features.reactions.data.QuickReactionsDataSource
+import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.devices.v2.notification.UpdateNotificationSettingsAccountDataUseCase
@@ -43,6 +44,7 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         private val pushRulesUpdater: PushRulesUpdater,
         private val accountInfoCache: AccountInfoCache,
         private val quickReactionsDataSource: QuickReactionsDataSource,
+        private val redactionPreservationService: RedactionPreservationService,
 ) {
 
     private val profileObserverJob = AtomicReference<Job?>(null)
@@ -61,6 +63,7 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         notificationsSettingUpdater.onSessionStarted(session)
         pushRulesUpdater.onSessionStarted(session)
         quickReactionsDataSource.onSessionStarted(session)
+        redactionPreservationService.start(session)
         observeOwnProfileForCache(session)
     }
 

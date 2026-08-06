@@ -19,6 +19,7 @@ import android.widget.TextView
 import androidx.annotation.IdRes
 import androidx.annotation.LayoutRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import com.airbnb.epoxy.EpoxyAttribute
@@ -180,8 +181,58 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
             } else {
                 safeReplyPreviewRetriever.addListener(attributes.informationData.stableId, replyViewUpdater)
             }
+            bindReplyBand(holder)
         }
         replyMarker.end()
+    }
+
+    /**
+     * Bands the row across the reply header's vertical extent when the quoted event is showing content
+     * recovered from a redaction.
+     *
+     * The band can't live on the reply header itself: that view sits inside the content column, so its
+     * background stops short of the avatar gutter and the timestamp column. It is painted on the row-level
+     * tint drawable instead, which means its extent has to be read back off the header — and the header's
+     * content resolves asynchronously and changes height when it does, so one measurement at bind time is
+     * not enough. Hence the pre-draw pass (correct geometry for this frame, whatever bind saw), the layout
+     * listener (later content arriving), and the header's own callback for a reveal that swaps content of
+     * the same height, which fires no layout pass of its own.
+     */
+    private fun bindReplyBand(holder: Holder) {
+        val reply = holder.replyToView ?: return
+        if (holder.replyBandListener == null) {
+            val listener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateReplyBand(holder) }
+            holder.replyBandListener = listener
+            reply.addOnLayoutChangeListener(listener)
+        }
+        reply.onBandStateChanged = { updateReplyBand(holder) }
+        holder.view.doOnPreDraw { updateReplyBand(holder) }
+        updateReplyBand(holder)
+    }
+
+    private fun updateReplyBand(holder: Holder) {
+        val reply = holder.replyToView
+        if (reply == null || !reply.isVisible || !reply.quotesRevealedRedaction || reply.height <= 0) {
+            holder.redactionTint.clearBand()
+            return
+        }
+        // Relative to the tint view, which isn't flush with the row's top in every layout.
+        val top = reply.topRelativeTo(holder.view) - holder.rowTint.top
+        holder.redactionTint.setBand(
+                color = ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_redacted_background),
+                top = top,
+                bottom = top + reply.height,
+        )
+    }
+
+    private fun View.topRelativeTo(root: View): Int {
+        var offset = 0
+        var current: View = this
+        while (current !== root) {
+            offset += current.top
+            current = current.parent as? View ?: break
+        }
+        return offset
     }
 
     private fun updateHighlightedMessageHeight(holder: Holder, isExpanded: Boolean) {
@@ -204,6 +255,10 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         holder.threadSummaryConstraintLayout.setOnClickListener(null)
         replyPreviewRetriever?.removeListener(attributes.informationData.stableId, replyViewUpdater)
         replyViewUpdater.replyView = null
+        holder.replyBandListener?.let { holder.replyToView?.removeOnLayoutChangeListener(it) }
+        holder.replyBandListener = null
+        holder.replyToView?.onBandStateChanged = null
+        holder.redactionTint.clearBand()
         super.unbind(holder)
     }
 
@@ -238,6 +293,7 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         val sendStateImageView by bind<SendStateImageView>(R.id.messageSendStateImageView)
         val eventSendingIndicator by bind<ProgressBar>(R.id.eventSendingIndicator)
         val replyToView: InReplyToView? by lazy { view.findViewById(R.id.inReplyToContainer) }
+        var replyBandListener: View.OnLayoutChangeListener? = null
         val informationBottom by bind<LinearLayout>(R.id.informationBottom)
         val threadSummaryConstraintLayout by bind<ConstraintLayout>(R.id.messageThreadSummaryConstraintLayout)
         val threadSummaryCounterTextView by bind<TextView>(R.id.messageThreadSummaryCounterTextView)

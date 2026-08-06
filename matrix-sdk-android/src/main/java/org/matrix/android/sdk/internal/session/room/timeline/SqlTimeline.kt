@@ -7,15 +7,16 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
@@ -24,9 +25,9 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
-import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
@@ -81,6 +82,7 @@ internal class SqlTimeline(
     // move the stall to SQLite's writer lock. Must stay single-threaded; the window bookkeeping below relies
     // on confinement rather than locking.
     private val timelineScope = CoroutineScope(SupervisorJob() + readDispatcher)
+
     // The backward loading item re-fires onLoadMore every time it's visible; in a room dominated by collapsed
     // (hidden/redacted) events it stays on screen, so serialize the requests to avoid piling up fetches.
     private val backwardPaginating = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -89,6 +91,7 @@ internal class SqlTimeline(
     private var sendingJob: Job? = null
     private var ignoredJob: Job? = null
     private var annotationsJob: Job? = null
+    private var receiptsJob: Job? = null
     private var decryptedJob: Job? = null
     private var decryptionSignalJob: Job? = null
 
@@ -108,6 +111,7 @@ internal class SqlTimeline(
 
     // The loaded chunk ids, newest-first; index 0 is the newest loaded chunk.
     private val loadedChunkIds = ArrayList<Long>()
+
     // Per-chunk mapped snapshots. Only the live (index-0) chunk changes on sync, so paginated history
     // chunks are mapped once and reused — the rebuild cost stays bounded as you scroll back.
     private val chunkSnapshotCache = HashMap<Long, List<TimelineEvent>>()
@@ -133,6 +137,7 @@ internal class SqlTimeline(
     // each new message nudges the oldest shown event out instead of growing the span. Nothing is
     // unloaded — hidden events re-reveal instantly through the normal backward reveal on scroll-up.
     private val windowLiveEdgeCap = 120
+
     // Seeded false for a permalink open so the cap can't clip the window above the target event
     // before the first scroll callback arrives.
     @Volatile private var viewAtLiveEdge: Boolean = initialEventId == null
@@ -143,15 +148,18 @@ internal class SqlTimeline(
     // [liveChunkRowStep] increments as the user reveals older content (see growLiveChunkMapping).
     private val liveChunkRowStep = 400
     @Volatile private var liveChunkRowCap = liveChunkRowStep
+
     // Max history chunks pulled into the loaded set per backward pagination (each is mapped on the next
     // rebuild, so this bounds per-pass mapping cost). The reveal loop keeps calling back to walk older.
     private val maxBackwardChunks = 3
+
     // True once the mapped slice covers the whole live chunk; while false there are older rows we haven't
     // mapped yet, so the timeline must still offer a backward-reveal affordance.
     @Volatile private var liveChunkFullyMapped = false
 
     private var pendingShowEventId: String? = initialEventId
     private var oldestShownEventId: String? = null
+
     // Newer bound of the window, set when jumping deep into history: without it the window spans
     // live edge → target, which in a busy room is thousands of events to map and model-build at
     // once. null = the window reaches the newest loaded event (the normal live case). Newer events
@@ -160,6 +168,7 @@ internal class SqlTimeline(
     @Volatile private var newestShownEventId: String? = null
     @Volatile private var windowHasMoreOlder: Boolean = false
     @Volatile private var windowHasMoreNewer: Boolean = false
+
     // Cached so the instant-echo path (main thread) doesn't need a DB read.
     @Volatile private var liveEdgeLoaded: Boolean = false
     private val isWindowed: Boolean get() = !isThreadTimeline
@@ -281,6 +290,7 @@ internal class SqlTimeline(
         sendingJob?.cancel()
         ignoredJob?.cancel()
         annotationsJob?.cancel()
+        receiptsJob?.cancel()
         decryptedJob?.cancel()
         decryptionSignalJob?.cancel()
         val rootId = threadRootId
@@ -425,6 +435,7 @@ internal class SqlTimeline(
         sendingJob?.cancel()
         ignoredJob?.cancel()
         annotationsJob?.cancel()
+        receiptsJob?.cancel()
         loadedChunkIds.clear()
         chunkSnapshotCache.clear()
         liveChunkRowCap = liveChunkRowStep
@@ -459,6 +470,17 @@ internal class SqlTimeline(
                 chunkSnapshotCache.clear()
                 rebuildSnapshot()
                 MatrixPerf.end(perfStart) { "timeline.annotationsPropagate" }
+            }
+        }
+        // A sync carrying only an m.receipt writes neither timeline_event nor the annotation
+        // summaries, so without this the receipts stay frozen at the moment each event was mapped.
+        // distinctUntilChanged AFTER drop(1): a receipt landing between the table listener registering
+        // and the first query running yields two identical fingerprints, and de-duplicating first would
+        // collapse them into the initial emission that drop(1) discards.
+        receiptsJob = timelineScope.launch {
+            snapshotLoader.readReceiptChangesFlow(roomId).drop(1).distinctUntilChanged().conflate().collect {
+                chunkSnapshotCache.clear()
+                rebuildSnapshot()
             }
         }
     }

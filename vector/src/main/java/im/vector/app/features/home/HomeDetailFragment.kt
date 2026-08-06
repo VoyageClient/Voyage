@@ -278,6 +278,11 @@ class HomeDetailFragment :
             views.bottomNavigationView.isVisible = false
             return
         }
+        // The tab bar's own ?vctr_toolbar_background is lighter than the window, so carry it into the
+        // navigation-bar strip below it — as the classic composer does with its own row.
+        vectorBaseActivity.tintNavigationBarStrip(
+                ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+        )
         views.bottomNavigationView.menu.findItem(R.id.bottom_action_notification).isVisible = vectorPreferences.labAddNotificationTab()
         views.bottomNavigationView.setOnItemSelectedListener {
             val tab = when (it.itemId) {

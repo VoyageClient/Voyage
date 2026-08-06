@@ -9,31 +9,20 @@ package im.vector.app.features.roomprofile.personalization
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.graphics.drawable.DrawableCompat
 import com.airbnb.mvrx.args
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseFragment
-import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.databinding.FragmentRoomPersonalizationBinding
 import im.vector.app.features.roomprofile.RoomProfileArgs
-import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 
 @AndroidEntryPoint
 class RoomPersonalizationFragment :
-        VectorBaseFragment<FragmentRoomPersonalizationBinding>(),
-        VectorMenuProvider {
+        VectorBaseFragment<FragmentRoomPersonalizationBinding>() {
 
     private val roomProfileArgs: RoomProfileArgs by args()
-
-    private val settingsFragment
-        get() = childFragmentManager.findFragmentById(views.roomPersonalizationContent.id) as? RoomPersonalizationSettingsFragment
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentRoomPersonalizationBinding {
         return FragmentRoomPersonalizationBinding.inflate(inflater, container, false)
@@ -53,37 +42,5 @@ class RoomPersonalizationFragment :
                     )
                     .commit()
         }
-    }
-
-    override fun getMenuRes() = R.menu.menu_room_personalization
-
-    override fun handlePrepareMenu(menu: Menu) {
-        menu.findItem(R.id.roomPersonalizationReset)?.apply {
-            isEnabled = settingsFragment?.isPersonalized() ?: false
-            val tint = ThemeUtils.getColor(
-                    requireContext(),
-                    if (isEnabled) im.vector.lib.ui.styles.R.attr.vctr_content_secondary else im.vector.lib.ui.styles.R.attr.vctr_content_quaternary
-            )
-            icon?.mutate()?.let { DrawableCompat.setTint(it, tint) }
-        }
-    }
-
-    override fun handleMenuItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.roomPersonalizationReset -> {
-                confirmReset()
-                true
-            }
-            else -> false
-        }
-    }
-
-    private fun confirmReset() {
-        MaterialAlertDialogBuilder(requireContext())
-                .setTitle(CommonStrings.action_reset)
-                .setMessage(CommonStrings.room_personalization_reset_confirmation)
-                .setPositiveButton(CommonStrings.action_reset) { _, _ -> settingsFragment?.resetToAccountProfile() }
-                .setNegativeButton(CommonStrings.action_cancel, null)
-                .show()
     }
 }

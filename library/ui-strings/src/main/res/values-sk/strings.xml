@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s vstúpil/a do miestnosti</string>
     <string name="notice_room_leave">%1$s opustil/a miestnosť</string>
     <string name="notice_room_reject">%1$s odmietol/a pozvanie</string>
-    <string name="notice_room_remove">%1$s vykázal/a %2$s</string>
     <string name="notice_room_unban">%1$s povolil/a vstupovať %2$s</string>
     <string name="notice_room_ban">%1$s zakázal/a vstupovať %2$s</string>
     <string name="notice_room_withdraw">%1$s odvolal/a pozvanie od %2$s</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s vstúpil/a do miestnosti. Dôvod: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s opustil/a miestnosť. Dôvod: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s odmietol/a pozvanie. Dôvod: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s vykázal/a %2$s. Dôvod: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s povolil/a vstupovať %2$s. Dôvod: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s zakázal/a vstupovať %2$s. Dôvod: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s prijal/a pozvanie pre %2$s. Dôvod: %3$s</string>
@@ -88,7 +86,6 @@
     <string name="notice_room_join_by_you">Vstúpili ste do miestnosti</string>
     <string name="notice_room_leave_by_you">Opustili ste miestnosť</string>
     <string name="notice_room_reject_by_you">Odmietli ste pozvanie</string>
-    <string name="notice_room_remove_by_you">Vykázali ste %1$s</string>
     <string name="notice_room_unban_by_you">Povolili ste vstupovať %1$s</string>
     <string name="notice_room_ban_by_you">Zakázali ste vstupovať %1$s</string>
     <string name="notice_room_withdraw_by_you">Odvolali ste pozvanie %1$s</string>
@@ -131,7 +128,6 @@
     <string name="notice_room_join_with_reason_by_you">Vstúpili ste do miestnosti. Dôvod: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">Opustili ste miestnosť. Dôvod: %1$s</string>
     <string name="notice_room_reject_with_reason_by_you">Odmietli ste pozvanie. Dôvod: %1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Vykázali ste %1$s. Dôvod: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Povolili ste vstupovať %1$s. Dôvod: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Zakázali ste vstupovať %1$s. Dôvod: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Prijali ste pozvanie pre %1$s. Dôvod: %2$s</string>
@@ -426,7 +422,6 @@
     <string name="group_details_home">Domov</string>
     <string name="rooms">Miestnosti</string>
     <string name="invited">Ste pozvaní</string>
-    <string name="has_been_removed">Používateľ %2$s vás vykázal z miestnosti %1$s</string>
     <string name="has_been_banned">Používateľ %2$s vám zakázal vstúpiť do miestnosti %1$s</string>
     <string name="reason_colon">Dôvod: %1$s</string>
     <plurals name="membership_changes">
@@ -587,7 +582,6 @@
     <string name="settings_show_read_receipts">Zobrazovať potvrdenia o prečítaní</string>
     <string name="settings_show_read_receipts_summary">Klepnutím na potvrdenie o prečítaní zobrazíte podrobný zoznam.</string>
     <string name="settings_show_join_leave_messages">Zobraziť udalosti vstupu a odchodu</string>
-    <string name="settings_show_join_leave_messages_summary">Pozvania, odstránenia a zákazy nie sú ovplyvnené.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Zobrazovať udalosti účtu</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Zahŕňa zmeny zobrazovaného mena a obrázka v profile.</string>
     <string name="settings_password">Heslo</string>

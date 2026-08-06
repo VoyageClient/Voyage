@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.homeserver
 
-import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
 import org.matrix.android.sdk.api.auth.data.AuthMetadata
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
@@ -32,8 +31,10 @@ import org.matrix.android.sdk.internal.auth.version.doesServerSupportRedactionOf
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportRemoteToggleOfPushNotifications
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreadUnreadNotifications
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportThreads
+import org.matrix.android.sdk.internal.auth.version.doesServerSupportViewingUnredactedContent
 import org.matrix.android.sdk.internal.auth.version.isLoginAndRegistrationSupportedBySdk
 import org.matrix.android.sdk.internal.database.model.HomeServerCapabilitiesEntity
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
@@ -169,6 +170,8 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                         getVersionResult.doesServerSupportRemoteToggleOfPushNotifications()
                 homeServerCapabilitiesEntity.canRedactEventWithRelations =
                         getVersionResult.doesServerSupportRedactionOfRelatedEvents()
+                homeServerCapabilitiesEntity.canViewUnredactedContent =
+                        getVersionResult.doesServerSupportViewingUnredactedContent()
                 homeServerCapabilitiesEntity.canUseAuthenticatedMedia =
                         getVersionResult.doesServerSupportAuthenticatedMedia()
             }

@@ -31,6 +31,22 @@ interface EventService {
     ): Event
 
     /**
+     * MSC2815: ask the homeserver for an event's pre-redaction content. Requires a power level at or
+     * above the room's `redact` level, or server-admin rights, and a server advertising
+     * `fi.mau.msc2815`. The result is never written to the event cache — persisting it would only
+     * have it pruned again by the redaction processor.
+     *
+     * Throws [org.matrix.android.sdk.api.failure.Failure.ServerError] with
+     * [org.matrix.android.sdk.api.failure.MatrixError.M_UNREDACTED_CONTENT_DELETED] once the server's
+     * retention period has elapsed, or [org.matrix.android.sdk.api.failure.MatrixError.M_FORBIDDEN]
+     * when the caller lacks permission.
+     */
+    suspend fun getUnredactedEvent(
+            roomId: String,
+            eventId: String
+    ): Event
+
+    /**
      * Get an Event from cache. Return null if not found.
      */
     fun getEventFromCache(

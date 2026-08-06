@@ -165,11 +165,14 @@ internal interface RoomAPI {
      *
      * @param roomId the room id
      * @param eventId the event Id
+     * @param includeUnredactedContent MSC2815: ask the server for the pre-redaction content. Only the
+     * unstable parameter name is implemented anywhere, so the stable one is not sent.
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/event/{eventId}")
     suspend fun getEvent(
             @Path("roomId") roomId: String,
             @Path("eventId") eventId: String,
+            @Query("fi.mau.msc2815.include_unredacted_content") includeUnredactedContent: Boolean? = null,
     ): Event
 
     /**

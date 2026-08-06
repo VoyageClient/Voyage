@@ -10,6 +10,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.view.View
@@ -55,6 +56,13 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
 
     abstract fun getViewStubId(): Int
 
+    /** A colour to wash the whole row in whenever it isn't showing the jump-to-message highlight. */
+    protected open fun getRowTintColor(context: Context): Int? = null
+
+    private fun applyRowTint(holder: H) {
+        holder.redactionTint.setRow(getRowTintColor(holder.rowTint.context) ?: Color.TRANSPARENT)
+    }
+
     // Szudzik function
     private fun pairingFunction(a: Long, b: Long): Long {
         return if (a >= b) a * a + a + b else a + b * b
@@ -66,6 +74,7 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
         holder.leftGuideline.updateLayoutParams<RelativeLayout.LayoutParams> {
             this.marginStartCompat = leftGuideline
         }
+        applyRowTint(holder)
         val eventId = getEventIds().firstOrNull()
         val flashKey = if (highlighted) "$eventId:$highlightNonce" else null
         if (highlighted) {
@@ -176,6 +185,12 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
         val contentContainer by bind<View>(R.id.viewStubContainer)
         val viewStubContainer by bind<FrameLayout>(R.id.viewStubContainer)
         val checkableBackground by bind<CheckableView>(R.id.messageSelectedBackground)
+        val rowTint by bind<View>(R.id.messageRowTint)
+
+        /** Both deleted-content marks for this row, attached on first use. */
+        val redactionTint: RedactionTintDrawable by lazy {
+            RedactionTintDrawable().also { rowTint.backgroundCompat = it }
+        }
 
         override fun bindView(itemView: View) {
             super.bindView(itemView)

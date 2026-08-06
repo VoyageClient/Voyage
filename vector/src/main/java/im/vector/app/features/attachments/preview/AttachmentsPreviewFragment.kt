@@ -149,6 +149,13 @@ class AttachmentsPreviewFragment :
         views.attachmentPreviewerVideoControls.isVisible = controls != null
     }
 
+    override fun onVideoControlsReleased(controls: VideoPlaybackControls) {
+        // Only the holder still driving the controls may take them away.
+        if (videoControls !== controls) return
+        videoControls = null
+        views.attachmentPreviewerVideoControls.isVisible = false
+    }
+
     override fun onVideoProgress(positionMs: Int, durationMs: Int, isPlaying: Boolean) {
         views.attachmentPreviewerVideoPlayPause.setImageResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow)
         views.attachmentPreviewerVideoSeekBar.max = durationMs.coerceAtLeast(1)
@@ -426,14 +433,28 @@ class AttachmentsPreviewFragment :
     private fun setResultAndFinish() = withState(viewModel) { state ->
         val originalSize = views.attachmentPreviewerSendImageOriginalSize.isChecked
         val attachments = state.attachments.map { attachment ->
+            // Boxes left at the source size are not a resize request, so they must not make the
+            // attachment look custom-compressed.
+            val sourceWidth = attachment.width?.toInt()
+            val sourceHeight = attachment.height?.toInt()
             val settings = state.compressionSettings[state.stableIdOf(attachment)]
-            if (settings == null && !originalSize) return@map attachment
-            // Sending at original size still honours a size that was typed, at full quality.
-            val quality = if (originalSize) CompressionSettings.MAX_QUALITY else settings?.quality
+                    ?.let { if (sourceWidth != null && sourceHeight != null) it.withoutRedundantSize(sourceWidth, sourceHeight) else it }
+            if (originalSize) {
+                // Original size means the file is uploaded untouched: anything non-null here sets
+                // hasCustomCompression, which is what re-encodes (and, for video, transcodes) it.
+                // Only an explicitly typed size overrides that, and then at full quality.
+                if (settings?.width == null) return@map attachment
+                return@map attachment.copy(
+                        compressionQuality = CompressionSettings.MAX_QUALITY,
+                        compressionWidth = settings.width,
+                        compressionHeight = settings.height,
+                )
+            }
+            if (settings == null) return@map attachment
             attachment.copy(
-                    compressionQuality = quality?.takeIf { it != CompressionSettings.STANDARD_QUALITY },
-                    compressionWidth = settings?.width,
-                    compressionHeight = settings?.height
+                    compressionQuality = settings.quality.takeIf { it != CompressionSettings.STANDARD_QUALITY },
+                    compressionWidth = settings.width,
+                    compressionHeight = settings.height,
             )
         }
         (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(attachments, originalSize)

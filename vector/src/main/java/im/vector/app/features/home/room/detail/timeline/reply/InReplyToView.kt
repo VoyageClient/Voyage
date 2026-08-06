@@ -84,6 +84,13 @@ class InReplyToView @JvmOverloads constructor(
     // back to, which fails the later jump-to-bottom. Stay inert until the message is sent.
     var sourceIsSent: Boolean = true
 
+    /** Whether the quoted event is showing content recovered from a redaction, so the item can band the row. */
+    var quotesRevealedRedaction: Boolean = false
+        private set
+
+    /** Invoked when [quotesRevealedRedaction] flips, so the host item can repaint its row-level band. */
+    var onBandStateChanged: (() -> Unit)? = null
+
     init {
         setupView()
     }
@@ -101,17 +108,34 @@ class InReplyToView @JvmOverloads constructor(
             coroutineScope: CoroutineScope,
             force: Boolean = false
     ) {
-        if (newState == state && !force) {
+        // Substituted before the equality check, not inside renderReplyTo: revealing a redaction leaves
+        // the timeline event untouched, so comparing the raw state would early-return and keep the
+        // placeholder up.
+        val effectiveState = (newState as? PreviewReplyUiState.InReplyTo)
+                ?.let { raw -> retriever.redactedContentRestorer.restoreEvent(raw.event)?.let { raw.copy(event = it) } }
+                ?: newState
+        val revealed = effectiveState !== newState
+
+        if (effectiveState == state && revealed == quotesRevealedRedaction && !force) {
             return
         }
 
-        state = newState
+        state = effectiveState
 
-        when (newState) {
+        // Only a *revealed* redaction is banded: the band marks content that a redaction took and we are
+        // reading anyway, so the plain "Message removed" placeholder carries no mark. Painted by the item
+        // on a row-level view rather than here — this view sits inside the content column, so its own
+        // background could never reach the avatar gutter or the timestamp column.
+        if (quotesRevealedRedaction != revealed) {
+            quotesRevealedRedaction = revealed
+            onBandStateChanged?.invoke()
+        }
+
+        when (effectiveState) {
             PreviewReplyUiState.NoReply -> renderHidden()
             is PreviewReplyUiState.ReplyLoading -> renderLoading()
-            is PreviewReplyUiState.Error -> renderError(newState)
-            is PreviewReplyUiState.InReplyTo -> renderReplyTo(newState, retriever, roomInformationData, coroutineScope, itemLongClickListener)
+            is PreviewReplyUiState.Error -> renderError(effectiveState)
+            is PreviewReplyUiState.InReplyTo -> renderReplyTo(effectiveState, retriever, roomInformationData, coroutineScope, itemLongClickListener)
         }
 
         setOnLongClickListener(itemLongClickListener)
@@ -248,8 +272,8 @@ class InReplyToView @JvmOverloads constructor(
 
     private fun renderRedacted() {
         views.replyTextView.isVisible = true
-        views.replyTextView.setRedactedPreviewStyle()
         views.replyTextView.setText(CommonStrings.event_redacted)
+        views.replyTextView.setRedactedPreviewStyle()
     }
 
     // No movement method anywhere in the preview: links/pills/spoilers stay inert so a tap anywhere
@@ -371,9 +395,12 @@ class InReplyToView @JvmOverloads constructor(
                 mimeType = content.mimeType,
                 url = content.videoInfo?.getThumbnailUrl(),
                 elementToDecrypt = content.videoInfo?.thumbnailFile?.toElementToDecrypt(),
-                height = content.videoInfo?.height,
+                // The thumbnail's own dimensions, not the video's: this box holds the thumbnail, and a
+                // sideways-rotated video declares its unrotated track dims, so sizing from those boxes
+                // a portrait still inside a landscape frame — a header far taller than what it shows.
+                height = content.videoInfo?.thumbnailInfo?.height?.takeIf { it > 0 } ?: content.videoInfo?.height,
                 maxHeight = maxThumbnailHeight,
-                width = content.videoInfo?.width,
+                width = content.videoInfo?.thumbnailInfo?.width?.takeIf { it > 0 } ?: content.videoInfo?.width,
                 maxWidth = maxThumbnailWidth,
                 allowNonMxcUrls = false,
                 blurHash = content.videoInfo?.blurHash,

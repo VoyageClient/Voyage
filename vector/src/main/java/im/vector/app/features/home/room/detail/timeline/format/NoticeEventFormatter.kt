@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventContent
+import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.GuestAccess
@@ -55,6 +56,17 @@ import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.widgets.model.WidgetContent
 import timber.log.Timber
 import javax.inject.Inject
+
+// Types RedactionEventProcessor.computeAllowedKeys() filters down to a whitelist — the content
+// survives but is too partial to describe the change (m.room.member keeps only `membership`).
+private val REDACTION_FILTERED_STATE_TYPES = setOf(
+        EventType.STATE_ROOM_MEMBER,
+        EventType.STATE_ROOM_POWER_LEVELS,
+        EventType.STATE_ROOM_ALIASES,
+        EventType.STATE_ROOM_CANONICAL_ALIAS,
+        EventType.STATE_ROOM_JOIN_RULES,
+        EventType.STATE_ROOM_CREATE,
+)
 
 class NoticeEventFormatter @Inject constructor(
         private val activeSessionDataSource: ActiveSessionDataSource,
@@ -99,6 +111,9 @@ class NoticeEventFormatter @Inject constructor(
     fun format(timelineEvent: TimelineEvent, isDm: Boolean): CharSequence? {
         val event = timelineEvent.root
         val senderName = resolveDisplayName(timelineEvent)
+        if (event.hasLostContentToRedaction()) {
+            return formatRedactedStateEvent(event, senderName)
+        }
         return when (val type = event.getClearType()) {
             EventType.STATE_ROOM_JOIN_RULES -> formatJoinRulesEvent(event, senderName, isDm)
             EventType.STATE_ROOM_CREATE -> formatRoomCreateEvent(event, isDm)
@@ -216,6 +231,9 @@ class NoticeEventFormatter @Inject constructor(
     }
 
     fun format(event: Event, senderName: String?, isDm: Boolean): CharSequence? {
+        if (event.hasLostContentToRedaction()) {
+            return formatRedactedStateEvent(event, senderName)
+        }
         return when (val type = event.getClearType()) {
             EventType.STATE_ROOM_JOIN_RULES -> formatJoinRulesEvent(event, senderName, isDm)
             EventType.STATE_ROOM_NAME -> formatRoomNameEvent(event, senderName)
@@ -1016,12 +1034,12 @@ class NoticeEventFormatter @Inject constructor(
                         Membership.JOIN ->
                             if (event.isSentByCurrentUser()) {
                                 eventContent.safeReason?.let { reason ->
-                                    sp.getString(CommonStrings.notice_room_remove_with_reason_by_you, targetDisplayName, reason)
-                                } ?: sp.getString(CommonStrings.notice_room_remove_by_you, targetDisplayName)
+                                    sp.getString(CommonStrings.notice_room_kick_with_reason_by_you, targetDisplayName, reason)
+                                } ?: sp.getString(CommonStrings.notice_room_kick_by_you, targetDisplayName)
                             } else {
                                 eventContent.safeReason?.let { reason ->
-                                    sp.getString(CommonStrings.notice_room_remove_with_reason, senderDisplayName, targetDisplayName, reason)
-                                } ?: sp.getString(CommonStrings.notice_room_remove, senderDisplayName, targetDisplayName)
+                                    sp.getString(CommonStrings.notice_room_kick_with_reason, senderDisplayName, targetDisplayName, reason)
+                                } ?: sp.getString(CommonStrings.notice_room_kick, senderDisplayName, targetDisplayName)
                             }
                         Membership.BAN ->
                             if (event.isSentByCurrentUser()) {
@@ -1086,6 +1104,30 @@ class NoticeEventFormatter @Inject constructor(
                     sp.getString(CommonStrings.room_join_rules_public, senderName)
                 }
             else -> null
+        }
+    }
+
+    /**
+     * Redaction only strips content for the types RedactionEventProcessor actually prunes or filters
+     * — m.room.name, m.room.topic and most other state keeps its content verbatim and still renders
+     * accurately, so only the stripped ones fall back to "the change was removed".
+     */
+    private fun Event.hasLostContentToRedaction(): Boolean {
+        if (!isRedacted() || !isStateEvent()) return false
+        // Redaction leaves most state content verbatim (m.room.name still carries the new name), so
+        // only fall back when it was emptied outright or filtered down to an undescribable subset.
+        return content.isNullOrEmpty() || getClearType() in REDACTION_FILTERED_STATE_TYPES
+    }
+
+    private fun formatRedactedStateEvent(event: Event, senderName: String?): CharSequence {
+        val reason = (event.unsignedData?.redactedEvent?.content?.get("reason") as? String)
+                ?.takeIf { it.isNotBlank() }
+                ?.neutralizeDirectionOverrides()
+        val name = senderName ?: event.senderId.orEmpty()
+        return if (reason == null) {
+            sp.getString(CommonStrings.notice_state_event_redacted, name)
+        } else {
+            sp.getString(CommonStrings.notice_state_event_redacted_with_reason, name, reason)
         }
     }
 

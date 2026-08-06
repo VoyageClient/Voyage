@@ -419,8 +419,6 @@
     <string name="notice_room_ban_with_reason">%1$s ຖືກຫ້າມ %2$s. ເຫດຜົນ: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">ທ່ານໄດ້ຍົກເລີກການຫ້າມ %1$s. ເຫດຜົນ: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s ຍົກເລີກການຫ້າມ %2$s. ເຫດຜົນ: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">ທ່ານໄດ້ລຶບ %1$s ອອກແລ້ວ. ເຫດຜົນ: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s ລຶບອອກ %2$s. ເຫດຜົນ: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">ທ່ານໄດ້ປະຕິເສດການເຊີນ. ເຫດຜົນ: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s ປະຕິເສດຄຳເຊີນ. ເຫດຜົນ: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">ທ່ານອອກໄປ. ເຫດຜົນ: %1$s</string>
@@ -559,8 +557,6 @@
     <string name="notice_room_ban">%1$s ໄດ້ຫ້າມ %2$s</string>
     <string name="notice_room_unban_by_you">ທ່ານໄດ້ຍົກເລີກການຫ້າມ %1$s</string>
     <string name="notice_room_unban">%1$s ໄດ້ຍົກເລີກການຫ້າມ %2$s</string>
-    <string name="notice_room_remove_by_you">ທ່ານໄດ້ລຶບ %1$s ອອກແລ້ວ</string>
-    <string name="notice_room_remove">%1$sໄດ້ ລຶບອອກ %2$s</string>
     <string name="notice_room_reject_by_you">ທ່ານໄດ້ປະຕິເສດການເຊີນ</string>
     <string name="notice_room_reject">%1$s ໄດ້ປະຕິເສດຄຳເຊີນ</string>
     <string name="notice_direct_room_leave_by_you">ທ່ານໄດ້ອອກຈາກຫ້ອງ</string>
@@ -667,7 +663,6 @@
     <string name="settings_vibrate_on_mention">ສັ່ນເມື່ອກ່າວເຖິງຜູ້ໃຊ້</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">ລວມທັງຮູບແທນຕົວ ແລະ ການປ່ຽນແປງການສະແດງຊື່.</string>
     <string name="settings_show_avatar_display_name_changes_messages">ສະແດງບັນຊີ</string>
-    <string name="settings_show_join_leave_messages_summary">ການເຊີນ, ລຶບ, ແລະການຫ້າມແມ່ນບໍ່ມີຜົນກະທົບ.</string>
     <string name="settings_show_join_leave_messages">ສະແດງການເຂົ້າຮ່ວມ ແລະ ອອກຈາກເຫດການ</string>
     <string name="settings_chat_effects_description">ໃຊ້ຄໍາສັ່ງ /confetti ຫຼືສົ່ງຂໍ້ຄວາມທີ່ມີ ❄️ ຫຼື 🎉</string>
     <string name="settings_chat_effects_title">ສະແດງຜົນການສົນທະນາ</string>
@@ -1177,7 +1172,6 @@
     <string name="avatar">ຮູບແທນຕົວ</string>
     <string name="reason_colon">ເຫດຜົນ: %1$s</string>
     <string name="has_been_banned">ທ່ານໄດ້ຖືກຫ້າມຈາກ %1$s ໂດຍ %2$s</string>
-    <string name="has_been_removed">ທ່ານໄດ້ຖືກລຶບອອກຈາກ %1$s ໂດຍ %2$s</string>
     <string name="invited">ເຊີນ</string>
     <string name="rooms">ຫ້ອງ</string>
     <string name="group_details_home">ຫນ້າທໍາອິ</string>

@@ -125,6 +125,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
 
             stores.chunk.updatePrevToken(threadChunkId, response.nextBatch)
             val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
+            val roomMemberEventIdsByUser = HashMap<String, String?>()
 
             for (event in threadList) {
                 val eventId = event.eventId
@@ -135,7 +136,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                     continue
                 }
                 val (eventDbId, entity) = insertOrGetEvent(params.roomId, event)
-                addSenderState(roomMemberContentsByUser, params.roomId, senderId)
+                addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, senderId)
                 // /relations answers newest-first, so indices must walk downwards for the root to land oldest.
                 stores.timelineWriter.addTimelineEvent(
                         chunkId = threadChunkId,
@@ -146,6 +147,7 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                         direction = PaginationDirection.BACKWARDS,
                         ownedByThreadChunk = true,
                         roomMemberContentsByUser = roomMemberContentsByUser,
+                        roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                 )
             }
 
@@ -155,21 +157,23 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                     existingRootDbId != null -> {
                         val rootEntity = stores.event.getById(existingRootDbId)
                         if (rootEntity != null) {
-                            rootEntity.sender?.let { addSenderState(roomMemberContentsByUser, params.roomId, it) }
+                            rootEntity.sender?.let { addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, it) }
                             stores.timelineWriter.addTimelineEvent(
                                     chunkId = threadChunkId, roomId = params.roomId, eventDbId = existingRootDbId, event = rootEntity,
                                     isLastForward = true, direction = PaginationDirection.BACKWARDS, ownedByThreadChunk = true,
                                     roomMemberContentsByUser = roomMemberContentsByUser,
+                                    roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                             )
                         }
                     }
                     threadRootEvent?.senderId != null -> {
                         val (rootDbId, rootEntity) = insertOrGetEvent(params.roomId, threadRootEvent)
-                        addSenderState(roomMemberContentsByUser, params.roomId, threadRootEvent.senderId!!)
+                        addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, threadRootEvent.senderId!!)
                         stores.timelineWriter.addTimelineEvent(
                                 chunkId = threadChunkId, roomId = params.roomId, eventDbId = rootDbId, event = rootEntity,
                                 isLastForward = true, direction = PaginationDirection.BACKWARDS, ownedByThreadChunk = true,
                                 roomMemberContentsByUser = roomMemberContentsByUser,
+                                roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                         )
                     }
                 }
@@ -192,11 +196,16 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
     }
 
     /** If we don't have any new state on this user, get it from db. */
-    private fun addSenderState(byUser: HashMap<String, RoomMemberContent?>, roomId: String, senderId: String) {
-        byUser.getOrPut(senderId) {
-            stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)
-                    ?.root?.asDomain()
-                    ?.getFixedRoomMemberContent()
-        }
+    private fun addSenderState(
+            byUser: HashMap<String, RoomMemberContent?>,
+            eventIdsByUser: HashMap<String, String?>,
+            roomId: String,
+            senderId: String,
+    ) {
+        if (byUser.containsKey(senderId)) return
+        val memberEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)?.root?.asDomain()
+        byUser[senderId] = memberEvent?.getFixedRoomMemberContent()
+        // Recorded so redacting that membership event can invalidate the profile it cached here too.
+        eventIdsByUser[senderId] = memberEvent?.eventId
     }
 }

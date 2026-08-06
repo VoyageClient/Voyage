@@ -13,8 +13,6 @@
     <string name="notice_room_leave_by_you">Du lämnade rummet</string>
     <string name="notice_room_reject">%1$s avböjde inbjudan</string>
     <string name="notice_room_reject_by_you">Du avböjde inbjudan</string>
-    <string name="notice_room_remove">%1$s kickade %2$s</string>
-    <string name="notice_room_remove_by_you">Du kickade %1$s</string>
     <string name="notice_room_unban">%1$s avbannade %2$s</string>
     <string name="notice_room_unban_by_you">Du avbannade %1$s</string>
     <string name="notice_room_ban">%1$s avbannade %2$s</string>
@@ -112,8 +110,6 @@
     <string name="notice_room_leave_with_reason_by_you">Du lämnade rummet. Anledning: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s avböjde inbjudan. Anledning: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">Du avböjde inbjudan. Anledning: %1$s</string>
-    <string name="notice_room_remove_with_reason">%1$s kickade %2$s. Anledning: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Du kickade %1$s. Anledning: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s avbannade %2$s. Anledning: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Du avbannade %1$s. Anledning: %2$s</string>
     <string name="notice_room_ban_with_reason">%1$s bannade %2$s. Anledning: %3$s</string>
@@ -1027,7 +1023,6 @@
     <string name="settings_inline_url_preview">Inbäddade URL-förhandsgranskningar</string>
     <string name="settings_inline_url_preview_summary">Förhandsgranska länkar i chatten om din hemserver stöder den här funktionen.</string>
     <string name="settings_12_24_timestamps">Visa tidsstämplar i 12-timmarsformat</string>
-    <string name="settings_show_join_leave_messages_summary">Inbjudningar, borttagningar och bann påverkas inte.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Visa kontohändelser</string>
     <string name="settings_vibrate_on_mention">Vibrera när en användare nämns</string>
     <string name="reset_secure_backup_warning">Detta kommer att ersätta din nuvarande nyckel eller fras.</string>
@@ -1141,7 +1136,6 @@
     <string name="create">Skapa</string>
     <string name="group_details_home">Hem</string>
     <string name="invited">Bjöd in</string>
-    <string name="has_been_removed">Du har blivit utsparkad från %1$s av %2$s</string>
     <string name="has_been_banned">Du har blivit bannad från %1$s av %2$s</string>
     <string name="reason_colon">Orsak: %1$s</string>
     <string name="avatar">Avatar</string>

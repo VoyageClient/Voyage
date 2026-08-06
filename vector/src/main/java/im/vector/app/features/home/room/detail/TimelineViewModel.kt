@@ -1281,6 +1281,10 @@ private fun handleSelectStickerAttachment() {
 
     private fun handleMarkAllAsRead() {
         if (room == null) return
+        withState { state ->
+            dismissedReadMarkerId = state.unreadState.readMarkerIdOrNull()
+            dismissedAtNewestEventId = timeline?.getSnapshot()?.firstOrNull()?.eventId
+        }
         setState { copy(unreadState = UnreadState.HasNoUnread) }
         viewModelScope.launch {
             tryOrNull {
@@ -1289,6 +1293,12 @@ private fun handleSelectStickerAttachment() {
                         mainTimeLineOnly = true,
                         public = vectorPreferences.sendReadReceipts(),
                 )
+            }
+            // markAsRead moves the marker to the latest *synced* event, which can be absent or older
+            // than what is loaded — and then the summary's readMarkerId never moves, so the read-marker
+            // line and the room-list unread badge stay put however the banner is suppressed.
+            timeline?.getSnapshot()?.firstOrNull()?.eventId?.let { newest ->
+                tryOrNull { room.readService().setReadMarker(newest) }
             }
         }
     }
@@ -1517,10 +1527,40 @@ private fun handleSelectStickerAttachment() {
                         else -> false
                     }
                 }
-                .setOnEach {
-                    copy(unreadState = it)
+                // Outside the reducer below: that must stay pure, and Mavericks may replay it.
+                .onEach { computed ->
+                    val marker = computed.readMarkerIdOrNull()
+                    val newest = timeline?.getSnapshot()?.firstOrNull()?.eventId
+                    // Either the marker moved, or something arrived after the dismissal. Without the
+                    // second test a failed marker write (offline) would suppress the banner for
+                    // genuinely new messages until the marker happened to change.
+                    if (marker != null && marker != dismissedReadMarkerId) {
+                        dismissedReadMarkerId = null
+                    } else if (newest != null && dismissedAtNewestEventId != null && newest != dismissedAtNewestEventId) {
+                        dismissedReadMarkerId = null
+                        dismissedAtNewestEventId = null
+                    }
+                }
+                .setOnEach { computed ->
+                    if (dismissedReadMarkerId != null && computed.readMarkerIdOrNull() == dismissedReadMarkerId) {
+                        copy(unreadState = UnreadState.HasNoUnread)
+                    } else {
+                        copy(unreadState = computed)
+                    }
                 }
     }
+
+    private fun UnreadState.readMarkerIdOrNull() = when (this) {
+        is UnreadState.HasUnread -> readMarkerId
+        is UnreadState.ReadMarkerNotLoaded -> readMarkerId
+        else -> null
+    }
+
+    // The read marker the user last dismissed the jump-to-unread banner at, plus the newest event at
+    // that moment. The marker write is asynchronous and can fail, so the banner must not depend on it.
+    @Volatile private var dismissedReadMarkerId: String? = null
+
+    @Volatile private var dismissedAtNewestEventId: String? = null
 
     private fun computeUnreadState(events: List<TimelineEvent>, roomSummary: RoomSummary): UnreadState {
         if (timeline == null) return UnreadState.Unknown

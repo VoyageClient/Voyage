@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s aliĝis al la ĉambro</string>
     <string name="notice_room_leave">%1$s foriris de la ĉambro</string>
     <string name="notice_room_reject">%1$s rifuzis la inviton</string>
-    <string name="notice_room_remove">%1$s forpelis %2$s</string>
     <string name="notice_room_unban">%1$s malforbaris %2$s</string>
     <string name="notice_room_ban">%1$s forbaris %2$s</string>
     <string name="notice_room_withdraw">%1$s nuligis inviton por %2$s</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s aliĝis al la ĉambro. Kialo: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s foriris de la ĉambro. Kialo: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s rifuzis la inviton. Kialo: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s forpelis %2$s. Kialo: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s malforbaris %2$s. Kialo: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s forbaris %2$s. Kialo: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s akceptis la inviton por %2$s. Kialo: %3$s</string>
@@ -107,7 +105,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Vi akceptis la inviton por %1$s. Kialo: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Vi forbaris %1$s. Kialo: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Vi malforbaris %1$s. Kialo: %2$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Vi forpelis %1$s. Kialo: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">Vi rifuzis la inviton. Kialo: %1$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Vi foriris. Kialo: %1$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s foriris. Kialo: %2$s</string>
@@ -158,7 +155,6 @@
     <string name="notice_room_withdraw_by_you">Vi nuligis inviton por %1$s</string>
     <string name="notice_room_ban_by_you">Vi forbaris %1$s</string>
     <string name="notice_room_unban_by_you">Vi malforbaris %1$s</string>
-    <string name="notice_room_remove_by_you">Vi forpelis %1$s</string>
     <string name="notice_room_reject_by_you">Vi rifuzis la inviton</string>
     <string name="notice_direct_room_leave_by_you">Vi foriris de la ĉambro</string>
     <string name="notice_direct_room_leave">%1$s foriris de la ĉambro</string>
@@ -898,7 +894,6 @@
     <string name="avatar">Profilbildo</string>
     <string name="reason_colon">Kialo: %1$s</string>
     <string name="has_been_banned">%2$s vin forbaris de %1$s</string>
-    <string name="has_been_removed">%2$s vin forpelis de %1$s</string>
     <string name="command_description_nick">Ŝanĝas vian prezentan nomon</string>
     <string name="command_description_topic">Agordi temon por la ĉambro</string>
     <string name="command_description_part_room">Foriri de ĉambro</string>
@@ -1120,7 +1115,6 @@
     <string name="settings_vibrate_on_mention">Vibri je mencio de uzanto</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Inkluzivas ŝanĝojn de profilbildo kaj prezenta nomo.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Montri okazojn de konto</string>
-    <string name="settings_show_join_leave_messages_summary">Invitoj, forpeloj kaj forbaroj ne estos influitaj.</string>
     <string name="settings_show_join_leave_messages">Montri okazojn de aliĝo kaj foriro</string>
     <string name="settings_show_read_receipts_summary">Klaku la legokonfirmojn por detala listo.</string>
     <string name="settings_show_read_receipts">Montri legokonfirmojn</string>

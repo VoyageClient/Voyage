@@ -238,8 +238,6 @@
     <string name="notice_room_topic_changed_by_you">Bạn đã thay đổi chủ đề thành: %1$s</string>
     <string name="event_status_delete_all_failed_dialog_title">Xoá các tin nhắn chưa được gửi</string>
     <string name="event_status_delete_all_failed_dialog_message">Bạn có chắc bạn muốn xoá tất cả tin nhắn chưa được gửi trong phòng này không\?</string>
-    <string name="notice_room_remove_by_you">Bạn đã loại bỏ %1$s</string>
-    <string name="notice_room_remove">%1$s đã loại bỏ %2$s</string>
     <string name="notice_room_reject_by_you">Bạn đã từ chối lời mời</string>
     <string name="notice_room_reject">%1$s đã từ chối lời mời</string>
     <string name="notice_direct_room_leave_by_you">Bạn đã rời phòng</string>
@@ -411,8 +409,6 @@
     <string name="notice_room_ban_with_reason">%1$s đã cấm %2$s. Lý do: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Bạn đã bỏ cấm %1$s. Lý do: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s đã bỏ cấm %2$s. Lý do: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Bạn đã đá %1$s. Lý do: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s đã đá %2$s. Lý do: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">Bạn đã từ chối lời mời. Lý do: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s đã từ chối lời mời. Lý do: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Bạn đã rời đi. Lý do: %1$s</string>
@@ -759,7 +755,6 @@
     <string name="settings_vibrate_on_mention">Rung khi đề cập tên người dùng</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Bao gồm thay đổi tên hiển thị và hình đại diện.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Hiện các sự kiện của tài khoản</string>
-    <string name="settings_show_join_leave_messages_summary">Sự kiện mời, gỡ hoặc cấm thành viên không bị ảnh hưởng.</string>
     <string name="settings_show_join_leave_messages">Hiện sự kiện tham gia hoặc rời phòng</string>
     <string name="settings_chat_effects_description">Gõ lệnh /confetti hoặc gửi tin chứa ❄️ hoặc 🎉</string>
     <string name="settings_chat_effects_title">Hiện hiệu ứng chat</string>
@@ -1929,7 +1924,6 @@
     <string name="avatar">Avatar</string>
     <string name="reason_colon">Lý do: %1$s</string>
     <string name="has_been_banned">Bạn đã bị cấm từ %1$s bởi %2$s</string>
-    <string name="has_been_removed">Bạn đã bị đá từ %1$s bởi %2$s</string>
     <string name="invited">Đã mời</string>
     <string name="rooms">Phòng</string>
     <string name="group_details_home">Trang chủ</string>

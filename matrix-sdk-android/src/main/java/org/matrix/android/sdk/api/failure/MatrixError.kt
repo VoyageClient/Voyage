@@ -104,6 +104,12 @@ data class MatrixError(
         /** The server did not understand the request. */
         const val M_UNRECOGNIZED = "M_UNRECOGNIZED"
 
+        /** MSC2815: the pre-redaction content has been purged by the server's retention policy. */
+        const val M_UNREDACTED_CONTENT_DELETED = "FI.MAU.MSC2815_UNREDACTED_CONTENT_DELETED"
+
+        /** MSC2815: the server never held the pre-redaction content (e.g. it was redacted before federating). */
+        const val M_UNREDACTED_CONTENT_NOT_RECEIVED = "FI.MAU.MSC2815_UNREDACTED_CONTENT_NOT_RECEIVED"
+
         /** (Not documented yet). */
         const val M_LOGIN_EMAIL_URL_NOT_YET = "M_LOGIN_EMAIL_URL_NOT_YET"
 

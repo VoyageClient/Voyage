@@ -45,4 +45,7 @@ internal object NetworkConstants {
 
     // Federation
     const val URI_FEDERATION_PATH = "_matrix/federation/v1/"
+
+    // Synapse admin API (not part of the Matrix spec; absent on other homeserver implementations)
+    const val URI_SYNAPSE_ADMIN_PATH = "_synapse/admin/v1/"
 }

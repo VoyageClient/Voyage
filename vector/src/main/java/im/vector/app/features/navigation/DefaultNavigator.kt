@@ -484,6 +484,7 @@ class DefaultNavigator @Inject constructor(
                 inMemory,
                 ViewCompat.getTransitionName(view),
                 transitionCornerRadiusPx = cornerRadiusPx,
+                openedFromTimeline = activity is RoomDetailActivity,
         ).let { intent ->
             val pairs = ArrayList<Pair<View, String>>()
             activity.window.decorView.findViewById<View>(android.R.id.statusBarBackground)?.let {

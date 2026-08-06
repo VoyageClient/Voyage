@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s csatlakozott a szobához</string>
     <string name="notice_room_leave">%1$s elhagyta a szobát</string>
     <string name="notice_room_reject">%1$s visszautasította a meghívást</string>
-    <string name="notice_room_remove">%1$s eltávolította őt: %2$s</string>
     <string name="notice_room_unban">%1$s feloldotta %2$s tiltását</string>
     <string name="notice_room_ban">%1$s kitiltotta őt: %2$s</string>
     <string name="notice_room_withdraw">%1$s visszavonta %2$s meghívását</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s csatlakozott a szobához. Indok: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s elhagyta a szobát. Indok: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s visszautasította a meghívót. Indok: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s eltávolította őt: %2$s. Indok: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s visszaengedte őt: %2$s. Indok: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s kitiltotta őt: %2$s. Ok: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s elfogadta a meghívást ide: %2$s. Indok: %3$s</string>
@@ -96,7 +94,6 @@
     <string name="notice_room_withdraw_by_you">Ön visszavonta %1$s meghívását</string>
     <string name="notice_room_ban_by_you">Ön kitiltotta őt: %1$s</string>
     <string name="notice_room_unban_by_you">Ön feloldotta %1$s tiltását</string>
-    <string name="notice_room_remove_by_you">Ön eltávolította őt: %1$s</string>
     <string name="notice_room_reject_by_you">Ön visszautasította a meghívót</string>
     <string name="notice_direct_room_leave_by_you">Ön elhagyta a szobát</string>
     <string name="notice_direct_room_leave">%1$s elhagyta a szobát</string>
@@ -412,7 +409,6 @@
     <string name="create">Létrehoz</string>
     <string name="rooms">Szobák</string>
     <string name="invited">Meghívott</string>
-    <string name="has_been_removed">Ki lettél rúgva innen: %1$s, %2$s által</string>
     <string name="has_been_banned">Ki lettél tiltva innen: %1$s, %2$s által</string>
     <string name="reason_colon">Ok: %1$s</string>
     <string name="settings_inline_url_preview">Webcímelőnézet</string>
@@ -515,7 +511,6 @@
     <string name="settings_show_read_receipts">Olvasási visszajelzés megjelenítése</string>
     <string name="settings_show_read_receipts_summary">További információér kattintson az olvasási visszaigazolásokra.</string>
     <string name="settings_show_join_leave_messages">Be-, és kilépési események megjelenítése</string>
-    <string name="settings_show_join_leave_messages_summary">A meghívások, eltávolítások és tiltások érintetlenek maradnak.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Fiók események megjelenítése</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Avatar és megjelenítendő-név változásokat tartalmaz.</string>
     <string name="settings_password">Jelszó</string>
@@ -1583,7 +1578,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Ön elfogadta a meghívást ide: %1$s. Indok: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Ön kitiltotta őt: %1$s. Indok: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Ön visszaengedte őt: %1$s. Indok: %2$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Ön eltávolította őt: %1$s. Indok: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">Ön visszautasította a meghívót. Indok: %1$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Ön elhagyta a szobát. Indok: %1$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s elhagyta a szobát. Indok: %2$s</string>

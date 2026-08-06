@@ -47,4 +47,7 @@ object UserAccountDataTypes {
 
     // Per-room mention counts (roomId -> userId -> count), used to rank the @-autocomplete list.
     const val TYPE_MENTION_FREQUENCY = "im.voyage.setting.mention_frequency"
+
+    /** Cached result of the Synapse admin-API probe, so every device doesn't have to re-probe. */
+    const val TYPE_SERVER_ADMIN = "im.voyage.setting.server_admin"
 }

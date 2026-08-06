@@ -87,6 +87,11 @@ SELECT room_id FROM room_summary WHERE membership_str = ?;
 selectIsEncrypted:
 SELECT is_encrypted FROM room_summary WHERE room_id = ?;
 
+-- updateTags owns these three; upsert has to restate them (INSERT OR REPLACE writes every column),
+-- so it reads them back rather than re-deriving them from the tag rows.
+selectTagFlags:
+SELECT is_favourite, is_low_priority, is_server_notice FROM room_summary WHERE room_id = ?;
+
 selectRoomMembershipInfo:
 SELECT room_id, membership_str, other_member_ids FROM room_summary;
 

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="notice_room_remove_by_you">umeondoa %1$s</string>
-    <string name="notice_room_remove">%1$s kuondolewa %2$s</string>
     <string name="notice_room_reject_by_you">Ulikataa mwaliko</string>
     <string name="notice_room_reject">%1$s alikataa mwaliko</string>
     <string name="notice_direct_room_join_by_you">Ulijiunga</string>
@@ -175,8 +173,6 @@
     <string name="notice_room_leave_with_reason_by_you">Uliondoka chumbani. Sababu: %1$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s Ondoka. Sababu: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Uliondoka. Sababu: %1$s</string>
-    <string name="notice_room_remove_with_reason">%1$s kuondolewa %2$s. Sababu: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Umeondoa %1$s. Sababu: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s haijazuiriwa %2$s. Sababu: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Haujazuiriwa %1$s. Sababu: %2$s</string>
     <string name="notice_room_ban_with_reason">%1$s marufuku %2$s. Sababu: %3$s</string>

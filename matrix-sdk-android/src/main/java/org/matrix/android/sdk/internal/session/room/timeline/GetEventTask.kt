@@ -28,7 +28,8 @@ import javax.inject.Inject
 internal interface GetEventTask : Task<GetEventTask.Params, Event> {
     data class Params(
             val roomId: String,
-            val eventId: String
+            val eventId: String,
+            val includeUnredactedContent: Boolean = false
     )
 }
 
@@ -41,7 +42,11 @@ internal class DefaultGetEventTask @Inject constructor(
 
     override suspend fun execute(params: GetEventTask.Params): Event {
         val event = executeRequest(globalErrorReceiver) {
-            roomAPI.getEvent(params.roomId, params.eventId)
+            roomAPI.getEvent(
+                    params.roomId,
+                    params.eventId,
+                    includeUnredactedContent = true.takeIf { params.includeUnredactedContent }
+            )
         }
 
         // Try to decrypt the Event

@@ -97,7 +97,18 @@ internal class CryptoRoomSqlStore(private val database: CryptoSqlDatabase) {
     // ==================== Shared sessions ====================
 
     fun markedSessionAsShared(roomId: String?, sessionId: String, userId: String, deviceId: String, deviceIdentityKey: String, chainIndex: Int) {
-        wsQueries.sharedInsert(roomId, MXCRYPTO_ALGORITHM_MEGOLM, sessionId, userId, deviceId, deviceIdentityKey, chainIndex.toLong())
+        // Replace rather than append: the table has no unique constraint, so re-sharing a session to
+        // the same device would otherwise accumulate a row per share. The earliest index is kept —
+        // a device that received the session at index 5 can still decrypt from 5 after a re-share.
+        wsQueries.transaction {
+            val existing = wsQueries
+                    .sharedSelectExact(roomId, sessionId, MXCRYPTO_ALGORITHM_MEGOLM, userId, deviceId, deviceIdentityKey)
+                    .executeAsOneOrNull()
+                    ?.chain_index
+            val earliest = minOf(chainIndex.toLong(), existing ?: Long.MAX_VALUE)
+            wsQueries.sharedDeleteExact(roomId, sessionId, MXCRYPTO_ALGORITHM_MEGOLM, userId, deviceId, deviceIdentityKey)
+            wsQueries.sharedInsert(roomId, MXCRYPTO_ALGORITHM_MEGOLM, sessionId, userId, deviceId, deviceIdentityKey, earliest)
+        }
     }
 
     fun getSharedSession(roomId: String?, sessionId: String, userId: String, deviceId: String, deviceIdentityKey: String?): Shared_session? =

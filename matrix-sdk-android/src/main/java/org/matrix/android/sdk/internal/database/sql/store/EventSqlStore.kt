@@ -186,6 +186,9 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
 
     fun updateUnsignedData(id: Long, unsignedData: String?) = queries.updateUnsignedDataById(unsignedData, id)
 
+    /** Flags a row as never worth surfacing (currently: room-list previews). */
+    fun markUseless(id: Long) = queries.markUselessById(id)
+
     fun deleteByEventIdInRoom(roomId: String, eventId: String) = queries.deleteByEventIdInRoom(roomId, eventId)
 
     fun deleteById(id: Long) = queries.deleteById(id)

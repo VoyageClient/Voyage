@@ -9,7 +9,6 @@
     <string name="notice_room_join">%1$s приєднується</string>
     <string name="notice_room_leave">%1$s виходить з кімнати</string>
     <string name="notice_room_reject">%1$s відхиляє запрошення</string>
-    <string name="notice_room_remove">%1$s вилучає %2$s</string>
     <string name="notice_room_unban">%1$s розблоковує %2$s</string>
     <string name="notice_room_ban">%1$s блокує %2$s</string>
     <string name="notice_room_withdraw">%1$s відкликає запрошення для %2$s</string>
@@ -83,7 +82,6 @@
     <string name="notice_placed_video_call_by_you">Ви починаєте відеовиклик.</string>
     <string name="notice_room_avatar_changed">%1$s змінює аватар кімнати</string>
     <string name="notice_display_name_removed_by_you">Ви вилучили псевдонім (%1$s)</string>
-    <string name="notice_room_remove_by_you">Ви вилучили %1$s</string>
     <string name="notice_direct_room_third_party_invite">%1$s запрошує %2$s</string>
     <string name="notice_room_reject_by_you">Ви відхилили запрошення</string>
     <string name="notice_direct_room_join_by_you">Ви приєдналися</string>
@@ -470,7 +468,6 @@
     <string name="group_details_home">Домівка</string>
     <string name="rooms">Кімнати</string>
     <string name="invited">Запрошено</string>
-    <string name="has_been_removed">%2$s вилучає вас із %1$s</string>
     <string name="has_been_banned">%2$s блокує вас у %1$s</string>
     <string name="reason_colon">Причина: %1$s</string>
     <string name="avatar">Аватар</string>
@@ -509,7 +506,6 @@
     <string name="settings_show_read_receipts">Показувати підтвердження прочитання</string>
     <string name="settings_show_read_receipts_summary">Натискайте мітки прочитання для детального переліку.</string>
     <string name="settings_show_join_leave_messages">Показувати події приєднання та виходу</string>
-    <string name="settings_show_join_leave_messages_summary">Це не стосується запрошень, вилучень і блокувань.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Показувати події облікових записів</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Містить зміни аватарів та імен.</string>
     <string name="settings_password">Пароль</string>
@@ -1148,8 +1144,6 @@
     <string name="notice_room_ban_with_reason">%1$s блокує %2$s. Причина: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Ви розблокували %1$s. Причина: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s розблоковує %2$s. Причина: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Ви вилучили %1$s. Причина: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s вилучає %2$s. Причина: %3$s</string>
     <string name="this_is_the_beginning_of_dm">Це початок історії вашого особистого спілкування з %s.</string>
     <string name="room_profile_encrypted_subtitle">Повідомлення тут захищені наскрізним шифруванням.
 \n

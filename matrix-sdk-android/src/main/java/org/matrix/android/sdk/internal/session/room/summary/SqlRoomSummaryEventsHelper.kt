@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.room.summary
 
 import org.matrix.android.sdk.api.MatrixConfiguration
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isRedacted
@@ -66,7 +67,11 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
         val domain = root.asDomain()
         // ignored senders' messages must not surface as the room-list preview
         if (domain.senderId != null && domain.senderId in ignored) return false
-        if (domain.isRedacted()) return false
+        // A redacted message stays the preview, as the deleted-message placeholder: the timeline shows it as
+        // the room's last entry, so hiding it here made the room list disagree with the room — and disagree
+        // with itself, since the stale pointer showed the placeholder until something recomputed. Redacting a
+        // reaction is an undo rather than a deletion, so those still fall through to the last real message.
+        if (domain.isRedacted() && root.type == EventType.REACTION) return false
         if (domain.getRelationContent()?.type == RelationType.REPLACE) return false
         // thread replies belong to their own timeline, not the room's conversation
         if (domain.getRelationContent()?.type == RelationType.THREAD) return false

@@ -1275,7 +1275,6 @@
     <string name="avatar">Avatar</string>
     <string name="reason_colon">Motif : %1$s</string>
     <string name="has_been_banned">%2$s vous a banni de %1$s</string>
-    <string name="has_been_removed">%2$s vous a expulsé de %1$s</string>
     <string name="invited">Invité</string>
     <string name="rooms">Salons</string>
     <string name="group_details_home">Accueil</string>
@@ -1528,7 +1527,6 @@
     <string name="settings_preview_media_before_sending">Afficher un aperçu du média avant de l’envoyer</string>
     <string name="settings_vibrate_on_mention">Vibrer lorsque l’on mentionne un utilisateur</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Cela inclut les changements d’avatar et de nom d’affichage.</string>
-    <string name="settings_show_join_leave_messages_summary">Les invitations, expulsions et exclusions ne sont pas concernés.</string>
     <string name="settings_show_join_leave_messages">Afficher les notifications d’arrivée et de départ</string>
     <string name="settings_chat_effects_description">Utilisez la commande /confetti ou envoyez un message contenant ❄️ ou 🎉</string>
     <string name="settings_chat_effects_title">Afficher les animations de conversation</string>
@@ -1640,8 +1638,6 @@
     <string name="notice_room_ban_with_reason">%1$s a banni %2$s. Raison : %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Vous avez révoqué le bannissement de %1$s. Raison : %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s a révoqué le bannissement de %2$s. Raison : %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Vous avez expulsé %1$s. Raison : %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s a expulsé %2$s. Raison : %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">Vous avez refusé l’invitation. Raison : %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s a refusé l’invitation. Raison : %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Vous êtes parti. Raison : %1$s</string>
@@ -1816,8 +1812,6 @@
     <string name="auth_msisdn_already_defined">Le numéro de téléphone est déjà défini.</string>
     <string name="auth_invalid_login_param">Nom d’utilisateur et/ou mot de passe incorrect</string>
     <string name="auth_submit">Valider</string>
-    <string name="notice_room_remove_by_you">Vous avez expulsé %1$s</string>
-    <string name="notice_room_remove">%1$s a expulsé %2$s</string>
     <string name="notice_room_reject_by_you">Vous avez rejeté l’invitation</string>
     <string name="notice_room_reject">%1$s a rejeté l’invitation</string>
     <string name="notice_direct_room_leave_by_you">Vous avez quitté le salon</string>

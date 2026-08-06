@@ -102,7 +102,7 @@ class RoomKnockRequestsViewModel @AssistedInject constructor(
                 if (accept) {
                     room.membershipService().invite(roomMemberSummary.userId)
                 } else {
-                    room.membershipService().remove(roomMemberSummary.userId)
+                    room.membershipService().kick(roomMemberSummary.userId)
                 }
                 val message = stringProvider.getString(
                         if (accept) CommonStrings.room_knock_request_accepted else CommonStrings.room_knock_request_declined,

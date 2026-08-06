@@ -32,7 +32,9 @@ class RoomEventsAttachmentProvider(
         dateFormatter: VectorDateFormatter,
         fileService: FileService,
         coroutineScope: CoroutineScope,
-        stringProvider: StringProvider
+        stringProvider: StringProvider,
+        // Media a redaction purged from the server: only a local copy can render it.
+        private val preservedFileResolver: (roomId: String, eventId: String) -> File? = { _, _ -> null },
 ) : BaseAttachmentProvider<TimelineEvent>(
         attachments = attachments,
         imageContentRenderer = imageContentRenderer,
@@ -61,6 +63,7 @@ class RoomEventsAttachmentProvider(
                         height = null,
                         allowNonMxcUrls = it.root.sendState.isSending(),
                         blurHash = content.info?.blurHash,
+                        preservedFile = it.preservedFile(),
                 )
                 if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
@@ -88,6 +91,7 @@ class RoomEventsAttachmentProvider(
                         height = null,
                         allowNonMxcUrls = false,
                         blurHash = content.info?.blurHash,
+                        preservedFile = it.preservedFile(),
                 )
                 if (content.mimeType in ANIMATED_IMAGE_MIME_TYPES) {
                     AttachmentInfo.AnimatedImage(
@@ -115,6 +119,7 @@ class RoomEventsAttachmentProvider(
                         maxWidth = -1,
                         allowNonMxcUrls = it.root.sendState.isSending(),
                         blurHash = content.videoInfo?.blurHash,
+                        preservedFile = it.preservedFile(),
                 )
                 val data = VideoContentRenderer.Data(
                         eventId = it.eventId,
@@ -123,7 +128,8 @@ class RoomEventsAttachmentProvider(
                         url = content.getFileUrl(),
                         elementToDecrypt = content.encryptedFileInfo?.toElementToDecrypt(),
                         thumbnailMediaData = thumbnailData,
-                        allowNonMxcUrls = it.root.sendState.isSending()
+                        allowNonMxcUrls = it.root.sendState.isSending(),
+                        preservedFile = it.preservedFile(),
                 )
                 AttachmentInfo.Video(
                         uid = it.eventId,
@@ -145,6 +151,8 @@ class RoomEventsAttachmentProvider(
             }
         }
     }
+
+    private fun TimelineEvent.preservedFile(): File? = root.roomId?.let { preservedFileResolver(it, eventId) }
 
     override fun getTimelineEventAtPosition(position: Int): TimelineEvent? {
         return getItem(position)

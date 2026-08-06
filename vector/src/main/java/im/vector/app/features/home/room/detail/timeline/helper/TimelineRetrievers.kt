@@ -24,6 +24,7 @@ import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.pgp.PgpDecryptor
 import im.vector.app.features.pgp.PgpKeyStore
 import im.vector.app.features.pgp.PgpServiceManager
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.session.Session
@@ -57,6 +58,7 @@ class TimelineRetrieversFactory @Inject constructor(
         private val pgpDecryptor: PgpDecryptor,
         private val pgpServiceManager: PgpServiceManager,
         private val pgpKeyStore: PgpKeyStore,
+        private val redactedContentRestorer: RedactedContentRestorer,
 ) {
 
     fun create(roomId: String, coroutineScope: CoroutineScope): TimelineRetrievers {
@@ -79,6 +81,7 @@ class TimelineRetrieversFactory @Inject constructor(
                         imageContentRenderer,
                         richMessageBodyRenderer,
                         pgpDecryptor,
+                        redactedContentRestorer,
                 ),
         )
     }

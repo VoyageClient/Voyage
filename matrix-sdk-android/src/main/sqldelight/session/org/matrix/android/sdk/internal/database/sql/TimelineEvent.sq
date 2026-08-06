@@ -22,6 +22,9 @@ CREATE INDEX timeline_event_chunk ON timeline_event(chunk_id);
 CREATE INDEX timeline_event_display_index ON timeline_event(display_index);
 -- See event_room_event: same room-scan trap for getByRoomAndEventId.
 CREATE INDEX timeline_event_room_event ON timeline_event(room_id, event_id);
+-- Redacting a membership event invalidates every row whose cached sender profile came from it;
+-- unindexed that lookup is a full scan of the whole table inside the sync write transaction.
+CREATE INDEX timeline_event_sender_membership ON timeline_event(sender_membership_event_id);
 
 selectByChunk:
 SELECT * FROM timeline_event WHERE chunk_id = ? ORDER BY display_index DESC;
@@ -125,9 +128,11 @@ SELECT coalesce(max(local_id), 0) + 1 FROM timeline_event;
 updateChunkId:
 UPDATE timeline_event SET chunk_id = ? WHERE id = ?;
 
+-- Also matches the membership event's own row: a kick/ban is sent by someone else, so that row's
+-- sender_membership_event_id points at the sender's membership event, not at itself.
 clearSenderInfoByMembershipEvent:
 UPDATE timeline_event SET sender_name = NULL, is_unique_display_name = 0, sender_avatar = NULL
-WHERE sender_membership_event_id = ?;
+WHERE sender_membership_event_id = :eventId OR event_id = :eventId;
 
 -- No-op UPDATE whose only purpose is to fire this table's query listeners: the timeline's chunk flow
 -- watches timeline_event, not event, so content-only changes (e.g. redaction pruning) need this nudge.

@@ -61,6 +61,7 @@ private const val FEATURE_THREADS_MSC3771 = "org.matrix.msc3771"
 private const val FEATURE_THREADS_MSC3773 = "org.matrix.msc3773"
 private const val FEATURE_REMOTE_TOGGLE_PUSH_NOTIFICATIONS_MSC3881 = "org.matrix.msc3881"
 private const val FEATURE_REDACTION_OF_RELATED_EVENT = "org.matrix.msc3912"
+private const val FEATURE_VIEW_UNREDACTED_CONTENT_MSC2815 = "fi.mau.msc2815"
 
 /**
  * Return true if the SDK supports this homeserver version.
@@ -175,4 +176,13 @@ internal fun Versions.doesServerSupportRemoteToggleOfPushNotifications(): Boolea
  */
 internal fun Versions.doesServerSupportRedactionOfRelatedEvents(): Boolean {
     return unstableFeatures?.get(FEATURE_REDACTION_OF_RELATED_EVENT).orFalse()
+}
+
+/**
+ * Indicate if the server supports MSC2815: https://github.com/matrix-org/matrix-spec-proposals/pull/2815.
+ *
+ * @return true if moderators can fetch the content of redacted events
+ */
+internal fun Versions.doesServerSupportViewingUnredactedContent(): Boolean {
+    return unstableFeatures?.get(FEATURE_VIEW_UNREDACTED_CONTENT_MSC2815).orFalse()
 }

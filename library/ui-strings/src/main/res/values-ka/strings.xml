@@ -11,7 +11,6 @@
     <string name="notice_direct_room_leave_by_you">თქვენ დატოვეთ ოთახი</string>
     <string name="notice_room_reject">%1$s უარყო მიწვევა</string>
     <string name="notice_room_reject_by_you">თქვენ უარყეთ მიწვევა</string>
-    <string name="notice_room_remove_by_you">თქვენ ამოიღეთ %1$s</string>
     <string name="notice_room_unban">%1$s მოხსნა აკრძალვა %2$s-ზე</string>
     <string name="notice_room_ban">%1$s დაბლოკა %2$s</string>
     <string name="notice_room_ban_by_you">თქვენ დაბლოკეთ %1$s</string>
@@ -109,8 +108,6 @@
     <string name="notice_room_leave_with_reason_by_you">თქვენ დატოვეთ ოთახი. მიზეზი: %1$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s წავიდა. მიზეზი: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s-მ უარყო მიწვევა. მიზეზი: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s ამოიღო %2$s. მიზეზი: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">თქვენ ამოიღეთ %1$s. მიზეზი: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s-მ მოხსნა აკრძალვა %2$s-ზე. მიზეზი: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s-მ დაბლოკა %2$s. მიზეზი: %3$s</string>
     <string name="notice_room_ban_with_reason_by_you">თქვენ დაბლოკეთ %1$s. მიზეზი: %2$s</string>
@@ -144,7 +141,6 @@
     <string name="notice_room_leave_by_you">თქვენ დატოვეთ ოთახი</string>
     <string name="notice_widget_modified_by_you">თქვენ შეცვალეთ %1$s ვიჯეტი</string>
     <string name="notice_direct_room_leave">%1$s დატოვა ოთახი</string>
-    <string name="notice_room_remove">%1$s ამოიღო %2$s</string>
     <string name="notice_power_level_changed_by_you">თქვენ შეცვალეთ %1$s-ის ძალაუფლების დონე.</string>
     <string name="notice_room_unban_by_you">თქვენ მოხსენით აკრძალვა %1$s-ზე</string>
     <string name="notice_crypto_error_unknown_inbound_session_id">გამგზავნის მოწყობილობამ არ გამოგვიგზავნა ამ შეტყობინების გასაღებები.</string>
@@ -794,7 +790,6 @@
     <string name="rooms">ოთახები</string>
     <string name="command_description_ban_user">მომხმარებლის დაბლოკვა მოცემული ID-ით</string>
     <string name="command_description_ignore_user">მომხმარებლის იგნორირება, მათი შეტყობინებების დამალვა</string>
-    <string name="has_been_removed">თქვენ ამოიშალეთ %1$s-დან %2$s-ის მიერ</string>
     <string name="command_description_unignore_user">მომხმარებლის იგნორირების შეწყვეტა, მათი შეტყობინებების ჩვენება მომავალი შეტყობინებებისთვის</string>
     <string name="has_been_banned">თქვენ დაიბლოკეთ %1$s-დან %2$s-ის მიერ</string>
     <string name="command_description_deop_user">მომხმარებლის უფლებების შეზღუდვა მოცემული ID-ით</string>
@@ -1708,7 +1703,6 @@
     <string name="settings_autoplay_animated_images_title">ანიმირებული სურათების ავტომატური დაკვრა</string>
     <string name="settings_autoplay_animated_images_summary">ანიმირებული სურათების დაკვრა ტაიმლაინში, როგორც კი ისინი ხილული გახდებიან</string>
     <string name="settings_show_join_leave_messages">შეუერთდით და დატოვეთ მოვლენების ჩვენება</string>
-    <string name="settings_show_join_leave_messages_summary">მოწვევები, ამოღებები და დაბლოკვები არანაირად არ არის გავლენიან.</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">მოიცავს ავატარისა და ეკრანის სახელის ცვლილებებს.</string>
     <string name="settings_send_message_with_enter_summary">რბილი კლავიატურის Enter ღილაკი გაგზავნის შეტყობინებას, ნაცვლად ხაზის გატეხვისა</string>
     <string name="settings_secure_backup_reset">უსაფრთხო სარეზერვო ასლის განახლება</string>

@@ -4,7 +4,6 @@
     <string name="notice_room_invite_you">Ο/Η %1$s σας προσκάλεσε</string>
     <string name="notice_room_leave">Ο/Η %1$s αποχώρησε</string>
     <string name="notice_room_reject">Ο/Η %1$s απέρριψε την πρόσκληση</string>
-    <string name="notice_room_remove">Ο/Η %1$s έδιωξε τον/την %2$s</string>
     <string name="notice_room_invite">Ο/Η %1$s προσκάλεσε τον/την %2$s</string>
     <string name="notice_room_invite_no_invitee">Η πρόσκληση του/της %s</string>
     <string name="medium_phone_number">Αριθμός τηλεφώνου</string>
@@ -374,7 +373,6 @@
     <string name="qr_code_login_confirm_security_code">Επιβεβαίωση</string>
     <string name="qr_code_login_confirm_security_code_description">Παρακαλώ επιβεβαιώστε ότι γνωρίζετε την προέλευση του κώδικα αυτού. Όταν συνδέετε νέες συσκευές, ενδεχομένως να δίνετε σε κάποιον άλλο πλήρης πρόσβαση στον λογαριασμό σας.</string>
     <string name="soft_logout_clear_data_title">Εκαθάρριση προσωπικών δεδομένων</string>
-    <string name="notice_room_remove_by_you">Αφαιρέσατε τον χρήστη %1$s</string>
     <string name="notice_display_name_changed_to">Ο χρήστης %1$s άλλαξε το όνομά του σε %2$s</string>
     <string name="notice_room_avatar_changed">%1$s άλλαξε το άβαταρ του δωματίου</string>
     <string name="notice_room_avatar_changed_by_you">Άλλαξες το άβαταρ του δωματίου</string>

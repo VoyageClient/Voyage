@@ -6,6 +6,15 @@
     android:layout_height="wrap_content"
     tools:parentTag="android.widget.RelativeLayout">
 
+    <!-- Carries the deleted-content marks (see RedactionTintDrawable). Under the highlight so a jump
+         reveals them as the flash fades, instead of them popping in after. -->
+    <View
+        android:id="@+id/messageRowTint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@id/informationBottom"
+        android:layout_alignParentTop="true" />
+
     <im.vector.app.core.platform.CheckableView
         android:id="@+id/messageSelectedBackground"
         android:layout_width="match_parent"

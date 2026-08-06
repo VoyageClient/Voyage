@@ -50,7 +50,7 @@
         android:textColor="?colorOnPrimary"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/overlayInfoText"
-        app:layout_constraintEnd_toStartOf="@id/overlayForwardButton"
+        app:layout_constraintEnd_toStartOf="@id/overlayShowInChatButton"
         app:layout_constraintStart_toEndOf="@id/overlayBackButton"
         app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
         app:layout_constraintVertical_chainStyle="packed"
@@ -67,10 +67,28 @@
         android:maxLines="1"
         android:textColor="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
-        app:layout_constraintEnd_toStartOf="@id/overlayForwardButton"
+        app:layout_constraintEnd_toStartOf="@id/overlayShowInChatButton"
         app:layout_constraintStart_toStartOf="@id/overlayCounterText"
         app:layout_constraintTop_toBottomOf="@id/overlayCounterText"
         tools:text="Bill 29 Jun at 19:42" />
+
+    <ImageView
+        android:id="@+id/overlayShowInChatButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription="@string/attachment_viewer_show_in_chat"
+        android:focusable="true"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
+        app:layout_constraintEnd_toStartOf="@id/overlayForwardButton"
+        app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
+        app:srcCompat="@drawable/ic_reveal_redacted"
+        app:tint="?colorOnPrimary"
+        tools:ignore="MissingPrefix" />
 
     <ImageView
         android:id="@+id/overlayForwardButton"

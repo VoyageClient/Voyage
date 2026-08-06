@@ -50,9 +50,11 @@ fun TimelineEvent.buildImageContentRendererData(maxHeight: Int): ImageContentRen
                             mimeType = videoInfo?.thumbnailInfo?.mimeType,
                             url = videoInfo?.getThumbnailUrl(),
                             elementToDecrypt = videoInfo?.thumbnailFile?.toElementToDecrypt(),
-                            height = videoInfo?.thumbnailInfo?.height ?: videoInfo?.height,
+                            // ThumbnailInfo's w/h default to 0 when absent, so they need the guard before
+                            // they can stand in for the video's own (unrotated) dimensions.
+                            height = videoInfo?.thumbnailInfo?.height?.takeIf { it > 0 } ?: videoInfo?.height,
                             maxHeight = maxHeight,
-                            width = videoInfo?.thumbnailInfo?.width ?: videoInfo?.width,
+                            width = videoInfo?.thumbnailInfo?.width?.takeIf { it > 0 } ?: videoInfo?.width,
                             maxWidth = maxHeight * 2,
                             allowNonMxcUrls = false,
                             blurHash = videoInfo?.blurHash,

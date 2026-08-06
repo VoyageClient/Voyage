@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s gelara elkartu da</string>
     <string name="notice_room_leave">%1$s gelatik atera da</string>
     <string name="notice_room_reject">%1$s erabiltzaileak gonbidapena baztertu du</string>
-    <string name="notice_room_remove">%1$s erabiltzaileak %2$s kanporatu du</string>
     <string name="notice_room_unban">%1$s erabiltzaileak debekua kendu dio %2$s erabiltzaileari</string>
     <string name="notice_room_ban">%1$s erabiltzaileak %2$s debekatu du</string>
     <string name="notice_room_withdraw">%1$s erabiltzaileak %2$s erabiltzailearen gonbidapena atzera bota du</string>
@@ -61,7 +60,6 @@
     <string name="notice_room_join_with_reason">%1$s gelara elkartu da. Arrazoia: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s gelatik atera da. Arrazoia: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s erabiltzaileak gonbidapena baztertu du. Arrazoia: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s erabiltzaileak %2$s kanporatu du. Arrazoia: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s erabiltzaileak debekua kendu dio %2$s erabiltzaileari. Arrazoia: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s erabiltzaileak %2$s debekatu du. Arrazoia: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">"%1$s erabiltzaileak %2$s gelarako gonbidapena onartu du. Arrazoia: %3$s"</string>
@@ -343,7 +341,6 @@ Kontuan izan ekintza honek aplikazioa berrabiaraziko duela eta denbora bat behar
     <string name="group_details_home">Hasiera</string>
     <string name="rooms">Gelak</string>
     <string name="invited">Gonbidatuta</string>
-    <string name="has_been_removed">%1$s gelatik kanporatu zaitu %2$s erabiltzaileak</string>
     <string name="has_been_banned">%1$s gelatik debekatu zaitu %2$s erabiltzaileak</string>
     <string name="reason_colon">Arrazoia: %1$s</string>
     <plurals name="membership_changes">
@@ -444,7 +441,6 @@ Matrix-eko mezuen ikusgaitasuna e-mail sistemaren antekoa da. Guk zure mezuak ah
     <string name="settings_show_read_receipts">Erakutsi irakurragiriak</string>
     <string name="settings_show_read_receipts_summary">Egin klik irakurragirietan zerrenda xehetsu bat ikusteko.</string>
     <string name="settings_show_join_leave_messages">Erakutsi batu eta ateratze gertaerak</string>
-    <string name="settings_show_join_leave_messages_summary">Gonbidapen, kanporatze eta debekuei ez die eragiten.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Erakutsi kontuen gertaerak</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Abatar eta izen aldaketak barne-hartzen ditu.</string>
     <string name="settings_password">Pasahitza</string>
@@ -1293,7 +1289,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="notice_room_reject_by_you">Ez duzu gonbidapena onartu</string>
     <string name="notice_room_invite_no_invitee_by_you">Zure gonbidapena</string>
     <string name="notice_room_created_by_you">Gela bat sortu duzu</string>
-    <string name="notice_room_remove_by_you">%1$s erabiltzailea ezabatu duzu</string>
     <plurals name="x_selected">
         <item quantity="one">%1$d aukeratuta</item>
         <item quantity="other">%1$d aukeratua</item>

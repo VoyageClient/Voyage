@@ -20,6 +20,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.text.toSpannable
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -48,6 +49,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorPr
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
+import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
@@ -60,6 +62,7 @@ import im.vector.app.features.html.setPillSpan
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.shouldHideMediaPreview
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.text.DirectionOverridesTransformation
@@ -108,6 +111,7 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     @Inject lateinit var pillsPostProcessorFactory: PillsPostProcessor.Factory
     @Inject lateinit var textRendererFactory: im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer.Factory
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
+    @Inject lateinit var redactedContentRestorer: RedactedContentRestorer
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor
@@ -337,7 +341,9 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         views.sendButton.apply {
             if (mode is MessageComposerMode.Edit) {
                 contentDescription = resources.getString(CommonStrings.action_save)
-                setImageResource(R.drawable.ic_composer_rich_text_save)
+                // ic_composer_rich_text_save bakes in its own filled disc, which the classic composer's flat
+                // accent tint would flood into a solid accent circle; there the glyph has to stand alone.
+                setImageResource(if (classic) R.drawable.ic_check_on else R.drawable.ic_composer_rich_text_save)
             } else {
                 contentDescription = resources.getString(CommonStrings.action_send)
                 setImageResource(if (classic) R.drawable.ic_send else R.drawable.ic_rich_composer_send)
@@ -346,8 +352,21 @@ class PlainTextComposerLayout @JvmOverloads constructor(
     }
 
     private fun renderSpecialMode(specialMode: MessageComposerMode.Special) {
-        val event = specialMode.event
+        // A revealed redaction previews its restored content here too, matching the timeline.
+        val restored = redactedContentRestorer.restoreEvent(specialMode.event)
+        val event = restored ?: specialMode.event
         val defaultContent = specialMode.defaultContent
+
+        val surfaceColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface)
+        views.relatedMessageBackground.setBackgroundColor(
+                // Only recovered content is marked; the bare "Message removed" placeholder isn't.
+                if (restored != null) {
+                    // Composited, not stacked: the strip sits on the opaque composer surface.
+                    ColorUtils.compositeColors(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_redacted_background), surfaceColor)
+                } else {
+                    surfaceColor
+                }
+        )
 
         val iconRes: Int = when (specialMode) {
             is MessageComposerMode.Reply -> R.drawable.ic_reply
@@ -423,9 +442,14 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         }
         views.composerRelatedMessageContent.isVisible = !renderedTable
         // Resolve mentions/permalinks (incl. message links -> "Message in Room") into pills for the
-        // preview only; the un-pilled [formattedBody] still feeds the edit box below.
-        val previewBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }
+        // preview only; the un-pilled [formattedBody] still feeds the edit box below. Linkified like the
+        // timeline's reply header, or a bare URL in a plaintext body carries no span and renders as
+        // ordinary text here while showing blue everywhere else.
+        val previewBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }?.linkify(null)
         eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.prepareForDisplay())
+        // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none; the
+        // preview's links stay inert, as they are in the reply header.
+        views.composerRelatedMessageContent.movementMethod = null
         // Muted grey for non-message notices and m.notice messages (which render grey in the
         // timeline), normal text colour for everything else.
         val contentColorAttr = if (messageContent == null || messageContent.msgType == MessageType.MSGTYPE_NOTICE) {

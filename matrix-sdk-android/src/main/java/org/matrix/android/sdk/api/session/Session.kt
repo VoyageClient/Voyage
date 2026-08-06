@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.failure.GlobalError
 import org.matrix.android.sdk.api.federation.FederationService
 import org.matrix.android.sdk.api.session.account.AccountService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
+import org.matrix.android.sdk.api.session.admin.AdminService
 import org.matrix.android.sdk.api.session.call.CallSignalingService
 import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
@@ -44,6 +45,7 @@ import org.matrix.android.sdk.api.session.presence.PresenceService
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.pushers.PushersService
 import org.matrix.android.sdk.api.session.pushrules.PushRuleService
+import org.matrix.android.sdk.api.session.redaction.RedactedContentService
 import org.matrix.android.sdk.api.session.room.RoomDirectoryService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.search.SearchService
@@ -264,6 +266,16 @@ interface Session {
     fun federationService(): FederationService
 
     /**
+     * Returns the homeserver-administration service associated with the session.
+     */
+    fun adminService(): AdminService
+
+    /**
+     * Returns the store of content preserved from redaction.
+     */
+    fun redactedContentService(): RedactedContentService
+
+    /**
      * Returns the third party service associated with the session.
      */
     fun thirdPartyService(): ThirdPartyService
@@ -336,5 +348,4 @@ interface Session {
      * Debug API, will return info about the DB.
      */
     fun getDbUsageInfo(): String
-
 }

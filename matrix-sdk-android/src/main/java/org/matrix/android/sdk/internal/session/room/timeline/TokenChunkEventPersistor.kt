@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.session.room.timeline
 
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineDispatcher
-import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
@@ -75,6 +74,20 @@ internal class TokenChunkEventPersistor @Inject constructor(
                 linkOriginToChunk(direction, originChunkId, existingChunk.id)
                 return@awaitDbTransaction
             }
+            // Every event of the page is already stored elsewhere: the region is known, just under
+            // tokens that don't match ours. Storing it anyway drops every event to the per-event
+            // overlap guard below and leaves an EMPTY chunk linked into the walk — history then
+            // jumps clean over everything the overlapped chunk holds, which is the "skipped to much
+            // earlier stuff" symptom. Link to the chunk that already has it instead.
+            val pageEvents = receivedChunk.events.filter { it.eventId != null && it.senderId != null && it.type != null }
+            if (pageEvents.isNotEmpty()) {
+                val owners = pageEvents.map { stores.chunk.findMainChunkIdIncludingEvent(roomId, it.eventId.orEmpty()) }
+                if (owners.all { it != null }) {
+                    // The first event is the one nearest the origin, so its chunk is where the walk continues.
+                    owners.first()?.let { linkOriginToChunk(direction, originChunkId, it) }
+                    return@awaitDbTransaction
+                }
+            }
             val prevChunk = stores.chunk.findByNextToken(roomId, prevToken)
             val nextChunk = stores.chunk.findByPrevToken(roomId, nextToken)
             val currentChunkId = stores.chunk.insert(
@@ -108,12 +121,14 @@ internal class TokenChunkEventPersistor @Inject constructor(
             // origin is newer, target is older: origin.prev = target, target.next = origin.
             if (origin.next_chunk_id == targetChunkId || target.prev_chunk_id == originChunkId) return
             stores.chunk.updatePrevChunkId(originChunkId, targetChunkId)
-            stores.chunk.updateNextChunkId(targetChunkId, originChunkId)
+            // Only when free: the target is usually already part of the main walk, and overwriting
+            // its link would strand everything newer than it.
+            if (target.next_chunk_id == null) stores.chunk.updateNextChunkId(targetChunkId, originChunkId)
         } else {
             // origin is older, target is newer: origin.next = target, target.prev = origin.
             if (origin.prev_chunk_id == targetChunkId || target.next_chunk_id == originChunkId) return
             stores.chunk.updateNextChunkId(originChunkId, targetChunkId)
-            stores.chunk.updatePrevChunkId(targetChunkId, originChunkId)
+            if (target.prev_chunk_id == null) stores.chunk.updatePrevChunkId(targetChunkId, originChunkId)
         }
     }
 
@@ -128,6 +143,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
 
     private fun handlePagination(roomId: String, direction: PaginationDirection, receivedChunk: TokenChunkEvent, currentChunkId: Long) {
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
+        val roomMemberEventIdsByUser = HashMap<String, String?>()
         val now = clock.epochMillis()
 
         receivedChunk.stateEvents?.forEach { stateEvent ->
@@ -138,6 +154,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             val stateKey = stateEvent.stateKey
             if (stateEvent.type == EventType.STATE_ROOM_MEMBER && stateKey != null) {
                 roomMemberContentsByUser[stateKey] = stateEvent.content.toModel<RoomMemberContent>()
+                roomMemberEventIdsByUser[stateKey] = stateEvent.eventId
             }
         }
         for (event in receivedChunk.events) {
@@ -158,9 +175,14 @@ internal class TokenChunkEventPersistor @Inject constructor(
             if (event.type == EventType.STATE_ROOM_MEMBER && stateKey != null) {
                 val contentToUse = if (direction == PaginationDirection.BACKWARDS) event.prevContent else event.content
                 roomMemberContentsByUser[stateKey] = contentToUse.toModel<RoomMemberContent>()
+                roomMemberEventIdsByUser[stateKey] = eventId
             }
             liveEventManager.get().dispatchPaginatedEventReceived(event, roomId)
-            stores.timelineWriter.addTimelineEvent(currentChunkId, roomId, dbId, entity, isLastForward = false, direction, roomMemberContentsByUser = roomMemberContentsByUser)
+            stores.timelineWriter.addTimelineEvent(
+                    currentChunkId, roomId, dbId, entity, isLastForward = false, direction,
+                    roomMemberContentsByUser = roomMemberContentsByUser,
+                    roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+            )
         }
     }
 

@@ -17,8 +17,8 @@ import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.search.ParsedSearchQuery
 import org.matrix.android.sdk.internal.session.search.unwrapReplaceForSearch
-import org.matrix.android.sdk.internal.session.search.index.db.Indexed_event as IndexedEventRow
 import javax.inject.Inject
+import org.matrix.android.sdk.internal.session.search.index.db.Indexed_event as IndexedEventRow
 
 /**
  * Answers a room search from the local event index, shaped like the server-side

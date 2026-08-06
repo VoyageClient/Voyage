@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s님이 참가했습니다</string>
     <string name="notice_room_leave">%1$s님이 떠났습니다</string>
     <string name="notice_room_reject">%1$s님이 초대를 거부했습니다</string>
-    <string name="notice_room_remove">%1$s님이 %2$s님을 추방했습니다</string>
     <string name="notice_room_unban">%1$s님이 %2$s님의 출입 금지를 풀었습니다</string>
     <string name="notice_room_ban">%1$s님이 %2$s님을 출입 금지했습니다</string>
     <string name="notice_room_withdraw">%1$s님이 %2$s님의 초대를 취소했습니다</string>
@@ -337,7 +336,6 @@
     <string name="settings_show_read_receipts">읽은 기록 보이기</string>
     <string name="settings_show_read_receipts_summary">세부적인 목록으로 읽은 목록을 클릭하세요.</string>
     <string name="settings_show_join_leave_messages">참가 및 떠남 이벤트 보이기</string>
-    <string name="settings_show_join_leave_messages_summary">초대, 추방, 그리고 출입 금지은 영향이 없습니다.</string>
     <string name="settings_show_avatar_display_name_changes_messages">계정 이벤트 보이기</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">아바타와 표시 이름 변경도 포함합니다.</string>
     <string name="settings_vibrate_on_mention">사용자가 언급할 때 진동</string>
@@ -507,7 +505,6 @@
     <string name="group_details_home">홈</string>
     <string name="rooms">방</string>
     <string name="invited">초대받음</string>
-    <string name="has_been_removed">%2$s님에 의해 %1$s 방에서 추방당했습니다</string>
     <string name="has_been_banned">%2$s님에 의해 %1$s 방에서 출입 금지당했습니다</string>
     <string name="reason_colon">이유: %1$s</string>
     <string name="avatar">아바타</string>
@@ -877,7 +874,6 @@
     <string name="notice_room_withdraw_by_you">%1$s님의 초대를 취소했습니다</string>
     <string name="notice_room_ban_by_you">%1$s을 출입 금지했습니다</string>
     <string name="notice_room_unban_by_you">%1$s님의 출입 금지를 풀었습니다</string>
-    <string name="notice_room_remove_by_you">%1$s님을 추방했습니다</string>
     <string name="notice_room_reject_by_you">초대를 거부했습니다</string>
     <string name="notice_direct_room_leave_by_you">방을 떠났습니다</string>
     <string name="notice_direct_room_leave">%1$s님이 방을 떠났습니다</string>
@@ -940,8 +936,6 @@
     <string name="notice_room_avatar_removed">%1$s님이 방 아바타를 삭제했습니다</string>
     <string name="notice_room_topic_removed_by_you">방 주제를 삭제했습니다</string>
     <string name="notice_room_name_removed_by_you">방 이름을 삭제했습니다</string>
-    <string name="notice_room_remove_with_reason">%1$s 님이 %2$s 님을 제거했습니다. 사유: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">%1$s 님을 제거했습니다. 사유: %2$s</string>
     <string name="you_are_invited">초대되었습니다</string>
     <string name="notice_room_server_acl_updated_no_change">변경 사항 없음.</string>
     <string name="notice_room_server_acl_allow_is_empty">🎉 모든 서버의 참여가 금지되었습니다! 이 방은 더 이상 사용할 수 없습니다.</string>

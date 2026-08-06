@@ -304,7 +304,6 @@
     <string name="settings_show_read_receipts">Prikaži potvrde o pročitanim porukama</string>
     <string name="settings_show_read_receipts_summary">Kliknite na potvrde o pročitanim porukama za detaljan prikaz.</string>
     <string name="settings_show_join_leave_messages">Prikaži obavijesti o priključivanjima i napuštanjima</string>
-    <string name="settings_show_join_leave_messages_summary">Ne odnosi se na pozivnice, izbacivanja i zabrane pristupa.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Prikaži obavijesti o računu</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Uključuje promjene avatara i imena za prikaz.</string>
     <string name="settings_vibrate_on_mention">Vibriraj kada se spomene korisnika</string>
@@ -411,7 +410,6 @@
     <string name="create">Formiraj</string>
     <string name="rooms">Sobe</string>
     <string name="invited">Pozvan/a</string>
-    <string name="has_been_removed">Izbačeni ste iz %1$s od strane %2$s</string>
     <string name="has_been_banned">Korisnik %2$s Vam je zabranio pristup sobi %1$s</string>
     <string name="reason_colon">Razlog: %1$s</string>
     <string name="avatar">Avatar</string>
@@ -777,8 +775,6 @@
     <string name="bottom_action_people_x">Izravne poruke</string>
     <string name="notice_avatar_url_changed_by_you">Ti si promijenio svoj avatar</string>
     <string name="notice_avatar_url_changed">%1$s je promijenio svoj avatar</string>
-    <string name="notice_room_remove_by_you">Ti si maknuo %1$s</string>
-    <string name="notice_room_remove">%1$s je maknuo %2$s</string>
     <string name="notice_room_reject_by_you">Ti si odbio pozivnicu</string>
     <string name="notice_room_reject">%1$s je odbio pozivnicu</string>
     <string name="notice_direct_room_leave_by_you">Ti si napustio sobu</string>

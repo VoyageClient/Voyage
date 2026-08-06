@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
@@ -30,9 +31,12 @@ import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
+import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.internal.database.mapper.ContentMapper
+import org.matrix.android.sdk.internal.database.mapper.EventMapper
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -44,6 +48,8 @@ import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.EventInsertLiveProcessor
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.room.RoomAPI
+import org.matrix.android.sdk.internal.session.room.redaction.PreservedContent
+import org.matrix.android.sdk.internal.session.room.redaction.RedactedContentStore
 import org.matrix.android.sdk.internal.session.search.extractMentionedUserIds
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 import timber.log.Timber
@@ -67,6 +73,7 @@ internal class EventIndexer @Inject constructor(
         @SessionDatabase private val dbDispatcher: CoroutineDispatcher,
         private val stores: SessionStores,
         private val indexStore: EventIndexStore,
+        private val redactedContentStore: RedactedContentStore,
         private val roomAPI: RoomAPI,
         private val cryptoService: dagger.Lazy<CryptoService>,
         private val globalErrorReceiver: GlobalErrorReceiver,
@@ -172,12 +179,77 @@ internal class EventIndexer @Inject constructor(
         }
     }
 
-    /** Called when a redaction is applied, so the redacted content leaves the index too. */
+    /**
+     * Called when a redaction is applied. The content normally leaves the index with the event, but
+     * a preserved copy is kept searchable — flagged as redacted, so a hit renders like the timeline
+     * does: a deleted placeholder until the user reveals it.
+     */
     fun onEventRedacted(redactedEventId: String) {
         scope?.launch {
-            indexStore.deleteEvent(redactedEventId)
+            val preserved = redactedContentStore.get(redactedEventId)
+            if (preserved == null) {
+                indexStore.deleteEvent(redactedEventId)
+            } else {
+                val json = indexStore.eventJson(redactedEventId)
+                if (json == null) {
+                    indexPreservedContent(preserved, knownRedacted = true)
+                    return@launch
+                }
+                val event = tryOrNull { eventAdapter.fromJson(json) } ?: return@launch
+                indexStore.updateEventJson(redactedEventId, eventAdapter.toJson(event.markRedacted()))
+            }
         }
     }
+
+    /**
+     * Puts a preserved copy of an already redacted event back into the index — fetched after the fact
+     * (MSC2815), or captured before a redaction that raced the capture write and dropped the row.
+     * Idempotent, and a no-op while the event is still live: the ordinary feeds own those.
+     */
+    suspend fun indexPreservedContent(preserved: PreservedContent, knownRedacted: Boolean = false) {
+        if (!enabled.get()) return
+        // Cheap index read first: an event still indexed under its own row needs nothing from here, so
+        // only a missing row is worth the session-DB lookup that follows. The redaction path skips even
+        // that, since it runs before the prune writes the row it would read.
+        if (indexStore.eventJson(preserved.eventId) != null) return
+        if (!knownRedacted && !isRedactedLocally(preserved.roomId, preserved.eventId)) return
+        val event = Event(
+                type = preserved.clearType?.takeIf { it.isNotEmpty() } ?: EventType.MESSAGE,
+                eventId = preserved.eventId,
+                content = ContentMapper.map(preserved.content),
+                originServerTs = preserved.originServerTs,
+                senderId = preserved.sender,
+                roomId = preserved.roomId,
+        )
+        val indexable = toIndexable(event) ?: return
+        indexStore.putEvent(indexable.copy(eventJson = eventAdapter.toJson(event.markRedacted())))
+    }
+
+    private suspend fun isRedactedLocally(roomId: String, eventId: String): Boolean =
+            database.awaitDbTransaction(dbDispatcher) {
+                stores.timelineEvent.getByRoomAndEventId(roomId, eventId)?.root
+                        ?.let { EventMapper.map(it).isRedacted() } == true
+            }
+
+    /**
+     * Drops the index rows of preserved events whose copy has just been deleted. Without this the
+     * pre-redaction text stays searchable — and on disk — after the user clears preserved content.
+     */
+    suspend fun dropIndexedRedactions(eventIds: Collection<String>) {
+        if (eventIds.isEmpty()) return
+        eventIds.forEach { eventId ->
+            val json = indexStore.eventJson(eventId) ?: return@forEach
+            val event = tryOrNull { eventAdapter.fromJson(json) } ?: return@forEach
+            // Only the rows kept *because* content was preserved; an unredacted event's row is its own.
+            if (event.isRedacted()) indexStore.deleteEvent(eventId)
+        }
+    }
+
+    // The redaction event's own id isn't reachable from every caller, and nothing downstream reads
+    // it: isRedacted() only tests the field for null.
+    private fun Event.markRedacted() = copy(
+            unsignedData = (unsignedData ?: UnsignedData(null, null)).copy(redactedBy = eventId)
+    )
 
     // EventInsertLiveProcessor: live-indexes events that arrive already clear (unencrypted rooms,
     // plus plaintext events in encrypted ones). Encrypted events insert as m.room.encrypted and

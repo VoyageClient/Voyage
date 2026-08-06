@@ -49,6 +49,10 @@ internal class DefaultEventService @Inject constructor(
         return event
     }
 
+    override suspend fun getUnredactedEvent(roomId: String, eventId: String): Event {
+        return getEventTask.execute(GetEventTask.Params(roomId, eventId, includeUnredactedContent = true))
+    }
+
     override fun getEventFromCache(roomId: String, eventId: String): Event? {
         return stores.event.getByEventIdInRoom(roomId, eventId)?.asDomain()
     }

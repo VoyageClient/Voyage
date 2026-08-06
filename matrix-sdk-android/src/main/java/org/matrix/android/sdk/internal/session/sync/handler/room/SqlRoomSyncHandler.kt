@@ -11,33 +11,30 @@ import dagger.Lazy
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
-import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.toModel
-import org.matrix.android.sdk.api.session.room.sender.SenderInfo
-import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTagContent
 import org.matrix.android.sdk.api.session.room.send.SendState
+import org.matrix.android.sdk.api.session.room.sender.SenderInfo
+import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummaryUpdateType
 import org.matrix.android.sdk.api.session.sync.model.InvitedRoomSync
 import org.matrix.android.sdk.api.session.sync.model.KnockedRoomSync
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
 import org.matrix.android.sdk.api.session.sync.model.RoomSync
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncAccountData
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
-import org.matrix.android.sdk.internal.database.mapper.ContentMapper
-import org.matrix.android.sdk.internal.session.room.read.FullyReadContent
-import org.matrix.android.sdk.internal.session.room.read.MarkedUnreadContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.crypto.algorithms.megolm.UnRequestedForwardManager
+import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.mapper.toEntity
 import org.matrix.android.sdk.internal.database.model.EventInsertType
 import org.matrix.android.sdk.internal.database.model.RoomEntity
-import org.matrix.android.sdk.api.session.room.threads.model.ThreadSummaryUpdateType
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.ThreadSummarySqlHelper
 import org.matrix.android.sdk.internal.di.UserId
@@ -45,12 +42,14 @@ import org.matrix.android.sdk.internal.session.StreamEventsManager
 import org.matrix.android.sdk.internal.session.events.getFixedRoomMemberContent
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberEventHandler
+import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
+import org.matrix.android.sdk.internal.session.room.read.FullyReadContent
+import org.matrix.android.sdk.internal.session.room.read.MarkedUnreadContent
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationDirection
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineInput
 import org.matrix.android.sdk.internal.session.sync.ProgressReporter
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
-import org.matrix.android.sdk.internal.session.sync.mapWithProgress
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
 import javax.inject.Inject
@@ -135,7 +134,6 @@ internal class SqlRoomSyncHandler @Inject constructor(
                     roomSync.unreadThreadNotifications, updateMembers = hasRoomMember, aggregator = aggregator,
             )
         }
-        // After the summary update so tag/read-marker/marked-unread flags it derives aren't clobbered.
         handleRoomAccountData(stores, roomId, roomSync.accountData)
     }
 
@@ -260,6 +258,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val isLastForward = true
         val eventIds = ArrayList<String>(eventList.size)
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
+        val roomMemberEventIdsByUser = HashMap<String, String?>()
         val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
         val rootThreadEventIds = LinkedHashSet<String>()
 
@@ -280,14 +279,20 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
                 if (type == EventType.STATE_ROOM_MEMBER) {
                     roomMemberContentsByUser[stateKey] = event.getFixedRoomMemberContent()
+                    roomMemberEventIdsByUser[stateKey] = eventId
                     roomMemberEventHandler.handle(stores, roomId, event, isInitialSync)
                 }
             }
-            roomMemberContentsByUser.getOrPut(senderId) {
-                stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)
-                        ?.root?.asDomain()?.getFixedRoomMemberContent()
+            if (!roomMemberContentsByUser.containsKey(senderId)) {
+                val currentMemberEvent = stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, senderId)?.root?.asDomain()
+                roomMemberContentsByUser[senderId] = currentMemberEvent?.getFixedRoomMemberContent()
+                roomMemberEventIdsByUser[senderId] = currentMemberEvent?.eventId
             }
-            stores.timelineWriter.addTimelineEvent(chunkId, roomId, eventDbId, entity, isLastForward, PaginationDirection.FORWARDS, roomMemberContentsByUser = roomMemberContentsByUser)
+            stores.timelineWriter.addTimelineEvent(
+                    chunkId, roomId, eventDbId, entity, isLastForward, PaginationDirection.FORWARDS,
+                    roomMemberContentsByUser = roomMemberContentsByUser,
+                    roomMemberEventIdsByUser = roomMemberEventIdsByUser,
+            )
 
             if (lightweightSettingsStorage.areThreadMessagesEnabled()) {
                 entity.rootThreadEventId?.let { rootId ->
@@ -299,6 +304,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
                                     chunkId = threadChunkId, roomId = roomId, eventDbId = eventDbId, event = entity,
                                     isLastForward = true, direction = PaginationDirection.FORWARDS, ownedByThreadChunk = true,
                                     roomMemberContentsByUser = roomMemberContentsByUser,
+                                    roomMemberEventIdsByUser = roomMemberEventIdsByUser,
                             )
                         }
                     }

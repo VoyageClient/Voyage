@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s 加入了房间</string>
     <string name="notice_room_leave">%1$s 离开了房间</string>
     <string name="notice_room_reject">%1$s 拒绝了邀请</string>
-    <string name="notice_room_remove">%1$s 移除了 %2$s</string>
     <string name="notice_room_unban">%1$s 解封了 %2$s</string>
     <string name="notice_room_ban">%1$s 封禁了 %2$s</string>
     <string name="notice_avatar_url_changed">%1$s 更换了其头像</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s 加入了房间。理由：%2$s</string>
     <string name="notice_room_leave_with_reason">%1$s 离开了房间。理由：%2$s</string>
     <string name="notice_room_reject_with_reason">%1$s 已拒绝邀请。理由：%2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s移除了%2$s。理由：%3$s</string>
     <string name="notice_room_unban_with_reason">%1$s 解封了 %2$s。理由：%3$s</string>
     <string name="notice_room_ban_with_reason">%1$s 封禁了 %2$s。理由：%3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s 接受 %2$s 的邀請。理由：%3$s</string>
@@ -87,7 +85,6 @@
     <string name="notice_room_join_by_you">你加入了房间</string>
     <string name="notice_room_leave_by_you">你离开了房间</string>
     <string name="notice_room_reject_by_you">你拒绝了邀请</string>
-    <string name="notice_room_remove_by_you">你移除了 %1$s</string>
     <string name="notice_room_unban_by_you">你解封了 %1$s</string>
     <string name="notice_room_ban_by_you">你封禁了 %1$s</string>
     <string name="notice_room_withdraw_by_you">你撤回了%1$s的邀请</string>
@@ -130,7 +127,6 @@
     <string name="notice_room_join_with_reason_by_you">你加入了房间。理由：%1$s</string>
     <string name="notice_room_leave_with_reason_by_you">你离开了房间。理由：%1$s</string>
     <string name="notice_room_reject_with_reason_by_you">你拒绝了邀请。理由：%1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">你移除了%1$s。理由：%2$s</string>
     <string name="notice_room_unban_with_reason_by_you">你解封了 %1$s。理由：%2$s</string>
     <string name="notice_room_ban_with_reason_by_you">你封禁了 %1$s。理由：%2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">你接受了 %1$s 的邀请。理由：%2$s</string>
@@ -447,7 +443,6 @@
     <string name="group_details_home">主页</string>
     <string name="rooms">房间</string>
     <string name="invited">已邀请</string>
-    <string name="has_been_removed">你已被 %2$s 从 %1$s 中移除</string>
     <string name="has_been_banned">你已被 %2$s 从 %1$s 中封禁</string>
     <string name="reason_colon">理由：%1$s</string>
     <string name="avatar">头像</string>
@@ -557,7 +552,6 @@
     <string name="settings_show_read_receipts">显示已读回执</string>
     <string name="settings_show_read_receipts_summary">单击已读回执以获取详细列表。</string>
     <string name="settings_show_join_leave_messages">显示加入与离开事件</string>
-    <string name="settings_show_join_leave_messages_summary">邀请、移除与封禁不受影响。</string>
     <string name="settings_show_avatar_display_name_changes_messages">显示账户变动事件</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">包括头像与显示名称的变动。</string>
     <string name="settings_password">密码</string>

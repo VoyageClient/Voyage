@@ -27,8 +27,6 @@
     <string name="notice_direct_room_leave_by_you">You left the room</string>
     <string name="notice_room_reject">%1$s rejected the invitation</string>
     <string name="notice_room_reject_by_you">You rejected the invitation</string>
-    <string name="notice_room_remove">%1$s removed %2$s</string>
-    <string name="notice_room_remove_by_you">You removed %1$s</string>
     <string name="notice_room_unban">%1$s unbanned %2$s</string>
     <string name="notice_room_unban_by_you">You unbanned %1$s</string>
     <string name="notice_room_ban">%1$s banned %2$s</string>
@@ -213,8 +211,6 @@
     <string name="notice_direct_room_leave_with_reason_by_you">You left. Reason: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s rejected the invitation. Reason: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">You rejected the invitation. Reason: %1$s</string>
-    <string name="notice_room_remove_with_reason">%1$s removed %2$s. Reason: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">You removed %1$s. Reason: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s unbanned %2$s. Reason: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">You unbanned %1$s. Reason: %2$s</string>
     <string name="notice_room_ban_with_reason">%1$s banned %2$s. Reason: %3$s</string>
@@ -967,7 +963,6 @@
     <string name="settings_enable_direct_share_title">Enable direct share</string>
     <string name="settings_enable_direct_share_summary">Show recent chats in the system share menu</string>
     <string name="settings_show_join_leave_messages">Show join and leave events</string>
-    <string name="settings_show_join_leave_messages_summary">Invites, removes, and bans are unaffected.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Show account events</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Includes avatar and display name changes.</string>
     <string name="settings_vibrate_on_mention">Vibrate when mentioning a user</string>
@@ -1374,7 +1369,6 @@
     <string name="rooms">Rooms</string>
     <string name="invited">Invited</string>
 
-    <string name="has_been_removed">You have been removed from %1$s by %2$s</string>
     <string name="has_been_banned">You have been banned from %1$s by %2$s</string>
     <string name="reason_colon">Reason: %1$s</string>
 

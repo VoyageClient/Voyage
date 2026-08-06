@@ -25,7 +25,10 @@ data class TimelineItemFactoryParams(
         val callback: TimelineEventController.Callback? = null,
         val reactionsSummaryEvents: ReactionsSummaryEvents? = null,
         val eventsGroup: TimelineEventsGroup? = null,
-        val forcedVisibleEventIds: Set<String> = emptySet()
+        val forcedVisibleEventIds: Set<String> = emptySet(),
+        // Set when [event] is a redacted event whose original content has been substituted back in,
+        // so items can mark it as revealed even though it no longer looks redacted.
+        val isRevealedRedaction: Boolean = false
 ) {
 
     val highlightedEventId: String?

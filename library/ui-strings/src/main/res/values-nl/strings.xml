@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s is deelnemer geworden van de kamer</string>
     <string name="notice_room_leave">%1$s heeft het de kamer verlaten</string>
     <string name="notice_room_reject">%1$s heeft de uitnodiging geweigerd</string>
-    <string name="notice_room_remove">%1$s heeft %2$s verwijderd</string>
     <string name="notice_room_unban">%1$s heeft %2$s ontbannen</string>
     <string name="notice_room_ban">%1$s heeft %2$s verbannen</string>
     <string name="notice_room_withdraw">%1$s heeft de uitnodiging van %2$s ingetrokken</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s neemt nu deel. Reden: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s is weggegaan. Reden: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s heeft de uitnodiging geweigerd. Reden: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s heeft %2$s verwijderd. Reden: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s heeft %2$s ontbannen. Reden: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s heeft %2$s verbannen. Reden: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s heeft de uitnodiging voor %2$s aanvaard. Reden: %3$s</string>
@@ -363,7 +361,6 @@
     <string name="group_details_home">Thuis</string>
     <string name="rooms">Gesprekken</string>
     <string name="invited">Uitgenodigd</string>
-    <string name="has_been_removed">%2$s heeft je uit %1$s gezet</string>
     <string name="has_been_banned">%2$s heeft je uit %1$s verbannen</string>
     <string name="reason_colon">Reden: %1$s</string>
     <string name="avatar">Avatar</string>
@@ -436,7 +433,6 @@
     <string name="settings_show_read_receipts">Leesbevestigingen weergeven</string>
     <string name="settings_show_read_receipts_summary">Tik op de leesbevestigingen voor een uitgebreide lijst.</string>
     <string name="settings_show_join_leave_messages">Toetredingen en verlatingen weergeven</string>
-    <string name="settings_show_join_leave_messages_summary">Meldingen over uitnodigingen, verwijderingen en verbanningen worden altijd weergegeven.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Accountgebeurtenissen weergeven</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Omvat veranderingen in avatar en weergavenaam.</string>
     <string name="title_activity_keys_backup_setup">Sleutelback-up</string>
@@ -779,7 +775,6 @@
     <string name="notice_room_invite_no_invitee_by_you">Je uitnodiging</string>
     <string name="notice_room_ban_with_reason_by_you">Je hebt %1$s verbannen. Reden: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Je hebt de verbanning van %1$s opgeheven. Reden: %2$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Je hebt %1$s eruit getrapt. Reden: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">Je hebt de uitnodiging geweigerd. Reden: %1$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Je bent vertrokken. Reden: %1$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s is vertrokken. Reden: %2$s</string>
@@ -825,7 +820,6 @@
     <string name="notice_room_withdraw_by_you">Je hebt de uitnodiging van %1$s ingetrokken</string>
     <string name="notice_room_ban_by_you">Je hebt %1$s verbannen</string>
     <string name="notice_room_unban_by_you">Je hebt de verbanning van %1$s opgeheven</string>
-    <string name="notice_room_remove_by_you">Je hebt %1$s verwijderd</string>
     <string name="notice_direct_room_join_by_you">Je sloot je aan</string>
     <string name="notice_direct_room_join">%1$s sluit aan</string>
     <string name="notice_room_join_by_you">Je hebt de kamer betreden</string>

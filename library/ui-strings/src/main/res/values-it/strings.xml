@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s è entrato/a nella stanza</string>
     <string name="notice_room_leave">%1$s è uscito/a dalla stanza</string>
     <string name="notice_room_reject">%1$s ha rifiutato l\'invito</string>
-    <string name="notice_room_remove">%1$s ha buttato fuori %2$s</string>
     <string name="notice_room_unban">%1$s ha rimosso il ban nei confronti di %2$s</string>
     <string name="notice_room_ban">%1$s ha bannato %2$s</string>
     <string name="notice_room_withdraw">%1$s ha revocato l\'invito a %2$s</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s è entrato/a nella stanza. Motivo: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s è uscito/a dalla stanza. Motivo: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s ha rifiutato l\'invito. Motivo: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s ha cacciato fuori %2$s. Motivo: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s ha riammesso %2$s. Motivo: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s ha bannato %2$s. Motivo: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s ha accettato l\'invito per %2$s. Motivo: %3$s</string>
@@ -89,7 +87,6 @@
     <string name="notice_room_join_by_you">Sei entrato/a nella stanza</string>
     <string name="notice_room_leave_by_you">Sei uscito/a dalla stanza</string>
     <string name="notice_room_reject_by_you">Hai rifiutato l\'invito</string>
-    <string name="notice_room_remove_by_you">Hai buttato fuori %1$s</string>
     <string name="notice_room_unban_by_you">Hai rimosso il ban nei confronti di %1$s</string>
     <string name="notice_room_ban_by_you">Hai bannato %1$s</string>
     <string name="notice_room_withdraw_by_you">Hai revocato l\'invito a %1$s</string>
@@ -132,7 +129,6 @@
     <string name="notice_room_join_with_reason_by_you">Sei entrato/a nella stanza. Motivo: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">Sei uscito/a dalla stanza. Motivo: %1$s</string>
     <string name="notice_room_reject_with_reason_by_you">Hai rifiutato l\'invito. Motivo: %1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Hai cacciato %1$s. Motivo: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Hai riammesso %1$s. Motivo: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Hai bannato %1$s. Motivo: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Hai accettato l\'invito per %1$s. Motivo: %2$s</string>
@@ -498,7 +494,6 @@
     <string name="group_details_home">Home</string>
     <string name="rooms">Stanze</string>
     <string name="invited">Invitato/a</string>
-    <string name="has_been_removed">%2$s ti ha buttato fuori da %1$s</string>
     <string name="has_been_banned">%2$s ti ha bannato da %1$s</string>
     <string name="reason_colon">Motivo: %1$s</string>
     <string name="avatar">Avatar</string>
@@ -578,7 +573,6 @@
     <string name="settings_show_read_receipts">Mostra le conferme di lettura</string>
     <string name="settings_show_read_receipts_summary">Clicca sulle conferme di lettura per vederne l\'elenco dettagliato.</string>
     <string name="settings_show_join_leave_messages">Mostra entrata ed uscita degli utenti</string>
-    <string name="settings_show_join_leave_messages_summary">Inviti, rimozioni e ban non vengono considerati.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Mostra i cambiamenti degli account</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Includi cambiamenti dell\'avatar e del nome visualizzato.</string>
     <string name="settings_password">Password</string>

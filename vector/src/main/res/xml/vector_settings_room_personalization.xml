@@ -2,7 +2,7 @@
 <androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <im.vector.app.core.preference.VectorPreferenceCategory
+    <im.vector.app.core.preference.VectorPreferenceCategoryWithAction
         android:key="SETTINGS_ROOM_PERSONALIZATION_CATEGORY_KEY"
         android:title="@string/room_personalization_title">
 
@@ -18,6 +18,65 @@
             android:key="SETTINGS_ROOM_PERSONALIZATION_DISPLAY_NAME_KEY"
             android:persistent="false"
             android:title="@string/settings_display_name" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategoryWithAction>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_ROOM_MEDIA_CATEGORY_KEY"
+        android:title="@string/room_personalization_media_category">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/room_media_preview_modes"
+            android:entryValues="@array/room_media_preview_mode_values"
+            android:key="SETTINGS_ROOM_MEDIA_PREVIEW_KEY"
+            android:persistent="false"
+            android:title="@string/room_personalization_media_preview" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_ROOM_REDACTION_CATEGORY_KEY"
+        android:title="@string/room_personalization_redaction_category">
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_REDACTION_PRESERVE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_preserve" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_REDACTION_PRESERVE_MEDIA_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_preserve_media" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/room_redaction_max_media_sizes"
+            android:entryValues="@array/room_redaction_max_media_size_values"
+            android:key="SETTINGS_ROOM_REDACTION_MAX_MEDIA_SIZE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_max_media_size" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_REDACTION_WIFI_ONLY_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_wifi_only" />
+
+        <im.vector.app.core.preference.VectorListPreference
+            android:entries="@array/redaction_inherit_bools"
+            android:entryValues="@array/redaction_inherit_bool_values"
+            android:key="SETTINGS_ROOM_REDACTION_CLEAR_KEY"
+            android:persistent="false"
+            android:title="@string/settings_redaction_clear_with_app_cache" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_ROOM_REDACTION_CLEAR_NOW_KEY"
+            android:persistent="false"
+            android:title="@string/room_personalization_redaction_clear_media_now" />
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 

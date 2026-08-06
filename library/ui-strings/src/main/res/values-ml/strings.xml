@@ -241,8 +241,6 @@
     <string name="ssl_logout_account">പുറത്തിറങ്ങുക</string>
     <string name="logout">പുറത്തിറങ്ങുക</string>
     <string name="title_activity_keys_backup_restore">കീ ബാക്കപ്പ് ഉപയൊഗിക്കൂ</string>
-    <string name="notice_room_remove_by_you">നിങ്ങൾ %1$s-നെ(യെ) പുറത്താക്കി</string>
-    <string name="notice_room_remove">%1$s %2$s-നെ(യെ) പുറത്താക്കി</string>
     <string name="notice_direct_room_join_by_you">നിങ്ങൾ ചേർന്നു</string>
     <string name="notice_direct_room_join">%1$s ചേർന്നു</string>
     <string name="notice_room_join_by_you">നിങ്ങൾ മുറിയിൽ ചേർന്നു</string>
@@ -350,8 +348,6 @@
     <string name="notice_room_ban_with_reason">%1$s %2$s ന്റെ വിലക്ക് നീക്കി. കാരണം: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">നിങ്ങൾ %1$sന്റെ വിലക്ക് നീക്കി. കാരണം: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s %2$sന്റെ വിലക്ക് നീക്കി. കാരണം: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">നിങ്ങൾ %1$sനെ പുറത്താക്കി. കാരണം:%2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s %2$sനെ പുറത്താക്കി. കാരണം: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">നിങ്ങൾ ക്ഷണം നിരസിച്ചു. കാരണം: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s ക്ഷണം നിരസിച്ചു. കാരണം: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">നിങ്ങൾ ഉപേക്ഷിച്ചു. കാരണം: %1$s</string>

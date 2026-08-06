@@ -49,7 +49,9 @@ data class MessageInformationData(
         val sendStateDecoration: SendStateDecoration = SendStateDecoration.NONE,
         val isFirstFromThisSender: Boolean = false,
         val isLastFromThisSender: Boolean = false,
-        val messageType: String? = null
+        val messageType: String? = null,
+        // Redacted message whose original content was restored; drives the "this was deleted" styling.
+        val isRevealedRedaction: Boolean = false
 ) : Parcelable {
 
     val matrixItem: MatrixItem

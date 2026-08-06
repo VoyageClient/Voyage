@@ -8,7 +8,6 @@
     <string name="notice_room_invite">%1$s ha convidat a %2$s</string>
     <string name="notice_room_invite_you">%1$s t\'ha convidat</string>
     <string name="notice_room_reject">%1$s ha rebutjat la invitació</string>
-    <string name="notice_room_remove">%1$s ha expulsat %2$s</string>
     <string name="notice_display_name_changed_from">%1$s ha canviat el seu àlies de %2$s a %3$s</string>
     <string name="notice_display_name_removed">%1$s ha eliminat l\'àlies (era %2$s)</string>
     <string name="notice_room_topic_changed">%1$s ha canviat el tema a: %2$s</string>
@@ -91,9 +90,6 @@
     <string name="notice_direct_room_leave_by_you">Has marxat de la sala</string>
     <string name="notice_direct_room_leave">%1$s ha marxat de la sala</string>
     <string name="notice_room_leave_by_you">Has marxat de la sala</string>
-    <string name="notice_room_remove_by_you">Has expulsat %1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Has expulsat %1$s. Motiu: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s ha expulsat %2$s. Motiu: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">Has rebutjat la invitació. Motiu: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s ha rebutjat la invitació. Motiu: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Has marxat. Motiu: %1$s</string>
@@ -474,7 +470,6 @@
     <string name="group_details_home">Inici</string>
     <string name="rooms">Sales</string>
     <string name="invited">Convidat</string>
-    <string name="has_been_removed">%2$s t\'ha expulsat de %1$s</string>
     <string name="has_been_banned">%2$s l\'ha expulsat de la sala %1$s</string>
     <string name="reason_colon">Raó: %1$s</string>
     <string name="loading">Carregant…</string>
@@ -573,7 +568,6 @@
     <string name="settings_send_typing_notifs_summary">Feu saber a altres usuaris que esteu escrivint.</string>
     <string name="settings_send_markdown">Format en Markdown</string>
     <string name="settings_send_markdown_summary">Dóna format a missatges utilitzant la sintaxi Markdown abans d\'enviar-los. Això et permet l\'ús de format avançat com ara l\'ús d\'asteriscs per mostrar un text en cursiva.</string>
-    <string name="settings_show_join_leave_messages_summary">No afecta a invitacions, expulsions i vetos.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Mostra els esdeveniments del compte</string>
     <string name="auth_accept_policies">Reviseu i accepteu les polítiques d\'aquest servidor base:</string>
     <string name="settings_troubleshoot_diagnostic_run_button_title">Executa les proves</string>

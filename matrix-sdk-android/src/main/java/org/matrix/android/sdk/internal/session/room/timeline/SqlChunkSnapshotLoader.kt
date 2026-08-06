@@ -95,4 +95,17 @@ internal class SqlChunkSnapshotLoader(
             database.eventAnnotationsSummaryQueries.selectSummariesForRoom(roomId)
                     .asFlow()
                     .map { }
+
+    /**
+     * Emits when anyone's read receipt moves in this room. A sync carrying only an m.receipt writes
+     * neither timeline_event nor the annotation summaries, so nothing else notices.
+     *
+     * Unlike the signal-only flows above, this one runs its query so the consumer can tell a change in
+     * THIS room from the table-level notifications SQLDelight fires for every joined room.
+     */
+    fun readReceiptChangesFlow(roomId: String): Flow<List<String>> =
+            database.readReceiptQueries.selectReceiptStateInRoom(roomId)
+                    .asFlow()
+                    .mapToList(dispatcher)
+                    .map { rows -> rows.map { "${it.event_id}|${it.user_id}|${it.origin_server_ts}" } }
 }
