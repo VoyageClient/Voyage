@@ -9,6 +9,7 @@ package org.matrix.android.sdk.internal.session.profile
 
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
+import org.matrix.android.sdk.internal.network.shouldFallBackToUnstableEndpoint
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
 
@@ -30,7 +31,7 @@ internal class DefaultDeleteProfileFieldTask @Inject constructor(
                 profileAPI.deleteProfileField(params.userId, params.keyName)
             }
         } catch (failure: Throwable) {
-            if (failure.shouldFallBackToUnstableProfileApi()) {
+            if (failure.shouldFallBackToUnstableEndpoint()) {
                 executeRequest(globalErrorReceiver) {
                     profileAPI.deleteProfileFieldUnstable(params.userId, params.keyName)
                 }

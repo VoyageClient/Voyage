@@ -27,7 +27,7 @@ internal object NetworkConstants {
 
     // Media
     private const val URI_API_MEDIA_PREFIX_PATH = "_matrix/media"
-    const val URI_API_MEDIA_PREFIX_PATH_R0 = "$URI_API_MEDIA_PREFIX_PATH/r0/"
+    const val URI_API_MEDIA_PREFIX_PATH_V3 = "$URI_API_MEDIA_PREFIX_PATH/v3/"
 
     // Identity server
     const val URI_IDENTITY_PREFIX_PATH = "_matrix/identity/v2"

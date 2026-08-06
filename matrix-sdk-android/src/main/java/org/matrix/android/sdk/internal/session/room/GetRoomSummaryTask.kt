@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.room
 import org.matrix.android.sdk.api.session.room.model.RoomStrippedState
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
+import org.matrix.android.sdk.internal.network.shouldFallBackToUnstableEndpoint
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
 
@@ -35,8 +36,18 @@ internal class DefaultGetRoomSummaryTask @Inject constructor(
 ) : GetRoomSummaryTask {
 
     override suspend fun execute(params: GetRoomSummaryTask.Params): RoomStrippedState {
-        return executeRequest(globalErrorReceiver) {
-            roomAPI.getRoomSummary(params.roomId, params.viaServers)
+        return try {
+            executeRequest(globalErrorReceiver) {
+                roomAPI.getRoomSummary(params.roomId, params.viaServers)
+            }
+        } catch (failure: Throwable) {
+            if (failure.shouldFallBackToUnstableEndpoint()) {
+                executeRequest(globalErrorReceiver) {
+                    roomAPI.getRoomSummaryUnstable(params.roomId, params.viaServers)
+                }
+            } else {
+                throw failure
+            }
         }
     }
 }

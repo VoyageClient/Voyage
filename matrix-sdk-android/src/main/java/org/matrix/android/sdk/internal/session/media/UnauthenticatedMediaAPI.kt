@@ -27,7 +27,7 @@ internal interface UnauthenticatedMediaAPI {
      * Retrieve the configuration of the content repository
      * Ref: https://matrix.org/docs/spec/client_server/r0.6.1#get-matrix-media-r0-config
      */
-    @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "config")
+    @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_V3 + "config")
     suspend fun getMediaConfig(): GetMediaConfigResult
 
     /**
@@ -38,6 +38,6 @@ internal interface UnauthenticatedMediaAPI {
      * @param ts The preferred point in time to return a preview for. The server may return a newer version
      * if it does not have the requested version available.
      */
-    @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "preview_url")
+    @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_V3 + "preview_url")
     suspend fun getPreviewUrlData(@Query("url") url: String, @Query("ts") ts: Long?): JsonDict
 }
