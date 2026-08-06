@@ -56,24 +56,29 @@ internal suspend fun okhttp3.Call.awaitResponse(): okhttp3.Response {
  * Convert a retrofit Response to a Failure, and eventually parse errorBody to convert it to a [MatrixError].
  */
 internal fun <T> Response<T>.toFailure(globalErrorReceiver: GlobalErrorReceiver?): Failure {
-    return toFailure(errorBody(), code(), globalErrorReceiver)
+    return toFailure(errorBody(), code(), globalErrorReceiver, headers().get(HttpHeaders.RetryAfter))
 }
 
 /**
  * Convert a HttpException to a Failure, and eventually parse errorBody to convert it to a [MatrixError].
  */
 internal fun HttpException.toFailure(globalErrorReceiver: GlobalErrorReceiver?): Failure {
-    return toFailure(response()?.errorBody(), code(), globalErrorReceiver)
+    return toFailure(response()?.errorBody(), code(), globalErrorReceiver, response()?.headers()?.get(HttpHeaders.RetryAfter))
 }
 
 /**
  * Convert a okhttp3 Response to a Failure, and eventually parse errorBody to convert it to a [MatrixError].
  */
 internal fun okhttp3.Response.toFailure(globalErrorReceiver: GlobalErrorReceiver?): Failure {
-    return toFailure(body(), code(), globalErrorReceiver)
+    return toFailure(body(), code(), globalErrorReceiver, header(HttpHeaders.RetryAfter))
 }
 
-private fun toFailure(errorBody: ResponseBody?, httpCode: Int, globalErrorReceiver: GlobalErrorReceiver?): Failure {
+private fun toFailure(
+        errorBody: ResponseBody?,
+        httpCode: Int,
+        globalErrorReceiver: GlobalErrorReceiver?,
+        retryAfterHeader: String?
+): Failure {
     if (errorBody == null) {
         return Failure.Unknown(RuntimeException("errorBody should not be null"))
     }
@@ -84,6 +89,7 @@ private fun toFailure(errorBody: ResponseBody?, httpCode: Int, globalErrorReceiv
 
     try {
         val matrixError = matrixErrorAdapter.fromJson(errorBodyStr)
+                ?.withRetryAfterHeader(retryAfterHeader)
 
         if (matrixError != null) {
             // Also send following errors to the globalErrorReceiver, for a global management

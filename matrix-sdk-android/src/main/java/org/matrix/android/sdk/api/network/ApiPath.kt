@@ -49,20 +49,20 @@ enum class ApiPath(val path: String, val method: String) {
     GET_KEY_CHANGES(NetworkConstants.URI_API_PREFIX_PATH_R0 + "keys/changes", "GET"),
 
     // RoomKeysApi
-    CREATE_KEYS_BACKUP_VERSION(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/version", "POST"),
-    GET_KEYS_BACKUP_LAST_VERSION(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/version", "GET"),
-    GET_KEYS_BACKUP_VERSION(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/version/{version}", "GET"),
-    UPDATE_KEYS_BACKUP_VERSION(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/version/{version}", "PUT"),
-    STORE_ROOM_SESSION_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys/{roomId}/{sessionId}", "PUT"),
-    STORE_ROOM_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys/{roomId}", "PUT"),
-    STORE_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys", "PUT"),
-    GET_ROOM_SESSION_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys/{roomId}/{sessionId}", "GET"),
-    GET_ROOM_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys/{roomId}", "GET"),
-    GET_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys", "GET"),
-    DELETE_ROOM_SESSION_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys/{roomId}/{sessionId}", "DELETE"),
-    DELETE_ROOM_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys/{roomId}", "DELETE"),
-    DELETE_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/keys", "DELETE"),
-    DELETE_BACKUP(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "room_keys/version/{version}", "DELETE"),
+    CREATE_KEYS_BACKUP_VERSION(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/version", "POST"),
+    GET_KEYS_BACKUP_LAST_VERSION(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/version", "GET"),
+    GET_KEYS_BACKUP_VERSION(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/version/{version}", "GET"),
+    UPDATE_KEYS_BACKUP_VERSION(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/version/{version}", "PUT"),
+    STORE_ROOM_SESSION_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys/{roomId}/{sessionId}", "PUT"),
+    STORE_ROOM_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys/{roomId}", "PUT"),
+    STORE_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys", "PUT"),
+    GET_ROOM_SESSION_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys/{roomId}/{sessionId}", "GET"),
+    GET_ROOM_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys/{roomId}", "GET"),
+    GET_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys", "GET"),
+    DELETE_ROOM_SESSION_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys/{roomId}/{sessionId}", "DELETE"),
+    DELETE_ROOM_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys/{roomId}", "DELETE"),
+    DELETE_SESSIONS_DATA(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/keys", "DELETE"),
+    DELETE_BACKUP(NetworkConstants.URI_API_PREFIX_PATH_V3 + "room_keys/version/{version}", "DELETE"),
 
     // AccountApi
     CHANGE_PASSWORD(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/password", "POST"),
@@ -107,8 +107,8 @@ enum class ApiPath(val path: String, val method: String) {
     IDENTITY_REGISTER(NetworkConstants.URI_IDENTITY_PATH_V2 + "account/register", "POST"),
 
     // MediaApi
-    GET_MEDIA_CONFIG(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "config", "GET"),
-    GET_PREVIEW_URL_DATA(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "preview_url", "GET"),
+    GET_MEDIA_CONFIG(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_V3 + "config", "GET"),
+    GET_PREVIEW_URL_DATA(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_V3 + "preview_url", "GET"),
 
     // OpenIdApi
     OPEN_ID_TOKEN(NetworkConstants.URI_API_PREFIX_PATH_R0 + "user/{userId}/openid/request_token", "POST"),

@@ -7,10 +7,9 @@
 
 package org.matrix.android.sdk.internal.session.profile
 
-import org.matrix.android.sdk.api.failure.Failure
-import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
+import org.matrix.android.sdk.internal.network.shouldFallBackToUnstableEndpoint
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
 
@@ -34,7 +33,7 @@ internal class DefaultSetProfileFieldTask @Inject constructor(
                 profileAPI.setProfileField(params.userId, params.keyName, body)
             }
         } catch (failure: Throwable) {
-            if (failure.shouldFallBackToUnstableProfileApi()) {
+            if (failure.shouldFallBackToUnstableEndpoint()) {
                 executeRequest(globalErrorReceiver) {
                     profileAPI.setProfileFieldUnstable(params.userId, params.keyName, body)
                 }
@@ -43,11 +42,4 @@ internal class DefaultSetProfileFieldTask @Inject constructor(
             }
         }
     }
-}
-
-// Servers without the stable MSC4133 route answer 404 (often without an M_NOT_FOUND body,
-// so Throwable.is404() would not match) or M_UNRECOGNIZED.
-internal fun Throwable.shouldFallBackToUnstableProfileApi(): Boolean {
-    return this is Failure.ServerError &&
-            (httpCode == 404 || error.code == MatrixError.M_UNRECOGNIZED)
 }
