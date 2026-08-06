@@ -73,34 +73,40 @@ class EmojiKeyboardController(
                 im.vector.lib.strings.CommonStrings.action_delete,
                 onPressChanged = { pressed ->
                     backspaceHeld = pressed
-                    if (!pressed && popup.isShowing && currentKeyboardHeight <= MIN_KEYBOARD_HEIGHT) scheduleClose()
+                    if (!pressed) applyKeyboardHeight(currentKeyboardHeight)
                 },
         ) { backspace() }
         heightProvider.onKeyboardHeightChanged = { height ->
             currentKeyboardHeight = height
-            if (height > MIN_KEYBOARD_HEIGHT) {
-                rootView.removeCallbacks(closeRunnable)
-                lastKeyboardHeight = height
-                if (pendingShow) {
-                    pendingShow = false
-                    showPopup(height)
-                } else if (popup.isShowing) {
-                    popup.update(ViewGroup.LayoutParams.MATCH_PARENT, height)
-                }
-            } else if (popup.isShowing) {
-                scheduleClose()
-            } else {
-                lastKeyboardHeight = 0
-            }
+            // Every delete restarts the IME, which reports a burst of transient heights (including a
+            // momentary 0) as its window tears down and comes back. Resizing the panel to those pulls it
+            // out from under itself and shows the keyboard through the gap, and a held backspace repeats
+            // faster than any debounce — so freeze the panel while the key is down and re-sync on release.
+            if (!backspaceHeld) applyKeyboardHeight(height)
         }
         rootView.post { heightProvider.start() }
     }
 
-    // The IME restarts (briefly reporting height 0) on each edit, so only treat a sustained dip as a real close
-    // (back button). A held backspace restarts it faster than any debounce, so wait until the key is released.
+    private fun applyKeyboardHeight(height: Int) {
+        if (height > MIN_KEYBOARD_HEIGHT) {
+            rootView.removeCallbacks(closeRunnable)
+            lastKeyboardHeight = height
+            if (pendingShow) {
+                pendingShow = false
+                showPopup(height)
+            } else if (popup.isShowing) {
+                popup.update(ViewGroup.LayoutParams.MATCH_PARENT, height)
+            }
+        } else if (popup.isShowing) {
+            scheduleClose()
+        } else {
+            lastKeyboardHeight = 0
+        }
+    }
+
+    // The IME also restarts on ordinary edits, so only treat a sustained dip as a real close (back button).
     private fun scheduleClose() {
         rootView.removeCallbacks(closeRunnable)
-        if (backspaceHeld) return
         rootView.postDelayed(closeRunnable, KEYBOARD_CLOSE_DEBOUNCE_MS)
     }
 

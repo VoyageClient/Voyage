@@ -45,6 +45,8 @@ import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.shouldHideMediaPreview
+import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
@@ -72,6 +74,8 @@ class MessageActionsEpoxyController @Inject constructor(
         private val errorFormatter: ErrorFormatter,
         private val spanUtils: SpanUtils,
         private val eventDetailsFormatter: EventDetailsFormatter,
+        val redactedContentRestorer: RedactedContentRestorer,
+        val preservedAttachmentResolver: PreservedAttachmentResolver,
         private val vectorPreferences: VectorPreferences,
         private val dateFormatter: VectorDateFormatter,
         private val urlMapProvider: UrlMapProvider,
@@ -108,13 +112,16 @@ class MessageActionsEpoxyController @Inject constructor(
         val formattedDate = dateFormatter.format(date, DateFormatKind.MESSAGE_DETAIL)
         // Don't linkify membership notices: their text can contain a raw matrix id (e.g. a knock from a
         // user with no display name) that would otherwise render as a spurious clickable link.
-        val body = if (state.timelineEvent()?.root?.getClearType() == EventType.STATE_ROOM_MEMBER) {
+        val body = if (state.previewEvent?.root?.getClearType() == EventType.STATE_ROOM_MEMBER) {
             state.messageBody
         } else {
             state.messageBody.linkify(host.listener)
         }
         val bindingOptions = spanUtils.getBindingOptions(body)
         val locationUiData = buildLocationUiData(state)
+        // Everything above the first divider describes the message itself, so it all carries the mark —
+        // but only once the redacted content is actually being shown, not over the placeholder.
+        val showsRestoredContent = state.timelineEvent()?.let { host.redactedContentRestorer.isShowingRestoredContent(it) } == true
 
         bottomSheetMessagePreviewItem {
             id("preview")
@@ -122,21 +129,26 @@ class MessageActionsEpoxyController @Inject constructor(
             matrixItem(state.informationData.matrixItem)
             movementMethod(createLinkMovementMethod(host.listener))
             imageContentRenderer(host.imageContentRenderer)
-            data(state.timelineEvent()?.buildImageContentRendererData(host.dimensionConverter.dpToPx(66)))
+            data(
+                    state.previewEvent?.buildImageContentRendererData(host.dimensionConverter.dpToPx(66))
+                            // A redaction purged the server copy; the local one is all that can render.
+                            ?.copy(preservedFile = host.preservedAttachmentResolver.fileFor(state.roomId, state.eventId))
+            )
             hideMedia(
                     host.activeSessionHolder.getSafeActiveSession()?.let { session ->
-                        state.timelineEvent()?.let { shouldHideMediaPreview(it, session, host.vectorPreferences, host.mediaContentRevealManager) }
+                        state.previewEvent?.let { shouldHideMediaPreview(it, session, host.vectorPreferences, host.mediaContentRevealManager) }
                     }.orFalse()
             )
             hideMediaSolidColor(host.vectorPreferences.useSolidColorForHiddenMedia())
             userClicked { host.listener?.didSelectMenuAction(EventSharedAction.OpenUserProfile(state.informationData.senderId)) }
             bindingOptions(bindingOptions)
             body(body.prepareForDisplay().toEpoxyCharSequence())
-            redacted(state.timelineEvent()?.root?.isRedacted() == true)
-            bodyDetails(host.eventDetailsFormatter.format(state.timelineEvent()?.root)?.toEpoxyCharSequence())
+            redacted(state.timelineEvent()?.let { it.root.isRedacted() && !host.redactedContentRestorer.isShowingRestoredContent(it) } == true)
+            redactedTint(showsRestoredContent)
+            bodyDetails(host.eventDetailsFormatter.format(state.previewEvent?.root)?.toEpoxyCharSequence())
             time(formattedDate)
             locationUiData(locationUiData)
-            tableHtml(host.computeTableHtml(state.timelineEvent()))
+            tableHtml(host.computeTableHtml(state.previewEvent))
             richBodyRenderer(host.richMessageBodyRenderer)
             htmlPostProcessors(arrayOf(host.pillsPostProcessorFactory.create(state.roomId)))
         }
@@ -152,6 +164,7 @@ class MessageActionsEpoxyController @Inject constructor(
                     ?: stringProvider.getString(CommonStrings.unable_to_send_message)
             bottomSheetSendStateItem {
                 id("send_state")
+                redactedTint(showsRestoredContent)
                 showProgress(false)
                 text(errorMessage)
                 drawableStart(R.drawable.ic_warning_badge)
@@ -159,6 +172,7 @@ class MessageActionsEpoxyController @Inject constructor(
         } else if (sendState?.isSending().orFalse()) {
             bottomSheetSendStateItem {
                 id("send_state")
+                redactedTint(showsRestoredContent)
                 showProgress(true)
                 accentTint(true)
                 text(host.stringProvider.getString(CommonStrings.event_status_sending_message))
@@ -169,6 +183,7 @@ class MessageActionsEpoxyController @Inject constructor(
             E2EDecoration.WARN_IN_CLEAR -> {
                 bottomSheetSendStateItem {
                     id("e2e_clear")
+                    redactedTint(showsRestoredContent)
                     showProgress(false)
                     text(host.stringProvider.getString(CommonStrings.unencrypted))
                     drawableStart(R.drawable.ic_shield_warning_small)
@@ -178,6 +193,7 @@ class MessageActionsEpoxyController @Inject constructor(
             E2EDecoration.WARN_SENT_BY_UNKNOWN -> {
                 bottomSheetSendStateItem {
                     id("e2e_unverified")
+                    redactedTint(showsRestoredContent)
                     showProgress(false)
                     text(host.stringProvider.getString(CommonStrings.encrypted_unverified))
                     drawableStart(R.drawable.ic_shield_warning_small)
@@ -186,6 +202,7 @@ class MessageActionsEpoxyController @Inject constructor(
             E2EDecoration.WARN_UNSAFE_KEY -> {
                 bottomSheetSendStateItem {
                     id("e2e_unsafe")
+                    redactedTint(showsRestoredContent)
                     showProgress(false)
                     text(host.stringProvider.getString(CommonStrings.key_authenticity_not_guaranteed))
                     drawableStart(R.drawable.ic_shield_gray)
@@ -194,6 +211,7 @@ class MessageActionsEpoxyController @Inject constructor(
             E2EDecoration.WARN_SENT_BY_DELETED_SESSION -> {
                 bottomSheetSendStateItem {
                     id("e2e_deleted")
+                    redactedTint(showsRestoredContent)
                     showProgress(false)
                     text(host.stringProvider.getString(CommonStrings.encrypted_by_deleted))
                     drawableStart(R.drawable.ic_shield_warning_small)
@@ -262,9 +280,9 @@ class MessageActionsEpoxyController @Inject constructor(
         // No map renderer on KitKat (maplibre needs API 21); the preview falls back to the notice
         // body ("… sent a location."), matching how the timeline renders location there.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null
-        if (state.timelineEvent()?.root?.isLocationMessage() != true) return null
+        if (state.previewEvent?.root?.isLocationMessage() != true) return null
 
-        val locationContent = state.timelineEvent()?.root?.getClearContent().toModel<MessageLocationContent>(catchError = true)
+        val locationContent = state.previewEvent?.root?.getClearContent().toModel<MessageLocationContent>(catchError = true)
                 ?: return null
         val locationUrl = locationContent.toLocationData()
                 ?.let { urlMapProvider.buildStaticMapUrl(it, INITIAL_MAP_ZOOM_IN_TIMELINE, 1200, 800) }

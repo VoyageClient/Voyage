@@ -48,6 +48,7 @@ internal object HomeServerCapabilitiesMapper {
                 canUseThreadReadReceiptsAndNotifications = entity.canUseThreadReadReceiptsAndNotifications,
                 canRemotelyTogglePushNotificationsOfDevices = entity.canRemotelyTogglePushNotificationsOfDevices,
                 canRedactRelatedEvents = entity.canRedactEventWithRelations,
+                canViewUnredactedContent = entity.canViewUnredactedContent,
                 externalAccountManagementUrl = entity.externalAccountManagementUrl,
                 externalAccountManagementSupportedActions = entity.externalAccountManagementSupportedActions?.split(","),
                 authenticationIssuer = entity.authenticationIssuer,

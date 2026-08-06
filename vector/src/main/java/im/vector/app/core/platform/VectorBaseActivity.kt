@@ -11,6 +11,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.TypedValue
@@ -23,6 +24,7 @@ import android.view.WindowManager
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.CallSuper
+import androidx.annotation.ColorInt
 import androidx.annotation.MainThread
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
@@ -449,6 +451,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
                             WindowInsetsCompat.Type.ime()
             )
             systemBarsTopInset = systemBars.top
+            navigationBarBottomInset = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
             v.updatePadding(
                     systemBars.left,
                     if (drawUnderStatusBar) 0 else systemBars.top,
@@ -462,6 +465,53 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
     /** Last dispatched status-bar inset (View.getRootWindowInsets is API 23+, this works on all). */
     var systemBarsTopInset: Int = 0
         private set
+
+    /**
+     * Last dispatched navigation-bar inset. Kept apart from the root's bottom padding, which is the
+     * larger of this and the keyboard, so callers painting the navigation-bar strip don't follow the
+     * keyboard up over the content.
+     */
+    var navigationBarBottomInset: Int = 0
+        private set
+
+    private var navigationBarStrip: LayerDrawable? = null
+
+    /**
+     * Paint the strip under the navigation bar in [color].
+     *
+     * The root is padded by the system-bar insets and consumes them, so a screen whose own bottom edge is
+     * a lighter surface than the window (the classic composer, the room list's tab bar) otherwise stops
+     * short of the screen edge with the window background showing beneath it. Only that strip is painted;
+     * the status-bar one at the top keeps the window background.
+     *
+     * The strip's height comes from the navigation-bar inset rather than the root's bottom padding, which
+     * is the larger of that and the keyboard: sized from the padding, an open keyboard pushes the strip's
+     * top edge up over the content.
+     *
+     * Its width follows the root's horizontal padding, so it lines up under the surface it continues rather
+     * than running the full display width: in landscape the content stops short of the display cutout, and
+     * a full-width strip carried the colour out past it into a region the screen above leaves bare.
+     */
+    fun tintNavigationBarStrip(@ColorInt color: Int) {
+        navigationBarStrip?.let { layers ->
+            (layers.getDrawable(1) as? ColorDrawable)?.color = color
+            updateNavigationBarStrip()
+            return
+        }
+        val windowBackground = ThemeUtils.getColor(this, android.R.attr.colorBackground)
+        val layers = LayerDrawable(arrayOf(ColorDrawable(windowBackground), ColorDrawable(color)))
+        navigationBarStrip = layers
+        rootView.background = layers
+        rootView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateNavigationBarStrip() }
+        updateNavigationBarStrip()
+    }
+
+    private fun updateNavigationBarStrip() {
+        val layers = navigationBarStrip ?: return
+        val strip = navigationBarBottomInset.coerceIn(0, rootView.height)
+        layers.setLayerInset(1, rootView.paddingLeft, rootView.height - strip, rootView.paddingRight, 0)
+        rootView.invalidate()
+    }
 
     private var drawUnderStatusBar = false
 

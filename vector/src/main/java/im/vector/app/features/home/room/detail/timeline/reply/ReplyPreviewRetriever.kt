@@ -29,8 +29,9 @@ import im.vector.app.features.html.SpanUtils
 import im.vector.app.features.html.VectorHtmlCompressor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.pgp.PgpDecryptor
-import im.vector.app.features.settings.MediaPreviewMode
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.app.features.settings.VectorPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,7 +45,6 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
-import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -77,6 +77,7 @@ class ReplyPreviewRetriever(
         val imageContentRenderer: ImageContentRenderer,
         val richMessageBodyRenderer: RichMessageBodyRenderer,
         val pgpDecryptor: PgpDecryptor,
+        val redactedContentRestorer: RedactedContentRestorer,
 ) {
     private data class ReplyPreviewUiState(
             val latestRepliedToEventId: String?,
@@ -91,7 +92,7 @@ class ReplyPreviewRetriever(
     }
 
     private fun TimelineEvent.getCacheId(): String {
-        return if (root.isRedacted()) {
+        return if (root.isRedacted() && !redactedContentRestorer.isShowingRestoredContent(this)) {
             "REDACTED"
         } else {
             "L:${getLatestEventId()}"
@@ -131,7 +132,13 @@ class ReplyPreviewRetriever(
 
     private val threadsEnabled = vectorPreferences.areThreadMessagesEnabled()
 
+    // Retained so a reveal can re-resolve the events it affects without waiting for the next snapshot; the
+    // view model holds this same list.
+    @Volatile
+    private var lastSnapshot: List<TimelineEvent> = emptyList()
+
     fun invalidateEventsFromSnapshot(snapshot: List<TimelineEvent>) {
+        lastSnapshot = snapshot
         ignoredUserIds = session.userService().getIgnoredUserIds().toSet()
         val snapshotEvents = snapshot.associateBy { it.eventId }
         synchronized(data) {
@@ -152,7 +159,10 @@ class ReplyPreviewRetriever(
         textRendererFactory.create(roomId)
     }
 
-    fun getReplyTo(event: TimelineEvent) {
+    fun getReplyTo(rawEvent: TimelineEvent) {
+        // A revealed redaction's relation only exists in the preserved copy: redaction prunes m.relates_to,
+        // so reading the pruned event reports no reply and the restored message renders as a plain one.
+        val event = redactedContentRestorer.restoreEvent(rawEvent) ?: rawEvent
         val eventId = event.timelineStableId()
         val now = System.currentTimeMillis()
 
@@ -305,6 +315,37 @@ class ReplyPreviewRetriever(
         }
     }
 
+    /**
+     * Re-resolve everything a reveal of [eventIds] (or its content arriving) can change.
+     *
+     * Two directions. A revealed event may itself *become* a reply: redaction prunes `m.relates_to`, so it
+     * was resolved as no-reply and nothing re-runs that until the next snapshot. And replies *pointing at*
+     * one of these quote content that has
+     * just been restored; there the resolved state is unchanged, so its rebuilt Epoxy model compares equal
+     * to the bound one and never re-binds, leaving the removed-message placeholder up until the row left the
+     * pool. [InReplyToView] substitutes the restored content itself, so re-delivering the state is enough.
+     */
+    fun onRevealChanged(eventIds: Collection<String>) {
+        if (eventIds.isEmpty()) return
+        val ids = eventIds.toHashSet()
+
+        val revealed = lastSnapshot.filter { it.eventId in ids }
+        if (revealed.isNotEmpty()) {
+            synchronized(data) { revealed.forEach { data.remove(it.timelineStableId()) } }
+            revealed.forEach { getReplyTo(it) }
+        }
+
+        val quoting = synchronized(data) {
+            data.filter { it.value.latestRepliedToEventId in ids }.map { it.key to it.value.previewReplyUiState }
+        }
+        if (quoting.isEmpty()) return
+        coroutineScope.launch(Dispatchers.Main) {
+            quoting.forEach { (key, state) ->
+                listeners[key].orEmpty().forEach { it.onStateUpdated(state) }
+            }
+        }
+    }
+
     // Called by the Epoxy item during binding
     fun addListener(key: String, listener: PreviewReplyRetrieverListener) {
         listeners.getOrPut(key) { mutableSetOf() }.add(listener)
@@ -334,23 +375,8 @@ class ReplyPreviewRetriever(
      *  room's media-preview setting, mirroring the main timeline. Honours a prior in-timeline reveal. */
     fun shouldHideMediaPreview(event: TimelineEvent): Boolean {
         if (event.senderInfo.userId == session.myUserId) return false
-        val hideByMode = when (vectorPreferences.getMediaPreviewMode()) {
-            MediaPreviewMode.ALWAYS_SHOW -> false
-            MediaPreviewMode.ALWAYS_HIDE -> true
-            MediaPreviewMode.PRIVATE -> !isRoomPrivate()
-            MediaPreviewMode.DIRECT -> session.roomService().getRoomSummary(roomId)?.isDirect != true
-        }
+        val hideByMode = isMediaHiddenInRoom(session.roomService().getRoomSummary(roomId), vectorPreferences)
         return hideByMode && !mediaContentRevealManager.isRevealed(event.eventId)
-    }
-
-    private fun isRoomPrivate(): Boolean {
-        return when (session.roomService().getRoomSummary(roomId)?.joinRules) {
-            RoomJoinRules.INVITE,
-            RoomJoinRules.KNOCK,
-            RoomJoinRules.RESTRICTED,
-            RoomJoinRules.PRIVATE -> true
-            else -> false
-        }
     }
 
     fun formatFallbackReply(event: TimelineEvent): CharSequence {

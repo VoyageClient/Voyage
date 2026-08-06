@@ -61,6 +61,7 @@ class ConfigureAndStartSessionUseCaseTest {
             pushRulesUpdater = fakePushRulesUpdater.instance,
             accountInfoCache = fakeAccountInfoCache,
             quickReactionsDataSource = mockk(relaxed = true),
+            redactionPreservationService = mockk(relaxed = true),
     )
 
     @Before

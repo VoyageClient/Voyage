@@ -49,6 +49,16 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 eventExists:
 SELECT 1 FROM indexed_event WHERE event_id = ? LIMIT 1;
 
+eventJson:
+SELECT event_json FROM indexed_event WHERE event_id = ? LIMIT 1;
+
+updateEventJson:
+UPDATE indexed_event SET event_json = ? WHERE event_id = ?;
+
+upsertEvent:
+INSERT OR REPLACE INTO indexed_event(event_id, room_id, sender, origin_server_ts, content_text, event_json, msgtype, mentions)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
 deleteEvent:
 DELETE FROM indexed_event WHERE event_id = ?;
 

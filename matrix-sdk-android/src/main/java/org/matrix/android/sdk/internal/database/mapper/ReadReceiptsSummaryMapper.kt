@@ -16,7 +16,9 @@
 
 package org.matrix.android.sdk.internal.database.mapper
 
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
+import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.internal.database.model.ReadReceiptsSummaryEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import javax.inject.Inject
@@ -27,9 +29,12 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
 
     fun map(readReceiptsSummaryEntity: ReadReceiptsSummaryEntity?): List<ReadReceipt> {
         readReceiptsSummaryEntity ?: return emptyList()
-        return readReceiptsSummaryEntity.readReceipts.mapNotNull { receipt ->
-            val roomMember = stores.roomMember.getByRoomAndUser(receipt.roomId, receipt.userId) ?: return@mapNotNull null
-            ReadReceipt(roomMember.asDomain(), receipt.originServerTs.toLong(), receipt.threadId)
+        return readReceiptsSummaryEntity.readReceipts.map { receipt ->
+            // Members load lazily, so a lurker who has never spoken here has no row yet. Fall back to
+            // the bare user id rather than dropping their receipt until they happen to be fetched.
+            val user = stores.roomMember.getByRoomAndUser(receipt.roomId, receipt.userId)?.asDomain()
+                    ?: RoomMemberSummary(membership = Membership.JOIN, userId = receipt.userId)
+            ReadReceipt(user, receipt.originServerTs.toLong(), receipt.threadId)
         }
     }
 }

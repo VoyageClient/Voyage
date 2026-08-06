@@ -60,6 +60,7 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_EXTERNAL_ACCOUNT_MANAGEMENT_KEY = "SETTINGS_EXTERNAL_ACCOUNT_MANAGEMENT_KEY"
 
         const val SETTINGS_CLEAR_CACHE_PREFERENCE_KEY = "SETTINGS_CLEAR_CACHE_PREFERENCE_KEY"
+        const val SETTINGS_SERVER_ADMIN_PREFERENCE_KEY = "SETTINGS_SERVER_ADMIN_PREFERENCE_KEY"
         const val SETTINGS_CLEAR_MEDIA_CACHE_PREFERENCE_KEY = "SETTINGS_CLEAR_MEDIA_CACHE_PREFERENCE_KEY"
         const val SETTINGS_CLEAR_EMOJI_CACHE_PREFERENCE_KEY = "SETTINGS_CLEAR_EMOJI_CACHE_PREFERENCE_KEY"
         const val SETTINGS_USER_SETTINGS_PREFERENCE_KEY = "SETTINGS_USER_SETTINGS_PREFERENCE_KEY"
@@ -960,10 +961,25 @@ class VectorPreferences @Inject constructor(
 
     /**
      * In which rooms incoming photos/videos are shown directly rather than behind a tap-to-reveal placeholder.
+     * A room may override the account-wide mode; passing null asks for the account-wide one.
      */
-    fun getMediaPreviewMode(): MediaPreviewMode {
+    fun getMediaPreviewMode(roomId: String? = null): MediaPreviewMode {
+        roomId?.let { getRoomMediaPreviewOverride(it) }?.let { return it }
         return MediaPreviewMode.fromValue(defaultPrefs.getString(SETTINGS_MEDIA_PREVIEW_KEY, MediaPreviewMode.ALWAYS_SHOW.value))
     }
+
+    /** null means the room inherits the account-wide mode. */
+    fun getRoomMediaPreviewOverride(roomId: String): MediaPreviewMode? {
+        return defaultPrefs.getString(roomMediaPreviewKey(roomId), null)?.let { MediaPreviewMode.fromValue(it) }
+    }
+
+    fun setRoomMediaPreviewOverride(roomId: String, mode: MediaPreviewMode?) {
+        defaultPrefs.edit {
+            if (mode == null) remove(roomMediaPreviewKey(roomId)) else putString(roomMediaPreviewKey(roomId), mode.value)
+        }
+    }
+
+    private fun roomMediaPreviewKey(roomId: String) = "${SETTINGS_MEDIA_PREVIEW_KEY}_$roomId"
 
     /**
      * Whether hidden media shows a flat solid colour instead of its blurhash (revealed on tap).

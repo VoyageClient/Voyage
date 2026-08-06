@@ -301,6 +301,12 @@
     <string name="space_participants_kick_prompt_msg" translatable="false">The user will be kicked from this space.\n\nTo prevent them from joining again, you should ban them instead.</string>
     <string name="room_permissions_kick_users" translatable="false">Kick users</string>
     <string name="command_description_kick_user" translatable="false">Kicks user with given id from this room</string>
+    <string name="notice_room_kick" translatable="false">%1$s kicked %2$s</string>
+    <string name="notice_room_kick_by_you" translatable="false">You kicked %1$s</string>
+    <string name="notice_room_kick_with_reason" translatable="false">%1$s kicked %2$s. Reason: %3$s</string>
+    <string name="notice_room_kick_with_reason_by_you" translatable="false">You kicked %1$s. Reason: %2$s</string>
+    <string name="has_been_kicked" translatable="false">You have been kicked from %1$s by %2$s</string>
+    <string name="settings_show_join_leave_messages_summary" translatable="false">Invites, kicks, and bans are unaffected.</string>
     <string name="crash_report_copy_prompt" translatable="false">The application has crashed last time. Would you like to copy the crash report?</string>
 
     <string name="action_redact" translatable="false">Redact</string>
@@ -609,4 +615,54 @@
 
     <string name="settings_classic_composer" translatable="false">Classic Composer</string>
     <string name="settings_classic_composer_summary" translatable="false">Use the older flat composer layout, without the rounded input box</string>
+
+    <string name="message_action_reveal_redacted" translatable="false">Reveal redacted content</string>
+    <string name="message_action_hide_redacted" translatable="false">Hide redacted content</string>
+    <string name="message_reveal_failed_deleted" translatable="false">The server no longer has the original content</string>
+    <string name="message_reveal_failed_not_received" translatable="false">The server never received the original content</string>
+    <string name="message_reveal_failed_forbidden" translatable="false">You don\'t have permission to view redacted content here</string>
+    <string name="message_reveal_failed_unsupported" translatable="false">This homeserver can\'t show redacted content</string>
+    <string name="message_reveal_failed_network" translatable="false">Couldn\'t reach the server to load the original content</string>
+
+    <string name="settings_redactions" translatable="false">Redactions</string>
+    <string name="settings_redaction_preserve" translatable="false">Preserve redacted messages</string>
+    <string name="settings_redaction_preserve_summary" translatable="false">Ask the server for the original when a message is redacted, and show it in place of the deleted notice</string>
+    <string name="settings_redaction_preserve_media" translatable="false">Preserve media</string>
+    <string name="settings_redaction_max_media_size" translatable="false">Maximum media size to download</string>
+    <string name="settings_redaction_wifi_only" translatable="false">Only preserve media on Wi-Fi</string>
+    <string name="settings_redaction_clear_with_app_cache" translatable="false">Clear preserved content with the app cache</string>
+    <string name="settings_redaction_clear_with_app_cache_summary" translatable="false">Clearing the app cache also drops the content kept for redacted messages. Media is separate, and is cleared from General.</string>
+    <string name="settings_redaction_clear_media_cache" translatable="false">Clear preserved media</string>
+    <string name="settings_redaction_clear_media_cache_summary" translatable="false">Media kept for redacted messages in every room</string>
+    <string name="room_personalization_redaction_clear_media_now" translatable="false">Clear preserved media in this room</string>
+    <string name="attachment_viewer_show_in_chat" translatable="false">Show in chat</string>
+
+    <string name="room_personalization_redaction_clear_now_confirmation" translatable="false">Delete the media kept for redacted messages in this room? Anything the server no longer holds can\'t be downloaded again.</string>
+
+    <string name="redaction_media_no_limit" translatable="false">No limit</string>
+    <string name="redaction_media_size_1mb" translatable="false">1 MB</string>
+    <string name="redaction_media_size_5mb" translatable="false">5 MB</string>
+    <string name="redaction_media_size_10mb" translatable="false">10 MB</string>
+    <string name="redaction_media_size_25mb" translatable="false">25 MB</string>
+    <string name="redaction_media_size_50mb" translatable="false">50 MB</string>
+    <string name="redaction_override_inherit" translatable="false">Use the account setting</string>
+    <string name="redaction_override_on" translatable="false">Yes</string>
+    <string name="redaction_override_off" translatable="false">No</string>
+    <string name="redaction_room_mode_inherit" translatable="false">Use the account setting</string>
+
+    <string name="room_personalization_media_category" translatable="false">Media visibility</string>
+    <string name="room_personalization_redaction_category" translatable="false">Redactions</string>
+    <string name="room_personalization_media_preview" translatable="false">Show media in this room</string>
+    <string name="room_personalization_media_preview_inherit" translatable="false">Use the account setting</string>
+    <string name="room_personalization_media_preview_show" translatable="false">Show</string>
+    <string name="room_personalization_media_preview_hide" translatable="false">Hide</string>
+
+    <string name="notice_state_event_redacted" translatable="false">%1$s\'s room change was removed</string>
+    <string name="notice_state_event_redacted_with_reason" translatable="false">%1$s\'s room change was removed, reason: %2$s</string>
+
+    <string name="settings_homeserver_info_reloaded" translatable="false">Homeserver info reloaded</string>
+    <string name="settings_server_admin" translatable="false">Admin</string>
+    <string name="settings_server_admin_yes" translatable="false">Yes</string>
+    <string name="settings_server_admin_no" translatable="false">No</string>
+    <string name="settings_server_admin_unknown" translatable="false">Unknown</string>
 </resources>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Mirrors androidx's preference_category_material, so this header sits flush with the plain
+  ~ VectorPreferenceCategory ones; only the trailing action view is ours.
+  -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingLeft="?android:attr/listPreferredItemPaddingLeft"
+    android:paddingStart="?android:attr/listPreferredItemPaddingStart"
+    android:paddingRight="?android:attr/listPreferredItemPaddingRight"
+    android:paddingEnd="?android:attr/listPreferredItemPaddingEnd">
+
+    <include layout="@layout/image_frame" />
+
+    <TextView
+        android:id="@android:id/title"
+        style="@style/PreferenceCategoryTitleTextStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:textAlignment="viewStart" />
+
+    <ImageView
+        android:id="@+id/preferenceCategoryAction"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/action_reset"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_refresh_cw" />
+
+</LinearLayout>

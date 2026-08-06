@@ -35,6 +35,11 @@ DELETE FROM read_receipts_summary WHERE event_id = ?;
 selectReceiptsForEvent:
 SELECT * FROM read_receipt WHERE event_id = ?;
 
+-- Only the fields that decide whether the timeline has to re-render, so the change signal can be
+-- compared cheaply: SQLDelight notifies per table, so this fires for receipts in every room.
+selectReceiptStateInRoom:
+SELECT event_id, user_id, origin_server_ts FROM read_receipt WHERE room_id = ? ORDER BY event_id, user_id;
+
 selectReceiptsForEvents:
 SELECT * FROM read_receipt WHERE event_id IN ?;
 

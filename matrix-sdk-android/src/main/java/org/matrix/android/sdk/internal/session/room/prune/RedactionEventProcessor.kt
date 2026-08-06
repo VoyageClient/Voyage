@@ -80,7 +80,12 @@ internal class RedactionEventProcessor @Inject constructor(
         val pruneDbId = stores.event.getDbId(roomId, redacts) ?: return
         val eventToPrune = stores.event.getById(pruneDbId) ?: return
 
-        discardEditionOfRedactedReplace(stores, eventToPrune)
+        if (discardEditionOfRedactedReplace(stores, eventToPrune)) {
+            // A redacted edit must not become the room-list preview: what the room now shows is the original
+            // message with that edit discarded. The relation this is derived from is about to be pruned away,
+            // so the verdict has to be recorded now.
+            stores.event.markUseless(pruneDbId)
+        }
 
         val typeToPrune = eventToPrune.type
         val stateKey = eventToPrune.stateKey
@@ -141,6 +146,13 @@ internal class RedactionEventProcessor @Inject constructor(
         // and bump the redaction stamp so the rebuild also drops cached static-chunk mappings.
         timelineRedactionSignal.onRedaction(roomId)
         stores.timelineEvent.touch(eventToPrune.eventId)
+        // A redacted message stays its room's preview, as the placeholder. That leaves the summary row
+        // itself unchanged, so without this the room list would keep serving the memoized pre-redaction
+        // text until some unrelated update happened to touch the room.
+        stores.roomSummary.roomIdsWithPreviewEvent(listOf(eventToPrune.eventId)).forEach { previewRoomId ->
+            previewInvalidation.onPreviewChanged(previewRoomId)
+            stores.roomSummary.touch(previewRoomId)
+        }
     }
 
     /**
@@ -149,14 +161,16 @@ internal class RedactionEventProcessor @Inject constructor(
      * the content is pruned (that destroys `m.relates_to`), which is also why it lives here and not in
      * the relations aggregation processor: processor order is unspecified, and the direct prune()
      * callers (mass redaction) never go through that processor at all.
+     *
+     * @return whether the redacted event was an edit at all, aggregated or not.
      */
-    private fun discardEditionOfRedactedReplace(stores: SessionStores, eventToPrune: EventEntity) {
-        val relation = eventToPrune.asDomain().getRelationContent() ?: return
-        if (relation.type != RelationType.REPLACE) return
-        val targetEventId = relation.eventId ?: return
-        val summary = stores.annotations.get(targetEventId) ?: return
-        val editSummary = summary.editSummary ?: return
-        val discarded = editSummary.editions.firstOrNull { it.eventId == eventToPrune.eventId } ?: return
+    private fun discardEditionOfRedactedReplace(stores: SessionStores, eventToPrune: EventEntity): Boolean {
+        val relation = eventToPrune.asDomain().getRelationContent() ?: return false
+        if (relation.type != RelationType.REPLACE) return false
+        val targetEventId = relation.eventId ?: return true
+        val summary = stores.annotations.get(targetEventId) ?: return true
+        val editSummary = summary.editSummary ?: return true
+        val discarded = editSummary.editions.firstOrNull { it.eventId == eventToPrune.eventId } ?: return true
         editSummary.editions.remove(discarded)
         // Touch event_annotations_summary so the timeline's annotation-change flow fires (it only
         // watches that table, not the editions table).
@@ -169,6 +183,7 @@ internal class RedactionEventProcessor @Inject constructor(
             previewInvalidation.onPreviewChanged(previewRoomId)
             stores.roomSummary.touch(previewRoomId)
         }
+        return true
     }
 
     private fun computeAllowedKeys(type: String): List<String> {

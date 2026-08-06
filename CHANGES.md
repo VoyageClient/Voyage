@@ -12,6 +12,10 @@ New features, improvements, and notable removals in this fork.
 
 - **Custom emoticons & stickers (MSC2545 image packs)** — send custom emoji and stickers, pickers for both, author your own packs, import and export packs as Misskey-style zip archives, and react with emoticons.
 
+- **Keep deleted messages (MSC2815)** — see what a deleted message said. Room moderators and homeserver admins can fetch the original content back from a Synapse server that supports it. Each deleted message can be revealed or re-hidden from its long-press menu. Configurable account-wide under Settings → Security & privacy → Redactions and per room under Personalization: whether to preserve media, how large a download to accept, whether to restrict it to Wi-Fi, and whether the kept content survives clearing the app cache. Preserved media has its own clear actions, account-wide under Settings → General and per room under Personalization.
+
+- **Per-room media visibility** — the media-visibility settings can now be overridden per room from Personalization, so a single room can show or hide media regardless of the account-wide choice.
+
 - **Local message search, including encrypted rooms** — a local event index with its own database, plus advanced filters: `from:`, `mentions:`, `has:(image|video|audio|file|sticker)`, `before:`/`after:` dates, and quoted exact-substring matching.
 
 - **PGP encryption** — opt-in PGP encrypt/decrypt over otherwise-unencrypted rooms via OpenKeychain, with an `/encrypt` command.
@@ -110,7 +114,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Consistent deleted-message previews** — a deleted message now reads as deleted everywhere it is previewed, not just in the timeline: reply headers, the composer's reply preview, the room list, the pinned-messages banner and list, and the long-press menu all show it greyed out with a trash icon rather than as ordinary text, and thread summaries grey it out too. The wording is unified on "Message redacted".
 
-- **Misc improvements** — randomizable upload filenames, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, room-list preview polish, a direct message's room settings showing the other person's avatar as the room list does, and links no longer drawn underlined anywhere they were left inconsistent — room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
+- **Misc improvements** — randomizable upload filenames, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, a "Show in chat" action in the media viewer that jumps back to the message an attachment came from, room-list preview polish, a direct message's room settings showing the other person's avatar as the room list does, and links no longer drawn underlined anywhere they were left inconsistent — room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
 
 ### Removals
 

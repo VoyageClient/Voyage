@@ -1,0 +1,47 @@
+-- Pre-redaction event content, kept in its own database file so it survives both the session
+-- store's drop-on-schema-bump and clear-cache (which only wipes session tables).
+--
+-- source: 0 = fetched via MSC2815 after the fact, 1 = written locally (the tombstone for a message
+-- redacted while its upload was still pending).
+CREATE TABLE redacted_content (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    room_id TEXT NOT NULL,
+    content TEXT NOT NULL,
+    -- The event's type BEFORE redaction, and decrypted for E2EE rooms. Needed to rebuild a renderable
+    -- event: a redacted encrypted event keeps type m.room.encrypted, which routes it to the
+    -- undecryptable renderer no matter what content is restored.
+    clear_type TEXT,
+    sender TEXT,
+    origin_server_ts INTEGER,
+    source INTEGER NOT NULL DEFAULT 0,
+    fetched_at INTEGER NOT NULL,
+    evict_after INTEGER
+);
+
+CREATE INDEX redacted_content_room_idx ON redacted_content(room_id);
+
+upsert:
+INSERT OR REPLACE INTO redacted_content(
+    event_id, room_id, content, clear_type, sender, origin_server_ts, source, fetched_at, evict_after
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL);
+
+selectByEventId:
+SELECT * FROM redacted_content WHERE event_id = ?;
+
+selectEventIdsNotInRooms:
+SELECT event_id FROM redacted_content WHERE room_id NOT IN ?;
+
+selectAllEventIds:
+SELECT event_id FROM redacted_content;
+
+selectByRoom:
+SELECT * FROM redacted_content WHERE room_id = ? ORDER BY origin_server_ts DESC;
+
+deleteRoomsNotIn:
+DELETE FROM redacted_content WHERE room_id NOT IN ?;
+
+deleteAllRooms:
+DELETE FROM redacted_content;
+
+distinctRooms:
+SELECT DISTINCT room_id FROM redacted_content;

@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s hat den Raum betreten</string>
     <string name="notice_room_leave">%1$s hat den Raum verlassen</string>
     <string name="notice_room_reject">%1$s hat die Einladung abgelehnt</string>
-    <string name="notice_room_remove">%1$s hat %2$s entfernt</string>
     <string name="notice_room_unban">%1$s hat den Bann von %2$s aufgehoben</string>
     <string name="notice_room_ban">%1$s hat %2$s gebannt</string>
     <string name="notice_room_withdraw">%1$s hat die Einladung für %2$s zurückgezogen</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s ist dem Raum beigetreten. Grund: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s hat den Raum verlassen. Grund: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s hat die Einladung abgelehnt. Grund: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s hat %2$s entfernt. Grund: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s hat Sperre von %2$s aufgehoben. Grund: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s hat %2$s verbannt. Grund: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s hat die Einladung für %2$s angenommen. Grund: %3$s</string>
@@ -89,7 +87,6 @@
     <string name="notice_room_join_by_you">Du bist dem Raum beigetreten</string>
     <string name="notice_room_leave_by_you">Du hast den Raum verlassen</string>
     <string name="notice_room_reject_by_you">Du hast die Einladung abgelehnt</string>
-    <string name="notice_room_remove_by_you">Du hast %1$s aus dem Raum entfernt</string>
     <string name="notice_room_unban_by_you">Du hast den Bann von %1$s aufgehoben</string>
     <string name="notice_room_ban_by_you">Du hast %1$s gebannt</string>
     <string name="notice_room_withdraw_by_you">Du hast die Einladung von %1$s zurückgenommen</string>
@@ -130,7 +127,6 @@
     <string name="notice_room_join_with_reason_by_you">Du bist dem Raum beigetreten. Grund: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">Du hast den Raum verlassen. Grund: %1$s</string>
     <string name="notice_room_reject_with_reason_by_you">Du hast die Einladung abgelehnt. Grund: %1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Du hast %1$s aus dem Raum entfernt. Grund %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Du hast den Bann von %1$s aufgehoben. Grund: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Du hast %1$s gebannt. Grund: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Du hast die Einladung von %1$s angenommen. Grund: %2$s</string>
@@ -476,7 +472,6 @@
     <string name="group_details_home">Startseite</string>
     <string name="rooms">Räume</string>
     <string name="invited">Eingeladen</string>
-    <string name="has_been_removed">Du wurdest von %2$s aus %1$s entfernt</string>
     <string name="has_been_banned">Du wurdest von %2$s aus %1$s verbannt</string>
     <string name="reason_colon">Grund: %1$s</string>
     <string name="room_settings_add_homescreen_shortcut">Zum Startbildschirm hinzufügen</string>
@@ -577,7 +572,6 @@
     <string name="settings_send_markdown_summary">Formatiere Nachrichten mittels Markdown-Syntax, bevor sie gesendet werden. Dies erlaubt erweiterte Formatierungen wie Sternchen, um kursiven Text anzuzeigen.</string>
     <string name="settings_show_read_receipts">Lesebestätigungen zeigen</string>
     <string name="settings_show_read_receipts_summary">Klicke auf die Lesebestätigungen für eine detailliertere Liste.</string>
-    <string name="settings_show_join_leave_messages_summary">Einladungen, Entfernungen und Verbannungen bleiben sichtbar.</string>
     <string name="settings_password">Passwort</string>
     <string name="settings_labs_native_camera_summary">Starte die Kamera des Systems anstelle der selbstdefinierten.</string>
     <string name="command_problem_with_parameters">Das Kommando \"%s\" braucht mehr Parameter oder einige Parameter sind inkorrekt.</string>

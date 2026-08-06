@@ -29,6 +29,7 @@ import org.matrix.android.sdk.internal.federation.FederationModule
 import org.matrix.android.sdk.internal.network.NetworkConnectivityChecker
 import org.matrix.android.sdk.internal.network.RequestModule
 import org.matrix.android.sdk.internal.session.account.AccountModule
+import org.matrix.android.sdk.internal.session.admin.AdminModule
 import org.matrix.android.sdk.internal.session.cache.CacheModule
 import org.matrix.android.sdk.internal.session.call.CallModule
 import org.matrix.android.sdk.internal.session.content.ContentModule
@@ -46,6 +47,7 @@ import org.matrix.android.sdk.internal.session.pushers.AddPusherWorker
 import org.matrix.android.sdk.internal.session.pushers.PushersModule
 import org.matrix.android.sdk.internal.session.room.RoomModule
 import org.matrix.android.sdk.internal.session.room.aggregation.livelocation.DeactivateLiveLocationShareWorker
+import org.matrix.android.sdk.internal.session.room.redaction.RedactedContentModule
 import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherWorker
 import org.matrix.android.sdk.internal.session.room.send.RedactEventWorker
 import org.matrix.android.sdk.internal.session.room.send.SendEventWorker
@@ -90,6 +92,8 @@ import org.matrix.android.sdk.internal.util.system.SystemModule
             ProfileModule::class,
             AccountModule::class,
             FederationModule::class,
+            AdminModule::class,
+            RedactedContentModule::class,
             CallModule::class,
             ContentScannerModule::class,
             SearchModule::class,

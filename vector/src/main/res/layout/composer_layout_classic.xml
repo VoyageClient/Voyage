@@ -144,7 +144,7 @@
             android:id="@+id/composerRelatedMessageCloseButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="?android:attr/selectableItemBackground"
+            android:background="@null"
             android:contentDescription="@string/action_cancel"
             app:srcCompat="@drawable/ic_close_round"
             app:layout_constraintBottom_toBottomOf="@id/composer_preview_barrier"

@@ -22,6 +22,7 @@ import im.vector.app.features.home.room.detail.timeline.item.MergedRoomCreationI
 import im.vector.app.features.home.room.detail.timeline.item.MergedSimilarEventsItem
 import im.vector.app.features.home.room.detail.timeline.item.MergedSimilarEventsItem_
 import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import im.vector.lib.strings.CommonPlurals
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -53,7 +54,8 @@ class MergedHeaderItemFactory @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
         private val avatarRenderer: AvatarRenderer,
         private val avatarSizeProvider: AvatarSizeProvider,
-        private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper
+        private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper,
+        private val redactedContentRestorer: RedactedContentRestorer,
 ) {
 
     private val mergeableEventTypes = listOf(
@@ -117,14 +119,19 @@ class MergedHeaderItemFactory @Inject constructor(
             val collapsed = HashSet<Long>()
             val anchors = HashSet<Long>(runs.size)
             val byAnchor = HashMap<Long, MergedRun>(runs.size)
+            val highlightId = partialState.highlightedEventId
             runs.forEach { run ->
                 val prior = collapseStates[run.identity]
                         ?: run.members.firstNotNullOfOrNull { collapseStates[it.localId] }
                         ?: true
-                newStates[run.identity] = prior
+                // Jumping to an event inside a collapsed run has to reveal it, and the run stays open
+                // afterwards: re-collapsing the moment the highlight clears would hide it again.
+                val holdsTarget = highlightId != null && run.members.any { it.eventId == highlightId }
+                val nowCollapsed = prior && !holdsTarget
+                newStates[run.identity] = nowCollapsed
                 anchors.add(run.anchorLocalId)
                 byAnchor[run.anchorLocalId] = run
-                if (prior) run.members.forEach { collapsed.add(it.localId) }
+                if (nowCollapsed) run.members.forEach { collapsed.add(it.localId) }
             }
             collapseStates.clear()
             collapseStates.putAll(newStates)
@@ -206,7 +213,8 @@ class MergedHeaderItemFactory @Inject constructor(
             isThread: Boolean,
             rootThreadId: String?,
     ): Classification {
-        val redacted = event.root.isRedacted()
+        // A revealed message is showing real content, so it must not be folded into the deleted summary.
+        val redacted = event.root.isRedacted() && !redactedContentRestorer.isShowingRestoredContent(event)
         if (redacted) {
             // A shown redaction groups into the redacted summary; a hidden one (e.g. a redacted reaction) is
             // transparent so it neither fragments a surrounding run nor renders on its own.

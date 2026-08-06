@@ -38,6 +38,10 @@ import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.core.utils.shareMedia
+import im.vector.app.features.home.room.detail.RoomDetailPendingAction
+import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
+import im.vector.app.features.navigation.Navigator
+import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
 import im.vector.app.features.share.ForwardPayloadHolder
 import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.themes.ActivityOtherThemes
@@ -69,11 +73,16 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             val transitionCornerRadiusPx: Int = 0,
             // A single avatar/banner opened outside any room-media context: no position counter
             val standalonePreview: Boolean = false,
+            // Opened from the room's own timeline, so "Show in chat" returns to it instead of stacking a copy.
+            val openedFromTimeline: Boolean = false,
     ) : Parcelable
 
     @Inject lateinit var activeSessionHolder: ActiveSessionHolder
     @Inject lateinit var dataSourceFactory: AttachmentProviderFactory
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
+    @Inject lateinit var preservedAttachmentResolver: PreservedAttachmentResolver
+    @Inject lateinit var navigator: Navigator
+    @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
 
     private val viewModel: VectorAttachmentViewerViewModel by viewModel()
     private val errorFormatter by lazy(LazyThreadSafetyMode.NONE) { singletonEntryPoint().errorFormatter() }
@@ -161,7 +170,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         } else {
             lifecycleScope.launch {
                 val events = withContext(Dispatchers.IO) {
-                    room?.timelineService()?.getAttachmentMessages().orEmpty()
+                    val live = room?.timelineService()?.getAttachmentMessages().orEmpty()
+                    // Redacted media is gone from the SDK's tables, so a revealed one would otherwise
+                    // open alone instead of taking its place in the room's media.
+                    val preserved = args.roomId?.let { preservedAttachmentResolver.attachments(it) }.orEmpty()
+                    if (preserved.isEmpty()) live else (live + preserved).sortedBy { it.root.originServerTs ?: 0L }
                 }
                 // Also match by transaction id: a just-sent event can get its local-echo id swapped for
                 // the server id between the tap and this query, which would wrongly fall through to the
@@ -418,6 +431,22 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         startActivity(IncomingShareActivity.forwardIntent(this, timelineEvent.root.getClearType(), payloadId))
     }
 
+    override fun onShowInChat() {
+        val timelineEvent = currentSourceProvider?.getTimelineEventAtPosition(currentPosition)
+        // Search results and preserved redactions may have no timeline row to resolve, so fall back
+        // to the ids the viewer was opened with.
+        val roomId = timelineEvent?.roomId ?: args()?.roomId ?: return
+        val eventId = timelineEvent?.eventId ?: args()?.eventId ?: return
+        if (args()?.openedFromTimeline == true) {
+            // The room is the screen underneath: stacking another copy of it would leave the user
+            // with two, and lose their scroll position in the one they came from.
+            roomDetailPendingActionStore.data = RoomDetailPendingAction.JumpToEvent(eventId)
+        } else {
+            navigator.openRoom(this, roomId, eventId)
+        }
+        finish()
+    }
+
     // Whole-number numeric fields decode from JSON as Double; re-serializing emits e.g. "w":1080.0
     // which Synapse rejects (M_BAD_JSON). Round-trip them back to Long.
     private fun coerceWholeDoublesToLongs(value: Any?): Any? = when (value) {
@@ -462,8 +491,9 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 sharedTransitionName: String?,
                 transitionCornerRadiusPx: Int = 0,
                 standalonePreview: Boolean = false,
+                openedFromTimeline: Boolean = false,
         ) = Intent(context, VectorAttachmentViewerActivity::class.java).also {
-            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview))
+            it.putExtra(EXTRA_ARGS, Args(roomId, eventId, sharedTransitionName, transitionCornerRadiusPx, standalonePreview, openedFromTimeline))
             it.putExtra(EXTRA_IMAGE_DATA, mediaData)
             if (inMemoryData.isNotEmpty()) {
                 it.putParcelableArrayListExtra(EXTRA_IN_MEMORY_DATA, ArrayList(inMemoryData))

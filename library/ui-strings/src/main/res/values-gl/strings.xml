@@ -7,7 +7,6 @@
     <string name="notice_room_join">%1$s entrou</string>
     <string name="notice_room_leave">%1$s saíu</string>
     <string name="notice_room_reject">%1$s rexeitou o convite</string>
-    <string name="notice_room_remove">%1$s expulsou a %2$s</string>
     <string name="notice_room_unban">%1$s desbloqueou a %2$s</string>
     <string name="notice_room_ban">%1$s bloqueou a %2$s</string>
     <string name="notice_room_withdraw">%1$s cancelou o convite de %2$s</string>
@@ -50,7 +49,6 @@
     <string name="notice_room_withdraw_by_you">Retirácheslle o convite a %1$s</string>
     <string name="notice_room_ban_by_you">Vetaches a %1$s</string>
     <string name="notice_room_unban_by_you">Readmitiches a %1$s</string>
-    <string name="notice_room_remove_by_you">Expulsaches a %1$s</string>
     <string name="notice_room_reject_by_you">Rexeitaches o convite</string>
     <string name="notice_direct_room_leave_by_you">Deixaches a sala</string>
     <string name="notice_direct_room_leave">%1$s deixou a sala</string>
@@ -85,8 +83,6 @@
     <string name="notice_room_ban_with_reason">%1$s vetou a %2$s. Razón: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Retirácheslle o veto a %1$s. Razón: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s retirou o veto a %2$s. Razón: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Expulsaches a %1$s. Razón: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s expulsou a %2$s. Razón: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">Rexeitaches o convite. Razón: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s rexeitou o convite. Razón: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Saíches. Razón: %1$s</string>
@@ -418,7 +414,6 @@
     <string name="group_details_home">Inicio</string>
     <string name="rooms">Salas</string>
     <string name="invited">Convidada</string>
-    <string name="has_been_removed">Foi expulsado de %1$s por %2$s</string>
     <string name="has_been_banned">Foi bloqueado de %1$s por %2$s</string>
     <string name="reason_colon">Motivo: %1$s</string>
     <string name="avatar">Avatar</string>

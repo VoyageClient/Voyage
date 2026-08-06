@@ -45,6 +45,67 @@
         <item>direct</item>
     </string-array>
 
+    <!-- Per-room media preview. The account-wide "in private rooms" / "in direct messages" options
+         are predicates over which rooms match; scoped to one room they are just show or hide. -->
+    <string-array name="room_media_preview_modes">
+        <item>@string/room_personalization_media_preview_inherit</item>
+        <item>@string/room_personalization_media_preview_show</item>
+        <item>@string/room_personalization_media_preview_hide</item>
+    </string-array>
+    <string-array name="room_media_preview_mode_values">
+        <item>inherit</item>
+        <item>always_show</item>
+        <item>always_hide</item>
+    </string-array>
+
+    <!-- Per-room booleans that can defer to the account value. -->
+    <string-array name="redaction_inherit_bools">
+        <item>@string/redaction_override_inherit</item>
+        <item>@string/redaction_override_on</item>
+        <item>@string/redaction_override_off</item>
+    </string-array>
+    <string-array name="redaction_inherit_bool_values">
+        <item>inherit</item>
+        <item>true</item>
+        <item>false</item>
+    </string-array>
+
+    <string-array name="room_redaction_max_media_sizes">
+        <item>@string/redaction_override_inherit</item>
+        <item>@string/redaction_media_size_1mb</item>
+        <item>@string/redaction_media_size_5mb</item>
+        <item>@string/redaction_media_size_10mb</item>
+        <item>@string/redaction_media_size_25mb</item>
+        <item>@string/redaction_media_size_50mb</item>
+        <item>@string/redaction_media_no_limit</item>
+    </string-array>
+    <string-array name="room_redaction_max_media_size_values">
+        <item>inherit</item>
+        <item>1048576</item>
+        <item>5242880</item>
+        <item>10485760</item>
+        <item>26214400</item>
+        <item>52428800</item>
+        <item>0</item>
+    </string-array>
+
+    <string-array name="redaction_max_media_sizes">
+        <item>@string/redaction_media_size_1mb</item>
+        <item>@string/redaction_media_size_5mb</item>
+        <item>@string/redaction_media_size_10mb</item>
+        <item>@string/redaction_media_size_25mb</item>
+        <item>@string/redaction_media_size_50mb</item>
+        <item>@string/redaction_media_no_limit</item>
+    </string-array>
+    <string-array name="redaction_max_media_size_values">
+        <item>1048576</item>
+        <item>5242880</item>
+        <item>10485760</item>
+        <item>26214400</item>
+        <item>52428800</item>
+        <item>0</item>
+    </string-array>
+
     <!-- Room settings notification -->
 
     <!-- Theme -->

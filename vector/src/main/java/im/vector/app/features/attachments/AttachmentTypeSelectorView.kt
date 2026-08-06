@@ -96,11 +96,8 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
         views.attachmentCloseButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             width = size
             height = size
-            // Sit exactly where the composer's "+" does, so the glyph doesn't jump when it rotates.
             MarginLayoutParamsCompat.setMarginStart(this, startMargin)
             leftMargin = startMargin
-            topMargin = 0
-            bottomMargin = 0
         }
         views.attachmentCloseButton.setPadding(resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.composer_classic_plus_padding))
         views.attachmentCloseButton.scaleType = ImageView.ScaleType.FIT_CENTER
@@ -109,7 +106,6 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
                 views.attachmentCloseButton,
                 ColorStateList.valueOf(ThemeUtils.getColor(context, androidx.appcompat.R.attr.colorAccent))
         )
-        AttachmentType.values().forEach { buttonForType(it).background = null }
     }
 
     fun containsScreenPoint(x: Float, y: Float): Boolean {
@@ -120,10 +116,39 @@ class AttachmentTypeSelectorView @JvmOverloads constructor(
 
     fun show(anchor: View) {
         this.anchor = anchor
+        coverInputRow(anchor)
         isVisible = true
         onOpenChanged?.invoke(true)
         animateOpen()
         doOnNextLayout { animateWindowInCircular(anchor, this) }
+    }
+
+    /**
+     * Cover the composer's input row exactly, and put the close button over the "+" it stands in for.
+     *
+     * None of it is constant: the row grows with the message's line count, the two composer layouts put
+     * that button in different places within it — centred on the whole row (classic) or in the bottom
+     * send-button strip (modern) — and the row is not flush with the bottom of the shared parent, which is
+     * stretched by the composer's bottom-sheet behaviour. So the row's rect is measured and matched rather
+     * than assumed from a fixed height or the layout's bottom gravity.
+     */
+    private fun coverInputRow(anchor: View) {
+        val row = anchor.parent as? View ?: return
+        val host = parent as? View ?: return
+        if (row.height <= 0 || host.height <= 0) return
+        var rowTop = 0
+        var current: View = row
+        while (current !== host) {
+            rowTop += current.top
+            current = current.parent as? View ?: return
+        }
+        updateLayoutParams<FrameLayout.LayoutParams> {
+            height = row.height
+            bottomMargin = host.height - (rowTop + row.height)
+        }
+        views.root.updateLayoutParams { height = row.height }
+        // Absolute, which is why the button is not also bottom-constrained in the layout.
+        views.attachmentCloseButton.updateLayoutParams<ViewGroup.MarginLayoutParams> { topMargin = anchor.top }
     }
 
     fun hide() {

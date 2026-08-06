@@ -12,6 +12,7 @@ interface AttachmentInteractionListener {
     fun onShare()
     fun onDownload()
     fun onForward()
+    fun onShowInChat()
     fun onPlayPause(play: Boolean)
     fun videoSeekTo(percent: Int)
 }

@@ -228,7 +228,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         fun releasePlaybackControls(owner: VideoPlaybackListener?) {
-            if (listener != null) owner?.onVideoControlsAvailable(null)
+            if (listener != null) owner?.onVideoControlsReleased(this)
             listener = null
         }
 
@@ -451,6 +451,13 @@ interface VideoPlaybackControls {
 interface VideoPlaybackListener {
     /** Null when the attachment on show is not a video, and the controls should go away. */
     fun onVideoControlsAvailable(controls: VideoPlaybackControls?)
+
+    /**
+     * A holder is letting go of the controls. Identity matters: a recycled holder is unbound *after*
+     * the incoming one has bound and claimed them, so an unconditional release would hide controls
+     * that the page now on screen is driving.
+     */
+    fun onVideoControlsReleased(controls: VideoPlaybackControls)
 
     fun onVideoProgress(positionMs: Int, durationMs: Int, isPlaying: Boolean)
 }

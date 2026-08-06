@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$sがルームに参加しました</string>
     <string name="notice_room_leave">%1$sがルームから退出しました</string>
     <string name="notice_room_reject">%1$sが招待を拒否しました</string>
-    <string name="notice_room_remove">%1$sが%2$sを追放しました</string>
     <string name="notice_room_unban">%1$sが%2$sのブロックを解除しました</string>
     <string name="notice_room_ban">%1$sが%2$sをブロックしました</string>
     <string name="notice_room_withdraw">%1$sが%2$sの招待を取り下げました</string>
@@ -49,7 +48,6 @@
     <string name="notice_room_withdraw_by_you">%1$sの招待を取り下げました</string>
     <string name="notice_room_ban_by_you">%1$sをブロックしました</string>
     <string name="notice_room_unban_by_you">%1$sのブロックを解除しました</string>
-    <string name="notice_room_remove_by_you">%1$sを追放しました</string>
     <string name="notice_room_reject_by_you">招待を拒否しました</string>
     <string name="notice_direct_room_leave_by_you">ルームから退出しました</string>
     <string name="notice_direct_room_leave">%1$sがルームから退出しました</string>
@@ -321,7 +319,6 @@
     <string name="group_details_home">ホーム</string>
     <string name="rooms">ルーム</string>
     <string name="invited">招待済</string>
-    <string name="has_been_removed">%2$sによって%1$sから追放されました</string>
     <string name="has_been_banned">%2$sによって%1$sからブロックされました</string>
     <string name="reason_colon">理由：%1$s</string>
     <plurals name="membership_changes">
@@ -793,8 +790,6 @@
     <string name="notice_room_ban_with_reason">%1$sが%2$sをブロックしました。理由：%3$s</string>
     <string name="notice_room_unban_with_reason_by_you">%1$sのブロックを解除しました。理由：%2$s</string>
     <string name="notice_room_unban_with_reason">%1$sが%2$sのブロックを解除しました。理由：%3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">%1$sを追放しました。理由：%2$s</string>
-    <string name="notice_room_remove_with_reason">%1$sが%2$sを追放しました。理由：%3$s</string>
     <string name="notice_room_reject_with_reason_by_you">招待を拒否しました。理由：%1$s</string>
     <string name="notice_room_reject_with_reason">%1$sが招待を拒否しました。理由：%2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">退出しました。理由：%1$s</string>
@@ -869,7 +864,6 @@
     <string name="settings_show_emoji_keyboard">絵文字キーボードを表示</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">アバターと表示名の変更を含む。</string>
     <string name="settings_show_avatar_display_name_changes_messages">アカウントのイベントを表示</string>
-    <string name="settings_show_join_leave_messages_summary">招待、追放、ブロックは影響を受けません。</string>
     <string name="settings_show_join_leave_messages">参加・退出イベントを表示</string>
     <string name="settings_chat_effects_description">/confettiコマンドを使用すると、❄️または🎉を含むメッセージを送信</string>
     <string name="settings_chat_effects_title">チャットでエフェクトを表示</string>

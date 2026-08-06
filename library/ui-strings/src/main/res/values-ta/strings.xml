@@ -53,8 +53,6 @@
     <string name="notice_room_ban">%1$s என்பவர் %2$s ஐ தடை செய்துள்ளார்</string>
     <string name="notice_room_unban_by_you">நீங்கள் %1$s இன் தடையை நீக்கியுள்ளீர்கள்</string>
     <string name="notice_room_unban">%1$s என்பவர் %2$s இன் தடையை நீக்கியுள்ளார்</string>
-    <string name="notice_room_remove">%2$s ஐ %1$s நீக்கினார்</string>
-    <string name="notice_room_remove_by_you">%1$s ஐ நீங்கள் நீக்கினீர்கள்</string>
     <string name="notice_direct_room_leave_by_you">நீங்கள் அறையை விட்டு வெளியேறினீர்கள்</string>
     <string name="notice_direct_room_leave">%1$s அறையை விட்டு வெளியேறினார்</string>
     <string name="notice_room_leave_by_you">நீங்கள் அறையை விட்டு வெளியேறினீர்கள்</string>

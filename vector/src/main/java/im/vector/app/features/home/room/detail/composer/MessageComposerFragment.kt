@@ -12,8 +12,6 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -187,7 +185,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (vectorPreferences.useClassicComposer()) {
             val background = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
             views.root.setBackgroundColor(background)
-            tintNavigationBarStrip(background)
+            vectorBaseActivity.tintNavigationBarStrip(background)
             attachmentTypeSelector.applyClassicComposerStyle()
         }
 
@@ -479,7 +477,10 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
         autoCompleters[editText] =
                 autoCompleterFactory.create(roomId, isThreadTimeLine())
-                        .also { it.setup(editText) }
+                        .also {
+                            it.isEmojiAutocompleteSuppressed = { emojiKeyboardController?.isShowing == true }
+                            it.setup(editText)
+                        }
     }
 
     private fun sendTextMessage(text: CharSequence, formattedText: String? = null) {
@@ -605,6 +606,9 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         contentDescription = getString(if (visible) CommonStrings.a11y_close_emoji_picker else CommonStrings.a11y_open_emoji_picker)
                         setImageResource(if (visible) R.drawable.ic_keyboard else R.drawable.ic_insert_emoji)
                     }
+                    // A `:` popup already on screen would sit over the panel and pull the soft keyboard
+                    // back to the front with it.
+                    if (visible) autoCompleters[composer.editText]?.dismissEmojiPopup()
                 },
         ).also { emojiKeyboardController = it }
     }
@@ -1032,22 +1036,6 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     !attachmentTypeSelector.containsScreenPoint(event.rawX, event.rawY)) {
                 attachmentTypeSelector.hide()
             }
-        }
-    }
-
-    /**
-     * The activity pads its root by the system-bar insets and consumes them, so the strip under the
-     * navigation bar shows the root's own background. Paint only that strip, leaving the status-bar
-     * one at the top on the window background it had.
-     */
-    private fun tintNavigationBarStrip(color: Int) {
-        val root = vectorBaseActivity.rootView
-        val windowBackground = ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
-        val layers = LayerDrawable(arrayOf(ColorDrawable(windowBackground), ColorDrawable(color)))
-        root.background = layers
-        root.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
-            layers.setLayerInset(1, 0, (v.height - v.paddingBottom).coerceAtLeast(0), 0, 0)
-            v.invalidate()
         }
     }
 

@@ -9,6 +9,7 @@ package im.vector.app.features.media
 
 import im.vector.app.core.date.VectorDateFormatter
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
 import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.room.Room
@@ -19,7 +20,8 @@ class AttachmentProviderFactory @Inject constructor(
         private val imageContentRenderer: ImageContentRenderer,
         private val vectorDateFormatter: VectorDateFormatter,
         private val stringProvider: StringProvider,
-        private val session: Session
+        private val session: Session,
+        private val preservedAttachmentResolver: PreservedAttachmentResolver,
 ) {
 
     fun createProvider(
@@ -32,7 +34,8 @@ class AttachmentProviderFactory @Inject constructor(
                 dateFormatter = vectorDateFormatter,
                 fileService = session.fileService(),
                 coroutineScope = coroutineScope,
-                stringProvider = stringProvider
+                stringProvider = stringProvider,
+                preservedFileResolver = preservedAttachmentResolver::fileFor,
         )
     }
 

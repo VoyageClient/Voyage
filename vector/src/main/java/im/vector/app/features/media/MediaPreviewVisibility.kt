@@ -36,13 +36,7 @@ fun shouldHideMediaPreview(
 ): Boolean {
     if (event.senderInfo.userId == session.myUserId) return false
     val roomId = event.root.roomId ?: return false
-    val summary = session.getRoomSummary(roomId)
-    val hideByMode = when (vectorPreferences.getMediaPreviewMode()) {
-        MediaPreviewMode.ALWAYS_SHOW -> false
-        MediaPreviewMode.ALWAYS_HIDE -> true
-        MediaPreviewMode.PRIVATE -> summary?.joinRules !in PRIVATE_JOIN_RULES
-        MediaPreviewMode.DIRECT -> summary?.isDirect != true
-    }
+    val hideByMode = isMediaHiddenInRoom(session.getRoomSummary(roomId), vectorPreferences)
     return hideByMode && !mediaContentRevealManager.isRevealed(event.eventId)
 }
 
@@ -62,7 +56,7 @@ fun isMediaHiddenInRoom(
         summary: RoomSummary?,
         vectorPreferences: VectorPreferences,
 ): Boolean {
-    return when (vectorPreferences.getMediaPreviewMode()) {
+    return when (vectorPreferences.getMediaPreviewMode(summary?.roomId)) {
         MediaPreviewMode.ALWAYS_SHOW -> false
         MediaPreviewMode.ALWAYS_HIDE -> true
         MediaPreviewMode.PRIVATE -> summary?.joinRules !in PRIVATE_JOIN_RULES

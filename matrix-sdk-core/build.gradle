@@ -57,6 +57,11 @@ sqldelight {
             srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/eventindex")
             dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
         }
+        RedactedContentSqlDatabase {
+            packageName = "org.matrix.android.sdk.internal.session.room.redaction.db"
+            srcDirs.setFrom("../matrix-sdk-android/src/main/sqldelight/redactedcontent")
+            dialect("app.cash.sqldelight:sqlite-3-18-dialect:2.0.2")
+        }
     }
 }
 
@@ -728,6 +733,10 @@ ext.coreSources = [
         // EventIndexer, so they stay android and consume EventIndexStore cross-module).
         'org/matrix/android/sdk/internal/session/search/index/db/**',
         'org/matrix/android/sdk/internal/session/search/index/EventIndexStore.kt',
+        // Redacted-content DB stack: its own database file, so preserved content survives both the
+        // session store's drop-on-schema-bump and clear-cache.
+        'org/matrix/android/sdk/internal/session/room/redaction/db/**',
+        'org/matrix/android/sdk/internal/session/room/redaction/RedactedContentStore.kt',
         'org/matrix/android/sdk/internal/session/integrationmanager/IntegrationManagerConfigExtractor.kt',
         'org/matrix/android/sdk/internal/session/media/IsAuthenticatedMediaSupported.kt',
         'org/matrix/android/sdk/internal/session/media/PreviewUrlMapper.kt',
@@ -918,6 +927,9 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/auth/HomeServerHistoryService.kt',
         'org/matrix/android/sdk/api/debug/DebugService.kt',
         'org/matrix/android/sdk/api/federation/FederationService.kt',
+        'org/matrix/android/sdk/api/session/admin/AdminService.kt',
+        'org/matrix/android/sdk/api/session/redaction/RedactedContentService.kt',
+        'org/matrix/android/sdk/api/session/admin/ServerAdminStatus.kt',
         'org/matrix/android/sdk/api/raw/RawService.kt',
         'org/matrix/android/sdk/api/securestorage/SecureStorageService.kt',
         'org/matrix/android/sdk/api/session/EventStreamService.kt',

@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s се присъедини в стаята</string>
     <string name="notice_room_leave">%1$s напусна стаята</string>
     <string name="notice_room_reject">%1$s отхвърли поканата</string>
-    <string name="notice_room_remove">%1$s изгони %2$s</string>
     <string name="notice_room_unban">%1$s отблокира %2$s</string>
     <string name="notice_room_ban">%1$s блокира %2$s</string>
     <string name="notice_room_withdraw">%1$s оттегли поканата си за %2$s</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s се присъедини в стаята. Причина: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s напусна стаята. Причина: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s отхвърли поканата. Причина: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s изгони %2$s. Причина: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s блокира %2$s. Причина: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s блокира %2$s. Причина: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s прие поканата за %2$s. Причина: %3$s</string>
@@ -89,7 +87,6 @@
     <string name="notice_room_join_by_you">Присъединихте се в стаята</string>
     <string name="notice_room_leave_by_you">Напуснахте стаята</string>
     <string name="notice_room_reject_by_you">Отхвърлихте поканата</string>
-    <string name="notice_room_remove_by_you">Изгонихте %1$s</string>
     <string name="notice_room_unban_by_you">Отблокирахте %1$s</string>
     <string name="notice_room_ban_by_you">Блокирахте %1$s</string>
     <string name="notice_end_to_end_unknown_algorithm_by_you">Включихте шифроване от-край-до-край (непознат алгоритъм: %1$s).</string>
@@ -115,7 +112,6 @@
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Приехте поканата за %1$s. Причина: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Блокирахте %1$s. Причина: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Отблокирахте %1$s. Причина: %2$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Изгонихте %1$s. Причина: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">Отхвърлихте поканата. Причина: %1$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Напуснахте. Причина: %1$s</string>
     <string name="notice_direct_room_leave_with_reason">%1$s напусна. Причина: %2$s</string>
@@ -460,7 +456,6 @@
     <string name="group_details_home">Начало</string>
     <string name="rooms">Стаи</string>
     <string name="invited">Поканени</string>
-    <string name="has_been_removed">Бяхте изгонен от %1$s от %2$s</string>
     <string name="has_been_banned">Бяхте блокиран от %1$s от %2$s</string>
     <string name="reason_colon">Причина: %1$s</string>
     <string name="title_activity_choose_sticker">Изпрати стикер</string>
@@ -536,7 +531,6 @@
     <string name="settings_show_read_receipts">Показване на потвърждения за прочитане</string>
     <string name="settings_show_read_receipts_summary">Кликнете на потвържденията за детайлен списък.</string>
     <string name="settings_show_join_leave_messages">Показване на събития за присъединяване/напускане</string>
-    <string name="settings_show_join_leave_messages_summary">Покани, изгонвания и блокирания не биват повлиявани.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Показване на събития за потребителски профили</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Включва промени в снимки и имена.</string>
     <string name="settings_password">Парола</string>

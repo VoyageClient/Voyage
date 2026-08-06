@@ -587,22 +587,33 @@ class TimelineEventController @Inject constructor(
 
     private fun getModels(): List<EpoxyModel<*>> {
         buildCacheItemsIfNeeded()
-        return modelCache
-                .map { cacheItemData ->
-                    val eventModel = if (cacheItemData == null || mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)) {
-                        null
-                    } else {
-                        cacheItemData.eventModel
-                    }
-                    listOf(
-                            cacheItemData?.readReceiptsItem?.takeUnless { mergedHeaderItemFactory.isCollapsed(cacheItemData.localId) },
-                            eventModel,
-                            cacheItemData?.mergedHeaderModel,
-                            cacheItemData?.formattedDayModel?.takeIf { eventModel != null || cacheItemData.mergedHeaderModel != null }
-                    )
-                }
-                .flatten()
-                .filterNotNull()
+        val models = ArrayList<EpoxyModel<*>>(modelCache.size)
+        // Newest first, so the first receipts of a collapsed run are the ones that belong at its
+        // bottom edge. They move onto the run's header rather than vanishing with the events.
+        var collapsedReceipts: ReadReceiptsItem? = null
+        modelCache.forEach { cacheItemData ->
+            val collapsed = cacheItemData != null && mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)
+            val eventModel = cacheItemData?.eventModel?.takeUnless { collapsed }
+            if (collapsed) {
+                collapsedReceipts = collapsedReceipts ?: cacheItemData?.readReceiptsItem
+            } else {
+                // Leaving a collapsed run: if it had no header to hoist onto, the receipts belong here
+                // rather than being carried into the next run.
+                collapsedReceipts?.let { models.add(it) }
+                collapsedReceipts = null
+                cacheItemData?.readReceiptsItem?.let { models.add(it) }
+            }
+            eventModel?.let { models.add(it) }
+            cacheItemData?.mergedHeaderModel?.let { header ->
+                collapsedReceipts?.let { models.add(it) }
+                collapsedReceipts = null
+                models.add(header)
+            }
+            cacheItemData?.formattedDayModel
+                    ?.takeIf { eventModel != null || cacheItemData.mergedHeaderModel != null }
+                    ?.let { models.add(it) }
+        }
+        return models
     }
 
     // True when [event] is the oldest event of ANY merged run (redacted, hidden, membership/ACL/image-pack,

@@ -25,7 +25,10 @@ class JumpToBottomViewVisibilityManager(
         private val layoutManager: LinearLayoutManager,
         // With a forward-bounded window (jumped deep into history) position 0 isn't the live edge,
         // so "at position <= 1" must not hide the FAB.
-        private val isTimelineLive: () -> Boolean = { true }
+        private val isTimelineLive: () -> Boolean = { true },
+        // Reaching the live edge means there is nothing left to return to, so a remembered
+        // jump-back source must not survive to hijack the button when the user scrolls up again.
+        private val onReachedLiveEdge: () -> Unit = {},
 ) {
 
     init {
@@ -67,6 +70,7 @@ class JumpToBottomViewVisibilityManager(
             jumpToBottomView.show()
         } else {
             jumpToBottomView.hide()
+            onReachedLiveEdge()
         }
     }
 }

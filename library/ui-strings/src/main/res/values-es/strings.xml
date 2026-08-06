@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s se ha unido</string>
     <string name="notice_room_leave">%1$s salió</string>
     <string name="notice_room_reject">%1$s rechazó la invitación</string>
-    <string name="notice_room_remove">%1$s expulsó a %2$s</string>
     <string name="notice_room_unban">%1$s le quitó el veto a %2$s</string>
     <string name="notice_room_ban">%1$s vetó a %2$s</string>
     <string name="notice_room_withdraw">%1$s retiró la invitación de %2$s</string>
@@ -52,7 +51,6 @@
     <string name="notice_room_join_with_reason">%1$s se ha unido. Razón: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s dejó la sala. Razón: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s ha rechadazo la invitación. Razón: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s expulsó a %2$s. Razón: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s ha baneado a %2$s. Razón: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s ha aceptado la invitación para %2$s. Razón: %3$s</string>
     <string name="notice_room_canonical_alias_unset">%1$s ha eliminado la dirección principal para esta sala.</string>
@@ -88,7 +86,6 @@
     <string name="notice_room_join_by_you">Te uniste a la Sala</string>
     <string name="notice_room_leave_by_you">Dejaste la sala</string>
     <string name="notice_room_reject_by_you">Rechazaste la invitación</string>
-    <string name="notice_room_remove_by_you">Tu pateaste a %1$s</string>
     <string name="notice_room_unban_by_you">Tu desbanaste a %1$s</string>
     <string name="notice_room_ban_by_you">Excluiste a %1$s</string>
     <string name="notice_room_withdraw_by_you">Retiró la invitación de %1$s\'s</string>
@@ -131,7 +128,6 @@
     <string name="notice_room_join_with_reason_by_you">Te uniste a la sala. Razón: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">Dejaste la sala. Razón: %1$s</string>
     <string name="notice_room_reject_with_reason_by_you">Rechazaste la invitación. Razón: %1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Pateaste a %1$s. Motivo: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">Has desactivado a %1$s. Motivo: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">Prohibiste a %1$s. Motivo: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Aceptaste la invitación para %1$s. Motivo: %2$s</string>
@@ -476,7 +472,6 @@
     <string name="group_details_home">Inicio</string>
     <string name="rooms">Salas</string>
     <string name="invited">Invitado</string>
-    <string name="has_been_removed">Has sido expulsado de %1$s por %2$s</string>
     <string name="has_been_banned">Has sido vetado de %1$s por %2$s</string>
     <string name="reason_colon">Motivo: %1$s</string>
     <string name="list_members">Listar miembros</string>
@@ -665,7 +660,6 @@
     <string name="settings_show_read_receipts">Mostrar recibos de lectura</string>
     <string name="settings_show_read_receipts_summary">Hacer click en los recibos de lectura para mostrar una lista detallada.</string>
     <string name="settings_show_join_leave_messages">Mostrar notificaciones de entrada y salida</string>
-    <string name="settings_show_join_leave_messages_summary">Invitaciones, expulsiones y vetos no se ven afectadas.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Mostrar notificaciones de la cuenta</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Incluye cambios en el avatar y en el nombre.</string>
     <string name="settings_send_message_with_enter">Enviar mensaje con intro</string>

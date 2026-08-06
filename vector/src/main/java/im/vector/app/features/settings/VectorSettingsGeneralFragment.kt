@@ -35,6 +35,7 @@ import im.vector.app.core.extensions.toMvRxBundle
 import im.vector.app.core.glide.MediaCache
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.platform.SimpleTextWatcher
+import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.preference.UserAvatarPreference
 import im.vector.app.core.preference.UserBannerPreference
 import im.vector.app.core.preference.VectorPreference
@@ -54,6 +55,10 @@ import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
 import im.vector.app.features.navigation.SettingsActivityPayload
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
+import im.vector.app.features.redaction.preservation.PreservedMediaStore
+import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
+import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
 import im.vector.app.features.workers.signout.SignOutUiWorker
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +70,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.isInvalidPassword
+import org.matrix.android.sdk.api.session.admin.ServerAdminStatus
 import org.matrix.android.sdk.api.session.getUser
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerConfig
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
@@ -82,9 +88,12 @@ class VectorSettingsGeneralFragment :
         GalleryOrCameraDialogHelper.Listener {
 
     @Inject lateinit var galleryOrCameraDialogHelperFactory: GalleryOrCameraDialogHelperFactory
+    @Inject lateinit var preservedMediaStore: PreservedMediaStore
+    @Inject lateinit var redactionCacheCleaner: RedactionCacheCleaner
     @Inject lateinit var recentEmojiDataSource: RecentEmojiDataSource
     @Inject lateinit var mediaCache: MediaCache
     @Inject lateinit var timezoneFormatter: TimezoneFormatter
+    @Inject lateinit var serverAdminStatusDataSource: ServerAdminStatusDataSource
 
     override var titleRes = CommonStrings.settings_general_title
     override val preferenceXmlRes = R.xml.vector_settings_general
@@ -337,8 +346,20 @@ class VectorSettingsGeneralFragment :
         // Advanced settings
 
         // user account
-        findPreference<VectorPreference>(VectorPreferences.SETTINGS_LOGGED_IN_PREFERENCE_KEY)!!
-                .summary = session.myUserId
+        findPreference<VectorPreference>(VectorPreferences.SETTINGS_LOGGED_IN_PREFERENCE_KEY)!!.let {
+            it.summary = session.myUserId
+            // Capabilities are cached and only refetched periodically, so a server-side change (an
+            // experimental feature being switched on, say) would otherwise not be picked up until
+            // the cache expired or the user signed out.
+            it.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                lifecycleScope.launch {
+                    runCatching { session.homeServerCapabilitiesService().refreshHomeServerCapabilities() }
+                            .onSuccess { view?.showOptimizedSnackbar(getString(CommonStrings.settings_homeserver_info_reloaded)) }
+                            .onFailure { failure -> view?.showOptimizedSnackbar(errorFormatter.toHumanReadable(failure)) }
+                }
+                false
+            }
+        }
 
         // homeserver
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_HOME_SERVER_PREFERENCE_KEY)!!
@@ -346,6 +367,8 @@ class VectorSettingsGeneralFragment :
 
         // Contacts
         setContactsPreferences()
+
+        setupServerAdminPreference()
 
         // clear cache
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_CLEAR_CACHE_PREFERENCE_KEY)!!.let {
@@ -410,6 +433,31 @@ class VectorSettingsGeneralFragment :
                 .onPreferenceClickListener = Preference.OnPreferenceClickListener {
             recentEmojiDataSource.clear()
             false
+        }
+        // Sits with the other cache actions rather than under Redactions: the preserved event data is
+        // only ever dropped along with the app cache, so this file cache is the one thing to clear here.
+        findPreference<VectorPreference>(RedactionPreservationSettings.SETTINGS_REDACTION_CLEAR_MEDIA_CACHE_KEY)?.let { pref ->
+            val canPreserveRedactions = session.homeServerCapabilitiesService().getHomeServerCapabilities().canViewUnredactedContent
+            pref.isVisible = canPreserveRedactions
+            // Listener first: sizing walks the whole preserved-media tree, and a tap before that
+            // finishes would otherwise be silently swallowed.
+            pref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    displayLoadingView()
+                    redactionCacheCleaner.clearMediaCache()
+                    if (!isAdded) return@launch
+                    pref.summary = TextUtils.formatFileSize(requireContext(), preservedMediaStore.size())
+                    hideLoadingView()
+                }
+                false
+            }
+            lifecycleScope.launch(Dispatchers.Main) {
+                val size = preservedMediaStore.size()
+                if (!isAdded) return@launch
+                // Files an earlier server left behind would otherwise have no way to be cleared.
+                pref.isVisible = canPreserveRedactions || size > 0
+                pref.summary = TextUtils.formatFileSize(requireContext(), size)
+            }
         }
         // Sign out
         findPreference<VectorPreference>("SETTINGS_SIGN_OUT_KEY")!!
@@ -557,6 +605,30 @@ class VectorSettingsGeneralFragment :
     // ==============================================================================================================
     // contacts management
     // ==============================================================================================================
+
+    private fun setupServerAdminPreference() {
+        val preference = findPreference<VectorPreference>(VectorPreferences.SETTINGS_SERVER_ADMIN_PREFERENCE_KEY) ?: return
+        preference.summary = summaryFor(serverAdminStatusDataSource.cachedStatus())
+        preference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            lifecycleScope.launch(Dispatchers.Main) {
+                preference.summary = getString(CommonStrings.loading)
+                preference.summary = summaryFor(serverAdminStatusDataSource.refresh())
+            }
+            false
+        }
+        // Existing installs have no cached answer yet, so probe once rather than reporting "Unknown".
+        lifecycleScope.launch(Dispatchers.Main) {
+            preference.summary = summaryFor(serverAdminStatusDataSource.refreshIfUnknown())
+        }
+    }
+
+    private fun summaryFor(status: ServerAdminStatus) = getString(
+            when (status) {
+                ServerAdminStatus.YES -> CommonStrings.settings_server_admin_yes
+                ServerAdminStatus.NO -> CommonStrings.settings_server_admin_no
+                ServerAdminStatus.UNKNOWN -> CommonStrings.settings_server_admin_unknown
+            }
+    )
 
     private fun setContactsPreferences() {
         /* TODO

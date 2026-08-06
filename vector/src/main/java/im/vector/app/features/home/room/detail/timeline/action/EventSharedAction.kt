@@ -64,14 +64,17 @@ sealed class EventSharedAction(
     data class Resend(val eventId: String) :
             EventSharedAction(CommonStrings.global_retry, R.drawable.ic_refresh_cw)
 
-    data class Remove(val eventId: String) :
-            EventSharedAction(CommonStrings.action_remove, R.drawable.ic_trash, true)
-
     data class Redact(val eventId: String, val askForReason: Boolean, val dialogTitleRes: Int, val dialogDescriptionRes: Int) :
             EventSharedAction(CommonStrings.message_action_item_redact, R.drawable.ic_delete, true)
 
     data class Cancel(val event: TimelineEvent, val force: Boolean) :
             EventSharedAction(CommonStrings.action_cancel, R.drawable.ic_close_round)
+
+    data class RevealRedacted(val eventId: String) :
+            EventSharedAction(CommonStrings.message_action_reveal_redacted, R.drawable.ic_reveal_redacted)
+
+    data class HideRedacted(val eventId: String) :
+            EventSharedAction(CommonStrings.message_action_hide_redacted, R.drawable.ic_hide_redacted)
 
     data class ViewSource(val content: String) :
             EventSharedAction(CommonStrings.view_source, R.drawable.ic_view_source)

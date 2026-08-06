@@ -13,8 +13,6 @@
     <string name="notice_room_leave_by_you">Teǧǧiḍ taxxamt</string>
     <string name="notice_room_reject">%1$s yugi/tugi tinubga</string>
     <string name="notice_room_reject_by_you">Tufiḍ tinubga</string>
-    <string name="notice_room_remove">%1$s yessufeɣ %2$s</string>
-    <string name="notice_room_remove_by_you">Tessufɣeḍ %1$s</string>
     <string name="notice_avatar_url_changed_by_you">Tbeddleḍ avatar-inek·inem</string>
     <string name="power_level_admin">Anedbal</string>
     <string name="power_level_moderator">Aseɣyad</string>
@@ -113,8 +111,6 @@
     <string name="notice_room_leave_with_reason_by_you">Teǧǧiḍ taxxamt. Tamentilt: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s yugi tinubga. Tamentilt: %2$s</string>
     <string name="notice_room_reject_with_reason_by_you">Tugiḍ tinubga. Tamentilt: %1$s</string>
-    <string name="notice_room_remove_with_reason">%1$s yessufeɣ %2$s. Tamentilt: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Tessufɣeḍ %1$s. Tamentilt: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s yekkes agdal i %2$s. Tamentilt: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">Tekkseḍ agdal i %1$s. Tamentilt: %2$s</string>
     <string name="notice_room_ban_with_reason">%1$s igdel %2$s. Tamentilt: %3$s</string>
@@ -1102,7 +1098,6 @@
     <string name="settings_show_read_receipts">Sken awwaḍen n tɣuri</string>
     <string name="settings_show_read_receipts_summary">Sit ɣef wawwaḍen n tɣuri i tebdart leqqayen.</string>
     <string name="settings_show_join_leave_messages">Sken ineḍruyen n uttekki d wid i yeffɣen</string>
-    <string name="settings_show_join_leave_messages_summary">Asnubget, asuffeɣ d ugdal ur teddun ara.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Sken ineḍruyen n umiḍan</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Rnu ɣer-s isnifal n avaṭar d yisem n uskan.</string>
     <string name="settings_vibrate_on_mention">Smami mi ara d-yettwabder useqdac</string>
@@ -1145,7 +1140,6 @@
     <string name="command_description_markdown">Rmed/Sens Markdown</string>
     <string name="markdown_has_been_enabled">Tacreḍt yeɣlin tettwarmed.</string>
     <string name="markdown_has_been_disabled">Tacreḍt yeɣlin tettusens.</string>
-    <string name="has_been_removed">Tettusuffɣeḍ-d seg %1$s sɣur %2$s</string>
     <string name="has_been_banned">Tettusuffɣeḍ-d seg %1$s sɣur %2$s</string>
     <string name="dialog_user_consent_content">I wakken ad tkemmleḍ aseqdec n uqeddac agejdan %1$s, ilaq ad talseḍ asenqed syen ad tqebleḍ tiwtilin-nneɣ s umata.</string>
     <string name="deactivate_account_delete_checkbox">Ttxil-k·m ttu akk iznan i yuzneɣ mi ara senseɣ amiḍan-iw (Ɣur-k·m: aya ad yerr iseqdacen ara d-yernun ad walin idiwenniyen ur nemmid ara)</string>

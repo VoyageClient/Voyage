@@ -36,6 +36,7 @@ import org.matrix.android.sdk.internal.network.parsing.CipherSuiteMoshiAdapter
 import org.matrix.android.sdk.internal.network.parsing.ForceToBooleanJsonAdapter
 import org.matrix.android.sdk.internal.network.parsing.RuntimeJsonAdapterFactory
 import org.matrix.android.sdk.internal.network.parsing.TlsVersionMoshiAdapter
+import org.matrix.android.sdk.internal.network.parsing.TopicContentJsonAdapterFactory
 import org.matrix.android.sdk.internal.session.sync.parsing.DefaultLazyRoomSyncEphemeralJsonAdapter
 
 internal object MoshiProvider {
@@ -44,6 +45,7 @@ internal object MoshiProvider {
             .add(ForceToBooleanJsonAdapter())
             .add(CipherSuiteMoshiAdapter())
             .add(TlsVersionMoshiAdapter())
+            .add(TopicContentJsonAdapterFactory)
             // Use addLast here so we can inject a SplitLazyRoomSyncJsonAdapter later to override the default parsing.
             .addLast(DefaultLazyRoomSyncEphemeralJsonAdapter())
             .add(

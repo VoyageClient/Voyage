@@ -7,10 +7,13 @@
 
 package im.vector.app.core.extensions
 
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
@@ -27,6 +30,7 @@ import androidx.core.view.isVisible
 import im.vector.app.R
 import im.vector.app.core.platform.showOptimizedSnackbar
 import im.vector.app.core.utils.copyToClipboard
+import im.vector.app.features.html.CenteredIconSpan
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 
@@ -135,20 +139,31 @@ fun TextView.clearDrawables() {
     }
 }
 
-/** Style a preview of a deleted message like [R.layout.item_timeline_event_redacted_stub] does in the timeline. */
+/** Wash a view in the deleted-message colour, marking content that a redaction took (or took back). */
+fun View.setRedactedTint(tinted: Boolean) {
+    setBackgroundColor(
+            if (tinted) ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_redacted_background) else Color.TRANSPARENT
+    )
+}
+
+/**
+ * Style the current text as a preview of a deleted message, like [R.layout.item_timeline_event_redacted_stub]
+ * does in the timeline. Call it after setting the text: the icon is prefixed onto it.
+ */
 fun TextView.setRedactedPreviewStyle() {
-    val color = im.vector.lib.ui.styles.R.attr.vctr_content_tertiary
-    setTextColor(ThemeUtils.getColor(context, color))
+    val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
+    setTextColor(color)
+    clearDrawables()
     // AppCompatResources, not ContextCompat: ic_trash_16 is a <vector>, which the framework loader
     // cannot inflate below API 21.
-    val icon = AppCompatResources.getDrawable(context, R.drawable.ic_trash_16)
-            ?.also { DrawableCompat.setTint(it.mutate(), ThemeUtils.getColor(context, color)) }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-        setCompoundDrawablesRelativeWithIntrinsicBounds(icon, null, null, null)
-    } else {
-        setCompoundDrawablesWithIntrinsicBounds(icon, null, null, null)
-    }
-    compoundDrawablePadding = (8 * resources.displayMetrics.density).toInt()
+    val icon = AppCompatResources.getDrawable(context, R.drawable.ic_trash_16)?.mutate()
+            ?.also { DrawableCompat.setTint(it, color) } ?: return
+    // An inline span rather than a compound drawable: those centre on the whole view, so in a preview with
+    // a fixed two-line height (the room list) the trash sat half a line below the text it belongs to.
+    val gap = 6 * resources.displayMetrics.density
+    text = SpannableStringBuilder(" ")
+            .apply { setSpan(CenteredIconSpan(icon, gap), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
+            .append(text)
 }
 
 /**

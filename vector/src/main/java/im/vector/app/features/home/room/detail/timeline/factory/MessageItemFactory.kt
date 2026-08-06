@@ -81,8 +81,9 @@ import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
 import im.vector.app.features.media.VideoContentRenderer
+import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.pgp.PgpUtils
-import im.vector.app.features.settings.MediaPreviewMode
+import im.vector.app.features.redaction.preservation.PreservedMediaStore
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.AudioWaveformView
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -98,7 +99,6 @@ import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventCon
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
-import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -151,6 +151,7 @@ class MessageItemFactory @Inject constructor(
         private val audioMessagePlaybackTracker: AudioMessagePlaybackTracker,
         private val locationPinProvider: Lazy<LocationPinProvider>,
         private val vectorPreferences: VectorPreferences,
+        private val preservedMediaStore: PreservedMediaStore,
         private val urlMapProvider: Lazy<UrlMapProvider>,
         private val liveLocationShareMessageItemFactory: Lazy<LiveLocationShareMessageItemFactory>,
         private val pollItemViewStateFactory: PollItemViewStateFactory,
@@ -580,22 +581,13 @@ class MessageItemFactory @Inject constructor(
 
     private fun shouldHideMedia(informationData: MessageInformationData): Boolean {
         if (informationData.sentByMe) return false
-        return when (vectorPreferences.getMediaPreviewMode()) {
-            MediaPreviewMode.ALWAYS_SHOW -> false
-            MediaPreviewMode.ALWAYS_HIDE -> true
-            MediaPreviewMode.PRIVATE -> !isCurrentRoomPrivate()
-            MediaPreviewMode.DIRECT -> session.roomService().getRoomSummary(roomId)?.isDirect != true
-        }
+        return isMediaHiddenInRoom(session.roomService().getRoomSummary(roomId), vectorPreferences)
     }
 
-    private fun isCurrentRoomPrivate(): Boolean {
-        return when (session.roomService().getRoomSummary(roomId)?.joinRules) {
-            RoomJoinRules.INVITE,
-            RoomJoinRules.KNOCK,
-            RoomJoinRules.RESTRICTED,
-            RoomJoinRules.PRIVATE -> true
-            else -> false
-        }
+    /** The local copy kept for a revealed redaction, if the media was preserved. */
+    private fun preservedMediaFor(informationData: MessageInformationData): java.io.File? {
+        if (!informationData.isRevealedRedaction) return null
+        return preservedMediaStore.fileFor(roomId, informationData.eventId).takeIf { it.isFile }
     }
 
     private fun buildImageMessageItem(
@@ -610,6 +602,7 @@ class MessageItemFactory @Inject constructor(
         // Use it for download/save filename and render `body` (+ `formatted_body`) as a caption
         // below the image. Use it for the renderer cache key too so identical avatars share.
         val mediaFilename = (messageContent as? MessageWithAttachmentContent)?.getFileName() ?: messageContent.body
+        val preservedMedia = preservedMediaFor(informationData)
         val data = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
                 stableId = informationData.stableId,
@@ -623,6 +616,7 @@ class MessageItemFactory @Inject constructor(
                 maxWidth = maxWidth,
                 allowNonMxcUrls = informationData.sendState.isSending(),
                 blurHash = messageContent.info?.blurHash,
+                preservedFile = preservedMedia,
         )
 
         val playable = messageContent.mimeType == MimeTypes.Gif
@@ -701,6 +695,8 @@ class MessageItemFactory @Inject constructor(
                 maxWidth = maxWidth,
                 allowNonMxcUrls = informationData.sendState.isSending(),
                 blurHash = messageContent.videoInfo?.blurHash,
+                // The preserved copy is the full video, which also serves as its own poster frame.
+                preservedFile = preservedMediaFor(informationData),
         )
 
         val videoData = VideoContentRenderer.Data(

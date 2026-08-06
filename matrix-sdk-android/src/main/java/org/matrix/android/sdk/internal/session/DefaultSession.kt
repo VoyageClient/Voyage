@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.ToDeviceService
 import org.matrix.android.sdk.api.session.account.AccountService
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
+import org.matrix.android.sdk.api.session.admin.AdminService
 import org.matrix.android.sdk.api.session.cache.CacheService
 import org.matrix.android.sdk.api.session.call.CallSignalingService
 import org.matrix.android.sdk.api.session.content.ContentUploadStateTracker
@@ -52,6 +53,7 @@ import org.matrix.android.sdk.api.session.presence.PresenceService
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.pushers.PushersService
 import org.matrix.android.sdk.api.session.pushrules.PushRuleService
+import org.matrix.android.sdk.api.session.redaction.RedactedContentService
 import org.matrix.android.sdk.api.session.room.RoomDirectoryService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.search.SearchService
@@ -68,8 +70,6 @@ import org.matrix.android.sdk.api.util.appendParamToUrl
 import org.matrix.android.sdk.internal.auth.SSO_UIA_FALLBACK_PATH
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
 import org.matrix.android.sdk.internal.di.Authenticated
-import org.matrix.android.sdk.internal.di.CryptoDatabase
-import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.di.UnauthenticatedWithCertificate
 import org.matrix.android.sdk.internal.di.WorkManagerProvider
@@ -91,6 +91,8 @@ internal class DefaultSession @Inject constructor(
         private val roomDirectoryService: Lazy<RoomDirectoryService>,
         private val userService: Lazy<UserService>,
         private val federationService: Lazy<FederationService>,
+        private val adminService: Lazy<AdminService>,
+        private val redactedContentService: Lazy<RedactedContentService>,
         private val cacheService: Lazy<CacheService>,
         private val signOutService: Lazy<SignOutService>,
         private val pushRuleService: Lazy<PushRuleService>,
@@ -225,6 +227,8 @@ internal class DefaultSession @Inject constructor(
     override fun searchService(): SearchService = searchService.get()
     override fun eventIndexService(): EventIndexService = eventIndexService.get()
     override fun federationService(): FederationService = federationService.get()
+    override fun adminService(): AdminService = adminService.get()
+    override fun redactedContentService(): RedactedContentService = redactedContentService.get()
     override fun thirdPartyService(): ThirdPartyService = thirdPartyService.get()
     override fun spaceService(): SpaceService = spaceService.get()
     override fun openIdService(): OpenIdService = openIdService.get()
@@ -264,5 +268,4 @@ internal class DefaultSession @Inject constructor(
     }
 
     override fun getDbUsageInfo() = "Session store: SQLite (SQLDelight)"
-
 }

@@ -62,6 +62,13 @@ import im.vector.app.features.pin.PinCodeStore
 import im.vector.app.features.pin.PinMode
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTIONS_CATEGORY_KEY
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_CLEAR_WITH_APP_CACHE_KEY
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_KEY
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_PRESERVE_MEDIA_KEY
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_WIFI_ONLY_KEY
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonPlurals
@@ -94,6 +101,7 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var mediaCache: MediaCache
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var pgpServiceManager: PgpServiceManager
+    @Inject lateinit var redactionSettings: RedactionPreservationSettings
     @Inject lateinit var pgpKeyStore: PgpKeyStore
 
     override var titleRes = CommonStrings.settings_security_and_privacy
@@ -294,6 +302,7 @@ class VectorSettingsSecurityPrivacyFragment :
 
         // Media visibility / avatar hiding
         setUpMediaVisibility()
+        setUpRedactions()
 
         // Pin code
         openPinCodeSettingsPref.setOnPreferenceClickListener {
@@ -498,6 +507,47 @@ class VectorSettingsSecurityPrivacyFragment :
                     lifecycleScope.launch { mediaCache.clearThumbnails() }
                     true
                 }
+    }
+
+    private fun setUpRedactions() {
+        // Nothing here works without MSC2815, so the whole category goes when the server lacks it.
+        if (!session.homeServerCapabilitiesService().getHomeServerCapabilities().canViewUnredactedContent) {
+            findPreference<VectorPreferenceCategory>(SETTINGS_REDACTIONS_CATEGORY_KEY)?.isVisible = false
+            return
+        }
+
+        val preservePref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_PRESERVE_KEY)
+        val preserveMediaPref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_PRESERVE_MEDIA_KEY)
+        val maxSizePref = findPreference<VectorListPreference>(SETTINGS_REDACTION_MAX_MEDIA_SIZE_KEY)
+        val wifiOnlyPref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_WIFI_ONLY_KEY)
+        val clearWithAppCachePref = findPreference<VectorSwitchPreference>(SETTINGS_REDACTION_CLEAR_WITH_APP_CACHE_KEY)
+
+        preservePref?.isChecked = redactionSettings.globalPreserveRedacted
+        preserveMediaPref?.isChecked = redactionSettings.globalPreserveMedia
+        maxSizePref?.value = redactionSettings.globalMaxMediaSize.toString()
+        wifiOnlyPref?.isChecked = redactionSettings.globalWifiOnly
+        clearWithAppCachePref?.isChecked = redactionSettings.clearRedactionCacheWithAppCache
+
+        preservePref?.setOnPreferenceChangeListener { _, newValue ->
+            redactionSettings.globalPreserveRedacted = newValue as Boolean
+            true
+        }
+        preserveMediaPref?.setOnPreferenceChangeListener { _, newValue ->
+            redactionSettings.globalPreserveMedia = newValue as Boolean
+            true
+        }
+        maxSizePref?.setOnPreferenceChangeListener { _, newValue ->
+            redactionSettings.globalMaxMediaSize = (newValue as? String)?.toLongOrNull() ?: RedactionPreservationSettings.DEFAULT_MAX_MEDIA_SIZE
+            true
+        }
+        wifiOnlyPref?.setOnPreferenceChangeListener { _, newValue ->
+            redactionSettings.globalWifiOnly = newValue as Boolean
+            true
+        }
+        clearWithAppCachePref?.setOnPreferenceChangeListener { _, newValue ->
+            redactionSettings.clearRedactionCacheWithAppCache = newValue as Boolean
+            true
+        }
     }
 
     // Todo this should be refactored and use same state as 4S section

@@ -1,0 +1,3 @@
+-- Bumps the schema version so FrameworkSqliteDriver drops and recreates the session store (it does
+-- not run migrations); the store is a cache and rebuilds itself from sync.
+CREATE INDEX timeline_event_sender_membership ON timeline_event(sender_membership_event_id);

@@ -38,7 +38,12 @@ import im.vector.app.features.pgp.PgpResult
 import im.vector.app.features.pgp.PgpServiceManager
 import im.vector.app.features.pgp.PgpUtils
 import im.vector.app.features.reactions.data.QuickReactionsDataSource
+import im.vector.app.features.redaction.preservation.RedactedContentRepository
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
+import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
+import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.settings.admin.ServerAdminStatusDataSource
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -109,6 +114,11 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val pgpKeyStore: PgpKeyStore,
         private val imagePackProvider: ImagePackProvider,
         private val quickReactionsDataSource: QuickReactionsDataSource,
+        private val redactionSettings: RedactionPreservationSettings,
+        private val redactedContentRevealManager: RedactedContentRevealManager,
+        private val redactedContentRepository: RedactedContentRepository,
+        private val redactedContentRestorer: RedactedContentRestorer,
+        private val serverAdminStatusDataSource: ServerAdminStatusDataSource,
 ) : VectorViewModel<MessageActionState, EmptyAction, EmptyViewEvents>(initialState) {
 
     private val informationData = initialState.informationData
@@ -238,12 +248,16 @@ class MessageActionsViewModel @AssistedInject constructor(
             // "-" preview placeholder while the main thread blocks on the render.
             viewModelScope.launch(Dispatchers.Default) {
                 try {
+                    val restored = redactedContentRestorer.restoreEvent(nonNullTimelineEvent)
+                    // Actions read the raw event: which of Reveal/Hide/Edit/Redact apply depends on the
+                    // message still being redacted. Everything that renders content reads the restored one.
                     val events = actionsForEvent(nonNullTimelineEvent, permissions)
-                    val body = computeMessageBody(nonNullTimelineEvent)
+                    val body = computeMessageBody(restored ?: nonNullTimelineEvent)
                     setState {
                         copy(
                                 eventId = nonNullTimelineEvent.eventId,
                                 messageBody = body,
+                                restoredEvent = restored,
                                 actions = events
                         )
                     }
@@ -351,7 +365,9 @@ class MessageActionsViewModel @AssistedInject constructor(
             when {
                 timelineEvent.root.sendState.hasFailed() -> {
                     if (canRetry(timelineEvent, actionPermissions)) add(EventSharedAction.Resend(eventId))
-                    add(EventSharedAction.Remove(eventId))
+                    // No Remove here: Redact is added below for every event and reads the same, so
+                    // offering both is two buttons for one outcome. TimelineFragment routes Redact on
+                    // a failed echo to the local removal, since the server never saw the event.
                 }
                 timelineEvent.root.sendState.isSending() -> {
                     if (canCancel(timelineEvent)) add(EventSharedAction.Cancel(timelineEvent, false))
@@ -437,7 +453,15 @@ class MessageActionsViewModel @AssistedInject constructor(
         if (canViewReactions(timelineEvent)) {
             add(EventSharedAction.ViewReactions(informationData))
         }
-        if (!timelineEvent.root.isRedacted()) {
+        if (timelineEvent.root.isRedacted()) {
+            // Hide applies to what the timeline is actually rendering; Reveal to what it could render.
+            val isShowingContent = redactedContentRestorer.isShowingRestoredContent(timelineEvent)
+            when {
+                isShowingContent -> add(EventSharedAction.HideRedacted(eventId))
+                canRestoreRedactedContent(timelineEvent) -> add(EventSharedAction.RevealRedacted(eventId))
+                else -> Unit
+            }
+        } else {
             if (canReplyInThread(timelineEvent, messageContent, actionPermissions)) {
                 add(EventSharedAction.ReplyInThread(eventId, !timelineEvent.isRootThread()))
             }
@@ -640,6 +664,21 @@ class MessageActionsViewModel @AssistedInject constructor(
 
     private fun canRedact(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {
         return checkIfCanRedactEventUseCase.execute(event, actionPermissions)
+    }
+
+    /**
+     * Offered only for redacted messages we could actually show: either a local copy was captured
+     * before the redaction, or the server implements MSC2815 and we are privileged enough to ask.
+     */
+    private suspend fun canRestoreRedactedContent(event: TimelineEvent): Boolean {
+        if (event.root.isStateEvent()) return false
+        // An already-preserved copy needs no permission and no server support.
+        if (redactedContentRepository.hasPreservedContent(event.eventId)) return true
+        if (!session.homeServerCapabilitiesService().getHomeServerCapabilities().canViewUnredactedContent) return false
+        val powerLevels = room?.stateService()?.getRoomPowerLevels() ?: return false
+        // mayBeAdmin, not isAdmin: MSC2815 is not Synapse-only, but the admin probe is, so anywhere it
+        // can't answer the capability flag decides and a refusal comes back as the usual snackbar.
+        return powerLevels.isUserAbleToRedact(session.myUserId) || serverAdminStatusDataSource.cachedStatus().mayBeAdmin
     }
 
     private fun canRetry(event: TimelineEvent, actionPermissions: ActionPermissions): Boolean {

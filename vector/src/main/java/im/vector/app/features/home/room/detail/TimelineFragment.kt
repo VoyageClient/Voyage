@@ -66,6 +66,7 @@ import im.vector.app.core.epoxy.LayoutManagerStateRestorer
 import im.vector.app.core.extensions.applyThemeShapeColorCompat
 import im.vector.app.core.extensions.backgroundCompat
 import im.vector.app.core.extensions.cleanup
+import im.vector.app.core.extensions.collectBatched
 import im.vector.app.core.extensions.commitTransaction
 import im.vector.app.core.extensions.containsRtLOverride
 import im.vector.app.core.extensions.ensureEndsLeftToRight
@@ -170,8 +171,12 @@ import im.vector.app.features.permalink.PermalinkFactory
 import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.poll.PollMode
 import im.vector.app.features.reactions.EmojiReactionPickerActivity
+import im.vector.app.features.redaction.preservation.RedactedContentRepository
+import im.vector.app.features.redaction.preservation.RedactedContentRevealManager
+import im.vector.app.features.redaction.preservation.RevealFailure
 import im.vector.app.features.roomprofile.RoomProfileActivity
 import im.vector.app.features.session.coroutineScope
+import im.vector.app.features.settings.MediaPreviewMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.VectorSettingsActivity
 import im.vector.app.features.share.ForwardPayloadHolder
@@ -186,7 +191,9 @@ import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -240,6 +247,8 @@ class TimelineFragment :
     @Inject lateinit var eventHtmlRenderer: EventHtmlRenderer
     @Inject lateinit var processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase
     @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var redactedContentRevealManager: RedactedContentRevealManager
+    @Inject lateinit var redactedContentRepository: RedactedContentRepository
     @Inject lateinit var threadsManager: ThreadsManager
     @Inject lateinit var colorProvider: ColorProvider
     @Inject lateinit var dimensionConverter: DimensionConverter
@@ -261,6 +270,11 @@ class TimelineFragment :
 
         // ~2 dropped frames at 60fps; gaps this large between scroll callbacks indicate a stall worth logging.
         private const val SCROLL_JANK_FRAME_MS = 32L
+
+        // Ceiling on how long a batched model invalidation may be deferred while its stream keeps
+        // trickling. Long enough to still collapse a burst, short enough that nothing visibly sticks
+        // on a placeholder.
+        private const val INVALIDATE_MAX_DEFER_MS = 1000L
     }
 
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
@@ -287,16 +301,10 @@ class TimelineFragment :
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
     private var replyJumpSourceEventId: String? = null
-
-    // Captured while the source is still on screen: after the jump restarts the timeline the source may
-    // not be loaded at all (the forward chain from the target can be far from the live edge), so its
-    // position can only be judged by timestamp.
-    private var replyJumpSourceTs: Long? = null
-
-    // Also captured at click time (the live edge may not be loaded afterwards): a source within one
-    // screen of the latest message doesn't deserve an intermediate stop — jump-to-latest shows it anyway.
-    private var replyJumpSourceNearLiveEdge = false
     private var modelBuildListener: OnModelBuildFinishedListener? = null
+
+    // Effective media-preview mode at the last resume, to detect an edit made in the room profile.
+    private var lastMediaPreviewMode: MediaPreviewMode? = null
     private var pinnedBannerJumpApplied = false
 
     private lateinit var keyboardStateUtils: KeyboardStateUtils
@@ -343,6 +351,8 @@ class TimelineFragment :
         setupLiveLocationIndicator()
         setupBackPressHandling()
         setupVoiceRecorderStacking()
+        observeRedactionRevealChanges()
+        observeRedactionRevealFailures()
 
         // Avoid a one-frame flash before invalidate runs.
         if (!vectorPreferences.isVoiceMessageButtonEnabled()) {
@@ -374,18 +384,12 @@ class TimelineFragment :
         // model-build lock (contended with the build thread) and schedule a full rebuild once per
         // event, convoying the main thread into an ANR. Accumulate eventIds and flush in batches.
         viewLifecycleOwner.lifecycleScope.launch {
-            val pendingDecrypted = LinkedHashSet<String>()
+            // Every rebuild pass costs ~4ms x (events in room) in unavoidable Epoxy enrich overhead
+            // regardless of how many items actually changed, so the lever is pass COUNT, not item
+            // count: a whole decrypt burst collapses into one batched rebuild once it settles rather
+            // than a pass per event. The deferral is capped so a continuous trickle still flushes.
             timelineViewModel.pgpDecryptionRetriever.decrypted
-                    .onEach { eventId -> pendingDecrypted.add(eventId) }
-                    // Every rebuild pass costs ~4ms x (events in room) in unavoidable Epoxy enrich
-                    // overhead regardless of how many items actually changed, so the lever is pass
-                    // COUNT, not item count. debounce (not sample) collapses a whole decrypt burst
-                    // into a single batched rebuild once decryption settles, instead of one pass
-                    // every 150ms that pile up on the build thread and jank the main thread.
-                    .debounce(200)
-                    .collect {
-                        val batch = pendingDecrypted.toList()
-                        pendingDecrypted.clear()
+                    .collectBatched(quietMs = 200, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
                         timelineEventController.invalidateEventCaches(batch)
                     }
         }
@@ -397,13 +401,8 @@ class TimelineFragment :
         // A sender's MSC4247 pronouns are fetched lazily; when they land, rebuild that sender's
         // notices so "changed their avatar" settles on the gendered wording. Batch like PGP above.
         viewLifecycleOwner.lifecycleScope.launch {
-            val pendingSenders = LinkedHashSet<String>()
             session.profileService().getPronounsUpdateFlow()
-                    .onEach { userId -> pendingSenders.add(userId) }
-                    .debounce(200)
-                    .collect {
-                        val batch = pendingSenders.toList()
-                        pendingSenders.clear()
+                    .collectBatched(quietMs = 200, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
                         timelineEventController.invalidateEventCachesForSenders(batch)
                     }
         }
@@ -912,42 +911,19 @@ class TimelineFragment :
 
     private fun captureReplyJumpSource(sourceEventId: String?) {
         replyJumpSourceEventId = sourceEventId
-        replyJumpSourceTs = timelineEventController.findEventInSnapshot(sourceEventId)?.root?.originServerTs
-        // childCount ≈ rows per screen, so "position < childCount" ≈ within one viewport of the bottom
-        replyJumpSourceNearLiveEdge = timelineViewModel.timeline?.isLive != false &&
-                timelineEventController.searchPositionOfEvent(sourceEventId).let { it != null && it < layoutManager.childCount }
     }
 
     private fun clearReplyJumpSource() {
         replyJumpSourceEventId = null
-        replyJumpSourceTs = null
-        replyJumpSourceNearLiveEdge = false
-    }
-
-    private fun shouldJumpToReplySource(sourceEventId: String): Boolean {
-        if (!vectorPreferences.jumpBackToReplySource()) return false
-        if (replyJumpSourceNearLiveEdge) return false
-        val sourcePosition = timelineEventController.searchPositionOfEvent(sourceEventId)
-        // The timeline is reverse-laid-out, so smaller positions sit nearer the bottom. Only stop
-        // at the reply source if it's below the current viewport (off-screen toward the bottom);
-        // if it's already visible or above us, a plain jump-to-bottom is what's wanted.
-        if (sourcePosition != null) {
-            return sourcePosition < layoutManager.findFirstVisibleItemPosition()
-        }
-        // The source may have no built row — or not be loaded at all (the jump restarted the timeline
-        // around the target, and its forward chain may be nowhere near the live edge where the source
-        // sits). Fall back to the timestamp captured when it was clicked: newer than the newest visible
-        // message means it's below the viewport.
-        val sourceTs = replyJumpSourceTs ?: return false
-        val newestVisibleTs = timelineEventController.getNewestVisibleEvent(layoutManager.findFirstVisibleItemPosition())?.root?.originServerTs ?: return false
-        return sourceTs > newestVisibleTs
     }
 
     private fun setupJumpToBottomView() {
         views.jumpToBottomView.visibility = View.INVISIBLE
         views.jumpToBottomView.debouncedClicks {
             val sourceId = replyJumpSourceEventId
-            if (sourceId != null && shouldJumpToReplySource(sourceId)) {
+            // Always an explicit jump, even when the source is already on screen: it re-highlights the
+            // row and expands the merged run it may sit in, neither of which a plain scroll-to-bottom does.
+            if (sourceId != null && vectorPreferences.jumpBackToReplySource()) {
                 clearReplyJumpSource()
                 timelineViewModel.handle(RoomDetailAction.NavigateToEvent(sourceId, highlight = true))
             } else {
@@ -960,7 +936,8 @@ class TimelineFragment :
                 debouncer,
                 views.timelineRecyclerView,
                 layoutManager,
-                isTimelineLive = { timelineViewModel.timeline?.isLive != false }
+                isTimelineLive = { timelineViewModel.timeline?.isLive != false },
+                onReachedLiveEdge = { clearReplyJumpSource() },
         )
     }
 
@@ -1230,6 +1207,20 @@ class TimelineFragment :
         notificationDrawerManager.setCurrentThread(timelineArgs.threadTimelineArgs?.rootThreadEventId)
         roomDetailPendingActionStore.data?.let { handlePendingAction(it) }
         roomDetailPendingActionStore.data = null
+        refreshOnMediaVisibilityChange()
+    }
+
+    /**
+     * Media visibility is read when a model is built, and the room profile — where the per-room
+     * override lives — is edited without this fragment being recreated, so a changed setting would
+     * otherwise not show until the room is reopened.
+     */
+    private fun refreshOnMediaVisibilityChange() {
+        val mode = vectorPreferences.getMediaPreviewMode(timelineArgs.roomId)
+        if (lastMediaPreviewMode != null && lastMediaPreviewMode != mode) {
+            timelineEventController.invalidateAllCache()
+        }
+        lastMediaPreviewMode = mode
     }
 
     private fun handlePendingAction(roomDetailPendingAction: RoomDetailPendingAction) {
@@ -1237,6 +1228,8 @@ class TimelineFragment :
             RoomDetailPendingAction.DoNothing -> Unit
             is RoomDetailPendingAction.JumpToReadReceipt ->
                 timelineViewModel.handle(RoomDetailAction.JumpToReadReceipt(roomDetailPendingAction.userId))
+            is RoomDetailPendingAction.JumpToEvent ->
+                timelineViewModel.handle(RoomDetailAction.NavigateToEvent(roomDetailPendingAction.eventId, highlight = true))
             is RoomDetailPendingAction.MentionUser ->
                 messageComposerViewModel.handle(MessageComposerAction.InsertUserDisplayName(roomDetailPendingAction.userId))
             is RoomDetailPendingAction.OpenRoom ->
@@ -2101,11 +2094,22 @@ class TimelineFragment :
                 showSnackWithMessage(getString(CommonStrings.copied_to_clipboard))
             }
             is EventSharedAction.Redact -> {
-                if (vectorPreferences.skipRedactionConfirmation()) {
-                    timelineViewModel.handle(RoomDetailAction.RedactAction(action.eventId, reason = null))
-                } else {
-                    promptConfirmationToRedactEvent(action)
+                // A failed send never reached the server, so there is nothing to redact — drop the
+                // local echo instead, which is what the user means by deleting it.
+                val failedEcho = timelineEventController.findEventInSnapshot(action.eventId)?.root?.sendState?.hasFailed() == true
+                when {
+                    failedEcho -> timelineViewModel.handle(RoomDetailAction.RemoveFailedEcho(action.eventId))
+                    vectorPreferences.skipRedactionConfirmation() ->
+                        timelineViewModel.handle(RoomDetailAction.RedactAction(action.eventId, reason = null))
+                    else -> promptConfirmationToRedactEvent(action)
                 }
+            }
+            is EventSharedAction.RevealRedacted -> {
+                redactedContentRevealManager.setRevealed(action.eventId, true)
+                redactedContentRepository.requestContent(timelineArgs.roomId, action.eventId)
+            }
+            is EventSharedAction.HideRedacted -> {
+                redactedContentRevealManager.setRevealed(action.eventId, false)
             }
             is EventSharedAction.Forward -> {
                 onForwardActionClicked(action)
@@ -2181,9 +2185,6 @@ class TimelineFragment :
             is EventSharedAction.Resend -> {
                 timelineViewModel.handle(RoomDetailAction.ResendMessage(action.eventId))
             }
-            is EventSharedAction.Remove -> {
-                timelineViewModel.handle(RoomDetailAction.RemoveFailedEcho(action.eventId))
-            }
             is EventSharedAction.Cancel -> {
                 handleCancelSend(action)
             }
@@ -2245,6 +2246,51 @@ class TimelineFragment :
 
     private fun showSnackWithMessage(message: String) {
         view?.showOptimizedSnackbar(message, anchorView = views.composerContainer)
+    }
+
+    /**
+     * Toggling reveal, and the fetch that follows it, both change which item type an event renders
+     * as, so the cached model has to go before the timeline can rebuild.
+     */
+    private fun observeRedactionRevealChanges() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // Batched: one invalidateEventCache per resolution would take the build lock and schedule a
+            // full rebuild N times over. The deferral is capped because reveals resolve as a continuous
+            // stream, which a purely trailing debounce would postpone for as long as it lasted.
+            merge(redactedContentRevealManager.revealChanges, redactedContentRepository.contentResolved)
+                    .collectBatched(quietMs = 200, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
+                        timelineEventController.invalidateEventCaches(batch)
+                        timelineViewModel.replyPreviewRetriever.onRevealChanged(batch)
+                    }
+        }
+    }
+
+    /**
+     * A reveal that can't be satisfied leaves the message rendered as redacted; the repository
+     * remembers the failure so it isn't retried on every rebind.
+     */
+    private fun observeRedactionRevealFailures() {
+        redactedContentRepository.failures
+                // The repository is session-wide and fetches for rooms with no timeline open, so a
+                // failure elsewhere must not surface here or write a flag against this room.
+                .filter { it.roomId == timelineArgs.roomId }
+                // One message however many events failed: a room of unrecoverable redactions would
+                // otherwise queue a snackbar per event.
+                .debounce(300)
+                .onEach { failure ->
+                    showSnackWithMessage(
+                            getString(
+                                    when (failure.reason) {
+                                        RevealFailure.CONTENT_DELETED -> CommonStrings.message_reveal_failed_deleted
+                                        RevealFailure.CONTENT_NOT_RECEIVED -> CommonStrings.message_reveal_failed_not_received
+                                        RevealFailure.FORBIDDEN -> CommonStrings.message_reveal_failed_forbidden
+                                        RevealFailure.UNSUPPORTED -> CommonStrings.message_reveal_failed_unsupported
+                                        RevealFailure.NETWORK -> CommonStrings.message_reveal_failed_network
+                                    }
+                            )
+                    )
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     private fun showDialogWithMessage(message: String) {

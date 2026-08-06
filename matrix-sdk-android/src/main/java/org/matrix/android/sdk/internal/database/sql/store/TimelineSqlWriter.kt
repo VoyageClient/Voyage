@@ -31,6 +31,10 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
             direction: PaginationDirection,
             ownedByThreadChunk: Boolean = false,
             roomMemberContentsByUser: Map<String, RoomMemberContent?>? = null,
+            // Which m.room.member event supplied the cached sender profile, so redacting that event can
+            // invalidate every row it fed. Absent for callers that don't track it; those rows simply
+            // keep their cached profile.
+            roomMemberEventIdsByUser: Map<String, String?>? = null,
     ): Long? {
         val eventId = event.eventId
         if (stores.timelineEvent.getInChunkByEventId(chunkId, eventId) != null) return null
@@ -57,6 +61,7 @@ internal class TimelineSqlWriter(private val stores: SessionStores) {
                 senderName = roomMemberContent?.let { it.displayName ?: "" },
                 isUniqueDisplayName = isUnique,
                 senderAvatar = roomMemberContent?.let { it.avatarUrl ?: "" },
+                senderMembershipEventId = roomMemberEventIdsByUser?.get(senderId),
                 ownedByThreadChunk = ownedByThreadChunk,
         )
         return stores.timelineEvent.insert(entity, chunkId, eventDbId)

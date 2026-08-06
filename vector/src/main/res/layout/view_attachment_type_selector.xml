@@ -14,7 +14,6 @@
         android:background="@null"
         android:contentDescription="@string/action_close"
         app:srcCompat="@drawable/ic_attachment"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:rotation="135" />
@@ -25,10 +24,10 @@
         android:layout_marginStart="4dp"
         android:layout_marginLeft="4dp"
         android:scrollbars="none"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/attachmentCloseButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/attachmentCloseButton"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="@id/attachmentCloseButton">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -39,7 +38,7 @@
                 android:id="@+id/attachmentGalleryButton"
                 android:layout_width="@dimen/layout_touch_size"
                 android:layout_height="@dimen/layout_touch_size"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_gallery"
                 app:srcCompat="@drawable/ic_attachment_gallery"
                 app:tint="?colorPrimary" />
@@ -50,7 +49,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:layout_marginLeft="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_sticker"
                 app:srcCompat="@drawable/ic_attachment_sticker"
                 app:tint="?colorPrimary" />
@@ -61,7 +60,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:layout_marginLeft="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_sticker_online"
                 app:srcCompat="@drawable/ic_attachment_sticker_web"
                 app:tint="?colorPrimary" />
@@ -72,7 +71,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:layout_marginLeft="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_file"
                 app:srcCompat="@drawable/ic_attachment_file"
                 app:tint="?colorPrimary" />
@@ -83,7 +82,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:layout_marginLeft="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_poll"
                 app:srcCompat="@drawable/ic_attachment_poll"
                 app:tint="?colorPrimary" />
@@ -94,7 +93,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:layout_marginLeft="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_location"
                 app:srcCompat="@drawable/ic_attachment_location"
                 app:tint="?colorPrimary" />
@@ -105,7 +104,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:layout_marginLeft="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_camera"
                 app:srcCompat="@drawable/ic_attachment_camera"
                 app:tint="?colorPrimary" />
@@ -116,7 +115,7 @@
                 android:layout_height="@dimen/layout_touch_size"
                 android:layout_marginStart="2dp"
                 android:layout_marginLeft="2dp"
-                android:background="?android:attr/selectableItemBackground"
+                android:background="@null"
                 android:contentDescription="@string/attachment_type_voice_file"
                 app:srcCompat="@drawable/ic_attachment_voice_file"
                 app:tint="?colorPrimary" />

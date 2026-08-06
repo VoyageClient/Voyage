@@ -45,6 +45,8 @@ import im.vector.app.features.pin.UnlockedActivity
 import im.vector.app.features.pin.lockscreen.crypto.LockScreenKeyRepository
 import im.vector.app.features.pin.lockscreen.pincode.PinCodeHelper
 import im.vector.app.features.popup.PopupAlertManager
+import im.vector.app.features.redaction.preservation.RedactionCacheCleaner
+import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.VectorSessionStore
 import im.vector.app.features.signout.hard.SignedOutActivity
 import im.vector.app.features.start.StartAppAction
@@ -164,6 +166,8 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var shortcutsHandler: ShortcutsHandler
     @Inject lateinit var pinCodeHelper: PinCodeHelper
     @Inject lateinit var popupAlertManager: PopupAlertManager
+    @Inject lateinit var redactionCacheCleaner: RedactionCacheCleaner
+    @Inject lateinit var redactionPreservationService: RedactionPreservationService
     @Inject lateinit var lockScreenKeyRepository: LockScreenKeyRepository
     @Inject lateinit var authenticationService: AuthenticationService
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
@@ -305,6 +309,8 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                 lifecycleScope.launch {
                     // Just do the local cleanup
                     Timber.w("Account deactivated, start app")
+                    // Preserved media lives in filesDir, which doLocalCleanup does not touch.
+                    redactionPreservationService.clearForSignedOutUser(session.myUserId)
                     activeSessionHolder.clearActiveSession()
                     doLocalCleanup(clearPreferences = true, onboardingStore)
                     startNextActivityAndFinish()
@@ -316,6 +322,9 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             args.clearCache -> {
                 lifecycleScope.launch {
                     session.clearCache()
+                    // The redaction cache is a separate store the session wipe doesn't touch, and
+                    // whether it goes with the app cache is the user's choice.
+                    redactionCacheCleaner.onAppCacheCleared()
                     doLocalCleanup(clearPreferences = false, onboardingStore)
                     session.startSyncing(applicationContext)
                     startNextActivityAndFinish()
@@ -339,6 +348,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             }
             Timber.w("SIGN_OUT: success, start app")
             val signedOutSessionId = session.sessionId
+            redactionPreservationService.clearForSignedOutUser(session.myUserId)
             activeSessionHolder.clearActiveSession()
             accountInfoCache.delete(signedOutSessionId)
             val remaining = authenticationService.getAllSessionParams()

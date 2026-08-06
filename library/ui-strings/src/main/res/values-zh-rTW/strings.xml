@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s 已加入聊天室</string>
     <string name="notice_room_leave">%1$s 已離開聊天室</string>
     <string name="notice_room_reject">%1$s 已拒絕邀請</string>
-    <string name="notice_room_remove">%1$s 已移除 %2$s</string>
     <string name="notice_room_unban">%1$s 取消封鎖 %2$s</string>
     <string name="notice_room_ban">%1$s 已封鎖 %2$s</string>
     <string name="notice_room_withdraw">%1$s 已撤回 %2$s 的邀請</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s 已加入聊天室。理由：%2$s</string>
     <string name="notice_room_leave_with_reason">%1$s 已離開聊天室。理由：%2$s</string>
     <string name="notice_room_reject_with_reason">%1$s 已拒絕邀請。理由：%2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s 已移除 %2$s。理由：%3$s</string>
     <string name="notice_room_unban_with_reason">%1$s 已取消封鎖 %2$s。理由：%3$s</string>
     <string name="notice_room_ban_with_reason">%1$s 已封鎖 %2$s。理由：%3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s 已接受 %2$s 的邀請。理由：%3$s</string>
@@ -87,7 +85,6 @@
     <string name="notice_room_join_by_you">您已加入聊天室</string>
     <string name="notice_room_leave_by_you">您已離開聊天室</string>
     <string name="notice_room_reject_by_you">您已拒絕邀請</string>
-    <string name="notice_room_remove_by_you">您已移除 %1$s</string>
     <string name="notice_room_unban_by_you">您已取消封鎖 %1$s</string>
     <string name="notice_room_ban_by_you">您已封鎖 %1$s</string>
     <string name="notice_room_withdraw_by_you">您已撤回 %1$s 的邀請</string>
@@ -130,7 +127,6 @@
     <string name="notice_room_join_with_reason_by_you">您已加入聊天室。理由：%1$s</string>
     <string name="notice_room_leave_with_reason_by_you">您離開了聊天室。理由：%1$s</string>
     <string name="notice_room_reject_with_reason_by_you">您已拒絕邀請。理由：%1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">您已移除 %1$s。理由：%2$s</string>
     <string name="notice_room_unban_with_reason_by_you">您已取消封鎖 %1$s。理由：%2$s</string>
     <string name="notice_room_ban_with_reason_by_you">您已封鎖 %1$s。理由：%2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">您已接受 %1$s 的邀請。理由：%2$s</string>
@@ -501,7 +497,6 @@
     <string name="group_details_home">首頁</string>
     <string name="rooms">聊天室</string>
     <string name="invited">已邀請</string>
-    <string name="has_been_removed">您已被 %2$s 從 %1$s 移除</string>
     <string name="has_been_banned">您已被 %2$s 從 %1$s 封鎖</string>
     <string name="reason_colon">理由：%1$s</string>
     <string name="avatar">大頭照</string>
@@ -560,7 +555,6 @@
     <string name="settings_show_read_receipts">顯示讀取回條</string>
     <string name="settings_show_read_receipts_summary">點擊讀取回條以顯示詳細資料。</string>
     <string name="settings_show_join_leave_messages">顯示人員加入與離開的事件</string>
-    <string name="settings_show_join_leave_messages_summary">邀請、移除與封鎖不受影響。</string>
     <string name="settings_show_avatar_display_name_changes_messages">顯示帳號事件</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">包含大頭照與顯示名稱變動。</string>
     <string name="settings_password">密碼</string>

@@ -190,4 +190,9 @@
     <color name="vctr_text_primary_light">#1B1D22</color>
     <color name="vctr_text_primary_dark">#EBEEF2</color>
 
+    <!-- Wash behind a deleted message, so it reads as removed rather than as an empty message. -->
+    <attr name="vctr_redacted_background" format="color" />
+    <color name="vctr_redacted_background_light">#14D51928</color>
+    <color name="vctr_redacted_background_dark">#1FFD3E3C</color>
+
 </resources>

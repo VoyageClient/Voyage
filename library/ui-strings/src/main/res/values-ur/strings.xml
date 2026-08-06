@@ -20,7 +20,6 @@
     <string name="ftue_auth_create_account_sso_section_header">یا</string>
     <string name="rooms">کمرے</string>
     <string name="notice_direct_room_created">%1$s نے بحث تخلیق کی</string>
-    <string name="notice_room_remove">%1$s نے %2$s کو ہٹا دیا</string>
     <string name="notice_room_invite_no_invitee">%s کی دعوت</string>
     <string name="notice_room_created">%1$s نے کمرہ تخلیق کیا</string>
     <string name="notice_room_created_by_you">آپنے کمرہ تخلیق کیا</string>
@@ -35,7 +34,6 @@
     <string name="notice_room_leave_by_you">آپ کمرہ چھوڑ گئے</string>
     <string name="notice_direct_room_leave">%1$s کمرہ چھوڑ گیا</string>
     <string name="notice_room_reject">%1$s نے دعوت مسترد کردی</string>
-    <string name="notice_room_remove_by_you">آپنے %1$s کو ہٹا دیا</string>
     <string name="notice_room_unban">%1$s نے %2$s پر پابندی ختم کریں</string>
     <string name="notice_room_unban_by_you">آپنے %1$s پر پابندی ختم کردی</string>
     <string name="notice_room_ban">%1$s نے %2$s پر پابندی لگا دی</string>
@@ -178,7 +176,6 @@
     <string name="notice_room_invite_no_invitee_with_reason_by_you">آپکی دعوت۔ وجہ: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">آپ کمرے سے رخصت ہوئے۔ وجہ: %1$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">آپ رخصت ہوئے۔ وجہ: %1$s</string>
-    <string name="notice_room_remove_with_reason">%1$s نے %2$s کو ہٹایا۔ وجہ: %3$s</string>
     <string name="notice_room_invite_no_invitee_with_reason">%1$s کی دعوت۔ وجہ: %2$s</string>
     <string name="notice_room_invite_with_reason_by_you">آپنے %1$s کو مدعو کیا۔ وجہ: %2$s</string>
     <string name="notice_room_join_with_reason_by_you">آپ کمرے میں شامل ہوئے۔ وجہ: %1$s</string>
@@ -193,7 +190,6 @@
     <string name="notice_room_invite_you_with_reason">%1$s نے آپکو مدعو کیا۔ وجہ: %2$s</string>
     <string name="notice_room_join_with_reason">%1$s کمرے میں شامل ہوا۔ وجہ: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s نے دعوت مسترد کی۔ وجہ: %2$s</string>
-    <string name="notice_room_remove_with_reason_by_you">آپنے %1$s کو ہٹایا۔ وجہ: %2$s</string>
     <string name="notice_direct_room_join_with_reason">%1$s شامل ہوئے۔ وجہ: %2$s</string>
     <string name="notice_direct_room_join_with_reason_by_you">آپ شامل ہوئے۔ وجہ: %1$s</string>
     <string name="notice_room_invite_with_reason">%1$s نے %2$s کو مدعو کیا۔ وجہ: %3$s</string>

@@ -292,7 +292,6 @@
     <string name="settings_show_read_receipts">Okundu ibaresini göster</string>
     <string name="settings_show_read_receipts_summary">Detaylı liste için okundu ibaresine tıkla.</string>
     <string name="settings_show_join_leave_messages">Katılma ve ayrılma durumlarını göster</string>
-    <string name="settings_show_join_leave_messages_summary">Davetler, kaldırmalar ve yasaklar etkilenmez.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Hesap olaylarını göster</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Avatar ve görünür adı değişimlerde içer.</string>
     <string name="settings_vibrate_on_mention">Bir kullanıcıdan söz ederken titreşim ver</string>
@@ -431,7 +430,6 @@
     <string name="group_details_home">Anasayfa</string>
     <string name="rooms">Odalar</string>
     <string name="invited">Davet edildi</string>
-    <string name="has_been_removed">%1$s dan/den %2$s tarafından atıldın</string>
     <string name="has_been_banned">%1$s dan/den %2$s tarafından engellendin</string>
     <string name="reason_colon">Nedeni: %1$s</string>
     <string name="avatar">Avatar</string>
@@ -1095,8 +1093,6 @@
     <string name="notice_room_topic_changed">%1$s konuyu şuna değiştirdi: %2$s</string>
     <string name="notice_room_unban_by_you">%1$s adlı kişinin banını kaldırdı</string>
     <string name="notice_room_unban">%1$s, %2$s adlı kişinin banını kaldırdı</string>
-    <string name="notice_room_remove_by_you">%1$s adlı kullanıcıyı attı</string>
-    <string name="notice_room_remove">%1$s, %2$s adlı kullanıcıyı attı</string>
     <string name="room_list_quick_actions_room_settings">Oda ayarları</string>
     <string name="room_settings_room_version_title">Oda sürümü</string>
     <string name="event_status_sending_message">Mesaj gönderiliyor…</string>
@@ -1240,8 +1236,6 @@
     <string name="notice_room_ban_with_reason">%1$s, %2$s\'yi yasakladı. Neden: %3$s</string>
     <string name="notice_room_unban_with_reason_by_you">%1$s yasağını kaldırdınız. Neden: %2$s</string>
     <string name="notice_room_unban_with_reason">%1$s planlanmamış %2$s. Nedeni: %3$s</string>
-    <string name="notice_room_remove_with_reason_by_you">%1$s kaldırdınız. Nedeni: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s %2$s kaldırıldı. Nedeni: %3$s</string>
     <string name="notice_room_reject_with_reason_by_you">Daveti reddettiniz. Sebep: %1$s</string>
     <string name="notice_room_reject_with_reason">%1$s daveti reddetti. Neden: %2$s</string>
     <string name="notice_direct_room_leave_with_reason_by_you">Gittin. Sebep: %1$s</string>

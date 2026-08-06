@@ -82,6 +82,11 @@ data class HomeServerCapabilities(
         var canRedactRelatedEvents: Boolean = false,
 
         /**
+         * True if the home server lets privileged users read the content of redacted events (MSC2815).
+         */
+        var canViewUnredactedContent: Boolean = false,
+
+        /**
          * External account management url for use with OAuth API, provided by MSC4191 /auth_metadata discovery or in unstable Wellknown.
          */
         val externalAccountManagementUrl: String? = null,

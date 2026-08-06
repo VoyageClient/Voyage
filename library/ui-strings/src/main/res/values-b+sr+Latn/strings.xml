@@ -131,7 +131,6 @@
     <string name="settings_show_read_receipts">Prikaži obaveštenja o pročitanim porukama</string>
     <string name="settings_show_read_receipts_summary">Klikni na obaveštenja o pročitanim porukama za detaljan prikaz.</string>
     <string name="settings_show_join_leave_messages">Pokaži obaveštenja o priključivanjima i napuštanjima</string>
-    <string name="settings_show_join_leave_messages_summary">Ne odnosi se na pozivnice, izbacivanja i zabrane.</string>
     <string name="settings_show_avatar_display_name_changes_messages">Prikaži obaveštenja o nalogu</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">Uključuje obaveštenja o promeni avatara i imena.</string>
     <string name="settings_vibrate_on_mention">Vibriraj kad neko pomene korisnika</string>

@@ -40,8 +40,18 @@ UPDATE withheld_session SET sender_key = ?, code_string = ?, reason = ?
 WHERE room_id = ? AND session_id = ? AND algorithm = ?;
 
 -- shared_session (room_id / device_identity_key are null-safe matched with IS)
+--
+-- Earliest share wins, and LIMIT 1: re-sharing the same session to the same device is legitimate, so
+-- duplicates exist (and older installs already have them). The lowest chain index is the meaningful
+-- answer to "from when does this device have this session", and the limit keeps a duplicate from
+-- throwing "ResultSet returned more than 1 row" at the caller.
 sharedSelectExact:
 SELECT * FROM shared_session
+WHERE room_id IS ? AND session_id = ? AND algorithm = ? AND user_id = ? AND device_id = ? AND device_identity_key IS ?
+ORDER BY chain_index ASC LIMIT 1;
+
+sharedDeleteExact:
+DELETE FROM shared_session
 WHERE room_id IS ? AND session_id = ? AND algorithm = ? AND user_id = ? AND device_id = ? AND device_identity_key IS ?;
 
 sharedSelectByRoomSession:

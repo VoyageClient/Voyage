@@ -7,6 +7,8 @@
     android:layout_height="wrap_content"
     android:drawablePadding="8dp"
     android:gravity="center_vertical"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
     android:text="@string/event_redacted"
     android:textColor="?vctr_content_tertiary"
     app:drawableStartCompat="@drawable/ic_trash_16"

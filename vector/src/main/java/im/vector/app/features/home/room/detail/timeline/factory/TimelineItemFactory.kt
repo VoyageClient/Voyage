@@ -14,6 +14,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -33,12 +34,14 @@ class TimelineItemFactory @Inject constructor(
         private val verificationConclusionItemFactory: VerificationItemFactory,
         private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper,
         private val userPreferencesProvider: UserPreferencesProvider,
+        private val redactedContentRestorer: RedactedContentRestorer,
 ) {
 
     /**
      * Reminder: nextEvent is older and prevEvent is newer.
      */
-    fun create(params: TimelineItemFactoryParams): VectorEpoxyModel<*> {
+    fun create(rawParams: TimelineItemFactoryParams): VectorEpoxyModel<*> {
+        val params = redactedContentRestorer.restore(rawParams)
         val event = params.event
         val computedModel = try {
             if (!timelineEventVisibilityHelper.shouldShowEvent(
@@ -57,10 +60,13 @@ class TimelineItemFactory @Inject constructor(
                 )
             }
 
-            // A redacted event of any original type collapses to a single redacted tile, so route it straight
-            // to the redacted renderer before the per-type dispatch below.
+            // The per-type factories below assume content that redaction has already stripped.
             if (event.root.isRedacted()) {
-                messageItemFactory.create(params)
+                if (event.root.isStateEvent()) {
+                    noticeItemFactory.create(params)
+                } else {
+                    messageItemFactory.create(params)
+                }
             } else if (event.root.isStateEvent()) {
                 // state event are not e2e
                 when (event.root.type) {
@@ -138,9 +144,6 @@ class TimelineItemFactory @Inject constructor(
                         // Should only happen when shouldShowHiddenEvents() settings is ON
                         Timber.v("Type ${event.root.getClearType()} not handled")
                         defaultItemFactory.create(params)
-                    }
-                }.also {
-                    if (it != null && event.isEncrypted() && event.root.mCryptoError != null) {
                     }
                 }
             }

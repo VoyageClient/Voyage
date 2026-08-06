@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s به اتاق پیوست</string>
     <string name="notice_room_leave">%1$s اتاق را ترک کرد</string>
     <string name="notice_room_reject">%1$s دعوت را رد کرد</string>
-    <string name="notice_room_remove">%1$s، %2$s را اخراج کرد</string>
     <string name="notice_room_unban">%1$s، انسداد %2$s را رفع کرد</string>
     <string name="notice_room_ban">%1$s، %2$s را مسدود کرد</string>
     <string name="notice_room_withdraw">%1$s دعوت %2$s را نپذیرفت</string>
@@ -62,7 +61,6 @@
     <string name="notice_room_join_with_reason">%1$s به اتاق پیوست. دلیل: %2$s</string>
     <string name="notice_room_leave_with_reason">%1$s اتاق را ترک کرد. دلیل: %2$s</string>
     <string name="notice_room_reject_with_reason">%1$s دعوت را رد کرد. دلیل: %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$s، %2$s را اخراج کرد. دلیل: %3$s</string>
     <string name="notice_room_unban_with_reason">%1$s انسداد %2$s را رفع کرد. دلیل: %3$s</string>
     <string name="notice_room_ban_with_reason">%1$s، %2$s را مسدود کرد. دلیل: %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$s دعوت برای %2$s را پذیرفت. دلیل: %3$s</string>
@@ -89,7 +87,6 @@
     <string name="notice_room_join_by_you">به اتاق پیوستید</string>
     <string name="notice_room_leave_by_you">اتاق را ترک کردید</string>
     <string name="notice_room_reject_by_you">دعوت را رد کردید</string>
-    <string name="notice_room_remove_by_you">%1$s را اخراج کردید</string>
     <string name="notice_room_unban_by_you">تحریم %1$s را برداشتید</string>
     <string name="notice_room_ban_by_you">%1$s را تحریم کردید</string>
     <string name="notice_room_withdraw_by_you">دعوت %1$s را پس‌گرفتید</string>
@@ -132,7 +129,6 @@
     <string name="notice_room_join_with_reason_by_you">به اتاق پیوستید. دلیل: %1$s</string>
     <string name="notice_room_leave_with_reason_by_you">اتاق را ترک کردید. دلیل: %1$s</string>
     <string name="notice_room_reject_with_reason_by_you">دعوت را رد کردید. دلیل: %1$s</string>
-    <string name="notice_room_remove_with_reason_by_you">%1$s را اخراج کردید. دلیل: %2$s</string>
     <string name="notice_room_unban_with_reason_by_you">تحریم %1$s را برداشتید. دلیل: %2$s</string>
     <string name="notice_room_ban_with_reason_by_you">%1$s را تحریم کردید. دلیل: %2$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">دعوت برای %1$s را پذیرفتید. دلیل: %2$s</string>
@@ -994,7 +990,6 @@
     <string name="avatar">چهرک</string>
     <string name="reason_colon">دلیل: %1$s</string>
     <string name="has_been_banned">به دست %2$s از %1$s تحریم شدید</string>
-    <string name="has_been_removed">به دست %2$s از %1$s اخراج شدید</string>
     <string name="room_created_summary_item">%s اتاق را ساخته و پیکربندی کرد.</string>
     <string name="encryption_unknown_algorithm_tile_description">رمزنگاری این اتاق پشتیبانی نمی‌شود</string>
     <string name="error_empty_field_enter_user_name">لطفاً نام کاربری‌ای وارد کنید.</string>
@@ -1108,7 +1103,6 @@
     <string name="settings_vibrate_on_mention">لرزیدن گوشی در هنگام ذکر یک کاربر</string>
     <string name="settings_show_avatar_display_name_changes_messages_summary">شامل تغییرات نام نمایشی و چهرک.</string>
     <string name="settings_show_avatar_display_name_changes_messages">نمایش رویدادهای حساب</string>
-    <string name="settings_show_join_leave_messages_summary">دعوت‌ها، برداشتن‌ها و انسدادها تأثیر نمی‌پذیرند.</string>
     <string name="settings_show_join_leave_messages">نمایش پیام‌های پیوستن و ترک اتاق</string>
     <string name="settings_inline_url_preview_summary">پیش‌نمایشی از آدرس‌های URL در پیام‌ها نمایش داده شود.</string>
     <string name="settings_background_fdroid_sync_mode_real_time_description">المنت بصورت دوره‌ای و در بازه‌های قابل تنظیم در پس زمینه همگام‌سازی می شود.

@@ -106,7 +106,7 @@ class RoomPowerLevels(
     }
 
     /**
-     * Check if the user have the necessary power level to kick (remove).
+     * Check if the user have the necessary power level to kick.
      * @param userId the id of the user to check for.
      * @return true if able to kick
      */

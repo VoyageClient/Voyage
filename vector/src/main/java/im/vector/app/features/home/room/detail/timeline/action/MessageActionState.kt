@@ -34,6 +34,10 @@ data class MessageActionState(
         val eventId: String,
         val informationData: MessageInformationData,
         val timelineEvent: Async<TimelineEvent> = Uninitialized,
+        // Set only when a redaction's content was put back. [timelineEvent] stays the redacted original,
+        // because the sheet still has to know the message was deleted — which actions to offer, and how
+        // to mark the header.
+        val restoredEvent: TimelineEvent? = null,
         val messageBody: CharSequence = "",
         // For quick reactions
         val quickStates: Async<List<ToggleState>> = Uninitialized,
@@ -42,6 +46,14 @@ data class MessageActionState(
         val actionPermissions: ActionPermissions = ActionPermissions(),
         val isFromThreadTimeline: Boolean = false
 ) : MavericksState {
+
+    /**
+     * The event everything that renders the message's *content* should read: body, thumbnail, tables,
+     * location, media-hiding. Restoring here rather than per-consumer is what keeps the sheet identical
+     * to the timeline — a consumer that reaches for [timelineEvent] instead silently gets the pruned
+     * content of a redacted event.
+     */
+    val previewEvent: TimelineEvent? get() = restoredEvent ?: timelineEvent()
 
     constructor(args: TimelineEventFragmentArgs) : this(
             roomId = args.roomId,

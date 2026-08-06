@@ -6,7 +6,6 @@
     <string name="notice_room_join">%1$s entrou</string>
     <string name="notice_room_leave">%1$s saiu</string>
     <string name="notice_room_reject">%1$s recusou o convite</string>
-    <string name="notice_room_remove">%1$s expulsou %2$s</string>
     <string name="notice_room_unban">%1$s des-baniu %2$s</string>
     <string name="notice_room_ban">%1$s baniu %2$s</string>
     <string name="notice_room_withdraw">%1$s cancelou o convite de %2$s</string>
@@ -386,7 +385,6 @@ Adicionar alguns agora?</string>
     <string name="invited">Foi convidado</string>
 
 
-    <string name="has_been_removed">Você foi expulso da sala %1$s por %2$s</string>
     <string name="has_been_banned">Você foi banido da sala %1$s por %2$s</string>
     <string name="reason_colon">Motivo: %1$s</string>
     <string name="avatar">Imagem de perfil</string>

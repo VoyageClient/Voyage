@@ -68,8 +68,6 @@
     </plurals>
     <string name="notice_room_invite_no_invitee_by_you">Ձեր հրավերը</string>
     <string name="notice_room_invite_no_invitee">%sի հրավերը</string>
-    <string name="notice_room_remove_by_you">Դուք հեռացրել եք %1$sին</string>
-    <string name="notice_room_remove">%1$sը հեռացրել է %2$sին</string>
     <string name="notice_room_reject_by_you">Դուք մերժել եք հրավերը</string>
     <string name="notice_room_reject">%1$s մերժել է հրավերը</string>
     <string name="notice_direct_room_leave_by_you">Դուք լքել եք սենյակը</string>
@@ -100,6 +98,4 @@
     <string name="notice_room_withdraw_with_reason">%1$sը ետ է կանչել %2$sի հրավերը։ Պատճառը` %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason">%1$sը ընդունել է %2$sի համար հրավերը։ Պատճառը` %3$s</string>
     <string name="notice_room_third_party_registered_invite_with_reason_by_you">Դուք ընդունել եք %1$sի համար հրավերը։ Պատճառը` %2$s</string>
-    <string name="notice_room_remove_with_reason_by_you">Դուք հեռացրել եք %1$sին։ Պատճառը` %2$s</string>
-    <string name="notice_room_remove_with_reason">%1$sը հեռացրել է %2$sին։ Պատճառը` %3$s</string>
 </resources>

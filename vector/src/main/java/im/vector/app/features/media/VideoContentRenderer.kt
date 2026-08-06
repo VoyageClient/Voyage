@@ -44,7 +44,9 @@ class VideoContentRenderer @Inject constructor(
             override val elementToDecrypt: ElementToDecrypt?,
             val thumbnailMediaData: ImageContentRenderer.Data,
             // If true will load non mxc url, be careful to set it only for video sent by you
-            override val allowNonMxcUrls: Boolean = false
+            override val allowNonMxcUrls: Boolean = false,
+            // A redaction purged the server copy; this local one is all that is left.
+            val preservedFile: java.io.File? = null,
     ) : AttachmentData
 
     fun render(
@@ -55,6 +57,16 @@ class VideoContentRenderer @Inject constructor(
             errorView: TextView
     ) {
         val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
+
+        val preserved = data.preservedFile
+        if (preserved != null) {
+            thumbnailView.isVisible = false
+            loadingView.isVisible = false
+            videoView.isVisible = true
+            videoView.setVideoPath(preserved.path)
+            videoView.start()
+            return
+        }
 
         if (data.elementToDecrypt != null) {
             Timber.v("Decrypt video")

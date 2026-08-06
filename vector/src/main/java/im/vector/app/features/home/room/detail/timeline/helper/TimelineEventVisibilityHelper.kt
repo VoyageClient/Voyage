@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.helper
 
 import im.vector.app.core.resources.UserPreferencesProvider
+import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContent
@@ -22,6 +23,7 @@ import javax.inject.Inject
 
 class TimelineEventVisibilityHelper @Inject constructor(
         private val userPreferencesProvider: UserPreferencesProvider,
+        private val redactedContentRestorer: RedactedContentRestorer,
 ) {
 
     /**
@@ -79,6 +81,10 @@ class TimelineEventVisibilityHelper @Inject constructor(
     }
 
     private fun TimelineEvent.shouldBeHidden(rootThreadEventId: String?, isFromThreadTimeline: Boolean): Boolean {
+        // A revealed message is showing real content, so the "hide deleted messages" rules below
+        // must not apply to it — they would make revealing appear to do nothing at all.
+        if (redactedContentRestorer.isShowingRestoredContent(this)) return false
+
         if (root.isRedacted() && !userPreferencesProvider.shouldShowRedactedMessages() && root.threadDetails?.isRootThread == false) {
             return true
         }

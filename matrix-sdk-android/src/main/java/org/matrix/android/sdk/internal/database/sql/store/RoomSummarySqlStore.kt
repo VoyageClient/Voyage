@@ -136,6 +136,11 @@ internal class RoomSummarySqlStore(
     }
 
     fun upsert(entity: RoomSummaryEntity) {
+        // Tags have exactly one writer, [updateTags], fed by m.tag account data. A summary write must
+        // never be able to state them: most callers build the entity from a bare RoomSummaryEntity(roomId)
+        // when no row exists yet, and persisting that entity's empty tag set would silently unfavourite
+        // the room until the server next happens to resend m.tag.
+        val tagFlags = queries.selectTagFlags(entity.roomId).executeAsOneOrNull()
         queries.upsert(
                 room_id = entity.roomId,
                 room_type = entity.roomType,
@@ -160,9 +165,9 @@ internal class RoomSummarySqlStore(
                 read_marker_id = entity.readMarkerId,
                 has_unread_messages = entity.hasUnreadMessages.toLong(),
                 marked_unread = entity.markedUnread.toLong(),
-                is_favourite = entity.isFavourite.toLong(),
-                is_low_priority = entity.isLowPriority.toLong(),
-                is_server_notice = entity.isServerNotice.toLong(),
+                is_favourite = tagFlags?.is_favourite ?: 0L,
+                is_low_priority = tagFlags?.is_low_priority ?: 0L,
+                is_server_notice = tagFlags?.is_server_notice ?: 0L,
                 breadcrumbs_index = entity.breadcrumbsIndex.toLong(),
                 canonical_alias = entity.canonicalAlias,
                 aliases = entity.aliases.toList().joinToColumn(),
@@ -181,7 +186,6 @@ internal class RoomSummarySqlStore(
                 join_rules_str = entity.joinRules?.name,
                 direct_parent_names = entity.directParentNames.toList().joinToColumn(),
         )
-        roomTagStore.replaceTags(entity.roomId, entity.tags())
         draftStore.replaceDrafts(entity.roomId, entity.userDrafts?.userDrafts?.toList().orEmpty())
         spaceStore.replaceChildren(entity.roomId, entity.children.map {
             SpaceSqlStore.SpaceChildInsert(

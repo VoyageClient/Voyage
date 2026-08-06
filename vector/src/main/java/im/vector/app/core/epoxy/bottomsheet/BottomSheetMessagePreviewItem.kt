@@ -29,6 +29,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.clearDrawables
 import im.vector.app.core.extensions.setRedactedPreviewStyle
+import im.vector.app.core.extensions.setRedactedTint
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.views.RoundedCornerImageView
@@ -65,6 +66,10 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
 
     @EpoxyAttribute
     var redacted: Boolean = false
+
+    /** Marks the whole header as belonging to a deleted message, restored or not. */
+    @EpoxyAttribute
+    var redactedTint: Boolean = false
 
     @EpoxyAttribute
     var bindingOptions: BindingOptions? = null
@@ -107,6 +112,7 @@ abstract class BottomSheetMessagePreviewItem : VectorEpoxyModel<BottomSheetMessa
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        holder.view.setRedactedTint(redactedTint)
         avatarRenderer.render(matrixItem, holder.avatar)
         holder.avatar.onClick(userClicked)
         holder.sender.onClick(userClicked)

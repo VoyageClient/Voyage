@@ -1285,7 +1285,7 @@ class MessageComposerViewModel @AssistedInject constructor(
 
     private fun handleKickSlashCommand(room: Room, kickUser: ParsedCommand.KickUser) {
         launchSlashCommandFlowSuspendable(room, kickUser) {
-            room.membershipService().remove(kickUser.userId, kickUser.reason)
+            room.membershipService().kick(kickUser.userId, kickUser.reason)
         }
     }
 
