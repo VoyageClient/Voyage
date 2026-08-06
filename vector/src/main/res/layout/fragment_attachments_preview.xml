@@ -48,7 +48,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerSendImageOriginalSize"
+            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerVideoControls"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -61,10 +61,10 @@
             android:layout_height="wrap_content"
             android:padding="8dp"
             android:textColor="@android:color/white"
-            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerVideoControls"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerMiniatureList"
+            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerVideoControls"
             tools:text="@plurals/send_images_with_original_size" />
 
         <LinearLayout
@@ -76,10 +76,10 @@
             android:paddingLeft="4dp"
             android:paddingRight="12dp"
             android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerSendImageOriginalSize"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerSendImageOriginalSize"
+            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerMiniatureList"
             tools:visibility="visible">
 
             <ImageView
