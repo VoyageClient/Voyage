@@ -7,6 +7,7 @@
 
 package org.matrix.android.sdk.internal.session.room.timeline
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -23,6 +24,7 @@ import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -31,6 +33,7 @@ import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
+import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.DefaultFetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
 import org.matrix.android.sdk.internal.util.time.Clock
@@ -68,6 +71,7 @@ internal class SqlTimeline(
         private val clock: Clock,
         private val redactionSignal: TimelineRedactionSignal,
         private val decryptionSignal: TimelineDecryptionSignal,
+        private val loadRoomMembersTask: LoadRoomMembersTask,
 ) : Timeline, TimelineInput.Listener, UIEchoManager.Listener {
 
     override val timelineID = UUID.randomUUID().toString()
@@ -210,6 +214,7 @@ internal class SqlTimeline(
         decryptionSignalJob = timelineScope.launch {
             decryptionSignal.rooms.collect { if (it == roomId) decryptedSignal.trySend(Unit) }
         }
+        timelineScope.launch { loadRoomMembers() }
         timelineScope.launch {
             if (!isThreadTimeline && timelineInput.dedupSweptRooms.add(roomId)) {
                 // Heal chunk-graph corruption left by the earlier link-and-stop pagination bug, then
@@ -224,6 +229,27 @@ internal class SqlTimeline(
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
             seedFrom(seed)
             rebuildSnapshot()
+        }
+    }
+
+    /**
+     * The room's members, not just the ones whose events happen to be in the timeline. Read receipts
+     * arrive for every member who has read, so without this they render as bare user ids.
+     */
+    private suspend fun loadRoomMembers() {
+        val params = LoadRoomMembersTask.Params(roomId, excludeMembership = Membership.LEAVE)
+        while (true) {
+            try {
+                loadRoomMembersTask.execute(params)
+                // Receipts already mapped against the members we had render as bare user ids.
+                chunkSnapshotCache.clear()
+                rebuildSnapshot()
+                return
+            } catch (failure: Throwable) {
+                if (failure is CancellationException) throw failure
+                Timber.v(failure, "Failed to load room members in $roomId, retrying in 10s")
+                delay(LOAD_MEMBERS_RETRY_DELAY_MS)
+            }
         }
     }
 
@@ -1026,6 +1052,7 @@ internal class SqlTimeline(
 
     companion object {
         private const val DECRYPT_REBUILD_DEBOUNCE_MS = 150L
+        private const val LOAD_MEMBERS_RETRY_DELAY_MS = 10_000L
         private const val MAX_RAW_REVEAL_STEP = 150
     }
 }

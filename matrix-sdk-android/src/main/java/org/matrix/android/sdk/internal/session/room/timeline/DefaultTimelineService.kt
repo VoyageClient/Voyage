@@ -89,6 +89,7 @@ internal class DefaultTimelineService @AssistedInject constructor(
                 clock = clock,
                 redactionSignal = timelineRedactionSignal,
                 decryptionSignal = timelineDecryptionSignal,
+                loadRoomMembersTask = loadRoomMembersTask,
         )
     }
 
