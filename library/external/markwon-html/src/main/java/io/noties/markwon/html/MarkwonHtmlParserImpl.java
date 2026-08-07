@@ -52,6 +52,8 @@ public class MarkwonHtmlParserImpl extends MarkwonHtmlParser {
     private static final Set<String> BLOCK_TAGS;
 
     private static final String TAG_PARAGRAPH = "p";
+    // MSC2184: like a paragraph, the disclosure title must not run into the body that follows it.
+    private static final String TAG_SUMMARY = "summary";
     private static final String TAG_LIST_ITEM = "li";
 
     static {
@@ -90,7 +92,7 @@ public class MarkwonHtmlParserImpl extends MarkwonHtmlParser {
                 "address", "article", "aside",
                 "blockquote",
                 "canvas",
-                "dd", "div", "dl", "dt",
+                "dd", "details", "div", "dl", "dt",
                 "fieldset", "figcaption", "figure", "footer", "form",
                 "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr",
                 "li",
@@ -98,7 +100,7 @@ public class MarkwonHtmlParserImpl extends MarkwonHtmlParser {
                 "nav", "noscript",
                 "ol", "output",
                 "p", "pre",
-                "section",
+                "section", "summary",
                 "table", "tfoot",
                 "ul",
                 "video"
@@ -359,7 +361,7 @@ public class MarkwonHtmlParserImpl extends MarkwonHtmlParser {
                 previousIsBlock = isBlockTag(block.name);
             }
 
-            if (TAG_PARAGRAPH.equals(name)) {
+            if (TAG_PARAGRAPH.equals(name) || TAG_SUMMARY.equals(name)) {
                 AppendableUtils.appendQuietly(output, '\n');
             }
 

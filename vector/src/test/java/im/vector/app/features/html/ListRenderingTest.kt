@@ -41,6 +41,7 @@ class ListRenderingTest {
             MatrixHtmlPluginConfigure(ColorProvider(context), context.resources, fakeSessionHolder),
             context,
             fakeSessionHolder,
+            mockk(relaxed = true),
     )
 
     private val compressor = VectorHtmlCompressor()

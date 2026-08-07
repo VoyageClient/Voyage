@@ -38,6 +38,7 @@ import com.bumptech.glide.request.target.Target
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.Markwon
@@ -50,6 +51,8 @@ import io.noties.markwon.core.spans.BulletListItemSpan
 import io.noties.markwon.core.spans.EmphasisSpan
 import io.noties.markwon.core.spans.OrderedListItemSpan
 import io.noties.markwon.core.spans.StrongEmphasisSpan
+import io.noties.markwon.ext.latex.JLatexMathPlugin
+import io.noties.markwon.ext.latex.JLatexMathTheme
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.html.tag.EmphasisHandler
 import io.noties.markwon.html.tag.HeadingHandler
@@ -79,7 +82,8 @@ import javax.inject.Singleton
 class EventHtmlRenderer @Inject constructor(
         private val htmlConfigure: MatrixHtmlPluginConfigure,
         private val context: Context,
-        private val activeSessionHolder: ActiveSessionHolder
+        private val activeSessionHolder: ActiveSessionHolder,
+        private val vectorPreferences: VectorPreferences,
 ) {
 
     interface PostProcessor {
@@ -116,6 +120,33 @@ class EventHtmlRenderer @Inject constructor(
             Glide.with(context).clear(target)
         }
     })
+
+    // The TeX arrives as an HTML attribute value, so `\frac{a}{b}` where a &lt; b really is escaped.
+    private fun String.unescapeHtmlEntities(): String = replace("&lt;", "<")
+            .replace("&gt;", ">")
+            .replace("&quot;", "\"")
+            .replace("&#39;", "'")
+            .replace("&amp;", "&")
+
+    // markwon's LaTeX support keys off `$$…$$` in the markdown source, so `data-mx-maths` is rewritten
+    // into that shape first. See https://noties.io/Markwon/docs/v4/ext-latex
+    private val latexPlugins = listOf(
+            object : AbstractMarkwonPlugin() {
+                override fun processMarkdown(markdown: String): String {
+                    return markdown
+                            .replace(Regex("""<span\s[^>]*?data-mx-maths="([^"]*)"[^>]*>.*?</span>""")) { matchResult ->
+                                "$$" + matchResult.groupValues[1].unescapeHtmlEntities() + "$$"
+                            }
+                            .replace(Regex("""<div\s[^>]*?data-mx-maths="([^"]*)"[^>]*>.*?</div>""")) { matchResult ->
+                                "\n$$\n" + matchResult.groupValues[1].unescapeHtmlEntities() + "\n$$\n"
+                            }
+                }
+            },
+            JLatexMathPlugin.create(44F) { builder ->
+                builder.inlinesEnabled(true)
+                builder.theme().inlinePadding(JLatexMathTheme.Padding.symmetric(24, 8))
+            }
+    )
 
     private val markwonInlineParserPlugin =
             MarkwonInlineParserPlugin.create(
@@ -256,6 +287,11 @@ class EventHtmlRenderer @Inject constructor(
             .usePlugin(glidePlugin)
             .usePlugin(codeThemePlugin)
             .usePlugin(blockQuotePlugin)
+            .apply {
+                if (vectorPreferences.latexMathsIsEnabled()) {
+                    latexPlugins.forEach(::usePlugin)
+                }
+            }
             .usePlugin(markwonInlineParserPlugin)
             .usePlugin(italicPlugin)
             .usePlugin(emoticonBinderPlugin)
@@ -506,6 +542,7 @@ class MatrixHtmlPluginConfigure @Inject constructor(
                 .addHandler(ListHandlerWithInitialStart())
                 .addHandler(FontTagHandler())
                 .addHandler(ParagraphHandler(DimensionConverter(resources)))
+                .addHandler(DetailsTagHandler(DimensionConverter(resources)))
                 .addHandler(MxReplyTagHandler())
                 .addHandler(CodePostProcessorTagHandler())
                 .addHandler(CodePreTagHandler())
