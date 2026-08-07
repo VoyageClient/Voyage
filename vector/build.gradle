@@ -248,6 +248,7 @@ dependencies {
     implementation libs.markwon.core
     implementation libs.markwon.imageGlide
     implementation libs.markwon.inlineParser
+    implementation libs.markwon.extLatex
     // Vendored fork of markwon-html (see library/external/markwon-html) carrying the
     // HtmlParser previousIsBlock reset fix; the rest of Markwon stays on 4.6.2 artifacts.
     implementation project(":library:external:markwon-html")

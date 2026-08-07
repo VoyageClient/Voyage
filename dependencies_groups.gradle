@@ -232,6 +232,8 @@ ext.groups = [
                         'org.webjars',
                         'org.xerial',
                         'org.yaml',
+                        // markwon-ext-latex's JLaTeXMath port; the group predates its move to Maven Central.
+                        'ru.noties',
                         'xerces',
                         'xml-apis',
                 ]

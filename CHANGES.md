@@ -130,6 +130,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Filter the room directory by type (MSC3827)** — search rooms only, spaces only, or both, from the directory's overflow menu.
 
+- **Disclosure sections in messages (MSC2184)** — a `<details>` section renders as a titled, indented block with its summary in bold instead of running title and body together. It is always shown rather than folded away, since a collapsed state can't be held safely per message in a scrolling timeline.
+
 - **Misc improvements** — randomizable upload filenames, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, a "Show in chat" action in the media viewer that jumps back to the message an attachment came from, room-list preview polish, a direct message's room settings showing the other person's avatar as the room list does, and links no longer drawn underlined anywhere they were left inconsistent — room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
 
 ### Removals

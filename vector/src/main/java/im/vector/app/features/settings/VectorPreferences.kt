@@ -235,6 +235,7 @@ class VectorPreferences @Inject constructor(
         // SETTINGS_LABS_HIDE_TECHNICAL_E2E_ERRORS
         private const val SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM = "SETTINGS_LABS_SHOW_COMPLETE_HISTORY_IN_ENCRYPTED_ROOM"
         const val SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB = "SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB"
+        const val SETTINGS_LABS_ENABLE_LATEX_MATHS = "SETTINGS_LABS_ENABLE_LATEX_MATHS"
 
         // Security
         const val SETTINGS_SECURITY_USE_FLAG_SECURE = "SETTINGS_SECURITY_USE_FLAG_SECURE"
@@ -415,6 +416,10 @@ class VectorPreferences @Inject constructor(
 
     fun labAddNotificationTab(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_LABS_UNREAD_NOTIFICATIONS_AS_TAB, false)
+    }
+
+    fun latexMathsIsEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_LABS_ENABLE_LATEX_MATHS, true)
     }
 
     fun renderBlockquotesAsGreentext(): Boolean {

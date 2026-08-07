@@ -131,3 +131,9 @@
 # Shaded Guava (inside checkerframework) references compile-only j2objc annotations not on the runtime classpath.
 -dontwarn org.checkerframework.com.google.j2objc.annotations.RetainedWith
 -dontwarn org.checkerframework.com.google.j2objc.annotations.Weak
+
+# JLaTeXMath resolves macros and atom classes by name from its bundled XML assets
+# (Class.forName / getDeclaredMethod / getDeclaredField), so shrinking removes them with no
+# static reference to spot. It fails silently — the plugin swallows the Throwable and maths
+# renders as nothing — so this has to be a keep, not a dontwarn.
+-keep class org.scilab.forge.jlatexmath.** { *; }
