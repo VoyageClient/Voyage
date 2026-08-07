@@ -736,7 +736,10 @@ internal class MXOlmDevice @Inject constructor(
      * @param megolmSessionsData the megolm sessions data
      * @return the successfully imported sessions.
      */
-    fun importInboundGroupSessions(megolmSessionsData: List<MegolmSessionData>): List<MXInboundMegolmSessionWrapper> {
+    fun importInboundGroupSessions(
+            megolmSessionsData: List<MegolmSessionData>,
+            sharedByUserId: String? = null,
+    ): List<MXInboundMegolmSessionWrapper> {
         val sessions = ArrayList<MXInboundMegolmSessionWrapper>(megolmSessionsData.size)
 
         // Bulk imports (backup restore, exported-keys file) are mostly brand-new sessions. Fetch the set of
@@ -750,7 +753,7 @@ internal class MXOlmDevice @Inject constructor(
             val roomId = megolmSessionData.roomId
 
             val candidateSessionToImport = try {
-                MXInboundMegolmSessionWrapper.newFromMegolmData(megolmSessionData, true)
+                MXInboundMegolmSessionWrapper.newFromMegolmData(megolmSessionData, true, sharedByUserId)
             } catch (e: Throwable) {
                 Timber.tag(loggerTag.value).e(e, "## importInboundGroupSession() : Failed to import session $senderKey/$sessionId")
                 continue
@@ -899,6 +902,7 @@ internal class MXOlmDevice @Inject constructor(
                 wrapper.sessionData.forwardingCurve25519KeyChain,
                 isSafe = sessionHolder.wrapper.sessionData.trusted.orFalse(),
                 verificationState = verificationState,
+                sharedByUserId = wrapper.sessionData.sharedByUserId,
         )
     }
 

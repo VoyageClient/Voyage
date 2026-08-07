@@ -82,6 +82,7 @@ internal class SqlCryptoStore @Inject constructor(
     private val crossSigningStore = CrossSigningSqlStore(database, crossSigningKeysMapper)
     private val keyRequestStore = KeyRequestSqlStore(database, clock)
     private val roomStore = CryptoRoomSqlStore(database)
+    private val bundleStore = RoomKeyBundleSqlStore(database)
 
     private var olmAccount: OlmAccount? = null
     private val newSessionListeners = ArrayList<NewSessionListener>()
@@ -107,6 +108,9 @@ internal class SqlCryptoStore @Inject constructor(
                 deleteAllUser(); deleteAllDevice(); deleteAllMyDevice(); deleteAllCrossSigning()
                 deleteAllKeyInfo(); deleteAllOutgoingRequest(); deleteAllKeyRequestReply()
                 deleteAllWithheld(); deleteAllShared(); deleteAllKeysBackup(); deleteAllAudit()
+            }
+            with(database.cryptoRoomKeyBundleQueries) {
+                deleteAllReceivedBundles(); deleteAllPendingBundles()
             }
         }
     }
@@ -137,8 +141,6 @@ internal class SqlCryptoStore @Inject constructor(
 
     override fun enableKeyGossiping(enable: Boolean) = metadataStore.enableKeyGossiping(enable)
     override fun isKeyGossipingEnabled(): Boolean = metadataStore.isKeyGossipingEnabled()
-    override fun enableShareKeyOnInvite(enable: Boolean) = metadataStore.enableShareKeyOnInvite(enable)
-    override fun isShareKeysOnInviteEnabled(): Boolean = metadataStore.isShareKeysOnInviteEnabled()
     override fun setGlobalBlacklistUnverifiedDevices(block: Boolean) = metadataStore.setGlobalBlacklistUnverifiedDevices(block)
     override fun getGlobalBlacklistUnverifiedDevices(): Boolean = metadataStore.getGlobalBlacklistUnverifiedDevices()
     override fun getGlobalCryptoConfig(): GlobalCryptoConfig = metadataStore.getGlobalCryptoConfig()
@@ -160,7 +162,7 @@ internal class SqlCryptoStore @Inject constructor(
 
     override fun getGlobalCryptoConfigFlow(): Flow<GlobalCryptoConfig> =
             database.cryptoMetadataQueries.selectFirst().asFlow().mapToOneOrNull(dispatcher)
-                    .map { row -> row?.let { GlobalCryptoConfig(it.global_blacklist_unverified_devices == 1L, it.global_enable_key_gossiping == 1L, it.enable_key_forwarding_on_invite == 1L) } ?: GlobalCryptoConfig(false, false, false) }
+                    .map { row -> row?.let { GlobalCryptoConfig(it.global_blacklist_unverified_devices == 1L, it.global_enable_key_gossiping == 1L) } ?: GlobalCryptoConfig(false, false) }
                     .flowOn(dispatcher)
 
     override fun getCrossSigningPrivateKeysFlow(): Flow<Optional<PrivateKeysInfo>> =
@@ -298,7 +300,7 @@ internal class SqlCryptoStore @Inject constructor(
     override fun setAlgorithmInfo(roomId: String, encryption: EncryptionEventContent?) = roomStore.setAlgorithmInfo(roomId, encryption)
     override fun roomWasOnceEncrypted(roomId: String): Boolean = roomStore.roomWasOnceEncrypted(roomId)
     override fun shouldEncryptForInvitedMembers(roomId: String): Boolean = roomStore.shouldEncryptForInvitedMembers(roomId)
-    override fun shouldShareHistory(roomId: String): Boolean = isShareKeysOnInviteEnabled() && roomStore.getRoomShouldShareHistory(roomId)
+    override fun shouldShareHistory(roomId: String): Boolean = roomStore.getRoomShouldShareHistory(roomId)
     override fun setShouldEncryptForInvitedMembers(roomId: String, shouldEncryptForInvitedMembers: Boolean) = roomStore.setShouldEncryptForInvitedMembers(roomId, shouldEncryptForInvitedMembers)
     override fun setShouldShareHistory(roomId: String, shouldShareHistory: Boolean) = roomStore.setShouldShareHistory(roomId, shouldShareHistory)
     override fun blockUnverifiedDevicesInRoom(roomId: String, block: Boolean) = roomStore.blockUnverifiedDevicesInRoom(roomId, block)
@@ -368,6 +370,36 @@ internal class SqlCryptoStore @Inject constructor(
             roomStore.getWithHeld(roomId, sessionId)?.let {
                 RoomKeyWithHeldContent(roomId = roomId, sessionId = sessionId, algorithm = it.algorithm, codeString = it.code_string, reason = it.reason, senderKey = it.sender_key)
             }
+
+    override fun getWithHeldMegolmSessions(roomId: String): List<RoomKeyWithHeldContent> =
+            roomStore.getWithHeldInRoom(roomId).mapNotNull {
+                RoomKeyWithHeldContent(
+                        roomId = roomId,
+                        sessionId = it.session_id ?: return@mapNotNull null,
+                        algorithm = it.algorithm,
+                        codeString = it.code_string,
+                        reason = it.reason,
+                        senderKey = it.sender_key
+                )
+            }
+
+    // ==================== MSC4268 room key bundles ====================
+
+    override fun storeReceivedRoomKeyBundle(roomId: String, senderUserId: String, senderKey: String?, bundleJson: String) =
+            bundleStore.storeReceivedBundle(roomId, senderUserId, senderKey, bundleJson)
+
+    override fun getReceivedRoomKeyBundle(roomId: String, senderUserId: String) = bundleStore.getReceivedBundle(roomId, senderUserId)
+
+    override fun deleteReceivedRoomKeyBundle(roomId: String, senderUserId: String) = bundleStore.deleteReceivedBundle(roomId, senderUserId)
+
+    override fun storeInviteAccepted(roomId: String, inviter: String, acceptedAt: Long) =
+            bundleStore.storeInviteAccepted(roomId, inviter, acceptedAt)
+
+    override fun getInviteAccepted(roomId: String) = bundleStore.getInviteAccepted(roomId)
+
+    override fun getAllInvitesAccepted() = bundleStore.getAllInvitesAccepted()
+
+    override fun deleteInviteAccepted(roomId: String) = bundleStore.deleteInviteAccepted(roomId)
 
     override fun markedSessionAsShared(roomId: String?, sessionId: String, userId: String, deviceId: String, deviceIdentityKey: String, chainIndex: Int) =
             roomStore.markedSessionAsShared(roomId, sessionId, userId, deviceId, deviceIdentityKey, chainIndex)

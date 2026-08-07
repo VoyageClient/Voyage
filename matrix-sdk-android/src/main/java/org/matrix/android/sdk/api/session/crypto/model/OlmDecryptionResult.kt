@@ -56,4 +56,10 @@ data class OlmDecryptionResult(
          * Authenticity info for that message.
          */
         @Json(name = "verification_state") val verificationState: MessageVerificationState? = null,
+
+        /**
+         * The user who shared the session for this event in an MSC4268 key bundle, if any. They vouched for who
+         * sent it; nobody else did.
+         */
+        @Json(name = "shared_by_user_id") val sharedByUserId: String? = null,
 )

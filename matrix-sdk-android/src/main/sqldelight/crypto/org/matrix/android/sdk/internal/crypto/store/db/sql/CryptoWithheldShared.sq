@@ -31,6 +31,9 @@ CREATE INDEX shared_session_device_identity_key ON shared_session(device_identit
 withheldSelectByRoomSession:
 SELECT * FROM withheld_session WHERE room_id = ? AND session_id = ? AND algorithm = ?;
 
+withheldSelectByRoom:
+SELECT * FROM withheld_session WHERE room_id = ? AND algorithm = ?;
+
 withheldInsert:
 INSERT INTO withheld_session(room_id, algorithm, session_id, sender_key, code_string, reason)
 VALUES (?, ?, ?, ?, ?, ?);

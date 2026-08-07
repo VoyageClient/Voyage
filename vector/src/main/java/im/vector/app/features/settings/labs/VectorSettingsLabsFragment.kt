@@ -12,7 +12,6 @@ import android.text.method.LinkMovementMethod
 import android.widget.TextView
 import androidx.preference.Preference
 import androidx.preference.Preference.OnPreferenceChangeListener
-import androidx.preference.SwitchPreference
 import com.airbnb.mvrx.fragmentViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
@@ -57,22 +56,6 @@ class VectorSettingsLabsFragment :
             vectorPref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
                 onThreadsPreferenceClickedInterceptor(vectorPref)
                 false
-            }
-        }
-
-        findPreference<SwitchPreference>(VectorPreferences.SETTINGS_LABS_MSC3061_SHARE_KEYS_HISTORY)?.let { pref ->
-            if (session.cryptoService().supportsShareKeysOnInvite()) {
-                // ensure correct default
-                pref.isChecked = session.cryptoService().isShareKeysOnInviteEnabled()
-
-                pref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-                    session.cryptoService().enableShareKeyOnInvite(pref.isChecked)
-                    MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = true))
-                    true
-                }
-            } else {
-                pref.isEnabled = false
-                pref.isChecked = false
             }
         }
 

@@ -419,8 +419,6 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
         )
         assertNotNull(session)
         return session.also {
-            // most of the test was created pre-MSC3061 so ensure compatibility
-            it.cryptoService().enableShareKeyOnInvite(false)
             trackedSessions.add(session)
         }
     }

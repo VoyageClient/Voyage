@@ -94,6 +94,9 @@ internal class CryptoRoomSqlStore(private val database: CryptoSqlDatabase) {
     fun getWithHeld(roomId: String, sessionId: String): Withheld_session? =
             wsQueries.withheldSelectByRoomSession(roomId, sessionId, MXCRYPTO_ALGORITHM_MEGOLM).executeAsOneOrNull()
 
+    fun getWithHeldInRoom(roomId: String): List<Withheld_session> =
+            wsQueries.withheldSelectByRoom(roomId, MXCRYPTO_ALGORITHM_MEGOLM).executeAsList()
+
     // ==================== Shared sessions ====================
 
     fun markedSessionAsShared(roomId: String?, sessionId: String, userId: String, deviceId: String, deviceIdentityKey: String, chainIndex: Int) {

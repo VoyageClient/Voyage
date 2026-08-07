@@ -24,16 +24,14 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.crypto.CryptoService
-import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
-import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.room.members.MembershipService
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
-import org.matrix.android.sdk.internal.crypto.model.SessionInfo
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
@@ -126,26 +124,13 @@ internal class DefaultMembershipService @AssistedInject constructor(
     }
 
     override suspend fun invite(userId: String, reason: String?) {
-        sendShareHistoryKeysIfNeeded(userId)
+        // MSC4268: the bundle has to be uploaded and announced before the invite, so the invitee has it waiting.
+        // Never let sharing history stop the invite itself from going out.
+        tryOrNull("Failed to share encrypted history with $userId") {
+            cryptoService.shareRoomHistoryOnInvite(roomId, userId)
+        }
         val params = InviteTask.Params(roomId, userId, reason)
         inviteTask.execute(params)
-    }
-
-    private suspend fun sendShareHistoryKeysIfNeeded(userId: String) {
-        if (!cryptoService.isShareKeysOnInviteEnabled()) return
-        cryptoService.sendSharedHistoryKeys(roomId, userId, sessionInfoSet = findLatestSessionInfo())
-    }
-
-    // The megolm sessions of the room's last forward chunk — shared with the invitee (MSC3061).
-    private fun findLatestSessionInfo(): Set<SessionInfo>? {
-        val chunkId = stores.chunk.lastForward(roomId)?.id ?: return null
-        return stores.timelineEvent.getByChunk(chunkId).mapNotNull { timelineEvent ->
-            timelineEvent.root?.asDomain()?.content?.toModel<EncryptedEventContent>()?.let { content ->
-                val sessionId = content.sessionId ?: return@mapNotNull null
-                val senderKey = content.senderKey ?: return@mapNotNull null
-                SessionInfo(sessionId, senderKey)
-            }
-        }.toSet()
     }
 
     override suspend fun invite3pid(threePid: ThreePid) {

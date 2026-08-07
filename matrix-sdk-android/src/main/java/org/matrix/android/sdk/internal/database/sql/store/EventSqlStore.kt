@@ -175,6 +175,7 @@ internal class EventSqlStore(private val database: SessionSqlDatabase) {
                 keysClaimed = result.claimedEd25519Key?.let { mapOf("ed25519" to it) },
                 forwardingCurve25519KeyChain = result.forwardingCurve25519KeyChain,
                 verificationState = result.messageVerificationState,
+                sharedByUserId = result.sharedByUserId,
         )
         queries.updateDecryptionResultByEventId(resultAdapter.toJson(olm), eventId)
     }

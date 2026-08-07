@@ -51,7 +51,9 @@ data class MessageInformationData(
         val isLastFromThisSender: Boolean = false,
         val messageType: String? = null,
         // Redacted message whose original content was restored; drives the "this was deleted" styling.
-        val isRevealedRedaction: Boolean = false
+        val isRevealedRedaction: Boolean = false,
+        // MSC4268: the user who gave us the key to this message, who is also the only one vouching for who sent it.
+        val sharedByUserId: String? = null
 ) : Parcelable {
 
     val matrixItem: MatrixItem

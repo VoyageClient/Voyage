@@ -93,7 +93,13 @@ enum class WithHeldCode(val value: String) {
      * An olm session could not be established.
      * This may happen, for example, if the sender was unable to obtain a one-time key from the recipient.
      */
-    NO_OLM("m.no_olm");
+    NO_OLM("m.no_olm"),
+
+    /**
+     * The session was not marked as shared_history, so it is not shared with users invited later.
+     * MSC4268. Only meaningful inside a room key bundle, never in an m.room_key.withheld message.
+     */
+    HISTORY_NOT_SHARED("io.element.msc4268.history_not_shared");
 
     companion object {
         fun fromCode(code: String?): WithHeldCode? {
@@ -103,6 +109,7 @@ enum class WithHeldCode(val value: String) {
                 UNAUTHORISED.value -> UNAUTHORISED
                 UNAVAILABLE.value -> UNAVAILABLE
                 NO_OLM.value -> NO_OLM
+                HISTORY_NOT_SHARED.value -> HISTORY_NOT_SHARED
                 else -> null
             }
         }

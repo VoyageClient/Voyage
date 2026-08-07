@@ -132,6 +132,12 @@ interface CrossSigningService {
      * using the self-signing key for our own devices or using the user-signing key and the master
      * key of another user.
      */
+    /**
+     * Whether the device carries a valid signature from its own owner's self-signing key. Weaker than
+     * [checkDeviceTrust], which also requires that we trust that user's identity.
+     */
+    suspend fun isDeviceSignedByItsOwner(device: CryptoDeviceInfo): Boolean
+
     suspend fun checkDeviceTrust(otherUserId: String,
                                  otherDeviceId: String,
             // TODO what is locallyTrusted used for?

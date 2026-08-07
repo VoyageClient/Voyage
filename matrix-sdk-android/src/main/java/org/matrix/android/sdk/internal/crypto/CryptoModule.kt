@@ -118,14 +118,16 @@ internal abstract class CryptoModule {
                 driverFactory: SqlDriverFactory,
         ): CryptoSqlDatabase {
             val driver = driverFactory.create(CryptoSqlDatabase.Schema, File(directory, "crypto_store.db"))
-            // The driver drops-and-recreates on a schema version bump (no migrations), so add the
-            // identity_pin table idempotently here to avoid wiping crypto keys on databases that
-            // predate it.
-            driver.execute(
-                    null,
+            // The driver drops-and-recreates on a schema version bump (no migrations), so tables added
+            // after the initial schema are created idempotently here to avoid wiping crypto keys on
+            // databases that predate them.
+            listOf(
                     "CREATE TABLE IF NOT EXISTS identity_pin (user_id TEXT NOT NULL PRIMARY KEY, pinned_master_key TEXT NOT NULL)",
-                    0,
-            )
+                    "CREATE TABLE IF NOT EXISTS received_room_key_bundle (room_id TEXT NOT NULL, sender_user_id TEXT NOT NULL, " +
+                            "sender_key TEXT, bundle_json TEXT NOT NULL, PRIMARY KEY (room_id, sender_user_id))",
+                    "CREATE TABLE IF NOT EXISTS room_pending_key_bundle (room_id TEXT NOT NULL PRIMARY KEY, inviter TEXT NOT NULL, " +
+                            "accepted_at INTEGER NOT NULL)",
+            ).forEach { driver.execute(null, it, 0) }
             return CryptoSqlDatabase(driver)
         }
 

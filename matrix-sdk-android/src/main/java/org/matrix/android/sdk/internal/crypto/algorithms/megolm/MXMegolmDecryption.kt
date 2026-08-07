@@ -105,6 +105,7 @@ internal class MXMegolmDecryption(
                                         forwardingCurve25519KeyChain = olmDecryptionResult.forwardingCurve25519KeyChain
                                                 .orEmpty(),
                                         messageVerificationState = olmDecryptionResult.verificationState,
+                                        sharedByUserId = olmDecryptionResult.sharedByUserId,
                                 ).also {
                                     liveEventManager.get().dispatchLiveEventDecrypted(event, it)
                                 }
@@ -305,7 +306,7 @@ internal class MXMegolmDecryption(
                 forwardingCurve25519KeyChain = forwardingCurve25519KeyChain,
                 keysClaimed = keysClaimed,
                 exportFormat = exportFormat,
-                sharedHistory = roomKeyContent.getSharedKey(),
+                sharedHistory = roomKeyContent.sharedHistory ?: false,
                 trusted = trusted
         ).also {
             Timber.tag(loggerTag.value).v(".. onRoomKeyEvent addInboundGroupSession ${roomKeyContent.sessionId} result: $it")
@@ -349,14 +350,6 @@ internal class MXMegolmDecryption(
 
             onNewSession(roomId, sessionInitiatorSenderKey, sessionId)
         }
-    }
-
-    /**
-     * Returns boolean shared key flag, if enabled with respect to matrix configuration.
-     */
-    private fun RoomKeyContent.getSharedKey(): Boolean {
-        if (!cryptoStore.isShareKeysOnInviteEnabled()) return false
-        return sharedHistory ?: false
     }
 
     /**
