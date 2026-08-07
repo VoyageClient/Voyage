@@ -68,6 +68,12 @@ interface FileService {
      */
     fun getLocalFileFor(mxcUrl: String?, fileName: String?, mimeType: String?, isEncrypted: Boolean = false): File?
 
+    /**
+     * True while [mxcUrl] is a reserved content URI (MSC2246) whose bytes are still being uploaded —
+     * i.e. the homeserver cannot serve it yet.
+     */
+    fun isUploadPending(mxcUrl: String?): Boolean
+
     fun isFileInCache(
             mxcUrl: String?,
             fileName: String,

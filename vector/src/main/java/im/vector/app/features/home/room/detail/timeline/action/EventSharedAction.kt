@@ -67,9 +67,6 @@ sealed class EventSharedAction(
     data class Redact(val eventId: String, val askForReason: Boolean, val dialogTitleRes: Int, val dialogDescriptionRes: Int) :
             EventSharedAction(CommonStrings.message_action_item_redact, R.drawable.ic_delete, true)
 
-    data class Cancel(val event: TimelineEvent, val force: Boolean) :
-            EventSharedAction(CommonStrings.action_cancel, R.drawable.ic_close_round)
-
     data class RevealRedacted(val eventId: String) :
             EventSharedAction(CommonStrings.message_action_reveal_redacted, R.drawable.ic_reveal_redacted)
 

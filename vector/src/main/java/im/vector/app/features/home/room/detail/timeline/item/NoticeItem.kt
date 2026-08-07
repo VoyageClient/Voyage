@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.content.Context
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -63,6 +64,8 @@ abstract class NoticeItem : BaseEventItem<NoticeItem.Holder>(R.layout.item_timel
                 longClickListener = attributes.itemLongClickListener,
         )
     }
+
+    override fun getRowTintColor(context: Context): Int? = revealedRedactionTint(context, attributes.informationData)
 
     override fun unbind(holder: Holder) {
         attributes.avatarRenderer.clear(holder.avatarImageView)

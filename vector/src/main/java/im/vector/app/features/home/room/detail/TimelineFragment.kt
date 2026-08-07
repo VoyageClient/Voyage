@@ -1870,21 +1870,6 @@ class TimelineFragment :
         return true
     }
 
-    private fun handleCancelSend(action: EventSharedAction.Cancel) {
-        if (action.force) {
-            timelineViewModel.handle(RoomDetailAction.CancelSend(action.event, true))
-        } else {
-            MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(CommonStrings.dialog_title_confirmation)
-                    .setMessage(getString(CommonStrings.event_status_cancel_sending_dialog_message))
-                    .setNegativeButton(CommonStrings.no, null)
-                    .setPositiveButton(CommonStrings.yes) { _, _ ->
-                        timelineViewModel.handle(RoomDetailAction.CancelSend(action.event, false))
-                    }
-                    .show()
-        }
-    }
-
     override fun onThreadSummaryClicked(eventId: String, isRootThreadEvent: Boolean): Boolean {
         return if (vectorPreferences.areThreadMessagesEnabled() && isRootThreadEvent && !isThreadTimeLine()) {
             navigateToThreadTimeline(eventId)
@@ -2184,9 +2169,6 @@ class TimelineFragment :
             }
             is EventSharedAction.Resend -> {
                 timelineViewModel.handle(RoomDetailAction.ResendMessage(action.eventId))
-            }
-            is EventSharedAction.Cancel -> {
-                handleCancelSend(action)
             }
             is EventSharedAction.IgnoreUser -> {
                 action.senderId?.let { askConfirmationToIgnoreUser(it) }

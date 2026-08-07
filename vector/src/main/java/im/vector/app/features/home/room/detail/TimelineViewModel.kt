@@ -51,6 +51,7 @@ import im.vector.app.features.raw.wellknown.getOutboundSessionKeySharingStrategy
 import im.vector.app.features.raw.wellknown.withElementWellKnown
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.redaction.MassRedactionManager
+import im.vector.app.features.redaction.preservation.RedactedContentRepository
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorDataStore
 import im.vector.app.features.settings.VectorPreferences
@@ -150,6 +151,7 @@ class TimelineViewModel @AssistedInject constructor(
         timelineRetrieversFactory: TimelineRetrieversFactory,
         private val pgpRoomEncryptor: PgpRoomEncryptor,
         private val vectorOverrides: VectorOverrides,
+        private val redactedContentRepository: RedactedContentRepository,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -655,7 +657,6 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.ManageIntegrations -> handleManageIntegrations()
             is RoomDetailAction.RemoveWidget -> handleDeleteWidget(action.widgetId)
             is RoomDetailAction.EnsureNativeWidgetAllowed -> handleCheckWidgetAllowed(action)
-            is RoomDetailAction.CancelSend -> handleCancel(action)
             is RoomDetailAction.JumpToReadReceipt -> handleJumpToReadReceipt(action)
             RoomDetailAction.QuickActionInvitePeople -> handleInvitePeople()
             RoomDetailAction.QuickActionSetAvatar -> handleQuickSetAvatar()
@@ -917,11 +918,36 @@ private fun handleSelectStickerAttachment() {
                     }
                 }
                 else -> {
+                    if (event.root.sendState.isSending()) {
+                        // Redacting an in-flight send cancels it (SDK side); release the attachment's
+                        // content-uri grant like the old explicit Cancel did.
+                        revokeUnsentAttachmentPermission(event)
+                    }
+                    discardPreservedContentIfNeverUploaded(event)
                     room.sendService().redactEvent(event.root, action.reason)
                     redactAssociatedEdits(room, event, action.reason)
                     redactAssociatedReactions(room, event, action.reason)
                 }
             }
+        }
+    }
+
+    private fun revokeUnsentAttachmentPermission(event: TimelineEvent) {
+        val messageContent = event.root.getClearContent()?.toModel<MessageContent>() as? MessageWithAttachmentContent
+        messageContent?.getFileUrl()?.takeIf { !it.isMxcUrl() }?.let {
+            _viewEvents.post(RoomDetailViewEvents.RevokeFilePermission(it.toUri()))
+        }
+    }
+
+    // Redacting an attachment whose bytes never reached the server (upload cancelled with the send)
+    // must also drop the message logger's preserved copy — it describes media no one can ever fetch,
+    // and revealing it would render a phantom "uploaded" attachment.
+    private fun discardPreservedContentIfNeverUploaded(event: TimelineEvent) {
+        val messageContent = event.root.getClearContent()?.toModel<MessageContent>() as? MessageWithAttachmentContent ?: return
+        val url = messageContent.getFileUrl() ?: return
+        val neverUploaded = !url.isMxcUrl() || session.fileService().isUploadPending(url)
+        if (neverUploaded) {
+            redactedContentRepository.discardNeverUploaded(event.roomId, event.eventId)
         }
     }
 
@@ -1204,26 +1230,13 @@ private fun handleSelectStickerAttachment() {
         room.getTimelineEvent(targetEventId)?.let {
             // State must be UNDELIVERED or Failed
             if (!it.root.sendState.hasFailed()) {
-                Timber.e("Cannot resend message, it is not failed, Cancel first")
+                Timber.e("Cannot remove message, it is not failed")
                 return
             }
-            room.sendService().deleteFailedEcho(it)
-        }
-    }
-
-    private fun handleCancel(action: RoomDetailAction.CancelSend) {
-        if (room == null) return
-        // State must be in one of the sending states
-        if (action.force || action.event.root.sendState.isSending()) {
-            room.sendService().cancelSend(action.event.eventId)
-
-            val clearContent = action.event.root.getClearContent()
-            val messageContent = clearContent?.toModel<MessageContent>() as? MessageWithAttachmentContent
-            messageContent?.getFileUrl()?.takeIf { !it.isMxcUrl() }?.let {
-                _viewEvents.post(RoomDetailViewEvents.RevokeFilePermission(it.toUri()))
-            }
-        } else {
-            Timber.e("Cannot cancel message, it is not sending")
+            // cancelSend rather than deleteFailedEcho: it also tears down any upload work and
+            // buffered bytes the failed attachment send left behind.
+            room.sendService().cancelSend(it.eventId)
+            revokeUnsentAttachmentPermission(it)
         }
     }
 

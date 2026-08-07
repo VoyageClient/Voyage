@@ -324,6 +324,11 @@ internal class DefaultFileService @Inject constructor(
         return getFiles(mxcUrl, fileName, mimeType, isEncrypted).getClearFile().takeIf { it.exists() }
     }
 
+    override fun isUploadPending(mxcUrl: String?): Boolean {
+        mxcUrl ?: return false
+        return pendingMediaUploadRegistry.isPending(mxcUrl)
+    }
+
     override fun isFileInCache(
             mxcUrl: String?,
             fileName: String,

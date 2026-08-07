@@ -200,7 +200,7 @@ class MessageItemFactory @Inject constructor(
         val messageContent = event.getVectorLastMessageContent()
         if (messageContent == null) {
             val malformedText = stringProvider.getString(CommonStrings.malformed_message)
-            return defaultItemFactory.create(malformedText, informationData, highlight, callback)
+            return defaultItemFactory.create(malformedText, informationData, highlight, callback, params.reactionsSummaryEvents)
         }
         if (messageContent.relatesTo?.type == RelationType.REPLACE ||
                 event.isEncrypted() && event.root.content.toModel<EncryptedEventContent>()?.relatesTo?.type == RelationType.REPLACE

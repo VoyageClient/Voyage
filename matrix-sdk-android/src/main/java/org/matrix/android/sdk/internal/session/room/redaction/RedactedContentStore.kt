@@ -87,6 +87,10 @@ internal class RedactedContentStore @Inject constructor(
         queries.selectByEventId(eventId).executeAsOneOrNull()?.toDomain()
     }
 
+    suspend fun delete(eventId: String) = withContext(dispatcher) {
+        queries.deleteByEventId(eventId)
+    }
+
     private fun Redacted_content.toDomain() = PreservedContent(
             eventId = event_id,
             roomId = room_id,

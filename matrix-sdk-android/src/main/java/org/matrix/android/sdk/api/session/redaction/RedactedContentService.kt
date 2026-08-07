@@ -45,6 +45,9 @@ interface RedactedContentService {
 
     suspend fun preserve(content: PreservedEventContent)
 
+    /** Drop the preserved copy of one event, e.g. when its media never finished uploading. */
+    suspend fun discard(eventId: String)
+
     suspend fun roomsWithPreservedContent(): List<String>
 
     /** Clear-cache: drops everything except rooms the user asked to keep. */

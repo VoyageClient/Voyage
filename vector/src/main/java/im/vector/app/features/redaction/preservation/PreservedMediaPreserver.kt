@@ -75,6 +75,10 @@ class PreservedMediaPreserver @Inject constructor(
 
     suspend fun clearForUser(userId: String) = store.clearForUser(userId)
 
+    suspend fun discard(roomId: String, eventId: String) {
+        withContext(Dispatchers.IO) { store.fileFor(roomId, eventId).delete() }
+    }
+
     private fun mayDownload(roomId: String, attachment: MessageWithAttachmentContent): Boolean {
         val cap = settings.maxMediaSizeFor(roomId)
         val size = attachment.attachmentSize()
