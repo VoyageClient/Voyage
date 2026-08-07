@@ -55,11 +55,18 @@ import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
 import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
 import org.matrix.android.sdk.internal.platform.BackgroundTaskType
 import org.matrix.android.sdk.internal.platform.backgroundTask
+import org.matrix.android.sdk.internal.session.content.PendingMediaUploadRegistry
 import org.matrix.android.sdk.internal.session.content.UploadContentWorkerParams
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.task.TaskExecutor
 
 private const val UPLOAD_WORK = "UPLOAD_WORK"
+
+/**
+ * Tag shared by every background task belonging to one attachment send, so cancelling the send stops
+ * both the upload chain and any deferred byte upload it queued.
+ */
+internal fun uploadWorkTag(eventId: String): String = "upload_${eventId}"
 
 internal class DefaultSendService @AssistedInject constructor(
         @Assisted private val roomId: String,
@@ -72,6 +79,7 @@ internal class DefaultSendService @AssistedInject constructor(
         private val localEchoRepository: LocalEchoRepository,
         private val eventSenderProcessor: EventSenderProcessor,
         private val cancelSendTracker: CancelSendTracker,
+        private val pendingMediaUploadRegistry: PendingMediaUploadRegistry,
 ) : SendService {
 
     @AssistedFactory
@@ -241,6 +249,9 @@ internal class DefaultSendService @AssistedInject constructor(
         // CancelSendTracker is in-memory only; the background upload chain is persistent, so without
         // this cancel a stuck upload would survive restarts and block every subsequent send.
         backgroundTaskScheduler.cancelAllByTag(uploadWorkTag(eventId))
+        // That tag also covers any deferred byte upload, which is torn down before it can
+        // release the bytes it was holding.
+        pendingMediaUploadRegistry.discardForEvent(eventId)
         taskExecutor.executorScope.launch {
             localEchoRepository.deleteFailedEcho(roomId, eventId)
         }
@@ -397,8 +408,6 @@ internal class DefaultSendService @AssistedInject constructor(
     private fun buildWorkName(identifier: String): String {
         return "${roomId}_$identifier"
     }
-
-    private fun uploadWorkTag(eventId: String): String = "upload_${eventId}"
 
     private fun createUploadMediaWork(
             allLocalEchos: List<Event>,

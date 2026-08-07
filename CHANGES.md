@@ -114,6 +114,10 @@ New features, improvements, and notable removals in this fork.
 
 - **Consistent deleted-message previews** — a deleted message now reads as deleted everywhere it is previewed, not just in the timeline: reply headers, the composer's reply preview, the room list, the pinned-messages banner and list, and the long-press menu all show it greyed out with a trash icon rather than as ordinary text, and thread summaries grey it out too. The wording is unified on "Message redacted".
 
+- **Attachments send before the upload finishes (MSC2246)** — a photo or video counts as sent as soon as the message itself reaches the server, with the bytes following behind, so a large video no longer holds the message mid-send. Recipients see the message straight away and the media fills in. Falls back to upload-then-send on servers without support.
+
+- **Faster sending for large videos** — a video sent at original size is now rewritten in a single pass straight from the source instead of being copied and then rewritten in full, and shows real progress while it works.
+
 - **Block all room invites (MSC4380)** — one switch under Settings → Security & privacy has your homeserver reject every invite sent to you, on all your devices at once. Requires server support.
 
 - **Media visibility follows your account (MSC4278)** — the media-preview and invite-avatar settings are stored on your account rather than only on the device that set them, so a new sign-in keeps the choices you already made and Element Web and Element X read the same setting.
@@ -155,6 +159,8 @@ New features, improvements, and notable removals in this fork.
 - **Dependency & build slimming** — dropped the WYSIWYG composer, Sentry, and the unused JNA dependency; vendored markwon-html; bumped conscrypt; and enabled optimization for libopus.
 
 ## Significant bugfixes
+
+- Fixed attachment sends sticking at "Waiting…" forever when the network dropped or the system reclaimed the upload task, which was treated as a cancellation and killed the send permanently instead of retrying it.
 
 - Fixed editing a just-sent message silently doing nothing if it was still sending.
 

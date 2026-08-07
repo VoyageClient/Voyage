@@ -34,6 +34,7 @@ import org.matrix.android.sdk.internal.session.cache.CacheModule
 import org.matrix.android.sdk.internal.session.call.CallModule
 import org.matrix.android.sdk.internal.session.content.ContentModule
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
+import org.matrix.android.sdk.internal.session.content.UploadMediaBytesWorker
 import org.matrix.android.sdk.internal.session.contentscanner.ContentScannerModule
 import org.matrix.android.sdk.internal.session.filter.FilterModule
 import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesModule
@@ -128,6 +129,8 @@ internal interface SessionComponent {
     fun inject(worker: RedactEventWorker)
 
     fun inject(worker: UploadContentWorker)
+
+    fun inject(worker: UploadMediaBytesWorker)
 
     fun inject(worker: SyncWorker)
 

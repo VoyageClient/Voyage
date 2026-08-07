@@ -84,7 +84,19 @@ private class ContentMediaProgressUpdater(
             is ContentUploadStateTracker.State.CompressingImage -> handleCompressingImage()
             is ContentUploadStateTracker.State.CompressingVideo -> handleCompressingVideo(state)
             is ContentUploadStateTracker.State.ProcessingAudio -> handleProcessingAudio()
+            is ContentUploadStateTracker.State.ProcessingVideo -> handleProcessingVideo(state)
         }
+    }
+
+    private fun handleProcessingVideo(state: ContentUploadStateTracker.State.ProcessingVideo) {
+        val percent = (state.percent * 100).toInt().coerceIn(0, 100)
+        progressLayout.visibility = View.VISIBLE
+        progressBar.isVisible = true
+        progressBar.isIndeterminate = false
+        progressBar.progress = percent
+        progressTextView.isVisible = true
+        progressTextView.text = progressLayout.context.getString(CommonStrings.send_file_step_processing_video, percent)
+        progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
 
     private fun handleProcessingAudio() {

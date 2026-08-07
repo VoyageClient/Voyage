@@ -43,6 +43,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
+import java.io.File
 import javax.inject.Inject
 import kotlin.math.min
 
@@ -83,7 +84,7 @@ class ImageContentRenderer @Inject constructor(
             // A copy kept locally because the message was redacted. Loaded directly: the mxc url it
             // came from is usually purged server-side by the time this renders, and Glide's url/uri
             // resolution only accepts mxc or content:// anyway.
-            val preservedFile: java.io.File? = null,
+            val preservedFile: File? = null,
             val blurHash: String? = null,
             // Survives the local-echo → remote-id swap (see MessageInformationData.stableId).
             val stableId: String = eventId,
@@ -374,6 +375,7 @@ class ImageContentRenderer @Inject constructor(
         data.preservedFile?.let { file ->
             return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE)
         }
+        val localCopy = lazy { localCopyOf(data) }
         val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
         val isLocalVideoContentUri = isLocalContentUri && data.mimeType?.startsWith("video/") == true
         val request = if (isLocalVideoContentUri) {
@@ -402,8 +404,11 @@ class ImageContentRenderer @Inject constructor(
             val resolvedUrl = when (mode) {
                 Mode.FULL_SIZE,
                 Mode.ANIMATED_THUMBNAIL,
-                Mode.STICKER -> resolveUrl(data)
-                Mode.THUMBNAIL -> contentUrlResolver.resolveThumbnail(data.url, size.width, size.height, ContentUrlResolver.ThumbnailMethod.SCALE)
+                Mode.STICKER -> resolveUrl(data, localCopy)
+                // The server can't thumbnail bytes it doesn't have yet, and shouldn't be asked to
+                // re-serve what we already hold.
+                Mode.THUMBNAIL -> localCopy.value
+                        ?: contentUrlResolver.resolveThumbnail(data.url, size.width, size.height, ContentUrlResolver.ThumbnailMethod.SCALE)
             }
             // Fallback to base url
                     ?: data.url.takeIf { it?.startsWith("content://") == true }
@@ -413,19 +418,26 @@ class ImageContentRenderer @Inject constructor(
                     .apply {
                         if (mode == Mode.THUMBNAIL) {
                             error(
-                                    decorateWithBlurHash(glideRequests.load(resolveUrl(data)), data)
+                                    decorateWithBlurHash(glideRequests.load(resolveUrl(data, localCopy)), data, localCopy)
                             )
                         }
                     }
         }
-        return decorateWithBlurHash(request, data)
+        return decorateWithBlurHash(request, data, localCopy)
     }
 
     // Glide's request-equivalence check compares placeholders by reference: a fresh BlurHashDrawable
     // per bind makes every rebind a "new" request, resetting to the blurhash and replaying the fade.
     private val blurHashPlaceholders = android.util.LruCache<String, BlurHashDrawable>(64)
 
-    private fun decorateWithBlurHash(request: GlideRequest<Drawable>, data: Data): GlideRequest<Drawable> {
+    private fun decorateWithBlurHash(
+            request: GlideRequest<Drawable>,
+            data: Data,
+            localCopy: Lazy<File?> = lazy { localCopyOf(data) },
+    ): GlideRequest<Drawable> {
+        // A blurhash is a stand-in for a download. With the bytes already on disk there is nothing to
+        // stand in for, and showing one only produces a flash on every rebind.
+        if (localCopy.value != null) return request
         val blurHash = data.blurHash ?: return request
         val key = "${data.stableId}:$blurHash:${data.width}x${data.height}"
         val placeholder = synchronized(blurHashPlaceholders) {
@@ -436,9 +448,22 @@ class ImageContentRenderer @Inject constructor(
                 .transition(DrawableTransitionOptions.with(BLURHASH_FADE_FACTORY))
     }
 
-    private fun resolveUrl(data: Data) =
-            (activeSessionHolder.getActiveSession().contentUrlResolver().resolveFullSize(data.url)
-                    ?: data.url?.takeIf { localFilesHelper.isLocalFile(data.url) && data.allowNonMxcUrls })
+    private fun resolveUrl(data: Data, localCopy: Lazy<File?> = lazy { localCopyOf(data) }): Any? {
+        localCopy.value?.let { return it }
+        val session = activeSessionHolder.getActiveSession()
+        return session.contentUrlResolver().resolveFullSize(data.url)
+                ?: data.url?.takeIf { localFilesHelper.isLocalFile(data.url) && data.allowNonMxcUrls }
+    }
+
+    /**
+     * Bytes we already hold for this content: still uploading (MSC2246), or downloaded earlier. Serving
+     * these keeps us from re-fetching our own just-sent media, and from asking the homeserver for a URI
+     * whose bytes have not landed yet.
+     */
+    private fun localCopyOf(data: Data): File? {
+        return activeSessionHolder.getActiveSession().fileService()
+                .getLocalFileFor(data.url, data.filename, data.mimeType, data.elementToDecrypt != null)
+    }
 
     private fun Data.hasKnownDimensions(): Boolean = (width ?: 0) > 0 && (height ?: 0) > 0
 

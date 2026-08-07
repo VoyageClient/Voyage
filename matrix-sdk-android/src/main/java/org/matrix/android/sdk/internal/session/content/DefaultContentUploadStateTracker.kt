@@ -88,6 +88,10 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
         updateState(key, progressData)
     }
 
+    internal fun setProcessingVideo(key: String, percent: Float) {
+        updateState(key, ContentUploadStateTracker.State.ProcessingVideo(percent))
+    }
+
     internal fun setProcessingAudio(key: String) {
         updateState(key, ContentUploadStateTracker.State.ProcessingAudio)
     }

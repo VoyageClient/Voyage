@@ -34,4 +34,14 @@ object MatrixUrls {
      * Remove the "mxc://" prefix. No op if the String is not a Mxc URL.
      */
     fun String.removeMxcPrefix() = removePrefix(MATRIX_CONTENT_URI_SCHEME)
+
+    /**
+     * Split an mxc URL into its server name and media id, or null if it is not one.
+     */
+    fun String.toMxcParts(): Pair<String, String>? {
+        if (!isMxcUrl()) return null
+        val serverName = removeMxcPrefix().substringBefore('/', "")
+        val mediaId = removeMxcPrefix().substringAfter('/', "")
+        return if (serverName.isEmpty() || mediaId.isEmpty()) null else serverName to mediaId
+    }
 }
