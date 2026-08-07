@@ -8,6 +8,7 @@
 package im.vector.app.core.platform
 
 import android.content.Context
+import android.graphics.Canvas
 import android.util.AttributeSet
 import android.widget.Checkable
 import androidx.appcompat.widget.AppCompatImageView
@@ -35,6 +36,19 @@ class CheckableImageView : AppCompatImageView, Checkable {
 
     override fun toggle() {
         isChecked = !mChecked
+    }
+
+    /**
+     * ImageView never clips its drawable. A static bitmap is fine because Glide pre-crops it to the
+     * view, but a self-animating drawable (APNG/WebP/GIF) keeps its own aspect ratio and, under
+     * centerCrop, bleeds past the padding — i.e. over the selection border drawn as the background.
+     * Clipping here works on every supported API, unlike clipToOutline.
+     */
+    override fun onDraw(canvas: Canvas) {
+        val saved = canvas.save()
+        canvas.clipRect(paddingLeft, paddingTop, width - paddingRight, height - paddingBottom)
+        super.onDraw(canvas)
+        canvas.restoreToCount(saved)
     }
 
     override fun onCreateDrawableState(extraSpace: Int): IntArray {

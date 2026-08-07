@@ -56,8 +56,20 @@ data class ImageInfo(
          * Information on the encrypted thumbnail file, as specified in End-to-end encryption. Only present if the thumbnail is encrypted.
          */
         @Json(name = "thumbnail_file") val thumbnailFile: EncryptedFileInfo? = null,
-        @Json(name = "xyz.amorgan.blurhash") val blurHash: String? = null
-)
+        @Json(name = "xyz.amorgan.blurhash") val blurHash: String? = null,
+
+        /**
+         * Whether the image is animated (MSC4230). Null when the sender did not say.
+         */
+        @Json(name = "is_animated") val isAnimatedStable: Boolean? = null,
+
+        /**
+         * Element Web still only writes the unstable name, so keep reading it.
+         */
+        @Json(name = "org.matrix.msc4230.is_animated") val isAnimatedUnstable: Boolean? = null,
+) {
+    val isAnimated: Boolean? = isAnimatedStable ?: isAnimatedUnstable
+}
 
 /**
  * Get the url of the encrypted thumbnail or of the thumbnail.
