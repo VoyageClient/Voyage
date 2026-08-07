@@ -49,6 +49,7 @@ internal enum class BackgroundTaskType {
     DEACTIVATE_LIVE_LOCATION,
     SEND_EVENT,
     UPLOAD_CONTENT,
+    UPLOAD_MEDIA_BYTES,
     MULTIPLE_EVENT_DISPATCHER,
 }
 

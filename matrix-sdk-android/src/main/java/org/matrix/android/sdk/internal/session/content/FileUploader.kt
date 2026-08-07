@@ -26,6 +26,7 @@ import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.source
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.MatrixUrls.toMxcParts
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -37,10 +38,19 @@ import org.matrix.android.sdk.internal.di.Authenticated
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.ProgressRequestBody
 import org.matrix.android.sdk.internal.network.awaitResponse
+import org.matrix.android.sdk.internal.network.shouldFallBackToUnstableEndpoint
 import org.matrix.android.sdk.internal.network.toFailure
+import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
+
+/**
+ * Servers cap how many content URIs may sit reserved-but-unused at once (Synapse: 5). Hitting that is
+ * a reason to upload this one synchronously, not to fail the send.
+ */
+private fun Throwable.isPendingMediaLimitExceeded(): Boolean =
+        this is Failure.ServerError && error.code == MatrixError.M_LIMIT_EXCEEDED
 
 internal class FileUploader @Inject constructor(
         @Authenticated private val okHttpClient: OkHttpClient,
@@ -50,25 +60,24 @@ internal class FileUploader @Inject constructor(
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val imageExifTagRemover: ImageExifTagRemover,
         private val lightweightSettingsStorage: LightweightSettingsStorage,
-        contentUrlResolver: ContentUrlResolver,
+        private val contentUrlResolver: ContentUrlResolver,
         moshi: Moshi
 ) {
 
     private val uploadUrl = contentUrlResolver.uploadUrl
+    private val createUrl = contentUrlResolver.createUrl
     private val responseAdapter = moshi.adapter(ContentUploadResponse::class.java)
+    private val createResponseAdapter = moshi.adapter(ContentCreateResponse::class.java)
 
-    suspend fun uploadFile(
-            file: File,
-            filename: String?,
-            mimeType: String?,
-            progressListener: ProgressRequestBody.Listener? = null
-    ): ContentUploadResponse {
-        // Check size limit
+    /**
+     * Throws when the server is known to refuse a file this big, so the caller can fail before anything
+     * is reserved or sent rather than after.
+     */
+    fun checkUploadSize(file: File) {
         val maxUploadFileSize = homeServerCapabilitiesService.getHomeServerCapabilities().maxUploadFileSize
 
         if (maxUploadFileSize != HomeServerCapabilities.MAX_UPLOAD_FILE_SIZE_UNKNOWN &&
                 file.length() > maxUploadFileSize) {
-            // Known limitation and file too big for the server, save the pain to upload it
             throw Failure.ServerError(
                     error = MatrixError(
                             code = MatrixError.M_TOO_LARGE,
@@ -77,6 +86,91 @@ internal class FileUploader @Inject constructor(
                     httpCode = 413
             )
         }
+    }
+
+    /**
+     * Reserve a content URI up front (MSC2246) so the event can be sent before its bytes exist.
+     * Returns null when the server does not offer `media/v1/create`, or is momentarily unwilling to
+     * reserve another one — both mean "just upload it the old way".
+     */
+    suspend fun createMedia(): ContentCreateResponse? {
+        val request = Request.Builder()
+                .url(createUrl)
+                .post(RequestBody.create(null, ByteArray(0)))
+                .build()
+
+        return withContext(coroutineDispatchers.io) {
+            try {
+                okHttpClient.newCall(request).awaitResponse().use { response ->
+                    if (!response.isSuccessful) throw response.toFailure(globalErrorReceiver)
+                    response.body()?.source()?.let { createResponseAdapter.fromJson(it) } ?: throw IOException()
+                }
+            } catch (failure: Throwable) {
+                if (failure.shouldFallBackToUnstableEndpoint() || failure.isPendingMediaLimitExceeded()) {
+                    Timber.d(failure, "## Media create unavailable, falling back to a synchronous upload")
+                    null
+                } else {
+                    throw failure
+                }
+            }
+        }
+    }
+
+    /**
+     * Upload the bytes of a content URI previously reserved by [createMedia].
+     */
+    suspend fun uploadReservedFile(
+            contentUri: String,
+            file: File,
+            filename: String?,
+            mimeType: String?,
+            progressListener: ProgressRequestBody.Listener? = null
+    ) {
+        val (serverName, mediaId) = contentUri.toMxcParts()
+                ?: throw IllegalArgumentException("Not a valid mxc uri: $contentUri")
+
+        val uploadBody = object : RequestBody() {
+            override fun contentLength() = file.length()
+
+            override fun contentType(): MediaType? {
+                return mimeType?.let { MediaType.parse(it) }
+            }
+
+            override fun writeTo(sink: BufferedSink) {
+                file.source().use { sink.writeAll(it) }
+            }
+        }
+
+        val httpUrl = HttpUrl.parse(contentUrlResolver.uploadUrlForReserved(serverName, mediaId))
+                ?.newBuilder()
+                ?.apply { if (filename != null) addQueryParameter("filename", filename) }
+                ?.build()
+                ?: throw RuntimeException()
+
+        val requestBody = if (progressListener != null) ProgressRequestBody(uploadBody, progressListener) else uploadBody
+
+        val request = Request.Builder()
+                .url(httpUrl)
+                .put(requestBody)
+                .build()
+
+        withContext(coroutineDispatchers.io) {
+            okHttpClient.newCall(request).awaitResponse().use { response ->
+                if (!response.isSuccessful) {
+                    throw response.toFailure(globalErrorReceiver)
+                }
+            }
+        }
+    }
+
+    suspend fun uploadFile(
+            file: File,
+            filename: String?,
+            mimeType: String?,
+            progressListener: ProgressRequestBody.Listener? = null
+    ): ContentUploadResponse {
+        // Known limitation and file too big for the server, save the pain to upload it
+        checkUploadSize(file)
 
         val uploadBody = object : RequestBody() {
             override fun contentLength() = file.length()

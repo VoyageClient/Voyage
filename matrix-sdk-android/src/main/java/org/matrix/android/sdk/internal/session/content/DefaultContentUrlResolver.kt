@@ -38,6 +38,10 @@ internal class DefaultContentUrlResolver @Inject constructor(
     private val baseUrl = homeServerConnectionConfig.homeServerUriBase.ensureTrailingSlash()
     private val authenticatedMediaApiPath = baseUrl + NetworkConstants.URI_API_PREFIX_PATH_V1 + "media/"
     override val uploadUrl = baseUrl + NetworkConstants.URI_API_MEDIA_PREFIX_PATH_V3 + "upload"
+    override val createUrl = baseUrl + NetworkConstants.URI_API_MEDIA_PREFIX_PATH_V1 + "create"
+
+    override fun uploadUrlForReserved(serverName: String, mediaId: String) =
+            "$uploadUrl/$serverName/$mediaId"
 
     override fun resolveForDownload(contentUrl: String?, elementToDecrypt: ElementToDecrypt?): ContentUrlResolver.ResolvedMethod? {
         return if (scannerService.isScannerEnabled() && elementToDecrypt != null) {

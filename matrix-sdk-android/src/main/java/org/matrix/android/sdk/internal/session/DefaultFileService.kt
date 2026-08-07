@@ -60,6 +60,7 @@ internal class DefaultFileService @Inject constructor(
         @Authenticated private val accessTokenProvider: AccessTokenProvider,
         private val fileUploader: org.matrix.android.sdk.internal.session.content.FileUploader,
         private val imageCompressor: org.matrix.android.sdk.internal.session.content.ImageCompressor,
+        private val pendingMediaUploadRegistry: org.matrix.android.sdk.internal.session.content.PendingMediaUploadRegistry,
 ) : FileService {
 
     override suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String {
@@ -152,6 +153,18 @@ internal class DefaultFileService @Inject constructor(
                 // Also we need to add extension for the FileProvider, if not it lot's of app that it's
                 // shared with will not function well (even if mime type is passed in the intent)
                 val cachedFiles = getFiles(url, fileName, mimeType, elementToDecrypt != null)
+
+                // MSC2246: our own media whose bytes are still uploading. Asking the homeserver for it
+                // would stall until the upload lands and then time out, so serve the local copy. Written
+                // to the decrypted slot: the registry holds plaintext, which is what callers want here.
+                pendingMediaUploadRegistry.getLocalFile(url)?.let { pending ->
+                    val target = cachedFiles.getClearFile()
+                    if (!target.exists()) {
+                        target.parentFile?.mkdirs()
+                        pending.copyTo(target, overwrite = true)
+                    }
+                    return@withContext cachedFiles
+                }
 
                 if (!cachedFiles.file.exists()) {
                     val resolvedMethod = contentUrlResolver.resolveForDownload(url, elementToDecrypt) ?: throw IllegalArgumentException("url is null")
@@ -297,12 +310,18 @@ internal class DefaultFileService @Inject constructor(
         val files = getFiles(mxcUrl, filename, mimeType, encryptedFile != null)
         if (encryptedFile != null) {
             // We switch the two files here, original file it the decrypted file
-            files.decryptedFile?.let { originalFile.copyTo(it) }
-            encryptedFile.copyTo(files.file)
+            files.decryptedFile?.let { originalFile.copyTo(it, overwrite = true) }
+            encryptedFile.copyTo(files.file, overwrite = true)
         } else {
             // Just copy the original file
-            originalFile.copyTo(files.file)
+            originalFile.copyTo(files.file, overwrite = true)
         }
+    }
+
+    override fun getLocalFileFor(mxcUrl: String?, fileName: String?, mimeType: String?, isEncrypted: Boolean): File? {
+        mxcUrl ?: return null
+        pendingMediaUploadRegistry.getLocalFile(mxcUrl)?.let { return it }
+        return getFiles(mxcUrl, fileName, mimeType, isEncrypted).getClearFile().takeIf { it.exists() }
     }
 
     override fun isFileInCache(

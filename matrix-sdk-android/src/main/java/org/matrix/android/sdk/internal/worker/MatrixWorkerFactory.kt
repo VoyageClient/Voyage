@@ -25,6 +25,7 @@ import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.di.MatrixScope
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
+import org.matrix.android.sdk.internal.session.content.UploadMediaBytesWorker
 import org.matrix.android.sdk.internal.session.pushers.AddPusherWorker
 import org.matrix.android.sdk.internal.session.room.aggregation.livelocation.DeactivateLiveLocationShareWorker
 import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherWorker
@@ -67,6 +68,8 @@ internal class MatrixWorkerFactory @Inject constructor(private val sessionManage
                 UpdateUserWorker(appContext, workerParameters, sessionManager)
             UploadContentWorker::class.java.name ->
                 UploadContentWorker(appContext, workerParameters, sessionManager)
+            UploadMediaBytesWorker::class.java.name ->
+                UploadMediaBytesWorker(appContext, workerParameters, sessionManager)
             DeactivateLiveLocationShareWorker::class.java.name ->
                 DeactivateLiveLocationShareWorker(appContext, workerParameters, sessionManager)
             else -> {

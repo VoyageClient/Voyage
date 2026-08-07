@@ -23,7 +23,6 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import androidx.work.WorkerParameters
-import com.squareup.moshi.JsonClass
 import com.vanniktech.blurhash.BlurHash
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
@@ -46,22 +45,35 @@ import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.network.ProgressRequestBody
+import org.matrix.android.sdk.internal.platform.BackgroundQueuePolicy
+import org.matrix.android.sdk.internal.platform.BackgroundTaskScheduler
+import org.matrix.android.sdk.internal.platform.BackgroundTaskType
+import org.matrix.android.sdk.internal.platform.backgroundTask
 import org.matrix.android.sdk.internal.session.DefaultFileService
 import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.session.room.send.CancelSendTracker
-import org.matrix.android.sdk.internal.session.room.send.LocalEchoIdentifiers
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoRepository
 import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherWorkerParams
+import org.matrix.android.sdk.internal.session.room.send.uploadWorkTag
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 import org.matrix.android.sdk.internal.util.time.Clock
 import org.matrix.android.sdk.internal.util.toMatrixErrorStr
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
-import org.matrix.android.sdk.internal.worker.SessionWorkerParams
 import org.matrix.android.sdk.internal.worker.WorkerParamsFactory
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
+
+/** A content URI reserved through MSC2246 whose bytes still have to be sent. */
+private data class DeferredUpload(
+        val contentUri: String,
+        val filename: String?,
+        val mimeType: String?,
+        val isEncrypted: Boolean,
+        val clearFilePath: String,
+        val encryptedFilePath: String?,
+)
 
 private data class NewAttachmentAttributes(
         val newWidth: Int? = null,
@@ -92,6 +104,8 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     @Inject lateinit var localEchoRepository: LocalEchoRepository
     @Inject lateinit var temporaryFileCreator: TemporaryFileCreator
     @Inject lateinit var clock: Clock
+    @Inject lateinit var backgroundTaskScheduler: BackgroundTaskScheduler
+    @Inject lateinit var pendingMediaUploadRegistry: PendingMediaUploadRegistry
 
     override fun injectWith(injector: SessionComponent) {
         injector.inject(this)
@@ -112,11 +126,18 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         return params.copy(lastFailureMessage = params.lastFailureMessage ?: message)
     }
 
-    private fun isCancelled(params: Params): Boolean =
-            isStopped || params.localEchoIds.all { cancelSendTracker.isCancelRequestedFor(it.eventId, it.roomId) }
+    /**
+     * The user asked for this send to go away — as opposed to [isStopped], which only means WorkManager
+     * took the worker away (lost constraint, doze, system pressure) and will run it again.
+     */
+    private fun isCancelledByUser(params: Params): Boolean =
+            params.localEchoIds.all { cancelSendTracker.isCancelRequestedFor(it.eventId, it.roomId) }
 
     private suspend fun internalDoWork(params: Params): Result {
-        if (isCancelled(params)) {
+        // Failing kills the chain for good and strands the echo at "Waiting…" with nothing to retry it,
+        // so only a real cancel may do that; a system stop has to come back as a retry.
+        if (isStopped && !isCancelledByUser(params)) return Result.retry()
+        if (isCancelledByUser(params)) {
             Timber.e("## Send: Work cancelled by user")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.revokeUriPermission(context.packageName, params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -128,6 +149,10 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
         val attachment = params.attachment
         val filesToDelete = hashSetOf<File>()
+        // Candidates to hand to UploadMediaBytesWorker, which deletes them once uploaded and cached.
+        // Only spared below once that worker is actually queued, so a failure in between can't strand them.
+        val filesToKeep = hashSetOf<File>()
+        var handedOver = false
 
         return try {
             // Materialize the source to a local temp file. Deferred until first access so the
@@ -146,13 +171,8 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
             val progressListener = object : ProgressRequestBody.Listener {
                 override fun onProgress(current: Long, total: Long) {
-                    notifyTracker(params) {
-                        if (isStopped) {
-                            contentUploadStateTracker.setFailure(it, Throwable("Cancelled"))
-                        } else {
-                            contentUploadStateTracker.setProgress(it, current, total)
-                        }
-                    }
+                    if (isStopped) return
+                    notifyTracker(params) { contentUploadStateTracker.setProgress(it, current, total) }
                 }
             }
 
@@ -210,11 +230,30 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         }
                     }
                 } else {
-                    val working = workingFile()
                     // A JPEG/PNG/WebP shared through the file/document picker lands here rather than the
                     // IMAGE branch; scrub it too so "send as file" doesn't leak EXIF. Videos sent at
                     // original size are re-muxed to drop their location/metadata atoms.
+                    val strippedVideo = if (stripMetadata && attachment.type == ContentAttachmentData.Type.VIDEO) {
+                        // Re-mux from the source URI so the video is read once, not copied to a working
+                        // file and then read again — two full passes over a large file before it can send.
+                        notifyTracker(params) { contentUploadStateTracker.setProcessingVideo(it, 0f) }
+                        val stripProgress = object : ProgressListener {
+                            override fun onProgress(progress: Int, total: Int) {
+                                notifyTracker(params) {
+                                    contentUploadStateTracker.setProcessingVideo(it, progress.toFloat() / total.toFloat())
+                                }
+                            }
+                        }
+                        videoMetadataStripper.strip(attachment.queryUriAndroid, stripProgress)
+                                ?.also { filesToDelete.add(it) }
+                    } else {
+                        null
+                    }
+                    val working = strippedVideo ?: workingFile()
                     fileToUpload = when {
+                        strippedVideo != null -> working.also {
+                            newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = it.length())
+                        }
                         !stripMetadata -> working
                         attachment.type == ContentAttachmentData.Type.FILE ->
                             (imageExitTagRemover.stripImageMetadata(working) ?: working).also { scrubbed ->
@@ -254,13 +293,14 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 // Compression can take a long time; re-check cancellation here so a cancel that
                 // arrived mid-compress short-circuits the chain (failure stops the dispatcher
                 // from then trying to send the half-baked event with a local file:// URL).
-                if (isCancelled(params)) {
+                if (isStopped && !isCancelledByUser(params)) return Result.retry()
+                if (isCancelledByUser(params)) {
                     notifyTracker(params) { contentUploadStateTracker.setFailure(it, Throwable("Cancelled")) }
                     return Result.failure()
                 }
 
                 val encryptedFile: File?
-                val contentUploadResponse = if (params.isEncrypted) {
+                if (params.isEncrypted) {
                     Timber.v("## Encrypt file")
                     encryptedFile = temporaryFileCreator.create()
                             .also { filesToDelete.add(it) }
@@ -271,39 +311,71 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                                     contentUploadStateTracker.setEncrypting(it, read.toLong(), total.toLong())
                                 }
                             }
-                    Timber.v("## Uploading file")
-                    fileUploader.uploadFile(
-                            file = encryptedFile,
-                            filename = null,
-                            mimeType = MimeTypes.OctetStream,
-                            progressListener = progressListener
-                    )
                 } else {
-                    Timber.v("## Uploading clear file")
                     encryptedFile = null
-                    fileUploader.uploadFile(
-                            file = fileToUpload,
-                            filename = renameForMime(attachment.name, newAttachmentAttributes.newMimeType),
-                            mimeType = newAttachmentAttributes.newMimeType ?: attachment.getSafeMimeType(),
-                            progressListener = progressListener
-                    )
                 }
 
-                Timber.v("## Update cache storage for ${contentUploadResponse.contentUri}")
-                try {
-                    fileService.storeDataFor(
-                            mxcUrl = contentUploadResponse.contentUri,
-                            filename = renameForMime(params.attachment.name, newAttachmentAttributes.newMimeType),
-                            mimeType = newAttachmentAttributes.newMimeType ?: params.attachment.getSafeMimeType(),
-                            // Cache the bytes we actually uploaded, not the original — otherwise the
-                            // sender's timeline serves the pre-compression file from cache while
-                            // remote clients download the compressed one.
-                            originalFile = fileToUpload,
-                            encryptedFile = encryptedFile
+                val uploadFilename = if (params.isEncrypted) null else renameForMime(attachment.name, newAttachmentAttributes.newMimeType)
+                val uploadMimeType = if (params.isEncrypted) {
+                    MimeTypes.OctetStream
+                } else {
+                    newAttachmentAttributes.newMimeType ?: attachment.getSafeMimeType()
+                }
+                val bytesToUpload = encryptedFile ?: fileToUpload
+
+                // Reserving skips uploadFile's size guard, and a file the server will refuse must fail
+                // before the event goes out rather than after.
+                fileUploader.checkUploadSize(bytesToUpload)
+
+                // MSC2246: reserving the content URI first lets the event be sent straight away, with the
+                // bytes following on their own queue. Null means the server can't (or won't right now), so
+                // fall back to uploading the bytes and only then sending.
+                val reserved = tryOrNull("## Failed to reserve a content URI") { fileUploader.createMedia() }
+                val contentUri = if (reserved != null) {
+                    reserved.contentUri
+                } else {
+                    Timber.v("## Uploading file synchronously")
+                    fileUploader.uploadFile(
+                            file = bytesToUpload,
+                            filename = uploadFilename,
+                            mimeType = uploadMimeType,
+                            progressListener = progressListener
+                    ).contentUri
+                }
+
+                val cacheFilename = renameForMime(params.attachment.name, newAttachmentAttributes.newMimeType)
+                val cacheMimeType = newAttachmentAttributes.newMimeType ?: params.attachment.getSafeMimeType()
+
+                if (reserved == null) {
+                    Timber.v("## Update cache storage for $contentUri")
+                    try {
+                        fileService.storeDataFor(
+                                mxcUrl = contentUri,
+                                filename = cacheFilename,
+                                mimeType = cacheMimeType,
+                                // Cache the bytes we actually uploaded, not the original — otherwise the
+                                // sender's timeline serves the pre-compression file from cache while
+                                // remote clients download the compressed one.
+                                originalFile = fileToUpload,
+                                encryptedFile = encryptedFile
+                        )
+                    } catch (failure: Throwable) {
+                        Timber.e(failure, "## Failed to update file cache")
+                    }
+                } else {
+                    // Caching means copying the whole file, so it waits until after the event has gone
+                    // out; UploadMediaBytesWorker does it, and owns these files from here on.
+                    filesToKeep.add(fileToUpload)
+                    encryptedFile?.let { filesToKeep.add(it) }
+                    // Point the sender's own timeline at the local bytes until the upload lands: the
+                    // homeserver has nothing to serve for this URI yet. Always the plaintext, which is
+                    // what both the renderer and the file cache want.
+                    pendingMediaUploadRegistry.markPending(
+                            contentUri = contentUri,
+                            localFile = fileToUpload,
+                            ownedFiles = listOfNotNull(encryptedFile),
+                            eventIds = params.localEchoIds.map { it.eventId }.toSet(),
                     )
-                    Timber.v("## cache storage updated")
-                } catch (failure: Throwable) {
-                    Timber.e(failure, "## Failed to update file cache")
                 }
 
                 // Picked audio uses a MediaStore URI we don't own — let the delete fail quietly.
@@ -322,12 +394,23 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
 
                 handleSuccess(
                         params,
-                        contentUploadResponse.contentUri,
+                        contentUri,
                         uploadedFileEncryptedFileInfo,
                         uploadThumbnailResult,
                         imageBlurHash,
                         audioWaveform,
-                        newAttachmentAttributes
+                        newAttachmentAttributes,
+                        deferredUpload = reserved?.let {
+                            DeferredUpload(
+                                    contentUri = contentUri,
+                                    filename = cacheFilename,
+                                    mimeType = cacheMimeType,
+                                    isEncrypted = params.isEncrypted,
+                                    clearFilePath = fileToUpload.absolutePath,
+                                    encryptedFilePath = encryptedFile?.absolutePath,
+                            )
+                        },
+                        onHandedOver = { handedOver = it },
                 )
             } catch (t: Throwable) {
                 Timber.e(t, "## ERROR ${t.localizedMessage}")
@@ -338,7 +421,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             handleFailure(params, e)
         } finally {
             // Delete all temporary files
-            filesToDelete.forEach {
+            (if (handedOver) filesToDelete - filesToKeep else filesToDelete).forEach {
                 tryOrNull { it.delete() }
             }
         }
@@ -526,12 +609,20 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             thumbnail: UploadThumbnailResult?,
             imageBlurHash: String?,
             audioWaveform: List<Int>?,
-            newAttachmentAttributes: NewAttachmentAttributes
+            newAttachmentAttributes: NewAttachmentAttributes,
+            deferredUpload: DeferredUpload?,
+            onHandedOver: (Boolean) -> Unit,
     ): Result {
-        notifyTracker(params) { contentUploadStateTracker.setSuccess(it) }
+        // With a deferred upload the bytes are still to come, so the progress UI stays up until
+        // UploadMediaBytesWorker finishes; only the synchronous path is done at this point.
+        if (deferredUpload == null) {
+            notifyTracker(params) { contentUploadStateTracker.setSuccess(it) }
+        }
         params.localEchoIds.forEach {
             updateEvent(it.eventId, attachmentUrl, encryptedFileInfo, thumbnail, imageBlurHash, audioWaveform, newAttachmentAttributes)
         }
+
+        deferredUpload?.let { onHandedOver(enqueueByteUpload(params, it)) }
 
         val sendParams = MultipleEventSendingDispatcherWorkerParams(
                 sessionId = params.sessionId,
@@ -547,6 +638,32 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 context.revokeUriPermission(params.attachment.queryUriAndroid, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
+    }
+
+    /** Queued separately from the send chain so the event goes out immediately. */
+    private fun enqueueByteUpload(params: Params, deferred: DeferredUpload): Boolean {
+        if (params.localEchoIds.isEmpty()) return false
+        backgroundTaskScheduler.enqueueUnique(
+                UploadMediaBytesWorker.workName(deferred.contentUri),
+                BackgroundQueuePolicy.REPLACE,
+                backgroundTask(
+                        type = BackgroundTaskType.UPLOAD_MEDIA_BYTES,
+                        params = UploadMediaBytesWorkerParams(
+                                sessionId = params.sessionId,
+                                localEchoIds = params.localEchoIds,
+                                contentUri = deferred.contentUri,
+                                filename = deferred.filename,
+                                mimeType = deferred.mimeType,
+                                isEncrypted = deferred.isEncrypted,
+                                clearFilePath = deferred.clearFilePath,
+                                encryptedFilePath = deferred.encryptedFilePath,
+                        ),
+                        matrixConstraints = true,
+                        isolateInput = true,
+                        extraTags = params.localEchoIds.map { uploadWorkTag(it.eventId) },
+                )
+        )
+        return true
     }
 
     private suspend fun updateEvent(

@@ -16,6 +16,7 @@ import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.di.WorkManagerProvider
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
+import org.matrix.android.sdk.internal.session.content.UploadMediaBytesWorker
 import org.matrix.android.sdk.internal.session.pushers.AddPusherWorker
 import org.matrix.android.sdk.internal.session.room.aggregation.livelocation.DeactivateLiveLocationShareWorker
 import org.matrix.android.sdk.internal.session.room.send.MultipleEventSendingDispatcherWorker
@@ -129,6 +130,7 @@ internal class WorkManagerTaskScheduler @Inject constructor(
         BackgroundTaskType.DEACTIVATE_LIVE_LOCATION -> DeactivateLiveLocationShareWorker::class.java
         BackgroundTaskType.SEND_EVENT -> SendEventWorker::class.java
         BackgroundTaskType.UPLOAD_CONTENT -> UploadContentWorker::class.java
+        BackgroundTaskType.UPLOAD_MEDIA_BYTES -> UploadMediaBytesWorker::class.java
         BackgroundTaskType.MULTIPLE_EVENT_DISPATCHER -> MultipleEventSendingDispatcherWorker::class.java
     }
 }

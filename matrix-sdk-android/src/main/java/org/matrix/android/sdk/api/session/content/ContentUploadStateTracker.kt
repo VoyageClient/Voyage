@@ -34,6 +34,9 @@ interface ContentUploadStateTracker {
         object CompressingImage : State()
         data class CompressingVideo(val percent: Float) : State()
         object ProcessingAudio : State()
+
+        /** Rewriting a video's container to drop its metadata; [percent] runs 0f..1f. */
+        data class ProcessingVideo(val percent: Float) : State()
         data class UploadingThumbnail(val current: Long, val total: Long) : State()
         data class Encrypting(val current: Long, val total: Long) : State()
         data class Uploading(val current: Long, val total: Long) : State()

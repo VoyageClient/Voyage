@@ -685,4 +685,5 @@
     <string name="settings_block_invites_summary" translatable="false">Your server will reject every invite sent to you, on all your devices.</string>
     <string name="settings_block_invites_unsupported" translatable="false">Your homeserver does not support blocking invites.</string>
     <string name="error_invite_blocked" translatable="false">This user does not accept invites.</string>
+    <string name="send_file_step_processing_video" translatable="false">Preparing video %1$d%%</string>
 </resources>

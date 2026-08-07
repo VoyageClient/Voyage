@@ -29,6 +29,9 @@ internal object NetworkConstants {
     private const val URI_API_MEDIA_PREFIX_PATH = "_matrix/media"
     const val URI_API_MEDIA_PREFIX_PATH_V3 = "$URI_API_MEDIA_PREFIX_PATH/v3/"
 
+    // MSC2246 media/create is only ever served from v1, even on servers that speak media/v3.
+    const val URI_API_MEDIA_PREFIX_PATH_V1 = "$URI_API_MEDIA_PREFIX_PATH/v1/"
+
     // Identity server
     const val URI_IDENTITY_PREFIX_PATH = "_matrix/identity/v2"
     const val URI_IDENTITY_PATH_V2 = "$URI_IDENTITY_PREFIX_PATH/"

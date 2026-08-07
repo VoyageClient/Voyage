@@ -26,3 +26,14 @@ internal data class ContentUploadResponse(
          */
         @Json(name = "content_uri") val contentUri: String
 )
+
+/**
+ * Answer to MSC2246 `POST /_matrix/media/v1/create`.
+ */
+@JsonClass(generateAdapter = true)
+internal data class ContentCreateResponse(
+        /**
+         * Required. The MXC URI reserved for the content whose bytes have yet to be uploaded.
+         */
+        @Json(name = "content_uri") val contentUri: String
+)

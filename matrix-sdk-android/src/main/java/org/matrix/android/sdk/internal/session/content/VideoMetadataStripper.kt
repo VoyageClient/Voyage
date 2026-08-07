@@ -7,16 +7,19 @@
 
 package org.matrix.android.sdk.internal.session.content
 
+import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 import timber.log.Timber
 import java.io.File
@@ -34,26 +37,54 @@ import javax.inject.Inject
  * class — and its references to API 18 framework types — is only loaded past the version gate.
  */
 internal class VideoMetadataStripper @Inject constructor(
+        private val context: Context,
         private val temporaryFileCreator: TemporaryFileCreator,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
 ) {
 
     /** @return the re-muxed file, or `null` if stripping is unsupported or failed (keep the original). */
-    suspend fun strip(videoFile: File): File? = withContext(coroutineDispatchers.io) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return@withContext null
-        Api18VideoRemuxer.remux(videoFile, temporaryFileCreator.create())
+    suspend fun strip(videoFile: File, progressListener: ProgressListener? = null): File? =
+            withContext(coroutineDispatchers.io) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return@withContext null
+                Api18VideoRemuxer.remux(VideoSource.OfFile(videoFile), temporaryFileCreator.create(), progressListener)
+            }
+
+    /**
+     * Re-mux straight from the picked content URI. The extractor reads the source itself, so the whole
+     * video never has to be copied to a working file first — one pass over it instead of two.
+     */
+    suspend fun strip(sourceUri: Uri, progressListener: ProgressListener? = null): File? =
+            withContext(coroutineDispatchers.io) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) return@withContext null
+                Api18VideoRemuxer.remux(VideoSource.OfUri(context, sourceUri), temporaryFileCreator.create(), progressListener)
+            }
+}
+
+/** Where the samples are read from; the muxing itself is identical either way. */
+private sealed interface VideoSource {
+    fun applyTo(extractor: MediaExtractor)
+    fun applyTo(retriever: MediaMetadataRetriever)
+
+    class OfFile(private val file: File) : VideoSource {
+        override fun applyTo(extractor: MediaExtractor) = extractor.setDataSource(file.absolutePath)
+        override fun applyTo(retriever: MediaMetadataRetriever) = retriever.setDataSource(file.absolutePath)
+    }
+
+    class OfUri(private val context: Context, private val uri: Uri) : VideoSource {
+        override fun applyTo(extractor: MediaExtractor) = extractor.setDataSource(context, uri, null)
+        override fun applyTo(retriever: MediaMetadataRetriever) = retriever.setDataSource(context, uri)
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 private object Api18VideoRemuxer {
 
-    fun remux(videoFile: File, output: File): File? {
+    fun remux(source: VideoSource, output: File, progressListener: ProgressListener?): File? {
         val extractor = MediaExtractor()
         var muxer: MediaMuxer? = null
         var success = false
         try {
-            extractor.setDataSource(videoFile.absolutePath)
+            source.applyTo(extractor)
             muxer = MediaMuxer(output.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
 
             val indexMap = HashMap<Int, Int>()
@@ -69,11 +100,13 @@ private object Api18VideoRemuxer {
             }
             check(indexMap.isNotEmpty()) { "No tracks to mux" }
 
-            readRotation(videoFile)?.let { muxer.setOrientationHint(it) }
+            val durationUs = readDurationUs(source)
+            readRotation(source)?.let { muxer.setOrientationHint(it) }
             muxer.start()
 
             val buffer = ByteBuffer.allocate(bufferSize)
             val bufferInfo = MediaCodec.BufferInfo()
+            var lastProgress = -1
             while (true) {
                 val size = extractor.readSampleData(buffer, 0)
                 if (size < 0) break
@@ -87,6 +120,18 @@ private object Api18VideoRemuxer {
                     0
                 }
                 muxer.writeSampleData(indexMap.getValue(extractor.sampleTrackIndex), buffer, bufferInfo)
+                if (progressListener != null && durationUs > 0) {
+                    // Rewriting the container is a full pass over a possibly huge file; without this the
+                    // send just sits there looking stuck. Reported in permille and only on change, since
+                    // there is one sample every few ms and each callback hops to the main thread.
+                    val progress = (bufferInfo.presentationTimeUs * PROGRESS_TOTAL / durationUs)
+                            .toInt()
+                            .coerceIn(0, PROGRESS_TOTAL)
+                    if (progress != lastProgress) {
+                        lastProgress = progress
+                        progressListener.onProgress(progress, PROGRESS_TOTAL)
+                    }
+                }
                 extractor.advance()
             }
             muxer.stop()
@@ -106,11 +151,17 @@ private object Api18VideoRemuxer {
         }
     }
 
-    private fun readRotation(videoFile: File): Int? {
+    private fun readRotation(source: VideoSource): Int? =
+            readMetadata(source, MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()?.takeIf { it != 0 }
+
+    private fun readDurationUs(source: VideoSource): Long =
+            (readMetadata(source, MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L) * 1000L
+
+    private fun readMetadata(source: VideoSource, key: Int): String? {
         val retriever = MediaMetadataRetriever()
         return try {
-            retriever.setDataSource(videoFile.absolutePath)
-            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()?.takeIf { it != 0 }
+            source.applyTo(retriever)
+            retriever.extractMetadata(key)
         } catch (t: Throwable) {
             null
         } finally {
@@ -119,4 +170,5 @@ private object Api18VideoRemuxer {
     }
 
     private const val DEFAULT_BUFFER_SIZE = 1 shl 20 // 1 MB
+    private const val PROGRESS_TOTAL = 1000
 }

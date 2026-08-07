@@ -34,6 +34,16 @@ interface ContentUrlResolver {
     val uploadUrl: String
 
     /**
+     * URL to reserve a content URI ahead of uploading its bytes (MSC2246).
+     */
+    val createUrl: String
+
+    /**
+     * URL to upload the bytes of a content URI reserved through [createUrl] (MSC2246).
+     */
+    fun uploadUrlForReserved(serverName: String, mediaId: String): String
+
+    /**
      * Get the actual URL for accessing the full-size image of a Matrix media content URI.
      *
      * @param contentUrl the Matrix media content URI (in the form of "mxc://...").
