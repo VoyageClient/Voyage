@@ -17,8 +17,8 @@
 package org.matrix.android.sdk.internal.session.profile
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil
-import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest

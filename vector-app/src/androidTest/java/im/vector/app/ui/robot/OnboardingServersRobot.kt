@@ -20,16 +20,12 @@ class OnboardingServersRobot {
 
     fun crawlSignUp() {
         BaristaVisibilityAssertions.assertDisplayed(R.id.loginServerTitle, CommonStrings.login_server_title)
-        crawlMatrixServer(isSignUp = true)
-        crawlEmsServer()
         crawlOtherServer(isSignUp = true)
         crawlSignInWithMatrixId()
     }
 
     fun crawlSignIn() {
         BaristaVisibilityAssertions.assertDisplayed(R.id.loginServerTitle, CommonStrings.login_server_title)
-        crawlMatrixServer(isSignUp = false)
-        crawlEmsServer()
         crawlOtherServer(isSignUp = false)
         crawlSignInWithMatrixId()
     }
@@ -51,27 +47,6 @@ class OnboardingServersRobot {
         Espresso.pressBack()
     }
 
-    private fun crawlEmsServer() {
-        BaristaClickInteractions.clickOn(R.id.loginServerChoiceEms)
-        waitUntilViewVisible(ViewMatchers.withId(R.id.loginServerUrlFormTitle))
-        BaristaVisibilityAssertions.assertDisplayed(R.id.loginServerUrlFormTitle, CommonStrings.login_connect_to_modular)
-
-        BaristaEditTextInteractions.writeTo(R.id.loginServerUrlFormHomeServerUrl, "https://one.ems.host")
-        BaristaClickInteractions.clickOn(R.id.loginServerUrlFormSubmit)
-
-        waitUntilViewVisible(ViewMatchers.withId(R.id.loginSignupSigninTitle))
-        BaristaVisibilityAssertions.assertDisplayed(R.id.loginSignupSigninText, "one.ems.host")
-        BaristaVisibilityAssertions.assertDisplayed(R.id.loginSignupSigninSubmit, CommonStrings.login_signin_sso)
-        Espresso.pressBack()
-        Espresso.pressBack()
-    }
-
-    private fun crawlMatrixServer(isSignUp: Boolean) {
-        BaristaClickInteractions.clickOn(R.id.loginServerChoiceMatrixOrg)
-        assetMatrixSignInOptions(isSignUp)
-        Espresso.pressBack()
-    }
-
     private fun assetMatrixSignInOptions(isSignUp: Boolean) {
         waitUntilViewVisible(ViewMatchers.withId(R.id.loginTitle))
         when (isSignUp) {
@@ -81,7 +56,7 @@ class OnboardingServersRobot {
     }
 
     private fun crawlSignInWithMatrixId() {
-        BaristaClickInteractions.clickOn(R.id.loginServerIKnowMyIdSubmit)
+        BaristaClickInteractions.clickOn(R.id.loginServerChoiceMatrixId)
         waitUntilViewVisible(ViewMatchers.withId(R.id.loginTitle))
         BaristaVisibilityAssertions.assertDisplayed(R.id.loginTitle, CommonStrings.login_signin_matrix_id_title)
         Espresso.pressBack()

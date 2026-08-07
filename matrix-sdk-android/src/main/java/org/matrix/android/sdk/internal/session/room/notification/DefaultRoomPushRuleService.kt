@@ -18,12 +18,12 @@ package org.matrix.android.sdk.internal.session.room.notification
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.api.session.room.notification.RoomPushRuleService

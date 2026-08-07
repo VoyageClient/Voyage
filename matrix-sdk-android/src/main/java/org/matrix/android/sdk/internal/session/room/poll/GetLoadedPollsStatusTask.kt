@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.session.room.poll
 
+import kotlinx.coroutines.CoroutineDispatcher
 import org.matrix.android.sdk.api.session.room.poll.LoadedPollsStatus
 import org.matrix.android.sdk.internal.database.model.PollHistoryStatusEntity
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
@@ -23,7 +24,6 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.task.Task
-import kotlinx.coroutines.CoroutineDispatcher
 import javax.inject.Inject
 
 internal interface GetLoadedPollsStatusTask : Task<GetLoadedPollsStatusTask.Params, LoadedPollsStatus> {

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.auth.db
 
-
 internal open class PendingSessionEntity(
         var homeServerConnectionConfigJson: String = "",
         var clientSecret: String = "",

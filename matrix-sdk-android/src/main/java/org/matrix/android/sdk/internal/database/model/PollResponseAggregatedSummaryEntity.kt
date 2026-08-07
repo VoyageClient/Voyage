@@ -15,7 +15,6 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * Keep the latest state of a poll.
  */

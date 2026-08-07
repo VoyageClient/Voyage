@@ -15,7 +15,6 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class UserThreePidEntity(
         var medium: String = "",
         var address: String = "",

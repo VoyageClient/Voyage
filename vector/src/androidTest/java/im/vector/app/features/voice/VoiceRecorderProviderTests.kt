@@ -20,7 +20,7 @@ class VoiceRecorderProviderTests {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val buildVersionSdkIntProvider = TestBuildVersionSdkIntProvider()
-    private val provider = spyk(VoiceRecorderProvider(context, DefaultVectorFeatures(), buildVersionSdkIntProvider))
+    private val provider = spyk(VoiceRecorderProvider(context, DefaultVectorFeatures(), buildVersionSdkIntProvider, FakePermissionChecker()))
 
     @Test
     fun provideVoiceRecorderOnAndroidQAndCodecReturnsQRecorder() {

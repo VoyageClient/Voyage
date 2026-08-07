@@ -8,7 +8,6 @@
 package org.matrix.android.sdk.internal.session.room.membership
 
 import org.matrix.android.sdk.api.MatrixConfiguration
-import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership

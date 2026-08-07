@@ -15,7 +15,6 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class PushConditionEntity(
         var kind: String = "",
         var key: String? = null,

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class RoomAccountDataEntity(
         var type: String? = null,
         var contentStr: String? = null

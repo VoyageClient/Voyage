@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.database.model.threads
 
 import org.matrix.android.sdk.internal.database.model.EventEntity
-import org.matrix.android.sdk.internal.database.model.RoomEntity
 
 internal open class ThreadSummaryEntity(
         var rootThreadEventId: String? = "",
@@ -32,8 +31,6 @@ internal open class ThreadSummaryEntity(
         var latestThreadIsUniqueDisplayName: Boolean = false,
         var numberOfThreads: Int = 0
 ) {
-
-
 
     companion object
 }

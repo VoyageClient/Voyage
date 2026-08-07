@@ -17,8 +17,8 @@
 package org.matrix.android.sdk.internal.session.room.poll
 
 import io.mockk.coVerifyOrder
-import io.mockk.mockk
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest

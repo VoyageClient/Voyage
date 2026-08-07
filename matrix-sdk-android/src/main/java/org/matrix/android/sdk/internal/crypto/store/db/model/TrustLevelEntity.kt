@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 internal open class TrustLevelEntity(
         var crossSignedVerified: Boolean? = null,
         var locallyVerified: Boolean? = null

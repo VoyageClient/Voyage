@@ -7,31 +7,31 @@
 
 package org.matrix.android.sdk.internal.session.sync.handler
 
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.pushrules.RuleScope
 import org.matrix.android.sdk.api.session.pushrules.RuleSetKey
+import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
+import org.matrix.android.sdk.api.session.sync.model.InvitedRoomSync
 import org.matrix.android.sdk.api.session.sync.model.UserAccountDataSync
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.mapper.PushRulesMapper
+import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.PushRulesEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.pushers.GetPushRulesResponse
 import org.matrix.android.sdk.internal.session.room.SqlRoomAvatarResolver
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomDisplayNameResolver
+import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.sync.SyncResponsePostTreatmentAggregator
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.BreadcrumbsContent
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.DirectMessagesContent
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.IgnoredUsersContent
-import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
-import org.matrix.android.sdk.api.session.sync.model.InvitedRoomSync
-import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.di.UserId
-import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.session.sync.model.accountdata.toMutable
 import org.matrix.android.sdk.internal.session.user.accountdata.DirectChatsHelper
 import org.matrix.android.sdk.internal.session.user.accountdata.IgnoredUsersUpdater

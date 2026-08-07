@@ -27,9 +27,10 @@ class EventHtmlRendererTest {
     private val fakeSessionHolder = mockk<ActiveSessionHolder>()
 
     private val renderer = EventHtmlRenderer(
-            MatrixHtmlPluginConfigure(ColorProvider(context), context.resources),
+            MatrixHtmlPluginConfigure(ColorProvider(context), context.resources, fakeSessionHolder),
             context,
             fakeSessionHolder,
+            mockk(relaxed = true),
     )
 
     private val textView: TextView = TextView(context)

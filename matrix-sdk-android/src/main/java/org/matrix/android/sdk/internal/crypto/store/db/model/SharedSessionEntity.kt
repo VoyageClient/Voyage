@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 /**
  * Keep a record of to whom (user/device) a given session should have been shared.
  * It will be used to reply to keyshare requests from other users, in order to see if

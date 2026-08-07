@@ -100,11 +100,11 @@ class UiAllScreensSanityTest {
 
         val spaceName = UUID.randomUUID().toString()
         elementRobot.space {
-            createSpace(true) {
+            createSpace {
                 createAndCrawl(spaceName)
             }
             val publicSpaceName = UUID.randomUUID().toString()
-            createSpace(false) {
+            createSpace {
                 createPublicSpace(publicSpaceName)
             }
 

@@ -11,8 +11,8 @@ package im.vector.lib.attachmentviewer
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
-import android.os.Build
 import android.graphics.Rect
+import android.os.Build
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewPropertyAnimator

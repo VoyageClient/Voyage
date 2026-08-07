@@ -1,9 +1,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- mockk-android and blurhash-android are minSdk 21; force them onto this module's minSdk 14
-         so the androidTest manifest merge succeeds (test-only deps, never shipped to API 14). -->
-    <uses-sdk tools:overrideLibrary="io.mockk.android, io.mockk.proxy.android, com.vanniktech.blurhash" />
+    <!-- Instrumentation-only dependencies declare minSdk 18-21; forced onto this module's minSdk 14 so
+         the androidTest manifest merge succeeds. None of this is shipped, and instrumentation tests only
+         ever run on a device new enough for them. -->
+    <uses-sdk tools:overrideLibrary="io.mockk.android, io.mockk.proxy.android, com.vanniktech.blurhash,
+        android_libs.ub_uiautomator, androidx.test.core, androidx.test.monitor, androidx.test.rules,
+        androidx.test.runner, androidx.test.services.storage, androidx.test.espresso.core,
+        androidx.test.espresso.contrib, androidx.test.espresso.intent,
+        androidx.test.espresso.idling.resource" />
 
     <application>
 

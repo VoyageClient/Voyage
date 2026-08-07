@@ -16,8 +16,8 @@
 
 package org.matrix.android.sdk.internal.session.contentscanner
 
-import kotlinx.coroutines.flow.Flow
 import dagger.Lazy
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.session.contentscanner.ContentScannerService

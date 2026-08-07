@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 internal open class KeysBackupDataEntity(
         // Primary key to update this object. There is only one object, so it's a constant, please do not set it
         var primaryKey: Int = 0,

@@ -47,5 +47,4 @@ interface OggOpusEncoder {
      * Releases and destroys the current encoder.
      */
     fun release()
-
 }

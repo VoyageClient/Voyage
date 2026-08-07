@@ -17,6 +17,7 @@ import android.text.style.StrikethroughSpan
 import android.text.style.UnderlineSpan
 import androidx.emoji2.text.EmojiCompat
 import androidx.test.platform.app.InstrumentationRegistry
+import im.vector.app.EmojiSpanify
 import im.vector.app.InstrumentedTest
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeTrue
@@ -43,11 +44,14 @@ class SpanUtilsTest : InstrumentedTest {
         }
     }
 
-    private val spanUtils = SpanUtils {
-        val emojiCompat = EmojiCompat.get()
-        emojiCompat.waitForInit()
-        emojiCompat.process(it) ?: it
-    }
+    // EmojiSpanify is no longer a SAM interface (it has a defaulted applyLive), so spell it out.
+    private val spanUtils = SpanUtils(object : EmojiSpanify {
+        override fun spanify(sequence: CharSequence): CharSequence {
+            val emojiCompat = EmojiCompat.get()
+            emojiCompat.waitForInit()
+            return emojiCompat.process(sequence) ?: sequence
+        }
+    })
 
     private fun SpanUtils.canUseTextFuture(message: CharSequence): Boolean {
         return getBindingOptions(message).canUseTextFuture

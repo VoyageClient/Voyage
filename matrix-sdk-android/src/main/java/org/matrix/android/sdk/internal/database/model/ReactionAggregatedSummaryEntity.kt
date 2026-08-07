@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * Aggregated Summary of a reaction.
  */

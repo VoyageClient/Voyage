@@ -16,10 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.accountdata
 
-import kotlinx.coroutines.flow.Flow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataService

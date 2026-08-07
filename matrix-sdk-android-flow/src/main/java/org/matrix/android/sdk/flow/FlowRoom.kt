@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.flow
 
-import androidx.lifecycle.asFlow
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.session.events.model.Event

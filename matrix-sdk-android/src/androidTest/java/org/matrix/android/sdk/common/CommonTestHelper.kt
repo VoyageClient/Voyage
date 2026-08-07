@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.common
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.test.internal.runner.junit4.statement.UiThreadStatement
 import kotlinx.coroutines.CompletableDeferred
@@ -158,14 +157,13 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
      */
     fun createHomeServerConfig(): HomeServerConnectionConfig {
         return HomeServerConnectionConfig.Builder()
-                .withHomeServerUri(Uri.parse(TestConstants.TESTS_HOME_SERVER_URL))
+                .withHomeServerUri(TestConstants.TESTS_HOME_SERVER_URL)
                 .build()
     }
 
     suspend fun syncSession(session: Session, timeout: Long = TestConstants.timeOutMillis * 10) {
         session.syncService().startSync(true)
-        val syncLiveData = session.syncService().getSyncStateLive()
-        syncLiveData.first(timeout) { session.syncService().hasAlreadySynced() }
+        session.syncService().getSyncStateFlow().first(timeout) { session.syncService().hasAlreadySynced() }
     }
 
     /**
@@ -176,7 +174,7 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
     suspend fun clearCacheAndSync(session: Session, timeout: Long = TestConstants.timeOutMillis) {
         session.clearCache()
         syncSession(session, timeout)
-        session.syncService().getSyncStateLive().first(timeout) { session.syncService().hasAlreadySynced() }
+        session.syncService().getSyncStateFlow().first(timeout) { session.syncService().hasAlreadySynced() }
         Timber.v("Clear cache and synced")
     }
 

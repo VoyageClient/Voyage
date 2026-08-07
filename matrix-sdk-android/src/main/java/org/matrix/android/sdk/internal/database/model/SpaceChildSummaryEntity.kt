@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * Decorates room summary with space related information.
  */

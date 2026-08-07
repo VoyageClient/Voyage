@@ -18,12 +18,12 @@ package org.matrix.android.sdk.internal.session.room.read
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
@@ -34,12 +34,12 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.ReadReceiptsSummaryMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
-import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.database.sql.store.isEventRead
-import org.matrix.android.sdk.internal.session.room.accountdata.UpdateRoomAccountDataTask
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.homeserver.HomeServerCapabilitiesDataSource
+import org.matrix.android.sdk.internal.session.room.accountdata.UpdateRoomAccountDataTask
 
 internal class DefaultReadService @AssistedInject constructor(
         @Assisted private val roomId: String,

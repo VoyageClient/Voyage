@@ -17,13 +17,11 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.api.session.contentscanner.ScanState
-import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.database.sqldelight.FrameworkSqliteDriver
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.util.time.Clock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
 class SqlContentScannerStoreTest {

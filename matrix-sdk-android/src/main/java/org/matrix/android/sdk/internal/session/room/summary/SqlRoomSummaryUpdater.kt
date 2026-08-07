@@ -23,7 +23,6 @@ import org.matrix.android.sdk.api.session.room.model.VersioningState
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContent
 import org.matrix.android.sdk.api.session.room.model.create.RoomCreateContentWithSender
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
-import org.matrix.android.sdk.internal.database.sql.store.isEventRead
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncSummary
 import org.matrix.android.sdk.api.session.sync.model.RoomSyncUnreadNotifications
@@ -35,6 +34,7 @@ import org.matrix.android.sdk.internal.database.model.SpaceChildSummaryEntity
 import org.matrix.android.sdk.internal.database.model.SpaceParentSummaryEntity
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.database.sql.store.isEventRead
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.room.SqlRoomAvatarResolver
 import org.matrix.android.sdk.internal.session.room.accountdata.RoomAccountDataDataSource

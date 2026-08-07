@@ -33,4 +33,3 @@ internal open class PushRulesEntity(
 
     companion object
 }
-

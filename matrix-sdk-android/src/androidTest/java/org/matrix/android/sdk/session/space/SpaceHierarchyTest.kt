@@ -34,16 +34,16 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
+import org.matrix.android.sdk.api.session.room.RoomPagingService
+import org.matrix.android.sdk.api.session.room.getRoomSummariesLive
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesAllowEntry
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.RestrictedRoomPreset
-import org.matrix.android.sdk.api.session.room.powerlevels.Role
-import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
-import org.matrix.android.sdk.api.session.room.getRoomSummariesLive
+import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.common.CommonTestHelper.Companion.runSessionTest
 import org.matrix.android.sdk.common.SessionTestParams
@@ -306,7 +306,7 @@ class SpaceHierarchyTest : InstrumentedTest {
         val spaceB = session.spaceService().getSpace(spaceBInfo.spaceId)
         waitFor(
                 continueWhen = {
-                    session.roomService().onMain { getFlattenRoomSummaryChildrenOfLive(spaceAInfo.spaceId) }.first { children ->
+                    (session.roomService() as RoomPagingService).onMain { getFlattenRoomSummaryChildrenOfLive(spaceAInfo.spaceId) }.first { children ->
                         println("## TEST | Space A flat children update : ${children.map { it.name }}")
                         children.any { it.name == "C1" } && children.any { it.name == "C2" }
                     }
@@ -325,7 +325,7 @@ class SpaceHierarchyTest : InstrumentedTest {
         waitFor(
                 continueWhen = {
                     // The room should have disappear from flat children
-                    session.roomService().onMain { getFlattenRoomSummaryChildrenOfLive(spaceAInfo.spaceId) }.first { children ->
+                    (session.roomService() as RoomPagingService).onMain { getFlattenRoomSummaryChildrenOfLive(spaceAInfo.spaceId) }.first { children ->
                         println("## TEST | Space A flat children update : ${children.map { it.name }}")
                         !children.any { it.roomId == bRoomId }
                     }

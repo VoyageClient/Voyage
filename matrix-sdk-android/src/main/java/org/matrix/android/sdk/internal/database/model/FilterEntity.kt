@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * Contain a map between Json filter string and filterId (from Homeserver).
  * Currently there is only one object in this table.

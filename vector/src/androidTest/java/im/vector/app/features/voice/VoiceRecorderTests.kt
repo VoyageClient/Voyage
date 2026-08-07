@@ -19,7 +19,7 @@ import java.io.File
 class VoiceRecorderTests {
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val voiceRecorder = VoiceRecorderL(context, Dispatchers.IO, createFakeOpusEncoder())
+    private val voiceRecorder = VoiceRecorderL(context, Dispatchers.IO, createFakeOpusEncoder(), FakePermissionChecker())
     private val audioDirectory = File(context.cacheDir, "voice_records")
 
     @After

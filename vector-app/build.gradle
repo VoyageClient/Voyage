@@ -313,6 +313,8 @@ dependencies {
     kapt libs.dagger.hiltCompiler
     ksp libs.airbnb.epoxyProcessor
 
+    // The Espresso idling resources bridge the SDK's Flows to LiveData observers.
+    androidTestImplementation libs.androidx.lifecycleLivedata
     androidTestImplementation libs.androidx.testCore
     androidTestImplementation libs.androidx.testRunner
     androidTestImplementation libs.androidx.testRules

@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.room.uploads
 
-import org.matrix.android.sdk.internal.database.sql.store.globToSqlLike
-import org.matrix.android.sdk.internal.database.sql.store.toEntity
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
@@ -30,8 +28,9 @@ import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.uploads.GetUploadsResult
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.EventEntity
 import org.matrix.android.sdk.internal.database.query.TimelineEventFilter
+import org.matrix.android.sdk.internal.database.sql.store.globToSqlLike
+import org.matrix.android.sdk.internal.database.sql.store.toEntity
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest

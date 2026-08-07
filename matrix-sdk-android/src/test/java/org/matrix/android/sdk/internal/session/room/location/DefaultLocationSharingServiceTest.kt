@@ -216,5 +216,4 @@ internal class DefaultLocationSharingServiceTest {
             endOfLiveTimestampMillis = 123,
             lastLocationDataContent = null
     )
-
 }

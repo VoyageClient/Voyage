@@ -16,12 +16,12 @@
 
 package org.matrix.android.sdk.internal.session.room.threads.local
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.session.room.threads.local.ThreadsLocalService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.threads.ThreadNotificationState

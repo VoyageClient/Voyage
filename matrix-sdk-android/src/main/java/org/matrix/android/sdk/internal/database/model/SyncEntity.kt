@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class SyncEntity(
         var nextBatch: String? = null,
         var id: Long = 0

@@ -28,6 +28,7 @@ import im.vector.app.core.utils.getMatrixInstance
 import im.vector.app.espresso.tools.waitUntilActivityVisible
 import im.vector.app.espresso.tools.waitUntilViewVisible
 import im.vector.app.features.MainActivity
+import im.vector.app.features.crypto.keysbackup.SharedKeyBackupPreference
 import im.vector.app.features.crypto.quads.SharedSecureStorageActivity
 import im.vector.app.features.crypto.recover.BootstrapCrossSigningTask
 import im.vector.app.features.crypto.recover.Params
@@ -83,7 +84,7 @@ class VerifySessionPassphraseTest : VerificationTestBase() {
                     )
         }
 
-        val task = BootstrapCrossSigningTask(existingSession!!, StringProvider(context.resources))
+        val task = BootstrapCrossSigningTask(existingSession!!, StringProvider(context.resources), SharedKeyBackupPreference())
 
         runBlocking {
             task.execute(

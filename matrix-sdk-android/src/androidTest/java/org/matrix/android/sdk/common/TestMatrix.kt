@@ -17,9 +17,6 @@
 package org.matrix.android.sdk.common
 
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import androidx.work.impl.WorkManagerImpl
 import androidx.work.impl.utils.taskexecutor.WorkManagerTaskExecutor
@@ -33,6 +30,7 @@ import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.network.ApiInterceptor
 import org.matrix.android.sdk.internal.network.UserAgentHolder
+import org.matrix.android.sdk.internal.platform.AndroidAppStateDriver
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
 import org.matrix.android.sdk.internal.worker.MatrixWorkerFactory
 import java.util.concurrent.Executors
@@ -52,8 +50,6 @@ internal class TestMatrix(context: Context, matrixConfiguration: MatrixConfigura
     @Inject internal lateinit var apiInterceptor: ApiInterceptor
     @Inject internal lateinit var matrixWorkerFactory: MatrixWorkerFactory
 
-    private val uiHandler = Handler(Looper.getMainLooper())
-
     init {
         val appContext = context.applicationContext
         DaggerTestMatrixComponent.factory().create(appContext, matrixConfiguration).inject(this)
@@ -67,9 +63,7 @@ internal class TestMatrix(context: Context, matrixConfiguration: MatrixConfigura
                 WorkManagerTaskExecutor(configuration.taskExecutor)
         )
         WorkManagerImpl.setDelegate(delegate)
-        uiHandler.post {
-            ProcessLifecycleOwner.get().lifecycle.addObserver(backgroundDetectionObserver)
-        }
+        AndroidAppStateDriver(backgroundDetectionObserver).start()
     }
 
     fun getUserAgent() = userAgentHolder.userAgent

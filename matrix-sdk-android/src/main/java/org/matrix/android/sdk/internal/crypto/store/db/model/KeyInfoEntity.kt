@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 internal open class KeyInfoEntity(
         var publicKeyBase64: String? = null,
 //        var isTrusted: Boolean = false,
@@ -28,4 +27,3 @@ internal open class KeyInfoEntity(
         var signatures: String? = null,
         var trustLevelEntity: TrustLevelEntity? = null
 )
-

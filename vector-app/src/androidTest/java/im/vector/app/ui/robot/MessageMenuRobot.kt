@@ -53,10 +53,10 @@ class MessageMenuRobot(
         // Wait for emoji to load, it's async now
         waitUntilActivityVisible<EmojiReactionPickerActivity> {
             closeSoftKeyboard()
-            waitUntilViewVisible(withId(R.id.emojiRecyclerView))
+            waitUntilViewVisible(withId(R.id.emojiPickerRecycler))
             waitUntilViewVisible(withText("😀"))
         }
-        clickListItem(R.id.emojiRecyclerView, 4)
+        clickListItem(R.id.emojiPickerRecycler, 4)
         autoClosed = true
     }
 

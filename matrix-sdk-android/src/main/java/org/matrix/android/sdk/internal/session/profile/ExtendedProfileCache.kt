@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
+import org.matrix.android.sdk.api.session.profile.Pronoun
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.session.SessionScope

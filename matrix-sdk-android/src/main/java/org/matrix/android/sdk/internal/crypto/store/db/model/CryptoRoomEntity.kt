@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 internal open class CryptoRoomEntity(
         var roomId: String? = null,
         var algorithm: String? = null,

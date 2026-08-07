@@ -463,5 +463,4 @@ internal class SqlCryptoStore @Inject constructor(
             sharedHistory = shared_history == 1L,
             backedUp = backed_up == 1L,
     ).toModel()
-
 }

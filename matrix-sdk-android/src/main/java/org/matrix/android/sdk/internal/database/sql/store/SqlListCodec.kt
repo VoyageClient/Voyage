@@ -7,7 +7,6 @@
 
 package org.matrix.android.sdk.internal.database.sql.store
 
-
 /**
  * Codec for `MutableList<String>` columns stored as a single newline-joined TEXT value. An empty list
  * is the empty string; a list whose elements could themselves contain newlines is not supported (none

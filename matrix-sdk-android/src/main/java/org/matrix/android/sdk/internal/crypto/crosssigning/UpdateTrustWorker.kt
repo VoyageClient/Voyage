@@ -30,10 +30,10 @@ import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.SessionComponent
-import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.session.room.membership.SqlRoomMemberHelper
 import org.matrix.android.sdk.internal.util.logLimit
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker

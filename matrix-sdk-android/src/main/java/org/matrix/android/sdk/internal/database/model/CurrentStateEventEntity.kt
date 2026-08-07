@@ -17,7 +17,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class CurrentStateEventEntity(
         var eventId: String = "",
         var root: EventEntity? = null,

@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class BreadcrumbsEntity(
         var recentRoomIds: MutableList<String> = ArrayList()
 ) {

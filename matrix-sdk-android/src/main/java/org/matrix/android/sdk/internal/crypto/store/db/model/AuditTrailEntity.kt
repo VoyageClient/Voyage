@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 internal open class AuditTrailEntity(
         var ageLocalTs: Long? = null,
         var type: String? = null,

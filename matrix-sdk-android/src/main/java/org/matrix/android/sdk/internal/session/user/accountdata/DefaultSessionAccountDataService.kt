@@ -16,13 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.user.accountdata
 
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.accountdata.SessionAccountDataService
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataEvent
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.util.Optional
+import org.matrix.android.sdk.api.util.awaitCallback
 import org.matrix.android.sdk.internal.database.mapper.ContentMapper
 import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -31,7 +32,6 @@ import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.accountdata.RoomAccountDataDataSource
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.task.configureWith
-import org.matrix.android.sdk.api.util.awaitCallback
 import javax.inject.Inject
 
 internal class DefaultSessionAccountDataService @Inject constructor(
