@@ -221,6 +221,17 @@ class MessageActionsEpoxyController @Inject constructor(
             }
         }
 
+        // MSC4268 requires us to name whoever shared the key, since only they vouch for who really sent the message.
+        state.sharedByDisplayName?.let { sharedBy ->
+            bottomSheetSendStateItem {
+                id("shared_by")
+                redactedTint(showsRestoredContent)
+                showProgress(false)
+                text(host.stringProvider.getString(CommonStrings.notice_keys_shared_by, sharedBy))
+                drawableStart(R.drawable.ic_shield_gray)
+            }
+        }
+
         // Quick reactions (hidden entirely — separator included — when the user has removed them all)
         if (state.canReact() && state.quickStates is Success && state.quickStates().orEmpty().isNotEmpty()) {
             // Separator

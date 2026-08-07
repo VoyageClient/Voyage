@@ -67,7 +67,11 @@ data class MXInboundMegolmSessionWrapper(
          *    (ie, they lack an ed25519 signature)
          */
         @Throws
-        internal fun newFromMegolmData(megolmSessionData: MegolmSessionData, exportFormat: Boolean): MXInboundMegolmSessionWrapper {
+        internal fun newFromMegolmData(
+                megolmSessionData: MegolmSessionData,
+                exportFormat: Boolean,
+                sharedByUserId: String? = null,
+        ): MXInboundMegolmSessionWrapper {
             val exportedKey = megolmSessionData.sessionKey ?: throw IllegalArgumentException("key data not found")
             val inboundSession = if (exportFormat) {
                 OlmInboundGroupSession.importSession(exportedKey)
@@ -86,7 +90,8 @@ data class MXInboundMegolmSessionWrapper(
                     keysClaimed = megolmSessionData.senderClaimedKeys,
                     forwardingCurve25519KeyChain = megolmSessionData.forwardingCurve25519KeyChain,
                     sharedHistory = megolmSessionData.sharedHistory,
-                    trusted = false
+                    trusted = false,
+                    sharedByUserId = sharedByUserId
             )
 
             return MXInboundMegolmSessionWrapper(

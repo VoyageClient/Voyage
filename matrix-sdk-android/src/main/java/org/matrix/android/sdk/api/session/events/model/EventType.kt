@@ -103,6 +103,9 @@ object EventType {
     const val FORWARDED_ROOM_KEY = "m.forwarded_room_key"
     val ROOM_KEY_WITHHELD = StableUnstableId(stable = "m.room_key.withheld", unstable = "org.matrix.room_key.withheld")
 
+    // MSC4268
+    val ROOM_KEY_BUNDLE = StableUnstableId(stable = "m.room_key_bundle", unstable = "io.element.msc4268.room_key_bundle")
+
     const val REQUEST_SECRET = "m.secret.request"
     const val SEND_SECRET = "m.secret.send"
 
@@ -178,6 +181,7 @@ object EventType {
             addAll(CALL_ASSERTED_IDENTITY.values)
             addAll(ELEMENT_CALL_NOTIFY.values)
             addAll(ROOM_KEY_WITHHELD.values)
+            addAll(ROOM_KEY_BUNDLE.values)
             addAll(POLL_START.values)
             addAll(POLL_RESPONSE.values)
             addAll(POLL_END.values)

@@ -60,17 +60,11 @@ internal class CryptoMetadataStore(private val database: CryptoSqlDatabase) {
 
     fun setGlobalBlacklistUnverifiedDevices(block: Boolean) = queries.updateGlobalBlacklist(block.toLong())
 
-    fun isShareKeysOnInviteEnabled(): Boolean =
-            queries.selectFirst().executeAsOneOrNull()?.enable_key_forwarding_on_invite == 1L
-
-    fun enableShareKeyOnInvite(enable: Boolean) = queries.updateShareKeyOnInvite(enable.toLong())
-
     fun getGlobalCryptoConfig(): GlobalCryptoConfig {
-        val row = queries.selectFirst().executeAsOneOrNull() ?: return GlobalCryptoConfig(false, false, false)
+        val row = queries.selectFirst().executeAsOneOrNull() ?: return GlobalCryptoConfig(false, false)
         return GlobalCryptoConfig(
                 globalBlockUnverifiedDevices = row.global_blacklist_unverified_devices == 1L,
                 globalEnableKeyGossiping = row.global_enable_key_gossiping == 1L,
-                enableKeyForwardingOnInvite = row.enable_key_forwarding_on_invite == 1L,
         )
     }
 

@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.extensions.orFalse
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.crosssigning.CrossSigningService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustLevel
 import org.matrix.android.sdk.api.session.crypto.crosssigning.DeviceTrustResult
@@ -739,6 +740,20 @@ internal class DefaultCrossSigningService @Inject constructor(
         }
 
         return DeviceTrustResult.Success(DeviceTrustLevel(crossSigningVerified = true, locallyVerified = locallyTrusted))
+    }
+
+    override suspend fun isDeviceSignedByItsOwner(device: CryptoDeviceInfo): Boolean = withContext(coroutineDispatchers.crypto) {
+        val otherKeys = cryptoStore.getCrossSigningInfo(device.userId)
+        val sskPublicKey = otherKeys?.selfSigningKey()?.unpaddedBase64PublicKey
+        val signature = device.signatures?.get(device.userId)?.get("ed25519:$sskPublicKey")
+        if (sskPublicKey == null || signature == null) {
+            false
+        } else {
+            tryOrNull("Device ${device.shortDebugString()} is not signed by its owner") {
+                crossSigningOlm.olmUtility.verifyEd25519Signature(signature, sskPublicKey, device.canonicalSignable())
+                true
+            } == true
+        }
     }
 
     override fun checkDeviceTrust(myKeys: MXCrossSigningInfo?, otherKeys: MXCrossSigningInfo?, otherDevice: CryptoDeviceInfo): DeviceTrustResult {

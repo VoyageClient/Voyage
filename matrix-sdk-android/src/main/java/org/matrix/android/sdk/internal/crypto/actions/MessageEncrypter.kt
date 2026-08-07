@@ -20,7 +20,9 @@ import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_OLM
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
 import org.matrix.android.sdk.api.session.events.model.Content
+import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.internal.crypto.MXOlmDevice
+import org.matrix.android.sdk.internal.crypto.model.rest.DeviceKeys
 import org.matrix.android.sdk.internal.crypto.model.rest.EncryptedMessage
 import org.matrix.android.sdk.internal.di.DeviceId
 import org.matrix.android.sdk.internal.di.UserId
@@ -44,9 +46,11 @@ internal class MessageEncrypter @Inject constructor(
      *
      * @param payloadFields fields to include in the encrypted payload.
      * @param deviceInfos list of device infos to encrypt for.
+     * @param senderDeviceKeys our own signed device keys, to include as MSC4147 `sender_device_keys`. Required by
+     * MSC4268 room key bundles.
      * @return the content for an m.room.encrypted event.
      */
-    suspend fun encryptMessage(payloadFields: Content, deviceInfos: List<CryptoDeviceInfo>): EncryptedMessage {
+    suspend fun encryptMessage(payloadFields: Content, deviceInfos: List<CryptoDeviceInfo>, senderDeviceKeys: DeviceKeys? = null): EncryptedMessage {
         val deviceInfoParticipantKey = deviceInfos.associateBy { it.identityKey()!! }
 
         val payloadJson = payloadFields.toMutableMap()
@@ -63,6 +67,10 @@ internal class MessageEncrypter @Inject constructor(
         // the curve25519 key and the ed25519 key are owned by
         // the same device.
         payloadJson["keys"] = mapOf("ed25519" to olmDevice.deviceEd25519Key!!)
+
+        if (senderDeviceKeys != null) {
+            payloadJson["sender_device_keys"] = senderDeviceKeys.toContent()
+        }
 
         val ciphertext = mutableMapOf<String, Any>()
 

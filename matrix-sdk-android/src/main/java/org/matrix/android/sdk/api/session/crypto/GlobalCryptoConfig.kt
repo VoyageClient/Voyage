@@ -19,5 +19,4 @@ package org.matrix.android.sdk.api.session.crypto
 data class GlobalCryptoConfig(
         val globalBlockUnverifiedDevices: Boolean,
         val globalEnableKeyGossiping: Boolean,
-        val enableKeyForwardingOnInvite: Boolean,
 )

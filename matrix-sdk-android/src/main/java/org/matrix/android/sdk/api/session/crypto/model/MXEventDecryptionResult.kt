@@ -55,4 +55,9 @@ data class MXEventDecryptionResult(
         val forwardingCurve25519KeyChain: List<String> = emptyList(),
 
         val messageVerificationState: MessageVerificationState? = null,
+
+        /**
+         * The user who shared the session for this event in an MSC4268 key bundle, if any.
+         */
+        val sharedByUserId: String? = null,
 )

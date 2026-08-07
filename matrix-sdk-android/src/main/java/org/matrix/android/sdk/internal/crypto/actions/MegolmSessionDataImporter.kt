@@ -47,13 +47,15 @@ internal class MegolmSessionDataImporter @Inject constructor(
      * @param megolmSessionsData megolm sessions.
      * @param fromBackup true if the imported keys are already backed up on the server.
      * @param progressListener the progress listener
+     * @param sharedByUserId the user who shared these keys in an MSC4268 bundle, if that is where they came from
      * @return import room keys result
      */
     @WorkerThread
     fun handle(
             megolmSessionsData: List<MegolmSessionData>,
             fromBackup: Boolean,
-            progressListener: ProgressListener?
+            progressListener: ProgressListener?,
+            sharedByUserId: String? = null,
     ): ImportRoomKeysResult {
         val t0 = clock.epochMillis()
         val importedSession = mutableMapOf<String, MutableMap<String, MutableList<String>>>()
@@ -63,7 +65,7 @@ internal class MegolmSessionDataImporter @Inject constructor(
         var totalNumbersOfImportedKeys = 0
 
         progressListener?.onProgress(0, totalNumbersOfKeys)
-        val olmInboundGroupSessionWrappers = olmDevice.importInboundGroupSessions(megolmSessionsData)
+        val olmInboundGroupSessionWrappers = olmDevice.importInboundGroupSessions(megolmSessionsData, sharedByUserId)
         val tUnpickle = clock.epochMillis()
         Timber.tag(loggerTag.value).v("## importMegolmSessionsData : unpickle ${tUnpickle - t0} ms ($totalNumbersOfKeys sessions)")
 

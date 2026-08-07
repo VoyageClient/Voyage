@@ -68,6 +68,7 @@ import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyContent
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyWithHeldContent
+import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
@@ -89,7 +90,6 @@ import org.matrix.android.sdk.internal.crypto.algorithms.olm.MXOlmEncryptionFact
 import org.matrix.android.sdk.internal.crypto.crosssigning.DefaultCrossSigningService
 import org.matrix.android.sdk.internal.crypto.keysbackup.DefaultKeysBackupService
 import org.matrix.android.sdk.internal.crypto.model.MXKey.Companion.KEY_SIGNED_CURVE_25519_TYPE
-import org.matrix.android.sdk.internal.crypto.model.SessionInfo
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysUploadBody
 import org.matrix.android.sdk.internal.crypto.model.toRest
 import org.matrix.android.sdk.internal.crypto.repository.WarnOnUnknownDeviceRepository
@@ -170,6 +170,9 @@ internal class DefaultCryptoService @Inject constructor(
         private val secretShareManager: SecretShareManager,
         //
         private val outgoingKeyRequestManager: OutgoingKeyRequestManager,
+        // MSC4268 encrypted history sharing
+        private val roomKeyBundleSender: RoomKeyBundleSender,
+        private val roomKeyBundleReceiver: RoomKeyBundleReceiver,
         // Actions
         private val setDeviceVerificationAction: SetDeviceVerificationAction,
         private val megolmSessionDataImporter: MegolmSessionDataImporter,
@@ -206,10 +209,10 @@ internal class DefaultCryptoService @Inject constructor(
 
     override fun supportsForwardedKeyWiththeld() = true
 
-    override suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?) {
+    override suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?, isGappySync: Boolean) {
         when (event.type) {
             EventType.STATE_ROOM_ENCRYPTION -> onRoomEncryptionEvent(roomId, event)
-            EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event)
+            EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event, isGappySync)
             EventType.STATE_ROOM_HISTORY_VISIBILITY -> onRoomHistoryVisibilityEvent(roomId, event, cryptoStoreAggregator)
         }
     }
@@ -387,6 +390,11 @@ internal class DefaultCryptoService @Inject constructor(
 
         isStarting.set(false)
         isStarted.set(true)
+
+        // A bundle download may have been interrupted by the app being killed; MSC4268 requires us to resume it.
+        cryptoCoroutineScope.launch(coroutineDispatchers.io) {
+            tryOrNull("Failed to resume pending room key bundles") { roomKeyBundleReceiver.retryPendingBundles() }
+        }
     }
 
     /**
@@ -843,6 +851,9 @@ internal class DefaultCryptoService @Inject constructor(
                 in EventType.ROOM_KEY_WITHHELD.values -> {
                     onKeyWithHeldReceived(event)
                 }
+                in EventType.ROOM_KEY_BUNDLE.values -> {
+                    roomKeyBundleReceiver.onBundleReceived(event)
+                }
                 else -> {
                     // ignore
                 }
@@ -879,6 +890,11 @@ internal class DefaultCryptoService @Inject constructor(
         }
         val senderId = event.senderId ?: return Unit.also {
             Timber.tag(loggerTag.value).i("Malformed onKeyWithHeldReceived() : missing fields")
+        }
+        if (withHeldContent.code == WithHeldCode.HISTORY_NOT_SHARED) {
+            // MSC4268: only meaningful inside a key bundle, where the sender is vouched for.
+            Timber.tag(loggerTag.value).w("Ignoring a history_not_shared withheld message from $senderId")
+            return
         }
         val withHeldSessionId = withHeldContent.sessionId ?: return
         val withHeldAlgorithm = withHeldContent.algorithm ?: return
@@ -970,7 +986,7 @@ internal class DefaultCryptoService @Inject constructor(
      * @param roomId the room Id
      * @param event the membership event causing the change
      */
-    private suspend fun onRoomMembershipEvent(roomId: String, event: Event) {
+    private suspend fun onRoomMembershipEvent(roomId: String, event: Event, isGappySync: Boolean = false) {
         // because the encryption event can be after the join/invite in the same batch
         event.stateKey?.let { _ ->
             val roomMember: RoomMemberContent? = event.content.toModel()
@@ -984,6 +1000,13 @@ internal class DefaultCryptoService @Inject constructor(
             event.stateKey?.let { userId ->
                 val roomMember: RoomMemberContent? = event.content.toModel()
                 val membership = roomMember?.membership
+                // MSC4268: a departed user may hold the current session via a key bundle even if we never sent them
+                // a key directly, so "was it ever shared with them" is no longer a safe rotation test. Across a gap
+                // any non-join membership may be hiding a join+leave we never saw.
+                val userMayHaveLeft = if (isGappySync) membership != Membership.JOIN else membership in DEPARTED_MEMBERSHIPS
+                if (userMayHaveLeft) {
+                    discardOutboundSession(roomId)
+                }
                 if (membership == Membership.JOIN) {
                     // make sure we are tracking the deviceList for this user.
                     deviceListManager.startTrackingDeviceList(listOf(userId))
@@ -1206,12 +1229,6 @@ internal class DefaultCryptoService @Inject constructor(
 
     override fun isKeyGossipingEnabled() = cryptoStore.isKeyGossipingEnabled()
 
-    override fun isShareKeysOnInviteEnabled() = cryptoStore.isShareKeysOnInviteEnabled()
-
-    override fun supportsShareKeysOnInvite() = true
-
-    override fun enableShareKeyOnInvite(enable: Boolean) = cryptoStore.enableShareKeyOnInvite(enable)
-
     /**
      * Tells whether the client should ever send encrypted messages to unverified devices.
      * The default value is false.
@@ -1422,28 +1439,12 @@ internal class DefaultCryptoService @Inject constructor(
         }
     }
 
-    override suspend fun sendSharedHistoryKeys(roomId: String, userId: String, sessionInfoSet: Set<SessionInfo>?) {
-        deviceListManager.downloadKeys(listOf(userId), false)
-        val userDevices = cryptoStore.getUserDeviceList(userId)
-        val sessionToShare = sessionInfoSet.orEmpty().mapNotNull { sessionInfo ->
-            // Get inbound session from sessionId and sessionKey
-            withContext(coroutineDispatchers.crypto) {
-                olmDevice.getInboundGroupSession(
-                        sessionId = sessionInfo.sessionId,
-                        senderKey = sessionInfo.senderKey,
-                        roomId = roomId
-                ).takeIf { it.wrapper.sessionData.sharedHistory }
-            }
-        }
+    override suspend fun shareRoomHistoryOnInvite(roomId: String, userId: String) {
+        roomKeyBundleSender.shareRoomHistory(roomId, userId)
+    }
 
-        userDevices?.forEach { deviceInfo ->
-            // Lets share the provided inbound sessions for every user device
-            sessionToShare.forEach { inboundGroupSession ->
-                val encryptor = roomEncryptorsStore.get(roomId)
-                encryptor?.shareHistoryKeysWithDevice(inboundGroupSession, deviceInfo)
-                Timber.i("## CRYPTO | Sharing inbound session")
-            }
-        }
+    override suspend fun onInviteAccepted(roomId: String, inviter: String) {
+        roomKeyBundleReceiver.onInviteAccepted(roomId, inviter)
     }
 
     override fun onE2ERoomMemberLoadedFromServer(roomId: String) {
@@ -1466,5 +1467,7 @@ internal class DefaultCryptoService @Inject constructor(
 
     companion object {
         const val CRYPTO_MIN_FORCE_SESSION_PERIOD_MILLIS = 3_600_000 // one hour
+
+        private val DEPARTED_MEMBERSHIPS = setOf(Membership.LEAVE, Membership.BAN)
     }
 }

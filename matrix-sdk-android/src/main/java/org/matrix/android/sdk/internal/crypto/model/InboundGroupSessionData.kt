@@ -51,4 +51,11 @@ data class InboundGroupSessionData(
         @Json(name = "trusted")
         val trusted: Boolean? = null,
 
+        /**
+         * The user who shared this session with us in an MSC4268 key bundle, if any. We only have their word for
+         * who really sent the messages it decrypts, so it has to be shown to the user.
+         */
+        @Json(name = "shared_by_user_id")
+        val sharedByUserId: String? = null,
+
         )

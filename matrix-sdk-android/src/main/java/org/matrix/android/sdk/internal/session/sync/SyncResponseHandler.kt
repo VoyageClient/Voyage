@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.sync
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.extensions.measureSpan
 import org.matrix.android.sdk.api.extensions.measureSpannableMetric
+import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.metrics.SpannableMetricPlugin
 import org.matrix.android.sdk.api.metrics.SyncDurationMetricPlugin
 import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
@@ -103,11 +104,12 @@ internal class SyncResponseHandler @Inject constructor(
                 syncResponse.rooms?.join?.entries?.map { (roomId, roomSync) ->
                     // MSC4222 replaces `state` with `state_after`; crypto still needs to see
                     // m.room.encryption either way or the room isn't recognised as encrypted.
+                    val isGappySync = roomSync.timeline?.limited.orFalse()
                     (roomSync.stateAfter ?: roomSync.state)
                             ?.events
                             ?.filter { it.isStateEvent() }
                             ?.forEach {
-                                cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator)
+                                cryptoService.onStateEvent(roomId, it, aggregator.cryptoStoreAggregator, isGappySync)
                             }
 
                     roomSync.timeline?.events?.forEach {
@@ -151,7 +153,8 @@ internal class SyncResponseHandler @Inject constructor(
                     senderKey = result.senderCurve25519Key,
                     keysClaimed = result.claimedEd25519Key?.let { k -> mapOf("ed25519" to k) },
                     forwardingCurve25519KeyChain = result.forwardingCurve25519KeyChain,
-                    verificationState = result.messageVerificationState
+                    verificationState = result.messageVerificationState,
+                    sharedByUserId = result.sharedByUserId,
             )
         } catch (e: MXCryptoError) {
             Timber.v(e, "Failed to decrypt $roomId")

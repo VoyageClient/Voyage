@@ -18,6 +18,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Local message search, including encrypted rooms** — a local event index with its own database, plus advanced filters: `from:`, `mentions:`, `has:(image|video|audio|file|sticker)`, `before:`/`after:` dates, and quoted exact-substring matching.
 
+- **Share encrypted history on invite (MSC4268)** — when you invite someone to an encrypted room whose history is visible to members, they can now read the messages sent before they joined. The keys go over as a single encrypted bundle rather than one message per session, so it works on rooms with a long history, and they are only sent to devices the invitee has cross-signed. Messages decrypted this way say who shared the keys, since only that person vouches for who really sent them.
+
 - **PGP encryption** — opt-in PGP encrypt/decrypt over otherwise-unencrypted rooms via OpenKeychain, with an `/encrypt` command.
 
 - **Multi-account switcher** — switch between multiple logged-in accounts.

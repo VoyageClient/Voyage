@@ -40,7 +40,6 @@ import org.matrix.android.sdk.api.session.sync.model.DeviceOneTimeKeysCountSyncR
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.session.sync.model.ToDeviceSyncResponse
 import org.matrix.android.sdk.api.util.Optional
-import org.matrix.android.sdk.internal.crypto.model.SessionInfo
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
 
 interface CryptoService {
@@ -89,27 +88,8 @@ interface CryptoService {
 
     fun isKeyGossipingEnabled(): Boolean
 
-    /*
-     * Tells if the current crypto implementation supports MSC3061
-     */
-    fun supportsShareKeysOnInvite(): Boolean
-
     fun supportsKeyWithheld(): Boolean
     fun supportsForwardedKeyWiththeld(): Boolean
-
-    /**
-     * As per MSC3061.
-     * If true will make it possible to share part of e2ee room history
-     * on invite depending on the room visibility setting.
-     */
-    fun enableShareKeyOnInvite(enable: Boolean)
-
-    /**
-     * As per MSC3061.
-     * If true will make it possible to share part of e2ee room history
-     * on invite depending on the room visibility setting.
-     */
-    fun isShareKeysOnInviteEnabled(): Boolean
 
     fun setRoomUnBlockUnverifiedDevices(roomId: String)
 
@@ -211,9 +191,15 @@ interface CryptoService {
     suspend fun prepareToEncrypt(roomId: String)
 
     /**
-     * Share all inbound sessions of the last chunk messages to the provided userId devices.
+     * Share the room's shareable megolm sessions with a user we are about to invite, as an MSC4268 key bundle.
      */
-    suspend fun sendSharedHistoryKeys(roomId: String, userId: String, sessionInfoSet: Set<SessionInfo>?)
+    suspend fun shareRoomHistoryOnInvite(roomId: String, userId: String)
+
+    /**
+     * Report that we accepted an invite to [roomId] from [inviter], which unlocks importing an MSC4268 key bundle
+     * from that user.
+     */
+    suspend fun onInviteAccepted(roomId: String, inviter: String)
 
     /**
      * When LL all room members might not be loaded when setting up encryption.
@@ -237,7 +223,7 @@ interface CryptoService {
             deviceUnusedFallbackKeyTypes: List<String>?)
 
     suspend fun onLiveEvent(roomId: String, event: Event, isInitialSync: Boolean, cryptoStoreAggregator: CryptoStoreAggregator?)
-    suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?) {}
+    suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?, isGappySync: Boolean = false) {}
     suspend fun onSyncCompleted(syncResponse: SyncResponse, cryptoStoreAggregator: CryptoStoreAggregator)
     fun logDbUsageInfo()
 }

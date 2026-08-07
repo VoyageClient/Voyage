@@ -65,7 +65,7 @@ internal class CryptoSyncHandler @Inject constructor(
             EventType.ROOM_KEY,
             EventType.FORWARDED_ROOM_KEY,
             EventType.SEND_SECRET
-    )
+    ) + EventType.ROOM_KEY_BUNDLE.values
 
     private fun isSupportedToDevice(event: Event): Boolean {
         val algorithm = event.content?.get("algorithm") as? String

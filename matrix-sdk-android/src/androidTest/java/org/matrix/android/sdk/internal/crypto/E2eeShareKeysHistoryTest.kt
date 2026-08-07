@@ -22,7 +22,6 @@ import org.amshove.kluent.fail
 import org.amshove.kluent.internal.assertEquals
 import org.amshove.kluent.internal.assertNotEquals
 import org.junit.Assert
-import org.junit.Assume
 import org.junit.FixMethodOrder
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -81,17 +80,12 @@ class E2eeShareKeysHistoryTest : InstrumentedTest {
                 val cryptoTestData = cryptoTestHelper.doE2ETestWithAliceAndBobInARoom(true, roomHistoryVisibility)
                 val e2eRoomID = cryptoTestData.roomId
 
-                Assume.assumeTrue(cryptoTestData.firstSession.cryptoService().supportsShareKeysOnInvite())
                 // Alice
-                val aliceSession = cryptoTestData.firstSession.also {
-                    it.cryptoService().enableShareKeyOnInvite(true)
-                }
+                val aliceSession = cryptoTestData.firstSession
                 val aliceRoomPOV = aliceSession.roomService().getRoom(e2eRoomID)!!
 
                 // Bob
-                val bobSession = cryptoTestData.secondSession!!.also {
-                    it.cryptoService().enableShareKeyOnInvite(true)
-                }
+                val bobSession = cryptoTestData.secondSession!!
                 val bobRoomPOV = bobSession.roomService().getRoom(e2eRoomID)!!
 
                 assertEquals(bobRoomPOV.roomSummary()?.joinedMembersCount, 2)
@@ -122,9 +116,7 @@ class E2eeShareKeysHistoryTest : InstrumentedTest {
                 }
 
                 // Create a new user
-                val arisSession = testHelper.createAccount("aris", SessionTestParams(true)).also {
-                    it.cryptoService().enableShareKeyOnInvite(true)
-                }
+                val arisSession = testHelper.createAccount("aris", SessionTestParams(true))
                 Log.v("#E2E TEST", "Aris user created")
 
                 // Alice invites new user to the room
@@ -251,12 +243,8 @@ class E2eeShareKeysHistoryTest : InstrumentedTest {
         val cryptoTestData = cryptoTestHelper.doE2ETestWithAliceAndBobInARoom(true, initRoomHistoryVisibility)
         val e2eRoomID = cryptoTestData.roomId
 
-        Assume.assumeTrue(cryptoTestData.firstSession.cryptoService().supportsShareKeysOnInvite())
-
         // Alice
-        val aliceSession = cryptoTestData.firstSession.also {
-            it.cryptoService().enableShareKeyOnInvite(true)
-        }
+        val aliceSession = cryptoTestData.firstSession
         val aliceRoomPOV = aliceSession.roomService().getRoom(e2eRoomID)!!
 //        val aliceCryptoStore = (aliceSession.cryptoService() as DefaultCryptoService).cryptoStoreForTesting
 

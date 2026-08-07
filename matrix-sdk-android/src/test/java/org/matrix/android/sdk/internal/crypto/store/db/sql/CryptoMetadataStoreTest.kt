@@ -65,20 +65,16 @@ class CryptoMetadataStoreTest {
         // Defaults from the schema
         store.isKeyGossipingEnabled() shouldBe true
         store.getGlobalBlacklistUnverifiedDevices() shouldBe false
-        store.isShareKeysOnInviteEnabled() shouldBe false
 
         store.enableKeyGossiping(false)
         store.setGlobalBlacklistUnverifiedDevices(true)
-        store.enableShareKeyOnInvite(true)
 
         store.isKeyGossipingEnabled() shouldBe false
         store.getGlobalBlacklistUnverifiedDevices() shouldBe true
-        store.isShareKeysOnInviteEnabled() shouldBe true
 
         val config = store.getGlobalCryptoConfig()
         config.globalBlockUnverifiedDevices shouldBe true
         config.globalEnableKeyGossiping shouldBe false
-        config.enableKeyForwardingOnInvite shouldBe true
     }
 
     @Test

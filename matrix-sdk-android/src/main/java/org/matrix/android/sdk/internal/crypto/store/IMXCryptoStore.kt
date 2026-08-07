@@ -82,20 +82,6 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
     fun isKeyGossipingEnabled(): Boolean
 
     /**
-     * As per MSC3061.
-     * If true will make it possible to share part of e2ee room history
-     * on invite depending on the room visibility setting.
-     */
-    fun enableShareKeyOnInvite(enable: Boolean)
-
-    /**
-     * As per MSC3061.
-     * If true will make it possible to share part of e2ee room history
-     * on invite depending on the room visibility setting.
-     */
-    fun isShareKeysOnInviteEnabled(): Boolean
-
-    /**
      * Provides the rooms ids list in which the messages are not encrypted for the unverified devices.
      *
      * @return the room Ids list
@@ -469,6 +455,28 @@ internal interface IMXCryptoStore : IMXCommonCryptoStore {
 
     fun addWithHeldMegolmSession(withHeldContent: RoomKeyWithHeldContent)
     fun getWithHeldMegolmSession(roomId: String, sessionId: String): RoomKeyWithHeldContent?
+
+    fun getWithHeldMegolmSessions(roomId: String): List<RoomKeyWithHeldContent>
+
+    // ==================== MSC4268 room key bundles ====================
+
+    fun storeReceivedRoomKeyBundle(roomId: String, senderUserId: String, senderKey: String?, bundleJson: String)
+
+    fun getReceivedRoomKeyBundle(roomId: String, senderUserId: String): ReceivedBundle?
+
+    fun deleteReceivedRoomKeyBundle(roomId: String, senderUserId: String)
+
+    fun storeInviteAccepted(roomId: String, inviter: String, acceptedAt: Long)
+
+    fun getInviteAccepted(roomId: String): InviteAccepted?
+
+    fun getAllInvitesAccepted(): List<InviteAccepted>
+
+    fun deleteInviteAccepted(roomId: String)
+
+    data class ReceivedBundle(val senderUserId: String, val senderKey: String?, val bundleJson: String)
+
+    data class InviteAccepted(val roomId: String, val inviter: String, val acceptedAt: Long)
 
     fun markedSessionAsShared(
             roomId: String?,

@@ -1,0 +1,46 @@
+-- MSC4268 encrypted history sharing.
+-- Both tables are also created idempotently in CryptoModule, so adding them does not wipe existing key stores.
+
+CREATE TABLE IF NOT EXISTS received_room_key_bundle (
+    room_id TEXT NOT NULL,
+    sender_user_id TEXT NOT NULL,
+    sender_key TEXT,
+    bundle_json TEXT NOT NULL,
+    PRIMARY KEY (room_id, sender_user_id)
+);
+
+-- Rooms whose invite this very client accepted, and when. A bundle is only trusted inside this window.
+CREATE TABLE IF NOT EXISTS room_pending_key_bundle (
+    room_id TEXT NOT NULL PRIMARY KEY,
+    inviter TEXT NOT NULL,
+    accepted_at INTEGER NOT NULL
+);
+
+receivedBundleUpsert:
+INSERT OR REPLACE INTO received_room_key_bundle(room_id, sender_user_id, sender_key, bundle_json)
+VALUES (?, ?, ?, ?);
+
+receivedBundleSelect:
+SELECT * FROM received_room_key_bundle WHERE room_id = ? AND sender_user_id = ?;
+
+receivedBundleDelete:
+DELETE FROM received_room_key_bundle WHERE room_id = ? AND sender_user_id = ?;
+
+pendingBundleUpsert:
+INSERT OR REPLACE INTO room_pending_key_bundle(room_id, inviter, accepted_at)
+VALUES (?, ?, ?);
+
+pendingBundleSelect:
+SELECT * FROM room_pending_key_bundle WHERE room_id = ?;
+
+pendingBundleSelectAll:
+SELECT * FROM room_pending_key_bundle;
+
+pendingBundleDelete:
+DELETE FROM room_pending_key_bundle WHERE room_id = ?;
+
+deleteAllReceivedBundles:
+DELETE FROM received_room_key_bundle;
+
+deleteAllPendingBundles:
+DELETE FROM room_pending_key_bundle;

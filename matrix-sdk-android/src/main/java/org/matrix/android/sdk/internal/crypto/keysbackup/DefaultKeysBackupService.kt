@@ -1231,21 +1231,13 @@ internal class DefaultKeysBackupService @Inject constructor(
                 },
                 forwardedCount = olmInboundGroupSessionWrapper.sessionData.forwardingCurve25519KeyChain.orEmpty().size,
                 isVerified = device?.isVerified == true,
-                sharedHistory = olmInboundGroupSessionWrapper.getSharedKey(),
+                sharedHistory = olmInboundGroupSessionWrapper.sessionData.sharedHistory,
                 sessionData = mapOf(
                         "ciphertext" to encryptedSessionBackupData.mCipherText,
                         "mac" to encryptedSessionBackupData.mMac,
                         "ephemeral" to encryptedSessionBackupData.mEphemeralKey
                 )
         )
-    }
-
-    /**
-     * Returns boolean shared key flag, if enabled with respect to matrix configuration.
-     */
-    private fun MXInboundMegolmSessionWrapper.getSharedKey(): Boolean {
-        if (!cryptoStore.isShareKeysOnInviteEnabled()) return false
-        return sessionData.sharedHistory
     }
 
     @VisibleForTesting

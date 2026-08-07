@@ -17,8 +17,13 @@
 package org.matrix.android.sdk.internal.session.room.membership.joining
 
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.api.session.room.failure.JoinRoomFailure
@@ -62,6 +67,8 @@ internal class DefaultJoinRoomTask @Inject constructor(
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val clock: Clock,
         private val profileBannerPropagator: ProfileBannerPropagator,
+        private val cryptoService: CryptoService,
+        private val cryptoCoroutineScope: CoroutineScope,
 ) : JoinRoomTask {
 
     override suspend fun execute(params: JoinRoomTask.Params) {
@@ -70,6 +77,12 @@ internal class DefaultJoinRoomTask @Inject constructor(
             return
         }
         roomChangeMembershipStateDataSource.updateState(params.roomIdOrAlias, ChangeMembershipState.Joining)
+        // Read before joining: once we are a member the summary no longer carries who invited us.
+        val inviter = withContext(sessionDbDispatcher) {
+            stores.roomSummary.get(params.roomIdOrAlias)
+                    ?.takeIf { it.membership == Membership.INVITE }
+                    ?.inviterId
+        }
         val extraParams = mutableMapOf<String, Any>().apply {
             params.reason?.let { this["reason"] = it }
             params.thirdPartySigned?.let { this["third_party_signed"] = it.toContent() }
@@ -102,6 +115,12 @@ internal class DefaultJoinRoomTask @Inject constructor(
         }
         setReadMarkers(roomId)
         profileBannerPropagator.stampBannerOnJoin(roomId)
+        // MSC4268 key import can be slow and can fail; the join has already succeeded either way.
+        inviter?.let {
+            cryptoCoroutineScope.launch(coroutineDispatcher.io) {
+                tryOrNull("Failed to import the room key bundle for $roomId") { cryptoService.onInviteAccepted(roomId, it) }
+            }
+        }
     }
 
     private suspend fun setReadMarkers(roomId: String) {

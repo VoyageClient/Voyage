@@ -174,7 +174,8 @@ class MessageInformationDataFactory @Inject constructor(
                     MessageType.MSGTYPE_STICKER_LOCAL
                 } else {
                     event.root.getMsgType()
-                }
+                },
+                sharedByUserId = event.root.mxDecryptionResult?.sharedByUserId
         )
     }
 

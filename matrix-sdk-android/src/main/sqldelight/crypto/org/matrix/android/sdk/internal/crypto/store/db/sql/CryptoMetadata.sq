@@ -62,8 +62,5 @@ UPDATE crypto_metadata SET global_blacklist_unverified_devices = ?;
 updateKeyGossiping:
 UPDATE crypto_metadata SET global_enable_key_gossiping = ?;
 
-updateShareKeyOnInvite:
-UPDATE crypto_metadata SET enable_key_forwarding_on_invite = ?;
-
 updateDeviceKeysUploaded:
 UPDATE crypto_metadata SET device_keys_sent_to_server = ?;

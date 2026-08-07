@@ -34,7 +34,6 @@ import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.internal.crypto.DeviceListManager
-import org.matrix.android.sdk.internal.crypto.InboundGroupSessionHolder
 import org.matrix.android.sdk.internal.crypto.MXOlmDevice
 import org.matrix.android.sdk.internal.crypto.actions.EnsureOlmSessionsForDevicesAction
 import org.matrix.android.sdk.internal.crypto.actions.MessageEncrypter
@@ -553,51 +552,6 @@ internal class MXMegolmEncryption(
         } catch (failure: Throwable) {
             Timber.tag(loggerTag.value).e(failure, "reshareKey() : fail to send <$groupSessionId> to $userId:$deviceId")
             false
-        }
-    }
-
-    @Throws
-    override suspend fun shareHistoryKeysWithDevice(inboundSessionWrapper: InboundGroupSessionHolder, deviceInfo: CryptoDeviceInfo) {
-        require(inboundSessionWrapper.wrapper.sessionData.sharedHistory) { "This key can't be shared" }
-        Timber.tag(loggerTag.value).i("process shareHistoryKeys for ${inboundSessionWrapper.wrapper.safeSessionId} to ${deviceInfo.shortDebugString()}")
-        val userId = deviceInfo.userId
-        val deviceId = deviceInfo.deviceId
-        val devicesByUser = mapOf(userId to listOf(deviceInfo))
-        val usersDeviceMap = try {
-            ensureOlmSessionsForDevicesAction.handle(devicesByUser)
-        } catch (failure: Throwable) {
-            Timber.tag(loggerTag.value).i(failure, "process shareHistoryKeys failed to ensure olm")
-            // process anyway?
-            null
-        }
-        val olmSessionResult = usersDeviceMap?.getObject(userId, deviceId)
-        if (olmSessionResult?.sessionId == null) {
-            Timber.tag(loggerTag.value).w("shareHistoryKeys: no session with this device, probably because there were no one-time keys")
-            return
-        }
-
-        val export = inboundSessionWrapper.mutex.withLock {
-            inboundSessionWrapper.wrapper.exportKeys()
-        } ?: return Unit.also {
-            Timber.tag(loggerTag.value).e("shareHistoryKeys: failed to export group session ${inboundSessionWrapper.wrapper.safeSessionId}")
-        }
-
-        val payloadJson = mapOf(
-                "type" to EventType.FORWARDED_ROOM_KEY,
-                "content" to export
-        )
-
-        val encodedPayload =
-                withContext(coroutineDispatchers.computation) {
-                    messageEncrypter.encryptMessage(payloadJson, listOf(deviceInfo))
-                }
-        val sendToDeviceMap = MXUsersDevicesMap<Any>()
-        sendToDeviceMap.setObject(userId, deviceId, encodedPayload)
-        Timber.tag(loggerTag.value)
-                .d("shareHistoryKeys() : sending session ${inboundSessionWrapper.wrapper.safeSessionId} to ${deviceInfo.shortDebugString()}")
-        val sendToDeviceParams = SendToDeviceTask.Params(EventType.ENCRYPTED, sendToDeviceMap)
-        withContext(coroutineDispatchers.io) {
-            sendToDeviceTask.execute(sendToDeviceParams)
         }
     }
 

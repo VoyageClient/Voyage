@@ -44,7 +44,9 @@ data class MessageActionState(
         // For actions
         val actions: List<EventSharedAction> = emptyList(),
         val actionPermissions: ActionPermissions = ActionPermissions(),
-        val isFromThreadTimeline: Boolean = false
+        val isFromThreadTimeline: Boolean = false,
+        // MSC4268: display name of whoever shared the key to this message, if it came from a key bundle.
+        val sharedByDisplayName: String? = null
 ) : MavericksState {
 
     /**

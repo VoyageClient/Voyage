@@ -167,6 +167,11 @@ class MessageActionsViewModel @AssistedInject constructor(
                 setState { copy(actionPermissions = permissions) }
             }
 
+            initialState.informationData.sharedByUserId?.let { sharedBy ->
+                val displayName = room?.membershipService()?.getRoomMember(sharedBy)?.displayName
+                setState { copy(sharedByDisplayName = displayName?.takeIf { it.isNotBlank() } ?: sharedBy) }
+            }
+
             observeEvent()
             observeReactions()
             observePowerLevel()
