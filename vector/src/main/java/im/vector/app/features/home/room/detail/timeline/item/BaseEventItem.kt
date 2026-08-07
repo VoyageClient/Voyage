@@ -59,6 +59,15 @@ abstract class BaseEventItem<H : BaseEventItem.BaseHolder>(@LayoutRes layoutId: 
     /** A colour to wash the whole row in whenever it isn't showing the jump-to-message highlight. */
     protected open fun getRowTintColor(context: Context): Int? = null
 
+    /** Marks a row whose content only exists because it was recovered after a redaction. */
+    protected fun revealedRedactionTint(context: Context, informationData: MessageInformationData): Int? {
+        return if (informationData.isRevealedRedaction) {
+            ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_redacted_background)
+        } else {
+            null
+        }
+    }
+
     private fun applyRowTint(holder: H) {
         holder.redactionTint.setRow(getRowTintColor(holder.rowTint.context) ?: Color.TRANSPARENT)
     }

@@ -47,6 +47,11 @@ internal class DefaultRedactedContentService @Inject constructor(
         eventIndexer.get().indexPreservedContent(preserved)
     }
 
+    override suspend fun discard(eventId: String) {
+        store.delete(eventId)
+        eventIndexer.get().dropIndexedRedactions(listOf(eventId))
+    }
+
     override suspend fun roomsWithPreservedContent() = store.roomsWithContent()
 
     override suspend fun clearExcept(roomIds: Collection<String>) {

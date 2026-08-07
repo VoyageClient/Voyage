@@ -80,7 +80,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachme
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
-import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastEditNewContent
 import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
@@ -312,11 +311,15 @@ class MessageActionsViewModel @AssistedInject constructor(
                             // The text representation of a location is the same on every API; only the
                             // long-press preview's map (buildLocationUiData) is gated to Lollipop+.
                             noticeEventFormatter.formatLocationNotice(timelineEvent.root, timelineEvent.senderInfo.disambiguatedDisplayName)
+                        } else if (messageContent == null) {
+                            // Same placeholder the timeline shows for an unparseable message, instead
+                            // of a blank preview.
+                            stringProvider.getString(CommonStrings.malformed_message)
                         } else {
                             // Run the text renderer so bare permalinks / @room in a plain body pill too.
-                            messageContent?.body
-                                    ?.let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
-                                    ?.let { textRenderer.render(it) }
+                            messageContent.body
+                                    .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
+                                    .let { textRenderer.render(it) }
                         }
                     }
                     EventType.STATE_ROOM_NAME,
@@ -357,7 +360,7 @@ class MessageActionsViewModel @AssistedInject constructor(
             }
         } catch (failure: Throwable) {
             errorFormatter.toHumanReadable(failure)
-        } ?: ""
+        }
     }
 
     private suspend fun actionsForEvent(timelineEvent: TimelineEvent, actionPermissions: ActionPermissions): List<EventSharedAction> {
@@ -366,20 +369,11 @@ class MessageActionsViewModel @AssistedInject constructor(
 
         return arrayListOf<EventSharedAction>().apply {
             val eventId = timelineEvent.eventId
-            // Recovery actions for local echoes that haven't synced (or have failed) yet.
-            when {
-                timelineEvent.root.sendState.hasFailed() -> {
-                    if (canRetry(timelineEvent, actionPermissions)) add(EventSharedAction.Resend(eventId))
-                    // No Remove here: Redact is added below for every event and reads the same, so
-                    // offering both is two buttons for one outcome. TimelineFragment routes Redact on
-                    // a failed echo to the local removal, since the server never saw the event.
-                }
-                timelineEvent.root.sendState.isSending() -> {
-                    if (canCancel(timelineEvent)) add(EventSharedAction.Cancel(timelineEvent, false))
-                }
-                timelineEvent.root.sendState == SendState.SENT -> {
-                    timelineEvent.root.eventId?.let { add(EventSharedAction.Cancel(timelineEvent, true)) }
-                }
+            // Recovery actions for local echoes that haven't synced (or have failed) yet. No Remove or
+            // Cancel: Redact is added below for every event and covers both — TimelineFragment routes it
+            // to a local removal for a failed echo, and the SDK cancels a still-unsent one outright.
+            if (timelineEvent.root.sendState.hasFailed() && canRetry(timelineEvent, actionPermissions)) {
+                add(EventSharedAction.Resend(eventId))
             }
             // Then the full action set, regardless of sync/redaction state.
             addActionsForSyncedState(timelineEvent, actionPermissions, messageContent, msgType)
@@ -579,10 +573,6 @@ class MessageActionsViewModel @AssistedInject constructor(
             EventType.REACTION -> timelineEvent.root.getClearContent().toModel<ReactionContent>()?.relatesTo?.eventId
             else -> null
         }
-    }
-
-    private fun canCancel(@Suppress("UNUSED_PARAMETER") event: TimelineEvent): Boolean {
-        return true
     }
 
     private fun canReply(event: TimelineEvent, messageContent: MessageContent?, actionPermissions: ActionPermissions): Boolean {

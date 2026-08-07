@@ -80,7 +80,6 @@ import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.math.min
 
 class TimelineEventController @Inject constructor(
         private val dateFormatter: VectorDateFormatter,
@@ -296,22 +295,10 @@ class TimelineEventController @Inject constructor(
                     // Invalidate cache
                     modelCache[it] = null
                 }
-                // Also invalidate the first previous displayable event if
-                // it's sent by the same user so we are sure we have up to date information.
-                val invalidatedSenderId: String? = currentSnapshot.getOrNull(position)?.senderInfo?.userId
-                // In some cases onChanged will be called before onRemoved and onInserted so position will be bigger than currentSnapshot.size.
-                val prevList = currentSnapshot.subList(0, min(position, currentSnapshot.size))
-                val prevDisplayableEventIndex = prevList.indexOfLast {
-                    timelineEventVisibilityHelper.shouldShowEvent(
-                            timelineEvent = it,
-                            highlightedEventId = partialState.highlightedEventId,
-                            isFromThreadTimeline = partialState.isFromThreadTimeline(),
-                            rootThreadEventId = partialState.rootThreadEventId
-                    )
-                }
-                if (prevDisplayableEventIndex != -1 && currentSnapshot.getOrNull(prevDisplayableEventIndex)?.senderInfo?.userId == invalidatedSenderId) {
-                    modelCache[prevDisplayableEventIndex] = null
-                }
+                // Neighbours whose grouping depends on a changed event rebuild via the content-aware
+                // neighbour check in buildCacheItemsIfNeeded. Positions here are intermediate diff-dispatch
+                // coordinates, so any lookup into currentSnapshot from this callback would be off by the
+                // batch's pending inserts/removes.
                 requestModelBuild()
             }
         }
@@ -703,8 +690,8 @@ class TimelineEventController @Inject constructor(
             // collapsed (run expanded) needs a real build; a real model that is now collapsed can stay
             // (getModels hides it anyway) so we don't waste a rebuild switching it to a placeholder.
             val neighboursChanged = cached != null && !cached.isCollapsedPlaceholder &&
-                    (cached.builtPrevDisplayableId != prevDisplayableEvents[position]?.eventId ||
-                            cached.builtNextDisplayableId != nextDisplayableEvents[position]?.eventId)
+                    (cached.builtPrevDisplayable != prevDisplayableEvents[position] ||
+                            cached.builtNextDisplayable != nextDisplayableEvents[position])
             val needsBuild = cached == null || cached.isCacheable(partialState) == false ||
                     reactionListFactory.needsRebuild(event) ||
                     neighboursChanged ||
@@ -875,8 +862,8 @@ class TimelineEventController @Inject constructor(
                 eventId = event.root.eventId,
                 eventModel = eventModel,
                 isCacheable = isCacheable,
-                builtPrevDisplayableId = params.prevDisplayableEvent?.eventId,
-                builtNextDisplayableId = params.nextDisplayableEvent?.eventId
+                builtPrevDisplayable = params.prevDisplayableEvent,
+                builtNextDisplayable = params.nextDisplayableEvent
         )
     }
 
@@ -1112,10 +1099,12 @@ class TimelineEventController @Inject constructor(
             val isCollapsedPlaceholder: Boolean = false,
             private val isCacheable: Boolean = true,
             // Displayable neighbours the event model's grouping (isFirst/LastFromThisSender, avatar/name
-            // header) was computed from. A jump target is first built with no context loaded; when its
-            // real neighbours arrive the model must rebuild or it keeps its standalone look.
-            val builtPrevDisplayableId: String? = null,
-            val builtNextDisplayableId: String? = null,
+            // header, bubble shape) was computed from. Full references, not just ids: a neighbour whose
+            // CONTENT changed (e.g. a redaction turning the message above into a placeholder) must also
+            // trigger a rebuild. The SDK memoizes mapped events, so the comparison is an identity check
+            // for unchanged rows.
+            val builtPrevDisplayable: TimelineEvent? = null,
+            val builtNextDisplayable: TimelineEvent? = null,
             // Inputs the enrichment step (receipts/day-separator/merged-header models) was computed
             // from, so unchanged events can skip it on subsequent passes.
             val enrichedNextEventId: String? = null,

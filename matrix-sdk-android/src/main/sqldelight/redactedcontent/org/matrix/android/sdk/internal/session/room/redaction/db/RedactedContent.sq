@@ -37,6 +37,9 @@ SELECT event_id FROM redacted_content;
 selectByRoom:
 SELECT * FROM redacted_content WHERE room_id = ? ORDER BY origin_server_ts DESC;
 
+deleteByEventId:
+DELETE FROM redacted_content WHERE event_id = ?;
+
 deleteRoomsNotIn:
 DELETE FROM redacted_content WHERE room_id NOT IN ?;
 

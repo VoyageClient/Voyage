@@ -31,7 +31,6 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.home.room.detail.timeline.view.TimelineMessageLayoutRenderer
 import im.vector.app.features.home.room.detail.timeline.view.scRenderMessageLayout
 import im.vector.app.features.reactions.widget.ReactionButton
-import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.room.send.SendState
 import kotlin.math.ceil
 
@@ -88,14 +87,7 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
         }
     }
 
-    /** Marks a row whose content only exists because it was recovered after a redaction. */
-    override fun getRowTintColor(context: Context): Int? {
-        return if (baseAttributes.informationData.isRevealedRedaction) {
-            ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_redacted_background)
-        } else {
-            null
-        }
-    }
+    override fun getRowTintColor(context: Context): Int? = revealedRedactionTint(context, baseAttributes.informationData)
 
     private fun renderReactions(holder: H, reactionsSummary: ReactionsSummaryData) {
         ReactionsContainerRenderer.render(

@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
@@ -149,8 +150,25 @@ internal class DefaultSendService @AssistedInject constructor(
     }
 
     override fun redactEvent(event: Event, reason: String?, withRelTypes: List<String>?, additionalContent: Content?): Cancelable {
-        // TODO manage media/attachements?
-        val redactionEcho = localEchoEventFactory.createRedactEvent(roomId, event.eventId!!, reason, withRelTypes, additionalContent)
+        val targetId = event.eventId!!
+        if (LocalEcho.isLocalEchoId(targetId) && localEchoRepository.getRemoteEchoId(targetId) == null) {
+            // Never dispatched: redacting it means cancelling it — kill the send/upload and drop the
+            // echo now instead of leaving the redaction queued behind a possibly minutes-long upload.
+            cancelSend(targetId)
+            return NoOpCancellable
+        }
+        val localEchoId = targetId.takeIf { LocalEcho.isLocalEchoId(it) }
+                ?: event.unsignedData?.transactionId?.takeIf { LocalEcho.isLocalEchoId(it) }
+        if (localEchoId != null) {
+            // The event itself is out, but its media may still be uploading (MSC2246) — the redaction
+            // makes those bytes pointless, so tear the upload down rather than let it finish. The
+            // tracker mark is what makes the workers treat the stop as a user cancel, not a system
+            // stop to retry.
+            cancelSendTracker.markLocalEchoForCancel(localEchoId, roomId)
+            backgroundTaskScheduler.cancelAllByTag(uploadWorkTag(localEchoId))
+            pendingMediaUploadRegistry.discardForEvent(localEchoId)
+        }
+        val redactionEcho = localEchoEventFactory.createRedactEvent(roomId, targetId, reason, withRelTypes, additionalContent)
                 .also { createLocalEcho(it) }
         return eventSenderProcessor.postRedaction(redactionEcho, reason, withRelTypes)
     }

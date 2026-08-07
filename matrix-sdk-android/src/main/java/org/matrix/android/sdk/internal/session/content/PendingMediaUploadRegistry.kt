@@ -41,6 +41,8 @@ internal class PendingMediaUploadRegistry @Inject constructor() {
         return pending[contentUri]?.localFile?.takeIf { it.exists() }
     }
 
+    fun isPending(contentUri: String): Boolean = pending.containsKey(contentUri)
+
     /**
      * Cancelling a send tears down the queued byte upload before it can clean up after itself, so the
      * bytes it was holding have to be dropped here instead.

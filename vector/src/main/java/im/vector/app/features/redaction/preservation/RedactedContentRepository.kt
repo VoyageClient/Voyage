@@ -84,6 +84,11 @@ class RedactedContentRepository @Inject constructor(
     // so scrolling a room of unrecoverable redactions is an unbounded request loop.
     private val failed = Collections.synchronizedSet(mutableSetOf<String>())
 
+    // Events redacted while their media upload was still pending: the captured copy points at a
+    // content URI the server will never serve, so it is dropped and must not be re-captured when the
+    // sync echo (or an MSC2815 fetch) hands the same dead content back.
+    private val suppressed = Collections.synchronizedSet(mutableSetOf<String>())
+
     // Transient failures, with the time of the last attempt, so they can be retried after a delay.
     private val transientFailures = Collections.synchronizedMap(mutableMapOf<String, Long>())
     private val fetchMutex = Mutex()
@@ -119,6 +124,7 @@ class RedactedContentRepository @Inject constructor(
      * bind: it returns immediately once resolved and never launches a duplicate request.
      */
     fun requestContent(roomId: String, eventId: String) {
+        if (eventId in suppressed) return
         if (memoryCache.containsKey(eventId)) return
         if (!isRetryable(eventId)) return
         if (!inFlight.add(eventId)) return
@@ -202,6 +208,28 @@ class RedactedContentRepository @Inject constructor(
         memoryCache.clear()
         failed.clear()
         transientFailures.clear()
+    }
+
+    fun isSuppressed(eventId: String): Boolean = eventId in suppressed
+
+    /** Extend suppression to another id of the same event (the server id of a suppressed local echo). */
+    fun suppressAlso(eventId: String) {
+        suppressed.add(eventId)
+    }
+
+    /**
+     * The user redacted [eventId] while its media was still uploading: the upload is cancelled, so
+     * the preserved copy describes media that will never exist. Drop it everywhere and refuse to
+     * capture it again (the sync echo carrying the same content may arrive after this call).
+     */
+    fun discardNeverUploaded(roomId: String, eventId: String) {
+        suppressed.add(eventId)
+        memoryCache.remove(eventId)
+        val session = activeSessionHolder.get().getSafeActiveSession() ?: return
+        scope.launch {
+            session.redactedContentService().discard(eventId)
+            mediaPreserver.get().discard(roomId, eventId)
+        }
     }
 
     private fun Throwable.toRevealFailure(): RevealFailure {

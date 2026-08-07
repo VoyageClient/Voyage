@@ -16,6 +16,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.MessageInformatio
 import im.vector.app.features.home.room.detail.timeline.item.DefaultItem
 import im.vector.app.features.home.room.detail.timeline.item.DefaultItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
+import im.vector.app.features.home.room.detail.timeline.item.ReactionsSummaryEvents
 import im.vector.lib.strings.CommonStrings
 import javax.inject.Inject
 
@@ -31,7 +32,8 @@ class DefaultItemFactory @Inject constructor(
             text: CharSequence,
             informationData: MessageInformationData,
             highlight: Boolean,
-            callback: TimelineEventController.Callback?
+            callback: TimelineEventController.Callback?,
+            reactionsSummaryEvents: ReactionsSummaryEvents? = null,
     ): DefaultItem {
         val attributes = DefaultItem.Attributes(
                 avatarRenderer = avatarRenderer,
@@ -39,7 +41,9 @@ class DefaultItemFactory @Inject constructor(
                 text = text,
                 itemLongClickListener = { view ->
                     callback?.onEventLongClicked(informationData, null, view) ?: false
-                }
+                },
+                reactionPillCallback = callback,
+                reactionsSummaryEvents = reactionsSummaryEvents,
         )
         return DefaultItem_()
                 .leftGuideline(avatarSizeProvider.leftGuideline)
@@ -57,6 +61,6 @@ class DefaultItemFactory @Inject constructor(
             stringProvider.getString(CommonStrings.rendering_event_error_exception, event.root.eventId)
         }
         val informationData = informationDataFactory.create(params)
-        return create(text, informationData, params.isHighlighted, params.callback)
+        return create(text, informationData, params.isHighlighted, params.callback, params.reactionsSummaryEvents)
     }
 }
