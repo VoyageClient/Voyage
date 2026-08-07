@@ -30,8 +30,8 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
     fun map(readReceiptsSummaryEntity: ReadReceiptsSummaryEntity?): List<ReadReceipt> {
         readReceiptsSummaryEntity ?: return emptyList()
         return readReceiptsSummaryEntity.readReceipts.map { receipt ->
-            // Members load lazily, so a lurker who has never spoken here has no row yet. Fall back to
-            // the bare user id rather than dropping their receipt until they happen to be fetched.
+            // A receipt can name someone with no member row yet: the timeline's member load is still in
+            // flight, or they have since left. Show the bare user id rather than dropping the receipt.
             val user = stores.roomMember.getByRoomAndUser(receipt.roomId, receipt.userId)?.asDomain()
                     ?: RoomMemberSummary(membership = Membership.JOIN, userId = receipt.userId)
             ReadReceipt(user, receipt.originServerTs.toLong(), receipt.threadId)

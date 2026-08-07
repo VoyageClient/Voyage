@@ -116,8 +116,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     isMine = session.myUserId == this.userId,
                     // Always resolve to at least the mxid item, so a redacted/absent membership shows the
                     // user tag as the display name instead of leaving the profile stuck on loading.
-                    userMatrixItem = Success(room?.membershipService()?.getRoomMember(initialState.userId)?.toMatrixItem()
-                            ?: MatrixItem.UserItem(initialState.userId)),
+                    userMatrixItem = Success(bestKnownMatrixItem()),
                     hasReadReceipt = room?.readService()?.getUserReadReceipt(initialState.userId) != null,
                     isSpace = initialRoomSummary?.roomType == RoomType.SPACE,
                     roomPowerLevels = initialRoomPowerLevels,
@@ -389,15 +388,21 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
         }
     }
 
+    /** Room member, then the cached global profile, then the bare mxid so the profile never opens empty. */
+    private fun bestKnownMatrixItem(): MatrixItem {
+        return room?.membershipService()?.getRoomMember(initialState.userId)?.toMatrixItem()
+                ?: session.userService().getUser(initialState.userId)?.toMatrixItem()
+                ?: MatrixItem.UserItem(initialState.userId)
+    }
+
     private suspend fun fetchProfileInfo() {
         val profile = try {
             session.profileService().getProfile(initialState.userId)
         } catch (throwable: Throwable) {
             null
         }
-        // Fall back to the mxid so the profile opens with the user tag rather than getting stuck.
         val item = profile?.let { User.fromJson(initialState.userId, it).toMatrixItem() }
-                ?: MatrixItem.UserItem(initialState.userId)
+                ?: bestKnownMatrixItem()
         setState {
             copy(
                     userMatrixItem = Success(item),
