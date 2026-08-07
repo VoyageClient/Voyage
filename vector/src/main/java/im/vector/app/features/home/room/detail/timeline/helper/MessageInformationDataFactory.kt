@@ -77,7 +77,7 @@ class MessageInformationDataFactory @Inject constructor(
                 prevDisplayableEvent?.root?.localDateTime()?.toLocalDate() != date.toLocalDate()
 
         val time = dateFormatter.format(event.root.originServerTs, DateFormatKind.MESSAGE_SIMPLE)
-        val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root).applyShieldPreferences()
+        val e2eDecoration = getE2EDecorationV2(roomSummary, params.lastEdit ?: event.root, params.isRevealedRedaction).applyShieldPreferences()
         // PGP-over-plaintext lock indicator (not tied to e2eDecoration). Parse content only when PGP is
         // enabled — otherwise this deserialization runs for every event for nothing.
         val isPgp = pgpKeyStore.isEnabled &&
@@ -221,7 +221,7 @@ class MessageInformationDataFactory @Inject constructor(
         }
     }
 
-    private fun getE2EDecorationV2(roomSummary: RoomSummary?, event: Event): E2EDecoration {
+    private fun getE2EDecorationV2(roomSummary: RoomSummary?, event: Event, isRevealedRedaction: Boolean): E2EDecoration {
         if (roomSummary?.isEncrypted != true) {
             // No decoration for clear room
             // Questionable? what if the event is E2E?
@@ -233,7 +233,9 @@ class MessageInformationDataFactory @Inject constructor(
         }
         // Redaction wiped the ciphertext, so the (stale) decryption result can't be re-attested and a
         // "Message deleted" placeholder would permanently carry an authenticity warning.
-        if (event.isRedacted()) {
+        // Restoring preserved content drops that marker and the m.room.encrypted wrapper with it, so
+        // the event would otherwise read as one sent in the clear.
+        if (event.isRedacted() || isRevealedRedaction) {
             return E2EDecoration.NONE
         }
 
