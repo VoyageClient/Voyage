@@ -112,8 +112,11 @@ object AnimatedWebpEncoder {
         writeUInt24LE(out, frame.width - 1)
         writeUInt24LE(out, frame.height - 1)
         writeUInt24LE(out, frame.durationMs.coerceIn(0, 0xFFFFFF))
-        // Reserved (6 bits) + blending (1 bit, 0 = use alpha-blending) + disposal (1 bit, 0 = no disposal)
-        out.write(0)
+        // Reserved (6 bits) + blending (1 bit) + disposal (1 bit).
+        // Blending must be 1 (= do not blend): every frame we write is a full-canvas replacement, so
+        // alpha-blending would let the previous frame show through wherever this one is transparent.
+        // Disposal stays 0 for the same reason — there is nothing to clear.
+        out.write(BLEND_DO_NOT_BLEND)
         out.write(frame.imagePayload)
         // RIFF chunks are word-aligned; emit a pad byte if payload size is odd.
         if (payloadSize and 1 == 1) out.write(0)
@@ -181,4 +184,7 @@ object AnimatedWebpEncoder {
     private val ASCII_VP8X = "VP8X".toByteArray(Charsets.US_ASCII)
     private val ASCII_ANIM = "ANIM".toByteArray(Charsets.US_ASCII)
     private val ASCII_ANMF = "ANMF".toByteArray(Charsets.US_ASCII)
+
+    /** ANMF flags: blending bit set, i.e. replace the canvas rather than compositing over it. */
+    private const val BLEND_DO_NOT_BLEND = 0x02
 }

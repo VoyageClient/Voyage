@@ -9,6 +9,7 @@ package im.vector.app.features.attachments.preview
 
 import android.graphics.Color
 import android.graphics.SurfaceTexture
+import android.graphics.drawable.Animatable
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -23,6 +24,7 @@ import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.EpoxyModelClass
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.github.penfeizhou.animation.FrameAnimationDrawable
 import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
@@ -36,8 +38,15 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
 
     abstract val attachment: ContentAttachmentData
 
+    /**
+     * Restored on every bind because holders are recycled and the generic-file branch changes it.
+     * Null where the view manages its own scale type, as ZoomableImageView does.
+     */
+    protected open val defaultScaleType: ImageView.ScaleType? = null
+
     override fun bind(holder: H) {
         super.bind(holder)
+        defaultScaleType?.let { holder.imageView.scaleType = it }
         when (attachment.type) {
             ContentAttachmentData.Type.VIDEO -> {
                 // .frame(0) only does anything for video sources; .asBitmap() is required to
@@ -71,6 +80,8 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
 
 @EpoxyModelClass
 abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<AttachmentMiniaturePreviewItem.Holder>(R.layout.item_attachment_miniature_preview) {
+
+    override val defaultScaleType = ImageView.ScaleType.CENTER_CROP
 
     @EpoxyAttribute override lateinit var attachment: ContentAttachmentData
 
@@ -137,6 +148,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         // The fragment's controls must let go of a recycled holder, or they would drive whatever
         // attachment its views are rebound to next.
         holder.releasePlaybackControls(playbackListener)
+        holder.setImageTapListener(null)
         holder.release()
         holder.resetZoom()
         super.unbind(holder)
@@ -151,10 +163,17 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         // Swiping away drops any zoom, so coming back lands at 1x.
         if (!activePage) holder.resetZoom()
         if (!isVideo) {
-            holder.view.setOnClickListener(null)
-            holder.view.isClickable = false
+            // An animated image drives itself, so there is no player to drive — but tapping it should
+            // still pause and resume, as it does for a video and in the editor. The listener has to go
+            // on the image view: with zoom enabled it consumes the touch and routes taps to its own
+            // performClick, so the root never sees them.
+            holder.setImageTapListener { holder.toggleAnimatedImage() }
+            holder.view.setOnClickListener { holder.toggleAnimatedImage() }
+            // Swiping to another attachment must not leave this one burning cycles off-screen.
+            holder.setAnimatedImagePlaying(activePage && playbackAllowed)
             return
         }
+        holder.setImageTapListener(null)
         holder.view.setOnClickListener { holder.togglePlayback() }
         // Only whichever attachment is on show drives the controls under the send options, and only
         // it may claim them: a sibling binding afterwards would otherwise take them away again.
@@ -196,6 +215,49 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         fun resetZoom() {
             bigImageView.resetZoom()
             videoView.resetZoom()
+        }
+
+        /**
+         * APNG, GIF and animated WebP all arrive as self-animating [Animatable] drawables, so pausing
+         * is a matter of stopping the drawable rather than driving a player.
+         */
+        private fun animatedImage(): Animatable? = bigImageView.drawable as? Animatable
+
+        private fun isAnimatedImagePlaying(): Boolean = when (val drawable = bigImageView.drawable) {
+            is FrameAnimationDrawable<*> -> drawable.isRunning && !drawable.isPaused
+            is Animatable -> drawable.isRunning
+            else -> false
+        }
+
+        fun setImageTapListener(onTap: (() -> Unit)?) {
+            if (onTap == null) {
+                bigImageView.setOnClickListener(null)
+                bigImageView.isClickable = false
+            } else {
+                bigImageView.setOnClickListener { onTap() }
+            }
+        }
+
+        fun toggleAnimatedImage() {
+            if (animatedImage() == null) return
+            setAnimatedImagePlaying(!isAnimatedImagePlaying())
+        }
+
+        fun setAnimatedImagePlaying(playing: Boolean) {
+            val drawable = bigImageView.drawable
+            // penfeizhou's stop() rewinds to frame 0, so APNG/WebP have to pause instead. Glide's
+            // GifDrawable has no pause and already holds its position on stop().
+            if (drawable is FrameAnimationDrawable<*>) {
+                when {
+                    !playing -> if (drawable.isRunning) drawable.pause()
+                    !drawable.isRunning -> drawable.start()
+                    else -> drawable.resume()
+                }
+                return
+            }
+            val animatable = drawable as? Animatable ?: return
+            if (playing == animatable.isRunning) return
+            if (playing) animatable.start() else animatable.stop()
         }
 
         fun setTargetSize(size: Pair<Int, Int>?) {

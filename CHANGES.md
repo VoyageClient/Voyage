@@ -118,6 +118,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Faster sending for large videos** — a video sent at original size is now rewritten in a single pass straight from the source instead of being copied and then rewritten in full, and shows real progress while it works.
 
+- **Animated images are marked as such (MSC4230)** — a sent image now records whether it actually animates instead of leaving clients to guess from the file type, so animated WebP and APNG get the play badge that previously only GIFs could.
+
 - **Block all room invites (MSC4380)** — one switch under Settings → Security & privacy has your homeserver reject every invite sent to you, on all your devices at once. Requires server support.
 
 - **Media visibility follows your account (MSC4278)** — the media-preview and invite-avatar settings are stored on your account rather than only on the device that set them, so a new sign-in keeps the choices you already made and Element Web and Element X read the same setting.

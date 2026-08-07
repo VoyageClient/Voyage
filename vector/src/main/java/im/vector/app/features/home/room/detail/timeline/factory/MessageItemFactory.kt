@@ -619,12 +619,19 @@ class MessageItemFactory @Inject constructor(
                 preservedFile = preservedMedia,
         )
 
-        val playable = messageContent.mimeType == MimeTypes.Gif
-        // don't show play button because detecting animated webp/apng isn't possible via mimetype
-        val playableIfAutoplay = playable ||
+        // MSC4230 settles it outright; otherwise only a GIF mimetype is a firm enough signal, while
+        // webp/apng/png merely might be animated.
+        val isAnimated = messageContent.info?.isAnimated
+        val certainlyAnimated = isAnimated ?: (messageContent.mimeType == MimeTypes.Gif)
+        val maybeAnimated = certainlyAnimated || (isAnimated == null && (
                 messageContent.mimeType == MimeTypes.Webp ||
-                messageContent.mimeType == MimeTypes.Apng ||
-                messageContent.mimeType == MimeTypes.Png
+                        messageContent.mimeType == MimeTypes.Apng ||
+                        messageContent.mimeType == MimeTypes.Png
+                ))
+        val autoplay = vectorPreferences.autoplayAnimatedImages()
+        // Whether the badge actually shows is the item's call: it hides it while autoplay is on, since
+        // the image is already moving, and shows it otherwise so a still animation reads as playable.
+        val playable = certainlyAnimated
 
         val attachmentContent = messageContent as? MessageWithAttachmentContent
         val isReply = attachmentContent?.relatesTo?.inReplyTo?.eventId != null
@@ -665,7 +672,7 @@ class MessageItemFactory @Inject constructor(
                     }
                     if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {
                         mode(ImageContentRenderer.Mode.STICKER)
-                    } else if (playableIfAutoplay && vectorPreferences.autoplayAnimatedImages()) {
+                    } else if (maybeAnimated && autoplay) {
                         mode(ImageContentRenderer.Mode.ANIMATED_THUMBNAIL)
                     }
                 }

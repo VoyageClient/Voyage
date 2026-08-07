@@ -80,6 +80,7 @@ private data class NewAttachmentAttributes(
         val newHeight: Int? = null,
         val newFileSize: Long,
         val newMimeType: String? = null,
+        val newIsAnimated: Boolean? = null,
 )
 
 /**
@@ -288,6 +289,14 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     if (params.attachment.size <= 0) {
                         newAttachmentAttributes = newAttachmentAttributes.copy(newFileSize = fileToUpload.length())
                     }
+                }
+
+                // MSC4230: sniff the bytes we are actually about to upload, so a compression pass that
+                // flattened or re-encoded the animation is reflected rather than the original's format.
+                if (attachment.type == ContentAttachmentData.Type.IMAGE) {
+                    newAttachmentAttributes = newAttachmentAttributes.copy(
+                            newIsAnimated = sniffImageFormat(fileToUpload).isAnimated()
+                    )
                 }
 
                 // Compression can take a long time; re-check cancellation here so a cancel that
@@ -719,6 +728,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                             size = newAttachmentAttributes?.newFileSize ?: info.size,
                             mimeType = newMime ?: info.mimeType,
                             blurHash = blurHash ?: info.blurHash,
+                            isAnimatedStable = newAttachmentAttributes?.newIsAnimated ?: info.isAnimatedStable,
                     )
                 }
         )
