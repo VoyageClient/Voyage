@@ -78,7 +78,17 @@ internal data class Capabilities(
          * True if the user can use /login/get_token, false otherwise.
          */
         @Json(name = "m.get_login_token")
-        val getLoginToken: BooleanCapability? = null
+        val getLoginToken: BooleanCapability? = null,
+
+        /**
+         * MSC4267. True when the server forgets rooms on leave by itself, so the client can never
+         * keep an archive of left-but-not-forgotten rooms.
+         */
+        @Json(name = "m.forget_forced_upon_leave")
+        val forgetForcedUponLeave: BooleanCapability? = null,
+
+        @Json(name = "org.matrix.msc4267.forget_forced_upon_leave")
+        val forgetForcedUponLeaveUnstable: BooleanCapability? = null,
 )
 
 @JsonClass(generateAdapter = true)

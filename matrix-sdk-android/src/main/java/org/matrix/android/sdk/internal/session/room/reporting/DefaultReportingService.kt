@@ -32,8 +32,8 @@ internal class DefaultReportingService @AssistedInject constructor(
         fun create(roomId: String): DefaultReportingService
     }
 
-    override suspend fun reportContent(eventId: String, score: Int, reason: String) {
-        val params = ReportContentTask.Params(roomId, eventId, score, reason)
+    override suspend fun reportContent(eventId: String, reason: String, score: Int?) {
+        val params = ReportContentTask.Params(roomId, eventId, reason, score)
         reportContentTask.execute(params)
     }
 

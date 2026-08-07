@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.database.mapper.asDomain
@@ -94,6 +95,8 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                     relationType = RelationType.THREAD,
                     from = params.from,
                     limit = params.limit,
+                    // MSC3981: also pull edits/reactions that hang off the threaded events
+                    recurse = true,
             )
         }
 
@@ -136,6 +139,9 @@ internal class DefaultFetchThreadTimelineTask @Inject constructor(
                     continue
                 }
                 val (eventDbId, entity) = insertOrGetEvent(params.roomId, event)
+                // With recurse=true the chunk also carries edits/reactions of the thread replies. Inserting
+                // them above is enough for aggregation to pick them up; they must not become timeline rows.
+                if (!event.isThread()) continue
                 addSenderState(roomMemberContentsByUser, roomMemberEventIdsByUser, params.roomId, senderId)
                 // /relations answers newest-first, so indices must walk downwards for the root to land oldest.
                 stores.timelineWriter.addTimelineEvent(

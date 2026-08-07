@@ -93,6 +93,9 @@ data class RoomSettingsViewState(
             RoomJoinRules.RESTRICTED -> {
                 stringProvider.getString(CommonStrings.room_settings_room_access_restricted_title)
             }
+            RoomJoinRules.KNOCK_RESTRICTED -> {
+                stringProvider.getString(CommonStrings.room_settings_room_access_knock_restricted_title)
+            }
             else -> {
                 stringProvider.getString(CommonStrings.room_settings_room_access_entry_unknown, joinRule.value)
             }

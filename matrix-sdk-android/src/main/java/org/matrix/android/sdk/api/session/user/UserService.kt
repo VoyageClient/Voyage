@@ -59,7 +59,6 @@ interface UserService {
      */
     fun getUsersFlow(): Flow<List<User>>
 
-
     /**
      * Get list of ignored users.
      */
@@ -81,4 +80,10 @@ interface UserService {
      * backlog) is restored without an initial sync.
      */
     suspend fun unIgnoreUserIds(userIds: List<String>)
+
+    /**
+     * Report a user to the homeserver admins (MSC4260). Servers deliberately answer success even for
+     * unknown or remote users, so a successful call is not proof the report was acted on.
+     */
+    suspend fun reportUser(userId: String, reason: String)
 }

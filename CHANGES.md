@@ -114,6 +114,16 @@ New features, improvements, and notable removals in this fork.
 
 - **Consistent deleted-message previews** — a deleted message now reads as deleted everywhere it is previewed, not just in the timeline: reply headers, the composer's reply preview, the room list, the pinned-messages banner and list, and the long-press menu all show it greyed out with a trash icon rather than as ordinary text, and thread summaries grey it out too. The wording is unified on "Message redacted".
 
+- **Block all room invites (MSC4380)** — one switch under Settings → Security & privacy has your homeserver reject every invite sent to you, on all your devices at once. Requires server support.
+
+- **Media visibility follows your account (MSC4278)** — the media-preview and invite-avatar settings are stored on your account rather than only on the device that set them, so a new sign-in keeps the choices you already made and Element Web and Element X read the same setting.
+
+- **Key backup choice follows your account (MSC4287)** — turning key backup on or off is remembered account-wide, so a new device stops prompting you to set up a backup you declined elsewhere.
+
+- **Knocking on restricted rooms (MSC3787)** — a room can now combine both rules: members of a chosen space join directly, everyone else asks to join. Room settings offer it and the room preview shows the right action. Join-rule changes also read correctly in the timeline for knock and restricted rooms, which previously showed nothing at all.
+
+- **Filter the room directory by type (MSC3827)** — search rooms only, spaces only, or both, from the directory's overflow menu.
+
 - **Misc improvements** — randomizable upload filenames, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, a "Show in chat" action in the media viewer that jumps back to the message an attachment came from, room-list preview polish, a direct message's room settings showing the other person's avatar as the room list does, and links no longer drawn underlined anywhere they were left inconsistent — room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
 
 ### Removals
@@ -139,6 +149,8 @@ New features, improvements, and notable removals in this fork.
 - **Reads off the database write thread** — the timeline and the room list each read on their own thread, so opening a room or refreshing the list no longer waits for a sync response to finish being written.
 
 - **Performance internals** — SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, and a memoized event mapper underpin the user-facing speedups above.
+
+- **Modern sync and spec endpoints** — sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap; a thread's edits and reactions arrive in one request (MSC3981); and reporting (MSC4277), room forgetting (MSC4267), relations and the room directory moved onto their stable endpoints.
 
 - **Dependency & build slimming** — dropped the WYSIWYG composer, Sentry, and the unused JNA dependency; vendored markwon-html; bumped conscrypt; and enabled optimization for libopus.
 

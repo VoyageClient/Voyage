@@ -16,15 +16,14 @@
 
 package org.matrix.android.sdk.internal.session.sync
 
-import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.extensions.measureSpan
 import org.matrix.android.sdk.api.extensions.measureSpannableMetric
 import org.matrix.android.sdk.api.metrics.SpannableMetricPlugin
 import org.matrix.android.sdk.api.metrics.SyncDurationMetricPlugin
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
-import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.pushrules.PushRuleService
@@ -32,14 +31,15 @@ import org.matrix.android.sdk.api.session.pushrules.RuleScope
 import org.matrix.android.sdk.api.session.sync.InitialSyncStep
 import org.matrix.android.sdk.api.session.sync.model.RoomsSyncResponse
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
+import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.di.SessionId
 import org.matrix.android.sdk.internal.session.SessionListeners
 import org.matrix.android.sdk.internal.session.dispatchTo
 import org.matrix.android.sdk.internal.session.pushrules.ProcessEventForPushTask
-import org.matrix.android.sdk.api.util.MatrixPerf
 import org.matrix.android.sdk.internal.session.sync.handler.SyncResponsePostTreatmentAggregatorHandler
 import org.matrix.android.sdk.internal.util.time.Clock
 import timber.log.Timber
@@ -101,7 +101,9 @@ internal class SyncResponseHandler @Inject constructor(
                 }
 
                 syncResponse.rooms?.join?.entries?.map { (roomId, roomSync) ->
-                    roomSync.state
+                    // MSC4222 replaces `state` with `state_after`; crypto still needs to see
+                    // m.room.encryption either way or the room isn't recognised as encrypted.
+                    (roomSync.stateAfter ?: roomSync.state)
                             ?.events
                             ?.filter { it.isStateEvent() }
                             ?.forEach {

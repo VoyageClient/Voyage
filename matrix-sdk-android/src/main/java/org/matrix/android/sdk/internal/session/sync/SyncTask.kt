@@ -109,6 +109,10 @@ internal class DefaultSyncTask @Inject constructor(
         requestParams["timeout"] = timeout.toString()
         requestParams["filter"] = filter
         params.presence?.let { requestParams["set_presence"] = it.value }
+        // MSC4222. Servers that don't support it ignore the parameter and keep answering with `state`,
+        // which SqlRoomSyncHandler still handles, so this needs no capability gate.
+        requestParams["use_state_after"] = "true"
+        requestParams["org.matrix.msc4222.use_state_after"] = "true"
 
         val isInitialSync = token == null
         if (isInitialSync) {

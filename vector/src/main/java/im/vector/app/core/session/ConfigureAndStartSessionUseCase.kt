@@ -16,6 +16,7 @@ import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
 import im.vector.app.features.reactions.data.QuickReactionsDataSource
 import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.coroutineScope
+import im.vector.app.features.settings.MediaPreviewConfigDataSource
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.settings.devices.v2.notification.UpdateNotificationSettingsAccountDataUseCase
 import kotlinx.coroutines.CancellationException
@@ -45,6 +46,7 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         private val accountInfoCache: AccountInfoCache,
         private val quickReactionsDataSource: QuickReactionsDataSource,
         private val redactionPreservationService: RedactionPreservationService,
+        private val mediaPreviewConfigDataSource: MediaPreviewConfigDataSource,
 ) {
 
     private val profileObserverJob = AtomicReference<Job?>(null)
@@ -63,6 +65,7 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         notificationsSettingUpdater.onSessionStarted(session)
         pushRulesUpdater.onSessionStarted(session)
         quickReactionsDataSource.onSessionStarted(session)
+        mediaPreviewConfigDataSource.onSessionStarted(session)
         redactionPreservationService.start(session)
         observeOwnProfileForCache(session)
     }

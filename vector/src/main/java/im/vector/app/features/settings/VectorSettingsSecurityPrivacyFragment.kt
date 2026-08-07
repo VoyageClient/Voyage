@@ -83,6 +83,7 @@ import org.matrix.android.sdk.api.extensions.getFingerprintHumanReadable
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.raw.RawService
+import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import javax.inject.Inject
@@ -99,6 +100,7 @@ class VectorSettingsSecurityPrivacyFragment :
     @Inject lateinit var navigator: Navigator
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var mediaCache: MediaCache
+    @Inject lateinit var mediaPreviewConfigDataSource: MediaPreviewConfigDataSource
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var pgpServiceManager: PgpServiceManager
     @Inject lateinit var redactionSettings: RedactionPreservationSettings
@@ -302,6 +304,7 @@ class VectorSettingsSecurityPrivacyFragment :
 
         // Media visibility / avatar hiding
         setUpMediaVisibility()
+        setUpBlockInvites()
         setUpRedactions()
 
         // Pin code
@@ -497,16 +500,47 @@ class VectorSettingsSecurityPrivacyFragment :
         applyEnabled(modePref.value)
         modePref.setOnPreferenceChangeListener { _, newValue ->
             applyEnabled(newValue)
+            mediaPreviewConfigDataSource.onLocalChange(mode = MediaPreviewMode.fromValue(newValue as? String))
             true
         }
 
         // Invite avatars are loaded by URL, so Glide would otherwise keep serving the previously-shown
         // (or previously-hidden) version until its cache expires. Drop it whenever the toggle flips.
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_HIDE_INVITE_AVATARS_KEY)
-                ?.setOnPreferenceChangeListener { _, _ ->
+                ?.setOnPreferenceChangeListener { _, newValue ->
                     lifecycleScope.launch { mediaCache.clearThumbnails() }
+                    mediaPreviewConfigDataSource.onLocalChange(hideInviteAvatars = newValue as? Boolean)
                     true
                 }
+    }
+
+    private fun setUpBlockInvites() {
+        val pref = findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_BLOCK_INVITES_KEY) ?: return
+        if (!session.homeServerCapabilitiesService().getHomeServerCapabilities().canBlockInvites) {
+            pref.isEnabled = false
+            pref.summary = getString(CommonStrings.settings_block_invites_unsupported)
+            return
+        }
+        pref.isChecked = session.accountDataService()
+                .getUserAccountDataEvent(UserAccountDataTypes.TYPE_INVITE_PERMISSION_CONFIG)
+                ?.content
+                ?.get("default_action") == BLOCK_ACTION
+
+        pref.setOnPreferenceChangeListener { _, newValue ->
+            val block = newValue as? Boolean ?: return@setOnPreferenceChangeListener false
+            lifecycleScope.launch {
+                try {
+                    // Clearing means writing an empty object; there is no delete for this type.
+                    val content = if (block) mapOf("default_action" to BLOCK_ACTION) else emptyMap()
+                    session.accountDataService()
+                            .updateUserAccountData(UserAccountDataTypes.TYPE_INVITE_PERMISSION_CONFIG, content)
+                } catch (failure: Throwable) {
+                    pref.isChecked = !block
+                    activity?.let { displayErrorDialog(failure) }
+                }
+            }
+            true
+        }
     }
 
     private fun setUpRedactions() {
@@ -878,5 +912,9 @@ class VectorSettingsSecurityPrivacyFragment :
                 refreshCryptographyPreference(it)
             }
         }
+    }
+
+    companion object {
+        private const val BLOCK_ACTION = "block"
     }
 }

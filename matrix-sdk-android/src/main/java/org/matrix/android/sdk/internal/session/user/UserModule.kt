@@ -23,7 +23,9 @@ import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.session.user.accountdata.DefaultUpdateIgnoredUserIdsTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateIgnoredUserIdsTask
+import org.matrix.android.sdk.internal.session.user.model.DefaultReportUserTask
 import org.matrix.android.sdk.internal.session.user.model.DefaultSearchUserTask
+import org.matrix.android.sdk.internal.session.user.model.ReportUserTask
 import org.matrix.android.sdk.internal.session.user.model.SearchUserTask
 import retrofit2.Retrofit
 
@@ -45,6 +47,9 @@ internal abstract class UserModule {
 
     @Binds
     abstract fun bindSearchUserTask(task: DefaultSearchUserTask): SearchUserTask
+
+    @Binds
+    abstract fun bindReportUserTask(task: DefaultReportUserTask): ReportUserTask
 
     @Binds
     abstract fun bindUpdateIgnoredUserIdsTask(task: DefaultUpdateIgnoredUserIdsTask): UpdateIgnoredUserIdsTask

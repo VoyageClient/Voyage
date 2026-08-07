@@ -16,6 +16,8 @@ import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
 data class PublicRoomsViewState(
         // The current filter
         val currentFilter: String = "",
+        // MSC3827 room-type filter
+        val roomType: RoomDirectoryRoomType = RoomDirectoryRoomType.ALL,
         // Store cumul of pagination result
         val publicRooms: List<PublicRoom> = emptyList(),
         // Current pagination request

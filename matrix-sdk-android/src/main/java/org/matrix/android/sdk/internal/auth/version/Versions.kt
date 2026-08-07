@@ -62,6 +62,7 @@ private const val FEATURE_THREADS_MSC3773 = "org.matrix.msc3773"
 private const val FEATURE_REMOTE_TOGGLE_PUSH_NOTIFICATIONS_MSC3881 = "org.matrix.msc3881"
 private const val FEATURE_REDACTION_OF_RELATED_EVENT = "org.matrix.msc3912"
 private const val FEATURE_VIEW_UNREDACTED_CONTENT_MSC2815 = "fi.mau.msc2815"
+private const val FEATURE_INVITE_BLOCKING_MSC4380 = "org.matrix.msc4380.stable"
 
 /**
  * Return true if the SDK supports this homeserver version.
@@ -185,4 +186,12 @@ internal fun Versions.doesServerSupportRedactionOfRelatedEvents(): Boolean {
  */
 internal fun Versions.doesServerSupportViewingUnredactedContent(): Boolean {
     return unstableFeatures?.get(FEATURE_VIEW_UNREDACTED_CONTENT_MSC2815).orFalse()
+}
+
+/**
+ * Indicate if the homeserver enforces the MSC4380 invite permission config.
+ */
+internal fun Versions.doesServerSupportInviteBlocking(): Boolean {
+    return getMaxVersion() >= HomeServerVersion.v1_18_0 ||
+            unstableFeatures?.get(FEATURE_INVITE_BLOCKING_MSC4380).orFalse()
 }

@@ -117,6 +117,13 @@ interface RoomService {
     suspend fun leaveRoom(roomId: String, reason: String? = null)
 
     /**
+     * Forget an already-left room, giving up access to its history. No-op when the homeserver
+     * advertises [HomeServerCapabilities.forgetForcedUponLeave], since it has already done it.
+     * @param roomId the roomId of the room to forget
+     */
+    suspend fun forgetRoom(roomId: String)
+
+    /**
      * Get a room from a roomId.
      * @param roomId the roomId to look for.
      * @return a room with roomId or null

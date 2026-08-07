@@ -158,6 +158,12 @@ class VectorPreferences @Inject constructor(
         const val SETTINGS_MEDIA_PREVIEW_SOLID_KEY = "SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
         const val SETTINGS_HIDE_AVATARS_KEY = "SETTINGS_HIDE_AVATARS_KEY"
         const val SETTINGS_HIDE_INVITE_AVATARS_KEY = "SETTINGS_HIDE_INVITE_AVATARS_KEY"
+
+        // MSC4380: server-side, mirrored from m.invite_permission_config rather than stored locally.
+        const val SETTINGS_BLOCK_INVITES_KEY = "SETTINGS_BLOCK_INVITES_KEY"
+
+        // MSC4278: whether this device has reconciled with m.media_preview_config at least once.
+        private const val SETTINGS_MEDIA_PREVIEW_SYNCED_KEY = "SETTINGS_MEDIA_PREVIEW_SYNCED_KEY"
         private const val SETTINGS_ENABLE_DIRECT_SHARE = "SETTINGS_ENABLE_DIRECT_SHARE"
         private const val SETTINGS_ENABLE_APP_SHORTCUTS = "SETTINGS_ENABLE_APP_SHORTCUTS"
         private const val SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE = "SETTINGS_ENABLE_EMOJI_AUTOCOMPLETE"
@@ -966,6 +972,23 @@ class VectorPreferences @Inject constructor(
     fun getMediaPreviewMode(roomId: String? = null): MediaPreviewMode {
         roomId?.let { getRoomMediaPreviewOverride(it) }?.let { return it }
         return MediaPreviewMode.fromValue(defaultPrefs.getString(SETTINGS_MEDIA_PREVIEW_KEY, MediaPreviewMode.ALWAYS_SHOW.value))
+    }
+
+    fun setMediaPreviewMode(mode: MediaPreviewMode) {
+        defaultPrefs.edit { putString(SETTINGS_MEDIA_PREVIEW_KEY, mode.value) }
+    }
+
+    fun setHideInviteAvatars(hide: Boolean) {
+        defaultPrefs.edit { putBoolean(SETTINGS_HIDE_INVITE_AVATARS_KEY, hide) }
+    }
+
+    /** Whether this device has reconciled its media-preview settings with MSC4278 account data at least once. */
+    fun hasSyncedMediaPreviewConfig(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_MEDIA_PREVIEW_SYNCED_KEY, false)
+    }
+
+    fun setMediaPreviewConfigSynced() {
+        defaultPrefs.edit { putBoolean(SETTINGS_MEDIA_PREVIEW_SYNCED_KEY, true) }
     }
 
     /** null means the room inherits the account-wide mode. */

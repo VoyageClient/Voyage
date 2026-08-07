@@ -212,12 +212,13 @@ class RoomPreviewNoPreviewFragment :
             views.roomPreviewNoPreviewLabel.isVisible = false
         } else {
             views.roomPreviewNoPreviewCancelKnock.isVisible = false
-            val isKnockRoom = state.joinRule == RoomJoinRules.KNOCK
-            val canRequestToJoin = isKnockRoom || (state.peekingState as? Success)?.invoke() == PeekingState.NO_ACCESS
+            val canKnock = state.joinRule == RoomJoinRules.KNOCK || state.joinRule == RoomJoinRules.KNOCK_RESTRICTED
+            val canRequestToJoin = canKnock || (state.peekingState as? Success)?.invoke() == PeekingState.NO_ACCESS
             views.roomPreviewNoPreviewRequestToJoin.isVisible = canRequestToJoin
             views.roomPreviewNoPreviewKnockMessage.isVisible = canRequestToJoin
             // A plain join on a knock room would be rejected, so hide it in favour of asking to join.
-            if (isKnockRoom) {
+            // knock_restricted still allows a direct join for members of the allowed spaces.
+            if (state.joinRule == RoomJoinRules.KNOCK) {
                 views.roomPreviewNoPreviewJoin.isVisible = false
             }
         }

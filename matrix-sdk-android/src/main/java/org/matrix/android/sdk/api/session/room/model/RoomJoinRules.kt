@@ -29,5 +29,6 @@ enum class RoomJoinRules(val value: String) {
     @Json(name = "invite") INVITE("invite"),
     @Json(name = "knock") KNOCK("knock"),
     @Json(name = "private") PRIVATE("private"),
-    @Json(name = "restricted") RESTRICTED("restricted")
+    @Json(name = "restricted") RESTRICTED("restricted"),
+    @Json(name = "knock_restricted") KNOCK_RESTRICTED("knock_restricted")
 }

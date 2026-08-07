@@ -89,6 +89,7 @@ class RoomDirectoryViewModel @AssistedInject constructor(
         when (action) {
             is RoomDirectoryAction.SetRoomDirectoryData -> setRoomDirectoryData(action)
             is RoomDirectoryAction.FilterWith -> filterWith(action)
+            is RoomDirectoryAction.SetRoomType -> setRoomType(action)
             RoomDirectoryAction.LoadMore -> loadMore()
             is RoomDirectoryAction.JoinRoom -> joinRoom(action)
         }
@@ -102,7 +103,7 @@ class RoomDirectoryViewModel @AssistedInject constructor(
             copy(roomDirectoryData = action.roomDirectoryData)
         }
         reset("")
-        load("", action.roomDirectoryData)
+        load("", action.roomDirectoryData, it.roomType)
     }
 
     private fun filterWith(action: RoomDirectoryAction.FilterWith) = withState { state ->
@@ -110,8 +111,19 @@ class RoomDirectoryViewModel @AssistedInject constructor(
             currentJob?.cancel()
 
             reset(action.filter)
-            load(action.filter, state.roomDirectoryData)
+            load(action.filter, state.roomDirectoryData, state.roomType)
         }
+    }
+
+    private fun setRoomType(action: RoomDirectoryAction.SetRoomType) = withState { state ->
+        if (state.roomType == action.roomType) {
+            return@withState
+        }
+        currentJob?.cancel()
+
+        reset(state.currentFilter)
+        setState { copy(roomType = action.roomType) }
+        load(state.currentFilter, state.roomDirectoryData, action.roomType)
     }
 
     private fun reset(newFilter: String) {
@@ -135,11 +147,11 @@ class RoomDirectoryViewModel @AssistedInject constructor(
                         asyncPublicRoomsRequest = Loading()
                 )
             }
-            load(state.currentFilter, state.roomDirectoryData)
+            load(state.currentFilter, state.roomDirectoryData, state.roomType)
         }
     }
 
-    private fun load(filter: String, roomDirectoryData: RoomDirectoryData) {
+    private fun load(filter: String, roomDirectoryData: RoomDirectoryData, roomType: RoomDirectoryRoomType) {
         if (!showAllRooms && !explicitTermFilter.canSearchFor(filter)) {
             setState {
                 copy(
@@ -157,7 +169,7 @@ class RoomDirectoryViewModel @AssistedInject constructor(
                         roomDirectoryData.homeServer,
                         PublicRoomsParams(
                                 limit = PUBLIC_ROOMS_LIMIT,
-                                filter = PublicRoomsFilter(searchTerm = filter),
+                                filter = PublicRoomsFilter(searchTerm = filter, roomTypes = roomType.toFilterValue()),
                                 includeAllNetworks = roomDirectoryData.includeAllNetworks,
                                 since = since,
                                 thirdPartyInstanceId = roomDirectoryData.thirdPartyInstanceId

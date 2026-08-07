@@ -19,11 +19,10 @@ package org.matrix.android.sdk.internal.session.room
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.map
-import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
-import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
-import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
 import org.matrix.android.sdk.api.session.identity.model.SignInvitationResult
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.RoomPagingService
@@ -45,6 +44,8 @@ import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotification
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.asDomain
+import org.matrix.android.sdk.internal.database.sqldelight.asLiveList
+import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.room.alias.DeleteRoomAliasTask
 import org.matrix.android.sdk.internal.session.room.alias.GetRoomIdByAliasTask
@@ -54,6 +55,7 @@ import org.matrix.android.sdk.internal.session.room.delete.DeleteLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.leaving.ForgetRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
@@ -86,6 +88,8 @@ internal class DefaultRoomService @Inject constructor(
         private val roomSummaryDataSource: RoomSummaryDataSource,
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val leaveRoomTask: LeaveRoomTask,
+        private val forgetRoomTask: ForgetRoomTask,
+        private val homeServerCapabilitiesService: HomeServerCapabilitiesService,
         private val roomSummaryUpdater: org.matrix.android.sdk.internal.session.room.summary.SqlRoomSummaryUpdater,
         private val localEchoEventFactory: org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory,
 ) : RoomService, RoomPagingService {
@@ -243,6 +247,11 @@ internal class DefaultRoomService @Inject constructor(
 
     override suspend fun leaveRoom(roomId: String, reason: String?) {
         leaveRoomTask.execute(LeaveRoomTask.Params(roomId, reason))
+    }
+
+    override suspend fun forgetRoom(roomId: String) {
+        if (homeServerCapabilitiesService.getHomeServerCapabilities().forgetForcedUponLeave) return
+        forgetRoomTask.execute(ForgetRoomTask.Params(roomId))
     }
 
     override suspend fun markAllAsRead(roomIds: List<String>) {

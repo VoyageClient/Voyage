@@ -98,6 +98,19 @@ class RoomJoinRuleAdvancedController @Inject constructor(
             }
         }
 
+        if (choices.firstOrNull { it.rule == RoomJoinRules.KNOCK_RESTRICTED } != null) {
+            spaceJoinRuleItem {
+                id("knock_restricted")
+                avatarRenderer(host.avatarRenderer)
+                needUpgrade(false)
+                selected(state.currentRoomJoinRules == RoomJoinRules.KNOCK_RESTRICTED)
+                restrictedList(state.updatedAllowList)
+                title(host.stringProvider.getString(CommonStrings.room_settings_room_access_knock_restricted_title))
+                description(host.stringProvider.getString(CommonStrings.room_settings_room_access_knock_restricted_description))
+                listener { host.interactionListener?.didSelectRule(RoomJoinRules.KNOCK_RESTRICTED) }
+            }
+        }
+
         // Public
         RoomJoinRuleRadioAction(
                 roomJoinRule = RoomJoinRules.PUBLIC,

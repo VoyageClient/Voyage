@@ -21,7 +21,9 @@ CREATE TABLE home_server_capabilities (
     external_account_management_supported_actions TEXT,
     authentication_issuer TEXT,
     disable_network_constraint INTEGER,
-    can_use_authenticated_media INTEGER NOT NULL DEFAULT 0
+    can_use_authenticated_media INTEGER NOT NULL DEFAULT 0,
+    forget_forced_upon_leave INTEGER NOT NULL DEFAULT 0,
+    can_block_invites INTEGER NOT NULL DEFAULT 0
 );
 
 selectFirst:
@@ -36,8 +38,9 @@ INSERT OR REPLACE INTO home_server_capabilities(
     can_remotely_toggle_push_notifications_of_devices, can_redact_event_with_relations,
     can_view_unredacted_content,
     external_account_management_url, external_account_management_supported_actions,
-    authentication_issuer, disable_network_constraint, can_use_authenticated_media
-) VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    authentication_issuer, disable_network_constraint, can_use_authenticated_media,
+    forget_forced_upon_leave, can_block_invites
+) VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAll:
 DELETE FROM home_server_capabilities;

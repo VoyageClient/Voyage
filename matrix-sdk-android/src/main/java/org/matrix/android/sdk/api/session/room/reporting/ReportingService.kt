@@ -22,10 +22,10 @@ package org.matrix.android.sdk.api.session.room.reporting
 interface ReportingService {
 
     /**
-     * Report content
-     * Ref: https://matrix.org/docs/spec/client_server/latest#post-matrix-client-r0-rooms-roomid-report-eventid
+     * Report content.
+     * [score] is deprecated by MSC4277 and only needs supplying for servers that predate it.
      */
-    suspend fun reportContent(eventId: String, score: Int, reason: String)
+    suspend fun reportContent(eventId: String, reason: String, score: Int? = null)
 
     /**
      * Report a room.

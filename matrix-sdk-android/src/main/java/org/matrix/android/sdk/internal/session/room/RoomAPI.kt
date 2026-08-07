@@ -62,7 +62,7 @@ internal interface RoomAPI {
      *
      * Ref: https://matrix.org/docs/spec/client_server/r0.4.0.html#post-matrix-client-r0-publicrooms
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "publicRooms")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "publicRooms")
     suspend fun publicRooms(
             @Query("server") server: String?,
             @Body publicRoomsParams: PublicRoomsParams,
@@ -270,7 +270,7 @@ internal interface RoomAPI {
      * @param to to token
      * @param limit max number of Event to retrieve
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "rooms/{roomId}/relations/{eventId}/{relationType}/{eventType}")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "rooms/{roomId}/relations/{eventId}/{relationType}/{eventType}")
     suspend fun getRelationsWithEventType(
             @Path("roomId") roomId: String,
             @Path("eventId") eventId: String,
@@ -279,6 +279,7 @@ internal interface RoomAPI {
             @Query("from") from: String? = null,
             @Query("to") to: String? = null,
             @Query("limit") limit: Int? = null,
+            @Query("recurse") recurse: Boolean? = null,
     ): RelationsResponse
 
     /**
@@ -291,7 +292,7 @@ internal interface RoomAPI {
      * @param to to token
      * @param limit max number of Event to retrieve
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "rooms/{roomId}/relations/{eventId}/{relationType}")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "rooms/{roomId}/relations/{eventId}/{relationType}")
     suspend fun getRelations(
             @Path("roomId") roomId: String,
             @Path("eventId") eventId: String,
@@ -299,6 +300,7 @@ internal interface RoomAPI {
             @Query("from") from: String? = null,
             @Query("to") to: String? = null,
             @Query("limit") limit: Int? = null,
+            @Query("recurse") recurse: Boolean? = null,
     ): RelationsResponse
 
     /**
@@ -339,6 +341,17 @@ internal interface RoomAPI {
     suspend fun leave(
             @Path("roomId") roomId: String,
             @Body params: Map<String, String?>,
+    )
+
+    /**
+     * Forget a room, dropping the user's access to its history. The room must already be left.
+     *
+     * @param roomId the room id
+     */
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "rooms/{roomId}/forget")
+    suspend fun forget(
+            @Path("roomId") roomId: String,
+            @Body params: Map<String, String?> = emptyMap(),
     )
 
     /**
@@ -400,9 +413,9 @@ internal interface RoomAPI {
      *
      * @param roomId the room id
      * @param eventId the event to report content
-     * @param body body containing score and reason
+     * @param body body containing the reason, and optionally the score deprecated by MSC4277
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/report/{eventId}")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "rooms/{roomId}/report/{eventId}")
     suspend fun reportContent(
             @Path("roomId") roomId: String,
             @Path("eventId") eventId: String,

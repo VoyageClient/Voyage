@@ -55,6 +55,19 @@ data class RoomSync(
         /**
          * The room summary.
          */
-        @Json(name = "summary") val summary: RoomSyncSummary? = null
+        @Json(name = "summary") val summary: RoomSyncSummary? = null,
 
-)
+        /**
+         * MSC4222. Sent *instead of* [state] when the client asked for `use_state_after`, and holds the
+         * room state as of the end of the timeline rather than its start.
+         */
+        @Json(name = "state_after") val stateAfterStable: RoomSyncState? = null,
+
+        @Json(name = "org.matrix.msc4222.state_after") val stateAfterUnstable: RoomSyncState? = null,
+) {
+    /**
+     * Null when the server did not answer in `state_after` form, in which case [state] plus the
+     * timeline is what determines the room state.
+     */
+    val stateAfter: RoomSyncState? = stateAfterStable ?: stateAfterUnstable
+}

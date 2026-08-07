@@ -54,6 +54,8 @@ internal object HomeServerCapabilitiesMapper {
                 authenticationIssuer = entity.authenticationIssuer,
                 disableNetworkConstraint = entity.disableNetworkConstraint,
                 canUseAuthenticatedMedia = entity.canUseAuthenticatedMedia,
+                forgetForcedUponLeave = entity.forgetForcedUponLeave,
+                canBlockInvites = entity.canBlockInvites,
         )
     }
 

@@ -13,6 +13,7 @@ import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
 sealed class RoomDirectoryAction : VectorViewModelAction {
     data class SetRoomDirectoryData(val roomDirectoryData: RoomDirectoryData) : RoomDirectoryAction()
     data class FilterWith(val filter: String) : RoomDirectoryAction()
+    data class SetRoomType(val roomType: RoomDirectoryRoomType) : RoomDirectoryAction()
     object LoadMore : RoomDirectoryAction()
     data class JoinRoom(val publicRoom: PublicRoom) : RoomDirectoryAction()
 }

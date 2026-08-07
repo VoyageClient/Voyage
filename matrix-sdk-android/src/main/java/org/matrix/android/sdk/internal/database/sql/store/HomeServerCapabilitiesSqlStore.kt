@@ -40,6 +40,8 @@ internal class HomeServerCapabilitiesSqlStore(private val database: SessionSqlDa
             authentication_issuer = entity.authenticationIssuer,
             disable_network_constraint = entity.disableNetworkConstraint?.let { if (it) 1L else 0L },
             can_use_authenticated_media = entity.canUseAuthenticatedMedia.toLong(),
+            forget_forced_upon_leave = entity.forgetForcedUponLeave.toLong(),
+            can_block_invites = entity.canBlockInvites.toLong(),
     )
 
     private fun Boolean.toLong(): Long = if (this) 1L else 0L
@@ -67,4 +69,6 @@ internal fun HomeServerCapabilitiesRow.toHomeServerCapabilitiesEntity(): HomeSer
             authenticationIssuer = authentication_issuer,
             disableNetworkConstraint = disable_network_constraint?.let { it != 0L },
             canUseAuthenticatedMedia = can_use_authenticated_media != 0L,
+            forgetForcedUponLeave = forget_forced_upon_leave != 0L,
+            canBlockInvites = can_block_invites != 0L,
     )
