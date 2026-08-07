@@ -47,5 +47,4 @@ internal object FarbfeldBitmapReader {
             null
         }
     }
-
 }

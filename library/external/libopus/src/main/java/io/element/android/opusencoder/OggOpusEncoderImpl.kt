@@ -54,5 +54,4 @@ internal class OggOpusEncoderImpl : OggOpusEncoder {
     }
 
     private external fun encoderRelease()
-
 }

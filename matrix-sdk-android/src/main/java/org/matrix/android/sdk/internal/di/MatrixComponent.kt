@@ -35,9 +35,9 @@ import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.auth.AuthModule
 import org.matrix.android.sdk.internal.auth.SessionParamsStore
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
+import org.matrix.android.sdk.internal.debug.DebugModule
 import org.matrix.android.sdk.internal.platform.KeyValueStoreFactory
 import org.matrix.android.sdk.internal.platform.NetworkCallbackStrategyFactory
-import org.matrix.android.sdk.internal.debug.DebugModule
 import org.matrix.android.sdk.internal.raw.RawModule
 import org.matrix.android.sdk.internal.session.MockHttpInterceptor
 import org.matrix.android.sdk.internal.session.TestInterceptor

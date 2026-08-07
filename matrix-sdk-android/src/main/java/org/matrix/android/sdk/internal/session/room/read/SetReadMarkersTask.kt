@@ -20,8 +20,6 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.events.model.LocalEcho
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilitiesService
-import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
 import org.matrix.android.sdk.internal.database.sql.store.isEventRead
 import org.matrix.android.sdk.internal.database.sql.store.isReadMarkerMoreRecent
 import org.matrix.android.sdk.internal.database.sql.store.latestSyncedEventId

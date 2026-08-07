@@ -8,19 +8,19 @@
 package im.vector.matrixcli
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import kotlinx.coroutines.runBlocking
-import okhttp3.OkHttpClient
-import org.matrix.android.sdk.internal.network.RetrofitFactory
 import im.vector.matrixcli.platform.AssumeOnlineNetworkCallbackStrategyFactory
 import im.vector.matrixcli.platform.DesktopSecureStorage
 import im.vector.matrixcli.platform.FileKeyValueStoreFactory
 import im.vector.matrixcli.platform.JdbcSqlDriverFactory
+import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import org.matrix.android.sdk.internal.auth.db.AuthSqlDatabase
+import org.matrix.android.sdk.internal.network.RetrofitFactory
 import org.matrix.olm.OlmAccount
 import org.matrix.olm.OlmManager
 import java.nio.file.Files

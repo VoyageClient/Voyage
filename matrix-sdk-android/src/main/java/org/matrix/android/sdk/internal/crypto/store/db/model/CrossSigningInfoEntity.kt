@@ -53,4 +53,3 @@ internal open class CrossSigningInfoEntity(
         info?.let { crossSigningKeys.add(it) }
     }
 }
-

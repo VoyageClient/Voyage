@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model.threads
 
-
 internal open class ThreadListPageEntity(
         var roomId: String = "",
         var threadSummaries: MutableList<ThreadSummaryEntity> = ArrayList()

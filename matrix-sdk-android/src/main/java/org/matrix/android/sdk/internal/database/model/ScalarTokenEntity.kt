@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class ScalarTokenEntity(
         var serverUrl: String = "",
         var token: String = ""

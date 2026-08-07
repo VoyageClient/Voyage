@@ -15,6 +15,7 @@ import android.media.MediaFormat
 import android.net.Uri
 import android.os.Build
 import io.element.android.opusencoder.OggOpusDecoder
+import org.matrix.android.sdk.internal.util.use
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.File
@@ -22,7 +23,6 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.abs
-import org.matrix.android.sdk.internal.util.use
 
 // getInputBuffer/getOutputBuffer are API 21+; pre-21 use the getInputBuffers()/getOutputBuffers() arrays (API 16).
 @Suppress("DEPRECATION")
@@ -40,6 +40,7 @@ object AudioWaveformExtractor {
 
     private const val TARGET_SAMPLE_COUNT = 50
     private const val CODEC_TIMEOUT_US = 5_000L
+
     // Approx. window of audio decoded around each seek point, in microseconds.
     private const val WINDOW_DURATION_US = 80_000L
 

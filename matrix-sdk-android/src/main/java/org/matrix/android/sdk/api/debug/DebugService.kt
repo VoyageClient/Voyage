@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.debug
 
-
 /**
  * Useful methods to access to some private data managed by the SDK.
  */

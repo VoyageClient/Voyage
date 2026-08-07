@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.auth.db
 
-
 internal open class SessionParamsEntity(
         var sessionId: String = "",
         var userId: String = "",

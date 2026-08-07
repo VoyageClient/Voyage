@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 internal open class UserEntity(
         var userId: String? = null,
         var devices: MutableList<DeviceInfoEntity> = ArrayList(),
@@ -26,4 +25,3 @@ internal open class UserEntity(
 
     companion object
 }
-

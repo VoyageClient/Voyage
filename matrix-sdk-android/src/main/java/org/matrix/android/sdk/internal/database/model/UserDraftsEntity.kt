@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * Create a specific table to be able to do direct query on it and keep the draft ordered.
  */

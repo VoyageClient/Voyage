@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.crypto.store.db.model
 
-
 internal fun DeviceInfoEntity.Companion.createPrimaryKey(userId: String, deviceId: String) = "$userId|$deviceId"
 
 internal open class DeviceInfoEntity(
@@ -38,7 +37,5 @@ internal open class DeviceInfoEntity(
         var firstTimeSeenLocalTs: Long? = null
 ) {
 
-
     companion object
 }
-

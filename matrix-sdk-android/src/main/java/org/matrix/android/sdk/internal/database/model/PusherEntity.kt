@@ -46,4 +46,3 @@ internal open class PusherEntity(
 
     companion object
 }
-

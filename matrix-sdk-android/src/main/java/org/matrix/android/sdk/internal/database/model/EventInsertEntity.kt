@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * This class is used to get notification on new events being inserted. It's to avoid realm getting slow when listening to insert
  * in EventEntity table.

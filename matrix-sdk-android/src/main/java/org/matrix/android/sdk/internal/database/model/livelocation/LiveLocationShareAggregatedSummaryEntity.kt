@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model.livelocation
 
-
 /**
  * Aggregation info concerning a live location share.
  */

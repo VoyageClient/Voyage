@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class ReadReceiptEntity(
         var primaryKey: String = "",
         var eventId: String = "",
@@ -26,5 +25,4 @@ internal open class ReadReceiptEntity(
         var originServerTs: Double = 0.0
 ) {
     companion object
-
 }

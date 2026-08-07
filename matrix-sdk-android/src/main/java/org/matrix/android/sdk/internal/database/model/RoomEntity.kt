@@ -47,4 +47,3 @@ internal open class RoomEntity(
 
     companion object
 }
-

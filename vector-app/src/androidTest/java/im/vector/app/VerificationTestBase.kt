@@ -7,9 +7,9 @@
 
 package im.vector.app
 
-import android.net.Uri
 import android.view.View
 import androidx.lifecycle.Observer
+import androidx.lifecycle.asLiveData
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.matcher.ViewMatchers
@@ -34,7 +34,6 @@ import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.MatrixCallback
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.registration.RegistrationResult
-import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.verification.PendingVerificationRequest
 import org.matrix.android.sdk.api.session.crypto.verification.getRequest
@@ -87,7 +86,7 @@ abstract class VerificationTestBase {
 
     private fun createHomeServerConfig(): HomeServerConnectionConfig {
         return HomeServerConnectionConfig.Builder()
-                .withHomeServerUri(Uri.parse(homeServerUrl))
+                .withHomeServerUri(homeServerUrl)
                 .build()
     }
 
@@ -128,9 +127,7 @@ abstract class VerificationTestBase {
             session.syncService().startSync(true)
         }
 
-        val syncLiveData = runBlocking(Dispatchers.Main) {
-            session.syncService().getSyncStateLive()
-        }
+        val syncLiveData = session.syncService().getSyncStateFlow().asLiveData()
         val syncObserver = object : Observer<SyncState> {
             override fun onChanged(value: SyncState) {
                 if (session.syncService().hasAlreadySynced()) {

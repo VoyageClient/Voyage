@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * This class is used to store pending threePid data, when user wants to add a threePid to his account.
  */

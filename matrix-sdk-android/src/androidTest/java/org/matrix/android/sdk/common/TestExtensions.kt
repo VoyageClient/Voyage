@@ -21,6 +21,8 @@ import androidx.lifecycle.Observer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -48,6 +50,15 @@ suspend fun <T> LiveData<T>.first(timeout: Long = TestConstants.timeOutMillis, p
                 continuation.invokeOnCancellation { removeObserver(observer) }
             }
         }
+    }
+}
+
+/**
+ * Flow counterpart of the [LiveData] overload above, for the SDK surfaces that moved off LiveData.
+ */
+suspend fun <T> Flow<T>.first(timeout: Long = TestConstants.timeOutMillis, predicate: (T) -> Boolean): T {
+    return wrapWithTimeout(timeout) {
+        first { predicate(it) }
     }
 }
 

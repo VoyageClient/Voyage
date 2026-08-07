@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.identity.db
 
-
 internal open class IdentityDataEntity(
         var identityServerUrl: String? = null,
         var token: String? = null,

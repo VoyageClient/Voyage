@@ -8,6 +8,7 @@
 package im.vector.app.features.reactions.data
 
 import im.vector.app.InstrumentedTest
+import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -100,5 +101,5 @@ class EmojiDataSourceTest : InstrumentedTest {
         assertEquals("Should have 8 quick reactions", 8, result.size)
     }
 
-    private fun createEmojiDataSource() = EmojiDataSource(coroutineScope, context().resources)
+    private fun createEmojiDataSource() = EmojiDataSource(coroutineScope, context().resources, mockk(relaxed = true))
 }

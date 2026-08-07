@@ -12,6 +12,7 @@ import android.view.View
 import androidx.annotation.StringRes
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
+import androidx.lifecycle.asLiveData
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
@@ -128,6 +129,8 @@ fun waitForView(viewMatcher: Matcher<View>, timeout: Long = 20_000, waitForDispl
 }
 
 fun initialSyncIdlingResource(session: Session): IdlingResource {
+    // Held in a val: asLiveData() makes a new instance per call, so removeObserver needs this one.
+    val syncStateLive = session.syncService().getSyncStateFlow().asLiveData()
     val res = object : IdlingResource, Observer<SyncState> {
         private var callback: IdlingResource.ResourceCallback? = null
 
@@ -146,13 +149,13 @@ fun initialSyncIdlingResource(session: Session): IdlingResource {
             val isIdle = session.syncService().hasAlreadySynced()
             if (isIdle) {
                 callback?.onTransitionToIdle()
-                session.syncService().getSyncStateLive().removeObserver(this)
+                syncStateLive.removeObserver(this)
             }
         }
     }
 
     runOnUiThread {
-        session.syncService().getSyncStateLive().observeForever(res)
+        syncStateLive.observeForever(res)
     }
 
     return res
@@ -218,6 +221,7 @@ fun withIdlingResource(idlingResource: IdlingResource, block: (() -> Unit)) {
 }
 
 fun allSecretsKnownIdling(session: Session): IdlingResource {
+    val privateKeysLive = session.cryptoService().crossSigningService().getCrossSigningPrivateKeysFlow().asLiveData()
     val res = object : IdlingResource, Observer<Optional<PrivateKeysInfo>> {
         private var callback: IdlingResource.ResourceCallback? = null
 
@@ -237,7 +241,7 @@ fun allSecretsKnownIdling(session: Session): IdlingResource {
             println("*** [$name]  allSecretsKnownIdling ${value.getOrNull()}")
             privateKeysInfo = value.getOrNull()
             if (value.getOrNull()?.allKnown() == true) {
-                session.cryptoService().crossSigningService().getLiveCrossSigningPrivateKeys().removeObserver(this)
+                privateKeysLive.removeObserver(this)
                 callback?.onTransitionToIdle()
             }
         }
@@ -248,7 +252,7 @@ fun allSecretsKnownIdling(session: Session): IdlingResource {
     }
 
     runOnUiThread {
-        session.cryptoService().crossSigningService().getLiveCrossSigningPrivateKeys().observeForever(res)
+        privateKeysLive.observeForever(res)
     }
 
     return res

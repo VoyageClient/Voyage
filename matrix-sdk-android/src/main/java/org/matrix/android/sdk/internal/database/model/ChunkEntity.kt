@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class ChunkEntity(
         var prevToken: String? = null,
         // Because of gaps we can have several chunks with nextToken == null
@@ -38,10 +37,8 @@ internal open class ChunkEntity(
     // If true, then this chunk was previously a last forward chunk
     fun hasBeenALastForwardChunk() = nextToken == null && !isLastForward
 
-
     companion object
 }
-
 
 /**
  * Delete the chunk along with the thread events that were temporarily created.

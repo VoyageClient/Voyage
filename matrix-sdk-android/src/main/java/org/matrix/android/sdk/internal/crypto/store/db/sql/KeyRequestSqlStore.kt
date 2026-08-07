@@ -19,11 +19,11 @@ import org.matrix.android.sdk.api.session.crypto.model.UnknownInfo
 import org.matrix.android.sdk.api.session.crypto.model.WithheldInfo
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
-import org.matrix.android.sdk.internal.crypto.util.RequestIdHelper
 import org.matrix.android.sdk.internal.crypto.store.db.model.AuditTrailEntity
 import org.matrix.android.sdk.internal.crypto.store.db.model.AuditTrailMapper
 import org.matrix.android.sdk.internal.crypto.store.db.model.KeyRequestReplyEntity
 import org.matrix.android.sdk.internal.crypto.store.db.model.OutgoingKeyRequestEntity
+import org.matrix.android.sdk.internal.crypto.util.RequestIdHelper
 import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.util.time.Clock
 

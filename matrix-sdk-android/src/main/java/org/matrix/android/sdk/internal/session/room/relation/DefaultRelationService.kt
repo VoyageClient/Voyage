@@ -30,7 +30,6 @@ import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.relation.MassRedactionFloor
 import org.matrix.android.sdk.api.session.room.model.relation.PagedEventIds
-import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.api.session.room.model.relation.RelationService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.Cancelable
@@ -42,6 +41,7 @@ import org.matrix.android.sdk.internal.database.sql.SessionSqlDatabase
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sqldelight.awaitDbTransaction
 import org.matrix.android.sdk.internal.di.SessionDatabase
+import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.room.send.LocalEchoEventFactory
 import org.matrix.android.sdk.internal.session.room.send.queue.EventSenderProcessor
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
@@ -342,5 +342,4 @@ internal class DefaultRelationService @AssistedInject constructor(
     private fun saveLocalEcho(event: Event) {
         eventFactory.createLocalEcho(event)
     }
-
 }

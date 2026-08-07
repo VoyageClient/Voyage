@@ -64,8 +64,6 @@ import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.sql.CryptoSqlDatabase
 import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlClearCacheTask
 import org.matrix.android.sdk.internal.crypto.store.db.sql.SqlCryptoStore
-import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
-import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.crypto.tasks.ClaimOneTimeKeysForUsersDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultClaimOneTimeKeysForUsersDevice
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultDeleteDeviceTask
@@ -95,6 +93,8 @@ import org.matrix.android.sdk.internal.crypto.tasks.UploadKeysTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadSignaturesTask
 import org.matrix.android.sdk.internal.crypto.tasks.UploadSigningKeysTask
 import org.matrix.android.sdk.internal.crypto.verification.DefaultVerificationService
+import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
+import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
 import org.matrix.android.sdk.internal.di.CryptoDatabase
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.session.SessionScope

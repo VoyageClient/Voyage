@@ -15,7 +15,6 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class PushRuleEntity(
         // Required. The actions to perform when this rule is matched.
         var actionsStr: String? = null,
@@ -31,7 +30,5 @@ internal open class PushRuleEntity(
         var pattern: String? = null
 ) {
 
-
     companion object
 }
-

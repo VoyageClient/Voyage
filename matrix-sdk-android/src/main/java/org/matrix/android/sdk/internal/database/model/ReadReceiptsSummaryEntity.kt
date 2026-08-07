@@ -16,14 +16,11 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class ReadReceiptsSummaryEntity(
         var eventId: String = "",
         var roomId: String = "",
         var readReceipts: MutableList<ReadReceiptEntity> = ArrayList()
 ) {
 
-
     companion object
 }
-

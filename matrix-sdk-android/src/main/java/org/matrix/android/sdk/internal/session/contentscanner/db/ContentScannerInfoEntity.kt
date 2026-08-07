@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.session.contentscanner.db
 
-
 internal open class ContentScannerInfoEntity(
         var serverUrl: String? = null,
         var enabled: Boolean? = null

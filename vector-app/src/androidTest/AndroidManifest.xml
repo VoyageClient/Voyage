@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Instrumentation-only dependencies declare minSdk 18-21; forced onto this module's minSdk 14 so
-         the androidTest manifest merge succeeds. None of this is shipped, and instrumentation tests only
-         ever run on a device new enough for them. -->
+    <!-- Instrumentation-only dependencies, and app dependencies pulled into the test APK, declare a
+         higher minSdk than this fork's 14. Forced through so the androidTest manifest merge succeeds:
+         none of it is shipped, and instrumentation tests only run on a device new enough for them. -->
     <uses-sdk tools:overrideLibrary="
         android_libs.ub_uiautomator, androidx.browser, androidx.test.core, androidx.test.monitor,
         androidx.test.rules, androidx.test.runner, androidx.test.services.storage,
@@ -18,9 +17,5 @@
         jp.wasabeef.glide.transformations, me.saket.bettermovementmethod, org.maplibre.android,
         org.maplibre.android.gestures, org.maplibre.android.plugins.annotation,
         org.unifiedpush.android.connector, ru.noties.jlatexmath.android" />
-
-    <application>
-        <activity android:name="im.vector.app.features.pin.lockscreen.tests.LockScreenTestActivity" />
-    </application>
 
 </manifest>

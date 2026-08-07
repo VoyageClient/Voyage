@@ -29,4 +29,3 @@ internal open class EventAnnotationsSummaryEntity(
 
     companion object
 }
-

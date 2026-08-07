@@ -15,7 +15,6 @@
  */
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class PusherDataEntity(
         var url: String? = null,
         var format: String? = null

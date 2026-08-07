@@ -41,7 +41,6 @@ import org.matrix.android.sdk.common.CommonTestHelper.Companion.runSessionTest
 import org.matrix.android.sdk.common.SessionTestParams
 import org.matrix.android.sdk.common.TestConstants
 import org.matrix.android.sdk.common.first
-import org.matrix.android.sdk.common.onMain
 import org.matrix.android.sdk.internal.crypto.secrets.DefaultSharedSecretStorageService
 
 @RunWith(AndroidJUnit4::class)
@@ -67,7 +66,7 @@ class QuadSTests : InstrumentedTest {
 
         // Assert Account data is updated
         val accountData = aliceSession.accountDataService()
-                .onMain { getLiveUserAccountDataEvent("${DefaultSharedSecretStorageService.KEY_ID_BASE}.$TEST_KEY_ID") }
+                .getUserAccountDataEventFlow("${DefaultSharedSecretStorageService.KEY_ID_BASE}.$TEST_KEY_ID")
                 .first { it.getOrNull()?.type == "${DefaultSharedSecretStorageService.KEY_ID_BASE}.$TEST_KEY_ID" }
                 .getOrNull()
 
@@ -80,7 +79,7 @@ class QuadSTests : InstrumentedTest {
 
         quadS.setDefaultKey(TEST_KEY_ID)
         val defaultKeyAccountData = aliceSession.accountDataService()
-                .onMain { getLiveUserAccountDataEvent(DefaultSharedSecretStorageService.DEFAULT_KEY_ID) }
+                .getUserAccountDataEventFlow(DefaultSharedSecretStorageService.DEFAULT_KEY_ID)
                 .first { it.getOrNull()?.type == DefaultSharedSecretStorageService.DEFAULT_KEY_ID }
                 .getOrNull()
 
@@ -234,7 +233,7 @@ class QuadSTests : InstrumentedTest {
 
     private suspend fun assertAccountData(session: Session, type: String): UserAccountDataEvent {
         val accountData = session.accountDataService()
-                .onMain { getLiveUserAccountDataEvent(type) }
+                .getUserAccountDataEventFlow(type)
                 .first { it.getOrNull()?.type == type }
                 .getOrNull()
 

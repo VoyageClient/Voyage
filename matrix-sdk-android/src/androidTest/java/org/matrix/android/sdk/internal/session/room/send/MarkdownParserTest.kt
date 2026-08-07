@@ -29,8 +29,8 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 import org.matrix.android.sdk.InstrumentedTest
 import org.matrix.android.sdk.api.util.TextContent
+import org.matrix.android.sdk.internal.session.room.send.pills.AndroidTextPillsUtils
 import org.matrix.android.sdk.internal.session.room.send.pills.MentionLinkSpecComparator
-import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 
 /**
  * It will not be possible to test all combinations. For the moment I add a few tests, then, depending on the problem discovered in the wild,
@@ -56,7 +56,7 @@ class MarkdownParserTest : InstrumentedTest {
                     .extensions(listOf(SubSupStrikeExtension.create(), UnderlineExtension.create()))
                     .softbreak("<br />")
                     .build(),
-            TextPillsUtils(
+            AndroidTextPillsUtils(
                     MentionLinkSpecComparator(),
                     TestPermalinkService()
             )

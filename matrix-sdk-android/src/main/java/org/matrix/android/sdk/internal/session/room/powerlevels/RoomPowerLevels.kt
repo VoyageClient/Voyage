@@ -26,7 +26,6 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.create.getRoomCreateContentWithSender
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
-import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.session.room.state.StateEventDataSource
 
 internal fun StateEventDataSource.getRoomPowerLevels(roomId: String): RoomPowerLevels {

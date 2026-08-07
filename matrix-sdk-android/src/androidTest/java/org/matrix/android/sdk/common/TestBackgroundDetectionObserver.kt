@@ -28,4 +28,9 @@ internal class TestBackgroundDetectionObserver : BackgroundDetectionObserver {
     override fun register(listener: BackgroundDetectionObserver.Listener) = Unit
 
     override fun unregister(listener: BackgroundDetectionObserver.Listener) = Unit
+
+    // Ignored: tests stay foreground whatever the process lifecycle says.
+    override fun onAppForeground() = Unit
+
+    override fun onAppBackground() = Unit
 }

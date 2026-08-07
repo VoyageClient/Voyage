@@ -18,7 +18,6 @@ package org.matrix.android.sdk.internal.session.room.send
 
 import android.content.Context
 import androidx.work.WorkerParameters
-import com.squareup.moshi.JsonClass
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.platform.BackgroundTaskRequest
@@ -28,7 +27,6 @@ import org.matrix.android.sdk.internal.session.SessionComponent
 import org.matrix.android.sdk.internal.session.content.UploadContentWorker
 import org.matrix.android.sdk.internal.session.room.timeline.TimelineSendEventWorkCommon
 import org.matrix.android.sdk.internal.worker.SessionSafeCoroutineWorker
-import org.matrix.android.sdk.internal.worker.SessionWorkerParams
 import timber.log.Timber
 import javax.inject.Inject
 

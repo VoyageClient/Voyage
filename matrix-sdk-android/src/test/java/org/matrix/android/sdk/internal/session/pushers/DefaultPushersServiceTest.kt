@@ -18,8 +18,8 @@ package org.matrix.android.sdk.internal.session.pushers
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import org.junit.Test
 import org.junit.After
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.matrix.android.sdk.test.fakes.FakeAddPusherTask
 import org.matrix.android.sdk.test.fakes.FakeBackgroundTaskScheduler

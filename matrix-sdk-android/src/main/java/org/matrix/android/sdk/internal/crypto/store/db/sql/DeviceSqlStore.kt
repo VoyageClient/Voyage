@@ -12,9 +12,9 @@ import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.internal.crypto.store.db.mapper.MyDeviceLastSeenInfoEntityMapper
 import org.matrix.android.sdk.internal.crypto.store.db.model.CryptoMapper
 import org.matrix.android.sdk.internal.crypto.store.db.model.DeviceInfoEntity
-import org.matrix.android.sdk.internal.crypto.store.db.model.createPrimaryKey
 import org.matrix.android.sdk.internal.crypto.store.db.model.MyDeviceLastSeenInfoEntity
 import org.matrix.android.sdk.internal.crypto.store.db.model.TrustLevelEntity
+import org.matrix.android.sdk.internal.crypto.store.db.model.createPrimaryKey
 
 /**
  * SQL layer for users' devices, the current user's own devices, and per-user device tracking.

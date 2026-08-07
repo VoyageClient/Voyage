@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class RoomTagEntity(
         var tagName: String = "",
         var tagOrder: Double? = null

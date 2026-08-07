@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 /**
  * This entity stores Sync Filter configuration data, provided by the client.
  */

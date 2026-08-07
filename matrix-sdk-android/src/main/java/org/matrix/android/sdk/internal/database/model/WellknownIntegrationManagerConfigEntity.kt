@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.internal.database.model
 
-
 internal open class WellknownIntegrationManagerConfigEntity(
         var id: Long = 0,
         var apiUrl: String = "",

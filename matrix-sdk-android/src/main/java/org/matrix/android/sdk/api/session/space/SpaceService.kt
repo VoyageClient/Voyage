@@ -18,7 +18,6 @@ package org.matrix.android.sdk.api.session.space
 
 import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
-import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.space.model.SpaceChildSummaryEvent
 import org.matrix.android.sdk.api.session.space.peeking.SpacePeekResult

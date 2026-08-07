@@ -28,7 +28,7 @@ class VoiceRecorderLTests {
     val grantPermissionRule: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.RECORD_AUDIO)
 
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
-    private val recorder = VoiceRecorderL(context, Dispatchers.IO, createFakeOpusEncoder())
+    private val recorder = VoiceRecorderL(context, Dispatchers.IO, createFakeOpusEncoder(), FakePermissionChecker())
 
     @Test
     fun startRecordCreatesOggFile() = with(recorder) {

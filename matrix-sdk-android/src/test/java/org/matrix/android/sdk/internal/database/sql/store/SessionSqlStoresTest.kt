@@ -10,8 +10,8 @@ package org.matrix.android.sdk.internal.database.sql.store
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldBeEqualTo
 import org.amshove.kluent.shouldBeNull
-import org.amshove.kluent.shouldHaveSize
 import org.amshove.kluent.shouldContainSame
+import org.amshove.kluent.shouldHaveSize
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
