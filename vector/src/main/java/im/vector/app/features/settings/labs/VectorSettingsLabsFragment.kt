@@ -46,11 +46,6 @@ class VectorSettingsLabsFragment :
     }
 
     override fun bindPref() {
-        findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_LABS_AUTO_REPORT_UISI)?.let { pref ->
-            // ensure correct default
-            pref.isChecked = vectorPreferences.labsAutoReportUISI()
-        }
-
         // clear cache
         findPreference<VectorSwitchPreference>(VectorPreferences.SETTINGS_LABS_ENABLE_THREAD_MESSAGES)?.let { vectorPref ->
             vectorPref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
