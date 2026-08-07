@@ -10,6 +10,7 @@ package im.vector.app.features.roomdirectory
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -107,8 +108,29 @@ class PublicRoomsFragment :
                 sharedActionViewModel.post(RoomDirectorySharedAction.ChangeProtocol)
                 true
             }
+            R.id.menu_room_directory_room_type_all -> {
+                viewModel.handle(RoomDirectoryAction.SetRoomType(RoomDirectoryRoomType.ALL))
+                true
+            }
+            R.id.menu_room_directory_room_type_rooms -> {
+                viewModel.handle(RoomDirectoryAction.SetRoomType(RoomDirectoryRoomType.ROOMS))
+                true
+            }
+            R.id.menu_room_directory_room_type_spaces -> {
+                viewModel.handle(RoomDirectoryAction.SetRoomType(RoomDirectoryRoomType.SPACES))
+                true
+            }
             else -> false
         }
+    }
+
+    override fun handlePrepareMenu(menu: Menu) = withState(viewModel) { state ->
+        val checkedId = when (state.roomType) {
+            RoomDirectoryRoomType.ALL -> R.id.menu_room_directory_room_type_all
+            RoomDirectoryRoomType.ROOMS -> R.id.menu_room_directory_room_type_rooms
+            RoomDirectoryRoomType.SPACES -> R.id.menu_room_directory_room_type_spaces
+        }
+        menu.findItem(checkedId)?.isChecked = true
     }
 
     private fun setupRecyclerView() {

@@ -28,10 +28,6 @@ import org.commonmark.node.BlockQuote
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 import org.matrix.android.sdk.api.session.file.FileService
-import org.matrix.android.sdk.internal.session.room.send.AndroidVideoMetadataExtractor
-import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
-import org.matrix.android.sdk.internal.session.room.send.pills.AndroidTextPillsUtils
-import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.api.session.room.RoomDirectoryService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.space.SpaceService
@@ -89,10 +85,12 @@ import org.matrix.android.sdk.internal.session.room.membership.admin.MembershipA
 import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultInviteTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultJoinRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultKnockRoomTask
-import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.leaving.DefaultForgetRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.DefaultLeaveRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.leaving.ForgetRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.DefaultInviteThreePidTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.InviteThreePidTask
@@ -130,6 +128,10 @@ import org.matrix.android.sdk.internal.session.room.reporting.DefaultReportConte
 import org.matrix.android.sdk.internal.session.room.reporting.DefaultReportRoomTask
 import org.matrix.android.sdk.internal.session.room.reporting.ReportContentTask
 import org.matrix.android.sdk.internal.session.room.reporting.ReportRoomTask
+import org.matrix.android.sdk.internal.session.room.send.AndroidVideoMetadataExtractor
+import org.matrix.android.sdk.internal.session.room.send.VideoMetadataExtractor
+import org.matrix.android.sdk.internal.session.room.send.pills.AndroidTextPillsUtils
+import org.matrix.android.sdk.internal.session.room.send.pills.TextPillsUtils
 import org.matrix.android.sdk.internal.session.room.state.DefaultSendStateTask
 import org.matrix.android.sdk.internal.session.room.state.SendStateTask
 import org.matrix.android.sdk.internal.session.room.tags.AddTagToRoomTask
@@ -271,6 +273,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindLeaveRoomTask(task: DefaultLeaveRoomTask): LeaveRoomTask
+
+    @Binds
+    abstract fun bindForgetRoomTask(task: DefaultForgetRoomTask): ForgetRoomTask
 
     @Binds
     abstract fun bindMembershipAdminTask(task: DefaultMembershipAdminTask): MembershipAdminTask

@@ -22,6 +22,7 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.features.crypto.keysbackup.SharedKeyBackupPreference
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -69,6 +70,7 @@ class ServerBackupStatusViewModel @AssistedInject constructor(
         private val session: Session,
         @DefaultPreferences
         private val sharedPreferences: SharedPreferences,
+        private val sharedKeyBackupPreference: SharedKeyBackupPreference,
 ) :
         VectorViewModel<ServerBackupStatusViewState, ServerBackupStatusAction, EmptyViewEvents>(initialState), KeysBackupStateListener {
 
@@ -126,7 +128,9 @@ class ServerBackupStatusViewModel @AssistedInject constructor(
                 // So 4S is not setup and we have local secrets,
                 return@combine BannerState.Setup(
                         numberOfKeys = getNumberOfKeysToBackup(),
-                        doNotShowAgain = sharedPreferences.getBoolean(BANNER_SETUP_DO_NOT_SHOW_AGAIN, false)
+                        // MSC4287: a user who turned backup off on another device shouldn't be nagged again here.
+                        doNotShowAgain = sharedPreferences.getBoolean(BANNER_SETUP_DO_NOT_SHOW_AGAIN, false) ||
+                                sharedKeyBackupPreference.read(session) == false
                 )
             }
             BannerState.Hidden

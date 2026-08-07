@@ -62,6 +62,7 @@ class ConfigureAndStartSessionUseCaseTest {
             accountInfoCache = fakeAccountInfoCache,
             quickReactionsDataSource = mockk(relaxed = true),
             redactionPreservationService = mockk(relaxed = true),
+            mediaPreviewConfigDataSource = mockk(relaxed = true),
     )
 
     @Before

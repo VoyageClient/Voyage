@@ -10,6 +10,7 @@ package im.vector.app.features.crypto.recover
 import im.vector.app.core.platform.ViewModelTask
 import im.vector.app.core.platform.WaitingViewData
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.crypto.keysbackup.SharedKeyBackupPreference
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.failure.Failure
@@ -61,7 +62,8 @@ data class Params(
 // TODO Rename to CreateServerRecovery
 class BootstrapCrossSigningTask @Inject constructor(
         private val session: Session,
-        private val stringProvider: StringProvider
+        private val stringProvider: StringProvider,
+        private val sharedKeyBackupPreference: SharedKeyBackupPreference,
 ) : ViewModelTask<Params, BootstrapResult> {
 
     override suspend fun execute(params: Params): BootstrapResult {
@@ -228,6 +230,7 @@ class BootstrapCrossSigningTask @Inject constructor(
                 // Save it for gossiping
                 Timber.d("## BootstrapCrossSigningTask: Creating 4S - Save megolm backup key for gossiping")
                 session.cryptoService().keysBackupService().saveBackupRecoveryKey(creationInfo.recoveryKey, version = version.version)
+                sharedKeyBackupPreference.write(session, enabled = true)
 
                 extractCurveKeyFromRecoveryKey(creationInfo.recoveryKey.toBase58())?.toBase64NoPadding()?.let { secret ->
                     ssssService.storeSecret(

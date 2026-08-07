@@ -31,6 +31,18 @@ object UserAccountDataTypes {
     const val TYPE_LOCAL_NOTIFICATION_SETTINGS = "org.matrix.msc3890.local_notification_settings."
     const val TYPE_RECENT_EMOJI = "io.element.recent_emoji"
 
+    // MSC4287 key backup preference. The unstable form Element shipped stores the reversed sense
+    // ({"disabled": true}) rather than {"enabled": true}, so the two are not interchangeable.
+    const val TYPE_KEY_BACKUP = "m.key_backup"
+    const val TYPE_KEY_BACKUP_UNSTABLE = "m.org.matrix.custom.backup_disabled"
+
+    // MSC4380 invite blocking.
+    const val TYPE_INVITE_PERMISSION_CONFIG = "m.invite_permission_config"
+
+    // MSC4278 media preview controls. Element Web still writes only the unstable type.
+    const val TYPE_MEDIA_PREVIEW_CONFIG = "m.media_preview_config"
+    const val TYPE_MEDIA_PREVIEW_CONFIG_UNSTABLE = "io.element.msc4278.media_preview_config"
+
     // MSC2545 image packs. Personal pack has no stable id in the redrafted spec; keep using the unstable one.
     const val TYPE_USER_EMOTES = "im.ponies.user_emotes"
     const val TYPE_IMAGE_PACK_ROOMS = "m.image_pack.rooms"

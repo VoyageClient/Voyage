@@ -153,6 +153,7 @@ interface StateService {
     suspend fun setJoinRuleInviteOnly()
     suspend fun setJoinRuleKnock()
     suspend fun setJoinRuleRestricted(allowList: List<String>)
+    suspend fun setJoinRuleKnockRestricted(allowList: List<String>)
     fun getRoomPowerLevels(): RoomPowerLevels
     fun getRoomPowerLevelsFlow(): Flow<RoomPowerLevels>
 }

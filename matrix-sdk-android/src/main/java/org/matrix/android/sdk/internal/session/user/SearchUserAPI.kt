@@ -21,6 +21,7 @@ import org.matrix.android.sdk.internal.session.user.model.SearchUsersParams
 import org.matrix.android.sdk.internal.session.user.model.SearchUsersResponse
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 internal interface SearchUserAPI {
 
@@ -31,4 +32,16 @@ internal interface SearchUserAPI {
      */
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "user_directory/search")
     suspend fun searchUsers(@Body searchUsersParams: SearchUsersParams): SearchUsersResponse
+
+    /**
+     * Report a user as inappropriate to the server (MSC4260).
+     *
+     * @param userId the user to report
+     * @param body body containing the reason
+     */
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "users/{userId}/report")
+    suspend fun reportUser(
+            @Path("userId") userId: String,
+            @Body body: ReportUserBody,
+    )
 }

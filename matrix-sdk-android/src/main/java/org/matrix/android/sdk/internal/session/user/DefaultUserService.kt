@@ -17,14 +17,15 @@
 package org.matrix.android.sdk.internal.session.user
 
 import androidx.lifecycle.LiveData
-import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagedList
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.session.user.UserPagingService
 import org.matrix.android.sdk.api.session.user.UserService
 import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.session.profile.GetProfileInfoTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateIgnoredUserIdsTask
+import org.matrix.android.sdk.internal.session.user.model.ReportUserTask
 import org.matrix.android.sdk.internal.session.user.model.SearchUserTask
 import javax.inject.Inject
 
@@ -32,6 +33,7 @@ internal class DefaultUserService @Inject constructor(
         private val userDataSource: UserDataSource,
         private val searchUserTask: SearchUserTask,
         private val updateIgnoredUserIdsTask: UpdateIgnoredUserIdsTask,
+        private val reportUserTask: ReportUserTask,
         private val getProfileInfoTask: GetProfileInfoTask
 ) : UserService, UserPagingService {
 
@@ -84,5 +86,9 @@ internal class DefaultUserService @Inject constructor(
     override suspend fun unIgnoreUserIds(userIds: List<String>) {
         val params = UpdateIgnoredUserIdsTask.Params(userIdsToUnIgnore = userIds.toList())
         updateIgnoredUserIdsTask.execute(params)
+    }
+
+    override suspend fun reportUser(userId: String, reason: String) {
+        reportUserTask.execute(ReportUserTask.Params(userId, reason))
     }
 }

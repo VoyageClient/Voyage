@@ -17,6 +17,7 @@ import dagger.assisted.AssistedInject
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.features.crypto.keysbackup.SharedKeyBackupPreference
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupService
@@ -27,7 +28,8 @@ import timber.log.Timber
 
 class KeysBackupSettingsViewModel @AssistedInject constructor(
         @Assisted initialState: KeysBackupSettingViewState,
-        private val session: Session
+        private val session: Session,
+        private val sharedKeyBackupPreference: SharedKeyBackupPreference,
 ) : VectorViewModel<KeysBackupSettingViewState, KeyBackupSettingsAction, KeysBackupViewEvents>(initialState),
         KeysBackupStateListener {
 
@@ -152,6 +154,7 @@ class KeysBackupSettingsViewModel @AssistedInject constructor(
             // Save it for gossiping
             Timber.d("## BootstrapCrossSigningTask: Creating 4S - Save megolm backup key for gossiping")
             session.cryptoService().keysBackupService().saveBackupRecoveryKey(info.recoveryKey, version = version.version)
+            sharedKeyBackupPreference.write(session, enabled = true)
         } catch (failure: Throwable) {
             // XXX mm... failed we should remove what we put in 4S, as it was not created?
             // for now just stay on the screen, user can retry, there is no api to delete account data
@@ -172,6 +175,7 @@ class KeysBackupSettingsViewModel @AssistedInject constructor(
 
             try {
                 keysBackupService.deleteBackup(keysBackupService.currentBackupVersion!!)
+                sharedKeyBackupPreference.write(session, enabled = false)
                 setState {
                     copy(
                             keysBackupVersion = null,

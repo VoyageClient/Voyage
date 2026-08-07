@@ -41,6 +41,7 @@ data class RoomJoinRulesContent(
         "knock" -> RoomJoinRules.KNOCK
         "private" -> RoomJoinRules.PRIVATE
         "restricted" -> RoomJoinRules.RESTRICTED
+        "knock_restricted" -> RoomJoinRules.KNOCK_RESTRICTED
         else -> {
             Timber.w("Invalid value for RoomJoinRules: `$joinRulesStr`")
             null

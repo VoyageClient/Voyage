@@ -107,15 +107,20 @@ internal class SqlRoomSyncHandler @Inject constructor(
         roomEntity.membership = Membership.JOIN
         stores.room.upsert(roomEntity)
 
-        roomSync.state?.events?.forEach { event ->
-            val eventId = event.eventId
-            val stateKey = event.stateKey
-            val type = event.type
-            if (eventId == null || stateKey == null || type == null) return@forEach
-            val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
-            insertEventOrIgnore(stores, event.toEntity(roomId, SendState.SYNCED, ageLocalTs), insertType)
-            stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
-            roomMemberEventHandler.handle(stores, roomId, event, isInitialSync, aggregator)
+        // MSC4222: `state_after` is the state at the END of the timeline, so it has to be applied
+        // after the timeline events rather than before them, or the timeline would overwrite it.
+        val stateAfter = roomSync.stateAfter
+        if (stateAfter == null) {
+            applyStateEvents(stores, roomId, roomSync.state?.events, insertType, syncTs, isInitialSync, aggregator)
+        } else {
+            // The timeline resolves each sender's profile from the member state already in the DB, so
+            // someone who joined during a gap would otherwise render as a bare MXID for this whole batch.
+            // Membership is applied early for that reason; the full state still lands after the timeline,
+            // and re-applying these is idempotent.
+            applyStateEvents(
+                    stores, roomId, stateAfter.events.orEmpty().filter { it.type == EventType.STATE_ROOM_MEMBER },
+                    insertType, syncTs, isInitialSync, aggregator
+            )
         }
         val timeline = roomSync.timeline
         val timelineEvents = timeline?.events
@@ -124,7 +129,11 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, timeline.limited, insertType, syncTs)
             }
         }
-        val hasRoomMember = (roomSync.state?.events.orEmpty() + roomSync.timeline?.events.orEmpty())
+        if (stateAfter != null) {
+            applyStateEvents(stores, roomId, stateAfter.events, insertType, syncTs, isInitialSync, aggregator)
+        }
+        val hasRoomMember = (stateAfter?.events ?: roomSync.state?.events).orEmpty()
+                .plus(roomSync.timeline?.events.orEmpty())
                 .any { it.type == EventType.STATE_ROOM_MEMBER }
 
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.JOIN)
@@ -135,6 +144,23 @@ internal class SqlRoomSyncHandler @Inject constructor(
             )
         }
         handleRoomAccountData(stores, roomId, roomSync.accountData)
+    }
+
+    private fun applyStateEvents(
+            stores: SessionStores, roomId: String, events: List<Event>?,
+            insertType: EventInsertType, syncTs: Long, isInitialSync: Boolean,
+            aggregator: SyncResponsePostTreatmentAggregator,
+    ) {
+        events?.forEach { event ->
+            val eventId = event.eventId
+            val stateKey = event.stateKey
+            val type = event.type
+            if (eventId == null || stateKey == null || type == null) return@forEach
+            val ageLocalTs = syncTs - (event.unsignedData?.age ?: 0)
+            insertEventOrIgnore(stores, event.toEntity(roomId, SendState.SYNCED, ageLocalTs), insertType)
+            stores.currentStateEvent.upsert(roomId, type, stateKey, eventId, eventId)
+            roomMemberEventHandler.handle(stores, roomId, event, isInitialSync, aggregator)
+        }
     }
 
     // When the remote copy of a sent edit arrives, re-point its edit-summary edition from the local echo
@@ -221,7 +247,11 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val isInitialSync = insertType == EventInsertType.INITIAL_SYNC
         val roomEntity = stores.room.get(roomId) ?: RoomEntity(roomId = roomId)
         aggregator.spaceHierarchyChanged = true
-        (roomSync.state?.events.orEmpty() + roomSync.timeline?.events.orEmpty()).forEach { event ->
+        // MSC4222: state_after wins over the timeline, so it has to be applied last.
+        val orderedStateEvents = roomSync.stateAfter
+                ?.let { roomSync.timeline?.events.orEmpty() + it.events.orEmpty() }
+                ?: (roomSync.state?.events.orEmpty() + roomSync.timeline?.events.orEmpty())
+        orderedStateEvents.forEach { event ->
             val eventId = event.eventId
             val stateKey = event.stateKey
             val type = event.type

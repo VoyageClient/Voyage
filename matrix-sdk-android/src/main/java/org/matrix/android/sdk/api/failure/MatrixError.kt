@@ -131,6 +131,12 @@ data class MatrixError(
         /** (Not documented yet). */
         const val M_CONSENT_NOT_GIVEN = "M_CONSENT_NOT_GIVEN"
 
+        /** MSC4380. The invited user does not accept invites. */
+        const val M_INVITE_BLOCKED = "M_INVITE_BLOCKED"
+
+        /** MSC2246. The bytes of this reserved content URI have already been uploaded. */
+        const val M_CANNOT_OVERWRITE_MEDIA = "M_CANNOT_OVERWRITE_MEDIA"
+
         /** The request cannot be completed because the homeserver has reached a resource limit imposed on it. For example,
          *  a homeserver held in a shared hosting environment may reach a resource limit if it starts using too much memory
          *  or disk space. The error MUST have an admin_contact field to provide the user receiving the error a place to reach

@@ -110,6 +110,14 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
                     .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_KNOCK, roomVersion) ||
                     HomeServerCapabilities.roomVersionAtLeast(roomVersion, HomeServerCapabilities.ROOM_VERSION_KNOCK)
 
+            val knockRestrictedSupportedByThisVersion = homeServerCapabilities
+                    .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_KNOCK_RESTRICTED, roomVersion) ||
+                    HomeServerCapabilities.roomVersionAtLeast(roomVersion, HomeServerCapabilities.ROOM_VERSION_KNOCK_RESTRICTED)
+
+            if (safeRule == RoomJoinRules.KNOCK_RESTRICTED && !knockRestrictedSupportedByThisVersion) {
+                safeRule = RoomJoinRules.INVITE
+            }
+
             val choices = buildList {
                 add(RoomJoinRules.INVITE.toOption(false))
                 if (restrictedSupportedByThisVersion || couldUpgradeToRestricted) {
@@ -117,6 +125,9 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
                 }
                 if (knockSupportedByThisVersion) {
                     add(RoomJoinRules.KNOCK.toOption(false))
+                }
+                if (knockRestrictedSupportedByThisVersion) {
+                    add(RoomJoinRules.KNOCK_RESTRICTED.toOption(false))
                 }
                 add(RoomJoinRules.PUBLIC.toOption(false))
             }
@@ -154,7 +165,7 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
             return@withState
         }
 
-        if (state.currentRoomJoinRules == RoomJoinRules.RESTRICTED) {
+        if (state.currentRoomJoinRules == RoomJoinRules.RESTRICTED || state.currentRoomJoinRules == RoomJoinRules.KNOCK_RESTRICTED) {
             val allowDidChange = state.initialAllowList.map { it.roomId } != state.updatedAllowList.map { it.id }
             setState {
                 copy(hasUnsavedChanges = allowDidChange)
@@ -193,6 +204,7 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
                     RoomJoinRules.INVITE -> room.stateService().setJoinRuleInviteOnly()
                     RoomJoinRules.KNOCK -> room.stateService().setJoinRuleKnock()
                     RoomJoinRules.RESTRICTED -> room.stateService().setJoinRuleRestricted(state.updatedAllowList.map { it.id })
+                    RoomJoinRules.KNOCK_RESTRICTED -> room.stateService().setJoinRuleKnockRestricted(state.updatedAllowList.map { it.id })
                     RoomJoinRules.PRIVATE,
                     null -> {
                         throw UnsupportedOperationException()
@@ -235,7 +247,9 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
             return@withState
         }
 
-        if (action.rules == RoomJoinRules.RESTRICTED && currentRoomJoinRules != RoomJoinRules.RESTRICTED) {
+        val usesAllowList = action.rules in ALLOW_LIST_JOIN_RULES
+
+        if (usesAllowList && currentRoomJoinRules !in ALLOW_LIST_JOIN_RULES) {
             // switching to restricted
             // if allow list is empty, then default to current space parents
             if (state.updatedAllowList.isEmpty()) {
@@ -258,7 +272,7 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
             )
         }
 
-        if (action.rules == RoomJoinRules.RESTRICTED && currentRoomJoinRules == RoomJoinRules.RESTRICTED) {
+        if (usesAllowList && action.rules == currentRoomJoinRules) {
             _viewEvents.post(RoomJoinRuleChooseRestrictedEvents.NavigateToChooseRestricted)
         }
     }
@@ -384,5 +398,7 @@ class RoomJoinRuleChooseRestrictedViewModel @AssistedInject constructor(
         }
     }
 
-    companion object : MavericksViewModelFactory<RoomJoinRuleChooseRestrictedViewModel, RoomJoinRuleChooseRestrictedState> by hiltMavericksViewModelFactory()
+    companion object : MavericksViewModelFactory<RoomJoinRuleChooseRestrictedViewModel, RoomJoinRuleChooseRestrictedState> by hiltMavericksViewModelFactory() {
+        private val ALLOW_LIST_JOIN_RULES = setOf(RoomJoinRules.RESTRICTED, RoomJoinRules.KNOCK_RESTRICTED)
+    }
 }

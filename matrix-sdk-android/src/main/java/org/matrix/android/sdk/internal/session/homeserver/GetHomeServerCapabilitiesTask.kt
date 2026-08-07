@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.extensions.orTrue
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.internal.auth.version.Versions
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportAuthenticatedMedia
+import org.matrix.android.sdk.internal.auth.version.doesServerSupportInviteBlocking
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportLogoutDevices
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportQrCodeLogin
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportRedactionOfRelatedEvents
@@ -150,6 +151,10 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                 homeServerCapabilitiesEntity.roomVersionsJson = capabilities?.roomVersions?.let {
                     MoshiProvider.providesMoshi().adapter(RoomVersions::class.java).toJson(it)
                 }
+
+                // MSC4267 says to assume no auto-forget when the capability is absent.
+                homeServerCapabilitiesEntity.forgetForcedUponLeave =
+                        (capabilities?.forgetForcedUponLeave ?: capabilities?.forgetForcedUponLeaveUnstable)?.enabled.orFalse()
             }
 
             if (getMediaConfigResult != null) {
@@ -174,6 +179,8 @@ internal class DefaultGetHomeServerCapabilitiesTask @Inject constructor(
                         getVersionResult.doesServerSupportViewingUnredactedContent()
                 homeServerCapabilitiesEntity.canUseAuthenticatedMedia =
                         getVersionResult.doesServerSupportAuthenticatedMedia()
+                homeServerCapabilitiesEntity.canBlockInvites =
+                        getVersionResult.doesServerSupportInviteBlocking()
             }
 
             if (getWellknownResult != null && getWellknownResult is WellknownResult.Prompt) {

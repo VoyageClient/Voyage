@@ -109,6 +109,16 @@ data class HomeServerCapabilities(
          * True if the home server supports authenticated media.
          */
         val canUseAuthenticatedMedia: Boolean = false,
+        /**
+         * MSC4267. True when leaving a room always forgets it too, so there is no point offering the
+         * user a separate forget action or an archive of left rooms.
+         */
+        val forgetForcedUponLeave: Boolean = false,
+        /**
+         * MSC4380. True when the server honours m.invite_permission_config, so offering the user a
+         * "block all invites" switch would actually do something.
+         */
+        val canBlockInvites: Boolean = false,
 ) {
 
     enum class RoomCapabilitySupport {
@@ -171,11 +181,13 @@ data class HomeServerCapabilities(
         const val MAX_UPLOAD_FILE_SIZE_UNKNOWN = -1L
         const val ROOM_CAP_KNOCK = "knock"
         const val ROOM_CAP_RESTRICTED = "restricted"
+        const val ROOM_CAP_KNOCK_RESTRICTED = "knock_restricted"
 
         // Lowest stable room versions that support these join rules, per the spec feature matrix.
         // Used as a fallback when the homeserver does not advertise org.matrix.msc3244.room_capabilities.
         const val ROOM_VERSION_KNOCK = 7
         const val ROOM_VERSION_RESTRICTED = 9
+        const val ROOM_VERSION_KNOCK_RESTRICTED = 10
 
         fun roomVersionAtLeast(roomVersion: String?, minVersion: Int): Boolean {
             return (roomVersion?.toIntOrNull() ?: return false) >= minVersion

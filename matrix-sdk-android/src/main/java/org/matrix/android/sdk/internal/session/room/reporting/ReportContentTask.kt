@@ -26,8 +26,8 @@ internal interface ReportContentTask : Task<ReportContentTask.Params, Unit> {
     data class Params(
             val roomId: String,
             val eventId: String,
-            val score: Int,
-            val reason: String
+            val reason: String,
+            val score: Int? = null,
     )
 }
 
@@ -38,7 +38,7 @@ internal class DefaultReportContentTask @Inject constructor(
 
     override suspend fun execute(params: ReportContentTask.Params) {
         return executeRequest(globalErrorReceiver) {
-            roomAPI.reportContent(params.roomId, params.eventId, ReportContentBody(params.score, params.reason))
+            roomAPI.reportContent(params.roomId, params.eventId, ReportContentBody(params.reason, params.score))
         }
     }
 }

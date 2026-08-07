@@ -665,4 +665,24 @@
     <string name="settings_server_admin_yes" translatable="false">Yes</string>
     <string name="settings_server_admin_no" translatable="false">No</string>
     <string name="settings_server_admin_unknown" translatable="false">Unknown</string>
+
+    <string name="room_settings_room_access_knock_restricted_title" translatable="false">Space members, or ask to join</string>
+    <string name="room_settings_room_access_knock_restricted_description" translatable="false">Members of the selected spaces can join without an invite. Everyone else needs to ask to join.</string>
+
+    <string name="room_join_rules_knock" translatable="false">%1$s made the room ask to join.</string>
+    <string name="room_join_rules_knock_by_you" translatable="false">You made the room ask to join.</string>
+    <string name="room_join_rules_restricted" translatable="false">%1$s made the room open to space members.</string>
+    <string name="room_join_rules_restricted_by_you" translatable="false">You made the room open to space members.</string>
+    <string name="room_join_rules_knock_restricted" translatable="false">%1$s made the room open to space members, or ask to join.</string>
+    <string name="room_join_rules_knock_restricted_by_you" translatable="false">You made the room open to space members, or ask to join.</string>
+
+    <string name="room_directory_filter_room_type" translatable="false">Show</string>
+    <string name="room_directory_filter_room_type_all" translatable="false">Rooms and spaces</string>
+    <string name="room_directory_filter_room_type_rooms" translatable="false">Rooms only</string>
+    <string name="room_directory_filter_room_type_spaces" translatable="false">Spaces only</string>
+
+    <string name="settings_block_invites_title" translatable="false">Block all room invites</string>
+    <string name="settings_block_invites_summary" translatable="false">Your server will reject every invite sent to you, on all your devices.</string>
+    <string name="settings_block_invites_unsupported" translatable="false">Your homeserver does not support blocking invites.</string>
+    <string name="error_invite_blocked" translatable="false">This user does not accept invites.</string>
 </resources>

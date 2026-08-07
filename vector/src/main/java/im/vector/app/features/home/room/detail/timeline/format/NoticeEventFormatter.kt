@@ -1103,6 +1103,24 @@ class NoticeEventFormatter @Inject constructor(
                 } else {
                     sp.getString(CommonStrings.room_join_rules_public, senderName)
                 }
+            RoomJoinRules.KNOCK ->
+                if (event.isSentByCurrentUser()) {
+                    sp.getString(CommonStrings.room_join_rules_knock_by_you)
+                } else {
+                    sp.getString(CommonStrings.room_join_rules_knock, senderName)
+                }
+            RoomJoinRules.RESTRICTED ->
+                if (event.isSentByCurrentUser()) {
+                    sp.getString(CommonStrings.room_join_rules_restricted_by_you)
+                } else {
+                    sp.getString(CommonStrings.room_join_rules_restricted, senderName)
+                }
+            RoomJoinRules.KNOCK_RESTRICTED ->
+                if (event.isSentByCurrentUser()) {
+                    sp.getString(CommonStrings.room_join_rules_knock_restricted_by_you)
+                } else {
+                    sp.getString(CommonStrings.room_join_rules_knock_restricted, senderName)
+                }
             else -> null
         }
     }

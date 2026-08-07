@@ -19,6 +19,7 @@ private val PRIVATE_JOIN_RULES = setOf(
         RoomJoinRules.INVITE,
         RoomJoinRules.KNOCK,
         RoomJoinRules.RESTRICTED,
+        RoomJoinRules.KNOCK_RESTRICTED,
         RoomJoinRules.PRIVATE,
 )
 

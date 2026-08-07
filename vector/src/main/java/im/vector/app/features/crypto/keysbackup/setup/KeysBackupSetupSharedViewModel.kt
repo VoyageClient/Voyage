@@ -14,6 +14,7 @@ import androidx.lifecycle.viewModelScope
 import com.nulabinc.zxcvbn.Strength
 import im.vector.app.core.platform.WaitingViewData
 import im.vector.app.core.utils.LiveEvent
+import im.vector.app.features.crypto.keysbackup.SharedKeyBackupPreference
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.launch
@@ -32,6 +33,7 @@ import javax.inject.Inject
  */
 class KeysBackupSetupSharedViewModel @Inject constructor(
         private val clock: Clock,
+        private val sharedKeyBackupPreference: SharedKeyBackupPreference,
 ) : ViewModel() {
 
     companion object {
@@ -168,6 +170,7 @@ class KeysBackupSetupSharedViewModel @Inject constructor(
         try {
             loadingStatus.postValue(null)
             val created = keysBackup.createKeysBackupVersion(megolmBackupCreationInfo!!)
+            sharedKeyBackupPreference.write(session, enabled = true)
             isCreatingBackupVersion.postValue(false)
             keysVersion.postValue(created)
             navigateEvent.value = LiveEvent(NAVIGATE_TO_STEP_3)

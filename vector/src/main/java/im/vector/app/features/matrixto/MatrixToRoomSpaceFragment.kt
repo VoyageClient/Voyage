@@ -103,7 +103,7 @@ class MatrixToRoomSpaceFragment :
                             Membership.LEAVE,
                             Membership.NONE -> {
                                 views.matrixToCardMainButton.isVisible = true
-                                val isKnock = peek.joinRule == RoomJoinRules.KNOCK
+                                val isKnock = peek.joinRule == RoomJoinRules.KNOCK || peek.joinRule == RoomJoinRules.KNOCK_RESTRICTED
                                 views.matrixToCardMainButton.button.text =
                                         getString(if (isKnock) CommonStrings.room_preview_request_to_join else joinTextRes)
                                 views.matrixToCardKnockMessage.isVisible = isKnock
@@ -203,7 +203,7 @@ class MatrixToRoomSpaceFragment :
                     Membership.LEAVE -> {
                         if (info.roomType == RoomType.SPACE) {
                             sharedViewModel.handle(MatrixToAction.JoinSpace(info.roomItem.id, info.viaServers))
-                        } else if (info.joinRule == RoomJoinRules.KNOCK && info.membership != Membership.INVITE) {
+                        } else if (info.joinRule in KNOCKABLE_JOIN_RULES && info.membership != Membership.INVITE) {
                             val reason = views.matrixToCardKnockMessage.text.toString().trim().takeIf { it.isNotEmpty() }
                             sharedViewModel.handle(MatrixToAction.KnockRoom(info.roomItem.id, info.viaServers, reason))
                         } else {
@@ -233,5 +233,9 @@ class MatrixToRoomSpaceFragment :
     }
 
     private fun secondaryButtonClicked() = withState(sharedViewModel) { _ ->
+    }
+
+    companion object {
+        private val KNOCKABLE_JOIN_RULES = setOf(RoomJoinRules.KNOCK, RoomJoinRules.KNOCK_RESTRICTED)
     }
 }

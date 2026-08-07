@@ -16,10 +16,10 @@
 
 package org.matrix.android.sdk.internal.session.room.state
 
-import kotlinx.coroutines.flow.Flow
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.flow.Flow
 import org.matrix.android.sdk.api.query.QueryStateEventValue
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.events.model.Event
@@ -161,9 +161,9 @@ internal class DefaultStateService @AssistedInject constructor(
 
     override suspend fun updateJoinRule(joinRules: RoomJoinRules?, guestAccess: GuestAccess?, allowList: List<RoomJoinRulesAllowEntry>?) {
         if (joinRules != null) {
-            val body = if (joinRules == RoomJoinRules.RESTRICTED) {
+            val body = if (joinRules == RoomJoinRules.RESTRICTED || joinRules == RoomJoinRules.KNOCK_RESTRICTED) {
                 RoomJoinRulesContent(
-                        joinRulesStr = RoomJoinRules.RESTRICTED.value,
+                        joinRulesStr = joinRules.value,
                         allowList = allowList
                 ).toContent()
             } else {
@@ -298,5 +298,12 @@ internal class DefaultStateService @AssistedInject constructor(
             RoomJoinRulesAllowEntry.restrictedToRoom(spaceId)
         }
         updateJoinRule(RoomJoinRules.RESTRICTED, null, allowEntries)
+    }
+
+    override suspend fun setJoinRuleKnockRestricted(allowList: List<String>) {
+        val allowEntries = allowList.map { spaceId ->
+            RoomJoinRulesAllowEntry.restrictedToRoom(spaceId)
+        }
+        updateJoinRule(RoomJoinRules.KNOCK_RESTRICTED, null, allowEntries)
     }
 }

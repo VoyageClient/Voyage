@@ -78,6 +78,9 @@ class DefaultErrorFormatter @Inject constructor(
                     throwable.error.code == MatrixError.M_TOO_LARGE -> {
                         stringProvider.getString(CommonStrings.error_file_too_big_simple)
                     }
+                    throwable.error.code == MatrixError.M_INVITE_BLOCKED -> {
+                        stringProvider.getString(CommonStrings.error_invite_blocked)
+                    }
                     throwable.error.code == MatrixError.M_THREEPID_NOT_FOUND -> {
                         stringProvider.getString(CommonStrings.login_reset_password_error_not_found)
                     }

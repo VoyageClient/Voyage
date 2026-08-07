@@ -7,4 +7,27 @@
         android:title="@string/change_room_directory_network"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/menu_room_directory_room_type"
+        android:title="@string/room_directory_filter_room_type"
+        app:showAsAction="never">
+        <menu>
+            <group android:checkableBehavior="single">
+
+                <item
+                    android:id="@+id/menu_room_directory_room_type_all"
+                    android:title="@string/room_directory_filter_room_type_all" />
+
+                <item
+                    android:id="@+id/menu_room_directory_room_type_rooms"
+                    android:title="@string/room_directory_filter_room_type_rooms" />
+
+                <item
+                    android:id="@+id/menu_room_directory_room_type_spaces"
+                    android:title="@string/room_directory_filter_room_type_spaces" />
+
+            </group>
+        </menu>
+    </item>
+
 </menu>

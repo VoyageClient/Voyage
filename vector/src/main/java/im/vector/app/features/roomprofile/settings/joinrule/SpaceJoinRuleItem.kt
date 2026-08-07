@@ -40,6 +40,12 @@ abstract class SpaceJoinRuleItem : VectorEpoxyModel<SpaceJoinRuleItem.Holder>(R.
     @EpoxyAttribute
     var restrictedList: List<MatrixItem> = emptyList()
 
+    @EpoxyAttribute
+    var title: String? = null
+
+    @EpoxyAttribute
+    var description: String? = null
+
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     lateinit var listener: ClickListener
 
@@ -48,6 +54,12 @@ abstract class SpaceJoinRuleItem : VectorEpoxyModel<SpaceJoinRuleItem.Holder>(R.
 
         holder.view.onClick(listener)
         holder.upgradeRequiredButton.setOnClickListener(DebouncedClickListener(listener))
+
+        // Always assign: the restricted and knock-restricted rows are the same Epoxy model and so share
+        // a recycler pool, and leaving these to the layout defaults would keep whichever text was bound last.
+        holder.actionTitle.text = title ?: holder.view.context.getString(CommonStrings.room_settings_room_access_restricted_title)
+        holder.actionDescription.text = description
+                ?: holder.view.context.getString(CommonStrings.allow_space_member_to_find_and_access)
 
         if (selected) {
             holder.radioImage.setAttributeTintedImageResource(R.drawable.ic_radio_on, com.google.android.material.R.attr.colorPrimary)

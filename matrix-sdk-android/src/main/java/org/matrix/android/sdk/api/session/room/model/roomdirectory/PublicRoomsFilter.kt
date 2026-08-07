@@ -27,5 +27,12 @@ data class PublicRoomsFilter(
          * A string to search for in the room metadata, e.g. name, topic, canonical alias etc. (Optional).
          */
         @Json(name = "generic_search_term")
-        val searchTerm: String? = null
+        val searchTerm: String? = null,
+
+        /**
+         * Room types to include (MSC3827). A null entry matches rooms that have no type at all,
+         * i.e. ordinary rooms as opposed to spaces. (Optional).
+         */
+        @Json(name = "room_types")
+        val roomTypes: List<String?>? = null
 )

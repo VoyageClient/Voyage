@@ -40,6 +40,8 @@ internal open class HomeServerCapabilitiesEntity(
         var authenticationIssuer: String? = null,
         var disableNetworkConstraint: Boolean? = null,
         var canUseAuthenticatedMedia: Boolean = false,
+        var forgetForcedUponLeave: Boolean = false,
+        var canBlockInvites: Boolean = false,
 ) {
 
     companion object

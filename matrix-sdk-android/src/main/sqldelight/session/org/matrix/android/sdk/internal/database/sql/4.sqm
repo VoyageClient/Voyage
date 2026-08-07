@@ -1,0 +1,4 @@
+-- Bumps the schema version so FrameworkSqliteDriver drops and recreates the session store (it does
+-- not run migrations); the store is a cache and rebuilds itself from sync.
+ALTER TABLE home_server_capabilities ADD COLUMN forget_forced_upon_leave INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE home_server_capabilities ADD COLUMN can_block_invites INTEGER NOT NULL DEFAULT 0;
