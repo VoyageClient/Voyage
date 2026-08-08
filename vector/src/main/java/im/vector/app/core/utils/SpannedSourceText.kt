@@ -28,8 +28,10 @@ import org.matrix.android.sdk.api.util.MatrixItem
 /**
  * Rebuilds markdown source for a slice of rendered message text. Visible markers that are real
  * characters (materialized list markers) are swapped for their source only when actually
- * selected; invisible syntax (styling, quotes, headings, links, pills) is implied whenever the
- * text it produces is selected.
+ * selected; invisible inline syntax (styling, links, pills) is implied whenever the text it
+ * produces is selected. Line prefixes (quotes, headings) are anchored at the line start, so they
+ * are implied only for lines whose start is inside the selection — grabbing a word from the
+ * middle of a quoted line copies just the word.
  */
 fun Spanned.toMarkdownSource(selStart: Int, selEnd: Int): String {
     val start = minOf(selStart, selEnd).coerceIn(0, length)
@@ -90,6 +92,10 @@ fun Spanned.toMarkdownSource(selStart: Int, selEnd: Int): String {
     var paragraph = start
     while (paragraph < end) {
         val lineEnd = str.indexOf('\n', paragraph).let { if (it == -1 || it > end) end else it }
+        if (paragraph > 0 && str[paragraph - 1] != '\n') {
+            paragraph = lineEnd + 1
+            continue
+        }
         val probe = minOf(paragraph + 1, end)
         fun <T> covering(clazz: Class<T>) = getSpans(paragraph, probe, clazz)
                 .filter { getSpanStart(it) <= paragraph && getSpanEnd(it) > paragraph }
