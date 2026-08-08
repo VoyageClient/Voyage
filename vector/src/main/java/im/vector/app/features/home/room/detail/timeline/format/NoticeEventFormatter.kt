@@ -307,6 +307,14 @@ class NoticeEventFormatter @Inject constructor(
      * muted "Debug" line; a genuinely unhandled type renders the accent "not handled" notice. The
      * colour travels with the text so the timeline, long-press preview and reply preview stay in sync.
      */
+    /** The timeline's "Malformed event" placeholder, accent-tinted to match, for preview surfaces. */
+    fun formatMalformedMessage(): CharSequence {
+        return span {
+            text = sp.getString(CommonStrings.malformed_message)
+            textColor = colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorSecondary)
+        }
+    }
+
     fun formatDebugOrUnhandled(event: Event): CharSequence {
         val type = event.getClearType()
         return if (EventType.isKnownType(type)) {

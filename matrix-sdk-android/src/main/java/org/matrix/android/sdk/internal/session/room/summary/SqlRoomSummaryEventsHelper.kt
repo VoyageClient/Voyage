@@ -62,7 +62,9 @@ internal class SqlRoomSummaryEventsHelper @Inject constructor(
 
     private fun TimelineEventEntity.isPreviewable(ignored: Set<String>): Boolean {
         val root = this.root ?: return false
-        if (root.type !in allowedTypes) return false
+        // An unknown custom type still previews (as the "not handled" notice) — it IS the room's
+        // latest activity. Only known-but-unpreviewable types (reactions, state, calls) are skipped.
+        if (root.type !in allowedTypes && EventType.isKnownType(root.type)) return false
         if (root.isUseless) return false
         val domain = root.asDomain()
         // ignored senders' messages must not surface as the room-list preview

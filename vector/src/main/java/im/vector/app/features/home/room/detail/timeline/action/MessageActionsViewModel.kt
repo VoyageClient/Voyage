@@ -255,7 +255,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                     val restored = redactedContentRestorer.restoreEvent(nonNullTimelineEvent)
                     // Actions read the raw event: which of Reveal/Hide/Edit/Redact apply depends on the
                     // message still being redacted. Everything that renders content reads the restored one.
-                    val events = actionsForEvent(nonNullTimelineEvent, permissions)
+                    val events = actionsForEvent(nonNullTimelineEvent, permissions, restored)
                     val body = computeMessageBody(restored ?: nonNullTimelineEvent)
                     setState {
                         copy(
@@ -314,7 +314,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                         } else if (messageContent == null) {
                             // Same placeholder the timeline shows for an unparseable message, instead
                             // of a blank preview.
-                            stringProvider.getString(CommonStrings.malformed_message)
+                            noticeEventFormatter.formatMalformedMessage()
                         } else {
                             // Run the text renderer so bare permalinks / @room in a plain body pill too.
                             messageContent.body
@@ -363,7 +363,11 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun actionsForEvent(timelineEvent: TimelineEvent, actionPermissions: ActionPermissions): List<EventSharedAction> {
+    private suspend fun actionsForEvent(
+            timelineEvent: TimelineEvent,
+            actionPermissions: ActionPermissions,
+            restoredEvent: TimelineEvent? = null,
+    ): List<EventSharedAction> {
         val messageContent = timelineEvent.getVectorLastMessageContent()
         val msgType = messageContent?.msgType
 
@@ -376,7 +380,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 add(EventSharedAction.Resend(eventId))
             }
             // Then the full action set, regardless of sync/redaction state.
-            addActionsForSyncedState(timelineEvent, actionPermissions, messageContent, msgType)
+            addActionsForSyncedState(timelineEvent, actionPermissions, messageContent, msgType, restoredEvent)
         }
     }
 
@@ -404,16 +408,19 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent) {
-        add(EventSharedAction.ViewSource(timelineEvent.root.toContentStringWithIndent()))
-        if (timelineEvent.isEncrypted() && timelineEvent.root.mxDecryptionResult != null) {
-            val decryptedContent = timelineEvent.root.toClearContentStringWithIndent()
+    private suspend fun ArrayList<EventSharedAction>.addViewSourceItems(timelineEvent: TimelineEvent, restoredEvent: TimelineEvent? = null) {
+        // A revealed redaction shows the recovered content, not the pruned {}; hidden again, it goes
+        // back to the redacted form.
+        val sourceEvent = restoredEvent ?: timelineEvent
+        add(EventSharedAction.ViewSource(sourceEvent.root.toContentStringWithIndent()))
+        if (sourceEvent.isEncrypted() && sourceEvent.root.mxDecryptionResult != null) {
+            val decryptedContent = sourceEvent.root.toClearContentStringWithIndent()
                     ?: stringProvider.getString(CommonStrings.encryption_information_decryption_error)
             add(EventSharedAction.ViewDecryptedSource(decryptedContent))
         } else {
             // PGP: "View decrypted source" = the event content with body/formatted_body rewritten
             // to the decrypted plaintext, shown in the same JSON viewer olm events use.
-            pgpDecryptedContentJson(timelineEvent)?.let { add(EventSharedAction.ViewDecryptedSource(it)) }
+            pgpDecryptedContentJson(sourceEvent)?.let { add(EventSharedAction.ViewDecryptedSource(it)) }
         }
     }
 
@@ -439,7 +446,8 @@ class MessageActionsViewModel @AssistedInject constructor(
             timelineEvent: TimelineEvent,
             actionPermissions: ActionPermissions,
             messageContent: MessageContent?,
-            msgType: String?
+            msgType: String?,
+            restoredEvent: TimelineEvent? = null,
     ) {
         val eventId = timelineEvent.eventId
         // Reply / react / view-reactions are allowed even on redacted events.
@@ -555,7 +563,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                     add(EventSharedAction.ReRequestKey(timelineEvent.eventId))
                 }
             }
-            addViewSourceItems(timelineEvent)
+            addViewSourceItems(timelineEvent, restoredEvent)
         }
         add(EventSharedAction.CopyPermalink(eventId))
         if (session.myUserId != timelineEvent.root.senderId) {

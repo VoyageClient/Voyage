@@ -37,8 +37,10 @@ SELECT event_id FROM redacted_content;
 selectByRoom:
 SELECT * FROM redacted_content WHERE room_id = ? ORDER BY origin_server_ts DESC;
 
-deleteByEventId:
-DELETE FROM redacted_content WHERE event_id = ?;
+-- Rows whose content mentions another event id (e.g. edits relating to it). LIKE over-matches
+-- ('_' is a wildcard), so callers must re-verify against the parsed content.
+selectByRoomContaining:
+SELECT * FROM redacted_content WHERE room_id = ? AND content LIKE '%' || ? || '%';
 
 deleteRoomsNotIn:
 DELETE FROM redacted_content WHERE room_id NOT IN ?;

@@ -193,6 +193,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -2090,11 +2091,11 @@ class TimelineFragment :
                 }
             }
             is EventSharedAction.RevealRedacted -> {
-                redactedContentRevealManager.setRevealed(action.eventId, true)
+                redactedContentRevealManager.setRevealedWithEdits(timelineArgs.roomId, action.eventId, true)
                 redactedContentRepository.requestContent(timelineArgs.roomId, action.eventId)
             }
             is EventSharedAction.HideRedacted -> {
-                redactedContentRevealManager.setRevealed(action.eventId, false)
+                redactedContentRevealManager.setRevealedWithEdits(timelineArgs.roomId, action.eventId, false)
             }
             is EventSharedAction.Forward -> {
                 onForwardActionClicked(action)
@@ -2239,10 +2240,18 @@ class TimelineFragment :
             // Batched: one invalidateEventCache per resolution would take the build lock and schedule a
             // full rebuild N times over. The deferral is capped because reveals resolve as a continuous
             // stream, which a purely trailing debounce would postpone for as long as it lasted.
-            merge(redactedContentRevealManager.revealChanges, redactedContentRepository.contentResolved)
+            merge(
+                    redactedContentRevealManager.revealChanges.map { it to true },
+                    redactedContentRepository.contentResolved.map { it to false },
+            )
                     .collectBatched(quietMs = 200, maxDeferMs = INVALIDATE_MAX_DEFER_MS) { batch ->
-                        timelineEventController.invalidateEventCaches(batch)
-                        timelineViewModel.replyPreviewRetriever.onRevealChanged(batch)
+                        // Only explicit reveal/hide toggles hold their runs open — a background
+                        // content resolution regrouping something shouldn't undo compaction.
+                        val toggled = batch.mapNotNull { (id, isToggle) -> id.takeIf { isToggle } }
+                        if (toggled.isNotEmpty()) timelineEventController.keepRunsExpandedFor(toggled)
+                        val ids = batch.map { it.first }
+                        timelineEventController.invalidateEventCaches(ids)
+                        timelineViewModel.replyPreviewRetriever.onRevealChanged(ids)
                     }
         }
     }

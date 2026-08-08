@@ -27,6 +27,16 @@ internal class DefaultRedactedContentService @Inject constructor(
         return store.getForRoom(roomId).map { it.toApi() }
     }
 
+    override suspend fun getPreservedRelationsOf(roomId: String, eventId: String): List<PreservedEventContent> {
+        return store.getContaining(roomId, eventId)
+                .map { it.toApi() }
+                .filter {
+                    val relates = it.content["m.relates_to"] as? Map<*, *>
+                    relates?.get("rel_type") != null && relates["event_id"] == eventId
+                }
+                .sortedBy { it.originServerTs ?: 0 }
+    }
+
     override suspend fun preserve(content: PreservedEventContent) {
         val preserved = PreservedContent(
                 eventId = content.eventId,
@@ -45,11 +55,6 @@ internal class DefaultRedactedContentService @Inject constructor(
         // Unconditional, not only for MSC2815: a capture can lose the race with the redaction that
         // dropped the row. indexPreservedContent is idempotent and skips events still live.
         eventIndexer.get().indexPreservedContent(preserved)
-    }
-
-    override suspend fun discard(eventId: String) {
-        store.delete(eventId)
-        eventIndexer.get().dropIndexedRedactions(listOf(eventId))
     }
 
     override suspend fun roomsWithPreservedContent() = store.roomsWithContent()

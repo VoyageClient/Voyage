@@ -992,6 +992,19 @@ internal class SqlTimeline(
         }
     }
 
+    override fun onLocalEchoDeleted(roomId: String, eventId: String) {
+        if (roomId != this.roomId || !isStarted.get()) return
+        timelineScope.launch(coroutineDispatchers.main) {
+            // Also drops any stranded in-memory copy and its send-state override.
+            uiEchoManager.onSyncedEvent(eventId)
+            val current = builtEvents
+            val idx = current.indexOfFirst { it.eventId == eventId }
+            if (idx < 0) return@launch
+            builtEvents = current.toMutableList().also { it.removeAt(idx) }
+            listeners.forEach { tryOrNull { it.onTimelineUpdated(builtEvents) } }
+        }
+    }
+
     // A limited (gappy) sync clears the room's chunks and starts a fresh last-forward chunk (see
     // SqlRoomSyncHandler.handleTimelineEvents). Our observe job is bound to the old — now deleted — chunk,
     // so the synced events never surface until the room is reopened. Detect the live chunk moving and

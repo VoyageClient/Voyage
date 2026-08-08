@@ -122,7 +122,7 @@ class DisplayableEventFormatter @Inject constructor(
                             simpleFormat(senderName, messageContent.body, appendAuthor)
                         }
                     }
-                } ?: simpleFormat(senderName, stringProvider.getString(CommonStrings.malformed_message), appendAuthor)
+                } ?: simpleFormat(senderName, noticeEventFormatter.formatMalformedMessage(), appendAuthor)
             }
             EventType.STICKER -> {
                 simpleFormat(senderName, stringProvider.getString(CommonStrings.send_a_sticker), appendAuthor)
@@ -235,7 +235,7 @@ class DisplayableEventFormatter @Inject constructor(
                             messageContent.body
                         }
                     }
-                } ?: stringProvider.getString(CommonStrings.malformed_message)
+                } ?: noticeEventFormatter.formatMalformedMessage()
             }
             EventType.STICKER -> {
                 stringProvider.getString(CommonStrings.send_a_sticker)

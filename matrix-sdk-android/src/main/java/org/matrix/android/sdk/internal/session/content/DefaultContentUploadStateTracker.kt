@@ -63,6 +63,10 @@ internal class DefaultContentUploadStateTracker @Inject constructor() : ContentU
         updateState(key, success)
     }
 
+    internal fun setPreparingThumbnail(key: String) {
+        updateState(key, ContentUploadStateTracker.State.PreparingThumbnail)
+    }
+
     internal fun setEncryptingThumbnail(key: String) {
         val progressData = ContentUploadStateTracker.State.EncryptingThumbnail
         updateState(key, progressData)

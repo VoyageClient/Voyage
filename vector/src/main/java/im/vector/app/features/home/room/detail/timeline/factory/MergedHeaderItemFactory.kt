@@ -99,6 +99,15 @@ class MergedHeaderItemFactory @Inject constructor(
     private val collapseGenerationCounter = AtomicInteger(0)
     val collapseGeneration: Int get() = collapseGenerationCounter.get()
 
+    // Events whose reveal/hide just regrouped their surroundings: the run that absorbs them starts
+    // expanded (consumed on first sight) — compacting the very thing the user acted on would read as
+    // the action misfiring. Compaction stays the default everywhere else.
+    private val pendingExpandedEventIds = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
+    fun expandRunsContaining(eventIds: Collection<String>) {
+        pendingExpandedEventIds.addAll(eventIds)
+    }
+
     /**
      * Recompute all runs for [snapshot] and reconcile collapse state. Must run in the controller's
      * per-snapshot preprocess, before the displayable-neighbour computation (which excludes collapsed
@@ -127,7 +136,9 @@ class MergedHeaderItemFactory @Inject constructor(
                 // Jumping to an event inside a collapsed run has to reveal it, and the run stays open
                 // afterwards: re-collapsing the moment the highlight clears would hide it again.
                 val holdsTarget = highlightId != null && run.members.any { it.eventId == highlightId }
-                val nowCollapsed = prior && !holdsTarget
+                var holdsRevealToggled = false
+                run.members.forEach { if (pendingExpandedEventIds.remove(it.eventId)) holdsRevealToggled = true }
+                val nowCollapsed = prior && !holdsTarget && !holdsRevealToggled
                 newStates[run.identity] = nowCollapsed
                 anchors.add(run.anchorLocalId)
                 byAnchor[run.anchorLocalId] = run

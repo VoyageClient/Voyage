@@ -40,6 +40,9 @@ class ContentUploadStateTrackerBinder @Inject constructor(
     ) {
         activeSessionHolder.getSafeActiveSession()?.also { session ->
             val uploadStateTracker = session.contentUploadProgressTracker()
+            // A rebind replaces the map entry, so without untracking here the old listener leaks in
+            // the tracker forever and keeps painting states onto whatever view got recycled under it.
+            updateListeners[eventId]?.also { uploadStateTracker.untrack(eventId, it) }
             val updateListener = ContentMediaProgressUpdater(progressLayout, isLocalFile, messageColorProvider, errorFormatter)
             updateListeners[eventId] = updateListener
             uploadStateTracker.track(eventId, updateListener)
@@ -85,7 +88,17 @@ private class ContentMediaProgressUpdater(
             is ContentUploadStateTracker.State.CompressingVideo -> handleCompressingVideo(state)
             is ContentUploadStateTracker.State.ProcessingAudio -> handleProcessingAudio()
             is ContentUploadStateTracker.State.ProcessingVideo -> handleProcessingVideo(state)
+            is ContentUploadStateTracker.State.PreparingThumbnail -> handlePreparingThumbnail()
         }
+    }
+
+    private fun handlePreparingThumbnail() {
+        progressLayout.visibility = View.VISIBLE
+        progressBar.isVisible = true
+        progressBar.isIndeterminate = true
+        progressTextView.isVisible = true
+        progressTextView.text = progressLayout.context.getString(CommonStrings.send_file_step_preparing_thumbnail)
+        progressTextView.setTextColor(messageColorProvider.getMessageTextColor(SendState.SENDING))
     }
 
     private fun handleProcessingVideo(state: ContentUploadStateTracker.State.ProcessingVideo) {

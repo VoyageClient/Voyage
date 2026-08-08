@@ -43,10 +43,13 @@ interface RedactedContentService {
     /** Everything preserved for a room, newest first. */
     suspend fun getPreservedContentInRoom(roomId: String): List<PreservedEventContent>
 
-    suspend fun preserve(content: PreservedEventContent)
+    /**
+     * Preserved children of [eventId] (edits, reactions, thread replies…), oldest first — an event's
+     * relations are redacted along with it, so restoring it means rebuilding their aggregations too.
+     */
+    suspend fun getPreservedRelationsOf(roomId: String, eventId: String): List<PreservedEventContent>
 
-    /** Drop the preserved copy of one event, e.g. when its media never finished uploading. */
-    suspend fun discard(eventId: String)
+    suspend fun preserve(content: PreservedEventContent)
 
     suspend fun roomsWithPreservedContent(): List<String>
 

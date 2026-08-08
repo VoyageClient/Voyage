@@ -21,6 +21,7 @@ import kotlinx.coroutines.sync.withLock
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.events.model.Content
+import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.redaction.PreservationOrigin
 import org.matrix.android.sdk.api.session.redaction.PreservedEventContent
@@ -85,8 +86,8 @@ class RedactedContentRepository @Inject constructor(
     private val failed = Collections.synchronizedSet(mutableSetOf<String>())
 
     // Events redacted while their media upload was still pending: the captured copy points at a
-    // content URI the server will never serve, so it is dropped and must not be re-captured when the
-    // sync echo (or an MSC2815 fetch) hands the same dead content back.
+    // content URI the server will never serve, so it is replaced by an empty tombstone and must not
+    // be re-captured when the sync echo (or an MSC2815 fetch) hands the same dead content back.
     private val suppressed = Collections.synchronizedSet(mutableSetOf<String>())
 
     // Transient failures, with the time of the last attempt, so they can be retried after a delay.
@@ -101,8 +102,12 @@ class RedactedContentRepository @Inject constructor(
     private val _failures = MutableSharedFlow<RevealFailureEvent>(extraBufferCapacity = 64)
     val failures: SharedFlow<RevealFailureEvent> = _failures.asSharedFlow()
 
-    /** The restored content plus the type it had before redaction. */
-    data class PreservedBody(val content: Content, val clearType: String?)
+    /**
+     * The restored content plus the type it had before redaction. [relations] are the preserved
+     * children of this event (edits, reactions, … oldest first), so the restorer can rebuild their
+     * aggregations instead of touching the original content.
+     */
+    data class PreservedBody(val content: Content, val clearType: String?, val relations: List<PreservedEventContent> = emptyList())
 
     /** Non-suspending read for bind-time use; null means "not resolved yet". */
     fun cachedContent(eventId: String): PreservedBody? = memoryCache[eventId]
@@ -124,7 +129,6 @@ class RedactedContentRepository @Inject constructor(
      * bind: it returns immediately once resolved and never launches a duplicate request.
      */
     fun requestContent(roomId: String, eventId: String) {
-        if (eventId in suppressed) return
         if (memoryCache.containsKey(eventId)) return
         if (!isRetryable(eventId)) return
         if (!inFlight.add(eventId)) return
@@ -142,7 +146,7 @@ class RedactedContentRepository @Inject constructor(
         val service = session.redactedContentService()
 
         service.getPreservedContent(eventId)?.let { stored ->
-            memoryCache[eventId] = PreservedBody(stored.content, stored.clearType)
+            memoryCache[eventId] = PreservedBody(stored.content, stored.clearType, service.getPreservedRelationsOf(roomId, eventId))
             _contentResolved.tryEmit(eventId)
             return
         }
@@ -165,7 +169,7 @@ class RedactedContentRepository @Inject constructor(
             fail(roomId, eventId, RevealFailure.CONTENT_NOT_RECEIVED)
             return
         }
-        memoryCache[eventId] = PreservedBody(content, event.getClearType())
+        memoryCache[eventId] = PreservedBody(content, event.getClearType(), service.getPreservedRelationsOf(roomId, eventId))
         fetchMutex.withLock {
             service.preserve(
                     PreservedEventContent(
@@ -210,26 +214,46 @@ class RedactedContentRepository @Inject constructor(
         transientFailures.clear()
     }
 
-    fun isSuppressed(eventId: String): Boolean = eventId in suppressed
-
-    /** Extend suppression to another id of the same event (the server id of a suppressed local echo). */
-    fun suppressAlso(eventId: String) {
+    /**
+     * The user redacted [eventId] while its media was still uploading: the upload is cancelled, so
+     * the preserved copy describes media that will never exist. Replace it with an empty tombstone,
+     * so revealing renders a content-less event, and refuse to store the same dead content again
+     * (the sync echo carrying it may arrive after this call).
+     */
+    fun markNeverUploaded(roomId: String, eventId: String, clearType: String?, senderId: String?, originServerTs: Long?) {
         suppressed.add(eventId)
+        memoryCache[eventId] = PreservedBody(emptyMap(), clearType)
+        val session = activeSessionHolder.get().getSafeActiveSession() ?: return
+        scope.launch {
+            session.redactedContentService().preserve(
+                    PreservedEventContent(
+                            eventId = eventId,
+                            roomId = roomId,
+                            content = emptyMap(),
+                            clearType = clearType,
+                            senderId = senderId,
+                            originServerTs = originServerTs,
+                            origin = PreservationOrigin.CAPTURED,
+                            preservedAt = System.currentTimeMillis(),
+                    )
+            )
+            mediaPreserver.get().discard(roomId, eventId)
+            _contentResolved.tryEmit(eventId)
+        }
     }
 
     /**
-     * The user redacted [eventId] while its media was still uploading: the upload is cancelled, so
-     * the preserved copy describes media that will never exist. Drop it everywhere and refuse to
-     * capture it again (the sync echo carrying the same content may arrive after this call).
+     * A message redacted while it was still a local echo is tombstoned under its "$local." id, but
+     * the sync echo arrives under the server id, related through the transaction id. Moving the
+     * tombstone onto the id the timeline actually uses is what stops a reveal from fetching the
+     * dead content back off the server.
      */
-    fun discardNeverUploaded(roomId: String, eventId: String) {
-        suppressed.add(eventId)
-        memoryCache.remove(eventId)
-        val session = activeSessionHolder.get().getSafeActiveSession() ?: return
-        scope.launch {
-            session.redactedContentService().discard(eventId)
-            mediaPreserver.get().discard(roomId, eventId)
-        }
+    fun carryOverSuppression(roomId: String, event: Event) {
+        val eventId = event.eventId ?: return
+        if (eventId in suppressed) return
+        val transactionId = event.unsignedData?.transactionId ?: return
+        if (transactionId !in suppressed) return
+        markNeverUploaded(roomId, eventId, memoryCache[transactionId]?.clearType, event.senderId, event.originServerTs)
     }
 
     private fun Throwable.toRevealFailure(): RevealFailure {

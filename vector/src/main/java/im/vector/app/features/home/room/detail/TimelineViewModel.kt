@@ -940,14 +940,21 @@ private fun handleSelectStickerAttachment() {
     }
 
     // Redacting an attachment whose bytes never reached the server (upload cancelled with the send)
-    // must also drop the message logger's preserved copy — it describes media no one can ever fetch,
-    // and revealing it would render a phantom "uploaded" attachment.
+    // must also void the message logger's preserved copy — it describes media no one can ever fetch,
+    // and revealing it would render a phantom "uploaded" attachment. An empty tombstone replaces it,
+    // so Reveal still works and honestly shows a content-less event.
     private fun discardPreservedContentIfNeverUploaded(event: TimelineEvent) {
         val messageContent = event.root.getClearContent()?.toModel<MessageContent>() as? MessageWithAttachmentContent ?: return
         val url = messageContent.getFileUrl() ?: return
         val neverUploaded = !url.isMxcUrl() || session.fileService().isUploadPending(url)
         if (neverUploaded) {
-            redactedContentRepository.discardNeverUploaded(event.roomId, event.eventId)
+            redactedContentRepository.markNeverUploaded(
+                    roomId = event.roomId,
+                    eventId = event.eventId,
+                    clearType = event.root.getClearType(),
+                    senderId = event.root.senderId,
+                    originServerTs = event.root.originServerTs,
+            )
         }
     }
 
