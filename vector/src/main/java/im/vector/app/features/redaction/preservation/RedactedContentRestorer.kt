@@ -10,8 +10,13 @@ package im.vector.app.features.redaction.preservation
 import dagger.Lazy
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.UnsignedData
 import org.matrix.android.sdk.api.session.events.model.isRedacted
+import org.matrix.android.sdk.api.session.room.model.EditAggregatedSummary
+import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
+import org.matrix.android.sdk.api.session.room.model.ReactionAggregatedSummary
+import im.vector.app.features.home.room.detail.timeline.helper.TimelineDisplayableEvents
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,6 +56,21 @@ class RedactedContentRestorer @Inject constructor(
         return revealManager.isRevealed(roomId, event.eventId, isOwnMessage)
     }
 
+    /**
+     * True when what [event] reveals is something the timeline hides by default — an m.replace edit
+     * (its content shows applied on the original) or a non-displayable type like a reaction (its
+     * pill shows on the target). The raw event then hides like its unredacted self would, visible
+     * only through show-hidden-events.
+     */
+    fun isRevealedHiddenEvent(event: TimelineEvent): Boolean {
+        if (!isShowingRestoredContent(event)) return false
+        val body = repository.cachedContent(event.eventId) ?: return false
+        val relates = body.content["m.relates_to"] as? Map<*, *>
+        if (relates?.get("rel_type") == RelationType.REPLACE) return true
+        val clearType = body.clearType ?: return false
+        return clearType !in TimelineDisplayableEvents.DISPLAYABLE_TYPES
+    }
+
     /** @return the event with its pre-redaction content put back, or null if it should stay redacted. */
     fun restoreEvent(event: TimelineEvent): TimelineEvent? {
         val root = event.root
@@ -81,6 +101,70 @@ class RedactedContentRestorer @Inject constructor(
                         ?: UnsignedData(null, null),
                 mxDecryptionResult = null,
         )
-        return event.copy(root = restoredRoot)
+        return event.copy(root = restoredRoot, annotations = restoredAnnotations(event, preserved))
+    }
+
+    /**
+     * A message's relations (edits, reactions, …) are redacted — and preserved — along with it, so
+     * their aggregations are rebuilt from the preserved copies. The ordinary machinery then does the
+     * rest — latest-edit rendering, the "(edited)" marker, the edit-history action, reaction pills —
+     * while the root keeps the ORIGINAL content (view source must show the event as sent, not its
+     * latest edit).
+     */
+    private fun restoredAnnotations(event: TimelineEvent, preserved: RedactedContentRepository.PreservedBody): EventAnnotationsSummary? {
+        if (preserved.relations.isEmpty()) return event.annotations
+        val edits = preserved.relations.filter { it.relationType() == RelationType.REPLACE }
+        val editSummary = edits.lastOrNull()?.let { latest ->
+            EditAggregatedSummary(
+                    latestEdit = latest.toEvent(),
+                    sourceEvents = edits.map { it.eventId },
+                    localEchos = emptyList(),
+                    lastEditTs = latest.originServerTs ?: 0,
+            )
+        }
+        val reactionsSummary = restoredReactions(event, preserved)
+        if (editSummary == null && reactionsSummary == null) return event.annotations
+        return (event.annotations ?: EventAnnotationsSummary()).copy(
+                editSummary = editSummary ?: event.annotations?.editSummary,
+                reactionsSummary = reactionsSummary ?: event.annotations?.reactionsSummary.orEmpty(),
+        )
+    }
+
+    private fun restoredReactions(event: TimelineEvent, preserved: RedactedContentRepository.PreservedBody): List<ReactionAggregatedSummary>? {
+        val live = event.annotations?.reactionsSummary.orEmpty()
+        // Anything the live aggregation still knows about was never redacted, so it must not be
+        // counted a second time from the preserved copies.
+        val liveIds = live.flatMapTo(HashSet()) { it.sourceEvents }
+        val myUserId = activeSessionHolder.get().getSafeActiveSession()?.myUserId
+        val restored = preserved.relations
+                .filter { it.relationType() == RelationType.ANNOTATION && it.eventId !in liveIds }
+                .groupBy { it.relationKey() ?: return@groupBy "" }
+                .filterKeys { it.isNotEmpty() }
+        if (restored.isEmpty()) return null
+        val merged = live.toMutableList()
+        restored.forEach { (key, reactions) ->
+            val existing = merged.indexOfFirst { it.key == key }
+            val addedByMe = reactions.any { it.senderId != null && it.senderId == myUserId }
+            if (existing >= 0) {
+                val summary = merged[existing]
+                merged[existing] = summary.copy(
+                        count = summary.count + reactions.size,
+                        addedByMe = summary.addedByMe || addedByMe,
+                        sourceEvents = summary.sourceEvents + reactions.map { it.eventId },
+                )
+            } else {
+                merged.add(
+                        ReactionAggregatedSummary(
+                                key = key,
+                                count = reactions.size,
+                                addedByMe = addedByMe,
+                                firstTimestamp = reactions.minOf { it.originServerTs ?: 0 },
+                                sourceEvents = reactions.map { it.eventId },
+                                localEchoEvents = emptyList(),
+                        )
+                )
+            }
+        }
+        return merged
     }
 }

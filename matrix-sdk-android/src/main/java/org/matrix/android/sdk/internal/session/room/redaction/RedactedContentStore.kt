@@ -87,10 +87,6 @@ internal class RedactedContentStore @Inject constructor(
         queries.selectByEventId(eventId).executeAsOneOrNull()?.toDomain()
     }
 
-    suspend fun delete(eventId: String) = withContext(dispatcher) {
-        queries.deleteByEventId(eventId)
-    }
-
     private fun Redacted_content.toDomain() = PreservedContent(
             eventId = event_id,
             roomId = room_id,
@@ -104,6 +100,10 @@ internal class RedactedContentStore @Inject constructor(
 
     suspend fun getForRoom(roomId: String): List<PreservedContent> = withContext(dispatcher) {
         queries.selectByRoom(roomId).executeAsList().map { it.toDomain() }
+    }
+
+    suspend fun getContaining(roomId: String, needle: String): List<PreservedContent> = withContext(dispatcher) {
+        queries.selectByRoomContaining(roomId, needle).executeAsList().map { it.toDomain() }
     }
 
     /** The ids a [clearExcept] would drop. */

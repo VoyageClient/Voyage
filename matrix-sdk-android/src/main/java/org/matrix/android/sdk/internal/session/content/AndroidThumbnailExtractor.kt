@@ -41,7 +41,10 @@ internal class AndroidThumbnailExtractor @Inject constructor(
         val mediaMetadataRetriever = MediaMetadataRetriever()
         try {
             mediaMetadataRetriever.setSource()
-            mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { thumbnail ->
+            mediaMetadataRetriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)?.let { frame ->
+                // A thumbnail, not the frame itself: JPEG-encoding a full-resolution frame takes
+                // seconds and uploads hundreds of KB that every client immediately scales down anyway.
+                val thumbnail = scaleDown(frame, THUMB_MAX_DIMENSION)
                 val outputStream = ByteArrayOutputStream()
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
                 val blurHash = if (withBlurHash) encodeBlurHash(thumbnail) else null
@@ -53,7 +56,8 @@ internal class AndroidThumbnailExtractor @Inject constructor(
                         mimeType = MimeTypes.Jpeg,
                         blurHash = blurHash,
                 )
-                thumbnail.recycle()
+                if (thumbnail !== frame) thumbnail.recycle()
+                frame.recycle()
                 outputStream.reset()
             } ?: run {
                 Timber.e("Cannot extract video thumbnail")
@@ -66,19 +70,20 @@ internal class AndroidThumbnailExtractor @Inject constructor(
         return thumbnailData
     }
 
+    private fun scaleDown(frame: Bitmap, maxDimension: Int): Bitmap {
+        val largest = maxOf(frame.width, frame.height)
+        if (largest <= maxDimension) return frame
+        val scale = maxDimension.toFloat() / largest
+        val width = (frame.width * scale).toInt().coerceAtLeast(1)
+        val height = (frame.height * scale).toInt().coerceAtLeast(1)
+        return Bitmap.createScaledBitmap(frame, width, height, true)
+    }
+
     // BlurHash.encode is O(width * height) with a trig term per pixel, so encoding a full-resolution
     // video frame can take tens of seconds on slow devices. The hash is a 4x3-ish blur, so downscale
     // first — same as the image path (UploadContentWorker.BLURHASH_DECODE_MAX).
     private fun encodeBlurHash(frame: Bitmap): String? = tryOrNull {
-        val largest = maxOf(frame.width, frame.height)
-        val source = if (largest <= BLURHASH_MAX_DIMENSION) {
-            frame
-        } else {
-            val scale = BLURHASH_MAX_DIMENSION.toFloat() / largest
-            val width = (frame.width * scale).toInt().coerceAtLeast(1)
-            val height = (frame.height * scale).toInt().coerceAtLeast(1)
-            Bitmap.createScaledBitmap(frame, width, height, true)
-        }
+        val source = scaleDown(frame, BLURHASH_MAX_DIMENSION)
         try {
             val (xc, yc) = blurHashComponents(source.width, source.height)
             BlurHash.encode(source, xc, yc)
@@ -89,5 +94,8 @@ internal class AndroidThumbnailExtractor @Inject constructor(
 
     companion object {
         private const val BLURHASH_MAX_DIMENSION = 128
+
+        // What Element Web asks the media repo for (800x600 scale) — plenty for a bubble preview.
+        private const val THUMB_MAX_DIMENSION = 800
     }
 }

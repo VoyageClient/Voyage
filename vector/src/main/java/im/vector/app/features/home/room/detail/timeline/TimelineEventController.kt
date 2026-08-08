@@ -372,18 +372,19 @@ class TimelineEventController @Inject constructor(
     fun invalidateEventCache(eventId: String) = backgroundHandler.post {
         // On the build thread: the modelCache lock can be held for a whole build pass, so callers
         // (often the main thread, e.g. decrypt listeners) must never take it directly.
-        var dirty = false
         synchronized(modelCache) {
+            // The invalidated event may have changed CATEGORY (revealed/hidden, decrypted), which can
+            // grow/split/collapse a merged run — the per-snapshot run structure must recompute too.
+            processedSnapshot = null
             currentSnapshot.forEachIndexed { index, event ->
                 if (index >= modelCache.size) return@forEachIndexed
                 if (modelCache[index] == null) return@forEachIndexed
                 if (event.eventId == eventId || event.root.getRelationContent()?.inReplyTo?.eventId == eventId) {
                     modelCache[index] = null
-                    dirty = true
                 }
             }
         }
-        if (dirty) requestModelBuild()
+        requestModelBuild()
     }
 
     /**
@@ -393,22 +394,27 @@ class TimelineEventController @Inject constructor(
      * background build thread) and each scheduling another full rebuild, which convoys the main
      * thread into an ANR.
      */
+    /** Runs regrouped by a reveal/hide start expanded; see [MergedHeaderItemFactory.expandRunsContaining]. */
+    fun keepRunsExpandedFor(eventIds: Collection<String>) {
+        mergedHeaderItemFactory.expandRunsContaining(eventIds)
+    }
+
     fun invalidateEventCaches(eventIds: Collection<String>) {
         if (eventIds.isEmpty()) return
         val ids = eventIds.toHashSet()
         backgroundHandler.post {
-            var dirty = false
             synchronized(modelCache) {
+                // See invalidateEventCache: category changes must also regroup merged runs.
+                processedSnapshot = null
                 currentSnapshot.forEachIndexed { index, event ->
                     if (index >= modelCache.size) return@forEachIndexed
                     if (modelCache[index] == null) return@forEachIndexed
                     if (event.eventId in ids || event.root.getRelationContent()?.inReplyTo?.eventId in ids) {
                         modelCache[index] = null
-                        dirty = true
                     }
                 }
             }
-            if (dirty) requestModelBuild()
+            requestModelBuild()
         }
     }
 
@@ -460,6 +466,7 @@ class TimelineEventController @Inject constructor(
      * visible PGP items re-request decryption. Heavy, so reserved for rare one-shot events. */
     fun invalidateAllCache() = backgroundHandler.post {
         synchronized(modelCache) {
+            processedSnapshot = null
             for (i in modelCache.indices) {
                 modelCache[i] = null
             }

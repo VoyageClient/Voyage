@@ -34,6 +34,10 @@ class TimelineEventDiffUtilCallback(
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         val oldItem = oldList[oldItemPosition]
         val newItem = newList[newItemPosition]
+        // sendState is a body var outside Event's data-class equals, so it has to be compared
+        // explicitly — otherwise a SENDING→UNDELIVERED flip is invisible to the diff and the
+        // failure footer only appears once the room is reopened.
+        if (oldItem.root.sendState != newItem.root.sendState) return false
         // The SDK memoizes mapped events, so unchanged events are the same instance — the reference
         // check skips the deep data-class equals (content maps etc.) for almost every row.
         return oldItem === newItem || oldItem == newItem

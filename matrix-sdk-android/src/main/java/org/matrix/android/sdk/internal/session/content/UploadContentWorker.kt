@@ -239,9 +239,15 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                         // file and then read again — two full passes over a large file before it can send.
                         notifyTracker(params) { contentUploadStateTracker.setProcessingVideo(it, 0f) }
                         val stripProgress = object : ProgressListener {
+                            // Only notify on whole-percent changes: the muxer reports every packet,
+                            // and each report posts a main-thread runnable.
+                            private var lastPercent = -1
                             override fun onProgress(progress: Int, total: Int) {
+                                val percent = if (total > 0) progress * 100 / total else 0
+                                if (percent == lastPercent) return
+                                lastPercent = percent
                                 notifyTracker(params) {
-                                    contentUploadStateTracker.setProcessingVideo(it, progress.toFloat() / total.toFloat())
+                                    contentUploadStateTracker.setProcessingVideo(it, percent / 100f)
                                 }
                             }
                         }
@@ -548,6 +554,11 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
      * If appropriate, it will create and upload a thumbnail.
      */
     private suspend fun dealWithThumbnail(params: Params, transcodedVideo: File?): UploadThumbnailResult? {
+        // Frame decode + JPEG encode take seconds on a large video; without a state of their own the
+        // progress UI sits on the last processing percent looking hung.
+        if (params.attachment.type == ContentAttachmentData.Type.VIDEO) {
+            notifyTracker(params) { contentUploadStateTracker.setPreparingThumbnail(it) }
+        }
         // Prefer the post-transcode file so the thumbnail aspect ratio matches what the player
         // will actually show; otherwise the bubble placeholder ends up the wrong shape.
         val thumbnailData = transcodedVideo?.let { thumbnailExtractor.extractVideoThumbnailFromFile(it) }

@@ -110,9 +110,14 @@ class MessageActionsEpoxyController @Inject constructor(
         // Message preview
         val date = state.timelineEvent()?.root?.originServerTs
         val formattedDate = dateFormatter.format(date, DateFormatKind.MESSAGE_DETAIL)
-        // Don't linkify membership notices: their text can contain a raw matrix id (e.g. a knock from a
-        // user with no display name) that would otherwise render as a spurious clickable link.
-        val body = if (state.previewEvent?.root?.getClearType() == EventType.STATE_ROOM_MEMBER) {
+        // Don't linkify membership notices (their text can contain a raw matrix id, e.g. a knock from
+        // a user with no display name) or unhandled/malformed placeholders (a dotted event-type name
+        // reads as a domain) — both would render spurious clickable links.
+        val previewType = state.previewEvent?.root?.getClearType()
+        val isPlaceholderPreview = previewType == EventType.STATE_ROOM_MEMBER ||
+                (previewType != null && !EventType.isKnownType(previewType)) ||
+                (previewType in listOf(EventType.MESSAGE, EventType.STICKER) && state.previewEvent?.getVectorLastMessageContent() == null)
+        val body = if (isPlaceholderPreview) {
             state.messageBody
         } else {
             state.messageBody.linkify(host.listener)

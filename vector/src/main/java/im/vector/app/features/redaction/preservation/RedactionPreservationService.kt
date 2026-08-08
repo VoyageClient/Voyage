@@ -56,7 +56,7 @@ class RedactionPreservationService @Inject constructor(
         if (event.type == EventType.REDACTION) {
             onRedactionReceived(roomId, event)
         } else {
-            carryOverSuppression(event)
+            repository.carryOverSuppression(roomId, event)
         }
     }
 
@@ -67,17 +67,6 @@ class RedactionPreservationService @Inject constructor(
     override fun onEventDecryptionError(event: Event, cryptoError: MXCryptoError) = Unit
 
     override fun onLiveToDeviceEvent(event: Event) = Unit
-
-    // A message redacted while it was still a local echo is suppressed under its "$local." id; the
-    // sync echo arrives under the server id, related through the transaction id. Learning the server
-    // id here blocks later MSC2815 re-fetches of the same dead content.
-    private fun carryOverSuppression(event: Event) {
-        val eventId = event.eventId ?: return
-        if (repository.isSuppressed(eventId)) return
-        val transactionId = event.unsignedData?.transactionId ?: return
-        if (!repository.isSuppressed(transactionId)) return
-        repository.suppressAlso(eventId)
-    }
 
     /**
      * The redaction's own content is already gone by the time it reaches us, so this fetches the

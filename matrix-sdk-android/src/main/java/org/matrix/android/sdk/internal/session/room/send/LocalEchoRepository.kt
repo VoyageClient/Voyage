@@ -143,12 +143,20 @@ internal class LocalEchoRepository @Inject constructor(
     fun updateSendState(eventId: String, roomId: String?, sendState: SendState, sendStateDetails: String? = null) {
         Timber.v("## SendEvent: [${clock.epochMillis()}] Update local state of $eventId to ${sendState.name}")
         timelineInput.onLocalEchoUpdated(roomId = roomId ?: "", eventId = eventId, sendState = sendState)
-        updateEchoAsync(eventId) { entity ->
-            if (!(sendState == SendState.SENT && entity.sendState == SendState.SYNCED)) {
-                entity.sendState = sendState
+        enqueueDbTask {
+            database.awaitDbTransaction(dispatcher) {
+                stores.event.getByEventId(eventId)?.let { entity ->
+                    if (!(sendState == SendState.SENT && entity.sendState == SendState.SYNCED)) {
+                        entity.sendState = sendState
+                    }
+                    entity.sendStateDetails = sendStateDetails
+                    stores.event.updateEcho(entity)
+                    // AFTER the write above — it reads the rows back, so running it inside the
+                    // mutation block computed hasFailedSending from the pre-update state and the
+                    // failed-messages banner only appeared after some later unrelated write.
+                    roomSummaryUpdater.updateSendingInformation(stores, entity.roomId)
+                }
             }
-            entity.sendStateDetails = sendStateDetails
-            roomSummaryUpdater.updateSendingInformation(stores, entity.roomId)
         }
     }
 
@@ -222,6 +230,9 @@ internal class LocalEchoRepository @Inject constructor(
             stores.event.deleteByEventIdInRoom(roomId, eventId)
             roomSummaryUpdater.updateSendingInformation(stores, roomId)
         }
+        // Sending rows have no chunk, so no chunk flow fires for them — without an explicit signal
+        // the open timeline keeps showing the deleted echo until the room is reopened.
+        timelineInput.onLocalEchoDeleted(roomId, eventId)
     }
 
     fun deleteFailedEchoAsync(roomId: String, eventId: String?) {
@@ -233,6 +244,7 @@ internal class LocalEchoRepository @Inject constructor(
                 stores.event.deleteByEventIdInRoom(roomId, eventId)
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
             }
+            timelineInput.onLocalEchoDeleted(roomId, eventId)
         }
     }
 
@@ -252,6 +264,7 @@ internal class LocalEchoRepository @Inject constructor(
                 stores.event.deleteByEventIdInRoom(roomId, eventId)
                 roomSummaryUpdater.updateSendingInformation(stores, roomId)
             }
+            timelineInput.onLocalEchoDeleted(roomId, eventId)
         }
     }
 
@@ -271,13 +284,10 @@ internal class LocalEchoRepository @Inject constructor(
         }
     }
 
-    fun getAllFailedEventsToResend(roomId: String): List<TimelineEvent> = getAllEventsWithStates(roomId, SendState.HAS_FAILED_STATES)
-
-    fun getAllEventsWithStates(roomId: String, states: List<SendState>): List<TimelineEvent> {
-        return stores.timelineEvent.getByRoom(roomId)
-                .filter { it.root?.sendState in states }
-                .sortedByDescending { it.displayIndex }
-                .map { timelineEventMapper.map(it) }
+    // Only events the resend paths know how to rebuild; a failed echo with unparseable content can
+    // still be CANCELLED (getAllEventsWithStates), just not resent.
+    fun getAllFailedEventsToResend(roomId: String): List<TimelineEvent> {
+        return getAllEventsWithStates(roomId, SendState.HAS_FAILED_STATES)
                 .filter { event ->
                     when (event.root.getClearType()) {
                         EventType.MESSAGE, EventType.REDACTION, EventType.REACTION -> {
@@ -292,6 +302,13 @@ internal class LocalEchoRepository @Inject constructor(
                         else -> false
                     }
                 }
+    }
+
+    fun getAllEventsWithStates(roomId: String, states: List<SendState>): List<TimelineEvent> {
+        return stores.timelineEvent.getByRoom(roomId)
+                .filter { it.root?.sendState in states }
+                .sortedByDescending { it.displayIndex }
+                .map { timelineEventMapper.map(it) }
     }
 
     fun getLatestThreadEvent(rootThreadEventId: String): String =

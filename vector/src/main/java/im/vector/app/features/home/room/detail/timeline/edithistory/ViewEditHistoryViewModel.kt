@@ -19,9 +19,14 @@ import im.vector.app.core.platform.EmptyAction
 import im.vector.app.core.platform.EmptyViewEvents
 import im.vector.app.core.platform.VectorViewModel
 import kotlinx.coroutines.launch
+import im.vector.app.features.redaction.preservation.relationType
+import im.vector.app.features.redaction.preservation.toEvent
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.RelationType
+import org.matrix.android.sdk.api.session.events.model.isRedacted
 import org.matrix.android.sdk.api.session.events.model.isReply
 import org.matrix.android.sdk.api.session.getRoom
 import timber.log.Timber
@@ -48,12 +53,34 @@ class ViewEditHistoryViewModel @AssistedInject constructor(
         loadHistory()
     }
 
+    private suspend fun restorePreservedContent(event: Event): Event {
+        if (!event.isRedacted()) return event
+        val preserved = session.redactedContentService().getPreservedContent(event.eventId ?: return event) ?: return event
+        return event.copyAll(
+                type = preserved.clearType?.takeIf { it.isNotEmpty() } ?: event.type,
+                content = preserved.content,
+                unsignedData = event.unsignedData?.copy(redactedEvent = null, redactedBy = null),
+                mxDecryptionResult = null,
+        )
+    }
+
     private fun loadHistory() {
         setState { copy(editList = Loading()) }
 
         viewModelScope.launch {
             val data = try {
-                room.relationService().fetchEditHistory(eventId)
+                // A redacted message's edits are dropped from the server's relations (their relation
+                // is pruned with them), so the fetched history is typically just the original. Rebuild
+                // the rest from the message logger's preserved copies: restore pruned entries, add the
+                // preserved edits the server no longer returns, and keep newest-first with the
+                // original last (the order the fetch produces).
+                val fetched = room.relationService().fetchEditHistory(eventId).map { restorePreservedContent(it) }
+                val fetchedIds = fetched.mapNotNull { it.eventId }.toHashSet()
+                val preservedEdits = session.redactedContentService().getPreservedRelationsOf(room.roomId, eventId)
+                        .filter { it.relationType() == RelationType.REPLACE && it.eventId !in fetchedIds }
+                        .map { it.toEvent() }
+                val (edits, original) = (fetched + preservedEdits).partition { it.eventId != eventId }
+                edits.sortedByDescending { it.originServerTs ?: 0 } + original
             } catch (failure: Throwable) {
                 setState {
                     copy(editList = Fail(failure))

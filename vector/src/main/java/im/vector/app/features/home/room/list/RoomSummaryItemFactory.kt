@@ -143,7 +143,7 @@ class RoomSummaryItemFactory @Inject constructor(
         val latestEvent = roomSummary.latestPreviewableEvent
         if (latestEvent != null) {
             val formatStart = PerfTrace.mark("roomlist.item.formatPreview")
-            latestFormattedEvent = displayableEventFormatter.format(latestEvent, roomSummary.isDirect, roomSummary.isDirect.not())
+            latestFormattedEvent = displayableEventFormatter.format(latestEvent, roomSummary.isDirect, roomSummary.isDirect.not(), unhandledFallback = true)
             latestEventTime = dateFormatter.format(latestEvent.root.originServerTs, DateFormatKind.ROOM_LIST)
             formatStart.end()
         }

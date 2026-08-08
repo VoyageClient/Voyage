@@ -16,8 +16,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import org.matrix.android.sdk.api.session.events.model.RelationType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -101,6 +103,26 @@ class RedactedContentRevealManager @Inject constructor(
         }
         persist(userId)
         if (changed) _revealChanges.tryEmit(eventId)
+    }
+
+    /**
+     * Reveal/hide [eventId] together with the rest of its group: a message and its relations (edits,
+     * reactions) were redacted as one message, so toggling any of them toggles the target and every
+     * preserved relation — whichever end the user long-pressed.
+     */
+    fun setRevealedWithEdits(roomId: String, eventId: String, revealed: Boolean) {
+        setRevealed(eventId, revealed)
+        val session = activeSessionHolder.get().getSafeActiveSession() ?: return
+        scope.launch {
+            val service = session.redactedContentService()
+            // If the tapped event is itself a relation, its preserved content points at the group's root.
+            val relates = service.getPreservedContent(eventId)?.content?.get("m.relates_to") as? Map<*, *>
+            val rootId = (relates?.takeIf { it["rel_type"] != null }?.get("event_id") as? String) ?: eventId
+            setRevealed(rootId, revealed)
+            service.getPreservedRelationsOf(roomId, rootId).forEach { relation ->
+                setRevealed(relation.eventId, revealed)
+            }
+        }
     }
 
     /** Drops every explicit choice, e.g. when a room's redaction settings are reset. */

@@ -689,4 +689,5 @@
     <string name="labs_enable_latex_maths" translatable="false">Render LaTeX maths in messages</string>
     <string name="notice_keys_shared_by" translatable="false">Shared by %1$s</string>
     <string name="send_file_step_processing_video" translatable="false">Preparing video %1$d%%</string>
+    <string name="send_file_step_preparing_thumbnail" translatable="false">Preparing thumbnail…</string>
 </resources>
