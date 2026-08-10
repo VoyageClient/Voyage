@@ -65,6 +65,8 @@ object ReactionsContainerRenderer {
             reactionButton.reactionCount = reaction.count
             reactionButton.setChecked(reaction.addedByMe)
             reactionButton.isEnabled = reaction.synced
+            // While previewing a tap would only fake a toggle; long-press (who reacted) stays live.
+            reactionButton.readOnly = !reactionsSummary.canAddReaction
         }
         if (reactions.count() > MAX_REACTIONS_TO_SHOW) {
             val showReactionsTextView = createReactionTextView(container.context)
@@ -78,10 +80,12 @@ object ReactionsContainerRenderer {
             }
             container.addView(showReactionsTextView)
         }
-        val addMoreReactionsTextView = createReactionTextView(container.context)
-        addMoreReactionsTextView.text = container.context.getDrawableAsSpannable(R.drawable.ic_add_reaction_small)
-        addMoreReactionsTextView.onClick { reactionsSummaryEvents?.onAddMoreClicked?.invoke() }
-        container.addView(addMoreReactionsTextView)
+        if (reactionsSummary.canAddReaction) {
+            val addMoreReactionsTextView = createReactionTextView(container.context)
+            addMoreReactionsTextView.text = container.context.getDrawableAsSpannable(R.drawable.ic_add_reaction_small)
+            addMoreReactionsTextView.onClick { reactionsSummaryEvents?.onAddMoreClicked?.invoke() }
+            container.addView(addMoreReactionsTextView)
+        }
         container.setOnLongClickListener(longClickListener)
     }
 

@@ -54,7 +54,11 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.crypto.model.UserVerificationLevel
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -364,7 +368,20 @@ class RoomMemberProfileFragment :
     }
 
     private fun onAvatarClicked(userMatrixItem: MatrixItem) {
-        navigator.openBigImageViewer(requireActivity(), userMatrixItem)
+        val roomId = fragmentArgs.roomId
+        val memberEventId = roomId?.let {
+            session.getRoom(it)
+                    ?.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(fragmentArgs.userId))
+                    ?.eventId
+        }
+        navigator.openBigImageViewer(
+                requireActivity(),
+                sharedElement = null,
+                mxcUrl = userMatrixItem.avatarUrl,
+                title = userMatrixItem.getBestName(),
+                roomId = roomId.takeIf { memberEventId != null },
+                eventId = memberEventId,
+        )
     }
 
     private fun onBannerClicked() = withState(viewModel) { state ->

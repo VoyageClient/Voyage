@@ -690,4 +690,6 @@
     <string name="notice_keys_shared_by" translatable="false">Shared by %1$s</string>
     <string name="send_file_step_processing_video" translatable="false">Preparing video %1$d%%</string>
     <string name="send_file_step_preparing_thumbnail" translatable="false">Preparing thumbnail…</string>
+
+    <string name="room_preview_peek_join_prompt" translatable="false">You\'re previewing %1$s. Want to join it?</string>
 </resources>

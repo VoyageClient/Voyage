@@ -267,6 +267,34 @@ interface RoomService {
     suspend fun peekRoom(roomIdOrAlias: String): PeekResult
 
     /**
+     * Register a live peek on a world-readable room and expose it as a read-only [Room], so the
+     * regular room UI stack can render it without joining. Returns the same instance for the same
+     * roomId until [releaseRoomPeek] is called. Nothing is persisted.
+     */
+    fun registerRoomPeek(
+            roomId: String,
+            viaServers: List<String> = emptyList(),
+            roomName: String? = null,
+            roomAvatarUrl: String? = null,
+            roomTopic: String? = null,
+            roomAlias: String? = null,
+    ): Room
+
+    /**
+     * Release a peek previously registered with [registerRoomPeek], stopping its live event loop.
+     */
+    fun releaseRoomPeek(roomId: String)
+
+    /** Forget a peeked room entirely (after joining it, or when the peek proved unusable). */
+    fun removeRoomPeek(roomId: String)
+
+    /** True when [roomId] currently resolves to a registered peeked room (not a locally-synced one). */
+    fun isRoomPeeked(roomId: String): Boolean
+
+    /** The via servers a peek was registered with, for joining the previewed room. */
+    fun roomPeekViaServers(roomId: String): List<String>
+
+    /**
      * Return a LiveData on the number of rooms.
      * @param queryParams parameters to query the room summaries. It can be use to keep only joined rooms, for instance.
      */

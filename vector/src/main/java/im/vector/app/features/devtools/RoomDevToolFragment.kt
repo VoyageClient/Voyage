@@ -37,6 +37,9 @@ class RoomDevToolFragment :
         super.onViewCreated(view, savedInstanceState)
         views.genericRecyclerView.configureWith(epoxyController, dividerDrawable = R.drawable.divider_horizontal)
         epoxyController.interactionListener = this
+        sharedViewModel.onEach(RoomDevToolViewState::canEditState) {
+            epoxyController.canEditState = it
+        }
 
 //        sharedViewModel.observeViewEvents {
 //            when (it) {

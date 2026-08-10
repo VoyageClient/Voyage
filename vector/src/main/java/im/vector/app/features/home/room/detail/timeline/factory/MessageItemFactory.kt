@@ -99,6 +99,7 @@ import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventCon
 import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
@@ -230,7 +231,11 @@ class MessageItemFactory @Inject constructor(
             is MessageFileContent -> buildFileMessageItem(messageContent, informationData, callback, highlight, attributes)
             is MessageAudioContent -> buildAudioContent(params, messageContent, informationData, highlight, attributes)
             is MessageVerificationRequestContent -> buildVerificationRequestMessageItem(messageContent, informationData, highlight, callback, attributes)
-            is MessagePollContent -> buildPollItem(messageContent, informationData, highlight, callback, attributes, isEnded = false)
+            is MessagePollContent -> buildPollItem(
+                    messageContent, informationData, highlight, callback, attributes,
+                    isEnded = false,
+                    canInteract = params.partialState.roomSummary?.membership == Membership.JOIN,
+            )
             is MessageEndPollContent -> buildEndedPollItem(event.getRelationContent()?.eventId, informationData, highlight, callback, attributes)
             is MessageLocationContent -> if (locationSupported) {
                 buildLocationItem(messageContent, informationData, highlight, attributes)
@@ -289,12 +294,13 @@ class MessageItemFactory @Inject constructor(
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
             isEnded: Boolean,
+            canInteract: Boolean = true,
     ): PollItem {
         val pollViewState = pollItemViewStateFactory.create(
                 pollContent = pollContent,
                 pollResponseData = informationData.pollResponseAggregatedSummary,
                 isSent = informationData.sendState.isSent(),
-        )
+        ).let { if (canInteract) it else it.copy(canVote = false) }
 
         return PollItem_()
                 .attributes(attributes)

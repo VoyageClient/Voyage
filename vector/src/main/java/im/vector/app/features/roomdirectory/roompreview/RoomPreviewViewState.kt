@@ -36,6 +36,8 @@ data class RoomPreviewViewState(
         // Current state of the room in preview
         val roomJoinState: JoinState = JoinState.NOT_JOINED,
         val joinRule: RoomJoinRules? = null,
+        /** True when the peek discovered the room's history is world-readable (live preview possible). */
+        val worldReadable: Boolean = false,
         val isKnocked: Boolean = false,
         val knockState: Async<Unit> = Uninitialized,
         // Last error of join room request

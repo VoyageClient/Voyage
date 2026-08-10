@@ -22,6 +22,8 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.session.search.SearchService
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
+import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomSearchTask
+import org.matrix.android.sdk.internal.session.room.peeking.PeekedRoomManager
 import org.matrix.android.sdk.internal.session.search.index.EventIndexer
 import org.matrix.android.sdk.internal.session.search.index.LocalEventSearchTask
 import javax.inject.Inject
@@ -31,6 +33,8 @@ internal class DefaultSearchService @Inject constructor(
         private val localEventSearchTask: LocalEventSearchTask,
         private val eventIndexer: EventIndexer,
         private val stores: SessionStores,
+        private val peekedRoomManager: PeekedRoomManager,
+        private val peekRoomSearchTask: PeekRoomSearchTask,
 ) : SearchService {
 
     override suspend fun search(
@@ -44,6 +48,12 @@ internal class DefaultSearchService @Inject constructor(
             includeProfile: Boolean
     ): SearchResult {
         val query = SearchQueryParser.parse(searchTerm)
+
+        // A peeked (un-joined) room: the server refuses /search without membership, so crawl
+        // /messages and match locally.
+        if (peekedRoomManager.get(roomId) != null) {
+            return peekRoomSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
+        }
 
         // The local index answers: encrypted rooms (the server cannot search them), unencrypted
         // rooms unless the user opted for server search, and filter-only queries (the server

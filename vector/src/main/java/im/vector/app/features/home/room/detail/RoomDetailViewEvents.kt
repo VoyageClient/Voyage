@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail
 
 import android.net.Uri
 import im.vector.app.core.platform.VectorViewEvents
+import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.widgets.model.Widget
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -30,6 +31,9 @@ sealed class RoomDetailViewEvents : VectorViewEvents {
     data class ShowE2EErrorMessage(val withHeldCode: WithHeldCode?) : RoomDetailViewEvents()
 
     data class OpenRoom(val roomId: String, val closeCurrentRoom: Boolean = false) : RoomDetailViewEvents()
+
+    /** A world-readable preview failed to load; reopen the classic no-preview screen. */
+    data class OpenRoomPreviewFallback(val roomPreviewData: RoomPreviewData) : RoomDetailViewEvents()
 
     data class NavigateToEvent(val eventId: String, val isFirstUnreadEvent: Boolean) : RoomDetailViewEvents()
 

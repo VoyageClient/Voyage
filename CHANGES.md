@@ -16,6 +16,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Per-room media visibility** — the media-visibility settings can now be overridden per room from Personalization, so a single room can show or hide media regardless of the account-wide choice.
 
+- **Live room previews** — a public world-readable room now opens as a real, live-updating timeline before you join it, from the room directory or a link, the way Element Web previews rooms. You can scroll back through history, search it, and browse the room's profile, members and media gallery, all read-only, with a join bar at the bottom; nothing is stored locally until you actually join.
+
 - **Local message search, including encrypted rooms** — a local event index with its own database, plus advanced filters: `from:`, `mentions:`, `has:(image|video|audio|file|sticker)`, `before:`/`after:` dates, and quoted exact-substring matching.
 
 - **Share encrypted history on invite (MSC4268)** — when you invite someone to an encrypted room whose history is visible to members, they can now read the messages sent before they joined. The keys go over as a single encrypted bundle rather than one message per session, so it works on rooms with a long history, and they are only sent to devices the invitee has cross-signed. Messages decrypted this way say who shared the keys, since only that person vouches for who really sent them.

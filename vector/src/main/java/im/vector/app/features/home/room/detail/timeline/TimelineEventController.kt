@@ -476,6 +476,7 @@ class TimelineEventController @Inject constructor(
 
     fun update(viewState: RoomDetailViewState) = PerfTrace.time("timeline.controller.update") {
         val newPartialState = PartialState(viewState)
+        reactionListFactory.canAddReaction = newPartialState.roomSummary?.membership == Membership.JOIN
         if (newPartialState != partialState) {
             partialState = newPartialState
             requestModelBuild()
@@ -503,8 +504,9 @@ class TimelineEventController @Inject constructor(
     }
 
     private fun buildModelsInner() {
-        // Don't build anything if membership is not joined
-        if (partialState.roomSummary?.membership != Membership.JOIN) {
+        // NONE is a world-readable preview (PeekedRoom); other non-JOIN memberships never render.
+        val membership = partialState.roomSummary?.membership
+        if (membership != Membership.JOIN && membership != Membership.NONE) {
             return
         }
         val timestamp = clock.epochMillis()

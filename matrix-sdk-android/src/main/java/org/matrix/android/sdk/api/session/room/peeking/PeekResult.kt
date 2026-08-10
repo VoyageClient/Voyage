@@ -31,7 +31,9 @@ sealed class PeekResult {
             val viaServers: List<String>,
             val someMembers: List<MatrixItem.UserItem>?,
             val isPublic: Boolean,
-            val joinRule: RoomJoinRules? = null
+            val joinRule: RoomJoinRules? = null,
+            /** Whether the room's history visibility allows previewing without joining. Null when unknown. */
+            val worldReadable: Boolean? = null,
     ) : PeekResult()
 
     data class PeekingNotAllowed(

@@ -29,7 +29,9 @@ data class RoomAliasBottomSheetArgs(
         val isPublished: Boolean,
         val isMainAlias: Boolean,
         val isLocal: Boolean,
-        val canEditCanonicalAlias: Boolean
+        val canEditCanonicalAlias: Boolean,
+        /** False when the room is not joined (preview): local aliases cannot be deleted either. */
+        val canDeleteLocalAlias: Boolean,
 ) : Parcelable
 
 /**
@@ -82,7 +84,8 @@ class RoomAliasBottomSheet :
                 isPublished: Boolean,
                 isMainAlias: Boolean,
                 isLocal: Boolean,
-                canEditCanonicalAlias: Boolean
+                canEditCanonicalAlias: Boolean,
+                canDeleteLocalAlias: Boolean,
         ): RoomAliasBottomSheet {
             return RoomAliasBottomSheet().apply {
                 setArguments(
@@ -91,7 +94,8 @@ class RoomAliasBottomSheet :
                                 isPublished = isPublished,
                                 isMainAlias = isMainAlias,
                                 isLocal = isLocal,
-                                canEditCanonicalAlias = canEditCanonicalAlias
+                                canEditCanonicalAlias = canEditCanonicalAlias,
+                                canDeleteLocalAlias = canDeleteLocalAlias,
                         )
                 )
             }

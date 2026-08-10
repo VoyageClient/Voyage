@@ -17,6 +17,9 @@ import javax.inject.Inject
 @ActivityScoped
 class ReactionsSummaryFactory @Inject constructor() {
 
+    /** Fed by the timeline controller from its partial state; false hides the add-reaction button. */
+    @Volatile var canAddReaction: Boolean = true
+
     var onRequestBuild: (() -> Unit)? = null
     private val showAllReactionsByEvent = HashSet<String>()
     private val eventsRequestingBuild = HashSet<String>()
@@ -34,7 +37,8 @@ class ReactionsSummaryFactory @Inject constructor() {
                 }
         return ReactionsSummaryData(
                 reactions = reactions,
-                showAll = showAllStates
+                showAll = showAllStates,
+                canAddReaction = canAddReaction,
         )
     }
 

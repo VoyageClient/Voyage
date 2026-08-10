@@ -195,12 +195,15 @@ class ReactionButton @JvmOverloads constructor(
         }
     }
 
+    /** Blocks the click-toggle without disabling the view, so long-press (who reacted) still works. */
+    var readOnly: Boolean = false
+
     /**
      * This triggers the entire functionality of the button such as icon changes,
      * animations, listeners etc.
      */
     override fun onClick(v: View) {
-        if (!isEnabled) {
+        if (!isEnabled || readOnly) {
             return
         }
         isChecked = !isChecked

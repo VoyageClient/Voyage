@@ -78,6 +78,7 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.intent.getMimeTypeFromUri
+import im.vector.app.core.platform.ButtonStateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
 import im.vector.app.core.platform.showOptimizedSnackbar
@@ -205,6 +206,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -423,7 +425,7 @@ class TimelineFragment :
         // state change.
         pgpKeyStore.changes
                 .onEach {
-                    withState(timelineViewModel) { renderToolbar(it.asyncRoomSummary()) }
+                    withState(timelineViewModel) { renderToolbar(it.asyncRoomSummary(), it.isRoomPreview) }
                     timelineEventController.invalidateAllCache()
                 }
                 .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -467,6 +469,10 @@ class TimelineFragment :
                 RoomDetailViewEvents.HideWaitingView -> vectorBaseActivity.hideWaitingView()
                 is RoomDetailViewEvents.RequestNativeWidgetPermission -> requestNativeWidgetPermission(it)
                 is RoomDetailViewEvents.OpenRoom -> handleOpenRoom(it)
+                is RoomDetailViewEvents.OpenRoomPreviewFallback -> {
+                    navigator.openRoomPreview(requireActivity(), it.roomPreviewData)
+                    requireActivity().finish()
+                }
                 RoomDetailViewEvents.OpenInvitePeople -> navigator.openInviteUsersToRoom(requireActivity(), timelineArgs.roomId)
                 RoomDetailViewEvents.OpenSetRoomAvatarDialog -> galleryOrCameraDialogHelper.show()
                 RoomDetailViewEvents.OpenRoomSettings -> handleOpenRoomSettings(RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_SETTINGS)
@@ -996,6 +1002,7 @@ class TimelineFragment :
     }
 
     private fun setupNotificationView() {
+        views.roomPreviewJoinButton.commonClicked = { timelineViewModel.handle(RoomDetailAction.JoinPreviewedRoom) }
         views.notificationAreaView.delegate = object : NotificationAreaView.Delegate {
             override fun onMisconfiguredEncryptionClicked() {
                 timelineViewModel.handle(RoomDetailAction.OnClickMisconfiguredEncryption)
@@ -1474,7 +1481,7 @@ class TimelineFragment :
             return@withState
         }
         val summary = mainState.asyncRoomSummary()
-        renderToolbar(summary)
+        renderToolbar(summary, mainState.isRoomPreview)
         renderPinnedMessagesBanner(mainState)
         renderUserIdentityWarning(mainState.userIdentityChangePrompt)
         views.massRedactionBanner.render(mainState.massRedactionState)
@@ -1484,6 +1491,7 @@ class TimelineFragment :
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = false)?.isVisible = false
         }
         val inviter = mainState.asyncInviter()
+        views.roomPreviewJoinBar.isVisible = mainState.isRoomPreview && summary?.membership == Membership.NONE
         if (summary?.membership == Membership.JOIN) {
             views.jumpToBottomView.count = summary.notificationCount
             views.jumpToBottomView.drawBadge = summary.hasUnreadMessages
@@ -1512,6 +1520,26 @@ class TimelineFragment :
             if (summary.isDirect && summary.isEncrypted && summary.joinedMembersCount == 1 && summary.invitedMembersCount == 0) {
                 views.hideComposerViews()
             }
+        } else if (mainState.isRoomPreview && summary?.membership == Membership.NONE) {
+            // The system bar area below the join bar must match its background, like it does below
+            // the composer / room list.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                @Suppress("DEPRECATION")
+                activity?.window?.navigationBarColor = ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
+            }
+            timelineEventController.update(mainState)
+            lazyLoadedViews.inviteView(false)?.isVisible = false
+            views.hideComposerViews()
+            views.notificationAreaView.render(NotificationAreaView.State.Hidden)
+            views.roomPreviewJoinPrompt.text =
+                    getString(CommonStrings.room_preview_peek_join_prompt, summary.displayName).prepareForDisplay()
+            views.roomPreviewJoinButton.render(
+                    when (mainState.changeMembershipState) {
+                        is ChangeMembershipState.Joining -> ButtonStateView.State.Loading
+                        is ChangeMembershipState.FailedJoining -> ButtonStateView.State.Error
+                        else -> ButtonStateView.State.Button
+                    }
+            )
         } else if (summary?.membership == Membership.INVITE && inviter != null) {
             views.hideComposerViews()
             lazyLoadedViews.inviteView(true)?.apply {
@@ -1557,7 +1585,7 @@ class TimelineFragment :
         rootConstraintLayout.updateLayoutParams<CoordinatorLayout.LayoutParams> { bottomMargin = 0 }
     }
 
-    private fun renderToolbar(roomSummary: RoomSummary?) {
+    private fun renderToolbar(roomSummary: RoomSummary?, isRoomPreview: Boolean) {
         when {
             isLocalRoom() -> {
                 views.includeRoomToolbar.roomToolbarContentView.isVisible = false
@@ -1586,7 +1614,9 @@ class TimelineFragment :
                 if (roomSummary == null) {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = false
                 } else {
-                    views.includeRoomToolbar.roomToolbarContentView.isClickable = roomSummary.membership == Membership.JOIN
+                    // Previews open the (read-only) room profile from here too.
+                    views.includeRoomToolbar.roomToolbarContentView.isClickable =
+                            roomSummary.membership == Membership.JOIN || isRoomPreview
                     views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName.prepareForDisplay()
                     val toolbarMatrixItem = roomSummary.toDisplayMatrixItem().let {
                         if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it

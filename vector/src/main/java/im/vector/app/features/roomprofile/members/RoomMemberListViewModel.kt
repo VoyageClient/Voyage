@@ -154,8 +154,9 @@ class RoomMemberListViewModel @AssistedInject constructor(
     private fun observePowerLevel() {
         room.flow().liveRoomPowerLevels()
                 .onEach { roomPowerLevels ->
+                    val isJoined = room.roomSummary()?.membership == Membership.JOIN
                     val permissions = ActionPermissions(
-                            canInvite = roomPowerLevels.isUserAbleToInvite(session.myUserId),
+                            canInvite = isJoined && roomPowerLevels.isUserAbleToInvite(session.myUserId),
                             canRevokeThreePidInvite = roomPowerLevels.isUserAllowedToSend(
                                     userId = session.myUserId,
                                     isState = true,

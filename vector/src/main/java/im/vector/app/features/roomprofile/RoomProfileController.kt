@@ -29,6 +29,7 @@ import im.vector.lib.strings.CommonStrings
 import me.gujun.android.span.image
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -92,6 +93,9 @@ class RoomProfileController @Inject constructor(
         data ?: return
         val host = this
         val roomSummary = data.roomSummary() ?: return
+        // World-readable preview (not joined): everything renders read-only; only actions that are
+        // meaningless without membership are hidden below.
+        val isPreview = roomSummary.membership == Membership.NONE
 
         // Topic
         roomSummary
@@ -259,12 +263,14 @@ class RoomProfileController @Inject constructor(
                 icon = R.drawable.ic_room_profile_settings,
                 action = { callback?.onSettingsClicked() }
         )
-        buildProfileAction(
-                id = "notifications",
-                title = stringProvider.getString(CommonStrings.room_profile_section_more_notifications),
-                icon = R.drawable.ic_room_profile_notification,
-                action = { callback?.onNotificationsClicked() }
-        )
+        if (!isPreview) {
+            buildProfileAction(
+                    id = "notifications",
+                    title = stringProvider.getString(CommonStrings.room_profile_section_more_notifications),
+                    icon = R.drawable.ic_room_profile_notification,
+                    action = { callback?.onNotificationsClicked() }
+            )
+        }
         val numberOfMembers = roomSummary.joinedMembersCount ?: 0
         val hasWarning = roomSummary.isEncrypted && roomSummary.roomEncryptionTrustLevel == RoomEncryptionTrustLevel.Warning
         buildProfileAction(
@@ -321,13 +327,15 @@ class RoomProfileController @Inject constructor(
                 icon = R.drawable.ic_attachment_sticker,
                 action = { callback?.onImagePacksClicked() }
         )
-        buildProfileAction(
-                id = "personalization",
-                title = stringProvider.getString(CommonStrings.room_profile_section_more_personalization),
-                icon = R.drawable.ic_room_profile_personalization,
-                action = { callback?.onPersonalizationClicked() }
-        )
-        if (shortcutCreator.canCreateShortcut()) {
+        if (!isPreview) {
+            buildProfileAction(
+                    id = "personalization",
+                    title = stringProvider.getString(CommonStrings.room_profile_section_more_personalization),
+                    icon = R.drawable.ic_room_profile_personalization,
+                    action = { callback?.onPersonalizationClicked() }
+            )
+        }
+        if (!isPreview && shortcutCreator.canCreateShortcut()) {
             buildProfileAction(
                     id = "shortcut",
                     title = stringProvider.getString(CommonStrings.room_settings_add_homescreen_shortcut),
@@ -336,21 +344,23 @@ class RoomProfileController @Inject constructor(
                     action = { callback?.createShortcut() }
             )
         }
-        buildProfileAction(
-                id = "leave",
-                title = stringProvider.getString(
-                        if (roomSummary.isDirect) {
-                            CommonStrings.direct_room_profile_section_more_leave
-                        } else {
-                            CommonStrings.room_profile_section_more_leave
-                        }
-                ),
-                divider = false,
-                destructive = true,
-                icon = R.drawable.ic_room_actions_leave,
-                editable = false,
-                action = { callback?.onLeaveRoomClicked() }
-        )
+        if (!isPreview) {
+            buildProfileAction(
+                    id = "leave",
+                    title = stringProvider.getString(
+                            if (roomSummary.isDirect) {
+                                CommonStrings.direct_room_profile_section_more_leave
+                            } else {
+                                CommonStrings.room_profile_section_more_leave
+                            }
+                    ),
+                    divider = false,
+                    destructive = true,
+                    icon = R.drawable.ic_room_actions_leave,
+                    editable = false,
+                    action = { callback?.onLeaveRoomClicked() }
+            )
+        }
 
         // Advanced
         buildProfileSection(stringProvider.getString(CommonStrings.room_settings_category_advanced_title))

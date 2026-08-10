@@ -176,10 +176,61 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/roomPreviewJoinBar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             tools:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/roomPreviewJoinBar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="?android:colorBackground"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:visibility="visible">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?vctr_list_separator" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:id="@+id/roomPreviewJoinPrompt"
+                    style="@style/Widget.Vector.TextView.Subtitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:layout_weight="1"
+                    android:textColor="?vctr_content_primary"
+                    android:textStyle="bold"
+                    tools:text="You're previewing My room. Want to join it?" />
+
+                <im.vector.app.core.platform.ButtonStateView
+                    android:id="@+id/roomPreviewJoinButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="120dp"
+                    app:bsv_button_text="@string/action_join"
+                    app:bsv_loaded_image_src="@drawable/ic_tick"
+                    app:bsv_use_flat_button="false" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <ViewStub
             android:id="@+id/inviteViewStub"
@@ -205,7 +256,7 @@
             app:badgeTextColor="?vctr_jump_to_bottom_badge_text_tint"
             app:badgeTextPadding="2dp"
             app:badgeTextSize="10sp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/roomPreviewJoinBar"
             app:layout_constraintEnd_toEndOf="parent"
             app:tint="?vctr_jump_to_bottom_icon_tint" />
 

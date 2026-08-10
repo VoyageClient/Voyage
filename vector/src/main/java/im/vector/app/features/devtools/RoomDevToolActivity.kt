@@ -141,8 +141,9 @@ class RoomDevToolActivity :
 
     override fun handlePrepareMenu(menu: Menu) {
         withState(viewModel) { state ->
-            menu.findItem(R.id.menuItemEdit).isVisible = state.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
-                    state.displayMode == RoomDevToolViewState.Mode.AccountDataDetail
+            menu.findItem(R.id.menuItemEdit).isVisible = state.canEditState &&
+                    (state.displayMode == RoomDevToolViewState.Mode.StateEventDetail ||
+                            state.displayMode == RoomDevToolViewState.Mode.AccountDataDetail)
             menu.findItem(R.id.menuItemSend).isVisible = state.displayMode == RoomDevToolViewState.Mode.EditEventContent ||
                     state.displayMode is RoomDevToolViewState.Mode.SendEventForm
         }

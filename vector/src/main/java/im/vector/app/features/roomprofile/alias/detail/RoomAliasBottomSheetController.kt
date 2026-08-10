@@ -56,8 +56,9 @@ class RoomAliasBottomSheetController @Inject constructor() : TypedEpoxyControlle
                 // Publish
                 RoomAliasBottomSheetSharedAction.PublishAlias(state.alias).toBottomSheetItem(++idx)
             }
-            // Delete
-            RoomAliasBottomSheetSharedAction.DeleteAlias(state.alias).toBottomSheetItem(++idx)
+            if (state.canDeleteLocalAlias) {
+                RoomAliasBottomSheetSharedAction.DeleteAlias(state.alias).toBottomSheetItem(++idx)
+            }
         }
     }
 
