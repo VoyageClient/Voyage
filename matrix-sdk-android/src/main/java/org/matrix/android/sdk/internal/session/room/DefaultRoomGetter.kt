@@ -15,6 +15,7 @@ import org.matrix.android.sdk.internal.database.sql.store.SessionStores
 import org.matrix.android.sdk.internal.database.sql.store.splitToList
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.SessionScope
+import org.matrix.android.sdk.internal.session.room.peeking.PeekedRoomManager
 import javax.inject.Inject
 
 @SessionScope
@@ -22,10 +23,12 @@ internal class DefaultRoomGetter @Inject constructor(
         @SessionDatabase private val database: SessionSqlDatabase,
         private val stores: SessionStores,
         private val roomFactory: RoomFactory,
+        private val peekedRoomManager: PeekedRoomManager,
 ) : RoomGetter {
 
     override fun getRoom(roomId: String): Room? =
             stores.room.get(roomId)?.let { roomFactory.create(roomId) }
+                    ?: peekedRoomManager.get(roomId)
 
     override fun getDirectRoomWith(otherUserId: String): String? {
         return database.roomSummaryQueries.selectAll().executeAsList()

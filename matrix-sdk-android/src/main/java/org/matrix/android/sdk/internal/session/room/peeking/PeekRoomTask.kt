@@ -90,7 +90,8 @@ internal class DefaultPeekRoomTask @Inject constructor(
                     roomType = strippedState.roomType,
                     someMembers = null,
                     isPublic = strippedState.worldReadable,
-                    joinRule = strippedState.joinRule?.let { rule -> RoomJoinRules.values().firstOrNull { it.value == rule } }
+                    joinRule = strippedState.joinRule?.let { rule -> RoomJoinRules.values().firstOrNull { it.value == rule } },
+                    worldReadable = strippedState.worldReadable,
             )
         }
 
@@ -132,7 +133,8 @@ internal class DefaultPeekRoomTask @Inject constructor(
                     viaServers = serverList,
                     roomType = null, // would be nice to get that from directory...
                     someMembers = null,
-                    isPublic = true
+                    isPublic = true,
+                    worldReadable = publicRepoResult.worldReadable,
             )
         }
 
@@ -198,7 +200,8 @@ internal class DefaultPeekRoomTask @Inject constructor(
                     viaServers = serverList,
                     someMembers = someMembers,
                     isPublic = historyVisibility == RoomHistoryVisibility.WORLD_READABLE,
-                    joinRule = joinRule
+                    joinRule = joinRule,
+                    worldReadable = historyVisibility == RoomHistoryVisibility.WORLD_READABLE,
             )
         } catch (failure: Throwable) {
             // Would be M_FORBIDDEN if cannot peek :/

@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomCanonicalAliasContent
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.mapOptional
@@ -125,8 +126,9 @@ class RoomAliasViewModel @AssistedInject constructor(
     private fun observePowerLevel() {
         room.flow().liveRoomPowerLevels()
                 .onEach { roomPowerLevels ->
+                    val isJoined = room.roomSummary()?.membership == Membership.JOIN
                     val permissions = RoomAliasViewState.ActionPermissions(
-                            canChangeCanonicalAlias = roomPowerLevels.isUserAllowedToSend(
+                            canChangeCanonicalAlias = isJoined && roomPowerLevels.isUserAllowedToSend(
                                     userId = session.myUserId,
                                     isState = true,
                                     eventType = EventType.STATE_ROOM_CANONICAL_ALIAS

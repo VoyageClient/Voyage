@@ -23,6 +23,9 @@ data class RoomDevToolViewState(
         val selectedAccountData: RoomAccountDataEvent? = null,
         val selectedEventJson: String? = null,
         val editedContent: String? = null,
+        /** False while previewing an un-joined room: state browsing works, sending/editing cannot.
+         * Defaults false so preview mode never flashes the edit affordances before the VM decides. */
+        val canEditState: Boolean = false,
         val modalLoading: Async<Unit> = Uninitialized,
         val sendEventDraft: SendEventDraft? = null
 ) : MavericksState {

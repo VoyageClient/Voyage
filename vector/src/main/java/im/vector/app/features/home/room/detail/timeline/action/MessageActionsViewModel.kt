@@ -59,6 +59,7 @@ import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupState
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.events.model.isAttachmentMessage
 import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.isThread
@@ -157,11 +158,12 @@ class MessageActionsViewModel @AssistedInject constructor(
             // message can be long-pressed — so this doesn't block on I/O in practice.
             if (room != null) {
                 val initial = room.stateService().getRoomPowerLevels()
+                val isJoined = room.roomSummary()?.membership == Membership.JOIN
                 val permissions = ActionPermissions(
-                        canSendMessage = initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
-                        canReact = initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
-                        canRedact = initial.isUserAbleToRedact(session.myUserId),
-                        canPinUnpin = initial.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
+                        canSendMessage = isJoined && initial.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE),
+                        canReact = isJoined && initial.isUserAllowedToSend(session.myUserId, false, EventType.REACTION),
+                        canRedact = isJoined && initial.isUserAbleToRedact(session.myUserId),
+                        canPinUnpin = isJoined && initial.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT),
                 )
                 setState { copy(actionPermissions = permissions) }
             }
@@ -186,10 +188,11 @@ class MessageActionsViewModel @AssistedInject constructor(
         }
         room.flow().liveRoomPowerLevels()
                 .onEach { roomPowerLevels ->
-                    val canReact = roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REACTION)
-                    val canRedact = roomPowerLevels.isUserAbleToRedact(session.myUserId)
-                    val canSendMessage = roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE)
-                    val canPinUnpin = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT)
+                    val isJoined = room.roomSummary()?.membership == Membership.JOIN
+                    val canReact = isJoined && roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.REACTION)
+                    val canRedact = isJoined && roomPowerLevels.isUserAbleToRedact(session.myUserId)
+                    val canSendMessage = isJoined && roomPowerLevels.isUserAllowedToSend(session.myUserId, false, EventType.MESSAGE)
+                    val canPinUnpin = isJoined && roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_PINNED_EVENT)
                     val permissions = ActionPermissions(
                             canSendMessage = canSendMessage,
                             canRedact = canRedact,

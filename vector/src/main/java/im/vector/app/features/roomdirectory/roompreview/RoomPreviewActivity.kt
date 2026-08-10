@@ -19,9 +19,9 @@ import im.vector.app.features.roomdirectory.RoomDirectoryData
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
 import org.matrix.android.sdk.api.util.MatrixItem
-import timber.log.Timber
 
 @Parcelize
 data class RoomPreviewData(
@@ -37,6 +37,8 @@ data class RoomPreviewData(
         val homeServers: List<String> = emptyList(),
         val peekFromServer: Boolean = false,
         val buildTask: Boolean = false,
+        /** Set when the live timeline preview already failed for this room, so the no-preview screen must not bounce back to it. */
+        val noTimelinePreview: Boolean = false,
         val fromEmailInvite: PermalinkData.RoomEmailInviteLink? = null
 ) : Parcelable {
     val matrixItem: MatrixItem
@@ -81,12 +83,29 @@ class RoomPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         if (isFirstCreation()) {
             val args = intent.getParcelableExtraCompat<RoomPreviewData>(ARG)
 
-            if (args?.worldReadable == true) {
-                // TODO Room preview: Note: M does not recommend to use /events anymore, so for now we just display the room preview
-                // TODO the same way if it was not world readable
-                Timber.d("just display the room preview the same way if it was not world readable")
-                addFragment(views.simpleFragmentContainer, RoomPreviewNoPreviewFragment::class.java, args)
-            } else {
+            val session = activeSessionHolder.getSafeActiveSession()
+            // A room with a real local row (left/banned) or a space must go through the classic
+            // screen: the timeline preview can't render either correctly. A retained previous peek
+            // is fine — the getter resolves it back to the peeked room.
+            val hasRealLocalRoom = session != null && args != null &&
+                    session.roomService().getRoom(args.roomId) != null &&
+                    !session.roomService().isRoomPeeked(args.roomId)
+            val canTimelinePreview = args?.worldReadable == true && !args.noTimelinePreview &&
+                    args.roomType != RoomType.SPACE &&
+                    !hasRealLocalRoom
+            if (args != null && canTimelinePreview && session != null) {
+                // Preview through the normal room screen, backed by an SDK-level peeked room.
+                session.roomService().registerRoomPeek(
+                        roomId = args.roomId,
+                        viaServers = args.homeServers,
+                        roomName = args.roomName,
+                        roomAvatarUrl = args.avatarUrl,
+                        roomTopic = args.topic,
+                        roomAlias = args.roomAlias,
+                )
+                navigator.openRoom(this, args.roomId, args.eventId, args.buildTask)
+                finish()
+            } else if (args != null) {
                 addFragment(views.simpleFragmentContainer, RoomPreviewNoPreviewFragment::class.java, args)
             }
         }

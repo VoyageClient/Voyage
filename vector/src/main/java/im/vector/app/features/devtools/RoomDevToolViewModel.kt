@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataEvent
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixJsonParser
@@ -75,6 +76,9 @@ class RoomDevToolViewModel @AssistedInject constructor(
     }
 
     init {
+        setState {
+            copy(canEditState = session.getRoom(initialState.roomId)?.roomSummary()?.membership == Membership.JOIN)
+        }
         session.getRoom(initialState.roomId)
                 ?.flow()
                 ?.liveStateEvents(emptySet(), QueryStringValue.IsNotNull)

@@ -85,7 +85,40 @@ class RoomPreviewNoPreviewFragment :
         super.onCreate(savedInstanceState)
     }
 
+    private var switchedToTimelinePreview = false
+
+    // A permalink/alias entry lands here before we know the history visibility; once the peek says
+    // world_readable, hand over to the live timeline preview (unless it already failed for this room).
+    private fun switchToTimelinePreviewIfPossible(state: RoomPreviewViewState) {
+        if (switchedToTimelinePreview || roomPreviewData.noTimelinePreview || !state.worldReadable) return
+        if ((state.peekingState as? Success)?.invoke() != PeekingState.FOUND) return
+        if (state.roomJoinState != JoinState.NOT_JOINED || state.isKnocked) return
+        // Spaces need the space-aware join flow; knock rooms need the knock UI this screen offers;
+        // a room with a local row (left/banned) would shadow the peek in the room getter.
+        if (state.roomType == RoomType.SPACE) return
+        if (state.joinRule == RoomJoinRules.KNOCK || state.joinRule == RoomJoinRules.KNOCK_RESTRICTED) return
+        val session = activeSessionHolder.getSafeActiveSession() ?: return
+        if (session.roomService().getRoom(state.roomId) != null && !session.roomService().isRoomPeeked(state.roomId)) return
+        switchedToTimelinePreview = true
+        session.roomService().registerRoomPeek(
+                roomId = state.roomId,
+                viaServers = state.homeServers,
+                roomName = state.roomName,
+                roomAvatarUrl = state.avatarUrl,
+                roomTopic = state.roomTopic,
+                roomAlias = state.roomAlias,
+        )
+        navigator.openRoom(
+                context = requireActivity(),
+                roomId = state.roomId,
+                eventId = roomPreviewData.eventId,
+                buildTask = roomPreviewData.buildTask,
+        )
+        requireActivity().finish()
+    }
+
     override fun invalidate() = withState(roomPreviewViewModel) { state ->
+        switchToTimelinePreviewIfPossible(state)
 
         views.roomPreviewNoPreviewJoin.render(
                 when (state.roomJoinState) {

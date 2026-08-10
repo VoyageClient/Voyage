@@ -29,6 +29,7 @@ import im.vector.app.features.roomdirectory.createroom.RoomAliasErrorFormatter
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.MatrixConstants
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasError
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import javax.inject.Inject
@@ -59,8 +60,9 @@ class RoomAliasController @Inject constructor(
 
         // Published alias
         buildPublishInfo(data)
-        // Room directory visibility
-        if (data.roomSummary.invoke()?.roomType != RoomType.SPACE) {
+        // Room directory visibility (needs membership: previews must not offer publishing)
+        val summary = data.roomSummary.invoke()
+        if (summary?.roomType != RoomType.SPACE && summary?.membership == Membership.JOIN) {
             buildRoomDirectoryVisibility(data)
         }
         // Local alias
@@ -225,8 +227,10 @@ class RoomAliasController @Inject constructor(
             }
         }
 
-        // Add local
-        buildAddLocalAlias(data)
+        // Add local (creating an alias needs membership)
+        if (data.roomSummary.invoke()?.membership == Membership.JOIN) {
+            buildAddLocalAlias(data)
+        }
     }
 
     private fun buildAddLocalAlias(data: RoomAliasViewState) {

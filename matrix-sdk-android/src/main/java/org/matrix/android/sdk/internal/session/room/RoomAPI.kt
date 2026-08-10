@@ -33,6 +33,8 @@ import org.matrix.android.sdk.internal.session.room.membership.RoomMembersRespon
 import org.matrix.android.sdk.internal.session.room.membership.admin.UserIdAndReason
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteBody
 import org.matrix.android.sdk.internal.session.room.membership.threepid.ThreePidInviteBody
+import org.matrix.android.sdk.internal.session.room.peeking.PeekEventsResponse
+import org.matrix.android.sdk.internal.session.room.peeking.RoomInitialSyncResponse
 import org.matrix.android.sdk.internal.session.room.read.ReadBody
 import org.matrix.android.sdk.internal.session.room.relation.RelationsResponse
 import org.matrix.android.sdk.internal.session.room.relation.threads.ThreadSummariesResponse
@@ -92,7 +94,7 @@ internal interface RoomAPI {
     @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/messages")
     suspend fun getRoomMessagesFrom(
             @Path("roomId") roomId: String,
-            @Query("from") from: String,
+            @Query("from") from: String?,
             @Query("dir") dir: String,
             @Query("limit") limit: Int?,
             @Query("filter") filter: String?,
@@ -259,6 +261,29 @@ internal interface RoomAPI {
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/state")
     suspend fun getRoomState(@Path("roomId") roomId: String): List<Event>
+
+    /**
+     * Deprecated v1 room initialSync, still served by homeservers. It is the only way to fetch
+     * recent messages of a world-readable room without joining it (same mechanism Element Web
+     * uses for room previews).
+     */
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/initialSync")
+    suspend fun roomInitialSync(
+            @Path("roomId") roomId: String,
+            @Query("limit") limit: Int,
+    ): RoomInitialSyncResponse
+
+    /**
+     * Deprecated v1 events long-poll, scoped to one room: live updates for a world-readable room
+     * peek. Without `from` it returns immediately with the current live token.
+     */
+    @Headers("${TimeOutInterceptor.READ_TIMEOUT}: 90000")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "events")
+    suspend fun peekEvents(
+            @Query("room_id") roomId: String,
+            @Query("from") from: String?,
+            @Query("timeout") timeout: Long,
+    ): PeekEventsResponse
 
     /**
      * Paginate relations for event based in normal topological order.

@@ -58,6 +58,7 @@ import org.matrix.android.sdk.internal.session.room.membership.joining.KnockRoom
 import org.matrix.android.sdk.internal.session.room.membership.leaving.ForgetRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
+import org.matrix.android.sdk.internal.session.room.peeking.PeekedRoomManager
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
@@ -84,6 +85,7 @@ internal class DefaultRoomService @Inject constructor(
         private val deleteRoomAliasTask: DeleteRoomAliasTask,
         private val resolveRoomStateTask: ResolveRoomStateTask,
         private val peekRoomTask: PeekRoomTask,
+        private val peekedRoomManager: PeekedRoomManager,
         private val roomGetter: RoomGetter,
         private val roomSummaryDataSource: RoomSummaryDataSource,
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
@@ -291,6 +293,34 @@ internal class DefaultRoomService @Inject constructor(
 
     override suspend fun getRoomState(roomId: String): List<Event> {
         return resolveRoomStateTask.execute(ResolveRoomStateTask.Params(roomId))
+    }
+
+    override fun registerRoomPeek(
+            roomId: String,
+            viaServers: List<String>,
+            roomName: String?,
+            roomAvatarUrl: String?,
+            roomTopic: String?,
+            roomAlias: String?,
+    ): Room {
+        return peekedRoomManager.getOrCreate(roomId, viaServers, roomName, roomAvatarUrl, roomTopic, roomAlias)
+    }
+
+    override fun releaseRoomPeek(roomId: String) {
+        peekedRoomManager.release(roomId)
+    }
+
+    override fun removeRoomPeek(roomId: String) {
+        peekedRoomManager.remove(roomId)
+    }
+
+    override fun isRoomPeeked(roomId: String): Boolean {
+        val peeked = peekedRoomManager.get(roomId) ?: return false
+        return roomGetter.getRoom(roomId) === peeked
+    }
+
+    override fun roomPeekViaServers(roomId: String): List<String> {
+        return peekedRoomManager.viaServers(roomId)
     }
 
     override suspend fun peekRoom(roomIdOrAlias: String): PeekResult {

@@ -35,6 +35,7 @@ import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasError
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import javax.inject.Inject
@@ -176,7 +177,8 @@ class RoomAliasFragment :
                         isPublished = alias in state.allPublishedAliases,
                         isMainAlias = alias == state.canonicalAlias,
                         isLocal = alias in state.localAliases().orEmpty(),
-                        canEditCanonicalAlias = state.actionPermissions.canChangeCanonicalAlias
+                        canEditCanonicalAlias = state.actionPermissions.canChangeCanonicalAlias,
+                        canDeleteLocalAlias = state.roomSummary()?.membership == Membership.JOIN,
                 )
                 .show(childFragmentManager, "ROOM_ALIAS_ACTIONS")
     }

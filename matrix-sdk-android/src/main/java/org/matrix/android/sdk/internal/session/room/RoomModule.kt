@@ -94,9 +94,19 @@ import org.matrix.android.sdk.internal.session.room.membership.leaving.ForgetRoo
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.DefaultInviteThreePidTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.InviteThreePidTask
+import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekLiveEventsTask
+import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomInitialSyncTask
+import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomMembersTask
+import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomMessagesTask
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomTask
+import org.matrix.android.sdk.internal.session.room.peeking.DefaultPeekRoomUploadsTask
 import org.matrix.android.sdk.internal.session.room.peeking.DefaultResolveRoomStateTask
+import org.matrix.android.sdk.internal.session.room.peeking.PeekLiveEventsTask
+import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomInitialSyncTask
+import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomMembersTask
+import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomMessagesTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
+import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomUploadsTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.session.room.poll.DefaultGetLoadedPollsStatusTask
 import org.matrix.android.sdk.internal.session.room.poll.DefaultLoadMorePollsTask
@@ -351,6 +361,21 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindPeekRoomTask(task: DefaultPeekRoomTask): PeekRoomTask
+
+    @Binds
+    abstract fun bindPeekRoomInitialSyncTask(task: DefaultPeekRoomInitialSyncTask): PeekRoomInitialSyncTask
+
+    @Binds
+    abstract fun bindPeekLiveEventsTask(task: DefaultPeekLiveEventsTask): PeekLiveEventsTask
+
+    @Binds
+    abstract fun bindPeekRoomMessagesTask(task: DefaultPeekRoomMessagesTask): PeekRoomMessagesTask
+
+    @Binds
+    abstract fun bindPeekRoomMembersTask(task: DefaultPeekRoomMembersTask): PeekRoomMembersTask
+
+    @Binds
+    abstract fun bindPeekRoomUploadsTask(task: DefaultPeekRoomUploadsTask): PeekRoomUploadsTask
 
     @Binds
     abstract fun bindUpdateRoomAccountDataTask(task: DefaultUpdateRoomAccountDataTask): UpdateRoomAccountDataTask

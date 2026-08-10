@@ -15,7 +15,8 @@ data class RoomAliasBottomSheetState(
         val isPublished: Boolean,
         val isMainAlias: Boolean,
         val isLocal: Boolean,
-        val canEditCanonicalAlias: Boolean
+        val canEditCanonicalAlias: Boolean,
+        val canDeleteLocalAlias: Boolean
 ) : MavericksState {
 
     constructor(args: RoomAliasBottomSheetArgs) : this(
@@ -23,6 +24,7 @@ data class RoomAliasBottomSheetState(
             isPublished = args.isPublished,
             isMainAlias = args.isMainAlias,
             isLocal = args.isLocal,
-            canEditCanonicalAlias = args.canEditCanonicalAlias
+            canEditCanonicalAlias = args.canEditCanonicalAlias,
+            canDeleteLocalAlias = args.canDeleteLocalAlias
     )
 }

@@ -41,6 +41,7 @@ sealed class RoomDetailAction : VectorViewModelAction {
     object JoinAndOpenReplacementRoom : RoomDetailAction()
     object OnClickMisconfiguredEncryption : RoomDetailAction()
     object AcceptInvite : RoomDetailAction()
+    object JoinPreviewedRoom : RoomDetailAction()
     object RejectInvite : RoomDetailAction()
 
     object EnterTrackingUnreadMessagesState : RoomDetailAction()

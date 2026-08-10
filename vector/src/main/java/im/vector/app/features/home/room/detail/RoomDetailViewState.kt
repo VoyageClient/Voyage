@@ -42,6 +42,7 @@ data class UserIdentityChangePrompt(
 )
 
 data class RoomDetailViewState(
+        val isRoomPreview: Boolean = false,
         val roomId: String,
         val eventId: String?,
         val isInviteAlreadyAccepted: Boolean,

@@ -21,7 +21,9 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -61,6 +63,7 @@ internal class DefaultFileService @Inject constructor(
         private val fileUploader: org.matrix.android.sdk.internal.session.content.FileUploader,
         private val imageCompressor: org.matrix.android.sdk.internal.session.content.ImageCompressor,
         private val pendingMediaUploadRegistry: org.matrix.android.sdk.internal.session.content.PendingMediaUploadRegistry,
+        private val taskExecutor: org.matrix.android.sdk.internal.task.TaskExecutor,
 ) : FileService {
 
     override suspend fun uploadFile(uri: String, fileName: String?, mimeType: String?): String {
@@ -121,27 +124,56 @@ internal class DefaultFileService @Inject constructor(
 
         Timber.v("## FileService downloadFile $url")
 
-        // TODO Remove use of `synchronized` in suspend function.
-        val existingDownload = synchronized(ongoing) {
+        val deferred: CompletableDeferred<File>
+        val isOwner: Boolean
+        synchronized(ongoing) {
             val existing = ongoing[url]
             if (existing != null) {
                 Timber.v("## FileService downloadFile is already downloading.. ")
-                existing
+                deferred = existing
+                isOwner = false
             } else {
-                // mark as tracked
-                ongoing[url] = CompletableDeferred()
-                // and proceed to download
-                null
+                deferred = CompletableDeferred()
+                ongoing[url] = deferred
+                isOwner = true
             }
         }
 
+        if (isOwner) {
+            // Run in the session scope: all requests for this url share this one download, so a
+            // cancelled requester (e.g. a recycled timeline view) must neither cancel the others
+            // nor strand the ongoing entry, which would block even cache hits for this url forever.
+            val job = taskExecutor.executorScope.launch(coroutineDispatchers.io) {
+                val result = runCatching {
+                    // Watchdog: whatever goes wrong below, the entry must eventually resolve.
+                    withTimeout(DOWNLOAD_TIMEOUT_MS) {
+                        performDownload(fileName, mimeType, url, elementToDecrypt)
+                    }
+                }
+                // Remove before completing, so a caller arriving right after a failure starts a
+                // fresh download instead of attaching to the stale failed deferred.
+                synchronized(ongoing) { ongoing.remove(url) }
+                deferred.completeWith(result)
+            }
+            job.invokeOnCompletion { cause ->
+                synchronized(ongoing) { ongoing.remove(url) }
+                if (deferred.isActive) {
+                    deferred.completeExceptionally(cause ?: IllegalStateException("Download ended without a result"))
+                }
+            }
+        }
+
+        return deferred.await()
+    }
+
+    private suspend fun performDownload(
+            fileName: String,
+            mimeType: String?,
+            url: String,
+            elementToDecrypt: ElementToDecrypt?
+    ): File {
         var atomicFileDownload: AtomicFileCreator? = null
         var atomicFileDecrypt: AtomicFileCreator? = null
-
-        if (existingDownload != null) {
-            // FIXME If the first downloader cancels then we'll unfortunately be cancelled too.
-            return existingDownload.await()
-        }
 
         val result = runCatching {
             val cachedFiles = withContext(coroutineDispatchers.io) {
@@ -259,13 +291,6 @@ internal class DefaultFileService @Inject constructor(
                 cachedFiles.file
             }
         }
-
-        // notify concurrent requests
-        val toNotify = synchronized(ongoing) { ongoing.remove(url) }
-        result.onSuccess {
-            Timber.v("## FileService additional to notify is > 0 ")
-        }
-        toNotify?.completeWith(result)
 
         result.onFailure {
             atomicFileDownload?.cancel()
@@ -425,6 +450,9 @@ internal class DefaultFileService @Inject constructor(
     }
 
     companion object {
+        // Generous, but a stuck download must eventually release its `ongoing` entry.
+        private const val DOWNLOAD_TIMEOUT_MS = 30 * 60_000L
+
         private const val ENCRYPTED_FILENAME = "encrypted.bin"
         private const val SERVER_FILENAME_SIDECAR = ".server_filename"
 

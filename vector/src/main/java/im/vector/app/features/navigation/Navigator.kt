@@ -113,7 +113,15 @@ interface Navigator {
 
     fun openBigImageViewer(activity: Activity, matrixItem: MatrixItem)
 
-    fun openBigImageViewer(activity: Activity, sharedElement: View?, mxcUrl: String?, title: String?)
+    fun openBigImageViewer(
+            activity: Activity,
+            sharedElement: View?,
+            mxcUrl: String?,
+            title: String?,
+            /** When set, the viewer's "show in timeline" eye jumps to this event (e.g. the avatar-change event). */
+            roomId: String? = null,
+            eventId: String? = null,
+    )
 
     fun openPinCode(
             context: Context,

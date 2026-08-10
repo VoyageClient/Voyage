@@ -115,6 +115,7 @@ class RoomPreviewViewModel @AssistedInject constructor(
                                 roomTopic = peekResult.topic,
                                 homeServers = newHomeServers,
                                 joinRule = peekResult.joinRule,
+                                worldReadable = peekResult.worldReadable == true,
                                 peekingState = Success(PeekingState.FOUND)
                         )
                     }

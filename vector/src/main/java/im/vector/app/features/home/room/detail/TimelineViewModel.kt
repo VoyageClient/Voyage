@@ -52,6 +52,7 @@ import im.vector.app.features.raw.wellknown.withElementWellKnown
 import im.vector.app.features.reactions.data.RecentEmojiDataSource
 import im.vector.app.features.redaction.MassRedactionManager
 import im.vector.app.features.redaction.preservation.RedactedContentRepository
+import im.vector.app.features.roomdirectory.roompreview.RoomPreviewData
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorDataStore
 import im.vector.app.features.settings.VectorPreferences
@@ -156,6 +157,10 @@ class TimelineViewModel @AssistedInject constructor(
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
     private val room = session.getRoom(initialState.roomId)
+
+    // Declared before the init block that reads it (initializers run in declaration order). Only a
+    // registered peek counts as a preview — a DB room row with membership NONE is not one.
+    private val isRoomPreview: Boolean = session.roomService().isRoomPeeked(initialState.roomId)
     private val eventId = initialState.eventId
             ?: if (vectorPreferences.loadRoomAtFirstUnread() && initialState.rootThreadEventId == null) {
                 room?.roomSummary()?.readMarkerId
@@ -216,7 +221,9 @@ class TimelineViewModel @AssistedInject constructor(
     private fun initSafe(room: Room, timeline: Timeline) = PerfTrace.time("timeline.vm.initSafe") {
         timeline.start(initialState.rootThreadEventId)
         timeline.addListener(this)
+        setState { copy(isRoomPreview = this@TimelineViewModel.isRoomPreview) }
         observeMembershipChanges()
+        observePreviewedRoomJoin()
         observeSummaryState()
         observeTombstoneState()
         getUnreadState()
@@ -620,6 +627,20 @@ class TimelineViewModel @AssistedInject constructor(
     }
 
     override fun handle(action: RoomDetailAction) {
+        if (isRoomPreview) {
+            // A previewed room is read-only: write attempts throw. Swallow the refusal centrally
+            // so any interactive affordance that slips through is inert instead of fatal.
+            try {
+                handleInternal(action)
+            } catch (error: UnsupportedOperationException) {
+                Timber.w("Ignored action in room preview: $action")
+            }
+            return
+        }
+        handleInternal(action)
+    }
+
+    private fun handleInternal(action: RoomDetailAction) {
         when (action) {
             is RoomDetailAction.ComposerFocusChange -> handleComposerFocusChange(action)
             is RoomDetailAction.SendMedia -> handleSendMedia(action)
@@ -628,6 +649,7 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.LoadMoreTimelineEvents -> handleLoadMore(action)
             is RoomDetailAction.SendReaction -> handleSendReaction(action)
             is RoomDetailAction.AcceptInvite -> handleAcceptInvite()
+            RoomDetailAction.JoinPreviewedRoom -> handleJoinPreviewedRoom()
             is RoomDetailAction.RejectInvite -> handleRejectInvite()
             is RoomDetailAction.RedactAction -> handleRedactEvent(action)
             is RoomDetailAction.PinEvent -> handlePinEvent(action.eventId, pin = true)
@@ -872,6 +894,16 @@ private fun handleSelectStickerAttachment() {
 
     fun isMenuItemVisible(@IdRes itemId: Int): Boolean = com.airbnb.mvrx.withState(this) { state ->
 
+        if (state.isRoomPreview) {
+            // World-readable preview: read-only entries only
+            return@withState when (itemId) {
+                R.id.timeline_setting -> true
+                R.id.search -> true
+                R.id.menu_timeline_thread_list -> vectorPreferences.areThreadMessagesEnabled()
+                R.id.dev_tools -> vectorPreferences.developerMode()
+                else -> false
+            }
+        }
         if (state.asyncRoomSummary()?.membership != Membership.JOIN) {
             return@withState false
         }
@@ -1617,6 +1649,35 @@ private fun handleSelectStickerAttachment() {
         }
     }
 
+    private fun handleJoinPreviewedRoom() {
+        viewModelScope.launch {
+            try {
+                session.roomService().joinRoom(
+                        initialState.roomId,
+                        viaServers = session.roomService().roomPeekViaServers(initialState.roomId),
+                )
+            } catch (failure: Throwable) {
+                _viewEvents.post(RoomDetailViewEvents.Failure(failure))
+            }
+        }
+    }
+
+    private fun observePreviewedRoomJoin() {
+        if (!isRoomPreview) return
+        // The PeekedRoom's own summary stays membership NONE; the real membership lands in the DB
+        // via sync, so watch the session-level summary and swap to the joined room when it appears.
+        session.flow()
+                .liveRoomSummary(initialState.roomId)
+                .unwrap()
+                .onEach { summary ->
+                    if (summary.membership.isActive()) {
+                        session.roomService().removeRoomPeek(initialState.roomId)
+                        _viewEvents.post(RoomDetailViewEvents.OpenRoom(initialState.roomId, closeCurrentRoom = true))
+                    }
+                }
+                .launchIn(viewModelScope)
+    }
+
     private fun observeMembershipChanges() {
         session.flow()
                 .liveRoomChangeMembershipState()
@@ -1701,6 +1762,26 @@ private fun handleSelectStickerAttachment() {
 
     override fun onTimelineFailure(throwable: Throwable) {
         if (timeline == null) return
+        if (isRoomPreview) {
+            // The peek could not load (e.g. our homeserver is not in the room): degrade to the
+            // classic no-preview screen instead of an empty timeline.
+            val summary = room?.roomSummary()
+            session.roomService().removeRoomPeek(initialState.roomId)
+            _viewEvents.post(
+                    RoomDetailViewEvents.OpenRoomPreviewFallback(
+                            RoomPreviewData(
+                                    roomId = initialState.roomId,
+                                    roomName = summary?.displayName,
+                                    roomAlias = summary?.canonicalAlias,
+                                    topic = summary?.topic,
+                                    avatarUrl = summary?.avatarUrl,
+                                    peekFromServer = true,
+                                    noTimelinePreview = true,
+                            )
+                    )
+            )
+            return
+        }
         // If we have a critical timeline issue, we get back to live.
         timeline.restartWithEventId(null)
         _viewEvents.post(RoomDetailViewEvents.Failure(throwable))
@@ -1726,6 +1807,9 @@ private fun handleSelectStickerAttachment() {
     }
 
     override fun onCleared() {
+        if (isRoomPreview) {
+            session.roomService().releaseRoomPeek(initialState.roomId)
+        }
         timeline?.dispose()
         timeline?.removeAllListeners()
         if (vectorPreferences.sendTypingNotifs()) {

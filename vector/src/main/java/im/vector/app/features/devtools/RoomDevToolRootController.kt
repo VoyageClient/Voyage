@@ -19,6 +19,14 @@ class RoomDevToolRootController @Inject constructor(
 
     var interactionListener: DevToolsInteractionListener? = null
 
+    var canEditState: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                requestModelBuild()
+            }
+        }
+
     init {
         requestModelBuild()
     }
@@ -39,18 +47,20 @@ class RoomDevToolRootController @Inject constructor(
                 host.interactionListener?.processAction(RoomDevToolAction.ExploreRoomAccountData)
             }
         }
-        genericButtonItem {
-            id("send")
-            text(host.stringProvider.getString(CommonStrings.dev_tools_send_custom_event))
-            buttonClickAction {
-                host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(false))
+        if (canEditState) {
+            genericButtonItem {
+                id("send")
+                text(host.stringProvider.getString(CommonStrings.dev_tools_send_custom_event))
+                buttonClickAction {
+                    host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(false))
+                }
             }
-        }
-        genericButtonItem {
-            id("send_state")
-            text(host.stringProvider.getString(CommonStrings.dev_tools_send_state_event))
-            buttonClickAction {
-                host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(true))
+            genericButtonItem {
+                id("send_state")
+                text(host.stringProvider.getString(CommonStrings.dev_tools_send_state_event))
+                buttonClickAction {
+                    host.interactionListener?.processAction(RoomDevToolAction.SendCustomEvent(true))
+                }
             }
         }
     }

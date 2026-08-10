@@ -69,7 +69,9 @@ data class ReferencesInfoData(
 data class ReactionsSummaryData(
         /*List of reactions (emoji,count,isSelected)*/
         val reactions: List<ReactionInfoData>? = null,
-        val showAll: Boolean = false
+        val showAll: Boolean = false,
+        /** False when the user cannot react (e.g. previewing without membership): hides the add button. */
+        val canAddReaction: Boolean = true
 ) : Parcelable
 
 data class ReactionsSummaryEvents(

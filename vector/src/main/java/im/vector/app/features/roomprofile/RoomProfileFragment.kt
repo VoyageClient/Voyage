@@ -57,7 +57,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import org.matrix.android.sdk.api.query.QueryStringValue
+import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
+import im.vector.app.features.displayname.getBestName
 import org.matrix.android.sdk.api.util.toDisplayMatrixItem
 import timber.log.Timber
 import javax.inject.Inject
@@ -451,7 +456,18 @@ class RoomProfileFragment :
 
     private fun onAvatarClicked() = withState(roomProfileViewModel) { state ->
         state.roomSummary()?.toDisplayMatrixItem()?.let { matrixItem ->
-            navigator.openBigImageViewer(requireActivity(), matrixItem)
+            val avatarEventId = activeSessionHolder.getSafeActiveSession()
+                    ?.getRoom(roomProfileArgs.roomId)
+                    ?.getStateEvent(EventType.STATE_ROOM_AVATAR, QueryStringValue.IsEmpty)
+                    ?.eventId
+            navigator.openBigImageViewer(
+                    requireActivity(),
+                    sharedElement = null,
+                    mxcUrl = matrixItem.avatarUrl,
+                    title = matrixItem.getBestName(),
+                    roomId = roomProfileArgs.roomId.takeIf { avatarEventId != null },
+                    eventId = avatarEventId,
+            )
         }
     }
 
