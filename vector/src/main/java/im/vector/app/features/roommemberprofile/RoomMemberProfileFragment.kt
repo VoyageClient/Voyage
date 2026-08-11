@@ -34,7 +34,9 @@ import im.vector.app.core.extensions.setCopySource
 import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
+import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.views.ProfileBannerUiHelper
+import im.vector.app.core.utils.createJSonViewerStyleProvider
 import im.vector.app.databinding.DialogBaseEditTextBinding
 import im.vector.app.databinding.FragmentMatrixProfileBinding
 import im.vector.app.databinding.ViewStubRoomMemberProfileHeaderBinding
@@ -54,6 +56,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
+import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -82,6 +85,7 @@ class RoomMemberProfileFragment :
     @Inject lateinit var matrixItemColorProvider: MatrixItemColorProvider
     @Inject lateinit var session: Session
     @Inject lateinit var vectorPreferences: VectorPreferences
+    @Inject lateinit var colorProvider: ColorProvider
 
     private lateinit var headerViews: ViewStubRoomMemberProfileHeaderBinding
 
@@ -494,5 +498,18 @@ class RoomMemberProfileFragment :
 
     override fun onMutualRoomsClicked() {
         startActivity(MutualRoomsActivity.newIntent(requireContext(), fragmentArgs.userId))
+    }
+
+    override fun onViewSourceClicked() {
+        val memberEvent = fragmentArgs.roomId?.let { roomId ->
+            session.getRoom(roomId)
+                    ?.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(fragmentArgs.userId))
+        }
+        if (memberEvent == null) return
+        JSonViewerDialog.newInstance(
+                memberEvent.toContentStringWithIndent(),
+                -1,
+                createJSonViewerStyleProvider(colorProvider)
+        ).show(childFragmentManager, "JSON_VIEWER")
     }
 }
