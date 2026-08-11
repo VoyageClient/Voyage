@@ -434,7 +434,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                         it.seekTo(0)
                         reportProgress()
                     }
-                    setOnErrorListener { _, _, _ ->
+                    setOnErrorListener { _, what, extra ->
+                        // Reverting to the thumbnail silently leaves no trace of why playback died.
+                        Timber.w("Attachment preview video error what=$what extra=$extra")
                         this@Holder.release()
                         true
                     }

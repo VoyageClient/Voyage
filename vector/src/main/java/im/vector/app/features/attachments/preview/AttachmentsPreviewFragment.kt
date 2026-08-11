@@ -147,14 +147,27 @@ class AttachmentsPreviewFragment :
 
     override fun onVideoControlsAvailable(controls: VideoPlaybackControls?) {
         videoControls = controls
-        views.attachmentPreviewerVideoControls.isVisible = controls != null
+        refreshVideoControlsVisibility()
     }
 
     override fun onVideoControlsReleased(controls: VideoPlaybackControls) {
         // Only the holder still driving the controls may take them away.
         if (videoControls !== controls) return
         videoControls = null
-        views.attachmentPreviewerVideoControls.isVisible = false
+        refreshVideoControlsVisibility()
+    }
+
+    /**
+     * Epoxy binds its models from inside the pager's layout pass, so flipping this bar's visibility
+     * there has its requestLayout() swallowed and it is left measured 0x0 until something forces a
+     * fresh pass. Applying it on the next frame gets a real measure.
+     */
+    private fun refreshVideoControlsVisibility() {
+        val bar = views.attachmentPreviewerVideoControls
+        bar.post {
+            if (!isAdded) return@post
+            bar.isVisible = videoControls != null
+        }
     }
 
     override fun onVideoProgress(positionMs: Int, durationMs: Int, isPlaying: Boolean) {
