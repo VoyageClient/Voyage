@@ -13,6 +13,7 @@ import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.epoxy.profiles.buildProfileSection
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
@@ -22,7 +23,8 @@ import javax.inject.Inject
 
 class RoomMemberProfileController @Inject constructor(
         private val stringProvider: StringProvider,
-        private val session: Session
+        private val session: Session,
+        private val vectorPreferences: VectorPreferences
 ) : TypedEpoxyController<RoomMemberProfileViewState>() {
 
     var callback: Callback? = null
@@ -43,6 +45,7 @@ class RoomMemberProfileController @Inject constructor(
         fun onBanClicked(isSpace: Boolean, isUserBanned: Boolean)
         fun onCancelInviteClicked()
         fun onInviteClicked()
+        fun onViewSourceClicked()
     }
 
     override fun buildModels(data: RoomMemberProfileViewState?) {
@@ -200,6 +203,16 @@ class RoomMemberProfileController @Inject constructor(
                 divider = true,
                 action = { callback?.onOverrideColorClicked() }
         )
+
+        if (vectorPreferences.developerMode()) {
+            buildProfileAction(
+                    id = "view_source",
+                    editable = false,
+                    divider = true,
+                    title = stringProvider.getString(CommonStrings.view_source),
+                    action = { callback?.onViewSourceClicked() }
+            )
+        }
 
         if (!state.isMine) {
             val membership = state.asyncMembership() ?: return
