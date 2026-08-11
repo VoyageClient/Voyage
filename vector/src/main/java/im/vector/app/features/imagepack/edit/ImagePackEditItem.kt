@@ -54,7 +54,11 @@ abstract class ImagePackEditItem : VectorEpoxyModel<ImagePackEditItem.Holder>(R.
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 // Keep the current name while the field is empty (the user is mid-edit / clearing it).
-                s?.toString()?.takeIf { it.isNotBlank() }?.let { boundImage.shortcode = it }
+                s?.toString()?.takeIf { it.isNotBlank() }?.let {
+                    boundImage.shortcode = it
+                    // The body names a sent sticker, and nothing else here edits it, so it follows the rename.
+                    boundImage.body = it
+                }
                 resizeToContent(holder.shortcode)
                 onEdited?.invoke()
             }

@@ -38,8 +38,9 @@ import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
 
 /**
- * Reads and writes MSC2545 image packs for the authoring UI. Reading tolerates legacy ids; writing always
- * targets the stable identifiers (the personal pack keeps `im.ponies.user_emotes`, which has no stable id).
+ * Reads and writes MSC2545 image packs for the authoring UI. Reading tolerates legacy ids; writing targets
+ * the stable identifiers unless the pack needs a legacy-only feature (the personal pack keeps
+ * `im.ponies.user_emotes`, which has no stable id).
  */
 class ImagePackRepository @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
@@ -257,14 +258,15 @@ class ImagePackRepository @Inject constructor(
                 .isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_IMAGE_PACK)
     }
 
-    suspend fun saveRoomPack(roomId: String, stateKey: String, content: ImagePackContent, includeUsage: Boolean = false) {
+    /** [forceLegacy] writes a new pack with the unstable id, the only one that allows per-image usage. */
+    suspend fun saveRoomPack(roomId: String, stateKey: String, content: ImagePackContent, includeUsage: Boolean = false, forceLegacy: Boolean = false) {
         val session = activeSessionHolder.getActiveSession()
         val room = session.roomService().getRoom(roomId) ?: return
         // Edit the pack in whichever event it already lives in (preserving its id AND its state key, which
         // for older packs is the empty string), so a legacy pack stays legacy instead of spawning a second
         // (stable) copy. A brand-new pack is written with the stable id.
         val canonical = room.stateService().canonicalPackEvent(stateKey)
-        val type = canonical?.type ?: EventType.STATE_ROOM_IMAGE_PACK
+        val type = canonical?.type ?: if (forceLegacy) EventType.STATE_ROOM_IMAGE_PACK_UNSTABLE else EventType.STATE_ROOM_IMAGE_PACK
         room.stateService().sendStateEvent(type, stateKey, mergePackContent(canonical?.content, content, includeUsage))
         // A pack you create is enabled (usable in pickers) right away; packs from other rooms you're in
         // still have to be turned on from the settings list.
