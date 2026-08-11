@@ -17,6 +17,7 @@ import im.vector.lib.core.utils.compat.use
 import im.vector.lib.multipicker.entity.MultiPickerAudioType
 import im.vector.lib.multipicker.entity.MultiPickerImageType
 import im.vector.lib.multipicker.entity.MultiPickerVideoType
+import timber.log.Timber
 
 // The system reports some image types (notably .webp on KitKat) as octet-stream, so the image would
 // be sent as m.file. When the resolver's type isn't an image one, sniff the magic bytes to recover it.
@@ -116,13 +117,21 @@ internal fun Uri.toMultiPickerVideoType(context: Context): MultiPickerVideoType?
             var height = 0
             var orientation = 0
 
+            // A container the retriever chokes on would otherwise throw straight out of the picker,
+            // losing an attachment we can still send; leave the metadata at 0 instead.
             context.contentResolver.openFileDescriptor(this, "r")?.use { pfd ->
                 val mediaMetadataRetriever = MediaMetadataRetriever()
-                mediaMetadataRetriever.setDataSource(pfd.fileDescriptor)
-                duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
-                width = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt() ?: 0
-                height = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt() ?: 0
-                orientation = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toInt() ?: 0
+                try {
+                    mediaMetadataRetriever.setDataSource(pfd.fileDescriptor)
+                    duration = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+                    width = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toInt() ?: 0
+                    height = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toInt() ?: 0
+                    orientation = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toInt() ?: 0
+                } catch (failure: RuntimeException) {
+                    Timber.w(failure, "Unable to read video metadata")
+                } finally {
+                    mediaMetadataRetriever.release()
+                }
             }
 
             MultiPickerVideoType(
