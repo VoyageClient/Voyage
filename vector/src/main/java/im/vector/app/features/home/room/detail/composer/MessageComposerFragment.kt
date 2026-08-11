@@ -750,7 +750,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         // permanently locked.
         lockSendButton = false
         val eventId = event.eventId
-        if (eventId == null) {
+        if (eventId == null && !event.toRoomStart) {
             event.notFoundMessage?.let { showSnackWithMessage(it) }
             return
         }

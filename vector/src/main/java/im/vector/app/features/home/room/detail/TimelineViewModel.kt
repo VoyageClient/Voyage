@@ -1235,12 +1235,16 @@ private fun handleSelectStickerAttachment() {
         val timeline = timeline ?: return
         if (action.toRoomStart) {
             viewModelScope.launch {
-                val landedEventId = timeline.restartAtRoomStart(action.eventId) ?: return@launch
+                val landedEventId = timeline.restartAtRoomStart(action.eventId)
+                if (landedEventId == null) {
+                    _viewEvents.post(RoomDetailViewEvents.ShowMessage(stringProvider.getString(CommonStrings.command_jump_to_start_unavailable)))
+                    return@launch
+                }
                 navigateToLandedEvent(landedEventId, action, restart = false)
             }
             return
         }
-        val targetEventId: String = action.eventId
+        val targetEventId: String = action.eventId ?: return
         val indexOfEvent = timeline.getIndexOfEvent(targetEventId)
         navigateToLandedEvent(targetEventId, action, restart = indexOfEvent == null)
     }
