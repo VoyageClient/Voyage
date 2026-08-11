@@ -21,7 +21,6 @@ import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.intent.getFilenameFromUri
 import im.vector.app.core.preference.UserAvatarPreference
-import im.vector.app.core.preference.UserBannerPreference
 import im.vector.app.core.preference.VectorEditTextPreference
 import im.vector.app.core.preference.VectorListPreference
 import im.vector.app.core.preference.VectorPreference
@@ -72,7 +71,6 @@ class RoomPersonalizationSettingsFragment :
     override val preferenceXmlRes = R.xml.vector_settings_room_personalization
 
     private lateinit var galleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
-    private lateinit var bannerGalleryOrCameraDialogHelper: GalleryOrCameraDialogHelper
 
     private val roomId: String by lazy { requireArguments().getString(ARG_ROOM_ID)!! }
     private val room: Room by lazy { session.getRoom(roomId)!! }
@@ -80,61 +78,20 @@ class RoomPersonalizationSettingsFragment :
     private var memberContentLoaded = false
     private var currentAvatarUrl: String? = null
     private var currentDisplayName: String? = null
-
-    // Raw member-event banner field: "" = explicitly hidden in this room. Global banner changes are
-    // propagated into every member event (like avatars), so a value merely equal to the account
-    // banner is not a personalization — only a differing one is.
-    private var currentBannerOverride: String? = null
     private var accountDisplayName: String? = null
     private var accountAvatarUrl: String? = null
-    private var accountBannerUrl: String? = null
 
     private val avatarPreference by lazy {
         findPreference<UserAvatarPreference>("SETTINGS_ROOM_PERSONALIZATION_AVATAR_KEY")!!
     }
-    private val bannerPreference by lazy {
-        findPreference<UserBannerPreference>("SETTINGS_ROOM_PERSONALIZATION_BANNER_KEY")!!
-    }
     private val displayNamePreference by lazy {
         findPreference<VectorEditTextPreference>("SETTINGS_ROOM_PERSONALIZATION_DISPLAY_NAME_KEY")!!
-    }
-
-    private val bannerListener = object : GalleryOrCameraDialogHelper.Listener {
-        override fun onImageReady(uri: Uri?) {
-            if (uri == null) {
-                Toast.makeText(requireContext(), CommonStrings.error_handling_incoming_share, Toast.LENGTH_SHORT).show()
-                return
-            }
-            displayLoadingView()
-            lifecycleScope.launch {
-                val result = runCatching {
-                    room.stateService().updateMyRoomBanner(uri.toString(), getFilenameFromUri(context, uri) ?: UUID.randomUUID().toString())
-                }
-                if (!isAdded) return@launch
-                hideLoadingView()
-                result.onFailure { displayErrorDialog(it) }
-            }
-        }
-
-        override fun onImageDeleted() {
-            // Hide the banner in this room entirely
-            applyBanner("")
-        }
-
-        override fun onImageReset() {
-            applyBanner(null)
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Fixed construction order: launcher registration must be deterministic across process death.
         galleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(this)
-        bannerGalleryOrCameraDialogHelper = galleryOrCameraDialogHelperFactory.create(
-                this,
-                GalleryOrCameraDialogHelper.Aspect.BANNER,
-                bannerListener
-        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -258,15 +215,11 @@ class RoomPersonalizationSettingsFragment :
     }
 
     private fun loadAccountProfile() {
-        accountBannerUrl = session.profileService().getCachedBannerUrl(session.myUserId)
-        refreshBannerPreference()
         lifecycleScope.launch {
             val user = tryOrNull { session.userService().resolveUser(session.myUserId) }
                     ?: session.userService().getUser(session.myUserId)
             accountDisplayName = user?.displayName?.takeIf { it.isNotBlank() }
             accountAvatarUrl = user?.avatarUrl
-            accountBannerUrl = tryOrNull { session.profileService().getBannerUrl(session.myUserId).getOrNull() }
-            refreshBannerPreference()
             displayNamePreference.setOnBindEditTextListener { editText ->
                 // An empty field means no display name at all in this room, i.e. the Matrix ID is shown.
                 editText.hint = session.myUserId
@@ -288,11 +241,9 @@ class RoomPersonalizationSettingsFragment :
                     // "" means explicitly blanked (see DefaultStateService), same as absent for display purposes.
                     currentAvatarUrl = content.avatarUrl?.takeIf { it.isNotEmpty() }
                     currentDisplayName = content.displayName?.takeIf { it.isNotBlank() }
-                    currentBannerOverride = content.bannerUrl
                     avatarPreference.refreshAvatar(
                             User(session.myUserId, currentDisplayName, currentAvatarUrl)
                     )
-                    refreshBannerPreference()
                     displayNamePreference.let {
                         it.text = currentDisplayName
                         it.summary = currentDisplayName ?: session.myUserId
@@ -302,35 +253,11 @@ class RoomPersonalizationSettingsFragment :
                 .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
-    // The override wins if present (even ""), else the account-wide banner shows.
-    private fun displayedBannerUrl(): String? = when {
-        currentBannerOverride != null -> currentBannerOverride?.takeIf { it.isNotEmpty() }
-        else -> accountBannerUrl
-    }
-
-    private fun isBannerPersonalized(): Boolean {
-        return currentBannerOverride != null &&
-                currentBannerOverride?.takeIf { it.isNotEmpty() } != accountBannerUrl?.takeIf { it.isNotEmpty() }
-    }
-
-    private fun refreshBannerPreference() {
-        bannerPreference.refreshBanner(displayedBannerUrl())
-    }
-
     override fun bindPref() {
         avatarPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
             galleryOrCameraDialogHelper.show(
                     withDeleteOption = !currentAvatarUrl.isNullOrEmpty(),
                     withResetOption = currentAvatarUrl != accountAvatarUrl,
-                    resetActionTitle = CommonStrings.room_personalization_reset
-            )
-            false
-        }
-
-        bannerPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
-            bannerGalleryOrCameraDialogHelper.show(
-                    withDeleteOption = !displayedBannerUrl().isNullOrEmpty(),
-                    withResetOption = isBannerPersonalized(),
                     resetActionTitle = CommonStrings.room_personalization_reset
             )
             false
@@ -378,17 +305,6 @@ class RoomPersonalizationSettingsFragment :
         }
     }
 
-    // null drops the override (the account-wide banner applies); "" hides the banner in this room.
-    private fun applyBanner(bannerUrl: String?) {
-        displayLoadingView()
-        lifecycleScope.launch {
-            val result = runCatching { room.stateService().resetMyRoomBanner(bannerUrl) }
-            if (!isAdded) return@launch
-            hideLoadingView()
-            result.onFailure { displayErrorDialog(it) }
-        }
-    }
-
     override fun onDisplayPreferenceDialog(preference: Preference) {
         if (preference.key == displayNamePreference.key) {
             if (parentFragmentManager.findFragmentByTag(DISPLAY_NAME_DIALOG_TAG) != null) return
@@ -423,14 +339,12 @@ class RoomPersonalizationSettingsFragment :
         }
     }
 
-    fun isPersonalized() = currentDisplayName != accountDisplayName ||
-            currentAvatarUrl != accountAvatarUrl ||
-            isBannerPersonalized()
+    fun isPersonalized() = currentDisplayName != accountDisplayName || currentAvatarUrl != accountAvatarUrl
 
     fun resetToAccountProfile() {
         displayLoadingView()
         lifecycleScope.launch {
-            val result = runCatching { room.stateService().updateMyRoomProfile(null, null, null) }
+            val result = runCatching { room.stateService().updateMyRoomProfile(null, null) }
             if (!isAdded) return@launch
             hideLoadingView()
             result.onFailure { displayErrorDialog(it) }

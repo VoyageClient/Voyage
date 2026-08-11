@@ -32,7 +32,6 @@ import org.matrix.android.sdk.internal.database.sqldelight.awaitNotEmptyResult
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
-import org.matrix.android.sdk.internal.session.profile.ProfileBannerPropagator
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.alias.RoomAliasAvailabilityChecker
 import org.matrix.android.sdk.internal.session.room.read.SetReadMarkersTask
@@ -57,7 +56,6 @@ internal class DefaultCreateRoomTask @Inject constructor(
         private val createRoomBodyBuilder: CreateRoomBodyBuilder,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val clock: Clock,
-        private val profileBannerPropagator: ProfileBannerPropagator,
 ) : CreateRoomTask {
 
     override suspend fun execute(params: CreateRoomParams): String {
@@ -107,7 +105,6 @@ internal class DefaultCreateRoomTask @Inject constructor(
 
         handleDirectChatCreation(roomId, createRoomBody.getDirectUserId())
         setReadMarkers(roomId)
-        profileBannerPropagator.stampBannerOnJoin(roomId)
         return roomId
     }
 

@@ -12,6 +12,11 @@ package im.vector.app.features.settings
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
+import android.text.SpannableStringBuilder
+import android.text.style.AlignmentSpan
+import android.text.style.LeadingMarginSpan
+import android.text.style.LineHeightSpan
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -44,12 +49,14 @@ import im.vector.app.core.preference.VectorSwitchPreference
 import im.vector.app.core.profile.PronounHelper
 import im.vector.app.core.profile.TimezoneFormatter
 import im.vector.app.core.utils.TextUtils
+import im.vector.app.core.utils.leadingEmojiRunLength
 import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.DialogChangePasswordBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.discovery.DiscoverySettingsFragment
+import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.home.room.detail.timeline.tools.messageEmojiSpanify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.app.features.home.room.detail.timeline.tools.setupLiveEmojiInput
@@ -75,6 +82,8 @@ import org.matrix.android.sdk.api.session.getUser
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerConfig
 import org.matrix.android.sdk.api.session.integrationmanager.IntegrationManagerService
 import org.matrix.android.sdk.api.session.profile.Pronoun
+import org.matrix.android.sdk.api.session.profile.UserBio
+import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
@@ -129,6 +138,12 @@ class VectorSettingsGeneralFragment :
     }
     private val mDisplayNamePreference by lazy {
         findPreference<EditTextPreference>("SETTINGS_DISPLAY_NAME_PREFERENCE_KEY")!!
+    }
+    private val mStatusPreference by lazy {
+        findPreference<VectorPreference>("SETTINGS_STATUS_PREFERENCE_KEY")!!
+    }
+    private val mBiographyPreference by lazy {
+        findPreference<VectorPreference>("SETTINGS_BIOGRAPHY_PREFERENCE_KEY")!!
     }
     private val mPronounsPreference by lazy {
         findPreference<VectorPreference>("SETTINGS_PRONOUNS_PREFERENCE_KEY")!!
@@ -191,24 +206,64 @@ class VectorSettingsGeneralFragment :
         refreshProfileFields()
     }
 
-    // Custom profile fields (pronouns/tz) have no live store; seed from cache then fetch fresh.
+    // Custom profile fields (pronouns/tz/status/bio) have no live store; seed from cache then fetch fresh.
     private fun refreshProfileFields() {
-        updatePronounsSummary(session.profileService().getCachedPronouns(session.myUserId))
-        updateTimezoneSummary(session.profileService().getCachedTimezone(session.myUserId))
+        updateProfileFieldSummaries()
         lifecycleScope.launch {
             tryOrNull { session.profileService().getProfile(session.myUserId) }
             if (isAdded) {
-                updatePronounsSummary(session.profileService().getCachedPronouns(session.myUserId))
-                updateTimezoneSummary(session.profileService().getCachedTimezone(session.myUserId))
+                updateProfileFieldSummaries()
             }
         }
+    }
+
+    private fun updateProfileFieldSummaries() {
+        updatePronounsSummary(session.profileService().getCachedPronouns(session.myUserId))
+        updateTimezoneSummary(session.profileService().getCachedTimezone(session.myUserId))
+        updateStatusSummary(session.profileService().getCachedStatus(session.myUserId))
+        updateBiographySummary(session.profileService().getCachedBio(session.myUserId))
+    }
+
+    private fun updateStatusSummary(status: UserStatus?) {
+        mStatusPreference.summary = status?.display()?.takeIf { it.isNotBlank() }?.prepareForDisplay()
+                ?: getString(CommonStrings.settings_status_not_set)
+    }
+
+    private fun updateBiographySummary(bio: UserBio?) {
+        mBiographyPreference.summary = bio?.body?.takeIf { it.isNotBlank() }
+                ?.formatProfileBio(bio.formattedBody)
+                ?.toSingleLine()
+                ?: getString(CommonStrings.settings_biography_not_set)
+    }
+
+    // The summary is one line, where a bio's block spans (quote stripes, list indents) and line breaks
+    // would render as gaps or be cut off. Edited in place so the emoji/pill spans survive.
+    private fun CharSequence.toSingleLine(): CharSequence {
+        val builder = SpannableStringBuilder(this)
+        builder.getSpans(0, builder.length, Any::class.java)
+                .filter { it is LeadingMarginSpan || it is LineHeightSpan || it is AlignmentSpan }
+                .forEach { builder.removeSpan(it) }
+        var i = 0
+        while (i < builder.length) {
+            if (builder[i] == '\n') {
+                var end = i + 1
+                while (end < builder.length && builder[end].isWhitespace()) end++
+                var start = i
+                while (start > 0 && builder[start - 1].isWhitespace()) start--
+                builder.replace(start, end, " ")
+                i = start + 1
+            } else {
+                i++
+            }
+        }
+        return builder.trim()
     }
 
     private fun updatePronounsSummary(pronouns: List<Pronoun>?) {
         val text = pronouns?.mapNotNull { it.summary.takeIf { s -> s.isNotBlank() } }
                 ?.takeIf { it.isNotEmpty() }
                 ?.joinToString(", ")
-        mPronounsPreference.summary = text ?: getString(CommonStrings.settings_pronouns_not_set)
+        mPronounsPreference.summary = text?.prepareForDisplay() ?: getString(CommonStrings.settings_pronouns_not_set)
     }
 
     private fun updateTimezoneSummary(timezoneId: String?) {
@@ -288,6 +343,20 @@ class VectorSettingsGeneralFragment :
                         ?.let { value -> onDisplayNameChanged(value) }
                 false
             }
+        }
+
+        // Status
+        mStatusPreference.singleLineSummary = true
+        mStatusPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            showStatusDialog()
+            true
+        }
+
+        // Biography
+        mBiographyPreference.singleLineSummary = true
+        mBiographyPreference.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+            showBiographyDialog()
+            true
         }
 
         // Pronouns
@@ -803,6 +872,8 @@ class VectorSettingsGeneralFragment :
             hint = getString(CommonStrings.settings_pronouns_custom_hint)
             setText(existing)
             setSingleLine()
+            setupLiveEmojiInput()
+            messageEmojiSpanify?.applyLive(text)
         }
         val inset = (24 * resources.displayMetrics.density).toInt()
         val container = FrameLayout(requireContext()).apply {
@@ -822,6 +893,112 @@ class VectorSettingsGeneralFragment :
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
+    }
+
+    private fun showStatusDialog() {
+        val existing = session.profileService().getCachedStatus(session.myUserId)
+        val editText = EditText(requireContext()).apply {
+            hint = getString(CommonStrings.settings_status_text_hint)
+            setText(existing?.display())
+            setSingleLine()
+            setupLiveEmojiInput()
+            messageEmojiSpanify?.applyLive(text)
+        }
+        val inset = (24 * resources.displayMetrics.density).toInt()
+        val container = FrameLayout(requireContext()).apply {
+            setPadding(inset, 0, inset, 0)
+            addView(editText)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.settings_status_title)
+                .setView(container)
+                .setPositiveButton(CommonStrings.ok) { _, _ ->
+                    val status = editText.text?.toString().orEmpty().toUserStatus()
+                    if (status.text.utf8Size() > UserStatus.MAX_TEXT_BYTES || status.emoji.utf8Size() > UserStatus.MAX_EMOJI_BYTES) {
+                        Toast.makeText(requireContext(), CommonStrings.settings_status_too_long, Toast.LENGTH_SHORT).show()
+                    } else {
+                        saveStatus(status.takeIf { !it.isEmpty() })
+                    }
+                }
+                .setNeutralButton(CommonStrings.settings_status_clear) { _, _ -> saveStatus(null) }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    /** A status is typed as one line; emoji leading it become the MSC4426 emoji field, e.g. "🤫😂 hey". */
+    private fun String.toUserStatus(): UserStatus {
+        val typed = trim()
+        val emojiEnd = typed.leadingEmojiRunLength()
+        return UserStatus(text = typed.substring(emojiEnd).trimStart(), emoji = typed.substring(0, emojiEnd))
+    }
+
+    private fun String.utf8Size() = toByteArray(Charsets.UTF_8).size
+
+    // Commonmark folds any run of blank lines into a single paragraph break, which would silently
+    // flatten the spacing someone laid their bio out with. Each blank line past the first becomes a
+    // raw <br /> block, which the parser passes through untouched. Code fences are left alone: their
+    // blank lines are content.
+    private fun String.withBlankLinesKept(): String {
+        if (contains("```")) return this
+        return replace(Regex("\n{3,}")) { match -> "\n\n" + "<br />\n\n".repeat(match.value.length - 2) }
+    }
+
+    private fun saveStatus(status: UserStatus?) {
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = runCatching { session.profileService().setStatus(session.myUserId, status) }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            result.fold(
+                    onSuccess = { updateStatusSummary(status) },
+                    onFailure = { displayErrorDialog(it) }
+            )
+        }
+    }
+
+    private fun showBiographyDialog() {
+        val existing = session.profileService().getCachedBio(session.myUserId)
+        val editText = EditText(requireContext()).apply {
+            hint = getString(CommonStrings.settings_biography_hint)
+            setText(existing?.body)
+            setupLiveEmojiInput()
+            messageEmojiSpanify?.applyLive(text)
+            // A bio is free-form prose, so let it wrap and grow like a message rather than a single line.
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            maxLines = 8
+        }
+        val inset = (24 * resources.displayMetrics.density).toInt()
+        val container = FrameLayout(requireContext()).apply {
+            setPadding(inset, 0, inset, 0)
+            addView(editText)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.settings_biography_title)
+                .setView(container)
+                .setPositiveButton(CommonStrings.ok) { _, _ ->
+                    val body = editText.text?.toString()?.trim().orEmpty()
+                    // Markdown is resolved once, on save, exactly as a message is: the HTML is only
+                    // stored when the text actually carries formatting, so plain prose keeps its layout.
+                    val formatted = body.takeIf { it.isNotEmpty() }
+                            ?.let { tryOrNull { session.roomService().computeFormattedHtml(it.withBlankLinesKept(), autoMarkdown = true) } }
+                    saveBiography(UserBio(body, formatted).takeIf { !it.isEmpty() })
+                }
+                .setNeutralButton(CommonStrings.settings_biography_clear) { _, _ -> saveBiography(null) }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    private fun saveBiography(bio: UserBio?) {
+        displayLoadingView()
+        lifecycleScope.launch {
+            val result = runCatching { session.profileService().setBio(session.myUserId, bio) }
+            if (!isAdded) return@launch
+            hideLoadingView()
+            result.fold(
+                    onSuccess = { updateBiographySummary(bio) },
+                    onFailure = { displayErrorDialog(it) }
+            )
+        }
     }
 
     private fun savePronouns(pronouns: List<Pronoun>) {

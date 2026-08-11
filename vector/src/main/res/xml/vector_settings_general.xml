@@ -32,6 +32,16 @@
             app:fragment="im.vector.app.features.settings.timezone.TimezonePickerFragment" />
 
         <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_STATUS_PREFERENCE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_status" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_BIOGRAPHY_PREFERENCE_KEY"
+            android:persistent="false"
+            android:title="@string/settings_biography" />
+
+        <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_CHANGE_PASSWORD_PREFERENCE_KEY"
             android:summary="@string/change_password_summary"
             android:title="@string/settings_password" />

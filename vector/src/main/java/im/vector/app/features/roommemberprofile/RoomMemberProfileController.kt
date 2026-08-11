@@ -9,14 +9,18 @@ package im.vector.app.features.roommemberprofile
 
 import com.airbnb.epoxy.TypedEpoxyController
 import im.vector.app.R
+import im.vector.app.core.epoxy.expandableTextItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
 import im.vector.app.core.epoxy.profiles.buildProfileSection
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.ui.list.genericFooterItem
+import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
+import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.profile.UserBio
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
 import javax.inject.Inject
@@ -28,6 +32,11 @@ class RoomMemberProfileController @Inject constructor(
 ) : TypedEpoxyController<RoomMemberProfileViewState>() {
 
     var callback: Callback? = null
+
+    // Persisted here (not in the recreated epoxy model) so the bio stays expanded across rebuilds.
+    private var isBioExpanded = false
+    private var bioCacheKey: UserBio? = null
+    private var bioCacheValue: CharSequence? = null
 
     interface Callback {
         fun onMutualRoomsClicked()
@@ -46,12 +55,14 @@ class RoomMemberProfileController @Inject constructor(
         fun onCancelInviteClicked()
         fun onInviteClicked()
         fun onViewSourceClicked()
+        fun onViewProfileSourceClicked()
     }
 
     override fun buildModels(data: RoomMemberProfileViewState?) {
         if (data?.userMatrixItem?.invoke() == null) {
             return
         }
+        buildBiography(data)
         if (data.showAsMember) {
             buildRoomMemberActions(data)
         } else {
@@ -59,9 +70,47 @@ class RoomMemberProfileController @Inject constructor(
         }
     }
 
+    // The profile dict is fetched for any user, member of this room or not (e.g. reached via /whois).
+    private fun canViewProfileSource(state: RoomMemberProfileViewState) = vectorPreferences.developerMode() && state.profileJson != null
+
+    private fun buildProfileSourceAction(state: RoomMemberProfileViewState) {
+        if (!canViewProfileSource(state)) return
+        buildProfileAction(
+                id = "view_profile_source",
+                editable = false,
+                divider = true,
+                title = stringProvider.getString(CommonStrings.room_member_view_profile_source),
+                action = { callback?.onViewProfileSourceClicked() }
+        )
+    }
+
+    private fun buildBiography(state: RoomMemberProfileViewState) {
+        val host = this
+        val bio = state.bio?.takeIf { it.body.isNotBlank() } ?: return
+        buildProfileSection(stringProvider.getString(CommonStrings.settings_biography))
+        expandableTextItem {
+            id("biography")
+            content(host.formattedBio(bio))
+            maxLines(3)
+            expanded(host.isBioExpanded)
+            onExpandedChange { host.isBioExpanded = it }
+            movementMethod(createLinkMovementMethod(null))
+        }
+    }
+
+    // Rendering allocates a fresh Spannable, so cache it: an unstable content attribute rebinds the item
+    // on every state emission, which flickers the expand state (same reason as the room topic).
+    private fun formattedBio(bio: UserBio): CharSequence {
+        bioCacheValue?.let { if (bioCacheKey == bio) return it }
+        return bio.body.formatProfileBio(bio.formattedBody).also {
+            bioCacheKey = bio
+            bioCacheValue = it
+        }
+    }
+
     private fun buildUserActions(state: RoomMemberProfileViewState) {
         val ignoreActionTitle = state.buildIgnoreActionTitle()
-        if (ignoreActionTitle == null && state.isMine) return
+        if (ignoreActionTitle == null && state.isMine && !canViewProfileSource(state)) return
         // More
         buildProfileSection(stringProvider.getString(CommonStrings.room_profile_section_more))
         if (!state.isMine) {
@@ -73,6 +122,7 @@ class RoomMemberProfileController @Inject constructor(
             )
         }
         buildMutualRoomsAction(state)
+        buildProfileSourceAction(state)
         if (ignoreActionTitle != null) {
             buildProfileAction(
                     id = "ignore",
@@ -205,11 +255,12 @@ class RoomMemberProfileController @Inject constructor(
         )
 
         if (vectorPreferences.developerMode()) {
+            buildProfileSourceAction(state)
             buildProfileAction(
-                    id = "view_source",
+                    id = "view_membership_source",
                     editable = false,
                     divider = true,
-                    title = stringProvider.getString(CommonStrings.view_source),
+                    title = stringProvider.getString(CommonStrings.room_member_view_membership_source),
                     action = { callback?.onViewSourceClicked() }
             )
         }

@@ -25,8 +25,11 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.ProfileService
 import org.matrix.android.sdk.api.session.profile.Pronoun
+import org.matrix.android.sdk.api.session.profile.UserBio
+import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.Optional
@@ -36,6 +39,7 @@ import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.user.UserStore
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.task.configureWith
+import timber.log.Timber
 import javax.inject.Inject
 
 internal class DefaultProfileService @Inject constructor(
@@ -57,7 +61,6 @@ internal class DefaultProfileService @Inject constructor(
         private val pendingThreePidMapper: PendingThreePidMapper,
         private val userStore: UserStore,
         private val fileUploader: FileUploader,
-        private val bannerPropagator: ProfileBannerPropagator,
         private val extendedProfileCache: ExtendedProfileCache
 ) : ProfileService {
 
@@ -103,47 +106,97 @@ internal class DefaultProfileService @Inject constructor(
 
     override suspend fun updateBanner(userId: String, newBannerUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(newBannerUri, fileName, MimeTypes.Jpeg)
-        setProfileField(userId, ProfileService.BANNER_URL_KEY_UNSTABLE, response.contentUri)
-        bannerPropagator.cacheBannerUrl(userId, response.contentUri)
-        bannerPropagator.propagateToJoinedRooms(userId, response.contentUri)
+        setProfileFieldBothKeys(userId, ProfileService.BANNER_URL_KEY, ProfileService.BANNER_URL_KEY_UNSTABLE, response.contentUri)
+        extendedProfileCache.cacheBannerUrl(userId, response.contentUri)
     }
 
     override suspend fun deleteBanner(userId: String) {
-        deleteProfileField(userId, ProfileService.BANNER_URL_KEY_UNSTABLE)
-        bannerPropagator.cacheBannerUrl(userId, null)
-        bannerPropagator.propagateToJoinedRooms(userId, null)
+        deleteProfileFieldBothKeys(userId, ProfileService.BANNER_URL_KEY, ProfileService.BANNER_URL_KEY_UNSTABLE)
+        extendedProfileCache.cacheBannerUrl(userId, null)
     }
 
     override suspend fun getBannerUrl(userId: String): Optional<String> {
         val data = getProfileInfoTask.execute(GetProfileInfoTask.Params(userId))
         return Optional.from(data.profileBannerUrl()).also {
-            bannerPropagator.cacheBannerUrl(userId, it.getOrNull())
+            extendedProfileCache.cacheBannerUrl(userId, it.getOrNull())
         }
     }
 
     override fun getCachedBannerUrl(userId: String): String? {
-        return bannerPropagator.getCachedBannerUrl(userId)
+        return extendedProfileCache.getCachedBannerUrl(userId)
     }
 
     override suspend fun setPronouns(userId: String, pronouns: List<Pronoun>) {
         if (pronouns.isEmpty()) {
-            deleteProfileField(userId, ProfileService.PRONOUNS_KEY_UNSTABLE)
+            deleteProfileFieldBothKeys(userId, ProfileService.PRONOUNS_KEY, ProfileService.PRONOUNS_KEY_UNSTABLE)
         } else {
-            setProfileFieldTask.execute(
-                    SetProfileFieldTask.Params(userId, ProfileService.PRONOUNS_KEY_UNSTABLE, pronouns.toProfileValue())
-            )
+            setProfileFieldBothKeys(userId, ProfileService.PRONOUNS_KEY, ProfileService.PRONOUNS_KEY_UNSTABLE, pronouns.toProfileValue())
         }
         extendedProfileCache.cachePronouns(userId, pronouns)
     }
 
     override suspend fun setTimezone(userId: String, timezone: String) {
         if (timezone.isBlank()) {
-            deleteProfileField(userId, ProfileService.TIMEZONE_KEY_UNSTABLE)
+            deleteProfileFieldBothKeys(userId, ProfileService.TIMEZONE_KEY, ProfileService.TIMEZONE_KEY_UNSTABLE)
             extendedProfileCache.cacheTimezone(userId, null)
         } else {
-            setProfileField(userId, ProfileService.TIMEZONE_KEY_UNSTABLE, timezone)
+            setProfileFieldBothKeys(userId, ProfileService.TIMEZONE_KEY, ProfileService.TIMEZONE_KEY_UNSTABLE, timezone)
             extendedProfileCache.cacheTimezone(userId, timezone)
         }
+    }
+
+    override suspend fun setStatus(userId: String, status: UserStatus?) {
+        val cleared = status?.takeIf { !it.isEmpty() }
+        if (cleared == null) {
+            deleteProfileFieldKeys(userId, STATUS_KEYS)
+        } else {
+            setProfileFieldKeys(userId, cleared.toProfileValues())
+        }
+        extendedProfileCache.cacheStatus(userId, cleared)
+    }
+
+    override suspend fun setBio(userId: String, bio: UserBio?) {
+        val cleared = bio?.takeIf { !it.isEmpty() }
+        if (cleared == null) {
+            deleteProfileFieldKeys(userId, BIOGRAPHY_KEYS)
+        } else {
+            setProfileFieldKeys(userId, cleared.toProfileValues())
+        }
+        extendedProfileCache.cacheBio(userId, cleared)
+    }
+
+    override fun getCachedStatus(userId: String): UserStatus? = extendedProfileCache.getCachedStatus(userId)
+
+    override fun getCachedBio(userId: String): UserBio? = extendedProfileCache.getCachedBio(userId)
+
+    // MSC4133 is one request per key, so a field written under several prefixes is several requests.
+    // A server that rejects one key (unknown/too many fields) must not fail the whole update while
+    // the others landed.
+    private suspend fun setProfileFieldBothKeys(userId: String, stableKey: String, unstableKey: String, value: Any) {
+        setProfileFieldKeys(userId, mapOf(stableKey to value, unstableKey to value))
+    }
+
+    private suspend fun setProfileFieldKeys(userId: String, values: Map<String, Any>) {
+        eachKey(values.keys) { key ->
+            setProfileFieldTask.execute(SetProfileFieldTask.Params(userId, key, values.getValue(key)))
+        }
+    }
+
+    private suspend fun deleteProfileFieldBothKeys(userId: String, stableKey: String, unstableKey: String) {
+        deleteProfileFieldKeys(userId, setOf(stableKey, unstableKey))
+    }
+
+    private suspend fun deleteProfileFieldKeys(userId: String, keys: Set<String>) {
+        eachKey(keys) { key ->
+            deleteProfileFieldTask.execute(DeleteProfileFieldTask.Params(userId, key))
+        }
+    }
+
+    private suspend fun eachKey(keys: Set<String>, block: suspend (String) -> Unit) {
+        val failures = keys.mapNotNull { key ->
+            runCatching { block(key) }.exceptionOrNull()?.also { Timber.w(it, "Failed to write profile field $key") }
+        }
+        if (failures.size == keys.size) throw failures.first()
     }
 
     override fun getCachedPronouns(userId: String): List<Pronoun>? = extendedProfileCache.getCachedPronouns(userId)
@@ -157,7 +210,6 @@ internal class DefaultProfileService @Inject constructor(
     override suspend fun getProfile(userId: String): JsonDict {
         val params = GetProfileInfoTask.Params(userId)
         return getProfileInfoTask.execute(params).also {
-            bannerPropagator.cacheBannerUrl(userId, it.profileBannerUrl())
             extendedProfileCache.cacheFromProfile(userId, it)
         }
     }
@@ -228,6 +280,11 @@ internal class DefaultProfileService @Inject constructor(
     override suspend fun deleteThreePid(threePid: ThreePid) {
         deleteThreePidTask.execute(DeleteThreePidTask.Params(threePid))
         refreshThreePids()
+    }
+
+    companion object {
+        private val STATUS_KEYS = setOf(ProfileKeys.STATUS, ProfileKeys.STATUS_UNSTABLE, ProfileKeys.STATUS_COMMET)
+        private val BIOGRAPHY_KEYS = setOf(ProfileKeys.BIOGRAPHY, ProfileKeys.BIOGRAPHY_UNSTABLE, ProfileKeys.BIOGRAPHY_COMMET)
     }
 }
 

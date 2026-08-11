@@ -135,7 +135,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/memberProfileLinearLayout"
-            app:layout_goneMarginBottom="16dp"
             tools:text="@sample/users.json/data/id" />
 
         <TextView
@@ -147,11 +146,33 @@
             android:gravity="center"
             android:textColor="?vctr_content_secondary"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/memberProfilePowerLevelView"
+            app:layout_constraintBottom_toTopOf="@id/memberProfileStatusView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/memberProfileIdView"
             tools:text="she/her • PST"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/memberProfileStatusView"
+            style="@style/Widget.Vector.TextView.Caption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginLeft="32dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginRight="32dp"
+            android:layout_marginBottom="8dp"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textColor="?vctr_content_secondary"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/memberProfilePowerLevelView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/memberProfileFieldsView"
+            tools:text="🌴 On holiday in Spain"
             tools:visibility="visible" />
 
         <TextView
@@ -162,25 +183,12 @@
             android:layout_marginBottom="16dp"
             android:gravity="center"
             android:textColor="?vctr_content_primary"
-            app:layout_constraintBottom_toTopOf="@id/memberProfileStatusView"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/memberProfileFieldsView"
-            tools:text="Admin in Matrix" />
-
-        <TextView
-            android:id="@+id/memberProfileStatusView"
-            style="@style/Widget.Vector.TextView.Body"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/memberProfilePowerLevelView"
-            tools:text="Here is a profile status"
-            tools:visibility="visible" />
+            app:layout_constraintTop_toBottomOf="@id/memberProfileStatusView"
+            app:layout_goneMarginTop="8dp"
+            tools:text="Admin in Matrix" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

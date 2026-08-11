@@ -26,7 +26,9 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.onLongClickIgnoringLinksSelectingCode
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.setReadOnlySelectable
+import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.tools.applySpoilerRenderLayer
+import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.Alignment
 import im.vector.app.features.html.BodySegment
 import im.vector.app.features.html.EventHtmlRenderer
@@ -64,6 +66,9 @@ class RichMessageBodyRenderer @Inject constructor(
             onLongClick: (View) -> Boolean,
             noticeStyle: Boolean = false,
             replyHeader: CharSequence? = null,
+            // Segments are rendered here rather than by the factory, so they need the same autolink
+            // pass the single-TextView path applies to its body.
+            urlClickCallback: TimelineEventController.UrlClickCallback? = null,
             // Previews (reply header / composer / long-press) are non-interactive: code blocks and
             // tables clip overflow instead of scrolling (no scroll view to steal the tap/gesture).
             interactive: Boolean = true,
@@ -103,8 +108,10 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         segments.forEach { segment ->
             when (segment) {
-                is BodySegment.Html -> container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, binding, defaultColorAttr, interactive))
-                is BodySegment.Table -> container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, binding, defaultColorAttr, interactive))
+                is BodySegment.Html ->
+                    container.addView(buildTextView(ctx, segment.html, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback))
+                is BodySegment.Table ->
+                    container.addView(buildTable(ctx, segment.rows, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback))
                 is BodySegment.Code -> container.addView(buildCodeBlock(ctx, segment.code, interactive, fullBleed, binding))
             }
         }
@@ -152,12 +159,13 @@ class RichMessageBodyRenderer @Inject constructor(
             binding: RichBodyBinding,
             defaultColorAttr: Int,
             interactive: Boolean,
+            urlClickCallback: TimelineEventController.UrlClickCallback?,
     ): AppCompatTextView {
         val tv = ReadOnlySelectableTextView(ctx)
         tv.layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f)
         tv.setTextColor(themeColor(ctx, defaultColorAttr))
-        htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(html, *postProcessors))
+        htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(html, *postProcessors).linkify(urlClickCallback))
         tv.setReadOnlySelectable(interactive)
         // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView),
         // and after the selectable toggle, which installs its own movement method.
@@ -263,6 +271,7 @@ class RichMessageBodyRenderer @Inject constructor(
             binding: RichBodyBinding,
             defaultColorAttr: Int,
             interactive: Boolean,
+            urlClickCallback: TimelineEventController.UrlClickCallback?,
     ): View {
         val table = TableLayout(ctx).apply {
             isShrinkAllColumns = false
@@ -273,7 +282,7 @@ class RichMessageBodyRenderer @Inject constructor(
         val cellRows = ArrayList<List<AppCompatTextView>>(rows.size)
         rows.forEach { row ->
             val rowCells = ArrayList<AppCompatTextView>(colCount)
-            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod, binding, defaultColorAttr, interactive, rowCells))
+            table.addView(buildTableRow(ctx, row, colCount, postProcessors, movementMethod, binding, defaultColorAttr, interactive, rowCells, urlClickCallback))
             cellRows.add(rowCells)
         }
         if (!interactive) {
@@ -322,6 +331,7 @@ class RichMessageBodyRenderer @Inject constructor(
             defaultColorAttr: Int,
             interactive: Boolean,
             cellCollector: MutableList<AppCompatTextView>,
+            urlClickCallback: TimelineEventController.UrlClickCallback?,
     ): TableRow {
         val tr = TableRow(ctx)
         tr.layoutParams = TableLayout.LayoutParams(
@@ -330,7 +340,7 @@ class RichMessageBodyRenderer @Inject constructor(
         )
         for (i in 0 until colCount) {
             val cell = row.cells.getOrNull(i)
-            val cellView = buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod, binding, defaultColorAttr, interactive)
+            val cellView = buildCellView(ctx, cell, row.isHeader, postProcessors, movementMethod, binding, defaultColorAttr, interactive, urlClickCallback)
             cellCollector.add(cellView)
             tr.addView(cellView)
         }
@@ -346,6 +356,7 @@ class RichMessageBodyRenderer @Inject constructor(
             binding: RichBodyBinding,
             defaultColorAttr: Int,
             interactive: Boolean,
+            urlClickCallback: TimelineEventController.UrlClickCallback?,
     ): AppCompatTextView {
         val isHeader = rowIsHeader || (cell?.isHeader == true)
         val tv = ReadOnlySelectableTextView(ctx)
@@ -381,7 +392,11 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         tv.layoutParams = TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT)
         val cellHtml = cell?.html?.trim().orEmpty()
-        if (cellHtml.isEmpty()) tv.text = "" else htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(cellHtml, *postProcessors))
+        if (cellHtml.isEmpty()) {
+            tv.text = ""
+        } else {
+            htmlRenderer.get().setTextWithPlugins(tv, htmlRenderer.get().render(cellHtml, *postProcessors).linkify(urlClickCallback))
+        }
         tv.setReadOnlySelectable(interactive)
         // After the plugin pass, which would replace a deliberate null (see buildReplyHeaderView),
         // and after the selectable toggle, which installs its own movement method.

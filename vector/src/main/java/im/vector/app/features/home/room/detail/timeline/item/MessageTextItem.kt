@@ -81,6 +81,9 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var htmlPostProcessors: Array<EventHtmlRenderer.PostProcessor>? = null
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var urlClickCallback: TimelineEventController.UrlClickCallback? = null
+
     // Body variant with inline images replaced by grey placeholders, shown while the room hides media
     // and the message hasn't been revealed. Tapping the message reveals all its inline images.
     @EpoxyAttribute
@@ -127,6 +130,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
                         onLongClick = { attributes.itemLongClickListener?.onLongClick(it) ?: false },
                         noticeStyle = noticeStyle,
                         replyHeader = richReplyHeader,
+                        urlClickCallback = urlClickCallback,
                         fullBleed = attributes.informationData.messageLayout.let { l ->
                             // No visible bubble (modern layout, or SC with bubbles turned off): stretch
                             // code to the row edge. A real/pseudo bubble hugs its content instead.

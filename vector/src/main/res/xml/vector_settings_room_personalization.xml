@@ -10,10 +10,6 @@
             android:key="SETTINGS_ROOM_PERSONALIZATION_AVATAR_KEY"
             android:title="@string/avatar" />
 
-        <im.vector.app.core.preference.UserBannerPreference
-            android:key="SETTINGS_ROOM_PERSONALIZATION_BANNER_KEY"
-            android:title="@string/settings_profile_banner" />
-
         <im.vector.app.core.preference.VectorEditTextPreference
             android:key="SETTINGS_ROOM_PERSONALIZATION_DISPLAY_NAME_KEY"
             android:persistent="false"

@@ -368,7 +368,8 @@ class NoticeEventFormatter @Inject constructor(
 
     private fun formatRoomTopicEvent(event: Event, senderName: String?): CharSequence? {
         val content = event.content.toModel<RoomTopicContent>() ?: return null
-        val topic = content.getBestTopic()
+        // The notice is one line (NoticeItem ellipsizes it), so a multi-line topic reads as one.
+        val topic = content.getBestTopic()?.replace(MULTILINE_REGEX, " ")?.trim()
         return if (topic.isNullOrEmpty()) {
             if (event.isSentByCurrentUser()) {
                 sp.getString(CommonStrings.notice_room_topic_removed_by_you)
@@ -849,24 +850,6 @@ class NoticeEventFormatter @Inject constructor(
             }
             displayText.append(displayAvatarText)
         }
-        // Check whether the banner has been changed
-        if (eventContent?.bannerUrl != prevEventContent?.bannerUrl) {
-            val bannerRemoved = eventContent?.bannerUrl.isNullOrEmpty()
-            val displayBannerText = if (displayText.isNotEmpty()) {
-                displayText.append(" ")
-                sp.getString(if (bannerRemoved) CommonStrings.notice_banner_removed_too else CommonStrings.notice_banner_changed_too)
-            } else {
-                when {
-                    bannerRemoved && event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_banner_removed_by_you)
-                    bannerRemoved && possessive != null -> sp.getString(CommonStrings.notice_member_banner_removed_gendered, senderName, possessive)
-                    bannerRemoved -> sp.getString(CommonStrings.notice_member_banner_removed, senderName)
-                    event.isSentByCurrentUser() -> sp.getString(CommonStrings.notice_member_banner_changed_by_you)
-                    possessive != null -> sp.getString(CommonStrings.notice_member_banner_changed_gendered, senderName, possessive)
-                    else -> sp.getString(CommonStrings.notice_member_banner_changed, senderName)
-                }
-            }
-            displayText.append(displayBannerText)
-        }
         if (displayText.isEmpty()) {
             // A repeated knock (re-request to join) makes no real change. Only the first knock is a
             // membership transition shown as a notice; hide the rest as debug events instead of
@@ -1179,5 +1162,9 @@ class NoticeEventFormatter @Inject constructor(
                         }
                     }
                 }
+    }
+
+    companion object {
+        private val MULTILINE_REGEX = Regex("\\s*\\n+\\s*")
     }
 }

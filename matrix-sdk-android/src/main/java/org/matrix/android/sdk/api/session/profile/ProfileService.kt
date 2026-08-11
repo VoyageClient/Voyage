@@ -33,11 +33,11 @@ interface ProfileService {
         const val DISPLAY_NAME_KEY = ProfileKeys.DISPLAY_NAME
         const val AVATAR_URL_KEY = ProfileKeys.AVATAR_URL
 
-        // MSC4427 profile banner. Read both keys, write the unstable one.
+        // MSC4427 profile banner / MSC4247 pronouns / MSC4175 time zone.
+        // Written under both keys; read the stable one first.
         const val BANNER_URL_KEY = ProfileKeys.BANNER_URL
         const val BANNER_URL_KEY_UNSTABLE = ProfileKeys.BANNER_URL_UNSTABLE
 
-        // MSC4247 pronouns / MSC4175 time zone. Read both keys (stable preferred), write the unstable one.
         const val PRONOUNS_KEY = ProfileKeys.PRONOUNS
         const val PRONOUNS_KEY_UNSTABLE = ProfileKeys.PRONOUNS_UNSTABLE
         const val TIMEZONE_KEY = ProfileKeys.TIMEZONE
@@ -121,12 +121,26 @@ interface ProfileService {
     suspend fun setTimezone(userId: String, timezone: String)
 
     /**
-     * Pronouns/time zone this session has last seen for this user, or null when not yet known.
-     * Synchronous, for seeding UI and gendered notices ahead of a network refresh.
+     * Set this user's status (MSC4426), e.g. "🌴 On holiday". Null clears the field.
+     */
+    suspend fun setStatus(userId: String, status: UserStatus?)
+
+    /**
+     * Set this user's biography (MSC4440). Null clears the field.
+     */
+    suspend fun setBio(userId: String, bio: UserBio?)
+
+    /**
+     * Pronouns/time zone/status/biography this session has last seen for this user, or null when not
+     * yet known. Synchronous, for seeding UI and gendered notices ahead of a network refresh.
      */
     fun getCachedPronouns(userId: String): List<Pronoun>?
 
     fun getCachedTimezone(userId: String): String?
+
+    fun getCachedStatus(userId: String): UserStatus?
+
+    fun getCachedBio(userId: String): UserBio?
 
     /**
      * Emits a userId once that user's pronouns become known (from a background prefetch or fetch),

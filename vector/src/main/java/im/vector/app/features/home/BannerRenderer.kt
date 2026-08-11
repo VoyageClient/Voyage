@@ -25,12 +25,12 @@ import javax.inject.Inject
 
 /**
  * Resolve the room banner url from the STATE_ROOM_BANNER (MSC4221) state events of a room.
- * The unstable-typed event wins if it exists at all (even emptied), so removing a banner
- * via empty content does not resurrect a stale stable-typed event.
+ * The stable-typed event wins if it exists at all (even emptied): changes are written under both
+ * types, so a stale unstable-typed event must not resurrect a removed banner.
  */
 fun List<Event>.resolveRoomBannerUrl(): String? {
     val byType = associateBy { it.type }
-    val event = byType[EventType.STATE_ROOM_BANNER.unstable] ?: byType[EventType.STATE_ROOM_BANNER.stable]
+    val event = byType[EventType.STATE_ROOM_BANNER.stable] ?: byType[EventType.STATE_ROOM_BANNER.unstable]
     return event?.content?.toModel<RoomBannerContent>()?.url?.takeIf { it.isNotEmpty() }
 }
 

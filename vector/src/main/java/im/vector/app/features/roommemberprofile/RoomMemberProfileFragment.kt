@@ -57,6 +57,7 @@ import im.vector.lib.core.utils.text.neutralizeDirectionOverrides
 import im.vector.lib.strings.CommonStrings
 import kotlinx.parcelize.Parcelize
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
+import org.json.JSONObject
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
@@ -308,7 +309,13 @@ class RoomMemberProfileFragment :
         }
         headerViews.memberProfileFieldsView.setTextOrHide(state.profileFieldsLine)
         headerViews.memberProfilePowerLevelView.setTextOrHide(state.userPowerLevelString())
+        renderStatus(state)
         roomMemberProfileController.setData(state)
+    }
+
+    private fun renderStatus(state: RoomMemberProfileViewState) {
+        // MSC4426: a status is never linkified, to keep it from luring anyone somewhere malicious.
+        headerViews.memberProfileStatusView.setTextOrHide(state.status?.display()?.takeIf { it.isNotBlank() }?.prepareForDisplay())
     }
 
     // RoomMemberProfileController.Callback
@@ -498,6 +505,15 @@ class RoomMemberProfileFragment :
 
     override fun onMutualRoomsClicked() {
         startActivity(MutualRoomsActivity.newIntent(requireContext(), fragmentArgs.userId))
+    }
+
+    override fun onViewProfileSourceClicked() = withState(viewModel) { state ->
+        val profile = state.profileJson ?: return@withState
+        JSonViewerDialog.newInstance(
+                JSONObject(profile).toString(4),
+                -1,
+                createJSonViewerStyleProvider(colorProvider)
+        ).show(childFragmentManager, "JSON_VIEWER")
     }
 
     override fun onViewSourceClicked() {

@@ -29,8 +29,6 @@ data class RoomMemberContent(
         @Json(name = "reason") val reason: String? = null,
         @Json(name = "displayname") val displayName: String? = null,
         @Json(name = "avatar_url") val avatarUrl: String? = null,
-        // Per-room override of the MSC4427 profile banner; fork extension, no MSC covers member-event banners.
-        @Json(name = "chat.commet.profile_banner") val bannerUrl: String? = null,
         @Json(name = "is_direct") val isDirect: Boolean = false,
         @Json(name = "third_party_invite") val thirdPartyInvite: Invite? = null,
         @Json(name = "unsigned") val unsignedData: UnsignedData? = null

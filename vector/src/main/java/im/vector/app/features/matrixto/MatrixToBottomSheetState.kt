@@ -12,6 +12,8 @@ import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
+import org.matrix.android.sdk.api.session.profile.UserBio
+import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -22,6 +24,8 @@ data class MatrixToBottomSheetState(
         val matrixItem: Async<MatrixItem> = Uninitialized,
         // "she/her • PST" line from MSC4247 pronouns + MSC4175 time zone, for a user link
         val userProfileFieldsLine: String? = null,
+        val userStatus: UserStatus? = null,
+        val userBio: UserBio? = null,
         val startChattingState: Async<Unit> = Uninitialized,
         val roomPeekResult: Async<RoomInfoResult> = Uninitialized,
         val peopleYouKnow: Async<List<MatrixItem.UserItem>> = Uninitialized,

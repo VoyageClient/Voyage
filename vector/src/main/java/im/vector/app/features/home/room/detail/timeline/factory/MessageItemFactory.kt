@@ -990,6 +990,7 @@ class MessageItemFactory @Inject constructor(
                         richBodyRenderer(richMessageBodyRenderer)
                         htmlPostProcessors(arrayOf<EventHtmlRenderer.PostProcessor>(pillsPostProcessor))
                         richReplyHeader(richReplyHeader)
+                        urlClickCallback(callback)
                     }
                 }
     }

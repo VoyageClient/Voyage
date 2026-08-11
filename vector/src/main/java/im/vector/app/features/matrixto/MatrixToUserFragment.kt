@@ -24,6 +24,8 @@ import im.vector.app.core.extensions.setTextOrHide
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentMatrixToUserCardBinding
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.createLinkMovementMethod
+import im.vector.app.features.home.room.detail.timeline.tools.formatProfileBio
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import javax.inject.Inject
 
@@ -50,21 +52,32 @@ class MatrixToUserFragment :
         }
     }
 
+    private fun hideProfileFields() {
+        views.matrixToCardProfileFieldsText.isVisible = false
+        views.matrixToCardStatusText.isVisible = false
+        views.matrixToCardBioText.isVisible = false
+    }
+
     override fun invalidate() = withState(sharedViewModel) { state ->
         when (val item = state.matrixItem) {
             Uninitialized -> {
                 views.matrixToCardUserContentVisibility.isVisible = false
-                views.matrixToCardProfileFieldsText.isVisible = false
+                hideProfileFields()
             }
             is Loading -> {
                 views.matrixToCardUserContentVisibility.isVisible = false
-                views.matrixToCardProfileFieldsText.isVisible = false
+                hideProfileFields()
             }
             is Success -> {
                 views.matrixToCardUserContentVisibility.isVisible = true
                 views.matrixToCardNameText.setTextOrHide(item.invoke().displayName?.prepareForDisplay())
                 views.matrixToCardProfileFieldsText.setTextOrHide(state.userProfileFieldsLine)
                 views.matrixToCardUserIdText.setTextOrHide(item.invoke().id)
+                // MSC4426: a status is never linkified, unlike the biography below it.
+                views.matrixToCardStatusText.setTextOrHide(state.userStatus?.display()?.prepareForDisplay())
+                val bio = state.userBio
+                views.matrixToCardBioText.setTextOrHide(bio?.body?.takeIf { it.isNotBlank() }?.formatProfileBio(bio.formattedBody))
+                views.matrixToCardBioText.movementMethod = createLinkMovementMethod(null)
                 avatarRenderer.render(item.invoke(), views.matrixToCardAvatar)
             }
             is Fail -> {

@@ -33,6 +33,9 @@ open class VectorPreference : Preference {
 
     var mTypeface = Typeface.NORMAL
 
+    /** Ellipsize the summary instead of letting free-form content (e.g. a biography) grow the row. */
+    var singleLineSummary = false
+
     /**
      * Callback to be invoked when this Preference is long clicked.
      */
@@ -100,6 +103,11 @@ open class VectorPreference : Preference {
             }
 
             summary?.setTypeface(null, mTypeface)
+            summary?.apply {
+                isSingleLine = singleLineSummary
+                maxLines = if (singleLineSummary) 1 else Int.MAX_VALUE
+                ellipsize = if (singleLineSummary) android.text.TextUtils.TruncateAt.END else null
+            }
 
             // cancel existing animation (find a way to resume if happens during anim?)
             currentHighlightAnimator?.cancel()

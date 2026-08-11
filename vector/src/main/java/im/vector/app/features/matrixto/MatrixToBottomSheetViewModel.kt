@@ -94,13 +94,19 @@ class MatrixToBottomSheetViewModel @AssistedInject constructor(
                             startChattingState = Success(Unit)
                     )
                 }
-                // getProfile() populates the extended-field cache; format the pronouns/tz line from it.
+                // getProfile() populates the extended-field cache; the displayed fields come from it.
                 tryOrNull { session.profileService().getProfile(permalinkData.userId) }
                 val line = profileFieldsFormatter.format(
                         session.profileService().getCachedPronouns(permalinkData.userId),
                         session.profileService().getCachedTimezone(permalinkData.userId),
                 )
-                setState { copy(userProfileFieldsLine = line) }
+                setState {
+                    copy(
+                            userProfileFieldsLine = line,
+                            userStatus = session.profileService().getCachedStatus(permalinkData.userId),
+                            userBio = session.profileService().getCachedBio(permalinkData.userId),
+                    )
+                }
             }
             is PermalinkData.RoomLink -> {
                 // could this room be already known

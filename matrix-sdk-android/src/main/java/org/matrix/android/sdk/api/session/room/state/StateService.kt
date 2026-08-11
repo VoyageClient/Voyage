@@ -95,22 +95,10 @@ interface StateService {
     suspend fun resetMyRoomAvatar(avatarUrl: String?)
 
     /**
-     * Upload a banner and set it as the current user's MSC4427 banner for this room only
-     * (the self m.room.member event; per-room override is a fork extension, no MSC covers it).
+     * Set the current user's display name and avatar for this room only, in a single self
+     * m.room.member event. Same null / "" semantics as the single-field variants.
      */
-    suspend fun updateMyRoomBanner(bannerUri: String, fileName: String)
-
-    /**
-     * Set the current user's MSC4427 banner for this room only (the self m.room.member event).
-     * null omits the field so the account-wide banner applies; "" hides it explicitly.
-     */
-    suspend fun resetMyRoomBanner(bannerUrl: String?)
-
-    /**
-     * Set the current user's display name, avatar and banner for this room only, in a single
-     * self m.room.member event. Same null / "" semantics as the single-field variants.
-     */
-    suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?, bannerUrl: String?)
+    suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?)
 
     /**
      * Send a state event to the room.

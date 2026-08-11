@@ -58,6 +58,20 @@ fun CharSequence.formatTopic(roomId: String?, formattedTopic: String? = null, ca
             ?: linkify(callback).prepareForDisplay()
 }
 
+/**
+ * Render an MSC4440 biography, which carries the same optional HTML body as a topic. No room context,
+ * so permalink pills resolve globally rather than against a room's members. A bio without an HTML body
+ * renders verbatim rather than as markdown, the way a plain message does — markdown would fold the
+ * blank lines its author typed into a single paragraph break.
+ */
+fun CharSequence.formatProfileBio(formattedBio: String? = null, callback: TimelineEventController.UrlClickCallback? = null): CharSequence {
+    return if (formattedBio.isNullOrEmpty()) {
+        linkify(callback).prepareForDisplay()
+    } else {
+        formatTopic(roomId = null, formattedTopic = formattedBio, callback = callback)
+    }
+}
+
 /** Prepare user-provided text for display: neutralize Unicode direction-override characters (shown as an
  *  unsupported-glyph box, see [neutralizeDirectionOverrides]) and apply the app's emoji rendering
  *  (Twemoji sprites / emoji2 / system font). */

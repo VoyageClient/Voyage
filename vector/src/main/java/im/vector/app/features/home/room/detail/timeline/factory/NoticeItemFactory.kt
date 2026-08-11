@@ -15,6 +15,7 @@ import im.vector.app.features.home.room.detail.timeline.item.NoticeItem
 import im.vector.app.features.home.room.detail.timeline.item.NoticeItem_
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.extensions.orFalse
 import javax.inject.Inject
 
@@ -42,6 +43,7 @@ class NoticeItemFactory @Inject constructor(
                 reactionsSummaryEvents = params.reactionsSummaryEvents,
         )
         return NoticeItem_()
+                .singleLine(event.root.getClearType() == EventType.STATE_ROOM_TOPIC)
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .highlighted(params.isHighlighted)
                 .attributes(attributes)

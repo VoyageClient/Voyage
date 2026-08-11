@@ -17,6 +17,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisi
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.RoomBannerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -90,7 +91,9 @@ class TimelineItemFactory @Inject constructor(
                     EventType.STATE_ROOM_POWER_LEVELS -> {
                         noticeItemFactory.create(params)
                     }
-                    in EventType.STATE_ROOM_BANNER.values -> noticeItemFactory.create(params)
+                    in EventType.STATE_ROOM_BANNER.values -> {
+                        if (params.isDuplicateBannerEvent()) null else noticeItemFactory.create(params)
+                    }
                     EventType.STATE_ROOM_WIDGET_LEGACY,
                     EventType.STATE_ROOM_WIDGET -> widgetItemFactory.create(params)
                     EventType.STATE_ROOM_ENCRYPTION -> encryptionItemFactory.create(params)
@@ -170,6 +173,19 @@ class TimelineItemFactory @Inject constructor(
                     params.rootThreadEventId,
                     params.isFromThreadTimeline()
             )
+        }
+    }
+
+    // A banner change is sent under both the stable and unstable MSC4221 type, which would otherwise
+    // read as two identical notices. Hide the unstable one when its stable twin sits next to it.
+    private fun TimelineItemFactoryParams.isDuplicateBannerEvent(): Boolean {
+        val root = event.root
+        if (root.getClearType() != EventType.STATE_ROOM_BANNER.unstable) return false
+        val url = root.getClearContent().toModel<RoomBannerContent>()?.url.orEmpty()
+        return listOfNotNull(prevEvent, nextEvent).any {
+            it.root.getClearType() == EventType.STATE_ROOM_BANNER.stable &&
+                    it.root.senderId == root.senderId &&
+                    it.root.getClearContent().toModel<RoomBannerContent>()?.url.orEmpty() == url
         }
     }
 

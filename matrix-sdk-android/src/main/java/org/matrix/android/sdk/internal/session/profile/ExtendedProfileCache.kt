@@ -14,7 +14,10 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.profile.ProfileKeys
 import org.matrix.android.sdk.api.session.profile.Pronoun
+import org.matrix.android.sdk.api.session.profile.UserBio
+import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.task.TaskExecutor
@@ -22,6 +25,11 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 // Stable key preferred over unstable.
+internal fun JsonDict.profileBannerUrl(): String? {
+    return (this[ProfileKeys.BANNER_URL] as? String)
+            ?: (this[ProfileKeys.BANNER_URL_UNSTABLE] as? String)
+}
+
 internal fun JsonDict.profileTimezone(): String? {
     return (this[ProfileKeys.TIMEZONE] as? String)
             ?: (this[ProfileKeys.TIMEZONE_UNSTABLE] as? String)
@@ -47,6 +55,58 @@ internal fun JsonDict.profilePronouns(): List<Pronoun>? {
     }
 }
 
+internal fun JsonDict.profileStatus(): UserStatus? {
+    val fromObject = (this[ProfileKeys.STATUS] as? Map<*, *>)
+            ?: (this[ProfileKeys.STATUS_UNSTABLE] as? Map<*, *>)
+    if (fromObject != null) {
+        val text = fromObject["text"] as? String
+        val emoji = fromObject["emoji"] as? String
+        return UserStatus(text = text.orEmpty(), emoji = emoji.orEmpty()).takeIf { !it.isEmpty() }
+    }
+    val commet = this[ProfileKeys.STATUS_COMMET] as? String ?: return null
+    return UserStatus(text = commet).takeIf { !it.isEmpty() }
+}
+
+internal fun JsonDict.profileBio(): UserBio? {
+    val extensible = (this[ProfileKeys.BIOGRAPHY] as? Map<*, *>)
+            ?: (this[ProfileKeys.BIOGRAPHY_UNSTABLE] as? Map<*, *>)
+    if (extensible != null) {
+        val representations = (extensible["m.text"] as? List<*>).orEmpty().mapNotNull { it as? Map<*, *> }
+        val html = representations.firstOrNull { it["mimetype"] == MimeTypes.Html }?.get("body") as? String
+        val plain = representations.firstOrNull { it["mimetype"] == null || it["mimetype"] == MimeTypes.PlainText }
+                ?.get("body") as? String
+        // A bio carrying only HTML still has to render, so fall back to it as the plain body.
+        return UserBio(body = plain ?: html.orEmpty(), formattedBody = html).takeIf { !it.isEmpty() }
+    }
+    val commet = (this[ProfileKeys.BIOGRAPHY_COMMET] as? Map<*, *>)?.get("body") as? String ?: return null
+    return UserBio(body = commet).takeIf { !it.isEmpty() }
+}
+
+/** Serialize a status into the per-key JSON shapes each profile field expects. */
+internal fun UserStatus.toProfileValues(): Map<String, Any> {
+    // MSC4426 requires both fields, so an emoji-less status still carries an empty one.
+    val msc = mapOf("text" to text, "emoji" to emoji)
+    return mapOf(
+            ProfileKeys.STATUS to msc,
+            ProfileKeys.STATUS_UNSTABLE to msc,
+            ProfileKeys.STATUS_COMMET to display(),
+    )
+}
+
+internal fun UserBio.toProfileValues(): Map<String, Any> {
+    // Richest first, as MSC1767 orders representations.
+    val representations = buildList {
+        if (!formattedBody.isNullOrBlank()) add(mapOf("body" to formattedBody, "mimetype" to MimeTypes.Html))
+        add(mapOf("body" to body))
+    }
+    val msc = mapOf("m.text" to representations)
+    return mapOf(
+            ProfileKeys.BIOGRAPHY to msc,
+            ProfileKeys.BIOGRAPHY_UNSTABLE to msc,
+            ProfileKeys.BIOGRAPHY_COMMET to mapOf("body" to body),
+    )
+}
+
 /** Serialize a pronoun list into the MSC4247 JSON array shape for a PUT. */
 internal fun List<Pronoun>.toProfileValue(): List<Map<String, Any>> {
     return map { pronoun ->
@@ -64,9 +124,10 @@ internal fun List<Pronoun>.toProfileValue(): List<Map<String, Any>> {
 }
 
 /**
- * In-memory, per-session cache of MSC4175/MSC4247 profile fields. These fields have no live store,
- * so UIs seed synchronously from here and gendered timeline notices read it best-effort. A cache
- * miss triggers a single background fetch that fills in on the next rebind.
+ * In-memory, per-session cache of the MSC4133 extended profile fields (time zone, pronouns, banner,
+ * status, biography). These fields have no live store, so UIs seed synchronously from here and
+ * gendered timeline notices read it best-effort. A cache miss triggers a single background fetch
+ * that fills in on the next rebind.
  */
 @SessionScope
 internal class ExtendedProfileCache @Inject constructor(
@@ -76,6 +137,9 @@ internal class ExtendedProfileCache @Inject constructor(
 
     private val pronounsCache = ConcurrentHashMap<String, List<Pronoun>>()
     private val timezoneCache = ConcurrentHashMap<String, Optional<String>>()
+    private val bannerUrlCache = ConcurrentHashMap<String, Optional<String>>()
+    private val statusCache = ConcurrentHashMap<String, Optional<UserStatus>>()
+    private val bioCache = ConcurrentHashMap<String, Optional<UserBio>>()
     private val inFlight = ConcurrentHashMap.newKeySet<String>()
 
     // Emits a userId once its pronouns become known, so UIs already showing the neutral fallback
@@ -86,6 +150,24 @@ internal class ExtendedProfileCache @Inject constructor(
     fun getCachedPronouns(userId: String): List<Pronoun>? = pronounsCache[userId]
 
     fun getCachedTimezone(userId: String): String? = timezoneCache[userId]?.getOrNull()
+
+    fun getCachedBannerUrl(userId: String): String? = bannerUrlCache[userId]?.getOrNull()
+
+    fun cacheBannerUrl(userId: String, bannerUrl: String?) {
+        bannerUrlCache[userId] = Optional.from(bannerUrl)
+    }
+
+    fun getCachedStatus(userId: String): UserStatus? = statusCache[userId]?.getOrNull()
+
+    fun getCachedBio(userId: String): UserBio? = bioCache[userId]?.getOrNull()
+
+    fun cacheStatus(userId: String, status: UserStatus?) {
+        statusCache[userId] = Optional.from(status?.takeIf { !it.isEmpty() })
+    }
+
+    fun cacheBio(userId: String, bio: UserBio?) {
+        bioCache[userId] = Optional.from(bio?.takeIf { !it.isEmpty() })
+    }
 
     fun cachePronouns(userId: String, pronouns: List<Pronoun>?) {
         val updated = pronouns.orEmpty()
@@ -102,6 +184,9 @@ internal class ExtendedProfileCache @Inject constructor(
     fun cacheFromProfile(userId: String, dict: JsonDict) {
         cachePronouns(userId, dict.profilePronouns())
         cacheTimezone(userId, dict.profileTimezone())
+        cacheBannerUrl(userId, dict.profileBannerUrl())
+        cacheStatus(userId, dict.profileStatus())
+        cacheBio(userId, dict.profileBio())
     }
 
     fun prefetch(userId: String) {
@@ -118,6 +203,9 @@ internal class ExtendedProfileCache @Inject constructor(
                     // Cache the negative result so we don't hammer a failing/absent profile.
                     cachePronouns(userId, null)
                     cacheTimezone(userId, null)
+                    cacheBannerUrl(userId, null)
+                    cacheStatus(userId, null)
+                    cacheBio(userId, null)
                 }
             } finally {
                 inFlight.remove(userId)

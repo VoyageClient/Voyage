@@ -46,6 +46,7 @@ import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.session.content.FileUploader
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevels
 import org.matrix.android.sdk.internal.session.room.powerlevels.getRoomPowerLevelsFlow
+import timber.log.Timber
 
 internal class DefaultStateService @AssistedInject constructor(
         @Assisted private val roomId: String,
@@ -203,22 +204,27 @@ internal class DefaultStateService @AssistedInject constructor(
 
     override suspend fun updateBanner(bannerUri: String, fileName: String) {
         val response = fileUploader.uploadFromUri(bannerUri, fileName, MimeTypes.Jpeg)
-        sendStateEvent(
-                eventType = EventType.STATE_ROOM_BANNER.unstable,
-                body = RoomBannerContent(
+        sendBannerStateEvent(
+                RoomBannerContent(
                         url = response.contentUri,
                         info = BannerImageInfo(mimeType = MimeTypes.Jpeg)
-                ).toContent(),
-                stateKey = ""
+                ).toContent()
         )
     }
 
     override suspend fun deleteBanner() {
-        sendStateEvent(
-                eventType = EventType.STATE_ROOM_BANNER.unstable,
-                body = emptyMap(),
-                stateKey = ""
-        )
+        sendBannerStateEvent(emptyMap())
+    }
+
+    // Both types carry the banner, so clients reading either one see the change. A power level that
+    // only allows one of them must not lose the change that did land.
+    private suspend fun sendBannerStateEvent(body: JsonDict) {
+        val failures = EventType.STATE_ROOM_BANNER.values.mapNotNull { type ->
+            runCatching { sendStateEvent(eventType = type, body = body, stateKey = "") }
+                    .exceptionOrNull()
+                    ?.also { Timber.w(it, "Failed to send room banner as $type") }
+        }
+        if (failures.size == EventType.STATE_ROOM_BANNER.values.size) throw failures.first()
     }
 
     // A null displayname/avatar_url is omitted from the serialized event, and Synapse re-fills
@@ -239,17 +245,8 @@ internal class DefaultStateService @AssistedInject constructor(
         sendMyRoomMemberContent { copy(avatarUrl = avatarUrl) }
     }
 
-    override suspend fun updateMyRoomBanner(bannerUri: String, fileName: String) {
-        val response = fileUploader.uploadFromUri(bannerUri, fileName, MimeTypes.Jpeg)
-        sendMyRoomMemberContent { copy(bannerUrl = response.contentUri) }
-    }
-
-    override suspend fun resetMyRoomBanner(bannerUrl: String?) {
-        sendMyRoomMemberContent { copy(bannerUrl = bannerUrl) }
-    }
-
-    override suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?, bannerUrl: String?) {
-        sendMyRoomMemberContent { copy(displayName = displayName, avatarUrl = avatarUrl, bannerUrl = bannerUrl) }
+    override suspend fun updateMyRoomProfile(displayName: String?, avatarUrl: String?) {
+        sendMyRoomMemberContent { copy(displayName = displayName, avatarUrl = avatarUrl) }
     }
 
     private suspend fun sendMyRoomMemberContent(transform: RoomMemberContent.() -> RoomMemberContent) {

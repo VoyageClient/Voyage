@@ -52,11 +52,13 @@ New features, improvements, and notable removals in this fork.
 
 - **Media captions & replies** — add/edit/remove captions on media, reply to or comment alongside media, rich reply previews with embedded image/video/sticker thumbnails, and the ability to reply to and redact non-message events (reactions, joins, leaves, redactions).
 
-- **Room & profile banners (MSC4221 / MSC4427)** — Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings, with a per-room override of your own banner in the room's personalization tab; banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
+- **Room & profile banners (MSC4221 / MSC4427)** — Discord-style banner images on room and user profile pages (2.8:1, avatar overlapping, tap to view full-screen), settable from room settings and account settings; banner changes show as timeline notices. Interoperable with the Haven element-web patchset.
 
 - **Mutual Rooms in profiles** — a user's profile has a Mutual Rooms button opening a compact list of the rooms you share, grouped under their spaces (with rounded-square space avatars) and DMs included; tap a room to open it, or tap a space to filter the room list to it.
 
-- **Pronouns & time zone in profiles (MSC4247 / MSC4175 / MSC4133)** — set your pronouns (common presets or custom text, multiple allowed) and IANA time zone in account settings; a user's pronouns and current time-zone abbreviation show under their name on profile pages as e.g. `she/her • PST` (DST-aware), and their pronouns gender timeline notices such as "changed **her** avatar". Reads the stable field keys and writes the unstable ones, and interoperates with other clients' pronoun schemas.
+- **Status & biography in profiles (MSC4426 / MSC4440)** — set a status (typed as one line, with any leading emoji stored as its emoji field) and a free-form biography in account settings. The status shows under a user's pronouns and time zone; the biography gets its own expandable section on their profile, rendering markdown, links and custom emoji. Both also appear in the user card from a mention. Written under the standard and unstable field keys as well as the ones other clients already read.
+
+- **Pronouns & time zone in profiles (MSC4247 / MSC4175 / MSC4133)** — set your pronouns (common presets or custom text, multiple allowed) and IANA time zone in account settings; a user's pronouns and current time-zone abbreviation show under their name on profile pages as e.g. `she/her • PST` (DST-aware), and their pronouns gender timeline notices such as "changed **her** avatar". Every profile field is written under both its stable and unstable key and read stable-first, and interoperates with other clients' pronoun schemas.
 
 - **Message pinning** — pin and unpin messages, sorted by most recent, with a pinned-messages banner (toggleable).
 
@@ -142,7 +144,7 @@ New features, improvements, and notable removals in this fork.
 
 - **Disclosure sections in messages (MSC2184)** — a `<details>` section renders as a titled, indented block with its summary in bold instead of running title and body together. It is always shown rather than folded away, since a collapsed state can't be held safely per message in a scrolling timeline.
 
-- **Misc improvements** — randomizable upload filenames, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, a "Show in chat" action in the media viewer that jumps back to the message an attachment came from, room-list preview polish, a direct message's room settings showing the other person's avatar as the room list does, and links no longer drawn underlined anywhere they were left inconsistent — room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
+- **Misc improvements** — long room-topic changes shortened to a single timeline notice, View Profile Source alongside View Membership Source on user profiles in developer mode, randomizable upload filenames, first-frame video thumbnails, toggleable app shortcuts, display of custom power levels, WebView SSL-error tolerance, an overhauled jump-to-latest button, a "Show in chat" action in the media viewer that jumps back to the message an attachment came from, room-list preview polish, a direct message's room settings showing the other person's avatar as the room list does, and links no longer drawn underlined anywhere they were left inconsistent — room, space and directory previews, permalink pills, and the dialogs and banners built from raw HTML.
 
 ### Removals
 
