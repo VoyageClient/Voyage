@@ -45,11 +45,6 @@ interface RoomPagingService {
             sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
     ): LiveData<PagedList<RoomSummary>>
 
-    fun roomSummariesChangesLive(
-            queryParams: RoomSummaryQueryParams,
-            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
-    ): LiveData<List<Unit>>
-
     fun getFilteredPagedRoomSummariesLive(
             queryParams: RoomSummaryQueryParams,
             pagedListConfig: PagedList.Config = defaultPagedListConfig,

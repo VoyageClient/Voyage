@@ -9,6 +9,9 @@ CREATE TABLE room_tag (
 selectByRoom:
 SELECT * FROM room_tag WHERE room_id = ?;
 
+selectRoomIdsByTag:
+SELECT room_id FROM room_tag WHERE tag_name = ?;
+
 upsert:
 INSERT OR REPLACE INTO room_tag(room_id, tag_name, tag_order) VALUES (?, ?, ?);
 

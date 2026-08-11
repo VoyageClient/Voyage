@@ -53,7 +53,6 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
 import org.matrix.android.sdk.api.util.toOption
-import timber.log.Timber
 
 class RoomListSectionBuilder(
         private val session: Session,
@@ -560,15 +559,18 @@ class RoomListSectionBuilder(
             }
 
             val livePagedList = filteredPagedRoomSummariesLive.livePagedList
-            // use it also as a source to update count
-            livePagedList.asFlow()
-                    .onEach {
-                        Timber.v("Thread space list: ${Thread.currentThread()}")
+            // The count must NOT be driven off livePagedList: collecting it observes forever, which pins the
+            // paged list active for the ViewModel's whole life and re-pages every section on every sync even
+            // while the room list is off-screen. Drive it off the summary ticker so the list itself stays
+            // lifecycle-bound.
+            combine(liveQueryParams, session.roomService().getRoomSummaryUpdateFlow()) { params, _ -> params }
+                    .onEach { params ->
                         sections.find { it.sectionName == name }
                                 ?.notificationCount
                                 ?.postValue(
                                         if (countRoomAsNotif) {
-                                            RoomAggregateNotificationCount(it.size, it.size)
+                                            val count = session.roomService().getRoomSummaries(params).size
+                                            RoomAggregateNotificationCount(count, count)
                                         } else {
                                             session.roomService().getNotificationCountForRooms(
                                                     roomQueryParams.process(spaceFilterStrategy, spaceStateHandler.getSafeActiveSpaceId())

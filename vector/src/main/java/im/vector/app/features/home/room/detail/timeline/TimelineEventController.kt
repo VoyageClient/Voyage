@@ -635,23 +635,46 @@ class TimelineEventController @Inject constructor(
         // toggle bumps the factory's generation, invalidating this so runs + collapsed-set + neighbours redo.
         val processStable = processedSnapshot === currentSnapshot && processedPartialState === partialState &&
                 processedCollapseGeneration == mergedHeaderItemFactory.collapseGeneration
+        if (perfEnabled && !processStable) {
+            PerfTrace.report(
+                    "timeline.process.miss snapshot=${processedSnapshot !== currentSnapshot} " +
+                            "partialState=${processedPartialState !== partialState} " +
+                            "collapseGen=${processedCollapseGeneration != mergedHeaderItemFactory.collapseGeneration}",
+                    0,
+            )
+        }
         val processStart = if (perfEnabled && !processStable) System.nanoTime() else 0L
         if (!processStable) {
+            var p = if (perfEnabled) System.nanoTime() else 0L
+            fun lap(): Long = if (!perfEnabled) 0L else (System.nanoTime() - p).also { p = System.nanoTime() } / 1_000_000
             preprocessReverseEvents()
+            val reverseMs = lap()
             forcedVisibleEditIds = computeRejectedMediaEdits()
+            val mediaEditMs = lap()
             // Derive all merged runs + the collapsed-id set from scratch before neighbours (which exclude
             // collapsed members) and the build loop (which reads isCollapsed / isMergedAnchor). Reuse the
             // per-position "shown" flags it computes so neighbours don't re-run shouldShowEvent.
             val shown = mergedHeaderItemFactory.updateRuns(currentSnapshot, partialState, forcedVisibleEditIds)
+            val runsMs = lap()
             cachedReceiptsByEvent = readReceiptsCache.receiptsByEvent()
+            val receiptsMs = lap()
             cachedLastSentWithoutRr = searchLastSentEventWithoutReadReceipts(cachedReceiptsByEvent)
+            val lastSentMs = lap()
             // Nearest displayable neighbours, precomputed in O(n) — was a per-event subList scan (O(n²)).
             val (prev, next) = computeDisplayableNeighbours(shown)
+            val neighboursMs = lap()
             cachedPrevDisplayable = prev
             cachedNextDisplayable = next
             processedSnapshot = currentSnapshot
             processedPartialState = partialState
             processedCollapseGeneration = mergedHeaderItemFactory.collapseGeneration
+            if (perfEnabled) {
+                PerfTrace.report(
+                        "timeline.process.phases n=${currentSnapshot.size} reverse=${reverseMs}ms mediaEdit=${mediaEditMs}ms " +
+                                "runs=${runsMs}ms receipts=${receiptsMs}ms lastSent=${lastSentMs}ms neighbours=${neighboursMs}ms",
+                        0,
+                )
+            }
         }
         val processNanos = if (perfEnabled && !processStable) System.nanoTime() - processStart else 0L
         val receiptsByEvent = cachedReceiptsByEvent

@@ -49,6 +49,13 @@ internal class SqlChunkSnapshotLoader(
                     .asFlow()
                     .map { }
 
+    /**
+     * Re-map a single already-loaded event. Lets an in-place change (a reaction/edit landing on one
+     * message) refresh just that entry instead of discarding a whole chunk's mapping.
+     */
+    fun reloadEvent(roomId: String, eventId: String): TimelineEvent? =
+            stores.timelineEvent.getByRoomAndEventId(roomId, eventId)?.let { timelineEventMapper.map(it) }
+
     /** Paginated window of a chunk by display-index range (for loadMore). */
     fun eventsInRange(chunkId: Long, from: Long, to: Long): List<TimelineEvent> =
             stores.timelineEvent.getByChunkRange(chunkId, from, to).map { timelineEventMapper.map(it) }
@@ -89,12 +96,20 @@ internal class SqlChunkSnapshotLoader(
                     .asFlow()
                     .mapToList(dispatcher)
 
-    /** Emits when any event's annotation summary (reactions/edits/etc) changes — the chunk flow only watches
-     *  timeline_event rows, so it misses these. Pure signal (no query execution). */
-    fun annotationSummaryChangesFlow(roomId: String): Flow<Unit> =
-            database.eventAnnotationsSummaryQueries.selectSummariesForRoom(roomId)
+    /**
+     * Emits this room's aggregation state (reactions/edits/references/polls) keyed by annotated event id.
+     * The chunk flow only watches timeline_event rows, so it misses these entirely. Runs the query rather
+     * than acting as a bare signal so the consumer can tell which events actually changed — SQLDelight
+     * notifies per table, so every room's reactions used to wake every open timeline into a full re-map.
+     */
+    fun annotationSummaryChangesFlow(roomId: String): Flow<Map<String, String>> =
+            database.eventAnnotationsSummaryQueries.selectAnnotationStateInRoom(roomId, roomId, roomId, roomId)
                     .asFlow()
-                    .map { }
+                    .mapToList(dispatcher)
+                    .map { rows ->
+                        rows.groupBy { it.event_id }
+                                .mapValues { (_, states) -> states.map { it.state }.sorted().joinToString("\n") }
+                    }
 
     /**
      * Emits when anyone's read receipt moves in this room. A sync carrying only an m.receipt writes

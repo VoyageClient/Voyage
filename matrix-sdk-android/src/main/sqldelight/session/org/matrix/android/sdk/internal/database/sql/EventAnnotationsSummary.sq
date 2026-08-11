@@ -58,6 +58,30 @@ SELECT * FROM event_annotations_summary WHERE event_id = ?;
 selectSummariesForRoom:
 SELECT * FROM event_annotations_summary WHERE room_id = ?;
 
+-- Per-event fingerprint of every aggregation in a room. The parent row holds no display state (a new
+-- reaction only touches the child tables), so a watcher must join them to notice a change at all — and
+-- joining them is also what makes the query's table set cover every aggregation it needs to react to.
+selectAnnotationStateInRoom:
+SELECT s.event_id AS event_id,
+       'r|' || r.reaction_key || '|' || CAST(r.reaction_count AS TEXT) || '|' || CAST(r.added_by_me AS TEXT) || '|' || r.source_local_echo AS state
+FROM event_annotations_summary s JOIN reaction_aggregated_summary r ON r.annotation_event_id = s.event_id
+WHERE s.room_id = ?
+UNION ALL
+SELECT s.event_id,
+       'e|' || d.event_id || '|' || CAST(d.timestamp AS TEXT) || '|' || CAST(d.is_local_echo AS TEXT)
+FROM event_annotations_summary s JOIN edition_of_event d ON d.annotation_event_id = s.event_id
+WHERE s.room_id = ?
+UNION ALL
+SELECT s.event_id,
+       'f|' || f.event_id || '|' || f.source_local_echo || '|' || COALESCE(f.content, '')
+FROM event_annotations_summary s JOIN references_aggregated_summary f ON f.annotation_event_id = s.event_id
+WHERE s.room_id = ?
+UNION ALL
+SELECT s.event_id,
+       'p|' || COALESCE(p.aggregated_content, '') || '|' || CAST(COALESCE(p.closed_time, 0) AS TEXT) || '|' || p.source_local_echo_events
+FROM event_annotations_summary s JOIN poll_response_aggregated_summary p ON p.annotation_event_id = s.event_id
+WHERE s.room_id = ?;
+
 selectSummariesIn:
 SELECT * FROM event_annotations_summary WHERE event_id IN ?;
 

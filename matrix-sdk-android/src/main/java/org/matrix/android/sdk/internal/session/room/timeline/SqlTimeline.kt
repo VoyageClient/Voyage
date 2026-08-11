@@ -491,24 +491,46 @@ internal class SqlTimeline(
                 rebuildSnapshot()
             }
         }
-        // Local-echo add/remove and ignore-set changes don't alter the live chunk's rows, so those
-        // rebuilds reuse its cached mapping instead of re-resolving the whole chunk.
+        // NOT reuseLiveChunk: a successful send deletes the echo row *because* the synced event just
+        // landed in the live chunk, so reusing the cached (pre-insert) mapping showed neither — the
+        // message blinked out until the next chunk rebuild. The live-chunk refresh is incremental anyway.
         sendingJob = timelineScope.launch {
-            snapshotLoader.sendingChangesFlow(roomId).conflate().collect { rebuildSnapshot(reuseLiveChunk = true) }
+            snapshotLoader.sendingChangesFlow(roomId).conflate().collect { rebuildSnapshot() }
         }
+        // An ignore-set change doesn't touch any row, so the cached mapping still stands.
         ignoredJob = timelineScope.launch {
             snapshotLoader.ignoredUserIdsFlow().drop(1).collect { rebuildSnapshot(reuseLiveChunk = true) }
         }
-        // Reactions/edits live in event_annotations_summary, which the chunk flow doesn't watch — rebuild
-        // (clearing the static-chunk cache so history re-reads too) when a summary changes.
+        // Reactions/edits live in event_annotations_summary, which the chunk flow doesn't watch — refresh
+        // the events whose aggregations changed when a summary changes.
         annotationsJob = timelineScope.launch {
-            snapshotLoader.annotationSummaryChangesFlow(roomId).drop(1).conflate().collect {
+            // Baseline, not drop(1): the first emission is the current state, which by definition changed
+            // nothing — but it has to be recorded to diff the next one against.
+            var previous: Map<String, String>? = null
+            snapshotLoader.annotationSummaryChangesFlow(roomId).distinctUntilChanged().conflate().collect { current ->
+                val before = previous
+                previous = current
+                if (before == null) return@collect
+                val changed = (before.keys + current.keys).filterTo(HashSet()) { before[it] != current[it] }
+                if (changed.isEmpty()) return@collect
                 // Marker: reaction/edit propagation into the visible timeline (must fire and stay
                 // fast regardless of scroll position or the live-edge window cap).
                 val perfStart = MatrixPerf.now()
-                chunkSnapshotCache.clear()
+                // Re-map only the events that changed, in place. Dropping the chunk instead (what this used
+                // to do for every chunk) forces a full reload+re-map of the whole live chunk, which at the
+                // live edge — where there is only one loaded chunk — means re-mapping the entire timeline
+                // for a single reaction.
+                var remapped = 0
+                for (chunkId in chunkSnapshotCache.keys.toList()) {
+                    val events = chunkSnapshotCache[chunkId] ?: continue
+                    if (events.none { it.eventId in changed }) continue
+                    chunkSnapshotCache[chunkId] = events.map { event ->
+                        if (event.eventId !in changed) event
+                        else snapshotLoader.reloadEvent(roomId, event.eventId)?.also { remapped++ } ?: event
+                    }
+                }
                 rebuildSnapshot()
-                MatrixPerf.end(perfStart) { "timeline.annotationsPropagate" }
+                MatrixPerf.end(perfStart) { "timeline.annotationsPropagate changed=${changed.size} remapped=$remapped" }
             }
         }
         // A sync carrying only an m.receipt writes neither timeline_event nor the annotation
@@ -718,6 +740,12 @@ internal class SqlTimeline(
 
     private fun computeLoadedEvents(reuseLiveChunk: Boolean = false): List<TimelineEvent> {
         val liveChunkId = loadedChunkIds.firstOrNull()
+        val liveEdge = isLiveEdgeLoaded()
+        // Read the sending rows BEFORE the chunk. The sync that inserts the synced event also deletes the
+        // echo row, so reading the chunk first let a rebuild straddle that commit — chunk read before it,
+        // sending read after — leaving the message in neither, invisible until the next rebuild. Reading in
+        // this order can only ever yield the echo twice, which the synced-transaction filter below removes.
+        val dbSending = if (isThreadTimeline || liveEdge) snapshotLoader.sendingEvents(roomId) else emptyList()
         val chunkEvents = loadedChunkIds.flatMap { chunkId ->
             if (chunkId == liveChunkId) {
                 // the live/changing chunk is refreshed on sync/content changes (incrementally when possible);
@@ -732,16 +760,18 @@ internal class SqlTimeline(
         }
         // A fast remote echo can arrive before any rebuild saw the DB sending row (the conflated flow
         // collapses insert+delete), stranding the in-memory copy — reconcile against synced transaction ids.
-        if (uiEchoManager.getInMemorySendingEvents().isNotEmpty()) {
-            chunkEvents.forEach { event ->
-                event.root.unsignedData?.transactionId?.let { uiEchoManager.onSyncedEvent(it) }
-            }
+        val syncedTxnIds = if (dbSending.isEmpty() && uiEchoManager.getInMemorySendingEvents().isEmpty()) {
+            emptySet()
+        } else {
+            chunkEvents.mapNotNullTo(HashSet()) { it.root.unsignedData?.transactionId }
+                    .onEach { uiEchoManager.onSyncedEvent(it) }
         }
-        val sending = if (isThreadTimeline || isLiveEdgeLoaded()) {
-            val dbSending = snapshotLoader.sendingEvents(roomId)
+        val sending = if (isThreadTimeline || liveEdge) {
             uiEchoManager.onSentEventsInDatabase(dbSending.map { it.eventId })
             (uiEchoManager.getInMemorySendingEvents() + dbSending)
                     .distinctBy { it.eventId }
+                    // Already in the chunk under its synced id — keeping the echo too would show it twice.
+                    .filterNot { it.eventId in syncedTxnIds }
                     // Only the local echoes posted into this thread belong at its live edge.
                     .let { if (isThreadTimeline) it.filter { e -> e.root.getRootThreadEventId() == threadRootId } else it }
                     .map { uiEchoManager.updateSentStateWithUiEcho(it) }
@@ -910,8 +940,8 @@ internal class SqlTimeline(
      * append-only in practice, so load only the rows above the cached max display index and prepend.
      * Fall back to a full reload when the count doesn't add up (rows were removed / chunk rebuilt) or a
      * new event is a redaction (it prunes an OLDER root in place, which the cached mapping would miss).
-     * In-place edits/reactions/decryptions are covered by the annotation/decrypt jobs, which clear the
-     * cache entirely before rebuilding.
+     * In-place edits/reactions/decryptions are covered by the annotation/decrypt jobs, which refresh the
+     * affected entries (or drop the cache) before rebuilding.
      */
     private fun refreshLiveChunkSnapshot(chunkId: Long): List<TimelineEvent> {
         val cached = chunkSnapshotCache[chunkId]

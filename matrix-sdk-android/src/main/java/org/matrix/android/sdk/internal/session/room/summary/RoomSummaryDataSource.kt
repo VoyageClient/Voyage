@@ -23,6 +23,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
@@ -111,9 +112,20 @@ internal class RoomSummaryDataSource @Inject constructor(
         return rows
     }
 
+    /**
+     * Emits once per room_summary write burst. A sync commits each room's summary separately, so the raw
+     * generation ticks 15+ times per sync; every observer downstream re-runs a full filter pass over every
+     * row, so debouncing here is worth far more than the settle delay costs.
+     */
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    private val roomSummaryChange: Flow<Long> = roomSummaryGeneration.debounce(CHANGE_COALESCE_MS)
+
+    /** Emits (without data) once per room_summary write burst, for observers that recompute their own view. */
+    fun getRoomSummaryUpdateFlow(): Flow<Unit> = roomSummaryChange.map { }
+
     /** Flow recomputing [transform] (against [allRows]) on the DB read dispatcher on every room_summary change. */
     internal fun <T> flowOnRoomSummaryChange(transform: () -> T): Flow<T> =
-            roomSummaryGeneration.map { transform() }.flowOn(dispatcher)
+            roomSummaryChange.map { transform() }.flowOn(dispatcher)
 
     internal fun RoomSummaryRow.toDomain(): RoomSummary? {
         summaryCache[this]?.let { return it }
@@ -289,10 +301,13 @@ internal class RoomSummaryDataSource @Inject constructor(
                 .also { MatrixPerf.end(filterStart) { "roomlist.filterSort ${it.size}/${all.size} sort=$sortOrder" } }
     }
 
-    private fun applyFilterAndSort(rows: List<RoomSummaryRow>, queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> =
-            sort(rows.filter { it.matches(queryParams) }, sortOrder)
+    private fun applyFilterAndSort(rows: List<RoomSummaryRow>, queryParams: RoomSummaryQueryParams, sortOrder: RoomSortOrder): List<RoomSummaryRow> {
+        // Resolved once per pass: a per-row lookup here was one DB query per room, on every pass.
+        val taggedRoomIds = queryParams.activeTagFilter?.let { database.roomTagQueries.selectRoomIdsByTag(it).executeAsList().toHashSet() }
+        return sort(rows.filter { it.matches(queryParams, taggedRoomIds) }, sortOrder)
+    }
 
-    private fun RoomSummaryRow.matches(p: RoomSummaryQueryParams): Boolean {
+    private fun RoomSummaryRow.matches(p: RoomSummaryQueryParams, taggedRoomIds: Set<String>?): Boolean {
         if (room_id.isEmpty()) return false
         if (!p.roomId.matches(room_id)) return false
         val displayNameField = if (p.displayName.isNormalized()) normalized_display_name else display_name
@@ -322,10 +337,12 @@ internal class RoomSummaryDataSource @Inject constructor(
             is SpaceFilter.ExcludeSpace -> if (flatten_parent_ids?.contains(sf.spaceId) == true) return false
             SpaceFilter.NoFilter -> Unit
         }
-        p.activeTagFilter?.let { tag ->
-            if (database.roomTagQueries.selectByRoom(room_id).executeAsList().none { it.tag_name == tag }) return false
-        }
+        if (p.activeTagFilter != null && room_id !in taggedRoomIds.orEmpty()) return false
         return true
+    }
+
+    private companion object {
+        const val CHANGE_COALESCE_MS = 120L
     }
 
     private fun sort(rows: List<RoomSummaryRow>, sortOrder: RoomSortOrder): List<RoomSummaryRow> = when (sortOrder) {
