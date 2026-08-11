@@ -86,6 +86,7 @@ internal class RoomSummaryDataSource @Inject constructor(
     // The generation guard prevents caching a snapshot that a concurrent write already superseded.
     private val roomSummaryGeneration = MutableStateFlow(0L)
     @Volatile private var cachedAllRows: Pair<Long, List<RoomSummaryRow>>? = null
+    private val allRowsLock = Any()
     private val allRowsInvalidator = Query.Listener {
         cachedAllRows = null
         roomSummaryGeneration.value += 1
@@ -104,12 +105,19 @@ internal class RoomSummaryDataSource @Inject constructor(
 
     private fun allRows(): List<RoomSummaryRow> {
         cachedAllRows?.let { (gen, rows) -> if (gen == roomSummaryGeneration.value) return rows }
-        val gen = roomSummaryGeneration.value
-        val perfStart = MatrixPerf.now()
-        val rows = queries.selectAll().executeAsList()
-        MatrixPerf.end(perfStart) { "roomlist.selectAll rows=${rows.size}" }
-        if (roomSummaryGeneration.value == gen) cachedAllRows = gen to rows
-        return rows
+        // Single-flight. One generation bump wakes every room-list observer at once, on several threads;
+        // without this they each miss the cache simultaneously and run their own full-table deserialize,
+        // so a single sync paid for ~7 of them (traced: 7 concurrent selectAll, 110ms of work each,
+        // serializing into a 322ms stall). They now share the first one's result.
+        return synchronized(allRowsLock) {
+            cachedAllRows?.let { (gen, rows) -> if (gen == roomSummaryGeneration.value) return rows }
+            val gen = roomSummaryGeneration.value
+            val perfStart = MatrixPerf.now()
+            val rows = queries.selectAll().executeAsList()
+            MatrixPerf.end(perfStart) { "roomlist.selectAll rows=${rows.size}" }
+            if (roomSummaryGeneration.value == gen) cachedAllRows = gen to rows
+            rows
+        }
     }
 
     /**
