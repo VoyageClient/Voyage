@@ -60,7 +60,7 @@ internal class DefaultDirectLoginTask @Inject constructor(
         val loginParams = PasswordLoginParams.userIdentifier(
                 user = params.userId,
                 password = params.password,
-                deviceDisplayName = params.deviceName,
+                deviceDisplayName = params.deviceName.takeIf { it.isNotBlank() },
                 deviceId = params.deviceId
         )
 

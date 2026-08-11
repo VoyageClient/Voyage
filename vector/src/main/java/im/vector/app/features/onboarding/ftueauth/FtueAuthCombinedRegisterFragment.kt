@@ -123,7 +123,7 @@ class FtueAuthCombinedRegisterFragment :
             }
 
             if (error == 0) {
-                val initialDeviceName = getString(CommonStrings.login_default_session_public_name)
+                val initialDeviceName = ""
                 val registerAction = when {
                     login.isMatrixId() -> AuthenticateAction.RegisterWithMatrixId(login, password, initialDeviceName)
                     else -> AuthenticateAction.Register(login, password, initialDeviceName)

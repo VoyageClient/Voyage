@@ -66,19 +66,20 @@ internal class DefaultLoginWizard(
             initialDeviceName: String,
             deviceId: String?
     ): Session {
+        val deviceDisplayName = initialDeviceName.takeIf { it.isNotBlank() }
         val loginParams = if (login.isEmail()) {
             PasswordLoginParams.thirdPartyIdentifier(
                     medium = ThreePidMedium.EMAIL,
                     address = login,
                     password = password,
-                    deviceDisplayName = initialDeviceName,
+                    deviceDisplayName = deviceDisplayName,
                     deviceId = deviceId
             )
         } else {
             PasswordLoginParams.userIdentifier(
                     user = login.trim(),
                     password = password,
-                    deviceDisplayName = initialDeviceName,
+                    deviceDisplayName = deviceDisplayName,
                     deviceId = deviceId
             )
         }
