@@ -12,7 +12,6 @@ import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageView
-import androidx.core.view.isVisible
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
 import im.vector.app.core.date.DateFormatKind
@@ -43,8 +42,9 @@ abstract class BaseAttachmentProvider<Type>(
 
     var interactionListener: AttachmentInteractionListener? = null
 
-    // Off for standalone avatar/banner previews, where a "1 of 1" counter is just noise
-    var showOverlayCounter = true
+    // Off where the attachment stands on its own — an avatar or banner preview, a search hit —
+    // and a "1 of 1" counter over the message it came from is just noise.
+    var showOverlayInfo = true
 
     private var overlayView: AttachmentOverlayView? = null
 
@@ -59,26 +59,27 @@ abstract class BaseAttachmentProvider<Type>(
             overlayView?.interactionListener = interactionListener
         }
 
-        val counter = if (showOverlayCounter) {
+        val counter = if (showOverlayInfo) {
             stringProvider.getString(CommonStrings.attachment_viewer_item_x_of_y, position + 1, getItemCount())
         } else {
             ""
         }
-        val timelineEvent = getTimelineEventAtPosition(position)
-        if (timelineEvent != null) {
-            val dateString = dateFormatter.format(timelineEvent.root.originServerTs, DateFormatKind.DEFAULT_DATE_AND_TIME)
-            overlayView?.updateWith(
-                    counter = counter,
-                    senderInfo = "${timelineEvent.senderInfo.disambiguatedDisplayName.neutralizeDirectionOverrides()} $dateString"
-            )
-        } else {
-            // The event may not be in the local timeline store (e.g. a crawled search result).
-            overlayView?.updateWith(counter, "")
-        }
-        // Decide from the attachment itself, not the timeline event — see above, it can be absent.
-        overlayView?.views?.overlayVideoControlsGroup?.isVisible = getAttachmentInfoAt(position) is AttachmentInfo.Video
+        overlayView?.updateWith(counter, if (showOverlayInfo) senderInfoAt(position) else "")
+        // Decide from the attachment itself, not the timeline event — see below, it can be absent.
+        overlayView?.showVideoControls(getAttachmentInfoAt(position) is AttachmentInfo.Video)
 
         return overlayView
+    }
+
+    /** Empty where the event is not in the local timeline store, e.g. a crawled search result. */
+    protected open fun senderInfoAt(position: Int): String {
+        val timelineEvent = getTimelineEventAtPosition(position) ?: return ""
+        return senderInfo(timelineEvent.senderInfo.disambiguatedDisplayName, timelineEvent.root.originServerTs)
+    }
+
+    protected fun senderInfo(name: String, timestampMs: Long?): String {
+        val dateString = dateFormatter.format(timestampMs, DateFormatKind.DEFAULT_DATE_AND_TIME)
+        return "${name.neutralizeDirectionOverrides()} $dateString"
     }
 
     abstract fun getTimelineEventAtPosition(position: Int): TimelineEvent?

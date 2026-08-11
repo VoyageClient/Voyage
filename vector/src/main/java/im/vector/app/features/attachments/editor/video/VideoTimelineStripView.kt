@@ -92,7 +92,9 @@ class VideoTimelineStripView @JvmOverloads constructor(
     private val cornerRadius = dp(6f)
     private val touchSlop = dp(16f)
     private val pixelsPerFrame = dp(28f)
-    private val edgeSnap = dp(24f)
+
+    /** Narrow on purpose: a wide snap zone swallows most of the travel near an end. */
+    private val edgeSnap = dp(6f)
     private val dragSlop = ViewConfiguration.get(context).scaledTouchSlop
 
     private val framePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -320,10 +322,17 @@ class VideoTimelineStripView @JvmOverloads constructor(
                 val startX = timeToX(startUs)
                 val endX = timeToX(endUs)
                 val playheadX = timeToX(playheadUs)
+                val startReach = abs(event.x - startX)
+                val endReach = abs(event.x - endX)
                 // Handles win over the playhead: mis-grabbing a handle costs the user their trim.
                 dragging = when {
-                    abs(event.x - startX) <= touchSlop -> Drag.START
-                    abs(event.x - endX) <= touchSlop -> Drag.END
+                    // A trim held at its minimum puts both handles under one finger. Each is drawn
+                    // outside the range it bounds, so the side the touch is on picks it; without
+                    // this the start always won and the end could never be dragged back out.
+                    startReach <= touchSlop && endReach <= touchSlop ->
+                        if (event.x >= (startX + endX) / 2f) Drag.END else Drag.START
+                    startReach <= touchSlop -> Drag.START
+                    endReach <= touchSlop -> Drag.END
                     abs(event.x - playheadX) <= touchSlop -> Drag.PLAYHEAD
                     event.x in startX..endX -> Drag.PLAYHEAD
                     else -> return false
@@ -411,12 +420,18 @@ class VideoTimelineStripView @JvmOverloads constructor(
 
     /**
      * The track is inset from both screen edges, so dragging as far as the finger goes still stops
-     * short of the ends. Anything within a thumb's width of an end takes that end.
+     * short of the ends. Anything right at an end takes that end.
      */
-    private fun snapToEdges(x: Float, us: Long): Long = when {
-        x <= trackLeft + edgeSnap -> 0L
-        x >= trackLeft + trackWidth - edgeSnap -> durationUs
-        else -> us
+    private fun snapToEdges(x: Float, us: Long): Long {
+        val atStart = x <= trackLeft + edgeSnap
+        val atEnd = x >= trackLeft + trackWidth - edgeSnap
+        // A handle only snaps to the end it bounds: pulling the end handle left must not fling it
+        // to zero, where it would land under the start handle.
+        return when (dragging) {
+            Drag.START -> if (atStart) 0L else us
+            Drag.END -> if (atEnd) durationUs else us
+            else -> if (atStart) 0L else if (atEnd) durationUs else us
+        }
     }
 
     private fun applyTime(time: Long) {

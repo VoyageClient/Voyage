@@ -14,9 +14,8 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.view.Surface
 import androidx.annotation.RequiresApi
-import im.vector.lib.mediatranscode.audio.AudioTrackCopier
-import im.vector.lib.mediatranscode.audio.AudioTrackTranscoder
 import im.vector.lib.mediatranscode.audio.AudioTrackWriter
+import im.vector.lib.mediatranscode.audio.AudioWriters
 import im.vector.lib.mediatranscode.gl.InputSurface
 import im.vector.lib.mediatranscode.gl.OutputSurface
 import timber.log.Timber
@@ -100,7 +99,7 @@ internal class TranscodeExporter(private val context: Context) {
             muxer = MuxerSession(spec.outputFile.absolutePath).apply {
                 setOrientationHint(if (geometry == null) rotation else 0)
             }
-            audio = if (spec.muted) null else createAudioWriter(spec, timeMap)
+            audio = AudioWriters.create(context, spec, source, spec.startUs, timeMap)
 
             extractor.seekTo(spec.startUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
             val durationUs = runLoop(
@@ -109,13 +108,15 @@ internal class TranscodeExporter(private val context: Context) {
             )
             audio?.pumpUpTo(Long.MAX_VALUE, muxer)
 
+            val audioDropped = !spec.muted && audio == null && source.audioMime != null
+            if (audioDropped) Timber.w("VideoEdit: re-encoded without the source's ${source.audioMime} track")
             return VideoEditOutput(
                     file = spec.outputFile,
                     width = if (geometry == null) displayWidth else outputWidth,
                     height = if (geometry == null) displayHeight else outputHeight,
                     durationMs = durationUs / 1000,
                     actualStartUs = spec.startUs,
-                    audioDropped = !spec.muted && audio == null && source.audioMime != null,
+                    audioDropped = audioDropped,
             )
         } finally {
             runCatching { decoder?.stop() }
@@ -130,22 +131,6 @@ internal class TranscodeExporter(private val context: Context) {
             audio?.release()
             muxer?.release()
         }
-    }
-
-    private fun createAudioWriter(spec: VideoEditSpec, timeMap: SpeedTimeMap): AudioTrackWriter? {
-        if (!spec.isRetimed) return AudioTrackCopier.create(context, spec.sourceUri, spec.endUs)
-        val transcoder = AudioTrackTranscoder.create(
-                context, spec.sourceUri, spec.startUs, spec.endUs, timeMap, spec.changePitch
-        ) ?: return null
-        // The muxer needs every track's format before it starts, and the encoded one only exists
-        // once the encoder has seen some sound. A device with no usable AAC encoder loses its
-        // audio rather than the whole export.
-        val primed = runCatching { transcoder.prime() }
-                .onFailure { Timber.w(it, "VideoEdit: cannot re-encode the audio, dropping it") }
-                .getOrDefault(false)
-        if (primed) return transcoder
-        transcoder.release()
-        return null
     }
 
     private class Pipeline(

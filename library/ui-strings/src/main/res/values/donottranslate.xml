@@ -636,6 +636,7 @@
     <string name="settings_redaction_clear_media_cache_summary" translatable="false">Media kept for redacted messages in every room</string>
     <string name="room_personalization_redaction_clear_media_now" translatable="false">Clear preserved media in this room</string>
     <string name="attachment_viewer_show_in_chat" translatable="false">Show in chat</string>
+    <string name="attachment_viewer_more_options" translatable="false">More options</string>
 
     <string name="room_personalization_redaction_clear_now_confirmation" translatable="false">Delete the media kept for redacted messages in this room? Anything the server no longer holds can\'t be downloaded again.</string>
 

@@ -19,10 +19,11 @@ fun RecyclerView.attachSnapHelperWithListener(
         snapHelper: SnapHelper,
         behavior: SnapOnScrollListener.Behavior = SnapOnScrollListener.Behavior.NOTIFY_ON_SCROLL_STATE_IDLE,
         onSnapPositionChangeListener: OnSnapPositionChangeListener
-) {
+): SnapOnScrollListener {
     snapHelper.attachToRecyclerView(this)
     val snapOnScrollListener = SnapOnScrollListener(snapHelper, behavior, onSnapPositionChangeListener)
     addOnScrollListener(snapOnScrollListener)
+    return snapOnScrollListener
 }
 
 fun SnapHelper.getSnapPosition(recyclerView: RecyclerView): Int {
@@ -43,6 +44,14 @@ class SnapOnScrollListener(
     }
 
     private var snapPosition = RecyclerView.NO_POSITION
+
+    /**
+     * scrollToPosition() never leaves SCROLL_STATE_IDLE, so a programmatic move is invisible here
+     * and the next swipe back onto the remembered position would be swallowed as unchanged.
+     */
+    fun onScrolledProgrammatically(position: Int) {
+        snapPosition = position
+    }
 
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         if (behavior == Behavior.NOTIFY_ON_SCROLL) {

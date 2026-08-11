@@ -156,6 +156,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
     private fun applyPlaybackState(holder: Holder) {
         val isVideo = attachment.type == ContentAttachmentData.Type.VIDEO
+        // Before setVideo: a recycled holder still holding the controls would otherwise report the
+        // position it is being reset to into a bar that another page owns by now.
+        if (!isVideo) holder.setPlaybackListener(null)
         holder.setTargetSize(targetSize)
         holder.setVideo(attachment.queryUriAndroid.takeIf { isVideo }, (attachment.duration ?: 0L).toInt())
         // Each surface owns its own zoom, so the still and the video never fight over the gesture.
@@ -163,6 +166,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         // Swiping away drops any zoom, so coming back lands at 1x.
         if (!activePage) holder.resetZoom()
         if (!isVideo) {
+            if (activePage) playbackListener?.onVideoControlsAvailable(null)
             // An animated image drives itself, so there is no player to drive — but tapping it should
             // still pause and resume, as it does for a video and in the editor. The listener has to go
             // on the image view: with zoom enabled it consumes the touch and routes taps to its own

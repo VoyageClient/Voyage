@@ -13,7 +13,6 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import androidx.annotation.RequiresApi
-import im.vector.lib.mediatranscode.MuxableFormats
 import im.vector.lib.mediatranscode.MuxerSession
 import im.vector.lib.mediatranscode.firstTrackOf
 import im.vector.lib.mediatranscode.getIntOrNull
@@ -91,7 +90,10 @@ internal class AudioTrackCopier private constructor(
     companion object {
         private const val DEFAULT_BUFFER = 256 * 1024
 
-        /** @return null when the source has no audio, or audio an mp4 cannot hold. */
+        /**
+         * The caller has already established that an mp4 can hold this track — see [AudioWriters].
+         * @return null when the source has no audio, or it cannot be read.
+         */
         fun create(context: Context, sourceUri: Uri, endUs: Long): AudioTrackCopier? {
             val extractor = MediaExtractor()
             return try {
@@ -100,10 +102,6 @@ internal class AudioTrackCopier private constructor(
                 val format = index?.let { extractor.getTrackFormat(it) }
                 val mime = format?.getString(MediaFormat.KEY_MIME)
                 if (index == null || format == null || mime == null) {
-                    extractor.release()
-                    null
-                } else if (!MuxableFormats.isMuxableAudio(mime)) {
-                    Timber.w("VideoEdit: dropping audio track, $mime is not muxable into mp4")
                     extractor.release()
                     null
                 } else {

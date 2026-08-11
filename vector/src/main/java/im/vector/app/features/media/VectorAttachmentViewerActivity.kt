@@ -209,7 +209,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     private fun installSourceProvider(sourceProvider: BaseAttachmentProvider<*>) {
         sourceProvider.interactionListener = this
-        sourceProvider.showOverlayCounter = args()?.standalonePreview != true
+        sourceProvider.showOverlayInfo = args()?.standalonePreview != true
         setSourceProvider(sourceProvider)
         currentSourceProvider = sourceProvider
         providerInstalled = true
@@ -406,6 +406,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     override fun videoSeekTo(percent: Int) {
         handle(AttachmentCommands.SeekTo(percent))
+    }
+
+    override fun onPlaybackSpeedChanged(speed: Float, changePitch: Boolean) {
+        handle(AttachmentCommands.SetPlaybackSpeed(speed, changePitch))
     }
 
     override fun onShare() {

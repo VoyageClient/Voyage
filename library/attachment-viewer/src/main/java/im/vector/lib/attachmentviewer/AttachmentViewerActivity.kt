@@ -171,7 +171,7 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
         }
     }
 
-    fun onSelectedPositionChanged(position: Int) {
+    open fun onSelectedPositionChanged(position: Int) {
         attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition)?.let {
             (it as? BaseViewHolder)?.onSelected(false)
         }

@@ -91,6 +91,7 @@ class AttachmentsPreviewFragment :
 
     private var videoControls: VideoPlaybackControls? = null
     private var scrubbingVideo = false
+    private var bigListSnapListener: SnapOnScrollListener? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentAttachmentsPreviewBinding {
         return FragmentAttachmentsPreviewBinding.inflate(inflater, container, false)
@@ -394,6 +395,7 @@ class AttachmentsPreviewFragment :
         attachmentMiniaturePreviewController.callback = null
         attachmentBigPreviewController.playbackListener = null
         videoControls = null
+        bigListSnapListener = null
         super.onDestroyView()
     }
 
@@ -410,6 +412,7 @@ class AttachmentsPreviewFragment :
             if (state.currentAttachmentIndex != lastScrolledIndex) {
                 lastScrolledIndex = state.currentAttachmentIndex
                 views.attachmentPreviewerBigList.scrollToPosition(state.currentAttachmentIndex)
+                bigListSnapListener?.onScrolledProgrammatically(state.currentAttachmentIndex)
                 views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
             }
             views.attachmentPreviewerSendImageOriginalSize.text = getCheckboxText(state)
@@ -563,7 +566,7 @@ class AttachmentsPreviewFragment :
 
         views.attachmentPreviewerBigList.let {
             it.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            it.attachSnapHelperWithListener(
+            bigListSnapListener = it.attachSnapHelperWithListener(
                     PagerSnapHelper(),
                     SnapOnScrollListener.Behavior.NOTIFY_ON_SCROLL_STATE_IDLE,
                     object : OnSnapPositionChangeListener {

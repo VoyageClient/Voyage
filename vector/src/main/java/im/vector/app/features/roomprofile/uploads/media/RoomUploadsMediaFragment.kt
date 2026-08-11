@@ -133,6 +133,8 @@ class RoomUploadsMediaFragment :
                             width = null,
                             height = null,
                             blurHash = content.info?.blurHash,
+                            senderName = it.senderInfo.disambiguatedDisplayName,
+                            timestampMs = it.root.originServerTs,
                     )
                 }
                 is MessageVideoContent -> {
@@ -154,7 +156,9 @@ class RoomUploadsMediaFragment :
                             mimeType = content.mimeType,
                             url = content.getFileUrl(),
                             elementToDecrypt = content.encryptedFileInfo?.toElementToDecrypt(),
-                            thumbnailMediaData = thumbnailData
+                            thumbnailMediaData = thumbnailData,
+                            senderName = it.senderInfo.disambiguatedDisplayName,
+                            timestampMs = it.root.originServerTs,
                     )
                 }
                 else -> null
