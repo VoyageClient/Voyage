@@ -850,34 +850,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             val options = BitmapFactory.Options().apply { inSampleSize = sample }
             return file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
         }
-        return when {
-            isXpm(file) -> XpmBitmapReader.decode(file)?.let(::downscaleForBlurHash)
-            isFarbfeld(file) -> FarbfeldBitmapReader.decode(file)?.let(::downscaleForBlurHash)
-            else -> null
-        }
-    }
-
-    private fun isXpm(file: File): Boolean {
-        val head = ByteArray(9)
-        val read = runCatching { file.inputStream().use { it.read(head) } }.getOrDefault(0)
-        return read >= 9 && String(head, 0, 9, Charsets.US_ASCII) == "/* XPM */"
-    }
-
-    private fun isFarbfeld(file: File): Boolean {
-        val head = ByteArray(8)
-        val read = runCatching { file.inputStream().use { it.read(head) } }.getOrDefault(0)
-        return read >= 8 && String(head, 0, 8, Charsets.US_ASCII) == "farbfeld"
-    }
-
-    private fun downscaleForBlurHash(bitmap: Bitmap): Bitmap {
-        val largest = maxOf(bitmap.width, bitmap.height)
-        if (largest <= BLURHASH_DECODE_MAX) return bitmap
-        val scale = BLURHASH_DECODE_MAX.toFloat() / largest
-        val w = (bitmap.width * scale).toInt().coerceAtLeast(1)
-        val h = (bitmap.height * scale).toInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(bitmap, w, h, true).also {
-            if (it !== bitmap) bitmap.recycle()
-        }
+        return null
     }
 
     companion object {

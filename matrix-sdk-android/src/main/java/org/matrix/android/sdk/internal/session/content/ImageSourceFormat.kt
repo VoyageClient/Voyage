@@ -12,8 +12,6 @@ import java.io.File
 internal enum class ImageSourceFormat {
     GIF,
     APNG,
-    XPM,
-    FARBFELD,
     ANIMATED_WEBP,
     STATIC_WEBP_ALPHA,
     OTHER;
@@ -25,7 +23,7 @@ internal enum class ImageSourceFormat {
      */
     fun isAnimated(): Boolean? = when (this) {
         GIF, APNG, ANIMATED_WEBP -> true
-        XPM, FARBFELD, STATIC_WEBP_ALPHA -> false
+        STATIC_WEBP_ALPHA -> false
         OTHER -> null
     }
 }
@@ -61,8 +59,6 @@ internal fun sniffImageFormat(file: File): ImageSourceFormat {
         }
         return ImageSourceFormat.OTHER
     }
-    if (read >= 9 && String(head, 0, 9, Charsets.US_ASCII).startsWith("/* XPM */")) return ImageSourceFormat.XPM
-    if (read >= 8 && String(head, 0, 8, Charsets.US_ASCII) == "farbfeld") return ImageSourceFormat.FARBFELD
     return ImageSourceFormat.OTHER
 }
 
