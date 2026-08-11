@@ -145,6 +145,10 @@ android {
                 "-opt-in=kotlinx.coroutines.FlowPreview",
                 // Opt in for kotlinx.coroutines.ExperimentalCoroutinesApi too
                 "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                // jxl-coder is built with Kotlin 2.x. Only its 2.4.1+ releases 16 KB-align their .so,
+                // and those are the ones our 1.9 compiler refuses to read the metadata of. We consume
+                // only its JxlCoder object and a few enums, so reading the newer metadata is safe.
+                "-Xskip-metadata-version-check",
         ]
     }
 
@@ -302,6 +306,19 @@ dependencies {
     implementation 'com.github.zjupure:webpdecoder:2.7.4.16.0'
     // No penfeizhou gif: it decodes LZW in a native lib that fails to load on KitKat. GIFs are
     // handled by Glide's built-in pure-Java decoder instead.
+    // JPEG XL via libjxl. minSdk 21, so every use sits behind JxlSupport.isAvailable and reaches the
+    // library only through JxlGlideRegistrar — JxlCoder loads its .so from a static initialiser, which
+    // would throw the moment a decoder is constructed below 21. We register our own Glide decoders
+    // rather than the jxl-coder-glide plugin, whose ScaleMode.FIT call pads to the view's aspect. The
+    // transitive appcompat/material/core-ktx are its sample app's, not the decoder's.
+    // Held at 2.5.2: it is the newest release that 16 KB-aligns its .so (2.4.0.x and older do not)
+    // while still building against compileSdk 35 (2.6.0+ require 36).
+    implementation('io.github.awxkee:jxl-coder:2.5.2') {
+        exclude group: 'androidx.appcompat'
+        exclude group: 'androidx.core', module: 'core-ktx'
+        exclude group: 'com.google.android.material'
+        exclude group: 'org.jetbrains.kotlin'
+    }
     // SVG rendering
     implementation 'com.caverock:androidsvg-aar:1.4'
     implementation 'com.github.yalantis:ucrop:2.2.8'

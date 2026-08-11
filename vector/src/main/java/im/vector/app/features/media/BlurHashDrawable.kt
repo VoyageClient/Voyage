@@ -64,14 +64,23 @@ class BlurHashDrawable private constructor(
         invalidateSelf()
     }
 
+    /**
+     * Re-arms an instance the fade-out already finished, so the memoised placeholder can serve a
+     * later load instead of drawing nothing. Reused rather than replaced because Glide compares
+     * placeholders by reference — a new instance would make the rebind a new request and replay the
+     * whole blurhash transition.
+     */
+    fun reset() {
+        if (!finished) return
+        finished = false
+        if (isVisible) start()
+        invalidateSelf()
+    }
+
     fun markFinished() {
         finished = true
         stop()
         invalidateSelf()
-    }
-
-    fun scheduleFinish(delayMs: Long) {
-        handler.postDelayed({ markFinished() }, delayMs)
     }
 
     override fun getIntrinsicWidth(): Int = intrinsicW

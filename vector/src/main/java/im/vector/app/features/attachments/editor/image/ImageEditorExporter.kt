@@ -17,8 +17,10 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.net.Uri
 import androidx.core.content.FileProvider
+import im.vector.app.core.glide.JxlBitmaps
 import im.vector.app.core.glide.MediaCache
 import im.vector.lib.multipicker.utils.ImageUtils
+import org.matrix.android.sdk.api.util.JxlSupport
 import org.matrix.android.sdk.api.util.MimeTypes
 import java.io.File
 import java.io.FileOutputStream
@@ -97,12 +99,19 @@ object ImageEditorExporter {
     private fun decodeSampled(context: Context, source: Uri, maxPixels: Int): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(source)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return decodeUndecodable(context, source, maxPixels)
 
         val options = BitmapFactory.Options().apply {
             inSampleSize = sampleSizeFor(bounds.outWidth, bounds.outHeight, maxPixels)
         }
         return context.contentResolver.openInputStream(source)?.use { BitmapFactory.decodeStream(it, null, options) }
+    }
+
+    /** Formats BitmapFactory returns 0x0 for — currently only JPEG XL. */
+    private fun decodeUndecodable(context: Context, source: Uri, maxPixels: Int): Bitmap? {
+        if (!JxlSupport.isAvailable) return null
+        val bytes = context.contentResolver.openInputStream(source)?.use { it.readBytes() } ?: return null
+        return JxlBitmaps.decodeBounded(bytes, maxPixels)
     }
 
     private fun sampleSizeFor(width: Int, height: Int, maxPixels: Int): Int {

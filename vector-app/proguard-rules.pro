@@ -137,3 +137,12 @@
 # static reference to spot. It fails silently — the plugin swallows the Throwable and maths
 # renders as nothing — so this has to be a keep, not a dontwarn.
 -keep class org.scilab.forge.jlatexmath.** { *; }
+
+# libjxl throws these from native by FindClass, so nothing in Java references them and the shrinker
+# takes them out — turning a decode failure into a hard crash in the JNI layer.
+-keep class com.awxkee.jxlcoder.InvalidJXLException
+-keep class com.awxkee.jxlcoder.InvalidColorSpaceException
+-keep class com.awxkee.jxlcoder.InvalidCompressionOptionException
+-keep class com.awxkee.jxlcoder.InvalidImageSizeException
+-keep class com.awxkee.jxlcoder.JXLCoderCompressionException
+-keep class com.awxkee.jxlcoder.LockPixelsException

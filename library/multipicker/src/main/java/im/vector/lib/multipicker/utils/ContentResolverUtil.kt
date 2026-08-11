@@ -36,8 +36,15 @@ internal fun sniffImageMime(context: Context, uri: Uri): String? {
                 if (read < 0) break
                 off += read
             }
-            // WebP is a RIFF container tagged "WEBP".
-            if (off >= 12 && head.matchesAscii(0, "RIFF") && head.matchesAscii(8, "WEBP")) "image/webp" else null
+            when {
+                // WebP is a RIFF container tagged "WEBP".
+                off >= 12 && head.matchesAscii(0, "RIFF") && head.matchesAscii(8, "WEBP") -> "image/webp"
+                // JPEG XL: bare codestream, or the container's signature box.
+                off >= 2 && head[0] == 0xFF.toByte() && head[1] == 0x0A.toByte() -> "image/jxl"
+                off >= 12 && head[0] == 0x00.toByte() && head[1] == 0x00.toByte() &&
+                        head[2] == 0x00.toByte() && head[3] == 0x0C.toByte() && head.matchesAscii(4, "JXL ") -> "image/jxl"
+                else -> null
+            }
         }
     }.getOrNull()
 }

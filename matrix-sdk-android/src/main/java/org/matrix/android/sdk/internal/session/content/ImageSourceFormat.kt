@@ -14,6 +14,7 @@ internal enum class ImageSourceFormat {
     APNG,
     ANIMATED_WEBP,
     STATIC_WEBP_ALPHA,
+    JXL,
     OTHER;
 
     /**
@@ -24,7 +25,8 @@ internal enum class ImageSourceFormat {
     fun isAnimated(): Boolean? = when (this) {
         GIF, APNG, ANIMATED_WEBP -> true
         STATIC_WEBP_ALPHA -> false
-        OTHER -> null
+        // JPEG XL supports animation and the signature alone doesn't say, so leave the key off.
+        JXL, OTHER -> null
     }
 }
 
@@ -59,7 +61,20 @@ internal fun sniffImageFormat(file: File): ImageSourceFormat {
         }
         return ImageSourceFormat.OTHER
     }
+    if (isJxlSignature(head, read)) return ImageSourceFormat.JXL
     return ImageSourceFormat.OTHER
+}
+
+/** Bare JPEG XL codestream, or the 12-byte signature box of the ISOBMFF container. */
+internal fun isJxlSignature(head: ByteArray, read: Int): Boolean {
+    if (read >= 2 && head[0] == 0xFF.toByte() && head[1] == 0x0A.toByte()) return true
+    return read >= 12 &&
+            head[0] == 0x00.toByte() && head[1] == 0x00.toByte() &&
+            head[2] == 0x00.toByte() && head[3] == 0x0C.toByte() &&
+            head[4] == 'J'.code.toByte() && head[5] == 'X'.code.toByte() &&
+            head[6] == 'L'.code.toByte() && head[7] == ' '.code.toByte() &&
+            head[8] == 0x0D.toByte() && head[9] == 0x0A.toByte() &&
+            head[10] == 0x87.toByte() && head[11] == 0x0A.toByte()
 }
 
 private fun containsApngMarker(file: File): Boolean {

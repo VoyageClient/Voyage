@@ -27,6 +27,7 @@ import im.vector.lib.animatedimage.ApngFrameReader
 import im.vector.lib.animatedimage.GifFrameReader
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.util.JxlSupport
 import org.matrix.android.sdk.internal.util.TemporaryFileCreator
 import timber.log.Timber
 import java.io.File
@@ -59,6 +60,7 @@ internal class ImageCompressor @Inject constructor(
             when (format) {
                 ImageSourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
                 ImageSourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
+                ImageSourceFormat.JXL -> compressJxl(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
                 // Re-encoding would drop to the first frame and strip the animation.
                 ImageSourceFormat.ANIMATED_WEBP -> CompressedImage(imageFile, mimeType = "image/webp")
                 // Platform WebP has no alpha/lossless support before 4.2.1: decoding either fails
@@ -113,6 +115,12 @@ internal class ImageCompressor @Inject constructor(
             rotateBitmap(imageFile, it)
         } ?: return CompressedImage(imageFile, mimeType = null)
         return encodeBitmap(imageFile, downsampled, desiredWidth, desiredHeight, desiredQuality, exactSize)
+    }
+
+    private suspend fun compressJxl(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
+        if (!JxlSupport.isAvailable) return CompressedImage(imageFile, mimeType = null)
+        val decoded = JxlImageReader.decode(imageFile, REENCODE_MAX_DIMENSION) ?: return CompressedImage(imageFile, mimeType = null)
+        return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality, exactSize)
     }
 
     @Suppress("LongParameterList")

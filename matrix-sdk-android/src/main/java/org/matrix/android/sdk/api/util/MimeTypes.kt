@@ -32,7 +32,10 @@ object MimeTypes {
     const val Jpeg = "image/jpeg"
     const val Gif = "image/gif"
     const val Webp = "image/webp"
+    const val Jxl = "image/jxl"
     const val Svg = "image/svg+xml"
+
+    const val Mp4 = "video/mp4"
 
     const val Ogg = "audio/ogg"
 
@@ -40,6 +43,34 @@ object MimeTypes {
     const val Html = "text/html"
 
     fun String?.normalizeMimeType() = if (this == BadJpg) Jpeg else this
+
+    /**
+     * Extension for a type we can produce by converting an attachment. Null for anything else, so
+     * callers leave a name they can't improve on alone rather than inventing an extension.
+     */
+    fun extensionForMimeType(mimeType: String?): String? = when (mimeType?.lowercase()) {
+        Jpeg, BadJpg -> "jpg"
+        Png -> "png"
+        Gif -> "gif"
+        Webp -> "webp"
+        Jxl -> "jxl"
+        Mp4 -> "mp4"
+        "video/webm" -> "webm"
+        "audio/ogg" -> "ogg"
+        "audio/mpeg" -> "mp3"
+        "audio/mp4", "audio/aac" -> "m4a"
+        else -> null
+    }
+
+    /** Rewrites [name]'s extension to match [mimeType]; unchanged when the type isn't one we map. */
+    fun renameForMimeType(name: String?, mimeType: String?): String? {
+        if (name == null) return null
+        val extension = extensionForMimeType(mimeType) ?: return name
+        if (name.substringAfterLast('.', "").lowercase() == extension) return name
+        val dot = name.lastIndexOf('.')
+        val base = if (dot > 0) name.substring(0, dot) else name
+        return "$base.$extension"
+    }
 
     fun String?.isMimeTypeImage() = this?.startsWith("image/").orFalse()
     fun String?.isMimeTypeVideo() = this?.startsWith("video/").orFalse()

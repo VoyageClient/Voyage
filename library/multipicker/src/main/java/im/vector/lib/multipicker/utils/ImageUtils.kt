@@ -45,18 +45,21 @@ object ImageUtils {
     }
 
     /**
-     * Cheap width/height probe that doesn't allocate a full bitmap.
+     * Cheap width/height probe that doesn't allocate a full bitmap. Falls back to libjxl, which is
+     * the only reader here for a format BitmapFactory returns 0x0 for.
      */
     fun getImageSize(context: Context, uri: Uri): ImageSize? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(uri)?.use { input ->
             BitmapFactory.decodeStream(input, null, bounds)
         }
-        return if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            ImageSize(bounds.outWidth, bounds.outHeight)
-        } else {
-            null
+        if (bounds.outWidth > 0 && bounds.outHeight > 0) {
+            return ImageSize(bounds.outWidth, bounds.outHeight)
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return runCatching { JxlSizeReader.read(context, uri) }.getOrNull()
+        }
+        return null
     }
 
     fun getOrientation(context: Context, uri: Uri): Int {

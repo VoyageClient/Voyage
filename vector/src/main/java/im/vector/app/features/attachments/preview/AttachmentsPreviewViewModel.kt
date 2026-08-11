@@ -8,6 +8,7 @@
 package im.vector.app.features.attachments.preview
 
 import im.vector.app.core.platform.VectorViewModel
+import org.matrix.android.sdk.api.util.MimeTypes
 
 class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         VectorViewModel<AttachmentsPreviewViewState, AttachmentsPreviewAction, AttachmentsPreviewViewEvents>(initialState) {
@@ -70,6 +71,9 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
                         height = action.height ?: contentAttachmentData.height,
                         size = action.size ?: contentAttachmentData.size,
                         mimeType = action.mimeType ?: contentAttachmentData.mimeType,
+                        // Editing re-encodes (image -> jpg/png, video -> mp4, video -> animated webp),
+                        // and the old extension would otherwise mislabel the uploaded file.
+                        name = MimeTypes.renameForMimeType(contentAttachmentData.name, action.mimeType),
                         duration = action.duration ?: contentAttachmentData.duration
                 )
             } else {

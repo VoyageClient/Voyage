@@ -114,6 +114,8 @@ android {
                 "-opt-in=kotlin.RequiresOptIn",
                 // Opt in for kotlinx.coroutines.FlowPreview
                 "-opt-in=kotlinx.coroutines.FlowPreview",
+                // jxl-coder is built with Kotlin 2.x; see vector/build.gradle.
+                "-Xskip-metadata-version-check",
         ]
     }
 
@@ -216,6 +218,15 @@ dependencies {
     // Image
     implementation libs.androidx.exifinterface
     implementation libs.vanniktech.blurhash
+    // JPEG XL, for measuring and re-encoding outgoing .jxl. minSdk 21 and it loads its .so from a
+    // static initialiser, so it is reached only through JxlImageReader behind JxlSupport.isAvailable.
+    // Version and exclusions are explained in vector/build.gradle, which registers the Glide decoders.
+    implementation('io.github.awxkee:jxl-coder:2.5.2') {
+        exclude group: 'androidx.appcompat'
+        exclude group: 'androidx.core', module: 'core-ktx'
+        exclude group: 'com.google.android.material'
+        exclude group: 'org.jetbrains.kotlin'
+    }
 
     // Database
 

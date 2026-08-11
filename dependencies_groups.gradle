@@ -141,6 +141,7 @@ ext.groups = [
                         'commons-logging',
                         'dev.drewhamilton.poko',
                         'info.picocli',
+                        'io.github.awxkee',
                         'io.github.davidburstrom.contester',
                         'io.github.detekt.sarif4k',
                         'io.github.microutils',

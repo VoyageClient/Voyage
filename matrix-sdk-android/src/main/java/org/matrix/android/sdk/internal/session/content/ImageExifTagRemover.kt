@@ -30,6 +30,7 @@ import timber.log.Timber
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import javax.inject.Inject
 
 /**
@@ -56,8 +57,61 @@ internal class ImageExifTagRemover @Inject constructor(
             Format.PNG,
             Format.WEBP -> stripWithExifInterface(imageFile)
             Format.GIF -> imageFile // no EXIF
+            // A bare codestream has nowhere to put metadata. The container can hold Exif/XMP boxes,
+            // and rather than rewrite the box structure we only fall back to re-encoding when one is
+            // actually present — so the common case still uploads the original bytes untouched.
+            Format.JXL -> if (jxlCarriesMetadata(imageFile)) null else imageFile
             Format.OTHER -> null // HEIC/HEIF/TIFF/RAW/unknown -> caller re-encodes
         }
+    }
+
+    private fun jxlCarriesMetadata(file: File): Boolean {
+        val head = ByteArray(12)
+        val read = tryOrNull { file.inputStream().use { it.read(head) } } ?: 0
+        // Bare codestream: no box structure at all.
+        if (read >= 2 && head[0] == 0xFF.toByte() && head[1] == 0x0A.toByte()) return false
+        return tryOrNull {
+            file.inputStream().buffered().use { input ->
+                val header = ByteArray(8)
+                var guard = 0
+                while (guard++ < MAX_BOXES_SCANNED) {
+                    var read8 = 0
+                    while (read8 < 8) {
+                        val n = input.read(header, read8, 8 - read8)
+                        if (n <= 0) return@use false
+                        read8 += n
+                    }
+                    val type = String(header, 4, 4, Charsets.US_ASCII)
+                    if (type in METADATA_BOX_TYPES) return@use true
+                    val size = ((header[0].toLong() and 0xFF) shl 24) or ((header[1].toLong() and 0xFF) shl 16) or
+                            ((header[2].toLong() and 0xFF) shl 8) or (header[3].toLong() and 0xFF)
+                    val skip = when (size) {
+                        0L -> return@use false // extends to EOF
+                        1L -> return@use true // 64-bit size: unparsed here, assume the worst
+                        else -> size - 8
+                    }
+                    if (skip < 0 || !input.skipFully(skip)) return@use false
+                }
+                // Ran out of budget without settling it; treat as metadata-bearing.
+                true
+            }
+        } ?: true
+    }
+
+    /** [InputStream.skip] is allowed to skip less than asked without being at EOF. */
+    private fun InputStream.skipFully(count: Long): Boolean {
+        var remaining = count
+        while (remaining > 0) {
+            val skipped = skip(remaining)
+            if (skipped > 0) {
+                remaining -= skipped
+            } else if (read() < 0) {
+                return false
+            } else {
+                remaining--
+            }
+        }
+        return true
     }
 
     private suspend fun stripJpeg(jpegFile: File): File {
@@ -125,7 +179,7 @@ internal class ImageExifTagRemover @Inject constructor(
                 ?.toShort()
     }
 
-    private enum class Format { JPEG, PNG, WEBP, GIF, OTHER }
+    private enum class Format { JPEG, PNG, WEBP, GIF, JXL, OTHER }
 
     private fun sniff(file: File): Format {
         val head = ByteArray(12)
@@ -137,11 +191,15 @@ internal class ImageExifTagRemover @Inject constructor(
             head[0] == 'G'.code.toByte() && head[1] == 'I'.code.toByte() && head[2] == 'F'.code.toByte() -> Format.GIF
             head[0] == 'R'.code.toByte() && head[1] == 'I'.code.toByte() && head[2] == 'F'.code.toByte() && head[3] == 'F'.code.toByte() &&
                     head[8] == 'W'.code.toByte() && head[9] == 'E'.code.toByte() && head[10] == 'B'.code.toByte() && head[11] == 'P'.code.toByte() -> Format.WEBP
+            isJxlSignature(head, read) -> Format.JXL
             else -> Format.OTHER
         }
     }
 
     companion object {
+        private val METADATA_BOX_TYPES = setOf("Exif", "xml ", "jumb")
+        private const val MAX_BOXES_SCANNED = 64
+
         // GPS + all directly-identifying/tracking EXIF tags. Orientation is deliberately kept.
         private val SENSITIVE_TAGS = listOf(
                 ExifInterface.TAG_GPS_ALTITUDE,

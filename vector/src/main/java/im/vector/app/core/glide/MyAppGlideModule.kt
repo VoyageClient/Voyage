@@ -18,6 +18,7 @@ import com.bumptech.glide.annotation.GlideModule
 import com.bumptech.glide.load.engine.executor.GlideExecutor
 import com.bumptech.glide.module.AppGlideModule
 import im.vector.app.features.media.ImageContentRenderer
+import org.matrix.android.sdk.api.util.JxlSupport
 import java.io.InputStream
 import java.nio.ByteBuffer
 
@@ -64,6 +65,13 @@ class MyAppGlideModule : AppGlideModule() {
         // to penfeizhou's ByteBufferAnimationDecoder without us blocking the main thread to read
         // them ourselves. The fetcher runs on Glide's source executor.
         registry.prepend(Uri::class.java, ByteBuffer::class.java, UriByteBufferLoaderFactory(context))
+        // JPEG XL, via our own decoders rather than the jxl-coder-glide plugin — see JxlBitmaps. They
+        // load libjxl the moment they are constructed, so the registration is gated and lives behind
+        // a separate class. Both produce Bitmap, so they sit alongside the Drawable decoders above
+        // rather than competing with them, and non-JXL bytes fall through their own header check.
+        if (JxlSupport.isAvailable) {
+            JxlGlideRegistrar.register(glide, registry)
+        }
     }
 
     companion object {

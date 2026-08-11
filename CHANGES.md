@@ -102,6 +102,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Media viewer with pinch-to-zoom** — a reworked image/video viewer that supports pinch-to-zoom on still images, animated images (GIFs / animated WebP), and videos, an overhauled compression pipeline (compress by the shorter side so long media isn't squished), and correct thumbnail stubs during upload.
 
+- **JPEG XL images** — `.jxl` images sent by other clients now display in the timeline and the media viewer, and you can send them yourself: they are recognised as images rather than plain files, so they get a preview, a blurhash and correct dimensions, and can go through the image editor. Sending at original size keeps the file byte-for-byte; compressing re-encodes to WebP like any other format. Needs Android 5.0 or later — below that a `.jxl` still sends fine as a file attachment, it just can't be displayed.
+
 - **Blurhash placeholders** — images and videos show a compact blurred preview while they load, and as the placeholder for hidden media, instead of a blank box.
 
 - **Markdown & HTML rendering overhaul** — add/improve tables (with a no-wrap option), blockquotes, spoilers, greentext, code blocks, underline (`__x__`), strikethrough (`~~x~~`), subscript (`~x~`), and superscript (`^x^`) tags; links and pills no longer render inside code blocks.

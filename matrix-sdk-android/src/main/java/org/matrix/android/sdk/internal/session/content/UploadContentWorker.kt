@@ -39,6 +39,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
+import org.matrix.android.sdk.api.util.JxlSupport
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.internal.SessionManager
 import org.matrix.android.sdk.internal.crypto.attachments.MXEncryptedAttachments
@@ -480,6 +481,8 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                                 newFileSize = compressedFile.length(),
                                 newWidth = w ?: initialAttributes.newWidth,
                                 newHeight = h ?: initialAttributes.newHeight,
+                                // The muxer only writes MP4, whatever container came in.
+                                newMimeType = MimeTypes.Mp4,
                         ),
                         transcodedFile = compressedFile,
                 )
@@ -507,19 +510,35 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         } else {
             working
         }
-        val attrs = if (file !== working) attributes.copy(newFileSize = file.length()) else attributes
+        // Stripping re-muxes through the same MP4-only muxer, so the container may have changed.
+        val attrs = if (file !== working) attributes.copy(newFileSize = file.length(), newMimeType = MimeTypes.Mp4) else attributes
         return VideoCompressOutcome(file, attrs, transcodedFile = null)
     }
 
     private fun measureImageAttributes(file: File, mimeType: String?): NewAttachmentAttributes {
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
+        // BitmapFactory reports 0x0 for anything it can't decode, and those zeros would be published
+        // as the event's dimensions.
+        val measured = if (options.outWidth > 0 && options.outHeight > 0) {
+            options.outWidth to options.outHeight
+        } else {
+            measureUndecodableImage(file)
+        }
         return NewAttachmentAttributes(
-                newWidth = options.outWidth,
-                newHeight = options.outHeight,
+                newWidth = measured?.first ?: options.outWidth,
+                newHeight = measured?.second ?: options.outHeight,
                 newFileSize = file.length(),
                 newMimeType = mimeType,
         )
+    }
+
+    private fun measureUndecodableImage(file: File): Pair<Int, Int>? {
+        return if (JxlSupport.isAvailable && sniffImageFormat(file) == ImageSourceFormat.JXL) {
+            JxlImageReader.readSize(file)
+        } else {
+            null
+        }
     }
 
     private fun readCompressedVideoDimensions(file: File): Pair<Int?, Int?> {
@@ -745,19 +764,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
         )
     }
 
-    private fun renameForMime(name: String?, mimeType: String?): String? {
-        if (name == null) return null
-        val ext = when (mimeType) {
-            "image/webp" -> "webp"
-            "image/jpeg" -> "jpg"
-            "image/png" -> "png"
-            "image/gif" -> "gif"
-            else -> return name
-        }
-        val dot = name.lastIndexOf('.')
-        val base = if (dot > 0) name.substring(0, dot) else name
-        return "$base.$ext"
-    }
+    private fun renameForMime(name: String?, mimeType: String?): String? = MimeTypes.renameForMimeType(name, mimeType)
 
     private fun MessageVideoContent.update(
             url: String,
@@ -850,7 +857,11 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             val options = BitmapFactory.Options().apply { inSampleSize = sample }
             return file.inputStream().use { BitmapFactory.decodeStream(it, null, options) }
         }
-        return null
+        return if (JxlSupport.isAvailable && sniffImageFormat(file) == ImageSourceFormat.JXL) {
+            JxlImageReader.decode(file, BLURHASH_DECODE_MAX)
+        } else {
+            null
+        }
     }
 
     companion object {
