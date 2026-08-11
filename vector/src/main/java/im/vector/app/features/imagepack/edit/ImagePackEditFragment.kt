@@ -373,7 +373,7 @@ class ImagePackEditFragment :
         showExportScreen(exportImages.size)
         exportJob = lifecycleScope.launch {
             try {
-                val result = archiver.exportPack(exportName(), exportImages, packUsage) { done, total ->
+                val result = archiver.exportPack(exportName(), exportImages, packUsage, packAvatarUrl) { done, total ->
                     // Progress arrives on IO; hop to main for the view.
                     lifecycleScope.launch {
                         if (view != null) views.imagePackExportProgress.text = getString(CommonStrings.image_pack_exporting, done, total)
