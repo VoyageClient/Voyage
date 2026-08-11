@@ -188,11 +188,16 @@ class ImageContentRenderer @Inject constructor(
                 ?: LastRender(data.stableId, data, mode, completed = false)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
         val animate = animates(mode)
+        val pending = PendingRenders.startOn(imageView, data, mode)
         createGlideRequest(data, mode, imageView, size)
                 .addListener(object : RequestListener<Drawable> {
-                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean) = false
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        PendingRenders.finish(pending, "failed: ${e?.message}")
+                        return false
+                    }
 
                     override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        PendingRenders.finish(pending, "ready from $dataSource")
                         thisRender.completed = true
                         return false
                     }
@@ -240,6 +245,7 @@ class ImageContentRenderer @Inject constructor(
             height = size.height
         }
         imageView.contentDescription = data.filename
+        PendingRenders.cancelOn(imageView)
         imageView.setTag(R.id.image_renderer_last_render, null)
         tryOrNull { GlideApp.with(imageView).clear(imageView) }
         val placeholder = if (forceSolidColor) null else data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height, pulse = false) }
@@ -268,6 +274,7 @@ class ImageContentRenderer @Inject constructor(
     }
 
     fun clear(imageView: ImageView) {
+        PendingRenders.cancelOn(imageView)
         imageView.setTag(R.id.image_renderer_last_render, null)
         // It can be called after recycler view is destroyed, just silently catch
         // We'd better keep ref to requestManager, but we don't have it

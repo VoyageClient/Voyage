@@ -27,6 +27,7 @@ import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ImageContentRendererDataLoaderFactory(private val context: Context) : ModelLoaderFactory<ImageContentRenderer.Data, InputStream> {
 
@@ -67,6 +68,7 @@ class ImageContentRendererDataFetcher(
     }
 
     private var stream: InputStream? = null
+    private val delivered = AtomicBoolean(false)
 
     override fun cleanup() {
         cancel()
@@ -93,22 +95,37 @@ class ImageContentRendererDataFetcher(
     }
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
-        Timber.v("Load data: $data")
+        Timber.i("MEDIADBG fetcher start url=${data.url} event=${data.eventId} thread=${Thread.currentThread().name}")
         if (localFilesHelper.isLocalFile(data.url)) {
             // Wrap so the stream supports mark/reset — content-URI input streams typically don't,
             // and Glide's animated decoders skip non-markable sources.
-            localFilesHelper.openInputStream(data.url)?.let(::BufferedInputStream)?.use {
-                callback.onDataReady(it)
+            val stream = try {
+                localFilesHelper.openInputStream(data.url)?.let(::BufferedInputStream)
+            } catch (throwable: Throwable) {
+                Timber.w(throwable, "MEDIADBG fetcher local open failed url=${data.url}")
+                null
+            }
+            if (stream == null) {
+                // Glide waits forever on a fetcher that answers with neither callback.
+                Timber.w("MEDIADBG fetcher local stream unavailable url=${data.url}")
+                callback.onLoadFailed(IOException("Cannot open local file ${data.url}"))
+            } else {
+                stream.use {
+                    callback.onDataReady(it)
+                    Timber.i("MEDIADBG fetcher local done url=${data.url}")
+                }
             }
             return
         }
 //        val contentUrlResolver = activeSessionHolder.getActiveSession().contentUrlResolver()
 
-        val fileService = activeSessionHolder.getSafeActiveSession()?.fileService() ?: return Unit.also {
-            callback.onLoadFailed(IllegalArgumentException("No File service"))
+        val session = activeSessionHolder.getSafeActiveSession() ?: return Unit.also {
+            Timber.w("MEDIADBG fetcher no session url=${data.url}")
+            callback.onLoadFailed(IllegalArgumentException("No session"))
         }
+        val fileService = session.fileService()
         // Use the file vector service, will avoid flickering and redownload after upload
-        activeSessionHolder.getSafeActiveSession()?.coroutineScope?.launch {
+        val job = session.coroutineScope.launch {
             val result = runCatching {
                 fileService.downloadFile(
                         fileName = data.filename,
@@ -117,11 +134,21 @@ class ImageContentRendererDataFetcher(
                         elementToDecrypt = data.elementToDecrypt
                 )
             }
+            Timber.i("MEDIADBG fetcher download settled url=${data.url} ok=${result.isSuccess}")
             withContext(Dispatchers.Main) {
+                if (delivered.getAndSet(true)) return@withContext
                 result.fold(
                         { callback.onDataReady(BufferedInputStream(it.inputStream())) },
                         { callback.onLoadFailed(it as? Exception ?: IOException(it.localizedMessage)) }
                 )
+            }
+            Timber.i("MEDIADBG fetcher callback delivered url=${data.url}")
+        }
+        // A cancelled scope silently swallows the launch, leaving Glide on the placeholder forever.
+        job.invokeOnCompletion { cause ->
+            if (cause != null && !delivered.getAndSet(true)) {
+                Timber.w(cause, "MEDIADBG fetcher job ended without delivering url=${data.url}")
+                callback.onLoadFailed(cause as? Exception ?: IOException(cause.localizedMessage))
             }
         }
 //        val url = contentUrlResolver.resolveFullSize(data.url)

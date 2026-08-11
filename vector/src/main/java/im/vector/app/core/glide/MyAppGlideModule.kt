@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry
 import com.bumptech.glide.annotation.GlideModule
+import com.bumptech.glide.load.engine.executor.GlideExecutor
 import com.bumptech.glide.module.AppGlideModule
 import im.vector.app.features.media.ImageContentRenderer
 import java.io.InputStream
@@ -25,6 +26,14 @@ class MyAppGlideModule : AppGlideModule() {
 
     override fun applyOptions(context: Context, builder: GlideBuilder) {
         builder.setLogLevel(Log.ERROR)
+        // Every request that consults the disk cache — which is all timeline thumbnails and all
+        // remote loads — runs on this executor, and Glide's default gives it a single thread. One
+        // slow or wedged decode there stalls media app-wide until the process restarts.
+        builder.setDiskCacheExecutor(
+                GlideExecutor.newDiskCacheBuilder()
+                        .setThreadCount(DISK_CACHE_THREADS)
+                        .build()
+        )
     }
 
     // zjupure's webpdecoder ships both an annotation @GlideModule and a legacy manifest GlideModule;
@@ -55,5 +64,9 @@ class MyAppGlideModule : AppGlideModule() {
         // to penfeizhou's ByteBufferAnimationDecoder without us blocking the main thread to read
         // them ourselves. The fetcher runs on Glide's source executor.
         registry.prepend(Uri::class.java, ByteBuffer::class.java, UriByteBufferLoaderFactory(context))
+    }
+
+    companion object {
+        private const val DISK_CACHE_THREADS = 3
     }
 }

@@ -122,14 +122,14 @@ internal class DefaultFileService @Inject constructor(
     ): File {
         url ?: throw IllegalArgumentException("url is null")
 
-        Timber.v("## FileService downloadFile $url")
+        Timber.i("MEDIADBG download request url=$url")
 
         val deferred: CompletableDeferred<File>
         val isOwner: Boolean
         synchronized(ongoing) {
             val existing = ongoing[url]
             if (existing != null) {
-                Timber.v("## FileService downloadFile is already downloading.. ")
+                Timber.i("MEDIADBG download attach to ongoing url=$url (${ongoing.size} in flight)")
                 deferred = existing
                 isOwner = false
             } else {
@@ -150,6 +150,7 @@ internal class DefaultFileService @Inject constructor(
                         performDownload(fileName, mimeType, url, elementToDecrypt)
                     }
                 }
+                Timber.i("MEDIADBG download settled url=$url ok=${result.isSuccess} err=${result.exceptionOrNull()}")
                 // Remove before completing, so a caller arriving right after a failure starts a
                 // fresh download instead of attaching to the stale failed deferred.
                 synchronized(ongoing) { ongoing.remove(url) }
