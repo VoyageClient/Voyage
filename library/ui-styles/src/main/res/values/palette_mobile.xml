@@ -10,7 +10,7 @@
     <color name="vibecoder_accent_light">@color/palette_vibecoder_orange</color>
     <color name="vibecoder_accent_dark">@color/palette_vibecoder_orange</color>
 
-    <color name="splash_background">#00BCD4</color>
+    <color name="splash_background">#000000</color>
 
     <color name="element_alert_light">@color/palette_vermilion</color>
     <color name="element_alert_dark">@color/palette_vermilion</color>

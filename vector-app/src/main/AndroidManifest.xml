@@ -30,7 +30,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:taskAffinity="${applicationId}.${appTaskAffinitySuffix}"
-        android:theme="@style/Theme.Vector.Light"
+        android:theme="@style/Theme.Vector.Black"
         android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute">
 
