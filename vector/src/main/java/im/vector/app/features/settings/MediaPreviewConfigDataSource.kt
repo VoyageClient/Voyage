@@ -20,6 +20,7 @@ import org.matrix.android.sdk.api.session.accountdata.UserAccountDataTypes
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.flow.flow
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,12 +41,17 @@ class MediaPreviewConfigDataSource @Inject constructor(
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val observeJob = AtomicReference<Job?>(null)
+    private val publishing = AtomicInteger(0)
 
     fun onSessionStarted(session: Session) {
         val newJob = session.coroutineScope.launch {
             session.flow()
                     .liveUserAccountData(setOf(STABLE_TYPE, UNSTABLE_TYPE))
                     .collect { events ->
+                        // A publish writes the two types one after the other, so mid-flight the pair
+                        // disagrees and the rule below would apply the not-yet-written sibling, undoing
+                        // the choice the user just made.
+                        if (publishing.get() > 0) return@collect
                         // Unstable wins: Element Web only writes that one, so preferring the stable key
                         // would permanently mask any later change made there.
                         val content = events.firstOrNull { it.type == UNSTABLE_TYPE }?.content
@@ -114,9 +120,14 @@ class MediaPreviewConfigDataSource @Inject constructor(
                 KEY_MEDIA_PREVIEWS to (mode ?: vectorPreferences.getMediaPreviewMode()).toMscValue(),
                 KEY_INVITE_AVATARS to if (hideInviteAvatars ?: vectorPreferences.hideInviteAvatars()) VALUE_OFF else VALUE_ON,
         )
-        session.accountDataService().updateUserAccountData(STABLE_TYPE, content)
-        // Element Web only reads the unstable type, so keep both in step for interop.
-        session.accountDataService().updateUserAccountData(UNSTABLE_TYPE, content)
+        publishing.incrementAndGet()
+        try {
+            session.accountDataService().updateUserAccountData(STABLE_TYPE, content)
+            // Element Web only reads the unstable type, so keep both in step for interop.
+            session.accountDataService().updateUserAccountData(UNSTABLE_TYPE, content)
+        } finally {
+            publishing.decrementAndGet()
+        }
     }
 
     companion object {

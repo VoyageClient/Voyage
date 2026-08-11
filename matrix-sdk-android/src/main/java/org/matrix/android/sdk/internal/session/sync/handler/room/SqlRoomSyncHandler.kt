@@ -239,6 +239,13 @@ internal class SqlRoomSyncHandler @Inject constructor(
     private fun handleRoomAccountData(stores: SessionStores, roomId: String, accountData: RoomSyncAccountData?) {
         accountData?.events?.forEach { event ->
             val type = event.type ?: return@forEach
+            // Synapse synthesises m.tag from its tag table, then appends the raw m.tag room account data
+            // row, so a stale `{}` row lands last and would wipe every tag on each initial sync.
+            // Clearing tags is `{"tags":{}}`; a missing key carries no tag information at all.
+            if (type == RoomAccountDataTypes.EVENT_TYPE_TAG && event.content?.containsKey("tags") != true) {
+                Timber.w("Ignoring m.tag without a tags key for $roomId")
+                return@forEach
+            }
             stores.accountData.upsertRoomAccountData(roomId, type, ContentMapper.map(event.content))
             when (type) {
                 RoomAccountDataTypes.EVENT_TYPE_TAG -> roomTagHandler.handle(stores, roomId, event.content.toModel<RoomTagContent>())
