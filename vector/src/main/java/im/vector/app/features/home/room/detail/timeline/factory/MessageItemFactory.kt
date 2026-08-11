@@ -626,13 +626,14 @@ class MessageItemFactory @Inject constructor(
         )
 
         // MSC4230 settles it outright; otherwise only a GIF mimetype is a firm enough signal, while
-        // webp/apng/png merely might be animated.
+        // webp/apng/png/jxl merely might be animated.
         val isAnimated = messageContent.info?.isAnimated
         val certainlyAnimated = isAnimated ?: (messageContent.mimeType == MimeTypes.Gif)
         val maybeAnimated = certainlyAnimated || (isAnimated == null && (
                 messageContent.mimeType == MimeTypes.Webp ||
                         messageContent.mimeType == MimeTypes.Apng ||
-                        messageContent.mimeType == MimeTypes.Png
+                        messageContent.mimeType == MimeTypes.Png ||
+                        messageContent.mimeType == MimeTypes.Jxl
                 ))
         val autoplay = vectorPreferences.autoplayAnimatedImages()
         // Whether the badge actually shows is the item's call: it hides it while autoplay is on, since

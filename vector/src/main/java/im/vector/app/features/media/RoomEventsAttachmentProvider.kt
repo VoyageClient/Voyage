@@ -184,6 +184,7 @@ class RoomEventsAttachmentProvider(
                 MimeTypes.Webp,
                 MimeTypes.Apng,
                 MimeTypes.Png,
+                MimeTypes.Jxl,
         )
     }
 }

@@ -40,7 +40,7 @@ class DataAttachmentRoomProvider(
         return getItem(position).let {
             when (it) {
                 is ImageContentRenderer.Data -> {
-                    if (it.mimeType == MimeTypes.Gif || it.mimeType == MimeTypes.Webp) {
+                    if (it.mimeType == MimeTypes.Gif || it.mimeType == MimeTypes.Webp || it.mimeType == MimeTypes.Jxl) {
                         AttachmentInfo.AnimatedImage(
                                 uid = it.eventId,
                                 url = it.url ?: "",

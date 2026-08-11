@@ -8,6 +8,7 @@
 package im.vector.app.core.glide
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Registry
 import java.io.InputStream
@@ -21,6 +22,9 @@ internal object JxlGlideRegistrar {
 
     fun register(glide: Glide, registry: Registry) {
         val bitmapPool = glide.bitmapPool
+        // The animated decoders return null for a still image, so it falls through to the Bitmap ones.
+        registry.prepend(ByteBuffer::class.java, Drawable::class.java, JxlAnimatedDrawableDecoder())
+        registry.prepend(InputStream::class.java, Drawable::class.java, JxlAnimatedStreamDrawableDecoder())
         registry.prepend(ByteBuffer::class.java, Bitmap::class.java, JxlByteBufferBitmapDecoder(bitmapPool))
         registry.prepend(InputStream::class.java, Bitmap::class.java, JxlStreamBitmapDecoder(bitmapPool))
     }
