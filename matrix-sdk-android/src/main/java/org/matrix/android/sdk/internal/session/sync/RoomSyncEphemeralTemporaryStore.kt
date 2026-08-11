@@ -32,6 +32,10 @@ internal interface RoomSyncEphemeralTemporaryStore {
     fun read(roomId: String): RoomSyncEphemeral?
     fun reset()
     fun delete(roomId: String)
+
+    /** Whether anything is still parked. Files are named md5(roomId), so which rooms can only be
+     *  answered by probing [read] per candidate. */
+    fun hasStoredContent(): Boolean
 }
 
 internal class RoomSyncEphemeralTemporaryStoreFile @Inject constructor(
@@ -75,6 +79,8 @@ internal class RoomSyncEphemeralTemporaryStoreFile @Inject constructor(
         workingDir.deleteRecursively()
         workingDir.mkdirs()
     }
+
+    override fun hasStoredContent(): Boolean = workingDir.list()?.isNotEmpty() == true
 
     private fun getFile(roomId: String): File {
         return File(workingDir, "${roomId.md5()}.json")

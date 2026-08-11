@@ -90,6 +90,7 @@ internal class SqlRoomSyncHandler @Inject constructor(
         roomsSyncResponse.invite.forEach { handleInvitedRoom(stores, it.key, it.value, insertType, ts, aggregator) }
         roomsSyncResponse.knock.forEach { handleKnockedRoom(stores, it.key, it.value, insertType, ts, aggregator) }
         roomsSyncResponse.leave.forEach { handleLeftRoom(stores, it.key, it.value, insertType, ts, aggregator) }
+        if (!isInitialSync) readReceiptHandler.drainStoredInitSyncReceipts(stores, aggregator)
     }
 
     private fun handleJoinedRoom(

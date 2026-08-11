@@ -29,6 +29,7 @@ internal class SqlReadReceiptHandler @Inject constructor(
 ) {
 
     @Volatile private var normalizedLegacyReceipts = false
+    @Volatile private var drainedStoredReceipts = false
 
     companion object {
         fun createContent(
@@ -63,6 +64,29 @@ internal class SqlReadReceiptHandler @Inject constructor(
             }
         } catch (exception: Exception) {
             Timber.e("Fail to handle read receipt for room $roomId")
+        }
+    }
+
+    /**
+     * Init-sync ephemeral is parked in a file per room rather than handled inline, and [handle] only
+     * unparks a room that later syncs with ephemeral of its own — so a quiet room kept its whole receipt
+     * set on disk indefinitely. Drain every parked room instead, once per process.
+     */
+    fun drainStoredInitSyncReceipts(stores: SessionStores, aggregator: SyncResponsePostTreatmentAggregator?) {
+        if (drainedStoredReceipts) return
+        drainedStoredReceipts = true
+        if (!roomSyncEphemeralTemporaryStore.hasStoredContent()) return
+        try {
+            normalizeLegacyReceipts(stores)
+            val ignoredUserIds = stores.user.getIgnoredUserIds().toSet()
+            stores.room.getAll().forEach { room ->
+                val content = getContentFromInitSync(room.roomId) ?: return@forEach
+                Timber.d("INIT_SYNC Draining parked read receipts for ${room.roomId}")
+                doIncrementalSyncStrategy(stores, room.roomId, content, ignoredUserIds)
+                aggregator?.ephemeralFilesToDelete?.add(room.roomId)
+            }
+        } catch (exception: Exception) {
+            Timber.e(exception, "Fail to drain parked init sync read receipts")
         }
     }
 
