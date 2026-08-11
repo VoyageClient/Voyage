@@ -7,7 +7,9 @@
 
 package im.vector.app.features.spaces
 
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
@@ -24,18 +26,21 @@ abstract class SpaceTagItem : VectorEpoxyModel<SpaceTagItem.Holder>(R.layout.ite
     @EpoxyAttribute var name: String = ""
     @EpoxyAttribute var count: Int = 0
     @EpoxyAttribute var selected: Boolean = false
+    @EpoxyAttribute @DrawableRes var iconRes: Int = R.drawable.ic_tag_24
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash) var listener: ClickListener? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.rootView.isChecked = selected
         holder.rootView.onClick(listener)
+        holder.iconView.setImageResource(iconRes)
         holder.nameView.text = name.prepareForDisplay()
         holder.countView.text = count.toString()
     }
 
     class Holder : VectorEpoxyHolder() {
         val rootView by bind<CheckableConstraintLayout>(R.id.tagItemLayout)
+        val iconView by bind<ImageView>(R.id.tagIcon)
         val nameView by bind<TextView>(R.id.tagNameView)
         val countView by bind<TextView>(R.id.tagCountView)
     }

@@ -45,7 +45,9 @@ CREATE TABLE room_summary (
     is_hidden_from_user INTEGER NOT NULL DEFAULT 0,
     versioning_state_str TEXT NOT NULL DEFAULT 'NONE',
     join_rules_str TEXT,
-    direct_parent_names TEXT NOT NULL DEFAULT ''
+    direct_parent_names TEXT NOT NULL DEFAULT '',
+    is_removed_from_room INTEGER NOT NULL DEFAULT 0,
+    is_watched INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX room_summary_last_activity_time ON room_summary(last_activity_time);
@@ -106,6 +108,12 @@ SELECT room_id FROM room_summary WHERE membership_str = ? AND inviter_id IN ?;
 updateHiddenFromUser:
 UPDATE room_summary SET is_hidden_from_user = ? WHERE room_id = ?;
 
+updateRemovedFromRoom:
+UPDATE room_summary SET is_removed_from_room = ? WHERE room_id = ?;
+
+selectWatchedRoomIds:
+SELECT room_id FROM room_summary WHERE is_watched = 1;
+
 upsert:
 INSERT OR REPLACE INTO room_summary(
     room_id, room_type, display_name, normalized_display_name, avatar_url, name, topic, topic_formatted,
@@ -115,10 +123,11 @@ INSERT OR REPLACE INTO room_summary(
     is_favourite, is_low_priority, is_server_notice, breadcrumbs_index, canonical_alias, aliases,
     flat_aliases, is_encrypted, e2e_algorithm, encryption_event_ts, room_encryption_trust_level_str,
     inviter_id, direct_user_presence_user_id, has_failed_sending, flatten_parent_ids, membership_str,
-    is_hidden_from_user, versioning_state_str, join_rules_str, direct_parent_names
+    is_hidden_from_user, versioning_state_str, join_rules_str, direct_parent_names, is_removed_from_room,
+    is_watched
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 );
 
 updateEncryptionTrustLevel:

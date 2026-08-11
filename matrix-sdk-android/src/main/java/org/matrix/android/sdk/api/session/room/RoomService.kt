@@ -25,6 +25,7 @@ import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
@@ -293,6 +294,26 @@ interface RoomService {
 
     /** The via servers a peek was registered with, for joining the previewed room. */
     fun roomPeekViaServers(roomId: String): List<String>
+
+    /**
+     * One-shot `include_leave` sync recovering rooms the user was kicked or banned from on a fresh
+     * login (the regular sync stream never mentions them again). No-op once it has succeeded for
+     * the current session store unless [force] is set.
+     */
+    suspend fun syncRemovedRooms(force: Boolean = false)
+
+    /**
+     * Seed an invited (not yet joined) room's timeline with recent history when the server permits
+     * reading it without joining (world-readable rooms). Returns true when a preview was fetched,
+     * false when local history already exists or the server refused.
+     */
+    suspend fun previewInvitedRoom(roomId: String): Boolean
+
+    /**
+     * Reconcile the watched-rooms registry (see /watch) into local summary rows so watched rooms
+     * can be listed; [rooms] is the full desired set, absent entries are un-watched.
+     */
+    suspend fun syncWatchedRoomSummaries(rooms: List<WatchedRoomInfo>)
 
     /**
      * Return a LiveData on the number of rooms.

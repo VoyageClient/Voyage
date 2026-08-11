@@ -24,6 +24,7 @@ import im.vector.app.features.command.Command
 import im.vector.app.features.command.CommandParser
 import im.vector.app.features.command.ParsedCommand
 import im.vector.app.features.home.room.detail.composer.rainbow.RainbowGenerator
+import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.imagepack.EmoteShortcodeProcessor
 import im.vector.app.features.media.domain.usecase.DownloadMediaUseCase
@@ -53,6 +54,8 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.Room
+import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
+import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
@@ -614,6 +617,14 @@ class MessageComposerViewModel @AssistedInject constructor(
                         }
                         is ParsedCommand.JoinRoom -> {
                             handleJoinToAnotherRoomSlashCommand(parsedCommand)
+                            popDraft(room, state.sendMode)
+                        }
+                        is ParsedCommand.WatchRoom -> {
+                            handleWatchRoomSlashCommand(parsedCommand)
+                            popDraft(room, state.sendMode)
+                        }
+                        is ParsedCommand.UnwatchRoom -> {
+                            handleUnwatchRoomSlashCommand(parsedCommand)
                             popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.PartRoom -> {
@@ -1183,6 +1194,53 @@ class MessageComposerViewModel @AssistedInject constructor(
                 room.typingService().userIsTyping()
             } else {
                 room.typingService().userStopsTyping()
+            }
+        }
+    }
+
+    private fun handleWatchRoomSlashCommand(command: ParsedCommand.WatchRoom) {
+        viewModelScope.launch {
+            val peek = try {
+                session.roomService().peekRoom(command.roomAlias)
+            } catch (failure: Throwable) {
+                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultError(failure))
+                return@launch
+            }
+            if (peek is PeekResult.Success && peek.worldReadable == true) {
+                WatchedRooms.add(
+                        session,
+                        WatchedRoomInfo(
+                                roomId = peek.roomId,
+                                viaServers = peek.viaServers.take(WatchedRooms.MAX_VIA_SERVERS),
+                                name = peek.name,
+                                avatarUrl = peek.avatarUrl,
+                                topic = peek.topic,
+                                alias = peek.alias,
+                        )
+                )
+                _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.command_watch_success)))
+            } else {
+                _viewEvents.post(
+                        MessageComposerViewEvents.SlashCommandResultError(
+                                IllegalArgumentException(stringProvider.getString(CommonStrings.command_watch_not_previewable))
+                        )
+                )
+            }
+        }
+    }
+
+    private fun handleUnwatchRoomSlashCommand(command: ParsedCommand.UnwatchRoom) {
+        viewModelScope.launch {
+            // The argument may be an alias while the registry keys on room id (or vice versa).
+            val resolved = tryOrNull { session.roomService().getRoomSummary(command.roomAlias)?.roomId }
+            val removed = WatchedRooms.remove(session, resolved ?: command.roomAlias) ||
+                    (resolved != null && WatchedRooms.remove(session, command.roomAlias))
+            if (!removed) {
+                _viewEvents.post(
+                        MessageComposerViewEvents.SlashCommandResultError(
+                                IllegalArgumentException(stringProvider.getString(CommonStrings.command_unwatch_not_watched))
+                        )
+                )
             }
         }
     }

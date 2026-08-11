@@ -105,6 +105,7 @@ import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.LocalRoomCreationState
 import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -224,6 +225,7 @@ class TimelineViewModel @AssistedInject constructor(
         setState { copy(isRoomPreview = this@TimelineViewModel.isRoomPreview) }
         observeMembershipChanges()
         observePreviewedRoomJoin()
+        seedInvitePreview(room, timeline)
         observeSummaryState()
         observeTombstoneState()
         getUnreadState()
@@ -904,7 +906,18 @@ private fun handleSelectStickerAttachment() {
                 else -> false
             }
         }
-        if (state.asyncRoomSummary()?.membership != Membership.JOIN) {
+        val summary = state.asyncRoomSummary()
+        if (summary?.isRemovedFromRoom == true && !summary.membership.isActive()) {
+            // Frozen kicked/banned room: read-only entries only.
+            return@withState when (itemId) {
+                R.id.timeline_setting -> true
+                R.id.search -> true
+                R.id.menu_timeline_thread_list -> vectorPreferences.areThreadMessagesEnabled()
+                R.id.dev_tools -> vectorPreferences.developerMode()
+                else -> false
+            }
+        }
+        if (summary?.membership != Membership.JOIN) {
             return@withState false
         }
 
@@ -1654,11 +1667,42 @@ private fun handleSelectStickerAttachment() {
             try {
                 session.roomService().joinRoom(
                         initialState.roomId,
-                        viaServers = session.roomService().roomPeekViaServers(initialState.roomId),
+                        viaServers = session.roomService().roomPeekViaServers(initialState.roomId).ifEmpty { deriveViaServers() },
                 )
             } catch (failure: Throwable) {
                 _viewEvents.post(RoomDetailViewEvents.Failure(failure))
             }
+        }
+    }
+
+    /**
+     * Best-effort federation routes for rejoining a room only known locally (e.g. after a kick):
+     * the canonical alias's server, the room id's origin server, and the most common member
+     * homeservers at the time we left. Without vias the server has no route and the join fails.
+     */
+    private fun deriveViaServers(): List<String> {
+        val summary = room?.roomSummary()
+        val memberDomains = room?.membershipService()
+                ?.getRoomMembers(roomMemberQueryParams { memberships = Membership.activeMemberships() })
+                .orEmpty()
+                .groupingBy { it.userId.substringAfter(':', "") }
+                .eachCount()
+                .filterKeys { it.isNotEmpty() }
+        return (listOfNotNull(
+                summary?.canonicalAlias?.substringAfter(':', ""),
+                initialState.roomId.substringAfter(':', ""),
+        ).filter { it.isNotEmpty() } + memberDomains.entries.sortedByDescending { it.value }.map { it.key })
+                .distinct()
+                .take(3)
+    }
+
+    private fun seedInvitePreview(room: Room, timeline: Timeline) {
+        if (room.roomSummary()?.membership != Membership.INVITE) return
+        viewModelScope.launch {
+            // World-readable rooms allow reading before accepting; the timeline started empty
+            // (invites carry no chunks), so re-anchor it once the preview history has landed.
+            val seeded = tryOrNull { session.roomService().previewInvitedRoom(initialState.roomId) } ?: false
+            if (seeded) timeline.restartWithEventId(null)
         }
     }
 
@@ -1690,9 +1734,19 @@ private fun handleSelectStickerAttachment() {
                 }
     }
 
+    private var lastKnownMembership: Membership? = null
+
     private fun observeSummaryState() {
         if (room == null) return
         onAsync(RoomDetailViewState::asyncRoomSummary) { summary ->
+            val previousMembership = lastKnownMembership
+            lastKnownMembership = summary.membership
+            if (previousMembership != null && previousMembership != Membership.JOIN && summary.membership == Membership.JOIN) {
+                // Joining while the room was open (invite accepted, rejoin after kick): the join
+                // sync rebuilt/extended the chunks under this timeline — re-anchor at the live
+                // chunk so the previously invisible span (e.g. between kick and join) backfills.
+                timeline?.restartWithEventId(null)
+            }
             setState {
                 val typingMessage = typingHelper.getTypingMessage(summary.typingUsers)
                 copy(
@@ -1707,6 +1761,13 @@ private fun handleSelectStickerAttachment() {
                 }?.also {
                     setState { copy(asyncInviter = Success(it)) }
                 }
+            }
+            if (summary.isRemovedFromRoom && !summary.membership.isActive()) {
+                val memberEvent = room.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(session.myUserId))
+                val senderId = memberEvent?.senderId?.takeIf { it != session.myUserId }
+                val senderName = senderId?.let { room.membershipService().getRoomMember(it)?.displayName ?: it }
+                val reason = memberEvent?.content?.toModel<RoomMemberContent>()?.safeReason
+                setState { copy(removedFromRoomBy = senderName, removedFromRoomReason = reason) }
             }
         }
     }
@@ -1745,6 +1806,7 @@ private fun handleSelectStickerAttachment() {
             navigateToThreadEventIfNeeded(snapshot)
             navigateToPermalinkEventIfNeeded(snapshot)
         }
+        setState { if (timelineHasContent == snapshot.isNotEmpty()) this else copy(timelineHasContent = snapshot.isNotEmpty()) }
     }
 
     // Opening the room AT an event (search result, permalink from elsewhere) seeds the timeline

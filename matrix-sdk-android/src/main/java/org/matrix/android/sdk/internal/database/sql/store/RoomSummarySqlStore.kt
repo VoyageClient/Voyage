@@ -98,6 +98,11 @@ internal class RoomSummarySqlStore(
     /** No-op write that makes room_summary listeners re-emit for [roomId]. */
     fun touch(roomId: String) = queries.touchByRoomId(roomId)
 
+    fun updateRemovedFromRoom(roomId: String, removed: Boolean) =
+            queries.updateRemovedFromRoom(if (removed) 1L else 0L, roomId)
+
+    fun getWatchedRoomIds(): List<String> = queries.selectWatchedRoomIds().executeAsList()
+
     fun updateTags(roomId: String, tags: List<Pair<String, Double?>>) {
         database.transaction {
             roomTagStore.replaceTags(roomId, tags.map { RoomTagEntity(it.first, it.second) })
@@ -185,6 +190,8 @@ internal class RoomSummarySqlStore(
                 versioning_state_str = entity.versioningState.name,
                 join_rules_str = entity.joinRules?.name,
                 direct_parent_names = entity.directParentNames.toList().joinToColumn(),
+                is_removed_from_room = entity.isRemovedFromRoom.toLong(),
+                is_watched = entity.isWatched.toLong(),
         )
         draftStore.replaceDrafts(entity.roomId, entity.userDrafts?.userDrafts?.toList().orEmpty())
         spaceStore.replaceChildren(entity.roomId, entity.children.map {
@@ -275,6 +282,8 @@ internal class RoomSummarySqlStore(
         entity.flattenParentIds = flatten_parent_ids
         entity.membership = Membership.valueOf(membership_str)
         entity.isHiddenFromUser = is_hidden_from_user != 0L
+        entity.isRemovedFromRoom = is_removed_from_room != 0L
+        entity.isWatched = is_watched != 0L
         entity.versioningState = VersioningState.valueOf(versioning_state_str)
         entity.joinRules = join_rules_str?.let { runCatching { org.matrix.android.sdk.api.session.room.model.RoomJoinRules.valueOf(it) }.getOrNull() }
         val drafts = draftStore.getDrafts(room_id)

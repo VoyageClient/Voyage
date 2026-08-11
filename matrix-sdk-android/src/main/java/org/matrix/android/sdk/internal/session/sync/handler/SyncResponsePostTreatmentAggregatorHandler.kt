@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.sync.handler
 
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoomTask
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorker
 import org.matrix.android.sdk.internal.crypto.crosssigning.UpdateTrustWorkerDataRepository
 import org.matrix.android.sdk.internal.di.SessionId
@@ -44,6 +45,7 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         private val roomShieldSummaryUpdater: ShieldSummaryUpdater,
         // Lazy breaks the SyncResponseHandler -> this -> FetchUnignoredContentTask -> SyncResponseHandler cycle.
         private val fetchUnignoredContentTask: dagger.Lazy<FetchUnignoredContentTask>,
+        private val reanchorRejoinedRoomTask: dagger.Lazy<ReanchorRejoinedRoomTask>,
         @SessionId private val sessionId: String,
 ) {
     suspend fun handle(aggregator: SyncResponsePostTreatmentAggregator) {
@@ -52,6 +54,15 @@ internal class SyncResponsePostTreatmentAggregatorHandler @Inject constructor(
         fetchAndUpdateUsers(aggregator.userIdsToFetch)
         handleRefreshRoomShieldsForRooms(aggregator.roomsWithMembershipChangesForShieldUpdate)
         fetchUnignoredContentIfNeeded(aggregator.unIgnoredUserIds)
+        reanchorRejoinedRooms(aggregator.rejoinedRoomsToReanchor)
+    }
+
+    private suspend fun reanchorRejoinedRooms(roomIds: Set<String>) {
+        roomIds.forEach { roomId ->
+            tryOrNull("Failed to re-anchor rejoined room $roomId") {
+                reanchorRejoinedRoomTask.get().execute(ReanchorRejoinedRoomTask.Params(roomId))
+            }
+        }
     }
 
     private suspend fun fetchUnignoredContentIfNeeded(unIgnoredUserIds: Set<String>) {

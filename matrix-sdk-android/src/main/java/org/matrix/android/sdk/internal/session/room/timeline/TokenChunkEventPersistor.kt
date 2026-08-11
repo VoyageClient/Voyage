@@ -55,6 +55,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             direction: PaginationDirection,
             originChunkId: Long? = null,
     ): Result {
+        var tokenSlideOnly = false
         database.awaitDbTransaction(dispatcher) {
             val nextToken: String?
             val prevToken: String?
@@ -64,6 +65,20 @@ internal class TokenChunkEventPersistor @Inject constructor(
             } else {
                 nextToken = receivedChunk.start
                 prevToken = receivedChunk.end
+            }
+            // A page whose events were all withheld (history visibility over a span we weren't a
+            // member for) must not become an empty dead-end chunk: the walk would re-request the
+            // same token forever (and, once such a chunk exists, keep short-circuiting on it below).
+            // Slide the origin chunk's own token past the invisible span so the next fetch makes
+            // progress.
+            if (receivedChunk.events.isEmpty() && receivedChunk.hasMore() && originChunkId != null) {
+                if (direction == PaginationDirection.BACKWARDS) {
+                    stores.chunk.updatePrevToken(originChunkId, prevToken)
+                } else {
+                    stores.chunk.updateNextToken(originChunkId, nextToken)
+                }
+                tokenSlideOnly = true
+                return@awaitDbTransaction
             }
             val existingChunk = stores.chunk.findByTokens(roomId, prevToken, nextToken)
             if (existingChunk != null) {
@@ -83,6 +98,18 @@ internal class TokenChunkEventPersistor @Inject constructor(
             if (pageEvents.isNotEmpty()) {
                 val owners = pageEvents.map { stores.chunk.findMainChunkIdIncludingEvent(roomId, it.eventId.orEmpty()) }
                 if (owners.all { it != null }) {
+                    if (originChunkId != null && owners.all { it == originChunkId }) {
+                        // The page only re-returned the origin chunk's own boundary events (the
+                        // server token landed inside it): linking would no-op and the walk would
+                        // re-request the same token forever, so advance the origin past the page.
+                        if (direction == PaginationDirection.BACKWARDS) {
+                            stores.chunk.updatePrevToken(originChunkId, prevToken)
+                        } else {
+                            stores.chunk.updateNextToken(originChunkId, nextToken)
+                        }
+                        tokenSlideOnly = true
+                        return@awaitDbTransaction
+                    }
                     // The first event is the one nearest the origin, so its chunk is where the walk continues.
                     owners.first()?.let { linkOriginToChunk(direction, originChunkId, it) }
                     return@awaitDbTransaction
@@ -103,10 +130,10 @@ internal class TokenChunkEventPersistor @Inject constructor(
                 handlePagination(roomId, direction, receivedChunk, currentChunkId)
             }
         }
-        return if (receivedChunk.events.isEmpty()) {
-            if (receivedChunk.hasMore()) Result.SHOULD_FETCH_MORE else Result.REACHED_END
-        } else {
-            Result.SUCCESS
+        return when {
+            tokenSlideOnly -> Result.SHOULD_FETCH_MORE
+            receivedChunk.events.isEmpty() -> if (receivedChunk.hasMore()) Result.SHOULD_FETCH_MORE else Result.REACHED_END
+            else -> Result.SUCCESS
         }
     }
 

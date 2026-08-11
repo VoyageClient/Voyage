@@ -271,6 +271,18 @@ internal open class RoomSummaryEntity(
             if (value != field) field = value
         }
 
+    /** True when the user was kicked or banned (not voluntary leave); such rooms stay browsable. */
+    var isRemovedFromRoom: Boolean = false
+        set(value) {
+            if (value != field) field = value
+        }
+
+    /** True for a /watch-ed previewable room the user is not in (membership NONE, opened as a peek). */
+    var isWatched: Boolean = false
+        set(value) {
+            if (value != field) field = value
+        }
+
     private var versioningStateStr: String = VersioningState.NONE.name
     var versioningState: VersioningState
         get() {

@@ -15,6 +15,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.internal.di.MoshiProvider
@@ -149,6 +151,11 @@ internal class ReadReceiptQueue @Inject constructor(
             }
             true
         } catch (failure: Throwable) {
+            // 403 = we're not in the room (kicked/banned); the receipt can never land, drop it.
+            if (failure is Failure.ServerError && failure.error.code == MatrixError.M_FORBIDDEN) {
+                Timber.w("ReadReceiptQueue: receipt for ${entry.roomId} refused, dropping")
+                return true
+            }
             Timber.w(failure, "ReadReceiptQueue: failed to send read receipt for ${entry.roomId}, will retry")
             false
         }

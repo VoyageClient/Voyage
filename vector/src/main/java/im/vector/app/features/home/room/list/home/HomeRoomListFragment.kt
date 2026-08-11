@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.ConcatAdapter.Config.StableIdMode
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.airbnb.epoxy.OnModelBuildFinishedListener
 import com.airbnb.mvrx.fragmentViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
 import im.vector.app.core.extensions.cleanup
@@ -36,6 +37,7 @@ import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.home.room.list.home.header.HomeRoomsHeadersController
 import im.vector.app.features.home.room.list.home.invites.InvitesActivity
 import im.vector.app.features.room.LeaveRoomPrompt
+import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
@@ -151,6 +153,16 @@ class HomeRoomListFragment :
             }
             is RoomListQuickActionsSharedAction.Leave -> {
                 promptLeaveRoom(quickAction.roomId)
+            }
+            is RoomListQuickActionsSharedAction.Forget -> {
+                MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(CommonStrings.room_list_quick_actions_forget)
+                        .setMessage(CommonStrings.room_forget_prompt_msg)
+                        .setPositiveButton(CommonStrings.room_list_quick_actions_forget) { _, _ ->
+                            roomListViewModel.handle(HomeRoomListAction.ForgetRoom(quickAction.roomId))
+                        }
+                        .setNegativeButton(CommonStrings.action_cancel, null)
+                        .show()
             }
         }
     }

@@ -36,6 +36,7 @@ import org.matrix.android.sdk.api.session.room.model.LocalRoomSummary
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.model.WatchedRoomInfo
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
@@ -62,11 +63,14 @@ import org.matrix.android.sdk.internal.session.room.peeking.PeekedRoomManager
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
+import org.matrix.android.sdk.internal.session.room.summary.SyncWatchedRoomSummariesTask
 import org.matrix.android.sdk.internal.session.room.summary.getAllRoomSummaryChildOfLive
 import org.matrix.android.sdk.internal.session.room.summary.getFlattenOrphanRoomsLive
 import org.matrix.android.sdk.internal.session.room.summary.getRoomSummariesChangesLive
 import org.matrix.android.sdk.internal.session.room.summary.getSortedPagedRoomSummariesLive
 import org.matrix.android.sdk.internal.session.room.summary.getUpdatablePagedRoomSummariesLive
+import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
+import org.matrix.android.sdk.internal.session.sync.SyncRemovedRoomsTask
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateBreadcrumbsTask
 import javax.inject.Inject
 
@@ -86,6 +90,9 @@ internal class DefaultRoomService @Inject constructor(
         private val resolveRoomStateTask: ResolveRoomStateTask,
         private val peekRoomTask: PeekRoomTask,
         private val peekedRoomManager: PeekedRoomManager,
+        private val syncRemovedRoomsTask: SyncRemovedRoomsTask,
+        private val fetchInvitedRoomPreviewTask: FetchInvitedRoomPreviewTask,
+        private val syncWatchedRoomSummariesTask: SyncWatchedRoomSummariesTask,
         private val roomGetter: RoomGetter,
         private val roomSummaryDataSource: RoomSummaryDataSource,
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
@@ -321,6 +328,18 @@ internal class DefaultRoomService @Inject constructor(
 
     override fun roomPeekViaServers(roomId: String): List<String> {
         return peekedRoomManager.viaServers(roomId)
+    }
+
+    override suspend fun syncRemovedRooms(force: Boolean) {
+        syncRemovedRoomsTask.execute(SyncRemovedRoomsTask.Params(force))
+    }
+
+    override suspend fun previewInvitedRoom(roomId: String): Boolean {
+        return fetchInvitedRoomPreviewTask.execute(FetchInvitedRoomPreviewTask.Params(roomId))
+    }
+
+    override suspend fun syncWatchedRoomSummaries(rooms: List<WatchedRoomInfo>) {
+        syncWatchedRoomSummariesTask.execute(SyncWatchedRoomSummariesTask.Params(rooms))
     }
 
     override suspend fun peekRoom(roomIdOrAlias: String): PeekResult {

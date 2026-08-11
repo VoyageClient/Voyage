@@ -182,6 +182,22 @@ class CommandParser @Inject constructor(
                         ParsedCommand.ErrorSyntax(Command.TRANS_EMOTE)
                     }
                 }
+                Command.WATCH_ROOM.matches(slashCommand) -> {
+                    val roomAlias = messageParts.getOrNull(1)
+                    if (!roomAlias.isNullOrEmpty()) {
+                        ParsedCommand.WatchRoom(roomAlias)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.WATCH_ROOM)
+                    }
+                }
+                Command.UNWATCH_ROOM.matches(slashCommand) -> {
+                    val roomAlias = messageParts.getOrNull(1)
+                    if (!roomAlias.isNullOrEmpty()) {
+                        ParsedCommand.UnwatchRoom(roomAlias)
+                    } else {
+                        ParsedCommand.ErrorSyntax(Command.UNWATCH_ROOM)
+                    }
+                }
                 Command.JOIN_ROOM.matches(slashCommand) -> {
                     if (messageParts.size >= 2) {
                         val roomAlias = messageParts[1]

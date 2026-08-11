@@ -17,6 +17,12 @@ import javax.inject.Singleton
 /** Sentinel "tag" used by the legacy Overview to filter the unified list down to direct messages. */
 const val DM_FILTER_TAG = "de.spiritcroc.dm"
 
+/** Sentinel "tag" selecting the Historical view: rooms the user was kicked or banned from. */
+const val HISTORICAL_FILTER_TAG = "im.voyage.historical"
+
+/** Sentinel "tag" selecting the Watching view: previewable rooms followed via /watch. */
+const val WATCHING_FILTER_TAG = "im.voyage.watching"
+
 interface TagFilterStateHandler {
     fun getSelectedTag(): String?
     fun setSelectedTag(tag: String?)

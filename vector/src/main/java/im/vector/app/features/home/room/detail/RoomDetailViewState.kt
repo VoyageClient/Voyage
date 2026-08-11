@@ -43,6 +43,11 @@ data class UserIdentityChangePrompt(
 
 data class RoomDetailViewState(
         val isRoomPreview: Boolean = false,
+        /** Display name of whoever kicked/banned us, when this room is a frozen removed room. */
+        val removedFromRoomBy: String? = null,
+        val removedFromRoomReason: String? = null,
+        /** True once the timeline snapshot is non-empty; gates the invite preview UI. */
+        val timelineHasContent: Boolean = false,
         val roomId: String,
         val eventId: String?,
         val isInviteAlreadyAccepted: Boolean,

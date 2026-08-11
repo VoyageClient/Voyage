@@ -18,11 +18,14 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.notification.GetNotificationCountForSpacesUseCase
 import im.vector.app.features.spaces.tags.DM_FILTER_TAG
+import im.vector.app.features.spaces.tags.HISTORICAL_FILTER_TAG
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
+import im.vector.app.features.spaces.tags.WATCHING_FILTER_TAG
 import im.vector.app.features.spaces.tags.displayNameForTag
 import im.vector.app.features.spaces.tags.tagSortKey
 import im.vector.lib.strings.CommonStrings
@@ -78,6 +81,8 @@ class SpaceListViewModel @AssistedInject constructor(
 
         observeSpaceSummaries()
         observeTags()
+        observeHistoricalRooms()
+        observeWatchedRooms()
         spaceStateHandler.getSelectedSpaceFlow()
                 .distinctUntilChanged()
                 .setOnEach { selectedSpaceOption ->
@@ -237,11 +242,56 @@ class SpaceListViewModel @AssistedInject constructor(
                 .distinctUntilChanged()
                 .onEach { tags ->
                     val selectedTag = tagFilterStateHandler.getSelectedTag()
-                    if (selectedTag != null && tags.none { it.name == selectedTag }) {
+                    if (selectedTag != null && selectedTag != HISTORICAL_FILTER_TAG && selectedTag != WATCHING_FILTER_TAG &&
+                            tags.none { it.name == selectedTag }) {
                         tagFilterStateHandler.setSelectedTag(null)
                     }
                 }
                 .setOnEach { copy(tags = it) }
+    }
+
+    private fun observeHistoricalRooms() {
+        // Recover kicked/banned rooms from before this login; once per session store, best-effort.
+        session.coroutineScope.launch {
+            tryOrNull("Failed to sync removed rooms") { session.roomService().syncRemovedRooms() }
+        }
+        val params = roomSummaryQueryParams {
+            memberships = listOf(Membership.LEAVE, Membership.BAN)
+            removedFromRoom = true
+        }
+        session.flow().liveRoomSummaries(params)
+                .map { it.size }
+                .distinctUntilChanged()
+                .onEach { count ->
+                    if (count == 0 && tagFilterStateHandler.getSelectedTag() == HISTORICAL_FILTER_TAG) {
+                        tagFilterStateHandler.setSelectedTag(null)
+                    }
+                }
+                .setOnEach { copy(historicalRoomCount = it) }
+    }
+
+    private fun observeWatchedRooms() {
+        // Mirror the synced registry into local summary rows, so the list below is a plain query.
+        session.flow().liveUserAccountData(WatchedRooms.ACCOUNT_DATA_TYPE)
+                .onEach { event ->
+                    tryOrNull("Failed to sync watched rooms") {
+                        session.roomService().syncWatchedRoomSummaries(WatchedRooms.parse(event.getOrNull()?.content))
+                    }
+                }
+                .launchIn(viewModelScope)
+        val params = roomSummaryQueryParams {
+            memberships = listOf(Membership.NONE)
+            watched = true
+        }
+        session.flow().liveRoomSummaries(params)
+                .map { it.size }
+                .distinctUntilChanged()
+                .onEach { count ->
+                    if (count == 0 && tagFilterStateHandler.getSelectedTag() == WATCHING_FILTER_TAG) {
+                        tagFilterStateHandler.setSelectedTag(null)
+                    }
+                }
+                .setOnEach { copy(watchingRoomCount = it) }
     }
 
     private fun handleSelectSpaceInvite(action: SpaceListAction.OpenSpaceInvite) {

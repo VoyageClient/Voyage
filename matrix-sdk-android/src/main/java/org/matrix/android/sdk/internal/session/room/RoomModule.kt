@@ -148,10 +148,16 @@ import org.matrix.android.sdk.internal.session.room.tags.AddTagToRoomTask
 import org.matrix.android.sdk.internal.session.room.tags.DefaultAddTagToRoomTask
 import org.matrix.android.sdk.internal.session.room.tags.DefaultDeleteTagFromRoomTask
 import org.matrix.android.sdk.internal.session.room.tags.DeleteTagFromRoomTask
+import org.matrix.android.sdk.internal.session.room.summary.DefaultSyncWatchedRoomSummariesTask
+import org.matrix.android.sdk.internal.session.room.summary.SyncWatchedRoomSummariesTask
+import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchInvitedRoomPreviewTask
+import org.matrix.android.sdk.internal.session.room.timeline.DefaultReanchorRejoinedRoomTask
+import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoomTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchTokenAndPaginateTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultGetContextOfEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultGetEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultPaginationTask
+import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchTokenAndPaginateTask
 import org.matrix.android.sdk.internal.session.room.timeline.GetContextOfEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
@@ -361,6 +367,15 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindPeekRoomTask(task: DefaultPeekRoomTask): PeekRoomTask
+
+    @Binds
+    abstract fun bindFetchInvitedRoomPreviewTask(task: DefaultFetchInvitedRoomPreviewTask): FetchInvitedRoomPreviewTask
+
+    @Binds
+    abstract fun bindSyncWatchedRoomSummariesTask(task: DefaultSyncWatchedRoomSummariesTask): SyncWatchedRoomSummariesTask
+
+    @Binds
+    abstract fun bindReanchorRejoinedRoomTask(task: DefaultReanchorRejoinedRoomTask): ReanchorRejoinedRoomTask
 
     @Binds
     abstract fun bindPeekRoomInitialSyncTask(task: DefaultPeekRoomInitialSyncTask): PeekRoomInitialSyncTask

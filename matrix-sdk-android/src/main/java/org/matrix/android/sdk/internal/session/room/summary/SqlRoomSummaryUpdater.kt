@@ -107,6 +107,7 @@ internal class SqlRoomSummaryUpdater @Inject constructor(
         entity.threadHighlightCount = unreadThreadNotifications?.count { (it.value.highlightCount ?: 0) > 0 } ?: 0
         entity.threadNotificationCount = unreadThreadNotifications?.count { (it.value.notificationCount ?: 0) > 0 } ?: 0
         if (membership != null) entity.membership = membership
+        if (membership == Membership.JOIN) entity.isRemovedFromRoom = false
 
         entity.isHiddenFromUser = entity.versioningState == VersioningState.UPGRADED_ROOM_JOINED ||
                 roomAccountDataDataSource.getAccountDataEvent(roomId, RoomAccountDataTypes.EVENT_TYPE_VIRTUAL_ROOM) != null

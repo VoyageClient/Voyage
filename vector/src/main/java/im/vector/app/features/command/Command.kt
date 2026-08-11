@@ -39,6 +39,8 @@ enum class Command(
     ROOM_NAME("/roomname", null, "<name>", CommonStrings.command_description_room_name, false, false),
     INVITE("/invite", null, "<user-id> [reason]", CommonStrings.command_description_invite_user, false, false),
     JOIN_ROOM("/join", arrayOf("/j", "/goto"), "<room-address> [reason]", CommonStrings.command_description_join_room, false, false),
+    WATCH_ROOM("/watch", null, "<room-address>", CommonStrings.command_description_watch_room, false, false),
+    UNWATCH_ROOM("/unwatch", null, "<room-address>", CommonStrings.command_description_unwatch_room, false, false),
     PART("/part", null, "[room-address]", CommonStrings.command_description_part_room, false, false),
     TOPIC("/topic", null, "<topic>", CommonStrings.command_description_topic, false, false),
     KICK_USER("/kick", arrayOf("/remove"), "<user-id> [reason]", CommonStrings.command_description_kick_user, false, false),

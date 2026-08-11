@@ -300,6 +300,8 @@ internal class RoomSummaryDataSource @Inject constructor(
         if (!p.canonicalAlias.matches(canonical_alias)) return false
         if (p.memberships.isNotEmpty() && membership_str !in p.memberships.map { it.name }) return false
         if (is_hidden_from_user != 0L) return false
+        p.removedFromRoom?.let { if ((is_removed_from_room != 0L) != it) return false }
+        p.watched?.let { if ((is_watched != 0L) != it) return false }
 
         p.roomTagQueryFilter?.let { f ->
             f.isFavorite?.let { if ((is_favourite != 0L) != it) return false }

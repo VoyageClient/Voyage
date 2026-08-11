@@ -1002,7 +1002,17 @@ class TimelineFragment :
     }
 
     private fun setupNotificationView() {
-        views.roomPreviewJoinButton.commonClicked = { timelineViewModel.handle(RoomDetailAction.JoinPreviewedRoom) }
+        views.roomPreviewJoinButton.commonClicked = {
+            withState(timelineViewModel) { state ->
+                // The bar's primary button is Accept while invited, Join/Rejoin otherwise.
+                if (state.asyncRoomSummary()?.membership == Membership.INVITE) {
+                    timelineViewModel.handle(RoomDetailAction.AcceptInvite)
+                } else {
+                    timelineViewModel.handle(RoomDetailAction.JoinPreviewedRoom)
+                }
+            }
+        }
+        views.roomPreviewDeclineButton.commonClicked = { timelineViewModel.handle(RoomDetailAction.RejectInvite) }
         views.notificationAreaView.delegate = object : NotificationAreaView.Delegate {
             override fun onMisconfiguredEncryptionClicked() {
                 timelineViewModel.handle(RoomDetailAction.OnClickMisconfiguredEncryption)
@@ -1491,7 +1501,10 @@ class TimelineFragment :
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = false)?.isVisible = false
         }
         val inviter = mainState.asyncInviter()
-        views.roomPreviewJoinBar.isVisible = mainState.isRoomPreview && summary?.membership == Membership.NONE
+        val isRemovedRoom = summary?.isRemovedFromRoom == true &&
+                (summary.membership == Membership.LEAVE || summary.membership == Membership.BAN)
+        val isInvitePreview = summary?.membership == Membership.INVITE && inviter != null && mainState.timelineHasContent
+        views.roomPreviewJoinBar.isVisible = (mainState.isRoomPreview && summary?.membership == Membership.NONE) || isRemovedRoom || isInvitePreview
         if (summary?.membership == Membership.JOIN) {
             views.jumpToBottomView.count = summary.notificationCount
             views.jumpToBottomView.drawBadge = summary.hasUnreadMessages
@@ -1521,18 +1534,16 @@ class TimelineFragment :
                 views.hideComposerViews()
             }
         } else if (mainState.isRoomPreview && summary?.membership == Membership.NONE) {
-            // The system bar area below the join bar must match its background, like it does below
-            // the composer / room list.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                @Suppress("DEPRECATION")
-                activity?.window?.navigationBarColor = ThemeUtils.getColor(requireContext(), android.R.attr.colorBackground)
-            }
             timelineEventController.update(mainState)
             lazyLoadedViews.inviteView(false)?.isVisible = false
             views.hideComposerViews()
+            view?.hideKeyboard()
             views.notificationAreaView.render(NotificationAreaView.State.Hidden)
             views.roomPreviewJoinPrompt.text =
                     getString(CommonStrings.room_preview_peek_join_prompt, summary.displayName).prepareForDisplay()
+            views.roomPreviewDeclineButton.isVisible = false
+            views.roomPreviewJoinButton.isVisible = true
+            views.roomPreviewJoinButton.button.text = getString(CommonStrings.action_join)
             views.roomPreviewJoinButton.render(
                     when (mainState.changeMembershipState) {
                         is ChangeMembershipState.Joining -> ButtonStateView.State.Loading
@@ -1540,6 +1551,69 @@ class TimelineFragment :
                         else -> ButtonStateView.State.Button
                     }
             )
+        } else if (summary != null && isInvitePreview && inviter != null) {
+            // Previewable invite (world-readable history was seeded, or the room's history is
+            // cached from before a kick/ban): frozen timeline + accept/decline bar instead of the
+            // full-screen invite view.
+            timelineEventController.update(mainState)
+            lazyLoadedViews.inviteView(false)?.isVisible = false
+            views.hideComposerViews()
+            view?.hideKeyboard()
+            views.notificationAreaView.render(NotificationAreaView.State.Hidden)
+            views.roomPreviewJoinPrompt.text =
+                    getString(CommonStrings.invited_by, inviter.displayName ?: inviter.userId).prepareForDisplay()
+            views.roomPreviewDeclineButton.isVisible = true
+            views.roomPreviewDeclineButton.render(
+                    when (mainState.changeMembershipState) {
+                        is ChangeMembershipState.Leaving -> ButtonStateView.State.Loading
+                        is ChangeMembershipState.FailedLeaving -> ButtonStateView.State.Error
+                        else -> ButtonStateView.State.Button
+                    }
+            )
+            views.roomPreviewJoinButton.isVisible = true
+            views.roomPreviewJoinButton.button.text = getString(CommonStrings.action_accept)
+            views.roomPreviewJoinButton.render(
+                    when (mainState.changeMembershipState) {
+                        is ChangeMembershipState.Joining -> ButtonStateView.State.Loading
+                        is ChangeMembershipState.FailedJoining -> ButtonStateView.State.Error
+                        else -> ButtonStateView.State.Button
+                    }
+            )
+        } else if (summary != null && isRemovedRoom) {
+            timelineEventController.update(mainState)
+            lazyLoadedViews.inviteView(false)?.isVisible = false
+            views.hideComposerViews()
+            view?.hideKeyboard()
+            views.notificationAreaView.render(NotificationAreaView.State.Hidden)
+            val kicked = summary.membership == Membership.LEAVE
+            val by = mainState.removedFromRoomBy
+            val prompt = buildString {
+                append(
+                        when {
+                            kicked && by != null -> getString(CommonStrings.has_been_kicked, summary.displayName, by)
+                            kicked -> getString(CommonStrings.room_removed_kicked_generic, summary.displayName)
+                            by != null -> getString(CommonStrings.has_been_banned, summary.displayName, by)
+                            else -> getString(CommonStrings.room_removed_banned_generic, summary.displayName)
+                        }
+                )
+                mainState.removedFromRoomReason?.let {
+                    append("\n").append(getString(CommonStrings.room_removed_reason, it))
+                }
+            }
+            views.roomPreviewJoinPrompt.text = prompt.prepareForDisplay()
+            views.roomPreviewDeclineButton.isVisible = false
+            // Rejoining is only meaningful after a kick; a ban would just be refused.
+            views.roomPreviewJoinButton.isVisible = kicked
+            if (kicked) {
+                views.roomPreviewJoinButton.button.text = getString(CommonStrings.room_removed_rejoin)
+                views.roomPreviewJoinButton.render(
+                        when (mainState.changeMembershipState) {
+                            is ChangeMembershipState.Joining -> ButtonStateView.State.Loading
+                            is ChangeMembershipState.FailedJoining -> ButtonStateView.State.Error
+                            else -> ButtonStateView.State.Button
+                        }
+                )
+            }
         } else if (summary?.membership == Membership.INVITE && inviter != null) {
             views.hideComposerViews()
             lazyLoadedViews.inviteView(true)?.apply {
@@ -1614,9 +1688,9 @@ class TimelineFragment :
                 if (roomSummary == null) {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = false
                 } else {
-                    // Previews open the (read-only) room profile from here too.
+                    // Previews and frozen removed rooms open the (read-only) room profile from here too.
                     views.includeRoomToolbar.roomToolbarContentView.isClickable =
-                            roomSummary.membership == Membership.JOIN || isRoomPreview
+                            roomSummary.membership == Membership.JOIN || isRoomPreview || roomSummary.isRemovedFromRoom
                     views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName.prepareForDisplay()
                     val toolbarMatrixItem = roomSummary.toDisplayMatrixItem().let {
                         if (roomSummary.membership == Membership.INVITE && vectorPreferences.hideInviteAvatars()) it.updateAvatar(null) else it

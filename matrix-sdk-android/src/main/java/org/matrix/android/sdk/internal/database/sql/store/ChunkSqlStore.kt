@@ -92,6 +92,8 @@ internal class ChunkSqlStore(private val database: SessionSqlDatabase) {
 
     fun setLastBackward(id: Long, value: Boolean) = queries.updateLastBackward(if (value) 1L else 0L, id)
 
+    fun clearLastBackward(roomId: String) = queries.clearLastBackwardByRoom(roomId)
+
     fun deleteById(id: Long) = queries.deleteById(id)
 
     fun deleteByRoom(roomId: String) = queries.deleteByRoom(roomId)

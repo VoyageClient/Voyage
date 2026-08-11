@@ -41,6 +41,10 @@ internal class SyncResponsePostTreatmentAggregator {
     // leave it false so we can skip the expensive full hierarchy revalidation.
     var spaceHierarchyChanged = false
 
+    // Rooms rejoined over a retained kicked/banned timeline; their join window needs re-anchoring
+    // (see ReanchorRejoinedRoomTask).
+    val rejoinedRoomsToReanchor = mutableSetOf<String>()
+
     // For the crypto store
     val cryptoStoreAggregator = CryptoStoreAggregator()
 }

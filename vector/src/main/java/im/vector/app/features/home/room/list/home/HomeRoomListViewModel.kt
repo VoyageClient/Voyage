@@ -383,6 +383,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         when (action) {
             is HomeRoomListAction.SelectRoom -> handleSelectRoom(action)
             is HomeRoomListAction.LeaveRoom -> handleLeaveRoom(action)
+            is HomeRoomListAction.ForgetRoom -> handleForgetRoom(action)
             is HomeRoomListAction.ChangeRoomNotificationState -> handleChangeNotificationMode(action)
             is HomeRoomListAction.ToggleTag -> handleToggleTag(action)
             is HomeRoomListAction.SetMarkedUnread -> handleSetMarkedUnread(action)
@@ -420,6 +421,15 @@ class HomeRoomListViewModel @AssistedInject constructor(
         _viewEvents.post(HomeRoomListViewEvents.Loading(null))
         viewModelScope.launch {
             val value = runCatching { session.roomService().leaveRoom(action.roomId) }
+                    .fold({ HomeRoomListViewEvents.Done }, { HomeRoomListViewEvents.Failure(it) })
+            _viewEvents.post(value)
+        }
+    }
+
+    private fun handleForgetRoom(action: HomeRoomListAction.ForgetRoom) {
+        _viewEvents.post(HomeRoomListViewEvents.Loading(null))
+        viewModelScope.launch {
+            val value = runCatching { session.roomService().forgetRoom(action.roomId) }
                     .fold({ HomeRoomListViewEvents.Done }, { HomeRoomListViewEvents.Failure(it) })
             _viewEvents.post(value)
         }

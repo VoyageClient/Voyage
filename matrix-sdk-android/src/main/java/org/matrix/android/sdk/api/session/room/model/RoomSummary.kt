@@ -126,6 +126,16 @@ data class RoomSummary(
          */
         val membership: Membership = Membership.NONE,
         /**
+         * True when the user was kicked or banned from this room (as opposed to leaving it
+         * voluntarily). Such rooms keep their local history browsable until forgotten.
+         */
+        val isRemovedFromRoom: Boolean = false,
+        /**
+         * True for a watched previewable room the user is not a member of (see /watch); opened as
+         * a live peek and listed in its own section.
+         */
+        val isWatched: Boolean = false,
+        /**
          * Versioning state of this room.
          */
         val versioningState: VersioningState = VersioningState.NONE,

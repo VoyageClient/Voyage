@@ -74,4 +74,10 @@ sealed class RoomListQuickActionsSharedAction(
             if (showIcon) R.drawable.ic_room_actions_leave else null,
             true
     )
+
+    data class Forget(val roomId: String) : RoomListQuickActionsSharedAction(
+            CommonStrings.room_list_quick_actions_forget,
+            R.drawable.ic_room_actions_leave,
+            true
+    )
 }

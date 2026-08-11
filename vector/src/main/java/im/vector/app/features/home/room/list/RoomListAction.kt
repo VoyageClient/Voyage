@@ -22,6 +22,8 @@ sealed class RoomListAction : VectorViewModelAction {
     data class SetMarkedUnread(val roomId: String, val markedUnread: Boolean) : RoomListAction()
     data class MarkRoomAsRead(val roomId: String) : RoomListAction()
     data class LeaveRoom(val roomId: String) : RoomListAction()
+    data class ForgetRoom(val roomId: String) : RoomListAction()
+    data class StopWatchingRoom(val roomId: String) : RoomListAction()
     data class JoinSuggestedRoom(val roomId: String, val viaServers: List<String>?) : RoomListAction()
     data class ShowRoomDetails(val roomId: String, val viaServers: List<String>?) : RoomListAction()
     object DeleteAllLocalRoom : RoomListAction()

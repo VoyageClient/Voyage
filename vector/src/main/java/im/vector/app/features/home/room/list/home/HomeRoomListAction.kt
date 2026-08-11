@@ -19,6 +19,7 @@ sealed class HomeRoomListAction : VectorViewModelAction {
     data class SetMarkedUnread(val roomId: String, val markedUnread: Boolean) : HomeRoomListAction()
     data class MarkRoomAsRead(val roomId: String) : HomeRoomListAction()
     data class LeaveRoom(val roomId: String) : HomeRoomListAction()
+    data class ForgetRoom(val roomId: String) : HomeRoomListAction()
     data class ChangeRoomFilter(val filter: HomeRoomFilter) : HomeRoomListAction()
     object DeleteAllLocalRoom : HomeRoomListAction()
 }
