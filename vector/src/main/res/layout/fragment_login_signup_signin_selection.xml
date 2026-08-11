@@ -77,11 +77,24 @@
                 android:layout_marginTop="14dp"
                 android:text="@string/login_signin"
                 android:visibility="gone"
-                app:layout_constraintBottom_toTopOf="@id/loginSignupSigninSignInSocialLoginContainer"
+                app:layout_constraintBottom_toTopOf="@id/loginSignupSigninToken"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/loginSignupSigninSubmit"
                 tools:visibility="visible" />
+
+            <!-- Sign in with an access token -->
+            <Button
+                android:id="@+id/loginSignupSigninToken"
+                style="@style/Widget.Vector.Button.Outlined.Login"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/login_signin_token"
+                app:layout_constraintBottom_toTopOf="@id/loginSignupSigninSignInSocialLoginContainer"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/loginSignupSigninSignIn" />
 
             <!-- Social Login buttons -->
             <LinearLayout
@@ -94,7 +107,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/loginSignupSigninSignIn"
+                app:layout_constraintTop_toBottomOf="@id/loginSignupSigninToken"
                 tools:visibility="visible">
 
                 <TextView

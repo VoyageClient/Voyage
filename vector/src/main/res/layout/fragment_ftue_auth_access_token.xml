@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/login_fragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:colorBackground">
+
+    <androidx.core.widget.NestedScrollView style="@style/LoginFormScrollView">
+
+        <LinearLayout style="@style/LoginFormContainer">
+
+            <ImageView
+                style="@style/LoginLogo"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/loginAccessTokenTitle"
+                style="@style/Widget.Vector.TextView.Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="27dp"
+                android:text="@string/login_signin_token_title"
+                android:textColor="?vctr_content_primary" />
+
+            <TextView
+                android:id="@+id/loginAccessTokenServer"
+                style="@style/Widget.Vector.TextView.Body"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/layout_vertical_margin"
+                android:gravity="start"
+                android:textColor="?vctr_content_secondary"
+                tools:text="@string/login_connect_to" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/loginAccessTokenFieldTil"
+                style="@style/Widget.Vector.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:hint="@string/login_signin_token_hint"
+                app:errorEnabled="true">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/loginAccessTokenField"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionDone"
+                    android:importantForAutofill="no"
+                    android:inputType="textVisiblePassword"
+                    android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/loginAccessTokenSubmit"
+                style="@style/Widget.Vector.Button.Login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="22dp"
+                android:enabled="false"
+                android:text="@string/login_signin" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</FrameLayout>

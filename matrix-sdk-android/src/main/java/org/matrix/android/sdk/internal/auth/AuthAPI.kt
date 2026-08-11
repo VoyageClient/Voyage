@@ -23,6 +23,7 @@ import org.matrix.android.sdk.internal.auth.data.LoginFlowResponse
 import org.matrix.android.sdk.internal.auth.data.PasswordLoginParams
 import org.matrix.android.sdk.internal.auth.data.TokenLoginParams
 import org.matrix.android.sdk.internal.auth.data.WebClientConfig
+import org.matrix.android.sdk.internal.auth.data.WhoAmIResponse
 import org.matrix.android.sdk.internal.auth.login.ResetPasswordMailConfirmed
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationParams
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationResponse
@@ -34,6 +35,7 @@ import org.matrix.android.sdk.internal.auth.version.Versions
 import org.matrix.android.sdk.internal.network.NetworkConstants
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -137,6 +139,13 @@ internal interface AuthAPI {
     @Headers("CONNECT_TIMEOUT:60000", "READ_TIMEOUT:60000", "WRITE_TIMEOUT:60000")
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
     suspend fun login(@Body loginParams: JsonDict): Credentials
+
+    /**
+     * Identify the owner of an access token. Used to validate a manually supplied token and to
+     * resolve the user/device it belongs to, since the token alone carries no such information.
+     */
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/whoami")
+    suspend fun whoAmI(@Header("Authorization") authorization: String): WhoAmIResponse
 
     /**
      * Ask the homeserver to reset the password associated with the provided email.

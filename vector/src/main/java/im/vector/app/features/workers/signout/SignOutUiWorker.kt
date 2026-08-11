@@ -21,33 +21,37 @@ import org.matrix.android.sdk.api.session.Session
 
 class SignOutUiWorker(private val activity: FragmentActivity) {
 
-    fun perform() {
+    fun perform(localOnly: Boolean = false) {
         val session = activity.singletonEntryPoint().activeSessionHolder().getSafeActiveSession() ?: return
-        activity.lifecycleScope.perform(session)
+        activity.lifecycleScope.perform(session, localOnly)
     }
 
-    private fun CoroutineScope.perform(session: Session) = launch {
+    private fun CoroutineScope.perform(session: Session, localOnly: Boolean) = launch {
         if (session.cannotLogoutSafely()) {
             // The backup check on logout flow has to be displayed if there are keys in the store, and the keys backup state is not Ready
             val signOutDialog = SignOutBottomSheetDialogFragment.newInstance()
             signOutDialog.onSignOut = Runnable {
-                doSignOut()
+                // The sheet only settles the key-backup question, so a local sign-out still has to
+                // state that the server session is being left behind.
+                if (localOnly) confirm(localOnly = true) else doSignOut(localOnly = false)
             }
             signOutDialog.show(activity.supportFragmentManager, "SO")
         } else {
-            // Display a simple confirmation dialog
-            MaterialAlertDialogBuilder(activity)
-                    .setTitle(CommonStrings.action_sign_out)
-                    .setMessage(CommonStrings.action_sign_out_confirmation_simple)
-                    .setPositiveButton(CommonStrings.action_sign_out) { _, _ ->
-                        doSignOut()
-                    }
-                    .setNegativeButton(CommonStrings.action_cancel, null)
-                    .show()
+            confirm(localOnly)
         }
     }
 
-    private fun doSignOut() {
-        MainActivity.restartApp(activity, MainActivityArgs(clearCredentials = true))
+    private fun confirm(localOnly: Boolean) {
+        val action = if (localOnly) CommonStrings.action_sign_out_locally else CommonStrings.action_sign_out
+        MaterialAlertDialogBuilder(activity)
+                .setTitle(action)
+                .setMessage(if (localOnly) CommonStrings.action_sign_out_locally_confirmation else CommonStrings.action_sign_out_confirmation_simple)
+                .setPositiveButton(action) { _, _ -> doSignOut(localOnly) }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    private fun doSignOut(localOnly: Boolean) {
+        MainActivity.restartApp(activity, MainActivityArgs(clearCredentials = true, keepServerSession = localOnly))
     }
 }

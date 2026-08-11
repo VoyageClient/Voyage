@@ -8,11 +8,9 @@
 package im.vector.app.features.onboarding.ftueauth
 
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.net.http.SslError
 import android.os.Build
-import android.view.KeyEvent
 import android.view.View
 import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
@@ -21,11 +19,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import im.vector.app.core.utils.AssetReader
 import im.vector.app.features.login.JavascriptResponse
 import im.vector.app.features.onboarding.OnboardingViewState
-import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.util.MatrixJsonParser
 import timber.log.Timber
 import java.net.URLDecoder
@@ -74,9 +70,7 @@ class CaptchaWebview @Inject constructor(
 
             override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
                 Timber.d("## onReceivedSslError() : ${error.certificate}")
-                if (container.isAdded) {
-                    showSslErrorDialog(container, handler)
-                }
+                handler.proceed()
             }
 
             private fun onError(errorMessage: String) {
@@ -123,30 +117,6 @@ class CaptchaWebview @Inject constructor(
                 }
             }
         }
-    }
-
-    private fun showSslErrorDialog(container: Fragment, handler: SslErrorHandler) {
-        MaterialAlertDialogBuilder(container.requireActivity())
-                .setMessage(CommonStrings.ssl_could_not_verify)
-                .setPositiveButton(CommonStrings.ssl_trust) { _, _ ->
-                    Timber.d("## onReceivedSslError() : the user trusted")
-                    handler.proceed()
-                }
-                .setNegativeButton(CommonStrings.ssl_do_not_trust) { _, _ ->
-                    Timber.d("## onReceivedSslError() : the user did not trust")
-                    handler.cancel()
-                }
-                .setOnKeyListener(DialogInterface.OnKeyListener { dialog, keyCode, event ->
-                    if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK) {
-                        handler.cancel()
-                        Timber.d("## onReceivedSslError() : the user dismisses the trust dialog.")
-                        dialog.dismiss()
-                        return@OnKeyListener true
-                    }
-                    false
-                })
-                .setCancelable(false)
-                .show()
     }
 }
 

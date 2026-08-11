@@ -32,6 +32,10 @@ New features, improvements, and notable removals in this fork.
 
 - **Multi-account switcher** — switch between multiple logged-in accounts.
 
+- **Token sign in** — a "Token Sign In" option alongside Create account and Sign in takes an access token you already hold instead of a password. The token is adopted as-is, so no new device or session is created.
+
+- **Local sign out** — long-press Sign out, in the sidebar drawer, in Settings → General, or on an account switcher row, to remove an account from the app without telling the homeserver. The session stays active server-side until you remove it yourself.
+
 - **SchildiChat themes & message bubbles** — SchildiChat Light/Dark/Black themes and opt-in message bubbles (None / Both sides / Same side) with configurable corner roundness, an optional tail, and accent tinting of your own bubbles; timestamps shown inline in the bubble and overlaid on images/videos.
 
 - **SchildiChat layout & behaviour options** — a combined people+rooms Overview list, mark chats as read/unread (MSC2867) synced with compatible clients, URL previews in encrypted rooms, opening a room at its first unread message, jump-to-bottom when sending, remembered collapsed list sections, and showing/hiding space members as people.

@@ -512,6 +512,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/auth/data/ThreePidMedium.kt',
         'org/matrix/android/sdk/internal/auth/data/PasswordLoginParams.kt',
         'org/matrix/android/sdk/internal/auth/data/WebClientConfig.kt',
+        'org/matrix/android/sdk/internal/auth/data/WhoAmIResponse.kt',
         'org/matrix/android/sdk/internal/auth/data/TokenLoginParams.kt',
         'org/matrix/android/sdk/internal/auth/data/LoginParams.kt',
         'org/matrix/android/sdk/internal/auth/login/ResetPasswordData.kt',
@@ -1328,6 +1329,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/auth/SessionCreator.kt',
         'org/matrix/android/sdk/internal/auth/login/DefaultLoginWizard.kt',
         'org/matrix/android/sdk/internal/auth/login/DirectLoginTask.kt',
+        'org/matrix/android/sdk/internal/auth/login/DirectTokenLoginTask.kt',
         'org/matrix/android/sdk/internal/auth/login/QrLoginTokenTask.kt',
         'org/matrix/android/sdk/internal/auth/registration/DefaultRegistrationWizard.kt',
 ]

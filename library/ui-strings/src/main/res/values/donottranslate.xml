@@ -10,6 +10,14 @@
     <string name="account_switcher_server_unreachable_title" translatable="false">Server unreachable</string>
     <string name="account_switcher_server_unreachable_message" translatable="false">Could not contact the homeserver. Sign out locally anyway? Your session may remain active on the server.</string>
     <string name="account_switcher_sign_out_anyway" translatable="false">Sign out locally</string>
+
+    <string name="login_signin_token" translatable="false">Token Sign In</string>
+    <string name="login_signin_token_title" translatable="false">Sign in with an access token</string>
+    <string name="login_signin_token_hint" translatable="false">Access token</string>
+    <string name="login_signin_token_empty_error" translatable="false">Enter an access token</string>
+
+    <string name="action_sign_out_locally" translatable="false">Local sign out</string>
+    <string name="action_sign_out_locally_confirmation" translatable="false">Are you sure you want to locally sign out? This session will remain active on your homeserver until you remove it.</string>
     <string name="back" translatable="false">Back</string>
 
     <string name="attachment_type_selector_voice_file" translatable="false">Voice file</string>

@@ -154,6 +154,12 @@ class FtueAuthVariant(
                         FtueAuthSignUpSignInSelectionFragment::class.java,
                         option = commonOption
                 )
+            is OnboardingViewEvents.OpenAccessTokenLogin ->
+                activity.addFragmentToBackstack(
+                        views.loginFragmentContainer,
+                        FtueAuthAccessTokenFragment::class.java,
+                        option = commonOption
+                )
             is OnboardingViewEvents.OnWebLoginError -> onWebLoginError(viewEvents)
             is OnboardingViewEvents.OnForgetPasswordClicked ->
                 when {

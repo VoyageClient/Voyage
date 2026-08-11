@@ -26,6 +26,7 @@ import im.vector.app.features.login.SocialLoginButtonsView.Mode
 import im.vector.app.features.login.render
 import im.vector.app.features.onboarding.OnboardingAction
 import im.vector.app.features.onboarding.OnboardingFlow
+import im.vector.app.features.onboarding.OnboardingViewEvents
 import im.vector.app.features.onboarding.OnboardingViewState
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.auth.SSOAction
@@ -50,6 +51,9 @@ class FtueAuthSignUpSignInSelectionFragment :
     private fun setupViews() {
         views.loginSignupSigninSubmit.setOnClickListener { submit() }
         views.loginSignupSigninSignIn.setOnClickListener { signIn() }
+        views.loginSignupSigninToken.setOnClickListener {
+            viewModel.handle(OnboardingAction.PostViewEvent(OnboardingViewEvents.OpenAccessTokenLogin))
+        }
     }
 
     private fun render(state: OnboardingViewState) {

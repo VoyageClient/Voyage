@@ -140,6 +140,7 @@ class OnboardingViewModel @AssistedInject constructor(
             is OnboardingAction.UserNameEnteredAction -> handleUserNameEntered(action)
             is AuthenticateAction -> handleAuthenticateAction(action)
             is OnboardingAction.LoginWithToken -> handleLoginWithToken(action)
+            is OnboardingAction.LoginWithAccessToken -> handleLoginWithAccessToken(action)
             is OnboardingAction.WebLoginSuccess -> handleWebLoginSuccess(action)
             is OnboardingAction.ResetPassword -> handleResetPassword(action)
             OnboardingAction.ResendResetPassword -> handleResendResetPassword()
@@ -393,6 +394,9 @@ class OnboardingViewModel @AssistedInject constructor(
                     copy(
                             isLoading = false,
                             signMode = SignMode.Unknown,
+                            // onboardingFlow latches on the first sign-mode pick and is persisted;
+                            // leaving it set would silently reroute every later server selection.
+                            onboardingFlow = null,
                     )
                 }
             }
@@ -464,7 +468,10 @@ class OnboardingViewModel @AssistedInject constructor(
     private fun handleUpdateServerType(action: OnboardingAction.UpdateServerType) {
         setState {
             copy(
-                    serverType = action.serverType
+                    serverType = action.serverType,
+                    // Restarting server selection re-opens the sign up / sign in choice; a flow left
+                    // over from an earlier attempt would otherwise skip straight past it.
+                    onboardingFlow = null,
             )
         }
 
@@ -649,6 +656,24 @@ class OnboardingViewModel @AssistedInject constructor(
                 )
             }
             else -> state.personalizationState
+        }
+    }
+
+    private fun handleLoginWithAccessToken(action: OnboardingAction.LoginWithAccessToken) = withState { state ->
+        val homeServerConnectionConfig = homeServerConnectionConfigFactory.create(state.selectedHomeserver.upstreamUrl)
+        if (homeServerConnectionConfig == null) {
+            _viewEvents.post(OnboardingViewEvents.Failure(Throwable("Unable to create a HomeServerConnectionConfig")))
+        } else {
+            setState { copy(isLoading = true) }
+            currentJob = viewModelScope.launch {
+                try {
+                    val session = authenticationService.loginUsingAccessToken(homeServerConnectionConfig, action.accessToken)
+                    onSessionCreated(session, authenticationDescription = AuthenticationDescription.Login)
+                } catch (failure: Throwable) {
+                    setState { copy(isLoading = false) }
+                    _viewEvents.post(OnboardingViewEvents.Failure(failure))
+                }
+            }
         }
     }
 

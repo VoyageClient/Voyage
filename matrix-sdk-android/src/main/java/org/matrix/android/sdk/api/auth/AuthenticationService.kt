@@ -155,6 +155,17 @@ interface AuthenticationService {
     ): Session
 
     /**
+     * Create a session from an access token obtained elsewhere. The token is validated against
+     * /account/whoami, which also resolves the user and device it belongs to.
+     * @param homeServerConnectionConfig the information about the homeserver and other configuration
+     * @param accessToken the access token
+     */
+    suspend fun loginUsingAccessToken(
+            homeServerConnectionConfig: HomeServerConnectionConfig,
+            accessToken: String
+    ): Session
+
+    /**
      * Authenticate using m.login.token method during sign in with QR code.
      * @param homeServerConnectionConfig the information about the homeserver and other configuration
      * @param loginToken the m.login.token
