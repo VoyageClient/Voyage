@@ -35,6 +35,8 @@ android {
 
     kotlinOptions {
         jvmTarget = versions.jvmTarget
+        // jxl-coder is built with Kotlin 2.x; see vector/build.gradle.
+        freeCompilerArgs += ["-Xskip-metadata-version-check"]
     }
 }
 
@@ -44,6 +46,14 @@ dependencies {
     api libs.androidx.activity
     implementation libs.androidx.exifinterface
     implementation libs.androidx.core
+    // JPEG XL dimensions at pick time; BitmapFactory can't read it. minSdk 21, reached only through
+    // JxlSizeReader behind a version check.
+    implementation('io.github.awxkee:jxl-coder:2.5.2') {
+        exclude group: 'androidx.appcompat'
+        exclude group: 'androidx.core', module: 'core-ktx'
+        exclude group: 'com.google.android.material'
+        exclude group: 'org.jetbrains.kotlin'
+    }
 
     // Log
     implementation libs.jakewharton.timber

@@ -351,6 +351,12 @@ class ImageContentRenderer @Inject constructor(
                     .with(imageView)
                     .load(resolvedUrl)
         }
+                // Without a size this resolves to the view's, which is a different cache key from the
+                // pager's SIZE_ORIGINAL request that follows — decoding the same bytes twice. For an
+                // image no larger than the screen both decodes produce the same bitmap anyway, so ask
+                // for the same one and let the second load hit the memory cache. Bigger images keep
+                // the view-sized decode so the transition isn't held up by a full-resolution one.
+                .let { if (data.fitsOnScreen(imageView)) it.override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL) else it }
 
         req.listener(object : RequestListener<Drawable> {
             override fun onLoadFailed(
@@ -454,7 +460,10 @@ class ImageContentRenderer @Inject constructor(
         val blurHash = data.blurHash ?: return request
         val key = "${data.stableId}:$blurHash:${data.width}x${data.height}"
         val placeholder = synchronized(blurHashPlaceholders) {
-            blurHashPlaceholders.get(key)
+            // The fade-out transition marks the instance finished when the image lands, after which it
+            // draws nothing at all — re-arm it rather than replacing it, so a later slow load still has
+            // something to show without the swap counting as a new request.
+            blurHashPlaceholders.get(key)?.also { it.reset() }
                     ?: BlurHashDrawable.from(blurHash, data.width, data.height)?.also { blurHashPlaceholders.put(key, it) }
         } ?: return request
         return request.placeholder(placeholder)
@@ -479,6 +488,13 @@ class ImageContentRenderer @Inject constructor(
     }
 
     private fun Data.hasKnownDimensions(): Boolean = (width ?: 0) > 0 && (height ?: 0) > 0
+
+    private fun Data.fitsOnScreen(imageView: ImageView): Boolean {
+        val metrics = imageView.resources.displayMetrics
+        val w = width ?: return false
+        val h = height ?: return false
+        return w in 1..metrics.widthPixels && h in 1..metrics.heightPixels
+    }
 
     private fun processSize(data: Data, mode: Mode): Size {
         val maxImageWidth = data.maxWidth

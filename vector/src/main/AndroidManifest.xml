@@ -4,7 +4,7 @@
 
     <!-- ext-latex/jlatexmath declare minSdk 16, but they only touch API-1 graphics classes, so the
          override is safe down to our floor. -->
-    <uses-sdk tools:overrideLibrary="io.noties.markwon.ext.latex, ru.noties.jlatexmath.android" />
+    <uses-sdk tools:overrideLibrary="io.noties.markwon.ext.latex, ru.noties.jlatexmath.android, io.github.awxkee.jxlcoder, com.awxkee.jxlcoder.glide" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
