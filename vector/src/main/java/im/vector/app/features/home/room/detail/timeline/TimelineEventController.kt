@@ -533,10 +533,12 @@ class TimelineEventController @Inject constructor(
         }
         // Avoid displaying two loaders if there is no elements between them
         val showBackwardsLoader = !showingForwardLoader || timelineModels.isNotEmpty()
-        // We can hide the loader but still add the item to controller so it can trigger backwards pagination
+        // With events still unbuilt the list is shorter than what is loaded, so this loader must not request
+        // history the timeline hasn't rendered yet — but it still has to be ADDED, or the list just ends at
+        // the oldest built message and a scroll to the top stops there with no spinner and nothing above it.
         LoadingItem_()
                 .id("backward_loading_item_$timestamp")
-                .setVisibilityStateChangedListener(Timeline.Direction.BACKWARDS)
+                .setVisibilityStateChangedListener(Timeline.Direction.BACKWARDS, requestsMore = !hasUnbuiltEvents)
                 .showLoader(showBackwardsLoader)
                 .addWhenLoading(Timeline.Direction.BACKWARDS)
     }
@@ -1023,10 +1025,10 @@ class TimelineEventController @Inject constructor(
         return DaySeparatorItem_().formattedDay(formattedDay).id(formattedDay)
     }
 
-    private fun LoadingItem_.setVisibilityStateChangedListener(direction: Timeline.Direction): LoadingItem_ {
+    private fun LoadingItem_.setVisibilityStateChangedListener(direction: Timeline.Direction, requestsMore: Boolean = true): LoadingItem_ {
         val host = this@TimelineEventController
         return onVisibilityStateChanged { _, _, visibilityState ->
-            if (visibilityState == VisibilityState.VISIBLE) {
+            if (requestsMore && visibilityState == VisibilityState.VISIBLE) {
                 host.callback?.onLoadMore(direction)
             }
         }
@@ -1069,10 +1071,7 @@ class TimelineEventController @Inject constructor(
      */
     private fun LoadingItem_.addWhenLoading(direction: Timeline.Direction): Boolean {
         val host = this@TimelineEventController
-        // With events still unbuilt the list is shorter than what is loaded, so this loader would sit on
-        // screen requesting history the timeline hasn't rendered yet.
-        val shouldAdd = (host.timeline?.hasMoreToLoad(direction) ?: false) &&
-                !(direction == Timeline.Direction.BACKWARDS && host.hasUnbuiltEvents)
+        val shouldAdd = host.timeline?.hasMoreToLoad(direction) ?: false
         addIf(shouldAdd, host)
         return shouldAdd
     }
