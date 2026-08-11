@@ -93,7 +93,7 @@ object ThemeUtils {
             val prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
             var themeFromPref = prefs.getString(APPLICATION_THEME_KEY, DEFAULT_THEME) ?: DEFAULT_THEME
             if (themeFromPref == SYSTEM_THEME_VALUE || themeFromPref == "status") {
-                // Legacy "system"/"status" theme no longer exists: fall back to the light theme.
+                // Legacy "system"/"status" theme no longer exists: fall back to the default theme.
                 themeFromPref = DEFAULT_THEME
                 prefs.edit { putString(APPLICATION_THEME_KEY, DEFAULT_THEME) }
             }

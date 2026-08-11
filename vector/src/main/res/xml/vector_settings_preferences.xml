@@ -117,7 +117,7 @@
     <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_category_composer">
 
         <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="SETTINGS_ENABLE_MARKDOWN_KEY"
             android:summary="@string/settings_send_markdown_summary"
             android:title="@string/settings_send_markdown" />
@@ -129,7 +129,7 @@
             android:title="@string/settings_send_read_receipts" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="SETTINGS_SEND_TYPING_NOTIF_KEY"
             android:summary="@string/settings_send_typing_notifs_summary"
             android:title="@string/settings_send_typing_notifs" />
@@ -194,7 +194,7 @@
             android:title="@string/settings_override_dm_display_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="SETTINGS_COMPACT_QUICK_REACTIONS_KEY"
             android:summary="@string/settings_compact_quick_reactions_summary"
             android:title="@string/settings_compact_quick_reactions" />
