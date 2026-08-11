@@ -36,6 +36,7 @@ sealed interface OnboardingAction : VectorViewModelAction {
     object ResetUseCase : OnboardingAction
     data class UpdateSignMode(val signMode: SignMode) : OnboardingAction
     data class LoginWithToken(val loginToken: String) : OnboardingAction
+    data class LoginWithAccessToken(val accessToken: String) : OnboardingAction
     data class WebLoginSuccess(val credentials: Credentials) : OnboardingAction
     data class InitWith(val loginConfig: LoginConfig?) : OnboardingAction
     data class ResetPassword(val email: String, val newPassword: String?) : OnboardingAction

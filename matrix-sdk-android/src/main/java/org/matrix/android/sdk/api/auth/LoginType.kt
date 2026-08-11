@@ -22,6 +22,7 @@ enum class LoginType {
     UNSUPPORTED,
     CUSTOM,
     DIRECT,
+    TOKEN,
     UNKNOWN,
     QR;
 
@@ -33,6 +34,7 @@ enum class LoginType {
             UNSUPPORTED.name -> UNSUPPORTED
             CUSTOM.name -> CUSTOM
             DIRECT.name -> DIRECT
+            TOKEN.name -> TOKEN
             QR.name -> QR
             else -> UNKNOWN
         }

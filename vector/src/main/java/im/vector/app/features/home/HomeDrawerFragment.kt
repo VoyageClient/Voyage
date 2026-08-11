@@ -110,6 +110,11 @@ class HomeDrawerFragment :
             sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
             SignOutUiWorker(requireActivity()).perform()
         }
+        views.homeDrawerHeaderSignoutView.setOnLongClickListener {
+            sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
+            SignOutUiWorker(requireActivity()).perform(localOnly = true)
+            true
+        }
 
         setupAccountSwitcher()
 
@@ -158,6 +163,7 @@ class HomeDrawerFragment :
                 accountInfoCache = accountInfoCache,
                 onAccountClick = { entry -> onAccountClicked(entry) },
                 onLogoutClick = { entry -> confirmLogout(entry) },
+                onLogoutLongClick = { entry -> confirmLocalLogout(entry) },
                 onAddAccountClick = { onAddAccountClicked() },
         )
         views.homeDrawerAccountList.layoutManager = LinearLayoutManager(requireContext())
@@ -233,6 +239,20 @@ class HomeDrawerFragment :
                 .setTitle(CommonStrings.action_sign_out)
                 .setMessage(getString(CommonStrings.action_sign_out_confirmation_simple))
                 .setPositiveButton(CommonStrings.action_sign_out) { _, _ -> performLogout(entry) }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
+    }
+
+    private fun confirmLocalLogout(entry: AccountSwitcherEntry) {
+        MaterialAlertDialogBuilder(requireActivity())
+                .setTitle(CommonStrings.action_sign_out_locally)
+                .setMessage(getString(CommonStrings.action_sign_out_locally_confirmation))
+                .setPositiveButton(CommonStrings.action_sign_out_locally) { _, _ ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        logoutAccountUseCase.forceLocalSignOut(entry.sessionId)
+                        refreshAccountList()
+                    }
+                }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
     }

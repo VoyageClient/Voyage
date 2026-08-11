@@ -49,6 +49,7 @@ class AccountSwitcherAdapter(
         private val accountInfoCache: AccountInfoCache,
         private val onAccountClick: (AccountSwitcherEntry) -> Unit,
         private val onLogoutClick: (AccountSwitcherEntry) -> Unit,
+        private val onLogoutLongClick: (AccountSwitcherEntry) -> Unit,
         private val onAddAccountClick: () -> Unit,
 ) : ListAdapter<AccountSwitcherAdapter.Item, RecyclerView.ViewHolder>(DIFF) {
 
@@ -116,6 +117,10 @@ class AccountSwitcherAdapter(
             logout.isVisible = !entry.isActive
             itemView.throttledClicks { onAccountClick(entry) }
             logout.throttledClicks { onLogoutClick(entry) }
+            logout.setOnLongClickListener {
+                onLogoutLongClick(entry)
+                true
+            }
         }
     }
 

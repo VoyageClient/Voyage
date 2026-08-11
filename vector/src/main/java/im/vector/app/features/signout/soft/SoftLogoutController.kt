@@ -146,6 +146,7 @@ class SoftLogoutController @Inject constructor(
             LoginType.DIRECT,
             LoginType.CUSTOM,
             LoginType.QR,
+            LoginType.TOKEN,
             LoginType.UNSUPPORTED -> buildLoginUnsupportedForm()
             LoginType.UNKNOWN -> Unit
         }

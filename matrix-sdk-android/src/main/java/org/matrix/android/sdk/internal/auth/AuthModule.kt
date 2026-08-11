@@ -26,8 +26,10 @@ import org.matrix.android.sdk.internal.auth.db.AuthSqlDatabase
 import org.matrix.android.sdk.internal.auth.db.SqlPendingSessionStore
 import org.matrix.android.sdk.internal.auth.db.SqlSessionParamsStore
 import org.matrix.android.sdk.internal.auth.login.DefaultDirectLoginTask
+import org.matrix.android.sdk.internal.auth.login.DefaultDirectTokenLoginTask
 import org.matrix.android.sdk.internal.auth.login.DefaultQrLoginTokenTask
 import org.matrix.android.sdk.internal.auth.login.DirectLoginTask
+import org.matrix.android.sdk.internal.auth.login.DirectTokenLoginTask
 import org.matrix.android.sdk.internal.auth.login.QrLoginTokenTask
 import org.matrix.android.sdk.internal.database.sqldelight.SqlDriverFactory
 import org.matrix.android.sdk.internal.database.sqldelight.newDatabaseDispatcher
@@ -74,6 +76,9 @@ internal abstract class AuthModule {
 
     @Binds
     abstract fun bindDirectLoginTask(task: DefaultDirectLoginTask): DirectLoginTask
+
+    @Binds
+    abstract fun bindDirectTokenLoginTask(task: DefaultDirectTokenLoginTask): DirectTokenLoginTask
 
     @Binds
     abstract fun bindIsValidClientServerApiTask(task: DefaultIsValidClientServerApiTask): IsValidClientServerApiTask

@@ -529,13 +529,23 @@ class VectorSettingsGeneralFragment :
             }
         }
         // Sign out
-        findPreference<VectorPreference>("SETTINGS_SIGN_OUT_KEY")!!
-                .onPreferenceClickListener = Preference.OnPreferenceClickListener {
-            activity?.let {
-                SignOutUiWorker(requireActivity()).perform()
-            }
+        findPreference<VectorPreference>("SETTINGS_SIGN_OUT_KEY")!!.let { signOutPref ->
+            signOutPref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                activity?.let {
+                    SignOutUiWorker(requireActivity()).perform()
+                }
 
-            false
+                false
+            }
+            signOutPref.onPreferenceLongClickListener = object : VectorPreference.OnPreferenceLongClickListener {
+                override fun onPreferenceLongClick(preference: Preference): Boolean {
+                    activity?.let {
+                        SignOutUiWorker(requireActivity()).perform(localOnly = true)
+                    }
+
+                    return true
+                }
+            }
         }
         // Account deactivation is visible only if account is not managed by an external URL.
         mDeactivateAccountCategory.isVisible = homeServerCapabilities.delegatedOidcAuthEnabled.not()

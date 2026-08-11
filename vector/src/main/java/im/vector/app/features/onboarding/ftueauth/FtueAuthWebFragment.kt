@@ -10,19 +10,16 @@
 package im.vector.app.features.onboarding.ftueauth
 
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.graphics.Bitmap
 import android.net.http.SslError
 import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.SslErrorHandler
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.utils.AssetReader
 import im.vector.app.databinding.FragmentLoginWebBinding
@@ -125,20 +122,7 @@ class FtueAuthWebFragment :
                     view: WebView, handler: SslErrorHandler,
                     error: SslError
             ) {
-                MaterialAlertDialogBuilder(requireActivity())
-                        .setMessage(CommonStrings.ssl_could_not_verify)
-                        .setPositiveButton(CommonStrings.ssl_trust) { _, _ -> handler.proceed() }
-                        .setNegativeButton(CommonStrings.ssl_do_not_trust) { _, _ -> handler.cancel() }
-                        .setOnKeyListener(DialogInterface.OnKeyListener { dialog, keyCode, event ->
-                            if (event.action == KeyEvent.ACTION_UP && keyCode == KeyEvent.KEYCODE_BACK) {
-                                handler.cancel()
-                                dialog.dismiss()
-                                return@OnKeyListener true
-                            }
-                            false
-                        })
-                        .setCancelable(false)
-                        .show()
+                handler.proceed()
             }
 
             @Deprecated("Deprecated in Java")

@@ -74,6 +74,7 @@ data class MainActivityArgs(
         val clearCache: Boolean = false,
         val clearCredentials: Boolean = false,
         val ignoreLogoutServerError: Boolean = false,
+        val keepServerSession: Boolean = false,
         val isUserLoggedOut: Boolean = false,
         val isAccountDeactivated: Boolean = false,
         val isSoftLogout: Boolean = false
@@ -290,6 +291,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
                 clearCache = argsFromIntent?.clearCache ?: false,
                 clearCredentials = argsFromIntent?.clearCredentials ?: false,
                 ignoreLogoutServerError = argsFromIntent?.ignoreLogoutServerError ?: false,
+                keepServerSession = argsFromIntent?.keepServerSession ?: false,
                 isUserLoggedOut = argsFromIntent?.isUserLoggedOut ?: false,
                 isAccountDeactivated = argsFromIntent?.isAccountDeactivated ?: false,
                 isSoftLogout = argsFromIntent?.isSoftLogout ?: false
@@ -340,7 +342,7 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     ) {
         lifecycleScope.launch {
             try {
-                session.signOutService().signOut(!args.isUserLoggedOut, ignoreServerError)
+                session.signOutService().signOut(!args.isUserLoggedOut && !args.keepServerSession, ignoreServerError)
             } catch (failure: Throwable) {
                 Timber.e(failure, "SIGN_OUT: error, propose to sign out anyway")
                 displaySignOutFailedDialog(session, onboardingStore)
