@@ -198,14 +198,13 @@ class HomeRoomListViewModel @AssistedInject constructor(
     }
 
     private fun observeInvites() {
-        session.flow()
-                .liveRoomSummaries(
+        session.roomService()
+                .getRoomCountFlow(
                         roomSummaryQueryParams {
                             memberships = listOf(Membership.INVITE)
-                        },
-                        RoomSortOrder.ACTIVITY
-                ).onEach { list ->
-                    setState { copy(headersData = headersData.copy(invitesCount = list.size)) }
+                        }
+                ).onEach { count ->
+                    setState { copy(headersData = headersData.copy(invitesCount = count)) }
                 }.launchIn(viewModelScope)
     }
 
@@ -262,29 +261,27 @@ class HomeRoomListViewModel @AssistedInject constructor(
                 }
         val favouritesFlow =
                 spaceFLow.flatMapLatest { selectedSpace ->
-                    session.flow()
-                            .liveRoomSummaries(
-                                    RoomSummaryQueryParams.Builder().also { builder ->
-                                        builder.spaceFilter = selectedSpace.orNull()?.roomId.toActiveSpaceOrNoFilter()
-                                        builder.roomTagQueryFilter = RoomTagQueryFilter(true, null, null)
-                                    }.build()
-                            )
+                    session.roomService().getRoomCountFlow(
+                            RoomSummaryQueryParams.Builder().also { builder ->
+                                builder.spaceFilter = selectedSpace.orNull()?.roomId.toActiveSpaceOrNoFilter()
+                                builder.roomTagQueryFilter = RoomTagQueryFilter(true, null, null)
+                            }.build()
+                    )
                 }
-                        .map { it.isNotEmpty() }
+                        .map { it > 0 }
                         .distinctUntilChanged()
 
         val dmsFLow =
                 spaceFLow.flatMapLatest { selectedSpace ->
-                    session.flow()
-                            .liveRoomSummaries(
-                                    RoomSummaryQueryParams.Builder().also { builder ->
-                                        builder.spaceFilter = selectedSpace.orNull()?.roomId.toActiveSpaceOrNoFilter()
-                                        builder.memberships = listOf(Membership.JOIN)
-                                        builder.roomCategoryFilter = RoomCategoryFilter.ONLY_DM
-                                    }.build()
-                            )
+                    session.roomService().getRoomCountFlow(
+                            RoomSummaryQueryParams.Builder().also { builder ->
+                                builder.spaceFilter = selectedSpace.orNull()?.roomId.toActiveSpaceOrNoFilter()
+                                builder.memberships = listOf(Membership.JOIN)
+                                builder.roomCategoryFilter = RoomCategoryFilter.ONLY_DM
+                            }.build()
+                    )
                 }
-                        .map { it.isNotEmpty() }
+                        .map { it > 0 }
                         .distinctUntilChanged()
 
         return combine(favouritesFlow, dmsFLow) { hasFavourite, hasDm ->

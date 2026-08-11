@@ -7,7 +7,6 @@
 
 package im.vector.app.features.spaces.notification
 
-import androidx.lifecycle.asFlow
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.invite.AutoAcceptInvites
 import kotlinx.coroutines.flow.Flow
@@ -16,8 +15,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.sample
 import org.matrix.android.sdk.api.query.SpaceFilter
-import org.matrix.android.sdk.api.session.room.RoomPagingService
-import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
@@ -35,9 +32,8 @@ class GetNotificationCountForSpacesUseCase @Inject constructor(
             this.memberships = listOf(Membership.JOIN)
             this.spaceFilter = spaceFilter
         }
-        return (session?.roomService() as? RoomPagingService)
-                ?.getPagedRoomSummariesLive(queryParams = spaceQueryParams, sortOrder = RoomSortOrder.NONE)
-                ?.asFlow()
+        return session?.roomService()
+                ?.getRoomSummaryUpdateFlow()
                 ?.sample(300)
                 ?.mapLatest {
                     val inviteCount = if (autoAcceptInvites.hideInvites) {
@@ -53,7 +49,7 @@ class GetNotificationCountForSpacesUseCase @Inject constructor(
                             highlightCount = totalCount.highlightCount + inviteCount,
                     )
                 }
-                ?.flowOn(session.coroutineDispatchers.main)
+                ?.flowOn(session.coroutineDispatchers.computation)
                 ?: emptyFlow()
     }
 }

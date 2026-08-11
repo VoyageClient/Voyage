@@ -66,7 +66,6 @@ import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSourc
 import org.matrix.android.sdk.internal.session.room.summary.SyncWatchedRoomSummariesTask
 import org.matrix.android.sdk.internal.session.room.summary.getAllRoomSummaryChildOfLive
 import org.matrix.android.sdk.internal.session.room.summary.getFlattenOrphanRoomsLive
-import org.matrix.android.sdk.internal.session.room.summary.getRoomSummariesChangesLive
 import org.matrix.android.sdk.internal.session.room.summary.getSortedPagedRoomSummariesLive
 import org.matrix.android.sdk.internal.session.room.summary.getUpdatablePagedRoomSummariesLive
 import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
@@ -201,18 +200,16 @@ internal class DefaultRoomService @Inject constructor(
         return roomSummaryDataSource.getSortedPagedRoomSummariesLive(queryParams, pagedListConfig, sortOrder)
     }
 
-    override fun roomSummariesChangesLive(
-            queryParams: RoomSummaryQueryParams,
-            sortOrder: RoomSortOrder): LiveData<List<Unit>> {
-        return roomSummaryDataSource.getRoomSummariesChangesLive(queryParams, sortOrder)
-    }
-
     override fun getFilteredPagedRoomSummariesLive(
             queryParams: RoomSummaryQueryParams,
             pagedListConfig: PagedList.Config,
             sortOrder: RoomSortOrder,
     ): UpdatableLivePageResult {
         return roomSummaryDataSource.getUpdatablePagedRoomSummariesLive(queryParams, pagedListConfig, sortOrder)
+    }
+
+    override fun getRoomSummaryUpdateFlow(): Flow<Unit> {
+        return roomSummaryDataSource.getRoomSummaryUpdateFlow()
     }
 
     override fun getRoomCountFlow(queryParams: RoomSummaryQueryParams): Flow<Int> {

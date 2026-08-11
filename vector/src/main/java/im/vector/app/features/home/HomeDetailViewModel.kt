@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home
 
-import androidx.lifecycle.asFlow
 import com.airbnb.mvrx.MavericksViewModelFactory
 import com.airbnb.mvrx.ViewModelContext
 import dagger.assisted.Assisted
@@ -36,8 +35,6 @@ import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.query.toActiveSpaceOrOrphanRooms
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.NewSessionListener
-import org.matrix.android.sdk.api.session.room.RoomPagingService
-import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.sync.SyncRequestState
@@ -190,14 +187,9 @@ class HomeDetailViewModel @AssistedInject constructor(
 
     private fun observeRoomSummaries() {
         spaceStateHandler.getSelectedSpaceFlow().distinctUntilChanged().flatMapLatest {
-            // we use it as a trigger to all changes in room, but do not really load
-            // the actual models
-            (session.roomService() as RoomPagingService).getPagedRoomSummariesLive(
-                    roomSummaryQueryParams {
-                        memberships = Membership.activeMemberships()
-                    },
-                    sortOrder = RoomSortOrder.NONE
-            ).asFlow()
+            // Only a trigger — the counts below load what they need. A paged summary list here mapped every
+            // room on every sync, and observing it forever kept that running while the room list was hidden.
+            session.roomService().getRoomSummaryUpdateFlow()
         }
                 .throttleFirst(300)
                 .onEach {

@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home
 
-import androidx.lifecycle.asFlow
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.MavericksViewModelFactory
 import dagger.assisted.Assisted
@@ -29,8 +28,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import org.matrix.android.sdk.api.query.SpaceFilter
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.room.RoomPagingService
-import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.spaceSummaryQueryParams
@@ -67,12 +64,7 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
     private val roomService = session.roomService()
 
     init {
-        (roomService as RoomPagingService).roomSummariesChangesLive(
-                roomSummaryQueryParams {
-                    this.memberships = listOf(Membership.JOIN)
-                    this.spaceFilter = SpaceFilter.OrphanRooms
-                }, sortOrder = RoomSortOrder.NONE
-        ).asFlow()
+        roomService.getRoomSummaryUpdateFlow()
                 .throttleFirst(300)
                 .execute {
                     val counts = roomService.getNotificationCountForRooms(
@@ -103,12 +95,7 @@ class UnreadMessagesSharedViewModel @AssistedInject constructor(
         combine(
                 spaceStateHandler.getSelectedSpaceFlow().distinctUntilChanged(),
                 spaceStateHandler.getSelectedSpaceFlow().flatMapLatest {
-                    (roomService as RoomPagingService).roomSummariesChangesLive(
-                            roomSummaryQueryParams {
-                                this.memberships = Membership.activeMemberships()
-                            }, sortOrder = RoomSortOrder.NONE
-                    ).asFlow()
-                            .throttleFirst(300)
+                    roomService.getRoomSummaryUpdateFlow().throttleFirst(300)
                 }
         ) { selectedSpaceOption, _ ->
             val selectedSpace = selectedSpaceOption.orNull()?.roomId

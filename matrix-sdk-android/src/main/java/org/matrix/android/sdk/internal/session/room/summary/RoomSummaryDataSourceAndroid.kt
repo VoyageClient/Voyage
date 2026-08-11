@@ -39,12 +39,6 @@ internal fun RoomSummaryDataSource.getRoomSummariesLive(
 ): LiveData<List<RoomSummary>> =
         flowOnRoomSummaryChange { filteredSortedSummaries(queryParams, sortOrder) }.asLiveData()
 
-internal fun RoomSummaryDataSource.getRoomSummariesChangesLive(
-        queryParams: RoomSummaryQueryParams,
-        sortOrder: RoomSortOrder = RoomSortOrder.NONE
-): LiveData<List<Unit>> =
-        flowOnRoomSummaryChange { filteredSortedRows(queryParams, sortOrder).map { } }.asLiveData()
-
 internal fun RoomSummaryDataSource.getSpaceSummaryLive(roomId: String): LiveData<Optional<RoomSummary>> =
         queries.selectByRoomId(roomId).asLiveList(dispatcher).map { rows ->
             rows.firstOrNull { !it.display_name.isNullOrEmpty() && it.room_type == RoomType.SPACE }?.let { rowToDomain(it) }.toOptional()

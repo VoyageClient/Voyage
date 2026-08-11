@@ -169,6 +169,13 @@ interface RoomService {
     ): Flow<List<RoomSummary>>
 
     /**
+     * Emits every time any room summary changes, carrying no data. For observers that maintain their own
+     * derived view (counts, badges) and only need to know *when* to recompute — unlike the summary flows,
+     * this costs nothing per emission.
+     */
+    fun getRoomSummaryUpdateFlow(): Flow<Unit>
+
+    /**
      * Get a snapshot list of Breadcrumbs.
      * @param queryParams parameters to query the room summaries. It can be use to keep only joined rooms, for instance.
      * @return the immutable list of [RoomSummary]
