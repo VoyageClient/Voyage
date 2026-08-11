@@ -8,6 +8,7 @@
 package org.matrix.android.sdk.internal.session.content
 
 import android.graphics.Bitmap
+import com.awxkee.jxlcoder.JxlAnimatedImage
 import com.awxkee.jxlcoder.JxlCoder
 import com.awxkee.jxlcoder.JxlResizeFilter
 import com.awxkee.jxlcoder.JxlToneMapper
@@ -27,6 +28,22 @@ internal object JxlImageReader {
             JxlCoder.getSize(file.readBytes())?.let { it.width to it.height }
         } catch (t: Throwable) {
             Timber.w(t, "Unable to read JPEG XL dimensions")
+            null
+        }
+    }
+
+    /** Frame count, or null if the file can't be opened. 1 for a still image. */
+    fun frameCount(file: File): Int? {
+        return try {
+            JxlAnimatedImage(
+                    file.readBytes(),
+                    PreferredColorConfig.DEFAULT,
+                    ScaleMode.FIT,
+                    JxlResizeFilter.BILINEAR,
+                    JxlToneMapper.REC2408,
+            ).use { it.numberOfFrames }
+        } catch (t: Throwable) {
+            Timber.w(t, "Unable to read JPEG XL frame count")
             null
         }
     }

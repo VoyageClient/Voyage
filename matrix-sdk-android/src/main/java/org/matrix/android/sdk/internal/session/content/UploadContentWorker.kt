@@ -301,8 +301,9 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 // MSC4230: sniff the bytes we are actually about to upload, so a compression pass that
                 // flattened or re-encoded the animation is reflected rather than the original's format.
                 if (attachment.type == ContentAttachmentData.Type.IMAGE) {
+                    val format = sniffImageFormat(fileToUpload)
                     newAttachmentAttributes = newAttachmentAttributes.copy(
-                            newIsAnimated = sniffImageFormat(fileToUpload).isAnimated()
+                            newIsAnimated = format.isAnimated() ?: animatedJxl(format, fileToUpload)
                     )
                 }
 
@@ -531,6 +532,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 newFileSize = file.length(),
                 newMimeType = mimeType,
         )
+    }
+
+    /** The JPEG XL signature alone doesn't say, but the frame count does. */
+    private fun animatedJxl(format: ImageSourceFormat, file: File): Boolean? {
+        if (format != ImageSourceFormat.JXL || !JxlSupport.isAvailable) return null
+        return JxlImageReader.frameCount(file)?.let { it > 1 }
     }
 
     private fun measureUndecodableImage(file: File): Pair<Int, Int>? {

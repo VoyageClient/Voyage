@@ -8,12 +8,16 @@
 package im.vector.app.core.glide
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Build
+import com.awxkee.jxlcoder.JxlAnimatedImage
 import com.awxkee.jxlcoder.JxlCoder
 import com.awxkee.jxlcoder.JxlResizeFilter
 import com.awxkee.jxlcoder.JxlToneMapper
 import com.awxkee.jxlcoder.PreferredColorConfig
 import com.awxkee.jxlcoder.ScaleMode
+import com.awxkee.jxlcoder.animation.AnimatedDrawable
+import com.awxkee.jxlcoder.animation.JxlAnimatedStore
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
@@ -28,7 +32,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.sqrt
 
-private const val MAGIC_PEEK_BYTES = 12
+internal const val JXL_MAGIC_PEEK_BYTES = 12
 
 /**
  * Decoding entry points for JPEG XL. We register these instead of the jxl-coder-glide plugin, which
@@ -40,7 +44,7 @@ internal object JxlBitmaps {
 
     /** Decodes to at most [maxPixels] total pixels, preserving aspect. Null if the bytes aren't JXL. */
     fun decodeBounded(bytes: ByteArray, maxPixels: Int): Bitmap? {
-        if (!JxlHeader.isJxl(bytes, minOf(MAGIC_PEEK_BYTES, bytes.size))) return null
+        if (!JxlHeader.isJxl(bytes, minOf(JXL_MAGIC_PEEK_BYTES, bytes.size))) return null
         val size = readSize(bytes) ?: return null
         val pixels = size.first.toLong() * size.second
         val scale = if (pixels > maxPixels) sqrt(maxPixels.toDouble() / pixels).toFloat() else 1f
@@ -53,6 +57,40 @@ internal object JxlBitmaps {
         val (targetWidth, targetHeight) = targetSize(srcWidth, srcHeight, requestedWidth, requestedHeight)
         return decode(bytes, targetWidth, targetHeight, preferredColorConfig(options))
     }
+
+    /** Frame count, or null if the bytes can't be opened as JPEG XL. 1 for a still image. */
+    fun frameCount(bytes: ByteArray): Int? {
+        return try {
+            openAnimation(bytes).use { it.numberOfFrames }
+        } catch (t: Throwable) {
+            Timber.w(t, "Unable to read JPEG XL frame count")
+            null
+        }
+    }
+
+    /**
+     * A drawable over its own decoder, so several targets showing the same animation each keep their
+     * own frame state. Frames are pulled lazily, bounded by the requested box. The decoder is owned
+     * by the drawable and outlives this call, so it is deliberately not closed here.
+     */
+    fun animatedDrawable(bytes: ByteArray, requestedWidth: Int, requestedHeight: Int): Drawable? {
+        return try {
+            val animation = openAnimation(bytes)
+            val (targetWidth, targetHeight) = targetSize(animation.getWidth(), animation.getHeight(), requestedWidth, requestedHeight)
+            AnimatedDrawable(JxlAnimatedStore(animation, targetWidth, targetHeight))
+        } catch (t: Throwable) {
+            Timber.w(t, "Unable to open JPEG XL animation")
+            null
+        }
+    }
+
+    private fun openAnimation(bytes: ByteArray) = JxlAnimatedImage(
+            bytes,
+            PreferredColorConfig.DEFAULT,
+            ScaleMode.FIT,
+            JxlResizeFilter.BILINEAR,
+            JxlToneMapper.REC2408,
+    )
 
     private fun decode(bytes: ByteArray, width: Int, height: Int, colorConfig: PreferredColorConfig): Bitmap? {
         return try {
@@ -109,7 +147,7 @@ internal object JxlHeader {
         // Bare codestream.
         if (length >= 2 && head[0] == 0xFF.toByte() && head[1] == 0x0A.toByte()) return true
         // ISOBMFF container: a 12-byte JXL signature box.
-        return length >= MAGIC_PEEK_BYTES &&
+        return length >= JXL_MAGIC_PEEK_BYTES &&
                 head[0] == 0x00.toByte() && head[1] == 0x00.toByte() &&
                 head[2] == 0x00.toByte() && head[3] == 0x0C.toByte() &&
                 head[4] == 'J'.code.toByte() && head[5] == 'X'.code.toByte() &&
@@ -122,7 +160,7 @@ internal object JxlHeader {
 internal class JxlByteBufferBitmapDecoder(private val bitmapPool: BitmapPool) : ResourceDecoder<ByteBuffer, Bitmap> {
 
     override fun handles(source: ByteBuffer, options: Options): Boolean {
-        val length = minOf(MAGIC_PEEK_BYTES, source.remaining())
+        val length = minOf(JXL_MAGIC_PEEK_BYTES, source.remaining())
         val head = ByteArray(length)
         source.duplicate().get(head, 0, length)
         return JxlHeader.isJxl(head, length)
@@ -140,8 +178,8 @@ internal class JxlStreamBitmapDecoder(private val bitmapPool: BitmapPool) : Reso
 
     override fun handles(source: InputStream, options: Options): Boolean {
         if (!source.markSupported()) return false
-        source.mark(MAGIC_PEEK_BYTES)
-        val head = ByteArray(MAGIC_PEEK_BYTES)
+        source.mark(JXL_MAGIC_PEEK_BYTES)
+        val head = ByteArray(JXL_MAGIC_PEEK_BYTES)
         val length = try {
             source.read(head)
         } finally {
