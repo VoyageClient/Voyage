@@ -138,7 +138,9 @@ class RoomSettingsViewModel @AssistedInject constructor(
                 .onEach { roomPowerLevels ->
                     val permissions = RoomSettingsViewState.ActionPermissions(
                             canChangeAvatar = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_AVATAR),
-                            canChangeBanner = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_BANNER.unstable),
+                            canChangeBanner = EventType.STATE_ROOM_BANNER.values.any {
+                                roomPowerLevels.isUserAllowedToSend(session.myUserId, true, it)
+                            },
                             canChangeName = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_NAME),
                             canChangeTopic = roomPowerLevels.isUserAllowedToSend(session.myUserId, true, EventType.STATE_ROOM_TOPIC),
                             canChangeHistoryVisibility = roomPowerLevels.isUserAllowedToSend(

@@ -77,6 +77,25 @@ private fun isEmojiRelatedCodePoint(cp: Int): Boolean {
 }
 
 /**
+ * Length in chars of the emoji run at the start of the text, including the joiners, modifiers and
+ * variation selectors that make up multi-code-point sequences, and keycaps such as 1️⃣. Whitespace
+ * ends the run; 0 when the text doesn't start with an emoji.
+ */
+fun CharSequence.leadingEmojiRunLength(): Int {
+    var i = 0
+    while (i < length) {
+        val cp = Character.codePointAt(this, i)
+        val next = i + Character.charCount(cp)
+        // A keycap's base is a plain digit / # / *, so it only counts as emoji with its suffix attached.
+        val isKeycapBase = (cp in '0'.code..'9'.code || cp == '#'.code || cp == '*'.code) &&
+                next < length && Character.codePointAt(this, next).let { it == 0xFE0F || it == 0x20E3 }
+        if (!isKeycapBase && (Character.isWhitespace(cp) || !isEmojiRelatedCodePoint(cp))) break
+        i = next
+    }
+    return i
+}
+
+/**
  * Same as split, but considering emojis.
  */
 fun CharSequence.splitEmoji(): List<CharSequence> {

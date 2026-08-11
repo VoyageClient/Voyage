@@ -36,7 +36,6 @@ import org.matrix.android.sdk.internal.database.sqldelight.awaitNotEmptyResult
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
-import org.matrix.android.sdk.internal.session.profile.ProfileBannerPropagator
 import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.read.SetReadMarkersTask
@@ -66,7 +65,6 @@ internal class DefaultJoinRoomTask @Inject constructor(
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val globalErrorReceiver: GlobalErrorReceiver,
         private val clock: Clock,
-        private val profileBannerPropagator: ProfileBannerPropagator,
         private val cryptoService: CryptoService,
         private val cryptoCoroutineScope: CoroutineScope,
 ) : JoinRoomTask {
@@ -114,7 +112,6 @@ internal class DefaultJoinRoomTask @Inject constructor(
             stores.roomSummary.updateLastActivityTime(roomId, clock.epochMillis())
         }
         setReadMarkers(roomId)
-        profileBannerPropagator.stampBannerOnJoin(roomId)
         // MSC4268 key import can be slow and can fail; the join has already succeeded either way.
         inviter?.let {
             cryptoCoroutineScope.launch(coroutineDispatcher.io) {

@@ -47,7 +47,6 @@ import org.matrix.android.sdk.api.session.room.members.roomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomEncryptionAlgorithm
-import org.matrix.android.sdk.api.session.room.model.RoomMemberContent
 import org.matrix.android.sdk.api.session.room.model.RoomType
 import org.matrix.android.sdk.api.session.room.powerlevels.Role
 import org.matrix.android.sdk.api.session.room.powerlevels.UserPowerLevel
@@ -124,10 +123,9 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     userPowerLevelString = initialUserPowerLevelString?.let { Success(it) } ?: Uninitialized,
                     asyncMembership = initialRoomMember?.membership?.let { Success(it) } ?: Uninitialized,
                     // Seeded synchronously so the banner doesn't pop in a frame late
-                    memberBannerUrl = room?.stateService()
-                            ?.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(initialState.userId))
-                            ?.content?.toModel<RoomMemberContent>()?.bannerUrl,
                     globalBannerUrl = session.profileService().getCachedBannerUrl(initialState.userId),
+                    status = session.profileService().getCachedStatus(initialState.userId),
+                    bio = session.profileService().getCachedBio(initialState.userId),
                     profileFieldsLine = cachedProfileFieldsLine(),
             )
         }
@@ -147,8 +145,7 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                 setState { copy(showAsMember = true) }
                 observeRoomMemberSummary(room)
                 observeRoomSummaryAndPowerLevels(room)
-                observeMemberBanner(room)
-                fetchGlobalBanner()
+                fetchGlobalProfile()
             }
         }
 
@@ -408,23 +405,27 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
                     userMatrixItem = Success(item),
                     // On fetch failure keep the seeded cache value rather than blanking the banner
                     globalBannerUrl = if (profile != null) profile.bannerUrl() else globalBannerUrl,
+                    profileJson = profile ?: profileJson,
+                    status = session.profileService().getCachedStatus(initialState.userId),
+                    bio = session.profileService().getCachedBio(initialState.userId),
                     profileFieldsLine = cachedProfileFieldsLine(),
             )
         }
     }
 
-    private fun observeMemberBanner(room: Room) {
-        room.flow().liveStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(initialState.userId))
-                .map { it.getOrNull()?.content?.toModel<RoomMemberContent>()?.bannerUrl }
-                .onEach { bannerUrl -> setState { copy(memberBannerUrl = bannerUrl) } }
-                .launchIn(viewModelScope)
-    }
-
-    private fun fetchGlobalBanner() {
+    private fun fetchGlobalProfile() {
         viewModelScope.launch {
             // 403 (profiles limited to shared-room users) just means no banner
             val profile = tryOrNull { session.profileService().getProfile(initialState.userId) } ?: return@launch
-            setState { copy(globalBannerUrl = profile.bannerUrl(), profileFieldsLine = cachedProfileFieldsLine()) }
+            setState {
+                copy(
+                        globalBannerUrl = profile.bannerUrl(),
+                        profileJson = profile,
+                        status = session.profileService().getCachedStatus(initialState.userId),
+                        bio = session.profileService().getCachedBio(initialState.userId),
+                        profileFieldsLine = cachedProfileFieldsLine(),
+                )
+            }
         }
     }
 
@@ -437,8 +438,8 @@ class RoomMemberProfileViewModel @AssistedInject constructor(
     }
 
     private fun JsonDict.bannerUrl(): String? {
-        return (this[ProfileService.BANNER_URL_KEY_UNSTABLE] as? String)
-                ?: (this[ProfileService.BANNER_URL_KEY] as? String)
+        return (this[ProfileService.BANNER_URL_KEY] as? String)
+                ?: (this[ProfileService.BANNER_URL_KEY_UNSTABLE] as? String)
     }
 
     private fun observeRoomSummaryAndPowerLevels(room: Room) {

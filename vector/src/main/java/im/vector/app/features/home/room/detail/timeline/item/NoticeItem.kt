@@ -30,6 +30,10 @@ abstract class NoticeItem : BaseEventItem<NoticeItem.Holder>(R.layout.item_timel
     @EpoxyAttribute
     lateinit var attributes: Attributes
 
+    // A room topic can be arbitrarily long; its notice is capped to one ellipsized line.
+    @EpoxyAttribute
+    var singleLine: Boolean = false
+
     private val reactionClickListener = object : ReactionButton.ReactedListener {
         override fun onReacted(reactionButton: ReactionButton) {
             attributes.reactionPillCallback?.onClickOnReactionPill(attributes.informationData, reactionButton.reactionString, true)
@@ -46,6 +50,8 @@ abstract class NoticeItem : BaseEventItem<NoticeItem.Holder>(R.layout.item_timel
 
     override fun bind(holder: Holder) {
         super.bind(holder)
+        holder.noticeTextView.maxLines = if (singleLine) 1 else Int.MAX_VALUE
+        holder.noticeTextView.ellipsize = if (singleLine) android.text.TextUtils.TruncateAt.END else null
         holder.noticeTextView.text = attributes.noticeText.charSequence
         holder.noticeTextView.bindEmoteImageSpans()
         attributes.avatarRenderer.render(attributes.informationData.matrixItem, holder.avatarImageView)

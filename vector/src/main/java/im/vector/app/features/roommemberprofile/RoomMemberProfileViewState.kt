@@ -11,8 +11,11 @@ import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
+import org.matrix.android.sdk.api.session.profile.UserBio
+import org.matrix.android.sdk.api.session.profile.UserStatus
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.powerlevels.RoomPowerLevels
+import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MatrixItem
 
 data class RoomMemberProfileViewState(
@@ -35,20 +38,19 @@ data class RoomMemberProfileViewState(
         val userColorOverride: String? = null,
         // "she/her • PST" line from MSC4247 pronouns + MSC4175 time zone, or null when neither is set
         val profileFieldsLine: String? = null,
-        // Raw per-room override of the MSC4427 profile banner (member-event field):
-        // null = absent, "" = explicitly blanked in this room
-        val memberBannerUrl: String? = null,
         // MSC4427 profile banner field
         val globalBannerUrl: String? = null,
+        // MSC4426 status / MSC4440 biography
+        val status: UserStatus? = null,
+        val bio: UserBio? = null,
+        // Raw MSC4133 profile dict, for the developer-mode source viewer
+        val profileJson: JsonDict? = null,
         val actionPermissions: ActionPermissions = ActionPermissions()
 ) : MavericksState {
 
     constructor(args: RoomMemberProfileArgs) : this(userId = args.userId, roomId = args.roomId)
 
-    fun resolvedBannerUrl(): String? = when {
-        memberBannerUrl != null -> memberBannerUrl.takeIf { it.isNotEmpty() }
-        else -> globalBannerUrl?.takeIf { it.isNotEmpty() }
-    }
+    fun resolvedBannerUrl(): String? = globalBannerUrl?.takeIf { it.isNotEmpty() }
 }
 
 data class ActionPermissions(
