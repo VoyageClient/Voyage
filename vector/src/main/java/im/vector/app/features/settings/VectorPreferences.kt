@@ -850,7 +850,7 @@ class VectorPreferences @Inject constructor(
      * @return true if the markdown is enabled
      */
     fun isMarkdownEnabled(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_ENABLE_MARKDOWN_KEY, false)
+        return defaultPrefs.getBoolean(SETTINGS_ENABLE_MARKDOWN_KEY, true)
     }
 
     /**
@@ -1036,7 +1036,7 @@ class VectorPreferences @Inject constructor(
      * @return true to send the typing notifs
      */
     fun sendTypingNotifs(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_SEND_TYPING_NOTIF_KEY, true)
+        return defaultPrefs.getBoolean(SETTINGS_SEND_TYPING_NOTIF_KEY, false)
     }
 
     /**
@@ -1548,7 +1548,7 @@ class VectorPreferences @Inject constructor(
     }
 
     fun compactQuickReactions(): Boolean {
-        return defaultPrefs.getBoolean(SETTINGS_COMPACT_QUICK_REACTIONS_KEY, false)
+        return defaultPrefs.getBoolean(SETTINGS_COMPACT_QUICK_REACTIONS_KEY, true)
     }
 
     fun showIpAddressInSessionManagerScreens(): Boolean {
