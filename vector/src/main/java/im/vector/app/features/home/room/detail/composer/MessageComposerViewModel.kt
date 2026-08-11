@@ -854,22 +854,13 @@ class MessageComposerViewModel @AssistedInject constructor(
                             handleConvertToRoomSlashCommand(room, parsedCommand)
                         }
                         is ParsedCommand.JumpToStart -> {
+                            // Only a hint: the timeline fetches the start itself when this event isn't loaded.
                             val createEventId = room.stateService()
                                     .getStateEvent(EventType.STATE_ROOM_CREATE, QueryStringValue.IsEmpty)
                                     ?.eventId
-                            if (createEventId != null) {
-                                _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = createEventId, toRoomStart = true))
-                                _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
-                                popDraft(room, state.sendMode)
-                            } else {
-                                _viewEvents.post(
-                                        MessageComposerViewEvents.JumpToEvent(
-                                                eventId = null,
-                                                notFoundMessage = stringProvider.getString(CommonStrings.command_jump_to_start_unavailable),
-                                        )
-                                )
-                            }
-                            Unit
+                            _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = createEventId, toRoomStart = true))
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                            popDraft(room, state.sendMode)
                         }
                         is ParsedCommand.JumpToEvent -> {
                             _viewEvents.post(MessageComposerViewEvents.JumpToEvent(eventId = parsedCommand.eventId))

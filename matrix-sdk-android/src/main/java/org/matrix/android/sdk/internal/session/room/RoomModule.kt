@@ -156,8 +156,10 @@ import org.matrix.android.sdk.internal.session.room.timeline.ReanchorRejoinedRoo
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchTokenAndPaginateTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultGetContextOfEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultGetEventTask
+import org.matrix.android.sdk.internal.session.room.timeline.DefaultFetchRoomStartTask
 import org.matrix.android.sdk.internal.session.room.timeline.DefaultPaginationTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchInvitedRoomPreviewTask
+import org.matrix.android.sdk.internal.session.room.timeline.FetchRoomStartTask
 import org.matrix.android.sdk.internal.session.room.timeline.FetchTokenAndPaginateTask
 import org.matrix.android.sdk.internal.session.room.timeline.GetContextOfEventTask
 import org.matrix.android.sdk.internal.session.room.timeline.GetEventTask
@@ -325,6 +327,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindPaginationTask(task: DefaultPaginationTask): PaginationTask
+
+    @Binds
+    abstract fun bindFetchRoomStartTask(task: DefaultFetchRoomStartTask): FetchRoomStartTask
 
     @Binds
     abstract fun bindFetchNextTokenAndPaginateTask(task: DefaultFetchTokenAndPaginateTask): FetchTokenAndPaginateTask

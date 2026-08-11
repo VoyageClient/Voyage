@@ -65,6 +65,7 @@ internal class SqlTimeline(
         private val paginationTask: PaginationTask,
         private val fetchThreadTimelineTask: FetchThreadTimelineTask,
         private val contextOfEventTask: GetContextOfEventTask,
+        private val fetchRoomStartTask: FetchRoomStartTask,
         private val database: SessionSqlDatabase,
         private val sessionDispatcher: CoroutineDispatcher,
         private val readDispatcher: CoroutineDispatcher,
@@ -362,17 +363,21 @@ internal class SqlTimeline(
     }
 
     override suspend fun restartAtRoomStart(targetEventId: String?): String? = withContext(readDispatcher) {
-        // Prefer the true first event: /context on it resolves a chunk for most room versions. It 403s on
-        // room v12 (the create event's id is the room hash) and under restricted history — reaching the real
-        // origin would then mean paginating the entire room, so we instead fall back to the oldest event we
-        // already have loaded. Instant, no network.
-        val targetChunk = targetEventId?.let { chunkForEvent(it) }
-        val seedChunk: Long?
-        val anchor: String?
-        if (targetChunk != null) {
-            seedChunk = targetChunk
-            anchor = targetEventId
-        } else {
+        // Cheapest first: the first event may already be loaded. Otherwise ask the server for the room's
+        // earliest event and resolve a chunk around it. Only then fall back to /context on the create
+        // event — that fails outright on room v12, where its id is the room hash — and finally to the
+        // oldest event we already hold.
+        var anchor = targetEventId?.takeIf { stores.chunk.findChunkIdIncludingEvent(roomId, it) != null }
+        if (anchor == null) {
+            anchor = tryOrNull("SqlTimeline $roomId room-start fetch failed") {
+                fetchRoomStartTask.execute(FetchRoomStartTask.Params(roomId, expectedFirstEventId = targetEventId))
+            }?.takeIf { chunkForEvent(it) != null }
+        }
+        if (anchor == null) {
+            anchor = targetEventId?.takeIf { chunkForEvent(it) != null }
+        }
+        var seedChunk = anchor?.let { stores.chunk.findChunkIdIncludingEvent(roomId, it) }
+        if (seedChunk == null) {
             seedChunk = oldestLoadedChunkId()
             anchor = seedChunk?.let { oldestEventIdInChunk(it) }
         }

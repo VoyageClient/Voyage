@@ -995,6 +995,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/timeline/FetchInvitedRoomPreviewTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/ReanchorRejoinedRoomTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/TokenChunkEventPersistor.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/FetchRoomStartTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/SqlSendingEventsDataSource.kt',
         'org/matrix/android/sdk/internal/session/room/relationship/SqlRoomChildRelationInfo.kt',
         'org/matrix/android/sdk/internal/session/room/reporting/DefaultReportingService.kt',

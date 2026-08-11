@@ -57,11 +57,11 @@ interface Timeline {
     fun restartWithEventId(eventId: String?)
 
     /**
-     * Restarts the timeline for "jump to start". First tries to resolve the room's first event
-     * ([targetEventId], the create event) via /context, which works for most room versions; when that
-     * fails (room v12's create-event id is the room hash and 403s, or history is restricted) it falls
-     * back to the oldest event already loaded locally — no network. Returns the event id it anchored
-     * on, so the caller can highlight/scroll to it, or null if the room has nothing to show.
+     * Restarts the timeline for "jump to start", asking the server for the beginning of the room's
+     * visible history when it isn't loaded. [targetEventId] is an optional hint at the first event (the
+     * create event); when the server can serve neither the start nor that event, the timeline settles on
+     * the oldest event already loaded rather than back-paginating the whole room. Returns the event id it
+     * anchored on, so the caller can highlight/scroll to it, or null if the room has nothing to show.
      */
     suspend fun restartAtRoomStart(targetEventId: String? = null): String?
 
