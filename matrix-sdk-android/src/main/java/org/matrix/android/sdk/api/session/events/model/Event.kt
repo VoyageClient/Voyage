@@ -111,6 +111,16 @@ data class Event(
     @Transient
     var verificationStateIsDirty: Boolean? = null
 
+    // [getRelationContent] parses the whole content map through Moshi, and the timeline's visibility pass
+    // calls it (directly and via isThread/isEdition) for every event on every build pass — measured as the
+    // single biggest cost of a deep-scrolled timeline. It reads only `type` and `content`, both immutable
+    // here, so the result is memoizable per instance. Held as one object so the volatile write publishes the
+    // value and the "computed" flag together; deliberately NOT carried across copyAll, which may replace
+    // `content`.
+    @Transient
+    @Volatile
+    internal var relationContentMemo: RelationContentMemo? = null
+
     fun sendStateError(): MatrixError? {
         return sendStateDetails?.let {
             val matrixErrorAdapter = MoshiProvider.providesMoshi().adapter(MatrixError::class.java)
@@ -450,13 +460,18 @@ fun Event.isSticker(): Boolean = getClearType() == EventType.STICKER
 
 fun Event.isLiveLocation(): Boolean = getClearType() in EventType.STATE_ROOM_BEACON_INFO.values
 
+internal class RelationContentMemo(val value: RelationDefaultContent?)
+
 fun Event.getRelationContent(): RelationDefaultContent? {
-    return if (isEncrypted()) {
+    relationContentMemo?.let { return it.value }
+    val computed = if (isEncrypted()) {
         content.toModel<EncryptedEventContent>()?.relatesTo
     } else {
         content.toModel<MessageContent>()?.relatesTo
                 ?: getClearContent()?.get("m.relates_to")?.toContent().toModel() // Special cases when there is only a local msgtype for some event types
     }
+    relationContentMemo = RelationContentMemo(computed)
+    return computed
 }
 
 /**
