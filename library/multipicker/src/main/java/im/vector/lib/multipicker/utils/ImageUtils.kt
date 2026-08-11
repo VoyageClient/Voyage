@@ -15,9 +15,6 @@ import android.net.Uri
 import android.os.Build
 import androidx.exifinterface.media.ExifInterface
 import timber.log.Timber
-import java.io.BufferedReader
-import java.io.DataInputStream
-import java.io.InputStreamReader
 
 // android.util.Size is API 21+; this local equivalent keeps multipicker working on KitKat.
 data class ImageSize(val width: Int, val height: Int)
@@ -48,58 +45,18 @@ object ImageUtils {
     }
 
     /**
-     * Cheap width/height probe that doesn't allocate a full bitmap. Falls back to header
-     * sniffing for formats Android can't decode (currently: XPM, Farbfeld) so they don't end up
-     * reported as 0x0 on upload.
+     * Cheap width/height probe that doesn't allocate a full bitmap.
      */
     fun getImageSize(context: Context, uri: Uri): ImageSize? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(uri)?.use { input ->
             BitmapFactory.decodeStream(input, null, bounds)
         }
-        if (bounds.outWidth > 0 && bounds.outHeight > 0) {
-            return ImageSize(bounds.outWidth, bounds.outHeight)
+        return if (bounds.outWidth > 0 && bounds.outHeight > 0) {
+            ImageSize(bounds.outWidth, bounds.outHeight)
+        } else {
+            null
         }
-        return runCatching { readXpmSize(context, uri) }.getOrNull()
-                ?: runCatching { readFarbfeldSize(context, uri) }.getOrNull()
-    }
-
-    private fun readFarbfeldSize(context: Context, uri: Uri): ImageSize? {
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            val data = DataInputStream(input)
-            val header = ByteArray(8)
-            data.readFully(header)
-            if (String(header, Charsets.US_ASCII) != "farbfeld") return null
-            val w = data.readInt()
-            val h = data.readInt()
-            return if (w > 0 && h > 0) ImageSize(w, h) else null
-        }
-        return null
-    }
-
-    private fun readXpmSize(context: Context, uri: Uri): ImageSize? {
-        // XPM3 header sits inside the first quoted string: "<w> <h> <ncolors> <cpp>".
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            val reader = BufferedReader(InputStreamReader(input, Charsets.ISO_8859_1))
-            val first = StringBuilder()
-            var inString = false
-            while (true) {
-                val ch = reader.read()
-                if (ch == -1) return null
-                val c = ch.toChar()
-                if (!inString) {
-                    if (c == '"') inString = true
-                } else {
-                    if (c == '"') break
-                    first.append(c)
-                }
-            }
-            val parts = first.toString().trim().split(Regex("\\s+"))
-            val w = parts.getOrNull(0)?.toIntOrNull() ?: return null
-            val h = parts.getOrNull(1)?.toIntOrNull() ?: return null
-            return ImageSize(w, h)
-        }
-        return null
     }
 
     fun getOrientation(context: Context, uri: Uri): Int {
