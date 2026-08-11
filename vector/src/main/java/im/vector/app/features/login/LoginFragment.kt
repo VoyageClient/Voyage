@@ -135,7 +135,7 @@ class LoginFragment :
         }
 
         if (error == 0) {
-            loginViewModel.handle(LoginAction.LoginOrRegister(login, password, getString(CommonStrings.login_default_session_public_name)))
+            loginViewModel.handle(LoginAction.LoginOrRegister(login, password, initialDeviceName = ""))
         }
     }
 

@@ -76,7 +76,7 @@ internal class DefaultRegistrationWizard(
         val params = RegistrationParams(
                 username = userName,
                 password = password,
-                initialDeviceDisplayName = initialDeviceDisplayName
+                initialDeviceDisplayName = initialDeviceDisplayName?.takeIf { it.isNotBlank() }
         )
         return performRegistrationRequest(params, LoginType.PASSWORD)
                 .also {
