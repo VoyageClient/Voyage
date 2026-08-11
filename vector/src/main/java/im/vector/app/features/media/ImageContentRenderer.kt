@@ -56,6 +56,10 @@ interface AttachmentData : Parcelable {
 
     // If true will load non mxc url, be careful to set it only for attachments sent by you
     val allowNonMxcUrls: Boolean
+
+    /** Who sent it and when, for the viewers whose events are not in the local timeline. */
+    val senderName: String? get() = null
+    val timestampMs: Long? get() = null
 }
 
 private const val URL_PREVIEW_IMAGE_MIN_FULL_WIDTH_PX = 600
@@ -88,6 +92,8 @@ class ImageContentRenderer @Inject constructor(
             val blurHash: String? = null,
             // Survives the local-echo → remote-id swap (see MessageInformationData.stableId).
             val stableId: String = eventId,
+            override val senderName: String? = null,
+            override val timestampMs: Long? = null,
     ) : AttachmentData
 
     enum class Mode {

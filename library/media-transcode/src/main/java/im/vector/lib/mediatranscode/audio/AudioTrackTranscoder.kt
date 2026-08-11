@@ -8,11 +8,13 @@
 package im.vector.lib.mediatranscode.audio
 
 import android.content.Context
+import android.media.AudioFormat
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
+import android.os.Build
 import androidx.annotation.RequiresApi
 import im.vector.lib.mediatranscode.MuxerSession
 import im.vector.lib.mediatranscode.SpeedTimeMap
@@ -20,18 +22,20 @@ import im.vector.lib.mediatranscode.firstTrackOf
 import im.vector.lib.mediatranscode.getIntOrNull
 import timber.log.Timber
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.abs
 
 /**
- * Decodes the audio, re-times it, and encodes it back to AAC. This is the path a speed change
- * needs; without one the track is copied through untouched by `AudioTrackCopier`, which is both
- * faster and lossless but cannot change how long the sound lasts.
+ * Decodes the audio and encodes it back to AAC, re-timing it on the way when [retimed]. A speed
+ * change needs this path, and so does sound an mp4 cannot carry; anything else is copied through
+ * untouched by `AudioTrackCopier`, which is both faster and lossless.
  *
  * The output timestamps come from the number of samples actually emitted rather than from the
- * source, because that is the only clock the sound itself follows. They are nudged back towards
- * [timeMap] as they go — the time stretch lands within a sample or two of the requested speed each
- * time it adjusts, and left alone those roundings would add up to visible lip-sync drift over a
- * long clip.
+ * source, because that is the only clock the sound itself follows. A re-timed track is nudged back
+ * towards [timeMap] as it goes — the time stretch lands within a sample or two of the requested
+ * speed each time it adjusts, and left alone those roundings would add up to visible lip-sync drift
+ * over a long clip. Sound that keeps its timing needs none of that, and correcting it anyway would
+ * put a click in every buffer.
  */
 @RequiresApi(18)
 @Suppress("DEPRECATION")
@@ -42,6 +46,7 @@ internal class AudioTrackTranscoder private constructor(
         private val endUs: Long,
         private val timeMap: SpeedTimeMap,
         private val changePitch: Boolean,
+        private val retimed: Boolean,
 ) : AudioTrackWriter {
 
     private lateinit var encoder: MediaCodec
@@ -55,11 +60,18 @@ internal class AudioTrackTranscoder private constructor(
     private var encoderOutputBuffers: Array<ByteBuffer> = emptyArray()
 
     private val info = MediaCodec.BufferInfo()
+    private val outInfo = MediaCodec.BufferInfo()
+    private var offsetUs = 0L
     private var scratch = ShortArray(0)
     private var pending = ShortArray(0)
     private var pendingOffset = 0
 
     private var emittedFrames = 0L
+
+    /** How far the clock had to be pulled forward to keep it out of negative time. */
+    private var clockOffsetFrames = 0L
+    private var driftCorrections = 0
+    private var driftedFrames = 0L
     private var inputDone = false
     private var decoderDone = false
     private var encoderDone = false
@@ -73,8 +85,13 @@ internal class AudioTrackTranscoder private constructor(
     override var format: MediaFormat? = null
         private set
 
-    /** The video's own zero is [SpeedTimeMap]'s, which this track already follows. */
-    override fun rebase(baseUs: Long) = Unit
+    /**
+     * This track counts from the cut, where the video counts from its first rendered frame — which
+     * can only be a whole frame later. Left unshifted the sound would lead the picture by that much.
+     */
+    override fun rebase(baseUs: Long) {
+        offsetUs = (baseUs - startUs).coerceAtLeast(0)
+    }
 
     private val lastOutputUs get() = frameToUs(emittedFrames)
 
@@ -144,7 +161,10 @@ internal class AudioTrackTranscoder private constructor(
 
         val index = encoder.dequeueInputBuffer(TIMEOUT_US)
         if (index < 0) return false
-        val buffer = encoderInputBuffers[index].apply { clear() }
+        val buffer = encoderInputBuffers[index].apply {
+            clear()
+            order(ByteOrder.nativeOrder())
+        }
         val shorts = minOf(buffer.capacity() / 2, pending.size - pendingOffset)
         // A partial frame in an encoder buffer offsets every channel after it.
         val aligned = shorts - shorts % channelCount
@@ -170,31 +190,44 @@ internal class AudioTrackTranscoder private constructor(
         }
         val eos = info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
         val sourceUs = info.presentationTimeUs
-        if (info.size > 0 && ::processor.isInitialized && sourceUs + CUT_TOLERANCE_US >= startUs) {
+        if (info.size > 0 && sampleRate > 0 && sourceUs + CUT_TOLERANCE_US >= startUs) {
             val shorts = info.size / 2
             if (scratch.size < shorts) scratch = ShortArray(shorts)
             decoderOutputBuffers[index].apply {
                 position(info.offset)
                 limit(info.offset + info.size)
+                // Decoded PCM is native-endian, where a ByteBuffer reads big-endian until told
+                // otherwise — every sample would come out byte-swapped.
+                order(ByteOrder.nativeOrder())
             }.asShortBuffer().get(scratch, 0, shorts)
             val frames = shorts / channelCount
             // The first sample kept rarely falls exactly on the cut, and starting the clock at zero
             // regardless would shift the whole track against the picture by that difference.
             if (!clockStarted) {
                 clockStarted = true
+                val mapped = timeMap.outputUsFor(sourceUs) * sampleRate / 1_000_000
                 // Never negative: the first kept buffer may begin just before the cut, and the muxer
                 // drops every packet timed below zero rather than shifting them.
-                emittedFrames = (timeMap.outputUsFor(sourceUs) * sampleRate / 1_000_000).coerceAtLeast(0)
+                emittedFrames = mapped.coerceAtLeast(0)
+                // Opus times its first packet before zero by the pre-skip, and clamping that away
+                // leaves the clock permanently ahead of the map. Without this the drift correction
+                // chases the difference for the whole clip, dropping samples every buffer.
+                clockOffsetFrames = emittedFrames - mapped
             }
-            processor.speed = timeMap.rate
-            val processed = processor.process(scratch, 0, frames)
-            pending = correctDrift(processed, sourceUs + frameToUs(frames.toLong()))
+            pending = if (retimed) {
+                processor.speed = timeMap.rate
+                correctDrift(processor.process(scratch, 0, frames), sourceUs + frameToUs(frames.toLong()))
+            } else {
+                // Nothing to re-time, so the samples go out as they came in: bit-exact, and with no
+                // per-buffer correction to click.
+                scratch.copyOf(shorts)
+            }
             pendingOffset = 0
         }
         decoder.releaseOutputBuffer(index, false)
         if (eos) {
             decoderDone = true
-            if (::processor.isInitialized) {
+            if (retimed && ::processor.isInitialized) {
                 // Appended, not assigned: some decoders flag end-of-stream on a buffer that still
                 // carries audio, and overwriting would drop the last 20-odd milliseconds.
                 val tail = processor.endOfStream()
@@ -214,8 +247,12 @@ internal class AudioTrackTranscoder private constructor(
     private fun correctDrift(processed: ShortArray, sourceEndUs: Long): ShortArray {
         if (processed.isEmpty()) return processed
         val frames = processed.size / channelCount
-        val expected = timeMap.outputUsFor(sourceEndUs) * sampleRate / 1_000_000
+        val expected = timeMap.outputUsFor(sourceEndUs) * sampleRate / 1_000_000 + clockOffsetFrames
         val drift = emittedFrames + frames - expected
+        if (drift != 0L) {
+            driftCorrections++
+            driftedFrames += drift
+        }
         val abrupt = abs(drift) > frames / 2
         val limit = if (abrupt) abs(drift) else frames / 100 + 1L
         return when {
@@ -244,7 +281,7 @@ internal class AudioTrackTranscoder private constructor(
                         limit(info.offset + info.size)
                     }
                     if (muxer != null && muxer.hasAudioTrack && muxer.isStarted) {
-                        muxer.writeAudio(buffer, info)
+                        writeShifted(muxer, buffer, info)
                     } else {
                         val copy = ByteArray(info.size)
                         buffer.get(copy)
@@ -263,14 +300,27 @@ internal class AudioTrackTranscoder private constructor(
 
     private fun flushHeld(muxer: MuxerSession) {
         if (held.isEmpty() || !muxer.hasAudioTrack || !muxer.isStarted) return
-        held.forEach { (bytes, bufferInfo) -> muxer.writeAudio(ByteBuffer.wrap(bytes), bufferInfo) }
+        held.forEach { (bytes, bufferInfo) -> writeShifted(muxer, ByteBuffer.wrap(bytes), bufferInfo) }
         held.clear()
+    }
+
+    /** Whatever falls before the video's zero belongs to the frames that were cut away. */
+    private fun writeShifted(muxer: MuxerSession, buffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
+        val shifted = bufferInfo.presentationTimeUs - offsetUs
+        if (shifted < 0) return
+        outInfo.set(bufferInfo.offset, bufferInfo.size, shifted, bufferInfo.flags)
+        muxer.writeAudio(buffer, outInfo)
     }
 
     private fun startEncoder(decoderFormat: MediaFormat) {
         sampleRate = decoderFormat.getIntOrNull(MediaFormat.KEY_SAMPLE_RATE) ?: DEFAULT_SAMPLE_RATE
         channelCount = decoderFormat.getIntOrNull(MediaFormat.KEY_CHANNEL_COUNT) ?: 2
-        processor = PcmSpeedProcessor(sampleRate, channelCount, changePitch)
+        val pcmEncoding = decoderFormat.getIntOrNull(KEY_PCM_ENCODING)
+        Timber.d("VideoEdit: audio decoded as ${sampleRate}Hz x$channelCount, pcm $pcmEncoding, re-timed $retimed")
+        if (pcmEncoding != null && pcmEncoding != AudioFormat.ENCODING_PCM_16BIT) {
+            Timber.w("VideoEdit: decoder gave PCM encoding $pcmEncoding, not 16-bit — the sound will be noise")
+        }
+        if (retimed) processor = PcmSpeedProcessor(sampleRate, channelCount, changePitch)
         val target = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channelCount).apply {
             setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
             setInteger(MediaFormat.KEY_BIT_RATE, if (channelCount > 1) STEREO_BIT_RATE else MONO_BIT_RATE)
@@ -286,6 +336,9 @@ internal class AudioTrackTranscoder private constructor(
     private fun frameToUs(frames: Long) = if (sampleRate == 0) 0L else frames * 1_000_000L / sampleRate
 
     override fun release() {
+        if (driftCorrections > 0) {
+            Timber.d("VideoEdit: audio clock corrected $driftCorrections times, $driftedFrames frames in total")
+        }
         runCatching { decoder.stop() }
         runCatching { decoder.release() }
         if (::encoder.isInitialized) {
@@ -301,6 +354,9 @@ internal class AudioTrackTranscoder private constructor(
         /** One decoder buffer's worth: dropping a whole buffer for straddling the cut loses 20-odd ms. */
         private const val CUT_TOLERANCE_US = 25_000L
         private const val DEFAULT_SAMPLE_RATE = 44_100
+
+        /** MediaFormat.KEY_PCM_ENCODING, spelled out so it can be read on every level. */
+        private const val KEY_PCM_ENCODING = "pcm-encoding"
         private const val STEREO_BIT_RATE = 128_000
         private const val MONO_BIT_RATE = 64_000
 
@@ -316,6 +372,7 @@ internal class AudioTrackTranscoder private constructor(
                 endUs: Long,
                 timeMap: SpeedTimeMap,
                 changePitch: Boolean,
+                retimed: Boolean,
         ): AudioTrackTranscoder? {
             val extractor = MediaExtractor()
             var decoder: MediaCodec? = null
@@ -330,13 +387,17 @@ internal class AudioTrackTranscoder private constructor(
                 }
                 extractor.selectTrack(track)
                 extractor.seekTo(startUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+                // Only asked for from 24, where the key exists; below it 16-bit is all there is.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    format.setInteger(KEY_PCM_ENCODING, AudioFormat.ENCODING_PCM_16BIT)
+                }
                 decoder = MediaCodec.createDecoderByType(mime).apply {
                     configure(format, null, null, 0)
                     start()
                 }
-                AudioTrackTranscoder(extractor, decoder, startUs, endUs, timeMap, changePitch)
+                AudioTrackTranscoder(extractor, decoder, startUs, endUs, timeMap, changePitch, retimed)
             } catch (e: Exception) {
-                Timber.w(e, "VideoEdit: cannot re-time the audio track, dropping it")
+                Timber.w(e, "VideoEdit: cannot decode the audio track, dropping it")
                 runCatching { decoder?.stop() }
                 runCatching { decoder?.release() }
                 runCatching { extractor.release() }

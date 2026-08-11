@@ -160,6 +160,7 @@ interface Navigator {
             mediaData: AttachmentData,
             view: View,
             inMemory: List<AttachmentData> = emptyList(),
+            standalonePreview: Boolean = false,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     )
 

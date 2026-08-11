@@ -213,7 +213,9 @@ class SearchFragment :
                 view = view,
                 // The room attachment provider only knows locally cached events, so a crawled
                 // search hit isn't found and the viewer would open on the first room attachment.
-                inMemory = inMemory.ifEmpty { listOf(mediaData) }
+                inMemory = inMemory.ifEmpty { listOf(mediaData) },
+                // A search hit stands on its own rather than being one of the room's media.
+                standalonePreview = true,
         ) { }
     }
 
@@ -223,7 +225,8 @@ class SearchFragment :
                 roomId = fragmentArgs.roomId,
                 mediaData = mediaData,
                 view = view,
-                inMemory = listOf(mediaData)
+                inMemory = listOf(mediaData),
+                standalonePreview = true,
         ) { }
     }
 

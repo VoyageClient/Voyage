@@ -19,4 +19,7 @@ sealed class AttachmentCommands {
     object PauseVideo : AttachmentCommands()
     object StartVideo : AttachmentCommands()
     data class SeekTo(val percentProgress: Int) : AttachmentCommands()
+
+    /** @param changePitch whether the audio pitch rides along with the speed, as tape does. */
+    data class SetPlaybackSpeed(val speed: Float, val changePitch: Boolean) : AttachmentCommands()
 }

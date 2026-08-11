@@ -76,6 +76,14 @@ class DataAttachmentRoomProvider(
         return room?.getTimelineEvent(item.eventId)
     }
 
+    /** An uploads listing comes from /messages, so its events are usually not in the local store. */
+    override fun senderInfoAt(position: Int): String {
+        return super.senderInfoAt(position).ifEmpty {
+            val item = getItem(position)
+            item.senderName?.let { senderInfo(it, item.timestampMs) } ?: ""
+        }
+    }
+
     override suspend fun getFileForSharing(position: Int): File? {
         return getItem(position)
                 .let { item ->

@@ -473,6 +473,7 @@ class DefaultNavigator @Inject constructor(
             mediaData: AttachmentData,
             view: View,
             inMemory: List<AttachmentData>,
+            standalonePreview: Boolean,
             options: ((MutableList<Pair<View, String>>) -> Unit)?
     ) {
         val cornerRadiusPx = (view.tag as? Float)?.toInt()?.takeIf { it > 0 } ?: 0
@@ -484,6 +485,7 @@ class DefaultNavigator @Inject constructor(
                 inMemory,
                 ViewCompat.getTransitionName(view),
                 transitionCornerRadiusPx = cornerRadiusPx,
+                standalonePreview = standalonePreview,
                 openedFromTimeline = activity is RoomDetailActivity,
         ).let { intent ->
             val pairs = ArrayList<Pair<View, String>>()

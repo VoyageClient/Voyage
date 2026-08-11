@@ -12,7 +12,8 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import androidx.annotation.RequiresApi
-import im.vector.lib.mediatranscode.audio.AudioTrackCopier
+import im.vector.lib.mediatranscode.audio.AudioTrackWriter
+import im.vector.lib.mediatranscode.audio.AudioWriters
 import timber.log.Timber
 import java.nio.ByteBuffer
 
@@ -33,7 +34,7 @@ internal class LosslessTrimExporter(private val context: Context) {
 
         val extractor = MediaExtractor()
         var muxer: MuxerSession? = null
-        var audioCopier: AudioTrackCopier? = null
+        var audioWriter: AudioTrackWriter? = null
         try {
             extractor.setDataSource(context, spec.sourceUri, null)
             val videoTrack = extractor.firstTrackOf("video/") ?: throw VideoEditException.NoVideoTrack()
@@ -44,36 +45,39 @@ internal class LosslessTrimExporter(private val context: Context) {
             val actualStartUs = extractor.sampleTime
             if (actualStartUs < 0) throw VideoEditException.EmptyRange()
 
-            audioCopier = if (spec.muted) null else AudioTrackCopier.create(context, spec.sourceUri, spec.endUs)
+            // The remux can only start at a sync frame, so the sound is cut where the picture was.
+            audioWriter = AudioWriters.create(context, spec, source, actualStartUs, SpeedTimeMap(actualStartUs, 1f))
             muxer = MuxerSession(spec.outputFile.absolutePath).apply {
                 setOrientationHint(source.rotationDegrees + spec.rotationDegrees)
                 try {
                     addVideoTrack(videoFormat)
-                    audioCopier?.let { addAudioTrack(it.format) }
+                    audioWriter?.format?.let { addAudioTrack(it) }
                 } catch (e: IllegalArgumentException) {
                     // Some OEM muxers reject copied formats carrying vendor keys.
                     throw VideoEditException.MuxerRejected(e)
                 }
                 start()
             }
-            audioCopier?.rebase(actualStartUs)
+            audioWriter?.rebase(actualStartUs)
 
-            val lastPtsUs = copyVideo(extractor, videoFormat, muxer, audioCopier, spec, actualStartUs, progressListener, isActive)
-            audioCopier?.pumpUpTo(Long.MAX_VALUE, muxer)
+            val lastPtsUs = copyVideo(extractor, videoFormat, muxer, audioWriter, spec, actualStartUs, progressListener, isActive)
+            audioWriter?.pumpUpTo(Long.MAX_VALUE, muxer)
 
             val rotation = ((source.rotationDegrees + spec.rotationDegrees) % 360 + 360) % 360
             val swapped = rotation % 180 == 90
+            val audioDropped = !spec.muted && audioWriter == null && source.audioMime != null
+            if (audioDropped) Timber.w("VideoEdit: remuxed without the source's ${source.audioMime} track")
             return VideoEditOutput(
                     file = spec.outputFile,
                     width = if (swapped) source.height else source.width,
                     height = if (swapped) source.width else source.height,
                     durationMs = (lastPtsUs - actualStartUs) / 1000,
                     actualStartUs = actualStartUs,
-                    audioDropped = !spec.muted && audioCopier == null && source.audioMime != null,
+                    audioDropped = audioDropped,
             )
         } finally {
             runCatching { extractor.release() }
-            audioCopier?.release()
+            audioWriter?.release()
             muxer?.release()
         }
     }
@@ -83,7 +87,7 @@ internal class LosslessTrimExporter(private val context: Context) {
             extractor: MediaExtractor,
             videoFormat: MediaFormat,
             muxer: MuxerSession,
-            audioCopier: AudioTrackCopier?,
+            audioWriter: AudioTrackWriter?,
             spec: VideoEditSpec,
             actualStartUs: Long,
             progressListener: VideoEditProgressListener?,
@@ -118,7 +122,7 @@ internal class LosslessTrimExporter(private val context: Context) {
                 wrote = true
                 lastPtsUs = sampleTime
                 watchdog.poke()
-                audioCopier?.pumpUpTo(info.presentationTimeUs, muxer)
+                audioWriter?.pumpUpTo(info.presentationTimeUs, muxer)
                 val progress = ((sampleTime - actualStartUs) * 100 / rangeUs).toInt().coerceIn(0, 99)
                 if (progress != lastReportedProgress) {
                     lastReportedProgress = progress

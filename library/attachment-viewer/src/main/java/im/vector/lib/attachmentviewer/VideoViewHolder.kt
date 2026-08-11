@@ -48,6 +48,8 @@ class VideoViewHolder constructor(itemView: View) :
     private var waitingForFirstFrame = false
     private var videoWidth = 0
     private var videoHeight = 0
+    private var playbackSpeed = 1f
+    private var pitchFollowsSpeed = true
 
     var eventListener: WeakReference<AttachmentEventListener>? = null
 
@@ -323,6 +325,9 @@ class VideoViewHolder constructor(itemView: View) :
             progress = mediaPlayer?.takeIf { it.isPlaying }?.currentPosition ?: 0
             releasePlayer()
             resetZoom()
+            // A speed belongs to the video it was chosen for, so swiping away puts it back.
+            playbackSpeed = 1f
+            pitchFollowsSpeed = true
         } else if (mVideoPath != null) {
             startPlaying()
         }
@@ -369,6 +374,8 @@ class VideoViewHolder constructor(itemView: View) :
                     isPrepared = true
                     applyAspectMatrix()
                     ensureTickTimer()
+                    // The player is new — a chosen speed only lives in the holder.
+                    if (playbackSpeed != 1f || !pitchFollowsSpeed) applyPlaybackSpeed()
                     if (progress > 0) {
                         mp.seekTo(progress)
                     }
@@ -385,6 +392,22 @@ class VideoViewHolder constructor(itemView: View) :
         } catch (failure: Throwable) {
             Log.v(VideoViewHolder::class.java.name, "Failed to start video", failure)
             releasePlayer()
+        }
+    }
+
+    private fun applyPlaybackSpeed() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+        val player = mediaPlayer?.takeIf { isPrepared } ?: return
+        runCatching {
+            val playing = player.isPlaying
+            player.playbackParams = player.playbackParams
+                    .setSpeed(playbackSpeed)
+                    // Tape behaviour is pitch riding along with the speed; the alternative holds it.
+                    .setPitch(if (pitchFollowsSpeed) playbackSpeed else 1f)
+            // Setting the parameters starts a paused player, which would run off the frame on show.
+            if (!playing) player.pause()
+        }.onFailure {
+            Log.v(VideoViewHolder::class.java.name, "Cannot play at speed $playbackSpeed", it)
         }
     }
 
@@ -445,9 +468,15 @@ class VideoViewHolder constructor(itemView: View) :
 
     override fun handleCommand(commands: AttachmentCommands) {
         if (!isSelected) return
-        val player = mediaPlayer ?: return
         when (commands) {
+            is AttachmentCommands.SetPlaybackSpeed -> {
+                // Kept even with no player yet: whichever one comes next picks it up when prepared.
+                playbackSpeed = commands.speed
+                pitchFollowsSpeed = commands.changePitch
+                applyPlaybackSpeed()
+            }
             AttachmentCommands.StartVideo -> {
+                val player = mediaPlayer ?: return
                 wasPaused = false
                 if (isPrepared) {
                     player.start()
@@ -455,10 +484,12 @@ class VideoViewHolder constructor(itemView: View) :
                 }
             }
             AttachmentCommands.PauseVideo -> {
+                val player = mediaPlayer ?: return
                 wasPaused = true
                 if (isPrepared && player.isPlaying) player.pause()
             }
             is AttachmentCommands.SeekTo -> {
+                val player = mediaPlayer ?: return
                 if (!isPrepared) return
                 val duration = player.duration
                 if (duration > 0) {
@@ -483,6 +514,8 @@ class VideoViewHolder constructor(itemView: View) :
         waitingForFirstFrame = false
         progress = 0
         wasPaused = false
+        playbackSpeed = 1f
+        pitchFollowsSpeed = true
         resetZoom()
     }
 }

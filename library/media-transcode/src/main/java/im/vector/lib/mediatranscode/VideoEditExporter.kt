@@ -39,6 +39,10 @@ object VideoEditExporter {
             runCatching {
                 val source = MediaSourceInfo.probe(context, spec.sourceUri) ?: throw VideoEditException.NoVideoTrack()
                 ensureFreeSpace(spec, source)
+                Timber.d(
+                        "VideoEdit: source ${source.videoMime} + ${source.audioMime ?: "no audio"}, " +
+                                "${source.width}x${source.height} @${source.rotationDegrees}°, speed ${spec.speed}, muted ${spec.muted}"
+                )
                 if (canRemuxLosslessly(context, spec, source)) {
                     LosslessTrimExporter(context).export(spec, source, progressListener) { isActive }
                 } else {

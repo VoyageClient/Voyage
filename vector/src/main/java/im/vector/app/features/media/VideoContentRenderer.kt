@@ -47,6 +47,8 @@ class VideoContentRenderer @Inject constructor(
             override val allowNonMxcUrls: Boolean = false,
             // A redaction purged the server copy; this local one is all that is left.
             val preservedFile: java.io.File? = null,
+            override val senderName: String? = null,
+            override val timestampMs: Long? = null,
     ) : AttachmentData
 
     fun render(

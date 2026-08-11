@@ -6,14 +6,19 @@
     android:layout_height="match_parent"
     tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout">
 
+    <!--
+      Clickable so a tap that misses one of the buttons on it is swallowed here rather than falling
+      through to the video, where it would play or pause. The buttons are drawn over it and still
+      take their own taps. Ignored below API 16, where the worst of it is a stray TalkBack target.
+    -->
     <View
         android:id="@+id/overlayTopBackground"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="@color/black_alpha"
-        app:layout_constraintTop_toTopOf="parent">
-
-    </View>
+        android:clickable="true"
+        android:importantForAccessibility="no"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/overlayBackButton"
@@ -50,7 +55,7 @@
         android:textColor="?colorOnPrimary"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/overlayInfoText"
-        app:layout_constraintEnd_toStartOf="@id/overlayShowInChatButton"
+        app:layout_constraintEnd_toStartOf="@id/overlayDownloadButton"
         app:layout_constraintStart_toEndOf="@id/overlayBackButton"
         app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
         app:layout_constraintVertical_chainStyle="packed"
@@ -67,62 +72,26 @@
         android:maxLines="1"
         android:textColor="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
-        app:layout_constraintEnd_toStartOf="@id/overlayShowInChatButton"
+        app:layout_constraintEnd_toStartOf="@id/overlayDownloadButton"
         app:layout_constraintStart_toStartOf="@id/overlayCounterText"
         app:layout_constraintTop_toBottomOf="@id/overlayCounterText"
         tools:text="Bill 29 Jun at 19:42" />
 
     <ImageView
-        android:id="@+id/overlayShowInChatButton"
+        android:id="@+id/overlayMoreButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
-        android:contentDescription="@string/attachment_viewer_show_in_chat"
+        android:contentDescription="@string/attachment_viewer_more_options"
         android:focusable="true"
         android:padding="6dp"
         app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
-        app:layout_constraintEnd_toStartOf="@id/overlayForwardButton"
+        app:layout_constraintEnd_toEndOf="@id/overlayTopBackground"
         app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
-        app:srcCompat="@drawable/ic_reveal_redacted"
-        app:tint="?colorOnPrimary"
-        tools:ignore="MissingPrefix" />
-
-    <ImageView
-        android:id="@+id/overlayForwardButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:contentDescription="@string/action_forward"
-        android:focusable="true"
-        android:padding="6dp"
-        app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
-        app:layout_constraintEnd_toStartOf="@id/overlayShareButton"
-        app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
-        app:srcCompat="@drawable/ic_forward"
-        app:tint="?colorOnPrimary"
-        tools:ignore="MissingPrefix" />
-
-    <ImageView
-        android:id="@+id/overlayShareButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:contentDescription="@string/action_share"
-        android:focusable="true"
-        android:padding="6dp"
-        app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
-        app:layout_constraintEnd_toStartOf="@id/overlayDownloadButton"
-        app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
-        app:srcCompat="@drawable/ic_share"
+        app:srcCompat="@drawable/ic_more_horizontal"
         app:tint="?colorOnPrimary"
         tools:ignore="MissingPrefix" />
 
@@ -130,15 +99,15 @@
         android:id="@+id/overlayDownloadButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:contentDescription="@string/action_download"
         android:focusable="true"
         android:padding="6dp"
         app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
-        app:layout_constraintEnd_toEndOf="@id/overlayTopBackground"
+        app:layout_constraintEnd_toStartOf="@id/overlayMoreButton"
         app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
         app:srcCompat="@drawable/ic_material_save"
         app:tint="?colorOnPrimary"
@@ -152,11 +121,14 @@
         app:constraint_referenced_ids="overlayBottomBackground,overlayBackButton,overlayPlayPauseButton,overlaySeekBar,overlayVideoTime"
         tools:visibility="visible" />
 
+    <!-- Clickable for the same reason as the top bar: it holds play/pause and the scrubber. -->
     <View
         android:id="@+id/overlayBottomBackground"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="@color/black_alpha"
+        android:clickable="true"
+        android:importantForAccessibility="no"
         app:layout_constraintBottom_toBottomOf="parent" />
 
     <ImageView
