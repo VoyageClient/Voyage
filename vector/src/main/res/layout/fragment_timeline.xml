@@ -185,7 +185,7 @@
             android:id="@+id/roomPreviewJoinBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="?android:colorBackground"
+            android:background="?vctr_toolbar_background"
             android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -218,6 +218,17 @@
                     android:textColor="?vctr_content_primary"
                     android:textStyle="bold"
                     tools:text="You're previewing My room. Want to join it?" />
+
+                <im.vector.app.core.platform.ButtonStateView
+                    android:id="@+id/roomPreviewDeclineButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:visibility="gone"
+                    app:bsv_button_text="@string/action_decline"
+                    app:bsv_loaded_image_src="@drawable/ic_tick"
+                    app:bsv_use_flat_button="true"
+                    tools:visibility="visible" />
 
                 <im.vector.app.core.platform.ButtonStateView
                     android:id="@+id/roomPreviewJoinButton"

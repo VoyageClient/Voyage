@@ -84,6 +84,11 @@ class RequireActiveMembershipViewModel @AssistedInject constructor(
         if (roomSummary.membership.isActive()) {
             return Optional.empty()
         }
+        // Kicked/banned rooms stay open read-only (frozen timeline + removal banner) instead of
+        // kicking the user back to the room list; only a voluntary leave closes the screen.
+        if (roomSummary.isRemovedFromRoom) {
+            return Optional.empty()
+        }
         val senderId = room.getStateEvent(EventType.STATE_ROOM_MEMBER, QueryStringValue.Equals(session.myUserId))?.senderId
         val senderDisplayName = senderId?.takeIf { it != session.myUserId }?.let {
             room.membershipService().getRoomMember(it)?.displayName ?: it

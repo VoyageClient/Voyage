@@ -22,6 +22,8 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.crypto.CryptoService
+import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.internal.crypto.CryptoSessionInfoProvider
@@ -103,17 +105,29 @@ internal class DefaultLoadRoomMembersTask @Inject constructor(
         try {
             setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.LOADING)
 
+            // For a room we're no longer in, the current sync token is past our leave and the server
+            // refuses it; without `at` it serves the membership as of when we left.
             val lastToken = syncTokenStore.getLastToken()
+                    .takeIf { stores.room.get(params.roomId)?.membership == Membership.JOIN }
             val response = try {
                 executeRequest(globalErrorReceiver) {
                     roomAPI.getMembers(params.roomId, lastToken, null, params.excludeMembership)
                 }
             } catch (throwable: Throwable) {
+                // A removed room the server refuses members for will refuse forever; mark it LOADED
+                // so the member list settles on the local state instead of retrying.
+                val refusedWhileRemoved = throwable is Failure.ServerError &&
+                        throwable.error.code == MatrixError.M_FORBIDDEN &&
+                        stores.room.get(params.roomId)?.membership != Membership.JOIN
                 // NonCancellable so the revert still runs if the caller's scope died mid-request; otherwise the
                 // marker stays stuck at LOADING.
                 withContext(NonCancellable) {
-                    setRoomMembersLoadStatus(params.roomId, RoomMembersLoadStatusType.NONE)
+                    setRoomMembersLoadStatus(
+                            params.roomId,
+                            if (refusedWhileRemoved) RoomMembersLoadStatusType.LOADED else RoomMembersLoadStatusType.NONE,
+                    )
                 }
+                if (refusedWhileRemoved) return
                 throw throwable
             }
             try {

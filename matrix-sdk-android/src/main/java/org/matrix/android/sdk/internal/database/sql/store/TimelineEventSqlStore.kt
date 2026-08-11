@@ -112,6 +112,8 @@ internal class TimelineEventSqlStore(
 
     fun deleteByChunk(chunkId: Long) = queries.deleteByChunk(chunkId)
 
+    fun deleteInChunkExcept(chunkId: Long, keepEventIds: Collection<String>) = queries.deleteInChunkExcept(chunkId, keepEventIds)
+
     /** Remove all but the first-inserted copy of each event within [chunkIds] (cross-chunk overlap heal). */
     fun deleteDuplicatesInChunks(roomId: String, chunkIds: Collection<Long>) = queries.deleteDuplicatesInChunks(roomId, chunkIds)
 

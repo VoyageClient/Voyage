@@ -117,6 +117,9 @@ SELECT event_id FROM event WHERE room_id = ? AND root_thread_event_id = ? AND se
 selectByRoomAndType:
 SELECT event_id FROM event WHERE room_id = ? AND type = ?;
 
+selectRecentStateOfKey:
+SELECT * FROM event WHERE room_id = ? AND type = ? AND state_key = ? ORDER BY origin_server_ts DESC LIMIT ?;
+
 -- All distinct events a sender contributed to a room (any type), for mass redaction. type + unsigned_data
 -- are returned so the caller can skip redaction events and already-redacted ones.
 selectEventIdsByRoomAndSender:

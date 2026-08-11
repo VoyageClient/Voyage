@@ -161,6 +161,9 @@ DELETE FROM timeline_event WHERE room_id = ? AND chunk_id IS NULL AND event_id =
 deleteByChunk:
 DELETE FROM timeline_event WHERE chunk_id = ?;
 
+deleteInChunkExcept:
+DELETE FROM timeline_event WHERE chunk_id = :chunkId AND event_id NOT IN :keepEventIds;
+
 deleteDuplicatesInChunks:
 DELETE FROM timeline_event WHERE room_id = :roomId AND chunk_id IN :chunkIds AND id NOT IN (
     SELECT MIN(id) FROM timeline_event WHERE room_id = :roomId AND chunk_id IN :chunkIds GROUP BY event_id

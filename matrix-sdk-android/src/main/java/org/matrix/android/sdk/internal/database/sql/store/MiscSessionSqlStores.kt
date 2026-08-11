@@ -25,11 +25,13 @@ internal class FilterSqlStore(private val database: SessionSqlDatabase) {
     fun updateFilterId(filterId: String) = queries.updateFilterId(filterId)
 }
 
-/** Single-row `sync` next-batch token store. */
+/** Single-row `sync` next-batch token store (plus the removed-rooms recovery marker row). */
 internal class SyncTokenSqlStore(private val database: SessionSqlDatabase) {
     private val queries get() = database.syncQueries
     fun getNextBatch(): String? = queries.selectFirst().executeAsOneOrNull()?.next_batch
     fun setNextBatch(token: String?) = queries.upsert(token)
+    fun isRemovedRoomsRecovered(): Boolean = queries.selectRemovedRoomsRecovered().executeAsOneOrNull() != null
+    fun markRemovedRoomsRecovered() = queries.markRemovedRoomsRecovered()
 }
 
 /** Single-row `breadcrumbs` ordered recent-room-id list. */

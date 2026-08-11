@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.session.search
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.session.search.SearchService
 import org.matrix.android.sdk.internal.database.sql.store.SessionStores
@@ -56,12 +57,13 @@ internal class DefaultSearchService @Inject constructor(
         }
 
         // The local index answers: encrypted rooms (the server cannot search them), unencrypted
-        // rooms unless the user opted for server search, and filter-only queries (the server
-        // requires a search term).
+        // rooms unless the user opted for server search, filter-only queries (the server requires
+        // a search term), and rooms no longer joined (the server only searches current rooms).
         val useLocalIndex = eventIndexer.isEnabled() &&
                 (stores.roomSummary.isEncrypted(roomId) ||
                         eventIndexer.includesUnencryptedRooms() ||
-                        query.tokens.isEmpty())
+                        query.tokens.isEmpty() ||
+                        stores.room.get(roomId)?.membership != Membership.JOIN)
         if (useLocalIndex) {
             return localEventSearchTask.search(query, searchTerm, roomId, nextBatch, limit)
         }

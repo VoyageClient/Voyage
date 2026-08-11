@@ -8,6 +8,7 @@ package im.vector.app.features.home.room.list.actions
 
 import androidx.annotation.StringRes
 import com.airbnb.epoxy.TypedEpoxyController
+import im.vector.app.R
 import im.vector.app.core.epoxy.bottomSheetDividerItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetActionItem
 import im.vector.app.core.epoxy.bottomsheet.bottomSheetRoomPreviewItem
@@ -37,6 +38,19 @@ class RoomListQuickActionsEpoxyController @Inject constructor(
         val notificationViewState = state.notificationSettingsViewState
         val roomSummary = notificationViewState.roomSummary() ?: return
         val host = this
+
+        // Historical (kicked/banned) room: nothing is actionable except forgetting it.
+        if (roomSummary.isRemovedFromRoom && !roomSummary.membership.isActive()) {
+            bottomSheetActionItem {
+                id("action_forget")
+                selected(false)
+                iconRes(R.drawable.ic_room_actions_leave)
+                textRes(CommonStrings.room_list_quick_actions_forget)
+                destructive(true)
+                listener { host.listener?.didSelectMenuAction(RoomListQuickActionsSharedAction.Forget(roomSummary.roomId)) }
+            }
+            return
+        }
         // Preview, favorite, settings
         bottomSheetRoomPreviewItem {
             id("room_preview")

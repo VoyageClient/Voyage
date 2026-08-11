@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.room.accountdata.RoomAccountDataTypes
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.util.Optional
@@ -59,7 +60,11 @@ internal class DefaultReadService @AssistedInject constructor(
         fun create(roomId: String): DefaultReadService
     }
 
+    // A room we're no longer in (kicked/banned, kept browsable) refuses receipts/markers.
+    private fun isJoined() = stores.room.get(roomId)?.membership == Membership.JOIN
+
     override suspend fun markAsRead(params: ReadService.MarkAsReadParams, mainTimeLineOnly: Boolean, public: Boolean) {
+        if (!isJoined()) return
         val readReceiptThreadId = if (homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true) {
             if (mainTimeLineOnly) ReadService.THREAD_ID_MAIN else null
         } else {
@@ -79,6 +84,7 @@ internal class DefaultReadService @AssistedInject constructor(
     }
 
     override suspend fun setReadReceipt(eventId: String, threadId: String, public: Boolean) = withContext(matrixCoroutineDispatchers.io) {
+        if (!isJoined()) return@withContext
         val readReceiptThreadId = if (homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true) {
             threadId
         } else {
@@ -95,6 +101,7 @@ internal class DefaultReadService @AssistedInject constructor(
     }
 
     override suspend fun setReadMarker(fullyReadEventId: String) {
+        if (!isJoined()) return
         val params = SetReadMarkersTask.Params(roomId, fullyReadEventId = fullyReadEventId, readReceiptEventId = null)
         setReadMarkersTask.execute(params)
     }

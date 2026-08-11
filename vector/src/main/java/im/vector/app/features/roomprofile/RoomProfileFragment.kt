@@ -281,7 +281,7 @@ class RoomProfileFragment :
         bannerUiHelper?.update(hasBanner, bannerAppBarStateChangeListener?.currentState == AppBarStateChangeListener.State.COLLAPSED)
 
         state.roomSummary()?.let {
-            if (it.membership.isLeft()) {
+            if (it.membership.isLeft() && !it.isRemovedFromRoom) {
                 Timber.w("The room has been left")
                 activity?.finish()
             } else {

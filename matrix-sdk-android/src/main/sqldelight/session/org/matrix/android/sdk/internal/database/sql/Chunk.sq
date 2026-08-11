@@ -92,6 +92,9 @@ UPDATE chunk SET is_last_forward = ? WHERE id = ?;
 updateLastBackward:
 UPDATE chunk SET is_last_backward = ? WHERE id = ?;
 
+clearLastBackwardByRoom:
+UPDATE chunk SET is_last_backward = 0 WHERE room_id = ?;
+
 deleteById:
 DELETE FROM chunk WHERE id = ?;
 

@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.failure.MatrixError
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -225,6 +227,15 @@ internal class SqlTimeline(
                     sweepDuplicateRows()
                 }
             }
+            if (!isThreadTimeline) {
+                val membership = withContext(sessionDispatcher) { stores.room.get(roomId)?.membership }
+                if (membership == Membership.LEAVE || membership == Membership.BAN) {
+                    // A boundary marked by an earlier 403 isn't authoritative — the server's
+                    // departed-access policy varies per room — so a removed room re-probes once per
+                    // open; a genuine room start just re-marks.
+                    database.awaitDbTransaction(sessionDispatcher) { stores.chunk.clearLastBackward(roomId) }
+                }
+            }
             // A thread timeline gets a fresh (empty) thread chunk that the fetch task + sync then populate.
             val seed = if (isThreadTimeline) recreateThreadChunk(threadRootId!!) else resolveSeedChunkId()
             seedFrom(seed)
@@ -247,6 +258,8 @@ internal class SqlTimeline(
                 return
             } catch (failure: Throwable) {
                 if (failure is CancellationException) throw failure
+                // Permission refusals (e.g. a removed room) can never succeed by retrying.
+                if (failure is Failure.ServerError && failure.error.code == MatrixError.M_FORBIDDEN) return
                 Timber.v(failure, "Failed to load room members in $roomId, retrying in 10s")
                 delay(LOAD_MEMBERS_RETRY_DELAY_MS)
             }
@@ -670,8 +683,32 @@ internal class SqlTimeline(
 
     private suspend fun paginate(token: String, direction: Timeline.Direction, count: Int, originChunkId: Long? = null) {
         updateState(direction) { it.copy(loading = true) }
-        tryOrNull("SqlTimeline $roomId pagination failed") {
-            paginationTask.execute(PaginationTask.Params(roomId, token, toPaginationDirection(direction), count, originChunkId))
+        try {
+            // SHOULD_FETCH_MORE = the page made token-progress only (invisible span, boundary
+            // overlap): keep going right away instead of waiting for the UI to re-trigger, following
+            // the origin chunk's token as the persistor slides it.
+            var from = token
+            var rounds = 0
+            while (rounds++ < MAX_PAGINATION_ROUNDS) {
+                val result = paginationTask.execute(PaginationTask.Params(roomId, from, toPaginationDirection(direction), count, originChunkId))
+                if (result != TokenChunkEventPersistor.Result.SHOULD_FETCH_MORE || originChunkId == null) break
+                val origin = withContext(sessionDispatcher) { stores.chunk.getById(originChunkId) } ?: break
+                val next = (if (direction == Timeline.Direction.BACKWARDS) origin.prev_token else origin.next_token) ?: break
+                if (next == from) break
+                from = next
+            }
+        } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
+            // A removed (kicked/banned) room hit the limit of what the server will serve a departed
+            // user. Persist it as the end of the room so the UI stops re-requesting an eternal
+            // loading row; the once-per-open reprobe above keeps it from being final.
+            if (direction == Timeline.Direction.BACKWARDS && originChunkId != null &&
+                    failure is Failure.ServerError && failure.error.code == MatrixError.M_FORBIDDEN &&
+                    stores.room.get(roomId)?.membership != Membership.JOIN) {
+                database.awaitDbTransaction(sessionDispatcher) { stores.chunk.setLastBackward(originChunkId, true) }
+                updateState(Timeline.Direction.BACKWARDS) { it.copy(hasMoreToLoad = false) }
+            }
+            Timber.w(failure, "SqlTimeline $roomId pagination failed")
         }
         updateState(direction) { it.copy(loading = false) }
     }
@@ -1066,6 +1103,9 @@ internal class SqlTimeline(
     companion object {
         private const val DECRYPT_REBUILD_DEBOUNCE_MS = 150L
         private const val LOAD_MEMBERS_RETRY_DELAY_MS = 10_000L
+        // Bounds the immediate follow-ups after token-progress-only pages; the UI's loading item
+        // re-triggers for anything longer.
+        private const val MAX_PAGINATION_ROUNDS = 10
         private const val MAX_RAW_REVEAL_STEP = 150
     }
 }

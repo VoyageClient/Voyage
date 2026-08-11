@@ -504,9 +504,13 @@ class TimelineEventController @Inject constructor(
     }
 
     private fun buildModelsInner() {
-        // NONE is a world-readable preview (PeekedRoom); other non-JOIN memberships never render.
+        // NONE is a world-readable preview (PeekedRoom); LEAVE/BAN is a kicked/banned room kept
+        // browsable up to the removal; INVITE renders whatever preview history is available
+        // (empty for a plain invite, whose full-screen invite view covers the timeline anyway).
         val membership = partialState.roomSummary?.membership
-        if (membership != Membership.JOIN && membership != Membership.NONE) {
+        if (membership != Membership.JOIN && membership != Membership.NONE &&
+                membership != Membership.LEAVE && membership != Membership.BAN &&
+                membership != Membership.INVITE) {
             return
         }
         val timestamp = clock.epochMillis()

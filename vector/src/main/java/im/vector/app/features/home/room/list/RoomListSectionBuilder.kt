@@ -21,7 +21,9 @@ import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.showInvites
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.spaces.tags.DM_FILTER_TAG
+import im.vector.app.features.spaces.tags.HISTORICAL_FILTER_TAG
 import im.vector.app.features.spaces.tags.TagFilterStateHandler
+import im.vector.app.features.spaces.tags.WATCHING_FILTER_TAG
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -492,6 +494,31 @@ class RoomListSectionBuilder(
                     roomQueryParams.process(spaceFilterStrategy, spaceStateHandler.getSafeActiveSpaceId()),
                     pagedListConfig
             )
+            // Historical/Watching views: the main joined sections (no positive tag requirement —
+            // the unified layout's main section carries an all-false RoomTagQueryFilter, not null)
+            // switch to kicked/banned resp. watched rooms; every other section (invites,
+            // favourites, low priority…) gets the same flag filter too and so matches nothing
+            // while one of these views is selected.
+            val isMainJoinedSection = roomQueryParams.memberships == listOf(Membership.JOIN) &&
+                    roomQueryParams.roomTagQueryFilter?.let { f ->
+                        f.isFavorite != true && f.isLowPriority != true && f.isServerNotice != true
+                    } != false
+
+            fun membershipsForTag(tag: String?): List<Membership> = when {
+                !isMainJoinedSection -> roomQueryParams.memberships
+                tag == HISTORICAL_FILTER_TAG -> listOf(Membership.LEAVE, Membership.BAN)
+                tag == WATCHING_FILTER_TAG -> listOf(Membership.NONE)
+                else -> roomQueryParams.memberships
+            }
+
+            fun removedFilterForTag(tag: String?): Boolean? = if (tag == HISTORICAL_FILTER_TAG) true else null
+
+            fun watchedFilterForTag(tag: String?): Boolean? = if (tag == WATCHING_FILTER_TAG) true else null
+
+            // A kicked favourite still carries its tag locally; the main section must not exclude it.
+            fun tagQueryFilterForTag(tag: String?): RoomTagQueryFilter? =
+                    if ((tag == HISTORICAL_FILTER_TAG || tag == WATCHING_FILTER_TAG) && isMainJoinedSection) null else roomQueryParams.roomTagQueryFilter
+
             when (spaceFilterStrategy) {
                 RoomListViewModel.SpaceFilterStrategy.ORPHANS_IF_SPACE_NULL -> {
                     activeSpaceUpdaters.add(object : RoomListViewModel.ActiveSpaceQueryUpdater {
@@ -499,8 +526,12 @@ class RoomListSectionBuilder(
                             val isDmFilter = tag == DM_FILTER_TAG
                             filteredPagedRoomSummariesLive.queryParams = roomQueryParams.copy(
                                     spaceFilter = if (tag != null) SpaceFilter.NoFilter else roomId.toActiveSpaceOrOrphanRooms(),
-                                    activeTagFilter = tag.takeUnless { isDmFilter },
+                                    activeTagFilter = tag.takeUnless { isDmFilter || tag == HISTORICAL_FILTER_TAG || tag == WATCHING_FILTER_TAG },
                                     roomCategoryFilter = if (isDmFilter) RoomCategoryFilter.ONLY_DM else roomQueryParams.roomCategoryFilter,
+                                    memberships = membershipsForTag(tag),
+                                    removedFromRoom = removedFilterForTag(tag),
+                                    watched = watchedFilterForTag(tag),
+                                    roomTagQueryFilter = tagQueryFilterForTag(tag),
                             )
                             liveQueryParams.update { filteredPagedRoomSummariesLive.queryParams }
                         }
@@ -512,8 +543,12 @@ class RoomListSectionBuilder(
                             val isDmFilter = tag == DM_FILTER_TAG
                             filteredPagedRoomSummariesLive.queryParams = roomQueryParams.copy(
                                     spaceFilter = if (roomId != null) SpaceFilter.ActiveSpace(roomId) else SpaceFilter.NoFilter,
-                                    activeTagFilter = tag.takeUnless { isDmFilter },
+                                    activeTagFilter = tag.takeUnless { isDmFilter || tag == HISTORICAL_FILTER_TAG || tag == WATCHING_FILTER_TAG },
                                     roomCategoryFilter = if (isDmFilter) RoomCategoryFilter.ONLY_DM else roomQueryParams.roomCategoryFilter,
+                                    memberships = membershipsForTag(tag),
+                                    removedFromRoom = removedFilterForTag(tag),
+                                    watched = watchedFilterForTag(tag),
+                                    roomTagQueryFilter = tagQueryFilterForTag(tag),
                             )
                             liveQueryParams.update { filteredPagedRoomSummariesLive.queryParams }
                         }

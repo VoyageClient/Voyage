@@ -102,8 +102,19 @@ internal class SqlRoomSyncHandler @Inject constructor(
                 ?.let { handleEphemeral(stores, roomId, it, isInitialSync, aggregator) }
 
         val roomEntity = stores.room.get(roomId) ?: RoomEntity(roomId = roomId)
-        if (roomEntity.membership != Membership.JOIN) aggregator.spaceHierarchyChanged = true
-        if (roomEntity.membership == Membership.INVITE) clearRoomTimeline(stores, roomId)
+        val previousMembership = roomEntity.membership
+        if (previousMembership != Membership.JOIN) aggregator.spaceHierarchyChanged = true
+        // A kick/ban→(invite)→join round trip keeps the retained local history; only a plain
+        // invite-accept clears and refetches like upstream.
+        val rejoinAfterRemoval = previousMembership == Membership.LEAVE || previousMembership == Membership.BAN ||
+                (previousMembership == Membership.INVITE && stores.roomSummary.get(roomId)?.isRemovedFromRoom == true)
+        if (previousMembership == Membership.INVITE && !rejoinAfterRemoval) clearRoomTimeline(stores, roomId)
+        if (rejoinAfterRemoval) {
+            // A visibility boundary persisted while removed (403 → is_last_backward) no longer
+            // applies; a legitimate room-start boundary just re-marks itself on the next paginate.
+            stores.chunk.clearLastBackward(roomId)
+            aggregator.rejoinedRoomsToReanchor.add(roomId)
+        }
         roomEntity.membership = Membership.JOIN
         stores.room.upsert(roomEntity)
 
@@ -123,10 +134,55 @@ internal class SqlRoomSyncHandler @Inject constructor(
             )
         }
         val timeline = roomSync.timeline
-        val timelineEvents = timeline?.events
-        if (timelineEvents?.isNotEmpty() == true) {
+        val syncTimelineEvents = timeline?.events
+        if (syncTimelineEvents?.isNotEmpty() == true) {
+            val timelineEvents = if (rejoinAfterRemoval) {
+                // An invite between the removal and this join never arrives as a timeline event
+                // (consumed by the stripped invite section, or filtered by history visibility), so
+                // splice it in — in timestamp order — or the sequence renders kick → join. Which
+                // response section (if any) carries its full form varies, so fall back to the event
+                // table, where some earlier path (state delta, lazy members) has usually stored it.
+                val stateCandidates = (stateAfter?.events ?: roomSync.state?.events).orEmpty().filter {
+                    it.type == EventType.STATE_ROOM_MEMBER && it.stateKey == userId && it.eventId != null
+                }
+                val myInvite = stateCandidates.firstOrNull { it.getFixedRoomMemberContent()?.membership == Membership.INVITE }
+                        ?: run {
+                            val stored = stores.event.getRecentStateOfKey(roomId, EventType.STATE_ROOM_MEMBER, userId, 6).map { it.asDomain() }
+                            val newestRemovalTs = stored.firstOrNull {
+                                val m = it.getFixedRoomMemberContent()?.membership
+                                m == Membership.BAN || (m == Membership.LEAVE && it.senderId != userId)
+                            }?.originServerTs ?: 0
+                            stored.firstOrNull {
+                                it.eventId != null &&
+                                        it.getFixedRoomMemberContent()?.membership == Membership.INVITE &&
+                                        (it.originServerTs ?: 0) >= newestRemovalTs &&
+                                        stores.timelineEvent.getByRoomAndEventId(roomId, it.eventId.orEmpty()) == null
+                            }
+                        }
+                if (myInvite != null && syncTimelineEvents.none { it.eventId == myInvite.eventId }) {
+                    val inviteTs = myInvite.originServerTs ?: 0
+                    val at = syncTimelineEvents.indexOfFirst { (it.originServerTs ?: Long.MAX_VALUE) > inviteTs }
+                    if (at >= 0) {
+                        syncTimelineEvents.toMutableList().apply { add(at, myInvite) }
+                    } else {
+                        syncTimelineEvents + myInvite
+                    }
+                } else {
+                    syncTimelineEvents
+                }
+            } else {
+                syncTimelineEvents
+            }
             MatrixPerf.time("sync.room.timelineEvents n=${timelineEvents.size}") {
-                handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, timeline.limited, insertType, syncTs)
+                handleTimelineEvents(
+                        stores, roomId, timelineEvents, timeline.prevToken, timeline.limited, insertType, syncTs,
+                        // Rejoining over a retained removed timeline: the old live chunk must not
+                        // absorb the join batch — its token span would swallow the unfetched removal
+                        // gap, and /context islands for gap events would then interleave against the
+                        // wrong chunk. A fresh live chunk keeps spans honest; back-pagination fills
+                        // the gap (where visibility allows) and links the two.
+                        forceNewChunk = rejoinAfterRemoval,
+                )
             }
         }
         if (stateAfter != null) {
@@ -251,6 +307,24 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val orderedStateEvents = roomSync.stateAfter
                 ?.let { roomSync.timeline?.events.orEmpty() + it.events.orEmpty() }
                 ?: (roomSync.state?.events.orEmpty() + roomSync.timeline?.events.orEmpty())
+        val removalMembership = removalMembership(stores, roomId, orderedStateEvents)
+        val removedFromRoom = removalMembership != null
+        if (removedFromRoom) {
+            // Kicked/banned rooms stay browsable up to the removal: keep the local timeline and
+            // ingest this sync's final chunk (the last messages plus the kick/ban event itself).
+            // Before the state loop, so state_after still wins over timeline state.
+            val timeline = roomSync.timeline
+            val timelineEvents = timeline?.events
+            if (timelineEvents?.isNotEmpty() == true) {
+                // A gappy final chunk normally replaces the timeline and the gap backfills from the
+                // server on demand — but a ban revokes all history access, so replacing would
+                // destroy cached history for good. Append instead; the gap's middle is lost either way.
+                val limited = timeline.limited && removalMembership != Membership.BAN
+                handleTimelineEvents(stores, roomId, timelineEvents, timeline.prevToken, limited, insertType, syncTs)
+            }
+        } else {
+            clearRoomTimeline(stores, roomId)
+        }
         orderedStateEvents.forEach { event ->
             val eventId = event.eventId
             val stateKey = event.stateKey
@@ -266,24 +340,45 @@ internal class SqlRoomSyncHandler @Inject constructor(
         val membership = stores.roomMember.getByRoomAndUser(roomId, userId)?.membership ?: Membership.LEAVE
         roomEntity.membership = membership
         stores.room.upsert(roomEntity)
-        clearRoomTimeline(stores, roomId)
         roomChangeMembershipStateDataSource.setMembershipFromSync(roomId, Membership.LEAVE)
         roomSummaryUpdater.update(
                 stores, roomId, membership, roomSync.summary, roomSync.unreadNotifications,
                 roomSync.unreadThreadNotifications, aggregator = aggregator,
         )
+        stores.roomSummary.updateRemovedFromRoom(roomId, removedFromRoom)
+    }
+
+    /**
+     * BAN, or LEAVE written by someone else (kick) — i.e. removed as opposed to leaving
+     * voluntarily. Null when not removed.
+     */
+    private fun removalMembership(stores: SessionStores, roomId: String, syncStateEvents: List<Event>): Membership? {
+        val memberEvent = syncStateEvents.lastOrNull { it.type == EventType.STATE_ROOM_MEMBER && it.stateKey == userId }
+                ?: stores.currentStateEvent.getOne(roomId, EventType.STATE_ROOM_MEMBER, userId)?.root?.asDomain()
+                ?: return null
+        return when (memberEvent.getFixedRoomMemberContent()?.membership) {
+            Membership.BAN -> Membership.BAN
+            Membership.LEAVE -> Membership.LEAVE.takeIf { memberEvent.senderId != null && memberEvent.senderId != userId }
+            else -> null
+        }
     }
 
     private fun handleTimelineEvents(
             stores: SessionStores, roomId: String, eventList: List<Event>,
             prevToken: String?, isLimited: Boolean, insertType: EventInsertType, syncTs: Long,
+            forceNewChunk: Boolean = false,
     ) {
         val lastChunkId = stores.chunk.lastForward(roomId)?.id
-        val chunkId = if (!isLimited && lastChunkId != null) {
-            lastChunkId
-        } else {
-            clearRoomTimeline(stores, roomId)
-            stores.chunk.insert(roomId, prevToken, null, null, null, isLastForward = true, isLastBackward = false, null, false)
+        val chunkId = when {
+            forceNewChunk && lastChunkId != null -> {
+                stores.chunk.setLastForward(lastChunkId, false)
+                stores.chunk.insert(roomId, prevToken, null, null, null, isLastForward = true, isLastBackward = false, null, false)
+            }
+            !isLimited && lastChunkId != null -> lastChunkId
+            else -> {
+                clearRoomTimeline(stores, roomId)
+                stores.chunk.insert(roomId, prevToken, null, null, null, isLastForward = true, isLastBackward = false, null, false)
+            }
         }
         val isLastForward = true
         val eventIds = ArrayList<String>(eventList.size)

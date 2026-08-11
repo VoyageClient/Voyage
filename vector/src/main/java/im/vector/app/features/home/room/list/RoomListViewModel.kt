@@ -24,6 +24,7 @@ import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.invite.AutoAcceptInvites
+import im.vector.app.features.home.room.list.watched.WatchedRooms
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.app.features.settings.VectorPreferences
@@ -40,6 +41,7 @@ import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
 import org.matrix.android.sdk.api.session.room.read.ReadService
@@ -168,6 +170,8 @@ class RoomListViewModel @AssistedInject constructor(
             is RoomListAction.RejectInvitation -> handleRejectInvitation(action)
             is RoomListAction.FilterWith -> handleFilter(action)
             is RoomListAction.LeaveRoom -> handleLeaveRoom(action)
+            is RoomListAction.ForgetRoom -> handleForgetRoom(action)
+            is RoomListAction.StopWatchingRoom -> handleStopWatchingRoom(action)
             is RoomListAction.ChangeRoomNotificationState -> handleChangeNotificationMode(action)
             is RoomListAction.ToggleTag -> handleToggleTag(action)
             is RoomListAction.SetMarkedUnread -> handleSetMarkedUnread(action)
@@ -186,7 +190,28 @@ class RoomListViewModel @AssistedInject constructor(
     // PRIVATE METHODS *****************************************************************************
 
     private fun handleSelectRoom(action: RoomListAction.SelectRoom) = withState {
+        val summary = action.roomSummary
+        if (summary.membership == Membership.NONE && summary.isWatched) {
+            // Watched rooms have no local room data: back the room screen with a live peek.
+            val info = WatchedRooms.get(session).firstOrNull { it.roomId == summary.roomId }
+            session.roomService().registerRoomPeek(
+                    roomId = summary.roomId,
+                    viaServers = info?.viaServers.orEmpty(),
+                    roomName = summary.name.takeIf { it.isNotEmpty() } ?: info?.name,
+                    roomAvatarUrl = summary.avatarUrl.takeIf { it.isNotEmpty() } ?: info?.avatarUrl,
+                    roomTopic = summary.topic.takeIf { it.isNotEmpty() } ?: info?.topic,
+                    roomAlias = summary.canonicalAlias ?: info?.alias,
+            )
+        }
         _viewEvents.post(RoomListViewEvents.SelectRoom(action.roomSummary, false))
+    }
+
+    private fun handleStopWatchingRoom(action: RoomListAction.StopWatchingRoom) {
+        viewModelScope.launch {
+            val value = runCatching { WatchedRooms.remove(session, action.roomId) }
+                    .fold({ RoomListViewEvents.Done }, { RoomListViewEvents.Failure(it) })
+            _viewEvents.post(value)
+        }
     }
 
     private fun handleToggleSection(roomSection: RoomsSection, persist: Boolean = true) {
@@ -369,6 +394,15 @@ class RoomListViewModel @AssistedInject constructor(
         _viewEvents.post(RoomListViewEvents.Loading(null))
         viewModelScope.launch {
             val value = runCatching { session.roomService().leaveRoom(action.roomId) }
+                    .fold({ RoomListViewEvents.Done }, { RoomListViewEvents.Failure(it) })
+            _viewEvents.post(value)
+        }
+    }
+
+    private fun handleForgetRoom(action: RoomListAction.ForgetRoom) {
+        _viewEvents.post(RoomListViewEvents.Loading(null))
+        viewModelScope.launch {
+            val value = runCatching { session.roomService().forgetRoom(action.roomId) }
                     .fold({ RoomListViewEvents.Done }, { RoomListViewEvents.Failure(it) })
             _viewEvents.post(value)
         }

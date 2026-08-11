@@ -93,9 +93,9 @@ class RoomProfileController @Inject constructor(
         data ?: return
         val host = this
         val roomSummary = data.roomSummary() ?: return
-        // World-readable preview (not joined): everything renders read-only; only actions that are
-        // meaningless without membership are hidden below.
-        val isPreview = roomSummary.membership == Membership.NONE
+        // Not joined (world-readable preview, or a frozen kicked/banned room): everything renders
+        // read-only; only actions that are meaningless without membership are hidden below.
+        val isPreview = roomSummary.membership != Membership.JOIN
 
         // Topic
         roomSummary

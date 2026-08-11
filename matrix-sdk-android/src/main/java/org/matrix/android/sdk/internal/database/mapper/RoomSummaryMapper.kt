@@ -70,6 +70,8 @@ internal class RoomSummaryMapper @Inject constructor(
                 tags = tags,
                 typingUsers = typingUsers,
                 membership = roomSummaryEntity.membership,
+                isRemovedFromRoom = roomSummaryEntity.isRemovedFromRoom,
+                isWatched = roomSummaryEntity.isWatched,
                 versioningState = roomSummaryEntity.versioningState,
                 readMarkerId = roomSummaryEntity.readMarkerId,
                 userDrafts = roomSummaryEntity.userDrafts?.userDrafts?.map { DraftMapper.map(it) }.orEmpty(),

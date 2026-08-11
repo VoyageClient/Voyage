@@ -25,6 +25,7 @@ import com.airbnb.epoxy.OnModelBuildFinishedListener
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
@@ -53,6 +54,7 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orTrue
+import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
@@ -480,7 +482,21 @@ class RoomListFragment :
             is RoomListQuickActionsSharedAction.Leave -> {
                 promptLeaveRoom(quickAction.roomId)
             }
+            is RoomListQuickActionsSharedAction.Forget -> {
+                promptForgetRoom(quickAction.roomId)
+            }
         }
+    }
+
+    private fun promptForgetRoom(roomId: String) {
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(CommonStrings.room_list_quick_actions_forget)
+                .setMessage(CommonStrings.room_forget_prompt_msg)
+                .setPositiveButton(CommonStrings.room_list_quick_actions_forget) { _, _ ->
+                    roomListViewModel.handle(RoomListAction.ForgetRoom(roomId))
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .show()
     }
 
     private suspend fun promptLeaveRoom(roomId: String) {
@@ -540,6 +556,19 @@ class RoomListFragment :
 
     override fun onRoomLongClicked(room: RoomSummary): Boolean {
         userPreferencesProvider.neverShowLongClickOnRoomHelpAgain()
+        // Watched rooms have no local Room object, which the quick-actions sheet requires;
+        // the only action anyway is to stop watching.
+        if (room.membership == Membership.NONE && room.isWatched) {
+            MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(CommonStrings.room_list_quick_actions_stop_watching)
+                    .setMessage(room.displayName)
+                    .setPositiveButton(CommonStrings.room_list_quick_actions_stop_watching) { _, _ ->
+                        roomListViewModel.handle(RoomListAction.StopWatchingRoom(room.roomId))
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+            return true
+        }
         withState(roomListViewModel) {
             // refresh footer
             footerController.setData(it)

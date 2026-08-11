@@ -28,4 +28,6 @@ data class SpaceListViewState(
         val homeAggregateCount: RoomAggregateNotificationCount = RoomAggregateNotificationCount(0, 0),
         val tags: List<RoomTagItem> = emptyList(),
         val selectedTag: String? = null,
+        val historicalRoomCount: Int = 0,
+        val watchingRoomCount: Int = 0,
 ) : MavericksState

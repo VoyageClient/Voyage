@@ -97,6 +97,16 @@ data class RoomSummaryQueryParams(
          * Used to filter room by an arbitrary room tag name (e.g. "m.favourite" or "u.work").
          */
         val activeTagFilter: String?,
+        /**
+         * When non-null, keep only rooms whose [org.matrix.android.sdk.api.session.room.model.RoomSummary.isRemovedFromRoom]
+         * matches (true = kicked/banned rooms, false = everything else).
+         */
+        val removedFromRoom: Boolean?,
+        /**
+         * When non-null, keep only rooms whose [org.matrix.android.sdk.api.session.room.model.RoomSummary.isWatched]
+         * matches.
+         */
+        val watched: Boolean?,
 ) {
 
     /**
@@ -114,6 +124,8 @@ data class RoomSummaryQueryParams(
         var includeType: List<String?>? = null
         var spaceFilter: SpaceFilter = SpaceFilter.NoFilter
         var activeTagFilter: String? = null
+        var removedFromRoom: Boolean? = null
+        var watched: Boolean? = null
 
         fun build() = RoomSummaryQueryParams(
                 roomId = roomId,
@@ -126,6 +138,8 @@ data class RoomSummaryQueryParams(
                 includeType = includeType,
                 spaceFilter = spaceFilter,
                 activeTagFilter = activeTagFilter,
+                removedFromRoom = removedFromRoom,
+                watched = watched,
         )
     }
 }

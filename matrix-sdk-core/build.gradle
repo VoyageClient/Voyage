@@ -168,6 +168,7 @@ ext.coreSources = [
         'org/matrix/android/sdk/api/session/room/model/RoomJoinRulesContent.kt',
         'org/matrix/android/sdk/api/session/room/model/RoomMemberSummary.kt',
         'org/matrix/android/sdk/api/session/room/model/RoomSummary.kt',
+        'org/matrix/android/sdk/api/session/room/model/WatchedRoomInfo.kt',
         'org/matrix/android/sdk/api/session/room/model/RoomType.kt',
         'org/matrix/android/sdk/api/session/room/model/SpaceChildInfo.kt',
         'org/matrix/android/sdk/api/session/room/model/VersioningState.kt',
@@ -453,6 +454,7 @@ ext.coreSources = [
         // Room-list data source: LiveData/PagedList surface relocated to RoomSummaryDataSourceAndroid.kt;
         // the Flow methods are primary and the pure query/mapping helpers are internal.
         'org/matrix/android/sdk/internal/session/room/summary/RoomSummaryDataSource.kt',
+        'org/matrix/android/sdk/internal/session/room/summary/SyncWatchedRoomSummariesTask.kt',
         // Internal REST value types across profile/identity/pushers/user/auth and other feature packages.
         'org/matrix/android/sdk/internal/session/profile/PendingThreePid.kt',
         'org/matrix/android/sdk/internal/session/profile/SetAvatarUrlBody.kt',
@@ -989,6 +991,8 @@ ext.coreSources = [
         'org/matrix/android/sdk/internal/session/room/membership/threepid/InviteThreePidTask.kt',
         'org/matrix/android/sdk/internal/session/room/poll/DefaultPollHistoryService.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/PaginationTask.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/FetchInvitedRoomPreviewTask.kt',
+        'org/matrix/android/sdk/internal/session/room/timeline/ReanchorRejoinedRoomTask.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/TokenChunkEventPersistor.kt',
         'org/matrix/android/sdk/internal/session/room/timeline/SqlSendingEventsDataSource.kt',
         'org/matrix/android/sdk/internal/session/room/relationship/SqlRoomChildRelationInfo.kt',

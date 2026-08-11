@@ -8,11 +8,14 @@
 package im.vector.app.features.spaces
 
 import com.airbnb.epoxy.EpoxyController
+import im.vector.app.R
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.grouplist.homeSpaceSummaryItem
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.settings.VectorPreferences
+import im.vector.app.features.spaces.tags.HISTORICAL_FILTER_TAG
+import im.vector.app.features.spaces.tags.WATCHING_FILTER_TAG
 import im.vector.lib.strings.CommonStrings
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.room.model.Membership
@@ -48,6 +51,8 @@ class SpaceSummaryController @Inject constructor(
                 nonNullViewState.homeAggregateCount,
                 nonNullViewState.tags,
                 nonNullViewState.selectedTag,
+                nonNullViewState.historicalRoomCount,
+                nonNullViewState.watchingRoomCount,
         )
     }
 
@@ -72,6 +77,8 @@ class SpaceSummaryController @Inject constructor(
             homeCount: RoomAggregateNotificationCount,
             tags: List<RoomTagItem>,
             selectedTag: String?,
+            historicalRoomCount: Int,
+            watchingRoomCount: Int,
     ) {
         val host = this
 
@@ -96,6 +103,28 @@ class SpaceSummaryController @Inject constructor(
             selected(selectedSpace == null && selectedTag == null)
             countState(UnreadCounterBadgeView.State.Count(homeCount.totalCount, homeCount.isHighlight))
             listener { host.callback?.onSpaceSelected(null, isSubSpace = false) }
+        }
+
+        if (watchingRoomCount > 0) {
+            spaceTagItem {
+                id("watching")
+                name(host.stringProvider.getString(CommonStrings.room_list_watching))
+                count(watchingRoomCount)
+                selected(selectedTag == WATCHING_FILTER_TAG)
+                iconRes(R.drawable.ic_reveal_redacted)
+                listener { host.callback?.onTagSelected(WATCHING_FILTER_TAG) }
+            }
+        }
+
+        if (historicalRoomCount > 0) {
+            spaceTagItem {
+                id("historical")
+                name(host.stringProvider.getString(CommonStrings.room_list_historical))
+                count(historicalRoomCount)
+                selected(selectedTag == HISTORICAL_FILTER_TAG)
+                iconRes(R.drawable.ic_book_24)
+                listener { host.callback?.onTagSelected(HISTORICAL_FILTER_TAG) }
+            }
         }
 
         buildTagModels(tags, selectedTag)

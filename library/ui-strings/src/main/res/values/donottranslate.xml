@@ -692,4 +692,20 @@
     <string name="send_file_step_preparing_thumbnail" translatable="false">Preparing thumbnail…</string>
 
     <string name="room_preview_peek_join_prompt" translatable="false">You\'re previewing %1$s. Want to join it?</string>
+
+    <string name="room_list_historical" translatable="false">Historical</string>
+    <string name="room_list_quick_actions_forget" translatable="false">Forget room</string>
+    <string name="room_forget_prompt_msg" translatable="false">Forgetting this room permanently removes your copy of its history. You won\'t see it again unless you rejoin.</string>
+    <string name="room_removed_kicked_generic" translatable="false">You were removed from %1$s</string>
+    <string name="room_removed_banned_generic" translatable="false">You were banned from %1$s</string>
+    <string name="room_removed_reason" translatable="false">Reason: %1$s</string>
+    <string name="room_removed_rejoin" translatable="false">Rejoin</string>
+
+    <string name="room_list_watching" translatable="false">Watching</string>
+    <string name="room_list_quick_actions_stop_watching" translatable="false">Stop watching</string>
+    <string name="command_description_watch_room" translatable="false">Watch a previewable room without joining it</string>
+    <string name="command_description_unwatch_room" translatable="false">Stop watching a room</string>
+    <string name="command_watch_success" translatable="false">Room added to Watching</string>
+    <string name="command_watch_not_previewable" translatable="false">This room can\'t be previewed, so it can\'t be watched</string>
+    <string name="command_unwatch_not_watched" translatable="false">You\'re not watching that room</string>
 </resources>
