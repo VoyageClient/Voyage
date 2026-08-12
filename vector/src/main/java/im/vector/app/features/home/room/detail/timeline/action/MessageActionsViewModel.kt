@@ -27,6 +27,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
+import im.vector.app.features.media.FailedMediaTracker
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
@@ -78,6 +79,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.model.relation.ReactionContent
@@ -110,6 +112,7 @@ class MessageActionsViewModel @AssistedInject constructor(
         private val checkIfCanReplyEventUseCase: CheckIfCanReplyEventUseCase,
         private val checkIfCanRedactEventUseCase: CheckIfCanRedactEventUseCase,
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
+        private val failedMediaTracker: FailedMediaTracker,
         private val pgpServiceManager: PgpServiceManager,
         private val pgpKeyStore: PgpKeyStore,
         private val imagePackProvider: ImagePackProvider,
@@ -497,7 +500,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 add(EventSharedAction.ViewEditHistory(informationData))
             }
 
-            if (canSave(msgType) && messageContent is MessageWithAttachmentContent) {
+            if (canSave(msgType) && messageContent is MessageWithAttachmentContent && !isFailedMedia(messageContent)) {
                 add(EventSharedAction.Save(timelineEvent.eventId, messageContent))
             }
 
@@ -515,7 +518,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                 )
             }
 
-            if (canShare(msgType)) {
+            if (canShare(msgType) && !isFailedMedia(messageContent)) {
                 add(EventSharedAction.Share(timelineEvent.eventId, messageContent!!))
             }
 
@@ -759,6 +762,21 @@ class MessageActionsViewModel @AssistedInject constructor(
             MessageType.MSGTYPE_STICKER_LOCAL -> true
             else -> false
         }
+    }
+
+    // Nothing to hand to another app, and no bytes to write to storage. A format we downloaded but
+    // cannot decode is a different case: it failed to *display*, while the file itself is right
+    // there and worth keeping, so the actions stay.
+    private fun isFailedMedia(messageContent: MessageContent?): Boolean {
+        val content = messageContent as? MessageWithAttachmentContent ?: return false
+        if (!failedMediaTracker.isFailed(content.getFileUrl())) return false
+        val downloaded = session.fileService().getLocalFileFor(
+                mxcUrl = content.getFileUrl(),
+                fileName = content.body,
+                mimeType = content.mimeType,
+                isEncrypted = content.encryptedFileInfo != null
+        )
+        return downloaded == null
     }
 
     private fun canShare(msgType: String?): Boolean {

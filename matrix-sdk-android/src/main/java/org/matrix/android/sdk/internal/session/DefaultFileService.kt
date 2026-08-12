@@ -29,6 +29,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
@@ -235,7 +236,11 @@ internal class DefaultFileService @Inject constructor(
                     }
 
                     if (!response.isSuccessful) {
-                        throw Failure.NetworkConnection(IOException())
+                        // Deliberately not OtherServerError: that is formatted for homeserver API
+                        // calls, so a media 404 would surface to the user as "homeserver not found"
+                        // and anything else as a raw exception string. The status is kept in the
+                        // message for logs only.
+                        throw Failure.NetworkConnection(IOException("HTTP ${response.code()}"))
                     }
 
                     val source = response.body()?.source() ?: throw Failure.NetworkConnection(IOException())

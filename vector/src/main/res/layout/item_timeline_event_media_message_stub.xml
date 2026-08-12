@@ -19,6 +19,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- Fills the gap the thumbnail leaves while the media viewer owns it as a shared element:
+             the platform hides the source view, and the viewer can be dragged aside to reveal it. -->
+        <View
+            android:id="@+id/messageThumbnailBackdrop"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/messageThumbnailView"
+            app:layout_constraintEnd_toEndOf="@id/messageThumbnailView"
+            app:layout_constraintStart_toStartOf="@id/messageThumbnailView"
+            app:layout_constraintTop_toTopOf="@id/messageThumbnailView" />
+
         <im.vector.app.core.ui.views.RoundedCornerImageView
             android:id="@+id/messageThumbnailView"
             android:layout_width="375dp"

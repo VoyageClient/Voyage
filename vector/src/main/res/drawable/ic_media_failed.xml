@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- Two torn halves of a square photo, each outlined all the way round its own jagged edge, so the
+       rip is a real gap between them rather than a line drawn over one shape. -->
+  <path
+      android:pathData="M11.0,4 H6 A2,2 0 0 0 4,6 V18 A2,2 0 0 0 6,20 H10.2 L11.2,16.5 L9.3,13.5 L11.6,10.5 L9.6,7.5 Z"
+      android:fillColor="#00000000"
+      android:strokeColor="#2E2F32"
+      android:strokeWidth="1.7"
+      android:strokeLineJoin="round" />
+  <path
+      android:pathData="M14.2,4 H18 A2,2 0 0 1 20,6 V18 A2,2 0 0 1 18,20 H13.4 L14.4,16.5 L12.5,13.5 L14.8,10.5 L12.8,7.5 Z"
+      android:fillColor="#00000000"
+      android:strokeColor="#2E2F32"
+      android:strokeWidth="1.7"
+      android:strokeLineJoin="round" />
+  <!-- Sun, on the left piece -->
+  <path
+      android:fillColor="#2E2F32"
+      android:pathData="M7.4,8.6 m-1.15,0 a1.15,1.15 0 1,0 2.3,0 a1.15,1.15 0 1,0 -2.3,0" />
+  <!-- A peak in each piece -->
+  <path
+      android:pathData="M5.3,17.4 L7.4,14.5 L8.9,16.3"
+      android:fillColor="#00000000"
+      android:strokeColor="#2E2F32"
+      android:strokeWidth="1.7"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+  <path
+      android:pathData="M15.4,16.7 L17.1,14.2 L19.0,16.7"
+      android:fillColor="#00000000"
+      android:strokeColor="#2E2F32"
+      android:strokeWidth="1.7"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round" />
+</vector>

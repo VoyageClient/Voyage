@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.graphics.Outline
 import android.graphics.RectF
+import android.graphics.drawable.GradientDrawable
 import android.text.format.DateUtils
 import android.text.method.MovementMethod
 import android.view.View
@@ -35,6 +36,7 @@ import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
@@ -140,12 +142,22 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 holder.imageView.setCornerRadii(r, r, r, r)
             }
         }
+        holder.thumbnailBackdrop.background = GradientDrawable().apply {
+            setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background))
+            cornerRadius = if (isBubble) {
+                (messageLayout as TimelineMessageLayout.Bubble).cornersRadius.topStartRadius
+            } else {
+                cornerPx.toFloat()
+            }
+        }
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
+        // Same condition bindPlayButton uses: where that badge lands, the failure glyph must not.
+        val showsPlayButton = playable && !(isImageMessage && attributes.autoplayAnimatedImages)
         val hidden = hideMedia && !mediaRevealManager.isRevealed(mediaData.stableId)
         if (hidden) {
             imageContentRenderer.renderHidden(mediaData, mode, holder.imageView, hiddenMediaSolidColor)
         } else {
-            imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
+            imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation, showFailureGlyph = !showsPlayButton)
         }
         holder.mediaHiddenScrim.isVisible = hidden
         holder.mediaHiddenScrim.alpha = 1f
@@ -155,7 +167,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 mediaRevealManager.reveal(mediaData.stableId)
                 holder.mediaShowButton.isVisible = false
                 // Render the real content underneath, then fade the dark scrim away to it.
-                imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
+                imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation, showFailureGlyph = !showsPlayButton)
                 ViewCompat.animate(holder.mediaHiddenScrim)
                         .alpha(0f)
                         .setDuration(SCRIM_FADE_OUT_MS)
@@ -230,6 +242,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     }
 
     override fun unbind(holder: Holder) {
+        holder.stopWatchingBackdrop()
         holder.showDuration(false)
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
@@ -280,6 +293,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     class Holder : AbsMessageItem.Holder(STUB_ID) {
 
         private var durationAligner: ViewTreeObserver.OnPreDrawListener? = null
+        private var backdropWatcher: ViewTreeObserver.OnPreDrawListener? = null
         private val drawnThumbnail = RectF()
         private var wantsDuration = false
         private var viewerHandover = ViewerHandover.NONE
@@ -315,9 +329,38 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
         /** The thumbnail flies into the viewer while the badge stays behind, and would be drawn over. */
         fun hideDurationForViewer() {
-            if (!wantsDuration) return
             viewerHandover = ViewerHandover.OPENING
-            durationView.isVisible = false
+            if (wantsDuration) durationView.isVisible = false
+            showThumbnailBackdrop()
+        }
+
+        /**
+         * The platform hides the shared element until the viewer gives it back, so watch for the
+         * window regaining focus and drop the stand-in then. Images have no duration badge and so no
+         * per-draw listener of their own, hence one installed just for this.
+         */
+        private fun showThumbnailBackdrop() {
+            thumbnailBackdrop.isVisible = true
+            if (backdropWatcher != null) return
+            val observer = thumbnailBackdrop.viewTreeObserver
+            val watcher = ViewTreeObserver.OnPreDrawListener {
+                if (viewerHandover == ViewerHandover.OPENING && !imageView.hasWindowFocus()) {
+                    viewerHandover = ViewerHandover.OPEN
+                } else if (viewerHandover == ViewerHandover.OPEN && imageView.hasWindowFocus()) {
+                    viewerHandover = ViewerHandover.NONE
+                    thumbnailBackdrop.isVisible = false
+                    stopWatchingBackdrop()
+                }
+                true
+            }
+            backdropWatcher = watcher
+            observer.addOnPreDrawListener(watcher)
+        }
+
+        fun stopWatchingBackdrop() {
+            val watcher = backdropWatcher ?: return
+            backdropWatcher = null
+            thumbnailBackdrop.viewTreeObserver.takeIf { it.isAlive }?.removeOnPreDrawListener(watcher)
         }
 
         /**
@@ -352,6 +395,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)
         val imageView by bind<RoundedCornerImageView>(R.id.messageThumbnailView)
+        val thumbnailBackdrop by bind<View>(R.id.messageThumbnailBackdrop)
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
         val durationView by bind<AppCompatTextView>(R.id.messageMediaDurationView)
         val mediaHiddenScrim by bind<View>(R.id.messageMediaHiddenScrim)

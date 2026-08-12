@@ -18,6 +18,7 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.view.View
+import android.widget.ImageView
 import androidx.annotation.StringRes
 import dagger.Lazy
 import im.vector.app.R
@@ -672,9 +673,17 @@ class MessageItemFactory @Inject constructor(
                 .apply {
                     // A still-sending event may have no entry in the media viewer's list yet,
                     // which would open the viewer on the wrong item; keep it untappable until sent.
+                    // Media that will never load has nothing for the viewer to show either.
                     if (!informationData.sendState.isSending()) {
                         clickListener { view ->
-                            callback?.onImageMessageClicked(messageContent, data, view, emptyList())
+                            // Checked at tap time, not bind time: the load is still in flight when
+                            // this item binds, and a later bind may well succeed.
+                            val imageView = view as? ImageView
+                            when {
+                                imageView != null && imageContentRenderer.isRetrying(imageView) -> Unit
+                                imageContentRenderer.isFailed(data) -> imageView?.let { imageContentRenderer.retry(it) }
+                                else -> callback?.onImageMessageClicked(messageContent, data, view, emptyList())
+                            }
                         }
                     }
                     if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {

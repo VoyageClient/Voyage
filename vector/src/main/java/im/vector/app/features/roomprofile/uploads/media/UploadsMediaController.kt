@@ -8,6 +8,7 @@
 package im.vector.app.features.roomprofile.uploads.media
 
 import android.view.View
+import android.widget.ImageView
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.epoxy.VisibilityState
 import im.vector.app.core.epoxy.squareLoadingItem
@@ -15,6 +16,7 @@ import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.redaction.preservation.PreservedMediaStore
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.roomprofile.uploads.RoomUploadsViewState
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
@@ -24,12 +26,14 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.uploads.UploadEvent
+import timber.log.Timber
 import javax.inject.Inject
 
 class UploadsMediaController @Inject constructor(
         private val errorFormatter: ErrorFormatter,
         private val imageContentRenderer: ImageContentRenderer,
         private val stringProvider: StringProvider,
+        private val preservedMediaStore: PreservedMediaStore,
         dimensionConverter: DimensionConverter
 ) : TypedEpoxyController<RoomUploadsViewState>() {
 
@@ -49,7 +53,7 @@ class UploadsMediaController @Inject constructor(
         data ?: return
         val host = this
 
-        buildMediaItems(data.mediaEvents)
+        buildMediaItems(data.mediaEvents, data.roomId)
 
         if (data.hasMore) {
             squareLoadingItem {
@@ -64,19 +68,28 @@ class UploadsMediaController @Inject constructor(
         }
     }
 
-    private fun buildMediaItems(mediaEvents: List<UploadEvent>) {
+    private fun buildMediaItems(mediaEvents: List<UploadEvent>, roomId: String) {
         val host = this
         mediaEvents.forEach { uploadEvent ->
             when (uploadEvent.contentWithAttachmentContent.msgType) {
                 MessageType.MSGTYPE_IMAGE,
                 MessageType.MSGTYPE_STICKER_LOCAL -> {
-                    val data = uploadEvent.toImageContentRendererData() ?: return@forEach
+                    val data = uploadEvent.toImageContentRendererData(roomId)
+                    if (data == null) {
+                        return@forEach
+                    }
                     uploadsImageItem {
                         id(uploadEvent.eventId)
                         imageContentRenderer(host.imageContentRenderer)
                         data(data)
-                        listener {
-                            host.listener?.onOpenImageClicked(it, data)
+                        listener { clicked: View ->
+                            // Nothing for the viewer to show, so spend the tap on another attempt.
+                            val imageView = clicked as? ImageView
+                            when {
+                                imageView != null && host.imageContentRenderer.isRetrying(imageView) -> Unit
+                                host.imageContentRenderer.isFailed(data) -> imageView?.let { host.imageContentRenderer.retry(it) }
+                                else -> host.listener?.onOpenImageClicked(clicked, data)
+                            }
                         }
                     }
                 }
@@ -95,7 +108,8 @@ class UploadsMediaController @Inject constructor(
         }
     }
 
-    private fun UploadEvent.toImageContentRendererData(): ImageContentRenderer.Data? {
+    /** A redaction the app preserved locally still has its bytes, even once the server copy is gone. */
+    private fun UploadEvent.toImageContentRendererData(roomId: String): ImageContentRenderer.Data? {
         val messageContent = (contentWithAttachmentContent as? MessageImageInfoContent) ?: return null
 
         return ImageContentRenderer.Data(
@@ -109,6 +123,7 @@ class UploadsMediaController @Inject constructor(
                 width = messageContent.info?.width,
                 maxWidth = itemSize,
                 blurHash = messageContent.info?.blurHash,
+                preservedFile = preservedMediaStore.fileFor(roomId, eventId).takeIf { it.isFile },
         )
     }
 

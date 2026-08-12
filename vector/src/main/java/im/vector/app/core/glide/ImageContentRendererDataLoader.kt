@@ -23,6 +23,7 @@ import im.vector.app.features.session.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.IOException
@@ -127,19 +128,28 @@ class ImageContentRendererDataFetcher(
         // Use the file vector service, will avoid flickering and redownload after upload
         val job = session.coroutineScope.launch {
             val result = runCatching {
-                fileService.downloadFile(
-                        fileName = data.filename,
-                        mimeType = data.mimeType,
-                        url = data.url,
-                        elementToDecrypt = data.elementToDecrypt
-                )
+                // The service's own watchdog is half an hour, sized for large file downloads, and
+                // requests for the same url share one download — so a stalled fetch leaves the
+                // thumbnail spinning for that long and every retry attaches to the same wait. Give up
+                // on displaying it much sooner; the download itself carries on and still populates the
+                // cache, this only stops the view waiting on it.
+                withTimeout(RENDER_TIMEOUT_MS) {
+                    fileService.downloadFile(
+                            fileName = data.filename,
+                            mimeType = data.mimeType,
+                            url = data.url,
+                            elementToDecrypt = data.elementToDecrypt
+                    )
+                }
             }
             Timber.i("MEDIADBG fetcher download settled url=${data.url} ok=${result.isSuccess}")
             withContext(Dispatchers.Main) {
                 if (delivered.getAndSet(true)) return@withContext
                 result.fold(
                         { callback.onDataReady(BufferedInputStream(it.inputStream())) },
-                        { callback.onLoadFailed(it as? Exception ?: IOException(it.localizedMessage)) }
+                        // Failure is a Throwable, not an Exception, so it never survives the cast —
+                        // keep it as the cause or the HTTP status is lost before anything can read it.
+                        { callback.onLoadFailed(it as? Exception ?: IOException(it.localizedMessage, it)) }
                 )
             }
             Timber.i("MEDIADBG fetcher callback delivered url=${data.url}")
@@ -148,7 +158,7 @@ class ImageContentRendererDataFetcher(
         job.invokeOnCompletion { cause ->
             if (cause != null && !delivered.getAndSet(true)) {
                 Timber.w(cause, "MEDIADBG fetcher job ended without delivering url=${data.url}")
-                callback.onLoadFailed(cause as? Exception ?: IOException(cause.localizedMessage))
+                callback.onLoadFailed(cause as? Exception ?: IOException(cause.localizedMessage, cause))
             }
         }
 //        val url = contentUrlResolver.resolveFullSize(data.url)
@@ -173,3 +183,5 @@ class ImageContentRendererDataFetcher(
 //        callback.onDataReady(stream)
     }
 }
+
+private const val RENDER_TIMEOUT_MS = 25_000L

@@ -3,6 +3,8 @@
     <item name="space_item_home" type="id" />
     <item name="copy_on_long_click_source" type="id" />
     <item name="image_renderer_last_render" type="id" />
+    <item name="image_renderer_retry" type="id" />
+    <item name="image_renderer_retrying" type="id" />
     <item name="rich_body_binding" type="id" />
     <item name="image_renderer_pending_render" type="id" />
 </resources>

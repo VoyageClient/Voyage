@@ -18,6 +18,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.bumptech.glide.request.transition.Transition
 import com.bumptech.glide.request.transition.TransitionFactory
 
@@ -106,13 +107,20 @@ class BlurFadeOutDrawable(
 }
 
 class BlurFadeOutTransitionFactory(private val durationMs: Long) : TransitionFactory<Drawable> {
+
+    // The hash decodes off-thread and a fast local load can beat it; without something to fade from,
+    // the image would appear in a single frame.
+    private val fallback = DrawableCrossFadeFactory.Builder(durationMs.toInt()).build()
+
     override fun build(dataSource: DataSource, isFirstResource: Boolean): Transition<Drawable> =
             Transition<Drawable> { current, adapter ->
+                // The waiting state may be wrapped in the shared placeholder, which owns the
+                // blurhash rather than being one.
                 val placeholder = adapter.currentDrawable as? BlurHashDrawable
+                        ?: (adapter.currentDrawable as? MediaPlaceholderDrawable)?.blurHash
                 val placeholderBitmap = placeholder?.bitmap
                 if (placeholder == null || placeholderBitmap == null) {
-                    // No blurhash (yet) to fade from: let Glide set the image directly.
-                    false
+                    fallback.build(dataSource, isFirstResource).transition(current, adapter)
                 } else {
                     placeholder.markFinished()
                     adapter.setDrawable(BlurFadeOutDrawable(current, placeholderBitmap, durationMs))
