@@ -33,6 +33,8 @@ android {
 
     kotlinOptions {
         jvmTarget = versions.jvmTarget
+        // jxl-coder is built with Kotlin 2.x; see vector/build.gradle.
+        freeCompilerArgs += ["-Xskip-metadata-version-check"]
     }
 }
 
@@ -43,6 +45,14 @@ dependencies {
     // and callers need the transitive classes to hold onto what they hand back.
     api 'com.github.bumptech.glide:gifdecoder:4.16.0'
     api 'com.github.zjupure:webpdecoder:2.7.4.16.0'
+    // Animated JPEG XL frames. minSdk 21 and it loads its .so from a static initialiser, so it is
+    // reached only through JxlFrameReader behind a version check.
+    api('io.github.awxkee:jxl-coder:2.5.2') {
+        exclude group: 'androidx.appcompat'
+        exclude group: 'androidx.core', module: 'core-ktx'
+        exclude group: 'com.google.android.material'
+        exclude group: 'org.jetbrains.kotlin'
+    }
 
     // TESTS
     testImplementation libs.tests.junit

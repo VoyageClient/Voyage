@@ -7,8 +7,6 @@
 
 package im.vector.app.core.glide
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import com.bumptech.glide.load.Options
 import com.bumptech.glide.load.ResourceDecoder
@@ -21,9 +19,10 @@ import java.nio.ByteBuffer
  * Animated JPEG XL. Returns null for a still image so it falls through to the Bitmap decoders, which
  * is also what happens on a device below API 21, where none of this is registered at all.
  *
- * Like the APNG decoder, the Resource builds a fresh Drawable per get(): one AnimatedDrawable owns a
- * single frame cursor, so sharing an instance between targets would have them fight over which frame
- * is on screen. The source bytes are shared; only the cheap decoder wrapper is rebuilt.
+ * One Drawable per Resource, as Glide's own animated decoders do, rather than a fresh one per get()
+ * like the APNG decoder: a new instance starts at frame 0 and is not yet running, so every rebind —
+ * closing the viewer, scrolling back — would restart the animation instead of leaving it where the
+ * cached, still-running drawable had got to.
  */
 internal class JxlAnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable> {
 
@@ -44,9 +43,10 @@ internal class JxlAnimatedDrawableDecoder : ResourceDecoder<ByteBuffer, Drawable
 
         fun decodeBytes(bytes: ByteArray, width: Int, height: Int): Resource<Drawable>? {
             if ((JxlBitmaps.frameCount(bytes) ?: return null) <= 1) return null
+            val drawable = JxlBitmaps.animatedDrawable(bytes, width, height) ?: return null
             return object : Resource<Drawable> {
                 override fun getResourceClass(): Class<Drawable> = Drawable::class.java
-                override fun get(): Drawable = JxlBitmaps.animatedDrawable(bytes, width, height) ?: ColorDrawable(Color.TRANSPARENT)
+                override fun get(): Drawable = drawable
                 override fun getSize(): Int = bytes.size
                 override fun recycle() = Unit
             }

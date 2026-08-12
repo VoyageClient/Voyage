@@ -9,6 +9,8 @@ package im.vector.app.core.glide
 
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
+import android.os.Handler
+import android.os.Looper
 import com.bumptech.glide.integration.webp.decoder.WebpDrawable
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -44,9 +46,24 @@ fun Drawable.restartAnimation() {
             reset()
             start()
         }
-        else -> start()
+        else -> startOnceAttached()
     }
 }
+
+/**
+ * Glide notifies its listeners before the target installs the drawable, so one that schedules its
+ * first frame through [Drawable.Callback] loses it — there is no callback yet — and is left marked
+ * as running, so nothing ever schedules another. jxl-coder's AnimatedDrawable also clears the flag
+ * its own setVisible(true) consults when it is stopped, so a recycled view never resumes it either.
+ * Starting a frame later, once the drawable is on the view, avoids both.
+ */
+private fun Animatable.startOnceAttached() {
+    mainHandler.post {
+        if (!isRunning) start()
+    }
+}
+
+private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
 /** Rewinds on every bind, including the ones Glide answers straight from its memory cache. */
 object RestartAnimationListener : RequestListener<Drawable> {

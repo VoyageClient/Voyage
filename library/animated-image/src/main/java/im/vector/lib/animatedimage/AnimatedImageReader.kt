@@ -18,6 +18,7 @@ object AnimatedImageReader {
             AnimatedImageFormat.GIF -> GifFrameReader.readFrames(file)
             AnimatedImageFormat.APNG -> ApngFrameReader.readFrames(file)
             AnimatedImageFormat.WEBP -> AnimatedWebpReader.readFrames(file)
+            AnimatedImageFormat.JXL -> JxlFrameReader.readFrames(file)
             null -> null
         }
     }
