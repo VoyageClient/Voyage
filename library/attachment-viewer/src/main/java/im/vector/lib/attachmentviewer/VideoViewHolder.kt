@@ -383,8 +383,14 @@ class VideoViewHolder constructor(itemView: View) :
                         mp.start()
                     }
                 }
-                setOnCompletionListener {
+                setOnCompletionListener { mp ->
                     stopTimer()
+                    wasPaused = true
+                    progress = 0
+                    // The timer is what tells the overlay whether we're playing, so without a last
+                    // report of our own its button stays a pause and only ever sends PauseVideo.
+                    val duration = runCatching { mp.duration }.getOrDefault(0)
+                    eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(false, duration, duration))
                 }
                 prepareAsync()
             }
