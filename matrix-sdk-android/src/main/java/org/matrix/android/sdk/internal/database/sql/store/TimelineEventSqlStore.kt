@@ -80,6 +80,21 @@ internal class TimelineEventSqlStore(
 
     fun countByChunk(chunkId: Long): Long = queries.countByChunk(chunkId).executeAsOne()
 
+    /** Rows that are the sole timeline event of their chunk (i.e. jump-to-event /context islands). */
+    fun getLoneEventRows(roomId: String): List<LoneEventRow> =
+            queries.selectLoneEventRows(roomId).executeAsList().map { LoneEventRow(it.id, it.event_id, it.chunk_id) }
+
+    fun maxDisplayIndexAtOrBeforeTs(chunkId: Long, ts: Long): Long? =
+            queries.selectMaxDisplayIndexAtOrBeforeTs(chunkId, ts).executeAsOne().idx
+
+    fun shiftDisplayIndicesUpAfter(chunkId: Long, afterDisplayIndex: Long) =
+            queries.shiftDisplayIndicesUpAfter(chunkId, afterDisplayIndex)
+
+    fun moveToChunkAtIndex(id: Long, chunkId: Long, displayIndex: Long) =
+            queries.moveToChunkAtIndex(chunkId, displayIndex, id)
+
+    data class LoneEventRow(val id: Long, val eventId: String, val chunkId: Long)
+
     fun maxDisplayIndex(chunkId: Long): Long? = queries.maxDisplayIndexForChunk(chunkId).executeAsOne().max
 
     fun minDisplayIndex(chunkId: Long): Long? = queries.minDisplayIndexForChunk(chunkId).executeAsOne().min
