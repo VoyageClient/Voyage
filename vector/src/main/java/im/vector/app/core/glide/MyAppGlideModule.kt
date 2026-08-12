@@ -10,6 +10,7 @@ package im.vector.app.core.glide
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
@@ -33,6 +34,14 @@ class MyAppGlideModule : AppGlideModule() {
         builder.setDiskCacheExecutor(
                 GlideExecutor.newDiskCacheBuilder()
                         .setThreadCount(DISK_CACHE_THREADS)
+                        .build()
+        )
+        // Glide gives every animated image in the app 2 frame-decoding threads at most, and 1 below a
+        // quad-core (calculateAnimationExecutorThreadCount). Several GIFs on screen then queue their
+        // frames behind one another and visibly drift off their own frame delays.
+        builder.setAnimationExecutor(
+                GlideExecutor.newAnimationBuilder()
+                        .setThreadCount(animationThreadCount())
                         .build()
         )
     }
@@ -67,14 +76,22 @@ class MyAppGlideModule : AppGlideModule() {
         registry.prepend(Uri::class.java, ByteBuffer::class.java, UriByteBufferLoaderFactory(context))
         // JPEG XL, via our own decoders rather than the jxl-coder-glide plugin — see JxlBitmaps. They
         // load libjxl the moment they are constructed, so the registration is gated and lives behind
-        // a separate class. Both produce Bitmap, so they sit alongside the Drawable decoders above
-        // rather than competing with them, and non-JXL bytes fall through their own header check.
+        // a separate class. Non-JXL bytes fall through their own header check.
         if (JxlSupport.isAvailable) {
             JxlGlideRegistrar.register(glide, registry)
         }
+        // GIF through the platform's native decoder where there is one — Glide's own is pure-Java and
+        // is what makes several GIFs on a screen stutter. Kept behind its own class so the API 28
+        // types are never resolved on the old devices that keep the pure-Java path.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            PlatformGifRegistrar.register(registry)
+        }
     }
+
+    private fun animationThreadCount() = Runtime.getRuntime().availableProcessors().coerceIn(1, MAX_ANIMATION_THREADS)
 
     companion object {
         private const val DISK_CACHE_THREADS = 3
+        private const val MAX_ANIMATION_THREADS = 4
     }
 }

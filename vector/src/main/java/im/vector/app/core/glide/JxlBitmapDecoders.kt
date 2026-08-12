@@ -35,6 +35,13 @@ import kotlin.math.sqrt
 internal const val JXL_MAGIC_PEEK_BYTES = 12
 
 /**
+ * mark() replaces the stream's mark *and* its read limit, and these decoders run before every other
+ * animated decoder. Promising only the dozen bytes we peek would make the next decoder's reset()
+ * fail once it read past them, breaking GIF/WebP/APNG playback outright.
+ */
+internal const val JXL_SNIFF_MARK_BYTES = 8 * 1024
+
+/**
  * Decoding entry points for JPEG XL. We register these instead of the jxl-coder-glide plugin, which
  * passes Glide's requested size straight to the native resizer: for an image smaller than the view
  * that upscales through a cubic filter, whose overshoot leaves a bright fringe down the right edge.
@@ -178,7 +185,7 @@ internal class JxlStreamBitmapDecoder(private val bitmapPool: BitmapPool) : Reso
 
     override fun handles(source: InputStream, options: Options): Boolean {
         if (!source.markSupported()) return false
-        source.mark(JXL_MAGIC_PEEK_BYTES)
+        source.mark(JXL_SNIFF_MARK_BYTES)
         val head = ByteArray(JXL_MAGIC_PEEK_BYTES)
         val length = try {
             source.read(head)

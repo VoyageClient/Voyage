@@ -22,10 +22,13 @@ internal object JxlGlideRegistrar {
 
     fun register(glide: Glide, registry: Registry) {
         val bitmapPool = glide.bitmapPool
+        // Into their own buckets, not the legacy prepend-all one: that bucket outranks Animation, so a
+        // Bitmap decoder placed there makes Glide resolve *every* animated image to a still first
+        // frame — Downsampler decodes one happily — before the GIF/WebP/APNG decoders are consulted.
         // The animated decoders return null for a still image, so it falls through to the Bitmap ones.
-        registry.prepend(ByteBuffer::class.java, Drawable::class.java, JxlAnimatedDrawableDecoder())
-        registry.prepend(InputStream::class.java, Drawable::class.java, JxlAnimatedStreamDrawableDecoder())
-        registry.prepend(ByteBuffer::class.java, Bitmap::class.java, JxlByteBufferBitmapDecoder(bitmapPool))
-        registry.prepend(InputStream::class.java, Bitmap::class.java, JxlStreamBitmapDecoder(bitmapPool))
+        registry.prepend(Registry.BUCKET_ANIMATION, ByteBuffer::class.java, Drawable::class.java, JxlAnimatedDrawableDecoder())
+        registry.prepend(Registry.BUCKET_ANIMATION, InputStream::class.java, Drawable::class.java, JxlAnimatedStreamDrawableDecoder())
+        registry.prepend(Registry.BUCKET_BITMAP, ByteBuffer::class.java, Bitmap::class.java, JxlByteBufferBitmapDecoder(bitmapPool))
+        registry.prepend(Registry.BUCKET_BITMAP, InputStream::class.java, Bitmap::class.java, JxlStreamBitmapDecoder(bitmapPool))
     }
 }

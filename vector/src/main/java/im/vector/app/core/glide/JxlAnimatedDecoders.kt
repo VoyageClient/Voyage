@@ -58,7 +58,7 @@ internal class JxlAnimatedStreamDrawableDecoder : ResourceDecoder<InputStream, D
 
     override fun handles(source: InputStream, options: Options): Boolean {
         if (!source.markSupported()) return false
-        source.mark(JXL_MAGIC_PEEK_BYTES)
+        source.mark(JXL_SNIFF_MARK_BYTES)
         val head = ByteArray(JXL_MAGIC_PEEK_BYTES)
         val length = try {
             source.read(head)
