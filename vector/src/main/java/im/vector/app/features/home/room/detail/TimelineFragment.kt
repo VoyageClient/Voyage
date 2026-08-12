@@ -1529,10 +1529,6 @@ class TimelineFragment :
                 views.notificationAreaView.render(it)
             }
             renderTombstoneBanner(mainState.tombstoneEvent)
-
-            if (summary.isDirect && summary.isEncrypted && summary.joinedMembersCount == 1 && summary.invitedMembersCount == 0) {
-                views.hideComposerViews()
-            }
         } else if (mainState.isRoomPreview && summary?.membership == Membership.NONE) {
             timelineEventController.update(mainState)
             lazyLoadedViews.inviteView(false)?.isVisible = false
