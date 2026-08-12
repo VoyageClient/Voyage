@@ -14,6 +14,7 @@ import com.awxkee.jxlcoder.JxlResizeFilter
 import com.awxkee.jxlcoder.JxlToneMapper
 import com.awxkee.jxlcoder.PreferredColorConfig
 import com.awxkee.jxlcoder.ScaleMode
+import im.vector.lib.animatedimage.AnimatedFrame
 import timber.log.Timber
 import java.io.File
 
@@ -44,6 +45,29 @@ internal object JxlImageReader {
             ).use { it.numberOfFrames }
         } catch (t: Throwable) {
             Timber.w(t, "Unable to read JPEG XL frame count")
+            null
+        }
+    }
+
+    /** Every frame with its duration, for re-encoding an animation into a format others can read. */
+    fun readFrames(file: File): List<AnimatedFrame>? {
+        return try {
+            JxlAnimatedImage(
+                    file.readBytes(),
+                    PreferredColorConfig.DEFAULT,
+                    ScaleMode.FIT,
+                    JxlResizeFilter.BILINEAR,
+                    JxlToneMapper.REC2408,
+            ).use { image ->
+                (0 until image.numberOfFrames).map { index ->
+                    AnimatedFrame(
+                            bitmap = image.getFrame(index),
+                            durationMs = image.getFrameDuration(index),
+                    )
+                }
+            }.takeIf { it.isNotEmpty() }
+        } catch (t: Throwable) {
+            Timber.w(t, "Unable to read JPEG XL frames")
             null
         }
     }

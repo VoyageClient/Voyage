@@ -7,10 +7,12 @@
 
 package im.vector.app.features.media
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Parcelable
+import android.os.SystemClock
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -26,6 +28,8 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.signature.ObjectKey
+import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.files.LocalFilesHelper
@@ -44,6 +48,7 @@ import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
 import org.matrix.android.sdk.api.util.MimeTypes
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import kotlin.math.min
@@ -67,10 +72,12 @@ private const val URL_PREVIEW_IMAGE_MIN_FULL_WIDTH_PX = 600
 private const val URL_PREVIEW_IMAGE_MIN_FULL_HEIGHT_PX = 315
 
 class ImageContentRenderer @Inject constructor(
+        @ApplicationContext private val context: Context,
         private val localFilesHelper: LocalFilesHelper,
         private val activeSessionHolder: ActiveSessionHolder,
         private val dimensionConverter: DimensionConverter,
         private val vectorPreferences: VectorPreferences,
+        private val failedMediaTracker: FailedMediaTracker,
 ) {
 
     @Parcelize
@@ -128,14 +135,35 @@ class ImageContentRenderer @Inject constructor(
     /**
      * For gallery.
      */
-    fun render(data: Data, imageView: ImageView, size: Int) {
+    fun render(data: Data, imageView: ImageView, size: Int, fromRetryTap: Boolean = false) {
         // a11y
         imageView.contentDescription = data.filename
 
-        createGlideRequest(data, Mode.THUMBNAIL, imageView, Size(size, size))
-                .dontAnimate()
-                .placeholder(R.drawable.ic_image)
-                .intoView(imageView, animate = false)
+        // No explicit placeholder: it would win over the blurhash that createGlideRequest attaches.
+        val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
+        imageView.setTag(R.id.image_renderer_retry) { render(data, imageView, size, fromRetryTap = true) }
+        if (fromRetryTap) showLoadingNow(imageView, data, showGlyph = true)
+        // A plain THUMBNAIL asks the homeserver to scale the file, which it cannot do for formats it
+        // has no decoder for — JPEG XL among them — leaving the grid blank. previewMode routes those
+        // to the original, exactly as the timeline's previews already do.
+        val mode = previewMode(isSticker = false, mimeType = data.mimeType)
+        createGlideRequest(data, mode, imageView, Size(size, size))
+                .asRetry(fromRetryTap)
+                .addListener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        failedMediaTracker.onLoadFailed(data.url)
+                        renderFailed(imageView, data, pinSize = null)
+                        return true
+                    }
+
+                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        failedMediaTracker.onLoadSucceeded(data.url)
+                        return false
+                    }
+                })
+                .placeholder(placeholderFor(data, showGlyph = true).also { it.setFailed(retryingFailed) })
+                // Animated media plays here too: a grid of stills gives no hint which of them move.
+                .intoView(imageView, animate = true)
     }
 
     // Tagged on the view so a rebind can tell "same message, new event id" (the local-echo → remote
@@ -152,6 +180,11 @@ class ImageContentRenderer @Inject constructor(
             imageView: ImageView,
             cornerTransformation: Transformation<Bitmap> = RoundedCorners(dimensionConverter.dpToPx(8)),
             crossFade: Boolean = false,
+            // A tap asking for another go needs to look like something happened, so it drops back to
+            // the loading state; a plain rebind keeps the glyph rather than flickering through it.
+            fromRetryTap: Boolean = false,
+            // Anything drawing a play badge over the thumbnail has no room for a second symbol.
+            showFailureGlyph: Boolean = true,
     ) {
         val size = processSize(data, mode)
         // Local-echo → remote swap of a fully-rendered message: the media is byte-identical to what
@@ -181,9 +214,13 @@ class ImageContentRenderer @Inject constructor(
             imageView.adjustViewBounds = true
             imageView.maxWidth = data.maxWidth
             imageView.maxHeight = data.maxHeight
+            // Hold a square until the real bounds are known. Placeholders have no intrinsic size, so
+            // wrapping to one measures to nothing and the row collapses to zero height — which is
+            // where it stays if the load then fails. onResourceReady restores the wrap.
+            val square = data.loadingSquare()
             imageView.updateLayoutParams {
-                width = ViewGroup.LayoutParams.WRAP_CONTENT
-                height = ViewGroup.LayoutParams.WRAP_CONTENT
+                width = square.width
+                height = square.height
             }
         }
         // a11y
@@ -195,20 +232,46 @@ class ImageContentRenderer @Inject constructor(
                 ?: LastRender(data.stableId, data, mode, completed = false)
         imageView.setTag(R.id.image_renderer_last_render, thisRender)
         val animate = animates(mode)
+        // Retrying: keep the glyph up for the duration rather than dropping to the blank loading
+        // fill, which reads as the failure state vanishing every time the row rebinds.
+        val retryingFailed = !fromRetryTap && failedMediaTracker.isFailed(data.url)
+        imageView.setTag(R.id.image_renderer_retry) {
+            render(data, mode, imageView, cornerTransformation, crossFade, fromRetryTap = true, showFailureGlyph = showFailureGlyph)
+        }
+        // Stamped rather than flagged: renderFailed holds the loading state visible for a moment from
+        // this instant. Assigned unconditionally so a request whose callbacks never fire cannot leave
+        // the view stuck looking like a retry is in flight, which made every later tap a no-op.
+        imageView.setTag(R.id.image_renderer_retrying, if (fromRetryTap) SystemClock.uptimeMillis() else null)
+        if (fromRetryTap) showLoadingNow(imageView, data, showFailureGlyph)
         val pending = PendingRenders.startOn(imageView, data, mode)
         createGlideRequest(data, mode, imageView, size)
+                .asRetry(fromRetryTap)
                 .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                         PendingRenders.finish(pending, "failed: ${e?.message}")
-                        return false
+                        failedMediaTracker.onLoadFailed(data.url)
+                        renderFailed(imageView, data, pinSize = failedPinSize(data, size), showGlyph = showFailureGlyph)
+                        return true
                     }
 
                     override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
                         PendingRenders.finish(pending, "ready from $dataSource")
+                        imageView.setTag(R.id.image_renderer_retrying, null)
+                        failedMediaTracker.onLoadSucceeded(data.url)
                         thisRender.completed = true
+                        if (!data.hasKnownDimensions()) {
+                            // Real bounds at last — drop the holding square so the view wraps the image.
+                            imageView.updateLayoutParams {
+                                width = ViewGroup.LayoutParams.WRAP_CONTENT
+                                height = ViewGroup.LayoutParams.WRAP_CONTENT
+                            }
+                        }
                         return false
                     }
                 })
+                // The very object already on screen, so Glide's own placeholder step cannot cut the
+                // fade short by swapping in an equivalent-looking one.
+                .placeholder(placeholderFor(data, showFailureGlyph).also { it.setFailed(retryingFailed) })
                 .let { if (animate) it else it.dontAnimate() }
                 .let { if (crossFade) it.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS)) else it }
                 // A Bitmap RoundedCorners would round GIF frames at their small native resolution and
@@ -216,6 +279,84 @@ class ImageContentRenderer @Inject constructor(
                 // clipped at the view level instead (clipToOutline / RoundedCornerImageView).
                 .let { if (mode == Mode.ANIMATED_THUMBNAIL) it else it.optionalTransform(cornerTransformation) }
                 .intoView(imageView, animate)
+    }
+
+    /**
+     * A retry must not be byte-identical to the request it is retrying. Glide keys engine jobs by
+     * model plus options, so an identical one attaches to the existing job for that key — and when
+     * that job was cancelled (renderFailed clears the target) it never delivers, leaving the retry
+     * outstanding with every worker thread idle. A fresh signature gives it its own key.
+     */
+    private fun <T> GlideRequest<T>.asRetry(fromRetryTap: Boolean): GlideRequest<T> =
+            if (fromRetryTap) signature(ObjectKey("retry-${SystemClock.uptimeMillis()}")).skipMemoryCache(true) else this
+
+    // processSize falls back to the max box when dimensions are missing, which for a failure would
+    // leave a tall empty rectangle; the holding square the load already used is the honest shape.
+    private fun failedPinSize(data: Data, size: Size): Size =
+            if (data.hasKnownDimensions()) size else data.loadingSquare()
+
+    /**
+     * @param pinSize the box to force onto the view, for callers whose layout would otherwise
+     * collapse: the placeholder has no intrinsic size, and an unknown-dimension image leaves the
+     * view on WRAP_CONTENT. Null where the parent already sizes the view, as in the uploads grid.
+     */
+    private fun renderFailed(imageView: ImageView, data: Data, pinSize: Size?, showGlyph: Boolean = true) {
+        PendingRenders.cancelOn(imageView)
+        imageView.setTag(R.id.image_renderer_last_render, null)
+        tryOrNull { GlideApp.with(imageView).clear(imageView) }
+        imageView.scaleType = ImageView.ScaleType.FIT_XY
+        if (pinSize != null) {
+            imageView.adjustViewBounds = false
+            imageView.updateLayoutParams {
+                width = pinSize.width
+                height = pinSize.height
+            }
+        }
+
+        // The same object the wait was drawn with, so the failure is a change of its parameters
+        // rather than a new drawable: nothing to cross-dissolve, and the fill carries on from
+        // exactly the value it was at.
+        val placeholder = placeholderFor(data, showGlyph)
+        // A retry can fail in the same frame it started — a cached error, an unresolvable url — which
+        // would take the waiting state off screen before it was ever drawn, so the tap looks ignored.
+        val sinceTap = (imageView.getTag(R.id.image_renderer_retrying) as? Long)
+                ?.let { SystemClock.uptimeMillis() - it }
+        val hold = sinceTap?.let { MIN_RETRY_FEEDBACK_MS - it }?.takeIf { it > 0 }
+        val apply = Runnable {
+            if (imageView.drawable !== placeholder) imageView.setImageDrawable(placeholder)
+            placeholder.setFailed(true)
+            // Cleared only once the verdict is on screen: until then a tap would be answered by a
+            // retry that is already running, and leaving it set makes every later tap a no-op.
+            imageView.setTag(R.id.image_renderer_retrying, null)
+        }
+        if (hold != null) imageView.postDelayed(apply, hold) else apply.run()
+    }
+
+    fun isFailed(data: Data): Boolean = failedMediaTracker.isFailed(data.url)
+
+    /** A retry asked for by tapping is still running, so the media is not openable yet. */
+    fun isRetrying(imageView: ImageView): Boolean = imageView.getTag(R.id.image_renderer_retrying) != null
+
+    /**
+     * Put the waiting state up before the request runs: a retry that fails synchronously — a cached
+     * error, an unresolvable url — starts and finishes in one frame, so Glide's placeholder is never
+     * drawn. Uses whatever a first load shows, so a retry looks like the same kind of waiting.
+     */
+    private fun showLoadingNow(imageView: ImageView, data: Data, showGlyph: Boolean): Drawable {
+        val placeholder = placeholderFor(data, showGlyph)
+        placeholder.setFailed(false)
+        if (imageView.drawable !== placeholder) imageView.setImageDrawable(placeholder)
+        return placeholder
+    }
+
+    /**
+     * Re-run whichever render last drew this view. Tapping dead media is otherwise a dead end, and a
+     * failure here is often just the server having a bad minute.
+     */
+    fun retry(imageView: ImageView) {
+        @Suppress("UNCHECKED_CAST")
+        val rerender = imageView.getTag(R.id.image_renderer_retry) as? (() -> Unit) ?: return
+        rerender()
     }
 
     @VisibleForTesting(otherwise = PRIVATE)
@@ -236,7 +377,12 @@ class ImageContentRenderer @Inject constructor(
             // so the rewind rides along as a listener rather than as a target of our own.
             addListener(RestartAnimationListener).into(imageView)
         } else {
-            into(AnimatedContentImageViewTarget(imageView, animate = false))
+            // A still use stops the drawable it is handed, and Glide's memory cache hands every view
+            // the same instance — so without a key of its own, opening the uploads grid or binding a
+            // reply preview freezes the very drawable the timeline is animating, until some later
+            // rebind happens to restart it.
+            signature(ObjectKey(STILL_FRAME_SIGNATURE))
+                    .into(AnimatedContentImageViewTarget(imageView, animate = false))
         }
     }
 
@@ -268,6 +414,8 @@ class ImageContentRenderer @Inject constructor(
         private const val BLURHASH_CROSSFADE_MS = 200L
         private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS)
         private const val REVEAL_CROSSFADE_MS = 220
+        private const val MIN_RETRY_FEEDBACK_MS = 550L
+        private const val STILL_FRAME_SIGNATURE = "still-frame"
 
         private val ALPHA_CAPABLE_MIME_TYPES = setOf(
                 MimeTypes.Png,
@@ -456,6 +604,30 @@ class ImageContentRenderer @Inject constructor(
     // per bind makes every rebind a "new" request, resetting to the blurhash and replaying the fade.
     private val blurHashPlaceholders = android.util.LruCache<String, BlurHashDrawable>(64)
 
+    // Memoised for the same reason, and per message rather than shared: this one animates, and a
+    // single instance driven by several visible views at once would fight over bounds.
+    private val placeholders = android.util.LruCache<String, MediaPlaceholderDrawable>(64)
+
+    /**
+     * One per message, kept across rebinds: the pulse and the failure fade live in this object, so
+     * handing back the same instance is what makes those continuous instead of restarting.
+     */
+    private fun placeholderFor(data: Data, showGlyph: Boolean): MediaPlaceholderDrawable {
+        val key = "${data.stableId}:${data.blurHash}"
+        return synchronized(placeholders) {
+            placeholders.get(key) ?: MediaPlaceholderDrawable(
+                    context = context,
+                    blurHash = data.blurHash?.let { BlurHashDrawable.from(it, data.width, data.height, pulse = false) },
+                    showGlyph = showGlyph && (data.url != null || data.preservedFile != null),
+            ).also { placeholders.put(key, it) }
+        }.also {
+            // The fade-out transition marks the blurhash finished when an image lands, after which
+            // it draws nothing at all. Re-arm it for this load, or a reused placeholder shows the
+            // scrim over bare transparency instead of the hash it was built with.
+            it.blurHash?.reset()
+        }
+    }
+
     private fun decorateWithBlurHash(
             request: GlideRequest<Drawable>,
             data: Data,
@@ -463,8 +635,15 @@ class ImageContentRenderer @Inject constructor(
     ): GlideRequest<Drawable> {
         // A blurhash is a stand-in for a download. With the bytes already on disk there is nothing to
         // stand in for, and showing one only produces a flash on every rebind.
-        if (localCopy.value != null) return request
-        val blurHash = data.blurHash ?: return request
+        if (localCopy.value != null) {
+            return request
+        }
+        // No blurhash still means a download is in flight, and an empty box reads as nothing
+        // happening. Hold the same fill the failure placeholder falls back to, so the box is visibly
+        // occupied for the wait and only the glyph changes if it ends badly.
+        // No blurhash — video thumbnails rarely carry one — still means going from the waiting state
+        // to a picture, so it gets an ordinary crossfade rather than appearing in a single frame.
+        val blurHash = data.blurHash ?: return request.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS))
         val key = "${data.stableId}:$blurHash:${data.width}x${data.height}"
         val placeholder = synchronized(blurHashPlaceholders) {
             // The fade-out transition marks the instance finished when the image lands, after which it
@@ -495,6 +674,9 @@ class ImageContentRenderer @Inject constructor(
     }
 
     private fun Data.hasKnownDimensions(): Boolean = (width ?: 0) > 0 && (height ?: 0) > 0
+
+    /** Stand-in box for media that never declared its dimensions. Square is the least wrong guess. */
+    private fun Data.loadingSquare(): Size = min(maxWidth, maxHeight).let { Size(it, it) }
 
     private fun Data.fitsOnScreen(imageView: ImageView): Boolean {
         val metrics = imageView.resources.displayMetrics

@@ -16,7 +16,6 @@ import com.awxkee.jxlcoder.JxlResizeFilter
 import com.awxkee.jxlcoder.JxlToneMapper
 import com.awxkee.jxlcoder.PreferredColorConfig
 import com.awxkee.jxlcoder.ScaleMode
-import com.awxkee.jxlcoder.animation.AnimatedDrawable
 import com.awxkee.jxlcoder.animation.JxlAnimatedStore
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.Options
@@ -84,7 +83,7 @@ internal object JxlBitmaps {
         return try {
             val animation = openAnimation(bytes)
             val (targetWidth, targetHeight) = targetSize(animation.getWidth(), animation.getHeight(), requestedWidth, requestedHeight)
-            AnimatedDrawable(JxlAnimatedStore(animation, targetWidth, targetHeight))
+            JxlAnimatedDrawable(JxlAnimatedStore(animation, targetWidth, targetHeight))
         } catch (t: Throwable) {
             Timber.w(t, "Unable to open JPEG XL animation")
             null

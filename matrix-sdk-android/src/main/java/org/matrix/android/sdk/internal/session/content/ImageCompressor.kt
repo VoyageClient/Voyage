@@ -51,12 +51,15 @@ internal class ImageCompressor @Inject constructor(
             exactSize: Boolean = false,
     ): CompressedImage {
         return withContext(coroutineDispatchers.io) {
+            val format = sniffImageFormat(imageFile)
             // A size or quality the sender chose is honoured however small the file already is.
-            if (!exactSize && imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES) {
+            // JPEG XL is converted whatever its size: support for it is thin enough elsewhere that
+            // sending it on is worse for the recipient than re-encoding, and the sender who wants the
+            // original bytes has the "send original" option.
+            if (!exactSize && format != ImageSourceFormat.JXL && imageFile.length() <= SMALL_FILE_PASSTHROUGH_BYTES) {
                 return@withContext CompressedImage(imageFile, mimeType = null)
             }
 
-            val format = sniffImageFormat(imageFile)
             when (format) {
                 ImageSourceFormat.GIF -> compressGif(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
                 ImageSourceFormat.APNG -> compressApng(imageFile, desiredWidth, desiredHeight, desiredQuality, exactSize)
@@ -119,6 +122,13 @@ internal class ImageCompressor @Inject constructor(
 
     private suspend fun compressJxl(imageFile: File, desiredWidth: Int, desiredHeight: Int, desiredQuality: Int, exactSize: Boolean): CompressedImage {
         if (!JxlSupport.isAvailable) return CompressedImage(imageFile, mimeType = null)
+        // An animation would otherwise be decoded as its first frame alone and sent as a still.
+        if ((JxlImageReader.frameCount(imageFile) ?: 1) > 1) {
+            val frames = JxlImageReader.readFrames(imageFile)
+            if (frames != null) {
+                return encodeFramesToAnimatedWebp(imageFile, frames, desiredWidth, desiredHeight, desiredQuality, exactSize)
+            }
+        }
         val decoded = JxlImageReader.decode(imageFile, REENCODE_MAX_DIMENSION) ?: return CompressedImage(imageFile, mimeType = null)
         return encodeBitmap(imageFile, decoded, desiredWidth, desiredHeight, desiredQuality, exactSize)
     }
