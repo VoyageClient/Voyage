@@ -21,7 +21,8 @@ import java.io.InputStream
 enum class AnimatedImageFormat {
     GIF,
     APNG,
-    WEBP;
+    WEBP,
+    JXL;
 
     companion object {
 
@@ -49,7 +50,42 @@ enum class AnimatedImageFormat {
                 signature.startsWith(RIFF_SIGNATURE) && signature.regionMatches(WEBP_SIGNATURE, at = 8) ->
                     // A RIFF header is exactly the twelve bytes just read, so the chunks start here.
                     WEBP.takeIf { stream.hasWebpAnimationChunk() }
+                signature.startsWith(JXL_CODESTREAM_SIGNATURE) || signature.startsWith(JXL_CONTAINER_SIGNATURE) -> {
+                    stream.reset()
+                    JXL.takeIf { stream.hasMultipleJxlFrames() }
+                }
                 else -> null
+            }
+        }
+
+        /**
+         * Unlike the others, nothing in a JPEG XL header says whether it animates — the frame count
+         * only falls out of the codestream — so this asks libjxl, which needs the whole file rather
+         * than the handful of header bytes the other formats settle on. Callers ask during menu
+         * preparation, on the main thread, so anything past [MAX_JXL_PROBE_BYTES] is called a still
+         * rather than stalling the UI: an animation that large is not one to edit frame by frame.
+         * Below API 21 the library is unavailable and a JPEG XL is always a still image.
+         */
+        private fun InputStream.hasMultipleJxlFrames(): Boolean {
+            if (!JxlFrameReader.isAvailable) return false
+            val bytes = try {
+                readAtMost(MAX_JXL_PROBE_BYTES)
+            } catch (t: Throwable) {
+                Timber.w(t, "JXL: cannot read source")
+                null
+            } ?: return false
+            return (JxlFrameReader.frameCount(bytes) ?: 0) > 1
+        }
+
+        /** @return null when the stream holds more than [limit] bytes. */
+        private fun InputStream.readAtMost(limit: Int): ByteArray? {
+            val out = java.io.ByteArrayOutputStream()
+            val chunk = ByteArray(READ_CHUNK_BYTES)
+            while (true) {
+                val read = read(chunk)
+                if (read < 0) return out.toByteArray()
+                if (out.size() + read > limit) return null
+                out.write(chunk, 0, read)
             }
         }
 
@@ -153,12 +189,18 @@ enum class AnimatedImageFormat {
         /** Enough for any sane header; past that the file is lying about being an animation. */
         private const val MAX_SCAN_BYTES = 512 * 1024
         private const val WEBP_HEADER_CHUNKS = 6
+        private const val MAX_JXL_PROBE_BYTES = 8 * 1024 * 1024
+        private const val READ_CHUNK_BYTES = 64 * 1024
 
         private val GIF_SIGNATURE = "GIF8".toByteArray(Charsets.US_ASCII)
         private val RIFF_SIGNATURE = "RIFF".toByteArray(Charsets.US_ASCII)
         private val WEBP_SIGNATURE = "WEBP".toByteArray(Charsets.US_ASCII)
         private val PNG_SIGNATURE = byteArrayOf(
                 0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A
+        )
+        private val JXL_CODESTREAM_SIGNATURE = byteArrayOf(0xFF.toByte(), 0x0A)
+        private val JXL_CONTAINER_SIGNATURE = byteArrayOf(
+                0x00, 0x00, 0x00, 0x0C, 0x4A, 0x58, 0x4C, 0x20, 0x0D, 0x0A, 0x87.toByte(), 0x0A
         )
     }
 }

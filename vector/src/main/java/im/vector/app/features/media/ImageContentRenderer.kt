@@ -43,6 +43,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentUrlResolver
 import org.matrix.android.sdk.api.session.crypto.attachments.ElementToDecrypt
 import org.matrix.android.sdk.api.session.media.PreviewUrlData
+import org.matrix.android.sdk.api.util.MimeTypes
 import java.io.File
 import javax.inject.Inject
 import kotlin.math.min
@@ -268,7 +269,13 @@ class ImageContentRenderer @Inject constructor(
         private val BLURHASH_FADE_FACTORY = BlurFadeOutTransitionFactory(BLURHASH_CROSSFADE_MS)
         private const val REVEAL_CROSSFADE_MS = 220
 
-        private val ALPHA_CAPABLE_MIME_TYPES = setOf("image/png", "image/webp", "image/gif", "image/apng")
+        private val ALPHA_CAPABLE_MIME_TYPES = setOf(
+                MimeTypes.Png,
+                MimeTypes.Webp,
+                MimeTypes.Gif,
+                MimeTypes.Apng,
+                MimeTypes.Jxl,
+        )
 
         /**
          * Mode to use for a small *preview* (reply header, message-actions sheet, composer reply). Server
