@@ -127,7 +127,7 @@ internal class TokenChunkEventPersistor @Inject constructor(
             if (receivedChunk.events.isEmpty() && !receivedChunk.hasMore()) {
                 handleReachEnd(roomId, direction, currentChunkId)
             } else {
-                handlePagination(roomId, direction, receivedChunk, currentChunkId)
+                handlePagination(roomId, direction, receivedChunk, currentChunkId, originChunkId)
             }
         }
         return when {
@@ -168,7 +168,13 @@ internal class TokenChunkEventPersistor @Inject constructor(
         }
     }
 
-    private fun handlePagination(roomId: String, direction: PaginationDirection, receivedChunk: TokenChunkEvent, currentChunkId: Long) {
+    private fun handlePagination(
+            roomId: String,
+            direction: PaginationDirection,
+            receivedChunk: TokenChunkEvent,
+            currentChunkId: Long,
+            originChunkId: Long?,
+    ) {
         val roomMemberContentsByUser = HashMap<String, RoomMemberContent?>()
         val roomMemberEventIdsByUser = HashMap<String, String?>()
         val now = clock.epochMillis()
@@ -191,9 +197,15 @@ internal class TokenChunkEventPersistor @Inject constructor(
             // boundaries don't align with ours) — typically the boundary event(s) at the near end of
             // the page. Skip just those to avoid duplicating them in the timeline, but keep going:
             // the rest of the page is genuinely new (older/newer) history. Stopping at the first
-            // overlap would drop the whole page and leave an empty chunk.
-            if (stores.chunk.findMainChunkIdIncludingEvent(roomId, eventId)?.let { it != currentChunkId } == true) {
-                continue
+            // overlap would drop the whole page and leave an empty chunk. Exception: when the owner
+            // is a lone-event /context island (a jump-to-event chunk), skipping would orphan the
+            // event forever — the island never gets two-sidedly linked into the walk — so absorb it
+            // into this chunk instead.
+            val ownerChunkId = stores.chunk.findMainChunkIdIncludingEvent(roomId, eventId)
+            if (ownerChunkId != null && ownerChunkId != currentChunkId) {
+                // Never absorb the chunk being paginated from: the caller (and an open timeline seeded
+                // on it) still holds its id.
+                if (ownerChunkId == originChunkId || !absorbIslandChunk(roomId, ownerChunkId, currentChunkId)) continue
             }
             val ageLocalTs = now - (event.unsignedData?.age ?: 0)
             val entity = event.toEntity(roomId, SendState.SYNCED, ageLocalTs)
@@ -211,6 +223,22 @@ internal class TokenChunkEventPersistor @Inject constructor(
                     roomMemberEventIdsByUser = roomMemberEventIdsByUser,
             )
         }
+    }
+
+    // Delete the island and hand its graph position to the absorbing chunk, which is about to store
+    // the same event at its correct in-page position. Only lone-event, non-live, non-thread chunks
+    // qualify: anything bigger is a real parallel window, where dropping the duplicate is right.
+    private fun absorbIslandChunk(roomId: String, islandId: Long, absorberId: Long): Boolean {
+        val island = stores.chunk.getById(islandId) ?: return false
+        if (island.is_last_forward != 0L || island.is_last_backward != 0L ||
+                island.is_last_forward_thread != 0L || island.root_thread_event_id != null) {
+            return false
+        }
+        if (stores.timelineEvent.countByChunk(islandId) != 1L) return false
+        stores.timelineEvent.deleteByChunk(islandId)
+        stores.chunk.retireChunkInto(roomId, island, absorberId)
+        Timber.i("Absorbed lone-event chunk $islandId into $absorberId in $roomId")
+        return true
     }
 
     private fun insertEventOrIgnore(entity: EventEntity, insertType: EventInsertType): Long {

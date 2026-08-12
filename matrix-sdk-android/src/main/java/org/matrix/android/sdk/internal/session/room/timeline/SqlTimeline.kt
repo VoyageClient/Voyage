@@ -225,6 +225,7 @@ internal class SqlTimeline(
                 // first snapshot).
                 database.awaitDbTransaction(sessionDispatcher) {
                     healCorruptChunkGraph()
+                    healOrphanedIslands()
                     sweepDuplicateRows()
                 }
             }
@@ -308,6 +309,32 @@ internal class SqlTimeline(
         stores.chunk.updatePrevChunkId(liveId, null)
         stores.chunk.updateNextChunkId(liveId, null)
         stores.chunk.setLastBackward(liveId, false)
+    }
+
+    /**
+     * Splice orphaned jump-to-event islands back into the timeline. A /context island whose region a
+     * later pagination page re-covered had its event dropped from the covering chunk as a duplicate,
+     * leaving it reachable only by jumping to it (the island is never two-sidedly linked into the
+     * walk). The persistor now absorbs islands at persist time; this repairs damage already in the
+     * DB, where the region will never be re-fetched. Detection: the island event's timestamp falls
+     * strictly inside another chunk's span. Recovery: move the row there in timestamp order and
+     * retire the island. Caller is in a transaction.
+     */
+    private fun healOrphanedIslands() {
+        for (row in stores.timelineEvent.getLoneEventRows(roomId)) {
+            val island = stores.chunk.getById(row.chunkId) ?: continue
+            if (island.is_last_forward != 0L || island.is_last_backward != 0L ||
+                    island.is_last_forward_thread != 0L || island.root_thread_event_id != null) {
+                continue
+            }
+            val ts = stores.event.getByEventIdInRoom(roomId, row.eventId)?.originServerTs ?: continue
+            val coveringChunkId = stores.chunk.findChunkCoveringTs(roomId, row.chunkId, ts) ?: continue
+            val predecessorIndex = stores.timelineEvent.maxDisplayIndexAtOrBeforeTs(coveringChunkId, ts) ?: continue
+            stores.timelineEvent.shiftDisplayIndicesUpAfter(coveringChunkId, predecessorIndex)
+            stores.timelineEvent.moveToChunkAtIndex(row.id, coveringChunkId, predecessorIndex + 1)
+            stores.chunk.retireChunkInto(roomId, island, coveringChunkId)
+            Timber.i("SqlTimeline $roomId: spliced orphaned lone-event chunk ${row.chunkId} into $coveringChunkId")
+        }
     }
 
     private fun sweepDuplicateRows() {

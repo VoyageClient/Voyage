@@ -82,6 +82,38 @@ internal class ChunkSqlStore(private val database: SessionSqlDatabase) {
     fun findMainChunkIdIncludingEvent(roomId: String, eventId: String): Long? =
             queries.selectMainChunkIdIncludingEvent(roomId, eventId).executeAsOneOrNull()?.chunk_id
 
+    fun findReferencing(roomId: String, chunkId: Long): List<ChunkRow> =
+            queries.selectReferencingChunk(roomId, chunkId, chunkId).executeAsList()
+
+    /** The main-timeline chunk whose events' timestamp span strictly contains [ts], preferring the largest. */
+    fun findChunkCoveringTs(roomId: String, excludeChunkId: Long, ts: Long): Long? =
+            queries.selectChunkCoveringTs(roomId, excludeChunkId, ts).executeAsOneOrNull()?.chunk_id
+
+    /**
+     * Delete [island] and hand its graph position to [absorberId], which now covers its region.
+     * Referencing chunks are re-pointed at the absorber, with the same self-link/2-cycle guards as
+     * pagination linking; where linking would cycle, the reference is cleared rather than left
+     * dangling on the dead chunk. The island's timeline rows are the caller's responsibility.
+     */
+    fun retireChunkInto(roomId: String, island: ChunkRow, absorberId: Long) {
+        deleteStateEventsForChunk(island.id)
+        deleteById(island.id)
+        val absorber = getById(absorberId) ?: return
+        for (ref in findReferencing(roomId, island.id)) {
+            if (ref.id == absorberId) {
+                if (ref.prev_chunk_id == island.id) updatePrevChunkId(absorberId, island.prev_chunk_id?.takeIf { it != absorberId })
+                if (ref.next_chunk_id == island.id) updateNextChunkId(absorberId, island.next_chunk_id?.takeIf { it != absorberId })
+                continue
+            }
+            if (ref.prev_chunk_id == island.id) {
+                updatePrevChunkId(ref.id, absorberId.takeIf { absorber.prev_chunk_id != ref.id })
+            }
+            if (ref.next_chunk_id == island.id) {
+                updateNextChunkId(ref.id, absorberId.takeIf { absorber.next_chunk_id != ref.id })
+            }
+        }
+    }
+
     fun updateLinks(id: Long, prevChunkId: Long?, nextChunkId: Long?) = queries.updateLinks(prevChunkId, nextChunkId, id)
 
     fun updatePrevChunkId(id: Long, prevChunkId: Long?) = queries.updatePrevChunkId(prevChunkId, id)

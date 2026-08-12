@@ -77,6 +77,18 @@ JOIN chunk c ON c.id = te.chunk_id
 WHERE te.room_id = ? AND te.event_id = ? AND c.root_thread_event_id IS NULL
 LIMIT 1;
 
+selectChunkCoveringTs:
+SELECT te.chunk_id AS chunk_id FROM timeline_event te
+JOIN event e ON e.room_id = te.room_id AND e.event_id = te.event_id
+JOIN chunk c ON c.id = te.chunk_id
+WHERE te.room_id = :roomId AND te.chunk_id != :excludeChunkId AND c.root_thread_event_id IS NULL
+GROUP BY te.chunk_id
+HAVING MIN(e.origin_server_ts) < :ts AND MAX(e.origin_server_ts) > :ts
+ORDER BY COUNT(*) DESC LIMIT 1;
+
+selectReferencingChunk:
+SELECT * FROM chunk WHERE room_id = ? AND (prev_chunk_id = ? OR next_chunk_id = ?);
+
 updateLinks:
 UPDATE chunk SET prev_chunk_id = ?, next_chunk_id = ? WHERE id = ?;
 
