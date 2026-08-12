@@ -32,15 +32,18 @@ class ImageContentRendererAnimationTest {
     private val imageView = ImageView(RuntimeEnvironment.getApplication())
     private val request = mockk<GlideRequest<Drawable>>(relaxed = true).also {
         every { it.addListener(any()) } returns it
+        every { it.signature(any()) } returns it
     }
 
     private val vectorPreferences = mockk<VectorPreferences>()
 
     private val imageContentRenderer = ImageContentRenderer(
+            context = RuntimeEnvironment.getApplication(),
             localFilesHelper = mockk(relaxed = true),
             activeSessionHolder = mockk(relaxed = true),
             dimensionConverter = mockk(relaxed = true),
             vectorPreferences = vectorPreferences,
+            failedMediaTracker = mockk(relaxed = true),
     )
 
     private fun animates(mode: ImageContentRenderer.Mode) = imageContentRenderer.animates(mode)
