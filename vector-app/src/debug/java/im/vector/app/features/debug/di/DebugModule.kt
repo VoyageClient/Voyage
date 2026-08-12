@@ -20,6 +20,7 @@ import im.vector.app.core.debug.LeakDetector
 import im.vector.app.features.debug.DebugMenuActivity
 import im.vector.app.leakcanary.LeakCanaryLeakDetector
 import im.vector.app.receivers.VectorDebugReceiver
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -38,6 +39,10 @@ abstract class DebugModule {
     @Binds
     abstract fun bindsDebugReceiver(receiver: VectorDebugReceiver): DebugReceiver
 
+    // Must be a singleton: LeakCanaryLeakDetector tracks whether AppWatcher was installed in an
+    // instance field, and disabling early-returns when it thinks it never installed. A per-injection
+    // instance means the toggle in the debug menu never reaches AppWatcher and analysis stays on.
     @Binds
+    @Singleton
     abstract fun bindsLeakDetector(leakDetector: LeakCanaryLeakDetector): LeakDetector
 }

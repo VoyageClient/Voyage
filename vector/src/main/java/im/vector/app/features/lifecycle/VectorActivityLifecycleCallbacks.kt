@@ -11,6 +11,7 @@ import android.app.Activity
 import android.app.ActivityManager
 import android.app.Application
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
@@ -27,6 +28,8 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.util.getPackageInfoCompat
 import timber.log.Timber
+
+private const val ACTION_REQUEST_PERMISSIONS = "android.content.pm.action.REQUEST_PERMISSIONS"
 
 class VectorActivityLifecycleCallbacks constructor(private val popupAlertManager: PopupAlertManager) : Application.ActivityLifecycleCallbacks {
     /**
@@ -64,15 +67,7 @@ class VectorActivityLifecycleCallbacks constructor(private val popupAlertManager
             // Get all activities from PermissionController module
             // See https://source.android.com/docs/core/architecture/modular-system/permissioncontroller#package-format
             val otherActivities = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-                (tryOrNull {
-                    packageManager.getPackageInfoCompat("com.google.android.permissioncontroller", PackageManager.GET_ACTIVITIES).activities
-                } ?: tryOrNull {
-                    packageManager.getModuleInfo("com.google.android.permission", 1).packageName?.let {
-                        packageManager.getPackageInfoCompat(it, PackageManager.GET_ACTIVITIES or PackageManager.MATCH_APEX).activities
-                    }
-                })
-                        .orEmpty()
-                        .toList()
+                permissionControllerActivities(packageManager)
             } else {
                 emptyList()
             }
@@ -103,6 +98,30 @@ class VectorActivityLifecycleCallbacks constructor(private val popupAlertManager
                 MainActivity.restartApp(activity, MainActivityArgs())
                 return@launch
             }
+        }
+    }
+
+    /**
+     * The permission dialog runs inside our own task, so its activity has to be allow-listed or the
+     * corruption check below restarts the app whenever a runtime permission is requested. The
+     * package name is not fixed: AOSP-derived builds (GrapheneOS et al) ship it as
+     * com.android.permissioncontroller with no "com.google.android.permission" module, so resolving
+     * the request-permissions intent is the only lookup that holds everywhere.
+     */
+    private fun permissionControllerActivities(packageManager: PackageManager): List<ActivityInfo> {
+        val packageNames = listOfNotNull(
+                tryOrNull {
+                    @Suppress("DEPRECATION")
+                    packageManager.resolveActivity(Intent(ACTION_REQUEST_PERMISSIONS), 0)?.activityInfo?.packageName
+                },
+                "com.google.android.permissioncontroller",
+                "com.android.permissioncontroller",
+                tryOrNull { packageManager.getModuleInfo("com.google.android.permission", 1).packageName },
+        )
+        return packageNames.distinct().flatMap { packageName ->
+            tryOrNull {
+                packageManager.getPackageInfoCompat(packageName, PackageManager.GET_ACTIVITIES or PackageManager.MATCH_APEX).activities
+            }.orEmpty().toList()
         }
     }
 

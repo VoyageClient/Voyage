@@ -33,6 +33,7 @@ import im.vector.app.config.Config
 import im.vector.app.core.debug.LeakDetector
 import im.vector.app.core.dex.MultiDexLoader
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.glide.GlideMemoryTrimmer
 import im.vector.app.core.pushers.FcmHelper
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.session.EnsureSessionSyncingUseCase
@@ -179,6 +180,7 @@ class VectorApplication :
             override fun onPause(owner: LifecycleOwner) {
                 Timber.i("App entered background")
                 fcmHelper.onEnterBackground(activeSessionHolder)
+                GlideMemoryTrimmer.onAppBackgrounded(this@VectorApplication)
             }
         })
         ProcessLifecycleOwner.get().lifecycle.addObserver(spaceStateHandler)
@@ -276,5 +278,10 @@ class VectorApplication :
 
     private fun initMemoryLeakAnalysis() {
         leakDetector.enable(vectorPreferences.isMemoryLeakAnalysisEnabled())
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        Timber.i("onTrimMemory level=$level")
     }
 }
