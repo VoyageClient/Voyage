@@ -287,16 +287,19 @@ class RichMessageBodyRenderer @Inject constructor(
         }
         if (!interactive) {
             // Previews: no scroll view (it would steal the tap/gesture from the surrounding view).
-            // With wrapping on the columns shrink to fit; otherwise the overflow just clips.
-            table.isShrinkAllColumns = vectorPreferences.isLineWrappingEnabled()
-            table.layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-            ).apply {
-                topMargin = dim.dpToPx(6)
-                bottomMargin = dim.dpToPx(6)
+            // The host measures the table at its natural size and clips the overflow.
+            val host = PreviewTableHost(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                ).apply {
+                    topMargin = dim.dpToPx(6)
+                    bottomMargin = dim.dpToPx(6)
+                }
+                allowShrink = vectorPreferences.isLineWrappingEnabled()
             }
-            return table
+            host.addView(table)
+            return host
         }
         val scroll = ShrinkableHorizontalScrollView(ctx).apply {
             layoutParams = LinearLayout.LayoutParams(

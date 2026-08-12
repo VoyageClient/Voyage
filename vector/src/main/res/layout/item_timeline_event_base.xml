@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:addStatesFromChildren="true"
-    android:background="?attr/selectableItemBackground"
     tools:viewBindingIgnore="true">
 
     <!-- Carries the deleted-content marks (see RedactionTintDrawable). Under the highlight so a jump
