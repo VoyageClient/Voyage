@@ -43,6 +43,10 @@ dependencies {
 
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
+    // Looping and fast playback are seamless here where MediaPlayer restarts its audio sink at
+    // every end of stream. minSdk 16, so API 14/15 stays on MediaPlayer.
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.19.1'
+
     implementation libs.androidx.core
     implementation libs.androidx.appCompat
     implementation libs.androidx.recyclerview

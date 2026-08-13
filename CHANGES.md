@@ -180,6 +180,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Reads off the database write thread** — the timeline and the room list each read on their own thread, so opening a room or refreshing the list no longer waits for a sync response to finish being written.
 
+- **ExoPlayer in the media viewer** — full-screen video plays through ExoPlayer where the platform reaches it (API 16+), so a looping video runs through the seam without a gap and playback speed is no longer capped near 2x. Ice Cream Sandwich keeps the platform player. The audio route is also held open while the app is in the foreground on Bluetooth, where an idle sink otherwise costs a second of stalled playback.
+
 - **Performance internals** — SQLite WAL, reactive-layer deduplication, an epoxy-pipeline rework, gated space-hierarchy revalidation, bulk timeline queries replacing per-row N+1s, and a memoized event mapper underpin the user-facing speedups above.
 
 - **Modern sync and spec endpoints** — sync asks for room state as of the end of the timeline (MSC4222), so state stops drifting out of date after a gap; a thread's edits and reactions arrive in one request (MSC3981); and reporting (MSC4277), room forgetting (MSC4267), relations and the room directory moved onto their stable endpoints.

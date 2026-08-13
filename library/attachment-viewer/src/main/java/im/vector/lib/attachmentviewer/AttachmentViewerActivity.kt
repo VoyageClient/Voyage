@@ -485,7 +485,13 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     protected open fun shouldAnimateDismiss(): Boolean = true
 
+    /** finishAfterTransition holds onPause() back until the exit animation ends, so playback has to be stopped by hand. */
+    protected fun pausePlayback() {
+        attachmentsAdapter.onPause(currentPosition)
+    }
+
     protected open fun animateClose() {
+        pausePlayback()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             @Suppress("DEPRECATION")
             window.statusBarColor = Color.TRANSPARENT
