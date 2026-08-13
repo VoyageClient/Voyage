@@ -15,12 +15,19 @@ import android.os.Build
 
 object VideoLastFrame {
 
+    private const val DEFAULT_FRAME_RATE = 30
+
     /**
-     * The presentation timestamp of a video's final frame, in ms, or -1.
+     * Roughly where a video's final frame sits, in ms, or -1.
      *
-     * A video's reported duration usually sits past its last frame, so a frame-accurate seek to
-     * the duration finds nothing to render. This walks the container's last GOP reading sample
-     * metadata only — no decoding — to find the timestamp a seek can actually land on.
+     * A video's duration usually sits past its last frame, so a frame-accurate seek to the duration
+     * finds nothing to render; one frame back from the video track's own duration always lands on a
+     * real one.
+     *
+     * Read from the track header alone. Walking the samples would give the exact timestamp, but
+     * reading a file's last GOP trips an overflow bug in the platform's MP4 extractor
+     * (MPEG4Source::read) on some files, and that aborts the shared media.extractor process —
+     * killing whatever is playing at the time along with it.
      */
     fun probeMs(context: Context, source: String): Int {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) return -1
@@ -31,20 +38,16 @@ object VideoLastFrame {
             } else {
                 extractor.setDataSource(source)
             }
-            val track = (0 until extractor.trackCount).firstOrNull {
-                extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true
-            } ?: return@runCatching -1
-            extractor.selectTrack(track)
-            extractor.seekTo(Long.MAX_VALUE, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
-            // Samples run in decode order, which with B-frames is not presentation order.
-            var lastUs = -1L
-            while (true) {
-                val sampleUs = extractor.sampleTime
-                if (sampleUs < 0) break
-                if (sampleUs > lastUs) lastUs = sampleUs
-                if (!extractor.advance()) break
-            }
-            if (lastUs < 0) -1 else (lastUs / 1000).toInt()
+            val format = (0 until extractor.trackCount)
+                    .map { extractor.getTrackFormat(it) }
+                    .firstOrNull { it.getString(MediaFormat.KEY_MIME)?.startsWith("video/") == true }
+                    ?: return@runCatching -1
+            val durationUs = runCatching { format.getLong(MediaFormat.KEY_DURATION) }.getOrDefault(0L)
+            if (durationUs <= 0L) return@runCatching -1
+            val frameRate = runCatching { format.getInteger(MediaFormat.KEY_FRAME_RATE) }.getOrNull()
+                    ?: runCatching { format.getFloat(MediaFormat.KEY_FRAME_RATE).toInt() }.getOrNull()
+            val frameIntervalUs = 1_000_000L / (frameRate?.takeIf { it > 0 } ?: DEFAULT_FRAME_RATE)
+            ((durationUs - frameIntervalUs).coerceAtLeast(0L) / 1000).toInt()
         }.getOrDefault(-1).also { runCatching { extractor.release() } }
     }
 }

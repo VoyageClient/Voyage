@@ -65,6 +65,16 @@ class MediaPlaceholderDrawable(
     private var running = false
     private var failed = false
 
+    /**
+     * Media of our own whose bytes are still being uploaded has no download that can time out, and the
+     * wait lasts as long as the upload does — so nothing here is allowed to call it failed.
+     */
+    var boundedWait = true
+        set(value) {
+            field = value
+            if (!value && failed) setFailed(false)
+        }
+
     /** Where the failure fade currently sits, 0 waiting .. 1 failed. Eased from wherever it was. */
     private var failProgress = 0f
     private var progressAtChange = 0f
@@ -72,6 +82,7 @@ class MediaPlaceholderDrawable(
     private var waitingSinceMs = SystemClock.uptimeMillis()
 
     fun setFailed(value: Boolean) {
+        if (value && !boundedWait) return
         if (failed == value) return
         failed = value
         // Anchor the ease to the value on screen right now, so reversing mid-fade continues from
@@ -140,7 +151,7 @@ class MediaPlaceholderDrawable(
         // Not every loader reports back. Requests served by Glide's own HTTP stack, rather than the
         // fetcher that has its own timeout, can hang with no callback at all — so waiting is bounded
         // here, where it covers whoever is doing the loading.
-        if (!failed && waitingSinceMs != 0L && SystemClock.uptimeMillis() - waitingSinceMs > WAIT_TIMEOUT_MS) {
+        if (boundedWait && !failed && waitingSinceMs != 0L && SystemClock.uptimeMillis() - waitingSinceMs > WAIT_TIMEOUT_MS) {
             setFailed(true)
         }
         invalidateSelf()

@@ -33,6 +33,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.files.LocalFilesHelper
+import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.glide.AnimatedContentImageViewTarget
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequest
@@ -151,6 +152,10 @@ class ImageContentRenderer @Inject constructor(
                 .asRetry(fromRetryTap)
                 .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        if (data.isUploading()) {
+                            renderStillUploading(imageView, data, e, showGlyph = true)
+                            return true
+                        }
                         failedMediaTracker.onLoadFailed(data.url)
                         renderFailed(imageView, data, pinSize = null)
                         return true
@@ -172,7 +177,7 @@ class ImageContentRenderer @Inject constructor(
 
     private fun ImageView.lastRender() = getTag(R.id.image_renderer_last_render) as? LastRender
 
-    private val Data.isLocalContent get() = allowNonMxcUrls && url?.startsWith("content://") == true
+    private val Data.isLocalContent get() = allowNonMxcUrls && url.isLocalMediaUri()
 
     fun render(
             data: Data,
@@ -191,8 +196,11 @@ class ImageContentRenderer @Inject constructor(
         // is on screen (we just uploaded it) — reloading would only flash the blurhash and restart
         // animations. Keep the completed local render.
         val last = imageView.lastRender()
-        if (last != null && last.completed && last.stableId == data.stableId && last.mode == mode &&
-                last.data.isLocalContent && !data.isLocalContent) {
+        // A rebind that asks for exactly what is already drawn starts a fresh Glide request all the
+        // same, and its placeholder step wipes the finished image for the frames that takes.
+        val keepsLocalRender = last != null && last.completed && !fromRetryTap && last.stableId == data.stableId && last.mode == mode &&
+                (last.data == data || (last.data.isLocalContent && !data.isLocalContent))
+        if (keepsLocalRender) {
             return
         }
         if (data.hasKnownDimensions()) {
@@ -249,6 +257,10 @@ class ImageContentRenderer @Inject constructor(
                 .addListener(object : RequestListener<Drawable> {
                     override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                         PendingRenders.finish(pending, "failed: ${e?.message}")
+                        if (data.isUploading()) {
+                            renderStillUploading(imageView, data, e, showFailureGlyph)
+                            return true
+                        }
                         failedMediaTracker.onLoadFailed(data.url)
                         renderFailed(imageView, data, pinSize = failedPinSize(data, size), showGlyph = showFailureGlyph)
                         return true
@@ -272,13 +284,54 @@ class ImageContentRenderer @Inject constructor(
                 // The very object already on screen, so Glide's own placeholder step cannot cut the
                 // fade short by swapping in an equivalent-looking one.
                 .placeholder(placeholderFor(data, showFailureGlyph).also { it.setFailed(retryingFailed) })
-                .let { if (animate) it else it.dontAnimate() }
                 .let { if (crossFade) it.transition(DrawableTransitionOptions.withCrossFade(REVEAL_CROSSFADE_MS)) else it }
+                .withDisplayOptions(data, mode, animate, cornerTransformation, size)
+                .intoView(imageView, animate)
+    }
+
+    /**
+     * Decode a local echo's thumbnail ahead of the timeline showing it, so the row does not appear
+     * before there is a picture to put in it. Everything that Glide keys its cache on has to match
+     * what [render] will ask for, or the bind decodes from scratch anyway.
+     */
+    fun preloadLocalEcho(data: Data, mode: Mode, cornerTransformation: Transformation<Bitmap>, onSettled: () -> Unit) {
+        val size = processSize(data, mode)
+        createGlideRequest(data, mode, GlideApp.with(context), size)
+                .addListener(object : RequestListener<Drawable> {
+                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
+                        Timber.w(e, "Failed to decode a local echo's thumbnail: ${data.url}")
+                        onSettled()
+                        return false
+                    }
+
+                    override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
+                        onSettled()
+                        return false
+                    }
+                })
+                .withDisplayOptions(data, mode, animates(mode), cornerTransformation, size)
+                .preload(size.width, size.height)
+    }
+
+    /**
+     * The options that decide what Glide decodes, shared so a preload and the bind that follows it
+     * land on the same cache entry. A local echo pins the decode to the box the row was laid out to
+     * rather than to the view's measured size, which is not known until it has been through a layout.
+     */
+    private fun GlideRequest<Drawable>.withDisplayOptions(
+            data: Data,
+            mode: Mode,
+            animate: Boolean,
+            cornerTransformation: Transformation<Bitmap>,
+            size: Size,
+    ): GlideRequest<Drawable> {
+        return this
+                .let { if (animate) it else it.dontAnimate().signature(ObjectKey(STILL_FRAME_SIGNATURE)) }
                 // A Bitmap RoundedCorners would round GIF frames at their small native resolution and
                 // upscale the result, giving over-rounded, pixelated corners; animated content is
                 // clipped at the view level instead (clipToOutline / RoundedCornerImageView).
                 .let { if (mode == Mode.ANIMATED_THUMBNAIL) it else it.optionalTransform(cornerTransformation) }
-                .intoView(imageView, animate)
+                .let { if (data.isLocalContent) it.override(size.width, size.height) else it }
     }
 
     /**
@@ -330,6 +383,27 @@ class ImageContentRenderer @Inject constructor(
             imageView.setTag(R.id.image_renderer_retrying, null)
         }
         if (hold != null) imageView.postDelayed(apply, hold) else apply.run()
+    }
+
+    /**
+     * Bytes of our own that have not landed on the homeserver yet: the local echo's source file, or a
+     * URI reserved through MSC2246 whose upload is still running.
+     */
+    private fun Data.isUploading(): Boolean {
+        if (allowNonMxcUrls) return true
+        val session = activeSessionHolder.getSafeActiveSession() ?: return false
+        return session.fileService().isUploadPending(url)
+    }
+
+    /**
+     * A load that fails on media still being uploaded is not a broken download — the bytes simply are
+     * not anywhere we can read them yet. Stay on the waiting state, and leave no failure recorded: the
+     * tracker would put the glyph up on the next bind before the fresh load had a chance to succeed.
+     */
+    private fun renderStillUploading(imageView: ImageView, data: Data, e: GlideException?, showGlyph: Boolean) {
+        Timber.w(e, "Thumbnail load failed while still uploading: ${data.url}")
+        imageView.setTag(R.id.image_renderer_retrying, null)
+        showLoadingNow(imageView, data, showGlyph)
     }
 
     fun isFailed(data: Data): Boolean = failedMediaTracker.isFailed(data.url)
@@ -458,15 +532,15 @@ class ImageContentRenderer @Inject constructor(
                     .into(target)
             return
         }
-        val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
+        val isLocalUri = data.allowNonMxcUrls && data.url.isLocalMediaUri()
         val req = if (data.elementToDecrypt != null) {
             // Encrypted image
             GlideApp
                     .with(contextView)
                     .load(data)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
-        } else if (isLocalContentUri) {
-            // Local-echo content URI — load as Uri so Glide can use a ParcelFileDescriptor and
+        } else if (isLocalUri) {
+            // Local-echo uri — load as Uri so Glide can use a ParcelFileDescriptor and
             // run VideoBitmapDecoder for video frame thumbnails, instead of the InputStream
             // path which only decodes still images.
             GlideApp
@@ -550,10 +624,10 @@ class ImageContentRenderer @Inject constructor(
             return glideRequests.load(file).diskCacheStrategy(DiskCacheStrategy.NONE)
         }
         val localCopy = lazy { localCopyOf(data) }
-        val isLocalContentUri = data.allowNonMxcUrls && data.url?.startsWith("content://") == true
-        val isLocalVideoContentUri = isLocalContentUri && data.mimeType?.startsWith("video/") == true
-        val request = if (isLocalVideoContentUri) {
-            // Local-echo video — load the content URI directly so Glide can use a
+        val isLocalUri = data.allowNonMxcUrls && data.url.isLocalMediaUri()
+        val isLocalVideoUri = isLocalUri && data.mimeType?.startsWith("video/") == true
+        val request = if (isLocalVideoUri) {
+            // Local-echo video — load the uri directly so Glide can use a
             // ParcelFileDescriptor and run VideoBitmapDecoder to extract a frame as the thumbnail.
             // The InputStream-based path used below only decodes still images.
             // frame(0): pin to t=0 (OPTION_CLOSEST_SYNC) to match the upload worker's thumbnail
@@ -563,9 +637,9 @@ class ImageContentRenderer @Inject constructor(
                     .load(android.net.Uri.parse(data.url))
                     .frame(0)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
-        } else if (data.elementToDecrypt != null || isLocalContentUri) {
-            // Encrypted image, or local-echo content URI — go through our custom data loader so
-            // Glide always sees an InputStream. The default content-URI loader otherwise prefers a
+        } else if (data.elementToDecrypt != null || isLocalUri) {
+            // Encrypted image, or local-echo uri — go through our custom data loader so
+            // Glide always sees an InputStream. The default local-uri loader otherwise prefers a
             // ParcelFileDescriptor, which routes to Downsampler (still bitmap) and skips the
             // animated decoder chain — so APNG/animated WebP previews freeze on the first frame
             // until the upload completes and we switch to an HTTP URL.
@@ -585,7 +659,7 @@ class ImageContentRenderer @Inject constructor(
                         ?: contentUrlResolver.resolveThumbnail(data.url, size.width, size.height, ContentUrlResolver.ThumbnailMethod.SCALE)
             }
             // Fallback to base url
-                    ?: data.url.takeIf { it?.startsWith("content://") == true }
+                    ?: data.url.takeIf { it.isLocalMediaUri() }
 
             glideRequests
                     .load(resolvedUrl)
@@ -625,6 +699,7 @@ class ImageContentRenderer @Inject constructor(
             // it draws nothing at all. Re-arm it for this load, or a reused placeholder shows the
             // scrim over bare transparency instead of the hash it was built with.
             it.blurHash?.reset()
+            it.boundedWait = !data.isUploading()
         }
     }
 

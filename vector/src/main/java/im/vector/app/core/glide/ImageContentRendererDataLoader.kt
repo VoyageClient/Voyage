@@ -96,8 +96,9 @@ class ImageContentRendererDataFetcher(
     }
 
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
-        Timber.i("MEDIADBG fetcher start url=${data.url} event=${data.eventId} thread=${Thread.currentThread().name}")
-        if (localFilesHelper.isLocalFile(data.url)) {
+        val isLocal = localFilesHelper.isLocalFile(data.url)
+        Timber.i("MEDIADBG fetcher start url=${data.url} local=$isLocal event=${data.eventId} thread=${Thread.currentThread().name}")
+        if (isLocal) {
             // Wrap so the stream supports mark/reset — content-URI input streams typically don't,
             // and Glide's animated decoders skip non-markable sources.
             val stream = try {
