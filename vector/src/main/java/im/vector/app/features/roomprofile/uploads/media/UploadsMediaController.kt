@@ -149,7 +149,8 @@ class UploadsMediaController @Inject constructor(
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),
                 elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt(),
-                thumbnailMediaData = thumbnailData
+                thumbnailMediaData = thumbnailData,
+                durationMs = messageContent.videoInfo?.duration?.toLong()
         )
     }
 }

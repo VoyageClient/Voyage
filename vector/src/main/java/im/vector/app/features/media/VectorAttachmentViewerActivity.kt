@@ -42,6 +42,7 @@ import im.vector.app.features.home.room.detail.RoomDetailPendingAction
 import im.vector.app.features.home.room.detail.RoomDetailPendingActionStore
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.redaction.preservation.PreservedAttachmentResolver
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.share.ForwardPayloadHolder
 import im.vector.app.features.share.IncomingShareActivity
 import im.vector.app.features.themes.ActivityOtherThemes
@@ -83,6 +84,12 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     @Inject lateinit var preservedAttachmentResolver: PreservedAttachmentResolver
     @Inject lateinit var navigator: Navigator
     @Inject lateinit var roomDetailPendingActionStore: RoomDetailPendingActionStore
+    @Inject lateinit var vectorPreferences: VectorPreferences
+
+    override val loopVideos: Boolean
+        get() = vectorPreferences.loopVideos()
+
+    override fun isOverlayInteractionInProgress(): Boolean = currentSourceProvider?.isOverlayInteracting() == true
 
     private val viewModel: VectorAttachmentViewerViewModel by viewModel()
     private val errorFormatter by lazy(LazyThreadSafetyMode.NONE) { singletonEntryPoint().errorFormatter() }
@@ -168,6 +175,14 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
             initialIndex = inMemoryData.indexOfFirst { it.eventId == args.eventId }.coerceAtLeast(0)
             installSourceProvider(dataSourceFactory.createProvider(inMemoryData, room, lifecycleScope))
         } else {
+            // The room query below is slow on a cold cache, and until a provider is installed
+            // there is no overlay at all. The tapped attachment carries everything the first
+            // page needs, so it opens alone immediately and the full list swaps in underneath.
+            val provisionalItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
+            if (provisionalItem != null) {
+                initialIndex = 0
+                installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope))
+            }
             lifecycleScope.launch {
                 val events = withContext(Dispatchers.IO) {
                     val live = room?.timelineService()?.getAttachmentMessages().orEmpty()
@@ -185,14 +200,11 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
                 if (index != -1) {
                     initialIndex = index
                     installSourceProvider(dataSourceFactory.createProvider(events, lifecycleScope))
-                } else {
+                } else if (provisionalItem != null && !providerInstalled) {
                     // Tapped event missing from the room's media list (e.g. a still-sending echo):
                     // show it alone rather than landing on an unrelated first entry.
-                    val tappedItem = intent.getParcelableExtraCompat<Parcelable>(EXTRA_IMAGE_DATA) as? AttachmentData
-                    if (tappedItem != null) {
-                        initialIndex = 0
-                        installSourceProvider(dataSourceFactory.createProvider(listOf(tappedItem), room, lifecycleScope))
-                    }
+                    initialIndex = 0
+                    installSourceProvider(dataSourceFactory.createProvider(listOf(provisionalItem), room, lifecycleScope))
                 }
             }
         }
@@ -410,6 +422,10 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     override fun onPlaybackSpeedChanged(speed: Float, changePitch: Boolean) {
         handle(AttachmentCommands.SetPlaybackSpeed(speed, changePitch))
+    }
+
+    override fun onControlsInteractionEnded() {
+        restartAutoHideCountdown()
     }
 
     override fun onShare() {

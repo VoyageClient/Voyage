@@ -9,7 +9,9 @@ package im.vector.app.features.attachments.preview
 
 import android.content.Context
 import android.graphics.Matrix
+import android.graphics.Rect
 import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.TextureView
 import im.vector.app.features.attachments.ZoomPanGesture
@@ -44,6 +46,30 @@ class ZoomableTextureView @JvmOverloads constructor(
     private val gesture = ZoomPanGesture(MIN_ZOOM, MAX_ZOOM, springBackBelowFit = true) { applyMatrix() }.apply {
         onDisallowIntercept = { parent?.requestDisallowInterceptTouchEvent(it) }
         onTap = { performClick() }
+    }
+
+    /** Called with the horizontal position as a fraction of the view width. */
+    var onDoubleTap: ((xFraction: Float) -> Boolean)? = null
+
+    private val tapDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        // Act on the second tap's UP, not onDoubleTap's DOWN, so a double-tap-drag
+        // can never trigger a seek.
+        override fun onDoubleTapEvent(e: MotionEvent): Boolean {
+            if (e.actionMasked == MotionEvent.ACTION_UP && !gesture.isPinching && gesture.zoom == 1f && width > 0) {
+                onDoubleTap?.invoke(e.x / width)
+            }
+            return false
+        }
+    })
+
+    /** The rect the fitted (unzoomed) video occupies within the view. */
+    fun fittedContentRect(): Rect? {
+        val contentWidth = gesture.contentWidth
+        val contentHeight = gesture.contentHeight
+        if (contentWidth <= 0f || contentHeight <= 0f) return null
+        val left = (width - contentWidth) / 2f
+        val top = (height - contentHeight) / 2f
+        return Rect(left.toInt(), top.toInt(), (left + contentWidth).toInt(), (top + contentHeight).toInt())
     }
 
     fun setVideoSize(width: Int, height: Int) {
@@ -84,6 +110,7 @@ class ZoomableTextureView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (onDoubleTap != null) tapDetector.onTouchEvent(event)
         return gesture.onTouchEvent(event) || super.onTouchEvent(event)
     }
 }

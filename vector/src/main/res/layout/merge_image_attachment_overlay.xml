@@ -118,10 +118,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:constraint_referenced_ids="overlayBottomBackground,overlayBackButton,overlayPlayPauseButton,overlaySeekBar,overlayVideoTime"
+        app:constraint_referenced_ids="overlayBottomBackground,overlayBackButton,overlaySeekBar,overlayVideoTime"
         tools:visibility="visible" />
 
-    <!-- Clickable for the same reason as the top bar: it holds play/pause and the scrubber. -->
+    <!-- Clickable for the same reason as the top bar: it holds the scrubber. -->
     <View
         android:id="@+id/overlayBottomBackground"
         android:layout_width="match_parent"
@@ -131,41 +131,63 @@
         android:importantForAccessibility="no"
         app:layout_constraintBottom_toBottomOf="parent" />
 
+    <!-- Play/pause lives over the video itself; only when the chrome has been hidden and brought
+         back once, the way Telegram's viewer does it. -->
     <ImageView
-        android:id="@+id/overlayPlayPauseButton"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
+        android:id="@+id/overlayCenterPlayPause"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:background="@drawable/bg_video_center_play_pause"
         android:clickable="true"
         android:contentDescription="@string/action_play"
         android:focusable="true"
-        android:padding="6dp"
-        android:scaleType="centerInside"
-        app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
-        app:layout_constraintStart_toStartOf="@id/overlayBottomBackground"
-        app:layout_constraintTop_toTopOf="@id/overlayBottomBackground"
+        android:padding="18dp"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_play_arrow"
         app:tint="?colorOnPrimary"
-        tools:ignore="MissingPrefix" />
+        tools:ignore="MissingPrefix"
+        tools:visibility="visible" />
 
+    <!-- Scrub preview frame; sized to the video's aspect within a 150dp box when frames arrive,
+         and slid along above the thumb. -->
+    <ImageView
+        android:id="@+id/overlaySeekPreview"
+        android:layout_width="150dp"
+        android:layout_height="84dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bg_seek_preview"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/overlayBottomBackground"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
+
+    <!-- Taller than the widget's natural height purely for a larger grab zone; the asymmetric
+         vertical padding keeps the track where it was and puts all the extra region ABOVE it,
+         so grabbing never reaches down toward the navigation area. -->
     <SeekBar
         android:id="@+id/overlaySeekBar"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="44dp"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="0dp"
         android:backgroundTint="?colorOnPrimary"
         android:progressBackgroundTint="?colorOnPrimary"
         android:thumbTint="?colorOnPrimary"
-        app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
         app:layout_constraintEnd_toStartOf="@id/overlayVideoTime"
-        app:layout_constraintStart_toEndOf="@id/overlayPlayPauseButton"
+        app:layout_constraintStart_toStartOf="@id/overlayBottomBackground"
         app:layout_constraintTop_toTopOf="@id/overlayBottomBackground" />
 
     <TextView

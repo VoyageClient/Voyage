@@ -49,6 +49,8 @@ class VideoContentRenderer @Inject constructor(
             val preservedFile: java.io.File? = null,
             override val senderName: String? = null,
             override val timestampMs: Long? = null,
+            /** Declared length, so the viewer can show a duration before the player has one. */
+            val durationMs: Long? = null,
     ) : AttachmentData
 
     fun render(

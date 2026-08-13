@@ -153,6 +153,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY = "SETTINGS_CUSTOM_EMOJI_FONT_NAME_KEY"
         const val SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE = "SETTINGS_PRESENCE_USER_ALWAYS_APPEARS_OFFLINE"
         const val SETTINGS_AUTOPLAY_ANIMATED_IMAGES = "SETTINGS_AUTOPLAY_ANIMATED_IMAGES"
+        const val SETTINGS_LOOP_VIDEOS_KEY = "SETTINGS_LOOP_VIDEOS_KEY"
         const val SETTINGS_AVATAR_SHAPE_KEY = "SETTINGS_AVATAR_SHAPE_KEY"
         const val SETTINGS_MEDIA_PREVIEW_KEY = "SETTINGS_MEDIA_PREVIEW_KEY"
         const val SETTINGS_MEDIA_PREVIEW_SOLID_KEY = "SETTINGS_MEDIA_PREVIEW_SOLID_KEY"
@@ -967,6 +968,11 @@ class VectorPreferences @Inject constructor(
      */
     fun autoplayAnimatedImages(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_AUTOPLAY_ANIMATED_IMAGES, true)
+    }
+
+    /** Whether videos in the media viewer and attachment previewer restart when they finish. */
+    fun loopVideos(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_LOOP_VIDEOS_KEY, true)
     }
 
     /**

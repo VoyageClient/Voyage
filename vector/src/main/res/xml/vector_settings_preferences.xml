@@ -257,6 +257,12 @@
             android:title="@string/settings_autoplay_animated_images_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_LOOP_VIDEOS_KEY"
+            android:summary="@string/settings_loop_videos_summary"
+            android:title="@string/settings_loop_videos_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
             android:key="SETTINGS_VIBRATE_ON_MENTION_KEY"
             android:title="@string/settings_vibrate_on_mention"
             app:isPreferenceVisible="@bool/false_not_implemented" />

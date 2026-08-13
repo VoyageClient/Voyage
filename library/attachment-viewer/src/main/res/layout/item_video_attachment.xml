@@ -18,6 +18,12 @@
         android:layout_height="match_parent"
         android:layout_centerInParent="true" />
 
+    <View
+        android:id="@+id/videoSeekRipple"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no" />
+
     <ImageView
         android:id="@+id/videoControlIcon"
         android:layout_width="44dp"

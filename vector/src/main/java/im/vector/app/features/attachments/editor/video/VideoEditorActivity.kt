@@ -95,6 +95,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
     private var resumePositionUs = 0L
     private var resumePlaying = false
     private var pauseOnFirstFrame = false
+    private var activityPaused = false
 
     /** An animated image has no audio and no codec: a frame ticker plays it, and the export writes WebP. */
     private var animatedFormat: AnimatedImageFormat? = null
@@ -448,10 +449,13 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
         override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
             // Leaving the editor tears the surface down and with it the player, so where playback
-            // had got to has to be remembered here or coming back starts the clip again.
+            // had got to has to be remembered here or coming back starts the clip again. Guarded:
+            // a player still preparing throws on both reads.
             player?.let {
-                resumePositionUs = it.currentPosition * 1000L
-                resumePlaying = it.isPlaying
+                runCatching {
+                    resumePositionUs = it.currentPosition * 1000L
+                    resumePlaying = it.isPlaying
+                }
             }
             releasePlayer()
             surface?.release()
@@ -499,7 +503,6 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
 
     private fun preparePlayer() {
         releasePlayer()
-        prepareAudioPlayer()
         player = MediaPlayer().apply {
             setSurface(this@VideoEditorActivity.surface)
             setOnPreparedListener {
@@ -508,8 +511,9 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 seekTo(resumePositionUs.takeIf { position -> position > startUs } ?: startUs)
                 // A seek before playback starts does not reliably render a frame, so an idle
                 // editor would show nothing at all: play either way, and stop on the first frame
-                // when playback was not running when we left.
-                pauseOnFirstFrame = resumePositionUs > 0 && !resumePlaying
+                // when playback was not running when we left — or when preparation outlived the
+                // activity being on screen, which must not start sound in the background.
+                pauseOnFirstFrame = activityPaused || (resumePositionUs > 0 && !resumePlaying)
                 startPlayback()
             }
             // Reaching the end of the file bypasses the ticker's loop check, and playback stops
@@ -604,6 +608,13 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
      * being set.
      */
     private fun blipAudio(us: Long) {
+        // Deferred to the first scrub: opened alongside the video player it is a second decoder on
+        // the same clip, and that contention (plus whatever the previewer still held) could cost
+        // the video player its codec — the editor would open on a black frame until reopened.
+        if (audioPlayer == null) {
+            prepareAudioPlayer()
+            return
+        }
         val audioPlayer = audioPlayer?.takeIf { audioReady } ?: return
         // One burst at a time, always to the newest position: queued seeks fall further behind the
         // finger the faster it moves.
@@ -804,7 +815,13 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        activityPaused = false
+    }
+
     override fun onPause() {
+        activityPaused = true
         super.onPause()
         pausePlayback()
     }

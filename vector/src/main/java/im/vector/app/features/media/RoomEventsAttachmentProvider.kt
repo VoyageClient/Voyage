@@ -130,6 +130,7 @@ class RoomEventsAttachmentProvider(
                         thumbnailMediaData = thumbnailData,
                         allowNonMxcUrls = it.root.sendState.isSending(),
                         preservedFile = it.preservedFile(),
+                        durationMs = content.videoInfo?.duration?.toLong(),
                 )
                 AttachmentInfo.Video(
                         uid = it.eventId,
