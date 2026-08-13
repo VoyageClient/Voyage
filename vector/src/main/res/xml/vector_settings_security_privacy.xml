@@ -242,6 +242,30 @@
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
     <im.vector.app.core.preference.VectorPreferenceCategory
+        android:key="SETTINGS_VPN_CATEGORY_KEY"
+        android:title="@string/settings_vpn_category">
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_VPN_WARN_ON_LAUNCH_KEY"
+            android:summary="@string/settings_vpn_warn_on_launch_summary"
+            android:title="@string/settings_vpn_warn_on_launch_title" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="false"
+            android:key="SETTINGS_VPN_CONFIRM_ACCOUNT_SWITCH_KEY"
+            android:summary="@string/settings_vpn_confirm_account_switch_summary"
+            android:title="@string/settings_vpn_confirm_account_switch_title" />
+
+        <im.vector.app.core.preference.VectorPreference
+            android:dependency="SETTINGS_VPN_WARN_ON_LAUNCH_KEY"
+            android:key="SETTINGS_VPN_EXCLUSIONS_KEY"
+            android:persistent="false"
+            android:title="@string/settings_vpn_exclusions_title" />
+
+    </im.vector.app.core.preference.VectorPreferenceCategory>
+
+    <im.vector.app.core.preference.VectorPreferenceCategory
         android:key="SETTINGS_SECURITY_OTHER_CATEGORY"
         android:title="@string/settings_other">
 

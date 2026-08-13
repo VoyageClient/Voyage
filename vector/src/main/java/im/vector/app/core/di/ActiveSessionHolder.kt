@@ -13,6 +13,7 @@ import im.vector.app.core.pushers.UnregisterUnifiedPushUseCase
 import im.vector.app.core.services.GuardServiceStarter
 import im.vector.app.core.session.ConfigureAndStartSessionUseCase
 import im.vector.app.core.session.LastActiveSessionStore
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.crypto.keysrequest.KeyRequestHandler
 import im.vector.app.features.crypto.verification.IncomingVerificationRequestHandler
 import im.vector.app.features.notifications.PushRuleTriggerListener
@@ -51,6 +52,7 @@ class ActiveSessionHolder @Inject constructor(
         private val applicationCoroutineScope: CoroutineScope,
         private val coroutineDispatchers: CoroutineDispatchers,
         private val lastActiveSessionStore: LastActiveSessionStore,
+        private val vpnGateState: VpnGateState,
 ) {
 
     private var activeSessionReference: AtomicReference<Session?> = AtomicReference()
@@ -83,6 +85,7 @@ class ActiveSessionHolder @Inject constructor(
         getSafeActiveSession()?.let {
             Timber.w("clearActiveSession of ${it.myUserId}")
             it.removeListener(sessionListener)
+            vpnGateState.dropQueuedFor(it.sessionId)
         }
 
         activeSessionReference.set(null)
@@ -147,6 +150,7 @@ class ActiveSessionHolder @Inject constructor(
         runCatching { previous.syncService().stopAnyBackgroundSync() }
         runCatching { previous.syncService().stopSync() }
         runCatching { previous.removeListener(sessionListener) }
+        vpnGateState.dropQueuedFor(previous.sessionId)
         pendingReleaseSessionIds += previous.sessionId
     }
 

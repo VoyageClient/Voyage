@@ -11,6 +11,7 @@ import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.services.AlarmSyncBroadcastReceiver
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.settings.BackgroundSyncMode
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
@@ -20,9 +21,15 @@ import javax.inject.Inject
 class BackgroundSyncStarter @Inject constructor(
         private val context: Context,
         private val vectorPreferences: VectorPreferences,
-        private val clock: Clock
+        private val clock: Clock,
+        private val vpnGateState: VpnGateState,
 ) {
     fun start(activeSessionHolder: ActiveSessionHolder) {
+        if (vpnGateState.isClosed) {
+            Timber.i("VpnGate: gate closed, not starting background sync")
+            AlarmSyncBroadcastReceiver.cancelPendingAlarm(context)
+            return
+        }
         if (!vectorPreferences.areNotificationEnabledForDevice() || !NotificationManagerCompat.from(context).areNotificationsEnabled()) {
             Timber.i("## Sync: background sync not started, notifications are disabled")
             AlarmSyncBroadcastReceiver.cancelPendingAlarm(context)

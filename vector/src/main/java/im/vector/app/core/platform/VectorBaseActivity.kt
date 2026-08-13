@@ -70,6 +70,8 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.AndroidSystemSettingsProvider
 import im.vector.app.core.utils.ToolbarConfig
 import im.vector.app.core.utils.toast
+import im.vector.app.core.vpn.VpnGateExemptActivity
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.VectorFeatures
@@ -87,6 +89,7 @@ import im.vector.app.features.settings.VectorLocaleProvider
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.app.features.vpn.VpnWarningActivity
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -169,6 +172,7 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
 
     @Inject lateinit var sessionListener: SessionListener
     @Inject lateinit var pinLocker: PinLocker
+    @Inject lateinit var vpnGateState: VpnGateState
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var fontScalePreferences: FontScalePreferences
     @Inject lateinit var vectorLocale: VectorLocaleProvider
@@ -264,6 +268,9 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
             if (this@VectorBaseActivity !is UnlockedActivity && it == PinLocker.State.LOCKED) {
                 navigator.openPinCode(this, pinStartForActivityResult, PinMode.AUTH)
             }
+        }
+        vpnGateState.liveClosed.observe(this) { closed ->
+            if (closed) maybeShowVpnWarning()
         }
         sessionListener.globalErrorLiveData.observeEvent(this) {
             handleGlobalError(it)
@@ -434,9 +441,19 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
         configurationViewModel.acknowledgeConfiguration()
     }
 
+    // A pending warning start can be dropped when the app is backgrounded mid-launch, and the
+    // sticky LiveData won't re-fire for the unchanged value — so every resume re-checks the gate.
+    // Duplicate starts are absorbed by SINGLE_TOP + REORDER_TO_FRONT on the intent.
+    private fun maybeShowVpnWarning() {
+        if (vpnGateState.isClosed && this !is VpnGateExemptActivity) {
+            startActivity(VpnWarningActivity.newIntent(this))
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         Timber.i("onResume Activity ${javaClass.simpleName}")
+        maybeShowVpnWarning()
         configurationViewModel.onActivityResumed()
         debugReceiver.register(this)
         mdmService.registerListener(this) {

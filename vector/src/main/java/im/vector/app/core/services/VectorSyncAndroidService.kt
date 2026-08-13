@@ -20,6 +20,7 @@ import androidx.work.WorkRequest
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import dagger.hilt.android.AndroidEntryPoint
+import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.extensions.startForegroundCompat
 import im.vector.app.features.notifications.NotificationUtils
 import im.vector.app.features.settings.BackgroundSyncMode
@@ -68,6 +69,8 @@ class VectorSyncAndroidService : SyncAndroidService() {
                 it.action = ACTION_STOP
             }
         }
+
+        const val TAG_RESTART_WHEN_NETWORK_ON = "RestartWhenNetworkOn"
     }
 
     @Inject lateinit var notificationUtils: NotificationUtils
@@ -112,9 +115,14 @@ class VectorSyncAndroidService : SyncAndroidService() {
             isPeriodic: Boolean
     ) {
         Timber.d("## Sync: A network error occurred during sync")
+        if (applicationContext.singletonEntryPoint().vpnGateState().isClosed) {
+            Timber.i("VpnGate: gate closed, not scheduling network-restore sync restart")
+            return
+        }
         val rescheduleSyncWorkRequest: WorkRequest =
                 OneTimeWorkRequestBuilder<RestartWhenNetworkOn>()
                         .setInputData(RestartWhenNetworkOn.createInputData(sessionId, syncTimeoutSeconds, syncDelaySeconds, isPeriodic))
+                        .addTag(TAG_RESTART_WHEN_NETWORK_ON)
                         .setConstraints(
                                 Constraints.Builder()
                                         .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -146,6 +154,10 @@ class VectorSyncAndroidService : SyncAndroidService() {
 
         override fun doWork(): Result {
             Timber.d("## Sync: RestartWhenNetworkOn.doWork()")
+            if (applicationContext.singletonEntryPoint().vpnGateState().isClosed) {
+                Timber.i("VpnGate: gate closed, dropping network-restore sync restart")
+                return Result.success()
+            }
             val sessionId = inputData.getString(KEY_SESSION_ID) ?: return Result.failure()
             val syncTimeoutSeconds = inputData.getInt(KEY_SYNC_TIMEOUT_SECONDS, BackgroundSyncMode.DEFAULT_SYNC_TIMEOUT_SECONDS)
             val syncDelaySeconds = inputData.getInt(KEY_SYNC_DELAY_SECONDS, BackgroundSyncMode.DEFAULT_SYNC_DELAY_SECONDS)
@@ -197,6 +209,10 @@ private fun Context.rescheduleSyncService(
         clock: Clock
 ) {
     Timber.d("## Sync: rescheduleSyncService")
+    if (singletonEntryPoint().vpnGateState().isClosed) {
+        Timber.i("VpnGate: gate closed, not rescheduling sync service")
+        return
+    }
     if (isNetworkBack || syncDelaySeconds == 0) {
         // Do not wait, do the sync now (more reactivity if network back is due to user action)
         val intent = if (isPeriodic) {

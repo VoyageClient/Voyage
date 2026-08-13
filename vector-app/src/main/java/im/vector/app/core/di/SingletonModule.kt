@@ -32,6 +32,7 @@ import im.vector.app.core.error.ErrorFormatter
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.AndroidSystemSettingsProvider
 import im.vector.app.core.utils.SystemSettingsProvider
+import im.vector.app.core.vpn.VpnGateInterceptor
 import im.vector.app.features.configuration.VectorCustomEventTypesProvider
 import im.vector.app.features.invite.AutoAcceptInvites
 import im.vector.app.features.invite.CompileTimeAutoAcceptInvites
@@ -132,12 +133,13 @@ import javax.inject.Singleton
             vectorRoomDisplayNameFallbackProvider: VectorRoomDisplayNameFallbackProvider,
             vectorCustomEventTypesProvider: VectorCustomEventTypesProvider,
             mdmService: MdmService,
+            vpnGateInterceptor: VpnGateInterceptor,
     ): MatrixConfiguration {
         return MatrixConfiguration(
                 applicationFlavor = BuildConfig.FLAVOR_DESCRIPTION,
                 roomDisplayNameFallbackProvider = vectorRoomDisplayNameFallbackProvider,
                 threadMessagesEnabledDefault = vectorPreferences.areThreadMessagesEnabled(),
-                networkInterceptors = emptyList(),
+                networkInterceptors = listOf(vpnGateInterceptor),
                 customEventTypesProvider = vectorCustomEventTypesProvider,
                 clientPermalinkBaseUrl = mdmService.getData(MdmData.PermalinkBaseUrl),
                 syncConfig = SyncConfig(

@@ -30,6 +30,8 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.core.session.LogoutAccountUseCase
 import im.vector.app.core.session.SwitchAccountUseCase
+import im.vector.app.core.vpn.VpnDetector
+import im.vector.app.core.vpn.VpnGate
 import im.vector.app.databinding.FragmentHomeDrawerBinding
 import im.vector.app.features.MainActivity
 import im.vector.app.features.MainActivityArgs
@@ -65,6 +67,8 @@ class HomeDrawerFragment :
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
     @Inject lateinit var logoutAccountUseCase: LogoutAccountUseCase
     @Inject lateinit var accountInfoCache: AccountInfoCache
+    @Inject lateinit var vpnDetector: VpnDetector
+    @Inject lateinit var vpnGate: VpnGate
 
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
     private lateinit var accountAdapter: AccountSwitcherAdapter
@@ -221,6 +225,25 @@ class HomeDrawerFragment :
             setSwitcherExpanded(false)
             return
         }
+        if (vectorPreferences.isVpnConfirmSwitchEnabled() &&
+                entry.sessionId !in vectorPreferences.getVpnExcludedSessionIds() &&
+                !vpnDetector.isVpnActive()) {
+            MaterialAlertDialogBuilder(requireActivity())
+                    .setTitle(CommonStrings.vpn_switch_dialog_title)
+                    .setMessage(CommonStrings.vpn_switch_dialog_message)
+                    .setPositiveButton(CommonStrings.vpn_switch_dialog_confirm) { _, _ ->
+                        // Counts as the launch acknowledgement too, so the post-restart gate doesn't re-prompt
+                        vpnGate.acknowledge()
+                        performSwitch(entry)
+                    }
+                    .setNegativeButton(CommonStrings.action_cancel, null)
+                    .show()
+        } else {
+            performSwitch(entry)
+        }
+    }
+
+    private fun performSwitch(entry: AccountSwitcherEntry) {
         // Activity scope, not the view-lifecycle scope — restartApp() finishes the activity
         // and a fragment-view-scoped coroutine would be cancelled mid-flight.
         requireActivity().lifecycleScope.launch {

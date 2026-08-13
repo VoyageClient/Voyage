@@ -13,6 +13,7 @@ import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.notification.NotificationsSettingUpdater
 import im.vector.app.core.notification.PushRulesUpdater
 import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.reactions.data.QuickReactionsDataSource
 import im.vector.app.features.redaction.preservation.RedactionPreservationService
 import im.vector.app.features.session.coroutineScope
@@ -47,6 +48,7 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         private val quickReactionsDataSource: QuickReactionsDataSource,
         private val redactionPreservationService: RedactionPreservationService,
         private val mediaPreviewConfigDataSource: MediaPreviewConfigDataSource,
+        private val vpnGateState: VpnGateState,
 ) {
 
     private val profileObserverJob = AtomicReference<Job?>(null)
@@ -59,15 +61,18 @@ class ConfigureAndStartSessionUseCase @Inject constructor(
         if (startSyncing) {
             session.startSyncing(context)
         }
-        session.pushersService().refreshPushers()
-        updateMatrixClientInfoIfNeeded(session)
-        createNotificationSettingsAccountDataIfNeeded(session)
-        notificationsSettingUpdater.onSessionStarted(session)
-        pushRulesUpdater.onSessionStarted(session)
-        quickReactionsDataSource.onSessionStarted(session)
-        mediaPreviewConfigDataSource.onSessionStarted(session)
-        redactionPreservationService.start(session)
-        observeOwnProfileForCache(session)
+        // The network-touching part is deferred while the VPN gate is closed
+        vpnGateState.runWhenOpen(session.sessionId) {
+            session.pushersService().refreshPushers()
+            updateMatrixClientInfoIfNeeded(session)
+            createNotificationSettingsAccountDataIfNeeded(session)
+            notificationsSettingUpdater.onSessionStarted(session)
+            pushRulesUpdater.onSessionStarted(session)
+            quickReactionsDataSource.onSessionStarted(session)
+            mediaPreviewConfigDataSource.onSessionStarted(session)
+            redactionPreservationService.start(session)
+            observeOwnProfileForCache(session)
+        }
     }
 
     private fun observeOwnProfileForCache(session: Session) {

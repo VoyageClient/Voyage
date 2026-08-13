@@ -12,6 +12,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import im.vector.app.core.dialogs.UnrecognizedCertificateDialog
 import im.vector.app.core.error.ErrorFormatter
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.navigation.Navigator
 import im.vector.app.features.pin.PinLocker
@@ -44,6 +45,8 @@ interface SingletonEntryPoint {
     fun uiStateRepository(): UiStateRepository
 
     fun pinLocker(): PinLocker
+
+    fun vpnGateState(): VpnGateState
 
     fun appCoroutineScope(): CoroutineScope
 }

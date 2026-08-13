@@ -10,6 +10,7 @@ package im.vector.app.core.session
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.core.vpn.VpnGateState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -28,6 +29,7 @@ import javax.inject.Singleton
 @Singleton
 class HomeserverMirrorRefresher @Inject constructor(
         private val activeSessionHolder: ActiveSessionHolder,
+        private val vpnGateState: VpnGateState,
 ) : DefaultLifecycleObserver {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -37,8 +39,10 @@ class HomeserverMirrorRefresher @Inject constructor(
         job?.cancel()
         job = scope.launch {
             while (isActive) {
-                activeSessionHolder.getSafeActiveSession()?.let {
-                    tryOrNull { it.homeServerUrlsService().refreshActiveHomeServerUrl() }
+                if (!vpnGateState.isClosed) {
+                    activeSessionHolder.getSafeActiveSession()?.let {
+                        tryOrNull { it.homeServerUrlsService().refreshActiveHomeServerUrl() }
+                    }
                 }
                 delay(PROBE_INTERVAL_MILLIS)
             }
