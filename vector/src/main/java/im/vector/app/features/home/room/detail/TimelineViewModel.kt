@@ -24,6 +24,7 @@ import im.vector.app.R
 import im.vector.app.SpaceStateHandler
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
+import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.mvrx.runCatchingToAsync
 import im.vector.app.core.platform.VectorViewModel
 import im.vector.app.core.resources.StringProvider
@@ -1166,8 +1167,7 @@ private fun handleSelectStickerAttachment() {
 
     private fun handleOpenOrDownloadFile(action: RoomDetailAction.DownloadOrOpen) {
         val mxcUrl = action.messageFileContent.getFileUrl() ?: return
-        val isLocalSendingFile = action.senderId == session.myUserId &&
-                mxcUrl.startsWith("content://")
+        val isLocalSendingFile = action.senderId == session.myUserId && mxcUrl.isLocalMediaUri()
         if (isLocalSendingFile) {
             tryOrNull { Uri.parse(mxcUrl) }?.let {
                 _viewEvents.post(

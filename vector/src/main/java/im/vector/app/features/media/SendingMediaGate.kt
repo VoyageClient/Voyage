@@ -45,7 +45,7 @@ class SendingMediaGate @Inject constructor(
 
     /** False only while the first decode of a still-sending attachment is outstanding. */
     fun canShow(data: ImageContentRenderer.Data, mode: ImageContentRenderer.Mode, messageLayout: TimelineMessageLayout): Boolean {
-        val key = data.stableId
+        val key = data.eventId
         val alreadyAsked = synchronized(lock) {
             if (settled.containsKey(key)) return true
             !inFlight.add(key)
@@ -57,6 +57,15 @@ class SendingMediaGate @Inject constructor(
             handler.postDelayed({ settle(key) }, DECODE_TIMEOUT_MS)
         }
         return false
+    }
+
+    /**
+     * Whether this event is one being held back, so what stands in for it is a blank row rather than
+     * the "no factory handled it" debug item.
+     */
+    fun isHolding(eventId: String?): Boolean {
+        eventId ?: return false
+        return synchronized(lock) { inFlight.contains(eventId) }
     }
 
     private fun settle(key: String) {
