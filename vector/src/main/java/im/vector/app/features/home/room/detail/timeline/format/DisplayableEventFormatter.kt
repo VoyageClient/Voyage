@@ -30,6 +30,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
@@ -92,6 +93,15 @@ class DisplayableEventFormatter @Inject constructor(
                             } else {
                                 simpleFormat(senderName, renderPlainPreview(timelineEvent.root.roomId, preview.body), appendAuthor)
                             }
+                        }
+                        MessageType.MSGTYPE_EMOTE -> {
+                            val preview = messageContent.previewText()
+                            val rendered = if (preview.formattedBody != null) {
+                                renderFormattedPreview(timelineEvent.root.roomId, preview.formattedBody)
+                            } else {
+                                renderPlainPreview(timelineEvent.root.roomId, preview.body)
+                            }
+                            simpleFormat(senderName, rendered, appendAuthor, isEmote = true)
                         }
                         MessageType.MSGTYPE_VERIFICATION_REQUEST -> {
                             simpleFormat(senderName, stringProvider.getString(CommonStrings.verification_request_room_list_preview), appendAuthor)
@@ -273,12 +283,10 @@ class DisplayableEventFormatter @Inject constructor(
     // Strip the reply fallback so the preview shows the reply's own content, not the quoted message: the
     // <mx-reply> block from the formatted body, or the legacy "> <@user>" prefix from the plain body.
     private fun MessageContent.previewText(): PreviewText {
-        val textContent = this as? MessageTextContent
-        val isReply = textContent?.relatesTo?.inReplyTo?.eventId != null
-        val formattedBody = textContent?.matrixFormattedBody?.takeIf { it.isNotBlank() }
+        val isReply = relatesTo?.inReplyTo?.eventId != null
+        val formattedBody = (this as? MessageContentWithFormattedBody)?.matrixFormattedBody?.takeIf { it.isNotBlank() }
                 ?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
-        val plain = textContent?.body ?: body
-        val previewBody = if (isReply) ContentUtils.extractUsefulTextFromReply(plain) else plain
+        val previewBody = if (isReply) ContentUtils.extractUsefulTextFromReply(body) else body
         return PreviewText(formattedBody, previewBody)
     }
 
@@ -367,11 +375,14 @@ class DisplayableEventFormatter @Inject constructor(
         return builder
     }
 
-    private fun simpleFormat(senderName: String, body: CharSequence, appendAuthor: Boolean): CharSequence {
+    // An emote keeps its "* Sender " prefix even where the author is otherwise omitted — its body reads
+    // as an action attributed to the sender.
+    private fun simpleFormat(senderName: String, body: CharSequence, appendAuthor: Boolean, isEmote: Boolean = false): CharSequence {
         val emojiBody = body.prepareForDisplay()
-        if (!appendAuthor) return emojiBody
+        if (!appendAuthor && !isEmote) return emojiBody
         // SpannableStringBuilder (not the gujun span DSL) so [body]'s emote ReplacementSpans are preserved.
         return android.text.SpannableStringBuilder().apply {
+            if (isEmote) append("* ")
             val start = length
             // Isolate the sender name so an RTL name doesn't flip the whole "Name: message" line to RTL.
             // Neutralize BEFORE wrapping and emoji-spanify only afterwards: unicodeWrap's own embedding
@@ -382,7 +393,7 @@ class DisplayableEventFormatter @Inject constructor(
                     android.text.style.ForegroundColorSpan(colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)),
                     start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-            append(": ")
+            append(if (isEmote) " " else ": ")
             append(emojiBody)
         }
     }

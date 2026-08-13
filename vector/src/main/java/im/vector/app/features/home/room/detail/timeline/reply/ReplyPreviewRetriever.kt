@@ -22,6 +22,7 @@ import im.vector.app.features.home.room.detail.timeline.format.DisplayableEventF
 import im.vector.app.features.home.room.detail.timeline.helper.timelineStableId
 import im.vector.app.features.home.room.detail.timeline.render.EventTextRenderer
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
@@ -46,6 +47,7 @@ import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
@@ -395,7 +397,7 @@ class ReplyPreviewRetriever(
         val content = event.getLastMessageContent() as? MessageContentWithFormattedBody ?: return null
         val key = "${event.eventId}:${event.getCacheId()}"
         synchronized(replyBodyCache) { replyBodyCache[key] }?.let { return it }
-        val built = buildReplyBody(content)
+        val built = buildReplyBody(content, event.senderInfo.disambiguatedDisplayName)
         synchronized(replyBodyCache) {
             if (replyBodyCache.size > REPLY_BODY_CACHE_MAX) replyBodyCache.clear()
             replyBodyCache[key] = built
@@ -403,7 +405,7 @@ class ReplyPreviewRetriever(
         return built
     }
 
-    private fun buildReplyBody(content: MessageContentWithFormattedBody): RenderedReplyBody {
+    private fun buildReplyBody(content: MessageContentWithFormattedBody, senderName: String): RenderedReplyBody {
         // If the replied-to event is itself a reply, strip its quoted portion so only its own message shows.
         val formattedBody = content.formattedBody?.let { ContentUtils.extractUsefulTextFromHtmlReply(it) }
         val compressed = formattedBody?.let { htmlCompressor.compress(it) }
@@ -412,7 +414,7 @@ class ReplyPreviewRetriever(
         } else {
             textRenderer.render(ContentUtils.extractUsefulTextFromReply(content.body))
         }).linkify(null)
-        return RenderedReplyBody(compressed, text)
+        return RenderedReplyBody(compressed, if (content.msgType == MessageType.MSGTYPE_EMOTE) text.asEmoteBody(senderName) else text)
     }
 
     private fun warmReplyBodyCache(event: TimelineEvent) {

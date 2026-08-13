@@ -27,8 +27,9 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormatter
 import im.vector.app.features.home.room.detail.timeline.render.ProcessBodyOfReplyToEventUseCase
-import im.vector.app.features.media.FailedMediaTracker
+import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
+import im.vector.app.features.media.FailedMediaTracker
 import im.vector.app.features.html.EventHtmlRenderer
 import im.vector.app.features.html.PillsPostProcessor
 import im.vector.app.features.html.VectorHtmlCompressor
@@ -72,6 +73,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomPinnedEventsContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageEmoteContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
@@ -289,10 +291,13 @@ class MessageActionsViewModel @AssistedInject constructor(
                     EventType.STICKER -> {
                         val messageContent: MessageContent? = timelineEvent.getVectorLastMessageContent()
                         val isReply = messageContent?.relatesTo?.inReplyTo?.eventId != null
-                        if (messageContent is MessageTextContent && messageContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
+                        val isEmote = messageContent?.msgType == MessageType.MSGTYPE_EMOTE
+                        val formattedContent = (messageContent as? MessageContentWithFormattedBody)
+                                ?.takeIf { messageContent is MessageTextContent || messageContent is MessageEmoteContent }
+                        val body = if (formattedContent != null && formattedContent.format == MessageFormat.FORMAT_MATRIX_HTML) {
                             // Strip the legacy reply fallback ("In reply to" / "> <@user> …") that
                             // outdated clients embed in the body, so the preview shows only the message.
-                            val html = messageContent.formattedBody
+                            val html = formattedContent.formattedBody
                                     ?.takeIf { it.isNotBlank() }
                                     ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
                                     ?.let { htmlCompressor.compress(it) }
@@ -327,6 +332,7 @@ class MessageActionsViewModel @AssistedInject constructor(
                                     .let { if (isReply) ContentUtils.extractUsefulTextFromReply(it) else it }
                                     .let { textRenderer.render(it) }
                         }
+                        if (isEmote) body.asEmoteBody(timelineEvent.senderInfo.disambiguatedDisplayName) else body
                     }
                     EventType.STATE_ROOM_NAME,
                     EventType.STATE_ROOM_TOPIC,

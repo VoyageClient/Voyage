@@ -115,6 +115,17 @@ fun attachmentPreviewText(context: Context, @DrawableRes iconRes: Int, label: Ch
     }
 }
 
+/**
+ * Prefix an m.emote body with "* Sender ", the way the timeline renders it: the body reads as an
+ * action attributed to its sender, so a preview without the prefix is left dangling.
+ */
+fun CharSequence.asEmoteBody(senderName: CharSequence): CharSequence {
+    return SpannableStringBuilder("* ")
+            .append(messageEmojiSpanify?.spanify(senderName) ?: senderName)
+            .append(" ")
+            .append(this)
+}
+
 fun CharSequence.findPillsAndProcess(scope: CoroutineScope, processBlock: (PillImageSpan) -> Unit) {
     scope.launch(Dispatchers.Main) {
         withContext(Dispatchers.IO) {
