@@ -15,6 +15,9 @@ import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.isEmail
 import org.matrix.android.sdk.api.session.identity.ThreePid
+import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
+import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -508,10 +511,11 @@ class CommandParser @Inject constructor(
                 }
                 Command.JUMP_TO.matches(slashCommand) -> {
                     val candidate = message.toString().trim()
-                    if (candidate.isNotEmpty() && MatrixPatterns.isEventId(candidate)) {
-                        ParsedCommand.JumpToEvent(eventId = candidate)
-                    } else {
-                        ParsedCommand.ErrorSyntax(Command.JUMP_TO)
+                    when {
+                        candidate.isEmpty() -> ParsedCommand.ErrorSyntax(Command.JUMP_TO)
+                        MatrixPatterns.isEventId(candidate) -> ParsedCommand.JumpToEvent(eventId = candidate)
+                        isRoomPermalink(candidate) -> ParsedCommand.JumpToPermalink(link = candidate)
+                        else -> ParsedCommand.ErrorSyntax(Command.JUMP_TO)
                     }
                 }
                 Command.JUMP_TO_DATE.matches(slashCommand) -> {
@@ -609,6 +613,12 @@ class CommandParser @Inject constructor(
         } else {
             null
         }
+    }
+
+    private fun isRoomPermalink(candidate: String): Boolean {
+        if (candidate.any { it.isWhitespace() }) return false
+        val looksLikeLink = "://" in candidate || candidate.startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true)
+        return looksLikeLink && PermalinkParser.parse(candidate) is PermalinkData.RoomLink
     }
 
     private fun trimParts(message: CharSequence, messageParts: List<String>): String? {

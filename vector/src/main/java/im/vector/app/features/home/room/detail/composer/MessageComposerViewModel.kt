@@ -867,6 +867,11 @@ class MessageComposerViewModel @AssistedInject constructor(
                             _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
                             popDraft(room, state.sendMode)
                         }
+                        is ParsedCommand.JumpToPermalink -> {
+                            _viewEvents.post(MessageComposerViewEvents.JumpToPermalink(link = parsedCommand.link))
+                            _viewEvents.post(MessageComposerViewEvents.SlashCommandResultOk(parsedCommand))
+                            popDraft(room, state.sendMode)
+                        }
                         is ParsedCommand.Tombstone -> {
                             handleTombstoneSlashCommand(room, parsedCommand)
                         }

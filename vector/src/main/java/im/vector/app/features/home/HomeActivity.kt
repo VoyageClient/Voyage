@@ -365,7 +365,8 @@ class HomeActivity :
                 )
                 if (!isHandled) {
                     val isMatrixToLink = deepLink.startsWith(PermalinkService.MATRIX_TO_URL_BASE) ||
-                            deepLink.startsWith(MATRIX_TO_CUSTOM_SCHEME_URL_BASE)
+                            deepLink.startsWith(MATRIX_TO_CUSTOM_SCHEME_URL_BASE) ||
+                            deepLink.startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true)
                     MaterialAlertDialogBuilder(this@HomeActivity)
                             .setTitle(CommonStrings.dialog_title_error)
                             .setMessage(if (isMatrixToLink) CommonStrings.permalink_malformed else CommonStrings.universal_link_malformed)
@@ -628,14 +629,14 @@ class HomeActivity :
     }
 
     override fun navToMemberProfile(userId: String, deepLink: Uri): Boolean {
-        // TODO check if there is already one??
-        MatrixToBottomSheet.withLink(deepLink.toString(), OriginOfMatrixTo.LINK)
-                .show(supportFragmentManager, "HA#MatrixToBottomSheet")
+        navigator.openRoomMemberProfile(userId = userId, roomId = null, context = this)
         return true
     }
 
     override fun navToRoom(roomId: String?, eventId: String?, deepLink: Uri?, rootThreadEventId: String?): Boolean {
         if (roomId == null) return false
+        // A link to an event wants that message, and the card can only open the room at its latest.
+        if (eventId != null) return false
         MatrixToBottomSheet.withLink(deepLink.toString(), OriginOfMatrixTo.LINK)
                 .show(supportFragmentManager, "HA#MatrixToBottomSheet")
         return true

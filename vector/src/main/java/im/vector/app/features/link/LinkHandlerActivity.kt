@@ -45,10 +45,6 @@ class LinkHandlerActivity : VectorBaseActivity<ActivityProgressBinding>() {
     override val rootView: View
         get() = views.mainRoot
 
-    override fun initUiAndData() {
-        handleIntent()
-    }
-
     private val launcher = registerStartForActivityResult {
         if (it.resultCode == RESULT_OK) {
             handleIntent()
@@ -81,9 +77,11 @@ class LinkHandlerActivity : VectorBaseActivity<ActivityProgressBinding>() {
                 Timber.w("Uri is null")
                 finish()
             }
-            uri.getQueryParameter(LoginConfig.CONFIG_HS_PARAMETER) != null -> handleConfigUrl(uri)
+            // getQueryParameter throws on an opaque URI, which matrix: links are.
+            uri.isHierarchical && uri.getQueryParameter(LoginConfig.CONFIG_HS_PARAMETER) != null -> handleConfigUrl(uri)
             uri.toString().startsWith(PermalinkService.MATRIX_TO_URL_BASE) -> handleSupportedHostUrl()
             uri.toString().startsWith(PermalinkHandler.MATRIX_TO_CUSTOM_SCHEME_URL_BASE) -> handleSupportedHostUrl()
+            uri.toString().startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true) -> handleSupportedHostUrl()
             resources.getStringArray(im.vector.app.config.R.array.permalink_supported_hosts).contains(uri.host) -> handleSupportedHostUrl()
             else -> {
                 // Other links are not yet handled, but should not come here (manifest configuration error?)

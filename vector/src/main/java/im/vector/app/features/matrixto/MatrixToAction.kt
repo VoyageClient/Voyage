@@ -8,12 +8,9 @@
 package im.vector.app.features.matrixto
 
 import im.vector.app.core.platform.VectorViewModelAction
-import org.matrix.android.sdk.api.util.MatrixItem
 
 sealed class MatrixToAction : VectorViewModelAction {
-    data class StartChattingWithUser(val matrixItem: MatrixItem) : MatrixToAction()
-    object FailedToResolveUser : MatrixToAction()
-    object FailedToStartChatting : MatrixToAction()
+    object FailedToResolveRoom : MatrixToAction()
     data class JoinSpace(val spaceID: String, val viaServers: List<String>?) : MatrixToAction()
     data class JoinRoom(val roomIdOrAlias: String, val viaServers: List<String>?) : MatrixToAction()
     data class KnockRoom(val roomIdOrAlias: String, val viaServers: List<String>?, val reason: String?) : MatrixToAction()

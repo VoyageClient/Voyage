@@ -86,7 +86,10 @@ object PermalinkParser {
         val extraParameter = decodedParams.getOrNull(1)
         return when {
             identifier.isNullOrEmpty() || decodedIdentifier.isNullOrEmpty() -> PermalinkData.FallbackLink(uriString)
-            MatrixPatterns.isUserId(decodedIdentifier) -> PermalinkData.UserLink(userId = decodedIdentifier)
+            MatrixPatterns.isUserId(decodedIdentifier) -> PermalinkData.UserLink(
+                    userId = decodedIdentifier,
+                    startChat = fragment.getQueryParameters("action").contains("chat")
+            )
             MatrixPatterns.isRoomId(decodedIdentifier) -> {
                 handleRoomIdCase(fragment, decodedIdentifier, matrixToUri, extraParameter, viaQueryParameters)
             }
@@ -148,11 +151,13 @@ object PermalinkParser {
                 } else null
             }
 
-    private fun String.getViaParameters(): List<String> {
+    private fun String.getViaParameters(): List<String> = getQueryParameters("via")
+
+    private fun String.getQueryParameters(name: String): List<String> {
         return substringAfter('?', "")
                 .split('&')
                 .mapNotNull { it.split('=', limit = 2).takeIf { part -> part.size == 2 } }
-                .filter { it[0] == "via" }
+                .filter { it[0] == name }
                 .map { URLDecoder.decode(it[1], "UTF-8") }
     }
 }

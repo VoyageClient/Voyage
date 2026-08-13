@@ -161,7 +161,7 @@ class MatrixToRoomSpaceFragment :
             }
             is Fail -> {
                 // TODO display some error copy?
-                sharedViewModel.handle(MatrixToAction.FailedToResolveUser)
+                sharedViewModel.handle(MatrixToAction.FailedToResolveRoom)
             }
         }
 
@@ -177,7 +177,7 @@ class MatrixToRoomSpaceFragment :
             }
         }
 
-        when (state.startChattingState) {
+        when (state.joinState) {
             Uninitialized -> {
                 views.matrixToCardMainButton.render(ButtonStateView.State.Button)
             }

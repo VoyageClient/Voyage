@@ -26,6 +26,12 @@ interface PermalinkService {
 
     companion object {
         const val MATRIX_TO_URL_BASE = "https://matrix.to/#/"
+
+        /**
+         * MSC2312 matrix: URIs. Only handled as input: we can't be sure this app is the one bound to the
+         * scheme, so our own scheme is still used for the links we create.
+         */
+        const val MATRIX_URI_SCHEME_PREFIX = "matrix:"
     }
 
     enum class SpanTemplateType {

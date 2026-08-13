@@ -55,6 +55,9 @@ sealed class MessageComposerViewEvents : VectorViewEvents {
      */
     data class JumpToEvent(val eventId: String?, val notFoundMessage: String? = null, val toRoomStart: Boolean = false) : MessageComposerViewEvents()
 
+    /** Result of a /jumpto given a permalink, which may target another room. */
+    data class JumpToPermalink(val link: String) : MessageComposerViewEvents()
+
     /** OpenKeychain needs the user (passphrase / key picker) before it can encrypt. */
     data class LaunchPgpInteraction(val pendingIntent: android.app.PendingIntent) : MessageComposerViewEvents()
 }

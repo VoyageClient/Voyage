@@ -71,6 +71,10 @@ object MatrixPatterns {
     private const val APP_BASE_REGEX = "https://[A-Z0-9.-]+\\.[A-Z]{2,}/#/(room|user)/"
     const val SEP_REGEX = "/"
 
+    // regex pattern to find MSC2312 matrix: URIs, e.g. matrix:r/room:example.org/e/$abcdef?via=example.org
+    private const val MATRIX_URI_REGEX = "matrix:(//)?(u|r|roomid)/[A-Z0-9._~%!$&'*+;=:@/?-]+"
+    private val PATTERN_CONTAIN_MATRIX_URI = MATRIX_URI_REGEX.toRegex(RegexOption.IGNORE_CASE)
+
     private val PATTERN_CONTAIN_MATRIX_TO_PERMALINK = PERMALINK_BASE_REGEX.toRegex(RegexOption.IGNORE_CASE)
     private val PATTERN_CONTAIN_APP_PERMALINK = APP_BASE_REGEX.toRegex(RegexOption.IGNORE_CASE)
 
@@ -85,7 +89,8 @@ object MatrixPatterns {
             PATTERN_CONTAIN_MATRIX_ALIAS,
             PATTERN_CONTAIN_MATRIX_ROOM_IDENTIFIER,
             PATTERN_CONTAIN_MATRIX_EVENT_IDENTIFIER,
-            PATTERN_CONTAIN_MATRIX_GROUP_IDENTIFIER
+            PATTERN_CONTAIN_MATRIX_GROUP_IDENTIFIER,
+            PATTERN_CONTAIN_MATRIX_URI
     )
 
     /**
@@ -146,7 +151,8 @@ object MatrixPatterns {
     fun isPermalink(str: String?): Boolean {
         return str != null &&
                 (PATTERN_CONTAIN_MATRIX_TO_PERMALINK.containsMatchIn(str) ||
-                        PATTERN_CONTAIN_APP_PERMALINK.containsMatchIn(str))
+                        PATTERN_CONTAIN_APP_PERMALINK.containsMatchIn(str) ||
+                        PATTERN_CONTAIN_MATRIX_URI.containsMatchIn(str))
     }
 
     /**

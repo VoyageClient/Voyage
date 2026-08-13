@@ -122,6 +122,19 @@ class PermalinkHandler @Inject constructor(
             navigationInterceptor: NavigationInterceptor?,
             buildTask: Boolean
     ): Boolean {
+        // MSC2312 action=chat. Without an existing DM we stop at the profile, whose "Direct message" action
+        // is the confirmation the MSC asks for before a room is created.
+        if (permalinkData.startChat) {
+            val existingDm = tryOrNull {
+                activeSessionHolder.getSafeActiveSession()?.roomService()?.getExistingDirectRoomWithUser(permalinkData.userId)
+            }
+            if (existingDm != null) {
+                navigator.openRoom(context, existingDm, buildTask = buildTask)
+            } else {
+                navigator.openRoomMemberProfile(userId = permalinkData.userId, roomId = null, context = context, buildTask = buildTask)
+            }
+            return true
+        }
         if (navigationInterceptor?.navToMemberProfile(permalinkData.userId, rawLink) != true) {
             navigator.openRoomMemberProfile(userId = permalinkData.userId, roomId = null, context = context, buildTask = buildTask)
         }

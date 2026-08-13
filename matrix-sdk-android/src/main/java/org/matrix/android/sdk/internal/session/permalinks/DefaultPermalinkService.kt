@@ -51,6 +51,7 @@ internal class DefaultPermalinkService @Inject constructor(
 
     override fun isPermalinkSupported(supportedHosts: Array<String>, url: String): Boolean {
         return url.startsWith(PermalinkService.MATRIX_TO_URL_BASE) ||
+                url.startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true) ||
                 supportedHosts.any { url.uriHost() == it }
     }
 }

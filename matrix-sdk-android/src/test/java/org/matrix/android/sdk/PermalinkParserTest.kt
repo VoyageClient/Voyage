@@ -61,4 +61,65 @@ class PermalinkParserTest {
         Assert.assertTrue(parsedLink.viaParameters.contains("matrix.org"))
         Assert.assertTrue(parsedLink.viaParameters.contains("matrix.example.io"))
     }
+
+    @Test
+    fun testParseMatrixUriUser() {
+        val parsedLink = PermalinkParser.parse("matrix:u/alice%3Aexample.org")
+        Assert.assertTrue("Should be parsed as user link but was ${parsedLink::class.java}", parsedLink is PermalinkData.UserLink)
+        parsedLink as PermalinkData.UserLink
+        Assert.assertEquals("@alice:example.org", parsedLink.userId)
+    }
+
+    @Test
+    fun testParseMatrixUriRoomAliasWithEvent() {
+        val parsedLink = PermalinkParser.parse("matrix:r/room:example.org/e/xuvJUVDJnwEeVjPx029rAOZ50difpmU_5gZk_T0jGfc?via=example.org")
+        Assert.assertTrue("Should be parsed as room link but was ${parsedLink::class.java}", parsedLink is PermalinkData.RoomLink)
+        parsedLink as PermalinkData.RoomLink
+        Assert.assertEquals("#room:example.org", parsedLink.roomIdOrAlias)
+        Assert.assertTrue(parsedLink.isRoomAlias)
+        Assert.assertEquals("\$xuvJUVDJnwEeVjPx029rAOZ50difpmU_5gZk_T0jGfc", parsedLink.eventId)
+        Assert.assertEquals(listOf("example.org"), parsedLink.viaParameters)
+    }
+
+    @Test
+    fun testParseMatrixUriRoomIdWithAuthority() {
+        val parsedLink = PermalinkParser.parse("matrix://roomid/OGEhHVWSdvArJzumhm:matrix.org")
+        Assert.assertTrue("Should be parsed as room link but was ${parsedLink::class.java}", parsedLink is PermalinkData.RoomLink)
+        parsedLink as PermalinkData.RoomLink
+        Assert.assertEquals("!OGEhHVWSdvArJzumhm:matrix.org", parsedLink.roomIdOrAlias)
+        Assert.assertFalse(parsedLink.isRoomAlias)
+    }
+
+    @Test
+    fun testParseMatrixUriWithAuthorityAndFragment() {
+        val parsedLink = PermalinkParser.parse("matrix://example.org/u/alice:example.org#anchor")
+        Assert.assertTrue("Should be parsed as user link but was ${parsedLink::class.java}", parsedLink is PermalinkData.UserLink)
+        Assert.assertEquals("@alice:example.org", (parsedLink as PermalinkData.UserLink).userId)
+    }
+
+    @Test
+    fun testParseMatrixUriDeprecatedQualifiers() {
+        val parsedLink = PermalinkParser.parse("matrix:room/room:example.org/event/abcdef")
+        Assert.assertTrue("Should be parsed as room link but was ${parsedLink::class.java}", parsedLink is PermalinkData.RoomLink)
+        parsedLink as PermalinkData.RoomLink
+        Assert.assertEquals("#room:example.org", parsedLink.roomIdOrAlias)
+        Assert.assertEquals("\$abcdef", parsedLink.eventId)
+    }
+
+    @Test
+    fun testParseMatrixUriChatAction() {
+        val parsedLink = PermalinkParser.parse("matrix:u/alice:example.org?action=chat")
+        Assert.assertTrue("Should be parsed as user link but was ${parsedLink::class.java}", parsedLink is PermalinkData.UserLink)
+        Assert.assertTrue((parsedLink as PermalinkData.UserLink).startChat)
+        Assert.assertFalse((PermalinkParser.parse("matrix:u/alice:example.org") as PermalinkData.UserLink).startChat)
+    }
+
+    @Test
+    fun testParseMalformedMatrixUri() {
+        Assert.assertTrue(PermalinkParser.parse("matrix:u") is PermalinkData.FallbackLink)
+        Assert.assertTrue(PermalinkParser.parse("matrix:x/alice:example.org") is PermalinkData.FallbackLink)
+        Assert.assertTrue(PermalinkParser.parse("matrix:r/room:example.org/x/event") is PermalinkData.FallbackLink)
+        // An event only lives under a room
+        Assert.assertTrue(PermalinkParser.parse("matrix:u/alice:example.org/e/abcdef") is PermalinkData.FallbackLink)
+    }
 }
