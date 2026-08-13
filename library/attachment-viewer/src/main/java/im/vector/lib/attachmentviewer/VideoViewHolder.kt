@@ -12,9 +12,7 @@ import android.annotation.SuppressLint
 import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
-import android.media.MediaPlayer
 import android.os.Build
-import android.util.Log
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.Surface
@@ -29,16 +27,17 @@ import java.io.File
 import java.lang.ref.WeakReference
 
 /**
- * Video playback uses a TextureView backed by a MediaPlayer rather than the SurfaceView-based
- * VideoView. Pinch / pan / double-tap gestures apply view-tree transforms (scaleX/Y +
- * translationX/Y), which TextureView honours pixel-for-pixel, whereas SurfaceView's surface is
- * composed at its anchored position and ignores those transforms.
+ * Video renders into a TextureView rather than the SurfaceView-based VideoView. Pinch / pan /
+ * double-tap gestures apply view-tree transforms (scaleX/Y + translationX/Y), which TextureView
+ * honours pixel-for-pixel, whereas SurfaceView's surface is composed at its anchored position and
+ * ignores those transforms.
  */
 class VideoViewHolder constructor(itemView: View) :
         BaseViewHolder(itemView) {
 
     private companion object {
         const val END_SEEK_WINDOW_MS = 250
+        const val REVEAL_FALLBACK_MS = 500L
     }
 
     private var isSelected = false
@@ -55,7 +54,7 @@ class VideoViewHolder constructor(itemView: View) :
     /** Timestamp of the final frame, probed in the background once the player is prepared. */
     @Volatile private var endFrameMs = -1
 
-    private var mediaPlayer: MediaPlayer? = null
+    private var player: VideoPlayback? = null
     private var surface: Surface? = null
     private var isPrepared = false
     private var waitingForFirstFrame = false
@@ -63,11 +62,16 @@ class VideoViewHolder constructor(itemView: View) :
     private var videoHeight = 0
     private var playbackSpeed = 1f
     private var pitchFollowsSpeed = true
+    private var rebuiltForSpeed = false
 
     var eventListener: WeakReference<AttachmentEventListener>? = null
 
     /** With looping the player wraps around by itself and completion never fires. */
     var loopEnabled = false
+        set(value) {
+            field = value
+            player?.setLooping(value)
+        }
 
     val views = ItemVideoAttachmentBinding.bind(itemView)
 
@@ -81,8 +85,8 @@ class VideoViewHolder constructor(itemView: View) :
         views.videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
                 surface = Surface(texture)
-                mediaPlayer?.setSurface(surface)
-                if (mediaPlayer == null && mVideoPath != null && isSelected) {
+                player?.setSurface(surface)
+                if (player == null && mVideoPath != null && isSelected) {
                     startPlaying()
                 }
                 applyAspectMatrix()
@@ -100,14 +104,24 @@ class VideoViewHolder constructor(itemView: View) :
             }
 
             override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
-                if (waitingForFirstFrame) {
-                    waitingForFirstFrame = false
-                    views.videoView.alpha = 1f
-                    views.videoThumbnailImage.isVisible = false
+                // Not before the frame size is known: until it is, the transform is identity and
+                // the picture is stretched to the view bounds.
+                if (waitingForFirstFrame && videoWidth > 0 && videoHeight > 0) {
+                    revealVideo()
                 }
             }
         }
     }
+
+    private fun revealVideo() {
+        waitingForFirstFrame = false
+        itemView.removeCallbacks(revealFallback)
+        views.videoView.alpha = 1f
+        views.videoThumbnailImage.isVisible = false
+    }
+
+    /** A video whose size never arrives would otherwise sit behind its poster for good. */
+    private val revealFallback = Runnable { if (waitingForFirstFrame) revealVideo() }
 
     /** Aspect-fit transform of the raw video frame to view bounds. Recomputed when either changes. */
     private val baseMatrix = Matrix()
@@ -333,15 +347,13 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     override fun entersBackground() {
-        val player = mediaPlayer ?: return
+        val active = player ?: return
         // Saved even when paused: the surface teardown that follows releases the player, and a
         // position remembered only for playing videos would restart a paused one from the top.
-        runCatching {
-            progress = player.currentPosition
-            if (player.isPlaying) {
-                stopTimer()
-                player.pause()
-            }
+        progress = active.positionMs
+        if (active.isPlaying) {
+            stopTimer()
+            active.pause()
         }
     }
 
@@ -351,7 +363,7 @@ class VideoViewHolder constructor(itemView: View) :
 
     override fun onSelected(selected: Boolean) {
         if (!selected) {
-            progress = mediaPlayer?.takeIf { it.isPlaying }?.currentPosition ?: 0
+            progress = player?.takeIf { it.isPlaying }?.positionMs ?: 0
             releasePlayer()
             resetZoom()
             // A speed belongs to the video it was chosen for, so swiping away puts it back.
@@ -366,9 +378,9 @@ class VideoViewHolder constructor(itemView: View) :
     private fun startPlaying() {
         // Page selection and every entersForeground() both land here — twice for one open transition —
         // and rebuilding the player would replay the opening second of the video.
-        mediaPlayer?.let { player ->
-            if (isPrepared && !wasPaused && !player.isPlaying) {
-                player.start()
+        player?.let { active ->
+            if (isPrepared && !wasPaused && !active.isPlaying) {
+                active.play()
                 ensureTickTimer()
             }
             return
@@ -382,107 +394,87 @@ class VideoViewHolder constructor(itemView: View) :
         views.videoThumbnailImage.isVisible = true
         waitingForFirstFrame = true
 
-        // Don't try to set up the MediaPlayer until we have a surface to render into; the
+        // Don't try to set up the player until we have a surface to render into; the
         // SurfaceTextureListener picks it up once the surface becomes available, gated on
         // `isSelected && mVideoPath != null`.
         val activeSurface = surface ?: return
 
         releasePlayer()
-        try {
-            val player = MediaPlayer().apply {
-                setSurface(activeSurface)
-                val path = mVideoPath ?: return
-                if (path.startsWith("content://")) {
-                    setDataSource(itemView.context, android.net.Uri.parse(path))
-                } else {
-                    setDataSource(path)
+        val path = mVideoPath ?: return
+        val engine = VideoPlayback.create()
+        player = engine
+        engine.open(itemView.context, path, activeSurface, loopEnabled, object : VideoPlayback.Listener {
+            override fun onReady() {
+                isPrepared = true
+                applyAspectMatrix()
+                itemView.postDelayed(revealFallback, REVEAL_FALLBACK_MS)
+                ensureTickTimer()
+                if (endFrameMs < 0) {
+                    Thread({ endFrameMs = VideoLastFrame.probeMs(itemView.context, path) }, "video-end-probe").start()
                 }
-                isLooping = loopEnabled
-                setOnVideoSizeChangedListener { _, width, height ->
-                    this@VideoViewHolder.videoWidth = width
-                    this@VideoViewHolder.videoHeight = height
-                    applyAspectMatrix()
+                // The player is new — a chosen speed only lives in the holder.
+                if (playbackSpeed != 1f || !pitchFollowsSpeed) applyPlaybackSpeed()
+                if (progress > 0) {
+                    seekTo(engine, progress)
                 }
-                setOnPreparedListener { mp ->
-                    isPrepared = true
-                    applyAspectMatrix()
-                    ensureTickTimer()
-                    if (endFrameMs < 0) {
-                        mVideoPath?.let { source ->
-                            Thread({ endFrameMs = VideoLastFrame.probeMs(itemView.context, source) }, "video-end-probe").start()
-                        }
-                    }
-                    // The player is new — a chosen speed only lives in the holder.
-                    if (playbackSpeed != 1f || !pitchFollowsSpeed) applyPlaybackSpeed()
-                    if (progress > 0) {
-                        seekTo(mp, progress)
-                    }
-                    if (!wasPaused) {
-                        mp.start()
-                    }
+                if (!wasPaused) {
+                    engine.play()
                 }
-                setOnCompletionListener { mp ->
-                    stopTimer()
-                    wasPaused = true
-                    endedNaturally = true
-                    progress = 0
-                    // The timer is what tells the overlay whether we're playing, so without a last
-                    // report of our own its button stays a pause and only ever sends PauseVideo.
-                    val duration = runCatching { mp.duration }.getOrDefault(0)
-                    eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(false, duration, duration))
-                }
-                // Without one of these the platform reports an error as a completion, and a player
-                // whose media server has gone answers every later call with another error — the two
-                // feed each other into a storm that locks the UI up. Take the player down instead.
-                setOnErrorListener { _, what, extra ->
-                    Log.w(VideoViewHolder::class.java.name, "Video error what=$what extra=$extra")
-                    releasePlayer()
-                    wasPaused = true
-                    views.videoView.alpha = 0f
-                    views.videoThumbnailImage.isVisible = true
-                    eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(false, 0, 0))
-                    true
-                }
-                prepareAsync()
             }
-            mediaPlayer = player
-        } catch (failure: Throwable) {
-            Log.v(VideoViewHolder::class.java.name, "Failed to start video", failure)
-            releasePlayer()
-        }
+
+            override fun onVideoSizeChanged(width: Int, height: Int) {
+                videoWidth = width
+                videoHeight = height
+                applyAspectMatrix()
+            }
+
+            override fun onCompletion() {
+                stopTimer()
+                wasPaused = true
+                endedNaturally = true
+                progress = 0
+                // The timer is what tells the overlay whether we're playing, so without a last
+                // report of our own its button stays a pause and only ever sends PauseVideo.
+                val duration = engine.durationMs
+                eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(false, duration, duration))
+            }
+
+            override fun onError() {
+                releasePlayer()
+                wasPaused = true
+                views.videoView.alpha = 0f
+                views.videoThumbnailImage.isVisible = true
+                eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(false, 0, 0))
+            }
+        })
     }
 
     private fun applyPlaybackSpeed() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
-        val player = mediaPlayer?.takeIf { isPrepared } ?: return
-        runCatching {
-            val playing = player.isPlaying
-            player.playbackParams = player.playbackParams
-                    .setSpeed(playbackSpeed)
-                    // Tape behaviour is pitch riding along with the speed; the alternative holds it.
-                    .setPitch(if (pitchFollowsSpeed) playbackSpeed else 1f)
-            // Setting the parameters starts a paused player, which would run off the frame on show.
-            if (!playing) player.pause()
-        }.onFailure {
-            Log.v(VideoViewHolder::class.java.name, "Cannot play at speed $playbackSpeed", it)
-        }
+        val active = player?.takeIf { isPrepared } ?: return
+        if (!active.setSpeed(playbackSpeed, pitchFollowsSpeed)) rebuildForSpeed(active)
+    }
+
+    /**
+     * MediaPlayer sizes its audio buffer for the speed in force when it starts and cannot grow it,
+     * so past about twice normal the sink refuses the parameters. Start again from the same
+     * position instead, since the parameters set while preparing are the ones it is cut to.
+     */
+    private fun rebuildForSpeed(active: VideoPlayback) {
+        if (rebuiltForSpeed) return
+        rebuiltForSpeed = true
+        progress = active.positionMs
+        wasPaused = !active.isPlaying
+        releasePlayer()
+        startPlaying()
     }
 
     private fun releasePlayer() {
-        // Stop the tick timer FIRST so its captured MediaPlayer reference isn't accessed
-        // after release.
+        // Stop the tick timer FIRST so its captured player reference isn't used after release.
         stopTimer()
         isPrepared = false
         lastReportedPositionMs = 0
-        mediaPlayer?.let {
-            try {
-                if (it.isPlaying) it.stop()
-            } catch (_: IllegalStateException) {
-                // already stopped/released
-            }
-            it.release()
-        }
-        mediaPlayer = null
+        player?.release()
+        player = null
     }
 
     private fun stopTimer() {
@@ -494,39 +486,37 @@ class VideoViewHolder constructor(itemView: View) :
         if (countUpTimer != null) return
         countUpTimer = CountUpTimer(intervalInMs = 100).also {
             it.tickListener = CountUpTimer.TickListener {
-                val active = mediaPlayer ?: return@TickListener
-                try {
-                    val duration = active.duration
-                    val raw = active.currentPosition
-                    val isPlaying = active.isPlaying
-                    // An audio sink spinning up (Bluetooth especially) briefly walks the reported
-                    // position backwards; steady playback never does, so hold through small
-                    // regressions rather than letting the scrubber jitter.
-                    val pos = if (isPlaying && raw < lastReportedPositionMs && lastReportedPositionMs - raw < 1500) {
-                        lastReportedPositionMs
-                    } else {
-                        raw
-                    }
-                    lastReportedPositionMs = pos
-                    eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(isPlaying, pos, duration))
-                } catch (_: IllegalStateException) {
-                    stopTimer()
+                val active = player ?: return@TickListener
+                val duration = active.durationMs
+                val raw = active.positionMs
+                val isPlaying = active.isPlaying
+                // An audio sink spinning up (Bluetooth especially) briefly walks the reported
+                // position backwards; steady playback never does, so hold through small
+                // regressions rather than letting the scrubber jitter. A loop around is a real
+                // jump back, so it is not one of them.
+                val loopedRound = loopEnabled && duration > 0 && lastReportedPositionMs > duration - 1500
+                val pos = if (isPlaying && !loopedRound && raw < lastReportedPositionMs && lastReportedPositionMs - raw < 1500) {
+                    lastReportedPositionMs
+                } else {
+                    raw
                 }
+                lastReportedPositionMs = pos
+                eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(isPlaying, pos, duration))
             }
             it.start()
         }
     }
 
-    private fun seekTo(player: MediaPlayer, positionMs: Int) {
+    private fun seekTo(active: VideoPlayback, positionMs: Int) {
         var target = positionMs
-        val duration = runCatching { player.duration }.getOrDefault(0)
+        val duration = active.durationMs
         if (duration > 0 && positionMs > duration - END_SEEK_WINDOW_MS) {
             // The duration usually sits past the last frame, so a precise seek to it finds
             // nothing to render and the picture hangs. Aim at the final frame's own probed
             // timestamp instead, and take the completed-playback state while there.
             target = endFrameMs.takeIf { it in 1..duration } ?: (duration - END_SEEK_WINDOW_MS).coerceAtLeast(0)
             if (!loopEnabled) {
-                runCatching { if (player.isPlaying) player.pause() }
+                active.pause()
                 wasPaused = true
                 endedNaturally = true
             }
@@ -537,13 +527,7 @@ class VideoViewHolder constructor(itemView: View) :
         }
         // A real jump, so the anti-jitter hold must not pin reports to the old position.
         lastReportedPositionMs = target
-        // SEEK_CLOSEST is frame-accurate; the int overload defaults to
-        // SEEK_PREVIOUS_SYNC which snaps to the previous keyframe (often 5–10s apart).
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            player.seekTo(target.toLong(), MediaPlayer.SEEK_CLOSEST)
-        } else {
-            player.seekTo(target)
-        }
+        active.seekTo(target, exact = true)
     }
 
     override fun handlesDoubleTapAt(xFraction: Float): Boolean = xFraction < 1f / 3 || xFraction >= 2f / 3
@@ -551,30 +535,28 @@ class VideoViewHolder constructor(itemView: View) :
     override fun onDoubleTapped(xFraction: Float): Boolean {
         val forward = xFraction >= 2f / 3
         if (!forward && xFraction >= 1f / 3) return false
-        val player = mediaPlayer?.takeIf { isPrepared } ?: return false
-        return runCatching {
-            val duration = player.duration
-            val position = player.currentPosition
-            // Only when there is somewhere to seek to.
-            if (duration <= 0) return@runCatching false
-            if (forward && duration - position <= 1_000) return@runCatching false
-            if (!forward && position <= 1_000) return@runCatching false
-            // Decided before the seek, which itself flags an ended state when it lands at the end.
-            // An end-of-video pause isn't one the user chose, so jumping back resumes playback.
-            // That also restarts the tick timer, which the completion handler stopped — without
-            // it the overlay seekbar would sit still despite the picture having moved.
-            val resumeFromEnd = endedNaturally && !forward
-            seekTo(player, (position + if (forward) 10_000 else -10_000).coerceIn(0, duration))
-            if (resumeFromEnd) {
-                endedNaturally = false
-                wasPaused = false
-                player.start()
-                ensureTickTimer()
-            }
-            seekRippleDrawable.startAnimation(leftSide = !forward)
-            seekRippleDrawable.addTime(10_000)
-            true
-        }.getOrDefault(false)
+        val active = player?.takeIf { isPrepared } ?: return false
+        val duration = active.durationMs
+        val position = active.positionMs
+        // Only when there is somewhere to seek to.
+        if (duration <= 0) return false
+        if (forward && duration - position <= 1_000) return false
+        if (!forward && position <= 1_000) return false
+        // Decided before the seek, which itself flags an ended state when it lands at the end.
+        // An end-of-video pause isn't one the user chose, so jumping back resumes playback.
+        // That also restarts the tick timer, which the completion handler stopped — without
+        // it the overlay seekbar would sit still despite the picture having moved.
+        val resumeFromEnd = endedNaturally && !forward
+        seekTo(active, (position + if (forward) 10_000 else -10_000).coerceIn(0, duration))
+        if (resumeFromEnd) {
+            endedNaturally = false
+            wasPaused = false
+            active.play()
+            ensureTickTimer()
+        }
+        seekRippleDrawable.startAnimation(leftSide = !forward)
+        seekRippleDrawable.addTime(10_000)
+        return true
     }
 
     override fun handleCommand(commands: AttachmentCommands) {
@@ -584,37 +566,38 @@ class VideoViewHolder constructor(itemView: View) :
                 // Kept even with no player yet: whichever one comes next picks it up when prepared.
                 playbackSpeed = commands.speed
                 pitchFollowsSpeed = commands.changePitch
+                rebuiltForSpeed = false
                 applyPlaybackSpeed()
             }
             AttachmentCommands.StartVideo -> {
-                val player = mediaPlayer ?: return
+                val active = player ?: return
                 wasPaused = false
                 if (isPrepared) {
                     // Play from the end means play again: without the rewind it runs for a
                     // frame, completes and pauses right back.
-                    val duration = runCatching { player.duration }.getOrDefault(0)
-                    val position = runCatching { player.currentPosition }.getOrDefault(0)
+                    val duration = active.durationMs
+                    val position = active.positionMs
                     if (endedNaturally || (duration > 0 && position >= duration - END_SEEK_WINDOW_MS)) {
-                        seekTo(player, 0)
+                        seekTo(active, 0)
                     }
                     endedNaturally = false
-                    player.start()
+                    active.play()
                     ensureTickTimer()
                 } else {
                     endedNaturally = false
                 }
             }
             AttachmentCommands.PauseVideo -> {
-                val player = mediaPlayer ?: return
+                val active = player ?: return
                 wasPaused = true
-                if (isPrepared && player.isPlaying) player.pause()
+                if (isPrepared) active.pause()
             }
             is AttachmentCommands.SeekTo -> {
-                val player = mediaPlayer ?: return
+                val active = player ?: return
                 if (!isPrepared) return
-                val duration = player.duration
+                val duration = active.durationMs
                 if (duration > 0) {
-                    seekTo(player, (duration * (commands.percentProgress / 100f)).toInt())
+                    seekTo(active, (duration * (commands.percentProgress / 100f)).toInt())
                 }
             }
         }
@@ -626,12 +609,16 @@ class VideoViewHolder constructor(itemView: View) :
         views.videoView.alpha = 1f
         views.videoThumbnailImage.isVisible = true
         waitingForFirstFrame = false
+        itemView.removeCallbacks(revealFallback)
+        videoWidth = 0
+        videoHeight = 0
         progress = 0
         wasPaused = false
         endedNaturally = false
         endFrameMs = -1
         playbackSpeed = 1f
         pitchFollowsSpeed = true
+        rebuiltForSpeed = false
         resetZoom()
     }
 }

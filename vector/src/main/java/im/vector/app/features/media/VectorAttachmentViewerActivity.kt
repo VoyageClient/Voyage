@@ -254,6 +254,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
 
     @Suppress("OVERRIDE_DEPRECATION")
     override fun onBackPressed() {
+        pausePlayback()
         if (currentPosition == initialIndex) {
             prepareSharedElementReturn()
         }
@@ -268,6 +269,7 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     }
 
     override fun animateClose() {
+        pausePlayback()
         if (currentPosition == initialIndex) {
             prepareSharedElementReturn()
         }

@@ -53,6 +53,7 @@ import im.vector.app.features.settings.VectorLocale
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.version.VersionProvider
+import im.vector.lib.core.utils.audio.AudioRouteKeepAlive
 import org.maplibre.android.MapLibre
 import org.matrix.android.sdk.api.Matrix
 import org.matrix.android.sdk.api.auth.AuthenticationService
@@ -175,6 +176,9 @@ class VectorApplication :
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
                 Timber.i("App entered foreground")
+                // Media can be opened from anywhere in the app, and a Bluetooth sink that has gone
+                // idle takes about a second to start playing again.
+                AudioRouteKeepAlive.acquire(this@VectorApplication)
                 vpnGate.onAppForegrounded()
                 if (vpnGateState.isClosed) return
                 fcmHelper.onEnterForeground(activeSessionHolder)
@@ -186,6 +190,7 @@ class VectorApplication :
 
             override fun onPause(owner: LifecycleOwner) {
                 Timber.i("App entered background")
+                AudioRouteKeepAlive.release(this@VectorApplication)
                 fcmHelper.onEnterBackground(activeSessionHolder)
                 GlideMemoryTrimmer.onAppBackgrounded(this@VectorApplication)
             }
