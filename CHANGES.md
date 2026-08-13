@@ -184,6 +184,8 @@ New features, improvements, and notable removals in this fork.
 
 - Fixed attachment sends sticking at "Waiting…" forever when the network dropped or the system reclaimed the upload task, which was treated as a cancellation and killed the send permanently instead of retrying it.
 
+- Fixed media uploads failing with a permission error when the app restarts mid-send — attachments are now copied into app storage before upload, so a resumed upload no longer depends on the picker's expired access grant.
+
 - Fixed editing a just-sent message silently doing nothing if it was still sending.
 
 - Fixed link previews, images, GIFs and reply previews flashing or reloading at the moment a sent message is confirmed by the server (and blurhash fades replaying while sending).
