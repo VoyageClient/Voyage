@@ -15,12 +15,15 @@ import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.extensions.toggle
 import im.vector.app.core.platform.VectorViewModel
+import im.vector.app.features.attachments.SendMediaMaterializer
 import im.vector.app.features.attachments.toGroupedContentAttachmentData
 import im.vector.app.features.home.room.list.BreadcrumbsRoomComparator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -33,7 +36,8 @@ import org.matrix.android.sdk.flow.flow
 class IncomingShareViewModel @AssistedInject constructor(
         @Assisted initialState: IncomingShareViewState,
         private val session: Session,
-        private val breadcrumbsRoomComparator: BreadcrumbsRoomComparator
+        private val breadcrumbsRoomComparator: BreadcrumbsRoomComparator,
+        private val sendMediaMaterializer: SendMediaMaterializer
 ) :
         VectorViewModel<IncomingShareViewState, IncomingShareAction, IncomingShareViewEvents>(initialState) {
 
@@ -166,7 +170,11 @@ class IncomingShareViewModel @AssistedInject constructor(
                 selectedRoomIds.firstOrNull()
                         ?.let { roomId -> session.getRoom(roomId) }
                         ?.sendService()
-                        ?.sendMedias(grouped.notPreviewables, compressMediaBeforeSending, selectedRoomIds)
+                        ?.let { sendService ->
+                            viewModelScope.launch(Dispatchers.IO) {
+                                sendService.sendMedias(sendMediaMaterializer.materialize(grouped.notPreviewables), compressMediaBeforeSending, selectedRoomIds)
+                            }
+                        }
 
                 // Ensure they will not be sent twice
                 setState {
@@ -186,7 +194,11 @@ class IncomingShareViewModel @AssistedInject constructor(
             selectedRoomIds.firstOrNull()
                     ?.let { roomId -> session.getRoom(roomId) }
                     ?.sendService()
-                    ?.sendMedias(attachmentData, compressMediaBeforeSending, selectedRoomIds)
+                    ?.let { sendService ->
+                        viewModelScope.launch(Dispatchers.IO) {
+                            sendService.sendMedias(sendMediaMaterializer.materialize(attachmentData), compressMediaBeforeSending, selectedRoomIds)
+                        }
+                    }
             _viewEvents.post(IncomingShareViewEvents.MultipleRoomsShareDone(selectedRoomIds.singleOrNull()))
         }
     }

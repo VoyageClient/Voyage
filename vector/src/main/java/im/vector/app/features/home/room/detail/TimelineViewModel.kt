@@ -30,6 +30,7 @@ import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.BehaviorDataSource
 import im.vector.app.core.utils.PerfTrace
 import im.vector.app.features.VectorOverrides
+import im.vector.app.features.attachments.SendMediaMaterializer
 import im.vector.app.features.attachments.withRandomizedFilename
 import im.vector.app.features.createdirect.DirectRoomHelper
 import im.vector.app.features.crypto.keysrequest.OutboundSessionKeySharingStrategy
@@ -154,6 +155,7 @@ class TimelineViewModel @AssistedInject constructor(
         private val pgpRoomEncryptor: PgpRoomEncryptor,
         private val vectorOverrides: VectorOverrides,
         private val redactedContentRepository: RedactedContentRepository,
+        private val sendMediaMaterializer: SendMediaMaterializer,
 ) : VectorViewModel<RoomDetailViewState, RoomDetailAction, RoomDetailViewEvents>(initialState),
         Timeline.Listener, LocationSharingServiceConnection.Callback {
 
@@ -1099,12 +1101,12 @@ private fun handleSelectStickerAttachment() {
         }
     }
 
-    private fun sendMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia, captionText: CharSequence?, captionFormattedText: String?) {
+    private suspend fun sendMediasWithCaption(room: Room, action: RoomDetailAction.SendMedia, captionText: CharSequence?, captionFormattedText: String?) {
         val attachments = if (vectorPreferences.randomizeUploadFilenames()) {
             action.attachments.map { it.withRandomizedFilename() }
         } else {
             action.attachments
-        }
+        }.let { sendMediaMaterializer.materialize(it) }
         room.sendService().sendMedias(
                 attachments = attachments,
                 compressBeforeSending = action.compressBeforeSending,
