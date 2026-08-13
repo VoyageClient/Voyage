@@ -7,11 +7,10 @@
 
 package im.vector.app.test.fakes
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.paging.PagedList
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.matrix.android.sdk.api.session.room.RoomPagingService
 import org.matrix.android.sdk.api.session.room.RoomService
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -35,14 +34,18 @@ class FakeRoomService(
         every { getRoomSummary(any()) } returns roomSummary
     }
 
-    fun givenGetPagedRoomSummariesLiveReturns(pagedList: PagedList<RoomSummary>): LiveData<PagedList<RoomSummary>> {
-        return MutableLiveData(pagedList).also {
-            every { getPagedRoomSummariesLive(queryParams = any(), pagedListConfig = any(), sortOrder = any()) } returns it
+    fun givenGetNotificationCountForRoomsReturns(roomAggregateNotificationCount: RoomAggregateNotificationCount) {
+        every { getNotificationCountForRooms(queryParams = any()) } returns roomAggregateNotificationCount
+    }
+
+    fun givenRoomSummaryUpdateFlowEmits(): Flow<Unit> {
+        return flowOf(Unit).also {
+            every { getRoomSummaryUpdateFlow() } returns it
         }
     }
 
-    fun givenGetNotificationCountForRoomsReturns(roomAggregateNotificationCount: RoomAggregateNotificationCount) {
-        every { getNotificationCountForRooms(queryParams = any()) } returns roomAggregateNotificationCount
+    fun givenGetRoomCountFlowReturns(count: Int) {
+        every { getRoomCountFlow(queryParams = any()) } returns flowOf(count)
     }
 
     fun givenGetRoomSummaries(roomSummaries: List<RoomSummary>) {
