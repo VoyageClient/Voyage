@@ -114,13 +114,19 @@
 
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
-    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_category_composer">
+    <im.vector.app.core.preference.VectorPreferenceCategory android:title="@string/settings_category_message_composer">
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="true"
             android:key="SETTINGS_ENABLE_MARKDOWN_KEY"
             android:summary="@string/settings_send_markdown_summary"
             android:title="@string/settings_send_markdown" />
+
+        <im.vector.app.core.preference.VectorSwitchPreference
+            android:defaultValue="true"
+            android:key="SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
+            android:summary="@string/settings_sed_replacement_summary"
+            android:title="@string/settings_sed_replacement_title" />
 
         <im.vector.app.core.preference.VectorSwitchPreference
             android:defaultValue="false"

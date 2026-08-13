@@ -1224,7 +1224,6 @@
     <string name="command_description_rainbow">Odešle danou zprávu zabarvenou jako duha</string>
     <string name="command_description_rainbow_emote">Odešle daný emote zabarvený jako duha</string>
     <string name="settings_category_timeline">Časová osa</string>
-    <string name="settings_category_composer">Editor zpráv</string>
     <string name="room_settings_enable_encryption">Zapnout koncové šifrování…</string>
     <string name="room_settings_enable_encryption_dialog_title">Zapnout šifrování\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Jakmile je šifrování místnosti zapnuto, nelze jej vypnout. Zprávy odeslané v zašifrované místnosti nemohou být čteny serverem, ale pouze účastníky místnosti. Zapnutí šifrování může zabránit správnému fungování mnoha botů a propojení.</string>

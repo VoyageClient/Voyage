@@ -1148,7 +1148,6 @@
     <string name="unignore">Dejar de ignorar</string>
     <string name="command_description_rainbow">Envía el mensaje dado en colores</string>
     <string name="settings_category_timeline">Línea de tiempo</string>
-    <string name="settings_category_composer">Editor de mensage</string>
     <string name="room_settings_enable_encryption">Habilitar cifrado Extremo-a-Extremo…</string>
     <string name="room_settings_enable_encryption_dialog_title">¿Desea cifrar \?</string>
     <string name="room_settings_enable_encryption_dialog_submit">Habilitar el cifrado</string>

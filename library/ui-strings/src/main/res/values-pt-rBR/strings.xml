@@ -1274,7 +1274,6 @@
     <string name="command_description_rainbow">Envia a dada mensagem colorida como um arco-íris</string>
     <string name="command_description_rainbow_emote">Envia o dado emote colorido como um arco-íris</string>
     <string name="settings_category_timeline">Linha do tempo</string>
-    <string name="settings_category_composer">Editor de mensagem</string>
     <string name="room_settings_enable_encryption">Habilitar encriptação ponta-a-ponta…</string>
     <string name="room_settings_enable_encryption_dialog_title">Habilitar encriptação\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Uma vez habilitada, encriptação para uma sala não pode ser desabilitada. Mensagens enviadas numa sala encriptada não podem ser vistas pelo servidor, somente pelas(os) participantes da sala. Habilitar encriptação pode prevenir que muitos bots e bridges de funcionarem corretamente.</string>

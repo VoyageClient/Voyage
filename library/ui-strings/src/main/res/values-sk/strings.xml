@@ -1422,7 +1422,6 @@
     <string name="notice_room_server_acl_set_banned">• Servery, ktorých názov sa zhoduje s %s sú zakázané.</string>
     <string name="power_level_edit_title">Nastaviť rolu</string>
     <string name="recovery_passphrase">Prístupová fráza pre obnovenie</string>
-    <string name="settings_category_composer">Editor správ</string>
     <string name="verification_scan_emoji_title">Nedá sa skenovať</string>
     <string name="devices_other_devices">Iné relácie</string>
     <string name="devices_current_device">Aktuálna relácia</string>

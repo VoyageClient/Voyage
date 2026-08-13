@@ -1753,7 +1753,6 @@ Nākotnē šī pārbaudes procedūra plānota sarežģītāka.</string>
     <string name="settings_server_room_version_stable">stabila</string>
     <string name="settings_server_default_room_version">Noklusējuma versija</string>
     <string name="settings_server_room_versions">Istabu versijas 👓</string>
-    <string name="settings_category_composer">Ziņu redaktors</string>
     <string name="settings_category_timeline">Laika josla</string>
     <string name="verify_cannot_cross_sign">Šī sesija nevar kopīgot šo verifikāciju ar citām sesijām.
 \nVerifikācija tiks saglabāta lokāli un kopīgota kādā no nākamajām lietotnes versijām.</string>

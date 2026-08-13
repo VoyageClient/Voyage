@@ -523,7 +523,6 @@
     <string name="room_filtering_footer_create_new_direct_message">Надіслати нове особисте повідомлення</string>
     <string name="command_description_shrug">Додає ¯\\_(ツ)_/¯ перед текстовим повідомленням</string>
     <string name="command_description_rainbow">Надсилає повідомлення розмальоване веселково</string>
-    <string name="settings_category_composer">Редактор повідомлень</string>
     <string name="command_description_plain">Надсилає повідомлення як текст без інтерпретації його як Markdown</string>
     <string name="room_message_placeholder">Повідомлення…</string>
     <string name="notice_crypto_unable_to_decrypt_final">Ви не маєте доступу до цього повідомлення</string>

@@ -71,6 +71,11 @@ import im.vector.app.features.home.room.detail.AutoCompleter
 import im.vector.app.features.home.room.detail.RoomDetailAction
 import im.vector.app.features.home.room.detail.TimelineViewModel
 import im.vector.app.features.home.room.detail.composer.link.SetLinkFragment
+import im.vector.app.features.home.room.detail.composer.sed.SED_MATCH_TIMEOUT_MS
+import im.vector.app.features.home.room.detail.composer.sed.SedParseResult
+import im.vector.app.features.home.room.detail.composer.sed.SedTimeoutException
+import im.vector.app.features.home.room.detail.composer.sed.highlightDiff
+import im.vector.app.features.home.room.detail.composer.sed.parseSed
 import im.vector.app.features.home.room.detail.composer.voice.VoiceMessageRecorderView
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
 import im.vector.app.features.home.room.detail.upgrade.MigrateRoomBottomSheet
@@ -100,9 +105,16 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.isEdition
+import org.matrix.android.sdk.api.session.events.model.isThread
+import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.getTextEditableContent
 import org.matrix.android.sdk.api.util.MatrixItem
 import reactivecircus.flowbinding.android.view.focusChanges
 import reactivecircus.flowbinding.android.widget.textChanges
@@ -114,6 +126,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     companion object {
         private const val ircPattern = " (IRC)"
+        private const val SED_SCAN_LIMIT = 200
+        private val SED_TARGET_MSG_TYPES = setOf(MessageType.MSGTYPE_TEXT, MessageType.MSGTYPE_EMOTE, MessageType.MSGTYPE_NOTICE)
     }
 
     @Inject lateinit var autoCompleterFactory: AutoCompleter.Factory
@@ -499,19 +513,103 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             (it.sendMode as? SendMode.Edit)?.timelineEvent?.getVectorLastMessageContent() is MessageWithAttachmentContent
         }
         if (text.isNotBlank() || isMediaCaptionEdit) {
+            val sedOutcome = trySedReplacement(text)
+            if (sedOutcome == SedOutcome.FAILED) {
+                // Keep the composer text so the expression can be corrected.
+                return
+            }
             im.vector.app.core.utils.PerfTrace.report("send.tap", 0)
             composer.renderComposerMode(MessageComposerMode.Normal(""))
             lockSendButton = true
-            if (formattedText != null) {
-                messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, formattedText, false))
-            } else {
-                messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, null, vectorPreferences.isMarkdownEnabled()))
+            when {
+                // The substitution was already dispatched as an edit or a notice.
+                sedOutcome == SedOutcome.SENT -> Unit
+                formattedText != null ->
+                    messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, formattedText, false))
+                else ->
+                    messageComposerViewModel.handle(MessageComposerAction.SendMessage(text, null, vectorPreferences.isMarkdownEnabled()))
             }
             emojiKeyboardController?.dismiss()
             if (vectorPreferences.jumpToBottomOnSend()) {
                 timelineViewModel.handle(RoomDetailAction.JumpToBottom)
             }
         }
+    }
+
+    private enum class SedOutcome { NOT_SED, SENT, FAILED }
+
+    private fun trySedReplacement(text: CharSequence): SedOutcome {
+        if (!vectorPreferences.isSedReplacementEnabled()) return SedOutcome.NOT_SED
+        // In PGP mode the bodies are armored blocks, and an edit or notice would put the correction in
+        // the clear next to them.
+        if (pgpKeyStore.isEnabled && pgpKeyStore.isRoomPgpEnabled(roomId)) return SedOutcome.NOT_SED
+        val sendMode = withState(messageComposerViewModel) { it.sendMode }
+        if (sendMode !is SendMode.Regular && sendMode !is SendMode.Reply) return SedOutcome.NOT_SED
+        val expression = when (val parsed = parseSed(text)) {
+            SedParseResult.NotSed -> return SedOutcome.NOT_SED
+            is SedParseResult.Invalid -> {
+                displayCommandError(getString(CommonStrings.sed_error_invalid, parsed.reason))
+                return SedOutcome.FAILED
+            }
+            is SedParseResult.Parsed -> parsed.expression
+        }
+
+        // Replying aims the substitution at that message alone — never fall back to another one. The
+        // target was captured when reply mode was entered, so re-resolve it: it may have been edited
+        // since, and the substitution must run on the latest content.
+        val replyTarget = (sendMode as? SendMode.Reply)?.timelineEvent
+                ?.let { session.roomService().getRoom(roomId)?.getTimelineEvent(it.eventId) ?: it }
+        val candidates = replyTarget?.let { listOf(it) }
+                ?: timelineViewModel.timeline?.getSnapshot()?.take(SED_SCAN_LIMIT).orEmpty()
+        var target: TimelineEvent? = null
+        var oldBody = ""
+        var newBody = ""
+        try {
+            // One budget for the whole scan, not per candidate.
+            val deadline = System.currentTimeMillis() + SED_MATCH_TIMEOUT_MS
+            for (event in candidates) {
+                val body = event.sedSourceBody() ?: continue
+                val substituted = expression.apply(body, deadline) ?: continue
+                target = event
+                oldBody = body
+                newBody = substituted
+                break
+            }
+        } catch (failure: SedTimeoutException) {
+            displayCommandError(getString(CommonStrings.sed_error_timeout))
+            return SedOutcome.FAILED
+        }
+        if (target == null) {
+            displayCommandError(getString(if (replyTarget != null) CommonStrings.sed_error_reply_no_match else CommonStrings.sed_error_no_match))
+            return SedOutcome.FAILED
+        }
+
+        val isOwnMessage = target.root.senderId == session.myUserId
+        val isEmote = target.getVectorLastMessageContent()?.msgType == MessageType.MSGTYPE_EMOTE
+        val prefix = if (!isOwnMessage && isEmote) "* ${target.senderInfo.disambiguatedDisplayName} " else ""
+        messageComposerViewModel.handle(
+                MessageComposerAction.SendSedReplacement(
+                        targetEventId = target.eventId,
+                        newBody = prefix + newBody,
+                        formattedBody = if (!isOwnMessage && expression.highlight) highlightDiff(prefix + oldBody, prefix + newBody) else null,
+                )
+        )
+        return SedOutcome.SENT
+    }
+
+    private fun TimelineEvent.sedSourceBody(): String? {
+        if (root.getClearType() != EventType.MESSAGE || root.isRedacted()) return null
+        // Edit events sit in the snapshot (they are only hidden at render time). Substituting on one
+        // would replace the "* new text" fallback and relate to the edit rather than to the message —
+        // target the original instead, whose content already resolves to the latest edit.
+        if (root.isEdition()) return null
+        // Thread replies are in the main timeline's snapshot but not shown there; don't match one from
+        // a composer the user can't see it in.
+        if (root.isThread() && !isThreadTimeLine() && vectorPreferences.areThreadMessagesEnabled()) return null
+        val content = getVectorLastMessageContent() ?: return null
+        // Media is matchable through its caption only — getTextEditableContent gives "" for a bare filename.
+        if (content !is MessageWithAttachmentContent && content.msgType !in SED_TARGET_MSG_TYPES) return null
+        return getTextEditableContent(formatted = false).takeIf { it.isNotEmpty() }
     }
 
     private fun sendUri(uri: Uri): Boolean {

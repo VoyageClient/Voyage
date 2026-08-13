@@ -1547,7 +1547,6 @@
     <string name="room_settings_enable_encryption_dialog_title">Activa el xifrat\?</string>
     <string name="room_settings_enable_encryption_no_permission">No tens permís per activar el xifrat en aquesta sala.</string>
     <string name="room_settings_enable_encryption">Activa el xifrat d\'extrem a extrem…</string>
-    <string name="settings_category_composer">Editor de missatges</string>
     <string name="command_description_rainbow_emote">Envia l\'emoticona proporcionat pintat en arc de Sant Martí</string>
     <string name="command_description_rainbow">Envia el missatge proporcionat pintat en arc de Sant Martí</string>
     <string name="signed_out_notice">Pot ser causat per diferents motius:

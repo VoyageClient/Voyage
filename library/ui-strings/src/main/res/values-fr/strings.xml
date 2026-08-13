@@ -1177,7 +1177,6 @@
     <string name="command_description_rainbow">Envoie le message fourni coloré comme un arc-en-ciel</string>
     <string name="command_description_rainbow_emote">Envoie la réaction fournie colorée comme un arc-en-ciel</string>
     <string name="settings_category_timeline">Fil de discussion</string>
-    <string name="settings_category_composer">Éditeur de messages</string>
     <string name="room_settings_enable_encryption">Active le chiffrement de bout en bout…</string>
     <string name="room_settings_enable_encryption_dialog_title">Activer le chiffrement \?</string>
     <string name="room_settings_enable_encryption_dialog_content">Une fois qu’il est activé, le chiffrement ne peut pas être désactivé. Les messages envoyés dans les salons chiffrés ne peuvent pas être vus par le serveur, uniquement par les participants du salon. Activer le chiffrement empêchera peut-être les robots et les passerelles de fonctionner correctement.</string>

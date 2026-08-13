@@ -1466,7 +1466,6 @@
     <string name="command_description_rainbow">გზავნის მოცემულ შეტყობინებას ცისარტყელას ფერებში</string>
     <string name="command_description_rainbow_emote">გზავნის მოცემულ ემოტს ცისარტყელას ფერებში</string>
     <string name="settings_category_timeline">ქრონოლოგია</string>
-    <string name="settings_category_composer">შეტყობინების რედაქტორი</string>
     <string name="room_settings_enable_encryption">ბოლომდე დაშიფვრის ჩართვა…</string>
     <string name="room_settings_enable_encryption_no_permission">თქვენ არ გაქვთ უფლებამოსილება ამ ოთახში დაშიფვრის ჩასართავად.</string>
     <string name="room_settings_enable_encryption_dialog_submit">დაშიფვრის ჩართვა</string>

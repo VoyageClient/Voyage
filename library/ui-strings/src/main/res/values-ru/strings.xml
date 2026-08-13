@@ -1339,7 +1339,6 @@
 \nПодтверждение будет сохранено локально и отправится в будущей версии приложения.</string>
     <string name="command_description_rainbow">Посылает сообщение, окрашенное в цвет радуги</string>
     <string name="command_description_rainbow_emote">Посылает данную эмоцию, окрашенную в цвет радуги</string>
-    <string name="settings_category_composer">Редактор сообщений</string>
     <string name="room_settings_enable_encryption">Включить сквозное шифрование…</string>
     <string name="room_settings_enable_encryption_dialog_title">Включить шифрование\?</string>
     <string name="room_settings_enable_encryption_dialog_content">После включения шифрование для комнаты нельзя отключить. Сообщения отправленные в зашифрованной комнате не будут видны серверу, только участникам комнаты. Включение шифрования может помешать правильной работе многих ботов и мостов.</string>

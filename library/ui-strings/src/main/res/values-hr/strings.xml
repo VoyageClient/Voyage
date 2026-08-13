@@ -725,7 +725,6 @@
     <string name="unignore">Ukloni zanemarivanje</string>
     <string name="command_description_rainbow">Šalje danu poruku obojanu duginim bojama</string>
     <string name="settings_category_timeline">Vremenska crta</string>
-    <string name="settings_category_composer">Uređivač poruka</string>
     <string name="room_settings_enable_encryption">Omogući šifriranje s kraja na kraj</string>
     <string name="room_settings_enable_encryption_dialog_title">Omogućiti šifriranje\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Šifriranje nije moguće onemogućiti jednom kad se omogući. Poslužitelj ne može vidjeti poruke koje su poslane u šifriranu sobu, već ih mogu vidjeti samo sudionici u sobi. Omogućavanje šifriranja može uzrokovati poteškoće u radu mnogim botovima i mostovima.</string>

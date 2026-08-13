@@ -1359,7 +1359,6 @@
     <string name="room_settings_enable_encryption_dialog_title">לאפשר הצפנה\?</string>
     <string name="room_settings_enable_encryption_no_permission">אין לך הרשאה לאפשר הצפנה בחדר זה.</string>
     <string name="room_settings_enable_encryption">אפשר הצפנה מקצה לקצה …</string>
-    <string name="settings_category_composer">עורך הודעה</string>
     <string name="settings_category_timeline">ציר הזמן</string>
     <string name="command_description_rainbow_emote">שולח את הטקסט הנתון בצבע קשת</string>
     <string name="command_description_rainbow">שולח את ההודעה הנתונה בצבע קשת</string>

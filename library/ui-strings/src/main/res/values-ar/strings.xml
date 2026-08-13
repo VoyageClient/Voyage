@@ -892,7 +892,6 @@
     <string name="encryption_exported_successfully">نجح استيراد المفاتيح</string>
     <string name="room_settings_enable_encryption_dialog_title">أتريد تفعيل التعميّة؟</string>
     <string name="room_settings_enable_encryption_no_permission">ليس لديك إذن لتفعيل التعميّة في هذه الغرفة.</string>
-    <string name="settings_category_composer">محرر الرسائل</string>
     <string name="command_description_rainbow">يرسل الرسالة المعطاة ملونة بألوان قوس قزح</string>
     <string name="rendering_event_error_exception">${app_name} واجه مشكلة في تصيير الحدث ذو المعرف \'%1$s\'</string>
     <string name="rendering_event_error_type_of_event_not_handled">${app_name} لا يستطيع التعامل مع ملفات من نوع \'%1$s\'</string>

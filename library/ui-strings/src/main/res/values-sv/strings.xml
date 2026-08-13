@@ -725,7 +725,6 @@
     <string name="sent_a_file">Fil.</string>
     <string name="send_a_sticker">Dekal.</string>
     <string name="command_description_rainbow">Skickar det valda meddelandet I regnbågsfärger</string>
-    <string name="settings_category_composer">Meddelanderedigering</string>
     <string name="message_key">Meddelandenyckel</string>
     <string name="bootstrap_cancel_text">Om du avbryter nu så kan du komma att förlora krypterade meddelanden och data om du förlorar åtkomst till dina inloggade sessioner.
 \n

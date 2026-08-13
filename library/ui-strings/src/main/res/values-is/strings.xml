@@ -1799,7 +1799,6 @@
     <string name="settings_server_room_versions">Útgáfur spjallrása 👓</string>
     <string name="settings_active_sessions_manage">Sýsla með setur</string>
     <string name="settings_active_sessions_show_all">Birta allar setur</string>
-    <string name="settings_category_composer">Skilaboðaritill</string>
     <string name="room_profile_leaving_room">Yfirgef spjallrásina…</string>
     <string name="room_profile_section_restore_security">Endurheimta dulritun</string>
     <string name="verification_request_waiting_for">Bíð eftir %s…</string>

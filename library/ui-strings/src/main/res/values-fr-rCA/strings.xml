@@ -106,7 +106,6 @@
     <string name="room_settings_enable_encryption_dialog_title">Activer le chiffrement \?</string>
     <string name="room_settings_enable_encryption_no_permission">Vous n\'avez pas le droit d’activer le chiffrement dans ce salon.</string>
     <string name="room_settings_enable_encryption">Active le chiffrement de bout en bout…</string>
-    <string name="settings_category_composer">Éditeur de messages</string>
     <string name="settings_category_timeline">Fil de discussion</string>
     <string name="command_description_rainbow_emote">Envoie la réaction fournie colorée comme un arc-en-ciel</string>
     <string name="command_description_rainbow">Envoie le message fourni coloré comme un arc-en-ciel</string>

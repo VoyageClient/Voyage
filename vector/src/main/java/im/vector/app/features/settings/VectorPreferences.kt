@@ -127,6 +127,7 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SEND_TYPING_NOTIF_KEY = "SETTINGS_SEND_TYPING_NOTIF_KEY"
         private const val SETTINGS_ENABLE_MARKDOWN_KEY = "SETTINGS_ENABLE_MARKDOWN_KEY"
         private const val SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY = "SETTINGS_ENABLE_RICH_TEXT_FORMATTING_KEY"
+        private const val SETTINGS_ENABLE_SED_REPLACEMENT_KEY = "SETTINGS_ENABLE_SED_REPLACEMENT_KEY"
         private const val SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY = "SETTINGS_ALWAYS_SHOW_TIMESTAMPS_KEY"
         private const val SETTINGS_12_24_TIMESTAMPS_KEY = "SETTINGS_12_24_TIMESTAMPS_KEY"
         private const val SETTINGS_SHOW_READ_RECEIPTS_KEY = "SETTINGS_SHOW_READ_RECEIPTS_KEY"
@@ -313,6 +314,7 @@ class VectorPreferences @Inject constructor(
                 SETTINGS_SEND_MESSAGE_WITH_ENTER,
                 SETTINGS_SHOW_EMOJI_KEYBOARD,
                 SETTINGS_CLASSIC_COMPOSER,
+                SETTINGS_ENABLE_SED_REPLACEMENT_KEY,
 
                 SETTINGS_PIN_UNREAD_MESSAGES_PREFERENCE_KEY,
                 SETTINGS_PIN_MISSED_NOTIFICATIONS_PREFERENCE_KEY,
@@ -877,6 +879,9 @@ class VectorPreferences @Inject constructor(
             putBoolean(SETTINGS_ENABLE_MARKDOWN_KEY, isEnabled)
         }
     }
+
+    fun isSedReplacementEnabled(): Boolean =
+            defaultPrefs.getBoolean(SETTINGS_ENABLE_SED_REPLACEMENT_KEY, true)
 
     /**
      * Tells if text formatting is enabled within the rich text editor.
