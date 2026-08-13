@@ -8,6 +8,8 @@
 
 package im.vector.lib.attachmentviewer
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -20,6 +22,7 @@ import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
+import android.view.accessibility.AccessibilityManager
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -27,7 +30,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import androidx.transition.TransitionManager
 import androidx.viewpager2.widget.ViewPager2
 import im.vector.lib.attachmentviewer.databinding.ActivityAttachmentViewerBinding
 import im.vector.lib.ui.styles.R
@@ -35,6 +37,46 @@ import java.lang.ref.WeakReference
 import kotlin.math.abs
 
 abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventListener {
+
+    private companion object {
+        const val OVERLAY_FADE_MS = 150L
+
+        /** Telegram's PhotoViewer hides its chrome after the same three seconds. */
+        const val AUTO_HIDE_DELAY_MS = 3000L
+    }
+
+    /** Whether videos restart from the top when they finish, read as each page is selected. */
+    protected open val loopVideos: Boolean = false
+
+    /** True while the chrome is being held open by the user — a scrub in progress, an open menu. */
+    protected open fun isOverlayInteractionInProgress(): Boolean = false
+
+    private var videoIsPlaying = false
+
+    private val autoHideRunnable = Runnable {
+        if (systemUiVisibility && videoIsPlaying && !isOverlayInteractionInProgress()) {
+            toggleOverlayViewVisibility()
+        }
+    }
+
+    private fun scheduleAutoHide() {
+        views.rootContainer.removeCallbacks(autoHideRunnable)
+        if (videoIsPlaying && systemUiVisibility && !isTouchExplorationEnabled()) {
+            views.rootContainer.postDelayed(autoHideRunnable, AUTO_HIDE_DELAY_MS)
+        }
+    }
+
+    private fun cancelAutoHide() {
+        views.rootContainer.removeCallbacks(autoHideRunnable)
+    }
+
+    /** For interactions ending in windows of their own (menus, sheets), which this activity never sees a touch from. */
+    protected fun restartAutoHideCountdown() = scheduleAutoHide()
+
+    private fun isTouchExplorationEnabled(): Boolean = runCatching {
+        (getSystemService(ACCESSIBILITY_SERVICE) as? AccessibilityManager)
+                ?.let { it.isEnabled && it.isTouchExplorationEnabled } == true
+    }.getOrDefault(false)
 
     protected val rootView: View
         get() = views.rootContainer
@@ -176,17 +218,26 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
             (it as? BaseViewHolder)?.onSelected(false)
         }
         attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(position)?.let {
-            (it as? BaseViewHolder)?.onSelected(true)
+            // Properties first: onSelected may start playback, which reads them.
             if (it is VideoViewHolder) {
                 it.eventListener = WeakReference(this)
+                it.loopEnabled = loopVideos
             }
+            (it as? BaseViewHolder)?.onSelected(true)
         }
         currentPosition = position
+        videoIsPlaying = false
+        cancelAutoHide()
         overlayView = attachmentsAdapter.attachmentSourceProvider?.overlayViewAtPosition(this@AttachmentViewerActivity, position)
     }
 
     override fun onPause() {
         attachmentsAdapter.onPause(currentPosition)
+        // The immersive hide must not outlive this screen: left hidden here, the bar can stay
+        // gone in the rest of the app until it is next backgrounded.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.decorView.windowInsetsController?.show(WindowInsets.Type.navigationBars())
+        }
         super.onPause()
     }
 
@@ -196,6 +247,12 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        // Any touch anywhere holds the chrome; the countdown restarts once the finger lifts.
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> cancelAutoHide()
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> scheduleAutoHide()
+        }
+
         // The zoomable view is configured to disallow interception when image is zoomed
 
         // Check if the overlay is visible, and wants to handle the click
@@ -253,10 +310,6 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     private fun handleSingleTap(event: MotionEvent, isOverlayWasClicked: Boolean) {
         if (isOverlayWasClicked) return
-        // A video takes the tap for itself, to play or pause; only a still image toggles the chrome.
-        val consumed = (attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? BaseViewHolder)
-                ?.onTapped() == true
-        if (consumed) return
         // TODO if there is no overlay, we should at least toggle system bars?
         if (overlayView != null) {
             toggleOverlayViewVisibility()
@@ -264,17 +317,24 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
         }
     }
 
+    private val deferredBarsHide = Runnable { if (!systemUiVisibility) hideSystemUI() }
+
     private fun toggleOverlayViewVisibility() {
+        // The quick fade rather than a TransitionManager pass: the 300ms auto-transition reads
+        // as lag when the chrome pops up in reaction to playback ending.
         if (systemUiVisibility) {
-            // we hide
-            TransitionManager.beginDelayedTransition(views.rootContainer)
-            hideSystemUI()
-            overlayView?.isVisible = false
+            // we hide — the system bars only after the fade: hiding them shifts the insets
+            // padding, and the chrome would visibly drop before it has faded out.
+            systemUiVisibility = false
+            cancelAutoHide()
+            overlayView?.let { fadeOverlay(it, toVisible = false) }
+            views.rootContainer.postDelayed(deferredBarsHide, OVERLAY_FADE_MS)
         } else {
             // we show
-            TransitionManager.beginDelayedTransition(views.rootContainer)
+            views.rootContainer.removeCallbacks(deferredBarsHide)
             showSystemUI()
-            overlayView?.isVisible = true
+            overlayView?.let { fadeOverlay(it, toVisible = true) }
+            scheduleAutoHide()
         }
     }
 
@@ -295,11 +355,39 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
         }
     }
 
+    private var overlayHiddenForDrag = false
+
     private fun handleSwipeViewMove(translationY: Float, translationLimit: Int) {
         val alpha = calculateTranslationAlpha(translationY, translationLimit)
         views.backgroundView.alpha = alpha
         views.dismissContainer.alpha = alpha
-        overlayView?.alpha = alpha
+        // The chrome fades away as soon as the dismiss drag starts, and only comes back — with
+        // the spring-back to zero — when the drag is abandoned.
+        val overlay = overlayView ?: return
+        if (!systemUiVisibility) return
+        if (translationY != 0f && !overlayHiddenForDrag) {
+            overlayHiddenForDrag = true
+            fadeOverlay(overlay, toVisible = false)
+        } else if (translationY == 0f && overlayHiddenForDrag) {
+            overlayHiddenForDrag = false
+            fadeOverlay(overlay, toVisible = true)
+        }
+    }
+
+    private fun fadeOverlay(overlay: View, toVisible: Boolean) {
+        overlay.animate().cancel()
+        if (toVisible) {
+            overlay.isVisible = true
+            overlay.animate().alpha(1f).setDuration(OVERLAY_FADE_MS).setListener(null).start()
+        } else {
+            overlay.animate().alpha(0f).setDuration(OVERLAY_FADE_MS).setListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    overlay.animate().setListener(null)
+                    // onAnimationEnd also fires on cancel, where a re-show is underway.
+                    if (overlay.alpha == 0f) overlay.isVisible = false
+                }
+            }).start()
+        }
     }
 
     private fun dispatchOverlayTouch(event: MotionEvent): Boolean =
@@ -326,15 +414,70 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     private fun createGestureDetector() =
             GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+                // Where a double tap means nothing, the chrome toggles on the raw UP: waiting
+                // out the double-tap window there makes fast hide/reveal taps feel swallowed.
+                private var handledOnUp = false
+
+                override fun onDown(e: MotionEvent): Boolean {
+                    handledOnUp = false
+                    return false
+                }
+
+                override fun onSingleTapUp(e: MotionEvent): Boolean {
+                    val holder = currentViewHolder()
+                    val width = views.rootContainer.width
+                    if (holder is VideoViewHolder && width > 0 && !holder.handlesDoubleTapAt(e.x / width)) {
+                        handledOnUp = true
+                        if (isImagePagerIdle) handleSingleTap(e, isOverlayWasClicked)
+                    }
+                    return false
+                }
+
                 override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                    if (isImagePagerIdle) {
+                    if (!handledOnUp && isImagePagerIdle) {
                         handleSingleTap(e, isOverlayWasClicked)
+                    }
+                    return false
+                }
+
+                // Act on the second tap's UP, not onDoubleTap's DOWN, so quick-scale
+                // (double-tap + drag) doesn't also trigger a seek.
+                override fun onDoubleTapEvent(e: MotionEvent): Boolean {
+                    if (e.actionMasked == MotionEvent.ACTION_UP) {
+                        handleDoubleTap(e)
                     }
                     return false
                 }
             })
 
+    private fun currentViewHolder() =
+            attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? BaseViewHolder
+
+    private fun handleDoubleTap(event: MotionEvent) {
+        if (!isImagePagerIdle || isOverlayWasClicked || isScaled()) return
+        val holder = currentViewHolder() ?: return
+        val width = views.rootContainer.width
+        if (width <= 0) return
+        val consumed = holder.onDoubleTapped(event.x / width)
+        // A double tap with nothing to do on a video is two quick chrome toggles (hide, reveal).
+        // Images keep their double tap: it belongs to the zoom.
+        if (!consumed && holder is VideoViewHolder) {
+            handleSingleTap(event, isOverlayWasClicked)
+        }
+    }
+
     override fun onEvent(event: AttachmentEvents) {
+        if (event is AttachmentEvents.VideoEvent && event.isPlaying != videoIsPlaying) {
+            videoIsPlaying = event.isPlaying
+            // A paused video keeps its chrome; playback starting arms the countdown.
+            if (videoIsPlaying) {
+                scheduleAutoHide()
+            } else {
+                cancelAutoHide()
+                // Whatever paused it — the end of the clip included — the controls come back.
+                if (!systemUiVisibility) toggleOverlayViewVisibility()
+            }
+        }
         if (overlayView is AttachmentEventListener) {
             (overlayView as? AttachmentEventListener)?.onEvent(event)
         }
@@ -356,7 +499,6 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     private fun hideSystemUI() {
-        systemUiVisibility = false
         // Enables regular immersive mode.
         // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
         // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -396,6 +538,9 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
             // New API instead of SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN and SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             @Suppress("DEPRECATION")
             window.setDecorFitsSystemWindows(false)
+            // The hide() in hideSystemUI is not undone by anything else on R+; without this the
+            // navigation bar stays gone for good once the chrome has been hidden once.
+            window.decorView.windowInsetsController?.show(WindowInsets.Type.navigationBars())
         } else {
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE

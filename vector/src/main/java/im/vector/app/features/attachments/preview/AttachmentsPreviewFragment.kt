@@ -9,13 +9,16 @@ package im.vector.app.features.attachments.preview
 
 import android.app.Activity.RESULT_CANCELED
 import android.app.Activity.RESULT_OK
+import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.PorterDuff
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.text.format.DateUtils
 import android.view.LayoutInflater
+import android.view.animation.LinearInterpolator
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -25,6 +28,7 @@ import android.widget.Toast
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
@@ -53,6 +57,7 @@ import im.vector.app.features.attachments.editor.image.ImageEditorEdits
 import im.vector.app.features.attachments.editor.isRestoreOriginal
 import im.vector.app.features.attachments.editor.video.VideoEditorActivity
 import im.vector.app.features.attachments.editor.video.VideoEditorEdits
+import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.animatedimage.AnimatedImageFormat
 import im.vector.lib.strings.CommonPlurals
@@ -79,6 +84,7 @@ class AttachmentsPreviewFragment :
 
     @Inject lateinit var attachmentMiniaturePreviewController: AttachmentMiniaturePreviewController
     @Inject lateinit var attachmentBigPreviewController: AttachmentBigPreviewController
+    @Inject lateinit var vectorPreferences: VectorPreferences
 
     private val fragmentArgs: AttachmentsPreviewArgs by args()
     private val viewModel: AttachmentsPreviewViewModel by fragmentViewModel()
@@ -91,6 +97,7 @@ class AttachmentsPreviewFragment :
 
     private var videoControls: VideoPlaybackControls? = null
     private var scrubbingVideo = false
+    private var seekBarAnimator: ObjectAnimator? = null
     private var bigListSnapListener: SnapOnScrollListener? = null
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentAttachmentsPreviewBinding {
@@ -126,9 +133,8 @@ class AttachmentsPreviewFragment :
         @Suppress("DEPRECATION")
         views.attachmentPreviewerVideoSeekBar.apply {
             progressDrawable?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
-            thumb?.setColorFilter(accent, PorterDuff.Mode.SRC_IN)
+            thumb?.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN)
         }
-        views.attachmentPreviewerVideoPlayPause.setOnClickListener { videoControls?.togglePlayback() }
         views.attachmentPreviewerVideoSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) views.attachmentPreviewerVideoTime.text = videoTimeLabel(progress, seekBar.max)
@@ -167,14 +173,39 @@ class AttachmentsPreviewFragment :
         bar.post {
             if (!isAdded) return@post
             bar.isVisible = videoControls != null
+            // The controls row grows the bottom panel upwards and the send button, anchored to
+            // the panel's top edge, would ride up with it; sit it back down by the row's height
+            // so it keeps the same spot it has for image attachments.
+            if (videoControls != null) {
+                bar.doOnLayout { views.attachmentPreviewerSendButton.translationY = it.height.toFloat() }
+            } else {
+                views.attachmentPreviewerSendButton.translationY = 0f
+            }
         }
     }
 
     override fun onVideoProgress(positionMs: Int, durationMs: Int, isPlaying: Boolean) {
-        views.attachmentPreviewerVideoPlayPause.setImageResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play_arrow)
-        views.attachmentPreviewerVideoSeekBar.max = durationMs.coerceAtLeast(1)
-        if (!scrubbingVideo) views.attachmentPreviewerVideoSeekBar.progress = positionMs.coerceIn(0, durationMs)
+        val bar = views.attachmentPreviewerVideoSeekBar
         views.attachmentPreviewerVideoTime.text = videoTimeLabel(positionMs, durationMs)
+        if (scrubbingVideo) return
+        seekBarAnimator?.cancel()
+        if (bar.max != durationMs.coerceAtLeast(1)) {
+            bar.max = durationMs.coerceAtLeast(1)
+            bar.progress = positionMs.coerceIn(0, durationMs)
+            return
+        }
+        val target = positionMs.coerceIn(0, durationMs)
+        // Same glide between the 100ms reports as the media viewer's scrubber; jumps snap.
+        val delta = target - bar.progress
+        if (isPlaying && delta in 0..1200) {
+            seekBarAnimator = ObjectAnimator.ofInt(bar, "progress", target).apply {
+                duration = 120L
+                interpolator = LinearInterpolator()
+                start()
+            }
+        } else {
+            bar.progress = target
+        }
     }
 
     private fun videoTimeLabel(positionMs: Int, durationMs: Int) = getString(
@@ -540,6 +571,10 @@ class AttachmentsPreviewFragment :
         val record = state.editRecords[currentAttachment.queryUri]
         val original = record?.original ?: currentAttachment
         pendingEditOriginal = original
+        // Freed now, not on the async rebuild after onPause: the editor is about to open its own
+        // decoder on this same clip, and one still held here can cost it its codec — an editor
+        // that opens on a black frame.
+        videoControls?.suspendPlayback()
         val source = original.queryUriAndroid
         val animatedFormat = animatedFormatOf(currentAttachment)
         if (currentAttachment.isVideoEditable() || animatedFormat != null) {
@@ -590,6 +625,7 @@ class AttachmentsPreviewFragment :
             it.setHasFixedSize(true)
             it.adapter = attachmentBigPreviewController.adapter
             attachmentBigPreviewController.playbackListener = this
+            attachmentBigPreviewController.loopVideos = vectorPreferences.loopVideos()
         }
     }
 }

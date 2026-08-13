@@ -94,6 +94,10 @@ class SwipeToDismissHandler(
         animator.setAnimatorEndListener {
             if (translationTo != 0f) {
                 onDismiss()
+            } else {
+                // An abandoned drag must land a final zero, or (pre-19, with no per-frame
+                // callbacks) the listener would never learn the swipe was called off.
+                onSwipeViewMove(0f, translationLimit)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 // remove the update listener, otherwise it will be saved on the next animation execution:

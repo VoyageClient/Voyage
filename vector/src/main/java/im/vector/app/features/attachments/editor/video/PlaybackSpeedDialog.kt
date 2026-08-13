@@ -27,6 +27,7 @@ class PlaybackSpeedDialog(
         private val initial: PlaybackSpeed,
         private val allowPitchChoice: Boolean,
         private val onChanged: (PlaybackSpeed) -> Unit,
+        private val onDismiss: (() -> Unit)? = null,
 ) {
 
     private val views = BottomSheetVideoSpeedBinding.inflate(LayoutInflater.from(context))
@@ -64,7 +65,10 @@ class PlaybackSpeedDialog(
         }
         views.speedReset.setOnClickListener { update(PlaybackSpeed()) }
 
-        val dialog = BottomSheetDialog(context).apply { setContentView(views.root) }
+        val dialog = BottomSheetDialog(context).apply {
+            setContentView(views.root)
+            setOnDismissListener { onDismiss?.invoke() }
+        }
         views.speedDone.setOnClickListener { dialog.dismiss() }
         // Changes apply as they are made, so leaving has to be able to put them back.
         views.speedCancel.setOnClickListener {

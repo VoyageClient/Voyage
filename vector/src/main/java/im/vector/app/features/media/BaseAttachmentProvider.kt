@@ -48,6 +48,17 @@ abstract class BaseAttachmentProvider<Type>(
 
     private var overlayView: AttachmentOverlayView? = null
 
+    /** Resolved local sources per attachment uid, feeding the overlay's scrub preview. */
+    private val videoSourceCache = mutableMapOf<String, String>()
+    private var overlayUid: String? = null
+
+    private fun onVideoSourceResolved(uid: String, source: String) {
+        videoSourceCache[uid] = source
+        if (uid == overlayUid) overlayView?.setSeekPreviewSource(source)
+    }
+
+    fun isOverlayInteracting(): Boolean = overlayView?.isUserInteracting() == true
+
     final override fun getItemCount() = attachments.size
 
     protected fun getItem(position: Int) = attachments[position]
@@ -66,7 +77,13 @@ abstract class BaseAttachmentProvider<Type>(
         }
         overlayView?.updateWith(counter, if (showOverlayInfo) senderInfoAt(position) else "")
         // Decide from the attachment itself, not the timeline event — see below, it can be absent.
-        overlayView?.showVideoControls(getAttachmentInfoAt(position) is AttachmentInfo.Video)
+        val info = getAttachmentInfoAt(position)
+        overlayView?.showVideoControls(
+                info is AttachmentInfo.Video,
+                ((info as? AttachmentInfo.Video)?.data as? VideoContentRenderer.Data)?.durationMs
+        )
+        overlayUid = info.uid
+        overlayView?.setSeekPreviewSource(videoSourceCache[info.uid])
 
         return overlayView
     }
@@ -144,6 +161,7 @@ abstract class BaseAttachmentProvider<Type>(
         })
 
         if (data.url?.startsWith("content://") == true && data.allowNonMxcUrls) {
+            onVideoSourceResolved(info.uid, data.url)
             target.onVideoURLReady(info.uid, data.url)
         } else {
             target.onVideoFileLoading(info.uid)
@@ -158,7 +176,10 @@ abstract class BaseAttachmentProvider<Type>(
                 }
                 withContext(Dispatchers.Main) {
                     result.fold(
-                            { target.onVideoFileReady(info.uid, it) },
+                            {
+                                onVideoSourceResolved(info.uid, it.path)
+                                target.onVideoFileReady(info.uid, it)
+                            },
                             { target.onVideoFileLoadFailed(info.uid) }
                     )
                 }

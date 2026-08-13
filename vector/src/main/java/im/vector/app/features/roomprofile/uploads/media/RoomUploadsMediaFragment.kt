@@ -159,6 +159,7 @@ class RoomUploadsMediaFragment :
                             thumbnailMediaData = thumbnailData,
                             senderName = it.senderInfo.disambiguatedDisplayName,
                             timestampMs = it.root.originServerTs,
+                            durationMs = content.videoInfo?.duration?.toLong(),
                     )
                 }
                 else -> null

@@ -25,8 +25,14 @@ abstract class BaseViewHolder constructor(itemView: View) :
 
     open fun handleCommand(commands: AttachmentCommands) {}
 
-    /** @return whether the tap was used, in which case it must not also toggle the chrome. */
-    open fun onTapped(): Boolean = false
+    /** @param xFraction horizontal tap position as a fraction of the viewer width. */
+    open fun onDoubleTapped(xFraction: Float): Boolean = false
+
+    /**
+     * Whether a double tap at this position means something, so a single tap there has to wait
+     * out the double-tap window before it can be acted on.
+     */
+    open fun handlesDoubleTapAt(xFraction: Float): Boolean = false
 
     var boundResourceUid: String? = null
 

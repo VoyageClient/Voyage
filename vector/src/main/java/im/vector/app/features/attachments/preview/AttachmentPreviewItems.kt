@@ -30,6 +30,8 @@ import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.platform.CheckableImageView
 import im.vector.app.features.themes.ThemeUtils
+import im.vector.lib.attachmentviewer.VideoForwardDrawable
+import im.vector.lib.attachmentviewer.VideoLastFrame
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.content.queryUriAndroid
 import timber.log.Timber
@@ -50,11 +52,19 @@ abstract class AttachmentPreviewItem<H : AttachmentPreviewItem.Holder>(@LayoutRe
         when (attachment.type) {
             ContentAttachmentData.Type.VIDEO -> {
                 // .frame(0) only does anything for video sources; .asBitmap() is required to
-                // hand Glide that hint.
+                // hand Glide that hint. The low-res thumbnail request paints first — a scaled
+                // frame extract is much faster than the full-size one, which can take a second
+                // of black screen on a large clip.
                 Glide.with(holder.view.context)
                         .asBitmap()
                         .load(attachment.queryUriAndroid)
                         .apply(RequestOptions().frame(0))
+                        .thumbnail(
+                                Glide.with(holder.view.context)
+                                        .asBitmap()
+                                        .load(attachment.queryUriAndroid)
+                                        .apply(RequestOptions().frame(0).override(240))
+                        )
                         .into(holder.imageView)
             }
             ContentAttachmentData.Type.IMAGE -> {
@@ -124,6 +134,8 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
     /** False while the hosting fragment is not resumed. */
     @EpoxyAttribute var playbackAllowed: Boolean = true
 
+    @EpoxyAttribute var loopVideos: Boolean = false
+
     /** The size the attachment will be sent at, when the sender has chosen one. */
     @EpoxyAttribute var targetSize: Pair<Int, Int>? = null
 
@@ -148,7 +160,6 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         // The fragment's controls must let go of a recycled holder, or they would drive whatever
         // attachment its views are rebound to next.
         holder.releasePlaybackControls(playbackListener)
-        holder.setImageTapListener(null)
         holder.release()
         holder.resetZoom()
         super.unbind(holder)
@@ -160,6 +171,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         // position it is being reset to into a bar that another page owns by now.
         if (!isVideo) holder.setPlaybackListener(null)
         holder.setTargetSize(targetSize)
+        holder.setLooping(loopVideos)
         holder.setVideo(attachment.queryUriAndroid.takeIf { isVideo }, (attachment.duration ?: 0L).toInt())
         // Each surface owns its own zoom, so the still and the video never fight over the gesture.
         holder.setZoomEnabled(!isVideo)
@@ -167,18 +179,10 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         if (!activePage) holder.resetZoom()
         if (!isVideo) {
             if (activePage) playbackListener?.onVideoControlsAvailable(null)
-            // An animated image drives itself, so there is no player to drive — but tapping it should
-            // still pause and resume, as it does for a video and in the editor. The listener has to go
-            // on the image view: with zoom enabled it consumes the touch and routes taps to its own
-            // performClick, so the root never sees them.
-            holder.setImageTapListener { holder.toggleAnimatedImage() }
-            holder.view.setOnClickListener { holder.toggleAnimatedImage() }
             // Swiping to another attachment must not leave this one burning cycles off-screen.
             holder.setAnimatedImagePlaying(activePage && playbackAllowed)
             return
         }
-        holder.setImageTapListener(null)
-        holder.view.setOnClickListener { holder.togglePlayback() }
         // Only whichever attachment is on show drives the controls under the send options, and only
         // it may claim them: a sibling binding afterwards would otherwise take them away again.
         holder.setPlaybackListener(playbackListener.takeIf { activePage })
@@ -196,6 +200,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             get() = bigImageView
         private val bigImageView by bind<ZoomableImageView>(R.id.attachmentBigImageView)
         private val videoView by bind<ZoomableTextureView>(R.id.attachmentBigVideoView)
+        private val seekRipple by bind<View>(R.id.attachmentBigSeekRipple)
+        private val seekRippleDrawable by lazy { VideoForwardDrawable(view.context).also { seekRipple.background = it } }
+        private val playPauseButton by bind<ImageView>(R.id.attachmentBigPlayPause)
 
         private var videoUri: Uri? = null
         private var mediaPlayer: MediaPlayer? = null
@@ -213,6 +220,12 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
         /** The attachment's own length, so the bar reads correctly before anything is prepared. */
         private var declaredDurationMs = 0
+        private var lastReportedPositionMs = 0
+        private var looping = false
+
+        /** Timestamp of the final frame, probed in the background once the player is prepared. */
+        @Volatile private var endFrameMs = -1
+
         private var listener: VideoPlaybackListener? = null
         private val ticker = Runnable { onTick() }
 
@@ -225,28 +238,6 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
          * APNG, GIF and animated WebP all arrive as self-animating [Animatable] drawables, so pausing
          * is a matter of stopping the drawable rather than driving a player.
          */
-        private fun animatedImage(): Animatable? = bigImageView.drawable as? Animatable
-
-        private fun isAnimatedImagePlaying(): Boolean = when (val drawable = bigImageView.drawable) {
-            is FrameAnimationDrawable<*> -> drawable.isRunning && !drawable.isPaused
-            is Animatable -> drawable.isRunning
-            else -> false
-        }
-
-        fun setImageTapListener(onTap: (() -> Unit)?) {
-            if (onTap == null) {
-                bigImageView.setOnClickListener(null)
-                bigImageView.isClickable = false
-            } else {
-                bigImageView.setOnClickListener { onTap() }
-            }
-        }
-
-        fun toggleAnimatedImage() {
-            if (animatedImage() == null) return
-            setAnimatedImagePlaying(!isAnimatedImagePlaying())
-        }
-
         fun setAnimatedImagePlaying(playing: Boolean) {
             val drawable = bigImageView.drawable
             // penfeizhou's stop() rewinds to frame 0, so APNG/WebP have to pause instead. Glide's
@@ -273,18 +264,48 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             bigImageView.zoomEnabled = enabled
         }
 
+        fun setLooping(value: Boolean) {
+            looping = value
+            runCatching { mediaPlayer?.isLooping = value }
+        }
+
         fun setVideo(uri: Uri?, durationMs: Int) {
             if (videoUri != uri) {
                 releasePlayer()
                 videoUri = uri
+                endFrameMs = -1
                 resetToThumbnail()
             }
             declaredDurationMs = durationMs
+            playPauseButton.isVisible = uri != null
             if (uri != null) {
                 attachSurfaceListener()
-                // Once the video is showing it owns the touches, so the root's click never fires.
-                videoView.setOnClickListener { togglePlayback() }
+                videoView.onDoubleTap = ::onDoubleTapSeek
+                playPauseButton.setOnClickListener { togglePlayback() }
+            } else {
+                videoView.onDoubleTap = null
+                playPauseButton.setOnClickListener(null)
             }
+        }
+
+        private fun onDoubleTapSeek(xFraction: Float): Boolean {
+            val forward = xFraction >= 2f / 3
+            if (!forward && xFraction >= 1f / 3) return false
+            val player = mediaPlayer?.takeIf { isPrepared } ?: return false
+            return runCatching {
+                val duration = player.duration
+                val position = player.currentPosition
+                // Only when there is somewhere to seek to.
+                if (duration <= 0) return@runCatching false
+                if (forward && duration - position <= 1_000) return@runCatching false
+                if (!forward && position <= 1_000) return@runCatching false
+                player.seekEndAware((position + if (forward) 10_000 else -10_000).coerceIn(0, duration))
+                seekRippleDrawable.contentRect = videoView.fittedContentRect()
+                seekRippleDrawable.startAnimation(leftSide = !forward)
+                seekRippleDrawable.addTime(10_000)
+                reportProgress()
+                true
+            }.getOrDefault(false)
         }
 
         /** The controls live in the fragment, below the send options, and drive this holder. */
@@ -299,9 +320,29 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         override fun seekTo(positionMs: Int) {
+            val player = mediaPlayer?.takeIf { isPrepared }
             // Nothing prepared yet, so remember it as the point playback will pick up from.
-            mediaPlayer?.takeIf { isPrepared }?.seekToPrecise(positionMs) ?: run { resumePositionMs = positionMs }
+            player?.seekEndAware(positionMs) ?: run {
+                resumePositionMs = positionMs
+                lastReportedPositionMs = positionMs
+            }
             reportProgress()
+        }
+
+        /**
+         * The duration usually sits past the last frame, so a precise seek to it finds nothing
+         * to render and the picture hangs. Aim at the final frame's own probed timestamp
+         * instead, paused — a paused frame-accurate seek always displays its target.
+         */
+        private fun MediaPlayer.seekEndAware(positionMs: Int) {
+            var target = positionMs
+            val durationMs = runCatching { duration }.getOrDefault(0)
+            if (durationMs > 0 && positionMs > durationMs - END_SEEK_WINDOW_MS) {
+                target = endFrameMs.takeIf { it in 1..durationMs } ?: (durationMs - END_SEEK_WINDOW_MS).coerceAtLeast(0)
+                if (!looping) runCatching { if (isPlayingSafe()) pause() }
+            }
+            lastReportedPositionMs = target
+            seekToPrecise(target)
         }
 
         private fun durationMs() = mediaPlayer?.takeIf { isPrepared }?.let {
@@ -314,9 +355,19 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         private fun reportProgress() {
-            val position = mediaPlayer?.takeIf { isPrepared }?.let { runCatching { it.currentPosition }.getOrDefault(0) }
+            val raw = mediaPlayer?.takeIf { isPrepared }?.let { runCatching { it.currentPosition }.getOrDefault(0) }
                     ?: resumePositionMs
-            listener?.onVideoProgress(position, durationMs(), mediaPlayer?.isPlayingSafe() == true)
+            val playing = mediaPlayer?.isPlayingSafe() == true
+            // An audio sink spinning up (Bluetooth especially) briefly walks the reported position
+            // backwards; steady playback never does, so hold through small regressions.
+            val position = if (playing && raw < lastReportedPositionMs && lastReportedPositionMs - raw < 1500) {
+                lastReportedPositionMs
+            } else {
+                raw
+            }
+            lastReportedPositionMs = position
+            playPauseButton.setImageResource(if (playing) R.drawable.ic_pause else R.drawable.ic_play_arrow)
+            listener?.onVideoProgress(position, durationMs(), playing)
         }
 
         override fun togglePlayback() {
@@ -327,6 +378,14 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                 if (player.isPlayingSafe()) {
                     player.pause()
                 } else {
+                    // Play from the end means play again: without the rewind it runs for a
+                    // frame, completes and rewinds paused.
+                    val durationMs = runCatching { player.duration }.getOrDefault(0)
+                    val positionMs = runCatching { player.currentPosition }.getOrDefault(0)
+                    if (durationMs > 0 && positionMs >= durationMs - END_SEEK_WINDOW_MS) {
+                        player.seekToPrecise(0)
+                        lastReportedPositionMs = 0
+                    }
                     player.start()
                     startTicking()
                 }
@@ -350,7 +409,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
         }
 
         /** Backgrounded: drop the player but keep the place — [release] would revert to the poster. */
-        fun suspendPlayback() {
+        override fun suspendPlayback() {
             mediaPlayer?.let {
                 resumePositionMs = runCatching { it.currentPosition }.getOrDefault(0)
                 resumeWasPlaying = it.isPlayingSafe()
@@ -388,6 +447,13 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                     releasePlayer()
                     surface?.release()
                     surface = null
+                    // A dead surface renders black, so the poster covers the gap until the rebuilt
+                    // player paints its first frame.
+                    if (videoView.isVisible) {
+                        waitingForFirstFrame = true
+                        videoView.alpha = 0f
+                        bigImageView.isVisible = true
+                    }
                     return true
                 }
 
@@ -409,6 +475,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                 mediaPlayer = MediaPlayer().apply {
                     setSurface(activeSurface)
                     setDataSource(view.context, uri)
+                    isLooping = looping
                     setOnVideoSizeChangedListener { _, width, height ->
                         this@Holder.videoWidth = width
                         this@Holder.videoHeight = height
@@ -416,6 +483,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
                     }
                     setOnPreparedListener {
                         isPrepared = true
+                        if (endFrameMs < 0) {
+                            Thread({ endFrameMs = VideoLastFrame.probeMs(view.context, uri.toString()) }, "video-end-probe").start()
+                        }
                         videoView.setVideoSize(this@Holder.videoWidth, this@Holder.videoHeight)
                         val resuming = resumePositionMs > 0
                         // Seeking a prepared player paints the frame, so a video left paused comes
@@ -472,6 +542,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
             waitingForFirstFrame = false
             resumePositionMs = 0
             resumeWasPlaying = false
+            lastReportedPositionMs = 0
             videoWidth = 0
             videoHeight = 0
             // The view keeps its own aspect matrix, which would squeeze the next clip into the
@@ -506,6 +577,7 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 
         companion object {
             private const val PROGRESS_INTERVAL_MS = 100L
+            private const val END_SEEK_WINDOW_MS = 250
         }
     }
 }
@@ -514,6 +586,9 @@ abstract class AttachmentBigPreviewItem : AttachmentPreviewItem<AttachmentBigPre
 interface VideoPlaybackControls {
     fun togglePlayback()
     fun seekTo(positionMs: Int)
+
+    /** Drops the decoder but keeps the position, for handing the clip to another screen. */
+    fun suspendPlayback()
 }
 
 interface VideoPlaybackListener {

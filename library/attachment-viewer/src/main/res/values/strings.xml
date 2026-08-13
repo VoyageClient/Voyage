@@ -2,4 +2,5 @@
 <resources>
     <!-- TODO Create a dedicated module for translations to be able to translate this string like the others (See #3955) -->
     <string name="a11y_play_pause">Play or pause the video</string>
+    <string name="attachment_viewer_seek_seconds" translatable="false">%1$d seconds</string>
 </resources>

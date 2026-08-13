@@ -14,6 +14,7 @@ import javax.inject.Inject
 class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyController<AttachmentsPreviewViewState>() {
 
     var playbackListener: VideoPlaybackListener? = null
+    var loopVideos: Boolean = false
 
     var playbackAllowed: Boolean = true
         set(value) {
@@ -33,6 +34,7 @@ class AttachmentBigPreviewController @Inject constructor() : TypedEpoxyControlle
                 attachment(contentAttachmentData)
                 activePage(data.currentAttachmentIndex == index)
                 playbackAllowed(host.playbackAllowed)
+                loopVideos(host.loopVideos)
                 playbackListener(host.playbackListener)
                 // So the preview is shaped like what will actually be sent.
                 targetSize(settings?.width?.let { width -> settings.height?.let { width to it } })

@@ -73,7 +73,6 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingLeft="4dp"
             android:paddingRight="12dp"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerSendImageOriginalSize"
@@ -82,24 +81,20 @@
             app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerMiniatureList"
             tools:visibility="visible">
 
-            <ImageView
-                android:id="@+id/attachmentPreviewerVideoPlayPause"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/action_play"
-                android:padding="6dp"
-                android:scaleType="centerInside"
-                app:srcCompat="@drawable/ic_play_arrow"
-                app:tint="@android:color/white"
-                tools:ignore="MissingPrefix" />
-
             <SeekBar
                 android:id="@+id/attachmentPreviewerVideoSeekBar"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_height="44dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="0dp" />
 
+            <!-- Nudged down to stay level with the track, which the seek bar's asymmetric
+                 vertical padding pushes below the row's centre. -->
             <TextView
                 android:id="@+id/attachmentPreviewerVideoTime"
                 style="@style/Widget.Vector.TextView.Caption"
@@ -108,6 +103,7 @@
                 android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
                 android:textColor="@android:color/white"
+                android:translationY="8dp"
                 tools:text="0:12 / 0:42" />
 
         </LinearLayout>

@@ -736,4 +736,7 @@
     <string name="command_watch_success" translatable="false">Room added to Watching</string>
     <string name="command_watch_not_previewable" translatable="false">This room can\'t be previewed, so it can\'t be watched</string>
     <string name="command_unwatch_not_watched" translatable="false">You\'re not watching that room</string>
+
+    <string name="settings_loop_videos_title" translatable="false">Loop videos</string>
+    <string name="settings_loop_videos_summary" translatable="false">Start videos over from the beginning when they finish playing</string>
 </resources>
