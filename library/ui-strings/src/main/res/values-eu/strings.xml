@@ -1068,7 +1068,6 @@ Errore hau ${app_name}-en kontroletik kanpo dago. Ez dago Google konturik gailua
     <string name="command_description_rainbow">Emandako mezua ortzadarraren koloreekin bidaltzen du</string>
     <string name="command_description_rainbow_emote">Emandako emote-a ortzadarraren koloreekin bidaltzen du</string>
     <string name="settings_category_timeline">Denbora-lerroa</string>
-    <string name="settings_category_composer">Mezu-editorea</string>
     <string name="room_settings_enable_encryption">Gaitu muturretik-muturrera zifratzea</string>
     <string name="room_settings_enable_encryption_dialog_title">Gaitu zifratzea\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Behin aktibatuta, ezin zaio gelari zifratzea kendu. Zerbitzariak ezin ditu zifratutako gela batetara bidalitako mezuak ikusi, gelako partaideek besterik ezin dituzte ikusi. Zifratzea aktibatzeak bot eta zubi batzuk ongi ez funtzionatzea ekarri dezake.</string>

@@ -919,7 +919,6 @@
     <string name="settings_active_sessions_list">Actieve Sessies</string>
     <string name="room_settings_enable_encryption_dialog_submit">Versleuteling inschakelen</string>
     <string name="room_settings_enable_encryption_dialog_title">Versleuteling inschakelen\?</string>
-    <string name="settings_category_composer">Berichtbewerker</string>
     <string name="room_profile_section_more_leave">Gesprek Verlaten</string>
     <plurals name="room_profile_section_more_member_list">
         <item quantity="one">Eén persoon</item>

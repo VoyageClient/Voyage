@@ -28,6 +28,7 @@ sealed class MessageComposerAction : VectorViewModelAction {
     data class SetFullScreen(val isFullScreen: Boolean) : MessageComposerAction()
     object OnAttachmentsSent : MessageComposerAction()
     data class SendSticker(val content: MessageStickerContent) : MessageComposerAction()
+    data class SendSedReplacement(val targetEventId: String, val newBody: String, val formattedBody: String?) : MessageComposerAction()
 
     // Voice Message
     data class InitializeVoiceRecorder(val attachmentData: ContentAttachmentData) : MessageComposerAction()

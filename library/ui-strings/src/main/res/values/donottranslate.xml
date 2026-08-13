@@ -739,4 +739,13 @@
 
     <string name="settings_loop_videos_title" translatable="false">Loop videos</string>
     <string name="settings_loop_videos_summary" translatable="false">Start videos over from the beginning when they finish playing</string>
+
+    <string name="settings_category_message_composer" translatable="false">Message composer</string>
+    <string name="settings_sed_replacement_title" translatable="false">Sed substitutions</string>
+    <string name="settings_sed_replacement_summary" translatable="false">Maubot-style s/typo/fixed/ substitutions, usable anywhere: your own messages are corrected as an edit, everyone else\'s with a notice</string>
+    <string name="sed_error_invalid" translatable="false">Invalid sed expression: %1$s</string>
+    <string name="sed_error_no_match" translatable="false">No loaded message matches that pattern.</string>
+    <string name="sed_error_reply_no_match" translatable="false">The message you\'re replying to doesn\'t match that pattern.</string>
+    <string name="sed_error_timeout" translatable="false">That pattern took too long to match.</string>
+    <string name="sed_error_target_gone" translatable="false">That message is no longer available.</string>
 </resources>

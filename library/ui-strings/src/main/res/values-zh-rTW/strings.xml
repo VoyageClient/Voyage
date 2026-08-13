@@ -1176,7 +1176,6 @@
     <string name="command_description_rainbow">將指定的訊息以彩虹的方式上色後傳送</string>
     <string name="command_description_rainbow_emote">將指定的表情文字以彩虹的方式上色後傳送</string>
     <string name="settings_category_timeline">時間軸</string>
-    <string name="settings_category_composer">訊息編輯器</string>
     <string name="room_settings_enable_encryption">啟用端對端加密…</string>
     <string name="room_settings_enable_encryption_dialog_title">要開啟加密嗎？</string>
     <string name="room_settings_enable_encryption_dialog_content">啟用後，就無法再停用對聊天室的加密。伺服器無法解讀傳送到加密聊天室的訊息內容，而僅有聊天室的參與者可見。開啟加密可能會讓許多聊天機器人與橋接無法運作。</string>

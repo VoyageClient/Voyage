@@ -1353,7 +1353,6 @@ Di masa mendatang proses verifikasi ini akan dimutakhirkan.</string>
     <string name="room_settings_enable_encryption_dialog_title">Aktifkan enkripsi\?</string>
     <string name="room_settings_enable_encryption_no_permission">Anda tidak memiliki izin untuk mengaktifkan enkripsi ujung ke ujung di ruangan ini.</string>
     <string name="room_settings_enable_encryption">Aktifkan enkripsi ujung ke ujung…</string>
-    <string name="settings_category_composer">Editor pesan</string>
     <string name="settings_category_timeline">Lini Masa</string>
     <string name="command_description_rainbow_emote">Mengirim emote yang dicantum berwarna pelangi</string>
     <string name="command_description_rainbow">Mengirim pesan yang dicantum berwarna pelangi</string>

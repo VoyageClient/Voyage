@@ -144,11 +144,78 @@ class MessageComposerViewModel @AssistedInject constructor(
             is MessageComposerAction.SetFullScreen -> handleSetFullScreen(action)
             MessageComposerAction.OnAttachmentsSent -> handleOnAttachmentsSent(room)
             is MessageComposerAction.SendSticker -> handleSendSticker(room, action)
+            is MessageComposerAction.SendSedReplacement -> handleSendSedReplacement(room, action)
         }
     }
 
     private fun handleOnAttachmentsSent(room: Room) = withState { state ->
         currentComposerText = ""
+        popDraft(room, state.sendMode)
+    }
+
+    private fun handleSendSedReplacement(room: Room, action: MessageComposerAction.SendSedReplacement) = withState { state ->
+        // Re-resolve: the target may have finished sending since the fragment picked it out of the timeline.
+        val targetEvent = room.getTimelineEvent(action.targetEventId)
+        if (targetEvent == null) {
+            _viewEvents.post(MessageComposerViewEvents.ShowMessage(stringProvider.getString(CommonStrings.sed_error_target_gone)))
+            return@withState
+        }
+        if (targetEvent.root.senderId == session.myUserId) {
+            val messageContent = targetEvent.getVectorLastMessageContent()
+            val inReplyTo = targetEvent.getRelationContent()?.inReplyTo?.eventId
+            offloadSend {
+                // The substitution runs on the editable text, so re-render markdown from it the way the
+                // original send did, or a formatted message would come back as plain.
+                val autoMarkdown = vectorPreferences.isMarkdownEnabled()
+                val repliedTo = inReplyTo?.let { room.getTimelineEvent(it) }
+                if (messageContent is MessageWithAttachmentContent) {
+                    room.relationService().editMediaCaption(
+                            targetEvent,
+                            action.newBody,
+                            room.sendService().computeFormattedHtml(action.newBody, autoMarkdown)
+                    )
+                } else if (repliedTo != null) {
+                    room.relationService().editReply(
+                            targetEvent,
+                            repliedTo,
+                            action.newBody,
+                            room.sendService().computeFormattedHtml(action.newBody, autoMarkdown)
+                    )
+                } else {
+                    room.relationService().editTextMessage(
+                            targetEvent,
+                            messageContent?.msgType ?: MessageType.MSGTYPE_TEXT,
+                            action.newBody,
+                            null,
+                            autoMarkdown
+                    )
+                }
+            }
+        } else {
+            val showInThread = targetEvent.root.isThread() && state.rootThreadEventId == null
+            val rootThreadEventId = if (showInThread) targetEvent.root.getRootThreadEventId() else null
+            offloadSend {
+                state.rootThreadEventId?.let {
+                    room.relationService().replyInThread(
+                            rootThreadEventId = it,
+                            replyInThreadText = action.newBody,
+                            msgType = MessageType.MSGTYPE_NOTICE,
+                            autoMarkdown = false,
+                            formattedText = action.formattedBody,
+                            eventReplied = targetEvent
+                    )
+                } ?: room.relationService().replyToMessage(
+                        eventReplied = targetEvent,
+                        replyText = action.newBody,
+                        replyFormattedText = action.formattedBody,
+                        autoMarkdown = false,
+                        showInThread = showInThread,
+                        rootThreadEventId = rootThreadEventId,
+                        msgType = MessageType.MSGTYPE_NOTICE
+                )
+            }
+        }
+        _viewEvents.post(MessageComposerViewEvents.MessageSent)
         popDraft(room, state.sendMode)
     }
 

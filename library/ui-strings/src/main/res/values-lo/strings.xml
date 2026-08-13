@@ -2058,7 +2058,6 @@
     <string name="room_settings_enable_encryption_dialog_title">ເປີດໃຊ້ການເຂົ້າລະຫັດບໍ\?</string>
     <string name="room_settings_enable_encryption_no_permission">ທ່ານບໍ່ໄດ້ຮັບອະນຸຍາດໃຫ້ເປີດໃຊ້ການເຂົ້າລະຫັດໃນຫ້ອງນີ້.</string>
     <string name="room_settings_enable_encryption">ເປີດການເຂົ້າລະຫັດແຕ່ຕົ້ນທາງເຖິງປາຍທາງ…</string>
-    <string name="settings_category_composer">ບັນນາທິການຂໍ້ຄວາມ</string>
     <string name="settings_category_timeline">ທາມລາຍ</string>
     <string name="command_description_rainbow_emote">ສົ່ງ emote ທີ່ກຳນົດເປັນສີຮຸ້ງ</string>
     <string name="command_description_rainbow">ສົ່ງຂໍ້ຄວາມທີ່ກຳນົດເປັນສີຮຸ້ງ</string>

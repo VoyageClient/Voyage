@@ -1135,7 +1135,6 @@ A Visszaállítási Kulcsot tartsd biztonságos helyen, mint pl. egy jelszókeze
     <string name="command_description_rainbow">A megadott üzenetet szivárvány színben küldi el</string>
     <string name="command_description_rainbow_emote">A megadott hangulatjelet szivárvány színben küldi el</string>
     <string name="settings_category_timeline">Idővonal</string>
-    <string name="settings_category_composer">Üzenet szerkesztő</string>
     <string name="room_settings_enable_encryption">Végpontok közötti titkosítás engedélyezése…</string>
     <string name="room_settings_enable_encryption_dialog_title">Titkosítás engedélyezése\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Ha egyszer engedélyezve lett, a szoba titkosítását nem lehet kikapcsolni. A titkosított szobákban küldött üzenetek a kiszolgáló számára nem, csak a szoba tagjai számára láthatók. A titkosítás bekapcsolása megakadályoz sok botot és hidat a megfelelő működésben.</string>

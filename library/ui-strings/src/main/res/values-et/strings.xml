@@ -646,7 +646,6 @@
     <string name="command_description_rainbow">Saadab selle sõnumi vikerkaarevärvilisena</string>
     <string name="command_description_rainbow_emote">Saadab antud emote vikerkaarevärvides</string>
     <string name="settings_category_timeline">Ajajoon</string>
-    <string name="settings_category_composer">Sõnumite kirjutamine</string>
     <string name="room_settings_enable_encryption">Võta läbiv krüptimine kasutusele…</string>
     <string name="room_settings_enable_encryption_dialog_title">Kas võtame krüptimise kasutusele\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Kui kord juba kasutusele võetud, siis krüptimist enam hiljem ära lõpetada ei saa. Krüptitud sõnumeid ei saa lugeda ei vaheapealses veebiliikluses ega serveris ja vaid jututoa liikmed saavad neid lugeda. Krüptimise kasutusele võtmine võib takistada nii robotite kui sõnumisildade tööd.</string>

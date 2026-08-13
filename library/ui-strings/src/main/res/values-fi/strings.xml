@@ -1309,7 +1309,6 @@
     <string name="settings_category_timeline">Aikajana</string>
     <string name="labs_show_unread_notifications_as_tab">Lisää lukemattomille ilmoituksille oma välilehti päänäyttöön.</string>
     <string name="settings_labs_show_complete_history_in_encrypted_room">Näytä koko historia salatuissa huoneissa</string>
-    <string name="settings_category_composer">Viestieditori</string>
     <string name="choose_locale_other_locales_title">Muut kielet</string>
     <string name="settings_chat_effects_description">Käytä /confetti-komentoa tai lähetä viesti jossa on ❄️ tai 🎉</string>
     <string name="settings_chat_effects_title">Näytä keskustelujen tehosteet</string>

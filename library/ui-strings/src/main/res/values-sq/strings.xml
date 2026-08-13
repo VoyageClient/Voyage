@@ -1175,7 +1175,6 @@
     <string name="command_description_rainbow">E dërgon mesazhin e dhënë të ngjyrosur si ylber</string>
     <string name="command_description_rainbow_emote">E dërgon emote-n e dhënë të ngjyrosur si ylber</string>
     <string name="settings_category_timeline">Rrjedhë kohore</string>
-    <string name="settings_category_composer">Përpunues mesazhesh</string>
     <string name="room_settings_enable_encryption">Aktivizoni fshehtëzim skaj-më-skaj…</string>
     <string name="room_settings_enable_encryption_dialog_title">Të aktivizohet fshehtëzimi\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Pasi të aktivizohet, fshehtëzimi për një dhomë nuk mund të çaktivizohet. Mesazhet e dërguar në një dhomë të fshehtëzuar s’mund të shihen nga shërbyesi, vetëm nga pjesëmarrësit te dhoma. Aktivizimi i fshehtëzimit mund të pengojë funksionimin si duhet të mjaft robotëve dhe urave.</string>

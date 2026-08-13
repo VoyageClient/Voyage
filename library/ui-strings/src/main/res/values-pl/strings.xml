@@ -1046,7 +1046,6 @@
     <string name="command_description_rainbow">Wysyła wiadomość w odcieniach tęczy</string>
     <string name="command_description_rainbow_emote">Wysyła emoji w odcieniach tęczy</string>
     <string name="settings_category_timeline">Oś czasu</string>
-    <string name="settings_category_composer">Edycja wiadomości</string>
     <string name="room_settings_enable_encryption_dialog_title">Aktywować szyfrowanie\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Raz włączone szyfrowanie w pokoju nie może zostać wyłączone. Wiadomości wysłane w zaszyfrowanym pokoju nie są widziane przez serwer, a jedynie przez uczestników w pokoju. Aktywowanie szyfrowania może uniemożliwić wielu botom i mostkom prawidłowe działanie.</string>
     <string name="room_settings_enable_encryption_dialog_submit">Aktywuj szyfrowanie</string>

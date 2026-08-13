@@ -597,7 +597,6 @@
     <string name="settings_advanced_settings">高度な設定</string>
     <string name="choose_locale_current_locale_title">現在の言語</string>
     <string name="choose_locale_other_locales_title">他の利用可能な言語</string>
-    <string name="settings_category_composer">メッセージエディター</string>
     <string name="settings_preferences">環境設定</string>
     <string name="settings_secure_backup_enter_to_setup">この端末で設定</string>
     <string name="settings_secure_backup_reset">セキュアバックアップを再設定</string>

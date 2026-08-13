@@ -1532,7 +1532,6 @@
     <string name="room_settings_enable_encryption_dialog_content">Post ŝalto, ne eblas malŝalti ĉifradon de ĉambro. Mesaĝoj en ĉifrita ĉambro ne estas videblaj al la servilo, nur al la partoprenantoj de la ĉambro. Ŝalto de ĉifrado povus preventi ĝustan funkciadon de multaj pontoj kaj robotoj.</string>
     <string name="room_settings_enable_encryption_dialog_title">Ĉu ŝalti ĉifradon\?</string>
     <string name="room_settings_enable_encryption">Ŝalti tutvojan ĉifradon…</string>
-    <string name="settings_category_composer">Redaktilo de mesaĝoj</string>
     <string name="settings_category_timeline">Historio</string>
     <string name="command_description_rainbow_emote">Sendas la donitan faron en ĉielarkaj koloroj</string>
     <string name="auth_invalid_login_deactivated_account">Ĉi tiu konto malaktiviĝis.</string>

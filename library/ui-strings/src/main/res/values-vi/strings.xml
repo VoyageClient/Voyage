@@ -1495,7 +1495,6 @@
     <string name="room_settings_enable_encryption_dialog_title">Bật mã hóa\?</string>
     <string name="room_settings_enable_encryption_no_permission">Bạn không có quyền bật mã hóa trong phòng này.</string>
     <string name="room_settings_enable_encryption">Bật mã hóa đầu cuối…</string>
-    <string name="settings_category_composer">Trình soạn thảo tin nhắn</string>
     <string name="settings_category_timeline">Dòng thời gian</string>
     <string name="command_description_rainbow_emote">Gửi emote đã cho màu cầu vồng</string>
     <string name="command_description_rainbow">Gửi tin nhắn đã cho có màu cầu vồng</string>

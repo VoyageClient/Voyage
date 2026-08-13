@@ -1191,7 +1191,6 @@
     <string name="command_description_rainbow">Invia il messaggio coi colori dell\'arcobaleno</string>
     <string name="command_description_rainbow_emote">Invia l\'emoticon coi colori dell\'arcobaleno</string>
     <string name="settings_category_timeline">Cronologia</string>
-    <string name="settings_category_composer">Editor messaggi</string>
     <string name="room_settings_enable_encryption">Attiva crittografia E2E…</string>
     <string name="room_settings_enable_encryption_dialog_title">Attivare la crittografia\?</string>
     <string name="room_settings_enable_encryption_dialog_content">Una volta attivata, la crittografia di una stanza non può più essere disattivata. I messaggi inviati in una stanza criptata non possono essere letti dal server ma solo dai partecipanti della stanza. L\'attivazione della crittografia può impedire il funzionamento di molti bot e bridge.</string>

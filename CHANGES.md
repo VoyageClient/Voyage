@@ -116,6 +116,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Slash commands** — added `/jumpto`, `/jumptostart`, `/jumptodate`, `/converttodm`, `/converttoroom`, `/blockquote`, `/greentext`, `/html`, `/massredact`, `/tombstone`, `/download`, `/encrypt`, and `/trans`/`/transme` (trans-flag gradient messages), plus the ability to run slash commands on a reply; `/rainbow` now paints nheko's vivid gradient instead of washed-out CIELAB colors.
 
+- **Sed substitutions** — maubot-style `s/typo/fixed/` built into the composer, so no bot has to be in the room: your own messages are corrected as an edit, everyone else's with a notice reply. Replying to a message aims the substitution at it.
+
 - **Emoji font options** — render emoji with bundled Twemoji, the system emoji font, or a custom emoji font you supply; emoji autocomplete is toggleable.
 
 - **Configurable reactions** — configurable quick reactions that sync across your devices, a compact quick-reactions layout, remote sync of frequent emoji, and freeform reactions by typing any text.

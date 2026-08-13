@@ -443,7 +443,6 @@
     <string name="devices_other_devices">دیگر نشست‌ها</string>
     <string name="room_profile_section_more_notifications">آگاهی‌ها</string>
     <string name="settings_category_timeline">خط زمانی</string>
-    <string name="settings_category_composer">ویرایشگر پیام</string>
     <string name="settings_active_sessions_list">نشست‌های فعّال</string>
     <string name="settings_active_sessions_show_all">نمایش همه نشست‌ها</string>
     <string name="settings_active_sessions_manage">مدیریت نشست‌ها</string>
