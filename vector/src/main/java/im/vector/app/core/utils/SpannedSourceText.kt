@@ -22,6 +22,7 @@ import io.noties.markwon.core.spans.ThematicBreakSpan
 import io.noties.markwon.html.span.SubScriptSpan
 import io.noties.markwon.html.span.SuperScriptSpan
 import me.gujun.android.span.style.CustomTypefaceSpan
+import me.gujun.android.span.style.VerticalPaddingSpan
 import org.matrix.android.sdk.api.session.permalinks.PermalinkService
 import org.matrix.android.sdk.api.util.MatrixItem
 
@@ -62,6 +63,21 @@ fun Spanned.toMarkdownSource(selStart: Int, selEnd: Int): String {
     }
     getSpans(start, end, ThematicBreakSpan::class.java).mapTo(replacements) {
         Replacement(maxOf(getSpanStart(it), start), minOf(getSpanEnd(it), end), "---")
+    }
+    // A paragraph break is drawn as VerticalPaddingSpan padding, so the characters between two
+    // paragraphs are just a newline (or a stranded space) where markdown needs a blank line. Only
+    // separators lying wholly inside the selection count, so a selection ending at a paragraph —
+    // the last one included, its trailing run already trimmed at render — copies no dangling break.
+    val paragraphBounds = getSpans(0, length, VerticalPaddingSpan::class.java)
+            .map { getSpanStart(it) to getSpanEnd(it) }
+            .sortedBy { it.first }
+    for ((previous, next) in paragraphBounds.zipWithNext()) {
+        val gapStart = previous.second
+        val gapEnd = next.first
+        if (gapStart < start || gapEnd > end || gapStart >= gapEnd) continue
+        val gap = subSequence(gapStart, gapEnd).toString()
+        if (!gap.contains('\n') || gap.any { it != '\n' && it != ' ' && it != '\t' }) continue
+        replacements.add(Replacement(gapStart, gapEnd, "\n\n"))
     }
     replacements.sortBy { it.start }
 
