@@ -81,6 +81,7 @@ class RoomsListViewModelTest {
         every { fakeSpaceStateHandler.getSelectedSpaceFlow() } returns flowOf(Optional.empty())
         every { fakeSpaceStateHandler.getCurrentSpace() } returns null
         every { fakeFLowSession.liveRoomSummaries(any(), any()) } returns flowOf(emptyList())
+        fakeSession.fakeRoomService.givenGetRoomCountFlowReturns(0)
 
         val roomA = aRoomSummary("room_a")
         val roomB = aRoomSummary("room_b")

@@ -10,6 +10,7 @@ package im.vector.app.core.session
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import im.vector.app.core.extensions.startSyncing
 import im.vector.app.core.session.clientinfo.UpdateMatrixClientInfoUseCase
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.devices.v2.notification.UpdateNotificationSettingsAccountDataUseCase
 import im.vector.app.test.fakes.FakeContext
@@ -63,6 +64,7 @@ class ConfigureAndStartSessionUseCaseTest {
             quickReactionsDataSource = mockk(relaxed = true),
             redactionPreservationService = mockk(relaxed = true),
             mediaPreviewConfigDataSource = mockk(relaxed = true),
+            vpnGateState = VpnGateState(),
     )
 
     @Before

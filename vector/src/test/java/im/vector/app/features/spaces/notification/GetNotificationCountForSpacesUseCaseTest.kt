@@ -7,11 +7,8 @@
 
 package im.vector.app.features.spaces.notification
 
-import androidx.paging.PagedList
 import im.vector.app.test.fakes.FakeActiveSessionHolder
 import im.vector.app.test.fakes.FakeAutoAcceptInvites
-import im.vector.app.test.fakes.FakeFlowLiveDataConversions
-import im.vector.app.test.fakes.givenAsFlow
 import im.vector.app.test.test
 import io.mockk.every
 import io.mockk.mockk
@@ -25,7 +22,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.matrix.android.sdk.api.query.SpaceFilter
-import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
@@ -34,7 +30,6 @@ internal class GetNotificationCountForSpacesUseCaseTest {
 
     private val fakeActiveSessionHolder = FakeActiveSessionHolder()
     private val fakeAutoAcceptInvites = FakeAutoAcceptInvites()
-    private val fakeFlowLiveDataConversions = FakeFlowLiveDataConversions()
 
     private val getNotificationCountForSpacesUseCase = GetNotificationCountForSpacesUseCase(
             activeSessionHolder = fakeActiveSessionHolder.instance,
@@ -43,7 +38,6 @@ internal class GetNotificationCountForSpacesUseCaseTest {
 
     @Before
     fun setUp() {
-        fakeFlowLiveDataConversions.setup()
         mockkStatic("kotlinx.coroutines.flow.FlowKt")
     }
 
@@ -56,12 +50,10 @@ internal class GetNotificationCountForSpacesUseCaseTest {
     fun `given space filter and auto accept invites when execute then correct notification count is returned`() = runTest {
         // given
         val spaceFilter = SpaceFilter.NoFilter
-        val pagedList = mockk<PagedList<RoomSummary>>()
-        val pagedListFlow = fakeActiveSessionHolder.fakeSession
+        val updateFlow = fakeActiveSessionHolder.fakeSession
                 .fakeRoomService
-                .givenGetPagedRoomSummariesLiveReturns(pagedList)
-                .givenAsFlow()
-        every { pagedListFlow.sample(any<Long>()) } returns pagedListFlow
+                .givenRoomSummaryUpdateFlowEmits()
+        every { updateFlow.sample(any<Long>()) } returns updateFlow
         val expectedNotificationCount = RoomAggregateNotificationCount(
                 notificationCount = 1,
                 highlightCount = 0,
@@ -83,11 +75,7 @@ internal class GetNotificationCountForSpacesUseCaseTest {
             fakeActiveSessionHolder.fakeSession.fakeRoomService.getNotificationCountForRooms(
                     queryParams = match { it.memberships == listOf(Membership.JOIN) && it.spaceFilter == spaceFilter }
             )
-            fakeActiveSessionHolder.fakeSession.fakeRoomService.getPagedRoomSummariesLive(
-                    queryParams = match { it.memberships == listOf(Membership.JOIN) && it.spaceFilter == spaceFilter },
-                    pagedListConfig = any(),
-                    sortOrder = RoomSortOrder.NONE,
-            )
+            fakeActiveSessionHolder.fakeSession.fakeRoomService.getRoomSummaryUpdateFlow()
         }
     }
 
@@ -95,12 +83,10 @@ internal class GetNotificationCountForSpacesUseCaseTest {
     fun `given space filter and show invites when execute then correct notification count is returned`() = runTest {
         // given
         val spaceFilter = SpaceFilter.NoFilter
-        val pagedList = mockk<PagedList<RoomSummary>>()
-        val pagedListFlow = fakeActiveSessionHolder.fakeSession
+        val updateFlow = fakeActiveSessionHolder.fakeSession
                 .fakeRoomService
-                .givenGetPagedRoomSummariesLiveReturns(pagedList)
-                .givenAsFlow()
-        every { pagedListFlow.sample(any<Long>()) } returns pagedListFlow
+                .givenRoomSummaryUpdateFlowEmits()
+        every { updateFlow.sample(any<Long>()) } returns updateFlow
         val notificationCount = RoomAggregateNotificationCount(
                 notificationCount = 1,
                 highlightCount = 0,
@@ -133,11 +119,7 @@ internal class GetNotificationCountForSpacesUseCaseTest {
             fakeActiveSessionHolder.fakeSession.fakeRoomService.getNotificationCountForRooms(
                     queryParams = match { it.memberships == listOf(Membership.JOIN) && it.spaceFilter == spaceFilter }
             )
-            fakeActiveSessionHolder.fakeSession.fakeRoomService.getPagedRoomSummariesLive(
-                    queryParams = match { it.memberships == listOf(Membership.JOIN) && it.spaceFilter == spaceFilter },
-                    pagedListConfig = any(),
-                    sortOrder = RoomSortOrder.NONE,
-            )
+            fakeActiveSessionHolder.fakeSession.fakeRoomService.getRoomSummaryUpdateFlow()
         }
     }
 
@@ -155,11 +137,7 @@ internal class GetNotificationCountForSpacesUseCaseTest {
                 .assertNoValues()
                 .finish()
         verify(inverse = true) {
-            fakeActiveSessionHolder.fakeSession.fakeRoomService.getPagedRoomSummariesLive(
-                    queryParams = any(),
-                    pagedListConfig = any(),
-                    sortOrder = any(),
-            )
+            fakeActiveSessionHolder.fakeSession.fakeRoomService.getRoomSummaryUpdateFlow()
         }
     }
 }
