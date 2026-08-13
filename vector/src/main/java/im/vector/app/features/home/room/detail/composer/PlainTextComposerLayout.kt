@@ -84,6 +84,8 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
+import org.matrix.android.sdk.api.session.room.model.message.getCaption
 import org.matrix.android.sdk.api.session.room.model.message.getFileName
 import org.matrix.android.sdk.api.session.room.send.MatrixItemSpan
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -454,7 +456,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // preview only; the un-pilled [formattedBody] still feeds the edit box below. Linkified like the
         // timeline's reply header, or a bare URL in a plaintext body carries no span and renders as
         // ordinary text here while showing blue everywhere else.
-        val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }?.linkify(null)
+        // An uncaptioned attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
+        val isFilenamePreview = messageContent is MessageWithAttachmentContent && messageContent.getCaption() == null
+        val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }
+                ?.let { if (isFilenamePreview) it else it.linkify(null) }
         val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
             renderedBody.asEmoteBody(event.senderInfo.disambiguatedDisplayName)
         } else {
