@@ -33,12 +33,12 @@ internal interface SignOutAPI {
      * @param loginParams the login parameters
      */
     @Headers("CONNECT_TIMEOUT:60000", "READ_TIMEOUT:60000", "WRITE_TIMEOUT:60000")
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "login")
     suspend fun loginAgain(@Body loginParams: PasswordLoginParams): Credentials
 
     /**
      * Invalidate the access token, so that it can no longer be used for authorization.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "logout")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "logout")
     suspend fun signOut()
 }

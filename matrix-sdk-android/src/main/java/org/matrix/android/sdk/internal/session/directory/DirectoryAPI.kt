@@ -31,7 +31,7 @@ internal interface DirectoryAPI {
      *
      * @param roomAlias the room alias.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "directory/room/{roomAlias}")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "directory/room/{roomAlias}")
     suspend fun getRoomIdByAlias(@Path("roomAlias") roomAlias: String): RoomAliasDescription
 
     /**
@@ -39,7 +39,7 @@ internal interface DirectoryAPI {
      *
      * @param roomId the room id.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "directory/list/room/{roomId}")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "directory/list/room/{roomId}")
     suspend fun getRoomDirectoryVisibility(@Path("roomId") roomId: String): RoomDirectoryVisibilityJson
 
     /**
@@ -48,7 +48,7 @@ internal interface DirectoryAPI {
      * @param roomId the room id.
      * @param body the body containing the new directory visibility
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "directory/list/room/{roomId}")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "directory/list/room/{roomId}")
     suspend fun setRoomDirectoryVisibility(
             @Path("roomId") roomId: String,
             @Body body: RoomDirectoryVisibilityJson
@@ -59,7 +59,7 @@ internal interface DirectoryAPI {
      * @param roomAlias the room alias.
      * @param body the Json body
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "directory/room/{roomAlias}")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "directory/room/{roomAlias}")
     suspend fun addRoomAlias(
             @Path("roomAlias") roomAlias: String,
             @Body body: AddRoomAliasBody
@@ -69,6 +69,6 @@ internal interface DirectoryAPI {
      * Delete a room alias.
      * @param roomAlias the room alias.
      */
-    @DELETE(NetworkConstants.URI_API_PREFIX_PATH_R0 + "directory/room/{roomAlias}")
+    @DELETE(NetworkConstants.URI_API_PREFIX_PATH_V3 + "directory/room/{roomAlias}")
     suspend fun deleteRoomAlias(@Path("roomAlias") roomAlias: String)
 }

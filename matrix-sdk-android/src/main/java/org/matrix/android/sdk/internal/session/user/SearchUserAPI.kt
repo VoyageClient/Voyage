@@ -30,7 +30,7 @@ internal interface SearchUserAPI {
      *
      * @param searchUsersParams the search params.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "user_directory/search")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "user_directory/search")
     suspend fun searchUsers(@Body searchUsersParams: SearchUsersParams): SearchUsersResponse
 
     /**

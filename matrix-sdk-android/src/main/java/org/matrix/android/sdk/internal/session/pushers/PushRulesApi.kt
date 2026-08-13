@@ -27,7 +27,7 @@ internal interface PushRulesApi {
     /**
      * Get all push rules.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "pushrules/")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushrules/")
     suspend fun getAllRules(): GetPushRulesResponse
 
     /**
@@ -37,7 +37,7 @@ internal interface PushRulesApi {
      * @param ruleId the ruleId
      * @param enabledBody the new enable status
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "pushrules/global/{kind}/{ruleId}/enabled")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushrules/global/{kind}/{ruleId}/enabled")
     suspend fun updateEnableRuleStatus(
             @Path("kind") kind: String,
             @Path("ruleId") ruleId: String,
@@ -52,7 +52,7 @@ internal interface PushRulesApi {
      * @param ruleId the ruleId
      * @param actions the actions
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "pushrules/global/{kind}/{ruleId}/actions")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushrules/global/{kind}/{ruleId}/actions")
     suspend fun updateRuleActions(
             @Path("kind") kind: String,
             @Path("ruleId") ruleId: String,
@@ -65,7 +65,7 @@ internal interface PushRulesApi {
      * @param kind the notification kind (sender, room...)
      * @param ruleId the ruleId
      */
-    @DELETE(NetworkConstants.URI_API_PREFIX_PATH_R0 + "pushrules/global/{kind}/{ruleId}")
+    @DELETE(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushrules/global/{kind}/{ruleId}")
     suspend fun deleteRule(
             @Path("kind") kind: String,
             @Path("ruleId") ruleId: String
@@ -78,7 +78,7 @@ internal interface PushRulesApi {
      * @param ruleId the ruleId.
      * @param rule the rule to add.
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "pushrules/global/{kind}/{ruleId}")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushrules/global/{kind}/{ruleId}")
     suspend fun addRule(
             @Path("kind") kind: String,
             @Path("ruleId") ruleId: String,

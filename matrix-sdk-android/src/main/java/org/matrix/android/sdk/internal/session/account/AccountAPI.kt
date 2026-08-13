@@ -26,7 +26,7 @@ internal interface AccountAPI {
      * Ask the homeserver to change the password with the provided new password.
      * @param params parameters to change password.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/password")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/password")
     suspend fun changePassword(@Body params: ChangePasswordParams)
 
     /**
@@ -34,6 +34,6 @@ internal interface AccountAPI {
      *
      * @param params the deactivate account params
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/deactivate")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/deactivate")
     suspend fun deactivate(@Body params: DeactivateAccountParams)
 }
