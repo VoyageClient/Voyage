@@ -22,6 +22,6 @@ import retrofit2.http.GET
 
 internal interface VoipApi {
 
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "voip/turnServer")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "voip/turnServer")
     suspend fun getTurnServer(): TurnServerResponse
 }

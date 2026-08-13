@@ -30,7 +30,7 @@ internal interface SyncAPI {
     /**
      * Set all the timeouts to 1 minute by default.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "sync")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "sync")
     suspend fun sync(
             @QueryMap params: Map<String, String>,
             @Header(TimeOutInterceptor.CONNECT_TIMEOUT) connectTimeOut: Long = TimeOutInterceptor.DEFAULT_LONG_TIMEOUT,
@@ -42,7 +42,7 @@ internal interface SyncAPI {
      * Set all the timeouts to 1 minute by default.
      */
     @Streaming
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "sync")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "sync")
     fun syncStream(
             @QueryMap params: Map<String, String>,
             @Header(TimeOutInterceptor.CONNECT_TIMEOUT) connectTimeOut: Long = TimeOutInterceptor.DEFAULT_LONG_TIMEOUT,

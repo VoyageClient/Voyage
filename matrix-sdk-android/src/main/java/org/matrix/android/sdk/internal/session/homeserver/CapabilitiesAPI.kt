@@ -24,7 +24,7 @@ internal interface CapabilitiesAPI {
     /**
      * Request the homeserver capabilities.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "capabilities")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "capabilities")
     suspend fun getCapabilities(): GetCapabilitiesResult
 
     /**

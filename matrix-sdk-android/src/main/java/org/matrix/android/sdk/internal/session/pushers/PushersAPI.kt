@@ -27,7 +27,7 @@ internal interface PushersAPI {
      *
      * Ref: https://matrix.org/docs/spec/client_server/latest#get-matrix-client-r0-pushers
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "pushers")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushers")
     suspend fun getPushers(): GetPushersResponse
 
     /**
@@ -36,6 +36,6 @@ internal interface PushersAPI {
      *
      * Ref: https://matrix.org/docs/spec/client_server/latest#post-matrix-client-r0-pushers-set
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "pushers/set")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "pushers/set")
     suspend fun setPusher(@Body jsonPusher: JsonPusher)
 }

@@ -45,21 +45,21 @@ internal interface CryptoApi {
      * Get the devices list
      * Doc: https://matrix.org/docs/spec/client_server/latest#get-matrix-client-r0-devices
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "devices")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "devices")
     suspend fun getDevices(): DevicesListResponse
 
     /**
      * Get the device info by id
      * Doc: https://matrix.org/docs/spec/client_server/latest#get-matrix-client-r0-devices-deviceid
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "devices/{deviceId}")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "devices/{deviceId}")
     suspend fun getDeviceInfo(@Path("deviceId") deviceId: String): DeviceInfo
 
     /**
      * Upload device and one-time keys.
      * @param body the keys to be sent.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "keys/upload")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "keys/upload")
     suspend fun uploadKeys(@Body body: JsonDict): KeysUploadResponse
 
     /**
@@ -68,7 +68,7 @@ internal interface CryptoApi {
      *
      * @param params the params.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "keys/query")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "keys/query")
     suspend fun downloadKeysForUsers(@Body params: KeysQueryBody): KeysQueryResponse
 
     /**
@@ -104,7 +104,7 @@ internal interface CryptoApi {
      *
      * @param body the Json body.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "keys/claim")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "keys/claim")
     suspend fun claimOneTimeKeysForUsersDevices(@Body body: KeysClaimBody): KeysClaimResponse
 
     /**
@@ -115,7 +115,7 @@ internal interface CryptoApi {
      * @param transactionId the transaction ID for this event
      * @param body the body
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "sendToDevice/{eventType}/{txnId}")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "sendToDevice/{eventType}/{txnId}")
     suspend fun sendToDevice(
             @Path("eventType") eventType: String,
             @Path("txnId") transactionId: String,
@@ -129,7 +129,7 @@ internal interface CryptoApi {
      * @param deviceId the device id
      * @param params the deletion parameters
      */
-    @HTTP(path = NetworkConstants.URI_API_PREFIX_PATH_R0 + "devices/{device_id}", method = "DELETE", hasBody = true)
+    @HTTP(path = NetworkConstants.URI_API_PREFIX_PATH_V3 + "devices/{device_id}", method = "DELETE", hasBody = true)
     suspend fun deleteDevice(
             @Path("device_id") deviceId: String,
             @Body params: DeleteDeviceParams
@@ -153,7 +153,7 @@ internal interface CryptoApi {
      * @param deviceId the device id
      * @param params the params
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "devices/{device_id}")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "devices/{device_id}")
     suspend fun updateDeviceInfo(
             @Path("device_id") deviceId: String,
             @Body params: UpdateDeviceInfoBody
@@ -166,7 +166,7 @@ internal interface CryptoApi {
      * @param oldToken the start token.
      * @param newToken the up-to token.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "keys/changes")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "keys/changes")
     suspend fun getKeyChanges(
             @Query("from") oldToken: String,
             @Query("to") newToken: String

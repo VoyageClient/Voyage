@@ -37,19 +37,19 @@ internal interface ProfileAPI {
      * If server is configured as limit_profile_requests_to_users_who_share_rooms: true then response can be HTTP 403.
      * @param userId the user id to fetch profile info
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "profile/{userId}")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "profile/{userId}")
     suspend fun getProfile(@Path("userId") userId: String): JsonDict
 
     /**
      * List all 3PIDs linked to the Matrix user account.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/3pid")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/3pid")
     suspend fun getThreePIDs(): AccountThreePidsResponse
 
     /**
      * Change user display name.
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "profile/{userId}/displayname")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "profile/{userId}/displayname")
     suspend fun setDisplayName(
             @Path("userId") userId: String,
             @Body body: SetDisplayNameBody
@@ -58,7 +58,7 @@ internal interface ProfileAPI {
     /**
      * Change user avatar url.
      */
-    @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "profile/{userId}/avatar_url")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_V3 + "profile/{userId}/avatar_url")
     suspend fun setAvatarUrl(
             @Path("userId") userId: String,
             @Body body: SetAvatarUrlBody
@@ -113,13 +113,13 @@ internal interface ProfileAPI {
     /**
      * Ref: https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-account-3pid-email-requesttoken
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/3pid/email/requestToken")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/3pid/email/requestToken")
     suspend fun addEmail(@Body body: AddEmailBody): AddEmailResponse
 
     /**
      * Ref: https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-account-3pid-msisdn-requesttoken
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/3pid/msisdn/requestToken")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/3pid/msisdn/requestToken")
     suspend fun addMsisdn(@Body body: AddMsisdnBody): AddMsisdnResponse
 
     /**
@@ -134,12 +134,12 @@ internal interface ProfileAPI {
     /**
      * Ref: https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-account-3pid-add
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/3pid/add")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/3pid/add")
     suspend fun finalizeAddThreePid(@Body body: FinalizeAddThreePidBody)
 
     /**
      * Ref: https://matrix.org/docs/spec/client_server/r0.6.1#post-matrix-client-r0-account-3pid-delete
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/3pid/delete")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/3pid/delete")
     suspend fun deleteThreePid(@Body body: DeleteThreePidBody): DeleteThreePidResponse
 }

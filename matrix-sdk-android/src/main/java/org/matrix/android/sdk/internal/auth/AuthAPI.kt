@@ -68,7 +68,7 @@ internal interface AuthAPI {
      * Register to the homeserver, or get error 401 with a RegistrationFlowResponse object if registration is incomplete.
      * Ref: https://matrix.org/docs/spec/client_server/latest#account-registration-and-management.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "register")
     suspend fun register(@Body registrationParams: RegistrationParams): Credentials
 
     /**
@@ -76,13 +76,13 @@ internal interface AuthAPI {
      * method to perform other custom stages
      * Ref: https://matrix.org/docs/spec/client_server/latest#account-registration-and-management
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "register")
     suspend fun registerCustom(@Body registrationCustomParams: RegistrationCustomParams): Credentials
 
     /**
      * Checks to see if a username is available, and valid, for the server.
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register/available")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "register/available")
     suspend fun registerAvailable(@Query("username") username: String): Availability
 
     /**
@@ -91,7 +91,7 @@ internal interface AuthAPI {
      * This API may return keys which are not limited to displayname or avatar_url.
      * @param userId the user id to fetch profile info
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "profile/{userId}")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "profile/{userId}")
     suspend fun getProfile(@Path("userId") userId: String): JsonDict
 
     /**
@@ -99,7 +99,7 @@ internal interface AuthAPI {
      * Ref: https://gist.github.com/jryans/839a09bf0c5a70e2f36ed990d50ed928
      * https://github.com/matrix-org/matrix-doc/pull/2290
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register/{threePid}/requestToken")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "register/{threePid}/requestToken")
     suspend fun add3Pid(
             @Path("threePid") threePid: String,
             @Body params: AddThreePidRegistrationParams
@@ -118,7 +118,7 @@ internal interface AuthAPI {
      * Get the supported login flow.
      * Ref: https://matrix.org/docs/spec/client_server/latest#get-matrix-client-r0-login
      */
-    @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_V3 + "login")
     suspend fun getLoginFlows(): LoginFlowResponse
 
     /**
@@ -128,16 +128,16 @@ internal interface AuthAPI {
      * @param loginParams the login parameters
      */
     @Headers("CONNECT_TIMEOUT:60000", "READ_TIMEOUT:60000", "WRITE_TIMEOUT:60000")
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "login")
     suspend fun login(@Body loginParams: PasswordLoginParams): Credentials
 
     // Unfortunately we cannot use interface for @Body parameter, so I duplicate the method for the type TokenLoginParams
     @Headers("CONNECT_TIMEOUT:60000", "READ_TIMEOUT:60000", "WRITE_TIMEOUT:60000")
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "login")
     suspend fun login(@Body loginParams: TokenLoginParams): Credentials
 
     @Headers("CONNECT_TIMEOUT:60000", "READ_TIMEOUT:60000", "WRITE_TIMEOUT:60000")
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "login")
     suspend fun login(@Body loginParams: JsonDict): Credentials
 
     /**
@@ -150,12 +150,12 @@ internal interface AuthAPI {
     /**
      * Ask the homeserver to reset the password associated with the provided email.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/password/email/requestToken")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/password/email/requestToken")
     suspend fun resetPassword(@Body params: AddThreePidRegistrationParams): AddThreePidRegistrationResponse
 
     /**
      * Ask the homeserver to reset the password with the provided new password once the email is validated.
      */
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/password")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/password")
     suspend fun resetPasswordMailConfirmed(@Body params: ResetPasswordMailConfirmed)
 }
