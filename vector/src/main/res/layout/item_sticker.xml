@@ -4,7 +4,6 @@
     android:id="@+id/stickerImage"
     android:layout_width="match_parent"
     android:layout_height="80dp"
-    android:background="?attr/selectableItemBackgroundBorderless"
     android:contentDescription="@null"
     android:padding="6dp"
     android:scaleType="fitCenter"
