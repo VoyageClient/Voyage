@@ -14,6 +14,7 @@ import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.resources.UserPreferencesProvider
 import im.vector.app.features.home.room.detail.timeline.STATE_ROOM_VOICE_BROADCAST_INFO
 import im.vector.app.features.home.room.detail.timeline.helper.TimelineEventVisibilityHelper
+import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.redaction.preservation.RedactedContentRestorer
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -36,6 +37,7 @@ class TimelineItemFactory @Inject constructor(
         private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper,
         private val userPreferencesProvider: UserPreferencesProvider,
         private val redactedContentRestorer: RedactedContentRestorer,
+        private val sendingMediaGate: SendingMediaGate,
 ) {
 
     /**
@@ -156,6 +158,16 @@ class TimelineItemFactory @Inject constructor(
         }
         if (computedModel != null) {
             return computedModel
+        }
+        // Held back until its thumbnail has decoded — a blank row, not a debug item.
+        if (sendingMediaGate.isHolding(event.eventId)) {
+            return buildEmptyItem(
+                    event,
+                    params.prevEvent,
+                    params.highlightedEventId,
+                    params.rootThreadEventId,
+                    params.isFromThreadTimeline()
+            )
         }
         // No factory produced a model. When the event is the navigation target (e.g. tapping
         // "In reply to" on a reaction / membership / otherwise unrendered event) it must still

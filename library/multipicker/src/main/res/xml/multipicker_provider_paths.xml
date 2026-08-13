@@ -3,4 +3,8 @@
     <files-path
         name="external_files"
         path="media" />
+    <!-- SendMediaMaterializer's copies of picked media, so a still-sending attachment can be opened. -->
+    <files-path
+        name="send_cache"
+        path="send_cache" />
 </paths>

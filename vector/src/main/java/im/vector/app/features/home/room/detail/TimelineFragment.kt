@@ -74,6 +74,7 @@ import im.vector.app.core.extensions.filterDirectionOverrides
 import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.setTextOrHide
+import im.vector.app.core.files.asExternallyShareable
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.glide.GlideRequests
 import im.vector.app.core.intent.getFilenameFromUri
@@ -678,11 +679,14 @@ class TimelineFragment :
     }
 
     private fun openFile(action: RoomDetailViewEvents.OpenFile) {
+        // A still-sending attachment is opened straight from the copy we hold, and that path cannot
+        // be handed to another app as-is.
+        val uri = action.uri.asExternallyShareable(requireContext())
         val intent = Intent(Intent.ACTION_VIEW).apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                setDataAndTypeAndNormalize(action.uri, action.mimeType)
+                setDataAndTypeAndNormalize(uri, action.mimeType)
             } else {
-                setDataAndType(action.uri, action.mimeType)
+                setDataAndType(uri, action.mimeType)
             }
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         }
