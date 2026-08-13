@@ -1099,10 +1099,13 @@ class MessageItemFactory @Inject constructor(
     }
 
     private fun MessageContentWithFormattedBody.getHtmlBody(): CharSequence {
+        // Strip the reply fallback (embedded <mx-reply>, or the legacy "> <@user:server> …" body prefix);
+        // the replied-to preview is rendered separately by InReplyToView.
         return matrixFormattedBody
+                ?.let { processBodyOfReplyToEventUseCase.stripExistingMxReply(it) }
                 ?.let { htmlCompressor.compress(it) }
                 ?.let { htmlRenderer.get().render(it, pillsPostProcessor) }
-                ?: body
+                ?: body.let { if (relatesTo?.inReplyTo?.eventId != null) ContentUtils.extractUsefulTextFromReply(it) else it }
     }
 
     private fun buildRedactedItem(

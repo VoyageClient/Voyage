@@ -48,6 +48,7 @@ import im.vector.app.features.home.room.detail.timeline.format.NoticeEventFormat
 import im.vector.app.features.home.room.detail.timeline.helper.MatrixItemColorProvider
 import im.vector.app.features.home.room.detail.timeline.image.buildImageContentRendererData
 import im.vector.app.features.home.room.detail.timeline.render.RichMessageBodyRenderer
+import im.vector.app.features.home.room.detail.timeline.tools.asEmoteBody
 import im.vector.app.features.home.room.detail.timeline.tools.attachmentPreviewText
 import im.vector.app.features.home.room.detail.timeline.tools.linkify
 import im.vector.app.features.home.room.detail.timeline.tools.prepareForDisplay
@@ -409,6 +410,10 @@ class PlainTextComposerLayout @JvmOverloads constructor(
             // to a debug line (known type) or the accent "not handled" notice (unknown type).
             messageContent == null -> noticeEventFormatter.format(event, isDm = false)
                     ?: noticeEventFormatter.formatDebugOrUnhandled(event.root)
+            // Text / notice / emote without a formatted body: drop the legacy "> <@user:server> …"
+            // reply fallback, which the formatted path below strips via <mx-reply>.
+            messageContent.relatesTo?.inReplyTo?.eventId != null ->
+                ContentUtils.extractUsefulTextFromReply(messageContent.body, (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody)
             else -> messageContent.body
         }
         var formattedBody: CharSequence? = null
@@ -449,7 +454,12 @@ class PlainTextComposerLayout @JvmOverloads constructor(
         // preview only; the un-pilled [formattedBody] still feeds the edit box below. Linkified like the
         // timeline's reply header, or a bare URL in a plaintext body carries no span and renders as
         // ordinary text here while showing blue everywhere else.
-        val previewBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }?.linkify(null)
+        val renderedBody = (formattedBody ?: nonFormattedBody)?.let { textRenderer.render(it) }?.linkify(null)
+        val previewBody = if (renderedBody != null && !event.root.isRedacted() && messageContent?.msgType == MessageType.MSGTYPE_EMOTE) {
+            renderedBody.asEmoteBody(event.senderInfo.disambiguatedDisplayName)
+        } else {
+            renderedBody
+        }
         eventHtmlRenderer.setTextWithPlugins(views.composerRelatedMessageContent, previewBody?.prepareForDisplay())
         // Markwon's CorePlugin.afterSetText installs a LinkMovementMethod when the view has none; the
         // preview's links stay inert, as they are in the reply header.
