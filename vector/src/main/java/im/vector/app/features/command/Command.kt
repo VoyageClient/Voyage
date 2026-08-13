@@ -74,7 +74,7 @@ enum class Command(
     TOMBSTONE("/tombstone", null, "[room-id] [reason]", CommonStrings.command_description_tombstone, false, false),
     TABLE_FLIP("/tableflip", null, "<message>", CommonStrings.command_description_table_flip, false, true),
     JUMP_TO_START("/jumptostart", null, "", CommonStrings.command_description_jump_to_start, false, false),
-    JUMP_TO("/jumpto", null, "<event-id>", CommonStrings.command_description_jump_to, false, false),
+    JUMP_TO("/jumpto", null, "<event-id|link>", CommonStrings.command_description_jump_to, false, false),
     JUMP_TO_DATE("/jumptodate", null, "<YYYY-MM-DD>", CommonStrings.command_description_jump_to_date, false, false),
     ENCRYPT("/encrypt", null, "[message]", CommonStrings.command_description_encrypt, false, true),
     DOWNLOAD("/download", null, "<mxc-url>", CommonStrings.command_description_download, false, true);

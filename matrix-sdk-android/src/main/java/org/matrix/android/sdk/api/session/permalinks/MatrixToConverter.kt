@@ -33,6 +33,8 @@ object MatrixToConverter {
         return when {
             // URL is already a matrix.to
             uriString.startsWith(PermalinkService.MATRIX_TO_URL_BASE) -> uriString
+            // MSC2312 matrix: URI
+            uriString.startsWith(PermalinkService.MATRIX_URI_SCHEME_PREFIX, ignoreCase = true) -> convertMatrixUri(uriString)
             // Web or client url
             SUPPORTED_PATHS.any { it in uriString } -> {
                 val path = SUPPORTED_PATHS.first { it in uriString }
@@ -42,6 +44,47 @@ object MatrixToConverter {
             else -> null
         }
     }
+
+    /**
+     * Convert a matrix: URI to its matrix.to equivalent, e.g.
+     * - matrix:u/alice:example.org                            ->  https://matrix.to/#/@alice:example.org
+     * - matrix:r/room:example.org/e/$abcdef?via=example.org   ->  https://matrix.to/#/#room:example.org/$abcdef?via=example.org
+     */
+    private fun convertMatrixUri(uriString: String): String? {
+        // Fragments are reserved by MSC2312 and an authority carries no meaning for us, but neither may break parsing.
+        val body = uriString.substringAfter(':').substringBefore('#')
+        val path = body.substringBefore('?')
+        val query = body.substringAfter('?', "")
+        var segments = path.split('/').filter { it.isNotEmpty() }
+        // matrix://u/alice:example.org, written without an authority, is common enough to accept.
+        if (path.startsWith("//") && segments.firstOrNull() !in ENTITY_SIGILS.keys) {
+            segments = segments.drop(1)
+        }
+        if (segments.size != 2 && segments.size != 4) return null
+        val entity = segments[1].withSigil(ENTITY_SIGILS[segments[0]] ?: return null)
+        val child = if (segments.size == 4) {
+            // An event only lives under a room, never under a user.
+            if (segments[2] !in EVENT_QUALIFIERS || entity.startsWith("@")) return null
+            "/" + segments[3].withSigil("$")
+        } else {
+            ""
+        }
+        return PermalinkService.MATRIX_TO_URL_BASE + entity + child + if (query.isEmpty()) "" else "?$query"
+    }
+
+    // Sigils are dropped in matrix: URIs, but tolerate a sender that kept them.
+    private fun String.withSigil(sigil: String) = if (startsWith(sigil)) this else sigil + this
+
+    // The `user`/`room`/`event` qualifiers are deprecated by MSC2312: parsed, never generated.
+    private val ENTITY_SIGILS = mapOf(
+            "u" to "@",
+            "user" to "@",
+            "r" to "#",
+            "room" to "#",
+            "roomid" to "!"
+    )
+
+    private val EVENT_QUALIFIERS = setOf("e", "event")
 
     private val SUPPORTED_PATHS = listOf(
             "/#/room/",

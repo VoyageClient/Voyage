@@ -63,6 +63,22 @@ class CommandParserTest {
         test("/kick", ParsedCommand.ErrorSyntax(Command.KICK_USER))
     }
 
+    @Test
+    fun parseSlashCommandJumpTo() {
+        test("/jumpto \$DQX4VfNeVDCt83Fo5apF862XoS101ZW-xhQRbrE9oR8", ParsedCommand.JumpToEvent("\$DQX4VfNeVDCt83Fo5apF862XoS101ZW-xhQRbrE9oR8"))
+
+        val matrixTo = "https://matrix.to/#/!l6JeugDLfp4TTrYZORQJEPqCSCfWlFoy26BI-WP3SU4/" +
+                "\$DQX4VfNeVDCt83Fo5apF862XoS101ZW-xhQRbrE9oR8?via=matrix.org"
+        test("/jumpto $matrixTo", ParsedCommand.JumpToPermalink(matrixTo))
+
+        val matrixUri = "matrix:roomid/l6JeugDLfp4TTrYZORQJEPqCSCfWlFoy26BI-WP3SU4/e/DQX4VfNeVDCt83Fo5apF862XoS101ZW-xhQRbrE9oR8"
+        test("/jumpto $matrixUri", ParsedCommand.JumpToPermalink(matrixUri))
+
+        test("/jumpto", ParsedCommand.ErrorSyntax(Command.JUMP_TO))
+        test("/jumpto not-an-event", ParsedCommand.ErrorSyntax(Command.JUMP_TO))
+        test("/jumpto https://matrix.to/#/@alice:example.org", ParsedCommand.ErrorSyntax(Command.JUMP_TO))
+    }
+
     private fun test(message: String, expectedResult: ParsedCommand) {
         val commandParser = CommandParser(fakeVectorPreferences.instance)
         val result = commandParser.parseSlashCommand(message, null, false)

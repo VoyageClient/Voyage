@@ -31,13 +31,14 @@ internal class DefaultRoomGetter @Inject constructor(
                     ?: peekedRoomManager.get(roomId)
 
     override fun getDirectRoomWith(otherUserId: String): String? {
-        return database.roomSummaryQueries.selectAll().executeAsList()
-                .firstOrNull { dm ->
-                    dm.is_direct == 1L &&
-                            dm.membership_str == Membership.JOIN.name &&
-                            !RoomLocalEcho.isLocalEchoId(dm.room_id) &&
-                            dm.other_member_ids.splitToList().let { it.size == 1 && it.first() == otherUserId }
-                }
+        val joinedDirects = database.roomSummaryQueries.selectAll().executeAsList().filter {
+            it.is_direct == 1L && it.membership_str == Membership.JOIN.name && !RoomLocalEcho.isLocalEchoId(it.room_id)
+        }
+        // What m.direct says this room is a DM with wins: such a room may well have picked up more members since.
+        return (joinedDirects.firstOrNull { it.direct_user_id == otherUserId }
+                ?: joinedDirects.firstOrNull { dm ->
+                    dm.other_member_ids.splitToList().let { it.size == 1 && it.first() == otherUserId }
+                })
                 ?.room_id
     }
 }

@@ -226,6 +226,16 @@
                     android:scheme="element" />
 
             </intent-filter>
+
+            <!-- Separate filter: a scheme listed alongside the ones above would be crossed with their hosts. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="matrix" />
+            </intent-filter>
         </activity-alias>
 
         <!-- exported="true" is required for the share functionality-->

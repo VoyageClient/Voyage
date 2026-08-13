@@ -97,6 +97,7 @@ import org.matrix.android.sdk.api.session.crypto.verification.SasVerificationTra
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
+import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoom
 import org.matrix.android.sdk.api.session.terms.TermsService
@@ -286,6 +287,11 @@ class DefaultNavigator @Inject constructor(
     }
 
     override fun openMatrixToBottomSheet(fragmentActivity: FragmentActivity, link: String, origin: OriginOfMatrixTo) {
+        // A user always gets the full profile screen, never the card: the card's only action is to start a DM.
+        (PermalinkParser.parse(link) as? PermalinkData.UserLink)?.let {
+            openRoomMemberProfile(userId = it.userId, roomId = null, context = fragmentActivity)
+            return
+        }
         if (fragmentActivity !is MatrixToBottomSheet.InteractionListener) {
             fatalError("Caller context should implement MatrixToBottomSheet.InteractionListener", vectorPreferences.failFast())
             return

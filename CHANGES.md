@@ -88,6 +88,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Rich room topics (MSC3765)** — room and space topics now support formatted content: their HTML body is rendered like timeline messages (falling back to markdown when a topic is plain text only), and editing a topic publishes the HTML rendering alongside the plain text so other clients can show it too. The room IDs, aliases and user IDs in a topic show as tappable pills (previously only the homeserver part of an alias was a link), and in the room profile tapping a matrix link opens the room/user in-app while other links open in the browser.
 
+- **matrix: links (MSC2312)** — `matrix:` URIs to users, rooms and events open in the app, both from other apps and when tapped in a message. `/jumpto` also takes a link now, so it can jump to an event in another room, not just one in the room you're in.
+
 - **Timeline polish** — consecutive hidden events collapse into a single "N hidden events" tile, overhauled state-change notices, room-list previews that reflect message edits, an always-show-timestamps option, and a jump-to-present button that returns to the message you jumped from.
 
 - **Direction-override (RLO) spoofing protection** — hostile Unicode direction-override characters in display names, messages, mention pills, and room names no longer flip the surrounding text backwards (a trick used to spoof user IDs and file extensions); they now show as a visible placeholder box instead. Genuine right-to-left text is unaffected.

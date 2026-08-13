@@ -81,6 +81,8 @@ import im.vector.app.features.imagepack.picker.StickerPickerBottomSheet
 import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.matrixto.OriginOfMatrixTo
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.permalink.NavigationInterceptor
+import im.vector.app.features.permalink.PermalinkHandler
 import im.vector.app.features.poll.PollMode
 import im.vector.app.features.reactions.EmojiKeyboardController
 import im.vector.app.features.redaction.MassRedactionManager
@@ -95,6 +97,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.room.model.message.ImageInfo
@@ -125,6 +128,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     @Inject lateinit var mediaContentRevealManager: MediaContentRevealManager
     @Inject lateinit var massRedactionManager: MassRedactionManager
     @Inject lateinit var pgpKeyStore: im.vector.app.features.pgp.PgpKeyStore
+    @Inject lateinit var permalinkHandler: PermalinkHandler
 
     private val roomId: String get() = withState(timelineViewModel) { it.roomId }
 
@@ -226,6 +230,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                 }
                 is MessageComposerViewEvents.InsertUserDisplayName -> insertUserDisplayNameInTextEditor(it.userId)
                 is MessageComposerViewEvents.JumpToEvent -> handleJumpToEvent(it)
+                is MessageComposerViewEvents.JumpToPermalink -> handleJumpToPermalink(it)
                 is MessageComposerViewEvents.LaunchPgpInteraction -> {
                     lockSendButton = false
                     launchPgpInteraction(it.pendingIntent)
@@ -755,6 +760,22 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             return
         }
         timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true, toRoomStart = event.toRoomStart))
+    }
+
+    private fun handleJumpToPermalink(event: MessageComposerViewEvents.JumpToPermalink) {
+        lockSendButton = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isHandled = permalinkHandler.launch(requireActivity(), event.link, object : NavigationInterceptor {
+                override fun navToRoom(roomId: String?, eventId: String?, deepLink: Uri?, rootThreadEventId: String?): Boolean {
+                    if (roomId != this@MessageComposerFragment.roomId || eventId == null) return false
+                    timelineViewModel.handle(RoomDetailAction.NavigateToEvent(eventId, highlight = true))
+                    return true
+                }
+            })
+            if (!isHandled) {
+                showSnackWithMessage(getString(CommonStrings.permalink_malformed))
+            }
+        }
     }
 
     private val contentAttachmentActivityResultLauncher = registerStartForActivityResult { activityResult ->
