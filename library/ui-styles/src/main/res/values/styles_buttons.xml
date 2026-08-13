@@ -13,7 +13,7 @@
     <style name="Widget.Vector.Button.CallToAction" parent="Widget.Vector.Button">
         <item name="android:backgroundTint">@color/button_background_tint_selector</item>
         <item name="backgroundTint">@color/button_background_tint_selector</item>
-        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textColor">?vctr_content_on_accent</item>
     </style>
 
     <style name="Widget.Vector.Button.Destructive">
@@ -71,6 +71,17 @@
     </style>
 
     <style name="Widget.Vector.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
+        <item name="backgroundTint">?vctr_accent_fill</item>
+        <item name="tint">?vctr_content_on_accent</item>
+        <!-- Without this the elevation overlay washes the fill towards grey on dark themes. -->
+        <item name="materialThemeOverlay">@style/ThemeOverlay.Vector.NoElevationOverlay</item>
+    </style>
+
+    <style name="ThemeOverlay.Vector.NoElevationOverlay" parent="">
+        <item name="elevationOverlayEnabled">false</item>
+    </style>
+
+    <style name="Widget.Vector.FloatingActionButton.Squircle">
         <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.Material3.FloatingActionButton</item>
     </style>
 

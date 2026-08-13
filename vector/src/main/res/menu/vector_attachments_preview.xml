@@ -8,21 +8,21 @@
         android:id="@+id/attachmentsPreviewRemoveAction"
         android:icon="@drawable/ic_delete"
         android:title="@string/action_delete"
-        app:iconTint="?colorOnPrimary"
+        app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/attachmentsPreviewCompressionAction"
         android:icon="@drawable/ic_compression"
         android:title="@string/attachment_compression_title"
-        app:iconTint="?colorOnPrimary"
+        app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/attachmentsPreviewEditAction"
         android:icon="@drawable/ic_edit"
         android:title="@string/edit"
-        app:iconTint="?colorOnPrimary"
+        app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
 </menu>

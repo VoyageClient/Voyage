@@ -49,7 +49,9 @@
         <item name="vctr_list_separator">@color/list_divider_color_sc_light</item>
         <item name="vctr_list_separator_system">?vctr_list_separator</item>
         <item name="vctr_list_separator_on_surface">?vctr_list_separator</item>
-        <item name="vctr_unread_background">?colorAccent</item>
+        <item name="vctr_accent_fill">?colorAccent</item>
+        <item name="vctr_unread_background">?vctr_accent_fill</item>
+        <item name="vctr_unread_text">?vctr_content_on_accent</item>
 
         <!-- Material color -->
         <item name="colorPrimary">?colorAccent</item>
@@ -98,7 +100,7 @@
         <item name="code_block_bg_color">@color/code_background_sc_light</item>
         <item name="quote_bar_color">?vctr_content_quaternary</item>
         <item name="vctr_jump_to_bottom_bg_tint">?colorAccent</item>
-        <item name="vctr_jump_to_bottom_icon_tint">@android:color/white</item>
+        <item name="vctr_jump_to_bottom_icon_tint">?vctr_content_on_accent</item>
         <!-- Exactly as SchildiChat: opaque grey (like text_color_secondary_sc_light, without alpha). -->
         <item name="vctr_jump_to_bottom_badge_bg_tint">#737373</item>
         <item name="vctr_jump_to_bottom_badge_text_tint">@android:color/white</item>

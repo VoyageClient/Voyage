@@ -32,6 +32,7 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
+import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -112,6 +113,7 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
         get() = views.coordinatorLayout
 
     override fun initUiAndData() {
+        makeSystemBarsTransparent()
         sourceUri = intent.getStringExtra(EXTRA_SOURCE_URI)?.toUri() ?: run { finish(); return }
         displayName = intent.getStringExtra(EXTRA_DISPLAY_NAME)
         animatedFormat = intent.getStringExtra(EXTRA_ANIMATED_FORMAT)?.let { name ->
@@ -126,10 +128,10 @@ class VideoEditorActivity : VectorBaseActivity<ActivityVideoEditorBinding>() {
                 if (isAnimated) CommonStrings.animated_image_editor_exporting else CommonStrings.video_editor_exporting
         )
 
-        // This activity's theme has no accent variant, so ?colorAccent resolves to the default
-        // green; ThemeUtils reads the configured application theme instead.
-        val accent = ThemeUtils.getColor(this, com.google.android.material.R.attr.colorAccent)
-        views.videoEditorSaveButton.backgroundTintList = ColorStateList.valueOf(accent)
+        val accent = ThemeUtils.getColorFromContextTheme(this, com.google.android.material.R.attr.colorAccent)
+        val (fill, onFill) = ThemeUtils.accentFillOnDarkSurface(this)
+        views.videoEditorSaveButton.backgroundTintList = ColorStateList.valueOf(fill)
+        ImageViewCompat.setImageTintList(views.videoEditorSaveButton, ColorStateList.valueOf(onFill))
         tintProgressBar(accent)
         views.videoEditorSaveButton.setOnClickListener { save() }
         views.videoEditorExportCancel.setOnClickListener { exportJob?.cancel() }

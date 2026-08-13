@@ -19,8 +19,8 @@
         <item name="code_block_bg_color">#19ffffff</item>
         <item name="vctr_jump_to_bottom_bg_tint">#FFFFFF</item>
         <item name="vctr_jump_to_bottom_icon_tint">@android:color/black</item>
-        <item name="vctr_jump_to_bottom_badge_bg_tint">?colorAccent</item>
-        <item name="vctr_jump_to_bottom_badge_text_tint">@android:color/white</item>
+        <item name="vctr_jump_to_bottom_badge_bg_tint">?vctr_accent_fill</item>
+        <item name="vctr_jump_to_bottom_badge_text_tint">?vctr_content_on_accent</item>
         <item name="riotx_unread_unimportant_room_badge">?vctr_content_secondary</item>
         <item name="sc_message_bg_incoming">@color/sc_message_bg_incoming_black</item>
         <item name="sc_message_bg_outgoing">@color/sc_message_bg_outgoing_black</item>

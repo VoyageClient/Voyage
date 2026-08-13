@@ -631,4 +631,1008 @@
         <item name="vctr_presence_indicator_online">?colorAccent</item>
     </style>
 
+    <style name="Vector.BottomSheet.SC.White">
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.White">
+        <item name="android:colorAccent">@color/mono_accent_light</item>
+        <item name="colorAccent">@color/mono_accent_light</item>
+        <item name="vctr_accent">@color/mono_accent_light</item>
+        <item name="colorPrimary">@color/mono_accent_light</item>
+        <item name="colorSecondary">@color/mono_accent_light</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_light</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_light</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Black">
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Black">
+        <item name="android:colorAccent">@color/mono_accent_light</item>
+        <item name="colorAccent">@color/mono_accent_light</item>
+        <item name="vctr_accent">@color/mono_accent_light</item>
+        <item name="colorPrimary">@color/mono_accent_light</item>
+        <item name="colorSecondary">@color/mono_accent_light</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_light</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_light</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+    </style>
+
+    <!-- "White" accent: fills stay literally white with the inverse on top, while the accent
+         used as foreground follows the theme so it keeps contrasting with the background. -->
+
+    <style name="Theme.Vector.Light.White" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/mono_accent_light</item>
+        <item name="colorSecondary">@color/mono_accent_light</item>
+        <item name="colorPrimaryVariant">@color/mono_accent_light</item>
+        <item name="colorSecondaryVariant">@color/mono_accent_light</item>
+        <item name="colorAccent">@color/mono_accent_light</item>
+        <item name="android:colorAccent">@color/mono_accent_light</item>
+        <item name="vctr_accent">@color/mono_accent_light</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_light</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_light</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.White" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/mono_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+    </style>
+
+    <style name="Theme.Vector.Black.White" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/mono_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.White" parent="AppTheme.Base.SC.Light">
+        <item name="colorPrimary">@color/mono_accent_light</item>
+        <item name="colorSecondary">@color/mono_accent_light</item>
+        <item name="colorAccent">@color/mono_accent_light</item>
+        <item name="android:colorAccent">@color/mono_accent_light</item>
+        <item name="vctr_accent">@color/mono_accent_light</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_light</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_light</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_light</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.White</item>
+    </style>
+
+    <style name="AppTheme.SC.White" parent="AppTheme.Base.SC">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.White</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.White" parent="AppTheme.Base.SC.Dark">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.White</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.White" parent="AppTheme.Base.SC.Colored">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.White</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.White" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.White</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.White" parent="AppTheme.Base.SC">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/white_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/white_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.White</item>
+    </style>
+
+    <!-- "Black" accent: fills stay literally black with the inverse on top, while the accent
+         used as foreground follows the theme so it keeps contrasting with the background. -->
+
+    <style name="Theme.Vector.Light.Black" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/mono_accent_light</item>
+        <item name="colorSecondary">@color/mono_accent_light</item>
+        <item name="colorPrimaryVariant">@color/mono_accent_light</item>
+        <item name="colorSecondaryVariant">@color/mono_accent_light</item>
+        <item name="colorAccent">@color/mono_accent_light</item>
+        <item name="android:colorAccent">@color/mono_accent_light</item>
+        <item name="vctr_accent">@color/mono_accent_light</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_light</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_light</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Black" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/mono_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Black" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/mono_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Black" parent="AppTheme.Base.SC.Light">
+        <item name="colorPrimary">@color/mono_accent_light</item>
+        <item name="colorSecondary">@color/mono_accent_light</item>
+        <item name="colorAccent">@color/mono_accent_light</item>
+        <item name="android:colorAccent">@color/mono_accent_light</item>
+        <item name="vctr_accent">@color/mono_accent_light</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_light</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_light</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_light</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Black</item>
+    </style>
+
+    <style name="AppTheme.SC.Black" parent="AppTheme.Base.SC">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Black</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Black" parent="AppTheme.Base.SC.Dark">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Black</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Black" parent="AppTheme.Base.SC.Colored">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Black</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Black" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Black</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Black" parent="AppTheme.Base.SC">
+        <item name="colorPrimary">@color/mono_accent_dark</item>
+        <item name="colorSecondary">@color/mono_accent_dark</item>
+        <item name="colorAccent">@color/mono_accent_dark</item>
+        <item name="android:colorAccent">@color/mono_accent_dark</item>
+        <item name="vctr_accent">@color/mono_accent_dark</item>
+        <item name="colorOnPrimary">@color/mono_on_accent_dark</item>
+        <item name="colorOnSecondary">@color/mono_on_accent_dark</item>
+        <item name="vctr_accent_fill">@color/black_accent_fill</item>
+        <item name="vctr_content_on_accent">@color/black_accent_fill_content</item>
+        <item name="colorAccentPale">@color/mono_accent_dark</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Black</item>
+    </style>
+
+    <!-- "Peach" accent. -->
+
+    <style name="Theme.Vector.Light.Peach" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/peach_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/peach_accent_dark</item>
+        <item name="colorSecondary">@color/peach_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/peach_accent_dark</item>
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Peach" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/peach_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/peach_accent_dark</item>
+        <item name="colorSecondary">@color/peach_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/peach_accent_dark</item>
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Peach" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/peach_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/peach_accent_dark</item>
+        <item name="colorSecondary">@color/peach_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/peach_accent_dark</item>
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Peach">
+        <item name="android:colorAccent">@color/peach_accent_light</item>
+        <item name="colorAccent">@color/peach_accent_light</item>
+        <item name="vctr_accent">@color/peach_accent_light</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Peach">
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Peach" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/peach_accent_light</item>
+        <item name="android:colorAccent">@color/peach_accent_light</item>
+        <item name="vctr_accent">@color/peach_accent_light</item>
+        <item name="colorAccentPale">@color/peach_accent_light</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Peach</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Peach" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="colorAccentPale">@color/peach_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Peach</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Peach" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="colorAccentPale">@color/peach_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Peach</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Peach" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="colorAccentPale">@color/peach_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Peach</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Peach" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="colorAccentPale">@color/peach_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Peach</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Peach" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/peach_accent_dark</item>
+        <item name="android:colorAccent">@color/peach_accent_dark</item>
+        <item name="vctr_accent">@color/peach_accent_dark</item>
+        <item name="colorAccentPale">@color/peach_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Peach</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <!-- "Slate" accent. -->
+
+    <style name="Theme.Vector.Light.Slate" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/slate_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/slate_accent_dark</item>
+        <item name="colorSecondary">@color/slate_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/slate_accent_dark</item>
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Slate" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/slate_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/slate_accent_dark</item>
+        <item name="colorSecondary">@color/slate_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/slate_accent_dark</item>
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Slate" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/slate_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/slate_accent_dark</item>
+        <item name="colorSecondary">@color/slate_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/slate_accent_dark</item>
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Slate">
+        <item name="android:colorAccent">@color/slate_accent_light</item>
+        <item name="colorAccent">@color/slate_accent_light</item>
+        <item name="vctr_accent">@color/slate_accent_light</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Slate">
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Slate" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/slate_accent_light</item>
+        <item name="android:colorAccent">@color/slate_accent_light</item>
+        <item name="vctr_accent">@color/slate_accent_light</item>
+        <item name="colorAccentPale">@color/slate_accent_light</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Slate</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Slate" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="colorAccentPale">@color/slate_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Slate</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Slate" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="colorAccentPale">@color/slate_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Slate</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Slate" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="colorAccentPale">@color/slate_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Slate</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Slate" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="colorAccentPale">@color/slate_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Slate</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Slate" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/slate_accent_dark</item>
+        <item name="android:colorAccent">@color/slate_accent_dark</item>
+        <item name="vctr_accent">@color/slate_accent_dark</item>
+        <item name="colorAccentPale">@color/slate_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Slate</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <!-- "Rose" accent. -->
+
+    <style name="Theme.Vector.Light.Rose" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/rose_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/rose_accent_dark</item>
+        <item name="colorSecondary">@color/rose_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/rose_accent_dark</item>
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Rose" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/rose_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/rose_accent_dark</item>
+        <item name="colorSecondary">@color/rose_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/rose_accent_dark</item>
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Rose" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/rose_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/rose_accent_dark</item>
+        <item name="colorSecondary">@color/rose_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/rose_accent_dark</item>
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Rose">
+        <item name="android:colorAccent">@color/rose_accent_light</item>
+        <item name="colorAccent">@color/rose_accent_light</item>
+        <item name="vctr_accent">@color/rose_accent_light</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Rose">
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Rose" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/rose_accent_light</item>
+        <item name="android:colorAccent">@color/rose_accent_light</item>
+        <item name="vctr_accent">@color/rose_accent_light</item>
+        <item name="colorAccentPale">@color/rose_accent_light</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Rose</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Rose" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="colorAccentPale">@color/rose_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Rose</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Rose" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="colorAccentPale">@color/rose_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Rose</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Rose" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="colorAccentPale">@color/rose_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Rose</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Rose" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="colorAccentPale">@color/rose_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Rose</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Rose" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/rose_accent_dark</item>
+        <item name="android:colorAccent">@color/rose_accent_dark</item>
+        <item name="vctr_accent">@color/rose_accent_dark</item>
+        <item name="colorAccentPale">@color/rose_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Rose</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <!-- "Magenta" accent. -->
+
+    <style name="Theme.Vector.Light.Magenta" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/magenta_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/magenta_accent_dark</item>
+        <item name="colorSecondary">@color/magenta_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/magenta_accent_dark</item>
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Magenta" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/magenta_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/magenta_accent_dark</item>
+        <item name="colorSecondary">@color/magenta_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/magenta_accent_dark</item>
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Magenta" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/magenta_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/magenta_accent_dark</item>
+        <item name="colorSecondary">@color/magenta_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/magenta_accent_dark</item>
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Magenta">
+        <item name="android:colorAccent">@color/magenta_accent_light</item>
+        <item name="colorAccent">@color/magenta_accent_light</item>
+        <item name="vctr_accent">@color/magenta_accent_light</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Magenta">
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Magenta" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/magenta_accent_light</item>
+        <item name="android:colorAccent">@color/magenta_accent_light</item>
+        <item name="vctr_accent">@color/magenta_accent_light</item>
+        <item name="colorAccentPale">@color/magenta_accent_light</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Magenta</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Magenta" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="colorAccentPale">@color/magenta_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Magenta</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Magenta" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="colorAccentPale">@color/magenta_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Magenta</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Magenta" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="colorAccentPale">@color/magenta_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Magenta</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Magenta" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="colorAccentPale">@color/magenta_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Magenta</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Magenta" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/magenta_accent_dark</item>
+        <item name="android:colorAccent">@color/magenta_accent_dark</item>
+        <item name="vctr_accent">@color/magenta_accent_dark</item>
+        <item name="colorAccentPale">@color/magenta_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Magenta</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <!-- "Violet" accent. -->
+
+    <style name="Theme.Vector.Light.Violet" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/violet_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/violet_accent_dark</item>
+        <item name="colorSecondary">@color/violet_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/violet_accent_dark</item>
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Violet" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/violet_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/violet_accent_dark</item>
+        <item name="colorSecondary">@color/violet_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/violet_accent_dark</item>
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Violet" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/violet_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/violet_accent_dark</item>
+        <item name="colorSecondary">@color/violet_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/violet_accent_dark</item>
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Violet">
+        <item name="android:colorAccent">@color/violet_accent_light</item>
+        <item name="colorAccent">@color/violet_accent_light</item>
+        <item name="vctr_accent">@color/violet_accent_light</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Violet">
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Violet" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/violet_accent_light</item>
+        <item name="android:colorAccent">@color/violet_accent_light</item>
+        <item name="vctr_accent">@color/violet_accent_light</item>
+        <item name="colorAccentPale">@color/violet_accent_light</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Violet</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Violet" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="colorAccentPale">@color/violet_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Violet</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Violet" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="colorAccentPale">@color/violet_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Violet</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Violet" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="colorAccentPale">@color/violet_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Violet</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Violet" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="colorAccentPale">@color/violet_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Violet</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Violet" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/violet_accent_dark</item>
+        <item name="android:colorAccent">@color/violet_accent_dark</item>
+        <item name="vctr_accent">@color/violet_accent_dark</item>
+        <item name="colorAccentPale">@color/violet_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Violet</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <!-- "Lavender" accent. -->
+
+    <style name="Theme.Vector.Light.Lavender" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/lavender_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/lavender_accent_dark</item>
+        <item name="colorSecondary">@color/lavender_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/lavender_accent_dark</item>
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Lavender" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/lavender_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/lavender_accent_dark</item>
+        <item name="colorSecondary">@color/lavender_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/lavender_accent_dark</item>
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Lavender" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/lavender_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/lavender_accent_dark</item>
+        <item name="colorSecondary">@color/lavender_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/lavender_accent_dark</item>
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Lavender">
+        <item name="android:colorAccent">@color/lavender_accent_light</item>
+        <item name="colorAccent">@color/lavender_accent_light</item>
+        <item name="vctr_accent">@color/lavender_accent_light</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Lavender">
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Lavender" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/lavender_accent_light</item>
+        <item name="android:colorAccent">@color/lavender_accent_light</item>
+        <item name="vctr_accent">@color/lavender_accent_light</item>
+        <item name="colorAccentPale">@color/lavender_accent_light</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Lavender</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Lavender" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="colorAccentPale">@color/lavender_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Lavender</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Lavender" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="colorAccentPale">@color/lavender_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Lavender</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Lavender" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="colorAccentPale">@color/lavender_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Lavender</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Lavender" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="colorAccentPale">@color/lavender_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Lavender</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Lavender" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/lavender_accent_dark</item>
+        <item name="android:colorAccent">@color/lavender_accent_dark</item>
+        <item name="vctr_accent">@color/lavender_accent_dark</item>
+        <item name="colorAccentPale">@color/lavender_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Lavender</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <!-- "Periwinkle" accent. -->
+
+    <style name="Theme.Vector.Light.Periwinkle" parent="Theme.Vector.Light">
+        <item name="colorPrimary">@color/periwinkle_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/periwinkle_accent_dark</item>
+        <item name="colorSecondary">@color/periwinkle_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/periwinkle_accent_dark</item>
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Dark.Periwinkle" parent="Theme.Vector.Dark">
+        <item name="colorPrimary">@color/periwinkle_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/periwinkle_accent_dark</item>
+        <item name="colorSecondary">@color/periwinkle_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/periwinkle_accent_dark</item>
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+    </style>
+
+    <style name="Theme.Vector.Black.Periwinkle" parent="Theme.Vector.Black">
+        <item name="colorPrimary">@color/periwinkle_accent_dark</item>
+        <item name="colorPrimaryVariant">@color/periwinkle_accent_dark</item>
+        <item name="colorSecondary">@color/periwinkle_accent_dark</item>
+        <item name="colorSecondaryVariant">@color/periwinkle_accent_dark</item>
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Light.Periwinkle">
+        <item name="android:colorAccent">@color/periwinkle_accent_light</item>
+        <item name="colorAccent">@color/periwinkle_accent_light</item>
+        <item name="vctr_accent">@color/periwinkle_accent_light</item>
+    </style>
+
+    <style name="Vector.BottomSheet.SC.Periwinkle">
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+    </style>
+
+    <style name="AppTheme.SC.Light.Periwinkle" parent="AppTheme.Base.SC.Light">
+        <item name="colorAccent">@color/periwinkle_accent_light</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_light</item>
+        <item name="vctr_accent">@color/periwinkle_accent_light</item>
+        <item name="colorAccentPale">@color/periwinkle_accent_light</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Light.Periwinkle</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Periwinkle" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="colorAccentPale">@color/periwinkle_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Periwinkle</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Periwinkle" parent="AppTheme.Base.SC.Dark">
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="colorAccentPale">@color/periwinkle_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Periwinkle</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Colored.Periwinkle" parent="AppTheme.Base.SC.Colored">
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="colorAccentPale">@color/periwinkle_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Periwinkle</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.SC.Dark.Colored.Periwinkle" parent="AppTheme.Base.SC.Dark.Colored">
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="colorAccentPale">@color/periwinkle_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Periwinkle</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
+    <style name="AppTheme.AttachmentsPreview.SC.Periwinkle" parent="AppTheme.Base.SC">
+        <item name="colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="android:colorAccent">@color/periwinkle_accent_dark</item>
+        <item name="vctr_accent">@color/periwinkle_accent_dark</item>
+        <item name="colorAccentPale">@color/periwinkle_accent_dark</item>
+        <item name="bottomSheetDialogTheme">@style/Vector.BottomSheet.SC.Periwinkle</item>
+        <item name="vctr_presence_indicator_online">?colorAccent</item>
+    </style>
+
 </resources>

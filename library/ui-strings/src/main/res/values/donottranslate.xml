@@ -223,20 +223,29 @@
     <string name="sc_theme_black" translatable="false">SchildiChat Black</string>
     <string name="settings_accent" translatable="false">Accent color</string>
     <string name="color_picker_selected" translatable="false">Selected: %s</string>
+    <string name="sc_accent_peach" translatable="false">Peach</string>
+    <string name="sc_accent_slate" translatable="false">Gray</string>
+    <string name="sc_accent_rose" translatable="false">Rose</string>
+    <string name="sc_accent_magenta" translatable="false">Magenta</string>
+    <string name="sc_accent_violet" translatable="false">Violet</string>
+    <string name="sc_accent_lavender" translatable="false">Lavender</string>
+    <string name="sc_accent_periwinkle" translatable="false">Periwinkle</string>
+    <string name="sc_accent_white" translatable="false">White</string>
+    <string name="sc_accent_black" translatable="false">Black</string>
     <string name="sc_accent_element" translatable="false">Element Green</string>
     <string name="sc_accent_vibecoder" translatable="false">Vibecoder Orange</string>
-    <string name="sc_accent_greenlight" translatable="false">Lime green</string>
+    <string name="sc_accent_greenlight" translatable="false">Lime Green</string>
     <string name="sc_accent_amber" translatable="false">Amber</string>
-    <string name="sc_accent_bluelight" translatable="false">Light blue</string>
+    <string name="sc_accent_bluelight" translatable="false">Light Blue</string>
     <string name="sc_accent_blue" translatable="false">Blue</string>
     <string name="sc_accent_carnation" translatable="false">Carnation</string>
     <string name="sc_accent_cyan" translatable="false">Cyan</string>
     <string name="sc_accent_denim" translatable="false">Denim</string>
     <string name="sc_accent_gold" translatable="false">Gold</string>
-    <string name="sc_accent_greendark" translatable="false">Dark green</string>
+    <string name="sc_accent_greendark" translatable="false">Dark Green</string>
     <string name="sc_accent_indigo" translatable="false">Indigo</string>
     <string name="sc_accent_lava" translatable="false">Lava</string>
-    <string name="sc_accent_lime" translatable="false">Lime</string>
+    <string name="sc_accent_lime" translatable="false">Citron</string>
     <string name="sc_accent_orange" translatable="false">Orange</string>
     <string name="sc_accent_pink" translatable="false">Pink</string>
     <string name="sc_accent_purple" translatable="false">Purple</string>
@@ -538,6 +547,7 @@
     <string name="settings_randomize_upload_filenames_summary" translatable="false">Replace the name of uploaded files with a random ID</string>
     <string name="login_server_matrix_id_text" translatable="false">Use your existing @user:domain.com account</string>
 
+    <string name="settings_app_icon_color_title" translatable="false">App icon color</string>
     <string name="settings_app_logo_title" translatable="false">App logo</string>
     <string name="settings_app_logo_burst" translatable="false">Burst</string>
     <string name="settings_app_logo_spark" translatable="false">Spark</string>

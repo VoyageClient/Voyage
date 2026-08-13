@@ -6,28 +6,28 @@
         android:id="@+id/videoEditorRotateAction"
         android:icon="@drawable/ic_image_editor_rotate"
         android:title="@string/video_editor_rotate"
-        app:iconTint="?colorOnPrimary"
+        app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/videoEditorSpeedAction"
         android:icon="@drawable/ic_timer"
         android:title="@string/video_editor_speed"
-        app:iconTint="?colorOnPrimary"
+        app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/videoEditorMuteAction"
         android:icon="@drawable/ic_mic_on"
         android:title="@string/video_editor_mute"
-        app:iconTint="?colorOnPrimary"
+        app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/videoEditorResetAction"
         android:icon="@drawable/ic_refresh_cw"
         android:title="@string/video_editor_reset"
-        app:iconTint="?colorOnPrimary"
+        app:iconTint="?vctr_content_primary"
         app:showAsAction="always" />
 
 </menu>

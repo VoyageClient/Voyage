@@ -25,6 +25,7 @@
     <string-array name="sc_accent_color_light_entries" translatable="false">
         <item>@string/sc_accent_red</item>
         <item>@string/sc_accent_vibecoder</item>
+        <item>@string/sc_accent_peach</item>
         <item>@string/sc_accent_orange</item>
         <item>@string/sc_accent_amber</item>
         <item>@string/sc_accent_yellow</item>
@@ -39,35 +40,52 @@
         <item>@string/sc_accent_bluelight</item>
         <item>@string/sc_accent_blue</item>
         <item>@string/sc_accent_denim</item>
+        <item>@string/sc_accent_periwinkle</item>
         <item>@string/sc_accent_indigo</item>
+        <item>@string/sc_accent_violet</item>
         <item>@string/sc_accent_purple</item>
+        <item>@string/sc_accent_lavender</item>
         <item>@string/sc_accent_carnation</item>
+        <item>@string/sc_accent_rose</item>
+        <item>@string/sc_accent_magenta</item>
         <item>@string/sc_accent_pink</item>
         <item>@string/sc_accent_lava</item>
+        <item>@string/sc_accent_white</item>
+        <item>@string/sc_accent_slate</item>
+        <item>@string/sc_accent_black</item>
     </string-array>
 
     <string-array name="sc_accent_color_previews" translatable="false">
-        <item>#ff0000</item>
+        <item>#FF0000</item>
         <item>#DE7356</item>
-        <item>#ff9800</item>
-        <item>#ffa000</item>
+        <item>#FDBA74</item>
+        <item>#FF9800</item>
+        <item>#FFA000</item>
         <item>#FBC02D</item>
         <item>#CFB53B</item>
         <item>#C0CA33</item>
-        <item>#8bc34a</item>
+        <item>#8BC34A</item>
         <item>#4CAF50</item>
         <item>#0DBD8B</item>
         <item>#008577</item>
         <item>#00C1C1</item>
-        <item>#00bcd4</item>
-        <item>#03a9f4</item>
+        <item>#00BCD4</item>
+        <item>#03A9F4</item>
         <item>#2196F3</item>
         <item>#1560BD</item>
+        <item>#6366F1</item>
         <item>#5C6BC0</item>
-        <item>#673ab7</item>
-        <item>#fb83b2</item>
-        <item>#e91e63</item>
+        <item>#8B5CF6</item>
+        <item>#673AB7</item>
+        <item>#A78BFA</item>
+        <item>#FB83B2</item>
+        <item>#FB7185</item>
+        <item>#EC4899</item>
+        <item>#E91E63</item>
         <item>#B20120</item>
+        <item>#FFFFFF</item>
+        <item>#64748B</item>
+        <item>#000000</item>
     </string-array>
 
     <string-array name="avatar_shape_entries" translatable="false">
@@ -109,6 +127,7 @@
     <string-array name="sc_accent_color_light_values" translatable="false">
         <item>red</item>
         <item>vibecoder</item>
+        <item>peach</item>
         <item>orange</item>
         <item>amber</item>
         <item>yellow</item>
@@ -123,11 +142,19 @@
         <item>bluelight</item>
         <item>blue</item>
         <item>denim</item>
+        <item>periwinkle</item>
         <item>indigo</item>
+        <item>violet</item>
         <item>purple</item>
+        <item>lavender</item>
         <item>carnation</item>
+        <item>rose</item>
+        <item>magenta</item>
         <item>pink</item>
         <item>lava</item>
+        <item>white</item>
+        <item>slate</item>
+        <item>black</item>
     </string-array>
 
 </resources>

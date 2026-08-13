@@ -20,9 +20,13 @@ class ColorMatrixListPreference(context: Context, attrs: AttributeSet) : ListPre
 
     val entryPreviews: Array<CharSequence>?
 
+    /** Number of trailing entries to keep on a row of their own, so they don't shift the grid. */
+    val trailingRowCount: Int
+
     init {
         val a = context.obtainStyledAttributes(attrs, R.styleable.ColorMatrixListPreference)
         entryPreviews = a.getTextArray(R.styleable.ColorMatrixListPreference_entryPreviews)
+        trailingRowCount = a.getInt(R.styleable.ColorMatrixListPreference_trailingRowCount, 0)
         a.recycle()
         // Reserve icon space like VectorListPreference so the row aligns with the other settings entries.
         isIconSpaceReserved = true

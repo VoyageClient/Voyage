@@ -349,7 +349,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
 
     /** The icons are flat colours of their own, which the app's own theme may well not read against. */
     private fun tintMenuIcons(themed: Context, menu: Menu) {
-        val tint = ThemeUtils.getColor(themed, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+        val tint = ThemeUtils.getColorFromContextTheme(themed, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
         for (index in 0 until menu.size()) {
             val icon = menu.getItem(index).icon?.mutate() ?: continue
             DrawableCompat.setTint(icon, tint)

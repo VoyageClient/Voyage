@@ -33,7 +33,7 @@
         android:layout_height="0dp"
         android:adjustViewBounds="true"
         android:background="@drawable/circle"
-        android:backgroundTint="?colorSecondary"
+        android:backgroundTint="?vctr_accent_fill"
         android:importantForAccessibility="no"
         app:srcCompat="@drawable/ic_celebration"
         app:layout_constraintBottom_toTopOf="@id/personalizationCompleteSpace2"
@@ -41,7 +41,7 @@
         app:layout_constraintHeight_percent="0.15"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/personalizationCompleteSpace1"
-        app:tint="@color/palette_white" />
+        app:tint="?vctr_content_on_accent" />
 
     <Space
         android:id="@+id/personalizationCompleteSpace2"

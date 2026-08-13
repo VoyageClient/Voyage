@@ -21,11 +21,11 @@ import android.widget.TextView
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import im.vector.app.R
+import im.vector.app.features.settings.AppIconColor
 import im.vector.app.features.settings.AppLogo
-import im.vector.app.features.themes.ThemeUtils
 
 /**
- * Non-interactive header showing the current app-logo glyph tinted with the accent colour, with the
+ * Non-interactive header showing the current app-logo glyph tinted like the launcher icon, with the
  * app name below it drawn in the bundled serif font. Tapping the glyph spins it up and back down.
  */
 class AppLogoHeaderPreference @JvmOverloads constructor(
@@ -47,7 +47,7 @@ class AppLogoHeaderPreference @JvmOverloads constructor(
 
         (holder.findViewById(R.id.appLogoHeaderImage) as? ImageView)?.apply {
             setImageResource(AppLogo.current(itemContext).logoRes)
-            setColorFilter(ThemeUtils.getColor(itemContext, com.google.android.material.R.attr.colorAccent), PorterDuff.Mode.SRC_IN)
+            setColorFilter(AppIconColor.current(itemContext).asMarkColor(itemContext), PorterDuff.Mode.SRC_IN)
             setOnClickListener { spin(it) }
         }
 

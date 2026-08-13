@@ -51,7 +51,7 @@
         android:paddingLeft="4dp"
         android:paddingEnd="4dp"
         android:paddingRight="4dp"
-        android:textColor="?colorOnError"
+        android:textColor="?vctr_unread_text"
         android:visibility="gone"
         app:layout_constraintCircle="@id/groupAvatarImageView"
         app:layout_constraintCircleAngle="45"

@@ -117,7 +117,7 @@
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/newLayoutCreateChatButton"
-        style="@style/Widget.Vector.FloatingActionButton"
+        style="@style/Widget.Vector.FloatingActionButton.Squircle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"

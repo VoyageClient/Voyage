@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?colorSecondary">
+    android:background="?vctr_accent_fill">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/ftueAuthGutterStart"
@@ -43,7 +43,7 @@
         app:layout_constraintHeight_percent="0.12"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/accountCreatedSpace1"
-        app:tint="?colorSecondary" />
+        app:tint="?vctr_accent_fill" />
 
     <Space
         android:id="@+id/accountCreatedSpace2"
@@ -60,7 +60,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/ftue_account_created_congratulations_title"
-        android:textColor="@color/element_background_light"
+        android:textColor="?vctr_content_on_accent"
         android:transitionName="loginTitleTransition"
         app:layout_constraintBottom_toTopOf="@id/accountCreatedSubtitle"
         app:layout_constraintEnd_toEndOf="@id/ftueAuthGutterEnd"
@@ -74,7 +74,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:gravity="center"
-        android:textColor="@color/element_background_light"
+        android:textColor="?vctr_content_on_accent"
         app:layout_constraintBottom_toTopOf="@id/accountCreatedSpace4"
         app:layout_constraintEnd_toEndOf="@id/ftueAuthGutterEnd"
         app:layout_constraintStart_toStartOf="@id/ftueAuthGutterStart"
@@ -104,7 +104,7 @@
         android:backgroundTint="@color/element_background_light"
         android:text="@string/ftue_account_created_personalize"
         android:textAllCaps="true"
-        android:textColor="?colorSecondary"
+        android:textColor="?vctr_accent_fill"
         android:transitionName="loginSubmitTransition"
         app:layout_constraintBottom_toTopOf="@id/accountCreatedTakeMeHome"
         app:layout_constraintEnd_toEndOf="@id/ftueAuthGutterEnd"
@@ -118,7 +118,7 @@
         android:layout_height="wrap_content"
         android:text="@string/ftue_account_created_take_me_home"
         android:textAllCaps="true"
-        android:textColor="@color/element_background_light"
+        android:textColor="?vctr_content_on_accent"
         android:transitionName="loginSubmitTransition"
         app:layout_constraintBottom_toTopOf="@id/ctaBottomBarrier"
         app:layout_constraintEnd_toEndOf="@id/ftueAuthGutterEnd"
@@ -140,7 +140,7 @@
         android:backgroundTint="@color/element_background_light"
         android:text="@string/ftue_account_created_take_me_home"
         android:textAllCaps="true"
-        android:textColor="?colorSecondary"
+        android:textColor="?vctr_accent_fill"
         android:transitionName="loginSubmitTransition"
         app:layout_constraintBottom_toTopOf="@id/ctaBottomBarrier"
         app:layout_constraintEnd_toEndOf="@id/ftueAuthGutterEnd"

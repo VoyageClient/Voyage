@@ -50,7 +50,9 @@
         <item name="vctr_list_separator">@color/list_divider_color_sc</item>
         <item name="vctr_list_separator_system">?vctr_list_separator</item>
         <item name="vctr_list_separator_on_surface">?vctr_list_separator</item>
-        <item name="vctr_unread_background">?colorAccent</item>
+        <item name="vctr_accent_fill">?colorAccent</item>
+        <item name="vctr_unread_background">?vctr_accent_fill</item>
+        <item name="vctr_unread_text">?vctr_content_on_accent</item>
 
         <!-- Material color -->
         <item name="colorPrimary">?colorAccent</item>
@@ -98,10 +100,10 @@
         <item name="message_highlight_bg_color">@color/accent_sc_alpha25</item>
         <item name="code_block_bg_color">@color/code_background_sc</item>
         <item name="quote_bar_color">?vctr_content_quaternary</item>
-        <item name="vctr_jump_to_bottom_bg_tint">?colorAccent</item>
-        <item name="vctr_jump_to_bottom_icon_tint">@android:color/white</item>
-        <!-- White indicator (matching the chevron) with the count punched out in the accent colour. -->
-        <item name="vctr_jump_to_bottom_badge_bg_tint">@android:color/white</item>
+        <item name="vctr_jump_to_bottom_bg_tint">?vctr_accent_fill</item>
+        <item name="vctr_jump_to_bottom_icon_tint">?vctr_content_on_accent</item>
+        <!-- Indicator matching the chevron, with the count punched out in the accent colour. -->
+        <item name="vctr_jump_to_bottom_badge_bg_tint">?vctr_content_on_accent</item>
         <item name="vctr_jump_to_bottom_badge_text_tint">?colorAccent</item>
         <item name="user_color_pl_0">@color/user_color_sc_pl_0</item>
         <item name="user_color_pl_1">@color/user_color_sc_pl_1</item>

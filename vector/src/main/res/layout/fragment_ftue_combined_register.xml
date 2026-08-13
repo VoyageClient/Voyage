@@ -43,7 +43,7 @@
             android:layout_height="0dp"
             android:adjustViewBounds="true"
             android:background="@drawable/circle"
-            android:backgroundTint="?colorSecondary"
+            android:backgroundTint="?vctr_accent_fill"
             android:contentDescription="@null"
             app:srcCompat="@drawable/ic_user_fg"
             app:layout_constraintBottom_toTopOf="@id/createAccountHeaderTitle"
@@ -51,7 +51,7 @@
             app:layout_constraintHeight_percent="0.10"
             app:layout_constraintStart_toStartOf="@id/createAccountGutterStart"
             app:layout_constraintTop_toBottomOf="@id/headerSpacing"
-            app:tint="@color/palette_white" />
+            app:tint="?vctr_content_on_accent" />
 
         <TextView
             android:id="@+id/createAccountHeaderTitle"

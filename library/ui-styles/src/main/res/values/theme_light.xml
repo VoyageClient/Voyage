@@ -55,8 +55,8 @@
         <item name="code_block_bg_color">#19000000</item>
         <item name="vctr_jump_to_bottom_bg_tint">#FFFFFF</item>
         <item name="vctr_jump_to_bottom_icon_tint">@android:color/black</item>
-        <item name="vctr_jump_to_bottom_badge_bg_tint">?colorAccent</item>
-        <item name="vctr_jump_to_bottom_badge_text_tint">@android:color/white</item>
+        <item name="vctr_jump_to_bottom_badge_bg_tint">?vctr_accent_fill</item>
+        <item name="vctr_jump_to_bottom_badge_text_tint">?vctr_content_on_accent</item>
         <item name="riotx_unread_unimportant_room_badge">?vctr_content_secondary</item>
         <item name="vctr_spoiler_background_color">#FF000000</item>
 
@@ -72,6 +72,7 @@
         <item name="vctr_list_separator_system">?vctr_system</item>
         <item name="vctr_list_separator_on_surface">?vctr_system</item>
         <item name="vctr_unread_background">?vctr_notice_secondary</item>
+        <item name="vctr_unread_text">@color/palette_white</item>
 
         <!-- Other colors -->
         <item name="vctr_bg_critical_subtle" >@color/vctr_bg_critical_subtle_light</item>
@@ -92,6 +93,8 @@
         <item name="colorSecondaryVariant">@color/element_accent_light</item>
         <item name="vctr_accent">@color/element_accent_light</item>
         <item name="colorOnSecondary">@android:color/white</item>
+        <item name="vctr_accent_fill">?colorPrimary</item>
+        <item name="vctr_content_on_accent">@android:color/white</item>
         <item name="colorError">@color/element_alert_light</item>
         <item name="colorOnError">@color/palette_white</item>
         <item name="colorSurface">@color/element_system_light</item>
@@ -112,6 +115,7 @@
         <!-- Default styles -->
         <item name="android:textViewStyle">@style/Widget.Vector.TextView.Body</item>
         <item name="materialButtonStyle">@style/Widget.Vector.Button</item>
+        <item name="floatingActionButtonStyle">@style/Widget.Vector.FloatingActionButton</item>
         <item name="toolbarStyle">@style/Widget.Vector.Toolbar</item>
         <item name="collapsingToolbarLayoutStyle">@style/Widget.Vector.CollapsingToolbar</item>
         <item name="collapsingToolbarLayoutMediumStyle">@style/Widget.Vector.CollapsingToolbar.Medium</item>

@@ -17,6 +17,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.core.widget.ImageViewCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -38,7 +39,8 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
     private lateinit var sourceUri: Uri
     private var displayName: String? = null
     private var sourceMimeType: String? = null
-    private var accentColor: Int = Color.WHITE
+    private var activeToolFill: Int = Color.WHITE
+    private var activeToolContent: Int = Color.WHITE
 
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
 
@@ -48,16 +50,18 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         get() = views.coordinatorLayout
 
     override fun initUiAndData() {
+        makeSystemBarsTransparent()
         sourceUri = intent.getStringExtra(EXTRA_SOURCE_URI)?.toUri() ?: run { finish(); return }
         displayName = intent.getStringExtra(EXTRA_DISPLAY_NAME)
         sourceMimeType = intent.getStringExtra(EXTRA_MIME_TYPE)
 
         setupToolbar(views.imageEditorToolbar).allowBack()
 
-        // This activity's theme has no accent variant, so ?colorAccent resolves to the default
-        // green; ThemeUtils reads the configured application theme instead.
-        accentColor = ThemeUtils.getColor(this, com.google.android.material.R.attr.colorAccent)
-        views.imageEditorSaveButton.backgroundTintList = ColorStateList.valueOf(accentColor)
+        val (fill, onFill) = ThemeUtils.accentFillOnDarkSurface(this)
+        activeToolFill = fill
+        activeToolContent = onFill
+        views.imageEditorSaveButton.backgroundTintList = ColorStateList.valueOf(fill)
+        ImageViewCompat.setImageTintList(views.imageEditorSaveButton, ColorStateList.valueOf(onFill))
         views.imageEditorRotateButton.backgroundTintList = ColorStateList.valueOf(INACTIVE_FAB_COLOR)
 
         views.imageEditorSaveButton.setOnClickListener { save() }
@@ -88,7 +92,11 @@ class ImageEditorActivity : VectorBaseActivity<ActivityImageEditorBinding>() {
         views.imageEditorView.tool = tool
         val active = tool == ImageEditorView.Tool.CENSOR
         views.imageEditorCensorButton.backgroundTintList =
-                ColorStateList.valueOf(if (active) accentColor else INACTIVE_FAB_COLOR)
+                ColorStateList.valueOf(if (active) activeToolFill else INACTIVE_FAB_COLOR)
+        ImageViewCompat.setImageTintList(
+                views.imageEditorCensorButton,
+                ColorStateList.valueOf(if (active) activeToolContent else Color.WHITE)
+        )
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

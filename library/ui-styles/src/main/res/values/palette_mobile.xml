@@ -10,6 +10,35 @@
     <color name="vibecoder_accent_light">@color/palette_vibecoder_orange</color>
     <color name="vibecoder_accent_dark">@color/palette_vibecoder_orange</color>
 
+    <color name="peach_accent_light">#FDBA74</color>
+    <color name="peach_accent_dark">#FDBA74</color>
+    <color name="slate_accent_light">#64748B</color>
+    <color name="slate_accent_dark">#64748B</color>
+    <color name="rose_accent_light">#FB7185</color>
+    <color name="rose_accent_dark">#FB7185</color>
+    <color name="magenta_accent_light">#EC4899</color>
+    <color name="magenta_accent_dark">#EC4899</color>
+    <color name="violet_accent_light">#8B5CF6</color>
+    <color name="violet_accent_dark">#8B5CF6</color>
+    <color name="lavender_accent_light">#A78BFA</color>
+    <color name="lavender_accent_dark">#A78BFA</color>
+    <color name="periwinkle_accent_light">#6366F1</color>
+    <color name="periwinkle_accent_dark">#6366F1</color>
+
+    <!-- The white and black accents split in two: accent-filled shapes keep the literal colour
+         (a black accent stays a black fill with white content on it), while the accent used as
+         foreground on the theme background has to contrast with it, so it goes light on dark
+         themes and dark on light ones. -->
+    <color name="mono_accent_light">@android:color/black</color>
+    <color name="mono_accent_dark">@color/palette_white</color>
+    <color name="mono_on_accent_light">@color/palette_white</color>
+    <color name="mono_on_accent_dark">@android:color/black</color>
+
+    <color name="white_accent_fill">@color/palette_white</color>
+    <color name="white_accent_fill_content">@android:color/black</color>
+    <color name="black_accent_fill">@android:color/black</color>
+    <color name="black_accent_fill_content">@color/palette_white</color>
+
     <color name="splash_background">#000000</color>
 
     <color name="element_alert_light">@color/palette_vermilion</color>

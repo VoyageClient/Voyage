@@ -182,6 +182,10 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // The base activity applies the user theme, which replaces the launcher theme's splash window
+        // background with a plain colour — the glyph would only ever show in the starting window.
+        window.setBackgroundDrawable(ContextCompat.getDrawable(this, im.vector.lib.ui.styles.R.drawable.splash))
+
         if (DalvikVerifierGate.gateIfNeeded(this)) {
             // Pre-KitKat with the bytecode verifier still active: a blocking dialog is up (quit or
             // reboot). Don't start the app — opening a room would crash on LinearAlloc.

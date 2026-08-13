@@ -1,4 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launcher_background">#000000</color>
+    <color name="launcher_background">@color/launcher_background_black</color>
+
+    <color name="launcher_background_red">#FF0000</color>
+    <color name="launcher_background_vibecoder">#DE7356</color>
+    <color name="launcher_background_orange">#FF9800</color>
+    <color name="launcher_background_amber">#FFA000</color>
+    <color name="launcher_background_yellow">#FBC02D</color>
+    <color name="launcher_background_gold">#CFB53B</color>
+    <color name="launcher_background_lime">#C0CA33</color>
+    <color name="launcher_background_green">#8BC34A</color>
+    <color name="launcher_background_greendark">#4CAF50</color>
+    <color name="launcher_background_element">#0DBD8B</color>
+    <color name="launcher_background_teal">#008577</color>
+    <color name="launcher_background_turquoise">#00C1C1</color>
+    <color name="launcher_background_cyan">#00BCD4</color>
+    <color name="launcher_background_bluelight">#03A9F4</color>
+    <color name="launcher_background_blue">#2196F3</color>
+    <color name="launcher_background_denim">#1560BD</color>
+    <color name="launcher_background_indigo">#5C6BC0</color>
+    <color name="launcher_background_purple">#673AB7</color>
+    <color name="launcher_background_carnation">#FB83B2</color>
+    <color name="launcher_background_pink">#E91E63</color>
+    <color name="launcher_background_lava">#B20120</color>
+    <color name="launcher_background_peach">#FDBA74</color>
+    <color name="launcher_background_slate">#64748B</color>
+    <color name="launcher_background_rose">#FB7185</color>
+    <color name="launcher_background_magenta">#EC4899</color>
+    <color name="launcher_background_violet">#8B5CF6</color>
+    <color name="launcher_background_lavender">#A78BFA</color>
+    <color name="launcher_background_periwinkle">#6366F1</color>
+    <color name="launcher_background_white">#FFFFFF</color>
+    <color name="launcher_background_black">#000000</color>
 </resources>

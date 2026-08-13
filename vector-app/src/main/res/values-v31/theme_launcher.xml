@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Android 12+ draws its own starting window from these attributes and ignores the splash
+         drawable, so point it at the bare glyph: the launcher icon would drag its own background
+         colour onto the black splash. -->
+    <style name="Theme.Vector.Launcher" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="colorPrimary">@color/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <!-- Sized so the glyph lands at the same 84dp as the one in the splash drawable the loading
+             screen keeps showing: the system draws this into a 288dp box. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_glyph_burst</item>
+    </style>
+
+</resources>

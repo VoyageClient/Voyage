@@ -38,7 +38,7 @@
         app:layout_constraintStart_toStartOf="@id/overlayTopBackground"
         app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
         app:srcCompat="@drawable/ic_back_24dp"
-        app:tint="?colorOnPrimary"
+        app:tint="@color/palette_white"
         tools:ignore="MissingPrefix" />
 
     <TextView
@@ -52,7 +52,7 @@
         android:layout_marginRight="8dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="?colorOnPrimary"
+        android:textColor="@color/palette_white"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/overlayInfoText"
         app:layout_constraintEnd_toStartOf="@id/overlayDownloadButton"
@@ -70,7 +70,7 @@
         android:layout_marginRight="8dp"
         android:ellipsize="end"
         android:maxLines="1"
-        android:textColor="?colorOnPrimary"
+        android:textColor="@color/palette_white"
         app:layout_constraintBottom_toBottomOf="@id/overlayTopBackground"
         app:layout_constraintEnd_toStartOf="@id/overlayDownloadButton"
         app:layout_constraintStart_toStartOf="@id/overlayCounterText"
@@ -92,7 +92,7 @@
         app:layout_constraintEnd_toEndOf="@id/overlayTopBackground"
         app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
         app:srcCompat="@drawable/ic_more_horizontal"
-        app:tint="?colorOnPrimary"
+        app:tint="@color/palette_white"
         tools:ignore="MissingPrefix" />
 
     <ImageView
@@ -110,7 +110,7 @@
         app:layout_constraintEnd_toStartOf="@id/overlayMoreButton"
         app:layout_constraintTop_toTopOf="@id/overlayTopBackground"
         app:srcCompat="@drawable/ic_material_save"
-        app:tint="?colorOnPrimary"
+        app:tint="@color/palette_white"
         tools:ignore="MissingPrefix" />
 
     <androidx.constraintlayout.widget.Group
@@ -149,7 +149,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_play_arrow"
-        app:tint="?colorOnPrimary"
+        app:tint="@color/palette_white"
         tools:ignore="MissingPrefix"
         tools:visibility="visible" />
 
@@ -183,9 +183,9 @@
         android:paddingRight="8dp"
         android:paddingTop="16dp"
         android:paddingBottom="0dp"
-        android:backgroundTint="?colorOnPrimary"
-        android:progressBackgroundTint="?colorOnPrimary"
-        android:thumbTint="?colorOnPrimary"
+        android:backgroundTint="@color/palette_white"
+        android:progressBackgroundTint="@color/palette_white"
+        android:thumbTint="@color/palette_white"
         app:layout_constraintEnd_toStartOf="@id/overlayVideoTime"
         app:layout_constraintStart_toStartOf="@id/overlayBottomBackground"
         app:layout_constraintTop_toTopOf="@id/overlayBottomBackground" />
@@ -197,7 +197,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="16dp"
-        android:textColor="?colorOnPrimary"
+        android:textColor="@color/palette_white"
         app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
         app:layout_constraintEnd_toEndOf="@id/overlayBottomBackground"
         app:layout_constraintTop_toTopOf="@id/overlayBottomBackground"

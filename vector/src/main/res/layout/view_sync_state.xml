@@ -60,7 +60,7 @@
         android:background="?colorError"
         android:gravity="center"
         android:text="@string/no_connectivity_to_the_server_indicator"
-        android:textColor="?colorOnError"
+        android:textColor="?vctr_unread_text"
         android:visibility="gone"
         tools:layout_marginTop="10dp"
         tools:visibility="visible" />
@@ -82,10 +82,10 @@
             android:drawablePadding="4dp"
             android:gravity="center"
             android:text="@string/no_connectivity_to_the_server_indicator_airplane"
-            android:textColor="?colorOnPrimary"
+            android:textColor="@color/palette_white"
             app:drawableStartCompat="@drawable/ic_airplane_16dp"
             app:drawableLeftCompat="@drawable/ic_airplane_16dp"
-            app:drawableTint="?colorOnPrimary" />
+            app:drawableTint="@color/palette_white" />
 
     </FrameLayout>
 

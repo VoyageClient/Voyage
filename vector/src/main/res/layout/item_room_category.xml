@@ -62,7 +62,7 @@
         android:minWidth="16dp"
         android:minHeight="16dp"
         android:paddingHorizontal="4dp"
-        android:textColor="?colorOnError"
+        android:textColor="?vctr_unread_text"
         app:layout_constraintBottom_toBottomOf="@id/roomCategoryTitleView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/roomCategoryTitleView"

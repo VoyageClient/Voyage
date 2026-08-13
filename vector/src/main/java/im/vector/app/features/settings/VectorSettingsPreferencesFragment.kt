@@ -112,7 +112,17 @@ class VectorSettingsPreferencesFragment :
         findPreference<VectorListPreference>(AppLogo.SETTINGS_APP_LOGO_KEY)!!
                 .onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
             if (newValue is String) {
-                appLogoManager.setCurrent(AppLogo.fromStorageValue(newValue))
+                appLogoManager.setCurrentLogo(AppLogo.fromStorageValue(newValue))
+                true
+            } else {
+                false
+            }
+        }
+
+        findPreference<ColorMatrixListPreference>(AppIconColor.SETTINGS_APP_ICON_COLOR_KEY)!!
+                .onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+            if (newValue is String) {
+                appLogoManager.setCurrentColor(AppIconColor.fromStorageValue(newValue))
                 true
             } else {
                 false
