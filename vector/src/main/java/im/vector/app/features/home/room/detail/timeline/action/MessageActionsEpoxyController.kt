@@ -60,6 +60,7 @@ import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessageLocationContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import javax.inject.Inject
 
 /**
@@ -114,10 +115,13 @@ class MessageActionsEpoxyController @Inject constructor(
         // a user with no display name) or unhandled/malformed placeholders (a dotted event-type name
         // reads as a domain) — both would render spurious clickable links.
         val previewType = state.previewEvent?.root?.getClearType()
+        val previewContent = state.previewEvent?.getVectorLastMessageContent()
         val isPlaceholderPreview = previewType == EventType.STATE_ROOM_MEMBER ||
                 (previewType != null && !EventType.isKnownType(previewType)) ||
-                (previewType in listOf(EventType.MESSAGE, EventType.STICKER) && state.previewEvent?.getVectorLastMessageContent() == null)
-        val body = if (isPlaceholderPreview) {
+                (previewType in listOf(EventType.MESSAGE, EventType.STICKER) && previewContent == null)
+        // An attachment previews as its filename, and a name like "Screenshot-…@2x.png" reads as an e-mail address.
+        val isFilenamePreview = previewContent is MessageWithAttachmentContent
+        val body = if (isPlaceholderPreview || isFilenamePreview) {
             state.messageBody
         } else {
             state.messageBody.linkify(host.listener)
