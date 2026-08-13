@@ -242,6 +242,13 @@ class VectorPreferences @Inject constructor(
         private const val SETTINGS_SECURITY_USE_GRACE_PERIOD_FLAG = "SETTINGS_SECURITY_USE_GRACE_PERIOD_FLAG"
         const val SETTINGS_SECURITY_USE_COMPLETE_NOTIFICATIONS_FLAG = "SETTINGS_SECURITY_USE_COMPLETE_NOTIFICATIONS_FLAG"
 
+        // VPN protection
+        const val SETTINGS_VPN_WARN_ON_LAUNCH_KEY = "SETTINGS_VPN_WARN_ON_LAUNCH_KEY"
+        const val SETTINGS_VPN_CONFIRM_ACCOUNT_SWITCH_KEY = "SETTINGS_VPN_CONFIRM_ACCOUNT_SWITCH_KEY"
+        const val SETTINGS_VPN_EXCLUDED_SESSION_IDS_KEY = "SETTINGS_VPN_EXCLUDED_SESSION_IDS_KEY"
+        const val SETTINGS_VPN_OFF_ACKNOWLEDGED_KEY = "SETTINGS_VPN_OFF_ACKNOWLEDGED_KEY"
+        const val SETTINGS_VPN_LAST_OBSERVED_ON_KEY = "SETTINGS_VPN_LAST_OBSERVED_ON_KEY"
+
         // New Session Manager
         const val SETTINGS_SESSION_MANAGER_SHOW_IP_ADDRESS = "SETTINGS_SESSION_MANAGER_SHOW_IP_ADDRESS"
 
@@ -331,6 +338,12 @@ class VectorPreferences @Inject constructor(
 
                 SETTINGS_SECURITY_USE_FLAG_SECURE,
                 SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY,
+
+                SETTINGS_VPN_WARN_ON_LAUNCH_KEY,
+                SETTINGS_VPN_CONFIRM_ACCOUNT_SWITCH_KEY,
+                SETTINGS_VPN_EXCLUDED_SESSION_IDS_KEY,
+                SETTINGS_VPN_OFF_ACKNOWLEDGED_KEY,
+                SETTINGS_VPN_LAST_OBSERVED_ON_KEY,
 
                 ShortcutsHandler.SHARED_PREF_KEY,
         )
@@ -1194,6 +1207,40 @@ class VectorPreferences @Inject constructor(
     /** Whether the keyboard should disable personalized learning. */
     fun useIncognitoKeyboard(): Boolean {
         return defaultPrefs.getBoolean(SETTINGS_SECURITY_INCOGNITO_KEYBOARD_PREFERENCE_KEY, false)
+    }
+
+    fun isVpnWarnOnLaunchEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_VPN_WARN_ON_LAUNCH_KEY, false)
+    }
+
+    fun isVpnConfirmSwitchEnabled(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_VPN_CONFIRM_ACCOUNT_SWITCH_KEY, false)
+    }
+
+    fun getVpnExcludedSessionIds(): Set<String> {
+        return defaultPrefs.getStringSet(SETTINGS_VPN_EXCLUDED_SESSION_IDS_KEY, emptySet()).orEmpty()
+    }
+
+    fun setVpnSessionExcluded(sessionId: String, excluded: Boolean) {
+        val current = getVpnExcludedSessionIds().toMutableSet()
+        if (excluded) current.add(sessionId) else current.remove(sessionId)
+        defaultPrefs.edit { putStringSet(SETTINGS_VPN_EXCLUDED_SESSION_IDS_KEY, current) }
+    }
+
+    fun isVpnOffAcknowledged(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_VPN_OFF_ACKNOWLEDGED_KEY, false)
+    }
+
+    fun setVpnOffAcknowledged(acknowledged: Boolean) {
+        defaultPrefs.edit { putBoolean(SETTINGS_VPN_OFF_ACKNOWLEDGED_KEY, acknowledged) }
+    }
+
+    fun wasVpnLastObservedOn(): Boolean {
+        return defaultPrefs.getBoolean(SETTINGS_VPN_LAST_OBSERVED_ON_KEY, false)
+    }
+
+    fun setVpnLastObservedOn(on: Boolean) {
+        defaultPrefs.edit { putBoolean(SETTINGS_VPN_LAST_OBSERVED_ON_KEY, on) }
     }
 
     /** Whether decrypted messages are indexed locally so encrypted rooms are searchable. */

@@ -259,6 +259,7 @@
         <activity android:name=".features.roomprofile.RoomProfileActivity" />
         <activity android:name=".features.roomprofile.settings.joinrule.RoomJoinRuleActivity" />
         <activity android:name=".features.signout.hard.SignedOutActivity" />
+        <activity android:name=".features.vpn.VpnWarningActivity" />
         <activity
             android:name=".features.signout.soft.SoftLogoutActivity"
             android:windowSoftInputMode="adjustResize" />

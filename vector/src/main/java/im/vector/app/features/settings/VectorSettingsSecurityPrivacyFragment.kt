@@ -62,6 +62,7 @@ import im.vector.app.features.pin.PinCodeStore
 import im.vector.app.features.pin.PinMode
 import im.vector.app.features.raw.wellknown.getElementWellknown
 import im.vector.app.features.raw.wellknown.isE2EByDefault
+import im.vector.app.features.settings.vpn.VectorSettingsVpnExclusionsFragment
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTIONS_CATEGORY_KEY
 import im.vector.app.features.redaction.preservation.RedactionPreservationSettings.Companion.SETTINGS_REDACTION_CLEAR_WITH_APP_CACHE_KEY
@@ -310,6 +311,11 @@ class VectorSettingsSecurityPrivacyFragment :
         // Pin code
         openPinCodeSettingsPref.setOnPreferenceClickListener {
             openPinCodePreferenceScreen()
+            true
+        }
+
+        findPreference<VectorPreference>("SETTINGS_VPN_EXCLUSIONS_KEY")?.setOnPreferenceClickListener {
+            (vectorActivity as? VectorSettingsActivity)?.navigateTo(VectorSettingsVpnExclusionsFragment::class.java)
             true
         }
 

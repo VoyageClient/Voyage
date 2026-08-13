@@ -19,6 +19,10 @@ import timber.log.Timber
 
 fun Session.startSyncing(context: Context) {
     val applicationContext = context.applicationContext
+    if (applicationContext.singletonEntryPoint().vpnGateState().isClosed) {
+        Timber.i("VpnGate: gate closed, not starting sync")
+        return
+    }
     if (!syncService().hasAlreadySynced()) {
         // initial sync is done as a service so it can continue below app lifecycle
         VectorSyncAndroidService.newOneShotIntent(

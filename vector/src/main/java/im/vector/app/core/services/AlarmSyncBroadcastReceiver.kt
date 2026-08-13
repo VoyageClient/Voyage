@@ -28,6 +28,10 @@ class AlarmSyncBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Timber.d("## Sync: AlarmSyncBroadcastReceiver received intent")
         val singletonEntryPoint = context.singletonEntryPoint()
+        if (singletonEntryPoint.vpnGateState().isClosed) {
+            Timber.i("VpnGate: gate closed, stopping background sync chain")
+            return
+        }
         if (singletonEntryPoint.activeSessionHolder().getSafeActiveSession() == null) {
             Timber.v("No active session, so don't launch sync service.")
             return

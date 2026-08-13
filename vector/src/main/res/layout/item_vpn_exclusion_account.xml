@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:minHeight="64dp"
+    android:paddingHorizontal="@dimen/layout_horizontal_margin"
+    android:paddingVertical="8dp">
+
+    <ImageView
+        android:id="@+id/vpnExclusionItemAvatar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@sample/user_round_avatars" />
+
+    <TextView
+        android:id="@android:id/title"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="?vctr_content_primary"
+        app:layout_constraintBottom_toTopOf="@android:id/summary"
+        app:layout_constraintEnd_toStartOf="@android:id/widget_frame"
+        app:layout_constraintStart_toEndOf="@id/vpnExclusionItemAvatar"
+        app:layout_constraintTop_toTopOf="@id/vpnExclusionItemAvatar"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Display Name" />
+
+    <TextView
+        android:id="@android:id/summary"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="?vctr_content_secondary"
+        app:layout_constraintBottom_toBottomOf="@id/vpnExclusionItemAvatar"
+        app:layout_constraintEnd_toStartOf="@android:id/widget_frame"
+        app:layout_constraintStart_toStartOf="@android:id/title"
+        app:layout_constraintTop_toBottomOf="@android:id/title"
+        tools:text="\@user:example.org" />
+
+    <FrameLayout
+        android:id="@android:id/widget_frame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

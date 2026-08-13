@@ -32,6 +32,8 @@ New features, improvements, and notable removals in this fork.
 
 - **Multi-account switcher** — switch between multiple logged-in accounts.
 
+- **VPN protection** — opt-in warnings when your VPN is off: a full-screen warning that blocks all network activity until you confirm, and a confirmation before switching accounts, with a per-account list of which accounts to protect.
+
 - **Token sign in** — a "Token Sign In" option alongside Create account and Sign in takes an access token you already hold instead of a password. The token is adopted as-is, so no new device or session is created.
 
 - **Local sign out** — long-press Sign out, in the sidebar drawer, in Settings → General, or on an account switcher row, to remove an account from the app without telling the homeserver. The session stays active server-side until you remove it yourself.

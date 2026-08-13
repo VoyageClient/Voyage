@@ -22,7 +22,7 @@ import im.vector.app.features.themes.ThemeUtils
 /**
  * Switch preference with title on multiline (only used in XML).
  */
-class VectorSwitchPreference : SwitchPreference {
+open class VectorSwitchPreference : SwitchPreference {
 
     // Note: @JvmOverload does not work here...
     constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)

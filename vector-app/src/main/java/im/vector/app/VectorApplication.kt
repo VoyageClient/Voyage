@@ -38,6 +38,8 @@ import im.vector.app.core.pushers.FcmHelper
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.session.EnsureSessionSyncingUseCase
 import im.vector.app.core.session.HomeserverMirrorRefresher
+import im.vector.app.core.vpn.VpnGate
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.configuration.VectorConfiguration
 import im.vector.app.features.invite.InvitesAcceptor
 import im.vector.app.features.lifecycle.VectorActivityLifecycleCallbacks
@@ -90,6 +92,8 @@ class VectorApplication :
     @Inject lateinit var matrix: Matrix
     @Inject lateinit var fcmHelper: FcmHelper
     @Inject lateinit var buildMeta: BuildMeta
+    @Inject lateinit var vpnGate: VpnGate
+    @Inject lateinit var vpnGateState: VpnGateState
     @Inject lateinit var leakDetector: LeakDetector
     @Inject lateinit var vectorLocale: VectorLocale
 
@@ -167,9 +171,12 @@ class VectorApplication :
 
         notificationUtils.createNotificationChannels()
 
+        vpnGate.start()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onResume(owner: LifecycleOwner) {
                 Timber.i("App entered foreground")
+                vpnGate.onAppForegrounded()
+                if (vpnGateState.isClosed) return
                 fcmHelper.onEnterForeground(activeSessionHolder)
                 activeSessionHolder.getSafeActiveSessionAsync {
                     it?.syncService()?.stopAnyBackgroundSync()

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/vpnWarningRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:colorBackground">
+
+    <ImageView
+        android:id="@+id/vpnWarningIcon"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toTopOf="@id/vpnWarningText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:srcCompat="@drawable/ic_alert_triangle" />
+
+    <TextView
+        android:id="@+id/vpnWarningText"
+        style="@style/Widget.Vector.TextView.Subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/layout_vertical_margin"
+        android:gravity="center"
+        android:paddingHorizontal="16dp"
+        android:text="@string/vpn_warning_message"
+        android:textColor="?vctr_content_primary"
+        app:layout_constraintBottom_toTopOf="@id/vpnWarningProceed"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vpnWarningIcon" />
+
+    <Button
+        android:id="@+id/vpnWarningProceed"
+        style="@style/Widget.Vector.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/vpn_warning_proceed"
+        app:layout_constraintBottom_toTopOf="@id/vpnWarningExit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vpnWarningText" />
+
+    <Button
+        android:id="@+id/vpnWarningExit"
+        style="@style/Widget.Vector.Button.Text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/vpn_warning_exit"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/vpnWarningProceed" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -34,6 +34,7 @@ import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.session.AccountInfoCache
 import im.vector.app.core.session.SwitchAccountUseCase
 import im.vector.app.core.utils.deleteAllFiles
+import im.vector.app.core.vpn.VpnGate
 import im.vector.app.databinding.ActivityMainBinding
 import im.vector.app.features.home.HomeActivity
 import im.vector.app.features.home.ShortcutsHandler
@@ -174,6 +175,9 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
     @Inject lateinit var switchAccountUseCase: SwitchAccountUseCase
     @Inject lateinit var accountInfoCache: AccountInfoCache
     @Inject lateinit var mediaCache: MediaCache
+    @Inject lateinit var vpnGate: VpnGate
+
+    private var startAppRequested = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -199,7 +203,15 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             handleViewEvents(it)
         }
 
-        startAppViewModel.handle(StartAppAction.StartApp)
+        // Session init (and its network side effects) waits for the VPN gate; while closed the
+        // VectorBaseActivity observer shows VpnWarningActivity over this splash screen
+        vpnGate.refreshSnapshot()
+        vpnGateState.liveClosed.observe(this) { closed ->
+            if (!closed && !startAppRequested) {
+                startAppRequested = true
+                startAppViewModel.handle(StartAppAction.StartApp)
+            }
+        }
     }
 
     private fun renderState(state: StartAppViewState) {
@@ -359,6 +371,8 @@ class MainActivity : VectorBaseActivity<ActivityMainBinding>(), UnlockedActivity
             }.onFailure { Timber.e(it, "SIGN_OUT: failed to switch to remaining account, falling back to login") }
                     .isSuccess
             if (switched) {
+                // The auto-switch target was never chosen under a VPN check: let the launch gate re-prompt
+                vpnGate.clearAcknowledgement()
                 doLocalCleanup(clearPreferences = false, onboardingStore)
                 restartApp(this@MainActivity, MainActivityArgs())
             } else {

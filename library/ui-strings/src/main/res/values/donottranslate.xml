@@ -10,6 +10,18 @@
     <string name="account_switcher_server_unreachable_title" translatable="false">Server unreachable</string>
     <string name="account_switcher_server_unreachable_message" translatable="false">Could not contact the homeserver. Sign out locally anyway? Your session may remain active on the server.</string>
     <string name="account_switcher_sign_out_anyway" translatable="false">Sign out locally</string>
+    <string name="settings_vpn_category" translatable="false">VPN protection</string>
+    <string name="settings_vpn_warn_on_launch_title" translatable="false">Warn when VPN is off</string>
+    <string name="settings_vpn_warn_on_launch_summary" translatable="false">Block the app with a warning, before any network activity, when the VPN is not connected</string>
+    <string name="settings_vpn_confirm_account_switch_title" translatable="false">Confirm account switch without VPN</string>
+    <string name="settings_vpn_confirm_account_switch_summary" translatable="false">Ask for confirmation before switching accounts while the VPN is not connected</string>
+    <string name="settings_vpn_exclusions_title" translatable="false">Protected accounts</string>
+    <string name="vpn_warning_message" translatable="false">You are not connected to your VPN, are you sure you want to proceed?</string>
+    <string name="vpn_warning_proceed" translatable="false">Proceed</string>
+    <string name="vpn_warning_exit" translatable="false">Exit app</string>
+    <string name="vpn_switch_dialog_title" translatable="false">VPN not connected</string>
+    <string name="vpn_switch_dialog_message" translatable="false">You are not connected to your VPN, are you sure you want to switch accounts?</string>
+    <string name="vpn_switch_dialog_confirm" translatable="false">Switch anyway</string>
 
     <string name="login_signin_token" translatable="false">Token Sign In</string>
     <string name="login_signin_token_title" translatable="false">Sign in with an access token</string>

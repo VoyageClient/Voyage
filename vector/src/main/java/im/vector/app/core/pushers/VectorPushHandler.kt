@@ -18,6 +18,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.core.network.WifiDetector
 import im.vector.app.core.pushers.model.PushData
 import im.vector.app.core.resources.BuildMeta
+import im.vector.app.core.vpn.VpnGateState
 import im.vector.app.features.notifications.NotifiableEventResolver
 import im.vector.app.features.notifications.NotifiableMessageEvent
 import im.vector.app.features.notifications.NotificationActionIds
@@ -29,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.Session
@@ -48,7 +50,9 @@ class VectorPushHandler @Inject constructor(
     private val wifiDetector: WifiDetector,
     private val actionIds: NotificationActionIds,
     private val context: Context,
-    private val buildMeta: BuildMeta
+    private val buildMeta: BuildMeta,
+    private val vpnGateState: VpnGateState,
+    private val authenticationService: AuthenticationService
 ) {
 
     private val coroutineScope = CoroutineScope(SupervisorJob())
@@ -109,6 +113,11 @@ class VectorPushHandler @Inject constructor(
                 Timber.tag(loggerTag.value).d("## handleInternal()")
             }
 
+            if (vpnGateState.isClosed) {
+                Timber.tag(loggerTag.value).i("VpnGate: gate closed, ignoring push")
+                return
+            }
+
             val session = activeSessionHolder.getOrInitializeSession()
 
             if (session == null) {
@@ -133,6 +142,13 @@ class VectorPushHandler @Inject constructor(
     private suspend fun getEventFastLane(session: Session, pushData: PushData) {
         pushData.roomId ?: return
         pushData.eventId ?: return
+
+        // Pushes carry no account discriminator: with several accounts signed in this could be a
+        // stale pusher of another account, and querying would leak its ids to the active homeserver
+        if (authenticationService.getAllSessionParams().size > 1) {
+            Timber.tag(loggerTag.value).d("Multiple accounts, skip fast lane")
+            return
+        }
 
         if (wifiDetector.isConnectedToWifi().not()) {
             Timber.tag(loggerTag.value).d("No WiFi network, do not get Event")
