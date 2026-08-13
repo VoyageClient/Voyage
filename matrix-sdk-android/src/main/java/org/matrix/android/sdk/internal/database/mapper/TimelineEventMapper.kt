@@ -31,35 +31,42 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
     // Parsing an event's JSON (2-3 Moshi passes) dominates timeline snapshot mapping (~1.5ms/event on
     // device), and the live chunk re-maps in full on every sync. Memoize the mapped TimelineEvent per
     // eventId, guarded by a fingerprint over every entity field that feeds the mapping — decryption,
-    // edits, redactions, reactions and read receipts all change the fingerprint, so a stale hit can
-    // only come from a 64-bit hash collision.
-    private val memo = object : LinkedHashMap<String, Pair<Long, TimelineEvent>>(64, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Pair<Long, TimelineEvent>>) = size > MEMO_MAX_SIZE
+    // edits, redactions and reactions all change the fingerprint, so a stale hit can only come from a
+    // 64-bit hash collision. Read receipts are deliberately outside the memo, see below.
+    private class MemoEntry(val fingerprint: Long, val base: TimelineEvent) {
+        @Volatile var withReceipts: TimelineEvent? = null
+    }
+
+    private val memo = object : LinkedHashMap<String, MemoEntry>(64, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, MemoEntry>) = size > MEMO_MAX_SIZE
     }
 
     fun map(timelineEventEntity: TimelineEventEntity, buildReadReceipts: Boolean = true): TimelineEvent {
-        val fingerprint = fingerprintOf(timelineEventEntity, buildReadReceipts)
-        synchronized(memo) {
-            memo[timelineEventEntity.eventId]?.let { (cachedFingerprint, cached) ->
-                if (cachedFingerprint == fingerprint) return cached
-            }
+        val fingerprint = fingerprintOf(timelineEventEntity)
+        val entry = synchronized(memo) {
+            memo[timelineEventEntity.eventId]?.takeIf { it.fingerprint == fingerprint }
+        } ?: MemoEntry(fingerprint, doMap(timelineEventEntity)).also {
+            synchronized(memo) { memo[timelineEventEntity.eventId] = it }
         }
-        val mapped = doMap(timelineEventEntity, buildReadReceipts)
-        synchronized(memo) {
-            memo[timelineEventEntity.eventId] = fingerprint to mapped
-        }
-        return mapped
+        if (!buildReadReceipts) return entry.base
+        // Receipts resolve against member rows, which the fingerprint cannot see, so they are re-read on
+        // every call: cached alongside the base event, a receipt mapped before the room's members landed
+        // would stay a bare user id for the whole session. Reuse the last instance while they are equal —
+        // rebuildSnapshot detects a no-op rebuild by reference.
+        val readReceipts = timelineEventEntity.readReceipts
+                ?.let { readReceiptsSummaryMapper.map(it) }
+                // Sort before dedup: a user can have several receipt rows (threads) and distinctBy
+                // keeps the first, so dedup-first would surface an arbitrary row's timestamp.
+                ?.sortedByDescending { it.originServerTs }
+                ?.distinctBy { it.roomMember }
+                .orEmpty()
+        entry.withReceipts?.takeIf { it.readReceipts == readReceipts }?.let { return it }
+        val event = if (readReceipts.isEmpty()) entry.base else entry.base.copy(readReceipts = readReceipts)
+        entry.withReceipts = event
+        return event
     }
 
-    private fun doMap(timelineEventEntity: TimelineEventEntity, buildReadReceipts: Boolean): TimelineEvent {
-        val readReceipts = if (buildReadReceipts) {
-            timelineEventEntity.readReceipts
-                    ?.let {
-                        readReceiptsSummaryMapper.map(it)
-                    }
-        } else {
-            null
-        }
+    private fun doMap(timelineEventEntity: TimelineEventEntity): TimelineEvent {
         return TimelineEvent(
                 root = timelineEventEntity.root?.asDomain()
                         ?: Event("", timelineEventEntity.eventId),
@@ -74,19 +81,11 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
                         avatarUrl = timelineEventEntity.senderAvatar
                 ),
                 ownedByThreadChunk = timelineEventEntity.ownedByThreadChunk,
-                // Sort before dedup: a user can have several receipt rows (threads) and distinctBy
-                // keeps the first, so dedup-first would surface an arbitrary row's timestamp.
-                readReceipts = readReceipts
-                        ?.sortedByDescending {
-                            it.originServerTs
-                        }?.distinctBy {
-                            it.roomMember
-                        }.orEmpty()
         )
     }
 
-    private fun fingerprintOf(e: TimelineEventEntity, buildReadReceipts: Boolean): Long {
-        var h = if (buildReadReceipts) 1L else 2L
+    private fun fingerprintOf(e: TimelineEventEntity): Long {
+        var h = 1L
         fun add(v: Any?) {
             // -1 for null so it differs from "" (whose hashCode is 0) — sender fields use "" vs null
             // to mean known-empty vs unknown.
@@ -143,12 +142,6 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
                 add(it.endOfLiveTimestampMillis)
                 add(it.lastLocationContent)
             }
-        }
-        e.readReceipts?.readReceipts?.forEach {
-            add(it.userId)
-            add(it.originServerTs)
-            add(it.eventId)
-            add(it.threadId)
         }
         return h
     }

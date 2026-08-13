@@ -30,11 +30,25 @@ internal class ReadReceiptsSummaryMapper @Inject constructor(
     fun map(readReceiptsSummaryEntity: ReadReceiptsSummaryEntity?): List<ReadReceipt> {
         readReceiptsSummaryEntity ?: return emptyList()
         return readReceiptsSummaryEntity.readReceipts.map { receipt ->
-            // A receipt can name someone with no member row yet: the timeline's member load is still in
-            // flight, or they have since left. Show the bare user id rather than dropping the receipt.
-            val user = stores.roomMember.getByRoomAndUser(receipt.roomId, receipt.userId)?.asDomain()
+            // A receipt can name someone with no usable member row: the timeline's member load is still
+            // in flight, or they have since left (leave events carry no profile). Fall back to the cached
+            // global profile, then to the bare user id, rather than dropping the receipt.
+            val member = stores.roomMember.getByRoomAndUser(receipt.roomId, receipt.userId)?.asDomain()
+            val user = member?.takeIf { !it.displayName.isNullOrBlank() }
+                    ?: globalProfileOf(receipt.userId, member)
+                    ?: member
                     ?: RoomMemberSummary(membership = Membership.JOIN, userId = receipt.userId)
             ReadReceipt(user, receipt.originServerTs.toLong(), receipt.threadId)
         }
+    }
+
+    private fun globalProfileOf(userId: String, member: RoomMemberSummary?): RoomMemberSummary? {
+        val profile = stores.user.getUser(userId)?.takeIf { it.displayName.isNotBlank() } ?: return null
+        return RoomMemberSummary(
+                membership = member?.membership ?: Membership.JOIN,
+                userId = userId,
+                displayName = profile.displayName,
+                avatarUrl = profile.avatarUrl,
+        )
     }
 }
