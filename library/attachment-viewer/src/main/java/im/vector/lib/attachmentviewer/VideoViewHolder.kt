@@ -431,6 +431,18 @@ class VideoViewHolder constructor(itemView: View) :
                     val duration = runCatching { mp.duration }.getOrDefault(0)
                     eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(false, duration, duration))
                 }
+                // Without one of these the platform reports an error as a completion, and a player
+                // whose media server has gone answers every later call with another error — the two
+                // feed each other into a storm that locks the UI up. Take the player down instead.
+                setOnErrorListener { _, what, extra ->
+                    Log.w(VideoViewHolder::class.java.name, "Video error what=$what extra=$extra")
+                    releasePlayer()
+                    wasPaused = true
+                    views.videoView.alpha = 0f
+                    views.videoThumbnailImage.isVisible = true
+                    eventListener?.get()?.onEvent(AttachmentEvents.VideoEvent(false, 0, 0))
+                    true
+                }
                 prepareAsync()
             }
             mediaPlayer = player
@@ -518,6 +530,10 @@ class VideoViewHolder constructor(itemView: View) :
                 wasPaused = true
                 endedNaturally = true
             }
+        } else {
+            // Seeking anywhere else leaves the end behind, and play from here means play from here
+            // — not the rewind that playing from the end asks for.
+            endedNaturally = false
         }
         // A real jump, so the anti-jitter hold must not pin reports to the old position.
         lastReportedPositionMs = target

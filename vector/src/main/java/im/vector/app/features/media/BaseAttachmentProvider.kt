@@ -16,6 +16,7 @@ import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
 import im.vector.app.core.date.DateFormatKind
 import im.vector.app.core.date.VectorDateFormatter
+import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.resources.StringProvider
 import im.vector.lib.attachmentviewer.AttachmentInfo
 import im.vector.lib.attachmentviewer.AttachmentSourceProvider
@@ -160,9 +161,10 @@ abstract class BaseAttachmentProvider<Type>(
             }
         })
 
-        if (data.url?.startsWith("content://") == true && data.allowNonMxcUrls) {
-            onVideoSourceResolved(info.uid, data.url)
-            target.onVideoURLReady(info.uid, data.url)
+        val localUrl = data.url?.takeIf { it.isLocalMediaUri() && data.allowNonMxcUrls }
+        if (localUrl != null) {
+            onVideoSourceResolved(info.uid, localUrl)
+            target.onVideoURLReady(info.uid, localUrl)
         } else {
             target.onVideoFileLoading(info.uid)
             coroutineScope.launch(Dispatchers.IO) {

@@ -26,6 +26,7 @@ import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.files.LocalFilesHelper
+import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
@@ -81,6 +82,7 @@ import im.vector.app.features.location.UrlMapProvider
 import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.MediaContentRevealManager
+import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.media.isMediaHiddenInRoom
 import im.vector.app.features.pgp.PgpUtils
@@ -160,6 +162,7 @@ class MessageItemFactory @Inject constructor(
         private val processBodyOfReplyToEventUseCase: ProcessBodyOfReplyToEventUseCase,
         private val richMessageBodyRenderer: RichMessageBodyRenderer,
         private val mediaContentRevealManager: MediaContentRevealManager,
+        private val sendingMediaGate: SendingMediaGate,
         private val pgpDecryptor: im.vector.app.features.pgp.PgpDecryptor,
 ) {
 
@@ -591,6 +594,23 @@ class MessageItemFactory @Inject constructor(
         return isMediaHiddenInRoom(session.roomService().getRoomSummary(roomId), vectorPreferences)
     }
 
+    /**
+     * An attachment of ours is on screen the moment it is sent, but its thumbnail is not decoded yet
+     * — so the row would appear empty and fill in a few frames later. Keep it out of the timeline
+     * until there is something to draw in it.
+     */
+    private fun readyToShowMedia(
+            data: ImageContentRenderer.Data,
+            mode: ImageContentRenderer.Mode,
+            informationData: MessageInformationData,
+            hideMedia: Boolean,
+    ): Boolean {
+        // Hidden media draws no thumbnail at all, and a preserved copy is not a send.
+        if (hideMedia || data.preservedFile != null) return true
+        if (!informationData.sendState.isSending() || !data.url.isLocalMediaUri()) return true
+        return sendingMediaGate.canShow(data, mode, informationData.messageLayout)
+    }
+
     /** The local copy kept for a revealed redaction, if the media was preserved. */
     private fun preservedMediaFor(informationData: MessageInformationData): java.io.File? {
         if (!informationData.isRevealedRedaction) return null
@@ -653,6 +673,12 @@ class MessageItemFactory @Inject constructor(
         }
 
         val hideMedia = shouldHideMedia(informationData)
+        val itemMode = when {
+            messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL -> ImageContentRenderer.Mode.STICKER
+            maybeAnimated && autoplay -> ImageContentRenderer.Mode.ANIMATED_THUMBNAIL
+            else -> ImageContentRenderer.Mode.THUMBNAIL
+        }
+        if (!readyToShowMedia(data, itemMode, informationData, hideMedia)) return null
 
         return MessageImageVideoItem_()
                 .attributes(attributes)
@@ -686,11 +712,7 @@ class MessageItemFactory @Inject constructor(
                             }
                         }
                     }
-                    if (messageContent.msgType == MessageType.MSGTYPE_STICKER_LOCAL) {
-                        mode(ImageContentRenderer.Mode.STICKER)
-                    } else if (maybeAnimated && autoplay) {
-                        mode(ImageContentRenderer.Mode.ANIMATED_THUMBNAIL)
-                    }
+                    mode(itemMode)
                 }
     }
 
@@ -740,12 +762,15 @@ class MessageItemFactory @Inject constructor(
                 callback = callback,
         )
 
+        val hideMedia = shouldHideMedia(informationData)
+        if (!readyToShowMedia(thumbnailData, ImageContentRenderer.Mode.THUMBNAIL, informationData, hideMedia)) return null
+
         return MessageImageVideoItem_()
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .attributes(attributes)
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
-                .hideMedia(shouldHideMedia(informationData))
+                .hideMedia(hideMedia)
                 .hiddenMediaSolidColor(vectorPreferences.useSolidColorForHiddenMedia())
                 .mediaRevealManager(mediaContentRevealManager)
                 .playable(true)

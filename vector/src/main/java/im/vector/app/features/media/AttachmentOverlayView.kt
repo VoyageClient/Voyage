@@ -30,6 +30,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import im.vector.app.R
+import im.vector.app.core.files.isLocalMediaUri
 import im.vector.app.databinding.MergeImageAttachmentOverlayBinding
 import im.vector.app.features.attachments.editor.video.PlaybackSpeed
 import im.vector.app.features.attachments.editor.video.PlaybackSpeedDialog
@@ -222,7 +223,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
             seekPreviewRetriever = MediaMetadataRetriever()
             seekPreviewRetrieverSource = null
             seekPreviewRetriever?.apply {
-                if (source.startsWith("content://")) {
+                if (source.isLocalMediaUri()) {
                     setDataSource(context, Uri.parse(source))
                 } else {
                     setDataSource(source)

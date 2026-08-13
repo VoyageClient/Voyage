@@ -60,6 +60,7 @@ import im.vector.app.features.home.room.detail.timeline.reply.ReplyPreviewRetrie
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.SendingMediaGate
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.timer.Clock
@@ -95,6 +96,7 @@ class TimelineEventController @Inject constructor(
         private val timelineEventVisibilityHelper: TimelineEventVisibilityHelper,
         private val readReceiptsItemFactory: ReadReceiptsItemFactory,
         private val reactionListFactory: ReactionsSummaryFactory,
+        private val sendingMediaGate: SendingMediaGate,
         private val clock: Clock,
         private val avatarRenderer: AvatarRenderer,
 ) : EpoxyController(backgroundHandler, backgroundHandler), Timeline.Listener, EpoxyController.Interceptor {
@@ -488,6 +490,7 @@ class TimelineEventController @Inject constructor(
         timeline?.addListener(this)
         timelineMediaSizeProvider.recyclerView = recyclerView
         reactionListFactory.onRequestBuild = { requestModelBuild() }
+        sendingMediaGate.onRequestBuild = { requestModelBuild() }
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
@@ -496,6 +499,7 @@ class TimelineEventController @Inject constructor(
         contentDownloadStateTrackerBinder.clear()
         timeline?.removeListener(this)
         reactionListFactory.onRequestBuild = null
+        sendingMediaGate.onRequestBuild = null
         super.onDetachedFromRecyclerView(recyclerView)
     }
 

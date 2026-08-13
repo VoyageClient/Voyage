@@ -22,7 +22,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
 import im.vector.app.core.epoxy.onClick
@@ -32,10 +31,10 @@ import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.ui.PerformanceMode
 import im.vector.app.core.ui.views.AbstractFooteredTextView
 import im.vector.app.core.ui.views.RoundedCornerImageView
-import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
-import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
+import im.vector.app.features.home.room.detail.timeline.style.mediaCornerRadiusPx
+import im.vector.app.features.home.room.detail.timeline.style.mediaCornerTransformation
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.app.features.home.room.detail.timeline.view.ScMessageBubbleWrapView
 import im.vector.app.features.media.ImageContentRenderer
@@ -96,18 +95,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     override fun bind(holder: Holder) {
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
-        val dimensionConverter = DimensionConverter(holder.view.resources)
         val isBubble = messageLayout is TimelineMessageLayout.Bubble
-        // Round the image to the same radius as its surrounding bubble border, else (e.g. SC's 3dp
-        // border vs a hardcoded 8dp image) the corners don't match and leave a gap. Falls back to 8dp
-        // outside bubbles.
-        val cornerPx = (messageLayout as? TimelineMessageLayout.ScBubble)?.bubbleAppearance?.getBubbleRadiusPx(holder.view.context)
-                ?: dimensionConverter.dpToPx(8)
-        val imageCornerTransformation = if (isBubble) {
-            (messageLayout as TimelineMessageLayout.Bubble).cornersRadius.granularRoundedCorners()
-        } else {
-            RoundedCorners(cornerPx)
-        }
+        val cornerPx = messageLayout.mediaCornerRadiusPx(holder.view.context)
+        val imageCornerTransformation = messageLayout.mediaCornerTransformation(holder.view.context)
         // Bubble layout already clips at the MessageBubbleView level. For non-bubble we apply a
         // view-level outline clip too, so animated drawables (FrameAnimationDrawable / animated
         // WebP / APNG / GIF) get the same rounded corners — Glide's RoundedCorners is a Bitmap-only
