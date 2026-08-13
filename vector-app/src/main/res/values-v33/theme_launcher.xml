@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Same as values-v31, plus: without icon_preferred the system drops the icon and shows a bare
+         black starting window whenever it decides on an "empty" splash (warm starts, launches that
+         don't ask for the icon style). -->
+    <style name="Theme.Vector.Launcher" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash</item>
+        <item name="colorPrimary">@color/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_glyph_burst</item>
+        <item name="android:windowSplashScreenBehavior">icon_preferred</item>
+    </style>
+
+</resources>

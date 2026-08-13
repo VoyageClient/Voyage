@@ -10,6 +10,7 @@ package im.vector.app.features.themes
 import android.app.Activity
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.util.TypedValue
 import androidx.annotation.AttrRes
@@ -176,6 +177,32 @@ object ThemeUtils {
         }
     }
 
+    /**
+     * Resolves against the given context's own theme instead of the application one. Screens that
+     * are dark whatever the app theme (the attachment preview, the editors, the viewer) need this:
+     * [getColor] answers from the configured application theme, so under a light theme it hands them
+     * colours meant for a light background.
+     */
+    @ColorInt
+    fun getColorFromContextTheme(c: Context, @AttrRes colorAttribute: Int): Int {
+        val color = TypedValue()
+        return if (c.theme.resolveAttribute(colorAttribute, color, true)) color.data else getColor(c, colorAttribute)
+    }
+
+    /** The white and black accents, whose fill is a literal colour rather than a theme-relative one. */
+    fun isMonochromeAccent(context: Context): Boolean =
+            getApplicationThemeAccent(context).let { it == "white" || it == "black" }
+
+    /**
+     * Fill and content colours for an accent-filled button drawn on an always-black surface. Both
+     * monochrome accents render white-on-black there: a black fill would disappear into the backdrop.
+     */
+    fun accentFillOnDarkSurface(c: Context): Pair<Int, Int> = if (isMonochromeAccent(c)) {
+        Color.WHITE to Color.BLACK
+    } else {
+        getColorFromContextTheme(c, R.attr.vctr_accent_fill) to getColorFromContextTheme(c, R.attr.vctr_content_on_accent)
+    }
+
     fun getAttribute(c: Context, @AttrRes attribute: Int): TypedValue? {
         try {
             val typedValue = TypedValue()
@@ -236,6 +263,15 @@ object ThemeUtils {
                 "greendark" -> R.style.AppTheme_SC_Light_GreenDark
                 "element" -> R.style.AppTheme_SC_Light_Element
                 "vibecoder" -> R.style.AppTheme_SC_Light_Vibecoder
+                "peach" -> R.style.AppTheme_SC_Light_Peach
+                "slate" -> R.style.AppTheme_SC_Light_Slate
+                "rose" -> R.style.AppTheme_SC_Light_Rose
+                "magenta" -> R.style.AppTheme_SC_Light_Magenta
+                "violet" -> R.style.AppTheme_SC_Light_Violet
+                "lavender" -> R.style.AppTheme_SC_Light_Lavender
+                "periwinkle" -> R.style.AppTheme_SC_Light_Periwinkle
+                "white" -> R.style.AppTheme_SC_Light_White
+                "black" -> R.style.AppTheme_SC_Light_Black
                 else -> resId
             }
             R.style.AppTheme_SC -> when (themeAccent) {
@@ -259,6 +295,15 @@ object ThemeUtils {
                 "greendark" -> R.style.AppTheme_SC_GreenDark
                 "element" -> R.style.AppTheme_SC_Element
                 "vibecoder" -> R.style.AppTheme_SC_Vibecoder
+                "peach" -> R.style.AppTheme_SC_Peach
+                "slate" -> R.style.AppTheme_SC_Slate
+                "rose" -> R.style.AppTheme_SC_Rose
+                "magenta" -> R.style.AppTheme_SC_Magenta
+                "violet" -> R.style.AppTheme_SC_Violet
+                "lavender" -> R.style.AppTheme_SC_Lavender
+                "periwinkle" -> R.style.AppTheme_SC_Periwinkle
+                "white" -> R.style.AppTheme_SC_White
+                "black" -> R.style.AppTheme_SC_Black
                 else -> resId
             }
             R.style.AppTheme_SC_Dark -> when (themeAccent) {
@@ -282,6 +327,15 @@ object ThemeUtils {
                 "greendark" -> R.style.AppTheme_SC_Dark_GreenDark
                 "element" -> R.style.AppTheme_SC_Dark_Element
                 "vibecoder" -> R.style.AppTheme_SC_Dark_Vibecoder
+                "peach" -> R.style.AppTheme_SC_Dark_Peach
+                "slate" -> R.style.AppTheme_SC_Dark_Slate
+                "rose" -> R.style.AppTheme_SC_Dark_Rose
+                "magenta" -> R.style.AppTheme_SC_Dark_Magenta
+                "violet" -> R.style.AppTheme_SC_Dark_Violet
+                "lavender" -> R.style.AppTheme_SC_Dark_Lavender
+                "periwinkle" -> R.style.AppTheme_SC_Dark_Periwinkle
+                "white" -> R.style.AppTheme_SC_Dark_White
+                "black" -> R.style.AppTheme_SC_Dark_Black
                 else -> resId
             }
             R.style.AppTheme_SC_Colored -> when (themeAccent) {
@@ -305,6 +359,15 @@ object ThemeUtils {
                 "greendark" -> R.style.AppTheme_SC_Colored_GreenDark
                 "element" -> R.style.AppTheme_SC_Colored_Element
                 "vibecoder" -> R.style.AppTheme_SC_Colored_Vibecoder
+                "peach" -> R.style.AppTheme_SC_Colored_Peach
+                "slate" -> R.style.AppTheme_SC_Colored_Slate
+                "rose" -> R.style.AppTheme_SC_Colored_Rose
+                "magenta" -> R.style.AppTheme_SC_Colored_Magenta
+                "violet" -> R.style.AppTheme_SC_Colored_Violet
+                "lavender" -> R.style.AppTheme_SC_Colored_Lavender
+                "periwinkle" -> R.style.AppTheme_SC_Colored_Periwinkle
+                "white" -> R.style.AppTheme_SC_Colored_White
+                "black" -> R.style.AppTheme_SC_Colored_Black
                 else -> resId
             }
             R.style.AppTheme_SC_Dark_Colored -> when (themeAccent) {
@@ -328,6 +391,15 @@ object ThemeUtils {
                 "greendark" -> R.style.AppTheme_SC_Dark_Colored_GreenDark
                 "element" -> R.style.AppTheme_SC_Dark_Colored_Element
                 "vibecoder" -> R.style.AppTheme_SC_Dark_Colored_Vibecoder
+                "peach" -> R.style.AppTheme_SC_Dark_Colored_Peach
+                "slate" -> R.style.AppTheme_SC_Dark_Colored_Slate
+                "rose" -> R.style.AppTheme_SC_Dark_Colored_Rose
+                "magenta" -> R.style.AppTheme_SC_Dark_Colored_Magenta
+                "violet" -> R.style.AppTheme_SC_Dark_Colored_Violet
+                "lavender" -> R.style.AppTheme_SC_Dark_Colored_Lavender
+                "periwinkle" -> R.style.AppTheme_SC_Dark_Colored_Periwinkle
+                "white" -> R.style.AppTheme_SC_Dark_Colored_White
+                "black" -> R.style.AppTheme_SC_Dark_Colored_Black
                 else -> resId
             }
             R.style.AppTheme_AttachmentsPreview_SC -> when (themeAccent) {
@@ -351,6 +423,15 @@ object ThemeUtils {
                 "greendark" -> R.style.AppTheme_AttachmentsPreview_SC_GreenDark
                 "element" -> R.style.AppTheme_AttachmentsPreview_SC_Element
                 "vibecoder" -> R.style.AppTheme_AttachmentsPreview_SC_Vibecoder
+                "peach" -> R.style.AppTheme_AttachmentsPreview_SC_Peach
+                "slate" -> R.style.AppTheme_AttachmentsPreview_SC_Slate
+                "rose" -> R.style.AppTheme_AttachmentsPreview_SC_Rose
+                "magenta" -> R.style.AppTheme_AttachmentsPreview_SC_Magenta
+                "violet" -> R.style.AppTheme_AttachmentsPreview_SC_Violet
+                "lavender" -> R.style.AppTheme_AttachmentsPreview_SC_Lavender
+                "periwinkle" -> R.style.AppTheme_AttachmentsPreview_SC_Periwinkle
+                "white" -> R.style.AppTheme_AttachmentsPreview_SC_White
+                "black" -> R.style.AppTheme_AttachmentsPreview_SC_Black
                 else -> resId
             }
             R.style.Theme_Vector_Light -> when (themeAccent) {
@@ -374,6 +455,15 @@ object ThemeUtils {
                 "blue" -> R.style.Theme_Vector_Light_Blue
                 "greendark" -> R.style.Theme_Vector_Light_GreenDark
                 "vibecoder" -> R.style.Theme_Vector_Light_Vibecoder
+                "peach" -> R.style.Theme_Vector_Light_Peach
+                "slate" -> R.style.Theme_Vector_Light_Slate
+                "rose" -> R.style.Theme_Vector_Light_Rose
+                "magenta" -> R.style.Theme_Vector_Light_Magenta
+                "violet" -> R.style.Theme_Vector_Light_Violet
+                "lavender" -> R.style.Theme_Vector_Light_Lavender
+                "periwinkle" -> R.style.Theme_Vector_Light_Periwinkle
+                "white" -> R.style.Theme_Vector_Light_White
+                "black" -> R.style.Theme_Vector_Light_Black
                 else -> resId
             }
             R.style.Theme_Vector_Dark -> when (themeAccent) {
@@ -397,6 +487,15 @@ object ThemeUtils {
                 "blue" -> R.style.Theme_Vector_Dark_Blue
                 "greendark" -> R.style.Theme_Vector_Dark_GreenDark
                 "vibecoder" -> R.style.Theme_Vector_Dark_Vibecoder
+                "peach" -> R.style.Theme_Vector_Dark_Peach
+                "slate" -> R.style.Theme_Vector_Dark_Slate
+                "rose" -> R.style.Theme_Vector_Dark_Rose
+                "magenta" -> R.style.Theme_Vector_Dark_Magenta
+                "violet" -> R.style.Theme_Vector_Dark_Violet
+                "lavender" -> R.style.Theme_Vector_Dark_Lavender
+                "periwinkle" -> R.style.Theme_Vector_Dark_Periwinkle
+                "white" -> R.style.Theme_Vector_Dark_White
+                "black" -> R.style.Theme_Vector_Dark_Black
                 else -> resId
             }
             R.style.Theme_Vector_Black -> when (themeAccent) {
@@ -420,6 +519,15 @@ object ThemeUtils {
                 "blue" -> R.style.Theme_Vector_Black_Blue
                 "greendark" -> R.style.Theme_Vector_Black_GreenDark
                 "vibecoder" -> R.style.Theme_Vector_Black_Vibecoder
+                "peach" -> R.style.Theme_Vector_Black_Peach
+                "slate" -> R.style.Theme_Vector_Black_Slate
+                "rose" -> R.style.Theme_Vector_Black_Rose
+                "magenta" -> R.style.Theme_Vector_Black_Magenta
+                "violet" -> R.style.Theme_Vector_Black_Violet
+                "lavender" -> R.style.Theme_Vector_Black_Lavender
+                "periwinkle" -> R.style.Theme_Vector_Black_Periwinkle
+                "white" -> R.style.Theme_Vector_Black_White
+                "black" -> R.style.Theme_Vector_Black_Black
                 else -> resId
             }
             else -> resId

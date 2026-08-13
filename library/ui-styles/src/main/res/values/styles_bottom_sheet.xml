@@ -6,9 +6,9 @@
         <item name="colorAccent">?vctr_accent</item>
         <item name="android:colorAccent">?vctr_accent</item>
         <item name="colorPrimary">?vctr_accent</item>
-        <item name="colorOnPrimary">@color/palette_white</item>
+        <item name="colorOnPrimary">?vctr_content_on_accent</item>
         <item name="colorSecondary">?vctr_accent</item>
-        <item name="colorOnSecondary">@color/palette_white</item>
+        <item name="colorOnSecondary">?vctr_content_on_accent</item>
         <item name="colorSurface">@color/element_background_light</item>
         <item name="colorOnSurface">@color/element_content_primary_light</item>
         <item name="colorError">@color/element_alert_light</item>
@@ -22,9 +22,9 @@
         <item name="colorAccent">?vctr_accent</item>
         <item name="android:colorAccent">?vctr_accent</item>
         <item name="colorPrimary">?vctr_accent</item>
-        <item name="colorOnPrimary">@color/palette_white</item>
+        <item name="colorOnPrimary">?vctr_content_on_accent</item>
         <item name="colorSecondary">?vctr_accent</item>
-        <item name="colorOnSecondary">@color/palette_white</item>
+        <item name="colorOnSecondary">?vctr_content_on_accent</item>
         <item name="colorSurface">@color/element_background_dark</item>
         <item name="colorOnSurface">@color/element_content_primary_dark</item>
         <item name="colorError">@color/element_alert_dark</item>

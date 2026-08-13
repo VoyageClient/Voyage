@@ -17,7 +17,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
         android:background="@drawable/rounded_rect_shape_8"
-        android:backgroundTint="?colorPrimary"
+        android:backgroundTint="?vctr_accent_fill"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -29,7 +29,7 @@
             android:padding="4dp"
             app:srcCompat="@drawable/ic_mail"
             android:visibility="gone"
-            app:tint="@android:color/white"
+            app:tint="?vctr_content_on_accent"
             tools:visibility="visible" />
 
         <ImageView
@@ -39,7 +39,7 @@
             android:contentDescription="@string/a11y_checked"
             android:scaleType="centerInside"
             app:srcCompat="@drawable/ic_material_done"
-            app:tint="@android:color/white"
+            app:tint="?vctr_content_on_accent"
             tools:ignore="MissingPrefix" />
     </FrameLayout>
 

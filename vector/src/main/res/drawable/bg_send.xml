@@ -6,7 +6,7 @@
         android:right="10dp"
         android:top="10dp">
         <shape android:shape="oval">
-            <solid android:color="?colorPrimary" />
+            <solid android:color="?vctr_accent_fill" />
         </shape>
     </item>
     <item android:drawable="?attr/selectableItemBackground" />

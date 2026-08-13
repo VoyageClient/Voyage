@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="@color/launcher_background_greendark" />
+        </shape>
+    </item>
+    <item>
+        <bitmap android:src="@mipmap/ic_launcher_glyph_spark" android:gravity="fill" />
+    </item>
+</layer-list>

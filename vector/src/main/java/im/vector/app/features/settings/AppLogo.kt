@@ -15,19 +15,17 @@ import im.vector.app.R
 import im.vector.lib.strings.CommonStrings
 
 /**
- * Selectable application logo. [aliasClassName] is the manifest activity-alias (declared in the
- * vector-app manifest against its manifest package im.vector.application) whose launcher icon this
- * logo maps to; [logoRes] is the matching in-app mark shown on the login/splash screens.
+ * Selectable application logo. [logoRes] is the matching in-app mark shown on the login/splash
+ * screens; the launcher icon itself comes from the activity-alias picked by [AppIcon].
  */
 enum class AppLogo(
         val storageValue: String,
         @DrawableRes val logoRes: Int,
-        val aliasClassName: String,
         @StringRes val titleRes: Int,
 ) {
-    BURST("burst", R.drawable.app_logo_burst, "im.vector.application.features.Alias", CommonStrings.settings_app_logo_burst),
-    SPARK("spark", R.drawable.app_logo_spark, "im.vector.application.features.LauncherSpark", CommonStrings.settings_app_logo_spark),
-    ELEMENT("element", R.drawable.app_logo_element, "im.vector.application.features.LauncherElement", CommonStrings.settings_app_logo_element);
+    BURST("burst", R.drawable.app_logo_burst, CommonStrings.settings_app_logo_burst),
+    SPARK("spark", R.drawable.app_logo_spark, CommonStrings.settings_app_logo_spark),
+    ELEMENT("element", R.drawable.app_logo_element, CommonStrings.settings_app_logo_element);
 
     companion object {
         const val SETTINGS_APP_LOGO_KEY = "SETTINGS_APP_LOGO_KEY"

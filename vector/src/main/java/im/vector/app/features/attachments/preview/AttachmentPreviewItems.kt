@@ -104,10 +104,8 @@ abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<Attachment
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.imageView.isChecked = checked
-        // The activity theme has no accent variant (?colorAccent is the default green) and a themed-attr
-        // ColorStateList doesn't pick up the configured accent either, so resolve it from the app theme and
-        // paint the selection border ourselves. The image view's padding turns this fill into a border.
-        val border = if (checked) ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorAccent) else Color.TRANSPARENT
+        // The image view's padding turns this fill into a border.
+        val border = if (checked) ThemeUtils.getColorFromContextTheme(holder.view.context, com.google.android.material.R.attr.colorAccent) else Color.TRANSPARENT
         val pad = holder.imageView.paddingLeft
         holder.imageView.setBackgroundColor(border)
         holder.imageView.setPadding(pad, pad, pad, pad)

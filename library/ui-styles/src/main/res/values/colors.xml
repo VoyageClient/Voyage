@@ -40,6 +40,14 @@
          clobbers colorAccent/colorPrimary, but cannot define this one. -->
     <attr name="vctr_accent" format="color" />
 
+    <!-- Fill of an accent-coloured shape (send button, badges, filled buttons). Normally the accent
+         itself; the monochrome accents keep their literal colour here even where the accent used as
+         foreground has to flip to stay legible. -->
+    <attr name="vctr_accent_fill" format="color" />
+
+    <!-- Content drawn on top of a vctr_accent_fill shape. -->
+    <attr name="vctr_content_on_accent" format="color" />
+
     <!-- Used for toolbar background -->
     <attr name="vctr_toolbar_background" format="color" />
 
@@ -67,6 +75,10 @@
           - start unread indicator for a room item in the room list
           - Background for unread badge background in the bottom navigation -->
     <attr name="vctr_unread_background" format="color" />
+
+    <!-- Count drawn inside the unread badge. Follows vctr_unread_background, which is the accent in
+         the SC themes and a notice colour in the Element ones. -->
+    <attr name="vctr_unread_text" format="color" />
 
     <!-- Other colors, which are not in the palette -->
     <attr name="vctr_fab_label_bg" format="color" />

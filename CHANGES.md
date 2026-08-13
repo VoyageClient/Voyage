@@ -168,7 +168,7 @@ New features, improvements, and notable removals in this fork.
 
 ### Branding
 
-- **Rebrand to Voyage** — new app ID, icons, and (configurable) logo, a Voyage colour scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages.
+- **Rebrand to Voyage** — new app ID, icons, and a configurable logo and app-icon background colour, a Voyage colour scheme on the splash screen and throughout, an overhauled Help & About screen, and removal of hardcoded Element-green usages.
 
 - **Accent picker** — a swatch picker for the app's accent color, plus an optional "ugly" username color palette. The picker offers thirty colors including monochrome white and black accents.
 

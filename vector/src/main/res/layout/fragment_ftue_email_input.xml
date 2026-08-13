@@ -40,7 +40,7 @@
             android:layout_height="0dp"
             android:adjustViewBounds="true"
             android:background="@drawable/circle"
-            android:backgroundTint="?colorSecondary"
+            android:backgroundTint="?vctr_accent_fill"
             android:contentDescription="@null"
             app:srcCompat="@drawable/ic_email"
             app:layout_constraintBottom_toTopOf="@id/emailEntryHeaderTitle"
@@ -48,7 +48,7 @@
             app:layout_constraintHeight_percent="0.12"
             app:layout_constraintStart_toStartOf="@id/emailEntryGutterStart"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/palette_white" />
+            app:tint="?vctr_content_on_accent" />
 
         <TextView
             android:id="@+id/emailEntryHeaderTitle"

@@ -125,10 +125,11 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="@drawable/circle"
-                android:backgroundTint="?colorPrimary"
+                android:backgroundTint="?vctr_accent_fill"
                 android:importantForAccessibility="no"
                 android:scaleType="center"
-                app:srcCompat="@drawable/ic_add_people" />
+                app:srcCompat="@drawable/ic_add_people"
+                app:tint="?vctr_content_on_accent" />
 
             <TextView
                 style="@style/Widget.Vector.TextView.Body"

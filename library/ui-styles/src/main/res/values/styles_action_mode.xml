@@ -6,7 +6,7 @@
         <item name="background">?android:colorBackground</item>
         <item name="titleTextStyle">@style/Widget.Vector.TextView.Title</item>
         <item name="subtitleTextStyle">@style/Widget.Vector.TextView.Subtitle</item>
-        <item name="actionMenuTextColor">?colorOnPrimary</item>
+        <item name="actionMenuTextColor">?vctr_content_primary</item>
     </style>
 
 </resources>

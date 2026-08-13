@@ -41,6 +41,7 @@
         android:contentDescription="@string/action_send"
         android:scaleType="center"
         app:srcCompat="@drawable/ic_send"
+        app:tint="?vctr_content_on_accent"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

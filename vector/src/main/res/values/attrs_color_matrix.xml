@@ -3,6 +3,8 @@
     <declare-styleable name="ColorMatrixListPreference">
         <!-- Array of color hex strings (parallel to entryValues) shown as swatches in the picker. -->
         <attr name="entryPreviews" format="reference" />
+        <!-- Trailing entries to lay out on a row of their own, instead of packing them into the grid. -->
+        <attr name="trailingRowCount" format="integer" />
     </declare-styleable>
 
     <dimen name="color_matrix_list_preview_size">48dp</dimen>

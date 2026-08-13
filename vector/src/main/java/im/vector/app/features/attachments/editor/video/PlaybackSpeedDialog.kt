@@ -80,8 +80,8 @@ class PlaybackSpeedDialog(
     }
 
     private fun addStepButtons() {
-        val accent = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorAccent)
-        val normal = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+        val accent = ThemeUtils.getColorFromContextTheme(context, com.google.android.material.R.attr.colorAccent)
+        val normal = ThemeUtils.getColorFromContextTheme(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
         PlaybackSpeed.STEP_PERCENTAGES.forEach { percentage ->
             val button = TextView(context).apply {
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)

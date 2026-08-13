@@ -52,6 +52,7 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         get() = views.coordinatorLayout
 
     override fun initUiAndData() {
+        makeSystemBarsTransparent()
         if (isFirstCreation()) {
             val fragmentArgs: AttachmentsPreviewArgs = intent?.extras?.getParcelableCompat(EXTRA_FRAGMENT_ARGS) ?: return
             addFragment(views.simpleFragmentContainer, AttachmentsPreviewFragment::class.java, fragmentArgs)

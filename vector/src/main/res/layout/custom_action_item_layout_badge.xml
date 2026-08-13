@@ -29,7 +29,7 @@
         android:layout_height="14dp"
         android:background="@drawable/bg_unread_highlight"
         android:gravity="center"
-        android:textColor="?colorOnError"
+        android:textColor="?vctr_unread_text"
         app:layout_constraintCircle="@id/action_view_icon_image"
         app:layout_constraintCircleAngle="45"
         app:layout_constraintCircleRadius="12dp"

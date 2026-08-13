@@ -10,7 +10,7 @@
         android:id="@+id/liveLocationStatusContainer"
         android:layout_width="0dp"
         android:layout_height="32dp"
-        android:background="?colorPrimary"
+        android:background="?vctr_accent_fill"
         android:duplicateParentState="true"
         android:paddingStart="9dp"
         android:paddingLeft="9dp"
@@ -37,7 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/location_share_live_enabled"
-        android:textColor="?colorOnPrimary" />
+        android:textColor="?vctr_content_on_accent" />
 
     <Button
         android:id="@+id/liveLocationStatusStop"

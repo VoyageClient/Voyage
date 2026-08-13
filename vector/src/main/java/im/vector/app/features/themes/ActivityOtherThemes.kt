@@ -47,10 +47,13 @@ sealed class ActivityOtherThemes(
             R.style.AppTheme_Launcher_SC
     )
 
+    // Theme_Vector_Black rather than Theme_Vector_Black_AttachmentsPreview: the latter has no accent
+    // variants, so ?colorAccent and friends resolved to the default green. The transparent system bars
+    // it carried are set from code instead, see VectorBaseActivity.makeSystemBarsTransparent().
     object AttachmentsPreview : ActivityOtherThemes(
-            R.style.Theme_Vector_Black_AttachmentsPreview,
-            R.style.Theme_Vector_Black_AttachmentsPreview,
-            R.style.Theme_Vector_Black_AttachmentsPreview,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
+            R.style.Theme_Vector_Black,
             R.style.AppTheme_AttachmentsPreview_SC,
             R.style.AppTheme_AttachmentsPreview_SC,
             R.style.AppTheme_AttachmentsPreview_SC,

@@ -112,11 +112,10 @@ class AttachmentsPreviewFragment :
         views.attachmentPreviewerSendButton.debouncedClicks {
             setResultAndFinish()
         }
-        // This activity's theme has no accent variant, so ?colorAccent here is the default (green) — for
-        // both the layout and any ColorStateList. Resolve the configured accent from the application theme
-        // so the send button, the "original size" checkbox and the selected-media highlight all match.
-        val accent = ThemeUtils.getColor(requireContext(), com.google.android.material.R.attr.colorAccent)
-        views.attachmentPreviewerSendButton.backgroundTintList = ColorStateList.valueOf(accent)
+        val accent = ThemeUtils.getColorFromContextTheme(requireContext(), com.google.android.material.R.attr.colorAccent)
+        val (fill, onFill) = ThemeUtils.accentFillOnDarkSurface(requireContext())
+        views.attachmentPreviewerSendButton.backgroundTintList = ColorStateList.valueOf(fill)
+        ImageViewCompat.setImageTintList(views.attachmentPreviewerSendButton, ColorStateList.valueOf(onFill))
         CompoundButtonCompat.setButtonTintList(
                 views.attachmentPreviewerSendImageOriginalSize,
                 ColorStateList.valueOf(accent)
@@ -352,7 +351,7 @@ class AttachmentsPreviewFragment :
             }
             ImageViewCompat.setImageTintList(
                     binding.compressionLinkToggle,
-                    ColorStateList.valueOf(ThemeUtils.getColor(themedContext, toggleAttribute))
+                    ColorStateList.valueOf(ThemeUtils.getColorFromContextTheme(themedContext, toggleAttribute))
             )
             if (fields) {
                 // Prefilled with the source size, so it is edited from rather than typed from scratch.

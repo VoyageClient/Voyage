@@ -31,6 +31,7 @@ class ColorMatrixListPreferenceDialogFragment : PreferenceDialogFragmentCompat()
     private val columnCount = 5
 
     private var value: String? = null
+    private var trailingRowCount = 0
     private lateinit var entries: Array<CharSequence>
     private lateinit var entryValues: Array<CharSequence>
     private lateinit var entryPreviews: Array<CharSequence>
@@ -46,6 +47,7 @@ class ColorMatrixListPreferenceDialogFragment : PreferenceDialogFragmentCompat()
         entryValues = pref.entryValues
         entryPreviews = pref.entryPreviews
                 ?: throw IllegalStateException("ColorMatrixListPreference requires an entryPreviews array.")
+        trailingRowCount = pref.trailingRowCount
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -93,18 +95,27 @@ class ColorMatrixListPreferenceDialogFragment : PreferenceDialogFragmentCompat()
         val selectionPadding = resources.getDimensionPixelSize(R.dimen.color_matrix_list_selection_padding)
         val borderColor = ThemeUtils.getColor(context, com.google.android.material.R.attr.colorOnSurface)
 
+        val total = minOf(entryValues.size, entryPreviews.size)
+        val gridded = (total - trailingRowCount).coerceAtLeast(0)
+        // Spread the leftovers over the first rows rather than trailing a short row of one or two.
+        val widenedRows = gridded % columnCount
+
         var i = 0
         var rowIndex = 0
-        while (i < entryValues.size && i < entryPreviews.size) {
+        while (i < total) {
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
             }
             grid.addView(row)
-            // Fit one extra swatch on the top row only.
-            val rowColumnCount = if (rowIndex == 0) columnCount + 1 else columnCount
+            val onTrailingRow = i >= gridded
+            val rowColumnCount = when {
+                onTrailingRow -> trailingRowCount
+                rowIndex < widenedRows -> columnCount + 1
+                else -> columnCount
+            }
             var column = 0
-            while (column < rowColumnCount && i < entryValues.size && i < entryPreviews.size) {
+            while (column < rowColumnCount && i < total && (onTrailingRow || i < gridded)) {
                 val entryValue = entryValues[i].toString()
                 val color = Color.parseColor(entryPreviews[i].toString())
                 val selected = entryValue == value
@@ -133,6 +144,12 @@ class ColorMatrixListPreferenceDialogFragment : PreferenceDialogFragmentCompat()
                 row.addView(cell)
                 i++
                 column++
+            }
+            if (onTrailingRow) {
+                // Pad so the trailing swatches keep the same width as the ones in the grid above.
+                repeat(columnCount - column) {
+                    row.addView(View(context), LinearLayout.LayoutParams(0, previewSize).apply { weight = 1f })
+                }
             }
             rowIndex++
         }
